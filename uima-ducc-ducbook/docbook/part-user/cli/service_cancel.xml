@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ Service CANCEL CLI ********************************** -->
+  <section id="ducc.cli.service_cancel" xreflabel="ducc_service_cancel">
+    <title>ducc_service_cancel</title>
+
+    <para>
+      <emphasis>The source for this section is ducc_ducbook/documents/part-user/cli/cancel.xml</emphasis>
+    </para>
+
+    <para>
+      <emphasis>Description:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <para>
+              The <emphasis>ducc_service_cancel</emphasis> CLI is used to cancel
+              a <emphasis>submitted</emphasis> service.  Generally services won't end unless
+              canceled.  If this is used against a <emphasis>registered</emphasis> service instance,
+              the service manager will usually restart the service.
+              Use <emphasis><link linkend="ducc.cli.service.stop">ducc_services
+              stop</link></emphasis>
+              to stop a <emphasis>registered</emphasis> service.
+            </para>
+            
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Usage:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <variablelist>
+              <varlistentry>
+                <term><emphasis role="bold">Script wrapper</emphasis></term>
+                <listitem><para>ducc_service_cancel</para></listitem>
+              </varlistentry>
+          
+              <varlistentry>
+                <term><emphasis role="bold">Executable Jar</emphasis></term>
+                <listitem><para>java-jar <emphasis>$DUCC_HOME</emphasis>/lib/ducc-service-cancel.jar</para></listitem>
+              </varlistentry>
+    
+              <varlistentry>
+                <term><emphasis role="bold">Java main</emphasis></term>
+                <listitem><para>org.apache.uima3.ducc.cli.DuccServiceCancel</para></listitem>
+              </varlistentry>
+              
+            </variablelist>
+
+            <para>
+              If no options are given, help text is presented.
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Options:</emphasis>
+      <variablelist>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--id [serviceid]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      The ID is the jobid returned by the job submission, also available from the webserver.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--help</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      Prints the usage text to the console.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+
+  </section>
+

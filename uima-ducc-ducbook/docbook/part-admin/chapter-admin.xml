@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+<chapter id="ducc.admin">
+  <title>Administration</title>
+
+    <para>
+      <emphasis>The source for this chapter is ducc_ducbook/documents/chapter-admin.xml</emphasis>
+    </para>
+
+  <para>
+      This chapter describes how to start, stop, and generally administer DUCC.
+  </para>
+
+  <para>
+    There are several files used to configure DUCC:
+    <variablelist>
+      <varlistentry>
+        <term><emphasis role="bold">ducc.properties</emphasis></term>
+        <listitem>
+          <para>
+            <emphasis>Ducc.properties</emphasis> contains primary configuration for all the DUCC
+            processes including URL and port specifications, tuning parameters, and protocols.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><emphasis role="bold">ducc.classes</emphasis></term>
+        <listitem>
+          <para>
+            <emphasis>Ducc.classes</emphasis> configures the scheduling classes used by the
+            Resource Manager.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><emphasis role="bold">Node lists</emphasis></term>
+        <listitem>
+          <para>
+            <emphasis>Node lists</emphasis> contain the names of the machines that comprise
+            a DUCC cluster.  The default nodelist is called <emphasis>ducc.nodes</emphasis>
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term><emphasis role="bold">Node pools</emphasis></term>
+        <listitem>
+          <para>
+            <emphasis>Nodepool files</emphasis> are used by the Resource Manager to logically group
+            nodes by function.  Jobs, reservations, and services may be restricted to specific
+            pools of nodes.
+          </para>
+        </listitem>
+      </varlistentry> 
+    </variablelist>
+  </para>
+
+  <para>
+    These are several administrative commands.  To use these one should add
+    <emphasis>ducc_runtime/admin</emphasis> to their PATH.  It is not necessary to
+    add DUCC_HOME to the environment as the commands infer its location from where
+    they are invoked.
+
+    <variablelist>
+
+      <varlistentry>
+        <term> <emphasis role="bold">start_ducc</emphasis></term>
+        <listitem>
+          <para>
+            Use <emphasis>start_ducc</emphasis> to start DUCC administrative processes and agents.  The DUCC
+            processes may be started individually or at once.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">stop_ducc</emphasis></term>
+        <listitem>
+          <para>
+            Use <emphasis>stop_ducc</emphasis> to stop DUCC administrative processes and agents.  The DUCC
+            processes may be stopped individually or at once.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">check_ducc</emphasis></term>
+        <listitem>
+          <para>
+            Use <emphasis>check_ducc</emphasis> to query the state of DUCC processes in the cluster.  It may
+            be used to force-kill DUCC processes and user processes that cannot be stopped by
+            <emphasis>stop_ducc</emphasis> for any reason.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">verify_ducc</emphasis></term>
+        <listitem>
+          <para>
+            Use <emphasis>verify_ducc</emphasis> validate the integrity of your DUCC installation.  It performs
+            extensive checks to insure components are installed as expected.
+          </para>
+        </listitem>
+      </varlistentry>
+
+    </variablelist>
+  </para>
+
+
+ <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/ducc-properties.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/ducc-classes.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/ducc-nodes.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/ducc-nodepool.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/start-ducc.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/stop-ducc.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/check-ducc.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/verify-ducc.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude"  href="admin/logs.xml" />
+
+</chapter>

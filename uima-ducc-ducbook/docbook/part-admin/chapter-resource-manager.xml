@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+<chapter id="ducc.rm">
+  <title>Resource Management, Operation, and Configuration</title>
+  
+  <para>
+    <emphasis>The source for this chapter is ducc_ducbook/documents/chapter-resource-manager.xml</emphasis>
+  </para>
+  
+  <section>
+    <title>Overview</title>
+    <para>
+      The DUCC Resource Manager is responsible for allocating cluster resources among the various
+      requests for work in the system.  DUCC recognizes three classes of work:
+      <orderedlist>
+        <listitem>
+          <para>
+            <emphasis>Managed Jobs</emphasis>.  Managed jobs are Java applications implemented in the
+            UIMA framework.  They are scaled out by DUCC using UIMA-AS.  Managed jobs are executed as
+            some number of discrete processes distributed over the cluster resources.  All processes
+            of all jobs are by definition preemptable; the number of
+            processes is allowed to increase and decrease over time in order to provide all users
+            access to the computing resources.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>Services</emphasis>.  Services are long-running processes which perform
+            some function on behalf of jobs or other services.  Most DUCC services are UIMA-AS
+            services and are managed the same as <emphasis>managed jobs</emphasis>.  From a 
+            scheduling point of view, there is no difference between services and managed jobs.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis>Reservations</emphasis>.  A reservation provides persistent, dedicated use of
+            some portion of the resources to a specific user.  A reservation may be for an entire
+            machine, or it may be for some portion of a machine.  Machines are subdivided 
+            according to the amount of memory installed on the machine.
+          </para>
+        </listitem>
+      </orderedlist>
+    </para>
+    
+    <para>
+      The work that DUCC is designed to support is extremely memory-intensive.  In most cases
+      resources are significantly more constrained by memory than by CPU processing poser.  The
+      entire resource pool in a DUCC cluster therefore consists of the total memory of all the
+      processors in the cluster.
+    </para>
+
+    <para>
+      In order to apportion the cumulative memory resource among requests, the Resource Manager
+      defines some minimum unit of memory and allocates machines such that a "fair" 
+      number of "memory units" are awarded to every user of the system.  This minimum quantity is called
+      a <emphasis>share quantum</emphasis>, or simply, a <emphasis>share</emphasis>.  The scheduling
+      goal is to award an equitable number of memory <emphasis>shares</emphasis> to every user of
+      the system.
+    </para>
+
+    <para>
+      The Resource Manager awards shares according to a <emphasis>fair share</emphasis> policy.  The
+      memory shares in a system are divided equally among all the users who have work in the system.
+      Once an allocation is assigned to a user, that user's jobs are then also assigned an equal
+      number of shares, out of the user's allocation.  Finally, the Resource Manager maps the share
+      allotments to physical resources.
+    </para>
+
+    <para>
+      To map a share allotment to physical resources, the Resource Manager considers the amount of
+      memory that each job declares it requires for each process.  That per-process memory
+      requirement is translated into the minimum number of collocated quantum shares required for the
+      process to run.
+    </para>
+    
+    <para>
+      For example, suppose the share quantum is 15GB.  A job that declares it requires 14GB per
+      process is assigned one quantum share per process. If that job is assigned 20 shares, it will
+      be allocated 20 processes across the cluster.  A job that declares 28GB per process would be
+      assigned <emphasis>two</emphasis> quanta per process.  If that job is assigned 20 shares, it
+      is allocated 10 processes across the cluster.  Both jobs occupy the same amount of memory;
+      they consume the same level of system resources.  The second job does so in half as many
+      processes however.
+    </para>
+
+    <para>
+      The output of each scheduling cycle is always in terms of <emphasis>processes</emphasis>,
+      where each process is allowed to occupy some number of shares. The DUCC agents implement a
+      mechanism to ensure that no user's job processes exceed their allocated memory assignments.
+    </para>
+    
+    <para>
+      Some work may be deemed to be more "important" than other work.  To accommodate this, DUCC
+      allows jobs to be submitted with an indication of their relative importance: more important
+      jobs are assigned a higher "weight"; less important jobs are assigned a lower weight.
+
+      During the fair share calculations, jobs with higher weights are assigned more shares
+      proportional to their weights; jobs with lower weights are assigned proportionally fewer
+      shares.  Jobs with equal weights are assigned an equal number of shares.  This weighed
+      adjustment of fair-share assignments is called <emphasis>weighted fair share.</emphasis>
+    </para>
+
+    <para>
+      The abstraction used to organized jobs by importance is the <emphasis>job class</emphasis>
+      or simply <emphasis>class.</emphasis>  As jobs enter the system they are grouped with 
+      other jobs of the same importance and assigned to a common <emphasis>class.</emphasis>  The
+      class and its attributes are described in subsequent sections.
+    </para>
+
+    <para>
+      The scheduler executes in two phases:
+      <orderedlist>
+        <listitem>
+          <para>
+            The <emphasis>How-Much</emphasis> phase: every job is assigned some number of shares,
+            which is converted to the number of processes of the declared size.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            The <emphasis>What-Of</emphasis> phase: physical machines are found which can
+            accommodate the number of processes allocated by the <emphasis>How-Much</emphasis>
+            phase.  Jobs are mapped to physical machines such that the total declared per-process
+            amount of memory does not exceed the physical memory on the machine.  
+          </para>
+        </listitem>
+      </orderedlist>
+    </para>
+
+    <para>
+      The <emphasis>How-Much</emphasis> phase is itself subdivided into three phases:
+      <orderedlist>
+        <listitem>
+          <para>
+            <emphasis role="bold">Class counts:</emphasis>Apply <emphasis>weighed
+              fair-share</emphasis> to all the job classes that have jobs assigned to them.  This
+            apportions all shares in the system among all the classes according to their weights.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis role="bold">User counts:</emphasis> For each class, collect all the users with
+            jobs submitted to that class, and apply <emphasis>fair-share</emphasis> (with equal weights)
+            to equally divide all the class shares among the users.  This apportions all shares
+            assigned to the class among the users in this class.
+          </para>
+          <para>
+            A user may have jobs in more than one class, in which case that user's fair share
+            is calculated independently within each class.
+          </para>
+        </listitem>
+        <listitem>
+          <para>
+            <emphasis role="bold">Job counts:</emphasis> For each user (independently within each
+            class), collect all the jobs assigned to that user and
+            apply <emphasis>fair-share</emphasis> to equally divide all the user's shares among their
+            jobs.  This apportions all shares given to this user for each class among the user's
+            jobs in that class.
+          </para>
+        </listitem>
+      </orderedlist>
+    </para>
+
+    <para>
+      Reservations are relatively simple.  If the number of shares or machines requested is
+      available or can be made available through preemption of fair-share jobs, the reservation
+      is satisfied and resources are allocated.  If not, the reservation fails.  In the case
+      where preemptions are required, the reservation is delayed until all necessary
+      resources have been freed.
+    </para>
+
+  </section>
+
+  <section>
+    <title>Scheduling policies</title>
+
+    <para>
+      The Resource Manager implements three coexistent scheduling policies. 
+
+      <variablelist>
+        <varlistentry>
+          <term><emphasis role="bold">FAIR_SHARE</emphasis></term>
+          <listitem>
+            <para>
+              This is the weighted-fair-share policy described in detail above.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">FIXED_SHARE</emphasis></term>
+          <listitem>
+            <para>
+              The <emphasis>FIXED_SHARE</emphasis> policy is used to reserve a portion of a
+              machine.  The allocation is treated as a reservation in that it is permanently
+              allocated (until it is canceled) and it cannot be preempted by any other
+              request.
+            </para>
+            <para>
+              A fixed-share request specifies a number of processes of a given size,
+              for example, "10 processes of 32GB each".  The ten processes may or
+              may not be collocated on the same machine.  Note that the resource manager attempts
+              to minimize fragmentation so if there is a very large machine with few
+              allocations, it is likely that there will be some collocation of the
+              assigned processes.
+            </para>
+            <para>
+              A fixed-share allocation may be thought of a reservation for a "partial"
+              machine.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">RESERVE</emphasis></term>
+          <listitem>
+            <para>
+              The <emphasis>RESERVE</emphasis> policy is used to reserve a full
+              machine.  It always returns an allocation for an entire machine. The
+              reservation is permanent (until it is canceled) and it cannot be
+              preempted by any other request.
+            </para>
+            <para>
+              It is possible to configure the scheduling policy so that a
+              reservation returns any machine in the cluster that is available,
+              or to restrict it to machines of the size specified in the
+              reservation request.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+  </section>
+
+  <section>
+    <title>Priority vs Weight</title>
+
+    <para>
+      It is possible that the various policies may interfere with each other.  It is also possible that
+      the fair share weights are not sufficient to guarantee sufficient resources are allocated to
+      high importance jobs.
+      <emphasis>Priorities</emphasis> 
+      are used to resolve these conflicts
+    </para>
+
+    <para>
+      Simply: <emphasis>priority</emphasis> is used to specify the order of evaluation of
+      the job classes.  <emphasis>Weight</emphasis> is used to specify the importance (or
+      weights) of the job classes for use by the weighted fair-share
+      scheduling policy.
+    </para>
+
+    <formalpara>
+      <title>Priority</title>
+      <para>
+        It is possible that conflicts may arise in scheduling policies.  For example, it may be
+        desired that reservations be fulfilled before any fair-share jobs are scheduled.  It may
+        be desired that some types of jobs are so important that when they enter the system
+        all other fair-share jobs be evicted.  Other such examples can be found.
+      </para>
+    </formalpara>
+    
+    <para>
+      To help resolve this, the Resource Manager allows job classes to be prioritized. Priority
+      is used to determine the <emphasis>order of evaluation</emphasis> of the scheduling 
+      classes.
+    </para>
+    
+    <para>
+      When a scheduling cycle starts, the scheduling classes are ordered from "best" to 
+      "worst" priority.  The scheduler then attempts to allocate ALL of the system's
+      resources to the "best" priority class.  If any resources are left, the scheduler
+      goes on to the next class and so on, until either all the resources are exhausted
+      or there is no more work to schedule.
+    </para>
+    
+    <para>
+      It is possible to have multiple job classes of the same priority.  What this means
+      is that resources are allocated for the set of job classes from the same set of
+      resources.  Resources for higher priority classes will have already been allocated,
+      resources for lower priority classes may never become available.
+    </para>
+    
+    <para>
+      To constrain high priority jobs from completely monopolizing the system, 
+      <emphasis>class caps</emphasis> may be assigned.
+      Higher priority guarantees that <emphasis>some</emphasis> resources will be available (or
+      made available) but doesn't that that <emphasis>all</emphasis> resources necessarily be used.
+    </para>
+
+
+    <formalpara>
+      <title>Weight</title>
+      <para>
+        Weight is used to determine the relative importance of jobs in a set of job
+        classes of the same priority when doing fair-share allocation.  All job classes
+        of the same priority are assigned shares from the full set of available
+        resources according to their weights using weighted fair-share.  Weights are
+        used only for fair-share allocation.
+      </para>
+    </formalpara>
+
+    <para>
+      <emphasis>Class caps</emphasis> may also be used to insure that very high
+      importance jobs cannot fully monopolize all of the resources in the system.
+    </para>
+    
+  </section>
+
+  <section>
+    <title>Node Pools</title>
+
+    <para>
+      It may be desired or necessary to constrain certain types of resource allocations to
+      a specific subset of the resources.  Some nodes may have special hardware, or perhaps
+      it is desired to prevent certain types of jobs from being scheduled on some specific
+      set of machines.  Nodepools are designed to provide this function.
+    </para>
+
+    <para>
+      Nodepools impose hierarchical partitioning on the set of available machines.  A nodepool
+      is a subset of the full set of machines in the cluster.  Nodepools may not overlap.
+      A nodepool may itself contain non-overlapping subpools. The highest level nodepool is called the "global"
+      nodepool.  If a job class does not have an associated nodepool, the global nodepool
+      is implicitly associated with he class.
+    </para>
+
+    <para>
+      Nodepools are associated with job classes.  During scheduling, a job may be assigned resources
+      from its associated nodepool, or from any of the subpools which divide the associated
+      nodepool.  The scheduler attempts to fully exhaust resources in the associated nodepool before
+      allocating within the subpools, and during eviction, attempts to first evict from the
+      subpools.  The scheduler insures that the nodepool mechanism does not disrupt fair-share
+      allocation.
+    </para>
+
+    <para>
+      If it is desired that jobs assigned to some subpool take priority over jobs that have 
+      spilled over from the "superpool", then the class associated with the subpool should
+      be given greater weight, or greater priority, as appropriate.  (See the Weight vs
+      Priority discussion.)
+    </para>
+
+    <para>
+      There is no explicit priority associated with nodepools.  However, it is possible to 
+      assign a "preference" to a specific nodepool, if it is desired that those nodes be
+      chosen first when the are available.  Use the nodepool configurations "order" directive to 
+      do this.
+    </para>
+
+  </section>
+
+
+  <section>
+    <title>Job Classes</title>
+    <para>
+      The primary abstraction to control and configure the scheduler is the <emphasis>class</emphasis>.
+      A <emphasis>class</emphasis> is simply a set of rules used to parameterize how resources
+      are assigned to jobs.  Every job that enters the system is associated with one job class.
+    </para>
+
+    <para>
+      The job class defines the following rules:
+      <variablelist>
+
+        <varlistentry>
+          <term><emphasis role="bold">Priority</emphasis></term>
+          <listitem>
+            <para>
+              This is the order of evaluation and assignment of resources to this class.  See the
+              discussion of Priority vs Weight for details.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Weight</emphasis></term>
+          <listitem>
+            <para>
+              This defines the "importance" of jobs in this class and is used in the 
+              weighted fair-share calculations.
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term><emphasis role="bold">Scheduling Policy</emphasis></term>
+          <listitem>
+            <para>
+              This defines the policy, <emphasis>fair share, fixed share, or reserve</emphasis>
+              used to schedule the jobs in this class.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Caps</emphasis></term>
+          <listitem>
+            <para>
+              Class caps limit the total resources assigned to a class.  This is designed to prevent high
+              importance and high priority job classes from fully monopolizing the resources.  It can be
+              used to limit the total resources available to lower importance and lower priority classes.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Nodepool</emphasis></term>
+          <listitem>
+            <para>
+              A class may be associated with exactly one nodepool.  Jobs submitted to the class are assigned
+              only resources which lie in that nodepool, or in any of the subpools defined within that
+              nodepool.
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term><emphasis role="bold">Prediction</emphasis></term>
+          <listitem>
+            <para>
+              For the type of work that DUCC is designed to run, new processes typically take a great
+              deal of time initializing.  It is not unusual to experience 30 minutes or more of
+              initialization before work items start to be processed.
+            </para>
+            <para>
+              When a job is expanding (i.e. the number of assigned processes is allowed to
+              dynamically increase), it may be that the job will complete before the new processes
+              can be assigned and the work items within them complete initialization.  In this
+              situation it is wasteful to allow the job to expand, even if its fair-share is greater
+              than the number of processes it currently has assigned.
+            </para>
+            <para>
+              By enabling prediction, the scheduler will consider the average initialization time for
+              processes in this job, current rate of work completion, and predict the number of
+              processes needed to complete the job in the optimal amount of time.  If this number
+              is less than the job's fair, share, the fair share is capped by the predicted
+              needs.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        
+        <varlistentry>
+          <term><emphasis role="bold">Prediction Fudge</emphasis></term>
+          <listitem>
+            <para>
+              When doing prediction, it may be desired to look some time into the future 
+              past initialization times to
+              predict if the job will end soon after it is expanded.  The prediction fudge 
+              specifies a time past the expected initialization time that is used to 
+              predict the number of future shares needed.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Initialization cap</emphasis></term>
+          <listitem>
+            <para>
+              Because of the long initialization time of processes in most DUCC jobs, process
+              failure during the initialization phase can be very expensive in terms of 
+              wasted resources.  If a process is going to fail because of bugs, missing
+              services, or any other reason, it is best to catch it early.
+            </para>
+            <para>
+              The initialization cap is used to limit the number of processes assigned to
+              a job until it is known that at least one process has successfully passed 
+              from initialization to running.  As soon as this occurs the scheduler will
+              proceed to assign the job its full fair-share of resources.
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+
+        <varlistentry>
+          <term><emphasis role="bold">Expand By Doubling</emphasis></term>
+          <listitem>
+            <para>
+              Even after initialization has succeeded, it may be desired to throttle
+              the rate of expansion of a job into new processes.
+            </para>
+            <para>
+              When expand-by-doubling is enabled, the scheduler allocates either 
+              twice the number of resources a job currently has, or its fair-share
+              of resources, whichever is smallest.
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term><emphasis role="bold">Maximum Shares</emphasis></term>
+          <listitem>
+            <para>
+              This is for FIXED_SHARE policies only.  Because fixed share allocations are
+              not preemptable, it may be desirable to limit the number of shares that
+              any given request is allowed to receive.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Enforce Memory</emphasis></term>
+          <listitem>
+            <para>
+              This is for RESERVE policies only.  It may be desired to allow a reservation request
+              receive any machine in the cluster, regardless of its memory capacity.  It may also
+              be desired to require that an exact size be specified (to ensure the right size
+              of machine is allocated).  The <emphasis>enforce memory</emphasis> rule allows
+              installations to create reservation classes for either policy.
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+      </variablelist>
+    </para>
+  </section>
+</chapter>

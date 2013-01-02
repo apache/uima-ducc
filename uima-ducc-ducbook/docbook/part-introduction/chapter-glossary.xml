@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+<chapter id="ducc.glossary">
+
+  <title>DUCC Terminology, Acronuyms, and Glosssary</title>
+  <para>
+    <emphasis>The source for this chapter is ducc_ducbook/documents/introduction/terminology.xml</emphasis>
+  </para>
+
+  <section id="ducc.glossary.terms">
+    <title>Terms</title>
+    <para>
+      This section defines terms and phrases as used in the context of DUCC.
+    </para>
+
+    <variablelist>
+
+      <varlistentry>
+        <term id="ducc.glossary.automatic-service"> <emphasis role="bold">Automatic Service</emphasis></term>
+        <listitem>
+          <para>
+            An <emphasis>automatic service</emphasis> is a registered service that is started automatically
+            by DUCC when the DUCC system is booted.
+          </para>
+        </listitem>
+      </varlistentry>
+
+
+      <varlistentry>
+        <term id="ducc.glossary.dependent-entity"> <emphasis role="bold">Dependent service or job</emphasis></term>
+        <listitem>
+          <para>
+            A <emphasis>dependent service or job</emphasis> is a job or service that specifies
+            one or more <link linkend="ducc.glossary.service-endpoint">service endpoint</link>
+            in their job specification.  The service or job is dependent upon the referenced
+            service being operational before being started by DUCC.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.ducc"> <emphasis role="bold">DUCC</emphasis></term>
+        <listitem>
+          <para>DUCC stands for "Distributed UIMA  Cluster Computing."</para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.implicit-service"> <emphasis role="bold">Implicit service</emphasis></term>
+        <listitem>
+          <para>
+            An <emphasis>emplicit service</emphasis> is a service that is started externally
+            to DUCC but referenced by some <link linkend="ducc.glossary.dependent-entity">dependent service or job.</link>
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.registered-service"> <emphasis role="bold">Registered service</emphasis></term>
+        <listitem>
+          <para>
+            A <emphasis>registered service</emphasis> is a service that is registered with DUCC. DUCC saves the
+            service specification and fully manages the service, insuring it is running when needed, and
+            shutdown when not.  DUCC manages the usage of the service and (in a future verseion of DUCC) automatically
+            increases and decreases the number of service instances as dictated by demand.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.on-demand-service"> <emphasis role="bold">On-Demand Service</emphasis></term>
+        <listitem>
+          <para>
+            An <emphasis>on-demand service</emphasis> is a registered service that is not started when
+            DUCC is started.  Instead, the service is started when referenced in some job or services
+            service dependency, and stopped when the referencing entity exits.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.service-instance"> <emphasis role="bold">Service Instance</emphasis></term>
+        <listitem>
+          <para>
+            A <emphasis>service instance</emphasis> is one physical process which runs a <emphasis>CUSTOM</emphasis> or
+            <emphasis>UIMA-AS</emphasis> service.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.or"> <emphasis role="bold">Orchestrator (OR)</emphasis></term>
+        <listitem>
+          <para>
+            The Orchestrator coordinates all work in the system.  All new work enters through the
+            orchestrator which guides it through the various DUCC components.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.pm"> <emphasis role="bold">Process Manager (PM)</emphasis></term>
+        <listitem>
+          <para>
+            The Process Manager coordinates distribution of work among the Agents.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.rm"> <emphasis role="bold">Resource Manager (RM)</emphasis></term>
+        <listitem>
+          <para>
+            The Resource Manager allocates and schedules  physical resources among the jobs.
+          </para>
+        </listitem>
+      </varlistentry>
+
+
+      <varlistentry>
+        <term id="ducc.glossary.service-class"> <emphasis role="bold">Service Class</emphasis></term>
+        <listitem>
+          <para>
+            The three <emphasis>service classes</emphasis> are 
+            <itemizedlist>
+              <listitem>
+                <para>
+                  <emphasis>implicit</emphasis>, referring to
+                  a service started independently from DUCC, 
+                </para>
+                </listitem>
+              <listitem>
+                <para>
+                  <emphasis>submitted</emphasis>, referring to a service submitted as a job
+                  to DUCC, and
+                </para>
+              </listitem>
+              <listitem><para><emphasis>registered</emphasis>, referring to a registered DUCC service.</para></listitem>
+            </itemizedlist>
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry  id="ducc.glossary.service-endpoint">
+        <term> <emphasis role="bold">Service Endpoint</emphasis></term>
+        <listitem>
+          <para>
+            In DUCC, the <emphasis>service endpoint</emphasis> provides a unique identifier for a
+            service and in the case of UIMA-AS services, a well-known address for contacting the
+            service.  For CUSTOM services, the endpoint is of the form
+            CUSTOM:<emphasis>string</emphasis> where <emphasis>string</emphasis> is any alphanumeric
+            string provided by the service owner.  For UIMA-AS services, the endpoint is of the form
+            UIMA-AS:<emphasis>queue name</emphasis>:<emphasis>ActiveMQ broker URL</emphasis>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.sm"> <emphasis role="bold">Service Manager (SM)</emphasis></term>
+        <listitem>
+          <para>
+            The Service Manager manages the life-cycles of UIMA-AS and custom services.  It coordinates
+            registration of services, starting and stopping of services, and ensures that services
+            are available and remain available for the lifetime of the jobs.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">Agent</emphasis></term>
+        <listitem>
+          <para>
+            DUCC Agent processes run on every node in the system.  The Agent receives orders to start and stop
+            processes on each node.  Agents also monitor nodes, sending heartbeat packets with node
+            statistics to interested components (such as the RM and web-server).  All Job Driver and
+            Job Process processes are managed as children of the agents.  
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">Ducc-mon</emphasis></term>
+        <listitem>
+          <para>
+            Ducc-mon is the DUCC web-server. All DUCC state of import or interest is presented here including
+            job state, cluster state, DUCC daemon state, and visualization of the system.  Various controlling
+            actions such as canceling jobs, submitting reservations, and administrative functions are supported.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">Job Driver (JD)</emphasis></term>
+        <listitem>
+          <para>
+            The Job Driver is a thin Java wrapper that encapsulates a Job's Collection Reader.  The JD executes
+            as a process that is scheduled and deployed by DUCC.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">Job Process (JP)</emphasis></term>
+        <listitem>
+          <para>
+            The Job Process is a thin java wrapper that encapsulates a job's Analysis Engine.  The JP executes
+            in a process that is scheduled and deployed by DUCC.  
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">Job specification</emphasis></term>
+        <listitem>
+          <para>
+            The Job Specification is a collection of properties that describe a job. It identifies the
+            UIMA components (CR, AE, etc) that comprise the job, and it specifies system-wide
+            properties of the job (classpaths, RAM requirements, etc).  The properties may be provided as
+            (key, value) pairs to the CLI/API, or in a Java propeties file.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">Job</emphasis></term>
+        <listitem>
+          <para>
+            A DUCC job consists of the components required to deploy and execute a UIMA pipeline over
+            a computing cluster.  It consist of a JD to run the Collection Reader, a set of JPs to
+            run the UIMA AEs, and a Job Specification to describe how the parts fit together.
+          </para>
+        </listitem>
+      </varlistentry>
+
+
+      <varlistentry>
+        <term> <emphasis role="bold">Share Quantum</emphasis></term>
+        <listitem>
+          <para>
+            In DUCC, a "share quantum" refers to some quantity of memory; for example, 15GB.  The RM
+            schedules resources according to share quanta.  The 
+            share quantum is the smallest unit of memory that can be assigned.  See the section
+            describing the Resource Manager for details.
+          </para>
+          <para>             
+            The terms "share" and "share quantum" are synonymous in DUCC.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term> <emphasis role="bold">Process</emphasis></term>
+        <listitem>
+          <para>
+            A process is one physical process executing on a machine in the DUCC cluster.  DUCC
+            jobs are comprised of one or more processes (JDs and JPs).
+          </para>
+          <para>
+            From the Resource Management view, a process is comprised of one or more share quanta.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.fair-share"> <emphasis role="bold">Weighted Fair Share</emphasis></term>
+        <listitem>
+          <para>
+            The Weighted Fair Share calculation is used to apportion resources in a "fair" manner
+            to the outstanding work in the system.  To account for some work being more
+            "important" than others, a weighting factor may be applied to bias the 
+            fair-share calculations in favor of such work.
+          </para>
+          <para>
+            See the Resource Manager section for more details on  Weighted Fair Share 
+            in DUCC.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term id="ducc.glossary.work-items"> <emphasis role="bold">Work Items</emphasis></term>
+        <listitem>
+          <para>
+            A <emphasis>work item</emphasis> is one unit of work to be completed in a single
+            DUCC process.  It is usually initiated by the submission of a single CAS from the
+            CR to a UIMA service.  It could be thought of as a single "question" to be answered
+            by a UIMA analytic.  Usually each DUCC JP executes many work items per job.
+          </para>
+        </listitem>
+      </varlistentry>
+
+	</variablelist>
+  </section>
+
+  <section>
+    <title>Acronyms</title>
+    <para>This section defines acronims as used in the context of DUCC.</para>
+
+    <para>
+      AE: UIMA Analysis Engine
+    </para>
+    <para>
+
+      CAS: UIMA Common Analysis Structure
+    </para>
+
+    <para>
+      CC: CAS Consumer
+    </para>
+
+    <para>
+      CM: UIMA CAS Multiplier
+    </para>
+
+    <para>
+      CR: UIMA Collection Reader
+    </para>
+
+    <para>
+      DUCC: Distributed UIMA Cluster Computing
+    </para>
+
+    <para>
+      JD: Job Driver
+    </para>
+
+    <para>
+      JP: Job Process
+    </para>
+
+    <para>
+      OR: Orchestrator
+    </para>
+
+    <para>
+      PM: Process Manager
+    </para>
+
+    <para>
+      RM: Resource Manager
+    </para>
+
+    <para>
+      SM: Service Manager
+    </para>
+
+    <para>
+      UIMA: Unstructured Information Management Architecture (see http://uima.apache.org/)
+    </para>
+
+    <para>
+      UIMA-AS: UIMA Asynchronous Scaleout (see http://uima.apache.org/doc-uimaas-what.html)
+    </para>
+  </section>
+</chapter>

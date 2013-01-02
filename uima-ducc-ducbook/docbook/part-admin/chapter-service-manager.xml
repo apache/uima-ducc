@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+<chapter id="ducc.sm.ov">
+<title>Service Manager</title>
+
+    <para>
+      SM maintains map of all jobs and services and the states of these entities
+      relative to their dependencies.  This is called the <emphasis>service map</emphasis>.
+    </para>
+
+    <para>
+      A job may contain a list of service endpoints.  The SM maintains the state of these
+      in the job's service map entry.
+    </para>
+
+    <para>
+      The SM API is used to register, deregister, start, stop, and query services.
+      <variablelist>
+        <varlistentry>
+          <term><emphasis role="bold">Register</emphasis></term>
+          <listitem>
+            Register sends a service specification to the SM.  Register optionally
+            starts the service.  The SM uses the OR's DuccServiceSubmit API to
+            start the service.  The service definition and state is persisted
+            over system restarts.
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Unregister</emphasis></term>
+          <listitem>
+            Unregister removes the service spec.  It is stopped if it is
+            started and not busy. If still busy it is
+            marked implicit and stopped when the reference count goes to 0.
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Start</emphasis></term>
+          <listitem>
+            Start starts a service and marks it explicit.  If already started but marked
+            implicit it is marked explicit. Only registered services can be started.
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Stop</emphasis></term>
+          <listitem>
+            Stop stops a service.  If busy it is marked implict and stopped when
+            the reference count goes to 0.  Only registered services can be stopped.
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      The OR's API allows services to be started and stopped directly.  It is intended for
+      but not restricted to use by the SM.  Services started with this API other than 
+      through the SM are "established" by the SM but not persisted.  There are two verbs:
+      <variablelist>
+        <varlistentry>
+          <term><emphasis role="bold">Submit</emphasis></term>
+          <listitem>
+            Submit is used to present a service specification to the OR for starting.  OR
+            passes it to SM which coordinates with OR to start it.  When started, SM
+            "establishes" it by starting a ping thread.
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><emphasis role="bold">Cancel</emphasis></term>
+          <listitem>
+            Cancel stops a service.  If the service is still busy it doesn't stop
+            until the reference count is 0.
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      A service is defined to be <emphasis role="bold">established</emphasis> if it has a ping
+      thread.  The service may or may not be registered.  If registered, it isn't established until
+      it is started and has a ping thread.  If not registered the service is discovered only by
+      reference; on discovery a ping thread is started to establish it.
+    </para>
+
+    <para>
+      We distinguish implicitly started services (by reference from a job) and explicitly started
+      services (by API).  For short we call these implicit an explicit services.  This is orthogonal
+      to whether the service is registered.
+    </para>
+
+    <para>
+      A registered service can be started and stopped.  It stays registered until explicitly unregistered
+      by API.  An unregistered service is pinged on the endpoint provided by the job but cannot otherwise
+      be managed.
+    </para>
+
+    <para>
+      The service state indicates wheter a service is implicit or explicit and maintains a reference
+      count.  When the count goes to 0 for implicit services the service is stopped and the ping
+      thread deleted, perhaps after some linger period.  When it goes to 0 for unregistered services
+      the ping is stopped and the ping thread deleted.
+    </para>
+
+
+    <para>
+      If a reference is made to a service that is registered but not established the mechansism to
+      establish it is started: start the service and when it's ready, start it's ping thread,
+      marking it implicit.  Similarly if started by API only mark it explicit.  If a started
+      implicit service receives start from the API it is moved to explicit.  If a started busy
+      explicit service receives a stop from the API mark it implicit and stop it if the ref count is
+      0. If not 0, wait for 0 before stopping it.
+    </para>
+
+    <para>
+      There is one thread to manage the service map and publish to OR.  It is notified after the
+      incoming map is diffed and split.  New work, both job and service, is updated according to
+      service state and added to the map, removed jobs are deleted from the map.  New, updated, and
+      removed services are moved to the service handler thread.  The service map is then published.
+    </para>
+
+    <para>
+      There is another thread that handles only services (the service handler thread).  This one
+      runs on a clock.  The actions below are only in response to OR state, not the
+      register/deregister/start/stop API.  New services with specification are put in a list for
+      starting.  New services without a specification have ping threads started.  Modified services
+      are managed:
+      <itemizedlist>
+        <listitem>
+          If moved from not running to running, start a ping thread.
+        </listitem>
+        <listitem>
+          If moved from running to not running, kill the ping thread, update the service map, and
+          check reason.  If canceled by user or admin / removed (disappeared), delete.  If canceled
+          by system (restart) or crashed, restart.  We depend on OR state accuracy to know whether
+          to restart.
+        </listitem>
+      </itemizedlist>
+    </para>
+
+
+    <para>
+      Threads:
+      <orderedlist>
+        <listitem>One for incoming camel, notified on OR state arrival.
+          Splits the OR state and maintains the localMap.  Notifies the job 
+           threads.
+        </listitem>
+
+        <listitem>One to manage service map.  Notified by splitter thread,
+          updates map and publishes immediately.
+        </listitem>
+
+        <listitem>One thread per service, running pings on a timer.
+        </listitem>
+        
+        <listitem>One temporary thread per OR request used to handle the 
+          APIs to the Orchestrator.  This is created and runs on demand to
+          manage OR communication sessions.
+        </listitem>
+      </orderedlist>
+    </para>
+
+    <para>
+
+      The SM becomes aware of services by registration, submission via OR, and by job reference of 
+      endpoints in the job spec.  This table summarizes the rules for managing services.
+
+      <table frame="all">
+        <title>Service Management Rules</title>
+        <tgroup cols="6">
+          <thead>
+            <row>
+              <entry>Discover</entry>
+              <entry>Persist</entry>
+              <entry>Start By</entry>
+              <entry>Stop By</entry>
+              <entry>Undiscover</entry>
+              <entry>Validate jobs</entry>
+            </row>
+          </thead>
+          <tbody>
+            <row>
+              <entry>SM Register API</entry>
+              <entry>Yes</entry>
+              <entry>SM Start API, Job Reference</entry>
+              <entry>SM Stop API, Last De-reference </entry>
+              <entry>SM Unregister API</entry>
+              <entry>Yes</entry>
+            </row>
+            <row>
+              <entry>OR Submit API</entry>
+              <entry>No</entry>
+              <entry>At Submission</entry>
+              <entry>OR Cancel API</entry>
+              <entry>On Cancel</entry>
+              <entry>Yes</entry>
+            </row>
+            <row>
+              <entry>Reference</entry>
+              <entry>N/A</entry>
+              <entry>N/A </entry>
+              <entry>N/A </entry>
+              <entry>Last De-reference</entry>
+              <entry>Yes</entry>
+            </row>
+          </tbody>
+        </tgroup>
+      </table>
+
+    </para>
+
+    
+    <para>
+      These are discoverable in these ways:
+
+      <variablelist>
+        <varlistentry>
+          <term><emphasis role="bold">By Reference</emphasis></term>
+          <listitem>
+            A job's descriptor has a UIMA-AS endpoint as a service dependency.  SM starts a listener
+            and updates the service state of the job accordingly.  The listener stays alive until
+            the last reference is removed.  The service is not otherwise managed (started or stopped).
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term><emphasis role="bold">By Submission</emphasis></term>
+          <listitem>
+            A service type of job is submitted for startup.  SM starts a listener and updates the
+            service state of any job that references it accordingly.  The listener stays alive until
+            the service is stopped by the OR's service_cancel API and the last reference is removed.
+          </listitem>
+        </varlistentry>
+        
+        <varlistentry>
+          <term><emphasis role="bold">By Registration</emphasis></term>
+          <listitem>
+            A service specification is registered with SM.  When the service is started, SM starts a
+            listener and updates the service state of any referencing job.  The listener stays alive
+            until the service is stopped and the last reference is removed. (If the service is
+            started implicitly it is stopped when the last reference is removed.  If the service is
+            started by the SM's start_service API it is stopped by the SM's stop_service API.)
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+    
+</chapter>

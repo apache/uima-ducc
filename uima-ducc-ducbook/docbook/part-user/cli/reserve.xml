@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ RESERVE CLI ********************************** -->
+  <section>
+    <title>ducc_reserve</title>
+
+    <para>
+      <emphasis>The source for this section is ducc_ducbook/documents/part-user/cli/reserve.xml</emphasis>
+    </para>
+
+    <para>
+      <emphasis>Notes:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+            
+            <para>
+              Reservations may be for full machines, or partial machines based on memory.  The mechanism for
+              distinguishing which type of reservation the job class.  A job class implementing the <emphasis>RESERVE</emphasis>
+              scheduling policy results in a full machine being reserved.  A job clas simplementing the <emphasis>FIXED</emphasis>
+              scheduling policy results in a partial machine being reserved.  The default
+              DUCC distribution configures class <emphasis>reserve</emphasis> for full machine reservations, and
+              class <emphasis>fixed</emphasis> for partial reservations.
+            </para>
+            
+            
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Description:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <para>
+              The <emphasis>reserve</emphasis> CLI is used request a reservation of resources.  Reservations can
+              be for entire machines or partial machines, based on memory requirements.  All reservations are persistent:
+              the resources remain dedicated to the requestor until explicitly returned.  All reservations are performeed
+              on an "all-or-nothing" basis: either the entire set of requested resources is reserved, or the 
+              reservation request fails.
+            </para>
+            
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Usage:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <variablelist>
+                <varlistentry>
+                  <term><emphasis role="bold">Script wrapper</emphasis></term>
+                  <listitem><para><emphasis>$DUCC_HOME</emphasis>/bin/ducc_reserve</para></listitem>
+                </varlistentry>
+
+                <varlistentry>
+                  <term><emphasis role="bold">Executble Jar</emphasis></term>
+                  <listitem><para>java -jar <emphasis>$DUCC_HOME</emphasis>/lib/ducc-reserve.jar</para></listitem>
+                </varlistentry>
+                
+                <varlistentry>
+                  <term><emphasis role="bold">Java main</emphasis></term>
+                  <listitem><para>org.apache.uima.ducc.cli.DuccReservationSubmit</para></listitem>
+                </varlistentry>
+                
+              </variablelist>
+            </para>
+            <para>
+              If no options are given, help text is presented.
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Options:</emphasis>
+      <variablelist>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--description [text]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      The text is any string used to describe the reservation.  It is displayed in the Web Server.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--help</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      Prints the usage text to the console.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--number-of-instances [integer]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the number of full or partial machine reservations to schedule.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--instance-memory-size [KB|MB|GB|TB]]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the amount of memory the reserved machine must supoprt.  For full machine reservations,
+                      this is the total memory on the machine.  For partial reservations, the machine may have more memory, but
+                      not less than is specified.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--scheduling_class [classname]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the name of the scheuling class the RM will use to determine
+                      the resource allocation for each process.  The default DUCC distribution provides
+                      class "reserve" for full machine reservations, and "fixed" for partial machine reservations.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--specifiecaiton [file]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      All the parameters used to request a reservation may be placed in a standard Java properties file.  This file
+                      may then be used to submit the request (rather than providing all the parameters directory to submit).
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+
+  </section>
+

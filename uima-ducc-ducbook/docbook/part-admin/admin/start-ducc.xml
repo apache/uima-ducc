@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ start_ducc ********************************** -->
+  <section>
+    <title>start_ducc</title>
+
+    <para>
+      <emphasis>The source for this chapter is ducc_ducbook/documents/admin/start-ducc.xml</emphasis>
+    </para>
+
+    <para>
+      <emphasis>Description:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term />
+          <listitem>
+
+            <para>
+              Start_ducc is used to start DUCC processes.  If run with no parameters it takes the following
+              actions:
+
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      Starts the management processes Resource Manager, Orchestrator, Process Manager, Services Manager,
+                      and Web Server on the local node (where <emphasis>start_ducc</emphasis> is executed.
+                    </para>
+                    <para>
+                      Starts an agent process on every node named in the default node list.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+            
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Usage:</emphasis>
+      <variablelist>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">start_ducc [options]</emphasis>
+            </para>
+            <para>
+              If no options are given, all DUCC processes are started, using the default
+              node list, ducc_runtime/resources/ducc.nodes.  This is the equivalent of
+            </para>
+            <screen>start_ducc -n $DUCC_HOME/resources/ducc.nodes -m</screen>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+    
+    <para>
+      <emphasis>Options:</emphasis>
+      <variablelist>
+
+        <varlistentry>
+          <term />
+          <listitem>
+            <para>
+              <emphasis role="bold">-n, --nodelist [nodefile]</emphasis>
+
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      Start agents on the nodes in the nodefile.  Multiple nodefiles may be specified:
+                    </para>
+                    <para>
+                      <screen>start_ducc -n foo.nodes -n bar.nodes -n baz.nodes</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">-m, --management</emphasis>
+
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      Start the management processes (rm, sm, pm, orchestrator) on the local node.  The
+                      webserver is started on the local node, or the node configured in
+                      <emphasis>ducc.properties.</emphasis>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">-c, --component [component]</emphasis>
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      Start a specific DUCC component, optionally on a specific node.  If the component name
+                      is qualified with a nodename, the component is started on that node.  To qualify a
+                      component name with a destination node, use the notation component@nodename.
+                      Multiple components may be specified:
+                    </para>
+                    <para>
+                      <screen>start_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2</screen>
+                    </para>
+                    <para>
+                      Components include:
+                      <variablelist>                      
+                        <varlistentry>
+                          <term> <emphasis role="bold">rm</emphasis></term>
+                          <listitem>
+                            <para>
+                              The Resource Manager.
+                            </para>
+                          </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                          <term> <emphasis role="bold">or</emphasis></term>
+                          <listitem>
+                            <para>
+                              The Orchestrator.
+                            </para>
+                          </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                          <term> <emphasis role="bold">pm</emphasis></term>
+                          <listitem>
+                            <para>
+                              The Process Manager.
+                            </para>
+                          </listitem>
+                        </varlistentry>
+                        
+                        <varlistentry>
+                          <term> <emphasis role="bold">sm</emphasis></term>
+                          <listitem>
+                            <para>
+                              The Service Manager.
+                            </para>
+                          </listitem>
+                        </varlistentry>
+                        
+                        <varlistentry>
+                          <term> <emphasis role="bold">ws</emphasis></term>
+                          <listitem>
+                            <para>
+                              The Web Server.
+                            </para>
+                          </listitem>
+                        </varlistentry>
+                        
+                        <varlistentry>
+                          <term> <emphasis role="bold">agent</emphasis></term>
+                          <listitem>
+                            <para>
+                              Node Agents.
+                            </para>
+                          </listitem>
+                        </varlistentry>
+                        
+                      </variablelist>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+
+    </para>
+
+
+    <para>
+      <emphasis>Notes:</emphasis>
+      <variablelist>
+        <varlistentry>
+           <term  />
+          <listitem>
+
+            <para>
+              A different nodelist may be used to specify where Agents are started.  As well multiple node lists
+              may be specified, in which case Agents are started on all the nodes in the multiple node lists.
+            </para>
+            
+            <para>
+              To start only agents, run <emphasis>start_ducc</emphasis> specifying a nodelist explicitly.  When
+              started like this, the management daemons are not started unless explicitly requested.
+            </para>
+            
+            <para>
+              To start only management processes, run <emphasis>start_ducc</emphasis> with the 
+              <emphasis>-m or --management</emphasis> flags.  When started like the the agents are not started
+              unless explicitly requested.
+            </para>
+            
+            <para>
+              To start a specific management process, run <emphasis>start_ducc</emphasis> with the
+              <emphasis>-c component</emphasis> parameter, specify the component that should be
+              started.
+            </para>
+            
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Examples:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <para>
+              Start all DUCC processes, using custom nodelists:
+              <screen>start_ducc -m -n foo.nodes -n bar.nodes</screen>
+              <screen></screen>
+            </para>
+
+            <para>
+              Start just management processes:
+              <screen>start_ducc -m</screen>
+              <screen></screen>
+            </para>
+
+            <para>
+              Start just agents on a specific set of nodes:
+              <screen>start_ducc -n foo.nodes -n bar.nodes</screen>
+              <screen></screen>
+            </para>
+
+            <para>
+              Start and agent on a specific node:
+              <screen>start_ducc -c agent@a.specific.node</screen>
+              <screen></screen>
+            </para>
+
+            <para>
+              Start the webserver on node 'bingle':
+              <screen>start_ducc -c ws@bingle</screen>
+              <screen></screen>
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+  </section>

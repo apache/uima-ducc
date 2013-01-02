@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ verify_ducc ********************************** -->
+  <section>
+    <title>verify_ducc</title>
+
+    <para>
+      <emphasis>The source for this chapter is ducc_ducbook/documents/admin/verify-ducc.xml</emphasis>
+    </para>
+
+    <para>
+      <emphasis>Description:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <para>
+              <emphasis>verify_ducc</emphasis> performs a number of internal consistency checks
+              to insure the DUCC installation is complete and has no obvious configuration errors.
+              The following checks are performed:
+            </para>
+
+            <itemizedlist>
+              <listitem>
+                <para>
+                Insure <emphasis>ducc_ling</emphasis> is installed in the configured
+                location and has correct permission and ownership on all nodes.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Insure ActiveMQ is installed and configured in a way compatible with the
+                ActiveMQ URL in ducc.properties.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Insure all nodelists exist and are readable.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Insure all nodes can be reached via ssh.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Insure all nodes are running identical versions of DUCC.
+                </para>
+              </listitem>
+
+              <listitem>
+                <para>
+                Insure java is installed in the location configured in ducc.properties on all
+                nodes.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Print the version of java on all nodes.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Print the version of operating system on all nodes.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Print the amount of RAM on all nodes.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Insure all configured nodepools in ducc.classes exist and reference nodes
+                are configured in the nodelists.
+                </para>
+              </listitem>
+              
+              <listitem>
+                <para>
+                Insure that all nodepools referenced by classes also defined.
+                </para>
+              </listitem>
+              
+            </itemizedlist>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+    
+    <para>
+      <emphasis>Usage:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">verify_ducc [options]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      If no options are given, the nodes in <filename>ducc_runtime/resources/ducc.nodes</filename>
+                      are used and the default ActiveMQ broker location of <filename>~ducc/activemq</filename>
+                      is used.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Options:</emphasis>
+      <variablelist>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">-b [broker_install_dir]</emphasis>
+            </para>
+
+            <variablelist>
+              <varlistentry>
+                <term  />
+                <listitem>
+                  <para>
+                    This specifies the name of the ActiveMQ broker configuration file that you are using.
+                  </para>
+                  <para>
+                    <screen>verify_ducc -b /home/challngr/amqbroker/amq/conf/activemq-nojournal5.xml</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">-n [nodelist]</emphasis>
+            </para>
+
+            <variablelist>
+              <varlistentry>
+                <term  />
+                <listitem>
+                  <para>
+                    This specifies the nodelist against which the DUCC installation is verified.
+                    This nodelist should be the same nodelist that DUCC will be started with.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Notes:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <para>
+              It may take a couple attempts to get <emphasis>verify_ducc</emphasis> to run
+              without error.  It is important that all problems reported by <emphasis>
+              verify_ducc</emphasis> are handled before trying to start DUCC the first time.
+            </para>
+                        
+            <para>
+              It is recommended that <emphasis>verify_ducc</emphasis> be run after any
+              update to the DUCC configuration, most importantly, the addition of nodes.
+              <emphasis>Verify_ducc</emphasis> checks the <emphasis>ducc_ling</emphasis>
+              configuration on the new nodes as well as verifies network and <emphasis>ssh</emphasis>
+              connectivity.
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+  </section>
+

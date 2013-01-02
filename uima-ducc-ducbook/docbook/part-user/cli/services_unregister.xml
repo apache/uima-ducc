@@ -1,0 +1,850 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ Service CLI ********************************** -->
+  <section id="ducc.cli.service.cli">
+    <title>ducc_services</title>
+
+    <para>
+      <emphasis>The source for this section is ducc_ducbook/documents/part-user/cli/service_api.xml</emphasis>
+    </para>
+
+    <para>
+      <emphasis>Description:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <listitem>
+
+            <para>
+              The <emphasis>ducc_services</emphasis> CLI is used to manage service registration. It
+              has a number of functions as listed below. 
+              Additionally the <emphasis>ducc_services</emphasis> CLI wraps <emphasis>ducc_service_submit</emphasis>
+              and <emphasis>ducc_service_cancel</emphasis> for convenience.
+            </para>
+
+            <para>
+              The functions include:
+            </para>
+
+            <variablelist>
+              <varlistentry>
+                <term> <emphasis role="bold">Register</emphasis></term>
+                <listitem>
+                  <para>
+                    This <emphasis>registers</emphasis> a service with the Service Manager. A registered
+                    service is retained by DUCC until it is unregistered.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term> <emphasis role="bold">Unregister</emphasis></term>
+                <listitem>
+                  <para>
+                    This <emphasis>unregisters</emphasis> a service with the Service Manager. When a service
+                    is unregistered DUCC optionally stops the service instance, if any, and discards all knowledge of it.
+                  </para>
+                </listitem>
+              </varlistentry>
+            
+              <varlistentry>
+                <term> <emphasis role="bold">Start</emphasis></term>
+                <listitem>
+                  <para>
+                    The <emphasis>start</emphasis> function instructs DUCC to alllocate resources for a service
+                    and to start it in those resources.  The service remains running until explictly stopped.  DUCC
+                    will attempt to keep the service instances running if they should fail.  The <emphasis>start</emphasis>
+                    function is also used to increase the number of running service instances if desired.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term> <emphasis role="bold">Stop</emphasis></term>
+                <listitem>
+                  <para>
+                    The <emphasis>stop</emphasis> function stops some or all service instances.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term> <emphasis role="bold">Query</emphasis></term>
+                <listitem>
+                  <para>
+                    The <emphasis>query</emphasis> function returns detailed information about all known services,
+                    both registerd and otherwise.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term> <emphasis role="bold">Modify</emphasis></term>
+                <listitem>
+                  <para>
+                    The <emphasis>modify</emphasis> function allows some aspectes of a registered service to be
+                    updated without re-registereing the service.  It optionally alters the running service
+                    instances to conform with the updates.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term> <emphasis role="bold">Submit</emphasis></term>
+                <listitem>
+                  <para>
+                    Use the <emphasis role="bold">ducc_service_submit</emphasis> command to submit a
+                    service.  This is available only through the command-line wrapper.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term> <emphasis role="bold">Cancel</emphasis></term>
+                <listitem>
+                  <para>
+                    Use the <emphasis role="bold">ducc_service_cancel</emphasis> command to cancel a
+                    submitted service.  This is available only through the command-line wrapper.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Usage:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <listitem>
+
+            <variablelist>
+              <varlistentry>
+                <term><emphasis role="bold">Script wrapper</emphasis></term>
+                <listitem><emphasis>$DUCC_HOME</emphasis>/bin/ducc_services</listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><emphasis role="bold">Executble Jar</emphasis></term>
+                <listitem>java -jar <emphasis>$DUCC_HOME</emphasis>/lib/ducc-services.jar</listitem>
+              </varlistentry>
+              
+              <varlistentry>
+                <term><emphasis role="bold">Java main</emphasis></term>
+                <listitem>org.apache.uima.ducc.cli.DuccServiceApi</listitem>
+              </varlistentry>
+                            
+            </variablelist>
+
+            <para>
+              The <emphasis role="bold">ducc_services</emphasis> CLI requires one of the verbs listed above
+              as the first argument.  The subsequent arguments are determned by the verb.
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Register Options:</emphasis>
+
+      <variablelist>
+        <varlistentry>
+          <listitem>
+            The first parameter must be the keyword <emphasis role="bold">--register</emphasis>, optionally
+            followed by properties file containing a full or partial specification for the service.  All
+            parameters may be overridden on the commandline as described below.  The properties file contains
+            registration options as shown below and may be omitted if sufficient command-line overrides are
+            supplied.  
+            
+            The properties in the properties file are identical to the command-line parameters, but with the
+            leading "--" removed.  For example:
+            <screen>
+process_environment = AE_INIT_TIME=50 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
+description = Test Service 0
+process_jvm_args = -Xmx100M -DdefaultBrokerURL=tcp://bluej291:61617
+process_classpath = ../../lib/ducc-test.jar
+process_memory_size = 15
+working_directory = /home/bob/service-descriptors
+process_DD = Service_FixedSleep_0.xml
+process_deployments_max = 1
+scheduling_class = fixed
+            </screen>
+            
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      To register a service:
+      <screen>ducc_services --register [optional properties file] [list of override options]</screen>
+      where the options include:
+    </para>
+
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--debug</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    Enable debugging messages.  This is primarily for debugging DUCC itself.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--description [text]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    The text is any string used to describe the job.  It is displayed in the Web Server.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--help</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    Prints the usage text to the console.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--instances [number-of-instances]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This defines the default number of service instances to start.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--jvm [path-to-java]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    States the JVM to use.  If not specified, the same JVM used by the Agents is used.
+                    Example:<screen>/share/jdk1.6/bin/java</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+
+
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--log_directory [path-to-log directory]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the path to the directory for the user logs.  If not specified,
+                    the default is the user's home directory.  Example:<screen>/home/bob</screen>.
+                    Within this directory DUCC creates a subdirectory for each job, using the
+                    numerical ID of the job.
+                  </para>
+                  <note>
+                    Note that <emphasis>--log_directory</emphasis> specifies only the path to
+                    a directory where logs are to be stored.  In order to manage multiple processes
+                    running in multiple machines DUCC, sub-directory and file names are generated
+                    by DUCC and may not be directly specified.
+                  </note>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--process_classpath [ClASSPATH]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the Java CLASSPATH to use in each Job Process (JP) and must be specified.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--process_DD [DD descriptor]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies a UIMA Deployment Descriptor for the job processes for DD-style
+                    jobs. This is mutually exclusive with <emphasis>--process_descriptor_AE,
+                    --process_descriptor_CM, and --process_descriptor_CC.</emphasis> This descriptor
+                    is a resource that is searched for in the CLASSPATH and data path as described
+                    in the <emphasis><link linkend="ducc.cli.notes">notes</link></emphasis>.  For
+                    example:<screen>--process_DD /home/billy/resource/DD_foo.xml</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--process_environment [environment]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies environment parameters for the Job Processes.  If present, they are added
+                    to the Job Process  environment as the process is spawned.  It must be a quoted,
+                    blank-delimeted lsit of name-value pairs.  For example:
+                    <screen>"--process_environment TERM=xterm DISPLAY=:1.0"</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--process_failures_limit [integer]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the maximum number of individual Job Process (JP) failures that are
+                    to be tolerated before killing the job.  The default is 15.  If this limit is
+                    exceeded over the lifetime of a job DUCC terminates the entire job.
+                    <screen>"--process_failures_limit 23"</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--process_initialization_failures_cap [integer]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the maximum number of independent Job Process initialization
+                    failures (i.e. System.exit(), kill-15...) before the number of Job Processes is
+                    capped at the number in state Running currently.  The default is 99.
+                    Example:<screen>--process_initialization_failures_cap 62</screen>
+                  </para>
+                  <para>
+                    Note that the job is NOT killed if there are processes that have passed initialization and
+                    are running.  If this limit is reached, the only action is to not start new processes
+                    for the job.
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--process_jvm_args [list]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies additinal arguments to be passed to the Job Process JVM.
+                    Example:<screen>--process_jvm_args -Xmx400M -Xms100M</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--process_memory_size [size]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the maximum amount of RAM in GB to be allocated to each Job Process.  This 
+                    value is used by the Resource Manager to allocate resources.  if this amount is 
+                    exceeded by a Job Process the Agent terminates the process with a ShareSizeExceeded
+                    message.
+                    Example:<screen>--process_memory_size 33</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--scheduling_class [classname]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the name of the scheuling class the RM will use to determine
+                    the resource allocation for each process.  The names of the classes are installation
+                    dependent.
+                    Example:<screen>--schedling_class normal</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--service_custom_classpath [CLASSPATH]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the classpath to be used when starting a CUSTOM ping thread.  It is primarily intended
+                    for non-UIMA-AS services but it may be implemented for UIMA-AS services as well if the default
+                    DUCC ping function is not sufficient.
+                    Example:<screen>--service_custom_classpath A.jar:B.Jar:C.Jar</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--service_custom_endpoint [CUSTOM:string]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This provides the name of the endpoint to used for non-UIMA-AS services.  In the
+                    current release of DUCC this type of service must be started independently of
+                    DUCC but DUCC is able to monitor it
+                    if <emphasis role="bold">--service_custom_ping</emphasis> is provided.  The
+                    endpoint must start with the characters "CUSTOM:" followed by any unique string
+                    (with no embedded blanks) that DUCC can use to identify the service.
+                    Example:<screen>--service_custom_endpoint CUSTOM:jrc.service.endpoint</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--service_custom_jvm_args [list]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This supplies extra arguments to the JVM for the CUSTOM ping object.
+                    Example:<screen>--service_custom_jvm_args -Xmx 400M -Xms100M</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--service_custom_ping [java class]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This supplies the java class name for a CUSTOM ping object.  The class must
+                    the interface <emphasis role="bold">org.apache.uima.ducc.IServiceMega</emphasis> as
+                    described in the API section.  DUCC wraps the customer ping object in a
+                    management object with a "main" and calls the implemented interfaces 
+                    periodically to insure the custom service is functioning, and to gather
+                    performance statistics.
+                    Example:<screen>--service_custom_ping bob.net.BobsCustomPing</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--service_dependency[list]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies a comma-delimeted list of services the job processes are dependent upon.
+                    Each endpoint must be of the form UIMA-AS:<emphasis>endpoint</emphasis>:<emphasis>broker_url</emphasis>
+                    where <emphasis>endpoint</emphasis> is the UIMA-AS service endpoint and <emphasis>broker_url</emphasis>
+                    is the ActiveMQ broker URL.
+                  </para>
+                  <para>
+                    In the example are two dependencies, one with endpoint RandomSleepAE and broker tcp:bluej682:61616, and the other
+                    with endpoint OtherEp and broker URL tcp:bluej123:123.
+                    Example:<screen>--service_dependency UIMA-AS:RandomSleepAE:tcp:bluej682:61616,UIMA-AS:OtherEp:tcp:bluej123:123</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--service_linger [time in seconds]</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the time, in seconds, that a service should be kept alive
+                    after its last reference has exited, in anticipation of new work entering
+                    the system and using it.  This is only applicable to services that are
+                    not automatically started at boot time.
+                    Example:<screen>--service_linger 300</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--working_directory</emphasis>
+
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  <para>
+                    This specifies the working directory to be set by the Job Driver and Job Process processes.  If not
+                    specified, the current directory is used.  Example:<screen>--working_directory /Users/challngr/projects/ducc/ducc_test/bin</screen>
+                  </para>
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+
+
+    <para>
+      <emphasis>Unregister Options:</emphasis>
+
+      <variablelist>
+        <varlistentry>
+          <listitem>
+            The first parameter must be the keyword <emphasis role="bold">--unregister</emphasis> followed
+            by the numeric id or the enddoint string of the service to be canceled.            
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <para>
+              To unregister a service
+              <screen>ducc_services --unregister [numeric service id]</screen>
+              or
+              <screen>ducc_services --unregister [service endpoint]</screen>
+            </para>
+            
+            <para>
+              For example:
+              <screen>ducc_services --unregister 22</screen>
+              <screen>ducc_services --unregister UIMA-AS:AGoodEndpoint:tcp://bob.com:12345</screen>
+            </para>
+
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Start Options:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <listitem>
+            <para>
+              The first parameter to <emphasis role="bold">ducc_services </emphasis> must be the
+              keyword <emphasis role="bold">--start</emphasis>, followed immediately by the service
+              id and optionally followed by parameters to indiciate the number of instances to start
+              and whether to update the registry with the new number of instnaces.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      To start a service:
+      <screen>
+ducc_services --start [numeric id] [options]
+ducc_services --start [service endpoint string] [options]
+      </screen>
+      where the options include:
+    </para>
+
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--instances [integer]</emphasis>
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  This is the number of instances to start.  If omitted, the registered number of
+                  instances is started.  If the number is specified, the number is <emphasis>added</emphasis>
+                  to the currently number of running instances.  Thus if five instances are running and
+                  <emphasis>ducc_services --start 33 --instances 5</emphasis> is issued, five more
+                  service instances ar started for service 33 for a totoal of ten.  The registry is
+                  updated only if the <emphasis>--modify</emphasis> option is also specified.
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--modify</emphasis>
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  If specified, the registry is updated to the total number of started instances.
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </para>
+
+    <para>
+      <emphasis>Stop Options:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <listitem>
+            <para>
+              The first parameter to <emphasis role="bold">ducc_services </emphasis> must be the
+              keyword <emphasis role="bold">--stop</emphasis>, followed immediately by the service
+              id and optionally followed by parameters to indiciate the number of instances to stop
+              and whether to update the registry with the new number of instnaces.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      To start a service:
+      <screen>
+ducc_services --stop [numeric id] [options]
+ducc_services --stop [service endpoint string] [options]
+      </screen>
+      where the options include:
+    </para>
+
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--instances [integer]</emphasis>
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  This is the number of instances to stop.  If omitted, all currently running
+                  instances are stopped. If the number is specified, only the number of instances specified
+                  are stopped.  Thus if ten instances are running and
+                  <emphasis>ducc_services --stop 33 --instances 5</emphasis> is issued, five
+                  (arbitrarily chosen) service instances ar stopped for service 33 leaving 5 active
+                  .  The registry is updated only if the <emphasis>--modify</emphasis> option is
+                  also specified.
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--modify</emphasis>
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  If specified, the registry is updated to the total number of instances still
+                  running after the stop is issued.
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </para>
+
+    <para>
+      <emphasis>Modify Options:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <listitem>
+            <para>
+              The first parameter to <emphasis role="bold">ducc_services </emphasis> must be the
+              keyword <emphasis role="bold">--modify</emphasis>, followed immediately by the service
+              id and optionally followed by parameters to indiciate the number of instances to stop
+              and whether to update the registry with the new number of instnaces.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      To start a service:
+      <screen>
+ducc_services --stop [numeric id] [options]
+ducc_services --stop [service endpoint string] [options]
+      </screen>
+      where the options include:
+    </para>
+
+    <para>
+      <variablelist>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--instances [integer]</emphasis>
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  This is the number of instances to stop.  If omitted, all currently running
+                  instances are stopped. If the number is specified, only the number of instances specified
+                  are stopped.  Thus if ten instances are running and
+                  <emphasis>ducc_services --stop 33 --instances 5</emphasis> is issued, five
+                  (arbitrarily chosen) service instances ar stopped for service 33 leaving 5 active
+                  .  The registry is updated only if the <emphasis>--modify</emphasis> option is
+                  also specified.
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <listitem>
+            <emphasis role="bold">--modify</emphasis>
+            <variablelist>
+              <varlistentry>
+                <listitem>
+                  If specified, the registry is updated to the total number of instances still
+                  running after the stop is issued.
+                </listitem>
+              </varlistentry>
+            </variablelist>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </para>
+
+  </section>
+

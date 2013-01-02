@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ SUBMIT CLI ********************************** -->
+  <section id="ducc.cli.service_submit">
+    <title>ducc_service_submit</title>
+
+    <para>
+      <emphasis>The source for this section is ducc_ducbook/documents/part-user/cli/service_submit.xml</emphasis>
+    </para>
+
+
+    <para>
+      <emphasis>Description:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <para>
+              The <emphasis>ducc_service_submit</emphasis> CLI is used to submit a job as a <emphasis>service</emphasis>
+              to DUCC.  The CLI is similar to <emphasis>ducc_submit</emphasis> with the following key differences:
+              <itemizedlist>
+                <listitem>
+                  <para>
+                  There is no Collection Reader.
+                  </para>
+                </listitem>
+                <listitem>
+                  <para>
+                  There is no Job monitor for services because services don't generally end of their own accord.
+                  </para>
+                </listitem>
+                <listitem>
+                  <para>
+                  Service jobs must supply a fully-formed DD XML.
+                  </para>
+                </listitem>
+              </itemizedlist>              
+            </para>
+            
+            <para>
+              On submission of a service, the DUCC CLI examines the service DD descriptor for the queue name, and
+              the supplied <emphasis>jvm_args</emphasis> for a broker URL.  It forms a service ID of the following form
+              which may be referenced in the <emphasis>--service_dependency</emphasis> clauses of jobs 
+              and services which are dependent on this service:
+              <screen>UIMA-AS:[endpoint]:[broker-url]</screen>
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Usage:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <variablelist>
+                <varlistentry>
+                  <term><emphasis role="bold">Script wrapper</emphasis></term>
+                  <listitem><para><emphasis>$DUCC_HOME</emphasis>/bin/ducc_service_submit</para></listitem>
+                </varlistentry>
+                
+                <varlistentry>
+                  <term><emphasis role="bold">Executble Jar</emphasis></term>
+                  <listitem><para>java -jar <emphasis>$DUCC_HOME</emphasis>/lib/ducc-service-submit.jar</para></listitem>
+                </varlistentry>
+                
+                <varlistentry>
+                  <term><emphasis role="bold">Java main</emphasis></term>
+                  <listitem><para>org.apache.uima.ducc.cli.DuccServiceSubmit</para></listitem>
+                </varlistentry>
+                
+              </variablelist>
+            </para>
+            <para>
+              If no options are given, help text is presented.
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Options:</emphasis>
+      <variablelist>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--debug</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      Enable debugging messages.  This is primarily for debugging DUCC itself. 
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--description [text]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      The text is any string used to describe the job.  It is displayed in the Web Server.  Example:
+                      <screen>--description "This is my very sophisticated job"</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--help</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      Prints the usage text to the console.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--jvm [path-to-java]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      States the JVM to use.  If not specified, the same JVM used by the Agents is
+                      used.  Example:
+                      <screen> --jvm /share/jdk1.6/bin/java</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--log_directory [path-to-log directory]</emphasis>             
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      This specifies the path to the directory for the user logs.  If not specified,
+                      the default is the user's home directory.  Example:<screen>--log_directory /home/bob</screen>.
+                      Within this directory DUCC creates a subdirectory for each job, using the
+                      numerical ID of the job.  The format of the generated log file names is 
+                      descripbed in <xref linkend="ducc.user.logs" />.
+                    </para>
+                    <note>
+                      <para>
+                        Note that <emphasis>--log_directory</emphasis> specifies only the path to
+                        a directory where logs are to be stored.  In order to manage multiple processes
+                        running in multiple machines DUCC, sub-directory and file names are generated
+                        by DUCC and may not be directly specified.
+                      </para>
+                    </note>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_classpath [ClASSPATH]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the Java CLASSPATH to use in each Job Process (JP) and must be specified. Example:
+                      <screen>--process_classpath a.jar:b.jar</screen>.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_DD [DD descriptor]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies a UIMA Deployment Descriptor for the job processes for DD-style
+                      jobs. This is mutually exclusive with <emphasis>--process_descriptor_AE,
+                        --process_descriptor_CM, and --process_descriptor_CC.</emphasis> This descriptor
+                      is a resource that is searched for in the CLASSPATH and data path as described
+                      in the <emphasis><link linkend="ducc.cli.submit.notes">notes</link></emphasis>.  For
+                      example:<screen>--process_DD /home/billy/resource/DD_foo.xml</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_deployments_max [integer]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the maximum nunber of Job Processes to deploy at any given
+                      time.  <screen>--process_deployments_max 66</screen>.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_environment [environment]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies environment parameters for the Job Processes.  If present, they are added
+                      to the Job Process  environment as the process is spawned.  It must be a quoted,
+                      blank-delimeted lsit of name-value pairs.  For example:
+                      <screen>"--process_environment TERM=xterm DISPLAY=:1.0"</screen>
+                    </para>
+                    <note>
+                      <para>
+                        On Secure Linux systems, the environemnt variable LD_LIBRARY_PATH may not be passed
+                        to the user's program.  If it is necessary to pass LD_LIBRARY_PATH to the JP or
+                        JD processes, it must be specified as DUCC_LD_LIBRARY_PATH.  Ducc (<emphasis>securely</emphasis>)
+                        passes this as LD_LIBRARY_PATH, <emphasis>after</emphasis> the JP or JD has assumed
+                        the user's identity. For example:
+                      <screen>"--process_environment TERM=xterm DISPLAY=:1.0 DUCC_LD_LIBRARY_PATH=/my/own/lib.so"</screen>
+                      </para>
+                    </note>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_failures_limit [integer]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the maximum number of individual Job Process (JP) failures that are
+                      to be tolerated before killing the job.  The default is 15.  If this limit is
+                      exceeded over the lifetime of a job DUCC terminates the entire job.
+                      <screen>"--process_failures_limit 23"</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_initialization_failures_cap [integer]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the maximum number of independent Job Process initialization
+                      failures (i.e. System.exit(), kill-15...) before the number of Job Processes is
+                      capped at the number in state Running currently.  The default is 99.
+                      Example:<screen>--process_initialization_failures_cap 62</screen>
+                    </para>
+                    <para>
+                      Note that the job is NOT killed if there are processes that have passed initialization and
+                      are running.  If this limit is reached, the only action is to not start new processes
+                      for the job.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_jvm_args [list]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies additinal arguments to be passed to the Job Process JVM.
+                      Example:<screen>--process_jvm_args -Xmx400M -Xms100M</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_memory_size [size]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the maximum amount of RAM in GB to be allocated to each Job Process.  This 
+                      value is used by the Resource Manager to allocate resources.  if this amount is 
+                      exceeded by a Job Process the Agent terminates the process with a ShareSizeExceeded
+                      message.
+                    Example:<screen>--process_memory_size 33</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--scheduling_class [classname]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the name of the scheuling class the RM will use to determine
+                      the resource allocation for each process.  The names of the classes are installation
+                      dependent.  If not specified, the default is taken
+                      from the global DUCC configuration <link linkend="ducc.properties">ducc.properties</link>.
+                      Example:<screen>--schedling_class normal</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--service_dependency[list]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies a comma-delimeted list of services the job processes are dependent upon.
+                      Each endpoint must be of the form UIMA-AS:<emphasis>endpoint</emphasis>:<emphasis>broker_url</emphasis>
+                      where <emphasis>endpoint</emphasis> is the UIMA-AS service endpoint and <emphasis>broker_url</emphasis>
+                      is the ActiveMQ broker URL.
+                    </para>
+                    <para>
+                      In the example are two dependencies, one with endpoint RandomSleepAE and broker tcp:bluej682:61616, and the other
+                      with endpoint OtherEp and broker URL tcp:bluej123:123.
+                      Example:<literallayout>
+--service_dependency UIMA-AS:RandomSleepAE:tcp:bluej682:61616, \
+                     UIMA-AS:OtherEp:tcp:bluej123:123
+                      </literallayout>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--specifiecaiton [file]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      All the parameters used to submit a job may be placed in a standard Java properties file.  This file
+                      may then be used to submit the job (rather than providing all the parameters directory to submit).
+                    </para>
+                    <para>
+                      For example, <screen>ducc_submit --specification job.props</screen> where the <emphasis>job.props</emphasis>
+                      contains:
+                      <screen>
+working_directory=/Users/challngr/projects/ducc/ducc_test/test/bin
+process_failures_limit=20
+driver_environment= DUCC_LD_LIBRARY_PATH=/a/other/bogus/path
+process_environment=AE_INIT_TIME=10000 DUCC_LD_LIBRARY_PATH=/a/bogus/path
+log_directory=/Users/challngr/ducc/logs/
+process_initialization_failures_cap=99
+process_descriptor_AE=org.apache.uima.ducc.test.randomsleep.FixedSleepAE
+process_classpath=/home/bob/projects/ducky-service.jar
+description=../simple/jobs/1.job[AE]
+process_jvm_args=-Xmx100M -DdefaultBrokerURL=tcp://localhost:61616
+scheduling_class=fixed
+process_memory_size=15
+                      </screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--working_directory</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the working directory to be set by the Job Driver and Job Process processes.  If not
+                      specified, the current directory is used.  Example:<screen>--working_directory /Users/challngr/projects/ducc/ducc_test/bin</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+
+    <para id="ducc.cli.service.notes">
+      <emphasis>Notes:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+            
+            <para>
+              When searching for UIMA XML resource files such as descriptors, DUCC searches both the classpath and the
+              data path according to the following rules:
+              <orderedlist>
+                <listitem>
+                  <para>
+                  If the resource ends in .xml it is assumed the resource is a file and
+                  the path is either an absolute path or a path relative to the specified
+                  working directory.  If the file is not found the search exits and the job
+                  is terminated.
+                  </para>
+                </listitem>
+                <listitem>
+                  <para>
+                    If the resource does not end in .xml, DUCC creates a path by replacing the
+                    "." separators with "/" and appending ".xml".  It then searches the CLASSPATH
+                    for the resource as a file.
+                  </para>
+                  <para>
+                    If the resource is found in either place the search is successful.  Otherwise the
+                    search fails and the job is terminated.
+                  </para>
+                  <note>
+                    <para>
+                      Note that in the current implementation, resources are NOT searched for inside
+                      jars in the classpath.  Files must be supplied.
+                    </para>
+                  </note>
+                </listitem>
+              </orderedlist>
+            </para>            
+            
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+  </section>
+

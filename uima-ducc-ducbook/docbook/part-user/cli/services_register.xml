@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ Service CLI ********************************** -->
+  <section id="ducc.cli.service..cli.register">
+    <title>ducc_service --register</title>
+
+    <para>
+      <emphasis>The source for this section is ducc_ducbook/documents/part-user/cli/services_register.xml</emphasis>
+    </para>
+
+    <para>
+      <emphasis>Description:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+
+            <para>
+              This <emphasis>registers</emphasis> a service with the Service Manager. A registered
+              service is retained by DUCC until it is unregistered.
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Usage:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              See the <xref linkend="ducc.cli.service.overview" /> for general usage considerations for
+              <emphasis role="bold">ducc_services</emphasis>.
+            </para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+    </para>
+
+    <para>
+      <emphasis>Service Register Options:</emphasis>
+
+      <variablelist>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--register [properties file] [override options]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      The properties file is optional.  It is a standard Java properties files containing
+                      all the registration options for the service.  The override options are then
+                      applied to define the service (taking precedence).  It is possible to register a service using just a
+                      properties file, just override options, or both.
+                      
+                    </para>
+                    <para>
+                      The properties in the properties file are identical to the command-line parameters, but with the
+                      leading "--" removed.  For example:
+                      <screen>
+process_environment = DUCC_LD_LIBRARY_PATH=/my/own/lib.so
+description = Test Service 0
+process_jvm_args = -Xmx100M -DdefaultBrokerURL=tcp://bluej291:61617
+process_classpath = ../../lib/ducc-test.jar
+process_memory_size = 15
+working_directory = /home/bob/service-descriptors
+process_DD = Service_FixedSleep_0.xml
+process_deployments_max = 1
+scheduling_class = fixed
+                      </screen>
+                    </para>
+                    
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--debug</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      Enable debugging messages.  This is primarily for debugging DUCC itself.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--description [text]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      The text is any string used to describe the job.  It is displayed in the Web Server. Example:
+                      <screen>--description "My totaly rad service"</screen>.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--help</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      Prints the usage text to the console.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--instances [number-of-instances]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This defines the default number of service instances to start.  If not specified,
+                      the default is 1.  Example: <screen>--instances 12</screen>.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--jvm [path-to-java]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      States the JVM to use.  If not specified, the same JVM used by the Agents is used.
+                      Example:<screen>--jvm /share/jdk1.6/bin/java</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--log_directory [path-to-log directory]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the path to the directory for the user logs.  If not specified,
+                      the default is the user's home directory.  Example:<screen>--log_directory /home/bob</screen>.
+                      Within this directory DUCC creates a subdirectory for each job, using the
+                      numerical ID of the job. The format of the generated log file names is 
+                      descripbed in <xref linkend="ducc.user.logs" />.
+                    </para>
+
+                  </listitem>
+              </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_classpath [ClASSPATH]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the Java CLASSPATH to use in each Job Process (JP) and must be specified.
+                      Example: <screen> --process_classpath a.jar:b.jar:more.jar</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_DD [DD descriptor]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies a UIMA Deployment Descriptor (DD) for the service.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_environment [environment]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies environment parameters for the Job Processes.  If present, they are added
+                      to the Job Process  environment as the process is spawned.  It must be a quoted,
+                      blank-delimeted lsit of name-value pairs.  For example:
+                      <screen>"--process_environment TERM=xterm DISPLAY=:1.0"</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_failures_limit [integer]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the maximum number of individual Job Process (JP) failures that are
+                      to be tolerated before killing the job.  The default is 15.  If this limit is
+                      exceeded over the lifetime of a job DUCC terminates the entire job.
+                      <screen>"--process_failures_limit 23"</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_initialization_failures_cap [integer]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the maximum number of independent Job Process initialization
+                      failures (i.e. System.exit(), kill-15...) before the number of Job Processes is
+                      capped at the number in state Running currently.  The default is 99.
+                      Example:<screen>--process_initialization_failures_cap 62</screen>
+                    </para>
+                    <para>
+                      Note that the job is NOT killed if there are processes that have passed initialization and
+                      are running.  If this limit is reached, the only action is to not start new processes
+                      for the job.
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_jvm_args [list]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies additinal arguments to be passed to the Job Process JVM.
+                      Example:<screen>--process_jvm_args -Xmx400M -Xms100M</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--process_memory_size [size]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the maximum amount of RAM in GB to be allocated to each Job Process.  This 
+                      value is used by the Resource Manager to allocate resources.  if this amount is 
+                      exceeded by a Job Process the Agent terminates the process with a ShareSizeExceeded
+                      message.
+                      Example:<screen>--process_memory_size 33</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--scheduling_class [classname]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the name of the scheuling class the RM will use to determine
+                      the resource allocation for each process.  The names of the classes are installation
+                      dependent.
+                      Example:<screen>--schedling_class normal</screen>
+                      <note>
+                        <para>
+                          Note that in general one should select a non-preemptable class such as <emphasis>
+                            fixed></emphasis> or <emphasis>reserve</emphasis> for services.  Otherwise DUCC
+                          may grow or shrink the number of processes used by the service.  It IS legal and supported to 
+                          use a <emphasis>fair-share</emphasis> class however.
+                        </para>
+                      </note>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--service_custom_classpath [CLASSPATH]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This specifies the classpath to be used when starting a CUSTOM ping thread.  It is primarily intended
+                      for non-UIMA-AS services but it may be implemented for UIMA-AS services as well if the default
+                      DUCC ping function is not sufficient.
+                      Example:<screen>--service_custom_classpath A.jar:B.Jar:C.Jar</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--service_custom_endpoint [CUSTOM:string]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This provides the name of the endpoint to used for non-UIMA-AS services.  In the
+                      current release of DUCC this type of service must be started independently of
+                      DUCC but DUCC is able to monitor it
+                      if <emphasis role="bold">--service_custom_ping</emphasis> is provided.  The
+                      endpoint must start with the characters "CUSTOM:" followed by any unique string
+                      (with no embedded blanks) that DUCC can use to identify the service.
+                      Example:<screen>--service_custom_endpoint CUSTOM:jrc.service.endpoint</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--service_custom_jvm_args [list]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term  />
+                  <listitem>
+                    <para>
+                      This supplies extra arguments to the JVM for the CUSTOM ping object.
+                      Example:<screen>--service_custom_jvm_args -Xmx 400M -Xms100M</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--service_custom_ping [java class]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      This supplies the java class name for a CUSTOM ping object.  The class must
+                      the interface <emphasis role="bold">org.apache.uima.ducc.IServiceMeta</emphasis> as
+                      described in the API section.  DUCC wraps the customer ping object in a
+                      management object with a "main" and calls the implemented interfaces 
+                      periodically to insure the custom service is functioning, and to gather
+                      performance statistics.
+                      Example:<screen>--service_custom_ping bob.net.BobsCustomPing</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+
+        <varlistentry>
+          <term />
+          <listitem>
+            <para>
+              <emphasis role="bold">--service_dependency[list]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      This specifies a comma-delimeted list of services the job processes are dependent upon.
+                      Each endpoint must be of the form UIMA-AS:<emphasis>endpoint</emphasis>:<emphasis>broker_url</emphasis>
+                      where <emphasis>endpoint</emphasis> is the UIMA-AS service endpoint and <emphasis>broker_url</emphasis>
+                      is the ActiveMQ broker URL.
+                    </para>
+                    <para>
+                      In the example are two dependencies, one with endpoint RandomSleepAE and broker tcp:bluej682:61616, and the other
+                      with endpoint OtherEp and broker URL tcp:bluej123:123.
+                      Example:<literallayout>
+--service_dependency UIMA-AS:RandomSleepAE:tcp:bluej682:61616, \
+                     UIMA-AS:OtherEp:tcp:bluej123:123
+                      </literallayout>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <emphasis role="bold">--service_linger [time in seconds]</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      This specifies the time, in seconds, that a service should be kept alive
+                      after its last reference has exited, in anticipation of new work entering
+                      the system and using it.  This is only applicable to services that are
+                      not automatically started at boot time.
+                      Example:<screen>--service_linger 300</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+
+        <varlistentry>
+          <term />
+          <listitem>
+            <para>
+              <emphasis role="bold">--working_directory</emphasis>
+              
+              <variablelist>
+                <varlistentry>
+                  <term />
+                  <listitem>
+                    <para>
+                      This specifies the working directory to be set by the Job Driver and Job Process processes.  If not
+                      specified, the current directory is used.  Example:<screen>--working_directory /Users/challngr/projects/ducc/ducc_test/bin</screen>
+                    </para>
+                  </listitem>
+                </varlistentry>
+              </variablelist>
+            </para>
+          </listitem>
+        </varlistentry>
+
+      </variablelist>
+    </para>
+
+  </section>
+

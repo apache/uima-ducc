@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+  
+       http://www.apache.org/licenses/LICENSE-2.0
+  
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+  <!-- ************************************ Nodelists ********************************** -->
+  <section id="ducc.nodes" xreflabel="ducc.nodes">
+    <title>ducc.nodes</title>
+
+    <para>
+      <emphasis>The source for this chapter is ducc_ducbook/documents/admin/ducc-nodes.xml</emphasis>
+    </para>
+
+    <para>
+      The DUCC node list is used to configure the nodes used to run jobs and assign reservations.  A
+      DUCC Agent is started by DUCC on every node in the node list.
+    </para>
+
+    <para>
+      The node list can be composed of multiple node lists to assist organization of the DUCC cluster.
+      All the administrative commands operate upon node lists.  By carefully organized these
+      lists it is possible to administer portions of a cluster independently.
+    </para>
+
+    <para>
+      A node list is a simple flat file where each line consists of a single node name or an
+      <emphasis>import</emphasis> statement.  Nodes may be designated by IP address or by name.  The
+      node list may be commented using the comment delimeter "#".
+    </para>
+
+    <para>
+      An <emphasis>import</emphasis> statement is of the form
+      <programlisting>import filename</programlisting>
+      where "filename" is the name of another node list.  The imported nodelist may itself
+      contain <emphasis>import</emphasis> statements to allow a nested organization of lists.
+    </para>
+
+    <para>
+      When an <emphasis>import</emphasis> statement is encountered, the named file is read
+      and its contents appended to the stream of incoming nodes.  The list of nodes used by
+      commands is composed of the nodes in the first list and all imported files.
+    </para>
+
+    <para>
+      <emphasis>Examples:</emphasis>
+      <variablelist>
+        <varlistentry>
+          <term  />
+          <listitem>
+            <para>
+              <programlisting>
+              <emphasis role="bold">
+cat ducc.nodes</emphasis>
+
+# First four nodes
+ducc01.local.net           # 64 GB 
+ducc02.local.net           # 64 GB 
+ducc03.local.net           # 128 GB
+ducc04.local.net           # 128 GB
+import big.nodes
+              </programlisting>
+            </para>
+            <para>
+              <programlisting>
+                <emphasis role="bold">
+cat big.nodes</emphasis>
+
+# Large memory nodes, all with 256 GB
+ducc11.local.net
+ducc12.local.net
+ducc13.local.net
+ducc14.local.net
+              </programlisting>
+            </para>
+
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+    </para>
+  </section>
+
+
