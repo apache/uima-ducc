@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	you under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+
+<!-- This pom serves as the release top level project for the multi-module 
+	project UIMA-DUCC -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>org.apache.uima</groupId>
+		<artifactId>uima-ducc-parent</artifactId>
+		<version>0.0.7-SNAPSHOT</version>
+		<relativePath>../uima-ducc-parent/pom.xml</relativePath>
+	</parent>
+
+	<artifactId>uima-ducc</artifactId>
+	<packaging>pom</packaging>
+	<version>0.0.7-SNAPSHOT</version>
+	<name>Apache UIMA-DUCC: ${project.artifactId}</name>
+	<description>The top project for UIMA-DUCC</description>
+	<url>${uimaWebsiteUrl}</url>
+
+    <!--  name the artifacts (zip,tar) -->
+	<properties>
+		<assemblyFinalName>uima-ducc-${project.version}</assemblyFinalName>
+	</properties>
+
+	<!-- declare dependency on each DUCC project -->
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-transport</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-agent</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-pm</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-rm</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-sm</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-orchestrator</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-cli</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-jd</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+	</dependencies>
+
+	<build>
+		<resources />
+
+		
+		
+		<plugins>
+
+
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>2.5</version>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<overwrite>true</overwrite>
+							<outputDirectory>target/maven-shared-archive-resources/META-INF</outputDirectory>
+							<resources>
+								<resource>
+									<directory>.</directory>
+									<includes>
+										<include>LICENSE</include>
+										<include>NOTICE</include>
+									</includes>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+         <!-- plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-changes-plugin</artifactId>
+          <version>2.8</version>
+          <executions>
+            <execution>
+              <id>ducc-jira-report</id>
+              <goals><goal>jira-report</goal></goals>
+              
+              <phase>generate-resources</phase>        
+              <configuration>
+                <useJql>true</useJql>
+                <fixVersionIds>${jira.version}</fixVersionIds>
+                <component>DUCC</component>
+                <columnNames>Type,Key,Status,Summary</columnNames>
+                <resolution>Fixed</resolution>
+                <status>Closed,Resolved</status>
+                <sortColumnNames>Type, Status, Key</sortColumnNames>
+                <outputDirectory>${basedir}/issuesFixed/</outputDirectory>
+                <maxEntries>1000</maxEntries> 
+              </configuration>
+            </execution>
+          </executions>
+        </plugin -->
+      	<plugin>
+	        <!-- run Release Audit Tool (RAT) on src and bin distrs -->       
+        	<groupId>org.apache.rat</groupId>
+        	<artifactId>apache-rat-plugin</artifactId>
+        	<executions>
+          		<execution>
+            		<id>ducc-rat</id>
+            		<configuration>
+              			<excludes>
+              			    <exclude>target/**</exclude>
+
+              			    <exclude>src/main/**/*</exclude>
+
+              			    <exclude>uima-ducc-ducbooks/target/**</exclude>
+              			    <exclude>uima-ducc-ducbooks/.project</exclude>
+              			    <exclude>uima-ducc-ducbooks/.settings/**</exclude>
+              			    <exclude>uima-ducc/target/**</exclude>
+              			    <exclude>uima-ducc/.classpath</exclude>
+              			    <exclude>uima-ducc/.project</exclude>
+              			    <exclude>uima-ducc/.settings/**</exclude>
+
+              			    <exclude>uima-ducc-agent/.classpath</exclude>
+              			    <exclude>uima-ducc-agent/.project</exclude>
+              			    <exclude>uima-ducc-agent/.settings/**</exclude>
+              			    <exclude>uima-ducc-agent/target/**</exclude>
+
+              			    <exclude>uima-ducc-cli/.classpath</exclude>
+              			    <exclude>uima-ducc-cli/.project</exclude>
+              			    <exclude>uima-ducc-cli/.settings/**</exclude>
+              			    <exclude>uima-ducc-cli/target/**</exclude>
+
+
+              			    <exclude>uima-ducc-common/.classpath</exclude>
+              			    <exclude>uima-ducc-common/.project</exclude>
+              			    <exclude>uima-ducc-common/.settings/**</exclude>
+              			    <exclude>uima-ducc-common/target/**</exclude>
+
+              			    <exclude>uima-ducc-jd/.classpath</exclude>
+              			    <exclude>uima-ducc-jd/.project</exclude>
+              			    <exclude>uima-ducc-jd/.settings/**</exclude>
+              			    <exclude>uima-ducc-jd/target/**</exclude>
+
+              			    <exclude>uima-ducc-orchestrator/.classpath</exclude>
+              			    <exclude>uima-ducc-orchestrator/.project</exclude>
+              			    <exclude>uima-ducc-orchestrator/.settings/**</exclude>
+              			    <exclude>uima-ducc-orchestrator/target/**</exclude>
+
+              			    <exclude>uima-ducc-parent/target/**</exclude>
+
+              			    <exclude>uima-ducc-pm/.classpath</exclude>
+              			    <exclude>uima-ducc-pm/.project</exclude>
+              			    <exclude>uima-ducc-pm/.settings/**</exclude>
+              			    <exclude>uima-ducc-pm/target/**</exclude>
+
+              			    <exclude>uima-ducc-rm/.classpath</exclude>
+              			    <exclude>uima-ducc-rm/.project</exclude>
+              			    <exclude>uima-ducc-rm/.settings/**</exclude>
+              			    <exclude>uima-ducc-rm/target/**</exclude>
+              			    
+              			    <exclude>uima-ducc-sm/.classpath</exclude>
+              			    <exclude>uima-ducc-sm/.project</exclude>
+              			    <exclude>uima-ducc-sm/.settings/**</exclude>
+              			    <exclude>uima-ducc-sm/target/**</exclude>
+
+              			    <exclude>uima-ducc-transport/.classpath</exclude>
+              			    <exclude>uima-ducc-transport/.project</exclude>
+              			    <exclude>uima-ducc-transport/.settings/**</exclude>
+              			    <exclude>uima-ducc-transport/target/**</exclude>
+
+                			<exclude>README*</exclude>
+                			<exclude>RELEASE_NOTES*</exclude>
+              			</excludes>
+            		</configuration>
+          		</execution>
+        	</executions>
+      	</plugin>
+
+			
+		</plugins>
+		<!-- /pluginManagement -->
+	</build>
+
+    <!-- Include all ducc modules  -->
+	<modules>
+        <module>../uima-ducc-cli</module>
+        <module>../uima-ducc-jd</module>
+        <module>../uima-ducc-pm</module>
+        <module>../uima-ducc-rm</module>
+        <module>../uima-ducc-sm</module>
+        <module>../uima-ducc-orchestrator</module>
+        <module>../uima-ducc-common</module>
+        <module>../uima-ducc-transport</module>
+        <module>../uima-ducc-agent</module>
+        <module>../uima-ducc-ducbook</module>
+        <module>../uima-ducc-web</module>		
+	</modules>
+</project>
+
