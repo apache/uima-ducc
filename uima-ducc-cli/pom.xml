@@ -1,0 +1,290 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	you under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+	
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  
+  <parent>
+		<groupId>org.apache.uima</groupId>
+		<artifactId>uima-ducc-parent</artifactId>
+		<version>0.0.7-SNAPSHOT</version>
+		<relativePath>../uima-ducc-parent/pom.xml</relativePath>
+  </parent>  
+  
+  <artifactId>uima-ducc-cli</artifactId>
+  
+  <dependencies>
+        <!-- Dependencies on other DUCC projects -->
+        <dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-common</artifactId>
+            <version>${ducc.version}</version>			
+		</dependency>
+
+        <dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-transport</artifactId>
+			<version>${ducc.version}</version>
+		</dependency>
+
+	</dependencies>
+  <build>
+    <!-- in the maven's package phase create a runnable jar for each cli command -->
+    <plugins>
+      <plugin>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>DuccJobSubmit</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-submit</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccJobSubmit</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+              <!-- excludes>
+              </excludes -->
+            </configuration>
+          </execution>
+          <execution>
+            <id>DuccJobCancel</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-cancel</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccJobCancel</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>DuccJobMonitor</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-monitor</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccJobMonitor</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>
+
+         <execution>
+            <id>DuccReservationSubmit</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-reserve</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccReservationSubmit</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>
+          
+         <execution>
+            <id>DuccReservationCancel</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-unreserve</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccReservationCancel</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>     
+          
+         <execution>
+            <id>DuccServiceSubmit</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-service-submit</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccServiceSubmit</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>           
+
+         <execution>
+            <id>DuccServiceCancel</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-service-cancel</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccServiceCancel</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>            
+          
+         <execution>
+            <id>DuccServiceApi</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-service</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccServiceApi</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>          
+          
+         <execution>
+            <id>UimaAsServiceMonitor</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-qmon</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.UimaAsServiceMonitor</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>          
+               
+         <execution>
+            <id>DuccPerfStats</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-perf-stats</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccPerfStats</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>          
+
+         <execution>
+            <id>DuccWebQueryMachines</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-web-query-machines</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccWebQueryMachines</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution> 
+          
+         <execution>
+            <id>DuccWebQueryReservations</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>ducc-web-query-reservations</finalName>
+               <archive>
+                  <index>true</index>
+                  <manifest>
+                     <addClasspath>true</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccWebQueryReservations</mainClass>
+                  </manifest>
+               </archive>
+              <includes>
+                <include>**/*</include>
+              </includes>
+            </configuration>
+          </execution>          
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+</project>
