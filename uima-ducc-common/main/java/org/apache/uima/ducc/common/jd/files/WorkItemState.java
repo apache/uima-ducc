@@ -1,0 +1,244 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+*/
+package org.apache.uima.ducc.common.jd.files;
+
+public class WorkItemState implements IWorkItemState {
+
+	private static final long serialVersionUID = 1L;
+	
+	private String seqNo = null;
+	private String wiId = null;
+	private String node = null;
+	private String pid = null;
+	@Deprecated
+	private Name name = null;
+	private State state = State.unknown;
+	
+	private long millisAtStart = -1;
+	private long millisAtQueued = -1;
+	private long millisAtOperating = -1;
+	private long millisAtFinish = -1;
+	
+	@Deprecated
+	public enum Name {
+		start,
+		queued,
+		operating,
+		ended,
+		error,
+		retry,
+	}
+	
+	public WorkItemState(int seqNo) {
+		this.seqNo = ""+seqNo;
+	}
+	
+	@Override
+	public String getSeqNo() {
+		return seqNo;
+	}
+
+	@Override
+	public String getWiId() {
+		return wiId;
+	}
+
+	@Override
+	public void setWiId(String wiId) {
+		this.wiId = wiId;
+	}
+
+	@Override
+	public String getNode() {
+		return node;
+	}
+	
+	@Override
+	public void setNode(String node) {
+		this.node = node;
+	}
+
+	@Override
+	public String getPid() {
+		return pid;
+	}
+	
+	@Override
+	public void setPid(String pid) {
+		this.pid = pid;
+	}
+	
+	@Override
+	public State getState() {
+		State retVal = state;
+		// legacy
+		if(name != null) {
+			switch (name) {
+				case start:
+					state = State.start;
+					break;
+				case queued:
+					state = State.queued;
+					break;
+				case operating:
+					state = State.operating;
+					break;
+				case ended:
+					state = State.ended;
+					break;
+				case retry:
+					state = State.retry;
+					break;
+				default:
+					state = State.unknown;
+			}
+		}
+		return retVal;
+	}
+
+	@Override
+	public void stateStart() {
+		state = State.start;
+		millisAtStart = System.currentTimeMillis();
+	}
+
+	@Override
+	public void stateQueued() {
+		state = State.queued;
+		millisAtQueued = System.currentTimeMillis();
+	}
+
+	@Override
+	public void stateOperating() {
+		state = State.operating;
+		//jpIp = ip;
+		//jpId = id;
+		millisAtOperating = System.currentTimeMillis();
+	}
+
+	@Override
+	public void stateEnded() {
+		state = State.ended;
+		millisAtFinish = System.currentTimeMillis();
+	}
+
+	@Override
+	public void stateError() {
+		state = State.error;
+		millisAtFinish = System.currentTimeMillis();
+	}
+
+	@Override
+	public void stateRetry() {
+		state = State.retry;
+	}
+
+	@Override
+	public long getMillisOverhead() {
+		long retVal = 0;
+		if(millisAtStart > 0) {
+			if(millisAtQueued > 0) {
+				retVal = millisAtQueued - millisAtStart;
+			}
+			if(millisAtOperating > 0) {
+				retVal = millisAtOperating - millisAtStart;
+			}
+			else {
+				retVal = System.currentTimeMillis() - millisAtStart;
+			}
+		}
+		return retVal;
+	}
+
+	@Override
+	public long getMillisProcessing() {
+		long retVal = 0;
+		if(millisAtOperating > 0) {
+			if(millisAtFinish > 0) {
+				retVal = millisAtFinish - millisAtOperating;
+			}
+			else {
+				retVal = System.currentTimeMillis() - millisAtOperating;
+			}
+		}
+		return retVal;
+	}
+
+	private static int stateOrder(State state) {
+		int retVal = 0;
+		if(state != null) {
+			switch(state) {
+			case start:
+				retVal = -5; 
+				break;
+			case queued:
+				retVal = -4; 
+				break;
+			case operating:
+				retVal = -3; 
+				break;
+			case ended:
+				retVal = -6; 
+				break;
+			case error:
+				retVal = -1; 
+				break;
+			case retry:
+				retVal = -2; 
+				break;
+			}
+		}
+		return retVal;
+	}
+	
+	private static int compareState(State s1, State s2) {
+		int so1 = stateOrder(s1);
+		int so2 = stateOrder(s2);
+		if(so2 > so1) {
+			return 1;
+		}
+		else if(so2 < so1) {
+			return -1;
+		}
+		return 0;
+	}
+	
+	private static int compareSeqNo(String s1, String s2) {
+		long so1 = Long.parseLong(s1);
+		long so2 = Long.parseLong(s2);
+		if(so2 > so1) {
+			return 1;
+		}
+		else if(so2 < so1) {
+			return -1;
+		}
+		return 0;
+	}
+	
+	public int compareTo(IWorkItemState wis) {
+		int retVal = 0;
+		IWorkItemState w1 = this;
+		IWorkItemState w2 = wis;
+		retVal = compareState(w1.getState(), w2.getState());
+		if (retVal == 0) {
+			retVal = compareSeqNo(w1.getSeqNo(), w2.getSeqNo());
+		}
+		return retVal;
+	}
+}
