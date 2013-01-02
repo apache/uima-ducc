@@ -1,0 +1,2 @@
+This project contains source and test code for the setuid-root code that
+the Agent calls, to create children owned by specific users.
