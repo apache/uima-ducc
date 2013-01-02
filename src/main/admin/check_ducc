@@ -1,0 +1,199 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+
+import os
+import sys
+
+from ducc_boot import *
+set_ducc_home()
+
+
+import getopt
+import subprocess
+
+from ducc_util import DuccUtil
+from ducc_util  import DuccProperties
+
+class CheckDucc(DuccUtil):
+    
+
+    def usage(self, msg):
+        if ( msg != None ):
+            print msg
+        print "Usage:"
+        print "   check_ducc [options]"
+        print "   If no options are given this is the equivalent of:"
+        print ""
+        print "      check_ducc -n ../resources/ducc.nodes"
+        print ""
+        print "Options:"
+        print "    -n --nodelist nodefile"
+        print "        Check for agents on the nodes in nodefile.  This option may be specified multiple time"
+        print "        for multiple nodefiles.  The 'local' node is always checked"
+        print ""
+        print "    -u --user userid"
+        print "        Userid is the user whose processes check_ducc searches for.  If not specified,"
+        print "        the user executing check_ducc is used.  If specified as 'all' then all ducc processes"
+        print "        are searched for."
+        print ""
+        print "    -k --kill"
+        print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
+        print "       uses kill -9 and only kills processes owned by the invoking user."
+        print "" 
+        print "   -p --pids"
+        print "       Rewrite the PID file. The PID file is always rewritten if any changes to processes are made.  Sometimes"
+        print "       the PID file needs rebuilding.  This option causes the file to be rebuilt regardless of"
+        print "       changes."
+        print ""
+        print "    -r --reap"
+        print "       Reap user processes.  This uses kill -9 and ducc_ling to forcibly terrrminate user processes."
+        print "       Only processes specified by '-u' or '--userid' are targeted."
+        print ""
+        print "    -? prints this message."
+        sys.exit(1)
+    
+    def main(self, argv):
+
+        self.show_ducc_environment()
+
+        try:
+            opts, args = getopt.getopt(argv, 'kn:pru:h?v')
+        except:
+            self.usage("Invalid arguments " + ' '.join(argv))
+    
+        nodefiles = []
+        user = os.environ['LOGNAME']
+        kill = False
+        reap = False
+        redo_pids = False
+        process_changes = False
+        
+        for ( o, a ) in opts:
+            if ( o == '-n' ) :
+                nodefiles.append(a)
+            elif ( o == '-k' ) :
+                kill = True
+            elif ( o == '-u' ) :
+                user = a
+            elif ( o == '-v'):
+                ducc_util.version()
+            elif ( o == '-r'):
+                reap = True
+            elif ( o == '-p'):
+                redo_pids = True
+            elif ( o == '-h'):
+                self.usage(None)
+            elif ( o == '-?'):
+                self.usage(None)
+            else:
+                print 'badarg', a
+                usage('bad arg: ' + a)               
+
+
+        if ( reap and (user == 'ducc') ):
+            usage('Can only reap non-udcc users')
+
+            
+        # init the PID file
+        pids = DuccProperties()
+        pids.load_if_exists(self.pid_file)
+
+        # read the nodelists
+        if ( len(nodefiles) == 0 ):
+            nodefiles = self.default_nodefiles
+        nodes = {}
+        for nf in nodefiles:
+            nodes = self.read_nodefile(nf, nodes)
+
+        #
+        # add in the local host if needed, and the webserver node
+        #
+        localnodes = []
+        if ( not self.localhost in nodes ):
+            localnodes.append(self.localhost)
+
+        if ( not (self.webserver_node in ['localhost', self.localhost, None]) ):
+            localnodes.append(self.webserver_node)
+
+        if ( len(localnodes) > 0 ):
+            nodes['local'] = localnodes
+
+        # checking starts here        
+        for (nodefile, nodelist) in nodes.items():
+            if ( nodelist == None ):
+                # loading the nodes prints the necessary message
+                continue
+
+            for node in nodelist:
+
+                print 'Checking', node, '...',
+                proclist = self.find_ducc_process(node, user)   # a list of tuples, tuple is (component, pid, user)
+                if ( len(proclist) > 0 ):
+                    for proc in proclist: 
+                        component  = proc[0]
+                        pid        = proc[1]
+                        found_user = proc[2]
+                        
+                        if ( component == 'orchestrator' ):
+                            component = 'or'
+    
+                        if ( kill ) :
+                            print 'Killing (kill -9)', component, '@', node, 'PID', pid 
+                            self.kill_process(node, proc)
+                            pids.delete(pid)
+                            process_changes = True
+                            pass
+                        elif (reap ):
+                            # reaping is only for non-ducc JD and JP processes
+                            if ( (component in ['jd', 'uima-as']) and (found_user != 'ducc') ):
+                                print 'Reaping', component, found_user, pid
+                                self.ssh(node, False, '/local/ducc/bin/ducc_ling', '-u', found_user, '--', '/bin/kill', '-9', pid)
+                            else:
+                                print ''  # because the Checking message above is emitted with no \n
+                        else:
+                            print 'Found', component, '@', node, 'PID', pid, 'owned by', found_user
+                            full_name = component + '@' + node
+                            if ( component == 'agent' ):
+                                pids.put(full_name, pid)
+    
+                            if ( component in self.default_components ):
+                                pids.put(full_name, pid)
+                                pids.put(component, full_name)
+                else:
+                    print 'no processes found.'
+
+
+        if ( reap ):
+            return
+
+        if ( kill ):
+            self.remove_orchestrator_lock()
+                
+        if ( len(pids) == 0):
+            if ( os.path.exists(self.pid_file) ):
+                os.remove(self.pid_file)
+        elif (process_changes or redo_pids):
+            pids.write(self.pid_file)
+
+if __name__ == "__main__":
+    checker = CheckDucc()
+    checker.main(sys.argv[1:])
+    

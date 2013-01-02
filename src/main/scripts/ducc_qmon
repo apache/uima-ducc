@@ -1,0 +1,110 @@
+#! /usr/bin/env python
+
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+from ducc_boot import *
+import getopt
+
+set_ducc_home()
+
+from ducc_util import DuccUtil
+
+
+class DuccQmon(DuccUtil):
+        
+    def usage(self, *msg):
+        if ( msg[0] != None ):
+            print ' '.join(msg)
+
+        print 'Usage:'
+        print '   ducc_qmon [options]'
+        print ''
+        print 'Options:'
+        print '    -j --job jobid'
+        print '          Monitor the UIMA-AS queue for the indicated job'
+        print ''
+        print '    -q --queue queue-name'
+        print '         Monitor the indicated UIMA-AS queue.  Both broker and port options must also be given'
+        print ''
+        print '    -b --broker broker-host'
+        print '         Specifies the host where the broker to monitor is.  Only valid with -q and -p'
+        print ''
+        print '    -p --port broker-port'
+        print '         Specifies the port for the broker to monitor.  Only valid with -q and -b'
+        print ''
+        print 'Examples:'
+        print ''
+        print '    Monitor the UIMA-AS queue for DUCC job 23:'
+        print '       ducc_qmon -j 23'
+        print ''
+        print '    Monitor the UIMA-AS queue for some service:'
+        print '       ducc_mon -q RandomSleepTest -b bluej291 -p 1099'        
+        sys.exit(1)
+
+
+    def main(self, argv):
+
+        jobid = None
+        broker_host = None
+        broker_port = None
+        queue = None
+
+        if ( len(argv) == 0 ):
+            self.usage(None);
+
+        try:
+            opts, args = getopt.getopt(argv, 'b:j:p:q:h?v', ['broker=', 'job=', 'port=', 'queue=', 'help=', 'version'])
+        except:
+            self.usage('Invalid arguments', ' '.join(argv))
+                       
+        for ( o, a ) in opts:
+            if o in ( '-j', '--job' ): 
+                jobid = a
+            elif o in ( '-b', '--broker' ):
+                broker_host = a
+            elif o in ( '-p', '--port'):
+                broker_port = a
+            elif o in ('-q', '--queue'):
+                queue = a
+            elif o in ('-h', '-?', '--help'):
+                self.usage(None);
+            else:
+                self.invalid('Invalid arguments: ', ' '.join(argv))
+
+        if ( jobid != None ):
+            if ( (broker_host != None ) or (broker_port != None) or (queue != None) ) : 
+                self.invalid('Job id is mutually exclusive with broker, port, and queue')
+            else:
+                queue = 'ducc.jd.queue.' + jobid
+                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-qmon.jar',  queue, self.broker_host, self.broker_jmx_port)
+                return
+
+        if ( broker_host == None ):
+            broker_host = self.broker_host
+        if ( broker_port == None ):
+            broker_port = self.broker_jmx_port
+
+        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-qmon.jar',  queue, broker_host, broker_port)
+
+
+if __name__ == "__main__":
+    svc = DuccQmon()
+    svc.main(sys.argv[1:])
+

@@ -1,0 +1,422 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.    
+-->
+
+<assembly>
+  <id>bin</id>
+  <formats>
+    <format>tar.gz</format>  
+    <format>zip</format>
+  </formats>
+  
+  <baseDirectory>apache-uima-ducc-${project.version}</baseDirectory> 
+  <includeBaseDirectory>true</includeBaseDirectory>
+
+   <dependencySets>
+     <dependencySet>
+      <includes>
+        <include>org.apache.uima:uima-ducc-common</include>
+        <include>org.apache.uima:uima-ducc-transport</include>
+        <include>org.apache.uima:uima-ducc-agent</include>
+        <include>org.apache.uima:uima-ducc-cli</include>
+        <include>org.apache.uima:uima-ducc-jd</include>
+        <include>org.apache.uima:uima-ducc-pm</include>
+        <include>org.apache.uima:uima-ducc-rm</include>
+        <include>org.apache.uima:uima-ducc-sm</include>
+        <include>org.apache.uima:uima-ducc-orchestrator</include>
+      </includes>      
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputDirectory>ducc_runtime/lib</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+   
+     <!-- UIMA Core + UIMA-AS -->   
+     <dependencySet>
+      <includes>
+        <include>org.apache.uima:uimaj-as-core</include>
+        <include>org.apache.uima:uimaj-as-jms</include>
+        <include>org.apache.uima:uimaj-as-activemq</include>
+        <include>org.apache.uima:uimaj-core</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <!-- dependencySet>
+      <unpack>false</unpack>
+      <outputDirectory>runtime/webserver2/lib</outputDirectory>
+      <useTransitiveDependencies>true</useTransitiveDependencies>
+      <includes>
+        <include>org.eclipse.jetty:jetty-server</include>
+        <include>org.eclipse.jetty:jetty-ajp</include>
+        <include>org.eclipse.jetty:jetty-annotations</include>
+        <include>org.eclipse.jetty:jetty-client</include>
+        <include>org.eclipse.jetty:jetty-continuation</include>
+        <include>org.eclipse.jetty:jetty-deploy</include>
+        <include>org.eclipse.jetty:jetty-http</include>
+        <include>org.eclipse.jetty:jetty-io</include>
+        <include>org.eclipse.jetty:jetty-jmx</include>
+        <include>org.eclipse.jetty:jetty-jndi</include>
+        <include>org.eclipse.jetty:jetty-overlay-deployer</include>
+        <include>org.eclipse.jetty:jetty-plus</include>
+        <include>org.eclipse.jetty:jetty-policy</include>
+        <include>org.eclipse.jetty:jetty-rewrite</include>
+        <include>org.eclipse.jetty:jetty-security</include>
+        <include>org.eclipse.jetty:jetty-servlet</include>
+        <include>org.eclipse.jetty:jetty-servlets</include>
+        <include>org.eclipse.jetty:jetty-util</include>
+        <include>org.eclipse.jetty:jetty-webapp</include>
+        <include>org.eclipse.jetty:jetty-websocket</include>
+        <include>org.eclipse.jetty:jetty-xml</include>
+        <include>javax.servlet:servlet-api</include>
+      </includes>
+    </dependencySet -->
+
+
+
+
+
+     <dependencySet>
+      <includes>
+        <include>commons-cli:commons-cli</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/apache-commons-cli</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>log4j:log4j</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/apache-log4j</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>org.apache.xmlbeans:xmlbeans</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/xmlbeans</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>com.google.guava:guava</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/guava</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>joda-time:joda-time</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/joda-time</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>org.apache.httpcomponents:httpclient</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/http-client</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>commons-codec:commons-codec</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/http-client</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>commons-collections:commons-collections</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/apache-commons-collections</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>commons-lang:commons-lang</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/apache-commons-lang</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>org.apache.commons:commons-math</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/apache-commons-math</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <dependencySet>
+      <includes>
+        <include>junit:junit</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/junit</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+	</dependencySet>
+			
+     <dependencySet>
+      <includes>
+        <include>org.apache.activemq:activemq-web</include>
+        <include>org.apache.activemq:activemq-core</include>
+        <include>org.apache.activemq:activemq-optional</include>
+        <include>org.apache.activemq:activemq-spring</include>
+        <include>org.apache.activemq:activemq-web</include>
+        <include>org.apache.activemq:activemq-web</include>
+        <include>org.apache.activemq:activemq-web</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/apache-activemq</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>org.apache.camel:camel-context</include>
+        <include>org.apache.camel:camel-http</include>
+        <include>org.apache.camel:camel-http4</include>
+        <include>org.apache.camel:camel-jetty</include>
+        <include>org.apache.camel:camel-jms</include>
+        <include>org.apache.camel:camel-mina</include>
+        <include>org.apache.camel:camel-servlet</include>
+        <include>org.apache.camel:camel-test-spring</include>
+        <include>org.apache.camel:camel-test</include>
+        <include>org.apache.camel:camel-spring</include>
+        <include>org.apache.camel:camel-stream</include>
+        <include>org.apache.camel:camel-xmlbeans</include>
+        <include>org.apache.camel:camel-xstream</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/apache-camel</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+     <dependencySet>
+      <includes>
+        <include>org.springframework:spring-core</include>
+        <include>org.springframework:spring-expression</include>
+        <include>org.springframework:spring-beans</include>
+        <include>org.springframework:spring-aop</include>
+        <include>org.springframework:spring-tx</include>
+        <include>org.springframework:spring-asm</include>
+        <include>org.springframework:spring-jms</include>
+        <include>org.springframework:spring-context</include>
+        <include>org.springframework:spring-context-support</include>
+      </includes>      
+      <outputDirectory>ducc_runtime/lib/springframework</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+
+   </dependencySets>
+  
+  <!-- Add other files - scripts, documentation, examples -->
+  <fileSets>
+
+    <fileSet>
+      <directory>src/main/resources</directory>
+      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes />
+    </fileSet>
+
+    <fileSet>
+      <directory>../uima-ducc-cli/target</directory>
+      <outputDirectory>ducc_runtime/lib</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes>
+         <include>*.jar</include>
+      </includes>
+      <excludes>
+         <exclude>uima-ducc-cli.jar</exclude>
+      </excludes>
+    </fileSet>
+
+    <fileSet>
+      <directory>src/main/config</directory>
+      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes />
+    </fileSet>
+
+    <fileSet>
+      <directory>src/main/admin</directory>
+      <outputDirectory>ducc_runtime/admin</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes />
+    </fileSet>
+
+    <fileSet>
+      <directory>src/main/scripts</directory>
+      <outputDirectory>ducc_runtime/bin</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes />
+      <excludes>
+      	<exclude>dd2spring.bat</exclude>
+      	<exclude>dd2spring.xsl</exclude>
+      </excludes>
+    </fileSet>
+
+    <fileSet>
+      <directory>../uima-ducc-spawn/src</directory>
+      <outputDirectory>ducc_runtime/duccling/src</outputDirectory>
+      <fileMode>750</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes />
+      <excludes />
+    </fileSet>
+
+    <fileSet>
+      <directory>../uima-ducc-spawn</directory>
+      <outputDirectory>ducc_runtime/duccling</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes>
+      	<include>README*</include>
+      </includes>
+      <excludes />
+    </fileSet>
+
+    <fileSet>
+      <directory>src/main/saxon</directory>
+      <outputDirectory>ducc_runtime/lib/saxon</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
+    <fileSet>
+      <directory>src/main/webserver</directory>
+      <outputDirectory>ducc_runtime/webserver</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
+
+    <fileSet>
+      <directory>../uima-ducc-ducbook/target/site/d</directory>
+      <outputDirectory>ducc_runtime/docs</outputDirectory>
+      <excludes>
+        <exclude>css/*</exclude>
+      </excludes>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet> 
+
+  </fileSets> 
+  
+  <files>
+  
+    <file>
+      <source>README.BUILD</source>
+      <outputDirectory>ducc_runtime</outputDirectory>
+      <destName>README.BUILD</destName>
+      <fileMode>644</fileMode>
+    </file>
+    <file>
+      <source>README.INSTALL</source>
+      <outputDirectory>ducc_runtime</outputDirectory>
+      <destName>README.INSTALL</destName>
+      <fileMode>644</fileMode>
+    </file>
+    <file>
+      <source>RELEASE.NOTES</source>
+      <outputDirectory>ducc_runtime</outputDirectory>
+      <destName>RELEASE.NOTES</destName>
+      <fileMode>644</fileMode>
+    </file>
+
+
+    <!-- file>
+      <source>target/uimaj/apache-uima/examples/.project</source>
+      <outputDirectory>examples</outputDirectory>
+      <fileMode>644</fileMode> 
+    </file>
+    <file>
+      <source>target/uimaj/apache-uima/RELEASE_NOTES.html</source>
+      <outputDirectory/>
+      <destName>RELEASE_NOTES.uimaj.html</destName>
+      <fileMode>644</fileMode>
+    </file>
+    
+    <file>
+      <source>target/uimaj/apache-uima/LICENSE</source>
+      <outputDirectory/>
+      <destName>LICENSE.uimaj.txt</destName>
+      <fileMode>644</fileMode>
+    </file>
+
+    <file>
+      <source>target/uimaj/apache-uima/NOTICE</source>
+      <outputDirectory/>
+      <destName>NOTICE.uimaj.txt</destName>
+      <fileMode>644</fileMode>
+    </file>
+    
+    
+    <file>
+      <source>src/main/eclipseProject/classpath</source>
+      <outputDirectory>examples</outputDirectory>
+      <destName>.classpath</destName>
+      <fileMode>644</fileMode> 
+    </file -->
+  </files>
+</assembly>

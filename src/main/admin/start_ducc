@@ -1,0 +1,303 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+
+import os
+import sys
+
+from ducc_boot import *
+set_ducc_home()
+
+import getopt
+
+from ducc_util import DuccUtil
+from ducc_util import DuccProperties
+from ducc      import Ducc
+
+class StartDucc(DuccUtil):
+
+    def start_component(self, ducc, component, or_parms):
+
+        print 'STARTING', or_parms
+        node = 'local'
+        com = component
+        if ( com.find('@') >= 0 ):            
+            com, node = com.split('@')
+
+        if ( ((com == 'ws') or (com == 'viz')) and ( node == 'local' ) and ( self.webserver_node != 'localhost' )):
+            if ( self.webserver_node != None ):
+                node = self.webserver_node
+                component = com + '@' + node
+
+        if ((com in self.default_components) or ( com == 'agent')) :
+            print 'Starting', com, 'on', node,
+        else:
+            self.invalid('Unrecognized component', component)
+
+
+        if ( or_parms == None ):
+            or_parms = '--or_parms='
+        else:
+            or_parms = '--or_parms=' + or_parms
+
+        if ( node == 'local' ):
+            node = self.localhost
+
+        lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '--nodup' "'")
+        # we'll capture anything that the python shell spews because it may be useful, and then drop the
+        # pipe when we see a PID message
+        while 1:
+            line = lines.readline().strip()
+            if ( not line ):
+                break
+            # print '[] ' + line
+            if ( line.startswith('PID') ):
+                toks = line.split(' ')    # get the PID
+                print 'PID', toks[1]
+                self.pids.put(com + '@' + node, toks[1])
+                lines.close()
+                break
+            
+        if ( com in self.default_components ):           # tracks where the management processes are
+            self.pids.put(com, com + '@' + node)
+
+    def start_agents(self, nodelist):
+
+        # print 'NODELIST', nodelist
+        #counter = 1
+        for host in nodelist:
+            #print 'COUNTER', counter
+            #counter = counter + 1
+            lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '--nodup', "'")
+            while 1:
+                line = lines.readline().strip()
+                # print '[]' + line
+                if ( line.startswith('PID') ):
+                    toks = line.split(' ')
+                    pid = toks[1]
+                    self.pids.put('agent@' + host, pid)
+                    lines.close()
+                    print 'DUCC Agent started on node', host, 'PID', pid
+                    break
+
+                if ( not line ):
+                    break
+                toks = line.split()
+
+                # things that need checking:
+                # 1. Connection refused
+                # 2. "Add to keys" footprint message
+                # 3. Connection hang
+                # 4. - Passwordless not configured right
+                # 5. - no ducc.py on the other side
+                # 6. duccling not configured right on the other side
+                # 7. there is already a process of the given type on the other side
+                if ( toks[0] != 'ducc_ling' ):
+                    if ( line.startswith("Permission denied") ):
+                        print host, "ALERT: Passwordless SSH is not configured correctly for node"
+                        print host, "ALERT: SSH returns '" + line + "'"
+                        break
+
+                    if ( line.find("No such file or directory") >= 0 ):
+                        print host, "ALERT: ducc.py not found."
+                        print host, "ALERT: SSH returns '" + line + "'"
+                        break
+
+                    print line
+                    if ( line.find("Connection refused") >= 0 ):
+                        print host, "ALERT: SSH is not not enabled on host", host
+                        print host, "ALERT: SSH returns '" + line + "'"
+                        break
+
+                    if ( line.find("Connection timed") >= 0 ):
+                        print host, "ALERT: SSH did not respond with timeout of 10 secnds", host
+                        print host, "ALERT: SSH returns '" + line + "'"
+                        break
+
+                    #print '==========', line
+                    continue
+
+                if ( toks[1] != 'OK' ):
+                    print 'ALERT', host, line       # 'line' has an appropriate error message
+
+
+    def usage(self, *msg):
+        if ( msg[0] != None ):
+            print ' '.join(msg)
+
+        print "Usage:"
+        print "   start_ducc [options]"
+        print "        If no options are given, all DUCC processes are started, using the default"
+        print "        nodelist, DUCC_HOME/resources/ducc.nodes.  This is the equivalemnt of"
+        print ""
+        print "        start_ducc -n $DUCC_HOME/resources/ducc.nodes -m"
+        print ""
+        print "Options:"
+        print "   -n --nodelist nodefile"
+        print "        Start agents on the nodes in the nodefile.  Multiple nodefiles may be specified:"
+        print ""
+        print "        start_ducc -n foo.nodes -n bar.nodes -n baz.nodes"
+        print ""
+        print "   -m --management"
+        print "        Start the management processes (rm, sm, pm, webserver, orchestrator) on the local node."
+        print ""
+        print "   -c, --component component"
+        print "        Start a specific DUCC component, optionally on a specific node.  If the component name"
+        print "        is qualified with a nodename, the component is started on that node.  To qualify a"
+        print "        component name with a destination node, use the notation component@nodename."
+        print "        Multiple components may be specified:"
+        print ""
+        print "        start_ducc -c sm -c pm -c rm@f9n4 -c or@bluej22 -c agent@remote1 -c agent@remote2"
+        print ""
+        print "        Components include:"
+        print "          rm - resource manager"
+        print "          or - orchestrator"
+        print "          pm - process manager"
+        print "          sm - services manager"
+        print "          ws - web server"
+        print "          viz - visualization server"
+        print "          agent - node agent"        
+        print ""
+        print "Examples:"
+        print "   Start all DUCC processes, using custom nodelists:"
+        print "       start_ducc -m -n foo.nodes -n bar.nodes"
+        print ""
+        print "   Start just managemnet processes:"
+        print "       start_ducc -m"
+        print ""
+        print "   Start just agents on a specific set of nodes:"
+        print "       start_ducc -n foo.nodes -n bar.nodes"
+        print ""
+        print "   Start the webserver on node 'bingle':"
+        print "       start_ducc -c ws@bingle" 
+        sys.exit(1)
+
+    def invalid(self, *msg):
+        if ( msg[0] != None ):
+            print ' '.join(msg)
+
+        print "For usage run"
+        print "    start_ducc -h"
+        print 'or'
+        print '    start_ducc --help'
+        sys.exit(1)
+    
+    def main(self, argv):
+
+        environ = self.show_ducc_environment()
+        for e in environ:
+            print e
+
+        nodefiles = []
+        components = []
+        management = False
+        or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
+        self.pids = DuccProperties()
+        self.pids.load_if_exists(self.pid_file)
+        
+        try:
+            opts, args = getopt.getopt(argv, 'c:mn:h?v', ['component=', 'components=', 'help', 'nodelist=', 'management', 'cold', 'warm', 'hot'])
+        except:
+            self.invalid('Invalid arguments', ' '.join(argv))
+                       
+        for ( o, a ) in opts:
+            if o in ( '-c', '--components' ): 
+                components.append(a)
+            elif o in ( '-m', '--management' ):
+                management = True
+            elif o in ( '-n', '--nodelist' ):
+                nodefiles.append(a)
+            elif o in ( '--cold', '--warm', '--hot' ):
+                or_parms = o[2:]         # (strip the leading --)
+            elif ( o == '-v'):
+                print self.version()
+                sys.exit(0)
+            elif o in ( '-h', '--help' ):
+               self.usage(None)
+            elif ( o == '-?'):
+               self.usage(None)
+            else:
+                self.invalid('bad args: ', ' '.join(argv))
+
+
+        # 'management' means start all the management daemons - if specific components are also specified
+        # there is at least a redundancy and maybe also a conflict.
+        if ( (len(components) != 0) and management ):
+            self.invalid("The --management and --compoent options are mutually exclusive")
+
+        # no args - make equivalent of -management and -nodefile=DUCC.HOME/resources/ducc.nodes
+        if ( len(argv) == 0 ):
+            nodefiles =  self.default_nodefiles
+            components = self.default_components
+
+
+        # this means all the non-agent processes - conflicts are already checked
+        if ( management ):
+            components = self.default_components
+
+        #print 'nodefiles:', nodefiles
+        #print 'components:', components
+
+        # make sure all the nodefiles exist and are readable
+        ok = True
+        nodes = {}
+        for n in nodefiles:
+            nodes = self.read_nodefile(n, nodes)
+
+        for ( nf, nl ) in nodes.items():
+            if ( nl == None ):
+                print "Can't read nodefile", nf
+                ok = False
+
+        if ( not ok ):
+            sys.exit(1)
+
+        # activeMQ needs to be started externally before starting any DUCC processes
+        #print 'A--------------------------------------------------------------------------------'
+        if ( self.is_amq_active() ):
+            print 'ActiveMQ is found on configured host and port:', self.broker_host + ':' + self.broker_port
+        else:
+            print 'ActiveMQ cannot be found on configured host and port:', self.broker_host + ':' + self.broker_port
+            sys.exit(1)
+        #print 'B--------------------------------------------------------------------------------'
+
+        ducc = Ducc()
+
+        # if we are asked to start any of the managemnt processes, do this first
+        if ( len(components) != 0 ):
+            for com in components:
+                self.start_component(ducc, com, or_parms)
+        else:
+            print 'Not starting management components.'
+        #print 'C--------------------------------------------------------------------------------'
+
+        #print 'D--------------------------------------------------------------------------------'
+        for (nodefile, nodelist) in nodes.items():
+            print '********** Starting agents from file', nodefile
+            self.start_agents(nodelist)
+        #print 'E--------------------------------------------------------------------------------'
+
+        if ( len(self.pids) > 0 ):
+            self.pids.write(self.pid_file)
+        return
+
+if __name__ == "__main__":
+    starter = StartDucc()
+    starter.main(sys.argv[1:])
