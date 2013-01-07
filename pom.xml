@@ -146,8 +146,9 @@
             </execution>
           </executions>
         </plugin -->
-      	<plugin>
-	        <!-- run Release Audit Tool (RAT) on src and bin distrs -->       
+        <!-- run Release Audit Tool (RAT) on src and bin distrs -->
+      	<!-- plugin>
+	               
         	<groupId>org.apache.rat</groupId>
         	<artifactId>apache-rat-plugin</artifactId>
         	<executions>
@@ -155,10 +156,9 @@
             		<id>ducc-rat</id>
             		<configuration>
               			<excludes>
-              			    <exclude>target/**</exclude>
-
-              			    <exclude>src/main/**/*</exclude>
-
+                            <exclude>uima-ducc/target/**</exclude>
+                            <exclude>uima-ducc/src/main/**</exclude>
+                            
               			    <exclude>uima-ducc-ducbooks/target/**</exclude>
               			    <exclude>uima-ducc-ducbooks/.project</exclude>
               			    <exclude>uima-ducc-ducbooks/.settings/**</exclude>
@@ -221,7 +221,7 @@
             		</configuration>
           		</execution>
         	</executions>
-      	</plugin>
+      	</plugin -->
 
 			
 		</plugins>
