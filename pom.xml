@@ -230,17 +230,17 @@
 
     <!-- Include all ducc modules  -->
 	<modules>
-        <module>../uima-ducc-cli</module>
-        <module>../uima-ducc-jd</module>
-        <module>../uima-ducc-pm</module>
-        <module>../uima-ducc-rm</module>
-        <module>../uima-ducc-sm</module>
-        <module>../uima-ducc-orchestrator</module>
-        <module>../uima-ducc-common</module>
-        <module>../uima-ducc-transport</module>
-        <module>../uima-ducc-agent</module>
-        <module>../uima-ducc-ducbook</module>
-        <module>../uima-ducc-web</module>		
+        <module>uima-ducc-cli</module>
+        <module>uima-ducc-jd</module>
+        <module>uima-ducc-pm</module>
+        <module>uima-ducc-rm</module>
+        <module>uima-ducc-sm</module>
+        <module>uima-ducc-orchestrator</module>
+        <module>uima-ducc-common</module>
+        <module>uima-ducc-transport</module>
+        <module>uima-ducc-agent</module>
+        <module>uima-ducc-ducbook</module>
+        <module>uima-ducc-web</module>		
 	</modules>
 </project>
 
