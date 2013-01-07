@@ -230,6 +230,7 @@
 
     <!-- Include all ducc modules  -->
 	<modules>
+        <module>uima-ducc-parent</module>
         <module>uima-ducc-cli</module>
         <module>uima-ducc-jd</module>
         <module>uima-ducc-pm</module>
