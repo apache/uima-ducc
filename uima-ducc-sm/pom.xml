@@ -17,6 +17,7 @@
     <artifactId>uima-ducc-parent</artifactId>
     <groupId>org.apache.uima</groupId>
     <version>0.0.7-SNAPSHOT</version>
+    <relativePath>../uima-ducc-parent/pom.xml</relativePath>
   </parent>
   
   <!-- Inherits groupid and version from the parent pom project coordinates -->
