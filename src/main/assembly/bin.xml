@@ -364,7 +364,7 @@ under the License.
   </fileSets> 
   
   <files>
-  
+    <!-- 
     <file>
       <source>README.BUILD</source>
       <outputDirectory>ducc_runtime</outputDirectory>
@@ -383,7 +383,7 @@ under the License.
       <destName>RELEASE.NOTES</destName>
       <fileMode>644</fileMode>
     </file>
-
+    -->
 
     <!-- file>
       <source>target/uimaj/apache-uima/examples/.project</source>
