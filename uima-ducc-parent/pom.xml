@@ -65,7 +65,7 @@
                <version>${slf4j.version}</version>
             </dependency>
         
-        dependency>
+       
     
         <dependency>
            <groupId>org.slf4j</groupId>
