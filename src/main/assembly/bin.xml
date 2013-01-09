@@ -446,6 +446,13 @@ under the License.
   </fileSets> 
   
   <files>
+  <file>
+      <source>src/main/scripts/ducc_boot.py</source>
+      <outputDirectory>ducc_runtime/admin</outputDirectory>
+      <destName>duc_boot.py</destName>
+      <fileMode>644</fileMode>
+    </file>
+    
     <!-- 
     <file>
       <source>README.BUILD</source>
