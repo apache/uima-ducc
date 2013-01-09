@@ -236,6 +236,7 @@ under the License.
         <include>org.apache.camel:camel-stream</include>
         <include>org.apache.camel:camel-xmlbeans</include>
         <include>org.apache.camel:camel-xstream</include>
+        <include>org.apache.camel:camel-core</include>
       </includes>      
       <outputDirectory>ducc_runtime/lib/apache-camel</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
@@ -254,6 +255,10 @@ under the License.
         <include>org.springframework:spring-jms</include>
         <include>org.springframework:spring-context</include>
         <include>org.springframework:spring-context-support</include>
+        <include>org.slf4j:jcl-over-slf4j</include>
+        <include>org.slf4j:slf4j-log4j12</include>
+        <include>org.slf4j:slf4j-api</include>
+        
       </includes>      
       <outputDirectory>ducc_runtime/lib/springframework</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
