@@ -21,21 +21,22 @@
 
 import os
 import sys
+from time import time
 
 from ducc_boot import *
 set_ducc_home()
 
 import getopt
 
-from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc      import Ducc
+from ducc_util   import DuccUtil
+from ducc_util   import DuccProperties
+from ducc        import Ducc
+from local_hooks import verify_master_node
 
 class StartDucc(DuccUtil):
 
     def start_component(self, ducc, component, or_parms):
 
-        print 'STARTING', or_parms
         node = 'local'
         com = component
         if ( com.find('@') >= 0 ):            
@@ -47,7 +48,7 @@ class StartDucc(DuccUtil):
                 component = com + '@' + node
 
         if ((com in self.default_components) or ( com == 'agent')) :
-            print 'Starting', com, 'on', node,
+            print node, 'Starting', com
         else:
             self.invalid('Unrecognized component', component)
 
@@ -60,7 +61,7 @@ class StartDucc(DuccUtil):
         if ( node == 'local' ):
             node = self.localhost
 
-        lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '--nodup' "'")
+        lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '-d', str(time()), '--nodup' "'")
         # we'll capture anything that the python shell spews because it may be useful, and then drop the
         # pipe when we see a PID message
         while 1:
@@ -70,7 +71,7 @@ class StartDucc(DuccUtil):
             # print '[] ' + line
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
-                print 'PID', toks[1]
+                print node, 'PID', toks[1]
                 self.pids.put(com + '@' + node, toks[1])
                 lines.close()
                 break
@@ -85,22 +86,24 @@ class StartDucc(DuccUtil):
         for host in nodelist:
             #print 'COUNTER', counter
             #counter = counter + 1
-            lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '--nodup', "'")
+            
+            spacer = '   '
+            print host
+            lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '-d', str(time()), '--nodup', "'")
             while 1:
                 line = lines.readline().strip()
-                # print '[]' + line
+                #print '[]' + line
                 if ( line.startswith('PID') ):
                     toks = line.split(' ')
                     pid = toks[1]
                     self.pids.put('agent@' + host, pid)
                     lines.close()
-                    print 'DUCC Agent started on node', host, 'PID', pid
+                    print spacer, 'DUCC Agent started PID', pid
                     break
 
                 if ( not line ):
                     break
                 toks = line.split()
-
                 # things that need checking:
                 # 1. Connection refused
                 # 2. "Add to keys" footprint message
@@ -109,33 +112,13 @@ class StartDucc(DuccUtil):
                 # 5. - no ducc.py on the other side
                 # 6. duccling not configured right on the other side
                 # 7. there is already a process of the given type on the other side
-                if ( toks[0] != 'ducc_ling' ):
-                    if ( line.startswith("Permission denied") ):
-                        print host, "ALERT: Passwordless SSH is not configured correctly for node"
-                        print host, "ALERT: SSH returns '" + line + "'"
-                        break
-
-                    if ( line.find("No such file or directory") >= 0 ):
-                        print host, "ALERT: ducc.py not found."
-                        print host, "ALERT: SSH returns '" + line + "'"
-                        break
-
-                    print line
-                    if ( line.find("Connection refused") >= 0 ):
-                        print host, "ALERT: SSH is not not enabled on host", host
-                        print host, "ALERT: SSH returns '" + line + "'"
-                        break
-
-                    if ( line.find("Connection timed") >= 0 ):
-                        print host, "ALERT: SSH did not respond with timeout of 10 secnds", host
-                        print host, "ALERT: SSH returns '" + line + "'"
-                        break
-
-                    #print '==========', line
-                    continue
-
-                if ( toks[1] != 'OK' ):
-                    print 'ALERT', host, line       # 'line' has an appropriate error message
+                if ( not self.ssh_ok(host, line ) ):
+                    break;
+                
+                if ( toks[0] == 'NOTOK' ):
+                    print spacer, 'NOTOK Not started:', ' '.join(toks[1:])
+                else:
+                    print spacer, line
 
 
     def usage(self, *msg):
@@ -252,6 +235,10 @@ class StartDucc(DuccUtil):
         if ( management ):
             components = self.default_components
 
+        if ( not verify_master_node(self.ducc_properties) ):
+            print 'FAIL: Cannot run javac to run java verification'
+            return
+
         #print 'nodefiles:', nodefiles
         #print 'components:', components
 
@@ -282,6 +269,7 @@ class StartDucc(DuccUtil):
 
         # if we are asked to start any of the managemnt processes, do this first
         if ( len(components) != 0 ):
+            print 'Starting', or_parms
             for com in components:
                 self.start_component(ducc, com, or_parms)
         else:

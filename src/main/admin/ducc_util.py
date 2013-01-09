@@ -29,6 +29,7 @@ import zipfile
 import resource
 import time
 from  stat import *
+from local_hooks import find_other_processes
 
 class DuccPropertiesException(Exception):
     def __init__(self, msg):
@@ -271,7 +272,7 @@ class DuccUtil:
 
     def nohup(self, cmd, showpid=True):
         cmd = ' '.join(cmd)
-        print '**** nohup', cmd, '****'
+        # print '**** nohup', cmd, '****'
         devnw = open(os.devnull, 'w')
         devnr = open(os.devnull, 'r')
         ducc = subprocess.Popen(cmd, shell=True, stdin=devnr, stdout=devnw, stderr=devnw)
@@ -317,6 +318,7 @@ class DuccUtil:
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli-1.2/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang-2.6/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/guava-r09/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/google-gson-2.2.2/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-log4j-1.2.16/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/uima/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-camel-2.7.1/*'
@@ -418,7 +420,7 @@ class DuccUtil:
                 grpinfo = grp.getgrnam('ducc')
             except:
                 print 'ducc_ling group "ducc" cannot be found.'
-                return false
+                return False
 
             duccgid = grpinfo.gr_gid
             #print 'UID', sstat.st_uid, 'GID', duccgid
@@ -428,7 +430,41 @@ class DuccUtil:
              
         print 'ducc_ling OK'
         return True
-                 
+
+    def ssh_ok(self, node, line):
+        spacer = '   '
+        if ( line.startswith("Permission denied") ):
+            print ' '
+            print spacer, "ALERT: Passwordless SSH is not configured correctly for node", node
+            print spacer, "ALERT: SSH returns '" + line + "'"
+            return False
+
+        if ( line.startswith("Host key verification failed") ):
+            print ' '
+            print spacer, "ALERT: Passwordless SSH is not configured correctly for node", node
+            print spacer, "ALERT: SSH returns '" + line + "'"
+            return False
+
+        if ( line.find("Connection refused") >= 0 ):
+            print ' '
+            print spacer, "ALERT: SSH is not not enabled on node", node
+            print spacer, "ALERT: SSH returns '" + line + "'"
+            return False
+        
+        if ( line.find("Connection timed") >= 0 ):
+            print ' '
+            print spacer, "\nALERT: SSH did not respond with timeout of 10 secnds", node
+            print spacer, "ALERT: SSH returns '" + line + "'"
+            return False
+        
+        if ( line.find("No route")  >= 0 ):
+            print ' '
+            print spacer, 'ALERT: SSH cannot connect to host.'
+            print spacer, "ALERT: SSH returns '" + line + "'"
+            return False
+
+        return True
+        
     #
     # Input is array lines from ps command looking for ducc processes owned this user.
     # Output is list of dictionaries, where each dictionary describes a ducc process.
@@ -437,57 +473,56 @@ class DuccUtil:
     #
     # The caller executes the 'ps' command and knows the node this is for.
     #
-    def find_ducc_process(self, node, user):
+    def find_ducc_process(self, node):
     
         answer = []
-        if ( user == 'all' ) :
-            resp = self.ssh(node, True, "'", 'ps auxw | grep java ', "'")
-        else:
-            resp = self.ssh(node, True, "'", 'ps auxw | grep ' + user + ' | grep java ', "'")
-            
+        resp = self.ssh(node, True,'ps -eo user:14,pid,comm,args')
+        ok = True
+
         while True:
-            line = resp.readline().strip()            
-            if ( line.startswith("Permission denied") ):
-                print node, "ALERT: Passwordless SSH is not configured correctly for node", node
-                print node, "ALERT: SSH returns '" + line + "'"
-                break
-            
-            if ( line.startswith("Host key verification failed") ):
-                    print node, "ALERT: Passwordless SSH is not configured correctly for node", node
-                    print node, "ALERT: SSH returns '" + line + "'"
-                    break
+            line = resp.readline().strip()           
+            if ( line.startswith('PID')):
+                continue
 
-            if ( line.find("Connection refused") >= 0 ):
-                print node, "ALERT: SSH is not not enabled on node", node
-                print node, "ALERT: SSH returns '" + line + "'"
-                break
-            
-            if ( line.find("Connection timed") >= 0 ):
-                print node, "ALERT: SSH did not respond with timeout of 10 secnds", node
-                print node, "ALERT: SSH returns '" + line + "'"
-                break
-            
+            if ( not self.ssh_ok(line, node) ):
+                ok = False
+                continue
+
+            # from here on, assume no error
             if ( not line ):
-                    break
-
+                break
+            
             toks = line.split()
-            if ( len(toks) < 11 ):
+            if ( len(toks) < 4):
                 continue
 
+            user = toks[0]
             pid = toks[1]
-            procname = toks[10]
+            procname = toks[2]
+            fullargs = toks[3:]
 
-            if ( (user != 'all') and (toks[0] != user) ):
+            if ( procname != 'java' ):
                 continue
 
-            if ( procname.endswith('java') ):
-                for tok in toks[10:]:
-                    if ( tok.startswith('-Dducc.deploy.components=') ):
-                        cmp = tok.split('=')
-                        dp = (cmp[1],  pid, toks[0])
-                        answer.append(dp)
-                        
-        return answer
+            cont = False
+            for tok in fullargs:
+                if ( tok.startswith('-Dducc.deploy.components=') ):
+                    cmp = tok.split('=')
+                    dp = (cmp[1],  pid, user)
+                    answer.append(dp)
+                    cont = True
+                    break
+            if ( cont ):             # stupid python only continues out of inner loop
+                continue
+
+            other_processes = find_other_processes(pid, user, line)
+            if ( type(other_processes) is list ):
+                if ( len(other_processes) > 0 ):
+                    answer = answer + other_processes
+            else:
+                print 'Invalid response from \'find_other_processes\':', other_processes
+
+        return (ok, answer)
 
     #
     # Given the name of a file containing ducc nodes, a ducc user (usually 'ducc' unless you're running

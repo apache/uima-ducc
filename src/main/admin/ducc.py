@@ -26,10 +26,11 @@ import getopt
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
+from local_hooks import verify_slave_node
 
 class Ducc(DuccUtil):
         
-    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup):
+    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate):
 
         if ( component == 'all' ):
             component = 'rm,sm,pm,ws,orchestrator'
@@ -48,8 +49,16 @@ class Ducc(DuccUtil):
                     print "Must start agents separately"
                     sys.exit(1)
                     
-                if ( not self.verify_duccling() ):
-                    print 'ducc_ling is not set up correctly on node', self.localhost
+                dok = self.verify_duccling()
+                if ( not dok ):
+                    print 'NOTOK ducc_ling is not set up correctly on node', self.localhost
+                    print dok
+                    return
+
+                if ( not verify_slave_node(localdate, self.ducc_properties) ):
+                    # we assume that verify_local_node is spewing a line of the form
+                    #    NOTOK error message
+                    # if all is not fine
                     return
 
                 jvm_opts.append('-Djava.library.path=' + self.DUCC_HOME) 
@@ -71,6 +80,11 @@ class Ducc(DuccUtil):
                     jvm_opts.append(self.rm_jvm_args)
                 
             if ( c == 'ws' ):
+                #see if the ws jsp compilation directory is specified
+                compdir = self.ducc_properties.get('ducc.ws.jsp.compilation.directory')
+                if ( compdir != None ):
+                    jvm_opts.append('-Djava.io.tmpdir=' + compdir)
+
                 here = os.getcwd()
                 os.chdir(self.DUCC_HOME + '/webserver')
                 if ( self.ws_jvm_args != None ):
@@ -102,15 +116,23 @@ class Ducc(DuccUtil):
             ducc_component = '-Dducc.deploy.components=' + component
 
         # check to see if there is a process like this running already, and barf if so
+        # usually called with --nodup, but the sim needs multiple agents yes on the node
         pid = None
         if ( nodup ):
-            response = self.find_ducc_process(self.localhost, os.environ['LOGNAME'])   # always make this "me"
-            if ( len(response) > 0 ):
-                for p in response:
-                    if ( p[0] == component ):
-                        print "Component", component,'is already running in PID', p[1], 'on node', self.localhost
-                        pid = p[1]
+            response = self.find_ducc_process(self.localhost)
+            if ( response[0] ):    # something is returned
+                proclist = response[1]
+                for proc in proclist:
+                    r_component  = proc[0]
+                    r_pid        = proc[1]
+                    r_found_user = proc[2]
+                    if ( r_found_user != os.environ['LOGNAME'] ):   # don't care about other stuff
+                        continue
+                    if ( r_component == component ):
+                        print "WARN Component", component,'is already running in PID', r_found_user, r_pid, 'on node', self.localhost
+                        return
 
+        # not already running, and the node is viable.  fire it off.
         cmd = []
         cmd.append(self.java())
         cmd.append(ducc_component)
@@ -145,6 +167,7 @@ class Ducc(DuccUtil):
         print '                      -- or --'
         print '                all - to start rm sm pm ws orchestrator'
         print '        NOTE -- that agents should be started separately'
+        print '   -d date is the data on the caller, for startup verification'
         print '   -b uses nohup and places the process into the background'
         print '   -n <numagents> if > 1, multiple agents are started (testing mode)'
         print '   -o <mem-in-GB> rm memory override for use on small machines'
@@ -162,9 +185,10 @@ class Ducc(DuccUtil):
         background = False
         or_parms = None
         nodup = False           # we allow duplicates unless asked not to
+        localdate = 0
 
         try:
-           opts, args = getopt.getopt(argv, 'bc:n:o:k?v', ['or_parms=', 'nodup'])
+           opts, args = getopt.getopt(argv, 'bc:d:n:o:k?v', ['or_parms=', 'nodup'])
         except:
             self.usage('Bad arguments ' + ' '.join(argv))
     
@@ -176,6 +200,8 @@ class Ducc(DuccUtil):
                 
             elif ( o == '-b'):
                 background = True
+            elif ( o == '-d'):
+                localdate = float(a)
             elif ( o == '-n'):
                 numagents = int(a)
             elif ( o == '-o'):
@@ -202,7 +228,7 @@ class Ducc(DuccUtil):
         if ( component == None ):
             self.usage("Must specify component")
 
-        self.run_component(component, or_parms, numagents, rmoverride, background, nodup)
+        self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
         return
 
     def __call__(self, *args):

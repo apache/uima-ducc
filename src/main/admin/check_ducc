@@ -21,6 +21,7 @@
 
 import os
 import sys
+from time import time
 
 from ducc_boot import *
 set_ducc_home()
@@ -31,9 +32,13 @@ import subprocess
 
 from ducc_util import DuccUtil
 from ducc_util  import DuccProperties
+from local_hooks import verify_slave_node
+from local_hooks import verify_master_node
 
 class CheckDucc(DuccUtil):
-    
+
+    def validate(self, checkdate):
+        verify_slave_node(checkdate, self.ducc_properties)
 
     def usage(self, msg):
         if ( msg != None ):
@@ -58,10 +63,13 @@ class CheckDucc(DuccUtil):
         print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
         print "       uses kill -9 and only kills processes owned by the invoking user."
         print "" 
-        print "   -p --pids"
+        print "    -p --pids"
         print "       Rewrite the PID file. The PID file is always rewritten if any changes to processes are made.  Sometimes"
         print "       the PID file needs rebuilding.  This option causes the file to be rebuilt regardless of"
         print "       changes."
+        print ""
+        print "    -s localdate"
+        print "       Validate the local installation, called via ssh usually. The date is the dat on the calling machine."
         print ""
         print "    -r --reap"
         print "       Reap user processes.  This uses kill -9 and ducc_ling to forcibly terrrminate user processes."
@@ -75,16 +83,19 @@ class CheckDucc(DuccUtil):
         self.show_ducc_environment()
 
         try:
-            opts, args = getopt.getopt(argv, 'kn:pru:h?v')
+            opts, args = getopt.getopt(argv, 'kn:prs:u:h?v')
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
         nodefiles = []
         user = os.environ['LOGNAME']
+        victim_user = None
         kill = False
         reap = False
         redo_pids = False
         process_changes = False
+        do_validate = False
+        checkdate = 0
         
         for ( o, a ) in opts:
             if ( o == '-n' ) :
@@ -92,26 +103,43 @@ class CheckDucc(DuccUtil):
             elif ( o == '-k' ) :
                 kill = True
             elif ( o == '-u' ) :
-                user = a
+                victim_user = a
             elif ( o == '-v'):
                 ducc_util.version()
             elif ( o == '-r'):
                 reap = True
             elif ( o == '-p'):
                 redo_pids = True
-            elif ( o == '-h'):
+            elif ( o == '-s'):
+                # intended to be called recursively from check_ducc, NOT from the command line
+                do_validate = True
+                checkdate = float(a)
+            elif ( o in ('-h', '-?') ):
                 self.usage(None)
-            elif ( o == '-?'):
-                self.usage(None)
+            elif ( o == '-v'):
+                self.version(None)
             else:
                 print 'badarg', a
                 usage('bad arg: ' + a)               
 
 
+        if ( do_validate ):
+            # if validating, ONLY validate, called via ssh usually
+            self.validate(checkdate)
+            return
+
         if ( reap and (user == 'ducc') ):
             usage('Can only reap non-udcc users')
 
-            
+
+        jvm = self.ducc_properties.get('ducc.jvm')
+        if ( jvm == None ):
+            print 'WARN: "ducc.jvm is not specified in ducc.properties. Default is simply "java" which may not work on all nodes.'
+
+        if ( not verify_master_node(self.ducc_properties) ):
+            print 'FAIL: Cannot run javac to build the java test'
+            return
+   
         # init the PID file
         pids = DuccProperties()
         pids.load_if_exists(self.pid_file)
@@ -141,13 +169,17 @@ class CheckDucc(DuccUtil):
             if ( nodelist == None ):
                 # loading the nodes prints the necessary message
                 continue
-
+            spacer = '   '            
             for node in nodelist:
 
                 print 'Checking', node, '...',
-                proclist = self.find_ducc_process(node, user)   # a list of tuples, tuple is (component, pid, user)
+                response = self.find_ducc_process(node)   # a tuple, (True|False, proclist)
+                if ( not response[0] ):
+                    continue
+                proclist = response[1]              # a list of tuples, tuple is (component, pid, user)
                 if ( len(proclist) > 0 ):
-                    for proc in proclist: 
+                    print ''
+                    for proc in proclist:
                         component  = proc[0]
                         pid        = proc[1]
                         found_user = proc[2]
@@ -155,21 +187,33 @@ class CheckDucc(DuccUtil):
                         if ( component == 'orchestrator' ):
                             component = 'or'
     
+                        if ( (victim_user != None) and ( victim_user != found_user) ):
+                            continue
+
+                        process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
                         if ( kill ) :
-                            print 'Killing (kill -9)', component, '@', node, 'PID', pid 
-                            self.kill_process(node, proc)
-                            pids.delete(pid)
-                            process_changes = True
-                            pass
-                        elif (reap ):
-                            # reaping is only for non-ducc JD and JP processes
-                            if ( (component in ['jd', 'uima-as']) and (found_user != 'ducc') ):
-                                print 'Reaping', component, found_user, pid
+                            if ( user != found_user ):
+                                print spacer, "Not killing someone else's process.", process_id
+                            elif ( component == 'unknown-java' ):
+                                print spacer, 'Not killing non-ducc process', process_id
+                            else:
+                                print spacer, 'Killing (kill -9)', process_id
+                                self.kill_process(node, proc)
+                                pids.delete(pid)
+                                process_changes = True
+                        elif ( reap ):
+                            # reaping is only for non-ducc JD and JP processes, and only if ducc calls it
+                            if ( user != 'ducc' ):
+                                print "You're not ducc - reap is not allowed.", process_id
+                            elif (found_user == 'ducc'):
+                                print "Not reaping ducc process", process_id
+                            elif ( component in ['jd', 'uima-as'] ):
+                                print spacer, 'Reaping', process_id
                                 self.ssh(node, False, '/local/ducc/bin/ducc_ling', '-u', found_user, '--', '/bin/kill', '-9', pid)
                             else:
-                                print ''  # because the Checking message above is emitted with no \n
+                                print spacer, 'Not reaping unknown process', process_id
                         else:
-                            print 'Found', component, '@', node, 'PID', pid, 'owned by', found_user
+                            print spacer, 'Found', process_id
                             full_name = component + '@' + node
                             if ( component == 'agent' ):
                                 pids.put(full_name, pid)
@@ -180,6 +224,15 @@ class CheckDucc(DuccUtil):
                 else:
                     print 'no processes found.'
 
+                if ( not (kill or reap) ):                    
+                    lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-s", str(int(time())))
+                    while 1:
+                        line = lines.readline()
+                        if ( not line ):
+                            break
+                        line = line.strip()
+                        print spacer, line
+                        #print '[]', line
 
         if ( reap ):
             return
