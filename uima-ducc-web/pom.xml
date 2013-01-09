@@ -24,7 +24,7 @@
 	<!-- Inherits groupid and version from the parent pom project coordinates -->
 	<!-- Uses default packaging ie. jar -->
 	<artifactId>uima-ducc-web</artifactId>
-	<packaging>pom</packaging>
+	<!-- >packaging>pom</packaging -->
 
 	<properties>
 		<jetty-version>7.4.4.v20110707</jetty-version>
