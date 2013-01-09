@@ -449,8 +449,8 @@ under the License.
   <file>
       <source>src/main/scripts/ducc_boot.py</source>
       <outputDirectory>ducc_runtime/admin</outputDirectory>
-      <destName>duc_boot.py</destName>
-      <fileMode>644</fileMode>
+      <destName>ducc_boot.py</destName>
+      <fileMode>755</fileMode>
     </file>
     
     <!-- 
