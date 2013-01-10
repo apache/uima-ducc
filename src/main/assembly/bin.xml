@@ -461,7 +461,7 @@ under the License.
     
       <file>
       <source>src/main/cglib/com.springsource.net.sf.cglib-2.2.0.jar</source>
-      <outputDirectory>ducc_runtime/lib/springframework-3.0.5</outputDirectory>
+      <outputDirectory>ducc_runtime/lib/springframework</outputDirectory>
       <destName>com.springsource.net.sf.cglib-2.2.0.jar</destName>
     </file>
     
