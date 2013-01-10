@@ -26,5 +26,16 @@
     <!-- Uses default packaging ie. jar                                       -->
 	<artifactId>uima-ducc-common</artifactId>
 
+    <build>
+      <resources>
+        <resource>
+            <directory>src/main/java/org/apache/uima/ducc/common/uima</directory>
+            <includes>
+                <include>DuccJobProcessFC.xml</include>
+            </includes>
+        </resource>
+      </resources>
+    </build>
+
 </project>
 	

@@ -94,7 +94,35 @@
 		<plugins>
 
 
-
+<!-- plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>2.6</version>
+        
+        <executions>
+          <execution>
+            <id>copy</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <remoteRepositories>http://ebr.springsource.com/repository/</remoteRepositories>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>net.sourceforge.cglib</groupId>
+                  <artifactId>com.springsource.net.sf.cglib</artifactId>
+                  <version>2.2.0</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${project.build.directory}/ducc_runtime/lib/springframework</outputDirectory>
+                  <destFileName>com.springsource.net.sf.cglib-2.2.0.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.5</version>

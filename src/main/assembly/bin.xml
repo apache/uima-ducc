@@ -147,7 +147,7 @@ under the License.
 
      <dependencySet>
       <includes>
-        <include>org.apache.httpcomponents:httpclient</include>
+        <include>commons-httpclient:commons-httpclient</include>
       </includes>      
       <outputDirectory>ducc_runtime/lib/http-client</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
@@ -262,7 +262,6 @@ under the License.
         <include>org.slf4j:slf4j-log4j12</include>
         <include>org.slf4j:slf4j-api</include>
         <include>aopalliance:aopalliance</include>
-        <include>cglib:cglib</include>
       </includes>      
       <outputDirectory>ducc_runtime/lib/springframework</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
@@ -461,11 +460,16 @@ under the License.
     </file>
     
       <file>
+      <source>src/main/cglib/com.springsource.net.sf.cglib-2.2.0.jar</source>
+      <outputDirectory>ducc_runtime/lib/springframework-3.0.5</outputDirectory>
+      <destName>com.springsource.net.sf.cglib-2.2.0.jar</destName>
+    </file>
+    
+    <file>
       <source>uima-ducc-common/src/main/java/org/apache/uima/ducc/common/internationalization/Messages.properties</source>
       <outputDirectory>ducc_runtime/resources</outputDirectory>
       <destName>Messages.properties</destName>
     </file>
-    
     <!-- 
     <file>
       <source>README.BUILD</source>
