@@ -25,7 +25,7 @@ import java.util.ResourceBundle;
 
 public class Messages {
 
-	private String resourceName = "org.apache.uima.ducc.common.internationalization.Messages";
+	private String resourceName = "Messages";
 	
 	private Locale locale = null;
 	private ResourceBundle resourceBundle = null;
