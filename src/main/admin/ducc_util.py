@@ -314,64 +314,46 @@ class DuccUtil:
     
         CLASSPATH = ''
     
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq-5.5.0/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli-1.2/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang-2.6/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/guava-r09/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/google-gson-2.2.2/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-log4j-1.2.16/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/guava/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/google-gson/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-log4j/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/uima/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-camel-2.7.1/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-collections-3.2.1/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/joda-time-1.6/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/springframework-3.0.5/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/xmlbeans-2.5.0/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/bluepages/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-camel/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-collections/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/joda-time/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/springframework/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/xmlbeans/*'
 
         # orchestrator http needs codecs
         CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
 
         # explicitly NOT ducc_test.jar
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-ibm.jar'
         CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/*'
         CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/jsp/*'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-agent.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-cli.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-common.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-jd.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-orchestrator.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-pm.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-rm.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-sm.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-web.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-viz.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-agent.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-cli.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-common.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-transport.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-jd.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-orchestrator.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-pm.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-rm.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-sm.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-web.jar'
 
         CLASSPATH = CLASSPATH + ':' + RESOURCES
     
         os.environ['CLASSPATH'] = CLASSPATH
 
-    def set_classpath_for_clix(self):
-        ducc_home = self.DUCC_HOME
-        LIB       = ducc_home + '/lib'
-        RESOURCES = ducc_home + '/resources'
-    
-        CLASSPATH = ''
-    
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq-5.5.0/activemq-all-5.5.0.jar'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli-1.2/commons-cli-1.2.jar'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-camel-2.7.1/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/springframework-3.0.5/*'
 
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-cli.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/ducc-common.jar'
-
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima/uima-core.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima/uimaj-as-core.jar'
-        
-        CLASSPATH = CLASSPATH + ':' + RESOURCES
-
-        os.environ['CLASSPATH'] = CLASSPATH
+    def format_classpath(self, cp):
+        strings = cp.split(':')
+        for s in strings:
+            print s
 
     def set_classpath_for_submit(self):
         ducc_home = self.DUCC_HOME
@@ -427,6 +409,10 @@ class DuccUtil:
             if ( (sstat.st_uid != 0) or (sstat.st_gid != duccgid) ):
                  print 'ducc_ling module', dl, ': Invalid ownership. Should be ducc.ducc'
                  return False
+        else:
+            if ( not os.path.exists(self.duccling) ):
+                print "Missing ducc_ling"
+                return False
              
         print 'ducc_ling OK'
         return True
@@ -641,18 +627,17 @@ class DuccUtil:
         # Print the version information from the DUCC jars
         #
         for j in [\
-                  'ducc-rm.jar',\
-                  'ducc-pm.jar', \
-                  'ducc-orchestrator.jar', \
-                  'ducc-sm.jar', \
-                  'ducc-web.jar', \
-                  'ducc-cli.jar', \
-                  'ducc-agent.jar', \
-                  'ducc-common.jar', \
-                  'ducc-jd.jar', \
-                  'ducc-test.jar', \
-                  'ducc-ibm.jar' \
+                  'uima-ducc-rm.jar',\
+                  'uima-ducc-pm.jar', \
+                  'uima-ducc-orchestrator.jar', \
+                  'uima-ducc-sm.jar', \
+                  'uima-ducc-web.jar', \
+                  'uima-ducc-cli.jar', \
+                  'uima-ducc-agent.jar', \
+                  'uima-ducc-common.jar', \
+                  'uima-ducc-jd.jar', 
                  ]:
+
 
             manifest = DuccProperties()
             manifest.load_from_manifest(self.DUCC_HOME + '/lib/' + j)

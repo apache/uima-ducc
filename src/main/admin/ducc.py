@@ -97,7 +97,7 @@ class Ducc(DuccUtil):
                     jvm_opts.append(self.ws_jvm_args)
 
             if ( c == 'orchestrator' ):
-                if ( or_parms != '' ):
+                if ( or_parms != None ):
                     args = '-' + or_parms
                 if ( self.or_jvm_args != None ):
                     jvm_opts.append(self.or_jvm_args)
