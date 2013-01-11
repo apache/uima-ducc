@@ -49,19 +49,24 @@
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-submit</finalName>
+            <finalName>uima-ducc-submit</finalName>
                <archive>
-                  <index>true</index>
-                  <manifest>
+                  <index>false</index>
+                  <!-- manifest>
                      <addClasspath>true</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccJobSubmit</mainClass>
-                  </manifest>
+                  </manifest -->
+                  
+        <manifest>
+            <addClasspath>false</addClasspath>
+            <mainClass>org.apache.uima.ducc.cli.DuccJobSubmit</mainClass>
+        </manifest>
+        <manifestEntries>
+            <Class-Path>../resources/ uima-ducc-transport.jar http-client/commons-codec-1.2.jar http-client/commons-httpclient-3.1.jar google-gson/gson-2.2.2.jar  apache-camel/xstream-1.3.1.jar  apache-camel/mina-core-1.1.7.jar apache-camel/commons-management-1.0.jar  apache-camel/commons-beanutils-1.8.3.jar apache-camel/camel-xstream-2.7.1.jar  apache-camel/camel-xmlbeans-2.7.1.jar apache-camel/camel-test-2.7.1.jar apache-camel/camel-stream-2.7.1.jar apache-camel/camel-spring-2.7.1.jar apache-camel/camel-servlet-2.7.1.jar apache-camel/camel-mina-2.7.1.jar apache-camel/camel-jms-2.7.1.jar apache-camel/camel-jetty-2.7.1.jar apache-camel/camel-http4-2.7.1.jar apache-camel/camel-http-2.7.1.jar apache-camel/camel-core-2.7.1.jar apache-commons-cli/commons-cli-1.2.jar apache-activemq/activemq-all-5.5.0.jar  ducc-common.jar springframework/slf4j-log4j12-1.5.11.jar springframework/slf4j-api-1.5.11.jar springframework/log4j-1.2.16.jar springframework/jcl-over-slf4j-1.5.11.jar springframework/com.springsource.net.sf.cglib-2.2.0.jar springframework/aopalliance-1.0.jar  springframework/spring-aop-3.0.5.RELEASE.jar springframework/spring-asm-3.0.5.RELEASE.jar springframework/spring-beans-3.0.5.RELEASE.jar springframework/spring-context-3.0.5.RELEASE.jar springframework/spring-context-support-3.0.5.RELEASE.jar springframework/spring-core-3.0.5.RELEASE.jar springframework/spring-expression-3.0.5.RELEASE.jar springframework/spring-jms-3.0.5.RELEASE.jar springframework/spring-tx-3.0.5.RELEASE.jar uima/uima-core.jar  uima/uimaj-as-core.jar </Class-Path>
+        </manifestEntries>                  
+                  
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
-              <!-- excludes>
-              </excludes -->
+             
             </configuration>
           </execution>
           <execution>
