@@ -257,7 +257,24 @@
         	</executions>
       	</plugin -->
 
-			
+<!-- plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-antrun-plugin</artifactId>
+  <executions>
+    <execution>
+      <id>create-empty-directory</id>
+      <phase>package</phase>
+      <goals>
+        <goal>run</goal>
+      </goals>
+      <configuration>
+        <tasks>
+          <mkdir dir="ducc_runtime/state" />
+        </tasks>
+      </configuration>
+    </execution>
+  </executions>
+</plugin -->			
 		</plugins>
 		<!-- /pluginManagement -->
 	</build>
