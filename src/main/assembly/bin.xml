@@ -39,6 +39,8 @@ under the License.
         <include>org.apache.uima:uima-ducc-rm</include>
         <include>org.apache.uima:uima-ducc-sm</include>
         <include>org.apache.uima:uima-ducc-orchestrator</include>
+        <include>org.apache.uima:uima-ducc-web</include>
+        
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib</outputDirectory>
@@ -450,7 +452,12 @@ under the License.
   
   <files>
   
-  
+  <file>
+      <source>src/main/scripts/dd2spring.xsl</source>
+      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <destName>dd2spring.xsl</destName>
+      <fileMode>755</fileMode>
+    </file>
     
   <file>
       <source>src/main/scripts/ducc_boot.py</source>

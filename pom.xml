@@ -83,7 +83,11 @@
 			<artifactId>uima-ducc-jd</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-web</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -123,7 +127,7 @@
           </execution>
         </executions>
       </plugin -->
-			<plugin>
+			<!-- plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.5</version>
 				<executions>
@@ -143,12 +147,14 @@
 										<include>LICENSE</include>
 										<include>NOTICE</include>
 									</includes>
+									
+									
 								</resource>
 							</resources>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin -->
 
          <!-- plugin>
           <groupId>org.apache.maven.plugins</groupId>
