@@ -20,6 +20,12 @@
 		<relativePath>../uima-ducc-parent/pom.xml</relativePath>
   </parent>  
   
+  <properties>
+    <DUCC_CP>
+uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ http-client/commons-codec-1.2.jar http-client/commons-httpclient-3.1.jar google-gson/gson-2.2.2.jar  apache-camel/xstream-1.3.1.jar apache-camel/mina-core-1.1.7.jar apache-camel/camel-context-2.10.1.jar apache-camel/camel-core-2.10.1.jar apache-camel/camel-http-2.10.1.jar apache-camel/camel-http4-2.10.1.jar apache-camel/camel-jetty-2.10.1.jar apache-camel/camel-jms-2.10.1.jar apache-camel/camel-mina-2.10.1.jar apache-camel/camel-servlet-2.10.1.jar apache-camel/camel-spring-2.10.1.jar apache-camel/camel-stream-2.10.1.jar apache-camel/camel-test-2.10.1.jar apache-camel/camel-test-spring-2.10.1.jar apache-camel/camel-xmlbeans-2.10.1.jar apache-camel/camel-xstream-2.10.1.jar apache-log4j/log4j-1.2.16.jar apache-commons-cli/commons-cli-1.2.jar apache-activemq/activemq-all-5.5.0.jar springframework/slf4j-log4j12-1.5.11.jar springframework/slf4j-api-1.5.11.jar springframework/jcl-over-slf4j-1.5.11.jar springframework/com.springsource.net.sf.cglib-2.2.0.jar springframework/aopalliance-1.0.jar springframework/spring-aop-3.0.5.RELEASE.jar springframework/spring-asm-3.0.5.RELEASE.jar springframework/spring-beans-3.0.5.RELEASE.jar springframework/spring-context-3.0.5.RELEASE.jar springframework/spring-context-support-3.0.5.RELEASE.jar springframework/spring-core-3.0.5.RELEASE.jar springframework/spring-expression-3.0.5.RELEASE.jar springframework/spring-jms-3.0.5.RELEASE.jar springframework/spring-tx-3.0.5.RELEASE.jar uima/uima-core-2.4.1-20121211.001650-31.jar uima/uimaj-as-core-2.4.1-20130110.191457-4.jar
+    </DUCC_CP>
+  </properties>
+
   <artifactId>uima-ducc-cli</artifactId>
   
   <dependencies>
@@ -43,6 +49,7 @@
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <executions>
+
           <execution>
             <id>DuccJobSubmit</id>
             <goals><goal>jar</goal></goals>
@@ -51,24 +58,22 @@
             <!-- Name the jar -->
             <finalName>uima-ducc-submit</finalName>
                <archive>
-                  <index>false</index>
-                  <!-- manifest>
-                     <addClasspath>true</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccJobSubmit</mainClass>
-                  </manifest -->
-                  
-        <manifest>
-            <addClasspath>false</addClasspath>
-            <mainClass>org.apache.uima.ducc.cli.DuccJobSubmit</mainClass>
-        </manifest>
-        <manifestEntries>
-            <Class-Path>../resources/ uima-ducc-transport.jar http-client/commons-codec-1.2.jar http-client/commons-httpclient-3.1.jar google-gson/gson-2.2.2.jar  apache-camel/xstream-1.3.1.jar  apache-camel/mina-core-1.1.7.jar apache-camel/commons-management-1.0.jar  apache-camel/commons-beanutils-1.8.3.jar apache-camel/camel-xstream-2.7.1.jar  apache-camel/camel-xmlbeans-2.7.1.jar apache-camel/camel-test-2.7.1.jar apache-camel/camel-stream-2.7.1.jar apache-camel/camel-spring-2.7.1.jar apache-camel/camel-servlet-2.7.1.jar apache-camel/camel-mina-2.7.1.jar apache-camel/camel-jms-2.7.1.jar apache-camel/camel-jetty-2.7.1.jar apache-camel/camel-http4-2.7.1.jar apache-camel/camel-http-2.7.1.jar apache-camel/camel-core-2.7.1.jar apache-commons-cli/commons-cli-1.2.jar apache-activemq/activemq-all-5.5.0.jar  ducc-common.jar springframework/slf4j-log4j12-1.5.11.jar springframework/slf4j-api-1.5.11.jar springframework/log4j-1.2.16.jar springframework/jcl-over-slf4j-1.5.11.jar springframework/com.springsource.net.sf.cglib-2.2.0.jar springframework/aopalliance-1.0.jar  springframework/spring-aop-3.0.5.RELEASE.jar springframework/spring-asm-3.0.5.RELEASE.jar springframework/spring-beans-3.0.5.RELEASE.jar springframework/spring-context-3.0.5.RELEASE.jar springframework/spring-context-support-3.0.5.RELEASE.jar springframework/spring-core-3.0.5.RELEASE.jar springframework/spring-expression-3.0.5.RELEASE.jar springframework/spring-jms-3.0.5.RELEASE.jar springframework/spring-tx-3.0.5.RELEASE.jar uima/uima-core.jar  uima/uimaj-as-core.jar </Class-Path>
-        </manifestEntries>                  
-                  
-               </archive>
-             
+                  <index>false</index>                  
+                  <manifest>
+                    <addClasspath>false</addClasspath>
+                    <mainClass>org.apache.uima.ducc.cli.DuccJobSubmit</mainClass>
+                  </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
+               </archive>       
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>
+
           <execution>
             <id>DuccJobCancel</id>
             <goals><goal>jar</goal></goals>
@@ -77,17 +82,22 @@
             <!-- Name the jar -->
             <finalName>ducc-cancel</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccJobCancel</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                  
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>
+
           <execution>
             <id>DuccJobMonitor</id>
             <goals><goal>jar</goal></goals>
@@ -96,15 +106,19 @@
             <!-- Name the jar -->
             <finalName>ducc-monitor</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccJobMonitor</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>
 
@@ -116,15 +130,19 @@
             <!-- Name the jar -->
             <finalName>ducc-reserve</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccReservationSubmit</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>
           
@@ -136,15 +154,19 @@
             <!-- Name the jar -->
             <finalName>ducc-unreserve</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccReservationCancel</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>     
           
@@ -156,15 +178,19 @@
             <!-- Name the jar -->
             <finalName>ducc-service-submit</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccServiceSubmit</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>           
 
@@ -176,15 +202,19 @@
             <!-- Name the jar -->
             <finalName>ducc-service-cancel</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccServiceCancel</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>            
           
@@ -196,15 +226,19 @@
             <!-- Name the jar -->
             <finalName>ducc-service</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccServiceApi</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>          
           
@@ -216,15 +250,19 @@
             <!-- Name the jar -->
             <finalName>ducc-qmon</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.UimaAsServiceMonitor</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>          
                
@@ -236,15 +274,19 @@
             <!-- Name the jar -->
             <finalName>ducc-perf-stats</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccPerfStats</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>          
 
@@ -256,15 +298,16 @@
             <!-- Name the jar -->
             <finalName>ducc-web-query-machines</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccWebQueryMachines</mainClass>
                   </manifest>
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution> 
           
@@ -276,17 +319,22 @@
             <!-- Name the jar -->
             <finalName>ducc-web-query-reservations</finalName>
                <archive>
-                  <index>true</index>
+                  <index>false</index>
                   <manifest>
-                     <addClasspath>true</addClasspath>
+                     <addClasspath>false</addClasspath>
                      <mainClass>org.apache.uima.ducc.cli.DuccWebQueryReservations</mainClass>
                   </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
                </archive>
-              <includes>
-                <include>**/*</include>
-              </includes>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
             </configuration>
           </execution>          
+
         </executions>
       </plugin>
     </plugins>
