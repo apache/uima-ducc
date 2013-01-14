@@ -46,7 +46,7 @@ under the License.
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
+      <useProjectArtifact>true</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
