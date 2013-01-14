@@ -28,7 +28,7 @@ from ducc_util import DuccUtil
 class DuccUnReserve(DuccUtil):
 
     def main(self, argv):
-        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-unreserve.jar', ' '.join(argv))
+        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-unreserve.jar', ' '.join(argv))
 
 if __name__ == "__main__":
     unres = DuccUnReserve()

@@ -31,7 +31,7 @@ from ducc_util import DuccUtil
 class DuccProcessSubmit(DuccUtil):
 
     def main(self, argv):
-        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-process-submit.jar', ' '.join(argv))
+        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-process-submit.jar', ' '.join(argv))
 
 if __name__ == "__main__":
     submit = DuccProcessSubmit()

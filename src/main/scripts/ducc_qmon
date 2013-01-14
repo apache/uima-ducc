@@ -93,7 +93,7 @@ class DuccQmon(DuccUtil):
                 self.invalid('Job id is mutually exclusive with broker, port, and queue')
             else:
                 queue = 'ducc.jd.queue.' + jobid
-                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-qmon.jar',  queue, self.broker_host, self.broker_jmx_port)
+                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-qmon.jar',  queue, self.broker_host, self.broker_jmx_port)
                 return
 
         if ( broker_host == None ):
@@ -101,7 +101,7 @@ class DuccQmon(DuccUtil):
         if ( broker_port == None ):
             broker_port = self.broker_jmx_port
 
-        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-qmon.jar',  queue, broker_host, broker_port)
+        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-qmon.jar',  queue, broker_host, broker_port)
 
 
 if __name__ == "__main__":

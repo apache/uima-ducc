@@ -36,10 +36,10 @@ class DuccWeb(DuccUtil):
     def main(self, argv):
         if ( len(argv) > 0 ):
             if ( argv[0] == '--qm' or argv[0] == '--query-machines'):
-                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-web-query-machines.jar', ' '.join(argv[1:]))
+                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-web-query-machines.jar', ' '.join(argv[1:]))
                 return
             if ( argv[0] == '--qr' or argv[0] == '--query-reservations' ):
-                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-web-query-reservations.jar', ' '.join(argv[1:]))
+                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-web-query-reservations.jar', ' '.join(argv[1:]))
                 return
             self.syntax();
         else:

@@ -27,7 +27,7 @@ from ducc_util import DuccUtil
 class DuccPerfStats(DuccUtil):
 
     def main(self, argv):
-        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/ducc-perf-stats.jar', ' '.join(argv))
+        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-perf-stats.jar', ' '.join(argv))
 
 if __name__ == "__main__":
     cancel = DuccPerfStats()
