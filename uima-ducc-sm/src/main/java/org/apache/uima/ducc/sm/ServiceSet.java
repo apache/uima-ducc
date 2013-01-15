@@ -26,8 +26,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLStreamHandler;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -110,12 +108,6 @@ public class ServiceSet
     ServiceClass service_class = ServiceClass.Undefined;
     ServiceState service_state = ServiceState.Undefined;;
 
-    String custom_classpath;
-    String custom_meta_class;
-    String[] custom_meta_parms;
-
-    long meta_ping_timeout = 500;
-
     // structures to manage service linger after it exits
     Timer timer = null;
     LingerTask linger = null;
@@ -132,6 +124,22 @@ public class ServiceSet
 
         this.service_type = ServiceType.UimaAs;
         this.service_class = ServiceClass.Implicit;
+
+        // need job props and meta props so pinger works
+        // job props: , service_ping_class, service_ping_classpath, working_directory, log_directory
+        // meta props: endpoint, user
+        job_props = new DuccProperties();
+        job_props.put("service_ping_class", ServiceManagerComponent.default_ping_class);
+        job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
+        job_props.put("service_ping_dolog", "false");
+        job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
+        job_props.put("working_directory", System.getProperty("user.dir")); // whatever my current dir is
+        job_props.put("log_directory", System.getProperty("user.dir") + "/../logs");
+        job_props.put("service_ping_jvm_args", "-Xmx50M");
+
+        meta_props = new DuccProperties();
+        meta_props.put("user", System.getProperty("user.name"));
+        meta_props.put("endpoint", key);
     }
 
     //
@@ -139,12 +147,16 @@ public class ServiceSet
     //
     public ServiceSet(DuccId id, String key, String[] independentServices)
     {
+        // deprecating for now
+        throw new IllegalStateException("Submitted services not supported");
+        /**
         this.key = key;
         this.implementors.put(id, JobState.Undefined);
         this.independentServices = independentServices;
         this.service_class = ServiceClass.Submitted;        
 
         parseEndpoint(key);
+        */
     }
 
     //
@@ -178,6 +190,25 @@ public class ServiceSet
         this.service_class = ServiceClass.Registered;
 
         parseIndependentServices();
+
+        if ( service_type == ServiceType.UimaAs ) {            
+            if ( ! job_props.containsKey("service_ping_class" ) ) {
+                job_props.put("service_ping_class", ServiceManagerComponent.default_ping_class);
+                job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
+                // this lets us turn on debug logging for the default pinger
+                if ( ! job_props.containsKey("service_ping_dolog")) {
+                    job_props.put("service_ping_dolog", "false");
+                }        
+                job_props.put("service_ping_jvm_args", "-Xmx50M");
+            }
+        }
+
+        if ( !job_props.containsKey("service_ping_timeout") ) {
+            job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
+        }
+        if ( ! job_props.containsKey("service_ping_dolog") ) {
+            job_props.put("service_ping_dolog", "true");       // unless we fill in the default pinger        
+        }
 
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
@@ -290,6 +321,21 @@ public class ServiceSet
             }
         }
         independentServices = result;
+    }
+
+    /**
+     * A service is startable if it's UIMA-AS, or if it's CUSTOM and has a process_executable
+     * associated with it.  A non-startable CUSTOM service may have only a pinger.
+     */
+    boolean isStartable()
+    {
+        switch ( service_type ) {
+            case UimaAs:
+                return true;
+            case Custom: 
+                return job_props.containsKey("process_executable");
+        }
+        return false;  // redundant but needed for compilation
     }
 
     /**
@@ -529,10 +575,13 @@ public class ServiceSet
         }
 
         // stop the pinger if no longer needed
-        if ( (references.size() == 0) && (isImplicit() || isCustom()) ) {    // non-implicit are stopped when the implementors go away
-            stopPingThread();
+        if ( (references.size() == 0) &&                          // nothing left
+             ( isImplicit() || ( isCustom() && !isStartable()) )   // implicit UIMA-AS || implicit CUSTOM
+             ) 
+        {
+            stopPingThread();                                     // must stop pinger because there's no state machine
+                                                                  // to do it for us in this situation
         }
-        // If it's registered, and nrefs == 0, and implicit_start is true, we need to stop the service
 
         return references.size();
     }
@@ -611,7 +660,6 @@ public class ServiceSet
                     }
                 } else {
                     if ( service_type == ServiceType.Custom ) {
-                        // ugly, until we're actually starting the custom process as well
                         startPingThread();
                     } else {
                         int needed = Math.max(0, instances - friendly_ids.size());
@@ -784,18 +832,10 @@ public class ServiceSet
         if ( serviceMeta != null ) return;         // don't start multiple times.
 
         try {
-            switch ( service_type ) {
-                case UimaAs:
-                    logger.info(methodName, id, "Starting UIMA-AS monitor.");
-                    serviceMeta = new UimaServiceMeta(this, endpoint, broker_host, broker_jmx_port);
-                    break;               
-                case Custom:
-                    logger.info(methodName, id, "Starting CUSTOM monitor.");
-                    serviceMeta = new CustomServiceMeta(this);
-                    break;       
-            }
+            logger.info(methodName, id, "Starting ping/monitor.");
+            serviceMeta = new PingDriver(this);
         } catch ( Throwable t ) {
-            logger.error(methodName, id, "Cannot start CUSTOM monitor.", t);
+            logger.error(methodName, id, "Cannot instantiate ping/monitor.", t);
             return;
         }
 
@@ -804,6 +844,18 @@ public class ServiceSet
         t.start();
     }
 
+    synchronized void pingExited()
+    {
+        String methodName = "pingExited";
+        if ( serviceMeta != null ) {
+            logger.warn(methodName, id, "Pinger exited voluntarily, setting state to Undefined. Endpoint", endpoint);
+            service_state = ServiceState.Undefined;     // not really sure what state is. it will be
+                                                        // checked and updated next run through the
+                                                        // main state machine, and maybe ping restarted.
+            serviceMeta = null;
+        }
+
+    }
 
     public synchronized void stopPingThread()
     {
@@ -877,10 +929,10 @@ public class ServiceSet
     {
     	String methodName = "start";
 
-        if ( service_type == ServiceType.Custom ) {
-            establish();
-            return;
-        }
+//         if ( service_type == ServiceType.Custom ) { 
+//             establish();
+//             return;
+//         }
 
         this.stopped = false;          // for registered
 
@@ -894,7 +946,7 @@ public class ServiceSet
             System.getProperty("ducc.jvm"),
             "-cp",
             System.getProperty("java.class.path"),
-            "org.apache.uima.ducc.sm.cli.DuccServiceSubmit",
+            "org.apache.uima.ducc.cli.DuccServiceSubmit",
             "--specification",
             props_filename
         };
@@ -989,7 +1041,7 @@ public class ServiceSet
             System.getProperty("ducc.jvm"),
             "-cp",
             System.getProperty("java.class.path"),
-            "org.apache.uima.ducc.sm.cli.DuccServiceCancel",
+            "org.apache.uima.ducc.cli.DuccServiceCancel",
             "--id",
             id.toString()
         };
@@ -1151,17 +1203,6 @@ public class ServiceSet
         return sd;
     }
 
-    class TcpStreamHandler
-        extends URLStreamHandler
-    {
-        TcpStreamHandler() {}
-
-        public URLConnection openConnection(URL u)
-        {
-            //throw new Exception("This protocol handler isn't expected to actually work.");
-        	return null;
-        }
-    }
 
     /**
      * For debugging, so it's easier to identify this guy in the eclipse debugger.

@@ -132,6 +132,7 @@ public class ServiceHandler
             modifiedServices.clear();
         }
         handleModifiedServices(incoming);
+        handleImplicitServices();
 
         incoming = new HashMap<DuccId, IDuccWork>();
         synchronized(newServices) {
@@ -202,6 +203,7 @@ public class ServiceHandler
      */
     protected void resolveState(DuccId id, ServiceDependency dep)
     {        
+        String methodName = "resolveState";
         Map<String, ServiceSet> services = serviceStateHandler.getServicesForJob(id);
         if ( services == null ) {
             dep.setState(ServiceState.NotAvailable);       // says that nothing i need is available
@@ -218,6 +220,7 @@ public class ServiceHandler
         for ( ServiceSet sset : services.values() ) {
             if ( sset.getServiceState().ordinality() < state.ordinality() ) state = sset.getServiceState();
              dep.setIndividualState(sset.getKey(), sset.getServiceState());
+             logger.debug(methodName, id, "Set individual state", sset.getServiceState());
         }
         dep.setState(state);
     }
@@ -266,7 +269,7 @@ public class ServiceHandler
             // we need to bypass any attempt to cope with registered services or updating the sset.
             //
             if ( ! fatal ) {
-                if ( sset.isRegistered() && (sset.countImplementors() == 0) ) {
+                if ( sset.isRegistered() && (sset.countImplementors() == 0) && sset.isStartable() ) {
                     // Registered but not alive, well, we can fix that!
                     int ninstances = sset.getNInstances();
                     logger.debug(methodName, sset.getId(), "Reference-starting registered service, instances =", ninstances);
@@ -419,6 +422,7 @@ public class ServiceHandler
             if ( j.isFinished() ) {
                 stopDependentServices(id);
                 s.setState(ServiceState.NotAvailable);
+                s.clearMessages();
             } else  if ( j.isActive() ) {
                 resolveState(id, s);
             } 
@@ -572,6 +576,22 @@ public class ServiceHandler
                                                                       // from the published map
     }
     
+    /**
+     * The pinger may have died while we weren't looking.  Registered services take care
+     * of themselves from handleModifiedServices, but we know very little about implicit
+     * services so we walk them all and make their ServiceSet keep them clean.
+     */
+    protected void handleImplicitServices()
+    {
+        ArrayList<String> keys = serviceStateHandler.getServiceNames();
+        for ( String k : keys ) {
+            ServiceSet sset = serviceStateHandler.getServiceByName(k);
+            if ( sset.isImplicit() ) {
+                sset.establish();
+            }
+        }
+    }
+
     protected void handleModifiedServices(HashMap<DuccId, IDuccWork> work)
     {
         String methodName = "handleModifiedServices";        
@@ -767,7 +787,11 @@ public class ServiceHandler
         }
                           
         for ( int i = 0; i < wanted; i++ ) {
-            sset.start();
+            if ( sset.isStartable() ) {
+                sset.start();
+            } else {
+                sset.establish();  // this will just start the ping thread
+            }
         } 
 
 
@@ -918,7 +942,7 @@ public class ServiceHandler
 
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
         
-        if ( instances >= 0 ) {
+        if ( instances > 0 ) {
             sset.setNInstances(instances);                // also persists instances
         }
 

@@ -31,13 +31,13 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils;
+import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
+import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.MissingPropertyException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
-import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
-import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
@@ -52,9 +52,10 @@ import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 
@@ -84,6 +85,7 @@ public class ServiceManagerComponent
     static int meta_ping_rate = 60000;       // interval in ms to ping the service
     static int meta_ping_stability = 5;           // number of missed pings before we mark the service down
     static int meta_ping_timeout = 500;      // timeout on ping 
+    static String default_ping_class;
 
     private String state_dir = null;
     private String state_file = null;
@@ -195,6 +197,7 @@ public class ServiceManagerComponent
         meta_ping_rate = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate", meta_ping_rate);
         meta_ping_timeout = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout", meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability", meta_ping_stability);
+        default_ping_class = SystemPropertyResolver.getStringProperty("ducc.sm.default.uima-as.ping.class", UimaAsPing.class.getName());
 
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
         logger.info(methodName, null, "Service Manager starting:");
@@ -306,7 +309,20 @@ public class ServiceManagerComponent
 
               case Service:
                   localMap.addDuccWork(w);
-                  newServices.put(w.getDuccId(), w);
+                  // An arbitrary process is **almost** the same as a service in terms of how most of DUCC
+                  // handles it.  In order to transparently reuse all that code it is classified as a
+                  // special type of service, "other", which the SM treats as a regular job.
+                  switch ( ((IDuccWorkService)w).getServiceDeploymentType() ) 
+                  {
+                      case uima:
+                      case custom:
+                          newServices.put(w.getDuccId(), w);
+                          break;
+                      case other:
+                          newJobs.put(w.getDuccId(), w);
+                          break;
+                  }
+
                   break;
 
               default:
@@ -328,7 +344,16 @@ public class ServiceManagerComponent
 
               case Service:
                   localMap.removeDuccWork(w.getDuccId());
-                  deletedServices.put(w.getDuccId(), w);
+                  switch ( ((IDuccWorkService)w).getServiceDeploymentType() ) 
+                  {
+                      case uima:
+                      case custom:
+                          deletedServices.put(w.getDuccId(), w);
+                          break;
+                      case other:
+                          deletedJobs.put(w.getDuccId(), w);
+                          break;
+                  }
                   break;
 
               default:
@@ -354,8 +379,17 @@ public class ServiceManagerComponent
                   break;
 
               case Service:
-                  modifiedServices.put(l.getDuccId(), l);
                   localMap.addDuccWork(l);
+                  switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                  {
+                      case uima:
+                      case custom:
+                          modifiedServices.put(l.getDuccId(), l);
+                          break;
+                      case other:
+                          modifiedJobs.put(l.getDuccId(), l);
+                          break;
+                  }
                   break;
 
               default:

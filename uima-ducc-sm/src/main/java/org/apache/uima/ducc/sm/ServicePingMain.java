@@ -31,7 +31,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.common.AServicePing;
 import org.apache.uima.ducc.common.ServiceStatistics;
 
 
@@ -46,6 +46,11 @@ import org.apache.uima.ducc.common.ServiceStatistics;
 public class ServicePingMain
     implements SmConstants
 {
+
+    boolean debug = false;
+    int error_max = 10;
+    int error_count = 0;
+
     public ServicePingMain()
     {
     	
@@ -126,14 +131,20 @@ public class ServicePingMain
 			Class cls = Class.forName(cl);
 			pinger = (AServicePing) cls.newInstance();
 			pinger.init(ep);
-		} catch (ClassNotFoundException e) {
-            print(e);
-		} catch (InstantiationException e) {
-            print(e);
-		} catch (IllegalAccessException e) {
-            print(e);
-		}
+		} catch (Exception e) {
+            //print(e);         // To the logs
+            e.printStackTrace();
+		} 
         return pinger;
+    }
+
+    void handleError(Throwable t)
+    {
+        t.printStackTrace();
+        if ( ++error_count >= error_max ) {
+            System.out.println("Exceeded error count. Exiting.");
+            System.exit(1);
+        }
     }
 
     //
@@ -153,7 +164,7 @@ public class ServicePingMain
 
         CommandLineParser parser = new PosixParser();
         CommandLine commandLine = null;
-
+        ServiceStatistics default_statistics = new ServiceStatistics(false, false, "<N/A>");
 
 		try {
 			commandLine = parser.parse(options, args);
@@ -190,7 +201,6 @@ public class ServicePingMain
 			return;
 		}
 
-        ServiceStatistics defaultStatistics = new ServiceStatistics();
         ObjectOutputStream oos;
 		try {
 			oos = new ObjectOutputStream(sock_out);
@@ -207,7 +217,7 @@ public class ServicePingMain
         }
 
         while ( true ) {  
-        	print("ServicePingMeta starts ping.");
+        	if ( debug ) print("ServicePingMeta starts ping.");
         	
             byte[] cmd = new byte[1];
             cmd[0] = 0;
@@ -215,10 +225,9 @@ public class ServicePingMain
 			try {
 				eof = sock_in.read(cmd);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+                handleError(e);
 			}
-            print("Read cmd", new String(cmd), "eof", eof);
+            if ( debug ) print("Read cmd", new String(cmd), "eof", eof);
 
             if ( eof == -1 ) {
                 print("EOF on input pipe.  Exiting");
@@ -228,13 +237,11 @@ public class ServicePingMain
 
             try {
 				if ( cmd[0] == 'P' ) {
-                    boolean p = custom.ping();
                     ServiceStatistics ss = custom.getStatistics();
                     if ( ss == null ) {
-                        ss = defaultStatistics;
+                        ss = default_statistics;
                     }
-                    ss.setPing(p);
-                    print("Ping is set to " + ss.getPing());
+                    // print("Is alive: " + ss.isAlive());
                     oos.writeObject(ss);
                     oos.flush();
 
@@ -251,8 +258,7 @@ public class ServicePingMain
 				    System.err.println("Invalid command recieved: " +  Byte.toString(cmd[0]));
 				}
 			} catch (Throwable e) {
-				// TODO Auto-generated catch block                
-				e.printStackTrace();   // this is defined to go to stderr
+                handleError(e);
 			}            
         }
     }
@@ -262,5 +268,5 @@ public class ServicePingMain
         ServicePingMain wrapper = new ServicePingMain();
         wrapper.start(args);
     }
-
+    
 }
