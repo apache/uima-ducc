@@ -36,33 +36,34 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
+import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
-import org.apache.uima.ducc.transport.event.common.IRationale;
-import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
-import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
-import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
+import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsMap;
 import org.apache.uima.ducc.transport.event.rm.IResource;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
+import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.transport.event.sm.ServiceDependency;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
-import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 
 
 public class StateManager {
@@ -375,59 +376,65 @@ public class StateManager {
 					break;
 				}
 				//
-				switch(jdStatusReport.getDriverState()) {
-				case NotRunning:
-					break;
-				case Initializing:	
-					switch(duccWorkJob.getJobState()) {
-					case WaitingForDriver:
-						stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
-						break;
-					case Initializing:
-						break;
-					}
-					break;
-				case Running:
-				case Idle:	
-					if(jdStatusReport.isKillJob()) {
-						jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, jdStatusReport.getJobCompletionRationale(), ProcessDeallocationType.JobFailure);
-						break;
-					}
-					switch(duccWorkJob.getJobState()) {
-					case WaitingForDriver:
-						stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
-						break;
-					case Initializing:
-						stateJobAccounting.stateChange(duccWorkJob, JobState.Running);
-						break;
-					}
-					break;
-				case Completed:
-					if(!duccWorkJob.isFinished()) {
-						stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
-						deallocateJobDriver(duccWorkJob, jdStatusReport);
-					}
-					duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
-					switch(jdStatusReport.getJobCompletionType()) {
-					case EndOfJob:
-						duccWorkJob.setCompletion(JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
-						try {
-							int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
-							if(errors > 0) {
-								duccWorkJob.setCompletion(JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
-							}
-						}
-						catch(Exception e) {
-						}
-						break;
-					default:
-						duccWorkJob.setCompletion(jdStatusReport.getJobCompletionType(),jdStatusReport.getJobCompletionRationale());
-						break;
-					}
-					break;
-				case Undefined:
-					break;
+				if(jdStatusReport.getWorkItemsTotal() == 0) {
+					jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, new Rationale("no work items to process"), ProcessDeallocationType.JobCanceled);
 				}
+				else {
+					switch(jdStatusReport.getDriverState()) {
+					case NotRunning:
+						break;
+					case Initializing:	
+						switch(duccWorkJob.getJobState()) {
+						case WaitingForDriver:
+							stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
+							break;
+						case Initializing:
+							break;
+						}
+						break;
+					case Running:
+					case Idle:	
+						if(jdStatusReport.isKillJob()) {
+							jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, jdStatusReport.getJobCompletionRationale(), ProcessDeallocationType.JobFailure);
+							break;
+						}
+						switch(duccWorkJob.getJobState()) {
+						case WaitingForDriver:
+							stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
+							break;
+						case Initializing:
+							stateJobAccounting.stateChange(duccWorkJob, JobState.Running);
+							break;
+						}
+						break;
+					case Completed:
+						if(!duccWorkJob.isFinished()) {
+							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
+							deallocateJobDriver(duccWorkJob, jdStatusReport);
+						}
+						duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+						switch(jdStatusReport.getJobCompletionType()) {
+						case EndOfJob:
+							duccWorkJob.setCompletion(JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
+							try {
+								int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
+								if(errors > 0) {
+									duccWorkJob.setCompletion(JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
+								}
+							}
+							catch(Exception e) {
+							}
+							break;
+						default:
+							duccWorkJob.setCompletion(jdStatusReport.getJobCompletionType(),jdStatusReport.getJobCompletionRationale());
+							break;
+						}
+						break;
+					case Undefined:
+						break;
+					}
+				}
+				//
 				OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(jdStatusReport,duccWorkJob);
 				if(deallocateIdleProcesses(duccWorkJob, jdStatusReport)) {
 					changes++;
@@ -767,7 +774,18 @@ public class StateManager {
 				DuccId duccId = resourceMapIterator.next();
 				NodeIdentity nodeId = resourceMap.get(duccId).getNodeId();
 				if(!processMap.containsKey(duccId)) {
-					DuccProcess process = new DuccProcess(duccId, nodeId, ProcessType.Job_Uima_AS_Process);
+					ProcessType processType = null;
+					switch(duccWorkJob.getServiceDeploymentType()) {
+					case custom:
+					case other:
+						processType = ProcessType.Pop;
+						break;
+					case uima:
+					case unspecified:
+						processType = ProcessType.Job_Uima_AS_Process;
+						break;
+					}
+					DuccProcess process = new DuccProcess(duccId, nodeId, processType);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
 					process.setResourceState(ResourceState.Allocated);
@@ -958,7 +976,7 @@ public class StateManager {
 						logger.warn(methodName, duccId, messages.fetchLabel("unexpected job state")+jobState);
 						break;
 					case WaitingForDriver:
-						logger.warn(methodName, duccId, messages.fetchLabel("unexpected job state")+jobState);
+						logger.debug(methodName, duccId, messages.fetchLabel("pending job state")+jobState);
 						break;
 					case WaitingForServices:
 						switch(serviceState) {
@@ -968,7 +986,7 @@ public class StateManager {
 						case Available:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForResources);
 							changes++;
-							logger.warn(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
+							logger.info(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
 							break;
 						case NotAvailable:
                         case Stopping:
@@ -981,7 +999,7 @@ public class StateManager {
 							}
 							stateJobAccounting.complete(duccWorkJob, JobCompletionType.ServicesUnavailable, rationale);
 							changes++;
-							logger.warn(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
+							logger.info(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
 							break;
 						case Undefined:
 							logger.warn(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
@@ -989,9 +1007,11 @@ public class StateManager {
 						}
 						break;
 					case WaitingForResources:
+						logger.debug(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
+						break;
 					case Initializing:
 					case Running:
-						logger.warn(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
+						logger.debug(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
 						break;
 					case Completed:
 						logger.debug(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
@@ -1029,42 +1049,107 @@ public class StateManager {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess inventoryProcess = inventoryProcessMap.get(processId);
-				switch(inventoryProcess.getProcessType()) {
-				case Pop:
+				ProcessType processType = inventoryProcess.getProcessType();
+				if(processType != null) {
 					DuccId jobId = OrchestratorCommonArea.getInstance().getProcessAccounting().getJobId(processId);
 					if(jobId != null) {
 						IDuccWork duccWork = workMap.findDuccWork(jobId);
 						if(duccWork != null) {
-							switch(duccWork.getDuccType()) {
+							DuccType jobType = duccWork.getDuccType();
+							switch(jobType) {
 							case Job:
-								DuccWorkJob job = (DuccWorkJob) duccWork;
-								OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-								switch(inventoryProcess.getProcessState()) {
-								case Failed:
-									if(inventoryProcess.getDuccId().getFriendly() == 0) {
-										jobTerminate(job, JobCompletionType.DriverProcessFailed, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
-									}
-									else {
-										jobTerminate(job, JobCompletionType.ProcessFailure, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
+								switch(processType) {
+								case Pop:
+									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+									DuccWorkJob job = (DuccWorkJob) duccWork;
+									switch(inventoryProcess.getProcessState()) {
+									case Failed:
+										if(inventoryProcess.getDuccId().getFriendly() == 0) {
+											jobTerminate(job, JobCompletionType.DriverProcessFailed, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
+										}
+										else {
+											jobTerminate(job, JobCompletionType.ProcessFailure, new Rationale(inventoryProcess.getReasonForStoppingProcess()), inventoryProcess.getProcessDeallocationType());
+										}
+										break;
+									default:
+										if(inventoryProcess.isComplete()) {
+											OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,ProcessDeallocationType.Stopped);
+											completeJob(job, new Rationale("state manager reported as normal completion"));
+										}
+										break;
 									}
 									break;
-								default:
+								case Service:
+									logger.warn(methodName, jobId, processId, "unexpected process type: "+processType);
+									break;
+								case Job_Uima_AS_Process:
+									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+									break;
+								}
+								break;
+							case Service:
+								DuccWorkJob service = (DuccWorkJob) duccWork;
+								switch(processType) {
+								case Pop:
+									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
 									if(inventoryProcess.isComplete()) {
-										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,ProcessDeallocationType.Stopped);
-										completeJob(job, new Rationale("state manager reported as normal completion"));
+										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
+									}
+									if(!service.hasAliveProcess()) {
+										completeJob(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+									}
+									break;
+								case Service:
+									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+									if(inventoryProcess.isComplete()) {
+										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
+									}
+									if(!service.hasAliveProcess()) {
+										completeJob(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+									}
+									break;
+								case Job_Uima_AS_Process:
+									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+									if(inventoryProcess.isComplete()) {
+										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
+									}
+									if(!service.hasAliveProcess()) {
+										completeJob(service, new Rationale("state manager reported no viable service process exists, type="+processType));
 									}
 									break;
 								}
 								break;
 							}
 						}
+						else {
+							StringBuffer sb = new StringBuffer();
+							sb.append("node:"+inventoryProcess.getNodeIdentity().getName());
+							sb.append(" ");
+							sb.append("PID:"+inventoryProcess.getPID());
+							sb.append(" ");
+							sb.append("type:"+inventoryProcess.getProcessType());
+							logger.debug(methodName, jobId, sb);
+						}
 					}
-					break;
-				case Service:
-					break;
-				case Job_Uima_AS_Process:
-					OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-					break;
+					else {
+						StringBuffer sb = new StringBuffer();
+						sb.append("node:"+inventoryProcess.getNodeIdentity().getName());
+						sb.append(" ");
+						sb.append("PID:"+inventoryProcess.getPID());
+						sb.append(" ");
+						sb.append("type:"+inventoryProcess.getProcessType());
+						logger.debug(methodName, jobId, sb);
+					}
+				}
+				else {
+					DuccId jobId = null;
+					StringBuffer sb = new StringBuffer();
+					sb.append("node:"+inventoryProcess.getNodeIdentity().getName());
+					sb.append(" ");
+					sb.append("PID:"+inventoryProcess.getPID());
+					sb.append(" ");
+					sb.append("type:"+inventoryProcess.getProcessType());
+					logger.warn(methodName, jobId, sb);
 				}
 			}
 		}

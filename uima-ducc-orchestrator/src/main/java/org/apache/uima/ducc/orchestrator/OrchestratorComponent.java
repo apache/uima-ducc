@@ -24,7 +24,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.TreeMap;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -33,8 +32,8 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.crypto.Crypto;
-import org.apache.uima.ducc.common.crypto.CryptoException;
 import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
+import org.apache.uima.ducc.common.crypto.CryptoException;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.system.SystemState;
@@ -68,20 +67,20 @@ import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
+import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IRationale;
-import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
-import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
-import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
+import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
@@ -259,7 +258,7 @@ implements Orchestrator {
 		return startType;
 	}
 		
-	
+	@Override
 	public void start(DuccService service, String[] args) throws Exception {
 		String methodName = "start";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -351,6 +350,7 @@ implements Orchestrator {
 	/**
 	 * Job Driver State Reconciliation
 	 */
+	@Override
 	public void reconcileJdState(JdStateDuccEvent duccEvent) {
 		String methodName = "reconcileJdState";
 		DriverStatusReport dsr = duccEvent.getState();
@@ -368,6 +368,7 @@ implements Orchestrator {
 	/**
 	 * Resources Manager State Reconciliation
 	 */
+	@Override
 	public void reconcileRmState(RmStateDuccEvent duccEvent) {
 		String methodName = "reconcileRmState";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -384,6 +385,7 @@ implements Orchestrator {
 	/**
 	 * Services Manager State Reconciliation
 	 */
+	@Override
 	public void reconcileSmState(SmStateDuccEvent duccEvent) {
 		String methodName = "reconcileSmState";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -394,7 +396,7 @@ implements Orchestrator {
 	/**
 	 * Node Inventory State Reconciliation
 	 */
-	
+	@Override
 	public void reconcileNodeInventory(NodeInventoryUpdateDuccEvent duccEvent) {
 		String methodName = "reconcileNodeInventory";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -406,7 +408,7 @@ implements Orchestrator {
 	/**
 	 * Publish Orchestrator State
 	 */
-	
+	@Override
 	public OrchestratorStateDuccEvent getState() {
 		String methodName = "getState";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -443,7 +445,7 @@ implements Orchestrator {
 	/**
 	 * Publish Orchestrator Abbreviated State
 	 */
-	
+	@Override
 	public OrchestratorAbbreviatedStateDuccEvent getAbbreviatedState() {
 		String methodName = "getAbbreviatedState";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -525,7 +527,7 @@ implements Orchestrator {
 	/**
 	 * Handle Job Submit
 	 */
-	
+	@Override
 	public void startJob(SubmitJobDuccEvent duccEvent) {
 		String methodName = "startJob";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -583,7 +585,7 @@ implements Orchestrator {
 	/**
 	 * Handle Job Cancel
 	 */
-	
+	@Override
 	public void stopJob(CancelJobDuccEvent duccEvent) {
 		String methodName = "stopJob";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -629,7 +631,7 @@ implements Orchestrator {
 		return;
 	}
 	
-	
+	@Override
 	public void startReservation(SubmitReservationDuccEvent duccEvent) {
 		String methodName = "startReservation";
 		logger.trace(methodName, null, messages.fetch("enter"));	
@@ -667,23 +669,15 @@ implements Orchestrator {
 				// prepare for reply to submitter
 				properties.put(ReservationRequestProperties.key_id, duccWorkReservation.getId());
 				// node list
-				properties.put(ReservationRequestProperties.key_node_list, "none");
+				properties.put(ReservationRequestProperties.key_node_list, "");
 				if(!duccWorkReservation.getReservationMap().isEmpty()) {
 					StringBuffer sb = new StringBuffer();
-					TreeMap<String,Integer> nodeMap = new TreeMap<String,Integer>(); 
 					IDuccReservationMap map = duccWorkReservation.getReservationMap();
 					for (DuccId key : map.keySet()) { 
 						IDuccReservation value = duccWorkReservation.getReservationMap().get(key);
 						String node = value.getNodeIdentity().getName();
-						if(!nodeMap.containsKey(node)) {
-							nodeMap.put(node,new Integer(0));
-						}
-						Integer count = nodeMap.get(node);
-						count++;
-						nodeMap.put(node,count);
-					}
-					for (String node: nodeMap.keySet()) { 
-						sb.append(" "+node+" "+"["+nodeMap.get(node)+"]"+";");
+						sb.append(node);
+						sb.append(" ");
 					}
 					properties.put(ReservationRequestProperties.key_node_list,sb.toString().trim());
 				}
@@ -704,7 +698,7 @@ implements Orchestrator {
 		return;
 	}
 	
-	
+	@Override
 	public void stopReservation(CancelReservationDuccEvent duccEvent) {
 		String methodName = "stopReservation";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -766,7 +760,7 @@ implements Orchestrator {
 	/**
 	 * Handle Service Submit
 	 */
-	
+	@Override
 	public void startService(SubmitServiceDuccEvent duccEvent) {
 		String methodName = "startService";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -826,7 +820,7 @@ implements Orchestrator {
 	/**
 	 * Handle Service Cancel
 	 */
-	
+	@Override
 	public void stopService(CancelServiceDuccEvent duccEvent) {
 		String methodName = "stopService";
 		logger.trace(methodName, null, messages.fetch("enter"));

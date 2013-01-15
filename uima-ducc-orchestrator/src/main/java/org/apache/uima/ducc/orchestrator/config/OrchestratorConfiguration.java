@@ -144,7 +144,7 @@ public class OrchestratorConfiguration {
             .process(new OrchestratorReplyProcessor())   // inject reply object
             .process(xmEnded)
             .process(new Processor() {
-              
+              @Override
               public void process(Exchange exchange) throws Exception {
                 exchange.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, 200);
                 exchange.getOut().setHeader("content-type", "text/xml");

@@ -18,27 +18,35 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
-import org.apache.uima.ducc.common.utils.id.DuccId;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+/* 
+ *  inspired by => http://stackoverflow.com/questions/3366281/tokenizing-a-string-but-ignoring-delimiters-within-quotes
+ */
 
-public class ORTracer implements Processor {
-
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(ORTracer.class.getName());
-	private static final DuccId jobid = null;
+public class ParsingHelper {
 	
-	private String name = null;
-	
-	public ORTracer(String name) {
-		this.name = name;
-	}
+	private static String regex = "\"([^\"]*)\"|(\\S+)";
 
-	@Override
-	public void process(Exchange arg0) throws Exception {
-		String location = "process";
-		logger.info(location, jobid, name);
+	public static List<String> parse(String text) {
+		List<String> list = new ArrayList<String>();
+		if(text != null) {
+			Matcher m = Pattern.compile(regex).matcher(text);
+		    while (m.find()) {
+		        if (m.group(1) != null) {
+		            //System.out.println("Quoted [" + m.group(1) + "]");
+		        	list.add(m.group(1));
+		        }
+		        else if (m.group(2) != null) {
+		            //System.out.println("Plain [" + m.group(2) + "]");
+		        	list.add(m.group(2));
+		        } 
+		    }
+		}
+	    return list;
 	}
+    
 }

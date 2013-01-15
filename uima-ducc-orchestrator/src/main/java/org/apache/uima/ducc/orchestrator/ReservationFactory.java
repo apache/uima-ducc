@@ -56,6 +56,7 @@ public class ReservationFactory {
 		DuccStandardInfo standardInfo = new DuccStandardInfo();
 		duccWorkReservation.setStandardInfo(standardInfo);
 		standardInfo.setUser(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_user));
+		standardInfo.setSubmitter(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_submitter_pid_at_host));
 		standardInfo.setDateOfSubmission(TimeStamp.getCurrentMillis());
 		standardInfo.setDateOfCompletion(null);
 		standardInfo.setDescription(reservationRequestProperties.getProperty(ReservationSpecificationProperties.key_description));
