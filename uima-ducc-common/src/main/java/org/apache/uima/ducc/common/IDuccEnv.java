@@ -36,6 +36,7 @@ public interface IDuccEnv {
 	
 	public static final String DUCC_STATE_DIR = DUCC_HOME_DIR+"state"+File.separator;
 	public static final String DUCC_DAEMONS_DIR = DUCC_STATE_DIR+"daemons"+File.separator;
+	public static final String DUCC_AGENTS_DIR = DUCC_STATE_DIR+"agents"+File.separator;
 	
 	public static final String DUCC_HISTORY_DIR = DUCC_HOME_DIR+"history"+File.separator;
 	public static final String DUCC_HISTORY_JOBS_DIR = DUCC_HOME_DIR+"history"+File.separator+"jobs"+File.separator;

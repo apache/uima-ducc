@@ -18,58 +18,62 @@
 */
 package org.apache.uima.ducc.common.jd.files;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.IOException;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import org.apache.uima.ducc.common.utils.IOHelper;
-
-
-@SuppressWarnings("unchecked")
 public class WorkItemStateManager {
-	
-	public static final String work_item_status_ser = "work-item-status.ser";
-	
+
 	private ConcurrentSkipListMap<Long,IWorkItemState> map = new ConcurrentSkipListMap<Long,IWorkItemState>();
-	private String filename = null;
 	
+	@SuppressWarnings("deprecation")
+	private WorkItemStateSerializedObjects pSer;
+	@SuppressWarnings("deprecation")
+	private WorkItemStateJson pJson;
+	private WorkItemStateJsonGz pJsonGz;
+	
+	@SuppressWarnings("deprecation")
 	public WorkItemStateManager(String dirname) {
-		init(dirname);
-	}
-	
-	private void init(String dirname) {
-		this.filename = IOHelper.marryDir2File(dirname,work_item_status_ser);
+		pSer = new WorkItemStateSerializedObjects(dirname);
+		pJson = new WorkItemStateJson(dirname);
+		pJsonGz = new WorkItemStateJsonGz(dirname);
 	}
 	
 	public ConcurrentSkipListMap<Long,IWorkItemState> getMap() {
 		return map;
 	}
 	
-	public void exportData() {
+	@SuppressWarnings("deprecation")
+	public void exportData() throws IOException {
 		try {
-			FileOutputStream fos = new FileOutputStream(filename);
-			ObjectOutputStream out = new ObjectOutputStream(fos);
-			out.writeObject(map);
-			out.close();
+			pJsonGz.exportData(map);
 			return;
 		}
 		catch(Exception e) {
-			e.printStackTrace();
 		}
-	}
-	
-	public void importData() {
 		try {
-			FileInputStream fis = new FileInputStream(filename);
-			ObjectInputStream in = new ObjectInputStream(fis);
-			map = (ConcurrentSkipListMap<Long,IWorkItemState>)in.readObject();
-			in.close();
+			pJson.exportData(map);
+			return;
 		}
 		catch(Exception e) {
-			e.printStackTrace();
 		}
+		pSer.exportData(map);
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void importData() throws IOException, ClassNotFoundException {
+		try {
+			map = pJsonGz.importData();
+			return;
+		}
+		catch(Exception e) {
+		}
+		try {
+			map = pJson.importData();
+			return;
+		}
+		catch(Exception e) {
+		}
+		map = pSer.importData();
 	}
 	
 	public void start(int seqNo, String wiId) {

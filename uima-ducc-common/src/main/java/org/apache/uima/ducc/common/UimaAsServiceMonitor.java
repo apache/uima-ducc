@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.common;
 
+import java.io.IOException;
+
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
@@ -30,35 +32,66 @@ import org.apache.activemq.broker.jmx.BrokerViewMBean;
 import org.apache.activemq.broker.jmx.QueueViewMBean;
 
 public class UimaAsServiceMonitor
+    extends AServicePing
 {
     private String qname;
     private String broker_url;
 
+    private JMXConnector jmxc;
     private QueueViewMBean monitoredQueue;
     private ServiceStatistics qstats;
+
+    double enqueueTime ; 
+    long consumerCount ;
+    long producerCount ;
+    long queueSize     ;
+    long minEnqueueTime;
+    long maxEnqueueTime;
+    long inFlightCount ;
+    long dequeueCount  ;
+    long enqueueCount  ;
+    long dispatchCount ;
+    long expiredCount  ;
+    
+    boolean alive = false;
+    boolean healthy = false;
+
+
 
     public UimaAsServiceMonitor(String qname, String broker_host, int broker_port)
     {
         this.qname = qname;
         this.broker_url = "service:jmx:rmi:///jndi/rmi://"+ broker_host + ":" + broker_port + "/jmxrmi";        
-        this.qstats = new ServiceStatistics();
+        this.qstats = new ServiceStatistics(false, false, "N/A");
         // System.out.println("Broker url: " + broker_url);
+
     }
 
-    public ServiceStatistics getServiceStatistics()
+    public ServiceStatistics getStatistics()
     {
+        try {
+            collect();
+            qstats.setAlive(true);        // if we don't croak gathering stuff, we're not dead
+            qstats.setHealthy(true);
+            qstats.setInfo(format());
+            qstats.setErrorString(null);
+        } catch ( Throwable t ) {
+            qstats.setAlive(false);        // if we don't croak gathering stuff, we're not dead
+            qstats.setHealthy(false);
+            qstats.setErrorString(t.getMessage());
+        }
     	return qstats;
     }
     
     /**
      * Connect to ActiveMq and find the mbean for the queue we're trying to monitor
      */
-    public void connect()
+    public void init(String parm /* parm not used in this impl */)
         throws Exception
     {
         
         JMXServiceURL url = new JMXServiceURL(broker_url);
-        JMXConnector jmxc = JMXConnectorFactory.connect(url);
+        jmxc = JMXConnectorFactory.connect(url);
         MBeanServerConnection conn = jmxc.getMBeanServerConnection();        
         String jmxDomain = "org.apache.activemq";  
 
@@ -96,29 +129,60 @@ public class UimaAsServiceMonitor
         }        
     }
 
-    public void collect()
+    public void stop()
+    {
+        try {
+			if ( jmxc != null ) {
+			    jmxc.close();
+			    jmxc = null;
+			}
+		} catch (IOException e) {
+			// don't really care
+		}
+    }
+
+    private String format()
+    {
+        return "avgNQ[" + enqueueTime
+            +  "] Consum[" + consumerCount
+            +  "] Prod[" + producerCount
+            +  "] Qsize[" + queueSize
+            +  "] minNQ[" + minEnqueueTime
+            +  "] maxNQ[" + maxEnqueueTime
+            +  "] expCnt[" + expiredCount
+            +  "] inFlt[" + inFlightCount
+            +  "] DQ[" + dequeueCount
+            +  "] NQ[" + enqueueCount
+            +  "] NDisp[" + dispatchCount
+            + "]"
+            ;
+
+    }
+
+    private void collect()
         throws Throwable
     {
-        qstats.setConsumerCount(monitoredQueue.getConsumerCount());
-        qstats.setProducerCount(monitoredQueue.getProducerCount());
-        qstats.setQueueSize(monitoredQueue.getQueueSize());
-        qstats.setMinEnqueueTime(monitoredQueue.getMinEnqueueTime());
-        qstats.setMaxEnqueueTime(monitoredQueue.getMaxEnqueueTime());
-        qstats.setInFlightCount(monitoredQueue.getInFlightCount());
-        qstats.setDequeueCount(monitoredQueue.getDequeueCount());
-        qstats.setEnqueueCount(monitoredQueue.getEnqueueCount());
-        qstats.setDispatchCount(monitoredQueue.getDispatchCount());
-        qstats.setExpiredCount(monitoredQueue.getExpiredCount());
+            enqueueTime    = monitoredQueue.getAverageEnqueueTime();
+            consumerCount  = monitoredQueue.getConsumerCount();
+            producerCount  = monitoredQueue.getProducerCount();
+            queueSize      = monitoredQueue.getQueueSize();
+            minEnqueueTime = monitoredQueue.getMinEnqueueTime();
+            maxEnqueueTime = monitoredQueue.getMaxEnqueueTime();
+            inFlightCount  = monitoredQueue.getInFlightCount();
+            dequeueCount   = monitoredQueue.getDequeueCount();
+            enqueueCount   = monitoredQueue.getEnqueueCount();
+            dispatchCount  = monitoredQueue.getDispatchCount();
+            expiredCount   = monitoredQueue.getExpiredCount();
+
     }
 
     public static void main(String[] args)
     {
         // System.out.println(args[0] + " " + args[1] + " " + args[2]);
         UimaAsServiceMonitor m = new UimaAsServiceMonitor(args[0], args[1], Integer.parseInt(args[2])); // qname, broker host, broker port
-        ServiceStatistics qs = m.qstats;
 
         try {
-			m.connect();                      // connect to amq
+			m.init(null);                      // connect to amq
 		} catch (Exception e1) {
 			// TODO Auto-generated catch block
 			System.out.println("Cannot connect:");
@@ -126,19 +190,15 @@ public class UimaAsServiceMonitor
             return;
 		}
 
-        int lim = 10;
-        int ctr =   0;
-        while ( true ) {
 
+        while ( true ) {
+            ServiceStatistics qs = null;
             try {
-                m.collect();
+                qs = m.getStatistics();
             } catch (Throwable t) {
                 System.out.println("Cannot collect stats.  The queue may have been deleted. Details:");
                 t.printStackTrace();
                 return;
-            }
-            if ( (ctr++) % lim == 0 ) {
-                System.out.println(qs.header());
             }
             System.out.println(qs.toString());
             try {

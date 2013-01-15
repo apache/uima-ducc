@@ -270,7 +270,7 @@ public class Utils {
 	 * @return
 	 */
 	public static String resolvePlaceholderIfExists(String value, Properties props ) {
-		if ( value.contains("${")) {
+		if ( value != null && value.contains("${")) {
             PropertyPlaceholderHelper pph = new PropertyPlaceholderHelper("${","}");
             value = pph.replacePlaceholders(value, props);
         }

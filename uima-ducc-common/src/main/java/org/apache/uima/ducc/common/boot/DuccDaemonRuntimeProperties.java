@@ -65,6 +65,7 @@ public class DuccDaemonRuntimeProperties {
 	}
 	
 	private String ducc_daemons_dir = IDuccEnv.DUCC_DAEMONS_DIR;
+	private String ducc_agents_dir = IDuccEnv.DUCC_AGENTS_DIR;
 	private String suffix = "-boot.properties";
 	
 	private DuccDaemonRuntimeProperties() {
@@ -73,6 +74,7 @@ public class DuccDaemonRuntimeProperties {
 	
 	private void init() {
 		IOHelper.mkdirs(ducc_daemons_dir);
+		IOHelper.mkdirs(ducc_agents_dir);
 	}
 	
 	public Properties get(DaemonName daemonName) {
@@ -135,5 +137,66 @@ public class DuccDaemonRuntimeProperties {
 		bootProperties.put(DuccDaemonRuntimeProperties.keyNodeName, nodeName);
 		bootProperties.put(DuccDaemonRuntimeProperties.keyPid, pid);
 		getInstance().put(daemonName, bootProperties);
+	}
+	
+	public Properties getAgent(String agentName) {
+		Properties properties = new Properties();
+		String fileName = IDuccEnv.DUCC_AGENTS_DIR+agentName+suffix;
+		try {
+			File file = new File(fileName);
+			FileInputStream fis;
+			fis = new FileInputStream(file);
+			properties.load(fis);
+			
+		} 
+		catch (FileNotFoundException e) {
+			System.out.println("File not found: "+fileName);
+		} 
+		catch (IOException e) {
+			System.out.println("Error reading file: "+fileName);
+		}
+		return properties;
+	}
+	
+	public void putAgent(String agentName, Properties properties) {
+		String fileName = IDuccEnv.DUCC_AGENTS_DIR+agentName+suffix;
+		try {
+			File file = new File(fileName);
+			FileOutputStream fos;
+			fos = new FileOutputStream(file);
+			properties.store(fos,"");
+		} 
+		catch (IOException e) {
+			System.out.println("Error writing file: "+fileName);
+		}
+		return;
+	}
+	
+	public void bootAgent(String name, String ip, String jmxUrl) {
+		Properties bootProperties = new Properties();
+		String bootTime = TimeStamp.simpleFormat(""+System.currentTimeMillis());
+		String nodeIpAddress = "?";
+		String nodeName = "?";
+		String pid = "?";
+		try {
+			nodeIpAddress = InetAddress.getLocalHost().getHostAddress();
+			nodeName = InetAddress.getLocalHost().getCanonicalHostName();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		bootProperties.put(DuccDaemonRuntimeProperties.keyDaemonName, name);
+		bootProperties.put(DuccDaemonRuntimeProperties.keyBootTime, bootTime);
+		bootProperties.put(DuccDaemonRuntimeProperties.keyJmxUrl, jmxUrl);
+		bootProperties.put(DuccDaemonRuntimeProperties.keyNodeIpAddress, nodeIpAddress);
+		bootProperties.put(DuccDaemonRuntimeProperties.keyNodeName, nodeName);
+		bootProperties.put(DuccDaemonRuntimeProperties.keyPid, pid);
+		getInstance().putAgent(name, bootProperties);
 	}
 }
