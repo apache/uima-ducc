@@ -20,6 +20,12 @@ package org.apache.uima.ducc.transport.event.jd;
 
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
+
+import org.apache.uima.ducc.common.jd.files.JobPerformanceSummary;
+import org.apache.uima.ducc.common.jd.files.JobPerformanceSummaryData;
 
 public class PerformanceSummaryWriter extends PerformanceSummaryReader {
 	
@@ -27,12 +33,53 @@ public class PerformanceSummaryWriter extends PerformanceSummaryReader {
 		super(dirname);
 	}
 	
-	public void writeSummary() {
+	private void writeJsonGz() {
 		try {
-			FileOutputStream fos = new FileOutputStream(filename);
-			ObjectOutputStream out = new ObjectOutputStream(fos);
-			out.writeObject(summaryMap);
-			out.close();
+			ConcurrentSkipListMap<String, JobPerformanceSummary> map = new ConcurrentSkipListMap<String, JobPerformanceSummary>();
+			Set<Entry<String, PerformanceMetricsSummaryItem>> entries = summaryMap.entrySet();
+			for(Entry<String, PerformanceMetricsSummaryItem> entry : entries) {
+				PerformanceMetricsSummaryItem item = entry.getValue();
+				JobPerformanceSummary jps = new JobPerformanceSummary();
+				jps.setAnalysisTime(item.getAnalysisTime());
+				jps.setAnalysisTimeMax(item.getAnalysisTimeMax());
+				jps.setAnalysisTimeMin(item.getAnalysisTimeMin());
+				jps.setNumProcessed(item.getNumProcessed());
+				jps.setName(item.getName());
+				jps.setUniqueName(item.getUniqueName());
+				map.put(jps.getUniqueName(), jps);
+			}
+			
+			Integer casCount = summaryMap.casCount();
+			JobPerformanceSummaryData data = new JobPerformanceSummaryData(map,casCount);
+			jsonGz.exportData(data);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Deprecated
+	private boolean legacy = false;
+	
+	@Deprecated
+	private void writeSer(PerformanceMetricsSummaryMap map) {
+		if(legacy) {
+			try {
+				FileOutputStream fos = new FileOutputStream(filename);
+				ObjectOutputStream out = new ObjectOutputStream(fos);
+				out.writeObject(map);
+				out.close();
+			}
+			catch(Exception e) {
+				System.err.println("PerformanceMetricsSummaryMap.writeSer() could not write file: "+ filename);
+			}
+		}
+	}
+	
+	public void writeSummary() {
+		writeSer(summaryMap);
+		try {
+			writeJsonGz();
 			return;
 		}
 		catch(Exception e) {

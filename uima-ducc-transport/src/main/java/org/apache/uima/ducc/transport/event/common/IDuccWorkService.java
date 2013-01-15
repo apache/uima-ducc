@@ -19,5 +19,12 @@
 package org.apache.uima.ducc.transport.event.common;
 
 public interface IDuccWorkService extends IDuccWork {
-
+	
+	public enum ServiceDeploymentType { uima, custom, other, unspecified };
+	
+	public ServiceDeploymentType getServiceDeploymentType();
+    public void setServiceDeploymentType(ServiceDeploymentType serviceDeploymentType);
+    
+    public String getServiceEndpoint();
+    public void setServiceEndpoint(String ep);
 }

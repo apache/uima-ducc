@@ -50,9 +50,6 @@ public interface IDuccWork extends Serializable {
     public String[] getServiceDependencies();
     public void setServiceDependencies(String[] serviceDependencies);
 
-    public String getServiceEndpoint();
-    public void   setServiceEndpoint(String ep);
-
 	public boolean isSchedulable();
 	public boolean isCompleted();
 	public boolean isOperational();

@@ -41,6 +41,22 @@ public class PerformanceMetricsSummaryItem implements Serializable {
 		this.uniqueName = uniqueName;
 	}
 	
+	public PerformanceMetricsSummaryItem(String name, 
+										 String uniqueName,
+										 long analysisTime,
+										 long numProcessed,
+										 long analysisTimeMin,
+										 long analysisTimeMax
+										 ) 
+	{
+		this.name = name;
+		this.uniqueName = uniqueName;
+		this.analysisTime.set(analysisTime);
+		this.numProcessed.set(numProcessed);
+		this.analysisTimeMin.set(analysisTimeMin);
+		this.analysisTimeMax.set(analysisTimeMax);
+	}
+	
 	public String getName() {
 		return name;
 	}

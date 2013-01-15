@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.event.common;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
@@ -44,9 +45,12 @@ public interface IDuccWorkReservation extends IDuccWork, Serializable {
 	public boolean isSchedulable();
 	public boolean isDispatchable();
 	public boolean isCompleted();
+	public boolean isFinished();
 	public boolean stateChange(ReservationState state);
 	
 	public boolean complete(ReservationCompletionType completionType);
 	
 	public void logState();
+	
+	public List<String> getUniqueNodes();
 }

@@ -19,7 +19,15 @@
 package org.apache.uima.ducc.transport.event.jd;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
+
+import org.apache.uima.ducc.common.jd.files.IJobPerformanceSummary;
+import org.apache.uima.ducc.common.jd.files.JobPerformanceSummary;
+import org.apache.uima.ducc.common.jd.files.JobPerformanceSummaryData;
 
 public class PerformanceSummaryReader extends PerformanceSummaryBase {
 	
@@ -27,18 +35,55 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 		super(dirname);
 	}
 	
+	public PerformanceMetricsSummaryMap readJsonGz() throws IOException, ClassNotFoundException {
+		PerformanceMetricsSummaryMap map = new PerformanceMetricsSummaryMap();
+		JobPerformanceSummaryData data = jsonGz.importData();
+		Integer casCount = data.getCasCount();
+		map.putCasCount(casCount);
+		ConcurrentSkipListMap<String, JobPerformanceSummary> gzMap = data.getMap();
+		Set<Entry<String, JobPerformanceSummary>> entries = gzMap.entrySet();
+		for(Entry<String, JobPerformanceSummary> entry : entries) {
+			String key = entry.getKey();
+			IJobPerformanceSummary jps = entry.getValue();
+			PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(),jps.getUniqueName(),jps.getAnalysisTime(),jps.getNumProcessed(),jps.getAnalysisTimeMin(),jps.getAnalysisTimeMax());
+			map.putItem(key, value);
+		}
+		return map;
+	}
+	
+	@Deprecated
+	private boolean legacy = true;
+	
+	@Deprecated
+	private PerformanceMetricsSummaryMap readSer() {
+		PerformanceMetricsSummaryMap map = null;
+		if(legacy) {
+			try {
+				FileInputStream fis = new FileInputStream(filename);
+				ObjectInputStream in = new ObjectInputStream(fis);
+				summaryMap = (PerformanceMetricsSummaryMap)in.readObject();
+				in.close();
+				map = getSummaryMap();
+			}
+			catch(Exception e) {
+				System.err.println("PerformanceMetricsSummaryMap.readSer() could not read file: "+ filename);
+			}
+		}
+		return map;
+	}
+	
 	public PerformanceMetricsSummaryMap readSummary() {
 		PerformanceMetricsSummaryMap map = null;
 		try {
-			FileInputStream fis = new FileInputStream(filename);
-			ObjectInputStream in = new ObjectInputStream(fis);
-			summaryMap = (PerformanceMetricsSummaryMap)in.readObject();
-			in.close();
-			map = getSummaryMap();
+			map = readJsonGz();
+			return map;
 		}
 		catch(Exception e) {
-			System.err.println("PerformanceMetricsSummaryMap.readSummary() could not read file: "+ filename);
+			if(!legacy) {
+				e.printStackTrace();
+			}
 		}
+		map = readSer();
 		return map;
 	}
 }

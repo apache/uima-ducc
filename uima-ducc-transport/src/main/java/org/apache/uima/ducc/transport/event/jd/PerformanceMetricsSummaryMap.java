@@ -111,4 +111,12 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 	public int casCount() {
 		return casCount.get();
 	}
+	
+	protected void putItem(String key, PerformanceMetricsSummaryItem value) {
+		map.put(key, value);
+	}
+	
+	protected void putCasCount(int value) {
+		casCount.set(value);
+	}
 }

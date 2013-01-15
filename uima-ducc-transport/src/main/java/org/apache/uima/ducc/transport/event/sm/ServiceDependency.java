@@ -65,7 +65,15 @@ public class ServiceDependency implements Serializable {
     {
         messages.put(endpoint, message);
     }
-    
+
+    /**
+     * This job/service is completing.  Clear potenitally confusing messages that might be left over.
+     */
+    public void clearMessages()
+    {
+        messages.clear();
+    }
+
     public Map<String, String> getMessages()
     {
         return messages;

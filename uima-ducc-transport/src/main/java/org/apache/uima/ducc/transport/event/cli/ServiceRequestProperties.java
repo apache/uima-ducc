@@ -24,4 +24,8 @@ public class ServiceRequestProperties extends JobRequestProperties {
 	 * The service endpoint, extracted from the DD by service submit.
 	 */
 	public static String key_service_request_endpoint = "service_request_endpoint";
+	
+	public static String key_service_type_uima = "service_type_uima";
+	public static String key_service_type_custom = "service_type_custom";
+	public static String key_service_type_other = "service_type_other";
 }

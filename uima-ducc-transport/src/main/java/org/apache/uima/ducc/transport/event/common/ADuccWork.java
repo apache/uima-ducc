@@ -20,6 +20,7 @@ package org.apache.uima.ducc.transport.event.common;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 
 /*
  * Work data
@@ -37,6 +38,7 @@ public abstract class ADuccWork implements IDuccWork {
 	private Object stateObject = null;
 	private Object completionTypeObject = null;
     private String[] serviceDependencies = null;
+    private ServiceDeploymentType serviceDeploymentType = null;
     private String serviceEndpoint = null; // generated in submit
 	
 	@Override
@@ -117,6 +119,16 @@ public abstract class ADuccWork implements IDuccWork {
         return this.serviceDependencies;
     }
 
+    public void setServiceDeploymentType(ServiceDeploymentType serviceDeploymentType)
+    {
+        this.serviceDeploymentType = serviceDeploymentType;
+    }
+
+    public ServiceDeploymentType getServiceDeploymentType()
+    {
+        return serviceDeploymentType;
+    }
+    
     public void setServiceEndpoint(String ep)
     {
         this.serviceEndpoint = ep;

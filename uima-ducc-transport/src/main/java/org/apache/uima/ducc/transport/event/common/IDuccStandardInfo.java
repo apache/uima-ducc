@@ -25,8 +25,8 @@ public interface IDuccStandardInfo extends Serializable {
 	public String getUser();
 	public void setUser(String user);
 	
-	public String getSubmitUser();
-	public void setSubmitUser(String user);
+	public String getSubmitter();
+	public void setSubmitter(String submitter);
 	
 	public String getDateOfSubmission();
 	public void setDateOfSubmission(String dateOfSubmission);

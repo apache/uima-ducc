@@ -37,6 +37,11 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	
 	public static String key_jvm = "jvm";
 	
+	public static String key_process_debug          = "process_debug";
+	public static String key_driver_debug           = "driver_debug";
+	public static String key_process_attach_console = "process_attach_console";
+	public static String key_driver_attach_console  = "driver_attach_console";
+	
 	public static String key_driver_jvm_args = "driver_jvm_args";
 	public static String key_driver_classpath = "driver_classpath";
 	public static String key_driver_environment = "driver_environment";
@@ -65,7 +70,10 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	
 	public static String key_process_get_meta_time_max = "process_get_meta_time_max";
 	public static String key_process_per_item_time_max = "process_per_item_time_max";
-
+	
+	public static String key_process_executable = "process_executable";
+	public static String key_process_executable_args = "process_executable_args";
+	
     public static String key_service_dependency = "service_dependency";
     
     public static String key_wait_for_completion = "wait_for_completion";

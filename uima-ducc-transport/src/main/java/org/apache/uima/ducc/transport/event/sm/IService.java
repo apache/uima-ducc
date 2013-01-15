@@ -75,7 +75,7 @@ public interface IService
         Stop        { 
             public String decode()      { return "stop"; } 
             public String description() { return "Stop a registered service." ; } 
-            public String argname()     { return "wervice-id-or-endpoint [--instances number-to-stop]" ; } 
+            public String argname()     { return "service-id-or-endpoint [--instances number-to-stop]" ; } 
         },
         Modify      { 
             public String decode()      { return "modify"; } 

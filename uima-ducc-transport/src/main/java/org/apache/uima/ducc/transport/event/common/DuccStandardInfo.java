@@ -30,6 +30,7 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	 */
 	private static final long serialVersionUID = 1L;
 	private String user = null;
+	private String submitter = null;
 	private String dateOfSubmission = null;
 	private String cancelUser = null;
 	private String dateOfCompletion = null;
@@ -50,13 +51,13 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	}
 
 	@Override
-	public String getSubmitUser() {
-		return getUser();
+	public String getSubmitter() {
+		return submitter;
 	}
 
 	@Override
-	public void setSubmitUser(String user) {
-		setUser(user);
+	public void setSubmitter(String submitter) {
+		this.submitter = submitter;
 	}
 
 	@Override

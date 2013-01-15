@@ -18,6 +18,9 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -164,6 +167,10 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 		return retVal;
 	}
 	
+	public boolean isFinished() {
+		return isCompleted();
+	}
+	
 	@Override
 	public boolean isOperational() {
 		boolean retVal = true;
@@ -288,6 +295,34 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	public void logState() {
 		String methodName = "logState";
 		logger.info(methodName, getDuccId(), getReservationState());
+	}
+	
+	public List<String> getNodes(boolean unique) {
+		ArrayList<String> list = new ArrayList<String>();
+		if(!getReservationMap().isEmpty()) {
+			IDuccReservationMap map = getReservationMap();
+			for (DuccId key : map.keySet()) { 
+				IDuccReservation value = getReservationMap().get(key);
+				String node = value.getNodeIdentity().getName();
+				if(unique) {
+					if(!list.contains(node)) {
+						list.add(node);
+					}
+				}
+				else {
+					list.add(node);
+				}
+			}
+		}
+		return list;
+	}
+	
+	public List<String> getNodes() {
+		return getNodes(false);
+	}
+	
+	public List<String> getUniqueNodes() {
+		return getNodes(true);
 	}
 	
 	// **********

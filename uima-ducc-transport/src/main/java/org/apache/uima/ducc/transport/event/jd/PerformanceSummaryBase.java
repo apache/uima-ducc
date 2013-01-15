@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event.jd;
 
+import org.apache.uima.ducc.common.jd.files.JobPerformanceSummaryJsonGz;
 import org.apache.uima.ducc.common.utils.IOHelper;
 
 public class PerformanceSummaryBase {
@@ -26,6 +27,7 @@ public class PerformanceSummaryBase {
 	
 	protected String filename = null;
 	protected PerformanceMetricsSummaryMap summaryMap = null;
+	protected JobPerformanceSummaryJsonGz jsonGz = null;
 	
 	protected PerformanceSummaryBase(String dirname) {
 		init(dirname);
@@ -34,6 +36,7 @@ public class PerformanceSummaryBase {
 	protected void init(String dirname) {
 		this.filename = IOHelper.marryDir2File(dirname,job_performance_summary_ser);
 		this.summaryMap = new PerformanceMetricsSummaryMap();
+		this.jsonGz = new JobPerformanceSummaryJsonGz(dirname);
 	}
 	
 	public PerformanceMetricsSummaryMap getSummaryMap() {

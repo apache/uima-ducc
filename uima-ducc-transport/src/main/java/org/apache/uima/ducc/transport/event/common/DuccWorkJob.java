@@ -26,7 +26,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
-
 public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	/**
 	 * please increment this sUID when removing or modifying a field 
@@ -324,6 +323,22 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	public void setProcessFailureLimit(long limit) {
 		processFailureLimit.set(limit);
 		return;
+	}
+
+	@Override
+	public long getAliveProcessCount() {
+		long retVal = 0;
+		IDuccProcessMap processMap = this.getProcessMap();
+		if(processMap != null) {
+			int count = processMap.getAliveProcessCount();
+			retVal = count;
+		}
+		return retVal;
+	}
+
+	@Override
+	public boolean hasAliveProcess() {
+		return (getAliveProcessCount() > 0);
 	}
 	
 	// **********

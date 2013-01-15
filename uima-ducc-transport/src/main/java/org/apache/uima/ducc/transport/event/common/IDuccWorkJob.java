@@ -69,4 +69,7 @@ public interface IDuccWorkJob extends IDuccWorkService, IDuccWorkExecutable, Ser
 	
 	public long getProcessFailureLimit();
 	public void setProcessFailureLimit(long limit);
+	
+	public long getAliveProcessCount();
+	public boolean hasAliveProcess();
 }

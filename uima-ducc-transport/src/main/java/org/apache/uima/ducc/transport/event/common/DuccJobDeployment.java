@@ -24,33 +24,43 @@ import java.util.List;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
+import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 
 
 public class DuccJobDeployment implements IDuccJobDeployment {
 	private static final long serialVersionUID = 1L;
 	private DuccId jobId;
 	//	at most two command lines can be accommodated
-	private ICommandLine[] jclArray = new JavaCommandLine[2];
-	private IDuccStandardInfo stdInfo;
+  private ICommandLine[] jdclArray = new JavaCommandLine[1];
+  private ICommandLine[] pclArray;// = new JavaCommandLine[2];
+
+  private IDuccStandardInfo stdInfo;
 	private List<IDuccProcess> jobProcesses = new ArrayList<IDuccProcess>();
 	private long processMemoryAssignment;
 	
 	public DuccJobDeployment( DuccId jobId, ICommandLine jdCmdLine, ICommandLine jpCmdLine,
 			IDuccStandardInfo stdInfo, IDuccProcess jdProcess, long processMemoryAssignment, List<IDuccProcess> jps ) {
 		this.jobId = jobId;
-		this.jclArray[0] = jdCmdLine;
-		this.jclArray[1] = jpCmdLine;
+//    this.jdclArray = new JavaCommandLine[2];
+
+		if ( jpCmdLine instanceof JavaCommandLine ) {
+      this.pclArray = new JavaCommandLine[1];
+    } else {
+      this.pclArray = new NonJavaCommandLine[1];
+    }
+		this.jdclArray[0] = jdCmdLine;
+		this.pclArray[0] = jpCmdLine;
 		this.stdInfo = stdInfo;
 		this.jobProcesses.add(jdProcess);
 		this.jobProcesses.addAll(jps);
 		this.processMemoryAssignment = processMemoryAssignment;
 	}
 	public ICommandLine getJdCmdLine() {
-		return this.jclArray[0];
+		return this.jdclArray[0];
 	}
 
 	public ICommandLine getJpCmdLine() {
-		return this.jclArray[1];
+		return this.pclArray[0];
 	}
 
 	public IDuccStandardInfo getStandardInfo() {

@@ -315,14 +315,11 @@ public class ServiceDescription
         sb.append(stopped);
         sb.append("\n");
 
-        sb.append("   Queue Statistics: ");
+        sb.append("   Service Statistics: ");
         if ( qstats == null ) {
             sb.append("None\n");
         } else {
-            sb.append("\n       ");
-            sb.append(qstats.header());
-            sb.append("\n");
-            sb.append("       ");
+            sb.append("\n       ");            
             sb.append(qstats.toString());
         }
         return sb.toString();
