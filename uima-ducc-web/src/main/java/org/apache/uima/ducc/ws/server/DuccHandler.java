@@ -28,7 +28,6 @@ import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -39,7 +38,6 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -49,20 +47,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.authentication.AuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
-import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
-import org.apache.uima.ducc.common.authentication.SessionManager;
-import org.apache.uima.ducc.common.authentication.IAuthenticationManager.Role;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
-import org.apache.uima.ducc.common.jd.JdConstants;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
-import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
-import org.apache.uima.ducc.common.persistence.services.IStateServices;
-import org.apache.uima.ducc.common.persistence.services.StateServices;
-import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
-import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
+import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -74,24 +64,17 @@ import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
-import org.apache.uima.ducc.transport.event.common.IDuccReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
-import org.apache.uima.ducc.transport.event.common.IDuccWork;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IRationale;
-import org.apache.uima.ducc.transport.event.common.TimeWindow;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
+import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
+import org.apache.uima.ducc.transport.event.common.TimeWindow;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryItem;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummary;
@@ -99,47 +82,22 @@ import org.apache.uima.ducc.transport.event.jd.UimaStatistic;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
-import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
-import org.apache.uima.ducc.ws.MachineSummaryInfo;
-import org.apache.uima.ducc.ws.ReservationInfo;
-import org.apache.uima.ducc.ws.types.NodeId;
-import org.apache.uima.ducc.ws.types.UserId;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 
-
-public class DuccHandler extends AbstractHandler {
+public class DuccHandler extends DuccAbstractHandler {
 	
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
-	
 	private static DuccId jobid = null;
-	
-	private static DuccWebAdministrators duccWebAdministrators = DuccWebAdministrators.getInstance();
-	
+
 	private static IAuthenticationManager iAuthenticationManager = AuthenticationManager.getInstance();
-	
-	private int maximumRecordsJobs = 4096;
-	private int defaultRecordsJobs = 16;
-	private int maximumRecordsReservations = 4096;
-	private int defaultRecordsReservations = 8;
-	private int maximumRecordsServices = 4096;
-	private int defaultRecordsServices = 12;
-	
-	private String dir_home = System.getenv("DUCC_HOME");
-	private String dir_resources = "resources";
-	
-	private String duccContext = "/ducc-servlet";
-	
+
 	private String duccVersion						= duccContext+"/version";
-	private String duccLogData						= duccContext+"/log-data";
+	
 	private String duccLoginLink					= duccContext+"/login-link";
 	private String duccAuthenticationStatus 		= duccContext+"/authentication-status";
 	private String duccAuthenticatorVersion 		= duccContext+"/authenticator-version";
-	private String duccUserLogout					= duccContext+"/user-logout";
-	private String duccUserLogin					= duccContext+"/user-login";
-	private String duccJobsData    					= duccContext+"/jobs-data";
 	private String duccJobIdData					= duccContext+"/job-id-data";
 	private String duccJobWorkitemsCountData		= duccContext+"/job-workitems-count-data";
 	private String duccJobProcessesData    			= duccContext+"/job-processes-data";
@@ -148,36 +106,30 @@ public class DuccHandler extends AbstractHandler {
 	private String duccJobSpecificationData 		= duccContext+"/job-specification-data";
 	private String duccJobInitializationFailData	= duccContext+"/job-initialization-fail-data";
 	private String duccJobRuntimeFailData			= duccContext+"/job-runtime-fail-data";
-	private String duccReservationsData 			= duccContext+"/reservations-data";
-	private String duccServicesDeploymentsData  	= duccContext+"/services-deployments-data";
 	private String duccServiceProcessesData    		= duccContext+"/service-processes-data";
 	private String duccServiceSpecificationData 	= duccContext+"/service-specification-data";
-	@Deprecated
-	private String duccMachinesData    				= duccContext+"/machines-data";
+	
 	private String duccSystemAdminAdminData 		= duccContext+"/system-admin-admin-data";
 	private String duccSystemAdminControlData 		= duccContext+"/system-admin-control-data";
 	private String duccSystemJobsControl			= duccContext+"/jobs-control-request";
-	@Deprecated
-	private String duccSystemClassesData 			= duccContext+"/system-classes-data";
-	@Deprecated
-	private String duccSystemDaemonsData 			= duccContext+"/system-daemons-data";
+	
 	private String duccClusterName 					= duccContext+"/cluster-name";
 	private String duccTimeStamp   					= duccContext+"/timestamp";
 	private String duccJobSubmit   					= duccContext+"/job-submit-request";
 	private String duccJobCancel   					= duccContext+"/job-cancel-request";
 	private String duccReservationSubmit    		= duccContext+"/reservation-submit-request";
 	private String duccReservationCancel    		= duccContext+"/reservation-cancel-request";
+	private String duccServiceSubmit    			= duccContext+"/service-submit-request";
+	private String duccServiceCancel    			= duccContext+"/service-cancel-request";
 	
-	private String jsonServicesDefinitionsData		= duccContext+"/json-services-definitions-data";
 	private String jsonMachinesData 				= duccContext+"/json-machines-data";
 	private String jsonSystemClassesData 			= duccContext+"/json-system-classes-data";
 	private String jsonSystemDaemonsData 			= duccContext+"/json-system-daemons-data";
-	
-	private String duccjConsoleLink					= duccContext+"/jconsole-link.jnlp";
-	
+
 	private String duccJobSubmitForm	    		= duccContext+"/job-submit-form";
 	
 	private String duccJobSubmitButton    			= duccContext+"/job-get-submit-button";
+	private String duccReservationFormButton  		= duccContext+"/reservation-get-form-button";
 	private String duccReservationSubmitButton  	= duccContext+"/reservation-get-submit-button";
 	
 	private String duccReservationSchedulingClasses     = duccContext+"/reservation-scheduling-classes";
@@ -187,13 +139,19 @@ public class DuccHandler extends AbstractHandler {
 
 	private DuccWebServer duccWebServer = null;
 	
-	private boolean terminateEnabled = true;
-	
 	public DuccHandler(DuccWebServer duccWebServer) {
 		this.duccWebServer = duccWebServer;
 		initializeAuthenticator();
 	}
-
+	
+	public DuccWebServer getDuccWebServer() {
+		return duccWebServer;
+	}
+	
+	public String getFileName() {
+		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
+	}
+	
 	private void initializeAuthenticator() {
 		String methodName = "initializeAuthenticator";
 		try {
@@ -208,28 +166,6 @@ public class DuccHandler extends AbstractHandler {
 		catch(Exception e) {
 			duccLogger.error(methodName, jobid, e);
 		}
-	}
-	
-	private DuccWebServer getDuccWebServer() {
-		return duccWebServer;
-	}
-	
-	private String getFileName() {
-		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
-	}
-	
-	private String stringNormalize(String value,String defaultValue) {
-		String methodName = "stringNormalize";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		String retVal;
-		if(value== null) {
-			retVal = defaultValue;
-		}
-		else {
-			retVal = value;
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-		return retVal;
 	}
 	
 	/*
@@ -248,108 +184,7 @@ public class DuccHandler extends AbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
-	
-	private void updateSession() {
-		String methodName = "updateSession";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		try {
-			Properties properties = DuccWebProperties.get();
-			String key = "ducc.ws.session.minutes";
-			if(properties.containsKey(key)) {
-				String sessionMinutes = properties.getProperty(key).trim();
-				int currSessionLifetimeMillis = Integer.parseInt(sessionMinutes) * 60 * 1000;
-				int prevSessionLifetimeMillis = SessionManager.getInstance().getSessionLifetimeMillis();
-				if(currSessionLifetimeMillis != prevSessionLifetimeMillis) {
-					SessionManager.getInstance().setSessionLifetimeMillis(currSessionLifetimeMillis);
-					duccLogger.info(methodName, null, "login session expiry (minutes):"+sessionMinutes);
-				}
-			}
-		}
-		catch(Throwable t) {
-			duccLogger.error(methodName, null, t);
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}
-	
-	private boolean isAuthenticated(HttpServletRequest request, HttpServletResponse response) {
-		String methodName = "isAuthenticated";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		boolean authenticated = false;
-		String userId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieUser);
-		String sessionId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieSession);
-		String text;
-		try {
-			updateSession();
-			authenticated = SessionManager.getInstance().validateRegistration(userId, sessionId);
-			if(authenticated) {
-				text = "user "+userId+" is authenticated";
-			}
-			else {
-				text = "user "+userId+" is not authenticated";
-			}
-			duccLogger.debug(methodName, null, messages.fetch(text));
-		}
-		catch(Exception e) {
-			duccLogger.error(methodName, null, e);
-			DuccWebUtil.expireCookie(response, DuccWebUtil.cookieSession, sessionId);
-			DuccWebUtil.expireCookie(response, DuccWebUtil.cookieUser, userId);
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-		return authenticated;
-	}
-	
-	private boolean match(String s1, String s2) {
-		String methodName = "match";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		boolean retVal = false;
-		if(s1 != null) {
-			if(s2 != null) {
-				if(s1.trim().equals(s2.trim())) {
-					retVal = true;
-				}
-			}
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-		return retVal;
-	}
-	
-	private boolean isAuthorized(HttpServletRequest request, String resourceOwnerUserid) {
-		String methodName = "isAuthorized";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		boolean retVal = false;
-		String userId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieUser);
-		String sessionId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieSession);
-		String text;
-		try {
-			updateSession();
-			boolean authenticated = SessionManager.getInstance().validateRegistration(userId, sessionId);
-			if(authenticated) {
-				if(duccWebAdministrators.isAdministrator(userId)) {
-					text = "user "+userId+" is administrator";
-					retVal = true;
-				}
-				else {
-					if(match(resourceOwnerUserid,userId)) {
-						text = "user "+userId+" is resource owner";
-						retVal = true;
-					}
-					else {
-						text = "user "+userId+" is not resource owner "+resourceOwnerUserid;
-					}
-				}
-			}
-			else {
-				text = "user "+userId+" is not authenticated";
-			}
-			duccLogger.debug(methodName, null, messages.fetch(text));
-		}
-		catch(Exception e) {
-			duccLogger.error(methodName, null, e);
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-		return retVal;
-	}
-	
+
 	private void handleDuccServletVersion(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -394,93 +229,6 @@ public class DuccHandler extends AbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
 	
-	private void handleDuccServletLogout(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletLogout";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		String sessionId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieSession);
-		String userId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieUser);
-		SessionManager.getInstance().unRegister(userId,sessionId);
-		DuccWebUtil.expireCookie(response, DuccWebUtil.cookieSession, sessionId);
-		DuccWebUtil.expireCookie(response, DuccWebUtil.cookieUser, userId);
-		StringBuffer sb = new StringBuffer();
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletLogin(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletLogin";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
-		String userId = request.getParameter("userid");
-		String password = request.getParameter("password");
-		if((userId == null) || (userId.trim().length() == 0)) {
-			duccLogger.info(methodName, null, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
-			sb.append("failure");
-		}
-		else if((password == null) || (password.trim().length() == 0)) {
-			duccLogger.info(methodName, null, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
-			sb.append("failure");
-		}
-		else {
-			Role role = Role.User;
-			String domain = null;
-			if(userId != null) {
-				if(userId.contains("@")) {
-					String[] parts = userId.split("@",2);
-					userId = parts[0];
-					domain = parts[1];
-				}
-			}
-			duccLogger.info(methodName, null, messages.fetchLabel("version")+iAuthenticationManager.getVersion());
-			IAuthenticationResult result1 = iAuthenticationManager.isAuthenticate(userId, domain, password);
-			IAuthenticationResult result2 = iAuthenticationManager.isGroupMember(userId, domain, role);
-			if(result1.isSuccess() && result2.isSuccess()) {
-				String sessionId = SessionManager.getInstance().register(userId);
-				DuccWebUtil.putCookie(response, DuccWebUtil.cookieSession, sessionId);
-				DuccWebUtil.putCookie(response, DuccWebUtil.cookieUser, userId);
-				duccLogger.info(methodName, null, messages.fetch("login ")+userId+" "+messages.fetch("success"));
-				sb.append("success"+","+DuccWebUtil.cookieSession+","+sessionId+","+DuccWebUtil.cookieUser+","+userId);
-			}
-			else {
-				IAuthenticationResult result;
-				if(!result1.isSuccess()) {
-					result = result1;
-				}
-				else {
-					result = result2;
-				}
-				int code = result.getCode();
-				String reason = result.getReason();
-				Exception exception = result.getException();
-				StringBuffer text = new StringBuffer();
-				text.append("code:"+code);
-				if(reason != null) {
-					text.append(", "+"reason:"+reason);
-				}
-				sb.append("failure"+" "+text);
-				if(exception != null) {
-					text.append(", "+"exception:"+exception);
-				}
-				duccLogger.info(methodName, null, messages.fetch("login ")+userId+" "+messages.fetch("failed")+" "+text);
-			}
-		}
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private String getDisabled(HttpServletRequest request, IDuccWork duccWork) {
-		String resourceOwnerUserId = duccWork.getStandardInfo().getUser();
-		String disabled = "disabled=\"disabled\"";
-		if(isAuthorized(request, resourceOwnerUserId)) {
-			disabled = "";
-		}
-		return disabled;
-	}
-	
 	private void handleDuccServletJobSubmitForm(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -489,547 +237,6 @@ public class DuccHandler extends AbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		DuccWebSchedulerClasses schedulerClasses = new DuccWebSchedulerClasses(getFileName());
 		sb.append(DuccWebJobSpecificationProperties.getHtmlForm(request,schedulerClasses));
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}
-	
-	private String getProcessMemorySize(DuccId id, String type, String size, MemoryUnits units) {
-		String methodName = "getProcessMemorySize";
-		String retVal = "?";
-		double multiplier = 1;
-		switch(units) {
-		case KB:
-			multiplier = Math.pow(10, -6);
-			break;
-		case MB:
-			multiplier = Math.pow(10, -3);
-			break;
-		case GB:
-			multiplier = Math.pow(10, 0);
-			break;
-		case TB:
-			multiplier = Math.pow(10, 3);
-			break;
-		}
-		try {
-			double dSize = Double.parseDouble(size) * multiplier;
-			retVal = dSize+"";
-		}
-		catch(Exception e) {
-			duccLogger.trace(methodName, id, messages.fetchLabel("type")+type+" "+messages.fetchLabel("size")+size, e);
-		}
-		return retVal;	
-	}
-	
-	private String getCompletionOrProjection(IDuccWorkJob job) {
-		String methodName = "getCompletionOrProjection";
-		String retVal = "";
-		try {
-			String tVal = job.getStandardInfo().getDateOfCompletion();
-			duccLogger.trace(methodName, null, tVal);
-			retVal = getTimeStamp(job.getDuccId(),tVal);
-		}
-		catch(Exception e) {
-			duccLogger.trace(methodName, null, "no worries", e);
-		}
-		catch(Throwable t) {
-			duccLogger.trace(methodName, null, "no worries", t);
-		}
-		try {
-			if(retVal == "") {
-				IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
-				IDuccPerWorkItemStatistics perWorkItemStatistics = schedulingInfo.getPerWorkItemStatistics();
-				if (perWorkItemStatistics == null) {
-					return "";
-				}
-				//
-				int total = schedulingInfo.getIntWorkItemsTotal();
-				int completed = schedulingInfo.getIntWorkItemsCompleted();
-				int error = schedulingInfo.getIntWorkItemsError();
-				int remainingWorkItems = total - (completed + error);
-				if(remainingWorkItems > 0) {
-					int usableProcessCount = job.getProcessMap().getUsableProcessCount();
-					if(usableProcessCount > 0) {
-						if(completed > 0) {
-							int threadsPerProcess = schedulingInfo.getIntThreadsPerShare();
-							int totalThreads = usableProcessCount * threadsPerProcess;
-							double remainingIterations = remainingWorkItems / totalThreads;
-							double avgMillis = perWorkItemStatistics.getMean();
-							double projectedTime = 0;
-							if(remainingIterations > 0) {
-								projectedTime = avgMillis * remainingIterations;
-							}
-							else {
-								projectedTime = avgMillis - (Calendar.getInstance().getTimeInMillis() - job.getSchedulingInfo().getMostRecentWorkItemStart());
-							}
-							if(projectedTime < 0) {
-								projectedTime = 0;
-							}
-							long millis = Math.round(projectedTime);
-							long days = TimeUnit.MILLISECONDS.toDays(millis);
-							millis -= TimeUnit.DAYS.toMillis(days);
-							long hours = TimeUnit.MILLISECONDS.toHours(millis);
-							millis -= TimeUnit.HOURS.toMillis(hours);
-							long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
-							millis -= TimeUnit.MINUTES.toMillis(minutes);
-							long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
-							String remainingTime = String.format("%02d", hours)+":"+String.format("%02d", minutes)+":"+String.format("%02d", seconds);
-							if(days > 0) {
-								remainingTime = days+":"+remainingTime;
-							}
-							retVal = "projected +"+remainingTime;
-							double max = Math.round(perWorkItemStatistics.getMax()/100.0)/10.0;
-							double min = Math.round(perWorkItemStatistics.getMin()/100.0)/10.0;
-							double avg = Math.round(perWorkItemStatistics.getMean()/100.0)/10.0;
-							double dev = Math.round(perWorkItemStatistics.getStandardDeviation()/100.0)/10.0;
-							retVal = "<span title=\""+"seconds-per-work-item "+"Max:"+max+" "+"Min:"+min+" "+"Avg:"+avg+" "+"Dev:"+dev+"\""+">"+retVal+"</span>";
-						}
-					}
-					else {
-						if(job.isRunnable()) {
-							retVal = "suspended";
-						}
-					}
-				}
-				else {
-					retVal = "finished";
-				}
-			}
-		}
-		catch(Throwable t) {
-			duccLogger.trace(methodName, null, t);
-		}
-		return retVal;
-	}
-	
-	private String getUserLogsDir(IDuccWorkJob job) {
-		String retVal = job.getLogDirectory();
-		if(!retVal.endsWith(File.separator)) {
-			retVal += File.separator;
-		}
-		return retVal;
-	}
-	
-	private String buildInitializeFailuresLink(IDuccWorkJob job) {
-		StringBuffer sb = new StringBuffer();
-		IDuccProcessMap processMap = job.getProcessMap();
-		ArrayList<DuccId> list = processMap.getFailedInitialization();
-		int count = list.size();
-		if(count > 0) {
-			String href = "/ducc-servlet/job-initialization-fail-data?id="+job.getDuccId();
-			String anchor = "<a class=\"logfileLink\" title=\""+job.getDuccId()+" init fails"+"\" href=\""+href+"\" rel=\""+href+"\">"+count+"</a>";
-			sb.append(anchor);
-		}
-		else {
-			sb.append(count);
-		}
-		String retVal = sb.toString();
-		return retVal;
-	}
-
-	private String buildRuntimeFailuresLink(IDuccWorkJob job) {
-		StringBuffer sb = new StringBuffer();
-		IDuccProcessMap processMap = job.getProcessMap();
-		ArrayList<DuccId> list = processMap.getFailedNotInitialization();
-		int count = list.size();
-		if(count > 0) {
-			String href = "/ducc-servlet/job-runtime-fail-data?id="+job.getDuccId();
-			String anchor = "<a class=\"logfileLink\" title=\""+job.getDuccId()+" run fails"+"\" href=\""+href+"\" rel=\""+href+"\">"+count+"</a>";
-			sb.append(anchor);
-		}
-		else {
-			sb.append(count);
-		}
-		String retVal = sb.toString();
-		return retVal;
-	}
-	
-	private String buildErrorLink(IDuccWorkJob job, String name) {
-		String retVal = job.getSchedulingInfo().getWorkItemsError();
-		if(!retVal.equals("0")) {
-			String errorCount = retVal;
-			if(name == null) {
-				name = errorCount;
-			}
-			String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
-			String logfile = "jd.err.log";
-			String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+name+"</a>";
-			retVal = href;
-		}
-		return retVal;
-	}
-	
-	private String buildErrorLink(IDuccWorkJob job) {
-		return(buildErrorLink(job,null));
-	}
-	
-	private String getTimeStamp(DuccId jobId, String millis) {
-		String methodName = "";
-		String retVal = "";
-		try {
-			retVal = TimeStamp.simpleFormat(millis);
-		}
-		catch(Throwable t) {
-			duccLogger.warn(methodName, jobId, "millis:"+millis);
-		}
-		return retVal;
-	}
-	
-	private ArrayList<String> getSwappingMachines(IDuccWorkJob job) {
-		ArrayList<String> retVal = new ArrayList<String>();
-		DuccMachinesData.getInstance();
-		IDuccProcessMap map = job.getProcessMap();
-		for(DuccId duccId : map.keySet()) {
-			IDuccProcess jp = map.get(duccId);
-			switch(jp.getProcessState()) {
-			case Starting:
-			case Initializing:
-			case Running:
-				NodeIdentity nodeId = jp.getNodeIdentity();
-				if(nodeId != null) {
-					String ip = nodeId.getIp();
-					if(DuccMachinesData.getInstance().isMachineSwapping(ip)) {
-						if(!retVal.contains(nodeId.getName())) {
-							retVal.add(nodeId.getName());
-						}
-					}
-				}
-				break;
-			}
-		}
-		return retVal;
-	}
-	
-	private void buildJobsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData) {
-		String type="Job";
-		String id = normalize(duccId);
-		sb.append("<td valign=\"bottom\" class=\"ducc-col-terminate\">");
-		if(terminateEnabled) {
-			if(!job.isFinished()) {
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_job("+id+")\" value=\"Terminate\" "+getDisabled(request,job)+"/>");
-			}
-		}
-		sb.append("</td>");
-		// Id
-		sb.append("<td valign=\"bottom\">");
-		sb.append("<a href=\"job.details.html?id="+id+"\">"+id+"</a>");
-		sb.append("</td>");
-		// Start
-		sb.append("<td valign=\"bottom\">");
-		sb.append(getTimeStamp(job.getDuccId(), job.getStandardInfo().getDateOfSubmission()));
-		sb.append("</td>");
-		// End
-		sb.append("<td valign=\"bottom\">");
-		sb.append(getCompletionOrProjection(job));
-		sb.append("</td>");
-		// User
-		sb.append("<td valign=\"bottom\">");
-		sb.append(job.getStandardInfo().getUser());
-		sb.append("</td>");
-		// Class
-		sb.append("<td valign=\"bottom\">");
-		sb.append(stringNormalize(job.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
-		sb.append("</td>");
-		/*
-		sb.append("<td align=\"right\">");
-		sb.append(stringNormalize(duccWorkJob.getSchedulingInfo().getSchedulingPriority(),messages.fetch("default")));
-		sb.append("</td>");
-		*/
-		// State
-		sb.append("<td valign=\"bottom\">");
-		if(duccData.isLive(duccId)) {
-			if(job.isOperational()) {
-				sb.append("<span class=\"active_state\">");
-			}
-			else {
-				sb.append("<span class=\"completed_state\">");
-			}
-		}
-		else {
-			sb.append("<span class=\"historic_state\">");
-		}
-		sb.append(job.getStateObject().toString());
-		if(duccData.isLive(duccId)) {
-			sb.append("</span>");
-		}
-		sb.append("</td>");
-		// Reason
-		if(job.isOperational()) {
-			sb.append("<td valign=\"bottom\">");
-			ArrayList<String> swappingMachines = getSwappingMachines(job);
-			if(!swappingMachines.isEmpty()) {
-				StringBuffer mb = new StringBuffer();
-				for(String machine : swappingMachines) {
-					mb.append(machine);
-					mb.append(" ");
-				}
-				String ml = mb.toString().trim();
-				sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-				sb.append("Swapping");
-				sb.append("</span>");
-			}
-			sb.append("</td>");
-		}
-		else if(job.isCompleted()) {
-			JobCompletionType jobCompletionType = job.getCompletionType();
-			switch(jobCompletionType) {
-			case EndOfJob:
-				try {
-					int total = job.getSchedulingInfo().getIntWorkItemsTotal();
-					int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
-					int error = job.getSchedulingInfo().getIntWorkItemsError();
-					if(total != (done+error)) {
-						jobCompletionType = JobCompletionType.Premature;
-					}
-				}
-				catch(Exception e) {
-				}
-				sb.append("<td valign=\"bottom\">");
-				break;
-			case Undefined:
-				sb.append("<td valign=\"bottom\">");
-				break;
-			default:
-				IRationale rationale = job.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<td valign=\"bottom\" title=\""+rationale+"\">");
-				}
-				else {
-					sb.append("<td valign=\"bottom\">");
-				}
-				break;
-			}
-			sb.append(jobCompletionType);
-			sb.append("</td>");
-		}
-		// Processes
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		if(duccData.isLive(duccId)) {
-			sb.append(job.getProcessMap().getAliveProcessCount());
-		}
-		else {
-			sb.append("0");
-		}
-		sb.append("</td>");
-		// Initialize Failures
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(buildInitializeFailuresLink(job));
-		if(job.getSchedulingInfo().getLongSharesMax() < 0) {
-			sb.append("<sup>");
-			sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
-			sb.append("^");
-			sb.append("</span>");
-			sb.append("</sup>");
-		}
-		sb.append("</td>");
-		// Runtime Failures
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(buildRuntimeFailuresLink(job));
-		sb.append("</td>");
-		// Size
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		String size = job.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getShareMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
-		sb.append("</td>");
-		// Total
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(job.getSchedulingInfo().getWorkItemsTotal());
-		sb.append("</td>");
-		// Done
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(job.getSchedulingInfo().getWorkItemsCompleted());
-		sb.append("</td>");
-		// Error
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(buildErrorLink(job));
-		sb.append("</td>");
-		// Dispatch
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		if(duccData.isLive(duccId)) {
-			sb.append(job.getSchedulingInfo().getWorkItemsDispatched());
-		}
-		else {
-			sb.append("0");
-		}
-		sb.append("</td>");
-		// Retry
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(job.getSchedulingInfo().getWorkItemsRetry());
-		sb.append("</td>");
-		// Preempt
-		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(job.getSchedulingInfo().getWorkItemsPreempt());
-		sb.append("</td>");
-		// Description
-		sb.append("<td valign=\"bottom\">");
-		sb.append(stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none")));
-		sb.append("</td>");
-		sb.append("</tr>");
-	} 
-	
-	private int getJobsMax(HttpServletRequest request) {
-		int maxRecords = defaultRecordsJobs;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieJobsMax);
-			int reqRecords = Integer.parseInt(cookie);
-			if(reqRecords <= maximumRecordsJobs) {
-				if(reqRecords > 0) {
-					maxRecords = reqRecords;
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return maxRecords;
-	}
-	
-	private ArrayList<String> getJobsUsers(HttpServletRequest request) {
-		ArrayList<String> userRecords = new ArrayList<String>();
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieJobsUsers);
-			String[] users = cookie.split(" ");
-			if(users != null) {
-				for(String user : users) {
-					user = user.trim();
-					if(user.length() > 0) {
-						if(!userRecords.contains(user)) {
-							userRecords.add(user);
-						}
-					}
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return userRecords;
-	}
-	
-	private enum JobsUsersQualifier {
-		ActiveInclude,
-		ActiveExclude,
-		Include,
-		Exclude,
-		Unknown
-	}
-	
-	private JobsUsersQualifier getJobsUsersQualifier(HttpServletRequest request) {
-		JobsUsersQualifier retVal = JobsUsersQualifier.Unknown;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieJobsUsersQualifier);
-			String qualifier = cookie.trim();
-			if(qualifier.equals("include")) {
-				retVal = JobsUsersQualifier.Include;
-			}
-			else if(qualifier.equals("exclude")) {
-				retVal = JobsUsersQualifier.Exclude;
-			}
-			else if(qualifier.equals("active+include")) {
-				retVal = JobsUsersQualifier.ActiveInclude;
-			}
-			else if(qualifier.equals("active+exclude")) {
-				retVal = JobsUsersQualifier.ActiveExclude;
-			}
-		}
-		catch(Exception e) {
-		}
-		return retVal;
-	}
-	
-	private void handleDuccServletJobsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletJobsData";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		int maxRecords = getJobsMax(request);
-		ArrayList<String> users = getJobsUsers(request);
-		StringBuffer sb = new StringBuffer();
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
-		JobsUsersQualifier userQualifier = getJobsUsersQualifier(request);
-		if(sortedJobs.size()> 0) {
-			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				JobInfo jobInfo = iterator.next().getValue();
-				DuccWorkJob job = jobInfo.getJob();
-				boolean list = false;
-				if(!users.isEmpty()) {
-					String jobUser = job.getStandardInfo().getUser().trim();
-					switch(userQualifier) {
-					case ActiveInclude:
-					case Unknown:
-						if(!job.isCompleted()) {
-							list = true;
-						}
-						else if(users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case ActiveExclude:
-						if(!job.isCompleted()) {
-							list = true;
-						}
-						else if(!users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Include:
-						if(users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Exclude:
-						if(!users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					}	
-				}
-				else {
-					if(!job.isCompleted()) {
-						list = true;
-					}
-					else if(maxRecords > 0) {
-						if (counter++ < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				if(list) {
-					sb.append(trGet(counter));
-					buildJobsListEntry(request, sb, job.getDuccId(), job, duccData);
-				}
-			}
-		}
-		else {
-			sb.append("<tr>");
-			sb.append("<td>");
-			if(DuccData.getInstance().isPublished()) {
-				sb.append(messages.fetch("no jobs"));
-			}
-			else {
-				sb.append(messages.fetch("no data"));
-			}
-			sb.append("</td>");
-			sb.append("</tr>");
-		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
@@ -1044,15 +251,6 @@ public class DuccHandler extends AbstractHandler {
 		}
 		
 		return retVal;
-	}
-	
-	private String trGet(int counter) {
-		if((counter % 2) > 0) {
-			return "<tr class=\"ducc-row-odd\">";
-		}
-		else {
-			return "<tr class=\"ducc-row-even\">";
-		}
 	}
 	
 	private String chomp(String leading, String whole) {
@@ -1086,6 +284,7 @@ public class DuccHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
+	
 	private String getFileSize(String fileName) {
 		String location = "getFileSize";
 		String retVal = "?";
@@ -1305,6 +504,7 @@ public class DuccHandler extends AbstractHandler {
 		sb.append("<td align=\"right\">");
 		sb.append(formatter.format(pctGC));
 		sb.append("</td>");
+		/*
 		// Time:cpu
 		sb.append("<td align=\"right\">");
 		long timeCPU = process.getCpuTime();
@@ -1312,6 +512,7 @@ public class DuccHandler extends AbstractHandler {
 		fmtCPU = chomp("00:", fmtCPU);
 		sb.append(fmtCPU);
 		sb.append("</td>");
+		*/
 		// %rss
 		DuccId duccId = job.getDuccId();
 		String size = job.getSchedulingInfo().getShareMemorySize();
@@ -1385,6 +586,7 @@ public class DuccHandler extends AbstractHandler {
 		// Jconsole:Url
 		sb.append("<td>");
 		switch(process.getProcessState()) {
+		case Initializing:
 		case Running:
 			String jmxUrl = process.getProcessJmxUrl();
 			if(jmxUrl != null) {
@@ -1442,7 +644,7 @@ public class DuccHandler extends AbstractHandler {
 		sb.append("<tr>");
 		// jobid
 		sb.append("<th title=\"The system assigned id for this job\">");
-		sb.append("Id:");
+		sb.append("Id: ");
 		String jobId = request.getParameter("id");
 		sb.append(jobId);
 		sb.append("&nbsp");
@@ -1453,36 +655,55 @@ public class DuccHandler extends AbstractHandler {
 			jobWorkitemsCount = job.getSchedulingInfo().getWorkItemsTotal();
 		}
 		sb.append("<th title=\"The total number of work items for this job\">");
-		sb.append("Workitems:");
+		sb.append("Workitems: ");
 		sb.append(jobWorkitemsCount);
 		sb.append("&nbsp");
 		// done
 		sb.append("<th title=\"The number of work items that completed successfully\">");
-		sb.append("Done:");
-		sb.append(job.getSchedulingInfo().getWorkItemsCompleted());
+		sb.append("Done: ");
+		String done = "0";
+		try {
+			done = ""+job.getSchedulingInfo().getIntWorkItemsCompleted();
+		}
+		catch(Exception e) {
+		}
+		sb.append(done);
 		sb.append("&nbsp");
 		// error
 		sb.append("<th title=\"The number of work items that failed to complete successfully\">");
-		sb.append("Error:");
-		sb.append(job.getSchedulingInfo().getIntWorkItemsError());
+		sb.append("Error: ");
+		String error = "0";
+		try {
+			error = ""+job.getSchedulingInfo().getIntWorkItemsError();
+		}
+		catch(Exception e) {
+		}
+		sb.append(error);
 		sb.append("&nbsp");
-		switch(job.getJobState()) {
+		JobState jobState = JobState.Undefined;
+		try {
+			jobState = job.getJobState();
+		}
+		catch(Exception e) {
+		}
+		switch(jobState) {
 		case Completed:
+		case Undefined:
 			break;
 		default:
 			// dispatch
 			sb.append("<th title=\"The number of work items currently dispatched\">");
-			sb.append("Dispatch:");
+			sb.append("Dispatch: ");
 			sb.append(job.getSchedulingInfo().getWorkItemsDispatched());
 			sb.append("&nbsp");
 			// unassigned
 			sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
-			sb.append("Unassigned:");
+			sb.append("Unassigned: ");
 			sb.append(job.getSchedulingInfo().getCasQueuedMap().size());
 			sb.append("&nbsp");
 			// limbo
-			sb.append("<th title=\"The number of work items previously dispatched for which process termination is yet to be received (pending re-dispatch)\">");
-			sb.append("Limbo:");
+			sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
+			sb.append("Limbo: ");
 			sb.append(job.getSchedulingInfo().getLimboMap().size());
 			sb.append("&nbsp");
 			break;
@@ -1704,24 +925,23 @@ public class DuccHandler extends AbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private String formatDuration(long ltime) {
-		String displayTime;
-		String displayDays;
-	    SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm:ss");
-		sdfTime.setTimeZone(TimeZone.getTimeZone("UTC"));
-		SimpleDateFormat sdfDays = new SimpleDateFormat("DDD");
-		sdfDays.setTimeZone(TimeZone.getTimeZone("UTC"));
-		Date date = new Date(ltime);
-		displayTime = sdfTime.format(date);
-		displayDays = sdfDays.format(date);
-		Integer days = Integer.valueOf(displayDays) - 1;
-		if(days.longValue() > 0) {
-			displayDays = chomp("00", displayDays);
-			displayDays = chomp("0", displayDays);
-			displayTime = displayDays+":"+displayTime;
+	private static String formatDuration(final long millis) {
+		long seconds = millis / 1000;
+		long dd =   seconds / 86400;
+		long hh =  (seconds % 86400) / 3600;
+		long mm = ((seconds % 86400) % 3600) / 60;
+		long ss = ((seconds % 86400) % 3600) % 60;
+		String text = String.format("%d:%02d:%02d:%02d", dd, hh, mm, ss);
+		if(dd == 0) {
+			text = String.format("%02d:%02d:%02d", hh, mm, ss);
+			if(hh == 0) {
+				text = String.format("%02d:%02d", mm, ss);
+				if(mm == 0) {
+					text = String.format("%02d", ss);
+				}
+			}
 		}
-		displayTime = chomp("00:", displayTime);
-		return displayTime;
+		return text;
 	}
 	
 	private void handleDuccServletJobPerformanceData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
@@ -2050,715 +1270,6 @@ public class DuccHandler extends AbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void buildReservationsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkReservation reservation, DuccData duccData) {
-		String type="Reservation";
-		String id = normalize(duccId);
-		sb.append("<td class=\"ducc-col-terminate\">");
-		if(terminateEnabled) {
-			if(!reservation.isCompleted()) {
-				String disabled = getDisabled(request,reservation);
-				String user = reservation.getStandardInfo().getUser();
-				if(user != null) {
-					if(user.equals(JdConstants.reserveUser)) {
-						disabled = "disabled=\"disabled\"";
-					}
-				}
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_reservation("+id+")\" value=\"Terminate\" "+disabled+"/>");
-			}
-		}
-		sb.append("</td>");
-		// Id
-		sb.append("<td>");
-		sb.append(id);
-		sb.append("</td>");
-		// Start
-		sb.append("<td>");
-		sb.append(getTimeStamp(reservation.getDuccId(),reservation.getStandardInfo().getDateOfSubmission()));
-		sb.append("</td>");
-		// End
-		sb.append("<td>");
-		switch(reservation.getReservationState()) {
-		case Completed:
-			sb.append(getTimeStamp(reservation.getDuccId(),reservation.getStandardInfo().getDateOfCompletion()));
-			break;
-		default:
-			
-			break;
-		}
-		sb.append("</td>");
-		// User
-		sb.append("<td>");
-		UserId userId = new UserId(reservation.getStandardInfo().getUser());
-		sb.append(userId.toString());
-		sb.append("</td>");
-		// Class
-		sb.append("<td>");
-		sb.append(stringNormalize(reservation.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
-		sb.append("</td>");
-		// State
-		sb.append("<td>");
-		if(duccData.isLive(duccId)) {
-			if(reservation.isOperational()) {
-				sb.append("<span class=\"active_state\">");
-			}
-			else {
-				sb.append("<span class=\"completed_state\">");
-			}
-		}
-		else {
-			sb.append("<span class=\"historic_state\">");
-		}
-		sb.append(reservation.getStateObject().toString());
-		if(duccData.isLive(duccId)) {
-			sb.append("</span>");
-		}
-		sb.append("</td>");
-		// Reason
-		sb.append("<td>");
-		switch(reservation.getCompletionType()) {
-		case Undefined:
-			break;
-		case CanceledByUser:
-		case CanceledByAdmin:
-			try {
-				String cancelUser = reservation.getStandardInfo().getCancelUser();
-				if(cancelUser != null) {
-					sb.append("<span title=\"canceled by "+cancelUser+"\">");
-					sb.append(reservation.getCompletionTypeObject().toString());
-					sb.append("</span>");
-				}
-				else {
-										
-					IRationale rationale = reservation.getCompletionRationale();
-					if(rationale != null) {
-						sb.append("<span title=\""+rationale+"\">");
-						sb.append(reservation.getCompletionTypeObject().toString());
-						sb.append("</span>");
-					}
-					else {
-						sb.append(reservation.getCompletionTypeObject().toString());
-					}
-					
-				}
-			} 
-			catch(Exception e) {
-				IRationale rationale = reservation.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<span title=\""+rationale+"\">");
-					sb.append(reservation.getCompletionTypeObject().toString());
-					sb.append("</span>");
-				}
-				else {
-					sb.append(reservation.getCompletionTypeObject().toString());
-				}
-			}
-			break;
-		default:
-			IRationale rationale = reservation.getCompletionRationale();
-			if(rationale != null) {
-				sb.append("<span title=\""+rationale+"\">");
-				sb.append(reservation.getCompletionTypeObject().toString());
-				sb.append("</span>");
-			}
-			else {
-				sb.append(reservation.getCompletionTypeObject().toString());
-			}
-			break;
-		}
-		sb.append("</td>");
-		// Allocation
-		sb.append("<td align=\"right\">");
-		sb.append(reservation.getSchedulingInfo().getInstancesCount());
-		sb.append("</td>");
-		// 
-		TreeMap<String,Integer> nodeMap = new TreeMap<String,Integer>(); 
-		if(!reservation.getReservationMap().isEmpty()) {
-			IDuccReservationMap map = reservation.getReservationMap();
-			for (DuccId key : map.keySet()) { 
-				IDuccReservation value = reservation.getReservationMap().get(key);
-				String node = value.getNodeIdentity().getName();
-				if(!nodeMap.containsKey(node)) {
-					nodeMap.put(node,new Integer(0));
-				}
-				Integer count = nodeMap.get(node);
-				count++;
-				nodeMap.put(node,count);
-			}
-		}
-		// User Processes
-		boolean qualify = false;
-		if(!nodeMap.isEmpty()) {
-			if(nodeMap.keySet().size() > 1) {
-				qualify = true;
-			}
-		}
-		sb.append("<td align=\"right\">");
-		ArrayList<String> qualifiedPids = new ArrayList<String>();
-		if(reservation.isOperational()) {
-			DuccMachinesData machinesData = DuccMachinesData.getInstance();
-			for (String node: nodeMap.keySet()) { 
-				NodeId nodeId = new NodeId(node);
-				List<String> nodePids = machinesData.getPids(nodeId, userId);
-				for( String pid : nodePids ) {
-					if(qualify) {
-						qualifiedPids.add(node+":"+pid);
-					}
-					else {
-						qualifiedPids.add(pid);
-					}
-				}
-			}
-		}
-		if(qualifiedPids.size() > 0) {
-			String list = "";
-			for( String entry : qualifiedPids ) {
-				list += entry+" ";
-			}
-			sb.append("<span title=\""+list.trim()+"\">");
-			sb.append(""+qualifiedPids.size());
-			sb.append("</span>");
-		}
-		else {
-			sb.append(""+qualifiedPids.size());
-		}
-		sb.append("</td>");
-		// Size
-		sb.append("<td align=\"right\">");
-		String size = reservation.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = reservation.getSchedulingInfo().getShareMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
-		sb.append("</td>");
-		// List
-		sb.append("<td>");
-		if(!nodeMap.isEmpty()) {
-			sb.append("<select>");
-			for (String node: nodeMap.keySet()) {
-				Integer count = nodeMap.get(node);
-				String option = node+" "+"["+count+"]";
-				sb.append("<option>"+option+"</option>");
-			}
-			sb.append("</select>");
-		}
-		sb.append("</td>");
-		// Description
-		sb.append("<td>");
-		sb.append(stringNormalize(reservation.getStandardInfo().getDescription(),messages.fetch("none")));
-		sb.append("</td>");
-		sb.append("</tr>");
-	}
-	
-	private int getReservationsMax(HttpServletRequest request) {
-		int maxRecords = defaultRecordsReservations;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieReservationsMax);
-			int reqRecords = Integer.parseInt(cookie);
-			if(reqRecords <= maximumRecordsReservations) {
-				if(reqRecords > 0) {
-					maxRecords = reqRecords;
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return maxRecords;
-	}
-	
-	private ArrayList<String> getReservationsUsers(HttpServletRequest request) {
-		ArrayList<String> userRecords = new ArrayList<String>();
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieReservationsUsers);
-			String[] users = cookie.split(" ");
-			if(users != null) {
-				for(String user : users) {
-					user = user.trim();
-					if(user.length() > 0) {
-						if(!userRecords.contains(user)) {
-							userRecords.add(user);
-						}
-					}
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return userRecords;
-	}
-	
-	private enum ReservationsUsersQualifier {
-		ActiveInclude,
-		ActiveExclude,
-		Include,
-		Exclude,
-		Unknown
-	}
-	
-	private ReservationsUsersQualifier getReservationsUsersQualifier(HttpServletRequest request) {
-		ReservationsUsersQualifier retVal = ReservationsUsersQualifier.Unknown;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieReservationsUsersQualifier);
-			String qualifier = cookie.trim();
-			if(qualifier.equals("include")) {
-				retVal = ReservationsUsersQualifier.Include;
-			}
-			else if(qualifier.equals("exclude")) {
-				retVal = ReservationsUsersQualifier.Exclude;
-			}
-			else if(qualifier.equals("active+include")) {
-				retVal = ReservationsUsersQualifier.ActiveInclude;
-			}
-			else if(qualifier.equals("active+exclude")) {
-				retVal = ReservationsUsersQualifier.ActiveExclude;
-			}
-		}
-		catch(Exception e) {
-		}
-		return retVal;
-	}
-	
-	private void handleDuccServletReservationsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletReservationsData";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		int maxRecords = getReservationsMax(request);
-		ArrayList<String> users = getReservationsUsers(request);
-		StringBuffer sb = new StringBuffer();
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<ReservationInfo,ReservationInfo> sortedReservations = duccData.getSortedReservations();
-		ReservationsUsersQualifier userQualifier = getReservationsUsersQualifier(request);
-		if(sortedReservations.size()> 0) {
-			Iterator<Entry<ReservationInfo, ReservationInfo>> iterator = sortedReservations.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				ReservationInfo reservationInfo = iterator.next().getValue();
-				DuccWorkReservation reservation = reservationInfo.getReservation();
-				boolean list = false;
-				if(!users.isEmpty()) {
-					String reservationUser = reservation.getStandardInfo().getUser().trim();
-					switch(userQualifier) {
-					case ActiveInclude:
-					case Unknown:
-						if(!reservation.isCompleted()) {
-							list = true;
-						}
-						else if(users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case ActiveExclude:
-						if(!reservation.isCompleted()) {
-							list = true;
-						}
-						else if(!users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Include:
-						if(users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Exclude:
-						if(!users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					}	
-				}
-				else {
-					if(!reservation.isCompleted()) {
-						list = true;
-					}
-					else if(maxRecords > 0) {
-						if (counter++ < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				if(list) {
-					sb.append(trGet(counter));
-					buildReservationsListEntry(request, sb, reservation.getDuccId(), reservation, duccData);
-				}
-			}
-		}
-		else {
-			sb.append("<tr>");
-			sb.append("<td>");
-			if(DuccData.getInstance().isPublished()) {
-				sb.append(messages.fetch("no reservations"));
-			}
-			else {
-				sb.append(messages.fetch("no data"));
-			}
-			sb.append("</td>");
-			sb.append("</tr>");
-		}
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}
-	
-	private int getServicesMax(HttpServletRequest request) {
-		int maxRecords = defaultRecordsServices;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieServicesMax);
-			int reqRecords = Integer.parseInt(cookie);
-			if(reqRecords <= maximumRecordsServices) {
-				if(reqRecords > 0) {
-					maxRecords = reqRecords;
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return maxRecords;
-	}
-	
-	private ArrayList<String> getServicesUsers(HttpServletRequest request) {
-		ArrayList<String> userRecords = new ArrayList<String>();
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieServicesUsers);
-			String[] users = cookie.split(" ");
-			if(users != null) {
-				for(String user : users) {
-					user = user.trim();
-					if(user.length() > 0) {
-						if(!userRecords.contains(user)) {
-							userRecords.add(user);
-						}
-					}
-				}
-			}
-		}
-		catch(Exception e) {
-		}
-		return userRecords;
-	}
-	
-	private enum ServicesUsersQualifier {
-		ActiveInclude,
-		ActiveExclude,
-		Include,
-		Exclude,
-		Unknown
-	}
-	
-	private ServicesUsersQualifier getServicesUsersQualifier(HttpServletRequest request) {
-		ServicesUsersQualifier retVal = ServicesUsersQualifier.Unknown;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieServicesUsersQualifier);
-			String qualifier = cookie.trim();
-			if(qualifier.equals("include")) {
-				retVal = ServicesUsersQualifier.Include;
-			}
-			else if(qualifier.equals("exclude")) {
-				retVal = ServicesUsersQualifier.Exclude;
-			}
-			else if(qualifier.equals("active+include")) {
-				retVal = ServicesUsersQualifier.ActiveInclude;
-			}
-			else if(qualifier.equals("active+exclude")) {
-				retVal = ServicesUsersQualifier.ActiveExclude;
-			}
-		}
-		catch(Exception e) {
-		}
-		return retVal;
-	}
-	
-	private String getValue(Properties properties, String key, String defaultValue) {
-		String retVal = defaultValue;
-		if(properties != null) {
-			if(key != null) {
-				retVal = properties.getProperty(key, defaultValue);
-			}
-		}
-		return retVal;
-	}
-	
-	private void handleServletJsonServicesDefinitionsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleServletJsonServicesDefinitionsData";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
-		sb.append("{ ");
-		sb.append("\"aaData\": [ ");
-		
-		IStateServices iss = StateServices.getInstance();
-		StateServicesDirectory ssd = iss.getStateServicesDirectory();
-		String sep = "";
-		for(Integer key : ssd.getDescendingKeySet()) {
-			StateServicesSet entry = ssd.get(key);
-			Properties propertiesSvc = entry.get(IStateServices.svc);
-			Properties propertiesMeta = entry.get(IStateServices.meta);
-			sb.append(sep);
-			sb.append("[");
-			// Service Id
-			sb.append(quote(""+key));
-			sb.append(",");
-			// Endpoint
-			sb.append(quote(getValue(propertiesMeta,IStateServices.endpoint,"")));
-			sb.append(",");
-			// No. of Instances
-			sb.append(quote(getValue(propertiesMeta,IStateServices.instances,"")));
-			sb.append(",");
-			// Owning User
-			sb.append(quote(getValue(propertiesMeta,IStateServices.user,"")));
-			sb.append(",");
-			// Scheduling Class
-			sb.append(quote(getValue(propertiesSvc,IStateServices.scheduling_class,"")));
-			sb.append(",");
-			// Process Memory Size
-			sb.append(quote(getValue(propertiesSvc,IStateServices.process_memory_size,"")));
-			sb.append(",");
-			// Description
-			sb.append(quote(getValue(propertiesSvc,IStateServices.description,"")));
-			sb.append("]");
-			sep = ", ";
-		}
-		
-		sb.append(" ]");
-		sb.append(" }");
-		duccLogger.debug(methodName, null, sb);
-		response.getWriter().println(sb);
-		response.setContentType("application/json");
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}	
-	
-	private void handleDuccServletServicesDeploymentsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletServicesDeploymentsData";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		int maxRecords = getServicesMax(request);
-		ArrayList<String> users = getServicesUsers(request);
-		StringBuffer sb = new StringBuffer();
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo,JobInfo> sortedServices = duccData.getSortedServices();
-		ServicesUsersQualifier userQualifier = getServicesUsersQualifier(request);
-		if(sortedServices.size()> 0) {
-			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedServices.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				JobInfo jobInfo = iterator.next().getValue();
-				DuccWorkJob service = jobInfo.getJob();
-				boolean list = false;
-				if(!users.isEmpty()) {
-					String serviceUser = service.getStandardInfo().getUser().trim();
-					switch(userQualifier) {
-					case ActiveInclude:
-					case Unknown:
-						if(!service.isCompleted()) {
-							list = true;
-						}
-						else if(users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case ActiveExclude:
-						if(!service.isCompleted()) {
-							list = true;
-						}
-						else if(!users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Include:
-						if(users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Exclude:
-						if(!users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					}	
-				}
-				else {
-					if(!service.isCompleted()) {
-						list = true;
-					}
-					else if(maxRecords > 0) {
-						if (counter++ < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				if(list) {
-					sb.append(trGet(counter));
-					buildServicesListEntry(request, sb, service.getDuccId(), service, duccData);
-				}
-			}
-		}
-		else {
-			sb.append("<tr>");
-			sb.append("<td>");
-			if(DuccData.getInstance().isPublished()) {
-				sb.append(messages.fetch("no services"));
-			}
-			else {
-				sb.append(messages.fetch("no data"));
-			}
-			sb.append("</td>");
-			sb.append("</tr>");
-		}
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}
-
-	private void buildServicesListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData) {
-		String type = "Service";
-		String id = normalize(duccId);
-		sb.append("<td class=\"ducc-col-terminate\">");
-		if(terminateEnabled) {
-			if(!job.isFinished()) {
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_job("+id+")\" value=\"Terminate\" "+getDisabled(request,job)+"/>");
-			}
-		}
-		sb.append("</td>");
-		// Id
-		sb.append("<td>");
-		sb.append("<a href=\"service.details.html?id="+id+"\">"+id+"</a>");
-		sb.append("</td>");
-		// Start
-		sb.append("<td>");
-		sb.append(getTimeStamp(job.getDuccId(), job.getStandardInfo().getDateOfSubmission()));
-		sb.append("</td>");
-		// End
-		sb.append("<td>");
-		sb.append(getCompletionOrProjection(job));
-		sb.append("</td>");
-		// User
-		sb.append("<td>");
-		sb.append(job.getStandardInfo().getUser());
-		sb.append("</td>");
-		// Class
-		sb.append("<td>");
-		sb.append(stringNormalize(job.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
-		sb.append("</td>");
-		/*
-		sb.append("<td align=\"right\">");
-		sb.append(stringNormalize(duccWorkJob.getSchedulingInfo().getSchedulingPriority(),messages.fetch("default")));
-		sb.append("</td>");
-		*/
-		// State
-		sb.append("<td>");
-		if(duccData.isLive(duccId)) {
-			if(job.isOperational()) {
-				sb.append("<span class=\"active_state\">");
-			}
-			else {
-				sb.append("<span class=\"completed_state\">");
-			}
-		}
-		else {
-			sb.append("<span class=\"historic_state\">");
-		}
-		sb.append(job.getStateObject().toString());
-		if(duccData.isLive(duccId)) {
-			sb.append("</span>");
-		}
-		sb.append("</td>");
-		// Reason
-		if(job.isOperational()) {
-			sb.append("<td valign=\"bottom\">");
-			ArrayList<String> swappingMachines = getSwappingMachines(job);
-			if(!swappingMachines.isEmpty()) {
-				StringBuffer mb = new StringBuffer();
-				for(String machine : swappingMachines) {
-					mb.append(machine);
-					mb.append(" ");
-				}
-				String ml = mb.toString().trim();
-				sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-				sb.append("Swapping");
-				sb.append("</span>");
-			}
-			sb.append("</td>");
-		}
-		else if(job.isCompleted()) {
-			JobCompletionType jobCompletionType = job.getCompletionType();
-			switch(jobCompletionType) {
-			case EndOfJob:
-			case Undefined:
-				sb.append("<td valign=\"bottom\">");
-				break;
-			default:
-				IRationale rationale = job.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<td valign=\"bottom\" title=\""+rationale+"\">");
-				}
-				else {
-					sb.append("<td valign=\"bottom\">");
-				}
-				break;
-			}
-			sb.append(jobCompletionType);
-			sb.append("</td>");
-		}
-		// Processes
-		sb.append("<td align=\"right\">");
-		if(duccData.isLive(duccId)) {
-			sb.append(job.getProcessMap().getAliveProcessCount());
-		}
-		else {
-			sb.append("0");
-		}
-		sb.append("</td>");
-		// Initialize Failures
-		sb.append("<td align=\"right\">");
-		sb.append(buildInitializeFailuresLink(job));
-		sb.append("</td>");
-		// Runtime Failures
-		sb.append("<td align=\"right\">");
-		sb.append(buildRuntimeFailuresLink(job));
-		sb.append("</td>");
-		// Size
-		sb.append("<td align=\"right\">");
-		String size = job.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getShareMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
-		sb.append("</td>");
-		// Description
-		sb.append("<td>");
-		sb.append(stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none")));
-		sb.append("</td>");
-		sb.append("</tr>");
-	}
 
 	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
 		String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
@@ -2954,118 +1465,7 @@ public class DuccHandler extends AbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-	
-	private void addMachineInfo(StringBuffer sb, MachineInfo machineInfo, int counter) {
-		addMachineInfo(sb, machineInfo.getStatus(), machineInfo.getFileDef(), machineInfo.getIp(), machineInfo.getName(), machineInfo.getMemTotal(), machineInfo.getMemSwap(), machineInfo.getSharesTotal(), machineInfo.getSharesInuse(), machineInfo.getElapsed(), counter);
-	}
-	
-	private void addMachineInfo(StringBuffer sb, String status, String fileDef, String ip, String name, String memTotal, String memSwap, String sharesTotal, String sharesInuse, String heartbeat, int counter) {
-		sb.append(trGet(counter));
-		sb.append("<td>");
-		if(status.equals("down")) {
-			sb.append("<span class=\"health_red\">");
-			sb.append(status);
-			sb.append("</span>");
-		}
-		else if(status.equals("up")) {
-			sb.append("<span class=\"health_green\">");
-			sb.append(status);
-			sb.append("</span>");
-		}
-		else {
-			sb.append("<span title=\""+"File:"+fileDef+"\""+">");
-			sb.append(status);
-			sb.append("</span>");
-		}
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(ip);
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(name);
-		sb.append("</td>");
-		sb.append("<td align=\"right\">");
-		sb.append(memTotal);
-		sb.append("</td>");
-		sb.append("<td align=\"right\">");
-		if(memSwap.equals("0")) {
-			sb.append(memSwap);
-		}
-		else {
-			sb.append("<span class=\"health_red\">");
-			sb.append(memSwap);
-			sb.append("</span>");
-		}
-		sb.append("</td>");
-		sb.append("<td align=\"right\">");
-		sb.append(sharesTotal);
-		sb.append("</td>");
-		sb.append("<td align=\"right\">");
-		sb.append(sharesInuse);
-		sb.append("</td>");
-		sb.append("<td align=\"right\">");
-		sb.append(heartbeat);
-		sb.append("</td>");
-		sb.append("</tr>");
-	}
-	
-	private long getMillisMIA(DaemonName daemonName) {
-		String methodName = "getMillisMIA";
-		long secondsMIA = -1;
-		Properties properties = DuccWebProperties.get();
-		switch(daemonName) {
-		case Orchestrator:
-			String or_rate = properties.getProperty("ducc.orchestrator.state.publish.rate");
-			String or_ratio = "1";
-			try {
-				long rate = Long.parseLong(or_rate.trim());
-				long ratio = Long.parseLong(or_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		case ResourceManager:
-			String rm_rate = properties.getProperty("ducc.orchestrator.state.publish.rate");
-			String rm_ratio = properties.getProperty("ducc.rm.state.publish.ratio");
-			try {
-				long rate = Long.parseLong(rm_rate.trim());
-				long ratio = Long.parseLong(rm_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		case ServiceManager:
-			String sm_rate = properties.getProperty("ducc.orchestrator.state.publish.rate");
-			String sm_ratio = "1";
-			try {
-				long rate = Long.parseLong(sm_rate.trim());
-				long ratio = Long.parseLong(sm_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		case ProcessManager:
-			String pm_rate = properties.getProperty("ducc.pm.state.publish.rate");
-			String pm_ratio = "1";
-			try {
-				long rate = Long.parseLong(pm_rate.trim());
-				long ratio = Long.parseLong(pm_ratio .trim());
-				secondsMIA = 3 * rate * ratio;
-			}
-			catch(Throwable t) {
-				duccLogger.debug(methodName, null, t);
-			}
-			break;
-		}
-		return secondsMIA;
-	}
-	
+
 	private void handleServletJsonMachinesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3187,28 +1587,7 @@ public class DuccHandler extends AbstractHandler {
 		response.setContentType("application/json");
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
-	
-	@Deprecated
-	private void handleDuccServletMachinesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletMachinesData";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		int counter = 0;
-		StringBuffer sb = new StringBuffer();
-		DuccMachinesData instance = DuccMachinesData.getInstance();
-		MachineSummaryInfo msi = instance.getTotals();
-		addMachineInfo(sb, "*Totals-->", "", "", "", ""+msi.memoryTotal/*+memUnits*/, ""+msi.memorySwapped/*+memUnits*/, msi.sharesTotal+"", msi.sharesInuse+"", "", 0);
-		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = DuccMachinesData.getInstance().getSortedMachines();
-		Iterator<MachineInfo> iterator = sortedMachines.keySet().iterator();
-		while(iterator.hasNext()) {
-			MachineInfo m = iterator.next();
-			addMachineInfo(sb,m,++counter);
-		}
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}
-	
+
 	private void handleDuccServletSystemAdminAdminData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3284,7 +1663,7 @@ public class DuccHandler extends AbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		boolean authorized = isAuthorized(request,null);
 		if(authorized) {
-			String userId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieUser);
+			String userId = duccWebSessionManager.getUserId(request);
 			String name = "type";
 			String value = request.getParameter(name).trim();
 			duccLogger.info(methodName, null, messages.fetchLabel("user")+userId+" "+messages.fetchLabel("type")+value);
@@ -3410,230 +1789,6 @@ public class DuccHandler extends AbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	@Deprecated
-	private void handleDuccServletSystemClassesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletSystemClassesData";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		DuccWebSchedulerClasses schedulerClasses = new DuccWebSchedulerClasses(getFileName());
-		StringBuffer sb = new StringBuffer();
-		DuccProperties properties = schedulerClasses.getClasses();
-		String class_set = properties.getProperty("scheduling.class_set");
-		class_set.trim();
-		if(class_set != null) {
-			String[] class_array = StringUtils.split(class_set);
-			for(int i=0; i<class_array.length; i++) {
-				String class_name = class_array[i].trim();
-				sb.append(trGet(i+1));
-				sb.append("<td>");
-				sb.append(class_name);
-				sb.append("</td>");	
-				sb.append("<td>");
-
-                String policy = properties.getStringProperty("scheduling.class."+class_name+".policy");
-				sb.append(policy);
-				sb.append("</td>");	
-				sb.append("<td align=\"right\">");
-				sb.append(properties.getStringProperty("scheduling.class."+class_name+".share_weight", "100"));
-				sb.append("</td>");	
-				sb.append("<td align=\"right\">");
-				sb.append(properties.getStringProperty("scheduling.class."+class_name+".priority"));
-				sb.append("</td>");	
-
-                // cap is either absolute or proportional.  if proprotional, it ends with '%'.  It's always
-                // either-or so at least one of these columns will have N/A
-				String val = properties.getStringProperty("scheduling.class."+class_name+".cap", "0");
-				if( (val == null) || val.equals("0") ) {
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-				} else if ( val.endsWith("%") ) {
-                    sb.append("<td align=\"right\">");
-                    sb.append(val);
-                    sb.append("</td>");
-
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-                } else {
-                    sb.append("<td align=\"right\">");
-                    sb.append("-");
-                    sb.append("</td>");
-
-                    sb.append("<td align=\"right\">");
-                    sb.append(val);
-                    sb.append("</td>");
-                }
-
-				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".initialization.cap", 
-                                                   System.getProperty("ducc.rm.initialization.cap"));
-                if ( val == null ) {
-                    val = "2";
-                }
-
-				sb.append(val);
-				sb.append("</td>");	
-
-				sb.append("<td align=\"right\">");
-				boolean bval = properties.getBooleanProperty("scheduling.class."+class_name+".expand.by.doubling", true);
-                sb.append(bval);
-				sb.append("</td>");	
-
-				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".prediction", 
-                                                   System.getProperty("ducc.rm.prediction"));
-                if ( val == null ) {
-                    val = "true";
-                }
-                sb.append(val);
-				sb.append("</td>");	
-
-				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".prediction.fudge",
-                                                   System.getProperty("ducc.rm.prediction.fudge"));
-                if ( val == null ) {
-                    val = "10000";
-                }
-                sb.append(val);
-				sb.append("</td>");	
-
-                // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
-                // ugly code here.
- 				sb.append("<td align=\"right\">");
-                if ( policy.equals("RESERVE") ) {
-                    val = properties.getStringProperty("scheduling.class."+class_name+".max_machines", "0");
-                    if( val == null || val.equals("0")) {
-                        val = "-";
-                    }
-                } else if ( policy.equals("FIXED_SHARE") ) {
-                    val = properties.getStringProperty("scheduling.class."+class_name+".max_processes", "0");
-                    if( val == null || val.equals("0")) {
-                        val = "-";
-                    }
-                } else {
-					val = "-";
-                }
-
-				val = properties.getStringProperty("scheduling.class."+class_name+".max_shares", "0");
-				if( val == null || val.equals("0")) {
-					val = "-";
-				}
-				sb.append(val);
-				sb.append("</td>");	
-
-				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".nodepool", "--global--");
-                sb.append(val);
-				sb.append("</td>");	
-
-
-				sb.append("</tr>");
-			}
-		}
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}
-	
-	private String getPropertiesValue(Properties properties, String key, String defaultValue) {
-		String retVal = defaultValue;
-		if(properties != null) {
-			String value = properties.getProperty(key);
-			if(value != null) {
-				retVal = properties.getProperty(key);
-			}
-		}
-		return retVal;
-	}
-	
-	private String buildjConsoleLink(String service) {
-		String location = "buildjConsoleLink";
-		String href = "<a href=\""+duccjConsoleLink+"?"+"service="+service+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+service+"</a>";
-		duccLogger.trace(location, null, href);
-		return href;
-	}
-	
-	@Deprecated
-	private void handleDuccServletSystemDaemonsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleDuccServletSystemDaemonsData";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
-		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
-			String status = "unknown";
-			String heartbeat = "*";
-			String heartmax = "*";
-			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
-			switch(daemonName) {
-			case Webserver:
-				status = "up";
-				break;
-			default:
-				status = "unknown";
-				heartbeat = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
-				long timeout = getMillisMIA(daemonName)/1000;
-				if(timeout > 0) {
-					try {
-						long overtime = timeout - Long.parseLong(heartbeat);
-						if(overtime < 0) {
-							status = "down";
-						}
-						else {
-							status = "up";
-						}
-					}
-					catch(Throwable t) {
-					}
-				}
-				heartmax = DuccDaemonsData.getInstance().getMaxHeartbeat(daemonName);
-				break;
-			}
-			sb.append("<tr>");
-			sb.append("<td>");
-			sb.append(status);
-			sb.append("</td>");	
-			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyDaemonName,daemonName.toString()));
-			sb.append("</td>");	
-			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
-			sb.append("</td>");	
-			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,""));
-			sb.append("</td>");	
-			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeName,""));
-			sb.append("</td>");	
-			sb.append("<td>");
-			sb.append(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,""));
-			sb.append("</td>");	
-			sb.append("<td align=\"right\">");
-			sb.append(heartbeat);
-			sb.append("</td>");	
-			sb.append("<td align=\"right\">");
-			sb.append(heartmax);
-			sb.append("</td>");	
-			sb.append("<td>");
-			String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
-			if(jmxUrl != null) {
-				sb.append(buildjConsoleLink(jmxUrl));
-			}
-			sb.append("</td>");	
-			sb.append("</tr>");
-		}
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-	}
-	
-	private String quote(String string) {
-		return "\""+string+"\"";
-	}
-	
 	private String buildjSonjConsoleLink(String service) {
 		String location = "buildjConsoleLink";
 		String href = "<a href=\\\""+duccjConsoleLink+"?"+"service="+service+"\\\" onclick=\\\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\\\">"+service+"</a>";
@@ -3701,7 +1856,7 @@ public class DuccHandler extends AbstractHandler {
 			sb.append(",");
 			sb.append(quote(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyDaemonName,daemonName.toString())));
 			sb.append(",");
-			sb.append(quote(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,"")));
+			sb.append(quote(getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""))));
 			sb.append(",");
 			sb.append(quote(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"")));
 			sb.append(",");
@@ -3719,6 +1874,11 @@ public class DuccHandler extends AbstractHandler {
 			sb.append(",");
 			sb.append(quote(heartmax));
 			sb.append(",");
+			try {
+				heartmaxTOD = getTimeStamp(getDateStyle(request),heartmaxTOD);
+			}
+			catch(Exception e) {
+			}
 			sb.append(quote(heartmaxTOD));
 			sb.append(",");
 			String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
@@ -3727,6 +1887,108 @@ public class DuccHandler extends AbstractHandler {
 			}
 			sb.append("]");
 		}
+		// <Agents>
+		String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieAgents);
+		if(cookie.equals(DuccWebUtil.valueAgentsShow)) {
+			duccLogger.trace(methodName, jobid, "== show: "+cookie);
+			ConcurrentSkipListMap<String,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
+			Iterator<String> iterator = machines.keySet().iterator();
+			while(iterator.hasNext()) {
+				String key = iterator.next();
+				MachineInfo machineInfo = machines.get(key);
+				Properties properties = DuccDaemonRuntimeProperties.getInstance().getAgent(machineInfo.getName());
+				if(first) {
+					first = false;
+				}
+				else {
+					sb.append(",");
+				}
+				sb.append("[");
+				// Status
+				String status;
+				String machineStatus = machineInfo.getStatus();
+				if(machineStatus.equals("down")) {
+					//status.append("<span class=\"health_red\""+">");
+					status = machineStatus;
+					//status.append("</span>");
+				}
+				else if(machineStatus.equals("up")) {
+					//status.append("<span class=\"health_green\""+">");
+					status = machineStatus;
+					//status.append("</span>");
+				}
+				else {
+					status = "unknown";
+				}
+				sb.append(quote(status));
+				// Daemon Name
+				sb.append(",");
+				String daemonName = "Agent";
+				sb.append(quote(daemonName));
+				// Boot Time
+				sb.append(",");
+				String bootTime = getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				sb.append(quote(bootTime));
+				// Host IP
+				sb.append(",");
+				String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
+				sb.append(quote(hostIP));
+				// Host Name
+				sb.append(",");
+				String hostName = machineInfo.getName();
+				sb.append(quote(hostName));
+				// PID
+				sb.append(",");
+				String pid = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyPid,"");
+				sb.append(quote(pid));
+				// Publication Size (last)
+				sb.append(",");
+				String publicationSizeLast = machineInfo.getPublicationSizeLast();
+				sb.append(quote(publicationSizeLast));
+				// Publication Size (max)
+				sb.append(",");
+				String publicationSizeMax = machineInfo.getPublicationSizeMax();
+				sb.append(quote(publicationSizeMax));
+				// Heartbeat (last)
+				sb.append(",");
+				String heartbeatLast = machineInfo.getHeartbeatLast();
+				sb.append(quote(heartbeatLast));
+				// Heartbeat (max)
+				sb.append(",");
+				String fmtHeartbeatMax = "";
+				long heartbeatMax = machineInfo.getHeartbeatMax();
+				if(heartbeatMax > 0) {
+					fmtHeartbeatMax += heartbeatMax;
+				}
+				sb.append(quote(fmtHeartbeatMax));
+				// Heartbeat (max) TOD
+				sb.append(",");
+				String fmtHeartbeatMaxTOD = "";
+				long heartbeatMaxTOD = machineInfo.getHeartbeatMaxTOD();
+				if(heartbeatMaxTOD > 0) {
+					fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
+					try {
+						fmtHeartbeatMaxTOD = getTimeStamp(getDateStyle(request),fmtHeartbeatMaxTOD);
+					}
+					catch(Exception e) {
+					}
+				}
+				sb.append(quote(fmtHeartbeatMaxTOD));
+				// JConsole URL
+				sb.append(",");
+				String fmtJmxUrl = "";
+				String jmxUrl = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyJmxUrl,"");
+				if(jmxUrl != null) {
+					fmtJmxUrl = buildjSonjConsoleLink(jmxUrl);
+				}
+				sb.append(quote(fmtJmxUrl));
+				sb.append("]");
+			}
+		}
+		else {
+			duccLogger.trace(methodName, jobid, "!= show: "+cookie);
+		}
+		// </Agents>
 		sb.append(" ]");
 		sb.append(" }");
 		duccLogger.debug(methodName, null, sb);
@@ -3755,7 +2017,7 @@ public class DuccHandler extends AbstractHandler {
 		String methodName = "handleDuccServletTimeStamp";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		DuccId jobid = null;
-		StringBuffer sb = new StringBuffer(getTimeStamp(jobid,DuccData.getInstance().getPublished()));
+		StringBuffer sb = new StringBuffer(getTimeStamp(request,jobid,DuccData.getInstance().getPublished()));
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
@@ -3769,8 +2031,15 @@ public class DuccHandler extends AbstractHandler {
 		sb.append("<select id=\"scheduling_class\">");
 		DuccWebSchedulerClasses schedulerClasses = new DuccWebSchedulerClasses(getFileName());
 		String[] class_array = schedulerClasses.getReserveClasses();
+		String defaultName = schedulerClasses.getReserveClassDefaultName();
 		for(int i=0; i<class_array.length; i++) {
-			sb.append("<option value=\""+class_array[i]+"\" selected=\"selected\">"+class_array[i]+"</option>");
+			String name = class_array[i];
+			if(name.equals(defaultName)) {
+				sb.append("<option value=\""+name+"\" selected=\"selected\">"+name+"</option>");
+			}
+			else {
+				sb.append("<option value=\""+name+"\">"+name+"</option>");
+			}
 		}
 		sb.append("</select>");
 		response.getWriter().println(sb);
@@ -3834,6 +2103,21 @@ public class DuccHandler extends AbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
+	
+	private void handleDuccServletReservationFormButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletReservationFormButton";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		String button = "<button style=\"font-size:8pt; background-color:green; color:ffffff;\" onclick=\"var newWin = window.open('submit.reservation.html','child','height=550,width=550,scrollbars'); newWin.focus(); return false;\">Request<br>Reservation</button>";
+		if(!isAuthenticated(request,response)) {
+			button = "<button title=\"Login to enable\" style=\"font-size:8pt;\" disabled>Request<br>Reservation</button>";
+		}
+		sb.append(button);
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
 	
 	private void handleDuccServletReservationSubmitButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
@@ -3980,16 +2264,12 @@ public class DuccHandler extends AbstractHandler {
 				if(isAuthorized(request,resourceOwnerUserId)) {
 					String arg1 = "-"+name;
 					String arg2 = value;
-					String userId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieUser);
+					String userId = duccWebSessionManager.getUserId(request);
 					String cp = System.getProperty("java.class.path");
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccJobCancel";
 					String jhome = System.getProperty("java.home");
-					String juser = System.getProperty("user.name");
-					String jtmp = System.getProperty("java.io.tmpdir")+File.separator+"duckling"+"."+juser;
-					duccLogger.info(methodName, null, "logfile:"+jtmp);
-					new File(jtmp).mkdirs(); 
-					String[] arglist = { "-u", userId, "-f", jtmp, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+					String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
 					DuccAsUser.duckling(arglist);
 				}
 			}
@@ -4050,16 +2330,12 @@ public class DuccHandler extends AbstractHandler {
 				arg8 = description;
 			}
 			try {
-				String userId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieUser);
+				String userId = duccWebSessionManager.getUserId(request);
 				String cp = System.getProperty("java.class.path");
 				String java = "/bin/java";
 				String jclass = "org.apache.uima.ducc.cli.DuccReservationSubmit";
 				String jhome = System.getProperty("java.home");
-				String juser = System.getProperty("user.name");
-				String jtmp = System.getProperty("java.io.tmpdir")+File.separator+"duckling"+"."+juser;
-				duccLogger.info(methodName, null, "logfile:"+jtmp);
-				new File(jtmp).mkdirs(); 
-				String[] arglist = { "-u", userId, "-f", jtmp, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 };
+				String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 };
 				DuccAsUser.duckling(arglist);
 			} catch (Exception e) {
 				duccLogger.error(methodName, null, e);
@@ -4089,16 +2365,12 @@ public class DuccHandler extends AbstractHandler {
 				if(isAuthorized(request,resourceOwnerUserId)) {
 					String arg1 = "-"+name;
 					String arg2 = value;
-					String userId = DuccWebUtil.getCookie(request,DuccWebUtil.cookieUser);
+					String userId = duccWebSessionManager.getUserId(request);
 					String cp = System.getProperty("java.class.path");
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccReservationCancel";
 					String jhome = System.getProperty("java.home");
-					String juser = System.getProperty("user.name");
-					String jtmp = System.getProperty("java.io.tmpdir")+File.separator+"duckling"+"."+juser;
-					duccLogger.info(methodName, null, "logfile:"+jtmp);
-					new File(jtmp).mkdirs(); 
-					String[] arglist = { "-u", userId, "-f", jtmp, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+					String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
 					DuccAsUser.duckling(arglist);
 				}
 			}
@@ -4112,9 +2384,62 @@ public class DuccHandler extends AbstractHandler {
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
+
+	private void handleDuccServletServiceSubmit(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceSubmit";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		if(isAuthenticated(request,response)) {
+			//TODO
+		}
+		else {
+			duccLogger.warn(methodName, null, messages.fetch("user not authenticated"));
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
 	
-	private String normalize(DuccId duccId) {
-		return duccId.getFriendly()+"";
+	private void handleDuccServletServiceCancel(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceCancel";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		if(isAuthenticated(request,response)) {
+			try {
+				String name = "id";
+				String value = request.getParameter(name).trim();
+				duccLogger.info(methodName, null, messages.fetchLabel("cancel")+value);
+				DuccData duccData = DuccData.getInstance();
+				DuccWorkMap duccWorkMap = duccData.get();
+				String text;
+				IDuccWorkJob duccWorkJob = (IDuccWorkJob) duccWorkMap.findDuccWork(DuccType.Service, value);
+				if(duccWorkJob != null) {
+					String resourceOwnerUserId = duccWorkJob.getStandardInfo().getUser().trim();
+					if(isAuthorized(request,resourceOwnerUserId)) {
+						String arg1 = "-"+name;
+						String arg2 = value;
+						String userId = duccWebSessionManager.getUserId(request);
+						String cp = System.getProperty("java.class.path");
+						String java = "/bin/java";
+						String jclass = "org.apache.uima.ducc.cli.DuccServiceCancel";
+						String jhome = System.getProperty("java.home");
+						String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+						DuccAsUser.duckling(arglist);
+					}
+				}
+				else {
+					text = "job "+value+" not found";
+					duccLogger.debug(methodName, null, messages.fetch(text));
+				}
+			}
+			catch(Exception e) {
+				duccLogger.error(methodName, null, e);
+			}
+		}
+		else {
+			duccLogger.warn(methodName, null, messages.fetch("user not authenticated"));
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
 	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
@@ -4131,141 +2456,158 @@ public class DuccHandler extends AbstractHandler {
 			baseRequest.setHandled(true);
 			if(reqURI.startsWith(duccVersion)) {
 				handleDuccServletVersion(target, baseRequest, request, response);
+				//DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccAuthenticationStatus)) {
 				handleDuccServletAuthenticationStatus(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccAuthenticatorVersion)) {
 				handleDuccServletAuthenticatorVersion(target, baseRequest, request, response);
+				//DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccLoginLink)) {
 				handleDuccServletLoginLink(target, baseRequest, request, response);
 			}
-			else if(reqURI.startsWith(duccUserLogout)) {
-				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
-				handleDuccServletLogout(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(duccUserLogin)) {
-				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
-				handleDuccServletLogin(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(duccJobsData)) {
-				handleDuccServletJobsData(target, baseRequest, request, response);
-			}
 			else if(reqURI.startsWith(duccJobIdData)) {
 				handleDuccServletJobIdData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobWorkitemsCountData)) {
 				handleDuccServletJobWorkitemsCountData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobProcessesData)) {
 				handleDuccServletJobProcessesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobWorkitemsData)) {
 				handleDuccServletJobWorkitemsData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobPerformanceData)) {
 				handleDuccServletJobPerformanceData(target, baseRequest, request, response);
 			}
 			else if(reqURI.startsWith(duccJobSpecificationData)) {
 				handleDuccServletJobSpecificationData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobInitializationFailData)) {
 				handleDuccServletJobInitializationFailData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobRuntimeFailData)) {
 				handleDuccServletJobRuntimeFailData(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(duccReservationsData)) {
-				handleDuccServletReservationsData(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(jsonServicesDefinitionsData)) {
-				handleServletJsonServicesDefinitionsData(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(duccServicesDeploymentsData)) {
-				handleDuccServletServicesDeploymentsData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccServiceProcessesData)) {
 				handleDuccServletServiceProcessesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccServiceSpecificationData)) {
 				handleDuccServletServiceSpecificationData(target, baseRequest, request, response);
 			}
 			else if(reqURI.startsWith(jsonMachinesData)) {
 				handleServletJsonMachinesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccSystemAdminAdminData)) {
 				handleDuccServletSystemAdminAdminData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccSystemAdminControlData)) {
 				handleDuccServletSystemAdminControlData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccSystemJobsControl)) {
 				handleDuccServletSystemJobsControl(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(jsonSystemClassesData)) {
 				handleServletJsonSystemClassesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(jsonSystemDaemonsData)) {
 				handleServletJsonSystemDaemonsData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccClusterName)) {
 				handleDuccServletClusterName(target, baseRequest, request, response);
+				//DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccTimeStamp)) {
 				handleDuccServletTimeStamp(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobSubmit)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletJobSubmit(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobCancel)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletJobCancel(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationSubmit)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletReservationSubmit(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationCancel)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletReservationCancel(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServiceSubmit)) {
+				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
+				handleDuccServletServiceSubmit(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServiceCancel)) {
+				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
+				handleDuccServletServiceCancel(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationSchedulingClasses)) {
 				handleDuccServletReservationSchedulingClasses(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationInstanceMemorySizes)) {
 				handleDuccServletReservationInstanceMemorySizes(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationNumberOfInstances)) {
 				handleDuccServletReservationNumberOfInstances(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationInstanceMemoryUnits)) {
 				handleDuccServletReservationInstanceMemoryUnits(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobSubmitButton)) {
 				handleDuccServletJobSubmitButton(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationSubmitButton)) {
 				handleDuccServletReservationSubmitButton(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccReservationFormButton)) {
+				handleDuccServletReservationFormButton(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobSubmitForm)) {
 				handleDuccServletJobSubmitForm(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccLogData)) {
 				handleDuccServletLogData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccjConsoleLink)) {
 				handleDuccServletjConsoleLink(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(duccMachinesData)) {
-				handleDuccServletMachinesData(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(duccSystemClassesData)) {
-				handleDuccServletSystemClassesData(target, baseRequest, request, response);
-			}
-			else if(reqURI.startsWith(duccSystemDaemonsData)) {
-				handleDuccServletSystemDaemonsData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));

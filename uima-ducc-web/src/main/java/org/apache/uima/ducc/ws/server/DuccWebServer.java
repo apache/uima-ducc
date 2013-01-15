@@ -33,6 +33,7 @@ import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -180,7 +181,11 @@ public class DuccWebServer {
 		resourceHandler.setResourceBase(rootDir);	
 		HandlerList handlers = new HandlerList();
 		DuccHandler duccHandler = new DuccHandler(this);
-		handlers.setHandlers(new Handler[] { duccHandler, jspHandler, resourceHandler, new DefaultHandler() });
+		DuccHandlerLegacy duccHandlerLegacy = new DuccHandlerLegacy(this);
+		DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat();
+		DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
+		SessionHandler sessionHandler = new SessionHandler();
+		handlers.setHandlers(new Handler[] { sessionHandler, duccHandlerUserAuthentication, duccHandlerJson, duccHandlerLegacy, duccHandler, jspHandler, resourceHandler, new DefaultHandler() });
 		server.setHandler(handlers);
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}

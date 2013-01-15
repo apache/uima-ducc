@@ -1,0 +1,7 @@
+{ "aaData": [ 
+["up","Orchestrator","2012.06.12 06:14:28 Tue","192.168.1.72","bluej62.bluej.net","32564","14","30","service:jmx:rmi:///jndi/rmi://bluej62:2108/jmxrmi"],
+["up","ProcessManager","2012.06.12 06:14:27 Tue","192.168.1.72","bluej62.bluej.net","32613","0","50","service:jmx:rmi:///jndi/rmi://bluej62:2106/jmxrmi"],
+["up","ResourceManager","2012.06.12 06:14:26 Tue","192.168.1.72","bluej62.bluej.net","32529","44","","service:jmx:rmi:///jndi/rmi://bluej62:2104/jmxrmi"],
+["up","ServiceManager","2012.06.12 06:14:27 Tue","192.168.1.72","bluej62.bluej.net","32578","14","30","service:jmx:rmi:///jndi/rmi://bluej62:2105/jmxrmi"],
+["up","Webserver","2012.06.12 06:14:27 Tue","192.168.1.72","bluej62.bluej.net","32545","*","*","service:jmx:rmi:///jndi/rmi://bluej62:2107/jmxrmi"] 
+] } 

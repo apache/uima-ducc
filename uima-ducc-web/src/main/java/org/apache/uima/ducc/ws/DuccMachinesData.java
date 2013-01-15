@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.uima.ducc.cli.ws.json.NodePidList;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
@@ -87,6 +88,10 @@ public class DuccMachinesData {
 		return isSwapping.containsKey(ip);
 	}
 	
+	public ConcurrentSkipListMap<String,MachineInfo> getMachines() {
+		return unsortedMachines;
+	}
+	
 	public ConcurrentSkipListMap<MachineInfo,String> getSortedMachines() {
 		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = new ConcurrentSkipListMap<MachineInfo,String>();
 		Iterator<Entry<String, MachineInfo>> iterator = unsortedMachines.entrySet().iterator();
@@ -114,7 +119,7 @@ public class DuccMachinesData {
 			Iterator<String> iterator = nodes.iterator();
 			while(iterator.hasNext()) {
 				String nodeName = (String) iterator.next();
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, "", "", null, "", "", -1);
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, "", "", null, "", "", -1, 0);
 				unsortedMachines.put(machineInfo.getName(),machineInfo);
 			}
 		}
@@ -249,8 +254,27 @@ public class DuccMachinesData {
 			logger.warn(location, jobid, t);
 		}
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
-		MachineInfo machineInfo = new MachineInfo("", ip.toString(), machineName, memTotal, memSwap, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis());
-		unsortedMachines.put(normalizeMachineName(machineName),machineInfo);
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memSwap, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
+		String key = normalizeMachineName(machineName);
+		MachineInfo previous = unsortedMachines.get(key);
+		if(previous != null) {
+			long pHbMax = previous.getHeartbeatMax();
+			long tod = previous.getHeartbeatMaxTOD();
+			long pHbElapsed = previous.getElapsedSeconds();
+			if(pHbElapsed > pHbMax) {
+				pHbMax = pHbElapsed;
+				tod = previous.getHeartbeat();
+			}
+			current.setHeartbeatMax(pHbMax);
+			current.setHeartbeatMaxTOD(tod);
+			long pubSizeMax = previous.getPubSizeMax();
+			long pubSize = current.getPubSize();
+			if(pubSize > pubSizeMax) {
+				pubSizeMax = pubSize;
+			}
+			current.setPubSizeMax(pubSizeMax);
+		}
+		unsortedMachines.put(key,current);
 		updateTotals(ip,msi);
 		setPublished();
 	}
@@ -289,6 +313,16 @@ public class DuccMachinesData {
 	public List<String> getPids(NodeId nodeId, UserId user) {
 		Ip ip = new Ip(getIpForName(nodeId.toString()));
 		return getPids(ip, user);
+	}
+	
+	public List<NodePidList> getUserProcesses(List<String> nodeList, String user) {
+		List<NodePidList> nodePidListList = new ArrayList<NodePidList>();
+		for(String node : nodeList) {
+			List<String> pids = getPids(new NodeId(node), new UserId(user));
+			NodePidList nodePidList = new NodePidList(node, pids);
+			nodePidListList.add(nodePidList);
+		}
+		return nodePidListList;
 	}
 	
 	public int getPidCount(Ip ip, UserId user) {
@@ -389,6 +423,53 @@ public class DuccMachinesData {
     	return properties;
     }
     
+    private Properties getShareMapServices(Properties properties, int shareSize) {
+    	String location = "getShareMapServices";
+    	try {
+			DuccData duccData = DuccData.getInstance();
+			DuccWorkMap duccWorkMap = duccData.getLive();
+			Iterator<DuccId> iteratorS = duccWorkMap.getServiceKeySet().iterator();
+			while(iteratorS.hasNext()) {
+				DuccId jobid = iteratorS.next();
+				IDuccWorkJob service = (IDuccWorkJob)duccWorkMap.findDuccWork(jobid);
+				if(service.isOperational()) {
+					int pMemSize = toInt(service.getSchedulingInfo().getShareMemorySize(),1*shareSize);
+					long pShareSize = pMemSize/shareSize;
+					if(pShareSize <= 0) {
+						pShareSize = 1;
+					}
+					IDuccProcessMap processMap = service.getProcessMap();
+					Iterator<DuccId> iteratorP = processMap.keySet().iterator();
+					while(iteratorP.hasNext()) {
+						DuccId jpid = iteratorP.next();
+						IDuccProcess jp = processMap.get(jpid);
+						ProcessState processState = jp.getProcessState();
+						switch(processState) {
+						case Starting:
+						case Initializing:
+						case Running:
+							NodeIdentity nodeIdentity = jp.getNodeIdentity();
+							String key = nodeIdentity.getIp().trim();
+							Integer value = new Integer(0);
+							if(!properties.containsKey(key)) {
+								properties.put(key, value);
+							}
+							value = (Integer)properties.get(key) + (int)pShareSize;
+							properties.put(key,value);
+							break;
+						default:
+							break;
+						}
+					}
+				}
+			}
+		}
+		catch(Throwable t) {
+			logger.warn(location, jobid, t);
+		}
+    	return properties;
+    }
+    
     private Properties getShareMapReservations(Properties properties, int shareSize) {
     	String location = "getShareMapReservations";
     	try {
@@ -426,6 +507,7 @@ public class DuccMachinesData {
 	private Properties getShareMap(int shareSize) {
 		Properties properties = new Properties();
 		properties = getShareMapJobs(properties, shareSize);
+		properties = getShareMapServices(properties, shareSize);
 		properties = getShareMapReservations(properties, shareSize);
 		return properties;
 	}

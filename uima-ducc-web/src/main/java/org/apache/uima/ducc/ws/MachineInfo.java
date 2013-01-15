@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.ws;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -45,17 +47,28 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private String sharesTotal;
 	private String sharesInuse;
 	private long heartbeat;
+	private long heartbeatMax;
+	private long heartbeatMaxTOD;
+	private long pubSize;
+	private long pubSizeMax;
 	
-	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memSwap, List<ProcessInfo> alienPids, String sharesTotal, String sharesInuse, long heartbeat) {
+	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memSwap, List<ProcessInfo> alienPids, String sharesTotal, String sharesInuse, long heartbeat, long pubSize) {
 		this.fileDef = fileDef;
 		this.ip = ip;
 		this.name = name;
 		this.memTotal = memTotal;
 		this.memSwap = memSwap;
 		this.alienPids = alienPids;
+		if(this.alienPids == null) {
+			this.alienPids = new ArrayList<ProcessInfo>();
+		}
 		this.sharesTotal = sharesTotal;
 		this.sharesInuse = sharesInuse;
 		this.heartbeat = heartbeat;
+		this.heartbeatMax = 0;
+		this.heartbeatMaxTOD = 0;
+		this.pubSize = pubSize;
+		this.pubSizeMax = 0;
 	}
 	
 	private long getAgentMillisMIA() {
@@ -77,7 +90,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	private String calculateStatus() {
 		String status = "";
-		if(getElapsedMillis() < 0) {
+		if(getElapsedSeconds() < 0) {
 			status = "defined";
 		}
 		else if(isExpired(getAgentMillisMIA())) {
@@ -117,6 +130,16 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.alienPids;
 	}
 	
+	public List<String> getAliensPidsOnly() {
+		ArrayList<String> list = new ArrayList<String>();
+		Iterator<ProcessInfo> iterator = alienPids.iterator();
+		while(iterator.hasNext()) {
+			ProcessInfo processInfo = iterator.next();
+			list.add(processInfo.getPid());
+		}
+		return list;
+	}
+	
 	public long getAlienPidsCount() {
 		long retVal = 0;
 		if(this.alienPids != null) {
@@ -137,11 +160,35 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.heartbeat;
 	}
 	
-	public boolean isExpired(long millis) {
-		return getElapsedMillis() > millis;
+	public long getHeartbeatMax() {
+		return this.heartbeatMax;
 	}
 	
-	public long getElapsedMillis() {
+	public void setHeartbeatMax(long value) {
+		this.heartbeatMax = value;
+	}
+	
+	public long getHeartbeatMaxTOD() {
+		return this.heartbeatMaxTOD;
+	}
+	
+	public void setHeartbeatMaxTOD(long value) {
+		this.heartbeatMaxTOD = value;
+	}
+	
+	public long getPubSizeMax() {
+		return this.pubSizeMax;
+	}
+	
+	public void setPubSizeMax(long value) {
+		this.pubSizeMax = value;
+	}
+	
+	public boolean isExpired(long seconds) {
+		return getElapsedSeconds() > seconds;
+	}
+	
+	public long getElapsedSeconds() {
 		long retVal = -1;
 		if(heartbeat >= 0) {
 			retVal = (System.currentTimeMillis()-heartbeat)/1000;
@@ -151,13 +198,39 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	
 	public String getElapsed() {
 		String retVal = "";
-		long elapsedMillis = getElapsedMillis();
-		if(elapsedMillis >= 0) {
-			retVal = ""+elapsedMillis;
+		long elapsedSeconds = getElapsedSeconds();
+		if(elapsedSeconds >= 0) {
+			retVal = ""+elapsedSeconds;
 		}
 		return retVal;
 	}
 	
+	public long getPubSize() {
+		return pubSize;
+	}
+	
+	public String getPublicationSizeLast() {
+		String retVal = "";
+		if(pubSize > 0) {
+			retVal += pubSize;
+		}
+		return retVal;
+	}
+	
+	public String getPublicationSizeMax() {
+		String retVal = "";
+		if(pubSizeMax > 0) {
+			retVal += pubSizeMax;
+		}
+		return retVal;
+	}
+	
+	public String getHeartbeatLast() {
+		String retVal = getElapsed();
+		return retVal;
+	}	
+	
+	@Override
 	public int compareTo(MachineInfo machine) {
 		int retVal = 0;
 		MachineInfo m1 = this;

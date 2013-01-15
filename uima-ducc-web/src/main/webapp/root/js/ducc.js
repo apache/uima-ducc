@@ -21,18 +21,24 @@
  */
 
 var oTable;
+var display_table_style;
 
 function ducc_cluetips() {
-	$('a.logfileLink').cluetip('destroy');
-	$('a.logfileLink').cluetip({
-		width: '600px',
-	    attribute: 'href',
-	    activation: 'click',
-	    sticky: true,
-	    closePosition: 'title',
-  		closeText: '<img src="opensources/cluetip/cross.png" alt="close" />',
-	    mouseOutClose: true
-	  });
+	try {
+		$('a.logfileLink').cluetip('destroy');
+		$('a.logfileLink').cluetip({
+			width: '600px',
+	    	attribute: 'href',
+	    	activation: 'click',
+	    	sticky: true,
+	    	closePosition: 'title',
+  			closeText: '<img src="opensources/cluetip/cross.png" alt="close" />',
+	    	mouseOutClose: true
+	  	});
+	}
+	catch(err) {
+		//ducc_error("ducc_cluetips",err);
+	}	
 }
 
 function toggleById(id) {
@@ -47,6 +53,17 @@ function ducc_error(loc, err)
 	txt+="Error description: " + err.message + "\n\n";
 	txt+="Click OK to continue.\n\n";
 	alert(txt);
+}
+
+
+function ducc_window_close()
+{
+	try {
+  		window.close();
+  	}
+	catch(err) {
+		ducc_error("ducc_window_close",err);
+	}	
 }
 
 function ducc_identity()
@@ -140,7 +157,7 @@ function ducc_authentication()
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/authentication-status",
+			url : "/ducc-servlet/user-authentication-status",
 			success : function (data) 
 			{
 				$("#authentication_area").html(data);
@@ -181,21 +198,52 @@ function ducc_load_common()
 
 function ducc_load_jobs_data()
 {
+	var table_style = ducc_preferences_get("table_style");
+	if(table_style == "classic") {
+		ducc_load_classic_jobs_data()
+	}
+	else {
+		ducc_load_scroll_jobs_data()
+	}
+}
+
+function ducc_load_classic_jobs_data()
+{
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/jobs-data",
+			url : "/ducc-servlet/legacy-jobs-data",
 			success : function (data) 
 			{
 				$("#jobs_list_area").html(data);
-				ducc_cluetips();
 				ducc_timestamp();
 				ducc_authentication();
 			}
 		});
 	}
 	catch(err) {
-		ducc_error("ducc_load_jobs_data",err);
+		ducc_error("ducc_load_classic_jobs_data",err);
+	}	
+}
+
+function ducc_load_scroll_jobs_data()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/json-format-aaData-jobs",
+			success : function (data) 
+			{
+				ducc_timestamp();
+				ducc_authentication();
+				//oTable.fnClearTable();
+				oTable.fnReloadAjax();
+				ducc_cluetips();
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_jobs_data",err);
 	}	
 }
 
@@ -216,15 +264,53 @@ function ducc_init_jobs_data()
 
 function ducc_load_services_definitions_data()
 {
+	var table_style = ducc_preferences_get("table_style");
+	if(table_style == "classic") {
+		ducc_load_classic_services_definitions_data()
+	}
+	else {
+		ducc_load_scroll_services_definitions_data()
+	}
+}
+
+function ducc_load_classic_services_definitions_data()
+{
 	try {
-		ducc_timestamp();
-		ducc_authentication();
-		//oTable.fnClearTable();
-		oTable.fnReloadAjax();
+		$.ajax(
+		{
+			url : "/ducc-servlet/legacy-services-definitions-data",
+			success : function (data) 
+			{
+				$("#services_list_area").html(data);
+				ducc_timestamp();
+				ducc_authentication();
+			}
+		});
 	}
 	catch(err) {
-		ducc_error("ducc_load_services_definitions_data",err);
+		ducc_error("ducc_load_classic_services_definitions_data",err);
+	}	
+}
+
+function ducc_load_scroll_services_definitions_data()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/json-format-aaData-services-definitions",
+			success : function (data) 
+			{
+				ducc_timestamp();
+				ducc_authentication();
+				//oTable.fnClearTable();
+				oTable.fnReloadAjax();
+				ducc_cluetips();
+			}
+		});
 	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_services_definitions_data",err);
+	}	
 }
 
 function ducc_init_services_definitions_data()
@@ -243,10 +329,21 @@ function ducc_init_services_definitions_data()
 
 function ducc_load_services_deployments_data()
 {
+	var table_style = ducc_preferences_get("table_style");
+	if(table_style == "classic") {
+		ducc_load_classic_services_deployments_data()
+	}
+	else {
+		ducc_load_scroll_services_deployments_data()
+	}
+}
+
+function ducc_load_classic_services_deployments_data()
+{
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/services-deployments-data",
+			url : "/ducc-servlet/legacy-services-deployments-data",
 			success : function (data) 
 			{
 				$("#services_list_area").html(data);
@@ -256,15 +353,27 @@ function ducc_load_services_deployments_data()
 		});
 	}
 	catch(err) {
-		ducc_error("ducc_load_services_deployments_data",err);
+		ducc_error("ducc_load_classic_services_deployments_data",err);
 	}	
+}
+
+function ducc_load_scroll_services_deployments_data()
+{
+	try {
+		ducc_timestamp();
+		ducc_authentication();
+		//oTable.fnClearTable();
+		oTable.fnReloadAjax();
+	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_services_deployments_data",err);
+	}
 }
 
 function ducc_init_services_deployments_data()
 {
 	try {
 		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
-		$("#services_list_area").html(data);
 		data = "...?"
 		$("#timestamp_area").html(data);
 		data = "...?"
@@ -272,7 +381,7 @@ function ducc_init_services_deployments_data()
 	}
 	catch(err) {
 		ducc_error("ducc_init_services_deployments_data",err);
-	}	
+	}
 }
 
 function ducc_init_job_workitems_count_data()
@@ -414,7 +523,8 @@ function ducc_load_service_specification_data()
 }
 
 function hide_show() {
-	var c_value = ducc_get_cookie("classpathdata");
+	var classpathdata = ducc_appl("classpathdata");
+	var c_value = ducc_get_cookie(classpathdata);
 	if(c_value == null) {
 		c_value = "hide";
 	}
@@ -429,22 +539,22 @@ function hide_show() {
 	$('#showbutton0').click(function(){
 		$('div.showdata').show();
 		$('div.hidedata').hide();
-		ducc_put_cookie("classpathdata","show")
+		ducc_put_cookie(classpathdata,"show")
 	});
 	$('#hidebutton0').click(function(){
 		$('div.showdata').hide();
 		$('div.hidedata').show();
-		ducc_put_cookie("classpathdata","hide")
+		ducc_put_cookie(classpathdata,"hide")
 	});
 	$('#showbutton1').click(function(){
 		$('div.showdata').show();
 		$('div.hidedata').hide();
-		ducc_put_cookie("classpathdata","show")
+		ducc_put_cookie(classpathdata,"show")
 	});
 	$('#hidebutton1').click(function(){
 		$('div.showdata').hide();
 		$('div.hidedata').show();
-		ducc_put_cookie("classpathdata","hide")
+		ducc_put_cookie(classpathdata,"hide")
 	});
 }
 
@@ -522,6 +632,36 @@ function ducc_init_service_details_data()
 
 function ducc_load_machines_data()
 {
+	var table_style = ducc_preferences_get("table_style");
+	if(table_style == "classic") {
+		ducc_load_classic_machines_data()
+	}
+	else {
+		ducc_load_scroll_machines_data()
+	}
+}
+
+function ducc_load_classic_machines_data()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/legacy-system-machines-data",
+			success : function (data) 
+			{
+				$("#machines_list_area").html(data);
+				ducc_timestamp();
+				ducc_authentication();
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_load_classic_machines_data",err);
+	}			
+}
+
+function ducc_load_scroll_machines_data()
+{
 	try {
 		ducc_timestamp();
 		ducc_authentication();
@@ -529,7 +669,7 @@ function ducc_load_machines_data()
 		oTable.fnReloadAjax();
 	}
 	catch(err) {
-		ducc_error("ducc_load_machines_data",err);
+		ducc_error("ducc_load_scroll_machines_data",err);
 	}
 }
 
@@ -547,46 +687,41 @@ function ducc_init_machines_data()
 	}
 }
 
-function ducc_load_legacy_machines_data()
+function ducc_reservation_form_button()
 {
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/machines-data",
+			url : "/ducc-servlet/reservation-get-form-button",
 			success : function (data) 
 			{
-				$("#machines_list_area").html(data);
-				ducc_timestamp();
-				ducc_authentication();
+				$("#reservation_form_button").html(data);
 			}
 		});
 	}
 	catch(err) {
-		ducc_error("ducc_load_legacy_machines_data",err);
-	}			
-}
-
-function ducc_init_legacy_machines_data()
-{
-	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
-		$("#machines_list_area").html(data);
-		data = "...?"
-		$("#timestamp_area").html(data);
-		data = "...?"
-		$("#authentication_area").html(data);
+		ducc_error("ducc_reservation_form_button",err);
 	}
-	catch(err) {
-		ducc_error("ducc_init_legacy_machines_data",err);
-	}	
 }
 
 function ducc_load_reservations_data()
 {
+	ducc_reservation_form_button();
+	var table_style = ducc_preferences_get("table_style");
+	if(table_style == "classic") {
+		ducc_load_classic_reservations_data()
+	}
+	else {
+		ducc_load_scroll_reservations_data()
+	}
+}
+
+function ducc_load_classic_reservations_data()
+{
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/reservations-data",
+			url : "/ducc-servlet/legacy-reservations-data",
 			success : function (data) 
 			{
 				$("#reservations_list_area").html(data);
@@ -596,8 +731,29 @@ function ducc_load_reservations_data()
 		});
 	}
 	catch(err) {
-		ducc_error("ducc_load_reservations_data",err);
+		ducc_error("ducc_load_classic_reservations_data",err);
 	}
+}
+
+function ducc_load_scroll_reservations_data()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/json-format-aaData-reservations",
+			success : function (data) 
+			{
+				ducc_timestamp();
+				ducc_authentication();
+				//oTable.fnClearTable();
+				oTable.fnReloadAjax();
+				ducc_cluetips();
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_reservations_data",err);
+	}	
 }
 
 function ducc_init_reservations_data()
@@ -837,6 +993,36 @@ function ducc_init_system_administration_data()
 
 function ducc_load_system_classes_data()
 {
+	var table_style = ducc_preferences_get("table_style");
+	if(table_style == "classic") {
+		ducc_load_classic_system_classes_data()
+	}
+	else {
+		ducc_load_scroll_system_classes_data()
+	}
+}
+
+function ducc_load_classic_system_classes_data()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/legacy-system-classes-data",
+			success : function (data) 
+			{
+				$("#system_classes_list_area").html(data);
+				ducc_timestamp();
+				ducc_authentication();
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_load_classic_system_classes_data",err);
+	}	
+}
+
+function ducc_load_scroll_system_classes_data()
+{
 	try {
 		ducc_timestamp();
 		ducc_authentication();
@@ -844,7 +1030,7 @@ function ducc_load_system_classes_data()
 		oTable.fnReloadAjax();
 	}
 	catch(err) {
-		ducc_error("ducc_load_system_classes_data",err);
+		ducc_error("ducc_load_scroll_system_classes_data",err);
 	}
 }
 
@@ -862,7 +1048,109 @@ function ducc_init_system_classes_data()
 	}
 }
 
+function ducc_button_show_agents()
+{
+	try {
+		var agents = ducc_appl("agents");
+		var c_value = "show";
+		ducc_put_cookie(agents,c_value);
+		document.getElementById("showbutton").style.display = 'none';
+		document.getElementById("hidebutton").style.display = 'block';
+	}
+	catch(err) {
+		ducc_error("ducc_button_show_agents",err);
+	}
+}
+
+function ducc_show_agents()
+{
+	try {
+		ducc_button_show_agents();
+		ducc_refresh("system-daemons");
+	}
+	catch(err) {
+		ducc_error("ducc_show_agents",err);
+	}
+}
+
+function ducc_button_hide_agents()
+{
+	try {
+		var agents = ducc_appl("agents");
+		var c_value = "hide";
+		ducc_put_cookie(agents,c_value);
+		document.getElementById("showbutton").style.display = 'block';
+		document.getElementById("hidebutton").style.display = 'none';
+	}
+	catch(err) {
+		ducc_error("ducc_button_hide_agents",err);
+	}
+}
+
+function ducc_hide_agents()
+{
+	try {
+		ducc_button_hide_agents();
+		ducc_refresh("system-daemons");
+	}
+	catch(err) {
+		ducc_error("ducc_hide_agents",err);
+	}
+}
+
+
+function ducc_default_agents()
+{
+	try {
+		var agents = ducc_appl("agents");
+		var c_value = ducc_get_cookie(agents);
+		if(c_value == "hide") {
+			ducc_button_hide_agents();
+		}
+		else if(c_value == "show") {
+			ducc_button_show_agents();
+		}
+		else {
+			ducc_button_hide_agents();
+		}
+	}
+	catch(err) {
+		ducc_error("ducc_hide_agents",err);
+	}
+}
+
 function ducc_load_system_daemons_data()
+{
+	var table_style = ducc_preferences_get("table_style");
+	if(table_style == "classic") {
+		ducc_load_classic_system_daemons_data()
+	}
+	else {
+		ducc_load_scroll_system_daemons_data()
+	}
+	ducc_default_agents();
+}
+
+function ducc_load_classic_system_daemons_data()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/legacy-system-daemons-data",
+			success : function (data) 
+			{
+				$("#system_daemons_list_area").html(data);
+				ducc_timestamp();
+				ducc_authentication();
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_load_classic_system_daemons_data",err);
+	}	
+}
+
+function ducc_load_scroll_system_daemons_data()
 {
 	try {
 		ducc_timestamp();
@@ -871,7 +1159,7 @@ function ducc_load_system_daemons_data()
 		oTable.fnReloadAjax();
 	}
 	catch(err) {
-		ducc_error("ducc_load_system_daemons_data",err);
+		ducc_error("ducc_load_scroll_system_daemons_data",err);
 	}
 }
 
@@ -944,10 +1232,6 @@ function ducc_init(type)
 			ducc_init_machines_data();
 			ducc_load_machines_data();
 		}
-		if(type == "legacy-machines") {
-			ducc_init_legacy_machines_data();
-			ducc_load_legacy_machines_data();
-		}
 		if(type == "reservations") {
 			$(document).keypress(function(e) {
   			if(e.which == 13) {
@@ -995,6 +1279,8 @@ function ducc_init(type)
   			}
 			});
 		}
+		var table_style = ducc_preferences_get("table_style");
+		display_table_style = table_style;
 		ducc_timed_loop(type);
 	}
 	catch(err) {
@@ -1005,10 +1291,21 @@ function ducc_init(type)
 function ducc_cookies()
 {
 	try {
-		var c_value = ducc_get_cookie("ducc_refresh_mode");
+		var refreshmode = ducc_appl("refreshmode");
+		var c_value = ducc_get_cookie(refreshmode);
 		if(c_value == "automatic") {
 			document.duccform.refresh[0].checked = false;
 			document.duccform.refresh[1].checked = true;
+		}
+		else if(c_value == "manual") {
+			document.duccform.refresh[0].checked = true;
+			document.duccform.refresh[1].checked = false;
+		}
+		else {
+			document.duccform.refresh[0].checked = false;
+			document.duccform.refresh[1].checked = true;
+			c_value = "automatic";
+			ducc_put_cookie(refreshmode, c_value);
 		}
 	}
 	catch(err) {
@@ -1083,42 +1380,6 @@ function ducc_jobs_max_records()
 	}		
 }
 
-function ducc_jobs_users_qualifier() 
-{
-	try {
-		var jobsusersqualifier = ducc_appl("jobsusersqualifier");
-		var d_value = "active+include";
-		var c_value = ducc_get_cookie(jobsusersqualifier);
-		if(c_value == null) {
-			c_value = d_value;
-			ducc_put_cookie(jobsusersqualifier,c_value);
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			return;
-		}
-		var r_value = document.form_selectors.users_select_input.value;
-		if(r_value == "default") {
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			return;
-		}
-		var r_value = document.form_selectors.users_select.value;
-		if(c_value != r_value) {
-			c_value = r_value;
-			ducc_put_cookie(jobsusersqualifier,c_value);
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			$.jGrowl(" qualifier: "+c_value);
-			return;
-		}
-		return;
-	}
-	catch(err) {
-		throw err;
-		//ducc_error("ducc_jobs_users_qualifier",err);
-	}	
-}
-
 function ducc_jobs_users() 
 {
 	try {
@@ -1155,7 +1416,6 @@ function ducc_jobs_page()
 {
 	ducc_jobs_max_records();
 	ducc_jobs_users();
-	ducc_jobs_users_qualifier();
 	ducc_load_jobs_data();
 }
 
@@ -1215,42 +1475,6 @@ function ducc_services_max_records()
 	}		
 }
 
-function ducc_services_users_qualifier() 
-{
-	try {
-		var servicesusersqualifier = ducc_appl("servicesusersqualifier");
-		var d_value = "active+include";
-		var c_value = ducc_get_cookie(servicesusersqualifier);
-		if(c_value == null) {
-			c_value = d_value;
-			ducc_put_cookie(servicesusersqualifier,c_value);
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			return;
-		}
-		var r_value = document.form_selectors.users_select_input.value;
-		if(r_value == "default") {
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			return;
-		}
-		var r_value = document.form_selectors.users_select.value;
-		if(c_value != r_value) {
-			c_value = r_value;
-			ducc_put_cookie(servicesusersqualifier,c_value);
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			$.jGrowl(" qualifier: "+c_value);
-			return;
-		}
-		return;
-	}
-	catch(err) {
-		throw err;
-		//ducc_error("ducc_services_users_qualifier",err);
-	}	
-}
-
 function ducc_services_users() 
 {
 	try {
@@ -1287,7 +1511,6 @@ function ducc_services_definitions_page()
 {
 	ducc_services_max_records();
 	ducc_services_users();
-	ducc_services_users_qualifier();
 	ducc_load_services_definitions_data();
 }
 
@@ -1295,7 +1518,6 @@ function ducc_services_deployments_page()
 {
 	ducc_services_max_records();
 	ducc_services_users();
-	ducc_services_users_qualifier();
 	ducc_load_services_deployments_data();
 }
 
@@ -1355,42 +1577,6 @@ function ducc_reservations_max_records()
 	}		
 }
 
-function ducc_reservations_users_qualifier() 
-{
-	try {
-		var reservationsusersqualifier = ducc_appl("reservationsusersqualifier");
-		var d_value = "active+include";
-		var c_value = ducc_get_cookie(reservationsusersqualifier);
-		if(c_value == null) {
-			c_value = d_value;
-			ducc_put_cookie(reservationsusersqualifier,c_value);
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			return;
-		}
-		var r_value = document.form_selectors.users_select_input.value;
-		if(r_value == "default") {
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			return;
-		}
-		var r_value = document.form_selectors.users_select.value;
-		if(c_value != r_value) {
-			c_value = r_value;
-			ducc_put_cookie(reservationsusersqualifier,c_value);
-			document.form_selectors.users_select.value = c_value;
-			document.form_selectors.users_select_input.value = c_value;
-			$.jGrowl(" qualifier: "+c_value);
-			return;
-		}
-		return;
-	}
-	catch(err) {
-		throw err;
-		//ducc_error("ducc_reservations_users_qualifier",err);
-	}	
-}
-
 function ducc_reservations_users() 
 {
 	try {
@@ -1427,11 +1613,22 @@ function ducc_reservations_page()
 {
 	ducc_reservations_max_records();
 	ducc_reservations_users();
-	ducc_reservations_users_qualifier();
 	ducc_load_reservations_data();
 }
 
-function ducc_refresh(type)
+function ducc_refresh_page(type)
+{
+	var table_style = ducc_preferences_get("table_style");
+	if(display_table_style == table_style) {
+		ducc_update_page(type);
+	}
+	else {
+		display_table_style = table_style;
+		window.location.reload();
+	}
+}
+
+function ducc_update_page(type)
 {
 	try {
 		if(type == "jobs") {
@@ -1476,9 +1673,6 @@ function ducc_refresh(type)
 					if(type == "system-machines") {
 						ducc_load_machines_data();
 					}
-					if(type == "legacy-machines") {
-						ducc_load_legacy_machines_data();
-					}
 					if(type == "system-administration") {
 						ducc_load_system_administration_data();
 					}
@@ -1493,14 +1687,39 @@ function ducc_refresh(type)
 		}
 	}
 	catch(err) {
-		ducc_error("ducc_refresh",err);
+		ducc_error("ducc_refresh_page",err);
 	}			
+}
+
+function ducc_refresh_stopped(type) {
+	document.getElementById("loading").style.display = 'none';
+	document.getElementById("refreshbutton").style.display = 'block';
+}
+
+function ducc_refresh_running(type) {
+	ducc_refresh_page(type)
+	setTimeout(function(){ducc_refresh_stopped(type); type = null},1000);
+}
+
+function ducc_refresh_started(type) {
+	document.getElementById("refreshbutton").style.display = 'none';
+	document.getElementById("loading").style.display = 'block';
+	setTimeout(function(){ducc_refresh_running(type); type = null},1);
+}
+
+function ducc_refresh(type) {
+	setTimeout(function(){ducc_refresh_started(type); type = null},1);
 }
 
 function ducc_timed_loop(type) {
 	try {
 		tid = setTimeout(function(){ducc_timed_loop(type); type = null},30000); // again
-		var c_value = ducc_get_cookie("ducc_refresh_mode");
+		var refreshmode = ducc_appl("refreshmode");
+		var c_value = ducc_get_cookie(refreshmode);
+		if(c_value == null) {
+			c_value = "automatic";
+			ducc_put_cookie(refreshmode, c_value);
+		}
 		if(c_value == "automatic") {
 			ducc_refresh(type);
 		}
@@ -1718,12 +1937,12 @@ function ducc_submit_login()
            data: $("#login").serialize(), // serializes the form's elements.
            success: function(data)
            {
-               result = data.split(",");
-               if(result[0] == "success") {
+               result = data.trim();
+               if(result == "success") {
                		//$.jGrowl(" "+result[1]+"="+result[2]);
                		//$.jGrowl(" "+result[3]+"="+result[4]);
-               		ducc_put_cookie(result[1],result[2]);
-               		ducc_put_cookie(result[3],result[4]);
+               		//ducc_put_cookie(result[1],result[2]);
+               		//ducc_put_cookie(result[3],result[4]);
                		$.jGrowl(" "+"login success", { theme: 'jGrowl-success' });
                		setTimeout(function(){window.close();}, 5000);
                }
@@ -1961,6 +2180,169 @@ function ducc_remove_cookie(name)
 	}
 	catch(err) {
 		ducc_error("ducc_remove_cookie",err);
+	}	
+}
+
+function ducc_preferences_reset()
+{
+	try {
+		var key = ducc_appl("table_style");
+		var value = "scroll";
+		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
+		ducc_put_cookie(key,value);
+		var key = ducc_appl("date_style");
+		var value = "long";
+		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
+		ducc_put_cookie(key,value);
+		var key = ducc_appl("filter_users_style");
+		var value = "include";
+		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
+		ducc_put_cookie(key,value);
+		//
+		ducc_preferences();
+	}
+	catch(err) {
+		ducc_error("ducc_preferences_reset",err);
+	}	
+}
+
+function ducc_preferences_set(name,value)
+{
+	try {
+		var key = ducc_appl(name);
+		//alert("ducc_preferences_set"+" "+"key:"+key+" "+"value:"+value);
+		ducc_put_cookie(key,value);
+		ducc_preferences();
+	}
+	catch(err) {
+		ducc_error("ducc_preferences_set",err);
+	}		
+}
+
+function ducc_preferences_get(name)
+{
+	try {
+		var key = ducc_appl(name);
+		var value = null;
+		value = ducc_get_cookie(key);
+		//alert("ducc_preferences_get"+" "+"key:"+key+" "+"value:"+value);
+		return value;
+	}
+	catch(err) {
+		ducc_error("ducc_preferences_get",err);
+	}
+}
+
+function ducc_preferences_table_style() {
+	try {
+		var key = ducc_appl("table_style");
+		var value = ducc_get_cookie(key);
+		//alert("ducc_preferences"+" "+"key:"+key+" "+"value:"+value);
+		if(value == "scroll") {
+			document.form_preferences.table_style[0].checked = true;
+			document.form_preferences.table_style[1].checked = false;
+		}
+		else if(value == "classic") {
+			document.form_preferences.table_style[0].checked = false;
+			document.form_preferences.table_style[1].checked = true;
+		}
+		else {
+			value = "scroll";
+			ducc_put_cookie(key, value);
+			document.form_preferences.table_style[0].checked = true;
+			document.form_preferences.table_style[1].checked = false;
+		}
+	}
+	catch(err) {
+		ducc_error("ducc_preferences_table_style",err);
+	}
+}
+
+function ducc_preferences_date_style() {
+	try {
+		var key = ducc_appl("date_style");
+		var value = ducc_get_cookie(key);
+		//alert("ducc_preferences"+" "+"key:"+key+" "+"value:"+value);
+		if(value == "long") {
+			document.form_preferences.date_style[0].checked = true;
+			document.form_preferences.date_style[1].checked = false;
+			document.form_preferences.date_style[2].checked = false;
+		}
+		else if(value == "medium") {
+			document.form_preferences.date_style[0].checked = false;
+			document.form_preferences.date_style[1].checked = true;
+			document.form_preferences.date_style[2].checked = false;
+		}
+		else if(value == "short") {
+			document.form_preferences.date_style[0].checked = false;
+			document.form_preferences.date_style[1].checked = false;
+			document.form_preferences.date_style[2].checked = true;
+		}
+		else {
+			value = "long";
+			ducc_put_cookie(key, value);
+			document.form_preferences.date_style[0].checked = true;
+			document.form_preferences.date_style[1].checked = false;
+			document.form_preferences.date_style[2].checked = false;
+		}
+	}
+	catch(err) {
+		ducc_error("ducc_preferences_date_style",err);
+	}
+}
+
+function ducc_preferences_filter_users_style() {
+	try {
+		var key = ducc_appl("filter_users_style");
+		var value = ducc_get_cookie(key);
+		//alert("ducc_preferences"+" "+"key:"+key+" "+"value:"+value);
+		if(value == "include") {
+			document.form_preferences.filter_users_style[0].checked = true;
+			document.form_preferences.filter_users_style[1].checked = false;
+			document.form_preferences.filter_users_style[2].checked = false;
+			document.form_preferences.filter_users_style[3].checked = false;
+		}
+		else if(value == "include+active") {
+			document.form_preferences.filter_users_style[0].checked = false;
+			document.form_preferences.filter_users_style[1].checked = true;
+			document.form_preferences.filter_users_style[2].checked = false;
+			document.form_preferences.filter_users_style[3].checked = false;
+		}
+		else if(value == "exclude") {
+			document.form_preferences.filter_users_style[0].checked = false;
+			document.form_preferences.filter_users_style[1].checked = false;
+			document.form_preferences.filter_users_style[2].checked = true;
+			document.form_preferences.filter_users_style[3].checked = false;
+		}
+		else if(value == "exclude+active") {
+			document.form_preferences.filter_users_style[0].checked = false;
+			document.form_preferences.filter_users_style[1].checked = false;
+			document.form_preferences.filter_users_style[2].checked = false;
+			document.form_preferences.filter_users_style[3].checked = true;
+		}
+		else {
+			value = "include";
+			ducc_put_cookie(key, value);
+			document.form_preferences.filter_users_style[0].checked = true;
+			document.form_preferences.filter_users_style[1].checked = false;
+			document.form_preferences.filter_users_style[2].checked = false;
+			document.form_preferences.filter_users_style[3].checked = false;
+		}
+	}
+	catch(err) {
+		ducc_error("ducc_preferences_filter_users_style",err);
+	}
+}
+
+function ducc_preferences()
+{
+	try {
+		ducc_preferences_table_style();
+		ducc_preferences_date_style();
+		ducc_preferences_filter_users_style();
+	}
+	catch(err) {
+		ducc_error("ducc_preferences",err);
 	}	
 }
 

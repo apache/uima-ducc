@@ -36,6 +36,7 @@ public class ReservationInfo implements Comparable<ReservationInfo> {
 		return _reservation.isOperational();
 	}
 	
+	@Override
 	public int compareTo(ReservationInfo reservation) {
 		int retVal = 0;
 		ReservationInfo r1 = this;

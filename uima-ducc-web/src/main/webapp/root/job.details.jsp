@@ -39,132 +39,38 @@ under the License.
 </head>
 <body onload="ducc_init('job-details');">
 
-<table>
-<tr>
-<td>
-<table class="heading">
+<!-- ####################### common ######################## -->
+<div class="flex-page">
+<!-- *********************** table ************************* -->
+<table class="flex-heading">
 <!-- *********************** row *************************** -->
 <tr class="heading">
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
-    <div>
-    <ul id="accordion">
-	  <li><a href="jobs.html">Jobs</a></li>
-	  <ul></ul>
-	  <li><a href="reservations.html">Reservations</a></li>
-	  <ul></ul>
-	  <li>Services</li>
-	  <ul>
-	  <li><a href="services.definitions.html">Definitions</a></li>
-	  <li><a href="services.deployments.html">Deployments</a></li>
-	  </ul>
-	  <li>System</li>
-	  <ul>
-	  <li><a href="system.administration.html">Administration</a></li>
-	  <li><a href="system.classes.html">Classes</a></li>
-	  <li><a href="system.daemons.html">Daemons</a></li>
-	  <li><a href="system.duccbook.html" target="_duccbook">DuccBook</a></li>
-	  <li><a href="system.machines.html">Machines</a></li>
-	  </ul>
-	  <%@ include file="site.jsp" %>
-    </ul>
-    </div>
+<%@ include file="$banner/c0-menu.jsp" %>
 </td>
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
-<div id="refreshbutton">
-<input type="image" onClick="ducc_refresh('job-details')" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
+<%@ include file="$banner/c1-refresh-job-details.jsp" %>
+</td>
+<!-- *********************** column ************************ -->
+<td valign="middle" align="center">
+<%@ include file="$banner/c2-status-job-details.jsp" %>
+</td>
+<!-- *********************** column ************************ -->
+<td valign="middle" align="center">
+<%@ include file="$banner/c3-image-job-details.jsp" %>
+</td>
+<!-- *********************** column ************************ -->
+<td valign="middle" align="center">
+<%@ include file="$banner/c4-ducc-mon.jsp" %>
+</td>
+</table>
+<!-- *********************** /table ************************ -->
 </div>
-<br>
+<!-- ####################### /common ####################### -->
+
 <table>
-<tr>
-<td align="left">
-<form name="duccform">
-<fieldset>
-<legend>Refresh</legend>
-<input type="radio" name="refresh" value="manual"    checked onClick="ducc_put_cookie('ducc_refresh_mode','manual'   )" /> Manual
-<br>
-<input type="radio" name="refresh" value="automatic"         onClick="ducc_put_cookie('ducc_refresh_mode','automatic')" /> Automatic
-</fieldset>
-</form>
-</table>
-</td>
-<!-- *********************** column ************************ -->
-<td valign="middle" align="center">
-<h2>
-<span class="idtitle" id="identity"></span>
-</h2>
-<form name="form_selectors">
-<table>
-<tr>
-<td valign="top" align="right">Updated:
-<td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
-<tr>
-<td valign="top" align="right">Authentication:
-<td valign="top"><span class="authenticationtitle" id="authentication_area">?</span>
-<!--
-<tr>
-<td valign="top" align="right">Max Records:
-<td valign="top"><input type="text" size="8" id="maxrecs_input" value="default">
-<tr>
-<td valign="top" align="right">
-<select id="users_select">
-<option value="active+include">active+include</option>
-<option value="active+exclude">active+exclude</option>
-<option value="include">include</option>
-<option value="exclude">exclude</option>
-</select>
-Users:
-<td valign="top"><input type="text" size="16" id="users_input" value="default">
--->
-<tr>
-<td>
-<input type="hidden" id="users_select_input" value="default">
-</table>
-</form>
-</td>
-<!-- *********************** column ************************ -->
-<td valign="middle" align="center">
-<h2><span class="subtitle">Job Details</span></h2>
-<img src="opensources/images/120px-Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg" style="border:3px solid #ffff7a" alt="logo">
-</td>
-<!-- *********************** column ************************ -->
-<td valign="middle" align="center">
-<table>
-<tr>
-<td valign="middle" align="right">
-<span id="login_link_area"></span>
- |
-<span id="logout_link_area"><a href="logout.html" onclick="var newWin = window.open(this.href,'child','height=600,width=475,scrollbars'); newWin.focus(); return false;">Logout</a></span>
- |
-<span id="duccbook_link_area"></span><a href="system.duccbook.html" target="_duccbook">DuccBook</a>
-<tr>
-<td valign="middle" align="center">
-<div>
-<br>
-<h2><span class="title">ducc-mon</span></h2>
-<span class="title_acronym">D</span><span class="title">istributed</span>
-<span class="title_acronym">U</span><span class="title">IMA</span>
-<span class="title_acronym">C</span><span class="title">luster</span>
-<span class="title_acronym">C</span><span class="title">omputing</span>
-<span class="title_acronym">Mon</span><span class="title">itor</span>
-<br>
-<i>Version: <span class="version" id="version"></span></i>
-<br>
-<br>
-<table>
-<tr>
-<td valign="middle" align="left">
-<small>Copyright &copy 2012 The Apache Software Foundation</small>
-<tr>
-<td valign="middle" align="left">
-<small>Copyright &copy 2011, 2012 International Business Machines Corporation</small>
-</table>
-</div> 
-</table>
-<br>
-</td>
-</table>
 <!-- *********************** row ************************ -->
 <tr>
 <td>
@@ -172,9 +78,11 @@ Users:
 <tr>
 <td valign="middle" colspan="5">
 <span id="job_workitems_count_area"></span>
+<!--
 <tr>
 <td valign="middle" colspan="5">
 &nbsp
+-->
 <tr>
 <td valign="middle" colspan="5">
 
@@ -186,46 +94,7 @@ Users:
 			<li><a href="#tabs-4">Specification</a></li>
 		</ul>
 			<div id="tabs-1">
-				<table>
-   	    			<caption><b>Processes List</b><br><i><small>click column heading to sort</small></i></caption>
-   	   				<tr>
-        			<td>
-      	  				<table class="sortable">
-						<thead>
-						<tr class="ducc-head">
-						<th title="The system assigned id for this process" class="sorttable_numeric">Id</th>
-						<th title="The log file name associated with this process">Log</th>
-						<th title="The log file size, in MB">Size</th>
-						<th title="The host for this process">Host<br>Name</th>
-						<!--
-						<th title="The host IP for this process">Host<br>ip</th>
-						-->
-						<th title="The OS assigned PID for this process"class="sorttable_numeric">PID</th>
-						<th title="Process scheduling state">State<br>Scheduler</th>
-						<th title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
-						<th title="Process agent state">State<br>Agent</th>
-						<th title="Process agent reason (for agent state)">Reason<br>Agent</th>
-						<th title="Process initialization time, hh:mm:ss">Time<br>Init</th>
-						<th title="Process run time (not including process initialization time), hh:mm:ss">Time<br>Run</th>
-						<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
-						<th title="Process total number of garbage collections that have occurred">Count<br>GC</th>
-						<th title="Process percentage of time spent in garbage collections, relative to total of initialization + run times">%GC</th>
-						<th title="Cumulative CPU time, hh:mm:ss">CPU</th>
-						<th title="Resident Storage Size, as a percentage of process memory requirement in job specification">%RSS</th>
-						<th title="Average seconds per work item">Time<br>Avg</th>
-						<th title="Maximum seconds for any work item">Time<br>Max</th>
-						<th title="Minimum seconds for any work item">Time<br>Min</th>
-						<th title="The number of work items that completed successfully">Done</th>
-						<th title="The number of work items that failed to complete successfully">Error</th>
-						<th title="The number of work items that were retried, excluding preemptions">Retry</th>
-						<th title="The number of work items that were preempted">Pre-<br>empt</th>
-						<th title="The JConsole URL for this process">JConsole<br>URL</th>
-						</tr>
-						</thead>
-						<tbody id="processes_list_area">
-   	  					</tbody>
-		 		 		</table>
-   	    		</table>
+			    <%@ include file="job.details.table.processes.jsp" %>
 			</div>
 			<div id="tabs-2">
 				<table>

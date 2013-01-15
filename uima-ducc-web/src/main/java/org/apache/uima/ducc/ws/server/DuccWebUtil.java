@@ -38,27 +38,47 @@ public class DuccWebUtil {
 	
 	private static final String application = "ducc";
 	
-	public static final String cookieUser = application+join+"user";
-	public static final String cookieSession = application+join+"session";
-	
 	private static final String jobs = "jobs";
 	private static final String reservations = "reservations";
 	private static final String services = "services";
 	
 	private static final String max = "max";
 	private static final String users = "users";
-	private static final String qualifier = "qualifier";
+	//private static final String qualifier = "qualifier";
 	
 	public static final String cookieJobsMax = application+join+jobs+max;
 	public static final String cookieJobsUsers = application+join+jobs+users;
-	public static final String cookieJobsUsersQualifier = application+join+jobs+users+qualifier;
+	//public static final String cookieJobsUsersQualifier = application+join+jobs+users+qualifier;
 	public static final String cookieReservationsMax = application+join+reservations+max;
 	public static final String cookieReservationsUsers = application+join+reservations+users;
-	public static final String cookieReservationsUsersQualifier = application+join+reservations+users+qualifier;
+	//public static final String cookieReservationsUsersQualifier = application+join+reservations+users+qualifier;
 	public static final String cookieServicesMax = application+join+services+max;
 	public static final String cookieServicesUsers = application+join+services+users;
-	public static final String cookieServicesUsersQualifier = application+join+services+users+qualifier;
+	//public static final String cookieServicesUsersQualifier = application+join+services+users+qualifier;
 	
+	private static final String agents = "agents";
+	
+	public static final String cookieAgents = application+join+agents;
+	public static final String valueAgentsShow = "show";
+	
+	private static final String table_style = "table_style";
+	private static final String date_style = "date_style";
+	private static final String filter_users_style = "filter_users_style";
+	
+	public static final String cookieStyleTable = application+join+table_style;
+	public static final String cookieStyleDate = application+join+date_style;
+	public static final String cookieStyleFilterUsers = application+join+filter_users_style;
+	
+	public static final String valueStyleDateLong = "long";
+	public static final String valueStyleDateMedium = "medium";
+	public static final String valueStyleDateShort = "short";
+	public static final String valueStyleDateDefault = valueStyleDateLong;
+	
+	public static final String valueStyleFilterUsersInclude = "include";
+	public static final String valueStyleFilterUsersIncludePlusActive = "include+active";
+	public static final String valueStyleFilterUsersExclude = "exclude";
+	public static final String valueStyleFilterUsersExcludePlusActive = "exclude+active";
+
 	protected static final String getCookieKey(String name) {
 		return application+join+"name";
 	}
@@ -116,4 +136,8 @@ public class DuccWebUtil {
 	}
 	*/
 
+	public static final void noCache(HttpServletResponse response) {
+		response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setDateHeader("Expires", 0); // Proxies.
+	}
 }

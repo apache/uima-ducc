@@ -59,6 +59,16 @@ public class DuccWebSchedulerClasses {
 		return retVal;
 	}
 	
+	public String getReserveClassDefaultName() {
+		String name = "";
+		Properties properties = getClasses();
+		String value = properties.getProperty("scheduling.default.name.reserve");
+		if(value != null) {
+			name = value.trim();
+		}
+		return name;
+	}
+	
 	public String[] getReserveClasses() {
 		ArrayList<String> classList = new ArrayList<String>();
 		Properties properties = getClasses();

@@ -16,13 +16,42 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
+<%@ page language="java" %>
+<%
+String table_style = "scroll";
+String cookieName = "ducc:table_style";
+String cookieValue = null;
+Cookie cookie = null;
+Cookie cookies [] = request.getCookies ();
+if (cookies != null)
+{
+  for (int i = 0; i < cookies.length; i++) 
+  {
+    if (cookies [i].getName().equals (cookieName))
+    {
+      cookie = cookies[i];
+      cookieValue = cookie.getValue();
+      if(cookieValue != null) {
+        table_style = cookieValue;
+      }
+      break;
+    }
+  }
+}
+%>
 <html>
 <head>
   <link rel="shortcut icon" href="ducc.ico" />
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
   <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>
+<%
+if (table_style.equals("scroll")) {
+%>
   <script type="text/javascript" language="javascript" src="opensources/DataTables-1.9.1/media/js/jquery.dataTables.min.js"></script>
+<%
+}
+%>
   <script src="opensources/jgrowl/jquery.jgrowl.js" type="text/javascript"></script>
   <link rel="stylesheet" href="opensources/jgrowl/jquery.jgrowl.css" type="text/css"/>
   <link href="opensources/jquery-ui-1.8.4/gallery/jquery-ui-themes-1.8.4/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css"/>
@@ -30,17 +59,18 @@ under the License.
   <link href="opensources/navigation/menu.css" rel="stylesheet" type="text/css">
   <script src="js/ducc.js"></script>
   <link href="ducc.css" rel="stylesheet" type="text/css">
-  <style media="all" type="text/css">
-    .alignRight { text-align: right; }
-  </style>
-  	<script type="text/javascript" charset="utf-8">
-  	var oTable;
+<%
+if (table_style.equals("scroll")) {
+%>  
+  <script type="text/javascript" charset="utf-8">
+	var oTable;
 	$(document).ready(function() {
 		oTable = $('#system-daemons').dataTable( {
 			"bProcessing": true,
 			"bPaginate": false,
-			"sScrollY": "600px",
 			"bFilter": true,
+			"sScrollX": "100%",
+			"sScrollY": "600px",
        		"bInfo": false,
 			"sAjaxSource": "ducc-servlet/json-system-daemons-data",
 			aaSorting: [],
@@ -54,135 +84,64 @@ under the License.
 			},
 		} );
 	} );
-	</script>
+  </script>
+<%
+}
+%>	
+<%
+if (table_style.equals("classic")) {
+%>
+<script type="text/javascript" src="opensources/sorttable.js"></script>
+<%
+}
+%>
 </head>
-<body onload="ducc_init('system-daemons');">
+<body onload="ducc_init('system-daemons');" onResize="window.location.href = window.location.href;">
 
-<div class="page">
+<!-- ####################### common ######################## -->
+<div class="flex-page">
 <!-- *********************** table ************************* -->
-<table class="heading">
+<table class="flex-heading">
 <!-- *********************** row *************************** -->
 <tr class="heading">
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
-<div>
-<ul id="accordion">
-<li><a href="jobs.html">Jobs</a></li>
-<ul></ul>
-<li><a href="reservations.html">Reservations</a></li>
-<ul></ul>
-<li>Services</li>
-<ul>
-<li><a href="services.definitions.html">Definitions</a></li>
-<li><a href="services.deployments.html">Deployments</a></li>
-</ul>
-<li>System</li>
-<ul>
-<li><a href="system.administration.html">Administration</a></li>
-<li><a href="system.classes.html">Classes</a></li>
-<li><a href="system.daemons.html">Daemons</a></li>
-<li><a href="system.duccbook.html" target="_duccbook">DuccBook</a></li>
-<li><a href="system.machines.html">Machines</a></li>
-</ul>
-<%@ include file="site.jsp" %>
-</ul>
+<%@ include file="$banner/c0-menu.jsp" %>
+</td>
+<!-- *********************** column ************************ -->
+<td valign="middle" align="center">
+<div id="show_agents_form_button">
+<button id="showbutton" style="font-size:8pt;" onclick="ducc_show_agents()">Show<br>Agents</button>
 </div>
-<!-- *********************** column ************************ -->
-<td valign="middle" align="center">
-<div id="refreshbutton">
-<input type="image" onClick="ducc_refresh('system-daemons')" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
+<div id="hide_agents_form_button">
+<button id="hidebutton" style="font-size:8pt;" onclick="ducc_hide_agents()">Hide<br>Agents</button>
 </div>
-<br>
-<table>
-<tr>
-<td align="left">
-<form name="duccform">
-<fieldset>
-<legend>Refresh</legend>
-<input type="radio" name="refresh" value="manual"    checked onClick="ducc_put_cookie('ducc_refresh_mode','manual'   )" /> Manual
-<br>
-<input type="radio" name="refresh" value="automatic"         onClick="ducc_put_cookie('ducc_refresh_mode','automatic')" /> Automatic
-</fieldset>
-</form>
-</table>
 </td>
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
-<h2>
-<span class="idtitle" id="identity"></span>
-</h2>
-<form name="form_selectors">
-<table>
-<tr>
-<td valign="top" align="right">Updated:
-<td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
-<tr>
-<td valign="top" align="right">Authentication:
-<td valign="top"><span class="authenticationtitle" id="authentication_area">?</span>
-<!--
-<tr>
-<td valign="top" align="right">Max Records:
-<td valign="top"><input type="text" size="8" id="maxrecs_input" value="default">
-<tr>
-<td valign="top" align="right">
-<select id="users_select">
-<option value="active+include">active+include</option>
-<option value="active+exclude">active+exclude</option>
-<option value="include">include</option>
-<option value="exclude">exclude</option>
-</select>
-Users:
-<td valign="top"><input type="text" size="16" id="users_input" value="default">
--->
-<tr>
-<td>
-<input type="hidden" id="users_select_input" value="default">
-</table>
-</form>
+<%@ include file="$banner/c1-refresh-system-daemons.jsp" %>
 </td>
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
-<h2><span class="subtitle">System Daemons</span></h2>
-<img src="opensources/images/800px-Leg_Of_White_Duck.2x1.6.jpg" style="border:3px solid #ffff7a" alt="logo">
+<%@ include file="$banner/c2-status-system-daemons.jsp" %>
 </td>
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
-<table>
-<tr>
-<td valign="middle" align="right">
-<span id="login_link_area"></span>
- |
-<span id="logout_link_area"><a href="logout.html" onclick="var newWin = window.open(this.href,'child','height=600,width=475,scrollbars'); newWin.focus(); return false;">Logout</a></span>
- |
-<span id="duccbook_link_area"></span><a href="system.duccbook.html" target="_duccbook">DuccBook</a>
-<tr>
+<%@ include file="$banner/c3-image-system-daemons.jsp" %>
+</td>
+<!-- *********************** column ************************ -->
 <td valign="middle" align="center">
-<div>
-<br>
-<h2><span class="title">ducc-mon</span></h2>
-<span class="title_acronym">D</span><span class="title">istributed</span>
-<span class="title_acronym">U</span><span class="title">IMA</span>
-<span class="title_acronym">C</span><span class="title">luster</span>
-<span class="title_acronym">C</span><span class="title">omputing</span>
-<span class="title_acronym">Mon</span><span class="title">itor</span>
-<br>
-<i>Version: <span class="version" id="version"></span></i>
-<br>
-<br>
-<table>
-<tr>
-<td valign="middle" align="left">
-<small>Copyright &copy 2012 The Apache Software Foundation</small>
-<tr>
-<td valign="middle" align="left">
-<small>Copyright &copy 2011, 2012 International Business Machines Corporation</small>
-</table>
-</div> 
-</table>
-<br>
+<%@ include file="$banner/c4-ducc-mon.jsp" %>
 </td>
 </table>
 <!-- *********************** /table ************************ -->
+</div>
+<!-- ####################### /common ####################### -->
+
+<!-- @@@@@@@@@@@@@@@@@@@@@@@ unique @@@@@@@@@@@@@@@@@@@@@@@@ -->
+<%
+if (table_style.equals("scroll")) {
+%>
 	<table id="system-daemons" width="100%">
 	<caption><b>Daemons List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
@@ -204,7 +163,43 @@ Users:
 	<tbody id="system_daemons_list_area">
 	</tbody>
 	</table>
-</div>
+<%
+}
+%>   
+<%
+if (table_style.equals("classic")) {
+%>
+	<table>
+   	<caption><b>Daemons List</b><br><i><small>click column heading to sort</small></i></caption>
+   	<tr>
+    <td>
+      <table class="sortable">
+		<thead>
+		<tr class="ducc-head">
+		<thead>
+		<tr class="ducc-head">
+			<th align="left" style="width: 75px;" title="The current status">Status</th>
+			<th align="left" title="The daemon name">Daemon Name</th>
+			<th align="left" style="width: 150px;" title="The date+time this daemon was booted">Boot Time</th>
+			<th align="left" style="width: 75px;"title="The host IP for this daemon">Host IP</th>
+			<th align="left" title="The host name for this daemon">Host Name</th>
+			<th align="left" style="width: 75px;" title="The OS assigned PID for this daemon">PID</th>
+			<th align="left" style="width: 75px;"title="The size (in bytes) of the most recent publication by this daemon">Publication Size (last)</th>
+			<th align="left" style="width: 75px;"title="The size (in bytes) of the largest publication by this daemon">Publication Size (max)</th>
+			<th align="left" title="The elapsed time (in seconds) since the last heartbeat from this daemon">Heartbeat (last)</th>
+			<th align="left" title="The elapsed time (in seconds) of the longest heartbeat from this daemon">Heartbeat (max)</th>
+			<th align="left" title="The TOD when the longest heartbeat from this daemon occurred">Heartbeat (max) TOD</th>
+			<th align="left" style="width: 300px;" title="The JConsole URL for this daemon">JConsole: URL</th>
+		</tr>
+		</thead>
+		<tbody id="system_daemons_list_area">
+   		</tbody>
+	  </table>
+   	</table>
+<%
+}
+%>	    
+<!-- @@@@@@@@@@@@@@@@@@@@@@@ /unique @@@@@@@@@@@@@@@@@@@@@@@@ -->
 		
 <script src="opensources/navigation/menu.js"></script>
 </body>

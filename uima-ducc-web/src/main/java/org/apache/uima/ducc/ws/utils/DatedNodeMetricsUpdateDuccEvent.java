@@ -38,6 +38,14 @@ public class DatedNodeMetricsUpdateDuccEvent implements Serializable {
 		return nodeMetricsUpdateDuccEvent;
 	}
 	
+	public Long getEventSize() {
+		Long retVal = new Long(0);
+		if(nodeMetricsUpdateDuccEvent != null) {
+			retVal = nodeMetricsUpdateDuccEvent.getEventSize();
+		}
+		return retVal;
+	}
+	
 	public long getMillis() {
 		return millis;
 	}

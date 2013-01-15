@@ -36,6 +36,7 @@ public class JobInfo implements Comparable<JobInfo> {
 		return _job.isOperational();
 	}
 	
+	@Override
 	public int compareTo(JobInfo job) {
 		int retVal = 0;
 		JobInfo j1 = this;

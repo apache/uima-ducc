@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.ws.server;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -46,18 +48,23 @@ public class DuccAsUser {
 		
 		cmd.add(c_launcher_path);
 		
+		StringBuffer sbInfo  = new StringBuffer();
+		StringBuffer sbDebug = new StringBuffer();
+		String prev = "";
+		
 		for( String arg : args ) {
 			cmd.add(arg);
+			if(!arg.equals("-cp")) {
+				if(!prev.equals("-cp")) {
+					sbInfo.append(arg+" ");
+				}
+			}
+			sbDebug.append(arg+" ");
+			prev = arg;
 		}
-		
-		StringBuffer sb = new StringBuffer();
-		
-		for( String c : cmd ) {
-			sb.append(c);
-			sb.append(" ");
-		}
-		
-		duccLogger.info(methodName, null, sb.toString().trim());
+
+		duccLogger.info(methodName, null, "plist: "+sbInfo.toString().trim());
+		duccLogger.debug(methodName, null, "plist: "+sbDebug.toString().trim());
 		
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		
@@ -67,6 +74,17 @@ public class DuccAsUser {
 		
 		try {
 			Process process = pb.start();
+			String line;
+			BufferedReader bri = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			BufferedReader bre = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			while ((line = bri.readLine()) != null) {
+				duccLogger.info(methodName, null, "stdout: "+line);
+			}
+			bri.close();
+			while ((line = bre.readLine()) != null) {
+				duccLogger.warn(methodName, null, "stderr: "+line);
+			}
+			bre.close();
 			process.waitFor();
 		}
 		catch(Exception e) {

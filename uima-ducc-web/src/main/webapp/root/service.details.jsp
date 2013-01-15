@@ -74,7 +74,10 @@ under the License.
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
 <div id="refreshbutton">
-<input type="image" onClick="ducc_refresh('service-details')" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
+<input type="image" onclick="ducc_refresh('service-details');" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
+</div>
+<div id="loading" style="display:none;">
+<img title="loading" src="opensources/images/indicator.gif" style="border:1px solid #000000" alt="Loading...">
 </div>
 <br>
 <table>
@@ -83,9 +86,9 @@ under the License.
 <form name="duccform">
 <fieldset>
 <legend>Refresh</legend>
-<input type="radio" name="refresh" value="manual"    checked onClick="ducc_put_cookie('ducc_refresh_mode','manual'   )" /> Manual
+<input type="radio" name="refresh" value="manual"            onclick="ducc_put_cookie('ducc:refreshmode','manual'   )" /> Manual
 <br>
-<input type="radio" name="refresh" value="automatic"         onClick="ducc_put_cookie('ducc_refresh_mode','automatic')" /> Automatic
+<input type="radio" name="refresh" value="automatic" checked onclick="ducc_put_cookie('ducc:refreshmode','automatic')" /> Automatic
 </fieldset>
 </form>
 </table>
@@ -98,7 +101,7 @@ under the License.
 <form name="form_selectors">
 <table>
 <tr>
-<td valign="top" align="right">Updated:
+<td valign="top" align="right" title="The time of last Orchestrator publication">Updated:
 <td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
 <tr>
 <td valign="top" align="right">Authentication:

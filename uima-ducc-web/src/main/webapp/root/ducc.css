@@ -19,6 +19,10 @@
 body {
 }
 
+div.flex-page {
+	width: 100%;
+}
+
 div.page {
 	width: 1200px;
 }
@@ -34,6 +38,13 @@ tr.ducc-head {
 tr.ducc-header {
 	color:white;
 	background-color:#996633;
+}
+
+th.ducc-filter {
+	background-color:#ff9933;
+}
+
+th.ducc-no-filter {
 }
 
 th.ducc-col-terminate {
@@ -134,6 +145,10 @@ span.noshow {
 
 tr.heading {
 	background-color: #ddddff;
+}
+
+table.flex-heading {
+	width: 100%;
 }
 
 table.heading {
