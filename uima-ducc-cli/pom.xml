@@ -80,7 +80,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-cancel</finalName>
+            <finalName>uima-ducc-cancel</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -104,7 +104,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-monitor</finalName>
+            <finalName>uima-ducc-monitor</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -128,7 +128,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-reserve</finalName>
+            <finalName>uima-ducc-reserve</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -152,7 +152,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-unreserve</finalName>
+            <finalName>uima-ducc-unreserve</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -176,7 +176,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-service-submit</finalName>
+            <finalName>uima-ducc-service-submit</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -200,7 +200,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-service-cancel</finalName>
+            <finalName>uima-ducc-service-cancel</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -224,7 +224,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-service</finalName>
+            <finalName>uima-ducc-service</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -248,7 +248,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-qmon</finalName>
+            <finalName>uima-ducc-qmon</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -272,7 +272,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-perf-stats</finalName>
+            <finalName>uima-ducc-perf-stats</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -296,7 +296,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-web-query-machines</finalName>
+            <finalName>uima-ducc-web-query-machines</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -317,7 +317,7 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>ducc-web-query-reservations</finalName>
+            <finalName>uima-ducc-web-query-reservations</finalName>
                <archive>
                   <index>false</index>
                   <manifest>
@@ -336,12 +336,12 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
           </execution>          
 
         <execution>
-            <id>${artifactI}</id>
+            <id>${project.artifactI}</id>
             <goals><goal>jar</goal></goals>
             <phase>package</phase>
             <configuration>
             <!-- Name the jar -->
-            <finalName>${artifactId}</finalName>
+            <finalName>${project.artifactId}</finalName>
                <archive>
                                                       
                </archive>
