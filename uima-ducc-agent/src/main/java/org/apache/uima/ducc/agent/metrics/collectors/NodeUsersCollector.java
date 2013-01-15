@@ -46,15 +46,15 @@ import org.apache.uima.ducc.common.utils.id.IDuccId;
  * 
  */
 public class NodeUsersCollector implements CallableNodeUsersCollector {
-	
-	DuccLogger logger;
-	DuccId jobid = null;
-	Agent agent;
-	
-	public NodeUsersCollector(Agent agent, DuccLogger logger) {
-	  this.agent = agent;
-	  this.logger = logger;
-	}
+  
+  DuccLogger logger;
+  DuccId jobid = null;
+  Agent agent;
+  
+  public NodeUsersCollector(Agent agent, DuccLogger logger) {
+    this.agent = agent;
+    this.logger = logger;
+  }
   /**
    * Returns true if a given userId belongs to an exclusion list defined in ducc.properties.
    * This list contains user IDs the Agent should exclude while determining rogue processes.
@@ -100,32 +100,32 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
     return false;
   }
 
-	private void aggregate( Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi ) {
-	  boolean added = false;
-	  
-	  for( NodeUsersCollector.ProcessInfo pi: processList ) {
-	    // PIDs below are ints so safe to use ==
-	    if ( pi.getPid() == cpi.getPPid() ) { // is the current process a child of another Process? 
-	        pi.getChildren().add(cpi); // add current process as a child
+  private void aggregate( Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi ) {
+    boolean added = false;
+    
+    for( NodeUsersCollector.ProcessInfo pi: processList ) {
+      // PIDs below are ints so safe to use ==
+      if ( pi.getPid() == cpi.getPPid() ) { // is the current process a child of another Process? 
+          pi.getChildren().add(cpi); // add current process as a child
          added = true;
          if ( pi.isRogue() ) { // if parent is rogue, a child is rogue as well
            cpi.setRogue(true);
            break;
          }
-	    } else if ( pi.getChildren().size() > 0 ) {
+      } else if ( pi.getChildren().size() > 0 ) {
 
-	      for(NodeUsersCollector.ProcessInfo childpi : pi.getChildren() ) {
-	        // is the current process a child of another Process?
-	        if ( childpi.getPid() == cpi.getPPid() ) {  
-	          added = true;  // dont add the child here as it will cause ConcurrentModificationException
-	                         // just mark it for inclusion in a child list below
-	          if ( childpi.isRogue() ) { // if parent is rogue, a child is rogue as well
-	            cpi.setRogue(true);
-	          }
+        for(NodeUsersCollector.ProcessInfo childpi : pi.getChildren() ) {
+          // is the current process a child of another Process?
+          if ( childpi.getPid() == cpi.getPPid() ) {  
+            added = true;  // dont add the child here as it will cause ConcurrentModificationException
+                           // just mark it for inclusion in a child list below
+            if ( childpi.isRogue() ) { // if parent is rogue, a child is rogue as well
+              cpi.setRogue(true);
+            }
             break;  // stop iterating over children
-	        }
-	      }
-	    } 
+          }
+        }
+      } 
       if ( added ) {
         pi.getChildren().add(cpi); // add current process as a child
         if ( logger == null ) {
@@ -135,20 +135,20 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         }
         break;
      }
-	  }
-	  // not added to the list in the code above
-	  if ( !added ) {
-	    processList.add(cpi);
+    }
+    // not added to the list in the code above
+    if ( !added ) {
+      processList.add(cpi);
       if ( logger == null ) {
         //System.out.println("********* Adding Process With PID:"+cpi.getPid()+ " NO PARENT");
       } else {
         logger.info("aggregate", null, "********* Adding Process With PID:"+cpi.getPid()+ " NO PARENT");
       }
     }
-	}
-	private boolean duccDaemon(String[] tokens) {
-	  String location = "duccDaemon";
-	  for( String token : tokens ) {
+  }
+  private boolean duccDaemon(String[] tokens) {
+    String location = "duccDaemon";
+    for( String token : tokens ) {
       if ( token.startsWith("-Dducc.deploy.components")) {
         int pos = token.indexOf("=");
         if ( pos > -1 ) {
@@ -175,24 +175,24 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         return true;
       }
     }
-	  return false;
-	}
-	public TreeMap<String,NodeUsersInfo> call() throws Exception {
-		String location = "call";
-	  TreeMap<String,NodeUsersInfo> map = new TreeMap<String,NodeUsersInfo>();
+    return false;
+  }
+  public TreeMap<String,NodeUsersInfo> call() throws Exception {
+    String location = "call";
+    TreeMap<String,NodeUsersInfo> map = new TreeMap<String,NodeUsersInfo>();
 
     List<String> currentPids = new ArrayList<String>();
-		try {
-		  
+    try {
+      
       ProcessBuilder pb = new ProcessBuilder("ps","-Ao","user:12,pid,ppid,args", "--no-heading");
-		  pb.redirectErrorStream(true);
-		  Process proc = pb.start();
-		  //  spawn ps command and scrape the output
+      pb.redirectErrorStream(true);
+      Process proc = pb.start();
+      //  spawn ps command and scrape the output
       InputStream stream = proc.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-			String line;
-			String regex = "\\s+";
-			// copy all known reservations reported by the OR
+      BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+      String line;
+      String regex = "\\s+";
+      // copy all known reservations reported by the OR
       agent.copyAllUserReservations(map);
       if ( logger == null ) {
        // System.out.println(
@@ -214,7 +214,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
               new HashSet<NodeUsersCollector.ProcessInfo>();
       
       // read the next line from ps output
-			while ((line = reader.readLine()) != null) {
+      while ((line = reader.readLine()) != null) {
 
         String tokens[] = line.split(regex);
         String user = tokens[0];
@@ -222,54 +222,54 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         String ppid = tokens[2];
         String cmd = tokens[3];
         
-				if ( tokens.length > 0 ) {
-	        // Detect and skip all ducc daemons except uima-as service
-	        if ( duccDaemon(tokens)) {
-	          continue;
-	        }
-	        if ( logger == null ) {
+        if ( tokens.length > 0 ) {
+          // Detect and skip all ducc daemons except uima-as service
+          if ( duccDaemon(tokens)) {
+            continue;
+          }
+          if ( logger == null ) {
             //System.out.print(line);
-	        } else {
-	          logger.trace(location, jobid, line);
-	        }
-				  //  Check if current process is owned by a user that should be excluded
-				  //  from rogue process detection. A list of excluded users is in ducc.properties
-				  //  Dont include root, nfs, and other system owned processes. Also exclude
-				  //  processes that are defined in the process exclusion list in ducc.properties 
+          } else {
+            logger.trace(location, jobid, line);
+          }
+          //  Check if current process is owned by a user that should be excluded
+          //  from rogue process detection. A list of excluded users is in ducc.properties
+          //  Dont include root, nfs, and other system owned processes. Also exclude
+          //  processes that are defined in the process exclusion list in ducc.properties 
           if ( excludeUser(user) || excludeProcess(cmd) || Utils.getPID().equals(pid))  {
-				    continue;   // skip this process         
-				  }
-	        if ( agent != null ) {
+            continue;   // skip this process         
+          }
+          if ( agent != null ) {
             NodeUsersInfo nui = null; 
             //  Check if user record is already in the map. May have been done above in
             //  copyAllUserReservations().
-	          if ( map.containsKey(user)) {
-	            nui = map.get(user);
-	          } else {
+            if ( map.containsKey(user)) {
+              nui = map.get(user);
+            } else {
               nui = new NodeUsersInfo(user);
               map.put(user, nui);
-	          }
-	          if ( logger == null ) {
+            }
+            if ( logger == null ) {
           //    System.out.println(
            //           "User:"+user+" Reservations:"+nui.getReservations().size()+" Rogue Processes:"+nui.getRogueProcesses().size());
-	          } else {
-	            logger.info(location, jobid, "User:"+user+" Reservations:"+nui.getReservations().size()+" Rogue Processes:"+nui.getRogueProcesses().size());
-	          }
-	          // add a process to a list of processes currently running on the node. The list will be used
-	          // to remove stale rogue processes at the end of this method
-	          currentPids.add(tokens[1]);
+            } else {
+              logger.info(location, jobid, "User:"+user+" Reservations:"+nui.getReservations().size()+" Rogue Processes:"+nui.getRogueProcesses().size());
+            }
+            // add a process to a list of processes currently running on the node. The list will be used
+            // to remove stale rogue processes at the end of this method
+            currentPids.add(tokens[1]);
             currentPids.add(pid);
-	          if ( logger == null ) {
-	          } else {
-	            logger.trace(location, jobid,"Current Process (Before Calling aggregate() - PID:"+pid+" PPID:"+ppid+" Process List Size:"+processList.size());
-	          }
-	          NodeUsersCollector.ProcessInfo pi = 
-	                  new NodeUsersCollector.ProcessInfo(Integer.parseInt(pid),Integer.parseInt(ppid));
-	          // add the process to the list of processes. If this process has a parent, it will be added as a child. Compose
-	          // hierarchy of processes so that we can use it later to determine if any given process has a parent that is rogue
-	          aggregate(processList, pi);
-	          
-	          // fetch user reservations
+            if ( logger == null ) {
+            } else {
+              logger.trace(location, jobid,"Current Process (Before Calling aggregate() - PID:"+pid+" PPID:"+ppid+" Process List Size:"+processList.size());
+            }
+            NodeUsersCollector.ProcessInfo pi = 
+                    new NodeUsersCollector.ProcessInfo(Integer.parseInt(pid),Integer.parseInt(ppid));
+            // add the process to the list of processes. If this process has a parent, it will be added as a child. Compose
+            // hierarchy of processes so that we can use it later to determine if any given process has a parent that is rogue
+            aggregate(processList, pi);
+            
+            // fetch user reservations
             List<IDuccId> userReservations = nui.getReservations();
             //  if user has reservations on the node, any process found is not a rogue process
             if ( userReservations.size() > 0 ) {
@@ -299,28 +299,28 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
                 agent.getRogueProcessReaper().submitRogueProcessForKill(user, pid,cmd.endsWith("java"));
               }
             }
-	        }
-				}
-			}
-		} 
-		catch (Exception e) {
+          }
+        }
+      }
+    } 
+    catch (Exception e) {
       if ( logger == null ) {
         e.printStackTrace();
       } else {
         logger.error(location, jobid, e);
       }
-		}
-		StringBuffer sb = new StringBuffer();
+    }
+    StringBuffer sb = new StringBuffer();
     // if no processes found, clear rogue process list and list of processes associated with a reserve
-		if ( currentPids.isEmpty()) {
+    if ( currentPids.isEmpty()) {
       for( Map.Entry<String,NodeUsersInfo> entry : map.entrySet()) {
         entry.getValue().getReserveProcesses().clear();
         entry.getValue().getRogueProcesses().clear();
       }
     }
 
-		for( Map.Entry<String,NodeUsersInfo> entry : map.entrySet()) {
-		  sb.append(entry.getValue().toString()).append("\n");
+    for( Map.Entry<String,NodeUsersInfo> entry : map.entrySet()) {
+      sb.append(entry.getValue().toString()).append("\n");
     }
     if ( logger == null ) {
       System.out.println(sb.toString());
@@ -333,25 +333,25 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
     // remove any rogue processes that are not in the list of current processes just collected
     agent.getRogueProcessReaper().removeDeadRogueProcesses(currentPids);
     return map;
-	}
-	private boolean inRogueList(List<NodeProcess> rogueProcesses, String pid) {
+  }
+  private boolean inRogueList(List<NodeProcess> rogueProcesses, String pid) {
     for( NodeProcess rogue : rogueProcesses ) {
       if ( rogue.getPid().equals(pid)) {
         return true;
       }
     }
     return false;
-	}
-	public class ProcessInfo {
-	  private int pid;
-	  private int ppid;
-	  boolean rogue;
-	  Set<NodeUsersCollector.ProcessInfo> childProcesses = 
+  }
+  public class ProcessInfo {
+    private int pid;
+    private int ppid;
+    boolean rogue;
+    Set<NodeUsersCollector.ProcessInfo> childProcesses = 
             new HashSet<NodeUsersCollector.ProcessInfo>();
-	  ProcessInfo(int pid, int ppid) {
-	    this.pid = pid;
-	    this.ppid = ppid;
-	  }
+    ProcessInfo(int pid, int ppid) {
+      this.pid = pid;
+      this.ppid = ppid;
+    }
 
     public int getPid() {
       return pid;
@@ -373,43 +373,43 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       return childProcesses;
     }
 
-	}
-	private void dump(Set<NodeUsersCollector.ProcessInfo> processList) {
-	   for( NodeUsersCollector.ProcessInfo pi: processList ) {
+  }
+  private void dump(Set<NodeUsersCollector.ProcessInfo> processList) {
+     for( NodeUsersCollector.ProcessInfo pi: processList ) {
        if ( logger == null ) {
          System.out.println("Process PID:"+pi.getPid()+" PPID:"+pi.getPPid());
        } else {
          logger.trace("dump",null,"Process PID:"+pi.getPid()+" PPID:"+pi.getPPid());
        }
-	     if ( pi.getChildren().size() > 0 ) {
-	        if ( logger == null ) {
-	          System.out.println("\t=>");
-	        } else {
-	          logger.trace("dump",null,"\t=>");
-	        }
-	        for(NodeUsersCollector.ProcessInfo childpi : pi.getChildren() ) {
-	          if ( logger == null ) {
-	            System.out.println("PID:"+childpi.getPid()+" PPID:"+childpi.getPPid()+" | ");
-	          } else {
-	            logger.trace("dump",null,"PID:"+childpi.getPid()+" PPID:"+childpi.getPPid()+" | ");
-	          }
-	        }
-	        if ( logger == null ) {
-	          System.out.println("\n");
+       if ( pi.getChildren().size() > 0 ) {
+          if ( logger == null ) {
+            System.out.println("\t=>");
+          } else {
+            logger.trace("dump",null,"\t=>");
+          }
+          for(NodeUsersCollector.ProcessInfo childpi : pi.getChildren() ) {
+            if ( logger == null ) {
+              System.out.println("PID:"+childpi.getPid()+" PPID:"+childpi.getPPid()+" | ");
+            } else {
+              logger.trace("dump",null,"PID:"+childpi.getPid()+" PPID:"+childpi.getPPid()+" | ");
+            }
+          }
+          if ( logger == null ) {
+            System.out.println("\n");
 
-	        } else {
-	          logger.trace("dump",null,"\n");
-	          
-	        }
-	      } 
-	   }
-	}
-	public static void main(String[] args) {
+          } else {
+            logger.trace("dump",null,"\n");
+            
+          }
+        } 
+     }
+  }
+  public static void main(String[] args) {
 /*
-	  try {
-	    Set<NodeUsersCollector.ProcessInfo> processList = new HashSet<NodeUsersCollector.ProcessInfo>();
-	    
-	    NodeUsersCollector.ProcessInfo pi1 = new NodeUsersCollector.ProcessInfo(102,100);
+    try {
+      Set<NodeUsersCollector.ProcessInfo> processList = new HashSet<NodeUsersCollector.ProcessInfo>();
+      
+      NodeUsersCollector.ProcessInfo pi1 = new NodeUsersCollector.ProcessInfo(102,100);
       NodeUsersCollector.ProcessInfo pi2 = new NodeUsersCollector.ProcessInfo(103,110);
       NodeUsersCollector.ProcessInfo pi11 = new NodeUsersCollector.ProcessInfo(104,102);
       NodeUsersCollector.ProcessInfo pi12 = new NodeUsersCollector.ProcessInfo(105,102);
@@ -424,9 +424,9 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       collector.aggregate(processList, pi3);
       collector.dump(processList);
       
-	  } catch( Exception e) {
-	    e.printStackTrace();
-	  }
-	  */
-	}
+    } catch( Exception e) {
+      e.printStackTrace();
+    }
+    */
+  }
 }

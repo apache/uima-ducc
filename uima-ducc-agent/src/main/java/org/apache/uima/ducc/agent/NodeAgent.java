@@ -29,10 +29,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TreeMap;
-import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 
@@ -47,7 +47,9 @@ import org.apache.uima.ducc.agent.launcher.Launcher;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -66,14 +68,14 @@ import org.apache.uima.ducc.transport.event.common.DuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
-import org.apache.uima.ducc.transport.event.common.ITimeWindow;
-import org.apache.uima.ducc.transport.event.common.TimeWindow;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
+import org.apache.uima.ducc.transport.event.common.TimeWindow;
 
 
 public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLifecycleObserver {
@@ -186,6 +188,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   }
  
+  public void start(DuccService service) throws Exception {
+		super.start(service, null);
+		String name = nodeIdentity.getName();
+		String ip = nodeIdentity.getIp();
+		String jmxUrl = getProcessJmxUrl();
+		DuccDaemonRuntimeProperties.getInstance().bootAgent(name,ip,jmxUrl);
+	}	
+  
   public DuccEventDispatcher getEventDispatcherForRemoteProcess() {
     return commonProcessDispatcher;
   }

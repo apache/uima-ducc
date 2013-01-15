@@ -77,8 +77,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 	public Process exec(ICommandLine cmdLine, Map<String, String> processEnv)
 			throws Exception {
 		String methodName = "exec";
-		
-//		DuccId duccId = ((ManagedProcess)super.managedProcess).getDuccId();
 		try {
 			String[] cmd = getDeployableCommandLine(cmdLine,processEnv);			
 			if ( isKillCommand(cmdLine) ) {
@@ -119,6 +117,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 		try {
 			//	if the process is marked for death or still initializing or it is JD, kill it
 			if (    ((ManagedProcess) managedProcess).doKill() ||
+          ((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Initializing) ||
           ((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
@@ -192,21 +191,13 @@ public class DuccCommandExecutor extends CommandExecutor {
 			twr.setStart(millis);
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 
-			if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
+			if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop) ||
+ 	         ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service)   ) {
 				ITimeWindow twi = new TimeWindow();
 				((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowInit(twi);
 				twi.setStart(millis);
 				twi.setEnd(millis);
 			}
-			String workingDir = null;
-			//	Set working directory if a user specified it in a job specification
-			//if ( ((ManagedProcess)super.managedProcess).getProcessInfo() != null ) {
-			//	workingDir = ((ManagedProcess)super.managedProcess).getProcessInfo().getWorkingDirectory();
-			//}
-			//if ( workingDir != null ) {
-            //		logger.info(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), "Launching process in a user provided working dir:"+workingDir);
-            //		pb.directory(new File(workingDir));
-			//}
 			Map<String, String> env = pb.environment();
 			// enrich Process environment
 			env.putAll(processEnv);
@@ -312,10 +303,36 @@ public class DuccCommandExecutor extends CommandExecutor {
 	        cmd = Utils.concatAllArrays(new String[] {cmdLine.getExecutable()},cmdLine.getCommandLine());
 	      }
 	    } else {
-	      String processType = "-UIMA-";
-	      if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
-	        processType = "-JD-";
-	      }             
+        String processType = "-UIMA-";
+	      switch( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType() ) {
+	        case Pop:
+	          // Both JD and POP arbitrary process are POPs. Assume this is an arbitrary process
+            processType = "-POP-";  
+	          if ( cmdLine instanceof JavaCommandLine ) {
+	            List<String> options = ((JavaCommandLine)cmdLine).getOptions();
+	            for(String option : options ) {
+	              // Both services and JD have processType=POP. However, only the JD
+	              // will have -Dducc.deploy.components option set. 
+	              if (option.startsWith("-Dducc.deploy.components=")) {
+	                processType = "-JD-";
+	                break;
+	              }
+	            }
+	          }
+	          break;
+	        case Service:
+            //processType = "-AP-";
+	          break;
+	        case Job_Uima_AS_Process:
+            processType = "-UIMA-";
+            ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=uima-as");
+            ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
+            
+	          break;
+	      }
+//	      if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
+//	        processType = "-JD-";
+//	      }             
 	      String processLogDir = ((ManagedProcess)super.managedProcess).getProcessInfo().getLogDirectory()+
 	              (((ManagedProcess)super.managedProcess).getProcessInfo().getLogDirectory().endsWith(File.separator) ? "" : File.separator)+
 	              ((ManagedProcess)super.managedProcess).getWorkDuccId()+File.separator;
@@ -331,9 +348,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 	              "-w", workingDir,
 	              "-u", ((ManagedProcess)super.managedProcess).getOwner(),
 	              "--" };        
-	      //	For now, log to user's home directory
-	      //					String baseDir = 
-	      //							((ManagedProcess)super.managedProcess).getProcessInfo().getLogDirectory();
 
 	      String executable = cmdLine.getExecutable(); 
 	      //	Check if user specified which java to use to launch the process. If not provided,
@@ -372,8 +386,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 	      // add JobId to the env
 	      if ( processEnv != null ) {
 	        processEnv.put("JobId", String.valueOf(((ManagedProcess)super.managedProcess).getWorkDuccId().getFriendly()));
-	        //	for now just use user.home. In the long run the LogDir may
-	        //  come from job spec
 	      }
 	    }
 	    return cmd;

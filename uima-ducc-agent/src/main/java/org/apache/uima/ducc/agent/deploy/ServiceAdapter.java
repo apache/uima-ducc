@@ -60,9 +60,11 @@ public class ServiceAdapter implements ServiceStateNotificationAdapter {
 		this.duccProcessId = duccProcessId;
 		this.endpoint = endpoint;
 	}
+	@Override
 	public void notifyAgentWithStatus(ProcessState state) {
 		notifyAgentWithStatus(state, null);
 	}
+	@Override
 	public void notifyAgentWithStatus(ProcessState state, String processJmxUrl) {
 	  synchronized( stateLock ) {
 	    this.state = state;
