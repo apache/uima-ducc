@@ -136,8 +136,6 @@ implements ProcessManager {
 	        for( Entry<DuccId,IDuccProcess> jpProcess : dcj.getProcessMap().getMap().entrySet()) {
 	          jobProcessList.add(jpProcess.getValue());
 	        }
-	        ((JavaCommandLine)dcj.getCommandLine()).addOption("-Dducc.deploy.components=uima-as");
-	        ((JavaCommandLine)dcj.getCommandLine()).setClassName("org.apache.uima.ducc.common.main.DuccService");
 
 	        if ( dcj.getUimaDeployableConfiguration() instanceof DuccUimaDeploymentDescriptor ) {
 	          //  Add deployment UIMA AS deployment descriptor path
@@ -160,7 +158,11 @@ implements ProcessManager {
 	          driverProcess = dcj.getDriver().getProcessMap().entrySet().iterator().next().getValue();
 	          break;
 	        case Service:
+	          //logger.info(methodName,null,"!!!!!!!!!!!!! GOT SERVICE");
 	          break;
+	        
+	        default:
+	          
 	        }
 	        jobDeploymentList.add( new DuccJobDeployment(dcj.getDuccId(), driverCmdLine,
 	                           dcj.getCommandLine(), 
@@ -257,6 +259,7 @@ implements ProcessManager {
 		}
 	}
 	
+	@Override
 	public PmStateDuccEvent getState() {
 		String methodName = "PmStateDuccEvent";
 		logger.trace(methodName,null,"");
