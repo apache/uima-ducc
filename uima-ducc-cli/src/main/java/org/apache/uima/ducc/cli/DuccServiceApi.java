@@ -87,7 +87,7 @@ public class DuccServiceApi
             System.out.println(msg);
         }
         System.out.println("Usage:");
-        System.exit(0);
+        System.exit(1);
     }
 
 	static void usage(Options options) 
@@ -95,6 +95,7 @@ public class DuccServiceApi
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.setWidth(DuccUiConstants.help_width);
 		formatter.printHelp(DuccServiceApi.class.getName(), options);
+        System.exit(1);
 	}
 
 	@SuppressWarnings("static-access")
@@ -220,6 +221,14 @@ public class DuccServiceApi
         // Other directives are not supported for registered services.
 
 		options.addOption(OptionBuilder
+                          .withLongOpt    (RegistrationOption.ClasspathOrder.decode()) 
+                          .withDescription(RegistrationOption.ClasspathOrder.description()) 
+                          .withArgName    (RegistrationOption.ClasspathOrder.argname())
+                          .hasArg(true)
+                          .create()
+                          );
+
+		options.addOption(OptionBuilder
                           .withLongOpt    (RegistrationOption.Description.decode()) 
                           .withDescription(RegistrationOption.Description.description()) 
                           .withArgName    (RegistrationOption.Description.argname())
@@ -324,33 +333,49 @@ public class DuccServiceApi
                           );
 
 		options.addOption(OptionBuilder
-                          .withLongOpt    (RegistrationOption.ServiceCustomPing.decode()) 
-                          .withDescription(RegistrationOption.ServiceCustomPing.description()) 
-                          .withArgName    (RegistrationOption.ServiceCustomPing.argname())
+                          .withLongOpt    (RegistrationOption.ServiceRequestEndpoint.decode()) 
+                          .withDescription(RegistrationOption.ServiceRequestEndpoint.description()) 
+                          .withArgName    (RegistrationOption.ServiceRequestEndpoint.argname())
                           .hasArg(true)
                           .create()
                           );
 
 		options.addOption(OptionBuilder
-                          .withLongOpt    (RegistrationOption.ServiceCustomEndpoint.decode()) 
-                          .withDescription(RegistrationOption.ServiceCustomEndpoint.description()) 
-                          .withArgName    (RegistrationOption.ServiceCustomEndpoint.argname())
+                          .withLongOpt    (RegistrationOption.ServicePingClass.decode()) 
+                          .withDescription(RegistrationOption.ServicePingClass.description()) 
+                          .withArgName    (RegistrationOption.ServicePingClass.argname())
                           .hasArg(true)
                           .create()
                           );
 
 		options.addOption(OptionBuilder
-                          .withLongOpt    (RegistrationOption.ServiceCustomClasspath.decode()) 
-                          .withDescription(RegistrationOption.ServiceCustomClasspath.description()) 
-                          .withArgName    (RegistrationOption.ServiceCustomClasspath.argname())
+                          .withLongOpt    (RegistrationOption.ServicePingClasspath.decode()) 
+                          .withDescription(RegistrationOption.ServicePingClasspath.description()) 
+                          .withArgName    (RegistrationOption.ServicePingClasspath.argname())
                           .hasArg(true)
                           .create()
                           );
 
 		options.addOption(OptionBuilder
-                          .withLongOpt    (RegistrationOption.ServiceCustomJvmArgs.decode()) 
-                          .withDescription(RegistrationOption.ServiceCustomJvmArgs.description()) 
-                          .withArgName    (RegistrationOption.ServiceCustomJvmArgs.argname())
+                          .withLongOpt    (RegistrationOption.ServicePingJvmArgs.decode()) 
+                          .withDescription(RegistrationOption.ServicePingJvmArgs.description()) 
+                          .withArgName    (RegistrationOption.ServicePingJvmArgs.argname())
+                          .hasArg(true)
+                          .create()
+                          );
+
+		options.addOption(OptionBuilder
+                          .withLongOpt    (RegistrationOption.ServicePingDoLog.decode()) 
+                          .withDescription(RegistrationOption.ServicePingDoLog.description()) 
+                          .withArgName    (RegistrationOption.ServicePingDoLog.argname())
+                          .hasArg(false)
+                          .create()
+                          );
+
+		options.addOption(OptionBuilder
+                          .withLongOpt    (RegistrationOption.ServicePingTimeout.decode()) 
+                          .withDescription(RegistrationOption.ServicePingTimeout.description()) 
+                          .withArgName    (RegistrationOption.ServicePingTimeout.argname())
                           .hasArg(true)
                           .create()
                           );
@@ -490,6 +515,7 @@ public class DuccServiceApi
 
     private void overrideProperties(CommandLine cl, DuccProperties props, RegistrationOption opt)
     {
+
         String k = opt.decode();
         String v = cl.getOptionValue(k, null);
         if ( v == null ) return;
@@ -519,22 +545,21 @@ public class DuccServiceApi
         // First read the properties file if given in
         //    ducc_services --register propsfile
         String props = cl.getOptionValue(ServiceVerb.Register.decode());
+        debug = true;
         if ( props != null ) {
             reply.load(new FileInputStream(props));
             if ( debug ) {
                 System.out.println("Service specification file:");
                 for ( Object key: reply.keySet() ) {
-                    System.out.println("    Key: " + "Value: " + reply.getStringProperty((String)key));
+                    System.out.println("    Key: " + key + "  Value: " + reply.getStringProperty((String)key));
                 }
             }            
         }
 
-        // Must enforce this for registered services
-        reply.put("process_deployments_max", "1");     
-
         // 
         // Now pull in the override props.
         //
+        overrideProperties(cl, reply, RegistrationOption.ClasspathOrder);
         overrideProperties(cl, reply, RegistrationOption.Description);
         overrideProperties(cl, reply, RegistrationOption.ProcessDD);
         overrideProperties(cl, reply, RegistrationOption.ProcessMemorySize);
@@ -548,10 +573,35 @@ public class DuccServiceApi
         overrideProperties(cl, reply, RegistrationOption.Jvm);
         overrideProperties(cl, reply, RegistrationOption.ServiceDependency);
         overrideProperties(cl, reply, RegistrationOption.ServiceLinger);
-        overrideProperties(cl, reply, RegistrationOption.ServiceCustomPing);
-        overrideProperties(cl, reply, RegistrationOption.ServiceCustomEndpoint);
-        overrideProperties(cl, reply, RegistrationOption.ServiceCustomClasspath);
-        overrideProperties(cl, reply, RegistrationOption.ServiceCustomJvmArgs);
+        overrideProperties(cl, reply, RegistrationOption.ServicePingClass);
+        overrideProperties(cl, reply, RegistrationOption.ServiceRequestEndpoint);
+        overrideProperties(cl, reply, RegistrationOption.ServicePingClasspath);
+        overrideProperties(cl, reply, RegistrationOption.ServicePingJvmArgs);
+        overrideProperties(cl, reply, RegistrationOption.ServicePingDoLog);
+        overrideProperties(cl, reply, RegistrationOption.ServicePingTimeout);
+
+        // now bop through the properties and make sure they and their values all valid
+        for ( Object o : reply.keySet() ) {
+            String k = (String) o;
+            
+            RegistrationOption opt = RegistrationOption.encode(k);
+            if ( opt == RegistrationOption.Unknown ) {
+                throw new IllegalArgumentException("Invalid regisration option: " + k);
+            }            
+
+            switch ( opt ) {
+                case ClasspathOrder:
+                    String v = reply.getStringProperty(RegistrationOption.ClasspathOrder.decode());
+                    if ( v == null ) continue;
+                    if ( ClasspathOrderParms.encode(v) == ClasspathOrderParms.Unknown) {
+                        throw new IllegalStateException("Invalid value for " + RegistrationOption.ClasspathOrder.decode());
+                    }           
+                    break;
+            }
+        }
+
+        // Must enforce this for registered services
+        reply.put(DuccUiConstants.parm_process_deployments_max, "1");     
 
         //
         // Now: let's resolve placeholders.
@@ -619,35 +669,38 @@ public class DuccServiceApi
 // 		}
 		service_props.setProperty(k_ld, log_directory);
 
-        // establish my endpoint
-        String  endpoint = service_props.getStringProperty(RegistrationOption.ServiceCustomEndpoint.decode(), null);
-        if ( endpoint == null ) {               // not custom ...
-            //
-            // No endpoint, resolve from the DD.
-            //
+        //
+        // Establish my endpoint
+        //
+        String  endpoint = service_props.getStringProperty(RegistrationOption.ServiceRequestEndpoint.decode(), null);
+        if ( endpoint == null ) {               // not custom ... must be uima-as (or fail)
 
-            //
             // If claspath is not specified, pick it up from the submitter's environment
-            //            
             String classpath = service_props.getStringProperty(RegistrationOption.ProcessClasspath.decode(), System.getProperty("java.class.path"));
             service_props.setProperty(RegistrationOption.ProcessClasspath.decode(), classpath);
 
-            String dd = service_props.getStringProperty(RegistrationOption.ProcessDD.decode());
+            // No endpoint, resolve from the DD.
+            String dd = service_props.getStringProperty(RegistrationOption.ProcessDD.decode()); // will throw if can't find the prop
             endpoint = DuccUiUtilities.getEndpoint(working_dir, dd, jvmargs);
             if ( debug ) {
                 System.out.println("Service endpoint resolves to " + endpoint);
             }
-        } else {
-            String k_scp = RegistrationOption.ServiceCustomClasspath.decode();
-            String classpath = service_props.getStringProperty(k_scp, System.getProperty("java.class.path"));
-            service_props.setProperty(k_scp, classpath);
+        } else if ( endpoint.startsWith(ServiceType.Custom.decode()) ) {
 
-            if ( ! endpoint.startsWith(ServiceType.Custom.decode()) ) {
-                throw new IllegalArgumentException("Invalid custom endpoint: " + endpoint);
-            }
-            if ( service_props.getProperty(RegistrationOption.ServiceCustomPing.decode()) == null ) {
+            // must have a pinger specified
+            if ( service_props.getProperty(RegistrationOption.ServicePingClass.decode()) == null ) {
                 throw new IllegalArgumentException("Custom service is missing ping class name.");
             }
+
+            String k_scp = RegistrationOption.ServicePingClasspath.decode();
+            String classpath = service_props.getStringProperty(k_scp, System.getProperty("java.class.path"));            
+            service_props.setProperty(k_scp, classpath);
+        } else if ( endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
+            // Infer the classpath
+            String classpath = service_props.getStringProperty(RegistrationOption.ProcessClasspath.decode(), System.getProperty("java.class.path"));
+            service_props.setProperty(RegistrationOption.ProcessClasspath.decode(), classpath);
+        } else {
+            throw new IllegalArgumentException("Invalid custom endpoint: " + endpoint);
         }
 
         // work out stuff I'm dependendent upon

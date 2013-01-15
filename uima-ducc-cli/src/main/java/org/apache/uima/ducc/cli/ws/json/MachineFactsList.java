@@ -16,27 +16,12 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.api;
+package org.apache.uima.ducc.cli.ws.json;
 
-public class DuccMessage implements IDuccMessageProcessor {
+import java.io.Serializable;
+import java.util.ArrayList;
 
-	@Override
-	public void out(String message) {
-		System.out.println(message);
-	}
-	
-	@Override
-	public void err(String message) {
-		System.err.println(message);
-	}
+public class MachineFactsList extends ArrayList<MachineFacts> implements Serializable {
 
-	@Override
-	public void exception(Exception e) {
-		e.printStackTrace();
-	}
-
-	@Override
-	public void throwable(Throwable t) {
-		t.printStackTrace();
-	}
+	private static final long serialVersionUID = 1L;
 }

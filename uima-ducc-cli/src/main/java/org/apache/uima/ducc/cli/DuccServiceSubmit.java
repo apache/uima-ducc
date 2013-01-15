@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -52,6 +53,7 @@ import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 
 
@@ -64,6 +66,8 @@ public class DuccServiceSubmit extends DuccUi {
     private String jvmarg_string = null;
     private Properties jvmargs = null;
 	private IDuccMessageProcessor duccMessageProcessor = new DuccMessage();
+	
+	private ServiceDeploymentType serviceDeploymentType = ServiceDeploymentType.unspecified;
 	
 	public DuccServiceSubmit() {
 	}
@@ -80,16 +84,10 @@ public class DuccServiceSubmit extends DuccUi {
 		options.addOption(OptionBuilder
 				.withDescription(DuccUiConstants.desc_debug).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_debug).create());
-		/*
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_timestamp).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_timestamp).create());
-		*/
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_service_broker)
 				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()
 				.withLongOpt(DuccUiConstants.name_service_broker).create());
-
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_service_endpoint)
 				.withDescription(makeDesc(DuccUiConstants.desc_service_endpoint,DuccUiConstants.exmp_service_endpoint)).hasArg()
@@ -98,22 +96,10 @@ public class DuccServiceSubmit extends DuccUi {
 				.withArgName(DuccUiConstants.parm_description)
 				.withDescription(makeDesc(DuccUiConstants.desc_description,DuccUiConstants.exmp_description)).hasArg()
 				.withLongOpt(DuccUiConstants.name_description).create());
-		/*
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_notifications)
-				.withDescription(makeDesc(DuccUiConstants.desc_notifications,DuccUiConstants.exmp_notifications)).hasArg()
-				.withLongOpt(DuccUiConstants.name_notifications).create());
-		*/
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_scheduling_class)
 				.withDescription(makeDesc(DuccUiConstants.desc_scheduling_class,DuccUiConstants.exmp_scheduling_class)).hasArg()
 				.withLongOpt(DuccUiConstants.name_scheduling_class).create());
-		/*
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_scheduling_priority)
-				.withDescription(makeDesc(DuccUiConstants.desc_scheduling_priority,DuccUiConstants.exmp_scheduling_priority)).hasArg()
-				.withLongOpt(DuccUiConstants.name_scheduling_priority).create());
-		*/
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_log_directory)
 				.withDescription(makeDesc(DuccUiConstants.desc_log_directory,DuccUiConstants.exmp_log_directory)).hasArg()
@@ -126,39 +112,6 @@ public class DuccServiceSubmit extends DuccUi {
 				.withArgName(DuccUiConstants.parm_jvm)
 				.withDescription(makeDesc(DuccUiConstants.desc_jvm,DuccUiConstants.exmp_jvm)).hasArg()
 				.withLongOpt(DuccUiConstants.name_jvm).create());
-		/*
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_driver_jvm_args)
-				.withDescription(makeDesc(DuccUiConstants.desc_driver_jvm_args,DuccUiConstants.exmp_driver_jvm_args)).hasArg()
-				.withLongOpt(DuccUiConstants.name_driver_jvm_args).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_driver_classpath)
-				.withDescription(makeDesc(DuccUiConstants.desc_driver_classpath,DuccUiConstants.exmp_driver_classpath)).hasArg()
-				.withLongOpt(DuccUiConstants.name_driver_classpath).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_driver_environment)
-				.withDescription(makeDesc(DuccUiConstants.desc_driver_environment,DuccUiConstants.exmp_driver_environment)).hasArg()
-				.withLongOpt(DuccUiConstants.name_driver_environment).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_driver_memory_size)
-				.withDescription(makeDesc(DuccUiConstants.desc_driver_memory_size,DuccUiConstants.exmp_driver_memory_size)).hasArg()
-				.withLongOpt(DuccUiConstants.name_driver_memory_size).create());
-        */
-        // allo CR only so we can detect it and refuse it as a service
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_driver_descriptor_CR)
-				.withDescription(makeDesc(DuccUiConstants.desc_driver_descriptor_CR,DuccUiConstants.exmp_driver_descriptor_CR)).hasArg()
-				.withLongOpt(DuccUiConstants.name_driver_descriptor_CR).create());
-        /*
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_driver_descriptor_CR_overrides)
-				.withDescription(makeDesc(DuccUiConstants.desc_driver_descriptor_CR_overrides,DuccUiConstants.exmp_driver_descriptor_CR_overrides)).hasArg()
-				.withLongOpt(DuccUiConstants.name_driver_descriptor_CR_overrides).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_driver_exception_handler)
-				.withDescription(makeDesc(DuccUiConstants.desc_driver_exception_handler,DuccUiConstants.exmp_driver_exception_handler)).hasArg()
-				.withLongOpt(DuccUiConstants.name_driver_exception_handler).create());
-		*/
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_process_jvm_args)
 				.withDescription(makeDesc(DuccUiConstants.desc_process_jvm_args,DuccUiConstants.exmp_process_jvm_args)).hasArg()
@@ -175,34 +128,12 @@ public class DuccServiceSubmit extends DuccUi {
 				.withArgName(DuccUiConstants.parm_process_memory_size)
 				.withDescription(makeDesc(DuccUiConstants.desc_process_memory_size,DuccUiConstants.exmp_process_memory_size)).hasArg()
 				.withLongOpt(DuccUiConstants.name_process_memory_size).create());
+		// <UIMA service only>
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_process_DD)
 				.withDescription(makeDesc(DuccUiConstants.desc_process_DD,DuccUiConstants.exmp_process_DD)).hasArg()
 				.withLongOpt(DuccUiConstants.name_process_DD).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_process_descriptor_CM)
-				.withDescription(makeDesc(DuccUiConstants.desc_process_descriptor_CM,DuccUiConstants.exmp_process_descriptor_CM)).hasArg()
-				.withLongOpt(DuccUiConstants.name_process_descriptor_CM).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_process_descriptor_CM_overrides)
-				.withDescription(makeDesc(DuccUiConstants.desc_process_descriptor_CM_overrides,DuccUiConstants.exmp_process_descriptor_CM_overrides)).hasArg()
-				.withLongOpt(DuccUiConstants.name_process_descriptor_CM_overrides).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_process_descriptor_AE)
-				.withDescription(makeDesc(DuccUiConstants.desc_process_descriptor_AE,DuccUiConstants.exmp_process_descriptor_AE)).hasArg()
-				.withLongOpt(DuccUiConstants.name_process_descriptor_AE).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_process_descriptor_AE_overrides)
-				.withDescription(makeDesc(DuccUiConstants.desc_process_descriptor_AE_overrides,DuccUiConstants.exmp_process_descriptor_AE_overrides)).hasArg()
-				.withLongOpt(DuccUiConstants.name_process_descriptor_AE_overrides).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_process_descriptor_CC)
-				.withDescription(makeDesc(DuccUiConstants.desc_process_descriptor_CC,DuccUiConstants.exmp_process_descriptor_CC)).hasArg()
-				.withLongOpt(DuccUiConstants.name_process_descriptor_CC).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_process_descriptor_CC_overrides)
-				.withDescription(makeDesc(DuccUiConstants.desc_process_descriptor_CC_overrides,DuccUiConstants.exmp_process_descriptor_CC_overrides)).hasArg()
-				.withLongOpt(DuccUiConstants.name_process_descriptor_CC_overrides).create());
+		
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_process_deployments_max)
 				.withDescription(makeDesc(DuccUiConstants.desc_process_deployments_max,DuccUiConstants.exmp_process_deployments_max)).hasArg()
@@ -234,17 +165,15 @@ public class DuccServiceSubmit extends DuccUi {
 				.withDescription(makeDesc(DuccUiConstants.desc_process_get_meta_time_max,DuccUiConstants.exmp_process_get_meta_time_max)).hasArg()
 				.withLongOpt(DuccUiConstants.name_process_get_meta_time_max).create());
 		options.addOption(OptionBuilder
+				.withArgName(DuccUiConstants.parm_classpath_order)
+				.withDescription(DuccUiConstants.desc_classpath_order).hasArg()
+				.withLongOpt(DuccUiConstants.name_classpath_order).create());
+		// </UIMA service only>
+		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_specification)
 				.withDescription(DuccUiConstants.desc_specification).hasArg()
 				.withLongOpt(DuccUiConstants.name_specification).create());
-		/*
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_wait_for_completion).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_wait_for_completion).create());
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_submit_cancel_service_on_interrupt).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_submit_cancel_service_on_interrupt).create());
-		*/
+
 		options.addOption(OptionBuilder
                           .withArgName    (DuccUiConstants.parm_service_dependency)
                           .withDescription(makeDesc(DuccUiConstants.desc_service_dependency,DuccUiConstants.exmp_service_dependency))
@@ -255,12 +184,13 @@ public class DuccServiceSubmit extends DuccUi {
                           );
 
 		options.addOption(OptionBuilder
-                          .withLongOpt    (RegistrationOption.ServiceCustomEndpoint.decode()) 
-                          .withDescription(RegistrationOption.ServiceCustomEndpoint.description()) 
-                          .withArgName    (RegistrationOption.ServiceCustomEndpoint.argname())
+                          .withLongOpt    (RegistrationOption.ServiceRequestEndpoint.decode()) 
+                          .withDescription(RegistrationOption.ServiceRequestEndpoint.description()) 
+                          .withArgName    (RegistrationOption.ServiceRequestEndpoint.argname())
                           .hasArg(true)
                           .create()
                           );
+
 	}
 
 	//**********
@@ -285,21 +215,12 @@ public class DuccServiceSubmit extends DuccUi {
 		private static final long serialVersionUID = 1L;
 
 		{
-            put("", Arrays.asList( ServiceRequestProperties.key_process_DD,
-					  			   ServiceRequestProperties.key_process_descriptor_CM,
-					  			   ServiceRequestProperties.key_process_descriptor_AE,
-					  			   ServiceRequestProperties.key_process_descriptor_CC
+            put("", Arrays.asList( ServiceRequestProperties.key_process_DD
             					   ));
         }
     };
     
     private static final String consumer_list = ServiceRequestProperties.key_process_DD
-	   									   	  	+", "
-	   									   	  	+ServiceRequestProperties.key_process_descriptor_CM
-	   									   	  	+", "
-	   									   	  	+ServiceRequestProperties.key_process_descriptor_AE
-	   									   	  	+", "
-	   									   	  	+ServiceRequestProperties.key_process_descriptor_CC
 	   									   	  	;
     
 	private boolean has_consumer(Properties properties) {
@@ -330,10 +251,17 @@ public class DuccServiceSubmit extends DuccUi {
 		private static final long serialVersionUID = 1L;
 
 		{
-            put(ServiceRequestProperties.key_process_DD, Arrays.asList( ServiceRequestProperties.key_process_descriptor_CM,
-            														ServiceRequestProperties.key_process_descriptor_AE,
-            														ServiceRequestProperties.key_process_descriptor_CC
-            														));
+            put(ServiceRequestProperties.key_service_type_uima, Arrays.asList( 	ServiceRequestProperties.key_service_type_other
+																				));
+            
+            put(ServiceRequestProperties.key_service_type_other, Arrays.asList( ServiceRequestProperties.key_process_DD,
+            																	ServiceRequestProperties.key_process_deployments_max,
+            																	ServiceRequestProperties.key_process_initialization_failures_cap,
+            																	ServiceRequestProperties.key_process_failures_limit,
+            																	ServiceRequestProperties.key_process_thread_count,
+            																	ServiceRequestProperties.key_process_per_item_time_max,
+            																	ServiceRequestProperties.key_process_get_meta_time_max
+																				));
         }
     };
 
@@ -355,64 +283,29 @@ public class DuccServiceSubmit extends DuccUi {
 		}
 		return retVal;
 	}
-	
-	//**********
-	
-	private long getThreadsLimit() {
-		long limit = 0;
-		try {
-			String p_limit = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_submit_threads_limit);
-			if(p_limit != null) {
-				p_limit = p_limit.trim();
-				if(!p_limit.equals("unlimited")) {
-					limit = Long.parseLong(p_limit);
-				}
-			}
-		}
-		catch(Throwable t) {
-			duccMessageProcessor.throwable(t);
-		}
-		return limit;
-	}
-	
-	private boolean adjust_max_threads(Properties properties) {
-		boolean retVal = false;
-		try {
-			long limit = getThreadsLimit();
-			if(limit == 0) {
-				return retVal;
-			}
-			String p_threads = properties.getProperty(ServiceRequestProperties.key_process_thread_count);
-			if(p_threads == null) {
-				p_threads = DuccUiConstants.dval_process_thread_count;
-			}
-			long threads = Long.parseLong(p_threads);
-			String p_procs = properties.getProperty(ServiceRequestProperties.key_process_deployments_max);
-			if(p_procs == null) {
-				long procs = limit / threads;
-				p_procs = "unlimited";
-				String a_procs = ""+procs;
-				duccMessageProcessor.err(ServiceRequestProperties.key_process_deployments_max+": requested="+p_procs+" adjusted="+a_procs);
-				properties.setProperty(ServiceRequestProperties.key_process_deployments_max, a_procs);
-				retVal = true;
-			}
-			else {
-				long procs = Long.parseLong(p_procs);
-				if( (procs * threads) > limit ) {
-					procs = limit / threads;
-					String a_procs = ""+procs;
-					duccMessageProcessor.err(ServiceRequestProperties.key_process_deployments_max+": requested="+p_procs+" adjusted="+a_procs);
-					properties.setProperty(ServiceRequestProperties.key_process_deployments_max, a_procs);
-					retVal = true;
-				}
-			}
-		}
-		catch(Throwable t) {
-			duccMessageProcessor.throwable(t);
-		}
-		return retVal;
-	}
-	
+		
+
+    /**
+     * - Verify that the minimum properties for a pop are here
+     * - Verify no illegal properties for a pop
+     */
+    private boolean verifyPopProperties(Properties props)
+    {
+        String[] required = {
+            "process_executable",
+            "process_memory_size",
+            "scheduling_class"
+        };
+        boolean answer = true;
+        for ( String k : required ) {
+            if ( ! props.containsKey(k) ) {
+                System.out.println("Missing required property: " + k);
+                answer = false;
+            }
+        }
+        return answer;
+    }
+
 	//**********
 	
 	private String getDuccProperty(String propertyName, String defaultValue) {
@@ -429,29 +322,13 @@ public class DuccServiceSubmit extends DuccUi {
 		return propertyValue;
 	}
 	
-	private void adjust_process_jvm_args(Properties serviceRequestProperties) {
-		String additionalJvmArgs = getDuccProperty(DuccPropertiesResolver.ducc_submit_process_jvm_args, null);
-		if(additionalJvmArgs != null) {
-			String jvmArgs = serviceRequestProperties.getProperty(ServiceRequestProperties.key_process_jvm_args);
-			if(jvmArgs == null) {
-				jvmArgs = additionalJvmArgs;
-			}
-			else {
-				jvmArgs += " "+additionalJvmArgs;
-			}
-			serviceRequestProperties.setProperty(ServiceRequestProperties.key_process_jvm_args, jvmArgs);
-		}
-	}
-	
-	private void adjust_jvm_args(Properties serviceRequestProperties) {
-		adjust_process_jvm_args(serviceRequestProperties);
-	}
-
     /*
      * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
      */
     boolean resolve_service_dependencies(String endpoint, Properties props)
     {
+        if ( serviceDeploymentType == ServiceDeploymentType.other) return true;
+
         String deps = props.getProperty(ServiceRequestProperties.key_service_dependency);
         try {
             deps = DuccUiUtilities.resolve_service_dependencies(endpoint, deps, jvmargs);                
@@ -464,7 +341,42 @@ public class DuccServiceSubmit extends DuccUi {
             return false;
         }
     }
-	
+
+    protected void setServiceType(ServiceDeploymentType type)
+    {
+        this.serviceDeploymentType = type;
+    }
+
+    private ServiceDeploymentType getServiceType(ServiceRequestProperties serviceRequestProperties)
+    {
+        // some dude set this so we belive him - 
+        if ( serviceDeploymentType != ServiceDeploymentType.unspecified ) return serviceDeploymentType;
+
+        // if the service type is NOT set, then it has to be some kind of service, see if there's an  endpoint
+        String service_endpoint = serviceRequestProperties.getProperty(RegistrationOption.ServiceRequestEndpoint.decode());
+
+        // No end point, it HAS to be UIMA-AS and therefore requires a DD to be valid
+        if (service_endpoint == null) {            
+            String dd = (String) serviceRequestProperties.get(ServiceRequestProperties.key_process_DD);
+            if ( dd != null ) {
+                return ServiceDeploymentType.uima;
+            } else {
+                throw new IllegalArgumentException("Missing service endpoint and DD, cannot identify service type.");
+            }
+        }
+
+        if ( service_endpoint.startsWith(ServiceType.Custom.decode()) ) {
+            return ServiceDeploymentType.custom;
+        }
+
+        if ( service_endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
+            return ServiceDeploymentType.uima;
+        }
+
+
+        throw new IllegalArgumentException("Invalid service type in endpoint, must be " + ServiceType.UimaAs.decode() + " or " + ServiceType.Custom.decode() + ".");
+    }
+
 	//**********
 	
 	protected int help(Options options) {
@@ -587,23 +499,6 @@ public class DuccServiceSubmit extends DuccUi {
 				serviceRequestProperties.setProperty(name, value);
 			}
 		}
-
-        //
-        // Simple sanity checking in case somebody tries to submit a regular job as a service
-        //
-        String[] forbidden = {
-            DuccUiConstants.name_driver_descriptor_CR,
-            DuccUiConstants.name_process_descriptor_AE,
-            DuccUiConstants.name_process_descriptor_CC,
-            DuccUiConstants.name_process_descriptor_CM,
-        };
-        for (String s : forbidden) {
-            String tmp = (String) serviceRequestProperties.get(s);
-            if ( tmp != null ) {
-                duccMessageProcessor.out("Job is not a service, it contains " + s);
-                return DuccUiConstants.ERROR;
-            }
-        }
         
 		/*
 		 * employ default log directory if not specified
@@ -627,14 +522,20 @@ public class DuccServiceSubmit extends DuccUi {
 				}
 			}
 		}
-		// tack on "services" to complete logging directory
+
+		// tack on "services" or "processes" to complete logging directory
+        String log_extension = "services";
+        if ( serviceDeploymentType == ServiceDeploymentType.other ) {
+            log_extension = "processes";
+        }
 		if(log_directory.endsWith(File.separator)) {
-			log_directory = log_directory+"services";
+			log_directory = log_directory + log_extension;
 		}
 		else {
-			log_directory = log_directory+File.separator+"services";
+			log_directory = log_directory + File.separator + log_extension;
 		}
 		serviceRequestProperties.setProperty(ServiceRequestProperties.key_log_directory,log_directory);
+
 		/*
 		 * employ default working directory if not specified
 		 */
@@ -651,106 +552,123 @@ public class DuccServiceSubmit extends DuccUi {
 			process_classpath = System.getProperty("java.class.path");
 			serviceRequestProperties.setProperty(ServiceRequestProperties.key_process_classpath,process_classpath);
 		}
-		/*
-		 * employ default process initialization failures cap if not specified
-		 */
-		String process_initialization_failures_cap = serviceRequestProperties.getProperty(ServiceRequestProperties.key_process_initialization_failures_cap);
-		if(process_initialization_failures_cap == null) {
-			serviceRequestProperties.setProperty(ServiceRequestProperties.key_process_initialization_failures_cap,DuccUiConstants.dval_process_initialization_failures_cap);
-		}
-
-// 		/*
-// 		 * employ default process failures limit if not specified
-// 		 */
-// 		String process_failures_limit = serviceRequestProperties.getProperty(ServiceRequestProperties.key_process_failures_limit);
-// 		if(process_failures_limit == null) {
-// 			serviceRequestProperties.setProperty(ServiceRequestProperties.key_process_failures_limit,DuccUiConstants.dval_process_failures_limit);
+		
+// 		if(serviceRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
+// 			serviceDeploymentType = ServiceDeploymentType.custom;
 // 		}
-// 		/*
-// 		 * employ default broker/endpoint if not specified
-// 		 */
-// 		String broker = serviceRequestProperties.getProperty(ServiceRequestProperties.key_service_broker);
-// 		if(broker == null) {
-        //String broker = DuccUiUtilities.buildBrokerUrl();
+// 		else if(serviceRequestProperties.containsKey(ServiceRequestProperties.key_service_type_other)) {
+// 			serviceDeploymentType = ServiceDeploymentType.other;
 // 		}
- 		//if(serviceRequestProperties.containsKey(DuccUiConstants.name_debug)) {
- 		//	System.out.println("broker:"+" "+broker);
- 		//}
+// 		else {
+// 			serviceRequestProperties.put(ServiceRequestProperties.key_service_type_uima, "");
+// 			//serviceDeploymentType = ServiceDeploymentType.uima;
+// 		}
 
-        String service_endpoint = serviceRequestProperties.getProperty(RegistrationOption.ServiceCustomEndpoint.decode());
-        if(service_endpoint == null) {
-            // A null endpoint means it MUST be UimaAs.  Otherwise it's the user's responsibility to
-            // have it set correctly, because really can't tell.
-
-            //
-            // The service endpoint is extracted from the DD. It is for internal use only, not publicly settable or documented.
-            //
-            try {
-                String dd = (String) serviceRequestProperties.get(ServiceRequestProperties.key_process_DD);
-                String wd = (String) serviceRequestProperties.get(ServiceRequestProperties.key_working_directory);
-                //System.err.println("DD: " + dd);
-                //System.err.println("WD: " + wd);
-                //System.err.println("jvmargs: " + jvmarg_string);
-                service_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmargs);
-            } catch ( IllegalArgumentException e ) {
-                duccMessageProcessor.exception(e);
-                duccMessageProcessor.err("Cannot read/process DD descriptor for endpoint: " + e.getMessage());
-                return DuccUiConstants.ERROR;
-            }
-        } else {
-            // If there is an endpoint and it is UIMA-AS then it is used blindly, but might want resolution
-            // If there is an endpoint and it is CUSTOM then it's a custom service which is not yet supported
-
-            if ( service_endpoint.startsWith(ServiceType.Custom.decode()) ) {
-                duccMessageProcessor.out("CUSTOM services are not yet supported for submission.");
-                return DuccUiConstants.ERROR;
-            }
+        try {
+            serviceDeploymentType = getServiceType(serviceRequestProperties);
+        } catch ( Throwable t ) {
+            System.out.println(t.getMessage());
+            return DuccUiConstants.ERROR;
         }
-        serviceRequestProperties.put(ServiceRequestProperties.key_service_request_endpoint, service_endpoint);
- 		if(serviceRequestProperties.containsKey(DuccUiConstants.name_debug)) {
- 			duccMessageProcessor.out("service_endpoint:"+" "+service_endpoint);
- 		}
+        String service_endpoint = serviceRequestProperties.getProperty(RegistrationOption.ServiceRequestEndpoint.decode());
+		switch(serviceDeploymentType) {
+            case uima:
+                serviceRequestProperties.put(ServiceRequestProperties.key_service_type_uima, "");
+                if(service_endpoint == null) {
+                    // A null endpoint means it MUST be UimaAs and we are going to derive it.  Otherwise it's the user's responsibility to
+                    // have it set correctly, because really can't tell.                    
+                    //
+                    // The service endpoint is extracted from the DD. It is for internal use only, not publicly settable or documented.
+                    //
+                    try {
+                        String dd = (String) serviceRequestProperties.get(ServiceRequestProperties.key_process_DD);
+                        String wd = (String) serviceRequestProperties.get(ServiceRequestProperties.key_working_directory);
+                        //System.err.println("DD: " + dd);
+                        //System.err.println("WD: " + wd);
+                        //System.err.println("jvmargs: " + jvmarg_string);
+                        service_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmargs);
+                        serviceRequestProperties.put(ServiceRequestProperties.key_service_request_endpoint, service_endpoint);
+                        if(serviceRequestProperties.containsKey(DuccUiConstants.name_debug)) {
+                            duccMessageProcessor.out("service_endpoint:"+" "+service_endpoint);
+                        }
+                    } catch ( IllegalArgumentException e ) {
+                        duccMessageProcessor.exception(e);
+                        duccMessageProcessor.err("Cannot read/process DD descriptor for endpoint: " + e.getMessage());
+                        return DuccUiConstants.ERROR;
+                    }
+                } else {
+                    serviceRequestProperties.put(ServiceRequestProperties.key_service_request_endpoint, service_endpoint);
+                }
+                break;
 
-		if(serviceRequestProperties.containsKey(DuccUiConstants.name_debug)) {
-			serviceRequestProperties.dump();
-		}
+            case custom:
+                serviceRequestProperties.put(ServiceRequestProperties.key_service_type_custom, "");
+                if ( service_endpoint == null ) {
+                    duccMessageProcessor.err("Missing endpoint for CUSTOM service.");
+                    return DuccUiConstants.ERROR;
+                } else {
+                    serviceRequestProperties.put(ServiceRequestProperties.key_service_request_endpoint, service_endpoint);
+                }
+                break;
+
+            case other:
+                if ( ! verifyPopProperties(serviceRequestProperties) ) {
+                    // called method emits messages
+                    return DuccUiConstants.ERROR;
+                }
+                serviceRequestProperties.put(ServiceRequestProperties.key_service_type_other, "");               
+                break;
+
+            case unspecified:
+                // messages are  emitted in getServiceType
+                return DuccUiConstants.ERROR;
+        }
 
         if ( ! resolve_service_dependencies(service_endpoint, serviceRequestProperties) ) {            
             return DuccUiConstants.ERROR;
         }
+        
+		if(serviceRequestProperties.containsKey(DuccUiConstants.name_debug)) {
+			serviceRequestProperties.dump();
+		}
 
-		/*
-		 * check for required options
-		 */
-		if (missing_required_options(serviceRequestProperties)) {
-			return DuccUiConstants.ERROR;
-		}
-		/*
-		 * check for mutually exclusive options
-		 */
-		if (has_mutually_exclusive_options(serviceRequestProperties)) {
-			return DuccUiConstants.ERROR;
-		}
-		/*
-		 * check for minimum set of options
-		 */
-		if (!has_consumer(serviceRequestProperties)) {
-			return DuccUiConstants.ERROR;
-		}
-		/*
+        // TODO: Need to rework these checks
+        if ( false ) {
+            /*
+             * check for required options
+             */
+            if (missing_required_options(serviceRequestProperties)) {
+                return DuccUiConstants.ERROR;
+            }
+            /*
+             * check for mutually exclusive options
+             */
+            if (has_mutually_exclusive_options(serviceRequestProperties)) {
+                return DuccUiConstants.ERROR;
+            }
+            /*
+             * check for minimum set of options
+             */
+            switch(serviceDeploymentType) {
+            case uima:
+                if (!has_consumer(serviceRequestProperties)) {
+					return DuccUiConstants.ERROR;
+                }
+                break;
+            }
+        }
+	
+        /*
 		 * set DUCC_LD_LIBRARY_PATH in process environment
 		 */
 		if (!DuccUiUtilities.ducc_environment(duccMessageProcessor, serviceRequestProperties, ServiceRequestProperties.key_process_environment)) {
 			return DuccUiConstants.ERROR;
 		}
+
 		/*
-		 * limit total number of threads
+		 * identify invoker
 		 */
-		adjust_max_threads(serviceRequestProperties);
-		/*
-		 * adjust driver and process jvm args
-		 */
-		adjust_jvm_args(serviceRequestProperties);
+		serviceRequestProperties.setProperty(ServiceRequestProperties.key_submitter_pid_at_host, ManagementFactory.getRuntimeMXBean().getName());
 		/*
 		 * send to JM & get reply
 		 */
@@ -886,9 +804,11 @@ public class DuccServiceSubmit extends DuccUi {
 	public static void main(String[] args) {
 		try {
 			DuccServiceSubmit duccServiceSubmit = new DuccServiceSubmit();
-			duccServiceSubmit.run(args);
+			int rc = duccServiceSubmit.run(args);
+            System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {
 			e.printStackTrace();
+            System.exit(1);
 		}
 	}
 	

@@ -276,7 +276,7 @@ public class DuccPerfStats
         System.out.println("   ducc_perf_stats -workitems");
         System.out.println("");
         System.out.println("Format job summary statistics from some log directory and print in CSV:");
-        System.out.println("   ducc_perf_stats -logdir /home/bob/ducc/logs -job 33 -summary -csv");
+        System.out.println("   ducc_perf_stats -directory /home/bob/ducc/logs -job 33 -summary -csv");
         System.out.println("");
         System.out.println("When using CSV, the first line of the job summary stats contains two numbers");
         System.out.println("  numitems numcas");
@@ -367,7 +367,13 @@ public class DuccPerfStats
     protected void formatWorkItems()
     {
         WorkItemStateManager workItemStateManager = new WorkItemStateManager(dir);
-        workItemStateManager.importData();
+        try {
+        	workItemStateManager.importData();
+        }
+        catch(Exception e) {
+        	e.printStackTrace();
+        	return;
+        }
         ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateManager.getMap();
         int namemax = 0;
         int nodemax = 0;
@@ -377,6 +383,7 @@ public class DuccPerfStats
             IWorkItemState iws = map.get(l);
             String id   = iws.getWiId();
             String node = iws.getNode();            
+            if ( node == null ) node = "<unassigned>";
             namemax = Math.max(namemax, id.length());
             nodemax = Math.max(nodemax, node.length());
             items.add(iws);
@@ -407,7 +414,9 @@ public class DuccPerfStats
             String seq  = iws.getSeqNo();
             String id   = iws.getWiId();
             String node = iws.getNode();
+            if ( node == null ) node = "<unassigned>";
             String pid  = iws.getPid();
+            if ( pid == null ) pid = "<n/a>";
             State state = iws.getState();
             long  proctime = iws.getMillisProcessing();
             long  overhead = iws.getMillisOverhead();
@@ -511,6 +520,7 @@ public class DuccPerfStats
 
         DuccPerfStats dfs = new DuccPerfStats();
         dfs.run(args);
+        System.exit(0);
     }
 
 
@@ -629,7 +639,9 @@ public class DuccPerfStats
         public int compare(IWorkItemState a, IWorkItemState b)
         {
             String aa = a.getNode();
+            if ( aa == null ) aa = "<unassigned>";
             String bb = b.getNode();
+            if ( bb == null ) bb = "<unassigned>";
             return aa.compareTo(bb);
         }
     }
@@ -639,8 +651,13 @@ public class DuccPerfStats
     {
         public int compare(IWorkItemState a, IWorkItemState b)
         {
-            long apid = Long.parseLong(a.getPid());
-            long bpid = Long.parseLong(b.getPid());
+            String aspid = a.getPid();
+            String bspid = b.getPid();
+            if ( aspid == null ) aspid = "<n/a>";
+            if ( bspid == null ) bspid = "<n/a>";
+
+            long apid = Long.parseLong(aspid);
+            long bpid = Long.parseLong(bspid);
             return  (int)(apid - bpid);
         }
     }

@@ -212,9 +212,11 @@ public class DuccReservationCancel extends DuccUi {
 	public static void main(String[] args) {
 		try {
 			DuccReservationCancel duccReservationCancel = new DuccReservationCancel();
-			duccReservationCancel.run(args);
+			int rc = duccReservationCancel.run(args);
+            System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {
 			e.printStackTrace();
+            System.exit(1);
 		}
 	}
 	

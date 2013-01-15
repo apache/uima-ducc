@@ -211,9 +211,11 @@ public class DuccJobCancel extends DuccUi {
 	public static void main(String[] args) {
 		try {
 			DuccJobCancel duccJobCancel = new DuccJobCancel();
-			duccJobCancel.run(args);
+			int rc = duccJobCancel.run(args);
+            System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {
 			e.printStackTrace();
+            System.exit(1);
 		}
 	}
 	

@@ -20,6 +20,7 @@ package org.apache.uima.ducc.cli;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
@@ -51,8 +52,9 @@ import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 
 public class DuccReservationSubmit extends DuccUi {
 	
-	private String[] hosts;
 	private IDuccMessageProcessor duccMessageProcessor = new DuccMessage();
+	private String nodeList = "";
+	private String reservationId = "";
 	
 	public DuccReservationSubmit() {
 	}
@@ -127,7 +129,6 @@ public class DuccReservationSubmit extends DuccUi {
 			addOptions(options);
 			CommandLineParser parser = new PosixParser();
 			CommandLine commandLine = parser.parse(options, args);
-			this.hosts = new String[0];
 	
 			/*
 			 * give help & exit when requested
@@ -216,6 +217,10 @@ public class DuccReservationSubmit extends DuccUi {
 				     ;
 		}
 		/*
+		 * identify invoker
+		 */
+		reservationRequestProperties.setProperty(ReservationRequestProperties.key_submitter_pid_at_host, ManagementFactory.getRuntimeMXBean().getName());
+		/*
 		 * send to Orchestrator & get reply
 		 */
 //		CamelContext context = new DefaultCamelContext();
@@ -285,54 +290,39 @@ public class DuccReservationSubmit extends DuccUi {
         	return DuccUiConstants.ERROR;
         }
         else {
-        	String reservationId = submitReservationReplyDuccEvent.getProperties().getProperty(ReservationRequestProperties.key_id);
+        	reservationId = submitReservationReplyDuccEvent.getProperties().getProperty(ReservationRequestProperties.key_id);
+        	nodeList = submitReservationReplyDuccEvent.getProperties().getProperty(ReservationRequestProperties.key_node_list);
         	duccMessageProcessor.out("Reservation"+" "+reservationId+" "+"submitted");
-        	String nodeList = submitReservationReplyDuccEvent.getProperties().getProperty(ReservationRequestProperties.key_node_list);
-            String[] nodes = nodeList.split(";");
-        	this.hosts = new String[nodes.length];
-            int nodeindex = 0;
-            StringBuffer sb = new StringBuffer();
-            StringBuffer nb = new StringBuffer();
-            for ( String node: nodes ) {
-                int ndx = node.indexOf(".");
-                if ( ndx >= 0 ) {
-                    node = node.substring(0, ndx).trim();
-                }
-                hosts[nodeindex++] = node;
-                sb.append(node);
-                sb.append(" ");
-                if(node.contains("[") && node.contains("]")) {
-                	String nodeOnly = node.substring(0,node.indexOf("["));
-                	nb.append(nodeOnly.trim());
-                }
-                else {
-                	nb.append(node);
-                }
-                nb.append(" ");
-            }
-            duccMessageProcessor.out("nodes: " + nb.toString().trim());
+        	boolean success = nodeList.trim().length() > 0;
+        	if(success) {
+        		duccMessageProcessor.out("resID = "+reservationId);
+        		duccMessageProcessor.out("nodes: "+nodeList);
+        	}
+        	else {
+        		duccMessageProcessor.out("Resources Unavailable");
+        	}
             return new Integer(reservationId);
         }
 	}
 	
+	@Deprecated
+	public String getReservationId() {
+		  return this.reservationId;
+	}
+	
+	@Deprecated
 	public String[] getHosts() {
-	  return this.hosts;
+		  return this.nodeList.split(" ");
 	}
 	
 	public static void main(String[] args) {
 		try {
 			DuccReservationSubmit duccReservationSubmit = new DuccReservationSubmit();
-			int resid = duccReservationSubmit.run(args);
-			System.out.println("resID = "+resid);
-			if (duccReservationSubmit.getHosts().length == 0) {
-			  System.out.println("No hosts returned");
-			} else {
-			  for (String h : duccReservationSubmit.getHosts()) {
-                  System.out.println(h.trim());
-			  }
-			}
+			int rc = duccReservationSubmit.run(args);
+            System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {
 			e.printStackTrace();
+            System.exit(1);
 		}
 	}
 	

@@ -206,7 +206,7 @@ public class DuccJobMonitor extends DuccUi implements DuccEventDelegateListener 
 		try {
 			int intValue1 = Integer.parseInt(v1);
 			int intValue2 = Integer.parseInt(v2);
-			if(intValue1 > 0) {
+			if(intValue1 >= 0) {
 				if(intValue1 == intValue2) {
 					retVal = true;
 				}
@@ -287,6 +287,7 @@ public class DuccJobMonitor extends DuccUi implements DuccEventDelegateListener 
 		}
 	}
 	
+	@Override
 	public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
 		throw new RuntimeException();
 	}
@@ -529,9 +530,11 @@ public class DuccJobMonitor extends DuccUi implements DuccEventDelegateListener 
 	public static void main(String[] args) {
 		try {
 			DuccJobMonitor duccJobMonitor = new DuccJobMonitor();
-			duccJobMonitor.run(args);
+			int rc = duccJobMonitor.run(args);
+            System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {
 			e.printStackTrace();
+            System.exit(1);
 		}
 		return;
 	}

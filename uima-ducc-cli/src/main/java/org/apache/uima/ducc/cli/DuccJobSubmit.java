@@ -21,13 +21,19 @@ package org.apache.uima.ducc.cli;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -41,6 +47,7 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.api.DuccMessage;
 import org.apache.uima.ducc.api.IDuccMessageProcessor;
 import org.apache.uima.ducc.common.IDucc;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -61,14 +68,136 @@ import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 public class DuccJobSubmit extends DuccUi {
 	
 	private IDuccMessageProcessor duccMessageProcessor = new DuccMessage();
-	
+
+    private int          console_listener_port;
+    private String       console_host_address;
+
+    ConsoleListener      console_listener = null;
+
 	public DuccJobSubmit() {
 	}
 	
 	public DuccJobSubmit(IDuccMessageProcessor duccMessageProcessor) {
 		this.duccMessageProcessor = duccMessageProcessor;
 	}
-	
+
+    protected void start_console_listener()
+    	throws Throwable
+    {
+    	console_listener = new ConsoleListener(this);
+        incrementWaitCounter();
+        Thread t = new Thread(console_listener);
+        t.start();
+    }
+
+    private void set_console_port(Properties props, String key)
+    {
+        if ( key != null ) {        
+            String envval = "DUCC_CONSOLE_LISTENER";
+            String env = props.getProperty(key);            
+            // Set the host:port for the console listener into the env
+            String console_address = console_host_address + ":" + console_listener_port;
+            String dp = envval + "=" + console_address;
+            env = env + " " + dp;
+            props.setProperty(key, env);
+        }
+    }
+
+    private void set_debug_parms(Properties props, String key, int port)
+    {
+        String debug_address = console_host_address + ":" + port;
+        String jvmargs = props.getProperty(key);
+        jvmargs = jvmargs + " -Xdebug";
+        jvmargs = jvmargs + " -Xrunjdwp:transport=dt_socket,address=" + debug_address;            
+        props.put(key, jvmargs);
+    }
+
+    protected void enrich_parameters_for_debug(Properties props)
+        throws Exception
+    {
+        
+        NodeIdentity ni = new NodeIdentity();
+        console_host_address = ni.getIp();            
+
+        try {        
+            int jp_debug_port = -1;
+            int jd_debug_port = -2;       // a trick, must be different from jp_debug_port; see below
+
+            // we allow both jd and jp to debug, but the ports have to differ
+            if ( props.containsKey(DuccUiConstants.name_process_debug) ) {
+                jp_debug_port = Integer.parseInt(props.getProperty(DuccUiConstants.name_process_debug));
+                set_debug_parms(props, JobRequestProperties.key_process_jvm_args, jp_debug_port);
+            }
+
+            if ( props.containsKey(DuccUiConstants.name_driver_debug) ) {
+                jd_debug_port = Integer.parseInt(props.getProperty(DuccUiConstants.name_driver_debug));
+                set_debug_parms(props, JobRequestProperties.key_driver_jvm_args, jd_debug_port);
+            }
+            
+            if ( jp_debug_port == jd_debug_port ) {
+                throw new IllegalArgumentException("Process and Driver debug ports must differ.");
+            }
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid debug port (not numeric)");
+        }
+
+
+        boolean console_attach =
+            props.containsKey(DuccUiConstants.name_process_attach_console) ||
+            props.containsKey(DuccUiConstants.name_driver_attach_console);
+
+        if ( console_attach ) {
+            try {
+                start_console_listener();            
+            } catch ( Throwable t ) {
+                throw new IllegalStateException("Cannot start console listener.  Reason:" + t.getMessage());
+            }
+		}
+
+		if ( props.containsKey(DuccUiConstants.name_process_attach_console) ) {
+            set_console_port(props, DuccUiConstants.name_process_environment);
+        } 
+
+        if (props.containsKey(DuccUiConstants.name_driver_attach_console) ) {
+            set_console_port(props, DuccUiConstants.name_driver_environment);
+        } 
+
+    }
+
+    // wait_count is the number of notifications I have to wait for before exiting
+    // - one if a console listener is started; the listener will notify when done
+    // - one if a monitor is started, the monitor will notify when done
+    //
+    // If a console listener is started a monitor is also started, so the count is 2
+    // in that case.
+    private int wait_count = 0;
+    private int waitRc = 0;
+    private synchronized int waitForCompletion()
+    {
+        try {
+            while ( wait_count > 0 ) {
+                System.out.println("----------- WAITING " + wait_count + "--------------");
+                wait();
+            }
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return waitRc;
+    }
+
+    private synchronized void incrementWaitCounter()
+    {
+        wait_count++;
+    }
+
+    private synchronized void releaseWait(int rc)
+    {
+        waitRc = Math.max(waitRc, rc);
+        wait_count--;
+        notify();
+    }
+
 	@SuppressWarnings("static-access")
 	private void addOptions(Options options) {
 		options.addOption(OptionBuilder
@@ -77,6 +206,25 @@ public class DuccJobSubmit extends DuccUi {
 		options.addOption(OptionBuilder
 				.withDescription(DuccUiConstants.desc_debug).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_debug).create());
+
+        // Remote console/debug
+		options.addOption(OptionBuilder
+				.withDescription(DuccUiConstants.desc_process_debug).hasArg(true)
+				.withLongOpt(DuccUiConstants.name_process_debug).create());
+
+		options.addOption(OptionBuilder
+				.withDescription(DuccUiConstants.desc_process_attach_console).hasArg(false)
+				.withLongOpt(DuccUiConstants.name_process_attach_console).create());
+
+		options.addOption(OptionBuilder
+				.withDescription(DuccUiConstants.desc_driver_debug).hasArg(true)
+				.withLongOpt(DuccUiConstants.name_driver_debug).create());
+
+		options.addOption(OptionBuilder
+				.withDescription(DuccUiConstants.desc_driver_attach_console).hasArg(false)
+				.withLongOpt(DuccUiConstants.name_driver_attach_console).create());
+        // End remote console/ debug
+
 		options.addOption(OptionBuilder
 				.withDescription(DuccUiConstants.desc_timestamp).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_timestamp).create());
@@ -604,6 +752,14 @@ public class DuccJobSubmit extends DuccUi {
 				jobRequestProperties.setProperty(name, value);
 			}
 		}
+        
+        try {
+			enrich_parameters_for_debug(jobRequestProperties);
+        } catch (Exception e1) {
+            System.out.println(e1.getMessage());
+            return DuccUiConstants.ERROR;
+		}
+
 		/*
 		 * employ default log directory if not specified
 		 */
@@ -812,31 +968,15 @@ public class DuccJobSubmit extends DuccUi {
         	jobId = submitJobReplyDuccEvent.getProperties().getProperty(JobRequestProperties.key_id);
         	saveJobSpec(jobId, jobRequestProperties);
         	duccMessageProcessor.out("Job"+" "+jobId+" "+"submitted");
-        	if(jobRequestProperties.containsKey(DuccUiConstants.name_wait_for_completion)) {
-        		try {
-        			ArrayList<String> arrayList = new ArrayList<String>();
-        			arrayList.add("--"+DuccUiConstants.name_job_id);
-        			arrayList.add(jobId);
-        			arrayList.add("--"+DuccUiConstants.name_service_broker);
-        			arrayList.add(broker);
-        			if(jobRequestProperties.containsKey(DuccUiConstants.name_debug)) {
-        				arrayList.add("--"+DuccUiConstants.name_debug);
-        			}
-        			if(jobRequestProperties.containsKey(DuccUiConstants.name_timestamp)) {
-        				arrayList.add("--"+DuccUiConstants.name_timestamp);
-        			}
-        			if(jobRequestProperties.containsKey(DuccUiConstants.name_submit_cancel_job_on_interrupt)) {
-        				arrayList.add("--"+DuccUiConstants.name_monitor_cancel_job_on_interrupt);
-        			}
-        			String[] argList = arrayList.toArray(new String[0]);
-        			DuccJobMonitor duccJobMonitor = new DuccJobMonitor(this.duccMessageProcessor);
-        			retVal = duccJobMonitor.run(argList);
-        		} catch (Exception e) {
-        			duccMessageProcessor.exception(e);
-        			retVal = DuccUiConstants.ERROR;
-        		}
-        	}
+
+            if(jobRequestProperties.containsKey(DuccUiConstants.name_wait_for_completion) || ( console_listener != null) ) {
+                incrementWaitCounter();
+                MonitorListener ml = new MonitorListener(this, jobId, broker, jobRequestProperties);                
+                Thread mlt = new Thread(ml);  //MonitorListenerThread
+                mlt.start();
+            }
         }
+        retVal = waitForCompletion();
 		return retVal;
 	}
 	
@@ -870,10 +1010,229 @@ public class DuccJobSubmit extends DuccUi {
 	public static void main(String[] args) {
 		try {
 			DuccJobSubmit duccJobSubmit = new DuccJobSubmit();
-			duccJobSubmit.run(args);
+			int rc = duccJobSubmit.run(args);
+            System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {
 			e.printStackTrace();
+            System.exit(1);
 		}
 	}
-	
+
+    class StdioListener
+        implements Runnable
+    {
+        Socket sock;
+        InputStream is;
+        boolean done = false;
+        ConsoleListener cl;
+        String remote_host;
+        String leader;
+
+        StdioListener(Socket sock, ConsoleListener cl)
+        {
+            this.sock = sock;
+            this.cl = cl;
+
+            InetAddress ia = sock.getInetAddress();
+            remote_host = ia.getHostName();
+            System.out.println("===== Listener starting: " + remote_host + ":" + sock.getPort());
+            int ndx = remote_host.indexOf('.');
+            if ( ndx >= 0 ) {
+                // this is just for console decoration, keep it short, who cares about the domain
+                remote_host = remote_host.substring(0, ndx);
+            }
+            leader = "[" + remote_host + "] ";
+        }
+
+        public void close()
+        	throws Throwable
+        {
+            System.out.println("===== Listener completing: " + remote_host + ":" + sock.getPort());
+        	this.done = true;
+        	is.close();
+            cl.delete(sock.getPort());
+        }
+
+        /**
+         * We received a buffer of bytes that needs to be put into a string and printed.  We want
+         * to split along \n boundaries so we can insert the host name at the start of every line.
+         *
+         * Simple, except that the end of the buffer may not be \n, instead it could be the
+         * start of another line.
+         *
+         * We want to save the partial lines as the start of the next line so they can all be
+         * printed all nicely.
+         */
+        String partial = null;
+        public void printlines(byte[] buf, int count)
+        {
+            String tmp = new String(buf, 0, count);
+            String[] lines = tmp.split("\n");
+            int len = lines.length - 1;
+            if ( len < 0 ) {
+                // this is a lone linend.  Spew the partial if it exists and just return.
+                if ( partial != null ) {
+                    System.out.println(leader + partial);
+                    partial = null;
+                }
+                return;
+            }
+
+
+            if ( partial != null ) {
+                // some leftover, it's the start of the first line of the new buffer.
+                lines[0] = partial + lines[0];
+                partial = null;
+            }
+
+            for ( int i = 0; i < len; i++ ) {
+                // spew everything but the last line
+                System.out.println(leader + lines[i]);
+            }
+
+            if ( tmp.endsWith("\n") ) {
+                // if the last line ends with linend, there is no partial, just spew
+                System.out.println(leader + lines[len]);
+                partial = null;
+            } else {
+                // otherwise, wait for the next buffer
+                partial = lines[len];
+            }
+        }
+
+        public void run()
+        {            
+            byte[] buf = new byte[4096];
+            try {
+				is = sock.getInputStream();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return;
+			}
+            
+            try {
+                int count = 0;
+                while ( (count = is.read(buf)) > 0 ) {
+                    printlines(buf, count);
+                }
+                System.out.println(leader + "EOF:  exiting");
+            } catch ( Throwable t ) {
+                t.printStackTrace();
+            }
+            try {
+				close();
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+    }
+
+    class ConsoleListener
+        implements Runnable
+    {
+        ServerSocket sock;
+        DuccJobSubmit submit;
+        Map<Integer, StdioListener> listeners = new HashMap<Integer, StdioListener>();
+
+        ConsoleListener(DuccJobSubmit submit)
+        	throws Throwable
+        {
+        	this.submit = submit;
+            sock = new ServerSocket(0);
+            console_listener_port  = sock.getLocalPort();
+        }
+
+        void shutdown()
+        {
+            try {
+				sock.close();
+				for ( StdioListener sl : listeners.values() ) {
+				    sl.close();
+				}
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+        }
+
+        void delete(int port)
+        {
+            listeners.remove(port);
+            if ( listeners.size() == 0 ) {
+                synchronized(submit) {
+                    submit.releaseWait(0);
+                }
+                shutdown();
+            }
+        }
+
+        public void run()
+        {
+            System.out.println("Listening on " + console_host_address + " " + console_listener_port);
+
+            while ( true ) {
+            	try {                    
+                    Socket s = sock.accept();
+                    StdioListener sl = new StdioListener(s, this);
+                    int p = s.getPort();
+                    listeners.put(p, sl);
+
+                    Thread t = new Thread(sl);
+                    t.start();                
+                } catch (Throwable t) {
+                    shutdown();
+                    return;
+                }
+            }
+        }
+
+    }
+
+    class MonitorListener
+        implements Runnable
+    {
+        DuccJobSubmit djs = null;
+        String jobId = null;
+        String broker = null;
+        JobRequestProperties jobRequestProperties = null;
+
+        MonitorListener(DuccJobSubmit djs, String jobId, String broker, JobRequestProperties props)
+        {
+            this.djs = djs;
+            this.jobId = jobId;
+            this.broker = broker;
+            this.jobRequestProperties = props;
+        }
+
+        public void run()
+        {
+            int retVal = 0;
+            try {
+                ArrayList<String> arrayList = new ArrayList<String>();
+                arrayList.add("--"+DuccUiConstants.name_job_id);
+                arrayList.add(jobId);
+                arrayList.add("--"+DuccUiConstants.name_service_broker);
+                arrayList.add(broker);
+                if(jobRequestProperties.containsKey(DuccUiConstants.name_debug)) {
+                    arrayList.add("--"+DuccUiConstants.name_debug);
+                }
+                if(jobRequestProperties.containsKey(DuccUiConstants.name_timestamp)) {
+                    arrayList.add("--"+DuccUiConstants.name_timestamp);
+                }
+                if(jobRequestProperties.containsKey(DuccUiConstants.name_submit_cancel_job_on_interrupt)) {
+                    arrayList.add("--"+DuccUiConstants.name_monitor_cancel_job_on_interrupt);
+                }
+                String[] argList = arrayList.toArray(new String[0]);
+                DuccJobMonitor duccJobMonitor = new DuccJobMonitor(duccMessageProcessor);
+                retVal = duccJobMonitor.run(argList);
+            } catch (Exception e) {
+                duccMessageProcessor.exception(e);
+                retVal = DuccUiConstants.ERROR;
+            }
+            synchronized(djs) {
+                djs.releaseWait(retVal);
+            }
+        }
+    }
 }

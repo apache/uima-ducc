@@ -60,9 +60,9 @@ public class DuccServiceCancel extends DuccUi {
 				.withDescription(DuccUiConstants.desc_help).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_help).create());
 		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_job_id)
-				.withDescription(makeDesc(DuccUiConstants.desc_job_id,DuccUiConstants.exmp_job_id)).hasArg()
-				.withLongOpt(DuccUiConstants.name_job_id).create());
+				.withArgName(DuccUiConstants.parm_service_id)
+				.withDescription(makeDesc(DuccUiConstants.desc_service_id,DuccUiConstants.exmp_service_id)).hasArg()
+				.withLongOpt(DuccUiConstants.name_service_id).create());
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_service_broker)
 				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()
@@ -211,9 +211,11 @@ public class DuccServiceCancel extends DuccUi {
 	public static void main(String[] args) {
 		try {
 			DuccServiceCancel duccServiceCancel = new DuccServiceCancel();
-			duccServiceCancel.run(args);
+			int rc = duccServiceCancel.run(args);
+            System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {
 			e.printStackTrace();
+            System.exit(1);
 		}
 	}
 	

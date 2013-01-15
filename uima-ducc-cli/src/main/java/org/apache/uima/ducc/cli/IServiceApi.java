@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.cli;
 
+import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+
 /**
  * These are the constants supported by the 'not-using-a-props-file' form of registration in DuccServiceApi.
  * 
@@ -33,8 +35,46 @@ public interface IServiceApi
     // description() is a short description of the option for the commons cli parser
     // argname()     is a name for the argument for the usage() part of cli parser
     //
+
+    public enum ClasspathOrderParms
+    {    	    	
+        UserBeforeDucc   { 
+            public String decode()      { return DuccUiConstants.classpath_order_user_before_ducc; } 
+            public String description() { return "Start process with uer's classpath ahead of DUCC's"; }
+            public String argname()     { return "none"; }
+        },
+        DuccBeforeUser   { 
+            public String decode()      { return DuccUiConstants.classpath_order_ducc_before_user; } 
+            public String description() { return "Start process with DUCC's classpath ahead of user's"; }
+            public String argname()     { return "none"; }
+        },
+        Unknown {
+            public String decode()      { return "unknown"; }
+            public String description() { return "Illegal argument"; }
+            public String argname()     { return "none"; }
+        },
+        ;
+
+        public abstract String decode();
+        public abstract String description();
+        public abstract String argname();
+
+        public static ClasspathOrderParms  encode(String value)
+        {
+            if ( value.equals(UserBeforeDucc.decode()) )  return UserBeforeDucc;
+            if ( value.equals(DuccBeforeUser.decode()) )  return DuccBeforeUser;
+            return Unknown;
+        }
+   };
+
     public enum RegistrationOption
     {
+        ClasspathOrder { 
+            public String decode()      { return "classpath_order"; }
+            public String description() { return "Specify user-supplied classpath before DUCC-supplied classpath, or the reverse."; }
+            public String argname()     { return ClasspathOrderParms.UserBeforeDucc.decode() + " or " + ClasspathOrderParms.DuccBeforeUser.decode(); }
+        },            
+
         Description { 
             public String decode()      { return "description"; }
             public String description() { return "Description of the run"; }
@@ -83,28 +123,40 @@ public interface IServiceApi
             public String argname()     { return "scheduling-class"; }
         },            
 
-        ServiceCustomPing { 
-            public String decode()      { return "service_custom_ping"; }
-            public String description() { return "Class to ping custom service, must extend AServicePing.java"; }
-            public String argname()     { return "classname"; }
-        },            
-
-        ServiceCustomEndpoint { 
-            public String decode()      { return "service_custom_endpoint"; }
-            public String description() { return "Unique id for this service, starting with CUSTOM:"; }
+        ServiceRequestEndpoint { 
+            public String decode()      { return ServiceRequestProperties.key_service_request_endpoint; }
+            public String description() { return "Unique id for this service. Usually inferred for UIMA-AS services."; }
             public String argname()     { return "string"; }
         },            
 
-        ServiceCustomClasspath { 
-            public String decode()      { return "service_custom_classpath"; }
+        ServicePingClass { 
+            public String decode()      { return "service_ping_class"; }
+            public String description() { return "Class to ping ervice, must extend AServicePing.java"; }
+            public String argname()     { return "classname"; }
+        },            
+
+        ServicePingClasspath { 
+            public String decode()      { return "service_ping_classpath"; }
             public String description() { return "Classpath containing service_custom_ping class and dependencies."; }
             public String argname()     { return "classpath"; }
         },            
 
-        ServiceCustomJvmArgs { 
-            public String decode()      { return "service_custom_jvm_args"; }
+        ServicePingJvmArgs { 
+            public String decode()      { return "service_ping_jvm_args"; }
             public String description() { return "-D jvm system property assignments to pass to jvm"; }
             public String argname()     { return "java-system-property-assignments"; }
+        },            
+
+        ServicePingTimeout { 
+            public String decode()      { return "service_ping_timeout"; }
+            public String description() { return "Time in milliseconds to wait for a ping to the service."; }
+            public String argname()     { return "time-in-ms"; }
+        },            
+
+        ServicePingDoLog { 
+            public String decode()      { return "service_ping_do_log"; }
+            public String description() { return "If specified, log the pinger, else suppress the log."; }
+            public String argname()     { return "none"; }
         },            
 
         WorkingDirectory { 
@@ -163,19 +215,20 @@ public interface IServiceApi
 
         public static RegistrationOption  encode(String value)
         {
-            if ( value.equals("description") )            return Description;
-            if ( value.equals("process_DD") )             return ProcessDD;
-            if ( value.equals("process_memory_size") )    return ProcessMemorySize;
-            if ( value.equals("process_classpath") )      return ProcessClasspath;
-            if ( value.equals("process_jvm_args") )       return ProcessJvmArgs;
-            if ( value.equals("process_environment") )    return ProcessEnvironment;
-            if ( value.equals("process_failures_limit") ) return ProcessFailuresLimit;
-            if ( value.equals("scheduling_class") )       return SchedulingClass;
-            if ( value.equals("working_directory") )      return WorkingDirectory;
-            if ( value.equals("log_directory") )          return LogDirectory;
-            if ( value.equals("jvm") )                    return Jvm;
-            if ( value.equals("service_dependency") )     return ServiceDependency;
-            if ( value.equals("service_linger") )         return ServiceDependency;
+            if ( value.equals(Description.decode()) )          return Description;
+            if ( value.equals(ProcessDD.decode()) )            return ProcessDD;
+            if ( value.equals(ProcessMemorySize.decode()) )    return ProcessMemorySize;
+            if ( value.equals(ProcessClasspath.decode()) )     return ProcessClasspath;
+            if ( value.equals(ProcessJvmArgs.decode()) )       return ProcessJvmArgs;
+            if ( value.equals(ProcessEnvironment.decode()) )   return ProcessEnvironment;
+            if ( value.equals(ProcessFailuresLimit.decode()) ) return ProcessFailuresLimit;
+            if ( value.equals(SchedulingClass.decode()) )      return SchedulingClass;
+            if ( value.equals(WorkingDirectory.decode()) )     return WorkingDirectory;
+            if ( value.equals(LogDirectory.decode()) )         return LogDirectory;
+            if ( value.equals(ClasspathOrder.decode()) )       return ClasspathOrder;
+            if ( value.equals(Jvm.decode()) )                  return Jvm;
+            if ( value.equals(ServiceDependency.decode()) )    return ServiceDependency;
+            if ( value.equals(ServiceDependency.decode()) )    return ServiceDependency;
             return Unknown;
         }
 
@@ -209,7 +262,7 @@ public interface IServiceApi
 
         Update     { 
             public String decode()      { return "update"; } 
-            public String description() { return "Update registry with start or stap."; } 
+            public String description() { return "Update registry with start or stop."; } 
             public String argname()     { return "none"; } 
         },
 
@@ -226,11 +279,11 @@ public interface IServiceApi
 
         public static ServiceOptions encode(String value)
         {
-            if ( value.equals("activate") )     return Activate;
-            if ( value.equals("autostart") )    return Autostart;
-            if ( value.equals("instances") )    return Instances;
-            if ( value.equals("monitor-port") ) return MonitorPort;
-            if ( value.equals("update") )       return Update;
+            if ( value.equals(Activate.decode()) )    return Activate;
+            if ( value.equals(Autostart.decode()) )   return Autostart;
+            if ( value.equals(Instances.decode()) )   return Instances;
+            if ( value.equals(MonitorPort.decode()) ) return MonitorPort;
+            if ( value.equals(Update.decode()) )      return Update;
 
             return Unknown;
         }

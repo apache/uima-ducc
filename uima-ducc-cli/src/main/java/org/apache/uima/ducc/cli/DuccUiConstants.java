@@ -23,6 +23,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
+import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 
 
 public class DuccUiConstants {
@@ -56,7 +57,33 @@ public class DuccUiConstants {
 	public static final String labl_debug = "Debug";
 	public static final String exmp_debug = "";
 	public static final String dval_debug = null;
-	
+
+    // Remote debug and console support
+	public static final String name_process_debug = JobRequestProperties.key_process_debug;
+	public static final String desc_process_debug = "Start remote Job Process in Eclipse debug mode.";
+	public static final String labl_process_debug = "ProcessDebug";
+	public static final String exmp_process_debug = "";
+	public static final String dval_process_debug = null;
+
+	public static final String name_driver_debug = JobRequestProperties.key_driver_debug;
+	public static final String desc_driver_debug = "Start remote Job Driver in Eclipse debug mode.";
+	public static final String labl_driver_debug = "DriverDebug";
+	public static final String exmp_driver_debug = "";
+	public static final String dval_driver_debug = null;
+
+	public static final String name_process_attach_console = JobRequestProperties.key_process_attach_console;
+	public static final String desc_process_attach_console = "Direct remote Job Process console to the local console.";
+	public static final String labl_process_attach_console = "ProcessAttachConsole";
+	public static final String exmp_process_attach_console = "";
+	public static final String dval_process_attach_console = null;
+
+	public static final String name_driver_attach_console = JobRequestProperties.key_driver_attach_console;
+	public static final String desc_driver_attach_console = "Direct remote Job Driver console to the local console.";
+	public static final String labl_driver_attach_console = "DriverAttachConsole";
+	public static final String exmp_driver_attach_console = "";
+	public static final String dval_driver_attach_console = null;
+	// End remote debug and console support
+
 	public static final String name_service_broker = JobRequestProperties.key_service_broker;
 	public static final String parm_service_broker = "address";
 	public static final String desc_service_broker = "Service broker.";
@@ -92,6 +119,14 @@ public class DuccUiConstants {
 	public static final String labl_reservation_id = "Reservation Id";
 	public static final String exmp_reservation_id = "1234";
 	public static final String dval_reservation_id = null;
+
+	public static final String name_service_id = JobRequestProperties.key_id;
+	public static final String parm_service_id = "number";
+	public static final String desc_service_id = "Service Id.";
+	public static final String labl_service_id = "Service Id";
+	public static final String exmp_service_id = "4321";
+	public static final String dval_service_id = null;
+	
 	
 	/* 
 	 * submit common
@@ -383,6 +418,27 @@ public class DuccUiConstants {
 	public static final String labl_service = null;
 	public static final String exmp_service = null;
 	public static final String dval_service = null;
+	
+	public static final String name_service_type_uima = ServiceRequestProperties.key_service_type_uima; // default
+	public static final String parm_service_type_uima = null;
+	public static final String desc_service_type_uima = "UIMA service type.";
+	public static final String labl_service_type_uima = null;
+	public static final String exmp_service_type_uima = null;
+	public static final String dval_service_type_uima = null;
+	
+	public static final String name_service_type_custom = ServiceRequestProperties.key_service_type_custom;
+	public static final String parm_service_type_custom = null;
+	public static final String desc_service_type_custom = "custom service type.";
+	public static final String labl_service_type_custom = null;
+	public static final String exmp_service_type_custom = null;
+	public static final String dval_service_type_custom = null;
+	
+	public static final String name_service_type_other = ServiceRequestProperties.key_service_type_other;
+	public static final String parm_service_type_other = null;
+	public static final String desc_service_type_other = "other service type.";
+	public static final String labl_service_type_other = null;
+	public static final String exmp_service_type_other = null;
+	public static final String dval_service_type_other = null;
 	
 	/* 
 	 * submit Reservation
