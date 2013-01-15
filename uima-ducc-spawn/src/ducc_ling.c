@@ -36,7 +36,11 @@
 #include <sys/param.h>
 #include <sys/resource.h>
 
-#define VERSION "0.6.4"
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+
+#define VERSION "0.7.2"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -44,7 +48,10 @@
  * 2012-05-13 0.6.1 Update for MAC getpwnam() bug jrc.
  * 2012-05-13 0.6.2 Update to change group as well as userid. jrc.
  * 2012-07-12 0.6.3 RLIMIT_CORE support. jrc
- * 2012-10-04 0.6.4 renice. jrc
+ * 2012-10-04 0.6.4 Renice. jrc
+ * 2012-10-26 0.7.0 Redirect stdio to socket (and match DUCC version). jrc
+ * 2013-01-04 0.7.1 Skipped so i can match with DUCC level. jrc
+ * 2012-10-26 0.7.2 Print local port when redirecting, and match DUCC level. jrc
  */
 
 /**
@@ -318,6 +325,122 @@ void renice()
 }
 #endif
 
+void redirect_to_file(char *filepath)
+{
+    char buf[BUFLEN];
+    char *logfile = mklogfile(filepath);
+    if ( logfile == NULL ) exit(1);                 // mklogdir creates sufficient erro rmessages
+        
+    //snprintf(buf, STRLEN, "%s/%s-%d.log", logdir, log, getpid());
+    //buf[STRLEN] = '\0';
+        
+    fprintf(stdout, "1200 Redirecting stdout and stderr to %s as uid %d euid %d\n", logfile, getuid(), geteuid());
+
+    fflush(stdout);
+    fflush(stderr);
+
+    // do we want apend or trunc?
+    int fd = open(logfile, O_CREAT + O_WRONLY + O_TRUNC, 0644);
+    // dup stdout and stderr into the log file
+    if ( fd >= 0 ) {
+        int rc1 = dup2(fd, 1);
+        int rc2 = dup2(fd, 2);
+    } else {
+        snprintf(buf, STRLEN, "1300 cannot open file %s", logfile);
+        buf[STRLEN] = '\0';
+        perror(buf);
+        exit(1);
+    }
+
+    version();             // this gets echoed into the redirected log
+}
+
+/**
+ * There is a console listener out in the world somewhere (like an eclipse
+ * session with DuccJobSubmit listening to the console).  Connect stdio to that
+ * instead of a file.
+ */
+void redirect_to_socket(char *sockloc)
+{
+    int sock;
+    int port;
+    char *hostname;
+    char *portname;
+    char * colon;
+    char buf[BUFLEN];
+
+    colon = strchr(sockloc, ':');
+    if ( colon == NULL ) {
+        fprintf(stderr, "1700 invalid socket, missing port: %s\n", sockloc);
+        exit(1);
+    }
+    portname = colon+1;
+    *colon = '\0';
+    hostname = sockloc;
+    fprintf(stdout, "1701 host[%s] port[%s]\n", hostname, portname);
+
+    char *en = 0;
+    long lport = strtol(portname, &en, 10);
+    if ( *en ) {
+        fprintf(stderr, "1702 Port[%s] is not numeric.\n", portname);
+        exit(1);
+    }
+    port = lport;
+
+    //
+    // Note that we require an ip so we can avoid all resolution issues.  The assumption
+    // is that socket redirection is requested from DuccJobSubmit which will only
+    // use the IP.
+    //
+    struct in_addr ip;
+    struct hostent *hp;    
+    if (!inet_aton(hostname, &ip)) {
+        fprintf(stderr, "1703 Can't parse IP address %s\n", hostname);
+        exit(1);
+    }
+    fprintf(stdout, "1704 addr: %x\n", ip);
+
+    if ((hp = gethostbyaddr((const void *)&ip, sizeof ip, AF_INET)) == NULL) {
+        fprintf(stderr, "1705 no name associated with %s\n", hostname);
+        exit(1);
+    }
+    
+    fprintf(stdout, "1706 Name associated with %s is %s\n", hostname, hp->h_name);
+    
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    bcopy((char *)hp->h_addr, (char *)&serv_addr.sin_addr.s_addr,hp->h_length);
+    serv_addr.sin_port = htons(port);
+
+    sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (connect(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        perror("1707 Error connecting to console socket.");
+        exit(1);
+    }
+
+    struct sockaddr sockname;
+    int    namelen;
+    if ( getsockname(sock, &sockname,  &namelen ) == 0 ) {
+        struct sockaddr_in *sin = (struct sockaddr_in *) &sockname;
+        fprintf(stdout, "1708 Local port is %d\n", sin -> sin_port);
+    } else {
+        perror("1709 Cannot get local socket name");
+        exit(1);
+    }
+
+    //
+    // Finally, we seem to have a viable socket, redirect get on with life.
+    //
+    fflush(stdout);
+    fflush(stderr);
+
+    int rc1 = dup2(sock, 1);
+    int rc2 = dup2(sock, 2);
+
+    version();             // this gets echoed into the redirected log
+}
+
 /**
  * Proposed calling conventtion:
  *    ducc_ling <duccling args> -- executable_name <executable args>
@@ -346,7 +469,7 @@ int main(int argc, char **argv, char **envp)
     char *workingdir = NULL;
     struct passwd *pwd= NULL;
     int switch_ids = 0;
-    int redirect = 1;
+    int redirect = 0;
     char buf[BUFLEN];
 
     version();            // this gets echoed into the Agent's log
@@ -384,11 +507,20 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     } 
 
-    if ( filepath == NULL ) {
-        fprintf(stdout, "300 Bypassing redirect of log\n");
-        redirect = 0;
+    if ( filepath != NULL ) {
+        fprintf(stdout, "301 Redirecting console into file %s.\n", filepath);
+        redirect = 1;
+    }
+
+    if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
+        fprintf(stdout, "302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
+        redirect = 1;
+    }
+
+    if ( ! redirect ) {
+        fprintf(stdout, "300 Bypassing redirect of log.\n");
     } 
-    
+        
     // do this here before redirection stdout / stderr
     fprintf(stdout, "0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
     
@@ -399,7 +531,7 @@ int main(int argc, char **argv, char **envp)
         pwd = getpwuid(getuid());
 #ifdef __APPLE__
         // Seems theres a bug in getpwuid and nobody seems to have a good answer.  On mac we don't
-        // care anyway so we ignore it.
+        // care anyway so we ignore it (because mac is supported for test only).
         if ( pwd == NULL ) {
             fprintf(stdout, "600 No \"ducc\" user found and I can't find my own name.  Running as id %d", getuid());
         } else {
@@ -417,7 +549,9 @@ int main(int argc, char **argv, char **envp)
         switch_ids = 1;
     }
     
+    //
     //	fetch given user's passwd structure and try switch identities.
+    //
     if ( switch_ids ) {
         pwd = getpwnam(userid);
         if ( pwd == NULL ) {
@@ -451,6 +585,9 @@ int main(int argc, char **argv, char **envp)
     set_limits();         // AFTER the switch, set soft limits if needed
     renice();
 
+    //
+    // chdir to working dir if specified
+    //
     if ( workingdir != NULL ) {
         int rc = chdir(workingdir);
         if ( rc == -1 ) {
@@ -466,31 +603,12 @@ int main(int argc, char **argv, char **envp)
     // Set up logging dir.  We have swithed by this time so we can't do anything the user couldn't do.
     //
     if ( redirect ) {
-        char *logfile = mklogfile(filepath);
-        if ( logfile == NULL ) exit(1);                 // mklogdir creates sufficient erro rmessages
-        
-        //snprintf(buf, STRLEN, "%s/%s-%d.log", logdir, log, getpid());
-        //buf[STRLEN] = '\0';
-        
-        fprintf(stdout, "1200 Redirecting stdout and stderr to %s as uid %d euid %d\n", logfile, getuid(), geteuid());
-
-        fflush(stdout);
-        fflush(stderr);
-
-        // do we want apend or trunc?
-        int fd = open(logfile, O_CREAT + O_WRONLY + O_TRUNC, 0644);
-        // dup stdout and stderr into the log file
-        if ( fd >= 0 ) {
-            int rc1 = dup2(fd, 1);
-            int rc2 = dup2(fd, 2);
+        char *console_port = getenv("DUCC_CONSOLE_LISTENER");
+        if ( console_port != NULL ) {
+            redirect_to_socket(console_port);
         } else {
-            snprintf(buf, STRLEN, "1300 cannot open file %s", logfile);
-            buf[STRLEN] = '\0';
-            perror(buf);
-            exit(1);
+            redirect_to_file(filepath);
         }
-
-        version();             // this gets echoed into the redirected log
     }
 
     // 
