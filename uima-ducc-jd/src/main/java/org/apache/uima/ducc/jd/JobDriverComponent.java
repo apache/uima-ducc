@@ -228,7 +228,13 @@ implements IJobDriverComponent {
 			duccOut.debug(methodName, null, duccMsg.fetch("workItemStateManager is null"));
 		}
 		else {
-			workItemStateManager.exportData();
+			try {
+				workItemStateManager.exportData();
+			}
+			catch(Exception e) {
+				duccOut.error(methodName, null, e);
+			}
+			
 		}
 		
 	}
@@ -264,6 +270,7 @@ implements IJobDriverComponent {
 		return jdStateDuccEvent;
 	}
 	
+	@Override
 	public void evaluateJobDriverConstraints(OrchestratorAbbreviatedStateDuccEvent duccEvent) {
 		String methodName = "evaluateDispatchedJobConstraints";
 		duccOut.trace(methodName, null, duccMsg.fetch("enter"));

@@ -117,6 +117,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		super();
 	}
 	
+	@Override
 	public void initialize(IDuccWorkJob job, String jdJmxUrl) throws JobDriverTerminateException {
 		String location = "initialize";
 		duccOut.info(location, jobid, "jd.step:"+location);
@@ -755,16 +756,19 @@ public class JobDriver extends Thread implements IJobDriver {
 	
 	// ==========
 	
+	@Override
 	public CasDispatchMap getCasDispatchMap() {
 		return casDispatchMap;
 	}
 
+	@Override
 	public IDuccWorkJob getJob() {
 		synchronized(job) {
 			return job;
 		}
 	}
 	
+	@Override
 	public void setJob(IDuccWorkJob job) {
 		String location = "setJob";
 		if(job != null) {
@@ -782,22 +786,26 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 	
+	@Override
 	public DriverStatusReport getDriverStatusReportLive() {
 		synchronized (driverStatusReport) {
 			return driverStatusReport;
 		}
 	}
 	
+	@Override
 	public DriverStatusReport getDriverStatusReportCopy() {
 		//synchronized (driverStatusReport) {
 			return driverStatusReport.deepCopy();
 		//}
 	}
 	
+	@Override
 	public WorkItemStateManager getWorkItemStateManager() {
 		return workItemStateManager;
 	}
 	
+	@Override
 	public PerformanceSummaryWriter getPerformanceSummaryWriter() {
 		return performanceSummaryWriter;
 	}
@@ -935,6 +943,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	
 	/**/
 	
+	@Override
 	public void assignLocation(IJobDriver jobDriver, String casId, String nodeIP, String PID) {
 		String location = "assignLocation";
 		try {
@@ -982,6 +991,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		return pwiMap;
 	}
 	
+	@Override
 	public void accountingWorkItemIsDispatch(DuccId processId) {
 		String location = "accountingWorkItemIsDispatch";
 		try {
@@ -992,6 +1002,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 
+	@Override
 	public void accountingWorkItemIsPreempt(DuccId processId) {
 		String location = "accountingWorkItemIsPreempt";
 		try {
@@ -1002,6 +1013,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 
+	@Override
 	public void accountingWorkItemIsRetry(DuccId processId) {
 		String location = "accountingWorkItemIsRetry";
 		try {
@@ -1076,6 +1088,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		return retVal;
 	}
 	
+	@Override
 	public void start(WorkItem workItem) {
 		String location = "start";
 		try {
@@ -1096,6 +1109,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		return;
 	}
 
+	@Override
 	public void ended(WorkItem workItem) {
 		String location = "ended";
 		try {
@@ -1183,6 +1197,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 	
+	@Override
 	public void exception(WorkItem workItem, Exception e) {
 		String location = "exception";
 		try {
