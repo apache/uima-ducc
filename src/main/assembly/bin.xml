@@ -214,7 +214,7 @@ under the License.
         <include>org.apache.activemq:activemq-all</include>
         <include>org.apache.activemq:activemq-camel</include>
         <include>org.apache.activemq:activemq-pool</include>
-        <include>org.fusesource.commonman:commons-management</include>
+        <!-- include>org.fusesource.commonman:commons-management</include -->
         <include>commons-pool:commons-pool</include>
         <include>org.apache.geronimo.specs:geronimo-servlet_2.5_spec</include>
         <include>xpp3:xpp3</include>
@@ -388,7 +388,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
     
-    <fileSet>
+    <!-- fileSet>
       <directory>src/main/webserver/images</directory>
       <outputDirectory>ducc_runtime/webserver/root/images</outputDirectory>
       <fileMode>644</fileMode>
@@ -442,7 +442,7 @@ under the License.
       <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
-    </fileSet>
+    </fileSet -->
 
     
     <fileSet>
