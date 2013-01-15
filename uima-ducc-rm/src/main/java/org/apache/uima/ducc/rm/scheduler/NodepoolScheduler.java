@@ -904,6 +904,7 @@ public class NodepoolScheduler
             needyJobs.remove(j);
         }
 
+        Collections.sort(jobs, new JobByTimeSorter());
         logger.debug(methodName, null, "NP[", np.getId(), "Expand needy jobs.", listJobSet(jobs));
         np.doExpansion(jobs);
         logger.debug(methodName, null, "Exit : needyJobs.size =", needyJobs.size());
@@ -1594,7 +1595,7 @@ public class NodepoolScheduler
                         if ( job_set.containsKey(tentative) ) {                              // share belong to a rich j?
                             donorJobs.put(tentative, tentative);
                             candidates.add(as);                                              // yes it's a candidate
-                            total_available += s.getShareOrder();                            // add in shares that might work
+                            total_available += as.getShareOrder();                           // add in shares that might work
                             //logger.debug(methodName, nj.getId(), "share", as.getId(), "in job", tentative.getId(), "is a candidate");
                         } else {
                             //logger.debug(methodName, nj.getId(), "share", as.getId(), "in job", tentative.getId(), "is not a candidate");

@@ -405,7 +405,7 @@ public class JobManagerConverter
                       break;
                       
                   case RESERVE:
-                      max_machines   = toInt(si.getInstancesCount(), DEFAULT_INSTANCES);
+                      max_machines   = toInt(si.getSharesMax(), DEFAULT_INSTANCES);
                       j.setMaxShares(max_machines);
                       j.setNInstances(max_machines);
                       break;

@@ -1060,17 +1060,17 @@ public class Scheduler
     	String methodName = "processRecovery";
 
         int share_order = calcShareOrder(j.getMemory());
+        ResourceClass rc = resourceClassesByName.get(j.getClassName());
         j.setShareOrder(share_order);
-        j.setResourceClass(resourceClassesByName.get(j.getClassName()));
+        j.setResourceClass(rc);
         HashMap<Share, Share> shares = j.getRecoveredShares();
         StringBuffer sharenames = new StringBuffer();
         for ( Share s : shares.values() ) {
             sharenames.append(s.toString());
             sharenames.append(" ");
 
-            if ( !j.isReservation() ) {          // if it's a reservation, the share order is already set from
-                                                 // the machine.  nodepools can cause the actual order to differ
-                                                 // from the order derived from indicated memory.
+            if ( rc.getPolicy() != Policy.RESERVE ) {          // if it's RESERVE, the share order is already set from
+                                                               // the machine when the job arrives. 
                 s.setShareOrder(share_order);
             }
             Machine m = s.getMachine();
