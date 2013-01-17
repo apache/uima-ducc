@@ -51,6 +51,17 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
    
+   <!-- Google GSon -->   
+     <dependencySet>
+      <includes>
+        <include>com.google.code.gson:gson</include>
+     </includes>      
+      <outputDirectory>ducc_runtime/lib/google-gson</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+    
      <!-- UIMA Core + UIMA-AS -->   
      <dependencySet>
       <includes>
