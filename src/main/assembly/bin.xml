@@ -284,11 +284,19 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-
    </dependencySets>
   
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
+
+    <fileSet>
+      <directory>target/activemq/apache-activemq-5.6.0</directory>
+      <outputDirectory>ducc_runtime/activemq</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>
+      
+    </fileSet>
+
 
     <fileSet>
       <directory>src/main/resources</directory>
@@ -515,6 +523,13 @@ under the License.
       <outputDirectory>ducc_runtime/admin</outputDirectory>
       <fileMode>644</fileMode>
     </file>
+
+    <file>
+      <source>src/main/config/activemq-nojournal5.xml</source>
+      <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
+      <fileMode>644</fileMode>
+    </file>
+
     
     <!-- 
     <file>

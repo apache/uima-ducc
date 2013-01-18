@@ -96,7 +96,63 @@
 		
 		
 		<plugins>
+      
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>download-amq</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <get src="http://apache.mesi.com.ar/activemq/apache-activemq/5.6.0/apache-activemq-5.6.0-bin.zip" 
+                     dest="${project.build.directory}/apache-activemq-5.6.0-bin.zip" /> 
+                 <unzip src="${project.build.directory}/apache-activemq-5.6.0-bin.zip" dest="${project.build.directory}/activemq"/>
+              </target>
+              
+              <!-- target depends="amq-check" unless="amq.exists">
+                 <get src="http://apache.mesi.com.ar/activemq/apache-activemq/5.6.0/apache-activemq-5.6.0-bin.zip" 
+                     dest="${project.build.directory}/apache-activemq-5.6.0-bin.zip" /> 
+                 <unzip src="${project.build.directory}/apache-activemq-5.6.0-bin.zip" dest="${project.build.directory}/activemq"/>
+              </target>
 
+              <target name="amq-check">
+                <condition property="amq.exists">
+                   <available file="${project.build.directory}/apache-activemq-5.6.0-bin.zip" type="file"/>
+                </condition> 
+              </target -->
+
+              <!-- target>      
+              <unzip src="${project.build.directory}/apache-activemq-5.6.0-bin.zip" dest="${project.build.directory}/activemq"/>
+              </target-->
+              
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack</id>
+            <configuration>
+              <target>      
+              <unzip src="${project.build.directory}/apache-activemq-5.6.0-bin.zip" dest="${project.build.directory}/activemq"/>
+              </target>
+            </configuration>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin -->
 
 <!-- plugin>
         <groupId>org.apache.maven.plugins</groupId>
