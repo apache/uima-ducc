@@ -62,19 +62,32 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
     
-     <!-- UIMA Core + UIMA-AS -->   
+     <!-- UIMA-AS -->   
      <dependencySet>
       <includes>
         <include>org.apache.uima:uimaj-as-core</include>
         <include>org.apache.uima:uimaj-as-jms</include>
         <include>org.apache.uima:uimaj-as-activemq</include>
-        <include>org.apache.uima:uimaj-core</include>
       </includes>      
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
+
+     <!-- UIMA Core -->
+     <dependencySet>
+      <includes>
+        <include>org.apache.uima:uimaj-core</include>
+      </includes>      
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
 
     <!-- dependencySet>
       <unpack>false</unpack>
