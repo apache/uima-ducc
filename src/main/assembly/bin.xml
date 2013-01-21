@@ -69,7 +69,7 @@ under the License.
         <include>org.apache.uima:uimaj-as-jms</include>
         <include>org.apache.uima:uimaj-as-activemq</include>
       </includes>      
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputFileNameMapping>${artifact.artifactId}-${org.apache.uima.as.version}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -81,7 +81,7 @@ under the License.
       <includes>
         <include>org.apache.uima:uimaj-core</include>
       </includes>      
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputFileNameMapping>${artifact.artifactId}-${org.apache.uima.version}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -520,9 +520,9 @@ under the License.
     </file>
     
       <file>
-      <source>src/main/cglib/com.springsource.net.sf.cglib-2.2.0.jar</source>
+      <source>src/main/cglib/com.springsource.net.sf.cglib-${cglib.version}.jar</source>
       <outputDirectory>ducc_runtime/lib/springframework</outputDirectory>
-      <destName>com.springsource.net.sf.cglib-2.2.0.jar</destName>
+      <destName>com.springsource.net.sf.cglib-${cglib.version}.jar</destName>
     </file>
     
     <file>
