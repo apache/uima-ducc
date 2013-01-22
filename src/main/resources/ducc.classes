@@ -1,8 +1,9 @@
 scheduling.class_set    = background low normal high urgent weekly fixed reserve JobDriver
 scheduling.default.name = normal
+scheduling.default.name.reserve = fixed
 
-scheduling.nodepool         = reserve
-scheduling.nodepool.reserve = reserved.nodes
+scheduling.nodepool           = jobdriver
+scheduling.nodepool.jobdriver = jobdriver.nodes
 
 #
 # The first five classes are blade-like unfair share
@@ -64,14 +65,14 @@ scheduling.class.reserve.policy                = RESERVE
 scheduling.class.reserve.priority              = 1
 scheduling.class.reserve.cap                   = 0
 scheduling.class.reserve.enforce.memory        = false
-#scheduling.class.reserve.nodepool              = reserve
+scheduling.class.reserve.max_machines          = 10
 
 #
 # Job driver, always going to succeed
 # 
-scheduling.class.JobDriver.policy                = RESERVE
+scheduling.class.JobDriver.policy                = FIXED_SHARE
 scheduling.class.JobDriver.priority              = 0
 scheduling.class.JobDriver.cap                   = 0
-#scheduling.class.JobDriver.nodepool              = reserve
 scheduling.class.JobDriver.enforce.memory        = false
 scheduling.class.JobDriver.max_machines     	 = 5
+scheduling.class.JobDriver.nodepool              = jobdriver

@@ -43,22 +43,32 @@ class DuccProperties:
         self.props = {}
 
     #
-    # Expand ${} values from env or from this properties file itself
+    # Expand all ${} values from env or from this properties file itself
+    # The search order is:
+    #    1 look in this properties file
+    #    2 look in the environment
     #
     def do_subst(self, str):
-    
         key = None
-        p = re.compile("\\$\\{[a-zA-Z0-9_]+\\}")
-        m = p.match(str)
+        p = re.compile("\\$\\{[a-zA-Z0-9_\\.\\-]+\\}")
+        ndx = 0
         
-        if ( m != None ):
+        response = str
+        m = p.search(response, ndx)    
+        while ( m != None ):
             key = m.group()[2:-1]
-            #print str, m, m.group(), key
-            val = os.environ[key]
-            response = string.replace(str, m.group() , val)
-        else:
-            response = str
             
+            val = None
+            if ( self.has_key(key) ):
+                val = self.get(key)
+            elif ( os.environ.has_key(key) ):
+                val = os.environ[key]                
+
+            if ( val != None ):    
+                response = string.replace(response, m.group() , val)
+            ndx = m.start()+1
+            m = p.search(response, ndx)
+        
         return response
 
     def mkitem(self, line):
@@ -77,7 +87,7 @@ class DuccProperties:
             key = line[:mobj.start()].strip()
             val = line[mobj.end():].strip()
             #print 'NEXT', mobj.start(), 'END', mobj.end(), 'KEY', key, 'VAL', val
-            val = self.do_subst(val)
+            # val = self.do_subst(val)   # we'll do lazy subst on get instead
             self.props[key] = val
         else:
             self.props[line] = None
@@ -121,7 +131,7 @@ class DuccProperties:
     #
     def get(self, key):
         if ( self.props.has_key(key) ):
-            return self.props[key]
+            return self.do_subst(self.props[key])   # we'll do lazy subst on get instead
         return None
 
     #
@@ -183,12 +193,13 @@ class DuccUtil:
         self.broker_jmx_port   = self.ducc_properties.get('ducc.broker.jmx.port')
         self.broker_decoration = self.ducc_properties.get('ducc.broker.url.decoration')
         self.broker_url        = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
-        self.agent_jvm_args         = self.ducc_properties.get('ducc.agent.jvm.args')
-        self.ws_jvm_args            = self.ducc_properties.get('ducc.ws.jvm.args')
-        self.pm_jvm_args            = self.ducc_properties.get('ducc.pm.jvm.args')
-        self.rm_jvm_args            = self.ducc_properties.get('ducc.rm.jvm.args')
-        self.sm_jvm_args            = self.ducc_properties.get('ducc.sm.jvm.args')
-        self.or_jvm_args            = self.ducc_properties.get('ducc.orchestrator.jvm.args')
+        self.agent_jvm_args    = self.ducc_properties.get('ducc.agent.jvm.args')
+        self.ws_jvm_args       = self.ducc_properties.get('ducc.ws.jvm.args')
+        self.pm_jvm_args       = self.ducc_properties.get('ducc.pm.jvm.args')
+        self.rm_jvm_args       = self.ducc_properties.get('ducc.rm.jvm.args')
+        self.sm_jvm_args       = self.ducc_properties.get('ducc.sm.jvm.args')
+        self.or_jvm_args       = self.ducc_properties.get('ducc.orchestrator.jvm.args')
+
 
         if ( self.broker_decoration == '' ):
             self.broker_decoration = None
@@ -200,10 +211,7 @@ class DuccUtil:
             self.webserver_node = self.localhost
 
     def java(self):
-        if ( self.jvm == None ):
-            return 'java'
-        else:
-            return self.jvm
+        return self.jvm
         
     def is_amq_active(self):
         lines = self.popen('ssh', self.broker_host, 'netstat -an')
@@ -219,6 +227,16 @@ class DuccUtil:
                 if (port.endswith(self.broker_port)):
                     return True
         return False        
+
+    def stop_broker(self):
+        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        broker_home = self.ducc_properties.get('ducc.broker.home')
+        here = os.getcwd()
+        CMD = broker_home + '/bin/activemq'
+        CMD = CMD + ' stop'
+        print CMD
+        self.ssh(broker_host, False, CMD)
+        pass
 
     def version(self):
         lines = self.popen(self.jvm, ' org.apache.uima.ducc.utils.Version')
@@ -575,7 +593,8 @@ class DuccUtil:
                 
     def clean_shutdown(self):
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
-        self.spawn('java', DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccAdmin', '--killAll')
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
+        self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccAdmin', '--killAll')
 
     def get_os_pagesize(self):
         lines = self.popen('/usr/bin/getconf', 'PAGESIZE')
@@ -702,14 +721,20 @@ class DuccUtil:
         self.broker_protocol = 'tcp'
         self.broker_host = 'localhost'
         self.broker_port = '61616'
-        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'viz']
+        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'viz', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
         self.propsfile = self.DUCC_HOME + '/resources/ducc.properties'
         self.localhost = os.uname()[1]                
+        os.environ['NodeName'] = self.localhost    # to match java code's implicit propery so script and java match
         self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
         self.set_classpath()
         self.read_properties()       
         self.os_pagesize = self.get_os_pagesize()
+
+        manage_broker = self.ducc_properties.get('ducc.broker.automanage')
+        self.automanage = False
+        if (manage_broker in ('t', 'true', 'T', 'True')) :
+            self.automanage = True                    
 
 if __name__ == "__main__":
     util = DuccUtil()

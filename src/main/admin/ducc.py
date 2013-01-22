@@ -29,7 +29,29 @@ from ducc_util import DuccProperties
 from local_hooks import verify_slave_node
 
 class Ducc(DuccUtil):
+
+    def run_broker(self, component):
+        broker_port = self.ducc_properties.get('ducc.broker.port')
+        broker_url_decoration = self.ducc_properties.get('ducc.broker.server.url.decoration')
+        broker_memory_opts = self.ducc_properties.get('ducc.broker.memory.options')
+        broker_config = self.ducc_properties.get('ducc.broker.configuration')
+        broker_home = self.ducc_properties.get('ducc.broker.home')
+
+        if ( broker_config[0] != '/' ):     # relative to broker_home if not absolute
+            broker_config = broker_home + '/' + broker_config
+
+        os.environ['ACTIVEMQ_OPTS'] = '-DDUCC_AMQ_PORT=' + broker_port + ' -DDUCC_AMQ_DECORATION=' + broker_url_decoration
+        os.environ['ACTIVEMQ_OPTS_MEMORY'] = broker_memory_opts
+        os.environ['ACTIVEMQ_HOME'] = broker_home
+
+        here = os.getcwd()
+        os.chdir(broker_home + '/bin')
+        CMD = './activemq start xbean:' + broker_config 
+        self.spawn(CMD)
+        os.chdir(here)
         
+        print "Started AMQ broker"
+
     def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate):
 
         if ( component == 'all' ):
@@ -38,9 +60,14 @@ class Ducc(DuccUtil):
         complist = component.split(',')
         args = None
 
+        # ducc-head needs to be in system properties before the ducc daemon reads ducc.properties
+        # to insure it can be substituted properly
+        ducc_head = self.ducc_properties.get('ducc.head')
+
         jvm_opts = []
         jvm_opts.append('-Dos.page.size=' + self.os_pagesize)
         jvm_opts.append('-Dducc.deploy.configuration=' + self.DUCC_HOME + '/resources/ducc.properties')
+        jvm_opts.append('-Dducc.head=' + ducc_head)
  
         service = 'org.apache.uima.ducc.common.main.DuccService'
         for c in complist:
@@ -163,7 +190,7 @@ class Ducc(DuccUtil):
         print '   ducc.py -k'
         print 'Where:'
         print '   -c <component> is the name of the comp[onent to start, currently one of'
-        print '                agent rm sm pm ws orchestrator'
+        print '                agent rm sm pm ws orchestrator broker'
         print '                      -- or --'
         print '                all - to start rm sm pm ws orchestrator'
         print '        NOTE -- that agents should be started separately'
@@ -172,6 +199,9 @@ class Ducc(DuccUtil):
         print '   -n <numagents> if > 1, multiple agents are started (testing mode)'
         print '   -o <mem-in-GB> rm memory override for use on small machines'
         print '   -k causes the entire DUCC system to shutdown'
+        print '   --nodup If specified, do not start a process if it appears to be already started.'
+        print '   --or_parms [cold|warm|hot]'
+        print '   --ducc_head nodename the name of the "ducc head" where ducc is started from'
         print '   arguments - any additional arguments to pass to the component.'
         sys.exit(1)
     
@@ -188,7 +218,7 @@ class Ducc(DuccUtil):
         localdate = 0
 
         try:
-           opts, args = getopt.getopt(argv, 'bc:d:n:o:k?v', ['or_parms=', 'nodup'])
+           opts, args = getopt.getopt(argv, 'bc:d:n:o:k?v', ['or_parms=', 'nodup' ])
         except:
             self.usage('Bad arguments ' + ' '.join(argv))
     
@@ -196,8 +226,7 @@ class Ducc(DuccUtil):
             if ( o == '-c' ) :
                 component = a
                 if ( component == 'or' ):
-                    component = 'orchestrator'
-                
+                    component = 'orchestrator'                
             elif ( o == '-b'):
                 background = True
             elif ( o == '-d'):
@@ -217,18 +246,21 @@ class Ducc(DuccUtil):
             else:
                 print 'badarg', a
                 usage('bad arg: ' + a)
-        
+
         if ( shutdown ):
             if ( component != None ):
                 print 'Note: -c flag for component not allowed when shutting down. Shutdown aborted'
                 sys.exit(1);
             self.clean_shutdown();
             sys.exit(1)
-    
+
         if ( component == None ):
             self.usage("Must specify component")
 
-        self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
+        if ( component == 'broker' ):
+            self.run_broker(background)
+        else:
+            self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
         return
 
     def __call__(self, *args):

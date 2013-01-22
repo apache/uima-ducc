@@ -21,6 +21,7 @@
 
 import os
 import sys
+import time
 import getopt
 
 from ducc_boot import *
@@ -31,6 +32,29 @@ from ducc_util import DuccProperties
 from ducc import Ducc
 
 class StartSim(DuccUtil):
+
+    def start_broker(self):
+        
+        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        print 'broker host', broker_host
+        lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
+        while 1:
+            line = lines.readline().strip()
+            if ( not line ):
+                break
+            print '[] ' + line
+            if ( line.startswith('PID') ):
+                toks = line.split(' ')    # get the PID
+                print "Broker on", broker_host, 'PID', toks[1]
+                self.pids.put('broker@' + broker_host, toks[1])
+                lines.close()
+                break
+
+        for i in range(0, 9):
+            if ( self.is_amq_active() ):
+                return
+            print 'Waiting for broker', str(i)
+            time.sleep(1)
 
     def run_local_agent(self, pnode, ip, memory ):
 
@@ -56,7 +80,12 @@ class StartSim(DuccUtil):
     # Start admin components rm pm sm ws or, on local node using Ducc.py
     #        
     def startComponents(self, components, or_parms):
+
         for (com, com) in components.items():
+
+            if ( com == 'broker' ):
+                continue
+
             if ( com in ('ws', 'viz') ):
                 node = self.webserver_node
             else:
@@ -279,8 +308,12 @@ class StartSim(DuccUtil):
             if ( (IP != None) or (memory != None) or ( pseudoname != None )) :
                 self.invalid("Running with a nodelist is not compatible with running a single agent.");
 
+            if ( components.get('broker') != None ):
+                self.start_broker()
+
             if ( len(nodefiles) != 0 ):
                 self.startAgents(nodefiles, instances)
+
             self.startComponents(components, or_parms)
 
         self.pids.write('sim.pids')            

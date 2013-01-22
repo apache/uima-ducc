@@ -1,0 +1,253 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+
+import os
+import sys
+import shutil
+import subprocess
+
+from ducc_boot import *
+set_ducc_home()
+
+from ducc_util import DuccUtil
+from ducc_util import DuccProperties
+from ducc import Ducc
+
+class PostInstall(DuccUtil):
+
+    def usage(self, msg):
+
+        if ( msg != None ):
+            print ' '.join(msg)
+
+              
+        print "Usage:"
+        print "   stop_sim [options]"   
+        print "        If no options are given, all ducc processes from sim.pids are stopped using SIGINT"
+        print ""
+        print "Options:"
+        print "   -c --component compenent name"
+        print "        The name is one of", self.default_components, "or an ID from sim.pids or the nodelist"
+        print "        that was used to start DUCC"
+        print ""
+        print "   -i --instance instancid"  
+        print "        Sends SIGINT to the indicated process, enabling orderly shutdown."
+        print ""
+        print "   -k --kill"
+        print "        Sends SIGKILL to the indicated process"
+        print ""
+        print "   -p --pause"
+        print "        Sends SIGSTOP to the indicated process"
+        print ""
+        print "   -r --resume"
+        print "        Sends SIGCONT to the indicated process"
+        print ""
+        print "   -v, --version"
+        print "        Print the current DUCC version"
+        print ""
+        sys.exit(1) 
+            
+
+    def fail(self, *msg):
+        print ' '.join(msg)
+        print "POST INSTALLATION FAILED"
+        sys.exit(1)
+
+
+    def warn(self, *msg):
+        print ''
+        print 'WARNING'
+        print 'WARNing', ' '.join(msg)
+        print 'WARNING'
+        print ''
+
+    def create_keystore(self, keytool):
+
+        '''
+        CN - Common Name of the certificate owner
+        OU - Organizational Unit of the certificate owner
+        O - Organization to which the certificate owner belongs
+        L - Locality name of the certificate owner
+        S - State or province of the certificate owner
+        C - Country of the certificate owner
+        '''
+        
+        keystore = self.DUCC_HOME + "/webserver/etc/keystore"
+        cmd = 'rm ' + keystore
+        os.system(cmd);
+
+        pw  = self.ducc_properties.get('ducc.ws.port.ssl.pw')
+        if ( pw == 'quackquack' ):
+            print self.warn('The default ssl pw of ', pw, ' is configured. For security, change the property \n\tducc.ws.port.ssl.pw to a secure password in ducc.properties.')
+
+
+        #/usr/bin/keytool
+        cmd = self.keytool
+        cmd += ' '
+        cmd += '-genkey'
+        cmd += ' '
+        cmd += '-noprompt'
+        cmd += ' '
+        cmd += '-alias jetty'
+        cmd += ' '
+        cmd += '-dname "CN=org.apache.uima.ducc, OU=uima.ducc, O=Apache, L=Wilmington, S=Delaware, C=USA"'
+        cmd += ' '
+        cmd += '-keyalg RSA'
+        cmd += ' '
+        cmd += '-validity 10000'
+        cmd += ' '
+        cmd += '-keystore ' + keystore
+        cmd += ' '
+        cmd += '-storepass '+pw
+        cmd += ' '
+        cmd += '-keypass '+pw
+        os.system(cmd);
+        print 'keystore created.'
+            
+
+    # Setup and verify amq
+    # make sure verify_ducc is sufficient - maybe move some checks to there?
+
+    def get_java_bindir(self):
+
+        java = self.java()
+        if ( java == None ):
+            self.fail("THe path to java must be configured in ducc.properties as property", 'ducc.jvm')
+
+        if ( not java.startswith('/') ):
+            self.fail("THe java path in property ducc.jvm must be absolute.")
+
+        # We're going to do more checks here so we don't proceed with bogosities
+        proc = subprocess.Popen(java + ' -version', shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        lines = []
+        for  line in proc.stdout:
+            lines.append(line.strip())
+        proc.wait()
+        rc = proc.returncode
+
+        for line in lines:
+            print "JAVA: " + line
+
+        vertoks = lines[0].split()
+        self.java_version = vertoks[-1]
+
+        if ( rc != 0 ):
+            self.fail("Configured java at '", java, "' is incorrect.")
+
+        return os.path.dirname(java)
+
+    def get_java_version(self):
+        return self.java_version
+
+    def get_java_keytool(self, bindir):
+        keytool = bindir + "/keytool"
+        if ( not os.path.exists(keytool) ):
+            self.fail("Cannot find keytool in ", bindir + '.', + "Is ducc.jvm configured correctly?")
+        return keytool
+
+    def check_nodes(self):
+        nodes = self.DUCC_HOME + "/resources/ducc.nodes"
+        if ( not os.path.exists(nodes) ):
+            nf = open(nodes, 'w')
+            nf.write(self.localhost)
+            nf.close()
+            print "Initial", nodes, "created."
+        else:
+            print "Verified existence of default nodefile " + nodes
+            print ''
+            
+        jdnodes = self.DUCC_HOME +  "/resources/jobdriver.nodes"
+        if ( not os.path.exists(jdnodes) ):
+            rn = open(jdnodes, "w")
+            rn.write(self.localhost)
+            rn.close()
+            print "Initial nodepool", jdnodes, "created.\n"
+        else:
+            print "Verified existence of default JobDriver nodepool " + jdnodes
+            print ''
+        
+
+    def check_activemq(self):
+        if ( self.automanage ):             # the default
+            print 'ActiveMQ is automanaged on node ', self.broker_url
+        else:
+            print 'ActiveMQ is managed by the installation and is not verified.'
+            
+    def setup_ducc_head(self):
+        ducc_head = self.ducc_properties.get('ducc.head')
+        if ( ducc_head == None ):
+            ducc_head = self.localhost
+            self.ducc_properties.put('ducc.head', ducc_head)
+            propsfile = self.DUCC_HOME + "/resources/ducc.properties"
+            tmp_propsfile = propsfile + ".tmp"
+            f = open(propsfile)
+            tf = open(tmp_propsfile, "w")
+            tf.write("# ducc.head is the node where the main DUCC daemons run\n")
+            tf.write("ducc.head = " + self.localhost + "\n\n")            
+            for line in f:
+                tf.write(line);
+            f.close()
+            tf.close()
+            os.rename(propsfile, propsfile + ".orig")
+            os.rename(tmp_propsfile, propsfile)
+            self.read_properties()          # force re-eval with ducc.head
+
+        print "Ducc head is configured as", ducc_head, '\n'        
+
+    def main(self, args):                    
+
+        print 'Python version:'
+        print sys.version
+        print ''
+
+        py_version = sys.version_info
+        if ( (py_version[0] != 2) or (py_version[1] < 4) ):
+            self.fail("Python must be installed at level 2.4 or higher.")
+
+        self.setup_ducc_head()
+        self.check_nodes()
+        self.check_activemq()
+
+        # insure java is configured and installed
+        self.java_bindir = self.get_java_bindir()
+        self.keytool = self.get_java_keytool(self.java_bindir)
+        print 'Java version:', self.get_java_version()
+        if ( not '1.6' in self.get_java_version() ):
+            print 'WARNING: DUCC is only tested under Java 1.6'
+        else:
+            print 'Java is verified.'
+        print ''
+
+        self.create_keystore(self.keytool)
+        print 'Web server keystore generated from ducc.properties'
+        print ''
+
+        # Make duccling
+        here = os.getcwd()
+        os.chdir("../duccling/src")
+        os.system("make clean all")
+        os.chdir(here)
+        shutil.copyfile("../duccling/src/ducc_ling", self.DUCC_HOME + "/admin/ducc_ling")
+        print 'Initial ducc_ling is installed.  See the installation guide for multi-user setup.'
+
+if __name__ == "__main__":
+    postinstall = PostInstall()
+    postinstall.main(sys.argv[1:])

@@ -21,7 +21,7 @@
 
 import os
 import sys
-from time import time
+import time
 
 from ducc_boot import *
 set_ducc_home()
@@ -34,6 +34,29 @@ from ducc        import Ducc
 from local_hooks import verify_master_node
 
 class StartDucc(DuccUtil):
+
+    def start_broker(self):
+        
+        broker_host = self.ducc_properties.get('ducc.broker.hostname')
+        print 'broker host', broker_host
+        lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
+        while 1:
+            line = lines.readline().strip()
+            if ( not line ):
+                break
+            print '[] ' + line
+            if ( line.startswith('PID') ):
+                toks = line.split(' ')    # get the PID
+                print "Broker on", broker_host, 'PID', toks[1]
+                self.pids.put('broker@' + broker_host, toks[1])
+                lines.close()
+                break
+
+        for i in range(0, 9):
+            if ( self.is_amq_active() ):
+                return
+            print 'Waiting for broker', str(i)
+            time.sleep(1)
 
     def start_component(self, ducc, component, or_parms):
 
@@ -61,7 +84,7 @@ class StartDucc(DuccUtil):
         if ( node == 'local' ):
             node = self.localhost
 
-        lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '-d', str(time()), '--nodup' "'")
+        lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '-d', str(time.time()), '--nodup', "'")
         # we'll capture anything that the python shell spews because it may be useful, and then drop the
         # pipe when we see a PID message
         while 1:
@@ -89,7 +112,7 @@ class StartDucc(DuccUtil):
             
             spacer = '   '
             print host
-            lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '-d', str(time()), '--nodup', "'")
+            lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '-d', str(time.time()), '--nodup', "'")
             while 1:
                 line = lines.readline().strip()
                 #print '[]' + line
@@ -119,7 +142,6 @@ class StartDucc(DuccUtil):
                     print spacer, 'NOTOK Not started:', ' '.join(toks[1:])
                 else:
                     print spacer, line
-
 
     def usage(self, *msg):
         if ( msg[0] != None ):
@@ -219,7 +241,6 @@ class StartDucc(DuccUtil):
             else:
                 self.invalid('bad args: ', ' '.join(argv))
 
-
         # 'management' means start all the management daemons - if specific components are also specified
         # there is at least a redundancy and maybe also a conflict.
         if ( (len(components) != 0) and management ):
@@ -257,6 +278,12 @@ class StartDucc(DuccUtil):
             sys.exit(1)
 
         # activeMQ needs to be started externally before starting any DUCC processes
+        if ( self.automanage and ('broker' in components) ):
+            if ( self.is_amq_active() ):
+                print 'ActiveMQ is already running on host and port:', self.broker_host + ':' + self.broker_port, 'NOT restarting'
+            else:
+                self.start_broker()
+
         #print 'A--------------------------------------------------------------------------------'
         if ( self.is_amq_active() ):
             print 'ActiveMQ is found on configured host and port:', self.broker_host + ':' + self.broker_port
@@ -271,7 +298,10 @@ class StartDucc(DuccUtil):
         if ( len(components) != 0 ):
             print 'Starting', or_parms
             for com in components:
-                self.start_component(ducc, com, or_parms)
+                if ( com == 'broker' ):
+                    pass     # already started
+                else:
+                    self.start_component(ducc, com, or_parms)
         else:
             print 'Not starting management components.'
         #print 'C--------------------------------------------------------------------------------'

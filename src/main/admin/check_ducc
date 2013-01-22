@@ -40,6 +40,12 @@ class CheckDucc(DuccUtil):
     def validate(self, checkdate):
         verify_slave_node(checkdate, self.ducc_properties)
 
+    def verify_activemq(self):
+        if ( self.is_amq_active() ):
+            print 'ActiveMQ is found listening at', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
+            return True
+        return False
+
     def usage(self, msg):
         if ( msg != None ):
             print msg
@@ -122,7 +128,6 @@ class CheckDucc(DuccUtil):
                 print 'badarg', a
                 usage('bad arg: ' + a)               
 
-
         if ( do_validate ):
             # if validating, ONLY validate, called via ssh usually
             self.validate(checkdate)
@@ -131,15 +136,17 @@ class CheckDucc(DuccUtil):
         if ( reap and (user == 'ducc') ):
             usage('Can only reap non-udcc users')
 
-
         jvm = self.ducc_properties.get('ducc.jvm')
         if ( jvm == None ):
-            print 'WARN: "ducc.jvm is not specified in ducc.properties. Default is simply "java" which may not work on all nodes.'
+            print 'WARN: ducc.jvm is not specified in ducc.properties. Default is simply "java" which may not work on all nodes.'
 
         if ( not verify_master_node(self.ducc_properties) ):
-            print 'FAIL: Cannot run javac to build the java test'
+            print 'FAIL: Cannot verify master mode'
             return
-   
+
+        if ( not self.verify_activemq() ):
+            print 'ActiveMQ is not running on', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
+
         # init the PID file
         pids = DuccProperties()
         pids.load_if_exists(self.pid_file)
@@ -238,6 +245,7 @@ class CheckDucc(DuccUtil):
             return
 
         if ( kill ):
+            self.stop_broker()
             self.remove_orchestrator_lock()
                 
         if ( len(pids) == 0):

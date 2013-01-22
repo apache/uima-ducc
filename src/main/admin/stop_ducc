@@ -21,6 +21,7 @@
 
 import os
 import sys
+import time
 
 from ducc_boot import *
 set_ducc_home()
@@ -36,6 +37,11 @@ from ducc       import Ducc
 class StopDucc(DuccUtil):
 
     def stop_component(self, component, force):
+
+        if ( (component == 'broker') and self.automanage ):
+            print 'Stopping broker'
+            self.stop_broker()
+            return
 
         #
         # If it's an unqualified management component, we need to get it's qualified name
@@ -177,7 +183,6 @@ class StopDucc(DuccUtil):
                 print 'badarg', a
                 self.invalid('bad arg: ' + a)
 
-        
         # 'management' means stop all the management daemons - if specific components are also specified
         # there is at least a redundancy and maybe also a conflict.
         if ( do_components and management ):
@@ -186,13 +191,21 @@ class StopDucc(DuccUtil):
         # avaid confusion by insuring that if 'all', then nothing else is specified
         if ( all and ( do_components or management ) ):
             self.invalid("The --all option is mutually exclusive with --management and --component")
-
         
         # 'all' means everything. we use broadcast.  should use check_ducc to make sure
         # it actually worked, and find the stragglers.
         if ( all ):
             if ( not force ) :
                 self.clean_shutdown()
+
+                sleeptime = 5
+                print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
+                time.sleep(sleeptime)
+
+                if ( self.automanage ):
+                    print "Stopping broker"
+                    self.stop_broker()                
+
                 if ( os.path.exists(self.pid_file) ):
                     os.remove(self.pid_file)
                 return

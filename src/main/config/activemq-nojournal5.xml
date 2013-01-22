@@ -46,7 +46,8 @@
         </systemUsage>
 		  
         <transportConnectors>
-            <transportConnector name="openwire" uri="tcp://0.0.0.0:61616?transport.soWriteTimeout=45000"/>
+          <!-- transportConnector name="openwire" uri="tcp://0.0.0.0:61616?transport.soWriteTimeout=45000"/ -->
+            <transportConnector name="openwire" uri="tcp://0.0.0.0:${DUCC_AMQPORT}?${DUCC_AMQ_DECORATIONS}"/>
         </transportConnectors>
 
     </broker>
