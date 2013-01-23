@@ -721,7 +721,7 @@ class DuccUtil:
         self.broker_protocol = 'tcp'
         self.broker_host = 'localhost'
         self.broker_port = '61616'
-        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'viz', 'broker']
+        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
         self.propsfile = self.DUCC_HOME + '/resources/ducc.properties'
         self.localhost = os.uname()[1]                
