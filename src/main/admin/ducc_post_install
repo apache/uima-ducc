@@ -248,6 +248,11 @@ class PostInstall(DuccUtil):
         shutil.copyfile("../duccling/src/ducc_ling", self.DUCC_HOME + "/admin/ducc_ling")
         print 'Initial ducc_ling is installed.  See the installation guide for multi-user setup.'
 
+        amqhome = self.ducc_properties.get('ducc.broker.home')
+        os.chdir(amqhome + '/bin')
+        os.system("sed -i 's/\r//' activemq")
+        os.chdir(here)
+
 if __name__ == "__main__":
     postinstall = PostInstall()
     postinstall.main(sys.argv[1:])
