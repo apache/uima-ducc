@@ -183,7 +183,6 @@ public class DuccProperties extends Properties {
     public String getProperty(String k)
     {
         String val = super.getProperty(k);
-        System.out.println("1. k = " + k + " val = " + val);
         if ( val == null ) return null;
 
         if ( val.contains("${") ) {
