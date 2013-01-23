@@ -70,6 +70,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
@@ -78,8 +79,10 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
+import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
@@ -615,12 +618,74 @@ implements Orchestrator {
 				duccEvent.setProperties(properties);
 				logger.info(methodName, duccWorkJob.getDuccId(), messages.fetchLabel("job state")+duccWorkJob.getJobState());
 			}
-			
 			else {
 				// prepare undefined reply 
-				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_not_found);
+				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_job_not_found);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, null, jobId+" : "+messages.fetch("job not found"));
+				logger.info(methodName, null, jobId+" : "+messages.fetch(JobReplyProperties.msg_job_not_found));
+			}
+		}
+		else {
+			logger.info(methodName, null, messages.fetch("TODO")+" prepare error reply");
+			//TODO
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return;
+	}
+	
+	@Override
+	public void stopJobProcess(CancelJobDuccEvent duccEvent) {
+		String methodName = "stopJobProcess";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		Properties properties = duccEvent.getProperties();
+		if(isSignatureInvalid(properties)) {
+			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
+			logger.error(methodName, null, error_message);
+			submitError(properties, error_message);
+		}
+		else if(Validate.request(duccEvent)) {
+			DuccId djid = null;
+			String dpid = null;
+			String jobId = properties.getProperty(JobRequestProperties.key_id);
+			DuccWorkJob duccWorkJob = (DuccWorkJob) workMap.findDuccWork(DuccType.Job,jobId);
+			if(duccWorkJob != null) {
+				djid = duccWorkJob.getDuccId();
+				dpid = properties.getProperty(JobReplyProperties.key_dpid);
+				IDuccProcess idp = duccWorkJob.getProcess(dpid);
+				if(idp != null) {
+					switch(idp.getProcessState()) {
+					case Starting:
+					case Initializing:
+					case Running:
+						idp.setResourceState(ResourceState.Deallocated);
+						idp.setProcessState(ProcessState.Abandoned);
+						idp.setProcessDeallocationType(ProcessDeallocationType.Canceled);
+						idp.setReasonForStoppingProcess(ReasonForStoppingProcess.UserInitiated.toString());
+						// prepare process not active 
+						properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_canceled);
+						duccEvent.setProperties(properties);
+						logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_process_canceled));
+						break;
+					default:
+						// prepare process not active 
+						properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_not_active);
+						duccEvent.setProperties(properties);
+						logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_process_not_active));
+						break;
+					}
+				}
+				else {
+					// prepare process not found reply 
+					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_not_found);
+					duccEvent.setProperties(properties);
+					logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_process_not_found));
+				}
+			}
+			else {
+				// prepare job not found 
+				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_job_not_found);
+				duccEvent.setProperties(properties);
+				logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_job_not_found));
 			}
 		}
 		else {
@@ -853,9 +918,9 @@ implements Orchestrator {
 			
 			else {
 				// prepare undefined reply 
-				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_not_found);
+				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_service_not_found);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, null, jobId+" : "+messages.fetch("service not found"));
+				logger.info(methodName, null, jobId+" : "+messages.fetch(JobReplyProperties.msg_service_not_found));
 			}
 		}
 		else {

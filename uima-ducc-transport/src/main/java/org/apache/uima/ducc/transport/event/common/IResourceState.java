@@ -44,6 +44,7 @@ public interface IResourceState extends Serializable {
 		InitializationTimeout,	// Process terminated due to initialization timeout
 		Killed,					// Process terminated by Agent
 		Purged,					// Process purged (by RM)
+		Canceled,				// Process canceled (by user)
 		Undefined				// None of the above
 		;
 		

@@ -31,7 +31,8 @@ public interface IProcessState extends Serializable {
 		FailedInitialization,	// Process Agent reports process failed initialization
 		InitializationTimeout,  // Process Agent reports process initialization timeout
 		Killed,         		// Agent forcefully killed the process
-    KillProcess,        // UIMA-AS Ducc Service Wrapper requesting agent to kill the process        
+		KillProcess,        	// UIMA-AS Ducc Service Wrapper requesting agent to kill the process
+		Abandoned,				// Process abandoned
 		Undefined				// None of the above
 	};
 	

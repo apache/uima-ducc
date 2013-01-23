@@ -54,6 +54,7 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 	 * id: required for cancel/modify requests; error for submit request
 	 */
 	public static String key_id = "id";	
+	public static String key_dpid = "dpid";	
 	
 	public void specification(DuccLogger logger) {
 		String methodName = "specification";

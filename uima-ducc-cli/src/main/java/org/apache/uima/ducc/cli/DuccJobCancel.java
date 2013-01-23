@@ -64,6 +64,10 @@ public class DuccJobCancel extends DuccUi {
 				.withDescription(makeDesc(DuccUiConstants.desc_job_id,DuccUiConstants.exmp_job_id)).hasArg()
 				.withLongOpt(DuccUiConstants.name_job_id).create());
 		options.addOption(OptionBuilder
+				.withArgName(DuccUiConstants.parm_djpid)
+				.withDescription(makeDesc(DuccUiConstants.desc_djpid,DuccUiConstants.exmp_djpid)).hasArg()
+				.withLongOpt(DuccUiConstants.name_djpid).create());
+		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_service_broker)
 				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()
 				.withLongOpt(DuccUiConstants.name_service_broker).create());
@@ -203,6 +207,10 @@ public class DuccJobCancel extends DuccUi {
         cancelJobReplyDuccEvent = (CancelJobReplyDuccEvent) duccReplyEvent;
         // TODO handle null & rejected possibilities here
     	String jobId = cancelJobReplyDuccEvent.getProperties().getProperty(JobReplyProperties.key_id);
+    	String dpId = cancelJobReplyDuccEvent.getProperties().getProperty(JobReplyProperties.key_dpid);
+    	if(dpId != null) {
+    		jobId+="."+dpId;
+    	}
     	String msg = cancelJobReplyDuccEvent.getProperties().getProperty(JobReplyProperties.key_message);
     	duccMessageProcessor.out("Job"+" "+jobId+" "+msg);
 		return 0;

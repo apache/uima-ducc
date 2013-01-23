@@ -303,6 +303,7 @@ public class DuccProcess implements IDuccProcess {
 		case FailedInitialization:
 		case InitializationTimeout:
 		case Killed:
+		case Abandoned:
 			retVal = true;	
 			break;
 		}

@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.orchestrator.event;
 
+import java.util.Properties;
+
 import org.apache.camel.Body;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -35,6 +37,7 @@ import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
+import org.apache.uima.ducc.transport.event.cli.JobReplyProperties;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 
 
@@ -68,7 +71,14 @@ public class OrchestratorEventListener implements DuccEventDelegateListener {
 		String methodName = "onCancelJobEvent";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {
-			orchestrator.stopJob(duccEvent);
+			Properties properties = duccEvent.getProperties();
+			String dpid = properties.getProperty(JobReplyProperties.key_dpid);
+			if(dpid != null) {
+				orchestrator.stopJobProcess(duccEvent);
+			}
+			else {
+				orchestrator.stopJob(duccEvent);
+			}
 		}
 		catch(Throwable t) {
 			logger.error(methodName, null, t);

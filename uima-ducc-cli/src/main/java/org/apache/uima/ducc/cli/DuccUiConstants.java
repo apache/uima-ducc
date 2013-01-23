@@ -108,25 +108,31 @@ public class DuccUiConstants {
 	
 	public static final String name_job_id = JobRequestProperties.key_id;
 	public static final String parm_job_id = "number";
-	public static final String desc_job_id = "Job Id.";
-	public static final String labl_job_id = "Job Id";
+	public static final String desc_job_id = "DUCC Job Id.";
+	public static final String labl_job_id = "DUCC Job Id";
 	public static final String exmp_job_id = "4321";
 	public static final String dval_job_id = null;
 	
 	public static final String name_reservation_id = JobRequestProperties.key_id;
 	public static final String parm_reservation_id = "number";
-	public static final String desc_reservation_id = "Reservation Id.";
-	public static final String labl_reservation_id = "Reservation Id";
+	public static final String desc_reservation_id = "DUCC Reservation Id.";
+	public static final String labl_reservation_id = "DUCC Reservation Id";
 	public static final String exmp_reservation_id = "1234";
 	public static final String dval_reservation_id = null;
 
 	public static final String name_service_id = JobRequestProperties.key_id;
 	public static final String parm_service_id = "number";
-	public static final String desc_service_id = "Service Id.";
-	public static final String labl_service_id = "Service Id";
+	public static final String desc_service_id = "DUCC Service Id.";
+	public static final String labl_service_id = "DUCC Service Id";
 	public static final String exmp_service_id = "4321";
 	public static final String dval_service_id = null;
 	
+	public static final String name_djpid = JobRequestProperties.key_dpid;
+	public static final String parm_djpid = "number";
+	public static final String desc_djpid = "DUCC Process Id.  If specified only this DUCC process will be canceled.  If not specified, then entire job will be canceled.";
+	public static final String labl_djpid = "DUCC Process Id";
+	public static final String exmp_djpid = "22";
+	public static final String dval_djpid = null;
 	
 	/* 
 	 * submit common

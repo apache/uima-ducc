@@ -102,6 +102,7 @@ public interface IDuccProcess extends Serializable {
 		InitializationTimeout,
 		JPHasNoActiveJob, 
 		LowSwapSpace,
+		UserInitiated
 	}
 	
 	public String getReasonForStoppingProcess();

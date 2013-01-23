@@ -40,6 +40,7 @@ public interface Orchestrator {
 	public OrchestratorAbbreviatedStateDuccEvent getAbbreviatedState();
 	public void startJob(SubmitJobDuccEvent duccEvent);
 	public void stopJob(CancelJobDuccEvent duccEvent);
+	public void stopJobProcess(CancelJobDuccEvent duccEvent);
 	public void startReservation(SubmitReservationDuccEvent duccEvent);
 	public void stopReservation(CancelReservationDuccEvent duccEvent);
 	public void startService(SubmitServiceDuccEvent duccEvent);

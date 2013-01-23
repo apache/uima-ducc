@@ -407,27 +407,32 @@ public class StateManager {
 							break;
 						}
 						break;
-					case Completed:
+					case Completing:	
 						if(!duccWorkJob.isFinished()) {
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
-							deallocateJobDriver(duccWorkJob, jdStatusReport);
 						}
-						duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
-						switch(jdStatusReport.getJobCompletionType()) {
-						case EndOfJob:
-							duccWorkJob.setCompletion(JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
-							try {
-								int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
-								if(errors > 0) {
-									duccWorkJob.setCompletion(JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
+						break;
+					case Completed:
+						if(!duccWorkJob.isCompleted()) {
+							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
+							deallocateJobDriver(duccWorkJob, jdStatusReport);
+							duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+							switch(jdStatusReport.getJobCompletionType()) {
+							case EndOfJob:
+								duccWorkJob.setCompletion(JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
+								try {
+									int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
+									if(errors > 0) {
+										duccWorkJob.setCompletion(JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
+									}
 								}
+								catch(Exception e) {
+								}
+								break;
+							default:
+								duccWorkJob.setCompletion(jdStatusReport.getJobCompletionType(),jdStatusReport.getJobCompletionRationale());
+								break;
 							}
-							catch(Exception e) {
-							}
-							break;
-						default:
-							duccWorkJob.setCompletion(jdStatusReport.getJobCompletionType(),jdStatusReport.getJobCompletionRationale());
-							break;
 						}
 						break;
 					case Undefined:

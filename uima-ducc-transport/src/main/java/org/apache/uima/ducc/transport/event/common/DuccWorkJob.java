@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.event.common;
 
 import java.io.File;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -264,6 +265,26 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 			retVal += File.separator;
 		}
 		return retVal;
+	}
+	
+	// **********
+	
+	public IDuccProcess getProcess(String dpid) {
+		IDuccProcess idp = null;
+		try {
+			long search = Long.parseLong(dpid.trim());
+			IDuccProcessMap map = getProcessMap();
+			Set<DuccId> keys = map.keySet();
+			for(DuccId key : keys) {
+				if(search == key.getFriendly()) {
+					idp = map.get(key);
+					break;
+				}
+			}
+		}
+		catch(Exception e) {
+		}
+		return idp;
 	}
 	
 	// **********

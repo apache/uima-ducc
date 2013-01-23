@@ -30,6 +30,10 @@ public class JobReplyProperties extends JobRequestProperties implements Serializ
 	public static String key_message = "message";
 	
 	public static String msg_user_not_authorized = "user not authorized";
-	public static String msg_not_found = "not found";
+	public static String msg_job_not_found = "job not found";
+	public static String msg_service_not_found = "service not found";
+	public static String msg_process_not_found = "process not found";
+	public static String msg_process_not_active = "process not active";
+	public static String msg_process_canceled = "process canceled";
 	public static String msg_canceled = "canceled";
 }
