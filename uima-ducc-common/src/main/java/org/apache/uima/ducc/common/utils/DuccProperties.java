@@ -180,6 +180,25 @@ public class DuccProperties extends Properties {
                  v.equalsIgnoreCase("true") );
     }
 
+    public String getProperty(String k)
+    {
+        String val = super.getProperty(k);
+        System.out.println("1. k = " + k + " val = " + val);
+        if ( val == null ) return null;
+
+        if ( val.contains("${") ) {
+            val = Utils.resolvePlaceholderIfExists(val, this);
+        }
+        System.out.println("2. k = " + k + " val = " + val);
+
+        if ( val.contains("${") ) {
+            val = Utils.resolvePlaceholderIfExists(val, System.getProperties());
+        }
+        System.out.println("2. k = " + k + " val = " + val);
+
+        return val;
+    }
+
 	private void override(String configDir) throws Exception {
 		String overrideFile = "";
 

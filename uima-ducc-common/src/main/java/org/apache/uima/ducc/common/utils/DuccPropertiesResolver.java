@@ -35,9 +35,9 @@ public class DuccPropertiesResolver {
 		return duccPropertiesResolver;
 	}
 	
-	private Properties initialProperties = new Properties();
+	private Properties initialProperties = new DuccProperties();
 	
-	private Properties defaultProperties = new Properties();
+	private Properties defaultProperties = new DuccProperties();
 	
 	public DuccPropertiesResolver() {
 		init(initialProperties);
@@ -123,7 +123,7 @@ public class DuccPropertiesResolver {
 	}
 	
 	public String getFileProperty(String key) {
-		Properties currentProperties = new Properties();
+		Properties currentProperties = new DuccProperties();
 		init(currentProperties);
 		String value = currentProperties.getProperty(key);
 		if(value == null) {

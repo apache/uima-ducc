@@ -144,7 +144,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     for (Map.Entry<Object, Object> entry : duccProperties.entrySet()) {
       String key = ((String) entry.getKey()).trim();
       if (!System.getProperties().containsKey(key)) {
-        String value = Utils.resolvePlaceholderIfExists((String) entry.getValue(), props).trim();
+        String value = (String) entry.getValue();
+        value = Utils.resolvePlaceholderIfExists(value, duccProperties).trim();
+        value = Utils.resolvePlaceholderIfExists(value, props).trim();
         System.setProperty(key, value);
       }
     }
