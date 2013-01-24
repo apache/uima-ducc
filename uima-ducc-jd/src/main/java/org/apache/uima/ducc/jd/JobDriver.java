@@ -1172,7 +1172,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		switch(directive) {
 		case ProcessContinue_CasNoRetry:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
-			workItemError(workItem, directive);
+			workItemError(workItem, e, directive);
 			remove(workItem);
 			casSource.recycle(workItem.getCAS());
 			accountingWorkItemIsError(workItem.getProcessId());
@@ -1182,7 +1182,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			break;
 		case ProcessStop_CasNoRetry:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
-			workItemError(workItem, directive);
+			workItemError(workItem, e, directive);
 			remove(workItem);
 			casSource.recycle(workItem.getCAS());
 			accountingWorkItemIsError(workItem.getProcessId());
@@ -1277,15 +1277,19 @@ public class JobDriver extends Thread implements IJobDriver {
 		workItemError(workItem, e, null);
 	}
 	
+	/*
 	private void workItemError(WorkItem workItem, Directive directive) {
 		workItemError(workItem, null, directive);
 	}
+	*/
 	
 	private void workItemError(WorkItem workItem, Exception e, Directive directive) {
 		String location = " workItemError";
 		driverStatusReport.countWorkItemsProcessingError();
 		String nodeId = "?";
 		String pid = "?";
+		DuccId djid = workItem.getJobId();
+		DuccId dpid = workItem.getProcessId();
 		try {
 			String key = ""+workItem.getCAS().hashCode();
 			if(casDispatchMap.containsKey(key)) {
@@ -1295,19 +1299,21 @@ public class JobDriver extends Thread implements IJobDriver {
 					pid = threadLocation.getProcessId();
 				}
 			}
-			String workItemId = "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText()+" "+"node:"+nodeId+" "+"PID:"+pid;
-			if(e != null) {
-				duccOut.error(location, workItem.getJobId(), workItem.getProcessId(), workItemId, e);
-				duccErr.error(location, workItem.getJobId(), workItem.getProcessId(), workItemId, e);
+			String message = "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText()+" "+"node:"+nodeId+" "+"PID:"+pid;
+			if(directive != null) {
+				message += " "+"directive:"+directive;
 			}
-			else {
-				duccOut.error(location, workItem.getJobId(), workItem.getProcessId(), workItemId+" "+"directive:"+directive);
-				duccErr.error(location, workItem.getJobId(), workItem.getProcessId(), workItemId+" "+"directive:"+directive);
+			
+			duccOut.error(location, djid, dpid, message);
+			duccErr.error(location, djid, dpid, message);
+			if(e != null) {
+				duccOut.error(location, djid, dpid, e);
+				duccErr.error(location, djid, dpid, e);
 			}
 		}
 		catch(Exception exception) {
-			duccOut.error(location, workItem.getJobId(), workItem.getProcessId(), exception);
-			duccErr.error(location, workItem.getJobId(), workItem.getProcessId(), exception);
+			duccOut.error(location, djid, dpid, exception);
+			duccErr.error(location, djid, dpid, exception);
 		}
 	}
 	
