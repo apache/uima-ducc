@@ -240,7 +240,7 @@ class PostInstall(DuccUtil):
         ws_duccbook = self.DUCC_HOME + "/webserver/root/system.duccbook.html"
         if ( not os.path.lexists(ws_duccbook) ):
             duccbook = self.DUCC_HOME + "/docs/book.html"
-            os.symlink(duccbook, wsroot + "/system.duccbook.html")
+            os.symlink(duccbook, ws_duccbook)
         print '\nDUCC book installed into webserver root\n'
 
         # Make duccling
@@ -250,7 +250,7 @@ class PostInstall(DuccUtil):
         os.chdir(here)
         shutil.copyfile("../duccling/src/ducc_ling", self.DUCC_HOME + "/admin/ducc_ling")
         os.chmod(self.DUCC_HOME + '/admin/ducc_ling', 0755)
-        print '\nInitial ducc_ling is installed.  See the installation guide for multi-user setup.'
+        print 'Initial ducc_ling is installed.  See the installation guide for multi-user setup.'
 
         amqhome = self.ducc_properties.get('ducc.broker.home')
         os.chdir(amqhome + '/bin')
