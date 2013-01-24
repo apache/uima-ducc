@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- NOTE: this has to be specified as a file path relative to the working directory
+           or as an absolute path in the job submission as process_DD -->
+
+<analysisEngineDeploymentDescription xmlns="http://uima.apache.org/resourceSpecifier">
+  
+  <name>Top Level TAE</name>
+  <description></description>
+  
+  <deployment protocol="jms" provider="activemq">
+    <casPool numberOfCASes="5" initialFsHeapSize="2000"/>
+    <service>
+      <inputQueue endpoint="TopLevelTaeQueue" brokerURL="${DefaultBrokerURL}" prefetch="1"/>
+      <topDescriptor>
+        <import name="org.apache.uima.ducc.test.ddjob.DDSleepAggregate"/>
+      </topDescriptor>
+      <analysisEngine>
+        <delegates>
+        
+          <analysisEngine key="SleepMultiplier">
+	        <casMultiplier poolSize="5"/> 
+          </analysisEngine>
+
+          <analysisEngine key="AnalysisEngine">
+            <scaleout numberOfInstances="4" />
+          </analysisEngine>
+
+        </delegates>
+      </analysisEngine>
+    </service>
+  </deployment>
+  
+</analysisEngineDeploymentDescription>

@@ -501,6 +501,26 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet> 
 
+    <fileSet>
+      <!-- build up the verification test jobs -->
+      <directory>uima-ducc-examples/src/main/resources/sleepjobs</directory>
+      <outputDirectory>ducc_runtime/examples/simple</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+      <includes>
+        <include>1.job</include>
+        <include>1.inputs</include>
+      </includes>
+    </fileSet>
+
+    <fileSet>
+      <!-- build up the verification test source -->
+      <directory>uima-ducc-examples/src/main/java</directory>
+      <outputDirectory>ducc_runtime/examples/src</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
   </fileSets> 
   
   <files>
@@ -543,6 +563,12 @@ under the License.
       <fileMode>644</fileMode>
     </file>
 
+    <file>
+      <!-- put compiled samples into right place in bin tarball -->
+      <source>uima-ducc-examples/target/uima-ducc-examples.jar</source>
+      <outputDirectory>ducc_runtime/examples/lib</outputDirectory>
+      <fileMode>644</fileMode>
+    </file>
     
     <!-- 
     <file>

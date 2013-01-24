@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+   
+<!-- AE that employs CAS indirection inside aggregate. -->
+
+<!-- Pointed to by DDSleepAggregate.xml -->
+
+<analysisEngineDescription xmlns="http://uima.apache.org/resourceSpecifier">
+	<frameworkImplementation>org.apache.uima.java</frameworkImplementation>
+	<primitive>true</primitive>
+	<annotatorImplementationName>org.apache.uima.ducc.test.ddjob.SleepConsumer</annotatorImplementationName>
+	<analysisEngineMetaData>
+		<name>DefaultAE</name>
+		<description>Receives CASes with modified index; does nothing (echos).</description>
+		<version>1.0</version>
+		<vendor>The Apache Software Foundation</vendor>
+		
+		<configurationParameters>
+    		<configurationParameter>
+      			<name>DebugLevel</name>
+      			<description>Debug Level</description>
+      			<type>String</type>
+      			<multiValued>false</multiValued>
+      			<mandatory>false</mandatory>
+    		</configurationParameter>
+    	</configurationParameters>
+   	 	<configurationParameterSettings>
+    	</configurationParameterSettings>
+		
+		<typeSystemDescription>
+          <imports>
+            <import name="org.apache.uima.examples.SourceDocumentInformation"/>
+          </imports>
+        </typeSystemDescription>
+		<!--
+		Capabilities: Inputs, Outputs, and Preconditions
+		-->
+		<capabilities>
+          	<capability>
+          		<inputs/>
+          		<outputs>
+          			<type allAnnotatorFeatures="true">org.apache.uima.examples.SourceDocumentInformation</type>
+          		</outputs>
+          	</capability>
+        </capabilities>
+		<operationalProperties>
+			<modifiesCas>true</modifiesCas>
+			<multipleDeploymentAllowed>true</multipleDeploymentAllowed>
+			<outputsNewCASes>false</outputsNewCASes>
+		</operationalProperties>
+	</analysisEngineMetaData>
+</analysisEngineDescription>
