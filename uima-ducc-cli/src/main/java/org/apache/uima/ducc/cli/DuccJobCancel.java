@@ -60,6 +60,9 @@ public class DuccJobCancel extends DuccUi {
 				.withDescription(DuccUiConstants.desc_help).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_help).create());
 		options.addOption(OptionBuilder
+				.withDescription(DuccUiConstants.desc_role_administrator).hasArg(false)
+				.withLongOpt(DuccUiConstants.name_role_administrator).create());
+		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_job_id)
 				.withDescription(makeDesc(DuccUiConstants.desc_job_id,DuccUiConstants.exmp_job_id)).hasArg()
 				.withLongOpt(DuccUiConstants.name_job_id).create());
@@ -140,6 +143,9 @@ public class DuccJobCancel extends DuccUi {
 				Option option = optionList[i];
 				String name = option.getLongOpt();
 				String value = option.getValue();
+				if(value == null) {
+					value = "";
+				}
 				jobRequestProperties.setProperty(name, value);
 			}
 		}

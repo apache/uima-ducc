@@ -24,6 +24,7 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 
 
 public class DuccUiConstants {
@@ -44,6 +45,12 @@ public class DuccUiConstants {
 	public static final String exmp_help = "";
 	public static final String dval_help = null;
 
+	public static final String name_role_administrator = SpecificationProperties.key_role_administrator;
+	public static final String desc_role_administrator = "If CLI invoker is listed in resources/ducc.administrators then allow cancellation on behalf of any user";
+	public static final String labl_role_administrator = "Administrator";
+	public static final String exmp_role_administrator = "";
+	public static final String dval_role_administrator = null;
+	
 	//public static final String abrv_timestamp = "t";
 	public static final String name_timestamp = "timestamp";
 	public static final String desc_timestamp = "Timestamp messages.";

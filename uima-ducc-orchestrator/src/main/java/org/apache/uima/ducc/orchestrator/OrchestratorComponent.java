@@ -44,6 +44,7 @@ import org.apache.uima.ducc.common.utils.LinuxUtils;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
+import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.orchestrator.maintenance.MaintenanceThread;
 import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
@@ -60,7 +61,6 @@ import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
-import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
@@ -527,6 +527,48 @@ implements Orchestrator {
 		}
 		return retVal;
 	}
+	private String getRole(Properties properties) {
+		String methodName = "isAuthorized";
+		String role = SpecificationProperties.key_role_user;
+		try {
+			if(properties.containsKey(SpecificationProperties.key_role_administrator)) {
+				role = SpecificationProperties.key_role_administrator;
+			}
+		}
+		catch(Exception e) {
+			logger.error(methodName, null, e);
+		}
+		return role;
+	}
+	private boolean isAuthorized(DuccId duccId, String reqUser, String tgtUser, String role) {
+		String methodName = "isAuthorized";
+		boolean retVal = false;
+		try {
+			if(reqUser.equals(tgtUser)) {
+				logger.info(methodName, duccId, reqUser+" is "+tgtUser);
+				retVal = true;
+			}
+			else {
+				if(role.equals(SpecificationProperties.key_role_administrator)) {
+					DuccWebAdministrators dwa = DuccWebAdministrators.getInstance();
+					if(dwa.isAdministrator(reqUser)) {
+						logger.info(methodName, duccId, reqUser+" is "+SpecificationProperties.key_role_administrator);
+						retVal = true;
+					}
+					else {
+						logger.info(methodName, duccId, reqUser+" is not "+SpecificationProperties.key_role_administrator);
+					}
+				}
+				else {
+					logger.info(methodName, duccId, "role"+" is not "+SpecificationProperties.key_role_administrator);
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(methodName, duccId, e);
+		}
+		return retVal;
+	}
 	/**
 	 * Handle Job Submit
 	 */
@@ -591,108 +633,132 @@ implements Orchestrator {
 	@Override
 	public void stopJob(CancelJobDuccEvent duccEvent) {
 		String methodName = "stopJob";
-		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccId dwid = null;
+		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
 		if(isSignatureInvalid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
-			logger.error(methodName, null, error_message);
+			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
 		}
 		else if(Validate.request(duccEvent)) {
-			// update state
 			String jobId = properties.getProperty(JobRequestProperties.key_id);
 			long t0 = System.currentTimeMillis();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) workMap.findDuccWork(DuccType.Job,jobId);
 			long t1 = System.currentTimeMillis();
 			long elapsed = t1 - t0;
 			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
+				logger.debug(methodName, dwid, "elapsed msecs: "+elapsed);
 			}
 			if(duccWorkJob != null) {
-				String userid = properties.getProperty(JobSpecificationProperties.key_user);
-				IRationale rationale = new Rationale("job canceled by userid "+userid);
-				stateManager.jobTerminate(duccWorkJob, JobCompletionType.CanceledByUser, rationale, ProcessDeallocationType.JobCanceled);
-				OrchestratorCheckpoint.getInstance().saveState();
-				// prepare for reply to canceler
-				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_canceled);
-				duccEvent.setProperties(properties);
-				logger.info(methodName, duccWorkJob.getDuccId(), messages.fetchLabel("job state")+duccWorkJob.getJobState());
+				dwid = duccWorkJob.getDuccId();
+				String reqUser = properties.getProperty(JobRequestProperties.key_user).trim();
+				String reqRole = getRole(properties);
+				String tgtUser = duccWorkJob.getStandardInfo().getUser().trim();
+				if(isAuthorized(dwid, reqUser, tgtUser, reqRole)) {
+					logger.debug(methodName, dwid, "reqUser:"+reqUser+" "+"reqRole:"+reqRole+" "+"tgtUser:"+tgtUser);
+					IRationale rationale = new Rationale("job canceled by userid "+reqUser);
+					stateManager.jobTerminate(duccWorkJob, JobCompletionType.CanceledByUser, rationale, ProcessDeallocationType.JobCanceled);
+					OrchestratorCheckpoint.getInstance().saveState();
+					// prepare for reply to canceler
+					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_canceled);
+					duccEvent.setProperties(properties);
+					logger.info(methodName, dwid, messages.fetchLabel("job state")+duccWorkJob.getJobState());
+				}
+				else {
+					// prepare not authorized reply 
+					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_user_not_authorized);
+					duccEvent.setProperties(properties);
+					logger.info(methodName, dwid, jobId+" : "+messages.fetch(JobReplyProperties.msg_user_not_authorized));
+				}
 			}
 			else {
 				// prepare undefined reply 
 				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_job_not_found);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, null, jobId+" : "+messages.fetch(JobReplyProperties.msg_job_not_found));
+				logger.info(methodName, dwid, jobId+" : "+messages.fetch(JobReplyProperties.msg_job_not_found));
 			}
 		}
 		else {
-			logger.info(methodName, null, messages.fetch("TODO")+" prepare error reply");
+			logger.info(methodName, dwid, messages.fetch("TODO")+" prepare error reply");
 			//TODO
 		}
-		logger.trace(methodName, null, messages.fetch("exit"));
+		logger.trace(methodName, dwid, messages.fetch("exit"));
 		return;
 	}
 	
 	@Override
 	public void stopJobProcess(CancelJobDuccEvent duccEvent) {
 		String methodName = "stopJobProcess";
-		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccId dwid = null;
+		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
 		if(isSignatureInvalid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
-			logger.error(methodName, null, error_message);
+			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
 		}
 		else if(Validate.request(duccEvent)) {
-			DuccId djid = null;
 			String dpid = null;
 			String jobId = properties.getProperty(JobRequestProperties.key_id);
 			DuccWorkJob duccWorkJob = (DuccWorkJob) workMap.findDuccWork(DuccType.Job,jobId);
 			if(duccWorkJob != null) {
-				djid = duccWorkJob.getDuccId();
-				dpid = properties.getProperty(JobReplyProperties.key_dpid);
-				IDuccProcess idp = duccWorkJob.getProcess(dpid);
-				if(idp != null) {
-					switch(idp.getProcessState()) {
-					case Starting:
-					case Initializing:
-					case Running:
-						idp.setResourceState(ResourceState.Deallocated);
-						idp.setProcessState(ProcessState.Abandoned);
-						idp.setProcessDeallocationType(ProcessDeallocationType.Canceled);
-						idp.setReasonForStoppingProcess(ReasonForStoppingProcess.UserInitiated.toString());
-						// prepare process not active 
-						properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_canceled);
+				dwid = duccWorkJob.getDuccId();
+				String reqUser = properties.getProperty(JobRequestProperties.key_user).trim();
+				String reqRole = getRole(properties);
+				String tgtUser = duccWorkJob.getStandardInfo().getUser().trim();
+				if(isAuthorized(dwid, reqUser, tgtUser, reqRole)) {
+					logger.debug(methodName, dwid, "reqUser:"+reqUser+" "+"reqRole:"+reqRole+" "+"tgtUser:"+tgtUser);
+					dpid = properties.getProperty(JobReplyProperties.key_dpid);
+					IDuccProcess idp = duccWorkJob.getProcess(dpid);
+					if(idp != null) {
+						switch(idp.getProcessState()) {
+						case Starting:
+						case Initializing:
+						case Running:
+							idp.setResourceState(ResourceState.Deallocated);
+							idp.setProcessState(ProcessState.Abandoned);
+							idp.setProcessDeallocationType(ProcessDeallocationType.Canceled);
+							idp.setReasonForStoppingProcess(ReasonForStoppingProcess.UserInitiated.toString());
+							// prepare process not active 
+							properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_canceled);
+							duccEvent.setProperties(properties);
+							logger.info(methodName, dwid, dpid, messages.fetch(JobReplyProperties.msg_process_canceled));
+							break;
+						default:
+							// prepare process not active 
+							properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_not_active);
+							duccEvent.setProperties(properties);
+							logger.info(methodName, dwid, dpid, messages.fetch(JobReplyProperties.msg_process_not_active));
+							break;
+						}
+					}
+					else {
+						// prepare process not found reply 
+						properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_not_found);
 						duccEvent.setProperties(properties);
-						logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_process_canceled));
-						break;
-					default:
-						// prepare process not active 
-						properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_not_active);
-						duccEvent.setProperties(properties);
-						logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_process_not_active));
-						break;
+						logger.info(methodName, dwid, dpid, messages.fetch(JobReplyProperties.msg_process_not_found));
 					}
 				}
 				else {
-					// prepare process not found reply 
-					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_not_found);
+					// prepare not authorized reply 
+					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_user_not_authorized);
 					duccEvent.setProperties(properties);
-					logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_process_not_found));
+					logger.info(methodName, dwid, jobId+" : "+messages.fetch(JobReplyProperties.msg_user_not_authorized));
 				}
 			}
 			else {
 				// prepare job not found 
 				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_job_not_found);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, djid, dpid, messages.fetch(JobReplyProperties.msg_job_not_found));
+				logger.info(methodName, dwid, dpid, messages.fetch(JobReplyProperties.msg_job_not_found));
 			}
 		}
 		else {
-			logger.info(methodName, null, messages.fetch("TODO")+" prepare error reply");
+			logger.info(methodName, dwid, messages.fetch("TODO")+" prepare error reply");
 			//TODO
 		}
-		logger.trace(methodName, null, messages.fetch("exit"));
+		logger.trace(methodName, dwid, messages.fetch("exit"));
 		return;
 	}
 	
@@ -766,59 +832,71 @@ implements Orchestrator {
 	@Override
 	public void stopReservation(CancelReservationDuccEvent duccEvent) {
 		String methodName = "stopReservation";
-		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccId dwid = null;
+		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
 		if(isSignatureInvalid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
-			logger.error(methodName, null, error_message);
+			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
 		}
 		else {
-			// update state
 			String id = properties.getProperty(ReservationRequestProperties.key_id);
 			long t0 = System.currentTimeMillis();
 			DuccWorkReservation duccWorkReservation = (DuccWorkReservation) workMap.findDuccWork(DuccType.Reservation,id);
 			long t1 = System.currentTimeMillis();
 			long elapsed = t1 - t0;
 			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
+				logger.debug(methodName, dwid, "elapsed msecs: "+elapsed);
 			}
 			if(Validate.request(duccEvent,duccWorkReservation)) {
 				if(duccWorkReservation != null) {
-					String cancelUser = properties.getProperty(SpecificationProperties.key_user);
-					duccWorkReservation.getStandardInfo().setCancelUser(cancelUser);
-					duccWorkReservation.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
-					duccWorkReservation.stateChange(ReservationState.Completed);
-					duccWorkReservation.complete(ReservationCompletionType.CanceledByUser);
-					String u1 = duccWorkReservation.getStandardInfo().getUser();
-					String u2 = duccWorkReservation.getStandardInfo().getCancelUser();
-					if(u1 != null) {
-						if(u2 != null) {
-							if(!u1.equals(u2)) {
-								duccWorkReservation.complete(ReservationCompletionType.CanceledByAdmin);
+					dwid = duccWorkReservation.getDuccId();
+					String reqUser = properties.getProperty(JobRequestProperties.key_user).trim();
+					String reqRole = getRole(properties);
+					String tgtUser = duccWorkReservation.getStandardInfo().getUser().trim();
+					if(isAuthorized(dwid, reqUser, tgtUser, reqRole)) {
+						logger.debug(methodName, dwid, "reqUser:"+reqUser+" "+"reqRole:"+reqRole+" "+"tgtUser:"+tgtUser);
+						duccWorkReservation.getStandardInfo().setCancelUser(reqUser);
+						duccWorkReservation.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+						duccWorkReservation.stateChange(ReservationState.Completed);
+						duccWorkReservation.complete(ReservationCompletionType.CanceledByUser);
+						String u1 = duccWorkReservation.getStandardInfo().getUser();
+						String u2 = duccWorkReservation.getStandardInfo().getCancelUser();
+						if(u1 != null) {
+							if(u2 != null) {
+								if(!u1.equals(u2)) {
+									duccWorkReservation.complete(ReservationCompletionType.CanceledByAdmin);
+								}
 							}
 						}
+						OrchestratorCheckpoint.getInstance().saveState();
+						// prepare for reply to canceler
+						properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_canceled);
+						duccEvent.setProperties(properties);
+						logger.info(methodName, dwid, messages.fetchLabel("reservation state")+duccWorkReservation.getReservationState());
 					}
-					OrchestratorCheckpoint.getInstance().saveState();
-					// prepare for reply to canceler
-					properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_canceled);
-					duccEvent.setProperties(properties);
-					logger.info(methodName, duccWorkReservation.getDuccId(), messages.fetchLabel("reservation state")+duccWorkReservation.getReservationState());
+					else {
+						// prepare not authorized reply 
+						properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_user_not_authorized);
+						duccEvent.setProperties(properties);
+						logger.info(methodName, dwid, dwid+" : "+messages.fetch(ReservationReplyProperties.msg_user_not_authorized));
+					}
 				}
 				else {
 					// prepare undefined reply 
 					properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_not_found);
 					duccEvent.setProperties(properties);
-					logger.info(methodName, null, id+" : "+messages.fetch("reservation not found"));
+					logger.info(methodName, dwid, id+" : "+messages.fetch("reservation not found"));
 				}
 			}
 			else {
 				properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_user_not_authorized);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, null, id+" : "+messages.fetch("not authorized"));
+				logger.info(methodName, dwid, id+" : "+messages.fetch("not authorized"));
 			}
 		}
-		logger.trace(methodName, null, messages.fetch("exit"));
+		logger.trace(methodName, dwid, messages.fetch("exit"));
 		return;
 	}
 	
@@ -888,11 +966,12 @@ implements Orchestrator {
 	@Override
 	public void stopService(CancelServiceDuccEvent duccEvent) {
 		String methodName = "stopService";
-		logger.trace(methodName, null, messages.fetch("enter"));
+		DuccId dwid = null;
+		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
 		if(isSignatureInvalid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
-			logger.error(methodName, null, error_message);
+			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
 		}
 		else if(Validate.request(duccEvent)) {
@@ -903,31 +982,42 @@ implements Orchestrator {
 			long t1 = System.currentTimeMillis();
 			long elapsed = t1 - t0;
 			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
+				logger.debug(methodName, dwid, "elapsed msecs: "+elapsed);
 			}
 			if(duccWorkJob != null) {
-				String userid = properties.getProperty(JobSpecificationProperties.key_user);
-				IRationale rationale = new Rationale("service canceled by "+userid);
-				stateManager.jobTerminate(duccWorkJob, JobCompletionType.CanceledByUser, rationale, ProcessDeallocationType.JobCanceled);
-				OrchestratorCheckpoint.getInstance().saveState();
-				// prepare for reply to canceler
-				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_canceled);
-				duccEvent.setProperties(properties);
-				logger.info(methodName, duccWorkJob.getDuccId(), messages.fetchLabel("service state")+duccWorkJob.getJobState());
+				dwid = duccWorkJob.getDuccId();
+				String reqUser = properties.getProperty(JobRequestProperties.key_user).trim();
+				String reqRole = getRole(properties);
+				String tgtUser = duccWorkJob.getStandardInfo().getUser().trim();
+				if(isAuthorized(dwid, reqUser, tgtUser, reqRole)) {
+					logger.debug(methodName, dwid, "reqUser:"+reqUser+" "+"reqRole:"+reqRole+" "+"tgtUser:"+tgtUser);
+					IRationale rationale = new Rationale("service canceled by "+reqUser);
+					stateManager.jobTerminate(duccWorkJob, JobCompletionType.CanceledByUser, rationale, ProcessDeallocationType.JobCanceled);
+					OrchestratorCheckpoint.getInstance().saveState();
+					// prepare for reply to canceler
+					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_canceled);
+					duccEvent.setProperties(properties);
+					logger.info(methodName, dwid, messages.fetchLabel("service state")+duccWorkJob.getJobState());
+				}
+				else {
+					// prepare not authorized reply 
+					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_user_not_authorized);
+					duccEvent.setProperties(properties);
+					logger.info(methodName, dwid, jobId+" : "+messages.fetch(JobReplyProperties.msg_user_not_authorized));
+				}
 			}
-			
 			else {
 				// prepare undefined reply 
 				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_service_not_found);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, null, jobId+" : "+messages.fetch(JobReplyProperties.msg_service_not_found));
+				logger.info(methodName, dwid, jobId+" : "+messages.fetch(JobReplyProperties.msg_service_not_found));
 			}
 		}
 		else {
-			logger.info(methodName, null, messages.fetch("TODO")+" prepare error reply");
+			logger.info(methodName, dwid, messages.fetch("TODO")+" prepare error reply");
 			//TODO
 		}
-		logger.trace(methodName, null, messages.fetch("exit"));
+		logger.trace(methodName, dwid, messages.fetch("exit"));
 		return;
 	}
 }

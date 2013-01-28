@@ -60,6 +60,9 @@ public class DuccServiceCancel extends DuccUi {
 				.withDescription(DuccUiConstants.desc_help).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_help).create());
 		options.addOption(OptionBuilder
+				.withDescription(DuccUiConstants.desc_role_administrator).hasArg(false)
+				.withLongOpt(DuccUiConstants.name_role_administrator).create());
+		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_service_id)
 				.withDescription(makeDesc(DuccUiConstants.desc_service_id,DuccUiConstants.exmp_service_id)).hasArg()
 				.withLongOpt(DuccUiConstants.name_service_id).create());
@@ -136,6 +139,9 @@ public class DuccServiceCancel extends DuccUi {
 				Option option = optionList[i];
 				String name = option.getLongOpt();
 				String value = option.getValue();
+				if(value == null) {
+					value = "";
+				}
 				serviceRequestProperties.setProperty(name, value);
 			}
 		}

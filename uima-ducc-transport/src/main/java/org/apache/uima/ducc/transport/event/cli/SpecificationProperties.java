@@ -33,6 +33,9 @@ public class SpecificationProperties extends Properties implements Serializable 
 	public static String key_user = "user";
 	public static String key_date = "date";
 	
+	public static String key_role_administrator = "role_administrator";
+	public static String key_role_user = "role_user";
+	
 	public static String key_description = "description";
 	
 	public static String key_scheduling_class = "scheduling_class";
