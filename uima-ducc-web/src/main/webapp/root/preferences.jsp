@@ -19,6 +19,7 @@ under the License.
 <%@ page language="java" %>
 <%
 boolean dateStyle = true;
+boolean role = true;
 %>
 <html>
 <head>
@@ -149,6 +150,19 @@ if (dateStyle) {
 		<td><input type="radio"  name="filter_users_style" value="exclude+active"  onclick="ducc_preferences_set('filter_users_style','exclude+active')" /> Exclude+Active
 		<td>&nbsp
 		<td>&nbsp
+<%
+if (role) {
+%>
+		<tr>
+		<tr>
+        <td><i><b>Role</b></i>
+		<td>&nbsp
+		<td><input type="radio"  name="role" value="administrator"         onclick="ducc_preferences_set('role','administrator')" /> Administrator
+		<td>&nbsp
+		<td><input type="radio"  name="role" value="user"          checked onclick="ducc_preferences_set('role','user')" /> User
+<%
+}
+%>		
         </table>
    	  </div>
     </div> 

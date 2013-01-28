@@ -62,6 +62,7 @@ import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
+import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -83,6 +84,7 @@ import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.server.DuccAbstractHandler.RequestRole;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandler extends DuccAbstractHandler {
@@ -2269,8 +2271,19 @@ public class DuccHandler extends DuccAbstractHandler {
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccJobCancel";
 					String jhome = System.getProperty("java.home");
-					String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-					DuccAsUser.duckling(arglist);
+					RequestRole requestRole = getRole(request);
+					switch(requestRole) {
+					case Administrator:
+						String arg3 = "--"+SpecificationProperties.key_role_administrator;
+						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
+						DuccAsUser.duckling(arglistAdministrator);
+						break;
+					case User:
+					default:
+						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+						DuccAsUser.duckling(arglistUser);
+						break;	
+					}
 				}
 			}
 			else {
@@ -2370,8 +2383,19 @@ public class DuccHandler extends DuccAbstractHandler {
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccReservationCancel";
 					String jhome = System.getProperty("java.home");
-					String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-					DuccAsUser.duckling(arglist);
+					RequestRole requestRole = getRole(request);
+					switch(requestRole) {
+					case Administrator:
+						String arg3 = "--"+SpecificationProperties.key_role_administrator;
+						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
+						DuccAsUser.duckling(arglistAdministrator);
+						break;
+					case User:
+					default:
+						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+						DuccAsUser.duckling(arglistUser);
+						break;	
+					}
 				}
 			}
 			else {
@@ -2423,8 +2447,19 @@ public class DuccHandler extends DuccAbstractHandler {
 						String java = "/bin/java";
 						String jclass = "org.apache.uima.ducc.cli.DuccServiceCancel";
 						String jhome = System.getProperty("java.home");
-						String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-						DuccAsUser.duckling(arglist);
+						RequestRole requestRole = getRole(request);
+						switch(requestRole) {
+						case Administrator:
+							String arg3 = "--"+SpecificationProperties.key_role_administrator;
+							String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
+							DuccAsUser.duckling(arglistAdministrator);
+							break;
+						case User:
+						default:
+							String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+							DuccAsUser.duckling(arglistUser);
+							break;	
+						}
 					}
 				}
 				else {

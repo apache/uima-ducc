@@ -180,22 +180,30 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		String methodName = "isAuthorized";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
-		String text;
 		try {
+			String text = "";
 			boolean authenticated = duccWebSessionManager.isAuthentic(request);
 			String userId = duccWebSessionManager.getUserId(request);
 			if(authenticated) {
-				if(duccWebAdministrators.isAdministrator(userId)) {
-					text = "user "+userId+" is administrator";
+				if(match(resourceOwnerUserid,userId)) {
+					text = "user "+userId+" is resource owner";
 					retVal = true;
 				}
 				else {
-					if(match(resourceOwnerUserid,userId)) {
-						text = "user "+userId+" is resource owner";
-						retVal = true;
-					}
-					else {
+					RequestRole requestRole = getRole(request);
+					switch(requestRole) {
+					case User:
 						text = "user "+userId+" is not resource owner "+resourceOwnerUserid;
+						break;
+					case Administrator:
+						if(duccWebAdministrators.isAdministrator(userId)) {
+							text = "user "+userId+" is administrator";
+							retVal = true;
+						}
+						else {
+							text = "user "+userId+" is not administrator ";
+						}
+						break;
 					}
 				}
 			}
@@ -459,6 +467,26 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		catch(Exception e) {
 		}
 		return filterUsersStyle;
+	}
+	
+	public enum RequestRole { Administrator, User};
+	
+	public RequestRole getRole(HttpServletRequest request) {
+		RequestRole role = RequestRole.User;
+		try {
+			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieRole);
+			if(cookie.equals(DuccWebUtil.valueRoleAdministrator)) {
+				role = RequestRole.Administrator;;
+			}
+			/*
+			else if(cookie.equals(DuccWebUtil.valueRoleUser)) {
+				role = RequestRole.User;
+			}
+			*/
+		}
+		catch(Exception e) {
+		}
+		return role;
 	}
 	
 	public int getJobsMax(HttpServletRequest request) {

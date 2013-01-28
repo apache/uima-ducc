@@ -2334,12 +2334,38 @@ function ducc_preferences_filter_users_style() {
 	}
 }
 
+function ducc_preferences_role() {
+	try {
+		var key = ducc_appl("role");
+		var value = ducc_get_cookie(key);
+		//alert("ducc_preferences"+" "+"key:"+key+" "+"value:"+value);
+		if(value == "administrator") {
+			document.form_preferences.role[0].checked = true;
+			document.form_preferences.role[1].checked = false;
+		}
+		else if(value == "user") {
+			document.form_preferences.role[0].checked = false;
+			document.form_preferences.role[1].checked = true;
+		}
+		else {
+			value = "user";
+			ducc_put_cookie(key, value);
+			document.form_preferences.role[0].checked = false;
+			document.form_preferences.role[1].checked = true;
+		}
+	}
+	catch(err) {
+		ducc_error("ducc_preferences_role",err);
+	}
+}
+
 function ducc_preferences()
 {
 	try {
 		ducc_preferences_table_style();
 		ducc_preferences_date_style();
 		ducc_preferences_filter_users_style();
+		ducc_preferences_role();
 	}
 	catch(err) {
 		ducc_error("ducc_preferences",err);
