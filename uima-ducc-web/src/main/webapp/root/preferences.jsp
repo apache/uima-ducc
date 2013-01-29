@@ -157,9 +157,9 @@ if (role) {
 		<tr>
         <td><i><b>Role</b></i>
 		<td>&nbsp
-		<td><input type="radio"  name="role" value="administrator"         onclick="ducc_preferences_set('role','administrator')" /> Administrator
-		<td>&nbsp
 		<td><input type="radio"  name="role" value="user"          checked onclick="ducc_preferences_set('role','user')" /> User
+		<td>&nbsp
+		<td><input type="radio"  name="role" value="administrator"         onclick="ducc_preferences_set('role','administrator')" /> Administrator
 <%
 }
 %>		

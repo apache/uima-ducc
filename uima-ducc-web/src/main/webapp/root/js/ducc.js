@@ -2201,6 +2201,10 @@ function ducc_preferences_reset()
 		var value = "include";
 		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
 		ducc_put_cookie(key,value);
+		var key = ducc_appl("role");
+		var value = "user";
+		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
+		ducc_put_cookie(key,value);
 		//
 		ducc_preferences();
 	}
@@ -2342,19 +2346,19 @@ function ducc_preferences_role() {
 		var key = ducc_appl("role");
 		var value = ducc_get_cookie(key);
 		//alert("ducc_preferences"+" "+"key:"+key+" "+"value:"+value);
-		if(value == "administrator") {
+		if(value == "user") {
 			document.form_preferences.role[0].checked = true;
 			document.form_preferences.role[1].checked = false;
 		}
-		else if(value == "user") {
+		else if(value == "administrator") {
 			document.form_preferences.role[0].checked = false;
 			document.form_preferences.role[1].checked = true;
 		}
 		else {
 			value = "user";
 			ducc_put_cookie(key, value);
-			document.form_preferences.role[0].checked = false;
 			document.form_preferences.role[1].checked = true;
+			document.form_preferences.role[0].checked = false;
 		}
 	}
 	catch(err) {
