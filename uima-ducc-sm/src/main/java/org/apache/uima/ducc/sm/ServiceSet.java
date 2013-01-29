@@ -565,6 +565,9 @@ public class ServiceSet
             linger = null;
         }
         references.put(id, id);
+        if ( serviceMeta != null ) {
+            serviceMeta.reference();
+        }
         return references.size();
     }
 

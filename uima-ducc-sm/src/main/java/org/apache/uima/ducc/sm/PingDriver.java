@@ -68,9 +68,13 @@ class PingDriver
     StdioListener ser_listener = null;
     PingThread pinger = null;
 
+    int META_PING_MAX = 32*60*1000;   // 32 minutes ( a shade over 30 ...)
     int meta_ping_rate;
+    Object ping_rate_sync = new Object();
+
     int meta_ping_stability;
     String meta_ping_timeout;
+    Thread ping_thread;
     ServiceStatistics service_statistics = null;
 
     String user;
@@ -129,6 +133,21 @@ class PingDriver
         return service_statistics;
     }
 
+    public void reference()
+    {
+        synchronized(ping_rate_sync) {
+            meta_ping_rate = 500;
+        }
+        if ( ping_thread != null ) {
+            ping_thread.interrupt();
+        }
+    }
+
+    synchronized int getMetaPingRate()
+    {
+        return meta_ping_rate;
+    }
+
     public void run() 
     {
         String methodName = "run";
@@ -141,7 +160,7 @@ class PingDriver
         }
         int port = pinger.getPort();
 
-        Thread ping_thread = new Thread(pinger);
+        ping_thread = new Thread(pinger);
         ping_thread.start();                            // sets up the listener, before we start the the external process
 
         ArrayList<String> arglist = new ArrayList<String>();
@@ -283,13 +302,6 @@ class PingDriver
                         logger.error(methodName, sset.getId(), e1);
                         errors++;
                     }
-
-                    // Wait a bit
-                    try {
-                        Thread.sleep(meta_ping_rate);
-                    } catch (InterruptedException e) {
-                        // nothing
-                    }
                     
                     // Try to read the response
                     // TODO: set the socket timeout on this
@@ -316,6 +328,27 @@ class PingDriver
                             }                
                         }
                     }
+
+                    // This kliudge is required because we have to insure that pings aren't too frequent or ActiveMQ will get OutOfMemory errors.
+                    // So we do exponential backoff.  If a new job references the service we set the ping rate to something frequent for a while
+                    // to insure waiting jobs don't have to wait too long ( done in PingDriver object ).
+                    int my_ping_rate;
+                    synchronized(ping_rate_sync) {
+                        my_ping_rate = meta_ping_rate;
+                        if ( meta_ping_rate < META_PING_MAX ) {
+                            meta_ping_rate = Math.min(META_PING_MAX, meta_ping_rate * 2);
+                        }
+                    }
+
+                    // Wait a bit for the next one
+                    try {
+                        logger.info(methodName, sset.getId(), "SLEEPING", my_ping_rate, "ms", sset.toString());
+                        Thread.sleep(my_ping_rate);
+                        logger.info(methodName, sset.getId(), "SLEEP returns", sset.toString());
+                    } catch (InterruptedException e) {
+                        // nothing
+                    }
+
                 }
 			} catch (IOException e) {
                 logger.error(methodName, sset.getId(), "Error receiving ping", e);
