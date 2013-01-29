@@ -1739,6 +1739,7 @@ function ducc_terminate_job(id)
 			url : "/ducc-servlet/job-cancel-request"+"?id="+id,
 			success : function (data) 
 			{
+			$.jGrowl(data, { life: 6000 });
 			setTimeout(function(){window.close();}, 5000);
 			}
 		});
@@ -1760,6 +1761,7 @@ function ducc_terminate_service(id)
 			url : "/ducc-servlet/service-cancel-request"+"?id="+id,
 			success : function (data) 
 			{
+				$.jGrowl(data, { life: 6000 });
 				setTimeout(function(){window.close();}, 5000);
 			}
 		});
@@ -1781,6 +1783,7 @@ function ducc_terminate_reservation(id)
 			url : "/ducc-servlet/reservation-cancel-request"+"?id="+id,
 			success : function (data) 
 			{
+				$.jGrowl(data, { life: 6000 });
 				setTimeout(function(){window.close();}, 5000);
 			}
 		});

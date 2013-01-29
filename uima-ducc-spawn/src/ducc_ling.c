@@ -646,6 +646,9 @@ int main(int argc, char **argv, char **envp)
     for ( i = 1; i < argc; i++ ) {
         fprintf(stdout, "    arg[%d]: %s\n", i, argv[i]);
     }
+    fprintf(stdout, "1001 Command launching...\n");
+    fflush(stdout);
+    fflush(stderr);
     execve(argv[0], argv, envp);                     // just run the passed-in command
 
     //

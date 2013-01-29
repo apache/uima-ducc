@@ -2260,6 +2260,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			DuccData duccData = DuccData.getInstance();
 			DuccWorkMap duccWorkMap = duccData.get();
 			String text;
+			String result;
 			IDuccWorkJob duccWorkJob = (IDuccWorkJob) duccWorkMap.findDuccWork(DuccType.Job, value);
 			if(duccWorkJob != null) {
 				String resourceOwnerUserId = duccWorkJob.getStandardInfo().getUser().trim();
@@ -2276,12 +2277,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
 						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
-						DuccAsUser.duckling(arglistAdministrator);
+						result = DuccAsUser.duckling(arglistAdministrator);
+						response.getWriter().println(result);
 						break;
 					case User:
 					default:
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-						DuccAsUser.duckling(arglistUser);
+						result = DuccAsUser.duckling(arglistUser);
+						response.getWriter().println(result);
 						break;	
 					}
 				}
@@ -2372,6 +2375,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			DuccData duccData = DuccData.getInstance();
 			DuccWorkMap duccWorkMap = duccData.get();
 			String text;
+			String result;
 			IDuccWorkReservation duccWorkReservation = (IDuccWorkReservation) duccWorkMap.findDuccWork(DuccType.Reservation, value);
 			if(duccWorkReservation != null) {
 				String resourceOwnerUserId = duccWorkReservation.getStandardInfo().getUser().trim();
@@ -2388,12 +2392,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
 						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
-						DuccAsUser.duckling(arglistAdministrator);
+						result = DuccAsUser.duckling(arglistAdministrator);
+						response.getWriter().println(result);
 						break;
 					case User:
 					default:
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-						DuccAsUser.duckling(arglistUser);
+						result = DuccAsUser.duckling(arglistUser);
+						response.getWriter().println(result);
 						break;	
 					}
 				}
@@ -2436,6 +2442,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				DuccData duccData = DuccData.getInstance();
 				DuccWorkMap duccWorkMap = duccData.get();
 				String text;
+				String result;
 				IDuccWorkJob duccWorkJob = (IDuccWorkJob) duccWorkMap.findDuccWork(DuccType.Service, value);
 				if(duccWorkJob != null) {
 					String resourceOwnerUserId = duccWorkJob.getStandardInfo().getUser().trim();
@@ -2452,12 +2459,14 @@ public class DuccHandler extends DuccAbstractHandler {
 						case Administrator:
 							String arg3 = "--"+SpecificationProperties.key_role_administrator;
 							String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
-							DuccAsUser.duckling(arglistAdministrator);
+							result = DuccAsUser.duckling(arglistAdministrator);
+							response.getWriter().println(result);
 							break;
 						case User:
 						default:
 							String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-							DuccAsUser.duckling(arglistUser);
+							result = DuccAsUser.duckling(arglistUser);
+							response.getWriter().println(result);
 							break;	
 						}
 					}

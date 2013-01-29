@@ -34,9 +34,13 @@ public class DuccAsUser {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAsUser.class.getName());
 	private static Messages messages = Messages.getInstance();
 	
-	public static boolean duckling(String[] args) {
+	public static String magicString = "1001 Command launching...";
+	
+	public static String duckling(String[] args) {
 		
 		String methodName = "duckling";
+		
+		StringBuffer retVal = new StringBuffer();
 		
 		String c_launcher_path = 
 			Utils.resolvePlaceholderIfExists(
@@ -66,6 +70,9 @@ public class DuccAsUser {
 		duccLogger.info(methodName, null, "plist: "+sbInfo.toString().trim());
 		duccLogger.debug(methodName, null, "plist: "+sbDebug.toString().trim());
 		
+		duccLogger.info(methodName, null, "cmd: "+cmd);
+		duccLogger.trace(methodName, null, "cmd: "+cmd);
+		
 		ProcessBuilder pb = new ProcessBuilder(cmd);
 		
 		Map<String, String> env = pb.environment();
@@ -77,20 +84,35 @@ public class DuccAsUser {
 			String line;
 			BufferedReader bri = new BufferedReader(new InputStreamReader(process.getInputStream()));
 			BufferedReader bre = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			boolean trigger = false;
+			duccLogger.trace(methodName, null, "read stdout: start");
 			while ((line = bri.readLine()) != null) {
 				duccLogger.info(methodName, null, "stdout: "+line);
+				if(trigger) {
+					retVal.append(line);
+				}
+				if(line.startsWith(magicString)) {
+					duccLogger.trace(methodName, null, "magic!");
+					trigger = true;
+				}
 			}
 			bri.close();
+			duccLogger.trace(methodName, null, "read stdout: end");
+			duccLogger.trace(methodName, null, "read stderr: start");
 			while ((line = bre.readLine()) != null) {
 				duccLogger.warn(methodName, null, "stderr: "+line);
+				retVal.append(line);
 			}
 			bre.close();
+			duccLogger.trace(methodName, null, "read stderr: end");
+			duccLogger.trace(methodName, null, "process waitfor: start");
 			process.waitFor();
+			duccLogger.trace(methodName, null, "process waitfor: end");
 		}
 		catch(Exception e) {
 			duccLogger.info(methodName, null, e);
 		}
 		
-		return true;
+		return retVal.toString();
 	}
 }
