@@ -48,8 +48,8 @@ def main():
         "springframework/spring-expression-${org.springframework.version}.jar",
         "springframework/spring-jms-${org.springframework.version}.jar",
         "springframework/spring-tx-${org.springframework.version}.jar",
-        "uima/uima-core-${org.apache.uima.version}.jar",
-        "uima/uimaj-as-${org.apache.uima.as.version}.jar",
+        "uima/uimaj-core-${org.apache.uima.version}.jar",
+        "uima/uimaj-as-core-${org.apache.uima.as.version}.jar",
         ]
 
     print ' '.join(cp)
