@@ -411,6 +411,12 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       inventorySemaphore.release();
     }
   }
+  private boolean isProcessRunning(IDuccProcess process) {
+	  if ( process.getProcessState().equals(ProcessState.Running) || process.getProcessState().equals(ProcessState.Initializing) ) {
+		  return true;
+	  } 
+	  return false;
+  }
   /**
    * Called when swap space on a node reached minimum as defined by 
    * ducc.node.min.swap.threshold in ducc.properties. The agent will
@@ -424,7 +430,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       inventorySemaphore.acquire();
       //  find the fattest process
       for (Entry<DuccId, IDuccProcess> processEntry : getInventoryRef().entrySet()) {
-        if ( biggestProcess == null || biggestProcess.getResidentMemory() < processEntry.getValue().getResidentMemory() ) {
+        if ( isProcessRunning(processEntry.getValue()) &&
+        	 ( biggestProcess == null || biggestProcess.getResidentMemory() < processEntry.getValue().getResidentMemory() ) ) {
           biggestProcess = processEntry.getValue();
         }
       }
