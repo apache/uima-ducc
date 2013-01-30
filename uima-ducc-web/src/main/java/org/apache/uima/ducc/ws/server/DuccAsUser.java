@@ -26,6 +26,7 @@ import java.util.Map;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 
 
@@ -36,7 +37,7 @@ public class DuccAsUser {
 	
 	public static String magicString = "1001 Command launching...";
 	
-	public static String duckling(String[] args) {
+	public static String duckling(String user, String[] args) {
 		
 		String methodName = "duckling";
 		
@@ -79,6 +80,13 @@ public class DuccAsUser {
 		
 		env.put("JobId", "webserver");
 		
+		String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);
+		if(runmode != null) {
+			if(runmode.equals("Test")) {
+				env.put("USER", user);
+			}
+		}
+		
 		try {
 			Process process = pb.start();
 			String line;
@@ -89,7 +97,7 @@ public class DuccAsUser {
 			while ((line = bri.readLine()) != null) {
 				duccLogger.info(methodName, null, "stdout: "+line);
 				if(trigger) {
-					retVal.append(line);
+					retVal.append(line+"\n");
 				}
 				if(line.startsWith(magicString)) {
 					duccLogger.trace(methodName, null, "magic!");

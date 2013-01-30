@@ -2131,7 +2131,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(isAuthenticated(request,response)) {
 			disabled = "";
 		}
-		String button = "<input type=\"button\" onclick=\"ducc_submit_reservation()\" value=\"Submit\" "+disabled+"/>";
+		String button = "<input id=\"submit_button\" type=\"button\" onclick=\"ducc_submit_reservation()\" value=\"Submit\" "+disabled+"/>";
 		sb.append(button);
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
@@ -2277,13 +2277,13 @@ public class DuccHandler extends DuccAbstractHandler {
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
 						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
-						result = DuccAsUser.duckling(arglistAdministrator);
+						result = DuccAsUser.duckling(userId, arglistAdministrator);
 						response.getWriter().println(result);
 						break;
 					case User:
 					default:
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-						result = DuccAsUser.duckling(arglistUser);
+						result = DuccAsUser.duckling(userId, arglistUser);
 						response.getWriter().println(result);
 						break;	
 					}
@@ -2352,7 +2352,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				String jclass = "org.apache.uima.ducc.cli.DuccReservationSubmit";
 				String jhome = System.getProperty("java.home");
 				String[] arglist = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 };
-				DuccAsUser.duckling(arglist);
+				String result = DuccAsUser.duckling(userId, arglist);
+				response.getWriter().println(result);
 			} catch (Exception e) {
 				duccLogger.error(methodName, null, e);
 			}
@@ -2392,13 +2393,13 @@ public class DuccHandler extends DuccAbstractHandler {
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
 						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
-						result = DuccAsUser.duckling(arglistAdministrator);
+						result = DuccAsUser.duckling(userId, arglistAdministrator);
 						response.getWriter().println(result);
 						break;
 					case User:
 					default:
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-						result = DuccAsUser.duckling(arglistUser);
+						result = DuccAsUser.duckling(userId, arglistUser);
 						response.getWriter().println(result);
 						break;	
 					}
@@ -2459,13 +2460,13 @@ public class DuccHandler extends DuccAbstractHandler {
 						case Administrator:
 							String arg3 = "--"+SpecificationProperties.key_role_administrator;
 							String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
-							result = DuccAsUser.duckling(arglistAdministrator);
+							result = DuccAsUser.duckling(userId, arglistAdministrator);
 							response.getWriter().println(result);
 							break;
 						case User:
 						default:
 							String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
-							result = DuccAsUser.duckling(arglistUser);
+							result = DuccAsUser.duckling(userId, arglistUser);
 							response.getWriter().println(result);
 							break;	
 						}

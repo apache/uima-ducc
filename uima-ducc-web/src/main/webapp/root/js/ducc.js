@@ -2109,18 +2109,42 @@ function ducc_submit_reservation()
 		var number_of_instances = e.options[e.selectedIndex].value;
 		var e = document.getElementById("description");
 		var description = e.value;
-		$.jGrowl(" Pending allocation...");
-		$.ajax(
-		{
-			type: 'POST',
-			url : "/ducc-servlet/reservation-submit-request",
-			data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'instance_memory_units':instance_memory_units,'number_of_instances':number_of_instances,'description':description},
-			success : function (data) 
+		var e = document.getElementById("wait_for_result_yes");
+		var wait_for_result = e.checked;
+		if (wait_for_result) {
+			document.getElementById("working_area").style.display = 'block';
+			document.getElementById("submit_button").disabled = 'disabled';
+			
+			$.ajax(
 			{
-				setTimeout(function(){window.close();}, 5000);
-			}
-		});
-		setTimeout(function(){window.close();}, 5000);
+				type: 'POST',
+				async: false,
+				url : "/ducc-servlet/reservation-submit-request",
+				data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'instance_memory_units':instance_memory_units,'number_of_instances':number_of_instances,'description':description},
+				success : function (data) 
+				{
+					$.jGrowl(data, { life: 15000 });
+					setTimeout(function(){window.close();}, 15000);
+				}
+			});
+			setTimeout(function(){window.close();}, 15000);
+			
+			document.getElementById("working_area").style.display = 'none';
+		}
+		else {
+			$.jGrowl(" Pending allocation...");
+			$.ajax(
+			{
+				type: 'POST',
+				url : "/ducc-servlet/reservation-submit-request",
+				data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'instance_memory_units':instance_memory_units,'number_of_instances':number_of_instances,'description':description},
+				success : function (data) 
+				{
+					setTimeout(function(){window.close();}, 5000);
+				}
+			});
+			setTimeout(function(){window.close();}, 5000);
+		}
 	}
 	catch(err) {
 		ducc_error("ducc_submit_reservation",err);
