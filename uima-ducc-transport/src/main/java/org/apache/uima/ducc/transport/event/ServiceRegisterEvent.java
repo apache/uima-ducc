@@ -26,15 +26,17 @@ public class ServiceRegisterEvent
 {
     
     private int ninstances;
+    private Trinary autostart;
     private String endpoint;
     private String user;
     private DuccProperties descriptor;
 
-	public ServiceRegisterEvent(String user, int ninstances, String endpoint, DuccProperties descriptor)
+	public ServiceRegisterEvent(String user, int ninstances, Trinary autostart, String endpoint, DuccProperties descriptor)
     {
 		super(EventType.SERVICE_REGISTER);
         this.user = user;
         this.ninstances = ninstances;
+        this.autostart = autostart;
         this.endpoint = endpoint;
         this.descriptor = descriptor;
 	}
@@ -43,6 +45,9 @@ public class ServiceRegisterEvent
 		return ninstances;
 	}
 
+    public Trinary getAutostart() {
+        return autostart;
+    }
 
 	public String getEndpoint() {
 		return endpoint;
@@ -61,7 +66,7 @@ public class ServiceRegisterEvent
 
 	@Override
 	public String toString() {
-		return "ServiceRegisterEvent [ninstances=" + ninstances + ", endpoint="
+		return "ServiceRegisterEvent [ninstances=" + ninstances + ", autostart=" + autostart + ", endpoint="
 				+ endpoint + ", user=" + user + ", service_descriptor="
 				+ descriptor + "]";
 	}

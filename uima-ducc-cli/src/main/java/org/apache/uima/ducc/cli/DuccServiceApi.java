@@ -629,7 +629,7 @@ public class DuccServiceApi
      * @param props Name of file in standard Java properies format with the service specification.
      * @return 
      */
-    public ServiceReplyEvent register(DuccProperties service_props, int instances)
+    public ServiceReplyEvent register(DuccProperties service_props, int instances, Trinary autostart)
         throws Exception
     {
         //
@@ -711,7 +711,7 @@ public class DuccServiceApi
         //
         // DuccEventDispatcher dispatcher = connect();
 
-        ServiceRegisterEvent ev = new ServiceRegisterEvent(DuccUiUtilities.getUser(), instances, endpoint, service_props);
+        ServiceRegisterEvent ev = new ServiceRegisterEvent(DuccUiUtilities.getUser(), instances, autostart, endpoint, service_props);
         ServiceReplyEvent reply = null;
 
         try {
@@ -942,7 +942,8 @@ public class DuccServiceApi
                 case Register:                    
                     props = getPropsFile(commandLine);
                     instances = getInstances(commandLine, "1");
-                    reply = register(props, instances);                    
+                    autostart = getAutostart(commandLine);
+                    reply = register(props, instances, autostart);                    
                     break;
                 case Unregister:
                     id = getId(commandLine, verb);

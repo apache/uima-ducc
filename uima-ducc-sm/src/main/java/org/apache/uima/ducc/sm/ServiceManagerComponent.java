@@ -682,6 +682,7 @@ public class ServiceManagerComponent
         DuccProperties props = ev.getDescriptor();
         String endpoint = ev.getEndpoint();
         int instances = ev.getNinstances();
+        Trinary autostart = ev.getAutostart();
         String user = ev.getUser();
 
 
@@ -702,6 +703,11 @@ public class ServiceManagerComponent
         meta.setProperty("endpoint", endpoint);
         meta.setProperty("numeric_id", id.toString());
         meta.setProperty("uuid", id.getUnique());
+        if ( autostart == Trinary.True ) {            
+            meta.setProperty("autostart", "true");
+        } else {
+            meta.setProperty("autostart", "false");
+        }
 
         String desc_name = descriptor_dir + "/" + id + ".svc";
         String meta_name = descriptor_dir + "/" + id + ".meta";
