@@ -98,7 +98,11 @@ public class DuccJobSubmit extends DuccUi {
             // Set the host:port for the console listener into the env
             String console_address = console_host_address + ":" + console_listener_port;
             String dp = envval + "=" + console_address;
-            env = env + " " + dp;
+            if ( env == null ) {
+                env = dp;
+            } else {
+                env = env + " " + dp;
+            }
             props.setProperty(key, env);
         }
     }
@@ -111,7 +115,7 @@ public class DuccJobSubmit extends DuccUi {
         jvmargs = jvmargs + " -Xrunjdwp:transport=dt_socket,address=" + debug_address;            
         props.put(key, jvmargs);
     }
-
+    
     protected void enrich_parameters_for_debug(Properties props)
         throws Exception
     {
@@ -127,6 +131,8 @@ public class DuccJobSubmit extends DuccUi {
             if ( props.containsKey(DuccUiConstants.name_process_debug) ) {
                 jp_debug_port = Integer.parseInt(props.getProperty(DuccUiConstants.name_process_debug));
                 set_debug_parms(props, JobRequestProperties.key_process_jvm_args, jp_debug_port);
+                // For debugging, if the JP is being debugged, we have to force max processes to .1
+                props.setProperty(JobRequestProperties.key_process_deployments_max, "1");
             }
 
             if ( props.containsKey(DuccUiConstants.name_driver_debug) ) {
