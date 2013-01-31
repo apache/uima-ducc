@@ -849,8 +849,8 @@ implements Orchestrator {
 			if(elapsed > Constants.SYNC_LIMIT) {
 				logger.debug(methodName, dwid, "elapsed msecs: "+elapsed);
 			}
-			if(Validate.request(duccEvent,duccWorkReservation)) {
-				if(duccWorkReservation != null) {
+			if(duccWorkReservation != null) {
+				if(Validate.request(duccEvent,duccWorkReservation)) {
 					dwid = duccWorkReservation.getDuccId();
 					String reqUser = properties.getProperty(JobRequestProperties.key_user).trim();
 					String reqRole = getRole(properties);
@@ -884,16 +884,16 @@ implements Orchestrator {
 					}
 				}
 				else {
-					// prepare undefined reply 
-					properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_not_found);
+					properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_user_not_authorized);
 					duccEvent.setProperties(properties);
-					logger.info(methodName, dwid, id+" : "+messages.fetch("reservation not found"));
+					logger.info(methodName, dwid, id+" : "+messages.fetch("not authorized"));
 				}
 			}
 			else {
-				properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_user_not_authorized);
+				// prepare undefined reply 
+				properties.put(ReservationReplyProperties.key_message, ReservationReplyProperties.msg_not_found);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, dwid, id+" : "+messages.fetch("not authorized"));
+				logger.info(methodName, dwid, id+" : "+messages.fetch("reservation not found"));
 			}
 		}
 		logger.trace(methodName, dwid, messages.fetch("exit"));
