@@ -250,7 +250,7 @@ function ducc_load_scroll_jobs_data()
 function ducc_init_jobs_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#jobs_list_area").html(data);
 		data = "...?"
 		$("#timestamp_area").html(data);
@@ -316,7 +316,7 @@ function ducc_load_scroll_services_definitions_data()
 function ducc_init_services_definitions_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		data = "...?"
 		$("#timestamp_area").html(data);
 		data = "...?"
@@ -373,7 +373,7 @@ function ducc_load_scroll_services_deployments_data()
 function ducc_init_services_deployments_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		data = "...?"
 		$("#timestamp_area").html(data);
 		data = "...?"
@@ -387,7 +387,7 @@ function ducc_init_services_deployments_data()
 function ducc_init_job_workitems_count_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#job_workitems_count_area").html(data);
 	}
 	catch(err) {
@@ -417,7 +417,7 @@ function ducc_load_job_workitems_count_data()
 function ducc_init_job_workitems_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#workitems_data_area").html(data);
 	}
 	catch(err) {
@@ -447,7 +447,7 @@ function ducc_load_job_workitems_data()
 function ducc_init_job_performance_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#performance_data_area").html(data);
 	}
 	catch(err) {
@@ -477,7 +477,7 @@ function ducc_load_job_performance_data()
 function ducc_init_job_specification_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#specification_data_area").html(data);
 	}
 	catch(err) {
@@ -582,7 +582,7 @@ function ducc_load_job_processes_data()
 function ducc_init_job_processes_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#processes_list_area").html(data);
 		data = "...?"
 		$("#timestamp_area").html(data);
@@ -618,7 +618,7 @@ function ducc_load_service_details_data()
 function ducc_init_service_details_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#processes_list_area").html(data);
 		data = "...?"
 		$("#timestamp_area").html(data);
@@ -676,7 +676,7 @@ function ducc_load_scroll_machines_data()
 function ducc_init_machines_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		data = "...?"
 		$("#timestamp_area").html(data);
 		data = "...?"
@@ -759,7 +759,7 @@ function ducc_load_scroll_reservations_data()
 function ducc_init_reservations_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#reservations_list_area").html(data);
 		data = "...?"
 		$("#timestamp_area").html(data);
@@ -977,9 +977,9 @@ function ducc_load_system_administration_data()
 function ducc_init_system_administration_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#system_administration_administrators_area").html(data);
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		$("#system_administration_quiesce_area").html(data);
 		data = "...?"
 		$("#timestamp_area").html(data);
@@ -1037,7 +1037,7 @@ function ducc_load_scroll_system_classes_data()
 function ducc_init_system_classes_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		data = "...?"
 		$("#timestamp_area").html(data);
 		data = "...?"
@@ -1166,7 +1166,7 @@ function ducc_load_scroll_system_daemons_data()
 function ducc_init_system_daemons_data()
 {
 	try {
-		data = "<img src=\"../images/ajax-loader.gif\" alt=\"waiting...\">"
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
 		data = "...?"
 		$("#timestamp_area").html(data);
 		data = "...?"
@@ -2401,49 +2401,4 @@ function ducc_preferences()
 	catch(err) {
 		ducc_error("ducc_preferences",err);
 	}	
-}
-
-$.fn.dataTableExt.oApi.fnReloadAjax = function ( oSettings, sNewSource, fnCallback, bStandingRedraw )
-{
-    if ( typeof sNewSource != 'undefined' && sNewSource != null )
-    {
-        oSettings.sAjaxSource = sNewSource;
-    }
-    this.oApi._fnProcessingDisplay( oSettings, true );
-    var that = this;
-    var iStart = oSettings._iDisplayStart;
-    var aData = [];
-
-    this.oApi._fnServerParams( oSettings, aData );
-
-    oSettings.fnServerData( oSettings.sAjaxSource, aData, function(json) {
-        /* Clear the old information from the table */
-        that.oApi._fnClearTable( oSettings );
-
-        /* Got the data - add it to the table */
-        var aData =  (oSettings.sAjaxDataProp !== "") ?
-            that.oApi._fnGetObjectDataFn( oSettings.sAjaxDataProp )( json ) : json;
-
-        for ( var i=0 ; i<aData.length ; i++ )
-        {
-            that.oApi._fnAddData( oSettings, aData[i] );
-        }
-
-        oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
-        that.fnDraw();
-
-        if ( typeof bStandingRedraw != 'undefined' && bStandingRedraw === true )
-        {
-            oSettings._iDisplayStart = iStart;
-            that.fnDraw( false );
-        }
-
-        that.oApi._fnProcessingDisplay( oSettings, false );
-
-        /* Callback user function - for event handlers etc */
-        if ( typeof fnCallback == 'function' && fnCallback != null )
-        {
-            fnCallback( oSettings );
-        }
-    }, oSettings );
 }
