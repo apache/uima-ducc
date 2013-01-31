@@ -21,6 +21,7 @@
 
 import os
 import sys
+import time
 
 from ducc_boot import *
 set_ducc_home()
@@ -138,6 +139,14 @@ class StopSim(DuccUtil):
                     pids.delete(inst)
 
         pids.write('sim.pids')
+
+        sleeptime = 5
+        print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
+        time.sleep(sleeptime)
+
+        if ( ('broker' in components) and self.automanage ):
+            print "Stopping broker"
+            self.stop_broker()                
 
 if __name__ == "__main__":
     stopper = StopSim()

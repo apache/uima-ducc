@@ -126,11 +126,32 @@ class PostInstall(DuccUtil):
     # Setup and verify amq
     # make sure verify_ducc is sufficient - maybe move some checks to there?
 
+    def update_property(self, key, val, comment):
+        self.ducc_properties.put(key, val)
+        propsfile = self.DUCC_HOME + "/resources/ducc.properties"
+        tmp_propsfile = propsfile + ".tmp"
+        f = open(propsfile)
+        tf = open(tmp_propsfile, "w")
+        tf.write('# ' + comment + '\n')
+        tf.write(key + " = " + val + "\n")
+        for line in f:
+            tf.write(line);
+        f.close()
+        tf.close()
+        os.rename(propsfile, propsfile + ".orig")
+        os.rename(tmp_propsfile, propsfile)
+        self.read_properties()          # force re-eval with new property        
+
     def get_java_bindir(self):
 
         java = self.java()
         if ( java == None ):
-            self.fail("THe path to java must be configured in ducc.properties as property", 'ducc.jvm')
+            java = self.which('java')
+            if ( java == None ):
+                self.fail("Cannot find Java. The path to java must be configured in ducc.properties as property", 'ducc.jvm')
+            else:
+                self.update_property('ducc.jvm', java, 'The full path to java')
+                print 'Initialized property "ducc.jvm" to', java
 
         if ( not java.startswith('/') ):
             self.fail("THe java path in property ducc.jvm must be absolute.")
@@ -195,20 +216,7 @@ class PostInstall(DuccUtil):
         ducc_head = self.ducc_properties.get('ducc.head')
         if ( ducc_head == None ):
             ducc_head = self.localhost
-            self.ducc_properties.put('ducc.head', ducc_head)
-            propsfile = self.DUCC_HOME + "/resources/ducc.properties"
-            tmp_propsfile = propsfile + ".tmp"
-            f = open(propsfile)
-            tf = open(tmp_propsfile, "w")
-            tf.write("# ducc.head is the node where the main DUCC daemons run\n")
-            tf.write("ducc.head = " + self.localhost + "\n\n")            
-            for line in f:
-                tf.write(line);
-            f.close()
-            tf.close()
-            os.rename(propsfile, propsfile + ".orig")
-            os.rename(tmp_propsfile, propsfile)
-            self.read_properties()          # force re-eval with ducc.head
+            self.update_property('ducc.head', ducc_head, "ducc.head is the node where the main DUCC daemons run");
 
         print "Ducc head is configured as", ducc_head, '\n'        
 

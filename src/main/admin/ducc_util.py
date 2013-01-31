@@ -673,6 +673,12 @@ class DuccUtil:
             path = head + '/' + path
         return path
 
+    def which(self, file):
+        for p in os.environ["PATH"].split(":"):
+            if os.path.exists(p + "/" + file):
+                return p + "/" + file            
+            return None
+
     #
     # Read the nodefile, recursing into 'imports' if needed, returning a
     # map.  The map is keyed on filename, with each entry a list of the nodes.
