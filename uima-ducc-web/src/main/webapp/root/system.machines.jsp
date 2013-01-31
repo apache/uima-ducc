@@ -41,7 +41,7 @@ if (cookies != null)
 %>
 <html>
 <head>
-  <link rel="shortcut icon" href="ducc.ico" />
+  <link rel="shortcut icon" href="uima.ico" />
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
   <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>

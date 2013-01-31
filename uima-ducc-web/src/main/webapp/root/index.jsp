@@ -19,7 +19,7 @@ under the License.
 <html>
 <head>
  <meta http-equiv="refresh" content="0;URL=jobs.html">
- <link rel="shortcut icon" href="ducc.ico" />
+ <link rel="shortcut icon" href="uima.ico" />
 </head>
 <body>
 </body>
