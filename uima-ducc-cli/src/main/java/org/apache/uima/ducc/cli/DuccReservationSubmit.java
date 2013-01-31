@@ -24,6 +24,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -41,6 +42,7 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationReplyDuccEvent;
+import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
@@ -220,6 +222,30 @@ public class DuccReservationSubmit extends DuccUi {
 		 * identify invoker
 		 */
 		reservationRequestProperties.setProperty(ReservationRequestProperties.key_submitter_pid_at_host, ManagementFactory.getRuntimeMXBean().getName());
+		
+        boolean missingValue = false;
+        Set<Object> keys = reservationRequestProperties.keySet();
+        for(Object key : keys) {
+        	if(ReservationRequestProperties.keys_requiring_values.contains(key)) {
+        		Object oValue = reservationRequestProperties.get(key);
+        		if(oValue == null) {
+        			duccMessageProcessor.err("missing value for: "+key);
+        			missingValue = true;
+        		}
+        		else if(oValue instanceof String) {
+        			String sValue = (String)oValue;
+        			if(sValue.trim().length() < 1) {
+            			duccMessageProcessor.err("missing value for: "+key);
+            			missingValue = true;
+            		}
+        		}
+        		
+        	}
+        }
+        if(missingValue) {
+        	return DuccUiConstants.ERROR;
+        }
+		
 		/*
 		 * send to Orchestrator & get reply
 		 */

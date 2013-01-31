@@ -19,7 +19,9 @@
 package org.apache.uima.ducc.transport.event.cli;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
@@ -55,6 +57,50 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 	 */
 	public static String key_id = "id";	
 	public static String key_dpid = "dpid";	
+	
+	public static List<String> keys_requiring_values = Arrays.asList(
+			JobRequestProperties.key_signature,
+			JobRequestProperties.key_job_broker,
+			JobRequestProperties.key_job_endpoint,
+			JobRequestProperties.key_service_broker,
+			JobRequestProperties.key_service_endpoint,
+			JobRequestProperties.key_description,
+			JobRequestProperties.key_scheduling_class,
+			JobRequestProperties.key_submitter_pid_at_host,
+			key_user,
+			key_specification,
+			key_notifications,
+			key_log_directory,
+			key_working_directory,
+			key_scheduling_priority,
+			key_jvm,
+			key_driver_jvm_args,
+			key_driver_classpath,
+			key_driver_environment,
+			key_driver_memory_size,
+			key_driver_descriptor_CR,
+			key_driver_descriptor_CR_overrides,
+			key_driver_exception_handler,
+			key_process_jvm_args,
+			key_process_classpath,
+			key_process_environment,
+			key_process_memory_size,
+			key_process_DD,
+			key_process_descriptor_CM,
+			key_process_descriptor_CM_overrides,
+			key_process_descriptor_AE,
+			key_process_descriptor_AE_overrides,
+			key_process_descriptor_CC,
+			key_process_descriptor_CC_overrides,
+			key_process_deployments_max,
+			key_process_deployments_min,
+			key_process_initialization_failures_cap,
+			key_process_failures_limit,
+			key_process_thread_count,
+			key_process_get_meta_time_max,
+			key_process_per_item_time_max,
+	        key_service_dependency
+	        );
 	
 	public void specification(DuccLogger logger) {
 		String methodName = "specification";

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -898,6 +899,29 @@ public class DuccJobSubmit extends DuccUi {
             return DuccUiConstants.ERROR;
         }
 
+        boolean missingValue = false;
+        Set<Object> keys = jobRequestProperties.keySet();
+        for(Object key : keys) {
+        	if(JobRequestProperties.keys_requiring_values.contains(key)) {
+        		Object oValue = jobRequestProperties.get(key);
+        		if(oValue == null) {
+        			duccMessageProcessor.err("missing value for: "+key);
+        			missingValue = true;
+        		}
+        		else if(oValue instanceof String) {
+        			String sValue = (String)oValue;
+        			if(sValue.trim().length() < 1) {
+            			duccMessageProcessor.err("missing value for: "+key);
+            			missingValue = true;
+            		}
+        		}
+        		
+        	}
+        }
+        if(missingValue) {
+        	return DuccUiConstants.ERROR;
+        }
+        
 		/*
 		 * send to JM & get reply
 		 */

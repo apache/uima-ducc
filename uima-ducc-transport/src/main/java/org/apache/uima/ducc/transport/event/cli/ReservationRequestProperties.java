@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.transport.event.cli;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Request characteristics provided by user.
@@ -55,4 +57,18 @@ public class ReservationRequestProperties extends ReservationSpecificationProper
 	 * node_list: list of assigned nodes
 	 */
 	public static String key_node_list = "node_list";	
+	
+	public static List<String> keys_requiring_values = Arrays.asList(
+			JobRequestProperties.key_signature,
+			JobRequestProperties.key_job_broker,
+			JobRequestProperties.key_job_endpoint,
+			JobRequestProperties.key_service_broker,
+			JobRequestProperties.key_service_endpoint,
+			JobRequestProperties.key_description,
+			JobRequestProperties.key_scheduling_class,
+			JobRequestProperties.key_submitter_pid_at_host,
+			key_user,
+			key_specification
+	        );
+	
 }

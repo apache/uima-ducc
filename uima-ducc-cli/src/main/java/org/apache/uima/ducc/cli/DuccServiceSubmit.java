@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -50,6 +51,7 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
+import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
@@ -669,6 +671,30 @@ public class DuccServiceSubmit extends DuccUi {
 		 * identify invoker
 		 */
 		serviceRequestProperties.setProperty(ServiceRequestProperties.key_submitter_pid_at_host, ManagementFactory.getRuntimeMXBean().getName());
+		
+        boolean missingValue = false;
+        Set<Object> keys = serviceRequestProperties.keySet();
+        for(Object key : keys) {
+        	if(ServiceRequestProperties.keys_requiring_values.contains(key)) {
+        		Object oValue = serviceRequestProperties.get(key);
+        		if(oValue == null) {
+        			duccMessageProcessor.err("missing value for: "+key);
+        			missingValue = true;
+        		}
+        		else if(oValue instanceof String) {
+        			String sValue = (String)oValue;
+        			if(sValue.trim().length() < 1) {
+            			duccMessageProcessor.err("missing value for: "+key);
+            			missingValue = true;
+            		}
+        		}
+        		
+        	}
+        }
+        if(missingValue) {
+        	return DuccUiConstants.ERROR;
+        }
+		
 		/*
 		 * send to JM & get reply
 		 */
