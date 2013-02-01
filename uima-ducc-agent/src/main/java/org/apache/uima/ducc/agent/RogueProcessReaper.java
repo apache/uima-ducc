@@ -290,9 +290,9 @@ public class RogueProcessReaper {
               Process killedProcess = pb.start();
               InputStream is = killedProcess.getInputStream();
               BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-              String line = null;
+              //String line = null;
               // read the next line from kill command
-              while ((line = reader.readLine()) != null) {
+              while (reader.readLine() != null) {
                 // dont care about the output, just drain the buffers
               }
               is.close();

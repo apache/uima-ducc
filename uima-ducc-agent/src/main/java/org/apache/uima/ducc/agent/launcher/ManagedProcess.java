@@ -48,7 +48,7 @@ public class ManagedProcess implements Process {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private static final String JMXPortProperty = "com.sun.management.jmxremote.port"; 
+	//private static final String JMXPortProperty = "com.sun.management.jmxremote.port"; 
 	/*
 	 * Process States
 	 *                     +------- STARTING
@@ -80,7 +80,7 @@ public class ManagedProcess implements Process {
 	private IDuccProcess duccProcess;
 	//	Used to kill a process after it reports its PID. 
 	private volatile boolean killAfterLaunch=false;
-	private String pid;
+	//private String pid;
 	private String processCorrelationId;
 	// JMX Port
 	private String port = null;
@@ -88,7 +88,7 @@ public class ManagedProcess implements Process {
 	private String socketEndpoint = null;
 	
     private int tgCounter=1;
-	private String owner;
+	//private String owner;
 	//	log path for http access
 	private String logPath;
 	//	absolute path to the process log
@@ -113,7 +113,7 @@ public class ManagedProcess implements Process {
 
   protected transient ProcessStreamConsumer stdOutReader;
 	protected transient ProcessStreamConsumer stdErrReader;
-	private transient OutputStream processLogStream = null;
+	//private transient OutputStream processLogStream = null;
 	private transient CountDownLatch pidReadyCount = new CountDownLatch(1);
 
 	private ICommandLine commandLine;
@@ -235,7 +235,7 @@ public class ManagedProcess implements Process {
 		this.processType = processType;
 	}
 	public void setLogStream(OutputStream os ) {
-		processLogStream = os;
+		//processLogStream = os;
 	}
 	public boolean isAgentProcess() {
 		return agentProcess;
@@ -395,7 +395,7 @@ public class ManagedProcess implements Process {
 	 * @param pid the pid to set
 	 */
 	public void setPid(String pid) {
-		this.pid = pid;
+		//this.pid = pid;
 		duccProcess.setPID(pid);
 		pidReadyCount.countDown();
 	}

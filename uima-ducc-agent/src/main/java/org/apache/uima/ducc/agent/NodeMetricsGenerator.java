@@ -25,15 +25,12 @@ import org.apache.uima.ducc.agent.processors.LinuxNodeMetricsProcessor;
 
 
 public class NodeMetricsGenerator {
-  private int refreshRate;
-  private int timeToLive;
+
   public NodeMetricsGenerator( int refreshRate, int timeToLive) {
-	  this.refreshRate = refreshRate;
-	  this.timeToLive = timeToLive;
+
   }
   protected LinuxNodeMetricsProcessor configure( CamelContext context, String brokerUrl, final String ducc_node_metrics_endpoint) throws Exception {
-//    final LinuxNodeMetricsProcessor nodeMetricsProcessor = 
-//      new LinuxNodeMetricsProcessor("/proc/meminfo", "/proc/loadavg");
+
     context.addRoutes(new RouteBuilder() {
       public void configure() {
 //        from("timer:nodeMetricsTimer?fixedRate=true&period=" + refreshRate).startupOrder(3)

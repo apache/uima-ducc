@@ -31,7 +31,7 @@ import org.apache.uima.ducc.common.agent.metrics.memory.NodeMemory;
 
 
 public class DefaultNodeMemoryCollector implements CallableMemoryCollector{
-	private static final String TOTAL_MEMORY_SIZE="getTotalPhysicalMemorySize";
+	//private static final String TOTAL_MEMORY_SIZE="getTotalPhysicalMemorySize";
 	private static final String FREE_PHYSICAL_MEMORY_SIZE="getFreePhysicalMemorySize";
 	private static final String FREE_SWAP_MEMORY_SIZE="getFreeSwapSpaceSize";
 	private static final String TOTAL_SWAP_SPACE_SIZE="getTotalSwapSpaceSize";

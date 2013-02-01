@@ -22,8 +22,8 @@ import org.apache.camel.Exchange;
 
 public class ProcessLifecycleProcessor extends BaseProcessor {
   
-  private static final String windowsCommandSeparator = "&";
-  private static final String nixCommandSeparator = " ; ";
+  //private static final String windowsCommandSeparator = "&";
+  //private static final String nixCommandSeparator = " ; ";
 	public ProcessLifecycleProcessor() {
 		super();
 	}

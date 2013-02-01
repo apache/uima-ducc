@@ -42,7 +42,7 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 public class LinuxProcessMetricsProcessor extends BaseProcessor 
 implements ProcessMetricsProcessor {
 	private RandomAccessFile statmFile;
-	private RandomAccessFile nodeStatFile;
+	//private RandomAccessFile nodeStatFile;
 	private RandomAccessFile processStatFile;
 	private final ExecutorService pool;
 	private IDuccProcess process;
@@ -56,7 +56,7 @@ implements ProcessMetricsProcessor {
 	public LinuxProcessMetricsProcessor(DuccLogger logger, IDuccProcess process, NodeAgent agent,String statmFilePath, String nodeStatFilePath, String processStatFilePath, ManagedProcess managedProcess) throws FileNotFoundException{
 		this.logger = logger;
 		statmFile = new RandomAccessFile(statmFilePath, "r");
-		nodeStatFile = new RandomAccessFile(nodeStatFilePath, "r");
+		//nodeStatFile = new RandomAccessFile(nodeStatFilePath, "r");
 		processStatFile = new RandomAccessFile(processStatFilePath, "r");
 		this.managedProcess = managedProcess;
 		this.agent = agent;

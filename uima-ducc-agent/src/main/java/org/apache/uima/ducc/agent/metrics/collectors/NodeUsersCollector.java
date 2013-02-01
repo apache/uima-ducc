@@ -374,6 +374,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
     }
 
   }
+  /*
   private void dump(Set<NodeUsersCollector.ProcessInfo> processList) {
      for( NodeUsersCollector.ProcessInfo pi: processList ) {
        if ( logger == null ) {
@@ -404,6 +405,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         } 
      }
   }
+  */
   public static void main(String[] args) {
 /*
     try {

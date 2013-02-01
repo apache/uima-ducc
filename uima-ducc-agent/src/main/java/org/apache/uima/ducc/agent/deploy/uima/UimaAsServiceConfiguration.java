@@ -167,7 +167,7 @@ public class UimaAsServiceConfiguration {
 			this.thisNodeIP = thisNodeIP;
 		}
 		public synchronized boolean matches(Exchange exchange) {
-			String methodName="DuccProcessFilter.matches";
+			//String methodName="DuccProcessFilter.matches";
 			boolean result = false;
 			try {
 				String pid = (String)exchange.getIn().getHeader(DuccExchange.ProcessPID);

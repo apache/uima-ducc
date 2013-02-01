@@ -123,8 +123,8 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
       executor.scheduleAtFixedRate(new Runnable() {
         public void run() {
             try {
-              TreeMap<String,NodeUsersInfo> userInfo = 
-                      nodeUsersCollector.call();
+              //TreeMap<String,NodeUsersInfo> userInfo = 
+              nodeUsersCollector.call();
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

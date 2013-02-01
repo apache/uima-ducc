@@ -78,6 +78,8 @@ public class NodeMemInfoCollector implements CallableMemoryCollector {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
+		} finally {
+			fileReader.close();
 		}
 		return new NodeMemoryInfo(memInfoValues, fakeMemorySize);
 	}

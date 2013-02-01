@@ -345,10 +345,10 @@ public class ManagedUimaService extends AbstractManagedService {
 							continue;
 						}
 						StringBuffer sb = new StringBuffer();
-						int partCount = 0;
+						//int partCount = 0;
 						//	compose component name from jmx ObjectName
 						for (String part : aeObjectNameParts) {
-							partCount++;
+							//partCount++;
 							if (part.startsWith("org.apache.uima:type")
 									|| part.startsWith("s=")) {
 								continue; // skip service name part of the name

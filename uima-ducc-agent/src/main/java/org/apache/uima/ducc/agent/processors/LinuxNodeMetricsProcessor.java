@@ -53,7 +53,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 	private final ExecutorService pool;
 	private RandomAccessFile memInfoFile;
 	private RandomAccessFile loadAvgFile;
-	private Node node;
+	//private Node node;
 	private int swapThreshold = 0;
 	public LinuxNodeMetricsProcessor(NodeAgent agent, String memInfoFilePath,
 			String loadAvgFilePath) throws FileNotFoundException {
@@ -63,7 +63,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 		// open files and keep them open until stop() is called
 		memInfoFile = new RandomAccessFile(memInfoFilePath, "r");
 		loadAvgFile = new RandomAccessFile(loadAvgFilePath, "r");
-		node = new DuccNode(agent.getIdentity(), null);
+		//node = new DuccNode(agent.getIdentity(), null);
 		if ( System.getProperty("ducc.node.min.swap.threshold") != null ) {
 	    try {
 	      swapThreshold = Integer.valueOf(System.getProperty("ducc.node.min.swap.threshold"));

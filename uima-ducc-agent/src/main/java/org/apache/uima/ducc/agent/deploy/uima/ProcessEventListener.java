@@ -27,14 +27,14 @@ import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 
 public class ProcessEventListener implements DuccEventDelegateListener{
 
-	private DuccEventDispatcher eventDispatcher;
+	//private DuccEventDispatcher eventDispatcher;
 	private ManagedService service;
 	
 	public ProcessEventListener(ManagedService service) {
 		this.service = service;
 	}
 	public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
-		this.eventDispatcher = eventDispatcher;
+		//this.eventDispatcher = eventDispatcher;
 	}
 	public void onProcessStop(@Body ProcessStopDuccEvent event) {
 		service.killService();

@@ -28,12 +28,12 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 
 
 public class AgentMonitor extends ANodeStability{
-  private NodeAgent agent;
+  //private NodeAgent agent;
   private ProcessReaperTask reaperTask;
   DuccLogger logger;
   public AgentMonitor(NodeAgent agent, DuccLogger logger, int nodeStability, int agentMetricsRate) {
     super(nodeStability, agentMetricsRate);
-    this.agent = agent;
+    //this.agent = agent;
     this.logger = logger;
     reaperTask = new ProcessReaperTask(agent,logger);
   }

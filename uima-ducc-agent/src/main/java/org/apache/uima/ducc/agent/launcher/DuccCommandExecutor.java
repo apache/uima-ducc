@@ -94,11 +94,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			throw e;
 		} 
 	}
-	private boolean isProcessTerminated( IDuccProcess process ) {
-		return process.getProcessState().equals(ProcessState.Stopped) ||
-				process.getProcessState().equals(ProcessState.Failed) ||
-				process.getProcessState().equals(ProcessState.FailedInitialization);
-	}
+
 	private void stopProcess(ICommandLine cmdLine, String[] cmd ) throws Exception {
 		String methodName = "stopProcess";
 		Future<?> future = ((ManagedProcess) managedProcess).getFuture();
@@ -276,7 +272,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	}
 
 	private String[] getDeployableCommandLine(ICommandLine cmdLine, Map<String, String> processEnv) throws Exception {
-	  String methodName = "getDeployableCommandLine";
+	  //String methodName = "getDeployableCommandLine";
 	  String[] cmd = new String[0];
 
 	  try {

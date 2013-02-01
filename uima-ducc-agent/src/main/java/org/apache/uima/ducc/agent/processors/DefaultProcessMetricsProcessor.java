@@ -24,12 +24,12 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
 
 public class DefaultProcessMetricsProcessor implements ProcessMetricsProcessor {
-    private NodeAgent agent;
-    private IDuccProcess process;
+   // private NodeAgent agent;
+   // private IDuccProcess process;
     
 	public DefaultProcessMetricsProcessor( IDuccProcess process, NodeAgent agent) {
-		this.agent = agent;
-		this.process = process;
+	//	this.agent = agent;
+	//	this.process = process;
 	}
 	public void process(Exchange arg0) throws Exception {
 	}

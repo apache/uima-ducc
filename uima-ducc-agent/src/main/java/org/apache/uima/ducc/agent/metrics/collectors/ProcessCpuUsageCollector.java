@@ -18,12 +18,7 @@
 */
 package org.apache.uima.ducc.agent.metrics.collectors;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 import org.apache.uima.ducc.common.agent.metrics.cpu.DuccProcessCpuUsage;
@@ -32,14 +27,14 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 
 public class ProcessCpuUsageCollector extends AbstractMetricCollector implements
 		Callable<ProcessCpuUsage> {
-	private DuccLogger logger;
-	private String pid;
+	//private DuccLogger logger;
+	//private String pid;
 
 	public ProcessCpuUsageCollector(DuccLogger logger, String pid,
 			RandomAccessFile fileHandle, int howMany, int offset) {
 		super(fileHandle, howMany, offset);
-		this.logger = logger;
-		this.pid = pid;
+		//this.logger = logger;
+		//this.pid = pid;
 	}
 
 	public ProcessCpuUsage call() throws Exception {
@@ -52,7 +47,7 @@ public class ProcessCpuUsageCollector extends AbstractMetricCollector implements
 			throw e;
 		}
 	}
-
+/*
 	private String execTopShell() throws Exception {
 		List<String> command = new ArrayList<String>();
 		command.add("top");
@@ -88,4 +83,5 @@ public class ProcessCpuUsageCollector extends AbstractMetricCollector implements
 		process.waitFor();
 		return cpu;
 	}
+	*/
 }

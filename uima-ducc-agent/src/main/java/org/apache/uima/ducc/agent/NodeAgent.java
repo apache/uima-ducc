@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Timer;
 import java.util.TreeMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
@@ -112,12 +111,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   boolean runWithDuccLing = false;
   
-  private ProcessReaperTask reaperTask=null;
-  
-  private long or_state_update_timeout=0;
-  
-  private Timer reaperTimer;
-  
+
   private List<DuccUserReservation> reservations = 
           new ArrayList<DuccUserReservation>();
   
@@ -174,6 +168,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
       
     }
+    /*
     int nodeStability=0;
     long node_metrics_publish_rate=0;
     
@@ -183,6 +178,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     if ( System.getProperty("ducc.agent.node.metrics.publish.rate") != null ) {
       node_metrics_publish_rate = Long.parseLong(System.getProperty("ducc.agent.node.metrics.publish.rate"));
     }
+    */
 //    nodeMonitor = new AgentMonitor(this, logger,nodeStability, (int)node_metrics_publish_rate);
 //    nodeMonitor.start();
 
@@ -248,12 +244,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     return (process.getProcessState().equals(ProcessState.Undefined) && process.isDeallocated());
   }
 
-  private void markAsStopped(IDuccProcess process) {
-    // check if the process state is either Running, Initializing, or Starting
-    if (isAlive(process)) {
-      process.setProcessState(ProcessState.Stopped);
-    }
-  }
+
   /**
    * Stops any process that is in agent's inventory but not in provided job list sent by the PM.
    * 
@@ -614,6 +605,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       case Initializing:
       case Running:
         return true;
+	default:
+		break;
     }
     return false;
   }
