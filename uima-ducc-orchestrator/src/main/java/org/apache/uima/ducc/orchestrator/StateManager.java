@@ -1079,7 +1079,12 @@ public class StateManager {
 									default:
 										if(inventoryProcess.isComplete()) {
 											OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,ProcessDeallocationType.Stopped);
-											completeJob(job, new Rationale("state manager reported as normal completion"));
+											IRationale rationale = new Rationale("state manager reported as normal completion");
+											String retVal = job.getSchedulingInfo().getWorkItemsError();
+											if(!retVal.equals("0")) {
+												rationale = new Rationale("state manager reported at least one work item error");
+											}
+											completeJob(job, rationale);
 										}
 										break;
 									}
