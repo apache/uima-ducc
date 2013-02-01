@@ -32,18 +32,18 @@ import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 public class ProcessManagerEventListener 
 implements DuccEventDelegateListener { 
 	
-	private DuccEventDispatcher eventDispatcher;
-	private String targetEndpoint;
+//	private DuccEventDispatcher eventDispatcher;
+//	private String targetEndpoint;
 	private ProcessManager processManager;
 	
 	public ProcessManagerEventListener(ProcessManager processManager) {
 		this.processManager = processManager;
 	}
 	public void setDuccEventDispatcher( DuccEventDispatcher eventDispatcher ) {
-		this.eventDispatcher = eventDispatcher;
+//		this.eventDispatcher = eventDispatcher;
 	}
 	public void setEndpoint( String endpoint ) {
-		this.targetEndpoint = endpoint;
+//		this.targetEndpoint = endpoint;
 	}
 	/**
 	 * Handles Job Manager state changes. 
