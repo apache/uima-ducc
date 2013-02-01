@@ -28,9 +28,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -51,7 +51,6 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
-import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
@@ -310,19 +309,19 @@ public class DuccServiceSubmit extends DuccUi {
 
 	//**********
 	
-	private String getDuccProperty(String propertyName, String defaultValue) {
-		String propertyValue = defaultValue;
-		try {
-			String value = DuccPropertiesResolver.getInstance().getProperty(propertyName);
-			if(value != null) {
-				propertyValue = value;
-			}
-		}
-		catch(Throwable t) {
-			duccMessageProcessor.throwable(t);
-		}
-		return propertyValue;
-	}
+//	private String getDuccProperty(String propertyName, String defaultValue) {
+//		String propertyValue = defaultValue;
+//		try {
+//			String value = DuccPropertiesResolver.getInstance().getProperty(propertyName);
+//			if(value != null) {
+//				propertyValue = value;
+//			}
+//		}
+//		catch(Throwable t) {
+//			duccMessageProcessor.throwable(t);
+//		}
+//		return propertyValue;
+//	}
 	
     /*
      * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
@@ -390,6 +389,7 @@ public class DuccServiceSubmit extends DuccUi {
 
 	private boolean use_signature = false;
 	
+	@SuppressWarnings("unused")
 	public int run(String[] args) throws Exception {
 		ServiceRequestProperties serviceRequestProperties = new ServiceRequestProperties();
 

@@ -102,12 +102,12 @@ public class UimaAsServiceMonitor
         for (Object nameObject : conn.queryNames(new ObjectName(jmxDomain + ":*,Type=Broker"), (QueryExp) null)) {
             //find the brokername object
             brokerObjectName = (ObjectName) nameObject;
-            if (brokerObjectName.getCanonicalName().endsWith("Type=Broker")) {
+            //if (brokerObjectName.getCanonicalName().endsWith("Type=Broker")) {
                 // Extract just the name from the canonical name
-                String brokerName = brokerObjectName.getCanonicalName().substring(0, brokerObjectName.getCanonicalName().indexOf(","));
+                //String brokerName = brokerObjectName.getCanonicalName().substring(0, brokerObjectName.getCanonicalName().indexOf(","));
                 //System.out.println("Canonical name of broker is " + brokerObjectName.getCanonicalName());
                 //System.out.println("broker name is " + brokerName);
-            }
+            //}
         }
 
         //ObjectName activeMQ = new ObjectName("org.apache.activemq:BrokerName=" + broker_name +",Type=Broker");

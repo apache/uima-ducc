@@ -28,7 +28,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
-import java.util.logging.Logger;
 
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
@@ -38,7 +37,7 @@ import com.jcraft.jsch.Session;
 public class DuccRemoteLauncher {
 	public static final String FileSeparator = System.getProperty("file.separator");
 
-	private final Logger logger = Logger.getLogger(DuccRemoteLauncher.class.getName());
+	//private final Logger logger = Logger.getLogger(DuccRemoteLauncher.class.getName());
 	private String sshUser;
 	private JSch jsch = new JSch();
 	private Executor executor = Executors.newCachedThreadPool();
