@@ -44,7 +44,7 @@ class StartDucc(DuccUtil):
             line = lines.readline().strip()
             if ( not line ):
                 break
-            print '[] ' + line
+            #print '[] ' + line
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 print "Broker on", broker_host, 'PID', toks[1]

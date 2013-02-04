@@ -186,6 +186,10 @@ class DuccUtil:
         self.duccling       = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
         self.webserver_node = self.ducc_properties.get('ducc.ws.node')
         self.jvm            = self.ducc_properties.get('ducc.jvm')
+        ndx = self.jvm.rindex('/')
+        ndx = self.jvm.rindex('/', 0, ndx)
+        self.jvm_home = self.jvm[:ndx]
+
         # self.broker_url     = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
         self.broker_host       = self.ducc_properties.get('ducc.broker.hostname')
@@ -213,6 +217,9 @@ class DuccUtil:
     def java(self):
         return self.jvm
         
+    def java_home(self):
+        return self.jvm_home
+        
     def is_amq_active(self):
         lines = self.popen('ssh', self.broker_host, 'netstat -an')
         #
@@ -234,6 +241,7 @@ class DuccUtil:
         here = os.getcwd()
         CMD = broker_home + '/bin/activemq'
         CMD = CMD + ' stop'
+        CMD = 'JAVA_HOME=' + self.java_home() + ' ' + CMD
         print CMD
         self.ssh(broker_host, False, CMD)
         pass
@@ -329,9 +337,16 @@ class DuccUtil:
         ducc_home = self.DUCC_HOME
         LIB       = ducc_home + '/lib'
         RESOURCES = ducc_home + '/resources'
+
+        local_jars  = self.ducc_properties.get('ducc.local.jars')   #local mods
     
         CLASSPATH = ''
     
+        if ( local_jars != None ):
+            extra_jars = local_jars.split()
+            for j in extra_jars:
+                CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
+            
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
@@ -731,10 +746,13 @@ class DuccUtil:
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
         self.propsfile = self.DUCC_HOME + '/resources/ducc.properties'
         self.localhost = os.uname()[1]                
+        self.read_properties()       
+
+        os.environ['JAVA_HOME'] = self.java_home()
         os.environ['NodeName'] = self.localhost    # to match java code's implicit propery so script and java match
+
         self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
         self.set_classpath()
-        self.read_properties()       
         self.os_pagesize = self.get_os_pagesize()
 
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
