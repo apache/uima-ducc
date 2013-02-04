@@ -32,12 +32,13 @@ package org.apache.uima.ducc.common.utils;
  *                    Initial arbitrary process support. 
  *                    Many scripting updates. jrc
  * 2013-01-02  0.7.2  AP service support, unified ping for CUSTOM and UIMA services
+ * 2013-02-03  0.7.3  First floor system from Apache distro.
  */
 public class Version
 {
     private static final int major = 0;       // Major version
     private static final int minor = 7;       // Minor - may be API changes, or new function
-    private static final int ptf   = 2;       // Fix level, fully compatible with previous, no relevent new function
+    private static final int ptf   = 3;       // Fix level, fully compatible with previous, no relevent new function
     private static final String id = "beta";  // A short decoration, optional
 
     public final static String version()

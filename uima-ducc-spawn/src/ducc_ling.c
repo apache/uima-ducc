@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define VERSION "0.7.2"
+#define VERSION "0.7.3"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -52,6 +52,7 @@
  * 2012-10-26 0.7.0 Redirect stdio to socket (and match DUCC version). jrc
  * 2013-01-04 0.7.1 Skipped so i can match with DUCC level. jrc
  * 2012-10-26 0.7.2 Print local port when redirecting, and match DUCC level. jrc
+ * 2013-01-31 0.7.3 Print message '1001' as marker and flush stdout before exec.  ld
  */
 
 /**
