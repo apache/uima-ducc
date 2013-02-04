@@ -397,12 +397,12 @@ public class ManagedUimaService extends AbstractManagedService {
                  componentsToDelete.add(aeState);
               } 
 						}
-            service.logger.info("UimaAEJmxMonitor.run()", null, "---- AE Name:"+proxy.getName()+" AE State:"+proxy.getState()+" AE init time="+aeState.getInitializationTime()+" Proxy Init time="+proxy.getInitializationTime()+" Proxy Thread ID:"+proxy.getThreadId());
+            service.logger.debug("UimaAEJmxMonitor.run()", null, "---- AE Name:"+proxy.getName()+" AE State:"+proxy.getState()+" AE init time="+aeState.getInitializationTime()+" Proxy Init time="+proxy.getInitializationTime()+" Proxy Thread ID:"+proxy.getThreadId());
 					}
 				}
         howManySeenSoFar = 1;  // reset error counter
 				if (updateAgent) {
-          service.logger.info("UimaAEJmxMonitor.run()", null, "---- Publishing UimaPipelineAEComponent List - size="+aeStateList.size());
+          service.logger.debug("UimaAEJmxMonitor.run()", null, "---- Publishing UimaPipelineAEComponent List - size="+aeStateList.size());
           try {
             service.updateAgent(aeStateList);
           } catch( Exception ex) {
