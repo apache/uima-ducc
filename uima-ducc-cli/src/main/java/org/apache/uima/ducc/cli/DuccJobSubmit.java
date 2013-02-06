@@ -61,7 +61,6 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 
-
 /**
  * Submit a DUCC job
  */
@@ -183,7 +182,7 @@ public class DuccJobSubmit extends DuccUi {
     {
         try {
             while ( wait_count > 0 ) {
-                System.out.println("----------- WAITING " + wait_count + "--------------");
+                System.out.println("----------- WAITING " + wait_count + " --------------");
                 wait();
             }
 		} catch (InterruptedException e) {
@@ -1254,8 +1253,8 @@ public class DuccJobSubmit extends DuccUi {
                     arrayList.add("--"+DuccUiConstants.name_monitor_cancel_job_on_interrupt);
                 }
                 String[] argList = arrayList.toArray(new String[0]);
-                DuccJobMonitor duccJobMonitor = new DuccJobMonitor(duccMessageProcessor);
-                retVal = duccJobMonitor.run(argList);
+                DuccJobMonitor duccJobObserver = new DuccJobMonitor(duccMessageProcessor);
+                retVal = duccJobObserver.run(argList);
             } catch (Exception e) {
                 duccMessageProcessor.exception(e);
                 retVal = DuccUiConstants.ERROR;
