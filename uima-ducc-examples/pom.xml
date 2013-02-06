@@ -49,6 +49,10 @@
             <include>org/apache/uima/ducc/test/randomsleep/FixedSleepAE.xml</include>
             <include>org/apache/uima/ducc/test/randomsleep/NoSleepAE.xml</include>
             <include>org/apache/uima/ducc/test/randomsleep/NoSleepCR.xml</include>
+            <include>org/apache/uima/ducc/test/ddjob/DDSleepDescriptor.xml</include>
+            <include>org/apache/uima/ducc/test/ddjob/DDSleepAggregate.xml</include>
+            <include>org/apache/uima/ducc/test/ddjob/SleepMultiplier.xml</include>
+            <include>org/apache/uima/ducc/test/ddjob/SleepConsumer.xml</include>
             </includes>                  
           </resource>          
         </resources>        
