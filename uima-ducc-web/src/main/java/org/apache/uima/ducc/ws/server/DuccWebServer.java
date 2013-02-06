@@ -183,9 +183,10 @@ public class DuccWebServer {
 		DuccHandler duccHandler = new DuccHandler(this);
 		DuccHandlerLegacy duccHandlerLegacy = new DuccHandlerLegacy(this);
 		DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat();
+		DuccHandlerProxy duccHandlerProxy = new DuccHandlerProxy();
 		DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
 		SessionHandler sessionHandler = new SessionHandler();
-		handlers.setHandlers(new Handler[] { sessionHandler, duccHandlerUserAuthentication, duccHandlerJson, duccHandlerLegacy, duccHandler, jspHandler, resourceHandler, new DefaultHandler() });
+		handlers.setHandlers(new Handler[] { sessionHandler, duccHandlerUserAuthentication, duccHandlerJson, duccHandlerProxy, duccHandlerLegacy, duccHandler, jspHandler, resourceHandler, new DefaultHandler() });
 		server.setHandler(handlers);
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}

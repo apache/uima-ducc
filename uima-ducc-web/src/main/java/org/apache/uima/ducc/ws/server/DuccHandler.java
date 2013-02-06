@@ -302,7 +302,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	
 	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
-		String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
+		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String logfile = buildLogFileName(job, process, type);
 		String errfile = "jd.err.log";
 		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
@@ -1126,13 +1126,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
-				String specfile = "job-specification.properties";
-				File file = new File(logsjobdir+specfile);
-				FileInputStream fis = new FileInputStream(file);
-				Properties properties = new Properties();
-				properties.load(fis);
-				fis.close();
+				Properties properties = DuccFile.getProperties(job);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
 				while(enumeration.hasMoreElements()) {
@@ -1200,7 +1194,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						data.append("<td>");
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
-						String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
+						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 						String logfile = buildLogFileName(job, process, "UIMA");
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
@@ -1248,7 +1242,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						data.append("<td>");
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
-						String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
+						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 						String logfile = buildLogFileName(job, process, "UIMA");
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
@@ -1273,7 +1267,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 
 	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
-		String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
+		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String logfile = buildLogFileName(job, process, type);
 		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		sb.append(trGet(counter));
@@ -1417,7 +1411,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob service = getService(jobNo);
 		if(service != null) {
 			try {
-				String logsjobdir = getUserLogsDir(service)+service.getDuccId().getFriendly()+File.separator;
+				String logsjobdir = service.getUserLogsDir()+service.getDuccId().getFriendly()+File.separator;
 				String specfile = "service-specification.properties";
 				File file = new File(logsjobdir+specfile);
 				FileInputStream fis = new FileInputStream(file);

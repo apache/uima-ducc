@@ -63,6 +63,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public final String duccContextJsonFormat = duccContext+"/json-format";
 	public final String duccContextUser       = duccContext+"/user";
 	public final String duccContextLegacy     = duccContext+"/legacy";
+	public final String duccContextProxy      = duccContext+"/proxy";
 	
 	public final String duccjConsoleLink	  = duccContext+"/jconsole-link.jnlp";
 	
@@ -662,14 +663,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return disabled;
 	}
 
-	public String getUserLogsDir(IDuccWorkJob job) {
-		String retVal = job.getLogDirectory();
-		if(!retVal.endsWith(File.separator)) {
-			retVal += File.separator;
-		}
-		return retVal;
-	}
-
 	public String buildjConsoleLink(String service) {
 		String location = "buildjConsoleLink";
 		String href = "<a href=\""+duccjConsoleLink+"?"+"service="+service+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+service+"</a>";
@@ -688,7 +681,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			if(name == null) {
 				name = errorCount;
 			}
-			String logsjobdir = getUserLogsDir(job)+job.getDuccId().getFriendly()+File.separator;
+			String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 			String logfile = "jd.err.log";
 			String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+name+"</a>";
 			retVal = href;
