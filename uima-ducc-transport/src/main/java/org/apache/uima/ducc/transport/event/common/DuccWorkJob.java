@@ -64,6 +64,15 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	}
 	
 	@Override
+	public String getUserLogsDir() {
+		String retVal = getLogDirectory();
+		if(!retVal.endsWith(File.separator)) {
+			retVal += File.separator;
+		}
+		return retVal;
+	}
+	
+	@Override
 	public DuccWorkPopDriver getDriver() {
 		return driver;
 	}
