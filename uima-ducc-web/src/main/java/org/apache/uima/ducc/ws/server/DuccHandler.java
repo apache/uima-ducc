@@ -1002,14 +1002,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			    	
 					ArrayList <UimaStatistic> uimaStats = new ArrayList<UimaStatistic>();
 				    uimaStats.clear();
-				    long analysisTime = 0;
+				    //long analysisTime = 0;
 				    for (Entry<String, PerformanceMetricsSummaryItem> entry : performanceMetricsSummaryMap.entrySet()) {
 				    	String key = entry.getKey();
 				    	int posName = key.lastIndexOf('=');
 				    	long anTime = entry.getValue().getAnalysisTime();
 				    	long anMinTime = entry.getValue().getAnalysisTimeMin();
 				    	long anMaxTime = entry.getValue().getAnalysisTimeMax();
-				    	analysisTime += anTime;
+				    	//analysisTime += anTime;
 				    	if (posName > 0) {
 				    		String shortname = key.substring(posName+1);
 				    		UimaStatistic stat = new UimaStatistic(shortname, entry.getKey(), anTime, anMinTime, anMaxTime);

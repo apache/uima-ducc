@@ -251,7 +251,6 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 		duccLogger.trace(location, jobid, "enter");
 		
 		MonitorInfo monitorInfo = new MonitorInfo();
-		ArrayList<String> stateSequence = monitorInfo.stateSequence;
 		
 		int countAtArrival = updateCounter.get();
 		int countAtPresent = countAtArrival;
@@ -280,7 +279,6 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 			
 		if(duccId != null) {
 			monitorInfo = jMap.get(duccId);
-			stateSequence = monitorInfo.stateSequence;
 			if(tMap.containsKey(duccId)) {
 				long expiryMillis = System.currentTimeMillis()+timeoutMillis+1;
 				TrackingInfo ti = tMap.get(duccId);
