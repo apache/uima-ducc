@@ -657,8 +657,19 @@ implements Orchestrator {
 				String tgtUser = duccWorkJob.getStandardInfo().getUser().trim();
 				if(isAuthorized(dwid, reqUser, tgtUser, reqRole)) {
 					logger.debug(methodName, dwid, "reqUser:"+reqUser+" "+"reqRole:"+reqRole+" "+"tgtUser:"+tgtUser);
-					IRationale rationale = new Rationale("job canceled by userid "+reqUser);
-					stateManager.jobTerminate(duccWorkJob, JobCompletionType.CanceledByUser, rationale, ProcessDeallocationType.JobCanceled);
+					String message = "job canceled by userid "+reqUser;
+					if(properties.containsKey(SpecificationProperties.key_reason)) {
+						String reason = properties.getProperty(SpecificationProperties.key_reason);
+						if(reason != null) {
+							message += ": "+reason;
+						}
+					}
+					IRationale rationale = new Rationale(message);
+					JobCompletionType jobCompletionType = JobCompletionType.CanceledByUser;
+					if(reqRole.equals(SpecificationProperties.key_role_administrator)) {
+						jobCompletionType = JobCompletionType.CanceledByAdministrator;
+					}
+					stateManager.jobTerminate(duccWorkJob, jobCompletionType, rationale, ProcessDeallocationType.JobCanceled);
 					OrchestratorCheckpoint.getInstance().saveState();
 					// prepare for reply to canceler
 					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_canceled);
