@@ -24,7 +24,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 
 public class DuccFile {
