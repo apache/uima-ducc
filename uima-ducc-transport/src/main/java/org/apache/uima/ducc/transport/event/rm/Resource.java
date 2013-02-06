@@ -23,7 +23,8 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class Resource implements IResource {
 
-    private DuccId duccId;                // DuccId of the share, assigned by RM
+	private static final long serialVersionUID = 1L;
+	private DuccId duccId;                // DuccId of the share, assigned by RM
     private NodeIdentity nodeId;          // Node id, assigned by Agent
     private boolean purged;               // Purged, for node failure
     private int qShares;                  // Number of quantum shares this resource occupies

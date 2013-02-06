@@ -26,7 +26,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 public class RmJobState implements IRmJobState {
 
-    private DuccId duccId;                              // this job's DuccId as assigned by OR
+	private static final long serialVersionUID = 1L;
+	private DuccId duccId;                              // this job's DuccId as assigned by OR
     private DuccType ducc_type;                         // for messages :(
 
     // for all maps:
