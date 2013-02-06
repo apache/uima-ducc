@@ -38,7 +38,6 @@ import org.apache.uima.ducc.transport.event.cli.JobReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 
-
 /**
  * Cancel a DUCC job
  */
@@ -70,6 +69,10 @@ public class DuccJobCancel extends DuccUi {
 				.withArgName(DuccUiConstants.parm_djpid)
 				.withDescription(makeDesc(DuccUiConstants.desc_djpid,DuccUiConstants.exmp_djpid)).hasArg()
 				.withLongOpt(DuccUiConstants.name_djpid).create());
+		options.addOption(OptionBuilder
+				.withArgName(DuccUiConstants.parm_reason)
+				.withDescription(makeDesc(DuccUiConstants.desc_reason,DuccUiConstants.exmp_reason)).hasArg()
+				.withLongOpt(DuccUiConstants.name_reason).create());
 		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_service_broker)
 				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()

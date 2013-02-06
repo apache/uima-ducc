@@ -141,6 +141,13 @@ public class DuccUiConstants {
 	public static final String exmp_djpid = "22";
 	public static final String dval_djpid = null;
 	
+	public static final String name_reason = JobRequestProperties.key_reason;
+	public static final String parm_reason = "\"text\"";
+	public static final String desc_reason = "Reason.";
+	public static final String labl_reason = "Reason";
+	public static final String exmp_reason = "\"Back to the drawing board.\"";
+	public static final String dval_reason = null;
+	
 	/* 
 	 * submit common
 	 */
