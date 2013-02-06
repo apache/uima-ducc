@@ -45,4 +45,6 @@ public class SpecificationProperties extends Properties implements Serializable 
 	public static String key_signature = "signature";
 	
 	public static String key_submitter_pid_at_host = "submitter_pid_at_host";
+	
+	public static String key_reason = "reason";
 }
