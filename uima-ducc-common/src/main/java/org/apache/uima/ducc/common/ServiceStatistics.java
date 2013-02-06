@@ -5,7 +5,8 @@ import java.io.Serializable;
 public class  ServiceStatistics
     implements Serializable
 {
-    private boolean alive = false;
+	private static final long serialVersionUID = 1L;
+	private boolean alive = false;
     private boolean healthy = false;
     private String info = "N/A";
     private String errorString = null;
