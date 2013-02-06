@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.Main;
+import org.apache.camel.main.Main;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -231,6 +231,7 @@ public class DuccService extends AbstractDuccComponent {
 		}
 	}
 	public void setLogLevel(String clz, String level) {
+		@SuppressWarnings("unchecked")
 		Enumeration<Logger> loggers = LogManager.getCurrentLoggers();
         while (loggers.hasMoreElements()) {
             Logger logger = (Logger) loggers.nextElement();
@@ -240,6 +241,7 @@ public class DuccService extends AbstractDuccComponent {
             }
         }
 	public String getLogLevel(String clz) {
+		@SuppressWarnings("unchecked")
 		Enumeration<Logger> loggers = LogManager.getCurrentLoggers();
     	//System.out.println("---------Fetching Log Level For Logger:"+clz);
         while (loggers.hasMoreElements()) {

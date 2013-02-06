@@ -233,7 +233,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			// Close the input stream
 			in.close();
 			for (Future<ProcessCompletionResult> result : results) {
-				ProcessCompletionResult er = result.get();
+				result.get();
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
