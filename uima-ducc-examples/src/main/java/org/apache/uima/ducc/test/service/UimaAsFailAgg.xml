@@ -4,7 +4,7 @@
   <primitive>false</primitive>
   <delegateAnalysisEngineSpecifiers>
     <delegateAnalysisEngine key="UimaAsRemote">
-      <import name="org.apache.uima.ducc.test.service.UimaAsRemote"/>
+      <import name="UimaAsRemote"/>
     </delegateAnalysisEngine>
   </delegateAnalysisEngineSpecifiers>
   <analysisEngineMetaData>
