@@ -61,6 +61,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeployableConfiguration;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -339,6 +340,11 @@ public class JobDriver extends Thread implements IJobDriver {
 		String location = "uimaAsClientInitialize";
 		duccOut.info(location, jobid, "jd.step:"+location);
 		try {
+			DuccWorkPopDriver popDriver = getJob().getDriver();
+			serverUri = popDriver.getServerUri();
+			duccOut.info(location, jobid, "broker"+":"+serverUri);
+			endPoint = popDriver.getEndPoint();
+			duccOut.info(location, jobid, "endpoint"+":"+endPoint);
 			Map<String,Object> appCtx = new HashMap<String,Object>();
 			try {
 				metaTimeout = Integer.parseInt(getJob().getDriver().getMetaTimeout());
