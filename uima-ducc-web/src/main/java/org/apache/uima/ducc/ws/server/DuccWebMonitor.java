@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
@@ -51,8 +52,8 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 	}
 	
 	private long millisPerMinute = 60*1000;
-	private long timeoutMinutes = 0;
-	private long timeoutMillis = 0;
+	private long timeoutMinutes = 10;
+	private long timeoutMillis = timeoutMinutes*millisPerMinute;
 	
 	private boolean disabledMessageAlreadyGiven = false;
 	
@@ -84,6 +85,13 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 			catch(Exception e) {
 				duccLogger.error(location, jobid, e);
 			}
+		}
+		else {
+			duccLogger.info(location, jobid, "timeout minutes (default): "+timeoutMinutes);
+		}
+		String me = System.getProperty("user.name");
+		if(!DuccWebAdministrators.getInstance().isAdministrator(me)) {
+			duccLogger.warn(location, jobid, me+" is not an administrator");
 		}
 		DuccListeners.getInstance().register(this);
 	}
@@ -128,7 +136,9 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 			TrackingInfo ti = tMap.get(duccId);
 			long expiryMillis = ti.time;
 			if(nowMillis > expiryMillis) {
-				cancel(duccId);
+				if(isCancelable(duccId)) {
+					cancel(duccId);
+				}
 			}
 		}
 		
@@ -224,6 +234,7 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 		while( iterator.hasNext() ) {
 			DuccId duccId = iterator.next();
 			jMap.remove(duccId);
+			tMap.remove(duccId);
 			duccLogger.info(location, duccId, "Job monitor stop");
 		}
 		
@@ -327,31 +338,38 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 		return eMap;
 	}
 	
-	private boolean isCancelable(DuccId duccId, ArrayList<String> state) {
-		String location = "isCancelableisCancelable";
-		duccLogger.trace(location, jobid, "enter");
+	private boolean isCancelable(DuccId duccId) {
+		String location = "isCancelable";
+		duccLogger.trace(location, duccId, "enter");
 		boolean retVal = false;
-		if(state != null) {
-			if(!state.isEmpty()) {
-				if(state.contains(JobState.Completing.toString())) {
-					duccLogger.info(location, jobid, "state: <uncancelable> "+state);
-				}
-				else if(state.contains(JobState.Completed.toString())) {
-					duccLogger.info(location, jobid, "state: <uncancelable> "+state);
+		if(!cMap.containsKey(duccId)) {
+			MonitorInfo monitorInfo = jMap.get(duccId);
+			if(monitorInfo != null) {
+				ArrayList<String> stateSequence = monitorInfo.stateSequence;
+				if(stateSequence != null) {
+					if(stateSequence.contains(JobState.Completing.toString())) {
+						duccLogger.info(location, duccId, "state: <uncancelable> "+stateSequence);
+					}
+					else if(stateSequence.contains(JobState.Completed.toString())) {
+						duccLogger.info(location, duccId, "state: <uncancelable> "+stateSequence);
+					}
+					else {
+						duccLogger.info(location, duccId, "state: <cancelable> "+stateSequence);
+						retVal = true;
+					}
 				}
 				else {
-					duccLogger.info(location, jobid, "state: <cancelable> "+state);
-					retVal = true;
+					duccLogger.info(location, duccId, "stateSequence: <null>");
 				}
 			}
 			else {
-				duccLogger.info(location, jobid, "state: <empty>");
+				duccLogger.info(location, duccId, "monitorInfo: <null>");
 			}
 		}
 		else {
-			duccLogger.info(location, jobid, "state: <null>");
+			duccLogger.info(location, duccId, "already canceled");
 		}
-		duccLogger.trace(location, jobid, "exit");
+		duccLogger.trace(location, duccId, "exit");
 		return retVal;
 	}
 	
@@ -361,21 +379,17 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 	
 	public Long getExpiry(DuccId duccId) {
 		String location = "getExpiry";
-		duccLogger.trace(location, jobid, "enter");
+		duccLogger.trace(location, duccId, "enter");
 		Long retVal = null;
 		if(!isCanceled(duccId)) {
-			if(jMap.containsKey(duccId)) {
-				MonitorInfo mi = jMap.get(duccId);
-				ArrayList<String> state = mi.stateSequence;
-				if(isCancelable(duccId, state)) {
-					ConcurrentHashMap<DuccId,Long> eMap = getExpiryMap();
-					if(eMap.containsKey(duccId)) {
-						retVal = eMap.get(duccId);
-					}
+			if(isCancelable(duccId)) {
+				ConcurrentHashMap<DuccId,Long> eMap = getExpiryMap();
+				if(eMap.containsKey(duccId)) {
+					retVal = eMap.get(duccId);
 				}
 			}
 		}
-		duccLogger.trace(location, jobid, "exit");
+		duccLogger.trace(location, duccId, "exit");
 		return retVal;
 	}
 	
