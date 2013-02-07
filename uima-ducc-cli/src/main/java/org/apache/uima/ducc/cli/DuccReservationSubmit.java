@@ -70,14 +70,6 @@ public class DuccReservationSubmit extends DuccUi {
 				.withDescription(DuccUiConstants.desc_help).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_help).create());
 		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_broker)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_broker).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_endpoint)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_endpoint,DuccUiConstants.exmp_service_endpoint)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_endpoint).create());
-		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_description)
 				.withDescription(makeDesc(DuccUiConstants.desc_description,DuccUiConstants.exmp_description)).hasArg()
 				.withLongOpt(DuccUiConstants.name_description).create());

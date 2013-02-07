@@ -36,10 +36,10 @@ import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler;
-import org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandler;
-import org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandlerLoader;
 import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler.Directive;
 import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler.JdProperties;
+import org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandler;
+import org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandlerLoader;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -57,16 +57,15 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.common.DuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
-import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeployableConfiguration;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
-import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryItem;
@@ -340,12 +339,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		String location = "uimaAsClientInitialize";
 		duccOut.info(location, jobid, "jd.step:"+location);
 		try {
-			DuccWorkPopDriver popDriver = getJob().getDriver();
 			Map<String,Object> appCtx = new HashMap<String,Object>();
-			serverUri = popDriver.getServerUri();
-			duccOut.info(location, jobid, JobRequestProperties.key_job_broker+":"+serverUri);
-			endPoint = popDriver.getEndPoint();
-			duccOut.info(location, jobid, JobRequestProperties.key_job_endpoint+":"+endPoint);
 			try {
 				metaTimeout = Integer.parseInt(getJob().getDriver().getMetaTimeout());
 				duccOut.info(location, jobid, JobRequestProperties.key_process_get_meta_time_max+":"+metaTimeout);
@@ -500,8 +494,8 @@ public class JobDriver extends Thread implements IJobDriver {
 		String sep = " / ";
 		duccOut.info(location, jobid, "PerformanceMetricsSummaryMapSize:"+map.size());
 		duccOut.info(location, jobid, "uniqueName"+sep+"name"+sep+"numProcessed"+sep+"analysisTime"+sep+"Avg"+sep+"Min"+sep+"Max");
-		Set<Entry<String, PerformanceMetricsSummaryItem>> set = map.entrySet();
-		for (Entry<String, PerformanceMetricsSummaryItem> entry : set) {
+		Set<Entry<String, PerformanceMetricsSummaryItem>> tset = map.entrySet();
+		for (Entry<String, PerformanceMetricsSummaryItem> entry : tset) {
 			String uniqueName = entry.getKey();
 			PerformanceMetricsSummaryItem value = entry.getValue();
 			String name = value.getName();

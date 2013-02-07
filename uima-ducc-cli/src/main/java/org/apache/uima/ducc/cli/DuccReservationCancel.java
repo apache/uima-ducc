@@ -66,14 +66,6 @@ public class DuccReservationCancel extends DuccUi {
 				.withArgName(DuccUiConstants.parm_reservation_id)
 				.withDescription(makeDesc(DuccUiConstants.desc_reservation_id,DuccUiConstants.exmp_reservation_id)).hasArg()
 				.withLongOpt(DuccUiConstants.name_reservation_id).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_broker)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_broker).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_endpoint)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_endpoint,DuccUiConstants.exmp_service_endpoint)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_endpoint).create());
 	}
 	
 	protected int help(Options options) {

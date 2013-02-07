@@ -235,14 +235,6 @@ public class DuccJobSubmit extends DuccUi {
 				.withDescription(DuccUiConstants.desc_timestamp).hasArg(false)
 				.withLongOpt(DuccUiConstants.name_timestamp).create());
 		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_broker)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_broker).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_endpoint)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_endpoint,DuccUiConstants.exmp_service_endpoint)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_endpoint).create());
-		options.addOption(OptionBuilder
 				.withArgName(DuccUiConstants.parm_description)
 				.withDescription(makeDesc(DuccUiConstants.desc_description,DuccUiConstants.exmp_description)).hasArg()
 				.withLongOpt(DuccUiConstants.name_description).create());
@@ -827,28 +819,6 @@ public class DuccJobSubmit extends DuccUi {
 		if(process_failures_limit == null) {
 			jobRequestProperties.setProperty(JobRequestProperties.key_process_failures_limit,DuccUiConstants.dval_process_failures_limit);
 		}
-		/*
-		 * employ default broker/endpoint if not specified
-		 */
-		String broker = jobRequestProperties.getProperty(JobRequestProperties.key_service_broker);
-		if(broker == null) {
-			broker = DuccUiUtilities.buildBrokerUrl();
-		}
-		if(jobRequestProperties.containsKey(DuccUiConstants.name_debug)) {
-			duccMessageProcessor.out("broker:"+" "+broker);
-		}
-		String endpoint = jobRequestProperties.getProperty(JobRequestProperties.key_service_endpoint);
-		if(endpoint == null) {
-			endpoint = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint_type)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint)
-				     ;
-		}
-		if(jobRequestProperties.containsKey(DuccUiConstants.name_debug)) {
-			duccMessageProcessor.out("endpoint:"+" "+endpoint);
-		}
 		if(jobRequestProperties.containsKey(DuccUiConstants.name_debug)) {
 			jobRequestProperties.dump();
 		}
@@ -891,12 +861,6 @@ public class DuccJobSubmit extends DuccUi {
 		 * identify invoker
 		 */
 		jobRequestProperties.setProperty(JobRequestProperties.key_submitter_pid_at_host, ManagementFactory.getRuntimeMXBean().getName());
-        /*
-         * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
-         */
-        if ( ! resolve_service_dependencies(endpoint, jobRequestProperties) ) {
-            return DuccUiConstants.ERROR;
-        }
 
         boolean missingValue = false;
         Set<Object> keys = jobRequestProperties.keySet();
@@ -1000,7 +964,7 @@ public class DuccJobSubmit extends DuccUi {
 
             if(jobRequestProperties.containsKey(DuccUiConstants.name_wait_for_completion) || ( console_listener != null) ) {
                 incrementWaitCounter();
-                MonitorListener ml = new MonitorListener(this, jobId, broker, jobRequestProperties);                
+                MonitorListener ml = new MonitorListener(this, jobId, jobRequestProperties);                
                 Thread mlt = new Thread(ml);  //MonitorListenerThread
                 mlt.start();
             }
@@ -1223,14 +1187,12 @@ public class DuccJobSubmit extends DuccUi {
     {
         DuccJobSubmit djs = null;
         String jobId = null;
-        String broker = null;
         JobRequestProperties jobRequestProperties = null;
 
-        MonitorListener(DuccJobSubmit djs, String jobId, String broker, JobRequestProperties props)
+        MonitorListener(DuccJobSubmit djs, String jobId, JobRequestProperties props)
         {
             this.djs = djs;
             this.jobId = jobId;
-            this.broker = broker;
             this.jobRequestProperties = props;
         }
 
@@ -1241,8 +1203,6 @@ public class DuccJobSubmit extends DuccUi {
                 ArrayList<String> arrayList = new ArrayList<String>();
                 arrayList.add("--"+DuccUiConstants.name_job_id);
                 arrayList.add(jobId);
-                arrayList.add("--"+DuccUiConstants.name_service_broker);
-                arrayList.add(broker);
                 if(jobRequestProperties.containsKey(DuccUiConstants.name_debug)) {
                     arrayList.add("--"+DuccUiConstants.name_debug);
                 }

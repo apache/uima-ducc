@@ -60,10 +60,6 @@ public class ReservationRequestProperties extends ReservationSpecificationProper
 	
 	public static List<String> keys_requiring_values = Arrays.asList(
 			JobRequestProperties.key_signature,
-			JobRequestProperties.key_job_broker,
-			JobRequestProperties.key_job_endpoint,
-			JobRequestProperties.key_service_broker,
-			JobRequestProperties.key_service_endpoint,
 			JobRequestProperties.key_description,
 			JobRequestProperties.key_scheduling_class,
 			JobRequestProperties.key_submitter_pid_at_host,

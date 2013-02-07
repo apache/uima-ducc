@@ -40,19 +40,6 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 	public static String key_request_type_modify = "request_type_modify";
 	
 	/*
-	 * The broker and endpoint servicing submit, modify and cancel
-	 */
-	public static String key_service_broker = "service_broker";
-	public static String key_service_endpoint = "service_endpoint";
-	
-	/*
-	 * The broker and endpoint servicing the user specified (at submission)
-	 * job CR and corresponding UIMA-AS services
-	 */
-	public static String key_job_broker = "job_broker";
-	public static String key_job_endpoint = "job_endpoint";
-	
-	/*
 	 * id: required for cancel/modify requests; error for submit request
 	 */
 	public static String key_id = "id";	
@@ -60,10 +47,6 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 	
 	public static List<String> keys_requiring_values = Arrays.asList(
 			JobRequestProperties.key_signature,
-			JobRequestProperties.key_job_broker,
-			JobRequestProperties.key_job_endpoint,
-			JobRequestProperties.key_service_broker,
-			JobRequestProperties.key_service_endpoint,
 			JobRequestProperties.key_description,
 			JobRequestProperties.key_scheduling_class,
 			JobRequestProperties.key_submitter_pid_at_host,

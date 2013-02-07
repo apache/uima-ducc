@@ -325,16 +325,8 @@ public class JobFactory {
 		DuccType duccType = job.getDuccType();
 		switch(duccType) {
 		case Job:
-			String job_broker = jobRequestProperties.getProperty(JobRequestProperties.key_job_broker);
-			if(job_broker == null) {
-				job_broker = common.brokerUrl;
-			}
-			job.setJobBroker(job_broker);
-			String job_queue = jobRequestProperties.getProperty(JobRequestProperties.key_job_endpoint);
-			if(job_queue == null) {
-				job_queue = common.jdQueuePrefix+job.getDuccId();
-			}
-			job.setJobQueue(job_queue);
+			job.setJobBroker(common.brokerUrl);
+			job.setJobQueue(common.jdQueuePrefix+job.getDuccId());
 			String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
 			String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
 			String meta_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_get_meta_time_max);

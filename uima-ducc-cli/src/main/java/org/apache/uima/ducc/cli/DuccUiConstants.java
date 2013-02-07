@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.cli;
 
 import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
@@ -90,24 +89,6 @@ public class DuccUiConstants {
 	public static final String exmp_driver_attach_console = "";
 	public static final String dval_driver_attach_console = null;
 	// End remote debug and console support
-
-	public static final String name_service_broker = JobRequestProperties.key_service_broker;
-	public static final String parm_service_broker = "address";
-	public static final String desc_service_broker = "Service broker.";
-	public static final String labl_service_broker = "Service Broker";
-	public static final String exmp_service_broker = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_broker_url);
-	public static final String dval_service_broker = null;
-	
-	public static final String name_service_endpoint = JobRequestProperties.key_service_endpoint;
-	public static final String parm_service_endpoint = "address";
-	public static final String desc_service_endpoint = "Service endpoint.";
-	public static final String labl_service_endpoint = "Service Endpoint";
-	public static final String exmp_service_endpoint = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider)
-    												 + ":"
-    												 + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint_type)
-    												 + ":"
-    												 + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint);
-	public static final String dval_service_endpoint = null;
 	
 	/*
 	 * cancel

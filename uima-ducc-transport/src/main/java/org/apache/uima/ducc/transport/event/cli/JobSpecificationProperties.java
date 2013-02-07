@@ -82,10 +82,6 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 
 	public static String[] keys = {
 		JobRequestProperties.key_signature,
-		JobRequestProperties.key_job_broker,
-		JobRequestProperties.key_job_endpoint,
-		JobRequestProperties.key_service_broker,
-		JobRequestProperties.key_service_endpoint,
 		JobRequestProperties.key_description,
 		JobRequestProperties.key_scheduling_class,
 		JobRequestProperties.key_submitter_pid_at_host,

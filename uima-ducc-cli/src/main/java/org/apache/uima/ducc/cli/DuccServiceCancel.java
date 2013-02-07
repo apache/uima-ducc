@@ -66,14 +66,6 @@ public class DuccServiceCancel extends DuccUi {
 				.withArgName(DuccUiConstants.parm_service_id)
 				.withDescription(makeDesc(DuccUiConstants.desc_service_id,DuccUiConstants.exmp_service_id)).hasArg()
 				.withLongOpt(DuccUiConstants.name_service_id).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_broker)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_broker,DuccUiConstants.exmp_service_broker)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_broker).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_service_endpoint)
-				.withDescription(makeDesc(DuccUiConstants.desc_service_endpoint,DuccUiConstants.exmp_service_endpoint)).hasArg()
-				.withLongOpt(DuccUiConstants.name_service_endpoint).create());
 	}
 	
 	protected int help(Options options) {
@@ -147,46 +139,20 @@ public class DuccServiceCancel extends DuccUi {
 		}
 		// trim
 		DuccUiUtilities.trimProperties(serviceRequestProperties);
-		/*
-		 * employ default broker/endpoint if not specified
-		 */
-		String broker = serviceRequestProperties.getProperty(JobRequestProperties.key_service_broker);
-		if(broker == null) {
-			broker = DuccUiUtilities.buildBrokerUrl();
-		}
-		String endpoint = serviceRequestProperties.getProperty(JobRequestProperties.key_service_endpoint);
-		if(endpoint == null) {
-			endpoint = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint_type)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint)
-				     ;
-		}
-		/*
-		 * send to JM & get reply
-		 */
-//		CamelContext context = new DefaultCamelContext();
-//		ActiveMQComponent amqc = ActiveMQComponent.activeMQComponent(broker);
-//		String jmsProvider = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider);
-//        context.addComponent(jmsProvider, amqc);
-//        context.start();
-//        DuccEventDispatcher duccEventDispatcher;
-//        duccEventDispatcher = new DuccEventDispatcher(context,endpoint);
-        
+		
         String port = 
                 DuccPropertiesResolver.
                   getInstance().
                     getProperty(DuccPropertiesResolver.ducc_orchestrator_http_port);
         if ( port == null ) {
-          throw new DuccRuntimeException("Unable to Submit a Job. Ducc Orchestrator HTTP Port Not Defined. Add ducc.orchestrator.http.port ducc.properties");
+          throw new DuccRuntimeException("Unable to Submit a Service. Ducc Orchestrator HTTP Port Not Defined. Add ducc.orchestrator.http.port ducc.properties");
         }
         String orNode = 
                 DuccPropertiesResolver.
                   getInstance().
                     getProperty(DuccPropertiesResolver.ducc_orchestrator_node);
         if ( orNode == null ) {
-          throw new DuccRuntimeException("Unable to Submit a Job. Ducc Orchestrator Node Not Defined. Add ducc.orchestrator.node to ducc.properties");
+          throw new DuccRuntimeException("Unable to Submit a Service. Ducc Orchestrator Node Not Defined. Add ducc.orchestrator.node to ducc.properties");
         }
         
         String targetUrl = "http://"+orNode+":"+port+"/or";
