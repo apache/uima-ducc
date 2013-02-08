@@ -228,7 +228,7 @@ public interface IServiceApi
             if ( value.equals(ClasspathOrder.decode()) )       return ClasspathOrder;
             if ( value.equals(Jvm.decode()) )                  return Jvm;
             if ( value.equals(ServiceDependency.decode()) )    return ServiceDependency;
-            if ( value.equals(ServiceDependency.decode()) )    return ServiceDependency;
+            if ( value.equals(ServiceLinger.decode()) )        return ServiceLinger;
             return Unknown;
         }
 

@@ -111,7 +111,7 @@ public class ServiceSet
     // structures to manage service linger after it exits
     Timer timer = null;
     LingerTask linger = null;
-    long linger_time = 1000;
+    long linger_time = 5000;
 
     //JobState     job_state     = JobState.Undefined;
     //
@@ -170,7 +170,7 @@ public class ServiceSet
         this.props_filename = props_filename;
         this.meta_filename = meta_filename;
         this.service_state = ServiceState.NotAvailable;
-        this.linger_time = props.getLongProperty(RegistrationOption.ServiceLinger.decode(), 5);
+        this.linger_time = props.getLongProperty(RegistrationOption.ServiceLinger.decode(), 5000);
 
         this.key = meta.getProperty("endpoint");
 

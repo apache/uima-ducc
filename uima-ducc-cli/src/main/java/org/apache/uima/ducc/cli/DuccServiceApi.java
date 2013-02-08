@@ -525,7 +525,7 @@ public class DuccServiceApi
     private String getLinger(DuccProperties props)
     {
         String kw = RegistrationOption.ServiceLinger.decode();
-        String default_linger = ducc_properties.getStringProperty("ducc.sm.default.linger", "30");
+        String default_linger = ducc_properties.getStringProperty("ducc.sm.default.linger", "5000");
         String linger = props.getStringProperty(kw, default_linger);
         long actual = 0;
         try {             
@@ -545,7 +545,6 @@ public class DuccServiceApi
         // First read the properties file if given in
         //    ducc_services --register propsfile
         String props = cl.getOptionValue(ServiceVerb.Register.decode());
-        debug = true;
         if ( props != null ) {
             reply.load(new FileInputStream(props));
             if ( debug ) {
