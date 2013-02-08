@@ -442,14 +442,7 @@ public class DuccServiceSubmit extends DuccUi {
 			if (DuccUiUtilities.duplicate_options(duccMessageProcessor, commandLine)) {
 				return DuccUiConstants.ERROR;
 			}
-			
-			/*
-			 * check for writable log directory
-			 */
-			if (!has_writable_log_directory(serviceRequestProperties)) {
-				return DuccUiConstants.ERROR;
-			}
-			
+						
 			/*
 			 * marshal user
 			 */
@@ -542,6 +535,13 @@ public class DuccServiceSubmit extends DuccUi {
 				}
 			}
 		}
+        /*
+         * make sure the logdir is actually legal.
+         */
+        if (!has_writable_log_directory(serviceRequestProperties)) {
+            return DuccUiConstants.ERROR;
+        }
+
 
 		// tack on "services" or "processes" to complete logging directory
         String log_extension = "services";
