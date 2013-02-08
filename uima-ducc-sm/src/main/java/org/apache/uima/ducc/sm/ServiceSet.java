@@ -1195,7 +1195,7 @@ public class ServiceSet
         sd.setActive(serviceMeta != null);
         sd.setStopped(stopped);
         sd.setAutostart(autostart);
-        sd.setLinger(linger_time/1000);
+        sd.setLinger(linger_time);
         sd.setId(id);
         sd.setDeregistered(isDeregistered());
 
