@@ -446,6 +446,25 @@ public class DuccJobSubmit extends DuccUi {
     									 +", "
     									 +JobRequestProperties.key_process_descriptor_CC
     									 ;
+	
+	//**********
+    
+    private boolean has_writable_log_directory(Properties properties) {
+		boolean retVal = true;
+		String log_directory = properties.getProperty(JobRequestProperties.key_log_directory);
+		File file = new File(log_directory);
+		if(!file.isDirectory()) {
+			duccMessageProcessor.err("not a directory: "+log_directory);
+			retVal = false;
+		}
+		else if(!file.canWrite()) {
+			duccMessageProcessor.err("not a writable directory: "+log_directory);
+			retVal = false;
+		}
+		return retVal;
+	}
+    
+	//**********
     
 	private boolean has_at_least_one_of_options(Properties properties) {
 		boolean retVal = true;
@@ -838,6 +857,12 @@ public class DuccJobSubmit extends DuccUi {
 		 * check for minimum set of options
 		 */
 		if (!has_at_least_one_of_options(jobRequestProperties)) {
+			return DuccUiConstants.ERROR;
+		}
+		/*
+		 * check for writable log directory
+		 */
+		if (!has_writable_log_directory(jobRequestProperties)) {
 			return DuccUiConstants.ERROR;
 		}
 		/*

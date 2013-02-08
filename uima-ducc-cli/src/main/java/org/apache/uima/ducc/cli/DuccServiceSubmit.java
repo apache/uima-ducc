@@ -51,6 +51,7 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
+import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
@@ -185,7 +186,24 @@ public class DuccServiceSubmit extends DuccUi {
                           );
 
 	}
-
+	
+    //**********
+    
+    private boolean has_writable_log_directory(Properties properties) {
+		boolean retVal = true;
+		String log_directory = properties.getProperty(JobRequestProperties.key_log_directory);
+		File file = new File(log_directory);
+		if(!file.isDirectory()) {
+			duccMessageProcessor.err("not a directory: "+log_directory);
+			retVal = false;
+		}
+		else if(!file.canWrite()) {
+			duccMessageProcessor.err("not a writable directory: "+log_directory);
+			retVal = false;
+		}
+		return retVal;
+	}
+    
 	//**********
 	
 	private String[] required_options = {  };
@@ -424,6 +442,14 @@ public class DuccServiceSubmit extends DuccUi {
 			if (DuccUiUtilities.duplicate_options(duccMessageProcessor, commandLine)) {
 				return DuccUiConstants.ERROR;
 			}
+			
+			/*
+			 * check for writable log directory
+			 */
+			if (!has_writable_log_directory(serviceRequestProperties)) {
+				return DuccUiConstants.ERROR;
+			}
+			
 			/*
 			 * marshal user
 			 */
