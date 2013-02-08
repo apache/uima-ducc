@@ -514,6 +514,17 @@ under the License.
     </fileSet>
 
     <fileSet>
+      <!-- build up the verification scripting -->
+      <directory>uima-ducc-examples/src/main/scripts</directory>
+      <outputDirectory>ducc_runtime/examples/simple</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+      <includes>
+        <include>**/*</include>
+      </includes>
+    </fileSet>
+
+    <fileSet>
       <!-- build up the verification test jobs -->
       <directory>uima-ducc-examples/src/main/java/org/apache/uima/ducc/test/service</directory>
       <outputDirectory>ducc_runtime/examples/simple/resources</outputDirectory>
