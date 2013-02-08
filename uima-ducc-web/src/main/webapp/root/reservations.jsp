@@ -111,6 +111,8 @@ if (table_style.equals("classic")) {
 <%@ include file="$banner/c0-menu.jsp" %>
 </td>
 <!-- *********************** column ************************ -->
+<%@ include file="$banner/$runmode.jsp" %>
+<!-- *********************** column ************************ -->
 <td valign="middle" align="center">
 <div id="reservation_form_button">
 <button title="Login to enable" disabled style="font-size:8pt;">Request<br>Reservation</button>

@@ -51,6 +51,8 @@ under the License.
 <%@ include file="$banner/c0-menu.jsp" %>
 </td>
 <!-- *********************** column ************************ -->
+<%@ include file="$banner/$runmode.jsp" %>
+<!-- *********************** column ************************ -->
 <td valign="middle" align="center">
 <%@ include file="$banner/c1-refresh-system-administration.jsp" %>
 </td>

@@ -118,6 +118,8 @@ if (table_style.equals("classic")) {
 <%@ include file="$banner/c0-menu.jsp" %>
 </td>
 <!-- *********************** column ************************ -->
+<%@ include file="$banner/$runmode.jsp" %>
+<!-- *********************** column ************************ -->
 <td valign="middle" align="center">
 <%@ include file="$banner/c1-refresh-jobs.jsp" %>
 </td>

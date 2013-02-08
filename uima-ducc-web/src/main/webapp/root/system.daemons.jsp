@@ -110,6 +110,8 @@ if (table_style.equals("classic")) {
 <%@ include file="$banner/c0-menu.jsp" %>
 </td>
 <!-- *********************** column ************************ -->
+<%@ include file="$banner/$runmode.jsp" %>
+<!-- *********************** column ************************ -->
 <td valign="middle" align="center">
 <div id="show_agents_form_button">
 <button id="showbutton" style="font-size:8pt;" onclick="ducc_show_agents()">Show<br>Agents</button>

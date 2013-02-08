@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.util.Properties;
 
 import org.apache.jasper.servlet.JspServlet;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
@@ -178,7 +180,34 @@ public class DuccWebServer {
 		resourceHandler.setDirectoriesListed(true);
 		resourceHandler.setWelcomeFiles(new String[]{ "index.html" });
 		rootDir = ducc_web+File.separator+"root";
-		resourceHandler.setResourceBase(rootDir);	
+		resourceHandler.setResourceBase(rootDir);
+		//
+		try {
+			Properties properties = DuccWebProperties.get();
+			String ducc_runmode = properties.getProperty("ducc.runmode","Production");
+			logger.debug(methodName, null, "ducc.runmode:"+ducc_runmode);
+			logger.debug(methodName, null, "rootdir:"+rootDir);
+			String $runmode_jsp = rootDir+File.separator+"$banner"+File.separator+"$runmode.jsp";
+			logger.debug(methodName, null, "$runmode_jsp:"+$runmode_jsp);
+			File $runmodeFile = new File($runmode_jsp);
+			logger.debug(methodName, null, "path:"+$runmodeFile.getAbsolutePath());
+			$runmodeFile.delete();
+			String text;
+			if(ducc_runmode.equals("Test")) {
+				text = "<html><%@ include file=\"$runmode.test.jsp\" %></html>";
+			}
+			else {
+				text = "<html><%@ include file=\"$runmode.production.jsp\" %></html>";
+			}
+			PrintWriter out = new PrintWriter($runmodeFile);
+			out.println(text);
+			out.flush();
+			out.close();
+		}
+		catch(Exception e) {
+			logger.info(methodName, null, e);
+		}
+		//
 		HandlerList handlers = new HandlerList();
 		DuccHandler duccHandler = new DuccHandler(this);
 		DuccHandlerLegacy duccHandlerLegacy = new DuccHandlerLegacy(this);
