@@ -2658,9 +2658,13 @@ public class DuccHandler extends DuccAbstractHandler {
 			handleDuccRequest(target, baseRequest, request, response);
 		}
 		catch(Throwable t) {
-			DuccId jobid = null;
-			duccLogger.info(methodName, jobid, "", t.getMessage(), t);
-			duccLogger.error(methodName, null, t);
+			if(isIgnorable(t)) {
+				duccLogger.debug(methodName, jobid, t);
+			}
+			else {
+				duccLogger.info(methodName, jobid, "", t.getMessage(), t);
+				duccLogger.error(methodName, jobid, t);
+			}
 		}
 	}
 	

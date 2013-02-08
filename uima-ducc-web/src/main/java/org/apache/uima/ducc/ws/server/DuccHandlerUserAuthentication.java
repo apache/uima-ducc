@@ -205,8 +205,13 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 			}
 		}
 		catch(Throwable t) {
-			duccLogger.info(methodName, jobid, "", t.getMessage(), t);
-			duccLogger.error(methodName, jobid, t);
+			if(isIgnorable(t)) {
+				duccLogger.debug(methodName, jobid, t);
+			}
+			else {
+				duccLogger.info(methodName, jobid, "", t.getMessage(), t);
+				duccLogger.error(methodName, jobid, t);
+			}
 		}
 		
 	}

@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -93,6 +94,19 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	}
 	
 	public static final RequestStateType requestStateTypeDefault = RequestStateType.All;
+	
+	public boolean isIgnorable(Throwable t) {
+		boolean retVal = false;
+		try {
+			String rcm = ExceptionUtils.getMessage(t);
+			if(rcm.endsWith("java.io.IOException: Broken pipe")) {
+				retVal = true;
+			}
+		}
+		catch(Throwable throwable) {
+		}
+		return retVal;
+	}
 	
 	public String quote(String string) {
 		return "\""+string+"\"";

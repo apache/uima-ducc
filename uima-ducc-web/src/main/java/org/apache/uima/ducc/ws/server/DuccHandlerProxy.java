@@ -166,8 +166,13 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 			}
 		}
 		catch(Throwable t) {
-			duccLogger.info(location, jobid, "", t.getMessage(), t);
-			duccLogger.error(location, jobid, t);
+			if(isIgnorable(t)) {
+				duccLogger.debug(location, jobid, t);
+			}
+			else {
+				duccLogger.info(location, jobid, "", t.getMessage(), t);
+				duccLogger.error(location, jobid, t);
+			}
 		}
 	}
 
