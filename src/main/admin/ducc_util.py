@@ -694,6 +694,17 @@ class DuccUtil:
                 return p + "/" + file            
             return None
 
+    def mkargs(self, args):
+        '''
+            The cli needs to insure all args are fully quoted so the shell doesn't
+            lose the proper tokenization.  This quotes everything.
+        '''
+        answer = []
+        for a in args:
+            arg = '"' + a + '"'
+            answer.append(arg)
+        return answer
+
     #
     # Read the nodefile, recursing into 'imports' if needed, returning a
     # map.  The map is keyed on filename, with each entry a list of the nodes.

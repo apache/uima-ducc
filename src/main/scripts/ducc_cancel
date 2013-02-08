@@ -27,7 +27,7 @@ from ducc_util import DuccUtil
 class DuccCancel(DuccUtil):
 
     def main(self, argv):
-        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-cancel.jar', ' '.join(argv))
+        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-cancel.jar', ' '.join(self.mkargs(argv)))
 
 if __name__ == "__main__":
     cancel = DuccCancel()

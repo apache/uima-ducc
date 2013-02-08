@@ -29,18 +29,8 @@ from ducc_util import DuccUtil
 
 class DuccServices(DuccUtil):
 
-    def main(self, argv):
-        
-        if ( len(argv) > 0 ):
-            if ( argv[0] == '--submit' ):
-                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-service-submit.jar', ' '.join(argv[1:]))
-                return
-
-            if ( argv[0] == '--cancel' ):
-                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-service-cancel.jar', ' '.join(argv[1:]))
-                return
-
-        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-services.jar', ' '.join(argv))
+    def main(self, argv):        
+        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-services.jar', ' '.join(self.mkargs(argv)))
 
 if __name__ == "__main__":
     svc = DuccServices()
