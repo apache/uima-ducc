@@ -36,8 +36,8 @@ import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.sm.ServiceDependency;
 import org.apache.uima.ducc.transport.event.sm.ServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
@@ -705,9 +705,15 @@ public class ServiceHandler
             }
         } else {
             ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
-            ServiceDescription sd = sset.query();
-            updateServiceQuery(sd, sset);
-            reply.addService(sd);
+            if ( sset == null ) {
+                reply.setMessage("Unrecognized service ID[" + friendly + "] Endpoint[" + epname + "]");
+                reply.setEndpoint(epname);
+                reply.setReturnCode(ServiceCode.NOTOK);
+            } else {
+                ServiceDescription sd = sset.query();
+                updateServiceQuery(sd, sset);
+                reply.addService(sd);
+            }
         } 
 
         return reply;
@@ -1025,8 +1031,8 @@ public class ServiceHandler
     /**
      * From: http://en.wikipedia.org/wiki/Topological_sorting
      *
-     * L â†? Empty list that will contain the sorted elements
-     * S â†? Set of all nodes with no incoming edges
+     * L ï¿½? Empty list that will contain the sorted elements
+     * S ï¿½? Set of all nodes with no incoming edges
      * while S is non-empty do
      *     remove a node n from S
      *     insert n into L

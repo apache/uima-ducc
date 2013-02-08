@@ -45,7 +45,7 @@ public class ServiceReplyEvent
 		return return_code;
 	}
 
-	public void setReturn_code(ServiceCode return_code) {
+	public void setReturnCode(ServiceCode return_code) {
 		this.return_code = return_code;
 	}
 

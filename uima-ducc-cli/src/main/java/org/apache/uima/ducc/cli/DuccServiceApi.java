@@ -895,6 +895,10 @@ public class DuccServiceApi
                System.out.println(ev.toString());
                break;
         }
+
+        if ( ev.getReturnCode() != ServiceCode.OK ) {
+            throw new IllegalStateException("Return code NOTOK in rervice reply.");
+        }
     }
 
     public void run(String[] args)
@@ -980,7 +984,6 @@ public class DuccServiceApi
             }
             print_reply(verb, reply);
         } catch ( Throwable t ) {
-        	t.printStackTrace();
             System.out.println("Service command fails: " + t.getMessage());
             doExit(1);
         }

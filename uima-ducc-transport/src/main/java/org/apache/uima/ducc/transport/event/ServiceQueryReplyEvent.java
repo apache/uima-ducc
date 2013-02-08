@@ -49,7 +49,11 @@ public class ServiceQueryReplyEvent
     {
         StringBuilder sb = new StringBuilder();
         if ( services.size() == 0 ) {
-            return "No Services";
+            if ( this.getReturnCode() == ServiceCode.NOTOK ) {
+                return super.getMessage();
+            } else {
+                return "No Services";
+            }
         } else {
             for ( IServiceDescription sd : services ) {
                 sb.append(sd.toString());
