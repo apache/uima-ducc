@@ -24,8 +24,17 @@ public class SmStateDuccEvent extends AbstractDuccEvent  {
 
 	private static final long serialVersionUID = 3637372507135841728L;
 
+    /**
+     * This map has one entry for everything published by OR, indicateing its state
+     * relative to SM.
+     */
 	private ServiceMap serviceMap;
 	
+    /**
+     * This is the colleciton of all registered services.
+     */
+    private ServiceQueryReplyEvent services;
+
 	public SmStateDuccEvent() {
 		super(EventType.SM_STATE);
 	}
@@ -37,4 +46,14 @@ public class SmStateDuccEvent extends AbstractDuccEvent  {
 	public ServiceMap getServiceMap() {
 		return this.serviceMap;
 	}
+
+    public void setServiceQuery(ServiceQueryReplyEvent sqre)
+    {
+        this.services = sqre;
+    }
+
+    public ServiceQueryReplyEvent getServiceQuery()
+    {
+        return services;
+    }
 }

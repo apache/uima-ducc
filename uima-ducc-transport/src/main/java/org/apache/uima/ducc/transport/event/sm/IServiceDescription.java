@@ -18,8 +18,68 @@
 */
 package org.apache.uima.ducc.transport.event.sm;
 
+import java.util.ArrayList;
+import java.util.Map;
+
+import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+
 public interface IServiceDescription
     extends IService
 {
+
+	public DuccId getId();
+	public void setId(DuccId id);
+
+	public ArrayList<DuccId> getImplementors();
+	public void setImplementors(ArrayList<DuccId> implementors);
+
+	public ArrayList<DuccId> getReferences();
+	public void setReferences(ArrayList<DuccId> references);
+
+	public ServiceType getType();
+	public void setType(ServiceType type);
+
+	public ServiceClass getSubclass();
+	public void setSubclass(ServiceClass subclass);
+
+	public String getEndpoint();
+	public void setEndpoint(String endpoint);
+
+	public String getBroker();
+	public void setBroker(String broker);
+
+	public ServiceState getServiceState();
+	public void setServiceState(ServiceState serviceState);
+
+	public JobState getJobState();
+	public void setJobState(JobState jobState);
+
+	public boolean isActive();
+	public void setActive(boolean active);
+
+	public void setDeregistered(boolean d);	
+    public void setQueueStatistics(ServiceStatistics qstats);    
+
+    public ServiceStatistics getQueueStatistics();
+    public void setAutostart(boolean autostart);
+
+	public boolean isStopped();
+	public void setStopped(boolean stopped);
+
+	public ServiceStatistics getQstats();
+	public void setQstats(ServiceStatistics qstats);
+
+	public boolean isDeregistered();
+
+	public void setInstances(int instances);
+    public int getInstances();
+
+    public void setLinger(long linger);    
+    public long getLinger();    
+
+    public void addDependency(String endpoint, String msg);
+    public Map<String, String> getDependencies();
 
 }

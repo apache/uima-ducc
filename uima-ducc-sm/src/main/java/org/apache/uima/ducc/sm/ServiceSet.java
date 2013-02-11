@@ -41,6 +41,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceDescription;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
@@ -1167,9 +1168,9 @@ public class ServiceSet
         timer.schedule(linger, linger_time);
     }
 
-    ServiceDescription query()
+    IServiceDescription query()
     {
-        ServiceDescription sd = new ServiceDescription();
+        IServiceDescription sd = new ServiceDescription();
         
         ArrayList<DuccId> imp = new ArrayList<DuccId>();
         for ( DuccId id : implementors.keySet() ) {

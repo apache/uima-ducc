@@ -38,8 +38,8 @@ import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceDependency;
-import org.apache.uima.ducc.transport.event.sm.ServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 
@@ -650,7 +650,7 @@ public class ServiceHandler
     /**
      * Add in the service dependencies to the query.
      */
-    void updateServiceQuery(ServiceDescription sd, ServiceSet sset)
+    void updateServiceQuery(IServiceDescription sd, ServiceSet sset)
     {
 
         if ( sset.isRegistered() ) {
@@ -699,7 +699,7 @@ public class ServiceHandler
                 ServiceSet sset = serviceStateHandler.getServiceByName(k);
                 if ( k == null ) continue;                    // the unlikely event it changed out from under us
                 
-                ServiceDescription sd = sset.query();
+                IServiceDescription sd = sset.query();
                 updateServiceQuery(sd, sset);
                 reply.addService(sd);
             }
@@ -710,7 +710,7 @@ public class ServiceHandler
                 reply.setEndpoint(epname);
                 reply.setReturnCode(ServiceCode.NOTOK);
             } else {
-                ServiceDescription sd = sset.query();
+                IServiceDescription sd = sset.query();
                 updateServiceQuery(sd, sset);
                 reply.addService(sd);
             }

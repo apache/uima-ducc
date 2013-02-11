@@ -18,12 +18,15 @@
 */
 package org.apache.uima.ducc.transport.event.sm;
 
+import java.io.Serializable;
+
 /**
  * Service related constants that are public.
  * 
  * Important: Do not put any methods into this interface.  It is a holder for constants only.
  */
 public interface IService
+    extends Serializable
 {
     static final String NULL = "<none>";     
     public static enum ServiceCode 

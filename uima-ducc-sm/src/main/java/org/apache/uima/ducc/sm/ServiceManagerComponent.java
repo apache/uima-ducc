@@ -419,6 +419,11 @@ public class ServiceManagerComponent
                 logger.debug(methodName, null, map.toPrint());
             }
             ev.setServiceMap(map);
+
+            ServiceQueryEvent sqe = new ServiceQueryEvent(null, -1, null);
+            ServiceQueryReplyEvent sqre = handler.query(sqe);
+            ev.setServiceQuery(sqre);
+
             eventDispatcher.dispatch(stateEndpoint, ev, "");  // tell the world what is scheduled (note empty string)
         } catch (Throwable t) {
             logger.error(methodName, null, t);

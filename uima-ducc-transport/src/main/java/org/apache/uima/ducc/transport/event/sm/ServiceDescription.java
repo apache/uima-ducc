@@ -32,47 +32,47 @@ public class ServiceDescription
     implements IServiceDescription
 {
     // For submitted and registered services
-    ArrayList<DuccId> implementors;
+    private ArrayList<DuccId> implementors;
 
     // key is job/service id, value is same.  it's a map for fast existence check
-    ArrayList<DuccId> references;
+    private ArrayList<DuccId> references;
 
     // UIMA-AS or CUSTOM
-    ServiceType type;
+    private ServiceType type;
 
     // Implicit, Submitted, Registered
-    ServiceClass subclass;
+    private ServiceClass subclass;
 
     // for uima-as
-    String endpoint;
-    String broker;
+    private String endpoint;
+    private String broker;
 
     // The state we give OR - indicates availability of the service
-    ServiceState serviceState = ServiceState.Undefined;     
+    private ServiceState serviceState = ServiceState.Undefined;     
     
     // The state of the service as a DUCC job
-    JobState     jobState;
+    private JobState     jobState;
 
 	// ping thread alive
-    boolean active;
+    private boolean active;
 
     // current autorstart state
-    boolean autostart = true;
+    private boolean autostart = true;
 
     // manual stop?
-    boolean stopped = false;
+    private boolean stopped = false;
 
     // for submitted service, the registered service id
-    DuccId id;
-    boolean deregistered;         // still known but trying to shutdown
+    private DuccId id;
+    private boolean deregistered;         // still known but trying to shutdown
 
     // number of registered instances
-    int instances;                
+    private int instances;                
 
-    long linger;
-    Map<String, String> dependencies;
+    private long linger;
+    private Map<String, String> dependencies;
 
-    ServiceStatistics qstats;
+    private ServiceStatistics qstats;
 
 	public DuccId getId() {
 		return id;
