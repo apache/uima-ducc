@@ -20,6 +20,7 @@ package org.apache.uima.ducc.orchestrator;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -27,6 +28,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -301,6 +303,18 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
 	
+	public void copyUimaPipelineComponentsState(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "copyUimaPipelineComponentsState";
+		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
+		List<IUimaPipelineAEComponent> list = inventoryProcess.getUimaPipelineComponents();
+		if(list != null) {
+			if(!list.isEmpty()) {
+				process.setUimaPipelineComponents(list);
+			}
+		}
+		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
+	}
+	
 	private void initStop(IDuccWorkJob job, IDuccProcess process) {
 		String ts = TimeStamp.getCurrentMillis();
 		ITimeWindow twi = process.getTimeWindowInit();
@@ -438,6 +452,8 @@ public class ProcessAccounting {
 									}
 								}
 							}
+							// Process Pipeline Components State
+							copyUimaPipelineComponentsState(job, inventoryProcess, process);
 						}
 						else {
 							logger.warn(methodName, jobId, processId, messages.fetch("process not found job's process table"));

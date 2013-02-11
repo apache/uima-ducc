@@ -21,6 +21,7 @@ package org.apache.uima.ducc.orchestrator;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,6 +31,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccReservation;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -1054,6 +1056,14 @@ public class StateManager {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess inventoryProcess = inventoryProcessMap.get(processId);
+				List<IUimaPipelineAEComponent> upcList = inventoryProcess.getUimaPipelineComponents();
+				if(upcList != null) {
+					Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
+					while(upcIterator.hasNext()) {
+						IUimaPipelineAEComponent upc = upcIterator.next();
+						logger.debug(methodName, null, processId, "pipelineInfo: "+inventoryProcess.getNodeIdentity()+" "+inventoryProcess.getPID()+" "+upc.getAeName()+" "+upc.getAeState()+" "+upc.getInitializationTime());
+					}
+				}
 				ProcessType processType = inventoryProcess.getProcessType();
 				if(processType != null) {
 					DuccId jobId = OrchestratorCommonArea.getInstance().getProcessAccounting().getJobId(processId);
