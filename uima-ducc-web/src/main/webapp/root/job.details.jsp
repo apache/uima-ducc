@@ -16,20 +16,13 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
+<%@ page language="java" %>
 <html>
 <head>
   <link rel="shortcut icon" href="uima.ico" />
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
-  <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>
-  <script src="opensources/jgrowl/jquery.jgrowl.js" type="text/javascript"></script>
-  <link rel="stylesheet" href="opensources/jgrowl/jquery.jgrowl.css" type="text/css"/>
-  <link href="opensources/jquery-ui-1.8.4/gallery/jquery-ui-themes-1.8.4/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <script src="opensources/jquery-ui-1.8.4/ui/minified/jquery-ui.min.js"></script>
-  <link href="opensources/navigation/menu.css" rel="stylesheet" type="text/css">
-  <script src="js/ducc.js"></script>
-  <script type="text/javascript" src="opensources/sorttable.js"></script>
-  <link href="ducc.css" rel="stylesheet" type="text/css">
+  <%@ include file="$imports-classic.jsp" %>
   <script type="text/javascript">
 	$(function() {
 		$("#tabs").tabs();

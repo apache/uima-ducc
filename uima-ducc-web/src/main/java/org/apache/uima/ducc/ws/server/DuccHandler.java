@@ -61,6 +61,7 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
+import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -399,6 +400,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Time:initialization
+		List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
 		TimeWindow t;
 		t = (TimeWindow) process.getTimeWindowInit();
 		long timeInitMillis = 0;
@@ -411,6 +413,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(t != null) {
 			initTime = t.getElapsed(job);
 		}
+		
 		sb.append("<td align=\"right\">");
 		if((t != null) && (t.isEstimated())) {
 			sb.append("<span title=\"estimated\" class=\"health_green\">");
@@ -421,7 +424,47 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(initTime == null) {
 			initTime = "0";
 		}
+		if(!job.isOperational()) {
+			if(upcList == null) {
+				initTime = "";
+			}
+			else {
+				if(upcList.isEmpty()) {
+					initTime = "";
+				}
+			}
+		}
 		initTime = chomp("00:", initTime);
+		if(upcList != null) {
+			if(!upcList.isEmpty()) {
+				String id = ""+process.getDuccId().getFriendly();
+				initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
+				StringBuffer loadme = new StringBuffer();
+				loadme.append("<div id=\"loadme"+id+"\">");
+				loadme.append("<table>");
+				loadme.append("<tr>");
+				String ch1 = "Name";
+				String ch2 = "State";
+				String ch3 = "Time";
+				loadme.append("<td>"+"<b>"+ch1+"</b>");
+				loadme.append("<td>"+"<b>"+ch2+"</b>");
+				loadme.append("<td>"+"<b>"+ch3+"</b>");
+				Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
+				while(upcIterator.hasNext()) {
+					IUimaPipelineAEComponent upc = upcIterator.next();
+					String iName = upc.getAeName();
+					String iState = upc.getAeState().toString();
+					String iTime = formatDuration(upc.getInitializationTime());
+					loadme.append("<tr>");
+					loadme.append("<td>"+iName);
+					loadme.append("<td>"+iState);
+					loadme.append("<td>"+iTime);
+				}
+				loadme.append("</table>");
+				loadme.append("</div>");
+				sb.append(loadme);
+			}
+		}
 		sb.append(initTime);
 		sb.append("</span>");
 		sb.append("</td>");

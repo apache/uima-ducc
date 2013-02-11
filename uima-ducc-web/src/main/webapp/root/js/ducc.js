@@ -35,6 +35,19 @@ function ducc_cluetips() {
   			closeText: '<img src="opensources/cluetip/cross.png" alt="close" />',
 	    	mouseOutClose: true
 	  	});
+		$('a.classLoad').cluetip('destroy');
+		$('a.classLoad').cluetip({
+			width: 'auto',
+    		local:true,
+    		cluetipClass: 'jtip',
+    		activation: 'click',
+    		sticky: true,
+    		titleAttribute: 'title',
+    		closePosition: 'title',
+    		mouseOutClose: true,
+    		dropShadow: false,
+   			arrows: true
+		});
 	}
 	catch(err) {
 		//ducc_error("ducc_cluetips",err);
@@ -568,6 +581,7 @@ function ducc_load_job_processes_data()
 			success : function (data) 
 			{
 				$("#processes_list_area").html(data);
+				ducc_cluetips();
 				hide_show();
      			ducc_timestamp();
 				ducc_authentication();
