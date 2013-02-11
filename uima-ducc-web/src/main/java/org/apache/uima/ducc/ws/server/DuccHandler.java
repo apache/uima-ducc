@@ -308,6 +308,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
 		sb.append(tr);
+		String pid = process.getPID();
 		// Id
 		sb.append("<td align=\"right\">");
 		/*
@@ -318,7 +319,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Log
 		sb.append("<td>");
-		sb.append(href);
+		if(pid != null) {
+			sb.append(href);
+		}
 		sb.append("</td>");
 		// Log Size (in MB)
 		sb.append("<td align=\"right\">");
@@ -336,7 +339,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		*/
 		// PID
 		sb.append("<td align=\"right\">");
-		sb.append(process.getPID());
+		if(pid != null) {
+			sb.append(pid);
+		}
+		else {
+			sb.append("?");
+		}
 		sb.append("</td>");
 		// State:scheduler
 		sb.append("<td>");
