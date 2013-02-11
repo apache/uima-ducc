@@ -535,6 +535,7 @@ public class DuccServiceSubmit extends DuccUi {
 				}
 			}
 		}
+		serviceRequestProperties.setProperty(ServiceRequestProperties.key_log_directory,log_directory);
         /*
          * make sure the logdir is actually legal.
          */
