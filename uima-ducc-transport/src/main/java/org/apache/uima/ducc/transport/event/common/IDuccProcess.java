@@ -88,6 +88,7 @@ public interface IDuccProcess extends Serializable {
 	public void setProcessJmxUrl(String processJmxUrl);
 	public String getProcessJmxUrl();
 	
+	public void setUimaPipelineComponents(List<IUimaPipelineAEComponent> uimaPipelineAEComponents); 
 	public List<IUimaPipelineAEComponent> getUimaPipelineComponents(); 
 	
 	public void setCpuTime(long cpuTime);
