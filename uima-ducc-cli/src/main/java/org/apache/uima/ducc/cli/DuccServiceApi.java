@@ -473,16 +473,25 @@ public class DuccServiceApi
         throw new IllegalArgumentException("Invalid id; must be numeric or start with " + ServiceType.UimaAs.decode() + " or " + ServiceType.Custom.decode() + ".");
     }
 
-    private int getInstances(CommandLine cl, String deflt)
+    private int getInstances(CommandLine cl, int dflt)
     {
-        String nstncs = cl.getOptionValue(ServiceOptions.Instances.decode(), deflt);
+        String nstncs = cl.getOptionValue(ServiceOptions.Instances.decode());
+        if ( nstncs == null ) {
+            return dflt;
+        }
+
         int instances = 0;
         try {
             instances = Integer.parseInt(nstncs);
         } catch ( NumberFormatException e ) {
-            System.out.println ("--" + ServiceOptions.Instances.decode() + " " + nstncs + " is not numeric.");
+            System.out.println (ServiceOptions.Instances.decode() + " " + nstncs + " is not numeric.");
             doExit(1);
         }
+        if ( instances <= 0 ) {
+            System.out.println(ServiceOptions.Instances.decode() + " " + nstncs + " must be > 0");
+            doExit(1);
+        }
+
         return instances;
     }
 
@@ -944,7 +953,7 @@ public class DuccServiceApi
             switch ( verb ) {
                 case Register:                    
                     props = getPropsFile(commandLine);
-                    instances = getInstances(commandLine, "1");
+                    instances = getInstances(commandLine, 1);
                     autostart = getAutostart(commandLine);
                     reply = register(props, instances, autostart);                    
                     break;
@@ -954,19 +963,19 @@ public class DuccServiceApi
                     break;
                 case Start:
                     id = getId(commandLine, verb);
-                    instances = getInstances(commandLine, "0");
+                    instances = getInstances(commandLine, -1);
                     update = getUpdate(commandLine);
                     reply = start(id.first(), id.second(), instances, update);                    
                     break;
                 case Stop:
                     id = getId(commandLine, verb);
-                    instances = getInstances(commandLine, "0");
+                    instances = getInstances(commandLine, -1);
                     update = getUpdate(commandLine);
                     reply = stop(id.first(), id.second(), instances, update);
                     break;
                 case Modify:
                     id = getId(commandLine, verb);
-                    instances = getInstances(commandLine, "0");
+                    instances = getInstances(commandLine, -1);
                     autostart = getAutostart(commandLine);
                     activate  = getActivate(commandLine);
                     reply = modify(id.first(), id.second(), instances, autostart, activate);

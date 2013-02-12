@@ -738,7 +738,7 @@ public class ServiceHandler
             int registered = sset.getNInstances();
             int wanted = 0;
 
-            if ( instances == 0 ) {
+            if ( instances == -1 ) {
                 wanted = Math.max(0, registered - running);
             } else {
                 wanted = instances;
@@ -782,7 +782,7 @@ public class ServiceHandler
         int registered = sset.getNInstances();
         int wanted     = 0;
 
-        if ( instances == 0 ) {
+        if ( instances == -1 ) {
             wanted = Math.max(0, registered - running);
         } else {
             wanted = instances;
@@ -822,16 +822,19 @@ public class ServiceHandler
             int running    = sset.countImplementors();
             int instances  = ev.getInstances();
             int tolose;
-            if ( instances == 0 ) {
+            if ( instances == -1 ) {
                 tolose     = running;
             } else {
                 tolose     = Math.min(instances, running);
             }
             
-            ApiHandler  apih = new ApiHandler(ev, this);
 
-            Thread t = new Thread(apih);
-            t.start();
+            if ( tolose > 0 ) {
+                ApiHandler  apih = new ApiHandler(ev, this);
+                Thread t = new Thread(apih);
+                t.start();
+            }
+
             return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " stop request accepted for [" + tolose + "] instances.", sset.getKey(), sset.getId());
         } else {
             return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + friendly + " is not a registered service.", sset.getKey(), null);            
@@ -854,7 +857,7 @@ public class ServiceHandler
 
         int running    = sset.countImplementors();
         int tolose;
-        if ( instances == 0 ) {
+        if ( instances == -1 ) {
             tolose = running;
         } else {
             tolose = Math.min(instances, running);
@@ -867,7 +870,7 @@ public class ServiceHandler
         if ( tolose == running ) {
             sset.stop();                                  // blind stop
         } else {
-            sset.stop(tolose);                            // selective stop (TODO: eventually)
+            sset.stop(tolose);                            // selective stop 
         }
     }
 
@@ -954,24 +957,27 @@ public class ServiceHandler
         
         if ( instances > 0 ) {
             sset.setNInstances(instances);                // also persists instances
+            if ( activate ) {
+                int running    = sset.countImplementors();
+                int diff       = instances - running;
+                
+                if ( diff > 0 ) {
+                    while ( diff-- > 0 ) {
+                        sset.start();
+                    }
+                } else if ( diff < 0 ) {
+                    sset.stop(-diff);
+                }
+            }          
         }
 
         if ( autostart != Trinary.Unset ) {
             sset.setAutostart(autostart.decode());
-        }
-
-        if ( activate && (instances >0) ) {
-            int running    = sset.countImplementors();
-            int diff = instances - running;
-            
-            if ( diff > 0 ) {
-                while ( diff-- > 0 ) {
-                    sset.start();
-                }
-            } else if ( diff < 0 ) {
-                sset.stop(-diff);
+            if ( activate ) {
+                sset.insuareAutostart();
             }
         }
+
     }
 
     public ServiceReplyEvent unregister(ServiceUnregisterEvent ev)

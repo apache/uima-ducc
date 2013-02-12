@@ -38,7 +38,7 @@ public class ServiceModifyEvent
         this.friendly = friendly;
         this.epname = epname;
         this.user = user;
-        this.instances = 0;
+        this.instances = -1;   // default, instances aren't changed
         this.autostart = Trinary.Unset;
         this.activate = false;
 	}

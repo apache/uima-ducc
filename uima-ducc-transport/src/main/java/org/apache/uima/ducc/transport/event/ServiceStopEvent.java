@@ -37,6 +37,7 @@ public class ServiceStopEvent
         this.friendly = friendly;
         this.epname = epname;
         this.user = user;
+        this.instances = -1;
 	}
 
 	public long getFriendly() {

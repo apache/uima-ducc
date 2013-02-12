@@ -34,6 +34,7 @@ public class ServiceStartEvent
         this.user = user;
         this.friendly = friendly;
         this.epname = epname;
+        this.instances = -1;         // default, don't change number of instances
 	}
 
 	public int getFriendly() {
