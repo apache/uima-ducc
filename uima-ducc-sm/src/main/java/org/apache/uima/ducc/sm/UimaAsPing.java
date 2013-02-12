@@ -83,7 +83,8 @@ public class UimaAsPing
                 System.out.println("Monitor initialized");
             } catch (Throwable t ) {
                 connected = false;
-                t.printStackTrace();
+                // t.printStackTrace();
+                System.err.println("Cannot initialize monitor: " + t.getMessage());
             }
         }
     }
@@ -104,6 +105,8 @@ public class UimaAsPing
             init_monitor();
             if ( connected ) {
                 statistics = monitor.getStatistics();
+            } else {
+                return statistics;
             }
 
             uimaAsEngine.initialize(appCtx);
