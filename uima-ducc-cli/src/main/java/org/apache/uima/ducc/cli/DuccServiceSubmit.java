@@ -192,6 +192,7 @@ public class DuccServiceSubmit extends DuccUi {
     private boolean has_writable_log_directory(Properties properties) {
 		boolean retVal = true;
 		String log_directory = properties.getProperty(JobRequestProperties.key_log_directory);
+		IOHelper.mkdirs(log_directory);
 		File file = new File(log_directory);
 		if(!file.isDirectory()) {
 			duccMessageProcessor.err("not a directory: "+log_directory);
