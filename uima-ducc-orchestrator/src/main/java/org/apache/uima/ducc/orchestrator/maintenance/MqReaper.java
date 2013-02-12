@@ -50,7 +50,7 @@ public class MqReaper {
 		return mqReaper;
 	}
 	
-	private String ducc_broker_name = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_broker_name);
+	private String ducc_broker_name = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_broker_hostname);
 	private String ducc_broker_jmx_port = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_broker_jmx_port);
 	private String ducc_broker_url = "service:jmx:rmi:///jndi/rmi://"+ducc_broker_name+":"+ducc_broker_jmx_port+"/jmxrmi";
 	private String ducc_jd_queue_prefix = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_queue_prefix);
