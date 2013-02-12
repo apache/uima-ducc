@@ -877,11 +877,20 @@ public class ServiceHandler
     ServiceReplyEvent register(DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
     {
     	String methodName = "register";
-        ServiceSet sset = new ServiceSet(id, props_filename, meta_filename, props, meta);
-        String key = sset.getKey();
-        
+
         String error = null;
         boolean must_deregister = false;
+
+        ServiceSet sset = null;
+        try {
+            sset = new ServiceSet(id, props_filename, meta_filename, props, meta);
+        } catch (Throwable t) {
+            error = t.getMessage();
+            return new ServiceReplyEvent(ServiceCode.NOTOK, t.getMessage(), "New Service", id);            
+        }
+
+        String key = sset.getKey();
+
         if (serviceStateHandler.getServiceByName(key) == null ) {
             try {
                 props.store(new FileOutputStream(props_filename), "Service descriptor.");

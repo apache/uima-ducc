@@ -215,20 +215,31 @@ public interface IServiceApi
 
         public static RegistrationOption  encode(String value)
         {
-            if ( value.equals(Description.decode()) )          return Description;
-            if ( value.equals(ProcessDD.decode()) )            return ProcessDD;
-            if ( value.equals(ProcessMemorySize.decode()) )    return ProcessMemorySize;
-            if ( value.equals(ProcessClasspath.decode()) )     return ProcessClasspath;
-            if ( value.equals(ProcessJvmArgs.decode()) )       return ProcessJvmArgs;
-            if ( value.equals(ProcessEnvironment.decode()) )   return ProcessEnvironment;
-            if ( value.equals(ProcessFailuresLimit.decode()) ) return ProcessFailuresLimit;
-            if ( value.equals(SchedulingClass.decode()) )      return SchedulingClass;
-            if ( value.equals(WorkingDirectory.decode()) )     return WorkingDirectory;
-            if ( value.equals(LogDirectory.decode()) )         return LogDirectory;
-            if ( value.equals(ClasspathOrder.decode()) )       return ClasspathOrder;
-            if ( value.equals(Jvm.decode()) )                  return Jvm;
-            if ( value.equals(ServiceDependency.decode()) )    return ServiceDependency;
-            if ( value.equals(ServiceLinger.decode()) )        return ServiceLinger;
+            if ( value.equals(ClasspathOrder.decode()) )         return ClasspathOrder;
+            if ( value.equals(Description.decode()) )            return Description;
+
+            if ( value.equals(ProcessDD.decode()) )              return ProcessDD;
+            if ( value.equals(ProcessClasspath.decode()) )       return ProcessClasspath;
+            if ( value.equals(ProcessEnvironment.decode()) )     return ProcessEnvironment;
+            if ( value.equals(ProcessFailuresLimit.decode()) )   return ProcessFailuresLimit;
+            if ( value.equals(ProcessJvmArgs.decode()) )         return ProcessJvmArgs;
+            if ( value.equals(ProcessMemorySize.decode()) )      return ProcessMemorySize;
+
+            if ( value.equals(SchedulingClass.decode()) )        return SchedulingClass;
+            if ( value.equals(ServiceRequestEndpoint.decode()) ) return ServiceRequestEndpoint;
+
+            if ( value.equals(ServicePingClass.decode()) )       return ServicePingClass;
+            if ( value.equals(ServicePingClasspath.decode()) )   return ServicePingClasspath;
+            if ( value.equals(ServicePingTimeout.decode()) )     return ServicePingTimeout;
+            if ( value.equals(ServicePingDoLog.decode()) )       return ServicePingDoLog;
+
+            if ( value.equals(WorkingDirectory.decode()) )       return WorkingDirectory;
+            if ( value.equals(LogDirectory.decode()) )           return LogDirectory;
+            if ( value.equals(Jvm.decode()) )                    return Jvm;
+
+            if ( value.equals(ServiceDependency.decode()) )      return ServiceDependency;
+            if ( value.equals(ServiceLinger.decode()) )          return ServiceLinger;
+
             return Unknown;
         }
 

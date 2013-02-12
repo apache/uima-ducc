@@ -620,17 +620,33 @@ public class DuccServiceApi
         return reply;
     }
 
+
     /**
      * @param endpoint This is 'my' service endpoint
      * @param props    This is the service properties file with the dependencies in it.
      */
-    void resolve_service_dependencies(String endpoint, Properties props)
+    void resolve_service_dependencies(String endpoint, DuccProperties props)
     {
         String deps = props.getProperty(RegistrationOption.ServiceDependency.decode());
         deps = DuccUiUtilities.resolve_service_dependencies(endpoint, deps, jvmargs);
         if ( deps != null ) {
             props.setProperty(RegistrationOption.ServiceDependency.decode(), deps);
         }
+    }
+
+    String extractEndpoint(DuccProperties service_props, String working_dir)
+    {
+        // If claspath is not specified, pick it up from the submitter's environment
+        String classpath = service_props.getStringProperty(RegistrationOption.ProcessClasspath.decode(), System.getProperty("java.class.path"));
+        service_props.setProperty(RegistrationOption.ProcessClasspath.decode(), classpath);
+        
+        // No endpoint, resolve from the DD.
+        String dd = service_props.getStringProperty(RegistrationOption.ProcessDD.decode()); // will throw if can't find the prop
+        endpoint = DuccUiUtilities.getEndpoint(working_dir, dd, jvmargs);
+        if ( debug ) {
+            System.out.println("Service endpoint resolves to " + endpoint);
+        }
+        return endpoint;
     }
 
     /**
@@ -682,24 +698,14 @@ public class DuccServiceApi
         //
         String  endpoint = service_props.getStringProperty(RegistrationOption.ServiceRequestEndpoint.decode(), null);
         if ( endpoint == null ) {               // not custom ... must be uima-as (or fail)
-
-            // If claspath is not specified, pick it up from the submitter's environment
-            String classpath = service_props.getStringProperty(RegistrationOption.ProcessClasspath.decode(), System.getProperty("java.class.path"));
-            service_props.setProperty(RegistrationOption.ProcessClasspath.decode(), classpath);
-
-            // No endpoint, resolve from the DD.
-            String dd = service_props.getStringProperty(RegistrationOption.ProcessDD.decode()); // will throw if can't find the prop
-            endpoint = DuccUiUtilities.getEndpoint(working_dir, dd, jvmargs);
-            if ( debug ) {
-                System.out.println("Service endpoint resolves to " + endpoint);
-            }
+            endpoint = extractEndpoint(service_props, working_dir);
         } else if ( endpoint.startsWith(ServiceType.Custom.decode()) ) {
 
             // must have a pinger specified
             if ( service_props.getProperty(RegistrationOption.ServicePingClass.decode()) == null ) {
                 throw new IllegalArgumentException("Custom service is missing ping class name.");
             }
-
+ 
             String k_scp = RegistrationOption.ServicePingClasspath.decode();
             String classpath = service_props.getStringProperty(k_scp, System.getProperty("java.class.path"));            
             service_props.setProperty(k_scp, classpath);
@@ -707,6 +713,16 @@ public class DuccServiceApi
             // Infer the classpath
             String classpath = service_props.getStringProperty(RegistrationOption.ProcessClasspath.decode(), System.getProperty("java.class.path"));
             service_props.setProperty(RegistrationOption.ProcessClasspath.decode(), classpath);
+
+            // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
+            // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one
+            // we extract from the DD - the job will fail otherwise, so we catch this early.
+            String verify_endpoint = extractEndpoint(service_props, working_dir);            
+            if ( !verify_endpoint.equals(endpoint) ) {
+                throw new IllegalArgumentException("Endpoint from --service_request_endpoint does not match endpoint ectracted from UIMA DD" 
+                                                   + "\n--service_request_endpoint: " + endpoint 
+                                                   + "\nextracted:                : " + verify_endpoint );
+            }
         } else {
             throw new IllegalArgumentException("Invalid custom endpoint: " + endpoint);
         }
