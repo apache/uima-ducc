@@ -930,6 +930,10 @@ public class ServiceHandler
         String epname = ev.getEndpoint();
         String serviceIdString = extractId(friendly, epname);
     	ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
+        
+        if ( sset == null ) {
+            return new ServiceReplyEvent(ServiceCode.NOTOK, "Unrecognized service ID[" + friendly + "] Endpoint[" + epname + "]", "?", null);
+        }
 
     	if ( sset.isRegistered() ) {            
             ApiHandler  apih = new ApiHandler(ev, this);
@@ -938,7 +942,7 @@ public class ServiceHandler
             t.start();
             return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " modify request accepted.", sset.getKey(), sset.getId());
         } else {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + friendly + " is not a registered service.", sset.getKey(), null);            
+            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + friendly + " is not a known service.", sset.getKey(), null);            
         }
     }
 
@@ -956,7 +960,7 @@ public class ServiceHandler
             sset.setAutostart(autostart.decode());
         }
 
-        if ( activate ) {
+        if ( activate && (instances >0) ) {
             int running    = sset.countImplementors();
             int diff = instances - running;
             
