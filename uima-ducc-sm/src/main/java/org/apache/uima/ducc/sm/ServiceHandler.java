@@ -974,7 +974,7 @@ public class ServiceHandler
         if ( autostart != Trinary.Unset ) {
             sset.setAutostart(autostart.decode());
             if ( activate ) {
-                sset.insuareAutostart();
+                sset.enforceAutostart();
             }
         }
 
