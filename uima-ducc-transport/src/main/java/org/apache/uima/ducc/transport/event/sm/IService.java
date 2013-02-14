@@ -156,14 +156,14 @@ public interface IService
         // want that ugliness in the variables, so we have encode and decode routines to do the
         // correct translation.
         //
-        Implicit       { public String encode() { return "Implicit"; } },
-        Submitted      { public String encode() { return "Submitted" ; } },
-        Registered     { public String encode() { return "Registered"; } },
-        Custom         { public String encode() { return "Custom"; } },
-        Undefined      { public String encode() { return "Undefined"; } },
+        Implicit       { public String decode() { return "Implicit"; } },
+        Submitted      { public String decode() { return "Submitted" ; } },
+        Registered     { public String decode() { return "Registered"; } },
+        Custom         { public String decode() { return "Custom"; } },
+        Undefined      { public String decode() { return "Undefined"; } },
         ;
         
-        public abstract String encode();
+        public abstract String decode();
 
         public static ServiceClass encode(String value)
         {

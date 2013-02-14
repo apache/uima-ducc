@@ -37,6 +37,7 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
+import org.apache.uima.ducc.common.ServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -141,11 +142,19 @@ public class ServiceSet
         meta_props = new DuccProperties();
         meta_props.put("user", System.getProperty("user.name"));
         meta_props.put("endpoint", key);
+        meta_props.put("service-class", ""+service_class.decode());
+        meta_props.put("service-type", ""+service_type.decode());
+        meta_props.put("stopped", ""+stopped);
+        meta_props.put("service-state", ""+getServiceState());
+        meta_props.put("ping-active", "false");
+        meta_props.put("service-alive",      "false");
+        meta_props.put("service-healthy",    "false");
+        meta_props.put("service-statistics", "N/A");
     }
 
     //
     // Constructor for a submitted service
-    //
+    // @deprecated
     public ServiceSet(DuccId id, String key, String[] independentServices)
     {
         // deprecating for now
@@ -211,6 +220,15 @@ public class ServiceSet
             job_props.put("service_ping_dolog", "true");       // unless we fill in the default pinger        
         }
 
+        meta_props.put("service-class", ""+service_class.decode());
+        meta_props.put("service-type", ""+service_type.decode());
+        meta_props.put("stopped", ""+stopped);
+        meta_props.put("service-state", ""+getServiceState());
+        meta_props.put("ping-active", "false");
+        meta_props.put("service-alive",      "false");
+        meta_props.put("service-healthy",    "false");
+        meta_props.put("service-statistics", "N/A");
+        
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
         // there are a couple junky messages that slip by the above configurations.  turn the whole danged thing off.
@@ -478,6 +496,22 @@ public class ServiceSet
     private void saveMetaProperties()
     {
         String methodName = "saveMetaProperties";
+        meta_props.put("stopped", ""+stopped);
+        meta_props.put("service-state", ""+ getServiceState());
+        meta_props.put("ping-active", "" + (serviceMeta != null));
+        meta_props.put("service-alive",      "false");
+        meta_props.put("service-healthy",    "false");
+        meta_props.put("service-statistics", "N/A");
+        
+        if ( serviceMeta != null ) {
+            ServiceStatistics ss = serviceMeta.getServiceStatistics();
+            if ( ss != null ) {
+                meta_props.put("service-alive",      "" + ss.isAlive());
+                meta_props.put("service-healthy",    "" + ss.isHealthy());
+                meta_props.put("service-statistics", "" + ss.getInfo());
+            }
+        }
+        
         try {
 			meta_props.store(new FileOutputStream(meta_filename), "Meta descriptor");
 		} catch (FileNotFoundException e) {
@@ -485,6 +519,7 @@ public class ServiceSet
 		} catch (IOException e) {
             logger.warn(methodName, id, "I/O Error saving meta properties:", e);
 		}
+        return;
     }
 
     synchronized void setNInstances(int n)
@@ -517,6 +552,22 @@ public class ServiceSet
             }
             String s = sb.toString().trim();
             meta_props.setProperty("implementors", s);
+        }
+        saveMetaProperties();
+    }
+
+    synchronized void persistReferences()
+    {
+        if ( references.size() == 0 ) {
+            meta_props.remove("references");
+        } else {
+            StringBuffer sb = new StringBuffer();
+            for ( DuccId id : references.keySet() ) {
+                sb.append(id.toString());
+                sb.append(" ");
+            }
+            String s = sb.toString().trim();
+            meta_props.setProperty("references", s);
         }
         saveMetaProperties();
     }
@@ -569,6 +620,7 @@ public class ServiceSet
         if ( serviceMeta != null ) {
             serviceMeta.reference();
         }
+        persistReferences();
         return references.size();
     }
 
@@ -587,6 +639,7 @@ public class ServiceSet
                                                                   // to do it for us in this situation
         }
 
+        persistReferences();
         return references.size();
     }
 
@@ -709,20 +762,20 @@ public class ServiceSet
             // not yet pinging we need to see if any of the implementors states 
             // indicates we should be pinging, in which case, start the pinger.
             //
-            logger.debug(methodName, id, "serviceState", service_state, "cumulativeState", cumulative);
-            switch ( service_state ) {
+            logger.debug(methodName, id, "serviceState", getServiceState(), "cumulativeState", cumulative);
+            switch ( getServiceState() ) {
                 // If I'm brand new and something is initting then I can be too.  If something is
                 // actually running then I can start a pinger which will set my state.
                 case Undefined:
                     switch ( cumulative ) {
                         case Initializing:
-                            service_state = ServiceState.Initializing;
+                            setServiceState(ServiceState.Initializing);
                             break;
                         case Available:
                             startPingThread();
                             break;
                         case Waiting:
-                            service_state = ServiceState.Waiting;
+                            setServiceState(ServiceState.Waiting);
                             break;
                         case NotAvailable:
                         break;
@@ -738,10 +791,10 @@ public class ServiceSet
                         case Initializing:
                             break;
                         case Waiting:
-                            service_state = ServiceState.Initializing;
+                            setServiceState(ServiceState.Initializing);
                             break;
                         case NotAvailable:
-                            service_state = ServiceState.NotAvailable;
+                            setServiceState(ServiceState.NotAvailable);
                             stopPingThread();
                           break;
                     }
@@ -751,13 +804,13 @@ public class ServiceSet
                     switch ( cumulative ) { 
                         case Available:
                             startPingThread();
-                            service_state = ServiceState.Available;
+                            setServiceState(ServiceState.Available);
                             break;
                         case Initializing:
-                            service_state = ServiceState.Initializing;
+                            setServiceState(ServiceState.Initializing);
                             break;
                         case Waiting:
-                            service_state = ServiceState.Waiting;
+                            setServiceState(ServiceState.Waiting);
                             break;
                         case NotAvailable:
                             break;
@@ -771,12 +824,12 @@ public class ServiceSet
                             break;
                         case Initializing:
                             // Not immediately clear what would cause this other than an error but let's not crash.
-                            logger.warn(methodName, id, "STATE REGRESSION:", service_state, "->", cumulative); // can't do anything about it but complain
-                            service_state = ServiceState.Initializing;
+                            logger.warn(methodName, id, "STATE REGRESSION:", getServiceState(), "->", cumulative); // can't do anything about it but complain
+                            setServiceState(ServiceState.Initializing);
                             break;
                         case NotAvailable:
                             stopPingThread();
-                            service_state = ServiceState.NotAvailable;
+                            setServiceState(ServiceState.NotAvailable);
                             break;
                     }
 
@@ -790,13 +843,13 @@ public class ServiceSet
                             // state regression can happen with a promoted implicit service, where the service is referenced
                             // and a pinger starts before the actual service is available.  the ping keeps us in 'waiting' state
                             // up until expiration, but if the service is actually initializing, we regress.
-                            logger.warn(methodName, id, "STATE REGRESSION:", service_state, "->", cumulative); // can't do anything about it but complain
-                            service_state = ServiceState.Initializing;
+                            logger.warn(methodName, id, "STATE REGRESSION:", getServiceState(), "->", cumulative); // can't do anything about it but complain
+                            setServiceState(ServiceState.Initializing);
                             break;
                         case Waiting:
                             break;
                         case NotAvailable:                
-                            service_state = ServiceState.NotAvailable;
+                            setServiceState(ServiceState.NotAvailable);
                             stopPingThread();
                             break;
                     }
@@ -811,7 +864,7 @@ public class ServiceSet
 
                         case NotAvailable:                
                             // all the implementors died finally
-                            service_state = ServiceState.NotAvailable;
+                            setServiceState(ServiceState.NotAvailable);
                             break;
                     }
                     break;                    
@@ -823,6 +876,12 @@ public class ServiceSet
     synchronized ServiceState getServiceState()
     {
         return service_state;
+    }
+
+    synchronized void setServiceState(ServiceState ss)
+    {
+        this.service_state = ss;
+        saveMetaProperties();
     }
 
     synchronized String getKey()
@@ -843,7 +902,7 @@ public class ServiceSet
             return;
         }
 
-        service_state = ServiceState.Waiting;
+        setServiceState(ServiceState.Waiting);
         Thread t = new Thread(serviceMeta);
         t.start();
     }
@@ -853,12 +912,12 @@ public class ServiceSet
         String methodName = "pingExited";
         if ( serviceMeta != null ) {
             logger.warn(methodName, id, "Pinger exited voluntarily, setting state to Undefined. Endpoint", endpoint);
-            service_state = ServiceState.Undefined;     // not really sure what state is. it will be
+            setServiceState(ServiceState.Undefined);    // not really sure what state is. it will be
                                                         // checked and updated next run through the
                                                         // main state machine, and maybe ping restarted.
             serviceMeta = null;
         }
-
+        saveMetaProperties();
     }
 
     public synchronized void stopPingThread()
@@ -869,16 +928,19 @@ public class ServiceSet
             serviceMeta.stop();
             serviceMeta = null;
         }
+        saveMetaProperties();
     }
 
     synchronized void setResponsive()
     {
-        this.service_state = ServiceState.Available;
+        setServiceState(ServiceState.Available);
+        saveMetaProperties();
     }
 
     synchronized void setUnresponsive()
     {
-        this.service_state = ServiceState.NotAvailable;
+        setServiceState(ServiceState.NotAvailable);
+        saveMetaProperties();
     }
 
     synchronized void setWaiting()
@@ -886,11 +948,11 @@ public class ServiceSet
         //
         // Only switch state sometimes ....
         //
-        switch ( service_state ) {
+        switch ( getServiceState() ) {
             case Available:    
             case NotAvailable: 
             case Undefined:    
-                this.service_state = ServiceState.Waiting;
+                setServiceState(ServiceState.Waiting);
                 break;
             case Initializing: 
             case Waiting:      
@@ -1026,8 +1088,9 @@ public class ServiceSet
         if ( ! started ) {
             logger.warn(methodName, null, "Request to start service " + id.toString() + " failed:", stdout_lines.toString() + " " + stderr_lines.toString());
         } else {
-            service_state = ServiceState.Initializing;
+            setServiceState(ServiceState.Initializing);
         }
+        saveMetaProperties();
     }
 
     /**
@@ -1111,11 +1174,12 @@ public class ServiceSet
         String methodName = "stop";
         logger.debug(methodName, id, "Stopping all implementors");
         stopPingThread();
-        this.service_state = ServiceState.Stopping;
+        setServiceState(ServiceState.Stopping);
         this.stopped = true;
         for ( DuccId id : implementors.keySet() ) {
             stopOneProcess(id);
         }
+        saveMetaProperties();
     }
 
     /**
@@ -1134,6 +1198,7 @@ public class ServiceSet
                 break;
             }
         }
+        saveMetaProperties();
     }
 
 
@@ -1191,7 +1256,7 @@ public class ServiceSet
         sd.setSubclass(service_class);
         sd.setEndpoint(endpoint);
         sd.setBroker(broker);
-        sd.setServiceState(service_state);
+        sd.setServiceState(getServiceState());
         //sd.setJobState(job_state);
         sd.setActive(serviceMeta != null);
         sd.setStopped(stopped);
@@ -1215,6 +1280,8 @@ public class ServiceSet
     {
         return endpoint;
     }
+
+
 }
 
 /**

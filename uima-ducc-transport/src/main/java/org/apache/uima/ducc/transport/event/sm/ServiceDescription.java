@@ -246,7 +246,7 @@ public class ServiceDescription
         sb.append("\n");
 
         sb.append("   Service Class   : ");
-        sb.append(subclass.encode());
+        sb.append(subclass.decode());
         switch ( subclass ) {
             case Registered:
                 sb.append(" as ID ");
