@@ -16,14 +16,8 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<html>
-<head>
-<script language="javascript">
-<!--
-location.replace("services.deployments.jsp"+location.search)
-//-->
-</script>
-</head>
-<body>
-</body>
-</html>
+<div>
+<b><big><span class="subtitle">Services</span></big></b>
+<br>
+<img src="opensources/images/120px-Head_of_a_white_domesticated_duck.jpg" height="64" style="border:3px solid #ffff7a" alt="logo">
+</div> 

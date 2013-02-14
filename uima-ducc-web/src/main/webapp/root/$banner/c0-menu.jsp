@@ -22,11 +22,8 @@ under the License.
 <ul></ul>
 <li><a href="reservations.html">Reservations</a></li>
 <ul></ul>
-<li>Services</li>
-<ul>
-<li><a href="services.definitions.html">Definitions</a></li>
-<li><a href="services.deployments.html">Deployments</a></li>
-</ul>
+<li><a href="services.html">Services</a></li>
+<ul></ul>
 <li>System</li>
 <ul>
 <li><a href="system.administration.html">Administration</a></li>

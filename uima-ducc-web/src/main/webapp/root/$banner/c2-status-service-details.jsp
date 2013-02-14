@@ -17,28 +17,17 @@ specific language governing permissions and limitations
 under the License.
 -->
 <div>
+<b><big><span class="idtitle" id="identity"></span></big></b>
+<form name="form_selectors" style="margin-bottom:0;">
 <table>
 <tr>
-<td>
-<span id="refreshbutton">
-<input type="image" onclick="ducc_refresh('services-definitions');" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
-</span>
-<span id="loading" style="display:none;">
-<img title="loading" src="opensources/images/indicator.gif" style="border:1px solid #000000" alt="Loading...">
-</span>
-<td>
-<table>
+<td valign="top" align="right" title="The time of last Orchestrator publication">Updated:&nbsp
+<td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
+</tr>
 <tr>
-<td align="left">
-<form name="duccform" style="margin-bottom:0;">
-<fieldset>
-<legend>Refresh</legend>
-<input type="radio" name="refresh" value="manual"            onclick="ducc_put_cookie('ducc:refreshmode','manual'   )" /> Manual
-<br>
-<input type="radio" name="refresh" value="automatic" checked onclick="ducc_put_cookie('ducc:refreshmode','automatic')" /> Automatic
-</fieldset>
-</form>
-</table>
+<td valign="top" align="right">Authentication:&nbsp
+<td valign="top"><span class="authenticationtitle" id="authentication_area">?</span>
 </tr>
 </table>
+</form>
 </div> 

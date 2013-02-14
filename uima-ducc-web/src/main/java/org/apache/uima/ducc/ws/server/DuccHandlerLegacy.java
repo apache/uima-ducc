@@ -37,10 +37,6 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.JdConstants;
-import org.apache.uima.ducc.common.persistence.services.IStateServices;
-import org.apache.uima.ducc.common.persistence.services.StateServices;
-import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
-import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -62,6 +58,10 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
+import org.apache.uima.ducc.ws.registry.IServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
+import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.eclipse.jetty.server.Request;
@@ -74,8 +74,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 
 	public final String legacyJobs 					= duccContextLegacy+"-jobs-data";
 	public final String legacyReservations 			= duccContextLegacy+"-reservations-data";
-	public final String legacyServicesDefinitions 	= duccContextLegacy+"-services-definitions-data";
-	public final String legacyServicesDeployments 	= duccContextLegacy+"-services-deployments-data";
+	public final String legacyServices			 	= duccContextLegacy+"-services-data";
 	public final String legacySystemClasses	 		= duccContextLegacy+"-system-classes-data";
 	public final String legacySystemDaemons	 		= duccContextLegacy+"-system-daemons-data";
 	public final String legacySystemMachines	 	= duccContextLegacy+"-system-machines-data";
@@ -718,271 +717,64 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
-	private void handleServletLegacyServicesDefinitions(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletLegacyServices(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleServletLegacyServicesDefinitions";
+		String methodName = "handleServletLegacyServices";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		IStateServices iss = StateServices.getInstance();
-		StateServicesDirectory ssd = iss.getStateServicesDirectory();
-		if(!ssd.getDescendingKeySet().isEmpty()) {
-			for(Integer key : ssd.getDescendingKeySet()) {
-				StateServicesSet entry = ssd.get(key);
-				Properties propertiesSvc = entry.get(IStateServices.svc);
-				Properties propertiesMeta = entry.get(IStateServices.meta);
+		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistryMap map = servicesRegistry.getMap();
+		if(!map.isEmpty()) {
+			for(Integer key : map.getDescendingKeySet()) {
+				ServicesRegistryMapPayload entry = map.get(key);
+				Properties propertiesSvc = entry.get(IServicesRegistry.svc);
+				Properties propertiesMeta = entry.get(IServicesRegistry.meta);
+				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");
 				sb.append("<tr>");
 				// Service Id
 				sb.append("<td>");
-				sb.append(""+key);
+				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
+				sb.append(id);
 				sb.append("</td>");
 				// Endpoint
 				sb.append("<td>");
-				sb.append(getValue(propertiesMeta,IStateServices.endpoint,""));
+				sb.append(name);
 				sb.append("</td>");
 				// No. of Instances
 				sb.append("<td>");
-				sb.append(getValue(propertiesMeta,IStateServices.instances,""));
+				sb.append(getValue(propertiesMeta,IServicesRegistry.instances,""));
+				sb.append("</td>");
+				// No. of Deployments
+				sb.append("<td>");
+				String deployments = "0";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.implementors);
+						String[] implementors = servicesRegistry.getList(value);
+						deployments = ""+implementors.length;
+					}
+				}
+				sb.append(deployments);
 				sb.append("</td>");
 				// Owning User
 				sb.append("<td>");
-				sb.append(getValue(propertiesMeta,IStateServices.user,""));
+				sb.append(getValue(propertiesMeta,IServicesRegistry.user,""));
 				sb.append("</td>");
 				// Scheduling Class
 				sb.append("<td>");
-				sb.append(getValue(propertiesSvc,IStateServices.scheduling_class,""));
+				sb.append(getValue(propertiesSvc,IServicesRegistry.scheduling_class,""));
 				sb.append("</td>");
 				// Process Memory Size
 				sb.append("<td>");
-				sb.append(getValue(propertiesSvc,IStateServices.process_memory_size,""));
+				sb.append(getValue(propertiesSvc,IServicesRegistry.process_memory_size,""));
 				sb.append("</td>");
 				// Description
 				sb.append("<td>");
-				sb.append(getValue(propertiesSvc,IStateServices.description,""));
+				sb.append(getValue(propertiesSvc,IServicesRegistry.description,""));
 				sb.append("</td>");
 				sb.append("</tr>");
-			}
-		}
-		else {
-			sb.append("<tr>");
-			sb.append("<td>");
-			if(DuccData.getInstance().isPublished()) {
-				sb.append(messages.fetch("no services definitions"));
-			}
-			else {
-				sb.append(messages.fetch("no data"));
-			}
-			sb.append("</td>");
-			sb.append("</tr>");
-		}
-		
-		duccLogger.debug(methodName, jobid, sb);
-		response.getWriter().println(sb);
-		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
-	}
-	
-	private void buildServicesListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData) {
-		String type = "Service";
-		String id = normalize(duccId);
-		// Terminate
-		sb.append("<td class=\"ducc-col-terminate\">");
-		if(terminateEnabled) {
-			if(!job.isFinished()) {
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_service("+id+")\" value=\"Terminate\" "+getDisabled(request,job)+"/>");
-			}
-		}
-		sb.append("</td>");
-		// Id
-		sb.append("<td>");
-		sb.append("<a href=\"service.details.html?id="+id+"\">"+id+"</a>");
-		sb.append("</td>");
-		// Start
-		sb.append("<td>");
-		sb.append(getTimeStamp(request,job.getDuccId(), job.getStandardInfo().getDateOfSubmission()));
-		sb.append("</td>");
-		// End
-		sb.append("<td>");
-		sb.append(getCompletionOrProjection(request,job));
-		sb.append("</td>");
-		// User
-		sb.append("<td>");
-		sb.append(job.getStandardInfo().getUser());
-		sb.append("</td>");
-		// Class
-		sb.append("<td>");
-		sb.append(stringNormalize(job.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
-		sb.append("</td>");
-		/*
-		sb.append("<td align=\"right\">");
-		sb.append(stringNormalize(duccWorkJob.getSchedulingInfo().getSchedulingPriority(),messages.fetch("default")));
-		sb.append("</td>");
-		*/
-		// State
-		sb.append("<td>");
-		if(duccData.isLive(duccId)) {
-			if(job.isOperational()) {
-				sb.append("<span class=\"active_state\">");
-			}
-			else {
-				sb.append("<span class=\"completed_state\">");
-			}
-		}
-		else {
-			sb.append("<span class=\"historic_state\">");
-		}
-		sb.append(job.getStateObject().toString());
-		if(duccData.isLive(duccId)) {
-			sb.append("</span>");
-		}
-		sb.append("</td>");
-		// Reason
-		if(job.isOperational()) {
-			sb.append("<td valign=\"bottom\">");
-			ArrayList<String> swappingMachines = getSwappingMachines(job);
-			if(!swappingMachines.isEmpty()) {
-				StringBuffer mb = new StringBuffer();
-				for(String machine : swappingMachines) {
-					mb.append(machine);
-					mb.append(" ");
-				}
-				String ml = mb.toString().trim();
-				sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-				sb.append("Swapping");
-				sb.append("</span>");
-			}
-			sb.append("</td>");
-		}
-		else if(job.isCompleted()) {
-			JobCompletionType jobCompletionType = job.getCompletionType();
-			switch(jobCompletionType) {
-			case EndOfJob:
-			case Undefined:
-				sb.append("<td valign=\"bottom\">");
-				break;
-			default:
-				IRationale rationale = job.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<td valign=\"bottom\" title=\""+rationale+"\">");
-				}
-				else {
-					sb.append("<td valign=\"bottom\">");
-				}
-				break;
-			}
-			sb.append(jobCompletionType);
-			sb.append("</td>");
-		}
-		// Processes
-		sb.append("<td align=\"right\">");
-		if(duccData.isLive(duccId)) {
-			sb.append(job.getProcessMap().getAliveProcessCount());
-		}
-		else {
-			sb.append("0");
-		}
-		sb.append("</td>");
-		// Initialize Failures
-		sb.append("<td align=\"right\">");
-		sb.append(buildInitializeFailuresLink(job));
-		sb.append("</td>");
-		// Runtime Failures
-		sb.append("<td align=\"right\">");
-		sb.append(buildRuntimeFailuresLink(job));
-		sb.append("</td>");
-		// Size
-		sb.append("<td align=\"right\">");
-		String size = job.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getShareMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
-		sb.append("</td>");
-		// Description
-		sb.append("<td>");
-		sb.append(stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none")));
-		sb.append("</td>");
-		sb.append("</tr>");
-	}
-
-	private void handleServletLegacyServicesDeployments(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleServletLegacyServicesDeployments";
-		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
-		
-		int maxRecords = getServicesMax(request);
-		ArrayList<String> users = getServicesUsers(request);
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo,JobInfo> sortedServices = duccData.getSortedServices();
-		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
-		if(sortedServices.size()> 0) {
-			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedServices.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				JobInfo jobInfo = iterator.next().getValue();
-				DuccWorkJob service = jobInfo.getJob();
-				boolean list = false;
-				if(!users.isEmpty()) {
-					String serviceUser = service.getStandardInfo().getUser().trim();
-					switch(filterUsersStyle) {
-					case IncludePlusActive:
-						if(!service.isCompleted()) {
-							list = true;
-						}
-						else if(users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case ExcludePlusActive:
-						if(!service.isCompleted()) {
-							list = true;
-						}
-						else if(!users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Include:
-						if(users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Exclude:
-						if(!users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					}	
-				}
-				else {
-					if(!service.isCompleted()) {
-						list = true;
-					}
-					else if(maxRecords > 0) {
-						if (counter++ < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				if(list) {
-					sb.append(trGet(counter));
-					buildServicesListEntry(request, sb, service.getDuccId(), service, duccData);
-				}
 			}
 		}
 		else {
@@ -1537,11 +1329,8 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		else if(reqURI.startsWith(legacyReservations)) {
 			handleServletLegacyReservations(target, baseRequest, request, response);
 		}
-		else if(reqURI.startsWith(legacyServicesDefinitions)) {
-			handleServletLegacyServicesDefinitions(target, baseRequest, request, response);
-		}
-		else if(reqURI.startsWith(legacyServicesDeployments)) {
-			handleServletLegacyServicesDeployments(target, baseRequest, request, response);
+		else if(reqURI.startsWith(legacyServices)) {
+			handleServletLegacyServices(target, baseRequest, request, response);
 		}
 		else if(reqURI.startsWith(legacySystemClasses)) {
 			handleServletLegacySystemClasses(target, baseRequest, request, response);

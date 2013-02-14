@@ -17,11 +17,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 <div>
-<table>
-<tr>
-<td>
-<b><big><span class="subtitle">Services<br>Deployments</span></big></b>
-<td>
+<b><big><span class="subtitle">Service Details</span></big></b>
+<br>
 <img src="opensources/images/90px-Swimming_white_domesticated_ducks.jpg" height="80" style="border:3px solid #ffff7a" alt="logo">
-</table>
 </div> 

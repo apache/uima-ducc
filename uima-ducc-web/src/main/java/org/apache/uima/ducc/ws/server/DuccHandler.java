@@ -85,6 +85,9 @@ import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.registry.IServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandler extends DuccAbstractHandler {
@@ -108,8 +111,9 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccJobSpecificationData 		= duccContext+"/job-specification-data";
 	private String duccJobInitializationFailData	= duccContext+"/job-initialization-fail-data";
 	private String duccJobRuntimeFailData			= duccContext+"/job-runtime-fail-data";
-	private String duccServiceProcessesData    		= duccContext+"/service-processes-data";
+	private String duccServiceDeploymentsData    	= duccContext+"/service-deployments-data";
 	private String duccServiceSpecificationData 	= duccContext+"/service-specification-data";
+	private String duccServiceSummaryData			= duccContext+"/service-summary-data";
 	
 	private String duccSystemAdminAdminData 		= duccContext+"/system-admin-admin-data";
 	private String duccSystemAdminControlData 		= duccContext+"/system-admin-control-data";
@@ -246,7 +250,12 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, String type) {
 		String retVal = "";
 		if(type == "UIMA") {
-			retVal = job.getDuccId().getFriendly()+"-"+type+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+			String fType = type;
+			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+		}
+		else if(type == "SP") {
+			String fType = "UIMA";
+			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
 		}
 		else if(type == "JD") {
 			retVal = "jd.out.log";
@@ -316,7 +325,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		long id = process.getDuccId().getFriendly();
 		System.out.println(id);
 		 */
-		sb.append(process.getDuccId().getFriendly());
+		if(type.equals("SP")) {
+			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
+		}
+		else {
+			sb.append(process.getDuccId().getFriendly());
+		}
 		sb.append("</td>");
 		// Log
 		sb.append("<td>");
@@ -592,49 +606,54 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<td align=\"right\" "+title+">");
 		sb.append(displayPctRss);
 		sb.append("</td>");
-		// Time:avg
-		IDuccProcessWorkItems pwi = process.getProcessWorkItems();
-		sb.append("<td align=\"right\">");
-		if(pwi != null) {
-			sb.append(pwi.getSecsAvg());
+		if(type.equals("SP")) {
+			// 
 		}
-		sb.append("</td>");
-		// Time:max
-		sb.append("<td align=\"right\">");
-		if(pwi != null) {
-			sb.append(pwi.getSecsMax());
+		else {
+			// Time:avg
+			IDuccProcessWorkItems pwi = process.getProcessWorkItems();
+			sb.append("<td align=\"right\">");
+			if(pwi != null) {
+				sb.append(pwi.getSecsAvg());
+			}
+			sb.append("</td>");
+			// Time:max
+			sb.append("<td align=\"right\">");
+			if(pwi != null) {
+				sb.append(pwi.getSecsMax());
+			}
+			sb.append("</td>");
+			// Time:min
+			sb.append("<td align=\"right\">");
+			if(pwi != null) {
+				sb.append(pwi.getSecsMin());
+			}
+			sb.append("</td>");
+			// Done
+			sb.append("<td align=\"right\">");
+			if(pwi != null) {
+				sb.append(pwi.getCountDone());
+			}
+			sb.append("</td>");
+			// Error
+			sb.append("<td align=\"right\">");
+			if(pwi != null) {
+				sb.append(pwi.getCountError());
+			}
+			sb.append("</td>");
+			// Retry
+			sb.append("<td align=\"right\">");
+			if(pwi != null) {
+				sb.append(pwi.getCountRetry());
+			}
+			sb.append("</td>");
+			// Preempt
+			sb.append("<td align=\"right\">");
+			if(pwi != null) {
+				sb.append(pwi.getCountPreempt());
+			}
+			sb.append("</td>");
 		}
-		sb.append("</td>");
-		// Time:min
-		sb.append("<td align=\"right\">");
-		if(pwi != null) {
-			sb.append(pwi.getSecsMin());
-		}
-		sb.append("</td>");
-		// Done
-		sb.append("<td align=\"right\">");
-		if(pwi != null) {
-			sb.append(pwi.getCountDone());
-		}
-		sb.append("</td>");
-		// Error
-		sb.append("<td align=\"right\">");
-		if(pwi != null) {
-			sb.append(pwi.getCountError());
-		}
-		sb.append("</td>");
-		// Retry
-		sb.append("<td align=\"right\">");
-		if(pwi != null) {
-			sb.append(pwi.getCountRetry());
-		}
-		sb.append("</td>");
-		// Preempt
-		sb.append("<td align=\"right\">");
-		if(pwi != null) {
-			sb.append(pwi.getCountPreempt());
-		}
-		sb.append("</td>");
 		// Jconsole:Url
 		sb.append("<td>");
 		switch(process.getProcessState()) {
@@ -842,24 +861,6 @@ public class DuccHandler extends DuccAbstractHandler {
 				String fid = ""+jobId.getFriendly();
 				if(jobNo.equals(fid)) {
 					job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
-					break;
-				}
-			}
-		}
-		return job;
-	}
-	
-	private DuccWorkJob getService(String serviceNo) {
-		DuccWorkJob job = null;
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		if(duccWorkMap.getServiceKeySet().size()> 0) {
-			Iterator<DuccId> iterator = null;
-			iterator = duccWorkMap.getServiceKeySet().iterator();
-			while(iterator.hasNext()) {
-				DuccId serviceId = iterator.next();
-				String fid = ""+serviceId.getFriendly();
-				if(serviceNo.equals(fid)) {
-					job = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
 					break;
 				}
 			}
@@ -1316,131 +1317,47 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-
+	
 	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
-		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		String logfile = buildLogFileName(job, process, type);
-		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
-		sb.append(trGet(counter));
-		sb.append("<td>");
-		sb.append(process.getDuccId().getFriendly());
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(href);
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(process.getNodeIdentity().getName());
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(process.getNodeIdentity().getIp());
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(process.getPID());
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(process.getResourceState());
-		sb.append("</td>");
-		ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
-		String toolTip = ProcessDeallocationType.getToolTip(deallocationType);
-		if(toolTip == null) {
-			sb.append("<td>");
-		}
-		else {
-			sb.append("<td title=\""+toolTip+"\">");
-		}
-		switch(deallocationType) {
-		case Undefined:
-			break;
-		default:
-			sb.append(process.getProcessDeallocationType());
-			break;
-		}
-		sb.append("</td>");
-		sb.append("<td>");
-		sb.append(process.getProcessState());
-		sb.append("</td>");
-		sb.append("<td>");
-		String agentReason = process.getReasonForStoppingProcess();
-		if(agentReason != null) {
-			sb.append(process.getReasonForStoppingProcess());
-		}
-		sb.append("</td>");
-		TimeWindow t;
-		t = (TimeWindow) process.getTimeWindowInit();
-		String initTime = "?";
-		if(t != null) {
-			initTime = t.getElapsed();
-		}
-		sb.append("<td>");
-		if((t != null) && (t.isEstimated())) {
-			sb.append("<span title=\"estimated\" class=\"health_green\">");
-		}
-		else {
-			sb.append("<span class=\"health_black\">");
-		}
-		sb.append(initTime);
-		sb.append("</span>");
-		sb.append("</td>");
-		t = (TimeWindow) process.getTimeWindowRun();
-		String runTime = "?";
-		if(t != null) {
-			runTime = t.getElapsed();
-		}
-		sb.append("<td>");
-		if((t != null) && (t.isEstimated())) {
-			sb.append("<span title=\"estimated\" class=\"health_green\">");
-		}
-		else {
-			sb.append("<span class=\"health_black\">");
-		}
-		sb.append(runTime);
-		sb.append("</span>");
-		sb.append("</td>");
-		
-		sb.append("<td>");
-		switch(process.getProcessState()) {
-		case Running:
-			String jmxUrl = process.getProcessJmxUrl();
-			if(jmxUrl != null) {
-				sb.append(buildjConsoleLink(jmxUrl));
-			}
-		}
-		sb.append("</td>");
-		sb.append("</tr>");
+		buildJobProcessListEntry(sb, job, process, type, counter);
 	}
 	
-	private void handleDuccServletServiceProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletServiceDeploymentsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleDuccServletServiceProcessesData";
+		String methodName = "handleDuccServletServiceDeploymentsData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		String serviceno = request.getParameter("id");
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		
+		String name = request.getParameter("name");
+		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+		Properties properties;
+		properties = payload.meta;
+		
+		ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
+		
 		DuccWorkJob service = null;
+		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		if(duccWorkMap.getServiceKeySet().size()> 0) {
 			Iterator<DuccId> iterator = null;
 			iterator = duccWorkMap.getServiceKeySet().iterator();
+			int counter = 0;
+			String type = "SP";
 			while(iterator.hasNext()) {
 				DuccId serviceId = iterator.next();
 				String fid = ""+serviceId.getFriendly();
-				if(serviceno.equals(fid)) {
+				if(implementors.contains(fid)) {
 					service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
-					break;
+					IDuccProcessMap map = service.getProcessMap();
+					for(DuccId key : map.keySet()) {
+						IDuccProcess process = map.get(key);
+						buildServiceProcessListEntry(sb, service, process, type, ++counter);
+					}
 				}
 			}
 		}
-		if(service != null) {
-			Iterator<DuccId> iterator = null;
-			IDuccProcessMap map = service.getProcessMap();
-			iterator = map.keySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				DuccId processId = iterator.next();
-				IDuccProcess process = map.get(processId);
-				buildServiceProcessListEntry(sb, service, process, "UIMA", ++counter);
-			}
-		}
+		
 		if(sb.length() == 0) {
 			sb.append("<tr>");
 			sb.append("<td>");
@@ -1458,60 +1375,98 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletServiceSpecificationData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		String jobNo = request.getParameter("id");
-		DuccWorkJob service = getService(jobNo);
-		if(service != null) {
-			try {
-				String logsjobdir = service.getUserLogsDir()+service.getDuccId().getFriendly()+File.separator;
-				String specfile = "service-specification.properties";
-				File file = new File(logsjobdir+specfile);
-				FileInputStream fis = new FileInputStream(file);
-				Properties properties = new Properties();
-				properties.load(fis);
-				fis.close();
-				TreeMap<String,String> map = new TreeMap<String,String>();
-				Enumeration<?> enumeration = properties.keys();
-				while(enumeration.hasMoreElements()) {
-					String key = (String)enumeration.nextElement();
-					map.put(key, key);
-				}
-				Iterator<String> iterator = map.keySet().iterator();
-				sb.append("<table>");
-				sb.append("<tr class=\"ducc-head\">");
-				sb.append("<th>");
-				sb.append("Key");
-				sb.append("</th>");
-				sb.append("<th>");
-				sb.append("Value");
-				sb.append("</th>");
-				sb.append("</tr>");
-				int i = 0;
-				int counter = 0;
-				while(iterator.hasNext()) {
-					String key = iterator.next();
-					String value = properties.getProperty(key);
-					if(key.endsWith("classpath")) {
-						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-						value = show+hide;
-						i++;
-					}
-					putJobSpecEntry(properties, key, value, sb, counter++);
-				}
-				sb.append("</table>");
-				sb.append("<br>");
-				sb.append("<br>");
+		try {
+			String name = request.getParameter("name");
+			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+			Properties properties;
+			properties = payload.svc;
+			TreeMap<String,String> map = new TreeMap<String,String>();
+			Enumeration<?> enumeration = properties.keys();
+			while(enumeration.hasMoreElements()) {
+				String key = (String)enumeration.nextElement();
+				map.put(key, key);
 			}
-			catch(Exception e) {
-				duccLogger.warn(methodName, null, e);
-				sb = new StringBuffer();
-				sb.append("no data");
+			Iterator<String> iterator = map.keySet().iterator();
+			sb.append("<table>");
+			sb.append("<tr class=\"ducc-head\">");
+			sb.append("<th>");
+			sb.append("Key");
+			sb.append("</th>");
+			sb.append("<th>");
+			sb.append("Value");
+			sb.append("</th>");
+			sb.append("</tr>");
+			int i = 0;
+			int counter = 0;
+			while(iterator.hasNext()) {
+				String key = iterator.next();
+				String value = properties.getProperty(key);
+				if(key.endsWith("classpath")) {
+					String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
+					String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
+					value = show+hide;
+					i++;
+				}
+				putJobSpecEntry(properties, key, value, sb, counter++);
 			}
+			sb.append("</table>");
+			sb.append("<br>");
+			sb.append("<br>");
 		}
+		catch(Exception e) {
+			duccLogger.warn(methodName, null, e);
+			sb = new StringBuffer();
+			sb.append("no data");
+		}
+
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	
+	private void handleDuccServletServiceSummaryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceSummaryData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		
+		sb.append("<table>");
+		sb.append("<tr>");
+		
+		String name = request.getParameter("name");
+		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+		Properties properties;
+		properties = payload.meta;
+		// serviceid
+		sb.append("<th title=\"The system assigned id for this service\">");
+		sb.append("Id: ");
+		sb.append(properties.getProperty(IServicesRegistry.numeric_id, "?"));
+		sb.append("&nbsp");
+		// name
+		sb.append("<th title=\"The name for this service\">");
+		sb.append("Name: ");
+		sb.append(name);
+		sb.append("&nbsp");
+		// autostart
+		sb.append("<th title=\"The configured autostart value for this service\">");
+		sb.append("Autostart: ");
+		sb.append(properties.getProperty(IServicesRegistry.autostart, "?"));
+		sb.append("&nbsp");
+		// instances
+		sb.append("<th title=\"The configured number of instances for this service\">");
+		sb.append("Instances: ");
+		sb.append(properties.getProperty(IServicesRegistry.instances, "?"));
+		sb.append("&nbsp");
+		
+		sb.append("</table>");
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
 	private void handleServletJsonMachinesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -2589,12 +2544,15 @@ public class DuccHandler extends DuccAbstractHandler {
 				handleDuccServletJobRuntimeFailData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
-			else if(reqURI.startsWith(duccServiceProcessesData)) {
-				handleDuccServletServiceProcessesData(target, baseRequest, request, response);
+			else if(reqURI.startsWith(duccServiceDeploymentsData)) {
+				handleDuccServletServiceDeploymentsData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccServiceSpecificationData)) {
 				handleDuccServletServiceSpecificationData(target, baseRequest, request, response);
+			}
+			else if(reqURI.startsWith(duccServiceSummaryData)) {
+				handleDuccServletServiceSummaryData(target, baseRequest, request, response);
 			}
 			else if(reqURI.startsWith(jsonMachinesData)) {
 				handleServletJsonMachinesData(target, baseRequest, request, response);

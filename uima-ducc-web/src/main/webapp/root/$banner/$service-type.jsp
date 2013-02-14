@@ -16,14 +16,10 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<html>
-<head>
-<script language="javascript">
-<!--
-location.replace("services.definitions.jsp"+location.search)
-//-->
-</script>
-</head>
-<body>
-</body>
-</html>
+<td colspan="2">
+<table>
+<tr>
+<td><input type="checkbox" onchange="toggleCheckbox(this)" name="typeUima"> Uima
+<td><input type="checkbox" onchange="toggleCheckbox(this)" name="typeNonUima"> non-Uima
+<td><input type="checkbox" onchange="toggleCheckbox(this)" name="typeRunnable"> Runnable
+</table>

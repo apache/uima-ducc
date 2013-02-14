@@ -60,6 +60,8 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
+import org.apache.uima.ducc.ws.registry.IServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.eclipse.jetty.server.Request;
@@ -77,8 +79,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 
 	private final String jsonFormatJobsAaData					= duccContextJsonFormat+"-aaData-jobs";
 	private final String jsonFormatReservationsAaData			= duccContextJsonFormat+"-aaData-reservations";
-	private final String jsonFormatServicesDefinitionsAaData	= duccContextJsonFormat+"-aaData-services-definitions";
-	private final String jsonFormatServicesDeploymentsAaData	= duccContextJsonFormat+"-aaData-services-deployments";
+	private final String jsonFormatServicesAaData				= duccContextJsonFormat+"-aaData-services";
 	
 	private final String jsonFormatMachines 		= duccContextJsonFormat+"-machines";
 	private final String jsonFormatReservations 	= duccContextJsonFormat+"-reservations";
@@ -830,15 +831,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
-	private void handleServletJsonFormatServicesDefinitionsAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletJsonFormatServicesAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleServletJsonFormatServicesDefinitionsAaData";
+		String methodName = "handleServletJsonFormatServicesAaData";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 
+		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		
 		IStateServices iss = StateServices.getInstance();
 		StateServicesDirectory ssd = iss.getStateServicesDirectory();
 		if(ssd.getDescendingKeySet().size() > 0) {
@@ -846,13 +849,25 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				StateServicesSet entry = ssd.get(key);
 				Properties propertiesSvc = entry.get(IStateServices.svc);
 				Properties propertiesMeta = entry.get(IStateServices.meta);
+				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");
 				JsonArray row = new JsonArray();
 				// Id
-				row.add(new JsonPrimitive(key));
+				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
+				row.add(new JsonPrimitive(id));
 				// Endpoint
-				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.endpoint,"")));
+				row.add(new JsonPrimitive(name));
 				// Instances
 				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.instances,"")));
+				// Deployments
+				String deployments = "0";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.implementors);
+						String[] implementors = servicesRegistry.getList(value);
+						deployments = ""+implementors.length;
+					}
+				}
+				row.add(new JsonPrimitive(deployments));
 				// Owning User
 				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.user,"")));
 				// Scheduling Class
@@ -892,261 +907,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
-	
-	private JsonArray buildServiceRow(HttpServletRequest request, IDuccWorkJob service, DuccData duccData) {
-		String type="Service";
-		JsonArray row = new JsonArray();
-		StringBuffer sb;
-		DuccId duccId = service.getDuccId();
-		// Terminate
-		sb = new StringBuffer();
-		String id = normalize(duccId);
-		sb.append("<span class=\"ducc-col-terminate\">");
-		if(terminateEnabled) {
-			if(!service.isFinished()) {
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_service("+id+")\" value=\"Terminate\" "+getDisabled(request,service)+"/>");
-			}
-		}
-		sb.append("</span>");
-		row.add(new JsonPrimitive(sb.toString()));
-		// Id
-		sb = new StringBuffer();
-		sb.append("<a href=\"service.details.html?id="+duccId+"\">"+duccId+"</a>");
-		row.add(new JsonPrimitive(sb.toString()));
-		// Start
-		sb = new StringBuffer();
-		sb.append(getTimeStamp(request,duccId, service.getStandardInfo().getDateOfSubmission()));
-		row.add(new JsonPrimitive(sb.toString()));
-		// End
-		sb = new StringBuffer();
-		sb.append(getCompletionOrProjection(request,service));
-		row.add(new JsonPrimitive(sb.toString()));
-		// User
-		sb = new StringBuffer();
-		sb.append(service.getStandardInfo().getUser());
-		row.add(new JsonPrimitive(sb.toString()));
-		// Class
-		sb = new StringBuffer();
-		sb.append(stringNormalize(service.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
-		row.add(new JsonPrimitive(sb.toString()));
-		/*
-		sb.append("<td align=\"right\">");
-		sb.append(stringNormalize(duccWorkJob.getSchedulingInfo().getSchedulingPriority(),messages.fetch("default")));
-		sb.append("</td>");
-		*/
-		// State
-		sb = new StringBuffer();
-		if(duccData.isLive(duccId)) {
-			if(service.isOperational()) {
-				sb.append("<span class=\"active_state\">");
-			}
-			else {
-				sb.append("<span class=\"completed_state\">");
-			}
-		}
-		else {
-			sb.append("<span class=\"historic_state\">");
-		}
-		sb.append(service.getStateObject().toString());
-		if(duccData.isLive(duccId)) {
-			sb.append("</span>");
-		}
-		row.add(new JsonPrimitive(sb.toString()));
-		// Reason
-		sb = new StringBuffer();
-		if(service.isOperational()) {
-			sb.append("<span>");
-			ArrayList<String> swappingMachines = getSwappingMachines(service);
-			if(!swappingMachines.isEmpty()) {
-				StringBuffer mb = new StringBuffer();
-				for(String machine : swappingMachines) {
-					mb.append(machine);
-					mb.append(" ");
-				}
-				String ml = mb.toString().trim();
-				sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-				sb.append("Swapping");
-				sb.append("</span>");
-			}
-			sb.append("</span>");
-		}
-		else if(service.isCompleted()) {
-			JobCompletionType jobCompletionType = service.getCompletionType();
-			switch(jobCompletionType) {
-			case EndOfJob:
-			case Undefined:
-				sb.append("<span>");
-				break;
-			default:
-				IRationale rationale = service.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<span title=\""+rationale+"\">");
-				}
-				else {
-					sb.append("<span>");
-				}
-				break;
-			}
-			sb.append(jobCompletionType);
-			sb.append("</span>");
-		}
-		row.add(new JsonPrimitive(sb.toString()));
-		// Processes
-		sb = new StringBuffer();;
-		if(duccData.isLive(duccId)) {
-			sb.append(service.getProcessMap().getAliveProcessCount());
-		}
-		else {
-			sb.append("0");
-		}
-		row.add(new JsonPrimitive(sb.toString()));
-		// Initialize Failures
-		sb = new StringBuffer();;
-		sb.append(buildInitializeFailuresLink(service));
-		row.add(new JsonPrimitive(sb.toString()));
-		// Runtime Failures
-		sb = new StringBuffer();;
-		sb.append(buildRuntimeFailuresLink(service));
-		row.add(new JsonPrimitive(sb.toString()));
-		// Size
-		sb = new StringBuffer();;
-		String size = service.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = service.getSchedulingInfo().getShareMemoryUnits();
-		sb.append(getProcessMemorySize(duccId,type,size,units));
-		row.add(new JsonPrimitive(sb.toString()));
-		// Description
-		sb = new StringBuffer();;
-		sb.append(stringNormalize(service.getStandardInfo().getDescription(),messages.fetch("none")));
-		row.add(new JsonPrimitive(sb.toString()));
-		
-		return row;
-	}
-	
-	private void handleServletJsonFormatServicesDeploymentsAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
-	{
-		String methodName = "handleServletJsonFormatServicesDeploymentsAaData";
-		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		
-		JsonObject jsonResponse = new JsonObject();
-		JsonArray data = new JsonArray();
 
-		int maxRecords = getServicesMax(request);
-		ArrayList<String> users = getServicesUsers(request);
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo,JobInfo> sortedServices = duccData.getSortedServices();
-		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
-		if(sortedServices.size()> 0) {
-			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedServices.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				JobInfo jobInfo = iterator.next().getValue();
-				DuccWorkJob service = jobInfo.getJob();
-				boolean list = false;
-				if(!users.isEmpty()) {
-					String serviceUser = service.getStandardInfo().getUser().trim();
-					switch(filterUsersStyle) {
-					case IncludePlusActive:
-						if(!service.isCompleted()) {
-							list = true;
-						}
-						else if(users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case ExcludePlusActive:
-						if(!service.isCompleted()) {
-							list = true;
-						}
-						else if(!users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Include:
-						if(users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Exclude:
-						if(!users.contains(serviceUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					}	
-				}
-				else {
-					if(!service.isCompleted()) {
-						list = true;
-					}
-					else if(maxRecords > 0) {
-						if (counter++ < maxRecords) {
-							list = true;
-						}
-					}
-				}
-				if(list) {
-					JsonArray row = buildServiceRow(request, service, duccData);
-					data.add(row);
-				}
-			}
-		}
-		else {
-			JsonArray row = new JsonArray();
-			// Terminate
-			row.add(new JsonPrimitive("no services"));
-			// Id
-			row.add(new JsonPrimitive(""));
-			// Start
-			row.add(new JsonPrimitive(""));
-			// End
-			row.add(new JsonPrimitive(""));
-			// User
-			row.add(new JsonPrimitive(""));
-			// Class
-			row.add(new JsonPrimitive(""));
-			// State
-			row.add(new JsonPrimitive(""));
-			// Reason
-			row.add(new JsonPrimitive(""));
-			// Processes
-			row.add(new JsonPrimitive(""));
-			// Init Fails
-			row.add(new JsonPrimitive(""));
-			// Run Fails
-			row.add(new JsonPrimitive(""));
-			// Size
-			row.add(new JsonPrimitive(""));
-			// Description
-			row.add(new JsonPrimitive(""));
-			data.add(row);
-		}
-		
-		jsonResponse.add("aaData", data);
-		
-		String json = jsonResponse.toString();
-		duccLogger.debug(methodName, jobid, json);
-		response.getWriter().println(json);
-		response.setContentType("application/json");
-		
-		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
-	}
-	
 	private void handleServletJsonFormatMachines(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1284,11 +1045,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		else if(reqURI.startsWith(jsonFormatReservationsAaData)) {
 			handleServletJsonFormatReservationsAaData(target, baseRequest, request, response);
 		}
-		else if(reqURI.startsWith(jsonFormatServicesDefinitionsAaData)) {
-			handleServletJsonFormatServicesDefinitionsAaData(target, baseRequest, request, response);
-		}
-		else if(reqURI.startsWith(jsonFormatServicesDeploymentsAaData)) {
-			handleServletJsonFormatServicesDeploymentsAaData(target, baseRequest, request, response);
+		else if(reqURI.startsWith(jsonFormatServicesAaData)) {
+			handleServletJsonFormatServicesAaData(target, baseRequest, request, response);
 		}
 		else if(reqURI.startsWith(jsonFormatMachines)) {
 			handleServletJsonFormatMachines(target, baseRequest, request, response);
