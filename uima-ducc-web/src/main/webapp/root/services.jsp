@@ -45,9 +45,9 @@ if (table_style.equals("scroll")) {
 			"aaSorting": [],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
                              		$('td:eq(0)', nRow).css( "text-align", "right" );
-                             		$('td:eq(2)', nRow).css( "text-align", "right" );
-                             		$('td:eq(3)', nRow).css( "text-align", "right" );
+                             		$('td:eq(5)', nRow).css( "text-align", "right" );
                              		$('td:eq(6)', nRow).css( "text-align", "right" );
+                             		$('td:eq(9)', nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -94,31 +94,15 @@ if (table_style.equals("scroll")) {
 <%
 if (table_style.equals("scroll")) {
 %>
-<!--
-	<table id="services-table" width="100%">
-   	    <caption><b>Services Definitions List</b><br><i><small>click column heading to sort</small></i></caption>
-			<thead>
-			<tr class="ducc-header">
-			<th title="The service Id">Id</th>
-			<th title="The service name">Name</th>
-			<th title="The service number of instances">Instances</th>
-			<th title="The service number of deployments">Deployments</th>
-			<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
-			<th title="The service scheduling class">Class</th>
-			<th title="The service process memory size (GB)">Size</th>
-			<th title="The service description">Description</th>
-			</tr>
-			</thead>
-			<tbody id="services_list_area">
-   	  		</tbody>
-   	</table>
--->   	
 	<table id="services-table" width="100%">
 	<caption><b>Services Definitions List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
 	<tr class="ducc-header">
 		<th title="The service Id">Id</th>
 		<th title="The service name">Name</th>
+		<th title="The service type">Type</th>
+		<th title="The service state">State</th>
+		<th title="The service health">Health</th>
 		<th title="The service number of instances">Instances</th>
 		<th title="The service number of deployments">Deployments</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
@@ -145,6 +129,9 @@ if (table_style.equals("classic")) {
 		<tr class="ducc-head">
 		<th title="The service Id">Id</th>
 		<th title="The service name">Name</th>
+		<th title="The service type">Type</th>
+		<th title="The service state">State</th>
+		<th title="The service health">Health</th>
 		<th title="The service number of instances">Instances</th>
 		<th title="The service number of deployments">Deployments</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>

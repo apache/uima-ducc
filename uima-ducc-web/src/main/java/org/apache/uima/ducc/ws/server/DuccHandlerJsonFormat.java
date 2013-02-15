@@ -856,6 +856,58 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(id));
 				// Endpoint
 				row.add(new JsonPrimitive(name));
+				// Type
+				String type = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.service_class)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.service_class);
+						if(value != null) {
+							type = value;
+						}
+					}
+				}
+				row.add(new JsonPrimitive(type));
+				// State
+				String state = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.service_state)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.service_state);
+						if(value != null) {
+							state = value;
+						}
+					}
+				}
+				row.add(new JsonPrimitive(state));
+				// Health
+				String health = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.ping_active)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.ping_active);
+						String text = "";
+						if(value != null) {
+							value = value.trim();
+							if(value.equals("true")) {
+								StringBuffer sb = new StringBuffer();
+								value = "up";
+								text = "pinging";
+								sb.append("<span class=\"health_green\" title=\""+text+"\">");
+								sb.append(value);
+								sb.append("</span>");
+								health = sb.toString();
+							}
+							else {
+								StringBuffer sb = new StringBuffer();
+								value = "down";
+								text = "not pinging";
+								sb.append("<span class=\"health_red\" title=\""+text+"\">");
+								sb.append(value);
+								sb.append("</span>");
+								health = sb.toString();
+							}
+						}
+					}
+				}
+				row.add(new JsonPrimitive(health));
 				// Instances
 				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.instances,"")));
 				// Deployments

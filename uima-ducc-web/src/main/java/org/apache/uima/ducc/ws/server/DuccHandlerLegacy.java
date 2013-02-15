@@ -742,6 +742,64 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("<td>");
 				sb.append(name);
 				sb.append("</td>");
+				// Type
+				sb.append("<td>");
+				String type = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.service_class)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.service_class);
+						if(type != null) {
+							type = value;
+						}
+					}
+				}
+				sb.append(type);
+				sb.append("</td>");
+				// State
+				sb.append("<td>");
+				String state = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.service_state)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.service_state);
+						if(value != null) {
+							state = value;
+						}
+					}
+				}
+				sb.append(state);
+				sb.append("</td>");
+				// Health
+				sb.append("<td>");
+				String health = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.ping_active)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.ping_active);
+						String text = "";
+						if(value != null) {
+							value = value.trim();
+							if(value.equals("true")) {
+								StringBuffer tbuf = new StringBuffer();
+								value = "up";
+								text = "pinging";
+								tbuf.append("<span class=\"health_green\" title=\""+text+"\">");
+								tbuf.append(value);
+								tbuf.append("</span>");
+								health = tbuf.toString();
+							}
+							else {
+								StringBuffer tbuf = new StringBuffer();
+								value = "down";
+								text = "not pinging";
+								tbuf.append("<span class=\"health_red\" title=\""+text+"\">");
+								tbuf.append(value);
+								tbuf.append("</span>");
+								health = tbuf.toString();
+							}
+						}
+					}
+				}
+				sb.append(health);
+				sb.append("</td>");
 				// No. of Instances
 				sb.append("<td>");
 				sb.append(getValue(propertiesMeta,IServicesRegistry.instances,""));

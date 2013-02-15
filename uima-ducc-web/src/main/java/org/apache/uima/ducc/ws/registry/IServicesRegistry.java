@@ -31,6 +31,9 @@ public class IServicesRegistry {
 	public static final String implementors = IStateServices.implementors;
 	public static final String instances = IStateServices.instances;
 	public static final String numeric_id = IStateServices.numeric_id;
+	public static final String ping_active = IStateServices.ping_active;
+	public static final String service_class = IStateServices.service_class;
+	public static final String service_state = IStateServices.service_state;
 	public static final String user = IStateServices.user;
 	
 	// svc
