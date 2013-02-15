@@ -409,19 +409,11 @@ public class UimaUtils {
 		int indx = 0;
 		for (List<String> componentOverrides : overrides) {
 			addComponentOverrides(flowNames.get(indx), componentOverrides,
-					(AnalysisEngineDescription) specifiers[indx],
+					(ResourceCreationSpecifier) specifiers[indx],
 					aggregateDeclarations, aggregateSetttings);
 			indx++;
 		}
-		/*
-		List<String> ol = new ArrayList<String>();
-		ol.add("ActionAfterCasMultiplier=continue");
-		ResourceSpecifier rs = getResourceSpecifier(FlowControllerResourceSpecifierName);
-		//	Add FC override
-		addComponentOverrides(FlowControllerKey, ol,
-				(ResourceCreationSpecifier)rs,
-				aggregateDeclarations, aggregateSetttings);
-	*/
+		
 	}
 
 	/**
