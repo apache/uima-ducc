@@ -43,11 +43,12 @@ if (table_style.equals("scroll")) {
        		"bInfo": false,
 			"sAjaxSource": "ducc-servlet/json-format-aaData-services",
 			"aaSorting": [],
+			"aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0, 1 ] } ],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
-                             		$('td:eq(0)', nRow).css( "text-align", "right" );
-                             		$('td:eq(5)', nRow).css( "text-align", "right" );
-                             		$('td:eq(6)', nRow).css( "text-align", "right" );
-                             		$('td:eq(9)', nRow).css( "text-align", "right" );
+                             		$('td:eq(2)', nRow).css( "text-align", "right" );
+                             		$('td:eq(7)', nRow).css( "text-align", "right" );
+                             		$('td:eq(8)', nRow).css( "text-align", "right" );
+                             		$('td:eq(11)', nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -98,6 +99,8 @@ if (table_style.equals("scroll")) {
 	<caption><b>Services Definitions List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
 	<tr class="ducc-header">
+		<th class="ducc-col-button"></th>
+		<th class="ducc-col-button"></th>
 		<th title="The service Id">Id</th>
 		<th title="The service name">Name</th>
 		<th title="The service type">Type</th>
@@ -127,6 +130,8 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
+		<th class="ducc-col-button"></th>
+		<th class="ducc-col-button"></th>
 		<th title="The service Id">Id</th>
 		<th title="The service name">Name</th>
 		<th title="The service type">Type</th>

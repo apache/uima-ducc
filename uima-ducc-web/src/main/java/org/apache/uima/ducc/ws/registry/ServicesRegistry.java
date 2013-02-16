@@ -109,6 +109,29 @@ public class ServicesRegistry {
 		return retVal;
 	}
 	
+	public String findServiceUser(String id) {
+		String retVal = null;
+		try {
+			for(Integer key : map.keySet()) {
+				ServicesRegistryMapPayload payload = map.get(key);
+				Properties meta = payload.meta;
+				if(meta != null) {
+					if(meta.containsKey(IServicesRegistry.numeric_id)) {
+						String sid = meta.getProperty(IServicesRegistry.numeric_id);
+						if(id.equals(sid)) {
+							retVal = meta.getProperty(IServicesRegistry.user).trim();
+							break;
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return retVal;
+	}
+	
 	public String findServiceName(DuccId duccId) {
 		String retVal = null;
 		try {

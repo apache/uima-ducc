@@ -45,6 +45,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.ws.DuccMachinesData;
+import org.apache.uima.ducc.ws.registry.IServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public abstract class DuccAbstractHandler extends AbstractHandler {
@@ -81,6 +83,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public String dir_resources = "resources";
 
 	protected boolean terminateEnabled = true;
+	protected boolean buttonsEnabled = true;
 	
 	public static final String valueStateTypeAll = "all";
 	public static final String valueStateTypeActive = "active";
@@ -559,7 +562,19 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 				retVal = properties.getProperty(key, defaultValue);
 			}
 		}
-		return retVal;
+		return retVal.trim();
+	}
+	
+	public String getDeployments(ServicesRegistry servicesRegistry, Properties propertiesMeta) {
+		String deployments = "0";
+		if(propertiesMeta != null) {
+			if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
+				String value = propertiesMeta.getProperty(IServicesRegistry.implementors);
+				String[] implementors = servicesRegistry.getList(value);
+				deployments = ""+implementors.length;
+			}
+		}
+		return deployments;
 	}
 	
 	public ArrayList<String> getSwappingMachines(IDuccWorkJob job) {
@@ -670,6 +685,10 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 
 	public String getDisabled(HttpServletRequest request, IDuccWork duccWork) {
 		String resourceOwnerUserId = duccWork.getStandardInfo().getUser();
+		return getDisabled(request, resourceOwnerUserId);
+	}
+
+	public String getDisabled(HttpServletRequest request, String resourceOwnerUserId) {
 		String disabled = "disabled=\"disabled\"";
 		if(isAuthorized(request, resourceOwnerUserId)) {
 			disabled = "";

@@ -127,6 +127,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccReservationCancel    		= duccContext+"/reservation-cancel-request";
 	private String duccServiceSubmit    			= duccContext+"/service-submit-request";
 	private String duccServiceCancel    			= duccContext+"/service-cancel-request";
+	private String duccServiceStart   				= duccContext+"/service-start-request";
+	private String duccServiceStop   				= duccContext+"/service-stop-request";
 	
 	private String jsonMachinesData 				= duccContext+"/json-machines-data";
 	private String jsonSystemClassesData 			= duccContext+"/json-system-classes-data";
@@ -2486,6 +2488,80 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private void duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command) 
+	{
+		String methodName = "duccServletServiceCommand";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		try {
+			String name = "id";
+			String value = request.getParameter(name).trim();
+			duccLogger.info(methodName, null, command+" "+messages.fetchLabel("id:")+value);
+			String text;
+			String result;
+			String id = value.trim();
+			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			String resourceOwnerUserId = servicesRegistry.findServiceUser(id);
+			if(resourceOwnerUserId != null) {
+				if(isAuthorized(request,resourceOwnerUserId)) {
+					String arg1 = "--"+command;
+					String arg2 = id;
+					String userId = duccWebSessionManager.getUserId(request);
+					String cp = System.getProperty("java.class.path");
+					String java = "/bin/java";
+					String jclass = "org.apache.uima.ducc.cli.DuccServiceApi";
+					String jhome = System.getProperty("java.home");
+					RequestRole requestRole = getRole(request);
+					switch(requestRole) {
+					/*
+					case Administrator:
+						String arg3 = "--"+SpecificationProperties.key_role_administrator;
+						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
+						result = DuccAsUser.duckling(userId, arglistAdministrator);
+						response.getWriter().println(result);
+						break;
+					case User:
+					*/
+					default:
+						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+						result = DuccAsUser.duckling(userId, arglistUser);
+						response.getWriter().println(result);
+						break;	
+					}
+				}
+			}
+			else {
+				text = "id "+value+" not found";
+				duccLogger.debug(methodName, null, messages.fetch(text));
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, null, e);
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private void handleDuccServletServiceStart(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceStart";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		
+		duccServletServiceCommand(target,baseRequest,request,response,"start");
+		
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private void handleDuccServletServiceStop(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceStop";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		
+		duccServletServiceCommand(target,baseRequest,request,response,"stop");
+		
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}			
+				
 	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -2614,6 +2690,16 @@ public class DuccHandler extends DuccAbstractHandler {
 			else if(reqURI.startsWith(duccServiceCancel)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletServiceCancel(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServiceStart)) {
+				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
+				handleDuccServletServiceStart(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServiceStop)) {
+				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
+				handleDuccServletServiceStop(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationSchedulingClasses)) {

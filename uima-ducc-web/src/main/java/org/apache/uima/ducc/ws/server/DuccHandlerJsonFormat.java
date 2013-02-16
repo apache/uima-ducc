@@ -850,7 +850,34 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				Properties propertiesSvc = entry.get(IStateServices.svc);
 				Properties propertiesMeta = entry.get(IStateServices.meta);
 				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");
+				String user = getValue(propertiesMeta,IServicesRegistry.user,"");
+				String sid = getValue(propertiesMeta,IServicesRegistry.numeric_id,"");
+				String instances = getValue(propertiesMeta,IStateServices.instances,"");
+				String deployments = getDeployments(servicesRegistry,propertiesMeta);
 				JsonArray row = new JsonArray();
+				
+				StringBuffer col;
+				// Start
+				col = new StringBuffer();
+				col.append("<span class=\"ducc-col-start\">");
+				if(buttonsEnabled) {
+					if(!deployments.equals(instances)) {
+						col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+					}
+				}
+				col.append("</span>");
+				row.add(new JsonPrimitive(col.toString()));
+				// Stop
+				col = new StringBuffer();
+				col.append("<span class=\"ducc-col-stop\">");
+				if(buttonsEnabled) {
+					if(!deployments.equals("0")) {
+						col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+					}
+				}
+				col.append("</span>");
+				row.add(new JsonPrimitive(col.toString()));
+				
 				// Id
 				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
 				row.add(new JsonPrimitive(id));
@@ -909,16 +936,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 				row.add(new JsonPrimitive(health));
 				// Instances
-				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.instances,"")));
+				row.add(new JsonPrimitive(instances));
 				// Deployments
-				String deployments = "0";
-				if(propertiesMeta != null) {
-					if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.implementors);
-						String[] implementors = servicesRegistry.getList(value);
-						deployments = ""+implementors.length;
-					}
-				}
 				row.add(new JsonPrimitive(deployments));
 				// Owning User
 				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.user,"")));

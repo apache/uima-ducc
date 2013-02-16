@@ -37,6 +37,7 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.JdConstants;
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -727,14 +728,37 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		ServicesRegistry servicesRegistry = new ServicesRegistry();
 		ServicesRegistryMap map = servicesRegistry.getMap();
 		if(!map.isEmpty()) {
+			int counter = 0;
 			for(Integer key : map.getDescendingKeySet()) {
 				ServicesRegistryMapPayload entry = map.get(key);
 				Properties propertiesSvc = entry.get(IServicesRegistry.svc);
 				Properties propertiesMeta = entry.get(IServicesRegistry.meta);
 				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");
-				sb.append("<tr>");
+				String user = getValue(propertiesMeta,IServicesRegistry.user,"");
+				String sid = getValue(propertiesMeta,IServicesRegistry.numeric_id,"");
+				String instances = getValue(propertiesMeta,IStateServices.instances,"");
+				String deployments = getDeployments(servicesRegistry,propertiesMeta);
+				sb.append(trGet(++counter));
+				
+				// Start
+				sb.append("<td valign=\"bottom\" class=\"ducc-col-start\">");
+				if(buttonsEnabled) {
+					if(!deployments.equals(instances)) {
+						sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+					}
+				}
+				sb.append("</td>");
+				// Stop
+				sb.append("<td valign=\"bottom\" class=\"ducc-col-stop\">");
+				if(buttonsEnabled) {
+					if(!deployments.equals("0")) {
+						sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+					}
+				}
+				sb.append("</td>");
+				
 				// Service Id
-				sb.append("<td>");
+				sb.append("<td align=\"right\">");
 				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
 				sb.append(id);
 				sb.append("</td>");
@@ -801,19 +825,11 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append(health);
 				sb.append("</td>");
 				// No. of Instances
-				sb.append("<td>");
-				sb.append(getValue(propertiesMeta,IServicesRegistry.instances,""));
+				sb.append("<td align=\"right\">");
+				sb.append(instances);
 				sb.append("</td>");
 				// No. of Deployments
-				sb.append("<td>");
-				String deployments = "0";
-				if(propertiesMeta != null) {
-					if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.implementors);
-						String[] implementors = servicesRegistry.getList(value);
-						deployments = ""+implementors.length;
-					}
-				}
+				sb.append("<td align=\"right\">");
 				sb.append(deployments);
 				sb.append("</td>");
 				// Owning User
@@ -825,7 +841,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append(getValue(propertiesSvc,IServicesRegistry.scheduling_class,""));
 				sb.append("</td>");
 				// Process Memory Size
-				sb.append("<td>");
+				sb.append("<td align=\"right\">");
 				sb.append(getValue(propertiesSvc,IServicesRegistry.process_memory_size,""));
 				sb.append("</td>");
 				// Description

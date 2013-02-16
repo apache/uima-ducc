@@ -1753,6 +1753,50 @@ function ducc_terminate_service(id)
 	return false;
 }
 
+function ducc_service_start(id)
+{	
+	try {
+		$.jGrowl(" Pending start...");
+		$.ajax(
+		{
+			type: 'POST',
+			url : "/ducc-servlet/service-start-request"+"?id="+id,
+			success : function (data) 
+			{
+				$.jGrowl(data, { life: 6000 });
+				setTimeout(function(){window.close();}, 5000);
+			}
+		});
+		setTimeout(function(){window.close();}, 5000);
+	}
+	catch(err) {
+		ducc_error("ducc_service_start",err);
+	}
+	return false;
+}
+
+function ducc_service_stop(id)
+{	
+	try {
+		$.jGrowl(" Pending stop...");
+		$.ajax(
+		{
+			type: 'POST',
+			url : "/ducc-servlet/service-stop-request"+"?id="+id,
+			success : function (data) 
+			{
+				$.jGrowl(data, { life: 6000 });
+				setTimeout(function(){window.close();}, 5000);
+			}
+		});
+		setTimeout(function(){window.close();}, 5000);
+	}
+	catch(err) {
+		ducc_error("ducc_service_stop",err);
+	}
+	return false;
+}
+
 function ducc_terminate_reservation(id)
 {	
 	try {
@@ -1861,6 +1905,32 @@ function ducc_confirm_terminate_service(id)
 	}
 	catch(err) {
 		ducc_error("ducc_confirm_terminate_service",err);
+	}	
+}
+
+function ducc_confirm_service_start(id)
+{
+	try {
+		var result=confirm("Start service "+id+"?");
+		if (result==true) {
+  			ducc_service_start(id);
+  		}
+	}
+	catch(err) {
+		ducc_error("ducc_confirm_service_start",err);
+	}	
+}
+
+function ducc_confirm_service_stop(id)
+{
+	try {
+		var result=confirm("Stop service "+id+"?");
+		if (result==true) {
+  			ducc_service_stop(id);
+  		}
+	}
+	catch(err) {
+		ducc_error("ducc_confirm_service_stop",err);
 	}	
 }
 
