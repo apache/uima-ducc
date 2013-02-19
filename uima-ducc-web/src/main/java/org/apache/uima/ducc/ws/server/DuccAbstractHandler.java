@@ -101,7 +101,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public boolean isIgnorable(Throwable t) {
 		boolean retVal = false;
 		try {
-			String rcm = ExceptionUtils.getMessage(t);
+			String rcm = ExceptionUtils.getMessage(t).trim();
 			if(rcm.endsWith("java.io.IOException: Broken pipe")) {
 				retVal = true;
 			}
