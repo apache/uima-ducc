@@ -967,7 +967,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			    }
 			}
 			catch(Exception e) {
-				duccLogger.warn(methodName, null, e);
+				duccLogger.warn(methodName, null, e.getMessage());
+				duccLogger.debug(methodName, null, e);
 				sb = new StringBuffer();
 				sb.append("no data");
 			}
