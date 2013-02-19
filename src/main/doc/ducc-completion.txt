@@ -1,0 +1,152 @@
+February 19, 2003
+
+Define DUCC Release 1
+   Completion Goal: 2Q13 
+
+   Terminology
+   
+       DUCC Job
+
+	   As defined for DUCC, a Job is the processing of a collection of work items. The collection is
+	   defined by a Collection Reader (CR) and work items are processed by an Analysis Engine (AE)
+	   that is scaled out by DUCC. CASes produced by the CR typically contain references to the work
+	   items and the input data is read directly by the AE instances. DUCC allocates resources for
+	   the CR and some number of AE's, managing their lifetime and maintaining meta data on the job:
+	   logs, performance information, etc.
+
+       DUCC Service
+    
+       In DUCC a Service is a process that performs some function on behalf of a DUCC Job, another
+       DUCC Service, or a user application.  The most common and fully supported type of service is
+       a UIMA-AS service fully managed by DUCC.  DUCC also supports services that are not UIMA-AS
+       services. DUCC manages service scale out.
+
+       DUCC Arbitrary Process
+
+       In DUCC an Arbitrary Process (AP) is any user-submitted process managed by DUCC that is not
+       a DUCC Job or DUCC Service. Arbitrary processes are singletons, with no scale out support.
+
+       DUCC Agent
+
+       The DUCC agent is a process running on every node in the DUCC cluster.  The Agent manages all
+       work on behalf of users on each node.  It also gathers local performance data (both system
+       and application-level) and enforces resource boundaries on the user's processes (see CGroups,
+       below).
+
+   Completion tasks for Release 1
+
+   1.  Debugging interface for DUCC Jobs
+       
+       This is an extension to DUCC's submit CLI to launch a Job as a single threaded process
+       suitable for development and debug. The process can be deployed locally on the client machine
+       or remotely on a DUCC machine. Debugging is initiated by adding a flag to the normal ducc
+       submit.
+
+       Requirements:
+
+          1. Run and debug a DUCC Job in a local eclipse session, using the same interface that is
+          used to submit jobs to DUCC.
+
+          2. Alternate flag switch to ducc_submit to run as an Arbitrary Process, so that DUCC 
+	  will run the process in a remote DUCC machine.  This uses console redirection and
+	  Eclipse remote debugging.
+  
+
+   2.  Finish support for Arbitrary Processes.
+
+       In DUCC usage, an Arbitrary Process (AP) is a process executed on behalf of a developer that
+       is not a UIMA or UIMA-AS pipeline managed as a DUCC job.  DUCC beta-0.7.3 contains initial
+       support for APs with the following tasks not fully completed and/or tested and verified:
+
+          a) Java CLI and API to support AP
+          b) "cancel on interrupt" support (submitter is monitoring the AP via 
+             redirected console and terminates the console via ctl-C. The AP
+             job be terminated.)
+          c) Redirection of stdin to the remote AP.  Currently only stdout and stderr
+             are redirected from the remote AP.
+          d) Support for X11. On submission, capture the local DISPLAY information, 
+             initiate authorization for the remote host to connect, and when the
+             remote host starts, direct the DISPLAY to the initiating X11 session.
+          e) Insure this support can open an xterm from a DUCC allocated machine to the
+             user's X11 session.
+          f) Web server support for APs
+
+   3. CGroups
+
+      From Wikipedia (http://en.wikipedia.org/wiki/Cgroups): cgroups (control groups) is a Linux
+      kernel feature to limit, account and isolate resource usage (CPU, memory, disk I/O, etc.) of
+      process groups.
+
+      DUCC support for CGroups will be used to enforce resource boundaries for multiple users
+      on large-memory multi-core machines.
+
+      a) Basic implementation in the DUCC Agents.
+      b) Presentation in the DUCC Web server.
+
+   
+   4.  Sample applications using Apache UIMA text analytics.
+
+       Supply additional code and documentation as needed to demonstrate use of DUCC to
+       deploy and run the sample applications from the existing UIMA and UIMA-AS projects.
+      
+       This encompasses:
+       a) A source ingestion-like / text-processing application
+       b) A CAS-in CAS-out application
+       c) Document this in the Duccbook
+
+   5.  System-verification test suite:
+          
+       Clean and donate the current system-verification test suite.
+
+       A comprehensive test driver for system-level verification of DUCC has been developed along
+       with DUCC itself.  This driver is based on a certain amount of data scraped from application
+       logs gathered during various UIMA development efforts at IBM.  It is necessary to scrub this
+       data to remove userids and insure that no proprietary information is accidentally released.
+
+       Included in this test suite:
+          a) a simple scaled-out UIMA-AS job used for initial installation verification
+          b) a set of UIMA-AS services for use by the test suite
+          c) a database of simulated jobs 
+          d) a test driver capable of dispatching and managing the test jobs to simulate a large,
+             multi-user development environment running over arbitrarily small to arbitrarily
+             large heterogeneous clusters.
+          e) documentation
+
+    6.  Web Server support for DUCC Services
+        Current DUCC web server support for services is minimal.  Most service interaction
+        including query is entirely command-line driven.
+
+        Support includes:
+           Ability to start, stop, and modify services
+
+        Presentation
+           Display service registrations
+           Display relationship of service instances to registrations
+           Display relationship of jobs to service instances
+           Logging and performance information
+
+
+   7. Services Manager CLI/API needs authentication
+      a) Insure registering user is who he says she is
+      b) Insure only the "owning" user can take actions on their services - modify,
+         unregister, etc.
+
+      Most of this code can be copied from the DuccSubmit CLI/API
+
+   8. Resource Manager Hot Start
+
+      Resource Manager should be able to reconstruct state from the Orchestrator publication in
+      conjunction with Agent publications, so it can be stopped and started "hot" (without affecting
+      state of running work).
+
+   9. Services Manager Restart Policy
+
+      Implement policy for restarting failed services, and halting restart if the service continues
+      to fail.
+
+  10. Build formal API
+
+      Implement a proper API for submit, and cancel, reserve, and unreserve. Coordinate with the
+      service manager API so they're consistent.
+
+  11. Complete, correct, and clean-up formal documentation (the "duccbook").
