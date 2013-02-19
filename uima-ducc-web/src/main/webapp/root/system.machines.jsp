@@ -17,54 +17,16 @@ specific language governing permissions and limitations
 under the License.
 -->
 <%@ page language="java" %>
-<%
-String table_style = "scroll";
-String cookieName = "ducc:table_style";
-String cookieValue = null;
-Cookie cookie = null;
-Cookie cookies [] = request.getCookies ();
-if (cookies != null)
-{
-  for (int i = 0; i < cookies.length; i++) 
-  {
-    if (cookies [i].getName().equals (cookieName))
-    {
-      cookie = cookies[i];
-      cookieValue = cookie.getValue();
-      if(cookieValue != null) {
-        table_style = cookieValue;
-      }
-      break;
-    }
-  }
-}
-%>
 <html>
 <head>
   <link rel="shortcut icon" href="uima.ico" />
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
-  <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>
-<%
-if (table_style.equals("scroll")) {
-%>
-  <script type="text/javascript" language="javascript" src="opensources/DataTables-1.9.1/media/js/jquery.dataTables.min.js"></script>
-  <script type="text/javascript" language="javascript" src="opensources/DataTables-plugins/fnReloadAjax.js"></script>
-<%
-}
-%>
-  <script src="opensources/jgrowl/jquery.jgrowl.js" type="text/javascript"></script>
-  <link rel="stylesheet" href="opensources/jgrowl/jquery.jgrowl.css" type="text/css"/>
-  <link href="opensources/jquery-ui-1.8.4/gallery/jquery-ui-themes-1.8.4/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <script src="opensources/jquery-ui-1.8.4/ui/minified/jquery-ui.min.js"></script>
-  <link href="opensources/navigation/menu.css" rel="stylesheet" type="text/css">
-  <script src="js/ducc.js"></script>
-  <link href="ducc.css" rel="stylesheet" type="text/css">
-<%
-if (table_style.equals("scroll")) {
-%>  
-  <script type="text/javascript" charset="utf-8">
-	var oTable;
+  <%@ include file="$imports.jsp" %>
+  <%
+  if (table_style.equals("scroll")) {
+  %>  
+    <script type="text/javascript" charset="utf-8">
 	$(document).ready(function() {
 		oTable = $('#machines-table').dataTable( {
 			"bProcessing": true,
@@ -73,7 +35,7 @@ if (table_style.equals("scroll")) {
 			"sScrollX": "100%",
 			"sScrollY": "600px",
        		"bInfo": false,
-			"sAjaxSource": "ducc-servlet/json-machines-data",
+			"sAjaxSource": "ducc-servlet/json-format-aaData-machines",
 			aaSorting: [],
 			"fnRowCallback" : function(nRow,aData,iDisplayIndex) {
                             $('td:eq(3)' , nRow).css( "text-align", "right" );
@@ -99,18 +61,12 @@ if (table_style.equals("scroll")) {
 			},
 		} );
 	} );
-  </script>
-<%
-}
-%>	
-<%
-if (table_style.equals("classic")) {
-%>
-<script type="text/javascript" src="opensources/sorttable.js"></script>
-<%
-}
-%>
+    </script>
+  <%
+  }
+  %>	
 </head>
+
 <body onload="ducc_init('system-machines');" onResize="window.location.href = window.location.href;">
 
 <!-- ####################### common ######################## -->

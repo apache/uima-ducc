@@ -45,6 +45,8 @@ if (cookies != null)
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
   <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>
+  <script src="opensources/cluetip/jquery.cluetip.js" type="text/javascript"></script>
+  <link href="opensources/cluetip/jquery.cluetip.css" rel="stylesheet" type="text/css">
 <%
 if (table_style.equals("scroll")) {
 %>

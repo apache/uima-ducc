@@ -211,7 +211,7 @@ public class DuccWebServer {
 		HandlerList handlers = new HandlerList();
 		DuccHandler duccHandler = new DuccHandler(this);
 		DuccHandlerLegacy duccHandlerLegacy = new DuccHandlerLegacy(this);
-		DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat();
+		DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat(this);
 		DuccHandlerProxy duccHandlerProxy = new DuccHandlerProxy();
 		DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
 		SessionHandler sessionHandler = new SessionHandler();

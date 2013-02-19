@@ -230,6 +230,7 @@ function ducc_load_classic_jobs_data()
 				$("#jobs_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_cluetips();
 			}
 		});
 	}
@@ -241,21 +242,22 @@ function ducc_load_classic_jobs_data()
 function ducc_load_scroll_jobs_data()
 {
 	try {
-		$.ajax(
-		{
-			url : "/ducc-servlet/json-format-aaData-jobs",
-			success : function (data) 
-			{
-				ducc_timestamp();
-				ducc_authentication();
-				//oTable.fnClearTable();
-				oTable.fnReloadAjax();
-				ducc_cluetips();
-			}
-		});
+		oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-jobs",ducc_load_scroll_jobs_callback);
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_jobs_data",err);
+	}	
+}
+
+function ducc_load_scroll_jobs_callback() 
+{
+	try {
+		ducc_timestamp();
+		ducc_authentication();
+		ducc_cluetips();
+	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_jobs_callback",err);
 	}	
 }
 
@@ -296,6 +298,7 @@ function ducc_load_classic_services_data()
 				$("#services_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_cluetips();
 			}
 		});
 	}
@@ -307,21 +310,22 @@ function ducc_load_classic_services_data()
 function ducc_load_scroll_services_data()
 {
 	try {
-		$.ajax(
-		{
-			url : "/ducc-servlet/json-format-aaData-services",
-			success : function (data) 
-			{
-				ducc_timestamp();
-				ducc_authentication();
-				//oTable.fnClearTable();
-				oTable.fnReloadAjax();
-				ducc_cluetips();
-			}
-		});
+		oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-services",ducc_load_scroll_services_callback);
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_services_data",err);
+	}	
+}
+
+function ducc_load_scroll_services_callback() 
+{
+	try {
+		ducc_timestamp();
+		ducc_authentication();
+		ducc_cluetips();
+	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_services_callback",err);
 	}	
 }
 
@@ -651,6 +655,7 @@ function ducc_load_classic_machines_data()
 				$("#machines_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_cluetips();
 			}
 		});
 	}
@@ -662,14 +667,23 @@ function ducc_load_classic_machines_data()
 function ducc_load_scroll_machines_data()
 {
 	try {
-		ducc_timestamp();
-		ducc_authentication();
-		//oTable.fnClearTable();
-		oTable.fnReloadAjax();
+		oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-machines",ducc_load_scroll_machines_callback);
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_machines_data",err);
+	}	
+}
+
+function ducc_load_scroll_machines_callback() 
+{
+	try {
+		ducc_timestamp();
+		ducc_authentication();
+		ducc_cluetips();
 	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_machines_callback",err);
+	}	
 }
 
 function ducc_init_machines_data()
@@ -726,6 +740,7 @@ function ducc_load_classic_reservations_data()
 				$("#reservations_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_cluetips();
 			}
 		});
 	}
@@ -737,21 +752,22 @@ function ducc_load_classic_reservations_data()
 function ducc_load_scroll_reservations_data()
 {
 	try {
-		$.ajax(
-		{
-			url : "/ducc-servlet/json-format-aaData-reservations",
-			success : function (data) 
-			{
-				ducc_timestamp();
-				ducc_authentication();
-				//oTable.fnClearTable();
-				oTable.fnReloadAjax();
-				ducc_cluetips();
-			}
-		});
+		oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-reservations",ducc_load_scroll_reservations_callback);
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_reservations_data",err);
+	}	
+}
+
+function ducc_load_scroll_reservations_callback() 
+{
+	try {
+		ducc_timestamp();
+		ducc_authentication();
+		ducc_cluetips();
+	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_reservations_callback",err);
 	}	
 }
 
@@ -1012,6 +1028,7 @@ function ducc_load_classic_system_classes_data()
 				$("#system_classes_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_cluetips();
 			}
 		});
 	}
@@ -1023,14 +1040,23 @@ function ducc_load_classic_system_classes_data()
 function ducc_load_scroll_system_classes_data()
 {
 	try {
-		ducc_timestamp();
-		ducc_authentication();
-		//oTable.fnClearTable();
-		oTable.fnReloadAjax();
+		oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-classes",ducc_load_scroll_system_classes_callback);
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_system_classes_data",err);
+	}	
+}
+
+function ducc_load_scroll_system_classes_callback() 
+{
+	try {
+		ducc_timestamp();
+		ducc_authentication();
+		ducc_cluetips();
 	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_system_classes_callback",err);
+	}	
 }
 
 function ducc_init_system_classes_data()
@@ -1141,6 +1167,7 @@ function ducc_load_classic_system_daemons_data()
 				$("#system_daemons_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_cluetips();
 			}
 		});
 	}
@@ -1152,14 +1179,23 @@ function ducc_load_classic_system_daemons_data()
 function ducc_load_scroll_system_daemons_data()
 {
 	try {
-		ducc_timestamp();
-		ducc_authentication();
-		//oTable.fnClearTable();
-		oTable.fnReloadAjax();
+		oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-daemons",ducc_load_scroll_system_daemons_callback);
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_system_daemons_data",err);
+	}	
+}
+
+function ducc_load_scroll_system_daemons_callback() 
+{
+	try {
+		ducc_timestamp();
+		ducc_authentication();
+		ducc_cluetips();
 	}
+	catch(err) {
+		ducc_error("ducc_load_scroll_system_daemons_callback",err);
+	}	
 }
 
 function ducc_init_system_daemons_data()
