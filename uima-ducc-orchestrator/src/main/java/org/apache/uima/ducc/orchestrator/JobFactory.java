@@ -35,6 +35,7 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
+import org.apache.uima.ducc.transport.cmdline.ACommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
@@ -76,7 +77,7 @@ public class JobFactory {
 	private String java_classpath = System.getProperty("java.class.path");
 	private String classpath_order = System.getProperty("ducc.orchestrator.job.factory.classpath.order");
 	
-	private int addEnvironment(DuccWorkJob job, String type, JavaCommandLine javaCommandLine, String environmentVariables) {
+	private int addEnvironment(DuccWorkJob job, String type, ACommandLine aCommandLine, String environmentVariables) {
 		String methodName = "addEnvironment";
 		logger.trace(methodName, job.getDuccId(), "enter");
 		int retVal = 0;
@@ -86,7 +87,7 @@ public class JobFactory {
 				String[] kv = envVar.split("=");
 				String envKey = kv[0].trim();
 				String envValue = kv[1].trim();
-				javaCommandLine.addEnvVar(envKey, envValue);
+				aCommandLine.addEnvVar(envKey, envValue);
 				String message = "type:"+type+" "+"key:"+envKey+" "+"value:"+envValue;
 				logger.debug(methodName, job.getDuccId(), message);
 			}
@@ -265,6 +266,81 @@ public class JobFactory {
 		return retVal;
 	}
 	
+	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
+		String methodName = "createDriver";
+		// java command
+		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
+		// broker & queue
+		job.setJobBroker(common.brokerUrl);
+		job.setJobQueue(common.jdQueuePrefix+job.getDuccId());
+		// CR
+		String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
+		String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
+		// getMeta
+		String meta_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_get_meta_time_max);
+		if(meta_time == null) {
+			meta_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
+		}
+		String wi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_per_item_time_max);
+		if(wi_time == null) {
+			wi_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
+		}
+		// Exception handler
+		String processExceptionHandler = jobRequestProperties.getProperty(JobRequestProperties.key_driver_exception_handler);
+		// Command line
+		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, wi_time, processExceptionHandler);
+		JavaCommandLine driverCommandLine = new JavaCommandLine(javaCmd);
+		driverCommandLine.setClassName(IDuccCommand.main);
+		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_configruation);
+		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_components);
+		driverCommandLine.addOption(IDuccCommand.arg_ducc_job_id+job.getDuccId().toString());
+		// classpath
+		String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_classpath);
+		logger.debug(methodName, job.getDuccId(), "driver CP (spec):"+driverClasspath);
+		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
+		if(driverClasspath != null) {
+			if(isClasspathOrderUserBeforeDucc(jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath_order),job.getDuccId())) {
+				logger.info(methodName, job.getDuccId(), "driver:OrderUserBeforeDucc");
+				driverClasspath=driverClasspath+File.pathSeparator+java_classpath;
+			}
+			else {
+				logger.info(methodName, job.getDuccId(), "driver:OrderDuccBeforeUser");
+				driverClasspath=java_classpath+File.pathSeparator+driverClasspath;
+			}
+		}
+		else {
+			logger.info(methodName, job.getDuccId(), "driver:OrderDefault");
+			driverClasspath=java_classpath;
+		}
+		logger.debug(methodName, job.getDuccId(), "driver CP (combined):"+driverClasspath);
+		driverCommandLine.setClasspath(driverClasspath);
+		String driver_jvm_args = jobRequestProperties.getProperty(JobRequestProperties.key_driver_jvm_args);
+		ArrayList<String> dTokens = parseJvmArgs(driver_jvm_args);
+		for(String token : dTokens) {
+			driverCommandLine.addOption(token);
+		}
+		// Environment
+		String driverEnvironmentVariables = jobRequestProperties.getProperty(JobRequestProperties.key_driver_environment);
+		int envCountDriver = addEnvironment(job, "driver", driverCommandLine, driverEnvironmentVariables);
+		logger.info(methodName, job.getDuccId(), "driver env vars: "+envCountDriver);
+		logger.debug(methodName, job.getDuccId(), "driver: "+driverCommandLine.getCommand());
+		// Log directory
+		driverCommandLine.setLogDirectory(jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
+		driver.setCommandLine(driverCommandLine);
+		//
+		NodeIdentity nodeIdentity = hostManager.getNode();
+		DuccId duccId = duccIdFactory.next();
+		duccId.setFriendly(0);
+		DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
+		driverProcess.setResourceState(ResourceState.Allocated);
+		driverProcess.setNodeIdentity(nodeIdentity);
+		driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);
+		//
+		orchestratorCommonArea.getProcessAccounting().addProcess(duccId, job.getDuccId());
+		//
+		job.setDriver(driver);
+	}
+	
 	public DuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties) {
 		String methodName = "create";
 		DuccWorkJob job = new DuccWorkJob();
@@ -279,6 +355,15 @@ public class JobFactory {
 			job.setDuccType(DuccType.Job);
 			job.setDuccId(jobDuccIdFactory.next());
 			
+		}
+		// driver
+		DuccType duccType = job.getDuccType();
+		switch(duccType) {
+			case Job:
+				createDriver(common, jobRequestProperties, job);
+			break;
+		case Service:
+			break;
 		}
         // Service Deployment Type
         if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
@@ -320,76 +405,6 @@ public class JobFactory {
 		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
 		if(javaCmd == null) {
             // Agent will set javaCmd for Driver and Processes
-		}
-		// driver
-		DuccType duccType = job.getDuccType();
-		switch(duccType) {
-		case Job:
-			job.setJobBroker(common.brokerUrl);
-			job.setJobQueue(common.jdQueuePrefix+job.getDuccId());
-			String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
-			String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
-			String meta_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_get_meta_time_max);
-			if(meta_time == null) {
-				meta_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
-			}
-			String wi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_per_item_time_max);
-			if(wi_time == null) {
-				wi_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
-			}
-			String processExceptionHandler = jobRequestProperties.getProperty(JobRequestProperties.key_driver_exception_handler);
-			DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, wi_time, processExceptionHandler);
-			JavaCommandLine driverCommandLine = new JavaCommandLine(javaCmd);
-			driverCommandLine.setClassName(IDuccCommand.main);
-			driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_configruation);
-			driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_components);
-			driverCommandLine.addOption(IDuccCommand.arg_ducc_job_id+job.getDuccId().toString());
-			// classpath
-			String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_classpath);
-			logger.debug(methodName, job.getDuccId(), "driver CP (spec):"+driverClasspath);
-			logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
-			if(driverClasspath != null) {
-				if(isClasspathOrderUserBeforeDucc(jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath_order),job.getDuccId())) {
-					logger.info(methodName, job.getDuccId(), "driver:OrderUserBeforeDucc");
-					driverClasspath=driverClasspath+File.pathSeparator+java_classpath;
-				}
-				else {
-					logger.info(methodName, job.getDuccId(), "driver:OrderDuccBeforeUser");
-					driverClasspath=java_classpath+File.pathSeparator+driverClasspath;
-				}
-			}
-			else {
-				logger.info(methodName, job.getDuccId(), "driver:OrderDefault");
-				driverClasspath=java_classpath;
-			}
-			logger.debug(methodName, job.getDuccId(), "driver CP (combined):"+driverClasspath);
-			driverCommandLine.setClasspath(driverClasspath);
-			String driver_jvm_args = jobRequestProperties.getProperty(JobRequestProperties.key_driver_jvm_args);
-			ArrayList<String> dTokens = parseJvmArgs(driver_jvm_args);
-			for(String token : dTokens) {
-				driverCommandLine.addOption(token);
-			}
-			String driverEnvironmentVariables = jobRequestProperties.getProperty(JobRequestProperties.key_driver_environment);
-			int envCountDriver = addEnvironment(job, "driver", driverCommandLine, driverEnvironmentVariables);
-			logger.info(methodName, job.getDuccId(), "driver env vars: "+envCountDriver);
-			logger.debug(methodName, job.getDuccId(), "driver: "+driverCommandLine.getCommand());
-			driverCommandLine.setLogDirectory(jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
-			driver.setCommandLine(driverCommandLine);
-			//
-			NodeIdentity nodeIdentity = hostManager.getNode();
-			DuccId duccId = duccIdFactory.next();
-			duccId.setFriendly(0);
-			DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
-			driverProcess.setResourceState(ResourceState.Allocated);
-			driverProcess.setNodeIdentity(nodeIdentity);
-			driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);
-			//
-			orchestratorCommonArea.getProcessAccounting().addProcess(duccId, job.getDuccId());
-			//
-			job.setDriver(driver);
-			break;
-		case Service:
-			break;
 		}
 		// standard info
 		DuccStandardInfo standardInfo = new DuccStandardInfo();
@@ -486,8 +501,13 @@ public class JobFactory {
 			job.setCommandLine(pipelineCommandLine);
 		}
 		else {
+			// ducclet (sometimes known as arbitrary process)
 			String process_executable = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable);
 			NonJavaCommandLine executableProcessCommandLine = new NonJavaCommandLine(process_executable);
+			String processEnvironmentVariables = jobRequestProperties.getProperty(JobRequestProperties.key_process_environment);
+			int envCountProcess = addEnvironment(job, "process", executableProcessCommandLine, processEnvironmentVariables);
+			logger.info(methodName, job.getDuccId(), "process env vars: "+envCountProcess);
+			logger.debug(methodName, job.getDuccId(), "ducclet: "+executableProcessCommandLine.getCommandLine());
 			job.setCommandLine(executableProcessCommandLine);
 			List<String> process_executable_arguments = ParsingHelper.parse(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args));
 			ListIterator<String> listIterator = process_executable_arguments.listIterator();
