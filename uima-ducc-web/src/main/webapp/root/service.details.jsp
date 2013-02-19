@@ -79,14 +79,14 @@ under the License.
 		<div id="tabs"> 
 		<ul>
 			<li><a href="#tabs-1">Deployments</a></li>
-			<li><a href="#tabs-2">Specification</a></li>
+			<li><a href="#tabs-2">Registry</a></li>
 		</ul>
 			<div id="tabs-1">
 			    <%@ include file="service.details.table.deployments.jsp" %>
 			</div>
 			<div id="tabs-2">
-   				<div class="specification_data_div">
-   					<span id="specification_data_area"></span>
+   				<div class="registry_data_div">
+   					<span id="registry_data_area"></span>
    				</div>
 			</div>
 		</div>

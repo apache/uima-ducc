@@ -112,7 +112,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccJobInitializationFailData	= duccContext+"/job-initialization-fail-data";
 	private String duccJobRuntimeFailData			= duccContext+"/job-runtime-fail-data";
 	private String duccServiceDeploymentsData    	= duccContext+"/service-deployments-data";
-	private String duccServiceSpecificationData 	= duccContext+"/service-specification-data";
+	private String duccServiceRegistryData 			= duccContext+"/service-registry-data";
 	private String duccServiceSummaryData			= duccContext+"/service-summary-data";
 	
 	private String duccSystemAdminAdminData 		= duccContext+"/system-admin-admin-data";
@@ -1371,25 +1371,16 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void handleDuccServletServiceSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleDuccServletServiceRegistryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleDuccServletServiceSpecificationData";
+		String methodName = "handleDuccServletServiceRegistryData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		try {
 			String name = request.getParameter("name");
 			ServicesRegistry servicesRegistry = new ServicesRegistry();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
-			Properties properties;
-			properties = payload.svc;
-			TreeMap<String,String> map = new TreeMap<String,String>();
-			Enumeration<?> enumeration = properties.keys();
-			while(enumeration.hasMoreElements()) {
-				String key = (String)enumeration.nextElement();
-				map.put(key, key);
-			}
-			Iterator<String> iterator = map.keySet().iterator();
 			sb.append("<table>");
 			sb.append("<tr class=\"ducc-head\">");
 			sb.append("<th>");
@@ -1399,8 +1390,23 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("Value");
 			sb.append("</th>");
 			sb.append("</tr>");
+			String prefix;
+			Properties properties;
+			TreeMap<String,String> map;
+			Enumeration<?> enumeration;
+			Iterator<String> iterator;
 			int i = 0;
 			int counter = 0;
+			//
+			prefix = "svc.";
+			properties = payload.svc;
+			map = new TreeMap<String,String>();
+			enumeration = properties.keys();
+			while(enumeration.hasMoreElements()) {
+				String key = (String)enumeration.nextElement();
+				map.put(key, key);
+			}
+			iterator = map.keySet().iterator();
 			while(iterator.hasNext()) {
 				String key = iterator.next();
 				String value = properties.getProperty(key);
@@ -1410,7 +1416,28 @@ public class DuccHandler extends DuccAbstractHandler {
 					value = show+hide;
 					i++;
 				}
-				putJobSpecEntry(properties, key, value, sb, counter++);
+				putJobSpecEntry(properties, prefix+key, value, sb, counter++);
+			}
+			//
+			prefix = "meta.";
+			properties = payload.meta;
+			map = new TreeMap<String,String>();
+			enumeration = properties.keys();
+			while(enumeration.hasMoreElements()) {
+				String key = (String)enumeration.nextElement();
+				map.put(key, key);
+			}
+			iterator = map.keySet().iterator();
+			while(iterator.hasNext()) {
+				String key = iterator.next();
+				String value = properties.getProperty(key);
+				if(key.endsWith("classpath")) {
+					String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
+					String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
+					value = show+hide;
+					i++;
+				}
+				putJobSpecEntry(properties, prefix+key, value, sb, counter++);
 			}
 			sb.append("</table>");
 			sb.append("<br>");
@@ -2624,8 +2651,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				handleDuccServletServiceDeploymentsData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
-			else if(reqURI.startsWith(duccServiceSpecificationData)) {
-				handleDuccServletServiceSpecificationData(target, baseRequest, request, response);
+			else if(reqURI.startsWith(duccServiceRegistryData)) {
+				handleDuccServletServiceRegistryData(target, baseRequest, request, response);
 			}
 			else if(reqURI.startsWith(duccServiceSummaryData)) {
 				handleDuccServletServiceSummaryData(target, baseRequest, request, response);

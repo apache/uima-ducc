@@ -493,33 +493,33 @@ function ducc_load_job_specification_data()
 	}	
 }
 
-function ducc_init_service_specification_data()
+function ducc_init_service_registry_data()
 {
 	try {
 		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
-		$("#specification_data_area").html(data);
+		$("#registry_data_area").html(data);
 	}
 	catch(err) {
-		ducc_error("ducc_init_service_specification_data",err);
+		ducc_error("ducc_init_service_registry_data",err);
 	}
 }
 
-function ducc_load_service_specification_data()
+function ducc_load_service_registry_data()
 {
 	try {
-		server_url= "/ducc-servlet/service-specification-data"+location.search;
+		server_url= "/ducc-servlet/service-registry-data"+location.search;
 		$.ajax(
 		{
 			url : server_url,
 			success : function (data) 
 			{
-				$("#specification_data_area").html(data);
+				$("#registry_data_area").html(data);
 				hide_show();
 			}
 		});
 	}
 	catch(err) {
-		ducc_error("ducc_load_service_specification_data",err);
+		ducc_error("ducc_load_service_registry_data",err);
 	}	
 }
 
@@ -1252,10 +1252,10 @@ function ducc_init(type)
 		if(type == "service-details") {
 			ducc_init_service_summary_data();
 			ducc_init_service_deployments_data();
-			ducc_init_service_specification_data();
+			ducc_init_service_registry_data();
 			ducc_load_service_summary_data();
 			ducc_load_service_deployments_data();
-			ducc_load_service_specification_data();
+			ducc_load_service_registry_data();
 		}
 		if(type == "system-machines") {
 			ducc_init_machines_data();
@@ -1683,7 +1683,7 @@ function ducc_update_page(type)
 						ducc_load_job_workitems_count_data();
 					}
 					if(type == "service-details") {
-						//ducc_load_service_specification_data();
+						//ducc_load_service_registry_data();
 						ducc_load_service_deployments_data();
 					}
 					if(type == "system-machines") {
