@@ -29,6 +29,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.URL;
 import java.rmi.server.UID;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -348,6 +349,51 @@ public class Utils {
 		}
 		return retVal;
 	}
+
+    public static String findDuccHome()
+    {
+        String ducc_home = System.getenv("DUCC_HOME");
+        if ( ducc_home != null ) {                  // The environment trumps all
+            return ducc_home;
+        }
+
+        ducc_home = System.getProperty("DUCC_HOME");
+        if ( ducc_home != null ) {                  // System properties next
+            return ducc_home;
+        }
+
+        // If nothing, we infer ducc home from where "this" Utils class lives.
+
+        Class<Utils> cl = Utils.class;
+        String n = "/" + cl.getName().replaceAll("\\.", "/")+".class"; // to for /org/apache/uima ... Utils.class
+
+
+        // URL will be of form jar:file:/home/whatever/ducc_runtime/lib/uima-ducc-common.jar!/org/apache/uima/ducc/common/utils/Utils.class
+        URL res = cl.getResource(n);
+        if ( res == null ) {
+        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME.");
+        }
+        
+        String p = res.getFile();
+        String[] parts = p.split("/");
+
+        // The parent must be "lib", and "I" must be a jar, if this is to be valid
+        int last = parts.length - 1;
+        if ( !parts[last].endsWith(".jar") ) {
+        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME, Utils is not in a jar.");
+        }
+
+        if ( !parts[last-1].equals(".lib") ) {
+        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME, Utils is not found in a 'lib' directory.");
+        }
+        int ndx = p.lastIndexOf("/");
+        ndx = p.lastIndexOf("/", ndx);
+        System.out.println("res " + res);
+        System.out.println("p " + p);
+
+        return p.substring(0, ndx);
+    }
+
 	public static void main(String[] args) {
 		try {
 			if ( Utils.isThisNode("192.168.3.3", "192.168.3.3") ) {
