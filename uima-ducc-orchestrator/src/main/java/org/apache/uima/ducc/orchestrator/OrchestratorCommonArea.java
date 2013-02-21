@@ -68,12 +68,57 @@ public class OrchestratorCommonArea {
 	
 	private HistoryPersistenceManager historyPersistenceManager = null;
 	
+	@Deprecated
+	private void initSeqNo() {
+		String location = "initSeqNo";
+		DuccId jobid = null;
+		PropertiesFileManager pfm = (PropertiesFileManager) propertiesFileManager;
+		if(!pfm.containsKey(constSeqNo)) {
+			int biggest = -1;
+			try {
+				int seqno = Integer.valueOf(pfm.get(constJobSeqNo,"-1"));
+				if(seqno > biggest) {
+					biggest = seqno;
+				}
+			}
+			catch(Exception e) {
+				logger.error(location, jobid, e);
+			}
+			try {
+				int seqno = Integer.valueOf(pfm.get(constServiceSeqNo,"-1"));
+				if(seqno > biggest) {
+					biggest = seqno;
+				}
+			}
+			catch(Exception e) {
+				logger.error(location, jobid, e);
+			}
+			try {
+				int seqno = Integer.valueOf(pfm.get(constReservationSeqNo,"-1"));
+				if(seqno > biggest) {
+					biggest = seqno;
+				}
+			}
+			catch(Exception e) {
+				logger.error(location, jobid, e);
+			}
+			try {
+				pfm.set(constSeqNo,""+biggest);
+				pfm.remove(constServiceSeqNo);
+				pfm.remove(constReservationSeqNo);
+				pfm.remove(constJobSeqNo);
+			}
+			catch(Exception e) {
+				logger.error(location, jobid, e);
+			}
+		}
+	}
+	
 	private void init() {
 		ComponentHelper.oneInstance(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
 		setPropertiesFileManager(new PropertiesFileManager(IDuccLoggerComponents.abbrv_orchestrator, IDuccEnv.DUCC_STATE_DIR, constOrchestratorProperties, false, true));
-		setJobDuccIdFactory(new DuccIdFactory(propertiesFileManager,constJobSeqNo));
-		setServiceDuccIdFactory(new DuccIdFactory(propertiesFileManager,constServiceSeqNo));
-		setReservationDuccIdFactory(new DuccIdFactory(propertiesFileManager,constReservationSeqNo));
+		initSeqNo();
+		setDuccIdFactory(new DuccIdFactory(propertiesFileManager,constSeqNo));
 		workMap = new DuccWorkMap();
 		driverStatusReportMap = new ConcurrentHashMap<DuccId,DriverStatusReport>();
 		processAccounting = new ProcessAccounting();
@@ -88,9 +133,13 @@ public class OrchestratorCommonArea {
 	}
 	
 	private static final String constOrchestratorProperties = "orchestrator.properties";
+	@Deprecated
 	private static final String constJobSeqNo = "job.seqno";
+	@Deprecated
 	private static final String constServiceSeqNo = "service.seqno";
+	@Deprecated
 	private static final String constReservationSeqNo = "reservation.seqno";
+	private static final String constSeqNo = "seqno";
 	
 	// **********
 	
@@ -107,38 +156,14 @@ public class OrchestratorCommonArea {
 	
 	// **********
 	
-	private IDuccIdFactory jobDuccIdFactory = null;
+	private IDuccIdFactory duccIdFactory = null;
 	
-	private void setJobDuccIdFactory(IDuccIdFactory instance) {
-		jobDuccIdFactory = instance;
+	private void setDuccIdFactory(IDuccIdFactory instance) {
+		duccIdFactory = instance;
 	}
 	
-	public IDuccIdFactory getJobDuccIdFactory() {
-		return jobDuccIdFactory;
-	}
-	
-	// **********
-	
-	private IDuccIdFactory serviceDuccIdFactory = null;
-	
-	private void setServiceDuccIdFactory(IDuccIdFactory instance) {
-		serviceDuccIdFactory = instance;
-	}
-	
-	public IDuccIdFactory getServiceDuccIdFactory() {
-		return serviceDuccIdFactory;
-	}
-	
-	// **********
-	
-	private IDuccIdFactory reservationDuccIdFactory = null;
-	
-	private void setReservationDuccIdFactory(IDuccIdFactory instance) {
-		reservationDuccIdFactory = instance;
-	}
-	
-	public IDuccIdFactory getReservationDuccIdFactory() {
-		return reservationDuccIdFactory;
+	public IDuccIdFactory getDuccIdFactory() {
+		return duccIdFactory;
 	}
 	
 	// **********

@@ -43,14 +43,14 @@ public class ReservationFactory {
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
-	private IDuccIdFactory reservationDuccIdFactory = orchestratorCommonArea.getReservationDuccIdFactory();
+	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	
 	public DuccWorkReservation create(CommonConfiguration common, ReservationRequestProperties reservationRequestProperties) {
 		String methodName = "create";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		DuccWorkReservation duccWorkReservation = new DuccWorkReservation();
 		// id, type
-		duccWorkReservation.setDuccId(reservationDuccIdFactory.next());
+		duccWorkReservation.setDuccId(duccIdFactory.next());
 		duccWorkReservation.setDuccType(DuccType.Reservation);
 		// standard info
 		DuccStandardInfo standardInfo = new DuccStandardInfo();

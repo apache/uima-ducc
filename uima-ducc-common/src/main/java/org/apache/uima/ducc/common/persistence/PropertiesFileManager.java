@@ -140,6 +140,23 @@ public class PropertiesFileManager implements IPropertiesFileManager {
 		}
 	}
 	
+	@Deprecated
+	public boolean containsKey(String key) {
+		return properties.containsKey(key);
+	}
+	
+	@Deprecated
+	public void remove(String key) {
+		String methodName = "remove";
+		synchronized(this) {
+			logger.trace(methodName, null, messages.fetch("enter"));
+			properties.remove(key);
+			logger.debug(methodName, null, messages.fetchLabel("key")+key);
+			store();
+			logger.trace(methodName, null, messages.fetch("exit"));
+		}
+	}
+	
 	public int increment(String key) {
 		String methodName = "increment";
 		synchronized(this) {

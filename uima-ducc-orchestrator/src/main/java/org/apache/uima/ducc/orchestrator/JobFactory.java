@@ -69,10 +69,9 @@ public class JobFactory {
 	}
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
-	private IDuccIdFactory jobDuccIdFactory = orchestratorCommonArea.getJobDuccIdFactory();
-	private IDuccIdFactory serviceDuccIdFactory = orchestratorCommonArea.getServiceDuccIdFactory();
+	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
-	private DuccIdFactory duccIdFactory = new DuccIdFactory();
+	private DuccIdFactory jdIdFactory = new DuccIdFactory();
 	
 	private String java_classpath = System.getProperty("java.class.path");
 	private String classpath_order = System.getProperty("ducc.orchestrator.job.factory.classpath.order");
@@ -329,7 +328,7 @@ public class JobFactory {
 		driver.setCommandLine(driverCommandLine);
 		//
 		NodeIdentity nodeIdentity = hostManager.getNode();
-		DuccId duccId = duccIdFactory.next();
+		DuccId duccId = jdIdFactory.next();
 		duccId.setFriendly(0);
 		DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
 		driverProcess.setResourceState(ResourceState.Allocated);
@@ -349,12 +348,11 @@ public class JobFactory {
 		String ddCr = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
 		if(ddCr == null) {
 			job.setDuccType(DuccType.Service);
-			job.setDuccId(serviceDuccIdFactory.next());
+			job.setDuccId(duccIdFactory.next());
 		}
 		else {
 			job.setDuccType(DuccType.Job);
-			job.setDuccId(jobDuccIdFactory.next());
-			
+			job.setDuccId(duccIdFactory.next());
 		}
 		// driver
 		DuccType duccType = job.getDuccType();
