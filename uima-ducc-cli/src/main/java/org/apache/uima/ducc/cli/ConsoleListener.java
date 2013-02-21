@@ -19,6 +19,8 @@
 */
 package org.apache.uima.ducc.cli;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -151,6 +153,12 @@ class ConsoleListener
         String remote_host;
         String leader;
 
+        BufferedOutputStream logfile = null;
+        String filename = null;
+        static final String console_tag = "1002 CONSOLE_REDIRECT ";
+        int tag_len = 0;
+        boolean first_error = true;
+
         StdioListener(Socket sock, ConsoleListener cl)
         {
             this.sock = sock;
@@ -165,6 +173,7 @@ class ConsoleListener
                 remote_host = remote_host.substring(0, ndx);
             }
             leader = "[" + remote_host + "] ";
+            tag_len = console_tag.length();
         }
 
         public void close()
@@ -174,6 +183,37 @@ class ConsoleListener
             this.done = true;
             is.close();
             cl.delete(sock.getPort());
+
+            logfile.flush();
+            logfile.close();
+        }
+
+        void tee(String leader, String line)
+        {
+            try {
+				if ((logfile == null) && line.startsWith(console_tag)) {
+					filename = line.substring(tag_len);
+					logfile = new BufferedOutputStream(new FileOutputStream(filename));
+
+                    System.out.println("Create logfile " + filename);
+				}
+				if (logfile != null) {
+					logfile.write(leader.getBytes());
+					logfile.write(' ');
+					logfile.write(line.getBytes());
+					logfile.write('\n');
+                    logfile.flush();
+				} else {
+                    System.out.println("Bypass logfile");
+                } 
+			} catch (Exception e) {
+                if ( first_error ) {
+                    System.out.println("Cannot create or write log file[" + filename + "]: " + e.getMessage());
+                    e.printStackTrace();
+                }
+                first_error = false;
+			}
+			System.out.println(leader + line);
         }
 
         /**
@@ -195,7 +235,7 @@ class ConsoleListener
             if ( len < 0 ) {
                 // this is a lone linend.  Spew the partial if it exists and just return.
                 if ( partial != null ) {
-                    System.out.println(leader + partial);
+                    tee(leader, partial);
                     partial = null;
                 }
                 return;
@@ -210,12 +250,12 @@ class ConsoleListener
 
             for ( int i = 0; i < len; i++ ) {
                 // spew everything but the last line
-                System.out.println(leader + lines[i]);
+                tee(leader, lines[i]);
             }
 
             if ( tmp.endsWith("\n") ) {
                 // if the last line ends with linend, there is no partial, just spew
-                System.out.println(leader + lines[len]);
+                tee(leader, lines[len]);
                 partial = null;
             } else {
                 // otherwise, wait for the next buffer

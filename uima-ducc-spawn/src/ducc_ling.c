@@ -468,6 +468,7 @@ int main(int argc, char **argv, char **envp)
     char *userid = NULL;
     char *filepath = NULL;
     char *workingdir = NULL;
+    char *logfile = NULL;
     struct passwd *pwd= NULL;
     int switch_ids = 0;
     int redirect = 0;
@@ -508,17 +509,18 @@ int main(int argc, char **argv, char **envp)
         exit(1);
     } 
 
-    if ( filepath != NULL ) {
-        fprintf(stdout, "301 Redirecting console into file %s.\n", filepath);
-        redirect = 1;
-    }
 
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
         fprintf(stdout, "302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
         redirect = 1;
+    } else if ( filepath != NULL ) {
+        fprintf(stdout, "301 Redirecting console into file %s.\n", filepath);
+        redirect = 1;
     }
 
-    if ( ! redirect ) {
+    if ( redirect ) {
+        logfile = mklogfile(filepath);
+    } else {
         fprintf(stdout, "300 Bypassing redirect of log.\n");
     } 
         
@@ -607,6 +609,10 @@ int main(int argc, char **argv, char **envp)
         char *console_port = getenv("DUCC_CONSOLE_LISTENER");
         if ( console_port != NULL ) {
             redirect_to_socket(console_port);
+            if ( filepath != NULL ) {
+                // on console redirection, spit out the name of the log file it would have been
+                fprintf(stdout, "1002 CONSOLE_REDIRECT %s\n", logfile);
+            }
         } else {
             redirect_to_file(filepath);
         }
