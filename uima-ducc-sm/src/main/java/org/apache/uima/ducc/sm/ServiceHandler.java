@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.sm;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -244,9 +243,9 @@ public class ServiceHandler
             ServiceSet sset = serviceStateHandler.getServiceByName(dep);                            
             if ( sset == null ) {                              // first time, so it's by reference only
                 try {
-                    sset = new ServiceSet(dep);
+                    sset = new ServiceSet(dep, serviceManager.newId());
                     serviceStateHandler.putServiceByName(dep, sset);
-                } catch ( IllegalArgumentException e ) {       // if 'dep' is invalid we throw
+                } catch ( Exception e ) {       // if 'dep' is invalid, or we can't get a duccid,  we throw
                     s.addMessage(dep, e.getMessage());
                     s.setState(ServiceState.NotAvailable);
                     fatal = true;
@@ -893,7 +892,7 @@ public class ServiceHandler
 
         if (serviceStateHandler.getServiceByName(key) == null ) {
             try {
-                props.store(new FileOutputStream(props_filename), "Service descriptor.");
+                sset.saveServiceProperties();
             } catch ( Exception e ) {
                 error = ("Internal error; unable to store service descriptor. " + key);
                 logger.error(methodName, id, e);
@@ -902,7 +901,7 @@ public class ServiceHandler
             
             try {
                 if ( ! must_deregister ) {
-                    meta.store(new FileOutputStream(meta_filename), "Meta descriptor");
+                    sset.saveMetaProperties();
                 }
             } catch ( Exception e ) {
                 error = ("Internal error; unable to store service meta-descriptor. " + key);
@@ -1028,17 +1027,19 @@ public class ServiceHandler
             serviceStateHandler.removeService(epname, friendly);
         }
 
-        String metafn =  sset.getMetaFilename();
-        String propsfn = sset.getPropsFilename();
+        sset.deleteProperties();
 
-        if ( metafn != null ) {
-            File mf = new File(metafn);
-            mf.delete();
-        }
-        if ( propsfn != null ) {
-            File pf = new File(propsfn);
-            pf.delete();
-        }
+        // String metafn =  sset.getMetaFilename();
+        // String propsfn = sset.getPropsFilename();
+
+        // if ( metafn != null ) {
+        //     File mf = new File(metafn);
+        //     mf.delete();
+        // }
+        // if ( propsfn != null ) {
+        //     File pf = new File(propsfn);
+        //     pf.delete();
+        // }
 
     }
 

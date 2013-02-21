@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.sm;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -119,13 +120,16 @@ public class ServiceSet
     //
     // This is the constructor for an implicit service
     //
-    public ServiceSet(String key)
+    public ServiceSet(String key, DuccId id)
     {
         this.key = key;
+        this.id = id;
         parseEndpoint(key);
 
         this.service_type = ServiceType.UimaAs;
         this.service_class = ServiceClass.Implicit;
+
+        String state_dir = System.getProperty("DUCC_HOME") + "/state";
 
         // need job props and meta props so pinger works
         // job props: , service_ping_class, service_ping_classpath, working_directory, log_directory
@@ -138,6 +142,8 @@ public class ServiceSet
         job_props.put("working_directory", System.getProperty("user.dir")); // whatever my current dir is
         job_props.put("log_directory", System.getProperty("user.dir") + "/../logs");
         job_props.put("service_ping_jvm_args", "-Xmx50M");
+        props_filename = state_dir + "/services/" + id.toString() + ".svc";
+        saveServiceProperties();
 
         meta_props = new DuccProperties();
         meta_props.put("user", System.getProperty("user.name"));
@@ -150,6 +156,8 @@ public class ServiceSet
         meta_props.put("service-alive",      "false");
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
+        meta_filename = state_dir + "/services/" + id.toString() + ".meta";
+        saveMetaProperties();
     }
 
     //
@@ -269,6 +277,22 @@ public class ServiceSet
             endpoint = ep.substring(ndx+1);
         }
 
+    }
+
+    void deleteProperties()
+    {
+        // note that we're NOT synchronized - be sure to call this in a context where that's ok
+        // we want to avoid synchronizing on file activity in case somethng hangs.  which probably
+        // hoses us anyway :(
+        if ( meta_filename != null ) {
+             File mf = new File(meta_filename);
+             mf.delete();
+         }
+
+         if ( props_filename != null ) {
+             File pf = new File(props_filename);
+             pf.delete();
+         }
     }
 
     void setIncoming(ServiceSet sset)
@@ -493,7 +517,7 @@ public class ServiceSet
         return instances;
     }
 
-    private void saveMetaProperties()
+    void saveMetaProperties()
     {
         String methodName = "saveMetaProperties";
         meta_props.put("stopped", ""+stopped);
@@ -512,13 +536,40 @@ public class ServiceSet
             }
         }
         
-        try {
-			meta_props.store(new FileOutputStream(meta_filename), "Meta descriptor");
+        FileOutputStream fos = null;
+        try {            
+			fos = new FileOutputStream(meta_filename);            
+			meta_props.store(fos, "Meta descriptor");
 		} catch (FileNotFoundException e) {
             logger.warn(methodName, id, "Cannot save meta properties, file does not exist.");
 		} catch (IOException e) {
             logger.warn(methodName, id, "I/O Error saving meta properties:", e);
-		}
+		} finally {
+            try {
+				if ( fos != null ) fos.close();
+			} catch (IOException e) {
+			}
+        }
+        return;
+    }
+
+    void saveServiceProperties()
+    {
+        String methodName = "saveServiceProperties";
+        FileOutputStream fos = null;
+        try {
+        	fos = new FileOutputStream(props_filename);
+			job_props.store(fos, "Service descriptor");
+		} catch (FileNotFoundException e) {
+            logger.warn(methodName, id, "Cannot save service properties, file does not exist.");
+		} catch (IOException e) {
+            logger.warn(methodName, id, "I/O Error saving service properties:", e);
+		} finally {
+            try {
+				if ( fos != null ) fos.close();
+			} catch (IOException e) {
+			}
+        }
         return;
     }
 
@@ -917,7 +968,11 @@ public class ServiceSet
                                                         // main state machine, and maybe ping restarted.
             serviceMeta = null;
         }
-        saveMetaProperties();
+        if ( isImplicit() ) {
+            deleteProperties();
+        } else {
+            saveMetaProperties();
+        }
     }
 
     public synchronized void stopPingThread()
@@ -928,7 +983,11 @@ public class ServiceSet
             serviceMeta.stop();
             serviceMeta = null;
         }
-        saveMetaProperties();
+        if ( isImplicit() ) {
+            deleteProperties();
+        } else {
+            saveMetaProperties();
+        }
     }
 
     synchronized void setResponsive()

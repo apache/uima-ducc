@@ -178,10 +178,16 @@ public class ServiceManagerComponent
         sm_props = new DuccProperties();
         File sf = new File(state_file);
         int seq = 0;
+        FileInputStream fos;
         if ( sf.exists() ) {
-            sm_props.load(new FileInputStream(state_file));
-            String s = sm_props.getProperty(service_seqno);
-            seq = Integer.parseInt(s) + 1;
+            fos = new FileInputStream(state_file);
+            try {
+                sm_props.load(fos);
+                String s = sm_props.getProperty(service_seqno);
+                seq = Integer.parseInt(s) + 1;
+            } finally {
+                fos.close();
+            }
         } 
 
         idFactory = new DuccIdFactory(seq);
@@ -771,7 +777,7 @@ public class ServiceManagerComponent
         //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
     }
 
-    private synchronized DuccId newId()
+    public synchronized DuccId newId()
         throws Exception
     {
         DuccId id = idFactory.next();
