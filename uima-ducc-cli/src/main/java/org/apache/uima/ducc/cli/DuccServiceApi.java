@@ -609,7 +609,7 @@ public class DuccServiceApi
         }
 
         // Must enforce this for registered services
-        reply.put(DuccUiConstants.parm_process_deployments_max, "1");     
+        reply.put(DuccUiConstants.name_process_deployments_max, "1");     
 
         //
         // Now: let's resolve placeholders.

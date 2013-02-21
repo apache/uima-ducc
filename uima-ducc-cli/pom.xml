@@ -99,6 +99,54 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
           </execution>
 
           <execution>
+            <id>DuccProcessSubmit</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>uima-ducc-process-submit</finalName>
+               <archive>
+                  <index>false</index>                  
+                  <manifest>
+                    <addClasspath>false</addClasspath>
+                    <mainClass>org.apache.uima.ducc.cli.DuccletSubmit</mainClass>
+                  </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                                    
+               </archive>       
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>DuccProcessCancel</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+            <!-- Name the jar -->
+            <finalName>uima-ducc-process-cancel</finalName>
+               <archive>
+                  <index>false</index>
+                  <manifest>
+                     <addClasspath>false</addClasspath>
+                     <mainClass>org.apache.uima.ducc.cli.DuccProcessCancel</mainClass>
+                  </manifest>
+                  <manifestEntries>
+                    <class-path>${DUCC_CP}</class-path>
+                  </manifestEntries>                  
+               </archive>
+               <excludes>
+                 <exclude>**/</exclude>
+                 <exclude>META-INF/*</exclude>
+               </excludes>
+            </configuration>
+          </execution>
+
+          <execution>
             <id>DuccJobMonitor</id>
             <goals><goal>jar</goal></goals>
             <phase>package</phase>

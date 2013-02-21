@@ -267,6 +267,20 @@ public class DuccUiConstants {
 	public static final String exmp_process_environment = "\"LANG=en_US.UTF-8\"";
 	public static final String dval_process_environment = "";
 	
+	public static final String name_process_executable = "process_executable";
+	public static final String parm_process_executable = "string";
+	public static final String desc_process_executable = "Executable program.";
+	public static final String labl_process_executable = "Executable";
+	public static final String exmp_process_executable = "/bin/sleep";
+	public static final String dval_process_executable = "";
+	
+	public static final String name_process_executable_args = "process_executable_args";
+	public static final String parm_process_executable_args = "Argument String";
+	public static final String desc_process_executable_args = "The process arguments.";
+	public static final String labl_process_executable_args = "Arguments";
+	public static final String exmp_process_executable_args = "-i 20 -f out.file";
+	public static final String dval_process_executable_args = "";
+	
 	public static final String name_process_memory_size = JobSpecificationProperties.key_process_memory_size;
 	public static final String parm_process_memory_size = "size[KB|MB|GB|TB]";
 	public static final String desc_process_memory_size = "Size of memory for process, defaults to GB if units omitted.";

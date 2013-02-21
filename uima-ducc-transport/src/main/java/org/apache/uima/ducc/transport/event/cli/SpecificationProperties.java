@@ -19,13 +19,14 @@
 package org.apache.uima.ducc.transport.event.cli;
 
 import java.io.Serializable;
-import java.util.Properties;
+
+import org.apache.uima.ducc.common.utils.DuccProperties;
 
 /**
  * Job characteristics provided by user.
  */
 @SuppressWarnings("serial")
-public class SpecificationProperties extends Properties implements Serializable {
+public class SpecificationProperties extends DuccProperties implements Serializable {
 	
 	public static String key_submit_errors = "submit_errors";
 	public static String key_submit_warnings = "submit_warnings";
