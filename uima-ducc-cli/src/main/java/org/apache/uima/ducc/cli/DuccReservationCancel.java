@@ -30,6 +30,7 @@ import org.apache.uima.ducc.api.IDuccMessageProcessor;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationReplyDuccEvent;
@@ -97,10 +98,9 @@ public class DuccReservationCancel extends DuccUi {
 			/*
 			 * require DUCC_HOME 
 			 */
-			String ducc_home_key = "DUCC_HOME";
-			String ducc_home = System.getenv(ducc_home_key);
+			String ducc_home = Utils.findDuccHome();
 			if(ducc_home == null) {
-				duccMessageProcessor.err("missing required environment variable: "+ducc_home_key);
+				duccMessageProcessor.err("missing required environment variable: DUCC_HOME");
 				return 1;
 			}
 			/*

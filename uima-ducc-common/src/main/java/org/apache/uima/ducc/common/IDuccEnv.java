@@ -22,7 +22,7 @@ import java.io.File;
 
 public interface IDuccEnv {
 
-	public static final String DUCC_HOME = System.getenv().get("DUCC_HOME");
+	public static final String DUCC_HOME = System.getProperty("DUCC_HOME");
 	
 	public static final String DUCC_HOME_DIR = DUCC_HOME+File.separator;
 	public static final String DUCC_RESOURCES_DIR = DUCC_HOME_DIR+"resources"+File.separator;

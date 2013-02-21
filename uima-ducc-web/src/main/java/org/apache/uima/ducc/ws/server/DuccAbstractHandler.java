@@ -35,6 +35,7 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
@@ -79,7 +80,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 
 	public final String defaultStyleDate = DuccWebUtil.valueStyleDateLong;
 	
-	public String dir_home = System.getenv("DUCC_HOME");
+	public String dir_home = Utils.findDuccHome();
 	public String dir_resources = "resources";
 
 	protected boolean terminateEnabled = true;

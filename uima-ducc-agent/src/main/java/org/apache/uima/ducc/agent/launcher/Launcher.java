@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
@@ -113,7 +114,7 @@ public class Launcher {
             String nodeName = InetAddress.getLocalHost().getHostName();
             Launcher launcher = new Launcher();
             JavaCommandLine cmdLine = new JavaCommandLine("java");
-            String duccHome = System.getenv("DUCC_HOME");
+            String duccHome = Utils.findDuccHome();
             cmdLine.addOption("-Dducc.deploy.configuration="+duccHome+"/resources/ducc.properties");
             cmdLine.addOption("-Dducc.deploy.components=agent");
             cmdLine.addOption("-Djava.library.path=" + duccHome +"/lib/sigar");

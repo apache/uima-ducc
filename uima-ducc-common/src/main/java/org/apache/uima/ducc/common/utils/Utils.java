@@ -350,15 +350,24 @@ public class Utils {
 		return retVal;
 	}
 
+    static String DUCC_HOME = null;
     public static String findDuccHome()
     {
-        String ducc_home = System.getenv("DUCC_HOME");
-        if ( ducc_home != null ) {                  // The environment trumps all
+
+        if ( DUCC_HOME != null ) {
+            return DUCC_HOME;
+        }
+
+        String ducc_home = System.getProperty("DUCC_HOME");
+        if ( ducc_home != null ) {                  // System properties next
+            DUCC_HOME = ducc_home;
             return ducc_home;
         }
 
-        ducc_home = System.getProperty("DUCC_HOME");
-        if ( ducc_home != null ) {                  // System properties next
+        ducc_home = System.getenv("DUCC_HOME");
+        if ( ducc_home != null ) {                  // The environment trumps all
+            DUCC_HOME = ducc_home;
+            System.setProperty("DUCC_HOME", DUCC_HOME);
             return ducc_home;
         }
 
@@ -391,7 +400,9 @@ public class Utils {
         System.out.println("res " + res);
         System.out.println("p " + p);
 
-        return p.substring(0, ndx);
+        DUCC_HOME =  p.substring(0, ndx);
+        System.setProperty("DUCC_HOME", DUCC_HOME);
+        return DUCC_HOME;
     }
 
 	public static void main(String[] args) {

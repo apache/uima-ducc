@@ -29,6 +29,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.IOHelper;
+import org.apache.uima.ducc.common.utils.Utils;
 
 
 public class StateServices implements IStateServices {
@@ -129,7 +130,7 @@ public class StateServices implements IStateServices {
 	///// <test>
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		String ducc_home = System.getenv("DUCC_HOME");
+		String ducc_home = Utils.findDuccHome();
 		if(ducc_home == null) {
 			System.out.println("DUCC_HOME not set in environment");
 			return;

@@ -354,10 +354,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	      List<String> operationalProperties = new ArrayList<String>();
 
 	      if ( cmdLine instanceof JavaCommandLine ) {
-	        String duccHomePath = null;
-	        if ( (duccHomePath = System.getenv("DUCC_HOME")) == null ) {
-	          duccHomePath = System.getProperty("DUCC_HOME");
-	        }
+            String duccHomePath = Utils.findDuccHome();
 	        operationalProperties.add("-DDUCC_HOME="+duccHomePath);
 	        operationalProperties.add("-Dducc.deploy.configuration="+ 
 	                System.getProperty("ducc.deploy.configuration"));

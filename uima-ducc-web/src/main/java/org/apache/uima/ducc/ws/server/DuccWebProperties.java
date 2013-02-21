@@ -24,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.utils.Utils;
+
 public class DuccWebProperties {
 
 	static Properties properties = new Properties();
@@ -40,7 +42,7 @@ public class DuccWebProperties {
 		return (Properties)properties.clone();
 	}
 	
-	private static String dir_home = System.getenv("DUCC_HOME");
+	private static String dir_home = Utils.findDuccHome();
 	private static String dir_resources = "resources";
 	private static String ducc_properties_filename = dir_home+File.separator+dir_resources+File.separator+"ducc.properties";
 	

@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -191,17 +192,11 @@ public class DuccService extends AbstractDuccComponent {
 	public static void main(String[] args) {
 		DuccService duccService = null;
 		try {
-			if ( System.getenv("DUCC_HOME") == null && System.getProperty("DUCC_HOME") == null ) {
+			if ( Utils.findDuccHome() == null ) {
+                //findDuccHome places it into System.properties
 				System.out.println("Unable to Launch Ducc Service - DUCC_HOME not defined. Add it to your environment or provide it with -DDUCC_HOME=<path>");
 				System.exit(-1);
 			}
-            //	make sure DUCC_HOME is in the System properties. Needed to resolve
-            //  any place holders that may exist in paths. If System properties doesnt
-            //  contain this property it must exist in the environment. The DuccService.java
-            //  enforces existence of DUCC_HOME in either the env or System properties. 
-            if ( System.getProperty("DUCC_HOME") == null ) {
-                System.setProperty("DUCC_HOME",System.getenv("DUCC_HOME"));
-            }
 
             if ( System.getenv("IP") == null ) {
                 NodeIdentity ni = new NodeIdentity();

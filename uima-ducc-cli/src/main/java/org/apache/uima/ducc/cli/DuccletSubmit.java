@@ -157,16 +157,6 @@ public class DuccletSubmit
         synchronized(DuccUi.class) {
 
             /*
-             * require DUCC_HOME 
-             */
-            String ducc_home_key = "DUCC_HOME";
-            String ducc_home = System.getenv(ducc_home_key);
-            if(ducc_home == null) {
-                addError("missing required environment variable: " + ducc_home_key);
-                return false;
-            }
-                        
-            /*
              * marshal user
              */
             String user = DuccUiUtilities.getUser();

@@ -34,6 +34,7 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDucc;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
@@ -386,7 +387,7 @@ public class DuccServiceApi
 
         if ( init_done ) return;
 
-        ducc_home = System.getenv("DUCC_HOME");
+        ducc_home = Utils.findDuccHome();
         if ( ducc_home == null ) {
             usage("DUCC_HOME must be set.");
         }

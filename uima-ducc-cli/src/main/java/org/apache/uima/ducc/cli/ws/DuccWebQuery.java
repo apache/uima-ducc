@@ -3,12 +3,13 @@ package org.apache.uima.ducc.cli.ws;
 import java.net.InetAddress;
 
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.Utils;
 
 public class DuccWebQuery {
 	
 	protected DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 	
-	protected String DUCC_HOME = System.getenv().get("DUCC_HOME");
+	protected String DUCC_HOME = Utils.findDuccHome();
 	protected String ws_scheme = "http";
 	protected String ws_host = "localhost";
 	protected String ws_port = "42133";

@@ -31,6 +31,7 @@ import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IOHelper;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
@@ -374,7 +375,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 	}
 	
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		String ducc_home = System.getenv("DUCC_HOME");
+		String ducc_home = Utils.findDuccHome();
 		if(ducc_home == null) {
 			System.out.println("DUCC_HOME not set in environment");
 			return;
