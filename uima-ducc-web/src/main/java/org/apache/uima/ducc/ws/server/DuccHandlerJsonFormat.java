@@ -880,43 +880,49 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String deployments = getDeployments(servicesRegistry,propertiesMeta);
 				JsonArray row = new JsonArray();
 				
+				String typeRegistered = "Registered";
+				
+				String type = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.service_class)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.service_class);
+						if(value != null) {
+							type = value.trim();
+						}
+					}
+				}
+				
 				StringBuffer col;
 				// Start
 				col = new StringBuffer();
-				col.append("<span class=\"ducc-col-start\">");
-				if(buttonsEnabled) {
-					if(!deployments.equals(instances)) {
-						col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+				if(type.equals(typeRegistered)) {
+					col.append("<span class=\"ducc-col-start\">");
+					if(buttonsEnabled) {
+						if(!deployments.equals(instances)) {
+							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+						}
 					}
+					col.append("</span>");
 				}
-				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
 				// Stop
 				col = new StringBuffer();
-				col.append("<span class=\"ducc-col-stop\">");
-				if(buttonsEnabled) {
-					if(!deployments.equals("0")) {
-						col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+				if(type.equals(typeRegistered)) {
+					col.append("<span class=\"ducc-col-stop\">");
+					if(buttonsEnabled) {
+						if(!deployments.equals("0")) {
+							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+						}
 					}
+					col.append("</span>");
 				}
-				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
-				
 				// Id
 				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
 				row.add(new JsonPrimitive(id));
 				// Endpoint
 				row.add(new JsonPrimitive(name));
 				// Type
-				String type = "";
-				if(propertiesMeta != null) {
-					if(propertiesMeta.containsKey(IServicesRegistry.service_class)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.service_class);
-						if(value != null) {
-							type = value;
-						}
-					}
-				}
 				row.add(new JsonPrimitive(type));
 				// State
 				String state = "";

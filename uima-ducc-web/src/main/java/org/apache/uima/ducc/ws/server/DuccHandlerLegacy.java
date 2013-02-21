@@ -740,23 +740,38 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				String deployments = getDeployments(servicesRegistry,propertiesMeta);
 				sb.append(trGet(++counter));
 				
+				String typeRegistered = "Registered";
+				
+				String type = "";
+				if(propertiesMeta != null) {
+					if(propertiesMeta.containsKey(IServicesRegistry.service_class)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.service_class);
+						if(value != null) {
+							type = value.trim();
+						}
+					}
+				}
+				
 				// Start
 				sb.append("<td valign=\"bottom\" class=\"ducc-col-start\">");
-				if(buttonsEnabled) {
-					if(!deployments.equals(instances)) {
-						sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+				if(type.equals(typeRegistered)) {
+					if(buttonsEnabled) {
+						if(!deployments.equals(instances)) {
+							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+						}
 					}
 				}
 				sb.append("</td>");
 				// Stop
 				sb.append("<td valign=\"bottom\" class=\"ducc-col-stop\">");
-				if(buttonsEnabled) {
-					if(!deployments.equals("0")) {
-						sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+				if(type.equals(typeRegistered)) {
+					if(buttonsEnabled) {
+						if(!deployments.equals("0")) {
+							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+						}
 					}
 				}
 				sb.append("</td>");
-				
 				// Service Id
 				sb.append("<td align=\"right\">");
 				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
@@ -768,15 +783,6 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");
 				// Type
 				sb.append("<td>");
-				String type = "";
-				if(propertiesMeta != null) {
-					if(propertiesMeta.containsKey(IServicesRegistry.service_class)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.service_class);
-						if(type != null) {
-							type = value;
-						}
-					}
-				}
 				sb.append(type);
 				sb.append("</td>");
 				// State
