@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ws.server;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.util.Properties;
 
 import org.apache.jasper.servlet.JspServlet;
@@ -27,6 +28,7 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.eclipse.jetty.http.ssl.SslContextFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -45,6 +47,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 public class DuccWebServer {
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccWebServer.class.getName());
 	private static Messages messages = Messages.getInstance();
+	
+	private DuccId jobid = null;
 	
 	/**
 	 * DUCC_WEB should be set as an environment variable.  This is the webserver's
@@ -136,6 +140,14 @@ public class DuccWebServer {
 				this.portSslPw = commonConfiguration.wsPortSslPw;
 				logger.debug(methodName, null, messages.fetchLabel("SSL pw")+portSslPw);
 			}
+		}
+		try {
+			InetAddress inetAddress = InetAddress.getLocalHost();
+			String host = inetAddress.getCanonicalHostName();
+			DuccWebMonitor.getInstance().registerHostPort(host, ""+port);
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
 		}
 		String ducc_web_property = System.getProperty("DUCC_WEB");
 		String ducc_web_env = System.getenv("DUCC_WEB");

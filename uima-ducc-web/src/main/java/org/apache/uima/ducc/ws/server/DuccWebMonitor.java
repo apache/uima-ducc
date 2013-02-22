@@ -66,6 +66,12 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 	
 	private ConcurrentHashMap<DuccId,Long> cMap = new ConcurrentHashMap<DuccId,Long>();
 	
+	private String monitor_host = null;
+	private String monitor_port = null;
+	
+	private String actual_host = null;
+	private String actual_port = null;
+	
 	public DuccWebMonitor() {
 		super();
 		initialize();
@@ -94,6 +100,50 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 			duccLogger.warn(location, jobid, me+" is not an administrator");
 		}
 		DuccListeners.getInstance().register(this);
+		//
+		monitor_host = properties.getProperty("ducc.ws.node");
+		if(monitor_host == null) {
+			monitor_host = properties.getProperty("ducc.head");
+		}
+		monitor_port = properties.getProperty("ducc.ws.port");
+	}
+	
+	public void registerHostPort(String host, String port) {
+		String location = "registerHostPort";
+		actual_host = host;
+		actual_port = port;
+		if(isCanceler()) {
+			duccLogger.info(location, jobid, host+":"+port+" is cancel monitor "+monitor_host+":"+monitor_port);
+		}
+		else {
+			duccLogger.warn(location, jobid, host+":"+port+" is *not* cancel monitor "+monitor_host+":"+monitor_port);
+		}
+	}
+	
+	public boolean isCanceler() {
+		if(actual_host == null) {
+			return false;
+		}
+		if(monitor_host == null) {
+			return false;
+		}
+		if(!actual_host.equals(monitor_host)) {
+			String actual_domainless_host = actual_host.split("\\.")[0];
+			String monitor_domainless_host = monitor_host.split("\\.")[0];
+			if(!actual_domainless_host.equals(monitor_domainless_host)) {
+				return false;
+			}
+		}
+		if(actual_port == null) {
+			return false;
+		}
+		if(monitor_port == null) {
+			return false;
+		}
+		if(!actual_port.equals(monitor_port)) {
+			return false;
+		}
+		return true;
 	}
 	
 	private void cancel(DuccId duccId) {
@@ -138,6 +188,9 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 			if(nowMillis > expiryMillis) {
 				if(isCancelable(duccId)) {
 					cancel(duccId);
+				}
+				else {
+					duccLogger.debug(location, duccId, "not cancelable");
 				}
 			}
 		}
@@ -238,7 +291,12 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 			duccLogger.info(location, duccId, "Job monitor stop");
 		}
 		
-		canceler();
+		if(isCanceler()) {
+			canceler();
+		}
+		else {
+			duccLogger.debug(location, jobid, "Canceler disabled");
+		}
 		
 		duccLogger.trace(location, jobid, "exit");
 	}

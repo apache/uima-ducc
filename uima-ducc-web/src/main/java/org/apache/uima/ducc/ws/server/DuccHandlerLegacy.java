@@ -206,11 +206,12 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				}
 				if(expiry > expiryWarnTime) {
 					sb.append("<span class=\"health_green\" title=\""+text+"\">");
+					sb.append("TimeoutMonitorNominal");
 				}
 				else {
 					sb.append("<span class=\"health_red\" title=\""+text+"\">");
+					sb.append("TimeoutMonitorWarning");
 				}
-				sb.append("WaitTimeout");
 				sb.append("</span>");
 			}
 			else if(duccWebMonitor.isCancelPending(duccId)) {
