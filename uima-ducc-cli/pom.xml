@@ -48,6 +48,25 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ htt
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
+
+
+        <configuration>
+		  <archive>
+			<index>true</index>
+			<manifest>
+			  <addClasspath>false</addClasspath>
+			</manifest>
+			<manifestEntries>
+			  <Ducc-Version>${project.version}</Ducc-Version>
+			  <Ducc-OS-Id>${os.name} ${os.arch} ${os.version}</Ducc-OS-Id>
+			  <Ducc-Bassedir>${basedir}</Ducc-Bassedir>
+			  <Ducc-Java-Vendor>${java.vendor}</Ducc-Java-Vendor>
+			  <Project-Title>Apache UIMA DUCC</Project-Title>
+			  <class-path>${DUCC_CP}</class-path>
+			</manifestEntries>
+		  </archive>
+		</configuration>
+
         <executions>
 
           <execution>
