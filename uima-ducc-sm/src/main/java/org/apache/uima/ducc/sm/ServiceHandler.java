@@ -47,7 +47,11 @@ public class ServiceHandler
     implements SmConstants, 
                Runnable
 {
-    private DuccLogger logger = DuccLogger.getLogger(ServiceHandler.class.getName(), COMPONENT_NAME);	
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private DuccLogger logger = DuccLogger.getLogger(ServiceHandler.class.getName(), COMPONENT_NAME);	
     private IServiceManager serviceManager;
 
     private ServiceStateHandler serviceStateHandler = new ServiceStateHandler();

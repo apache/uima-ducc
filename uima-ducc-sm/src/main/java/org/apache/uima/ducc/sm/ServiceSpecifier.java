@@ -25,7 +25,11 @@ package org.apache.uima.ducc.sm;
 class ServiceSpecifier 
     implements SmConstants
 {
-    String key;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	String key;
     String broker;
     String endpoint;
 	

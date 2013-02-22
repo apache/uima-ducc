@@ -51,7 +51,12 @@ class PingDriver
     implements IServiceMeta,
                SmConstants
 {
-    private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
 
     String[] jvm_args;
     String endpoint;

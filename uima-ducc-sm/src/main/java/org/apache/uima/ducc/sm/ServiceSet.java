@@ -56,7 +56,12 @@ import org.apache.uima.util.Level;
 public class ServiceSet
 	implements SmConstants
 {
-    private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
 
     // key is unique id of descriptor.  The descriptor inherites key from a Job's DuccId, or from
     // a unique-to SM key for implicit references.

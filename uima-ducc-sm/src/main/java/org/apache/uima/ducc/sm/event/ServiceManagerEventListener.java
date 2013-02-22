@@ -43,7 +43,13 @@ public class ServiceManagerEventListener
     implements DuccEventDelegateListener,
                SmConstants
 {
-//	private DuccEventDispatcher eventDispatcher;
+/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	//	private DuccEventDispatcher eventDispatcher;
 //	private String targetEndpoint;
 	private IServiceManager serviceManager;
 	

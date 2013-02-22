@@ -57,7 +57,12 @@ public class DuccServiceApi
                IServiceApi
 {
 
-    String ducc_home = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	String ducc_home = null;
      
     DuccProperties ducc_properties = null;
     Properties     jvmargs = null;     // -D vars from jvm args, as properties

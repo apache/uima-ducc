@@ -34,6 +34,10 @@ class ApiHandler
     implements SmConstants,
                Runnable
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	ServiceVerb cmd;
     ServiceHandler serviceHandler;
 

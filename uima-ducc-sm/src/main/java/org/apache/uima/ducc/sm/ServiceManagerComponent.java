@@ -71,6 +71,10 @@ public class ServiceManagerComponent
                Runnable
 {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getName(), COMPONENT_NAME);	
     DuccWorkMap localMap = null;
 

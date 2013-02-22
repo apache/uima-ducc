@@ -31,7 +31,12 @@ import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 public class ServiceDescription
     implements IServiceDescription
 {
-    // For submitted and registered services
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	// For submitted and registered services
     private ArrayList<DuccId> implementors;
 
     // key is job/service id, value is same.  it's a map for fast existence check
