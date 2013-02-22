@@ -326,9 +326,14 @@ public class DuccletSubmit
     public static void main(String[] args) 
     {
         try {
+            // Instantiate the object with args similar to the CLI, or a pre-built properties file
             DuccletSubmit ds = new DuccletSubmit(args);            
+
+            // Run the API.  If process_attach_console was specified in the args, a console listener is
+            // started but this call does NOT block on it.
             boolean rc = ds.execute();
 
+            // Fetch messages if any.  null means none
             String [] messages = ds.getMessages();
             String [] warnings = ds.getWarnings();
             String [] errors   = ds.getErrors();
@@ -351,9 +356,13 @@ public class DuccletSubmit
                 }
             }
 
+            // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {
+                
+                // Fetch the Ducc ID
             	System.out.println("Process " + ds.getDuccId() + " submitted.");
 
+                // If there is a console listener, you can block now
                 if ( ds.isConsoleAttached() ) {
                     ds.waitForCompletion();
                 }
