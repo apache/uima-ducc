@@ -50,8 +50,9 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
@@ -419,20 +420,28 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
-	private void buildReservationsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkReservation reservation, DuccData duccData) {
+	private void buildReservationsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWork duccwork, DuccData duccData) {
 		String type="Reservation";
 		String id = normalize(duccId);
 		sb.append("<td class=\"ducc-col-terminate\">");
 		if(terminateEnabled) {
-			if(!reservation.isCompleted()) {
-				String disabled = getDisabled(request,reservation);
-				String user = reservation.getStandardInfo().getUser();
+			if(!duccwork.isCompleted()) {
+				String disabled = getDisabled(request,duccwork);
+				String user = duccwork.getStandardInfo().getUser();
 				if(user != null) {
 					if(user.equals(JdConstants.reserveUser)) {
 						disabled = "disabled=\"disabled\"";
 					}
 				}
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_reservation("+id+")\" value=\"Terminate\" "+disabled+"/>");
+				if(duccwork instanceof DuccWorkReservation) {
+					sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_reservation("+id+")\" value=\"Terminate\" "+disabled+"/>");
+				}
+				else if(duccwork instanceof DuccWorkJob) {
+					sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_service("+id+")\" value=\"Terminate\" "+disabled+"/>");
+				}
+				else {
+					//huh?
+				}
 			}
 		}
 		sb.append("</td>");
@@ -442,36 +451,57 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Start
 		sb.append("<td>");
-		sb.append(getTimeStamp(request,reservation.getDuccId(),reservation.getStandardInfo().getDateOfSubmission()));
+		sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfSubmission()));
 		sb.append("</td>");
 		// End
 		sb.append("<td>");
-		switch(reservation.getReservationState()) {
-		case Completed:
-			sb.append(getTimeStamp(request,reservation.getDuccId(),reservation.getStandardInfo().getDateOfCompletion()));
-			break;
-		default:
-			break;
+		if(duccwork instanceof DuccWorkReservation) {
+			DuccWorkReservation reservation = (DuccWorkReservation) duccwork;
+			switch(reservation.getReservationState()) {
+			case Completed:
+				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				break;
+			default:
+				break;
+			}
+		}
+		else if(duccwork instanceof DuccWorkJob) {
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			switch(job.getJobState()) {
+			case Completed:
+				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				break;
+			default:
+				break;
+			}
 		}
 		sb.append("</td>");
 		// User
 		String title = "";
-		String submitter = reservation.getStandardInfo().getSubmitter();
+		String submitter = duccwork.getStandardInfo().getSubmitter();
 		if(submitter != null) {
-			title = " title=\"reservation submitter PID@host: "+submitter+"\"";
+			title = " title=\"submitter PID@host: "+submitter+"\"";
 		}
 		sb.append("<td"+title+">");
-		UserId userId = new UserId(reservation.getStandardInfo().getUser());
+		UserId userId = new UserId(duccwork.getStandardInfo().getUser());
 		sb.append(userId.toString());
 		sb.append("</td>");
 		// Class
 		sb.append("<td>");
-		sb.append(stringNormalize(reservation.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
+		sb.append(stringNormalize(duccwork.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
+		sb.append("</td>");
+		// Type
+		String reservationType = "Unmanaged";
+		if(duccwork instanceof DuccWorkJob) {
+			reservationType = "Managed";
+		}
+		sb.append("<td>");
+		sb.append(reservationType);
 		sb.append("</td>");
 		// State
 		sb.append("<td>");
 		if(duccData.isLive(duccId)) {
-			if(reservation.isOperational()) {
+			if(duccwork.isOperational()) {
 				sb.append("<span class=\"active_state\">");
 			}
 			else {
@@ -481,142 +511,256 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		else {
 			sb.append("<span class=\"historic_state\">");
 		}
-		sb.append(reservation.getStateObject().toString());
+		sb.append(duccwork.getStateObject().toString());
 		if(duccData.isLive(duccId)) {
 			sb.append("</span>");
 		}
 		sb.append("</td>");
 		// Reason
 		sb.append("<td>");
-		switch(reservation.getCompletionType()) {
-		case Undefined:
-			break;
-		case CanceledByUser:
-		case CanceledByAdmin:
-			try {
-				String cancelUser = reservation.getStandardInfo().getCancelUser();
-				if(cancelUser != null) {
-					sb.append("<span title=\"canceled by "+cancelUser+"\">");
-					sb.append(reservation.getCompletionTypeObject().toString());
-					sb.append("</span>");
-				}
-				else {							
+		if(duccwork instanceof DuccWorkReservation) {
+			DuccWorkReservation reservation = (DuccWorkReservation) duccwork;
+			switch(reservation.getCompletionType()) {
+			case Undefined:
+				break;
+			case CanceledByUser:
+			case CanceledByAdmin:
+				try {
+					String cancelUser = duccwork.getStandardInfo().getCancelUser();
+					if(cancelUser != null) {
+						sb.append("<span title=\"canceled by "+cancelUser+"\">");
+						sb.append(duccwork.getCompletionTypeObject().toString());
+						sb.append("</span>");
+					}
+					else {							
+						IRationale rationale = reservation.getCompletionRationale();
+						if(rationale != null) {
+							sb.append("<span title=\""+rationale+"\">");
+							sb.append(duccwork.getCompletionTypeObject().toString());
+							sb.append("</span>");
+						}
+						else {
+							sb.append(duccwork.getCompletionTypeObject().toString());
+						}
+						
+					}
+				} 
+				catch(Exception e) {
 					IRationale rationale = reservation.getCompletionRationale();
 					if(rationale != null) {
 						sb.append("<span title=\""+rationale+"\">");
-						sb.append(reservation.getCompletionTypeObject().toString());
+						sb.append(duccwork.getCompletionTypeObject().toString());
 						sb.append("</span>");
 					}
 					else {
-						sb.append(reservation.getCompletionTypeObject().toString());
+						sb.append(duccwork.getCompletionTypeObject().toString());
 					}
-					
 				}
-			} 
-			catch(Exception e) {
+				break;
+			default:
 				IRationale rationale = reservation.getCompletionRationale();
 				if(rationale != null) {
 					sb.append("<span title=\""+rationale+"\">");
-					sb.append(reservation.getCompletionTypeObject().toString());
+					sb.append(duccwork.getCompletionTypeObject().toString());
 					sb.append("</span>");
 				}
 				else {
-					sb.append(reservation.getCompletionTypeObject().toString());
+					sb.append(duccwork.getCompletionTypeObject().toString());
 				}
+				break;
 			}
-			break;
-		default:
-			IRationale rationale = reservation.getCompletionRationale();
-			if(rationale != null) {
-				sb.append("<span title=\""+rationale+"\">");
-				sb.append(reservation.getCompletionTypeObject().toString());
-				sb.append("</span>");
+		}
+		else if(duccwork instanceof DuccWorkJob) {
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			switch(job.getCompletionType()) {
+			case Undefined:
+				break;
+			case CanceledByUser:
+			case CanceledByAdministrator:
+				try {
+					String cancelUser = duccwork.getStandardInfo().getCancelUser();
+					if(cancelUser != null) {
+						sb.append("<span title=\"canceled by "+cancelUser+"\">");
+						sb.append(duccwork.getCompletionTypeObject().toString());
+						sb.append("</span>");
+					}
+					else {							
+						IRationale rationale = job.getCompletionRationale();
+						if(rationale != null) {
+							sb.append("<span title=\""+rationale+"\">");
+							sb.append(duccwork.getCompletionTypeObject().toString());
+							sb.append("</span>");
+						}
+						else {
+							sb.append(duccwork.getCompletionTypeObject().toString());
+						}
+						
+					}
+				} 
+				catch(Exception e) {
+					IRationale rationale = job.getCompletionRationale();
+					if(rationale != null) {
+						sb.append("<span title=\""+rationale+"\">");
+						sb.append(duccwork.getCompletionTypeObject().toString());
+						sb.append("</span>");
+					}
+					else {
+						sb.append(duccwork.getCompletionTypeObject().toString());
+					}
+				}
+				break;
+			default:
+				IRationale rationale = job.getCompletionRationale();
+				if(rationale != null) {
+					sb.append("<span title=\""+rationale+"\">");
+					sb.append(duccwork.getCompletionTypeObject().toString());
+					sb.append("</span>");
+				}
+				else {
+					sb.append(duccwork.getCompletionTypeObject().toString());
+				}
+				break;
 			}
-			else {
-				sb.append(reservation.getCompletionTypeObject().toString());
-			}
-			break;
 		}
 		sb.append("</td>");
 		// Allocation
 		sb.append("<td align=\"right\">");
-		sb.append(reservation.getSchedulingInfo().getInstancesCount());
+		sb.append(duccwork.getSchedulingInfo().getInstancesCount());
 		sb.append("</td>");
-		// 
-		TreeMap<String,Integer> nodeMap = new TreeMap<String,Integer>(); 
-		if(!reservation.getReservationMap().isEmpty()) {
-			IDuccReservationMap map = reservation.getReservationMap();
-			for (DuccId key : map.keySet()) { 
-				IDuccReservation value = reservation.getReservationMap().get(key);
-				String node = value.getNodeIdentity().getName();
-				if(!nodeMap.containsKey(node)) {
-					nodeMap.put(node,new Integer(0));
-				}
-				Integer count = nodeMap.get(node);
-				count++;
-				nodeMap.put(node,count);
-			}
-		}
 		// User Processes
-		boolean qualify = false;
-		if(!nodeMap.isEmpty()) {
-			if(nodeMap.keySet().size() > 1) {
-				qualify = true;
-			}
-		}
 		sb.append("<td align=\"right\">");
-		ArrayList<String> qualifiedPids = new ArrayList<String>();
-		if(reservation.isOperational()) {
-			DuccMachinesData machinesData = DuccMachinesData.getInstance();
-			for (String node: nodeMap.keySet()) { 
-				NodeId nodeId = new NodeId(node);
-				List<String> nodePids = machinesData.getPids(nodeId, userId);
-				for( String pid : nodePids ) {
-					if(qualify) {
-						qualifiedPids.add(node+":"+pid);
+		TreeMap<String,Integer> nodeMap = new TreeMap<String,Integer>();
+		if(duccwork instanceof DuccWorkReservation) {
+			DuccWorkReservation reservation = (DuccWorkReservation) duccwork;
+			if(!reservation.getReservationMap().isEmpty()) {
+				IDuccReservationMap map = reservation.getReservationMap();
+				for (DuccId key : map.keySet()) { 
+					IDuccReservation value = reservation.getReservationMap().get(key);
+					String node = value.getNodeIdentity().getName();
+					if(!nodeMap.containsKey(node)) {
+						nodeMap.put(node,new Integer(0));
 					}
-					else {
-						qualifiedPids.add(pid);
+					Integer count = nodeMap.get(node);
+					count++;
+					nodeMap.put(node,count);
+				}
+			}
+			
+			boolean qualify = false;
+			if(!nodeMap.isEmpty()) {
+				if(nodeMap.keySet().size() > 1) {
+					qualify = true;
+				}
+			}
+			ArrayList<String> qualifiedPids = new ArrayList<String>();
+			if(duccwork.isOperational()) {
+				DuccMachinesData machinesData = DuccMachinesData.getInstance();
+				for (String node: nodeMap.keySet()) { 
+					NodeId nodeId = new NodeId(node);
+					List<String> nodePids = machinesData.getPids(nodeId, userId);
+					for( String pid : nodePids ) {
+						if(qualify) {
+							qualifiedPids.add(node+":"+pid);
+						}
+						else {
+							qualifiedPids.add(pid);
+						}
 					}
 				}
 			}
-		}
-		if(qualifiedPids.size() > 0) {
-			String list = "";
-			for( String entry : qualifiedPids ) {
-				list += entry+" ";
+			if(qualifiedPids.size() > 0) {
+				String list = "";
+				for( String entry : qualifiedPids ) {
+					list += entry+" ";
+				}
+				sb.append("<span title=\""+list.trim()+"\">");
+				sb.append(""+qualifiedPids.size());
+				sb.append("</span>");
 			}
-			sb.append("<span title=\""+list.trim()+"\">");
-			sb.append(""+qualifiedPids.size());
-			sb.append("</span>");
+			else {
+				sb.append(""+qualifiedPids.size());
+			}
 		}
 		else {
-			sb.append(""+qualifiedPids.size());
+			DuccWorkJob job = (DuccWorkJob) duccwork;
+			if(job.isOperational()) {
+				sb.append(duccwork.getSchedulingInfo().getInstancesCount());
+			}
+			else {
+				sb.append("0");
+			}
 		}
 		sb.append("</td>");
 		// Size
 		sb.append("<td align=\"right\">");
-		String size = reservation.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = reservation.getSchedulingInfo().getShareMemoryUnits();
+		String size = duccwork.getSchedulingInfo().getShareMemorySize();
+		MemoryUnits units = duccwork.getSchedulingInfo().getShareMemoryUnits();
 		sb.append(getProcessMemorySize(duccId,type,size,units));
 		sb.append("</td>");
 		// List
 		sb.append("<td>");
-		if(!nodeMap.isEmpty()) {
-			sb.append("<select>");
-			for (String node: nodeMap.keySet()) {
-				Integer count = nodeMap.get(node);
-				String option = node+" "+"["+count+"]";
-				sb.append("<option>"+option+"</option>");
+		if(duccwork instanceof DuccWorkReservation) {
+			if(!nodeMap.isEmpty()) {
+				sb.append("<select>");
+				for (String node: nodeMap.keySet()) {
+					Integer count = nodeMap.get(node);
+					String option = node+" "+"["+count+"]";
+					sb.append("<option>"+option+"</option>");
+				}
+				sb.append("</select>");
 			}
-			sb.append("</select>");
+		}
+		else {
+			//TODO
 		}
 		sb.append("</td>");
 		// Description
 		sb.append("<td>");
-		sb.append(stringNormalize(reservation.getStandardInfo().getDescription(),messages.fetch("none")));
+		sb.append(stringNormalize(duccwork.getStandardInfo().getDescription(),messages.fetch("none")));
 		sb.append("</td>");
 		sb.append("</tr>");
+	}
+	
+	private boolean isListEligible(ArrayList<String> users, FilterUsersStyle filterUsersStyle, String user, boolean completed) {
+		boolean list = false;
+		if(!users.isEmpty()) {
+			switch(filterUsersStyle) {
+			case IncludePlusActive:
+				if(!completed) {
+					list = true;
+				}
+				else if(users.contains(user)) {
+						list = true;
+				}
+				break;
+			case ExcludePlusActive:
+				if(!completed) {
+					list = true;
+				}
+				else if(!users.contains(user)) {
+						list = true;
+				}
+				break;
+			case Include:
+				if(users.contains(user)) {
+						list = true;
+				}
+				break;
+			case Exclude:
+				if(!users.contains(user)) {
+						list = true;
+				}
+				break;
+			}	
+		}
+		else {
+			if(!completed) {
+				list = true;
+			}
+			else 
+				list = true;
+		}
+		return list;
 	}
 	
 	private void handleServletLegacyReservations(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
@@ -627,78 +771,76 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		
 		int maxRecords = getReservationsMax(request);
-		ArrayList<String> users = getReservationsUsers(request);
+		
 		DuccData duccData = DuccData.getInstance();
+		
 		ConcurrentSkipListMap<ReservationInfo,ReservationInfo> sortedReservations = duccData.getSortedReservations();
+		ConcurrentSkipListMap<JobInfo, JobInfo> sortedServices = duccData.getSortedServices();
+		ConcurrentSkipListMap<Long, Object> sortedCombined = new ConcurrentSkipListMap<Long, Object>();
+		
+		ArrayList<String> users = getReservationsUsers(request);
 		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
-		if(sortedReservations.size()> 0) {
-			Iterator<Entry<ReservationInfo, ReservationInfo>> iterator = sortedReservations.entrySet().iterator();
-			int counter = 0;
-			while(iterator.hasNext()) {
-				ReservationInfo reservationInfo = iterator.next().getValue();
+		
+		if((sortedReservations.size() > 0) || (sortedServices.size() > 0)) {
+			Iterator<Entry<ReservationInfo, ReservationInfo>> iR = sortedReservations.entrySet().iterator();
+			while(iR.hasNext()) {
+				ReservationInfo reservationInfo = iR.next().getValue();
 				DuccWorkReservation reservation = reservationInfo.getReservation();
-				boolean list = false;
-				if(!users.isEmpty()) {
-					String reservationUser = reservation.getStandardInfo().getUser().trim();
-					switch(filterUsersStyle) {
-					case IncludePlusActive:
-						if(!reservation.isCompleted()) {
-							list = true;
-						}
-						else if(users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case ExcludePlusActive:
-						if(!reservation.isCompleted()) {
-							list = true;
-						}
-						else if(!users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Include:
-						if(users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Exclude:
-						if(!users.contains(reservationUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					}	
+				String user = reservation.getStandardInfo().getUser().trim();
+				boolean completed = reservation.isCompleted();
+				if(isListEligible(users, filterUsersStyle, user, completed)) {
+					Long key = new Long(reservation.getDuccId().getFriendly());
+					sortedCombined.put(key, reservation);
 				}
-				else {
-					if(!reservation.isCompleted()) {
-						list = true;
+			}
+			Iterator<Entry<JobInfo, JobInfo>> iS = sortedServices.entrySet().iterator();
+			while(iS.hasNext()) {
+				JobInfo jobInfo = iS.next().getValue();
+				DuccWorkJob job = jobInfo.getJob();
+				ServiceDeploymentType sdt = job.getServiceDeploymentType();
+				switch(sdt) {
+				case uima:
+				case custom:
+				default:
+					break;
+				case other:
+					String user = job.getStandardInfo().getUser().trim();
+					boolean completed = job.isCompleted();
+					if(isListEligible(users, filterUsersStyle, user, completed)) {
+						Long key = new Long(job.getDuccId().getFriendly());
+						sortedCombined.put(key, job);
 					}
-					else if(maxRecords > 0) {
-						if (counter++ < maxRecords) {
-							list = true;
-						}
+					break;
+				}
+			}
+			if(sortedCombined.size() > 0) {
+				int counter = 0;
+				Iterator<Long> keys = sortedCombined.descendingKeySet().iterator();
+				while(keys.hasNext()) {
+					Long key = keys.next();
+					Object object = sortedCombined.get(key);
+					if(object instanceof DuccWorkReservation) {
+						DuccWorkReservation reservation = (DuccWorkReservation) object;
+						sb.append(trGet(counter));
+						buildReservationsListEntry(request, sb, reservation.getDuccId(), reservation, duccData);
+					}
+					else if(object instanceof DuccWorkJob) {
+						DuccWorkJob job = (DuccWorkJob) object;
+						sb.append(trGet(counter));
+						buildReservationsListEntry(request, sb, job.getDuccId(), job, duccData);
+					}
+					else {
+						// huh?
+					}
+					if(counter++ > maxRecords) {
+						break;
 					}
 				}
-				if(list) {
-					sb.append(trGet(counter));
-					buildReservationsListEntry(request, sb, reservation.getDuccId(), reservation, duccData);
-				}
+			}
+			else {
+				sb.append("<tr>");
+				sb.append("<td>");
+				sb.append(messages.fetch("no reservations meet criteria"));
 			}
 		}
 		else {

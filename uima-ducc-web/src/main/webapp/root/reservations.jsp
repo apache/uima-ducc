@@ -17,49 +17,12 @@ specific language governing permissions and limitations
 under the License.
 -->
 <%@ page language="java" %>
-<%
-String table_style = "scroll";
-String cookieName = "ducc:table_style";
-String cookieValue = null;
-Cookie cookie = null;
-Cookie cookies [] = request.getCookies ();
-if (cookies != null)
-{
-  for (int i = 0; i < cookies.length; i++) 
-  {
-    if (cookies [i].getName().equals (cookieName))
-    {
-      cookie = cookies[i];
-      cookieValue = cookie.getValue();
-      if(cookieValue != null) {
-        table_style = cookieValue;
-      }
-      break;
-    }
-  }
-}
-%>
 <html>
 <head>
   <link rel="shortcut icon" href="uima.ico" />
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
-  <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>
-<%
-if (table_style.equals("scroll")) {
-%>
-  <script type="text/javascript" language="javascript" src="opensources/DataTables-1.9.1/media/js/jquery.dataTables.min.js"></script>
-  <script type="text/javascript" language="javascript" src="opensources/DataTables-plugins/fnReloadAjax.js"></script>
-<%
-}
-%>
-  <script src="opensources/jgrowl/jquery.jgrowl.js" type="text/javascript"></script>
-  <link rel="stylesheet" href="opensources/jgrowl/jquery.jgrowl.css" type="text/css"/>
-  <link href="opensources/jquery-ui-1.8.4/gallery/jquery-ui-themes-1.8.4/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <script src="opensources/jquery-ui-1.8.4/ui/minified/jquery-ui.min.js"></script>
-  <link href="opensources/navigation/menu.css" rel="stylesheet" type="text/css">
-  <script src="js/ducc.js"></script>
-  <link href="ducc.css" rel="stylesheet" type="text/css">
+  <%@ include file="$imports.jsp" %>
 <%
 if (table_style.equals("scroll")) {
 %>  
@@ -79,9 +42,9 @@ if (table_style.equals("scroll")) {
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
 									$('td:eq(0)', nRow).css( "text-align", "right" );
                              		$('td:eq(1)', nRow).css( "text-align", "right" );
-                             		$('td:eq(8)', nRow).css( "text-align", "right" );
                              		$('td:eq(9)', nRow).css( "text-align", "right" );
                              		$('td:eq(10)', nRow).css( "text-align", "right" );
+                             		$('td:eq(11)', nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -90,13 +53,6 @@ if (table_style.equals("scroll")) {
 <%
 }
 %>	
-<%
-if (table_style.equals("classic")) {
-%>
-<script type="text/javascript" src="opensources/sorttable.js"></script>
-<%
-}
-%>
 </head>
 <body onload="ducc_init('reservations');" onResize="window.location.href = window.location.href;">
 
@@ -141,30 +97,6 @@ if (table_style.equals("classic")) {
 <%
 if (table_style.equals("scroll")) {
 %>
-<!--
-	<table id="reservations-table" width="100%">
-   	    <caption><b>Reservations List</b><br><i><small>click column heading to sort</small></i></caption>
-			<thead>
-			<tr class="ducc-header">
-			<th class="ducc-col-terminate"></th>
-			<th title="The system assigned id for this reservation">Id</th>
-			<th title="The time this reservation was submitted">Start</th>
-			<th title="The time this reservation was finished">End</th>
-			<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this reservation">User</th>
-			<th title="The user specified class of this reservation">Class</th>
-			<th title="The current state of this reservation">State</th>
-			<th title="The reason for the final state of this reservation, normally CanceledByUser">Reason</th>
-			<th title="The number of resources (machines or shares, depending on class) assigned to this reservation">Allocation</th>
-			<th title="The combined number of PIDs on the assigned resource(s) for user">User<br>Processes</th>
-			<th title="The memory allocation per resource for this reservation, in GB">Size</th>
-			<th title="The list of of machines assigned to this reservation">List</th>
-			<th title="The user specified description of this reservation">Description</th>
-			</tr>
-			</thead>
-			<tbody id="reservations_list_area">
-   	  		</tbody>
-   	</table>
--->   	
 	<table id="reservations-table" width="100%">
 	<caption><b>Reservations List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
@@ -175,6 +107,7 @@ if (table_style.equals("scroll")) {
 			<th title="The time this reservation was finished">End</th>
 			<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this reservation">User</th>
 			<th title="The user specified class of this reservation">Class</th>
+			<th title="The type of this reservation">Type</th>
 			<th title="The current state of this reservation">State</th>
 			<th title="The reason for the final state of this reservation, normally CanceledByUser">Reason</th>
 			<th title="The number of resources (machines or shares, depending on class) assigned to this reservation">Allocation</th>
