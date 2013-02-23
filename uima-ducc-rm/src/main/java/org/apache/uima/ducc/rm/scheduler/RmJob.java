@@ -1232,9 +1232,11 @@ public class RmJob
         int shares = assignedShares.size() + pendingShares.size();        
 
         if ( isReservation() ) {
-            return String.format("%1s%5s %30.30s %10s %10s %6d",
-                                 getShortType(), id.toString(), name, username, getClassName(), shares);
-                                 
+            return String.format("%1s%5s %30.30s %10s %10s %6d %5d %13d %8s %6d",
+                                 getShortType(),
+                                 id.toString(), name, username, getClassName(), 
+                                 shares, share_order, (shares * share_order),
+                                 "", memory);                                 
         } else {
             return String.format("%1s%5s %30.30s %10s %10s %6d %5d %13d %8d %6d %9d %11d %8s", 
                                  getShortType(),
