@@ -930,48 +930,20 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");
 				// State
 				sb.append("<td>");
-				String state = "";
-				if(propertiesMeta != null) {
-					if(propertiesMeta.containsKey(IServicesRegistry.service_state)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.service_state);
-						if(value != null) {
-							state = value;
-						}
-					}
-				}
+				String state = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.service_state);
 				sb.append(state);
 				sb.append("</td>");
-				// Health
+				// Pinging
 				sb.append("<td>");
-				String health = "";
-				if(propertiesMeta != null) {
-					if(propertiesMeta.containsKey(IServicesRegistry.ping_active)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.ping_active);
-						String text = "";
-						if(value != null) {
-							value = value.trim();
-							if(value.equals("true")) {
-								StringBuffer tbuf = new StringBuffer();
-								value = "up";
-								text = "pinging";
-								tbuf.append("<span class=\"health_green\" title=\""+text+"\">");
-								tbuf.append(value);
-								tbuf.append("</span>");
-								health = tbuf.toString();
-							}
-							else {
-								StringBuffer tbuf = new StringBuffer();
-								value = "down";
-								text = "not pinging";
-								tbuf.append("<span class=\"health_red\" title=\""+text+"\">");
-								tbuf.append(value);
-								tbuf.append("</span>");
-								health = tbuf.toString();
-							}
-						}
-					}
-				}
-				sb.append(health);
+				String pinging = DuccHandlerUtils.getInterpretedYesNo(state, propertiesMeta, IServicesRegistry.ping_active);
+				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging);
+				sb.append(decoratedPinging);
+				sb.append("</td>");
+				// Healthy
+				sb.append("<td>");
+				String healthy = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
+				String decoratedHealthy = DuccHandlerUtils.getDecorated(healthy);
+				sb.append(decoratedHealthy);
 				sb.append("</td>");
 				// No. of Instances
 				sb.append("<td align=\"right\">");
