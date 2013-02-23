@@ -122,7 +122,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		String title = "";
 		String submitter = job.getStandardInfo().getSubmitter();
 		if(submitter != null) {
-			title = "title=\"job submitter PID@host: "+submitter+"\" ";
+			title = "title=\"submitter PID@host: "+submitter+"\" ";
 		}
 		sb.append("<td "+title+"valign=\"bottom\">");
 		sb.append(job.getStandardInfo().getUser());
@@ -480,9 +480,9 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		String title = "";
 		String submitter = duccwork.getStandardInfo().getSubmitter();
 		if(submitter != null) {
-			title = " title=\"submitter PID@host: "+submitter+"\"";
+			title = "title=\"submitter PID@host: "+submitter+"\"";
 		}
-		sb.append("<td"+title+">");
+		sb.append("<td "+title+">");
 		UserId userId = new UserId(duccwork.getStandardInfo().getUser());
 		sb.append(userId.toString());
 		sb.append("</td>");

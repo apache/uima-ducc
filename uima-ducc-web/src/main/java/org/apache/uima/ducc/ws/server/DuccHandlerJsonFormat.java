@@ -140,7 +140,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		String title = "";
 		String submitter = job.getStandardInfo().getSubmitter();
 		if(submitter != null) {
-			title = "title=\"job submitter PID@host: "+submitter+"\" ";
+			title = "title=\"submitter PID@host: "+submitter+"\" ";
 		}
 		sb.append("<span "+title+">");
 		sb.append(job.getStandardInfo().getUser());
@@ -565,9 +565,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		String title = "";
 		String submitter = duccwork.getStandardInfo().getSubmitter();
 		if(submitter != null) {
-			title = " title=\"submitter PID@host: "+submitter+"\"";
+			title = "title=\"submitter PID@host: "+submitter+"\"";
 		}
-		sb.append("<span"+title+">");
+		sb.append("<span "+title+">");
 		UserId userId = new UserId(duccwork.getStandardInfo().getUser());
 		sb.append(userId.toString());
 		sb.append("</span>");
