@@ -889,6 +889,13 @@ public class DuccJobSubmit extends DuccUi {
 		 */
 		jobRequestProperties.setProperty(JobRequestProperties.key_submitter_pid_at_host, ManagementFactory.getRuntimeMXBean().getName());
 
+        /*
+         * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
+         */
+        if ( ! resolve_service_dependencies(null, jobRequestProperties) ) {
+            return DuccUiConstants.ERROR;
+        }
+
         boolean missingValue = false;
         Set<Object> keys = jobRequestProperties.keySet();
         for(Object key : keys) {

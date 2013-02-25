@@ -305,6 +305,11 @@ public class DuccUiUtilities {
      *
      * And, we do a quick check for circular dependencies.  At this point all we can check for is no duplicates
      * in the set[endpoint, dependencies].
+     *
+     * @param endpoint This is the endpoint of the caller itself, for resolution ( to make sure it can resolve.).  For
+     *                 jobs this must be null.
+     * @parem dependency_string This is the comma-delimeted string of service ids "I" am dependent upon.
+     * @param jvmargs These are the JVM arguments specified for the job, converted to a properties file.
      */
     public static String resolve_service_dependencies(String endpoint, String dependency_string, Properties jvmargs) 
     {
@@ -315,7 +320,9 @@ public class DuccUiUtilities {
 
         String[] deplist = dependency_string.split(",");
         Map<String, String> resolved = new HashMap<String, String>();
-        resolved.put(endpoint, endpoint);
+        if ( endpoint != null ) {
+            resolved.put(endpoint, endpoint);
+        }
         int ndx = 0;
 
         for ( String d : deplist ) {
@@ -327,11 +334,13 @@ public class DuccUiUtilities {
                 }
                 resolved.put(nextdep, nextdep);
             } else {
-                throw new IllegalArgumentException("Unsuported service type in dependency: " + d);
+                throw new IllegalArgumentException("Ill-formed or unsuported service type in dependency: " + d);
             }
         }
         
-        resolved.remove(endpoint);                   // remember to remove "me"!
+        if ( endpoint != null ) {
+            resolved.remove(endpoint);                   // remember to remove "me"!
+        }
         StringBuffer sb = new StringBuffer();
         ndx = 0;
         int len = resolved.size();
