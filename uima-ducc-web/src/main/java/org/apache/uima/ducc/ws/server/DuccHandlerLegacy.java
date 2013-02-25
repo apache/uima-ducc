@@ -95,7 +95,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
 	}
 	
-	private void buildJobsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData) {
+	private void buildJobsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData, ServicesRegistry servicesRegistry) {
 		String type="Job";
 		String id = normalize(duccId);
 		// Terminate
@@ -254,6 +254,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			sb.append(jobCompletionType);
 			sb.append("</td>");
 		}
+		// Services
+		sb.append("<td valign=\"bottom\" align=\"right\">");
+		sb.append(evaluateServices(job,servicesRegistry));
+		sb.append("</td>");
 		// Processes
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		if(duccData.isLive(duccId)) {
@@ -327,6 +331,8 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
+		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		
 		int maxRecords = getJobsMax(request);
 		ArrayList<String> users = getJobsUsers(request);
 		DuccData duccData = DuccData.getInstance();
@@ -398,7 +404,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				}
 				if(list) {
 					sb.append(trGet(counter));
-					buildJobsListEntry(request, sb, job.getDuccId(), job, duccData);
+					buildJobsListEntry(request, sb, job.getDuccId(), job, duccData, servicesRegistry);
 				}
 			}
 		}

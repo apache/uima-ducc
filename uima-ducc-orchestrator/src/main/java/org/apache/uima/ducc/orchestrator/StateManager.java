@@ -397,7 +397,26 @@ public class StateManager {
 					case Running:
 					case Idle:	
 						if(jdStatusReport.isKillJob()) {
-							jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, jdStatusReport.getJobCompletionRationale(), ProcessDeallocationType.JobFailure);
+							IRationale rationale = jdStatusReport.getJobCompletionRationale();
+							switch(duccWorkJob.getJobState()) {
+							case WaitingForServices:
+								if(rationale == null) {
+									rationale = new Rationale("waiting for services");
+								}
+								else {
+									if(rationale.isSpecified()) {
+										String text = rationale.getText();
+										rationale = new Rationale(text+": "+"waiting for services");
+									}
+									else {
+										rationale = new Rationale("waiting for services");
+									}
+								}
+								break;
+							default:
+								break;
+							}
+							jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, rationale, ProcessDeallocationType.JobFailure);
 							break;
 						}
 						switch(duccWorkJob.getJobState()) {

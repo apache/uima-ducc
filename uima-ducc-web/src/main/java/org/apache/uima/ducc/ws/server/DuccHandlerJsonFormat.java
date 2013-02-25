@@ -109,7 +109,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
 	}
 	
-	private JsonArray buildJobRow(HttpServletRequest request, IDuccWorkJob job, DuccData duccData) {
+	private JsonArray buildJobRow(HttpServletRequest request, IDuccWorkJob job, DuccData duccData, ServicesRegistry servicesRegistry) {
 		String type="Job";
 		JsonArray row = new JsonArray();
 		StringBuffer sb;
@@ -271,6 +271,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			sb.append("</span>");
 		}
 		row.add(new JsonPrimitive(sb.toString()));
+		// Services
+		sb = new StringBuffer();
+		sb.append(evaluateServices(job,servicesRegistry));
+		row.add(new JsonPrimitive(sb.toString()));
 		// Processes
 		sb = new StringBuffer();
 		sb.append("<span>");
@@ -369,6 +373,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 		
+		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		
 		int maxRecords = getJobsMax(request);
 		ArrayList<String> users = getJobsUsers(request);
 		DuccData duccData = DuccData.getInstance();
@@ -439,7 +445,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					}
 				}
 				if(list) {
-					JsonArray row = buildJobRow(request, job, duccData);
+					JsonArray row = buildJobRow(request, job, duccData, servicesRegistry);
 					data.add(row);
 				}
 			}

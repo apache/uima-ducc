@@ -24,8 +24,10 @@ public class Rationale implements IRationale {
 	
 	private String text = null;
 	
+	private static final String unspecified = "unspecified";
+	
 	public Rationale() {
-		setText("unspecified");
+		setText(unspecified);
 	}
 	
 	public Rationale(String text) {
@@ -44,6 +46,23 @@ public class Rationale implements IRationale {
 	@Override
 	public String toString() {
 		return getText();
+	}
+
+	@Override
+	public boolean isSpecified() {
+		return !isUnspecified();
+	}
+	
+	@Override
+	public boolean isUnspecified() {
+		boolean retVal = false;
+		if(text == null) {
+			retVal = true;
+		}
+		else if(text.equalsIgnoreCase(unspecified)) {
+			retVal = true;
+		}
+		return retVal;
 	}
 	
 }

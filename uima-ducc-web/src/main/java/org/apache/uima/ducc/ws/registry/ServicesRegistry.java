@@ -159,6 +159,37 @@ public class ServicesRegistry {
 		return retVal;
 	}
 	
+	public String getServiceState(String name) {
+		String retVal = IServicesRegistry.constant_NotKnown;
+		try {
+			ServicesRegistryMapPayload payload = findService(name);
+			Properties properties = payload.meta;
+			String service_state = properties.getProperty(IServicesRegistry.service_state).trim();
+			if(service_state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
+				String ping_active = properties.getProperty(IServicesRegistry.ping_active).trim();
+				if(ping_active.equalsIgnoreCase(IServicesRegistry.constant_true)) {
+					String service_healthy = properties.getProperty(IServicesRegistry.service_healthy).trim();
+					if(service_healthy.equalsIgnoreCase(IServicesRegistry.constant_true)) {
+						retVal = IServicesRegistry.constant_OK;
+					}
+					else {
+						retVal = IServicesRegistry.constant_NotHealthy;
+					}
+				}
+				else {
+					retVal = IServicesRegistry.constant_NotPinging;
+				}
+			}
+			else {
+				retVal = IServicesRegistry.constant_NotAvailable;
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return retVal;
+	}
+	
 	/*
 	
 	public static ServicesRegistry sr = new ServicesRegistry();

@@ -37,6 +37,15 @@ public class IServicesRegistry {
 	public static final String service_state = IStateServices.service_state;
 	public static final String user = IStateServices.user;
 	
+	public static final String constant_Available = "Available";
+	public static final String constant_true = "true";
+	
+	public static final String constant_NotKnown = "NotKnown";
+	public static final String constant_NotAvailable = "NotAvailable";
+	public static final String constant_NotPinging = "NotPinging";
+	public static final String constant_NotHealthy = "NotHealthy";
+	public static final String constant_OK = "OK";
+	
 	// svc
 	public static final String description = IStateServices.description;
 	public static final String process_memory_size = IStateServices.process_memory_size;

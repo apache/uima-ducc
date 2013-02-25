@@ -766,4 +766,49 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 	}
 	
+	public String evaluateServices(IDuccWorkJob job, ServicesRegistry servicesRegistry) {
+		StringBuffer sb = new StringBuffer();
+		String[] serviceDependencies = job.getServiceDependencies();
+		if(serviceDependencies == null) {
+			sb.append("<span class=\"health_neutral\" >");
+			sb.append("0");
+			sb.append("</span>");
+		}
+		else if(serviceDependencies.length == 0) {
+			sb.append("<span class=\"health_neutral\" >");
+			sb.append(serviceDependencies.length);
+			sb.append("</span>");
+		}
+		else if(job.isFinished()) {
+			sb.append("<span class=\"health_neutral\" >");
+			sb.append(serviceDependencies.length);
+			sb.append("</span>");
+		}
+		else {
+			StringBuffer bs = new StringBuffer();
+			for(String serviceName : serviceDependencies) {
+				String status = servicesRegistry.getServiceState(serviceName);
+				if(!status.equalsIgnoreCase(IServicesRegistry.constant_OK)) {
+					if(bs.length() != 0) {
+						bs.append("<br>");
+					}
+					bs.append("<span class=\"health_red\" >");
+					bs.append(serviceName);
+					bs.append("=");
+					bs.append(status);
+					bs.append("</span>");
+				}
+			}
+			if(bs.length() != 0) {
+				sb.append(bs);
+			}
+			else {
+				sb.append("<span class=\"health_green\" >");
+				sb.append(serviceDependencies.length);
+				sb.append("</span>");
+			}
+		}
+		return sb.toString();
+	}
+	
 }
