@@ -281,7 +281,7 @@ public abstract class CliBase
         return errors.toArray(new String[errors.size()]);
     }
 
-    synchronized long getDuccId()
+    synchronized public long getDuccId()
     {
         return friendlyId;
     }
