@@ -139,6 +139,7 @@ if (table_style.equals("classic")) {
 			<th title="The time this reservation was finished">End</th>
 			<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this reservation">User</th>
 			<th title="The user specified class of this reservation">Class</th>
+			<th title="The type of this reservation">Type</th>
 			<th title="The current state of this reservation">State</th>
 			<th title="The reason for the final state of this reservation, normally CanceledByUser">Reason</th>
 			<th title="The number of resources (machines or shares, depending on class) assigned to this reservation">Allocation</th>

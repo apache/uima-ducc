@@ -474,6 +474,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Reason
 			row.add(new JsonPrimitive(""));
+			// Services
+			row.add(new JsonPrimitive(""));
 			// Processes
 			row.add(new JsonPrimitive(""));
 			// Init Fails
@@ -1083,7 +1085,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Id
 				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
 				row.add(new JsonPrimitive(id));
-				// Endpoint
+				// Name
 				row.add(new JsonPrimitive(name));
 				// Type
 				row.add(new JsonPrimitive(type));
@@ -1094,7 +1096,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String pinging = DuccHandlerUtils.getInterpretedYesNo(state, propertiesMeta, IServicesRegistry.ping_active);
 				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging);
 				row.add(new JsonPrimitive(decoratedPinging));
-				// Healthy
+				// Health
 				String healthy = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
 				String decoratedHealthy = DuccHandlerUtils.getDecorated(healthy);
 				row.add(new JsonPrimitive(decoratedHealthy));
@@ -1102,9 +1104,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(instances));
 				// Deployments
 				row.add(new JsonPrimitive(deployments));
-				// Owning User
+				// User
 				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.user,"")));
-				// Scheduling Class
+				// Class
 				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.scheduling_class,"")));
 				// Size
 				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.process_memory_size,"")));
@@ -1115,15 +1117,29 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 		else {
 			JsonArray row = new JsonArray();
+			// Start
+			row.add(new JsonPrimitive(""));
+			// Stop
+			row.add(new JsonPrimitive(""));
 			// Id
 			row.add(new JsonPrimitive(""));
-			// Endpoint
+			// Name
+			row.add(new JsonPrimitive(""));
+			// Type
+			row.add(new JsonPrimitive(""));
+			// State
+			row.add(new JsonPrimitive(""));
+			// Pinging
+			row.add(new JsonPrimitive(""));
+			// Health
 			row.add(new JsonPrimitive(""));
 			// Instances
 			row.add(new JsonPrimitive(""));
-			// Owning User
+			// Deployments
 			row.add(new JsonPrimitive(""));
-			// Scheduling Class
+			// User
+			row.add(new JsonPrimitive(""));
+			// Class
 			row.add(new JsonPrimitive(""));
 			// Size
 			row.add(new JsonPrimitive(""));
