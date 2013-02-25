@@ -135,19 +135,36 @@ public class ServiceManagerComponent
                     String meta_filename = serviceFileKey(stem + ".meta");
                     metaprops.load(meta_filename);
                     
+                    String sc = metaprops.getProperty("service-class");
+                    if ( (sc != null) && ( sc.equals("Implicit") ) ) {
+                        logger.info(methodName, null, "Scrubbing implicit service", stem);
+                        try {
+                            File mf = new File(meta_filename);
+                            mf.delete();
+                        } catch ( Throwable t ) {
+                            // nothing to do about it, ignore.
+                        }
+                        try {
+                            File pf = new File(props_filename);
+                            pf.delete();
+                        } catch ( Throwable t ) {
+                            // nothing to do about it, ignore.
+                        }
+                        continue;
+                    }
                     
                     int friendly = 0;
 					String uuid = "";
 					try {
 						// these gets will throw if the requisite objects aren't found
 						friendly = metaprops.getIntProperty("numeric_id");
-						uuid = metaprops.getStringProperty("uuid");
+						uuid = metaprops.getStringProperty("uuid");                        
 					} catch (MissingPropertyException e1) {
 						// Ugly, but shouldn't have to be fatal
 						logger.error(methodName, null, "Cannot restore DuccId for", d, "Friendly id:", friendly, "uuid:", uuid);
 						continue;
 					}
-
+                    
                     DuccId id = new DuccId(friendly);
                     id.setUUID(UUID.fromString(uuid));
                     logger.debug(methodName, id, "Unique:", id.getUnique());
