@@ -400,14 +400,13 @@ void redirect_to_socket(char *sockloc)
         fprintf(stderr, "1703 Can't parse IP address %s\n", hostname);
         exit(1);
     }
-    fprintf(stdout, "1704 addr: %x\n", ip);
+    fprintf(stdout, "1704 addr: %x\n", ip.s_addr);
 
     if ((hp = gethostbyaddr((const void *)&ip, sizeof ip, AF_INET)) == NULL) {
         fprintf(stderr, "1705 no name associated with %s\n", hostname);
-        exit(1);
+    } else {        
+        fprintf(stdout, "1706 Name associated with %s is %s\n", hostname, hp->h_name);
     }
-    
-    fprintf(stdout, "1706 Name associated with %s is %s\n", hostname, hp->h_name);
     
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -603,22 +602,6 @@ int main(int argc, char **argv, char **envp)
         fprintf(stdout, "1120 Changed to working dir %s\n", workingdir);
     }
     
-    //
-    // Set up logging dir.  We have swithed by this time so we can't do anything the user couldn't do.
-    //
-    if ( redirect ) {
-        char *console_port = getenv("DUCC_CONSOLE_LISTENER");
-        if ( console_port != NULL ) {
-            redirect_to_socket(console_port);
-            if ( filepath != NULL ) {
-                // on console redirection, spit out the name of the log file it would have been
-                fprintf(stdout, "1002 CONSOLE_REDIRECT %s\n", logfile);
-            }
-        } else {
-            redirect_to_file(filepath);
-        }
-    }
-
     // 
     // Translate DUCC_LD_LIBRARY_PATH into LD_LIBRARY_PATH, if it exists.
     //
@@ -646,7 +629,6 @@ int main(int argc, char **argv, char **envp)
         sprintf(*pathstr, "LD_LIBRARY_PATH=%s", val);
     }
 
-
     //
     // Now just transmogrify into the requested command
     //
@@ -654,6 +636,23 @@ int main(int argc, char **argv, char **envp)
     for ( i = 1; i < argc; i++ ) {
         fprintf(stdout, "    arg[%d]: %s\n", i, argv[i]);
     }
+
+    //
+    // Set up logging dir.  We have swithed by this time so we can't do anything the user couldn't do.
+    //
+    if ( redirect ) {
+        char *console_port = getenv("DUCC_CONSOLE_LISTENER");
+        if ( console_port != NULL ) {
+            redirect_to_socket(console_port);
+            if ( filepath != NULL ) {
+                // on console redirection, spit out the name of the log file it would have been
+                fprintf(stdout, "1002 CONSOLE_REDIRECT %s\n", logfile);
+            }
+        } else {
+            redirect_to_file(filepath);
+        }
+    }
+
     fprintf(stdout, "1001 Command launching...\n");
     fflush(stdout);
     fflush(stderr);
