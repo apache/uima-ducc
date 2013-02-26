@@ -275,7 +275,7 @@ public class Utils {
             PropertyPlaceholderHelper pph = new PropertyPlaceholderHelper("${","}");
             value = pph.replacePlaceholders(value, props);
         }
-		return value;
+		return value;  
 	}
 	/**
 	 * Concatenates multiple arrays into one array of type <A> 
@@ -384,23 +384,28 @@ public class Utils {
         }
         
         String p = res.getFile();
-        String[] parts = p.split("/");
+        String[] parts = p.split("!");
+        p = parts[0];
 
         // The parent must be "lib", and "I" must be a jar, if this is to be valid
-        int last = parts.length - 1;
-        if ( !parts[last].endsWith(".jar") ) {
+        if ( !p.endsWith(".jar") ) {
         	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME, Utils is not in a jar.");
         }
-
-        if ( !parts[last-1].equals(".lib") ) {
-        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME, Utils is not found in a 'lib' directory.");
-        }
+                
         int ndx = p.lastIndexOf("/");
-        ndx = p.lastIndexOf("/", ndx);
+        ndx = p.lastIndexOf("/", ndx-1);
+        p = p.substring(0, ndx);
         System.out.println("res " + res);
         System.out.println("p " + p);
 
-        DUCC_HOME =  p.substring(0, ndx);
+        ndx = p.indexOf(':');       
+        DUCC_HOME =  p.substring(ndx+1);
+
+        File props = new File(DUCC_HOME + "/resources/ducc.properties");
+        if ( ! props.exists() ) {
+        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME, Utils is not in a jar.");
+        }
+
         System.setProperty("DUCC_HOME", DUCC_HOME);
         return DUCC_HOME;
     }

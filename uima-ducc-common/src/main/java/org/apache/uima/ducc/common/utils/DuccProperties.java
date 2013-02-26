@@ -186,11 +186,11 @@ public class DuccProperties extends Properties {
         if ( val == null ) return null;
 
         if ( val.contains("${") ) {
-            val = Utils.resolvePlaceholderIfExists(val, this);
+            val = Utils.resolvePlaceholders(val, this);
         }
 
         if ( val.contains("${") ) {
-            val = Utils.resolvePlaceholderIfExists(val, System.getProperties());
+            val = Utils.resolvePlaceholders(val, System.getProperties());
         }
 
         return val;
@@ -228,7 +228,7 @@ public class DuccProperties extends Properties {
 		String configDir = null;
 		//System.out.println("Ducc Component Loading Configuration from Properties File:"
 		//		+ agentPropertyFile);
-		agentPropertyFile = Utils.resolvePlaceholderIfExists(agentPropertyFile, System.getProperties());
+		agentPropertyFile = Utils.resolvePlaceholders(agentPropertyFile, System.getProperties());
 		FileInputStream fis = new FileInputStream(agentPropertyFile);
 		super.load(fis);
 		fis.close();
