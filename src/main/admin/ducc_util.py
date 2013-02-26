@@ -28,6 +28,7 @@ import grp
 import zipfile
 import resource
 import time
+import platform
 from  stat import *
 from local_hooks import find_other_processes
 
@@ -186,9 +187,13 @@ class DuccUtil:
         self.duccling       = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
         self.webserver_node = self.ducc_properties.get('ducc.ws.node')
         self.jvm            = self.ducc_properties.get('ducc.jvm')
-        ndx = self.jvm.rindex('/')
-        ndx = self.jvm.rindex('/', 0, ndx)
-        self.jvm_home = self.jvm[:ndx]
+
+        if ( self.system == 'Darwin' ):
+            self.jvm_home = "/Library/Java/Home"
+        else:
+            ndx = self.jvm.rindex('/')
+            ndx = self.jvm.rindex('/', 0, ndx)
+            self.jvm_home = self.jvm[:ndx]
 
         # self.broker_url     = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
@@ -220,8 +225,26 @@ class DuccUtil:
     def java_home(self):
         return self.jvm_home
         
+    def find_netstat(self):
+        # don't you wish people would get together on where stuff lives?
+        if ( os.path.exists('/sbin/netstat') ):
+            return '/sbin/netstat'
+        if ( os.path.exists('/usr/sbin/netstat') ):
+            return '/usr/sbin/netstat'
+        if ( os.path.exists('/bin/netstat') ):
+            return '/bin/netstat'
+        if ( os.path.exists('/sbin/netstat') ):
+            return '/usr/bin/netstat'
+        print 'Cannot find netstat'
+        return None
+
     def is_amq_active(self):
-        lines = self.popen('ssh', self.broker_host, 'netstat -an')
+        netstat = self.find_netstat()
+        if ( netstat == None ):
+            print "Cannot determine if ActiveMq is alive."
+            return false
+
+        lines = self.popen('ssh', self.broker_host, netstat, '-an')
         #
         # look for lines like this with the configured port in the 4th token, and
         # ending with LISTEN:
@@ -495,7 +518,11 @@ class DuccUtil:
     def find_ducc_process(self, node):
     
         answer = []
-        resp = self.ssh(node, True,'ps -eo user:14,pid,comm,args')
+        if ( self.system == 'Darwin'):
+            ps = 'ps -eo user,pid,comm,args'
+        else:
+            ps = 'ps -eo user:14,pid,comm,args'
+        resp = self.ssh(node, True, ps)
         ok = True
 
         while True:
@@ -520,7 +547,7 @@ class DuccUtil:
             procname = toks[2]
             fullargs = toks[3:]
 
-            if ( procname != 'java' ):
+            if ( not ('java' in procname) ):
                 continue
 
             cont = False
@@ -641,21 +668,19 @@ class DuccUtil:
         #
         # Get the total memory for the node
         #
-        meminfo = DuccProperties()
-        meminfo.load('/proc/meminfo')
-        mem = meminfo.get('MemTotal')
-        if ( mem.endswith('kB') ):
-            toks = mem.split(' ')
-            mem = str(int(toks[0]) / (1024*1024)) + ' gB'
-        response.append('MEM: memory is ' + mem)
+        if ( self.system != 'Darwin' ):
+            meminfo = DuccProperties()
+            meminfo.load('/proc/meminfo')
+            mem = meminfo.get('MemTotal')
+            if ( mem.endswith('kB') ):
+                toks = mem.split(' ')
+                mem = str(int(toks[0]) / (1024*1024)) + ' gB'
+                response.append('MEM: memory is ' + mem)
 
         #
         # Get the operating system information
         #
-        f = open('/proc/version')
-        for line in f:
-            response.append('ENV: system is ' + line.strip())
-        f.close()
+        response.append('ENV: system is ' + self.system)
 
         #
         # Print the version information from the DUCC jars
@@ -746,6 +771,7 @@ class DuccUtil:
             self.DUCC_HOME = me[:ndx]          # split from 0 to ndx
             os.environ['DUCC_HOME'] = self.DUCC_HOME
 
+        self.system = platform.system()
         self.jvm = None
         self.webserver_node = 'localhost'
         self.duccling = None
