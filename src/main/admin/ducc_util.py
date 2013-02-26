@@ -370,7 +370,7 @@ class DuccUtil:
             for j in extra_jars:
                 CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
             
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/slf4j/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'
@@ -383,6 +383,7 @@ class DuccUtil:
         CLASSPATH = CLASSPATH + ":" + LIB + '/joda-time/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/springframework/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/xmlbeans/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq/*'
 
         # orchestrator http needs codecs
         CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
