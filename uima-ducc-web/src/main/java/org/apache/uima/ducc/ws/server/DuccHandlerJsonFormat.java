@@ -356,9 +356,28 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Description
 		sb = new StringBuffer();
-		sb.append("<span>");
-		sb.append(stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none")));
-		sb.append("</span>");
+		String description = stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none"));
+		switch(getDescriptionStyle(request)) {
+		case Long:
+		default:
+			sb.append("<span>");
+			sb.append(description);
+			sb.append("</span>");
+			break;
+		case Short:
+			String shortDescription = getShortDescription(description);
+			if(shortDescription == null) {
+				sb.append("<span>");
+				sb.append(description);
+				sb.append("</span>");
+			}
+			else {
+				sb.append("<span title=\""+description+"\">");
+				sb.append(shortDescription);
+				sb.append("</span>");
+			}
+			break;
+		}
 		row.add(new JsonPrimitive(sb.toString()));
 		
 		return row;
@@ -812,9 +831,28 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Description
 		sb = new StringBuffer();
-		sb.append("<span>");
-		sb.append(stringNormalize(duccwork.getStandardInfo().getDescription(),messages.fetch("none")));
-		sb.append("</span>");
+		String description = stringNormalize(duccwork.getStandardInfo().getDescription(),messages.fetch("none"));
+		switch(getDescriptionStyle(request)) {
+		case Long:
+		default:
+			sb.append("<span>");
+			sb.append(description);
+			sb.append("</span>");
+			break;
+		case Short:
+			String shortDescription = getShortDescription(description);
+			if(shortDescription == null) {
+				sb.append("<span>");
+				sb.append(description);
+				sb.append("</span>");
+			}
+			else {
+				sb.append("<span title=\""+description+"\">");
+				sb.append(shortDescription);
+				sb.append("</span>");
+			}
+			break;
+		}
 		row.add(new JsonPrimitive(sb.toString()));
 		
 		return row;
@@ -1113,7 +1151,31 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Size
 				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.process_memory_size,"")));
 				// Description
-				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.description,"")));
+				StringBuffer sb = new StringBuffer();
+				String description = getValue(propertiesSvc,IStateServices.description,"");
+				switch(getDescriptionStyle(request)) {
+				case Long:
+				default:
+					sb.append("<span>");
+					sb.append(description);
+					sb.append("</span>");
+					break;
+				case Short:
+					String shortDescription = getShortDescription(description);
+					if(shortDescription == null) {
+						sb.append("<span>");
+						sb.append(description);
+						sb.append("</span>");
+					}
+					else {
+						sb.append("<span title=\""+description+"\">");
+						sb.append(shortDescription);
+						sb.append("</span>");
+					}
+					break;
+				}
+				row.add(new JsonPrimitive(sb.toString()));
+				
 				data.add(row);
 			}
 		}

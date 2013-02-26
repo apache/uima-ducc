@@ -19,6 +19,7 @@ under the License.
 <%@ page language="java" %>
 <%
 boolean dateStyle = true;
+boolean descriptionStyle = true;
 boolean role = true;
 %>
 <html>
@@ -134,6 +135,19 @@ if (dateStyle) {
 		<td><input type="radio"  name="date_style" value="medium"       onclick="ducc_preferences_set('date_style','medium')" /> Medium
 		<td>&nbsp
 		<td><input type="radio"  name="date_style" value="short"        onclick="ducc_preferences_set('date_style','short')" /> Short
+<%
+}
+%>
+<%
+if (descriptionStyle) {
+%>
+		<tr>
+		<tr>
+        <td><i><b>Description Style</b></i>
+		<td>&nbsp
+		<td><input type="radio"  name="description_style" value="long" checked onclick="ducc_preferences_set('description_style','long')" /> Long
+		<td>&nbsp
+		<td><input type="radio"  name="description_style" value="short"        onclick="ducc_preferences_set('description_style','short')" /> Short
 <%
 }
 %>

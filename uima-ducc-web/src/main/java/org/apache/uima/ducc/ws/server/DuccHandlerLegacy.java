@@ -319,7 +319,28 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Description
 		sb.append("<td valign=\"bottom\">");
-		sb.append(stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none")));
+		String description = stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none"));
+		switch(getDescriptionStyle(request)) {
+		case Long:
+		default:
+			sb.append("<span>");
+			sb.append(description);
+			sb.append("</span>");
+			break;
+		case Short:
+			String shortDescription = getShortDescription(description);
+			if(shortDescription == null) {
+				sb.append("<span>");
+				sb.append(description);
+				sb.append("</span>");
+			}
+			else {
+				sb.append("<span title=\""+description+"\">");
+				sb.append(shortDescription);
+				sb.append("</span>");
+			}
+			break;
+		}
 		sb.append("</td>");
 		sb.append("</tr>");
 	}
@@ -722,7 +743,28 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Description
 		sb.append("<td>");
-		sb.append(stringNormalize(duccwork.getStandardInfo().getDescription(),messages.fetch("none")));
+		String description = stringNormalize(duccwork.getStandardInfo().getDescription(),messages.fetch("none"));
+		switch(getDescriptionStyle(request)) {
+		case Long:
+		default:
+			sb.append("<span>");
+			sb.append(description);
+			sb.append("</span>");
+			break;
+		case Short:
+			String shortDescription = getShortDescription(description);
+			if(shortDescription == null) {
+				sb.append("<span>");
+				sb.append(description);
+				sb.append("</span>");
+			}
+			else {
+				sb.append("<span title=\""+description+"\">");
+				sb.append(shortDescription);
+				sb.append("</span>");
+			}
+			break;
+		}
 		sb.append("</td>");
 		sb.append("</tr>");
 	}
@@ -975,7 +1017,28 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");
 				// Description
 				sb.append("<td>");
-				sb.append(getValue(propertiesSvc,IServicesRegistry.description,""));
+				String description = getValue(propertiesSvc,IServicesRegistry.description,"");
+				switch(getDescriptionStyle(request)) {
+				case Long:
+				default:
+					sb.append("<span>");
+					sb.append(description);
+					sb.append("</span>");
+					break;
+				case Short:
+					String shortDescription = getShortDescription(description);
+					if(shortDescription == null) {
+						sb.append("<span>");
+						sb.append(description);
+						sb.append("</span>");
+					}
+					else {
+						sb.append("<span title=\""+description+"\">");
+						sb.append(shortDescription);
+						sb.append("</span>");
+					}
+					break;
+				}
 				sb.append("</td>");
 				sb.append("</tr>");
 			}

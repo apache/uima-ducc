@@ -134,6 +134,17 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
+	public String getShortDescription(String description) {
+		String retVal = null;
+		if(description != null) {
+			int index = description.lastIndexOf('/');
+			if(index > 0) {
+				retVal = description.substring(index);
+			}
+		}
+		return retVal;
+	}
+	
 	public String getTimeStamp(DateStyle dateStyle, String date) {
 		String location = "getTimeStamp";
 		StringBuffer sb = new StringBuffer();
@@ -462,6 +473,24 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		catch(Exception e) {
 		}
 		return dateStyle;
+	}
+	
+	public enum DescriptionStyle { Long, Short };
+	
+	public DescriptionStyle getDescriptionStyle(HttpServletRequest request) {
+		DescriptionStyle descriptionStyle = DescriptionStyle.Long;
+		try {
+			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieStyleDescription);
+			if(cookie.equals(DuccWebUtil.valueStyleDescriptionLong)) {
+				descriptionStyle = DescriptionStyle.Long;
+			}
+			else if(cookie.equals(DuccWebUtil.valueStyleDescriptionShort)) {
+				descriptionStyle = DescriptionStyle.Short;
+			}
+		}
+		catch(Exception e) {
+		}
+		return descriptionStyle;
 	}
 	
 	public enum FilterUsersStyle { Include, IncludePlusActive, Exclude, ExcludePlusActive };

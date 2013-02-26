@@ -63,11 +63,13 @@ public class DuccWebUtil {
 	
 	private static final String table_style = "table_style";
 	private static final String date_style = "date_style";
+	private static final String description_style = "description_style";
 	private static final String filter_users_style = "filter_users_style";
 	private static final String role = "role";
 	
 	public static final String cookieStyleTable = application+join+table_style;
 	public static final String cookieStyleDate = application+join+date_style;
+	public static final String cookieStyleDescription = application+join+description_style;
 	public static final String cookieStyleFilterUsers = application+join+filter_users_style;
 	public static final String cookieRole = application+join+role;
 	
@@ -75,6 +77,10 @@ public class DuccWebUtil {
 	public static final String valueStyleDateMedium = "medium";
 	public static final String valueStyleDateShort = "short";
 	public static final String valueStyleDateDefault = valueStyleDateLong;
+	
+	public static final String valueStyleDescriptionLong = "long";
+	public static final String valueStyleDescriptionShort = "short";
+	public static final String valueStyleDescriptionDefault = valueStyleDescriptionLong;
 	
 	public static final String valueStyleFilterUsersInclude = "include";
 	public static final String valueStyleFilterUsersIncludePlusActive = "include+active";
