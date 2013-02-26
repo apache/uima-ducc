@@ -224,11 +224,11 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 				if(expiry > expiryWarnTime) {
 					sb.append("<span class=\"health_green\" title=\""+text+"\">");
-					sb.append("TimeoutMonitorNominal");
+					sb.append("MonitorActive");
 				}
 				else {
 					sb.append("<span class=\"health_red\" title=\""+text+"\">");
-					sb.append("TimeoutMonitorWarning");
+					sb.append("MonitorWarning");
 				}
 				sb.append("</span>");
 			}
