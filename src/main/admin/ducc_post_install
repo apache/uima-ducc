@@ -262,10 +262,12 @@ class PostInstall(DuccUtil):
 
         amqhome = self.ducc_properties.get('ducc.broker.home')
         os.chdir(amqhome + '/bin')
-        os.system("sed -i.bak 's/.$//' activemq")
+        os.system("sed -i.bak 's/\r//' activemq")
 
         os.chdir(here)
 
 if __name__ == "__main__":
+
+    os.environ['DUCC_POST_INSTALL'] = 'DUCC_POST_INSTALL'
     postinstall = PostInstall()
     postinstall.main(sys.argv[1:])

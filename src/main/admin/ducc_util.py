@@ -188,13 +188,6 @@ class DuccUtil:
         self.webserver_node = self.ducc_properties.get('ducc.ws.node')
         self.jvm            = self.ducc_properties.get('ducc.jvm')
 
-        if ( self.system == 'Darwin' ):
-            self.jvm_home = "/Library/Java/Home"
-        else:
-            ndx = self.jvm.rindex('/')
-            ndx = self.jvm.rindex('/', 0, ndx)
-            self.jvm_home = self.jvm[:ndx]
-
         # self.broker_url     = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
         self.broker_host       = self.ducc_properties.get('ducc.broker.hostname')
@@ -223,6 +216,16 @@ class DuccUtil:
         return self.jvm
         
     def java_home(self):
+        if ( os.environ.has_key('DUCC_POST_INSTALL') ):
+            return 'JAVA_HOME'   # avoid npe during first-time setup
+
+        if ( self.system == 'Darwin' ):
+            self.jvm_home = "/Library/Java/Home"
+        else:
+            ndx = self.jvm.rindex('/')
+            ndx = self.jvm.rindex('/', 0, ndx)
+            self.jvm_home = self.jvm[:ndx]
+
         return self.jvm_home
         
     def find_netstat(self):
