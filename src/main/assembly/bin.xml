@@ -302,15 +302,21 @@ under the License.
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
 
-    <fileSet>
+    <!-- fileSet>
       <directory>target/activemq/apache-activemq-5.6.0</directory>
       <outputDirectory>ducc_runtime/activemq</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>
       
+    </fileSet -->
+
+    <fileSet>
+      <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
+      <outputDirectory>ducc_runtime/activemq</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
     </fileSet>
-
-
+    
     <fileSet>
       <directory>src/main/resources</directory>
       <outputDirectory>ducc_runtime/resources</outputDirectory>
