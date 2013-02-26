@@ -804,19 +804,21 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				JobInfo jobInfo = iS.next().getValue();
 				DuccWorkJob job = jobInfo.getJob();
 				ServiceDeploymentType sdt = job.getServiceDeploymentType();
-				switch(sdt) {
-				case uima:
-				case custom:
-				default:
-					break;
-				case other:
-					String user = job.getStandardInfo().getUser().trim();
-					boolean completed = job.isCompleted();
-					if(isListEligible(users, filterUsersStyle, user, completed)) {
-						Long key = new Long(job.getDuccId().getFriendly());
-						sortedCombined.put(key, job);
+				if(sdt != null) {
+					switch(sdt) {
+					case uima:
+					case custom:
+					default:
+						break;
+					case other:
+						String user = job.getStandardInfo().getUser().trim();
+						boolean completed = job.isCompleted();
+						if(isListEligible(users, filterUsersStyle, user, completed)) {
+							Long key = new Long(job.getDuccId().getFriendly());
+							sortedCombined.put(key, job);
+						}
+						break;
 					}
-					break;
 				}
 			}
 			if(sortedCombined.size() > 0) {
