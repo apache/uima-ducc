@@ -18,17 +18,13 @@
 */
 package org.apache.uima.ducc.common.utils;
 
-import org.apache.camel.dataformat.xstream.XStreamDataFormat;
-import org.apache.camel.impl.DefaultClassResolver;
-
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class XStreamUtils {
 	
 	public static String marshall( Object targetToMarshall) throws Exception {
-		XStreamDataFormat xStreamDataFormat = new XStreamDataFormat();
-        XStream xStream = xStreamDataFormat.getXStream(new DefaultClassResolver());
+        XStream xStream = new XStream(new DomDriver());
         return xStream.toXML(targetToMarshall);
 	}
 	public static Object unmarshall( String targetToUnmarshall) throws Exception {
