@@ -40,6 +40,7 @@ public interface IStateServices {
 	public static final String service_class = "service-class";
 	public static final String service_healthy = "service-healthy";
 	public static final String service_state = "service-state";
+	public static final String service_statistics = "service-statistics";
 	public static final String user = "user";
 	public static final String scheduling_class = "scheduling_class";
 	public static final String process_memory_size = "process_memory_size";
