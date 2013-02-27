@@ -34,10 +34,9 @@ public class DuccHandlerUtils {
 	private static String valueGood = "Good";
 	private static String valuePoor = "Poor";
 	
-	private static String decorateOpenNeutral = "<span class=\"health_neutral\">";
-	private static String decorateOpenGreen = "<span class=\"health_green\">";
-	private static String decorateOpenRed = "<span class=\"health_red\">";
-	private static String decorateClose = "</span>";
+	private static String health_neutral = "health_neutral";
+	private static String health_green = "health_green";
+	private static String health_red = "health_red";
 	
 	public static String getUninterpreted(Properties propertiesMeta, String key) {
 		String retVal = "";
@@ -94,35 +93,66 @@ public class DuccHandlerUtils {
 		return retVal;
 	}
 	
+	private static String openSpan(String spanClass, String spanTitle) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("<");
+		sb.append("span");
+		if(spanClass != null) {
+			sb.append(" ");
+			sb.append("class=");
+			sb.append("\"");
+			sb.append(spanClass);
+			sb.append("\"");
+		}
+		if(spanTitle != null) {
+			sb.append(" ");
+			sb.append("title=");
+			sb.append("\"");
+			sb.append(spanTitle);
+			sb.append("\"");
+		}
+		sb.append(">");
+		return sb.toString();
+	}
+	
+	private static String closeSpan() {
+		return "</span>";
+	}
+	
 	public static String getDecorated(String value) {
+		return getDecorated(value,null);
+	}
+	
+	public static String getDecorated(String value, String popup) {
 		String retVal = "";
 		if(value != null) {
-			if(value.equalsIgnoreCase(valueYes)) {
+			String tValue = value.trim();
+			if(tValue.equalsIgnoreCase(valueYes)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(decorateOpenNeutral);
-				sb.append(value);
-				sb.append(decorateClose);
+				sb.append(openSpan(health_neutral, popup));
+				sb.append(tValue);
+				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
-			else if(value.equalsIgnoreCase(valueNo)) {
+			else if(tValue.equalsIgnoreCase(valueNo)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(decorateOpenRed);
-				sb.append(value);
-				sb.append(decorateClose);
+				sb.append(openSpan(health_red, popup));
+				sb.append(tValue);
+				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
-			else if(value.equalsIgnoreCase(valueGood)) {
+			else if(tValue.equalsIgnoreCase(valueGood)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(decorateOpenGreen);
-				sb.append(value);
-				sb.append(decorateClose);
+				sb.append(openSpan(health_green, popup));
+				sb.append(tValue);
+				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
-			else if(value.equalsIgnoreCase(valuePoor)) {
+			else if(tValue.equalsIgnoreCase(valuePoor)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(decorateOpenRed);
-				sb.append(value);
-				sb.append(decorateClose);
+				sb.append(openSpan(health_red, popup));
+				sb.append(tValue);
+				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
 			else {

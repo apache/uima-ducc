@@ -1131,15 +1131,34 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(type));
 				// State
 				String state = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.service_state);
-				row.add(new JsonPrimitive(state));
+				String s0 = "<span>";
+				String s1 = state;
+				String s2 = "<span>";
+				if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
+					String statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
+					if(statistics != null) {
+						statistics = statistics.trim();
+						if(statistics.length() > 0) {
+							s0 = "<span title=\""+statistics+"\">";
+						}
+					}
+				}
+				row.add(new JsonPrimitive(s0+s1+s2));
 				// Pinging
 				String pinging = DuccHandlerUtils.getInterpretedYesNo(state, propertiesMeta, IServicesRegistry.ping_active);
 				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging);
 				row.add(new JsonPrimitive(decoratedPinging));
 				// Health
-				String healthy = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
-				String decoratedHealthy = DuccHandlerUtils.getDecorated(healthy);
-				row.add(new JsonPrimitive(decoratedHealthy));
+				String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
+				String statistics = null;
+				if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
+					statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
+					if(statistics != null) {
+						statistics = statistics.trim();
+					}
+				}
+				String decoratedHealth = DuccHandlerUtils.getDecorated(health,statistics);
+				row.add(new JsonPrimitive(decoratedHealth));
 				// Instances
 				row.add(new JsonPrimitive(instances));
 				// Deployments

@@ -986,14 +986,21 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				// Pinging
 				sb.append("<td>");
 				String pinging = DuccHandlerUtils.getInterpretedYesNo(state, propertiesMeta, IServicesRegistry.ping_active);
-				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging);
+				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging,null);
 				sb.append(decoratedPinging);
 				sb.append("</td>");
-				// Healthy
+				// Health
 				sb.append("<td>");
-				String healthy = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
-				String decoratedHealthy = DuccHandlerUtils.getDecorated(healthy);
-				sb.append(decoratedHealthy);
+				String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
+				String statistics = null;
+				if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
+					statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
+					if(statistics != null) {
+						statistics = statistics.trim();
+					}
+				}
+				String decoratedHealth = DuccHandlerUtils.getDecorated(health,statistics);
+				sb.append(decoratedHealth);
 				sb.append("</td>");
 				// No. of Instances
 				sb.append("<td align=\"right\">");
