@@ -808,33 +808,42 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			sb.append(serviceDependencies.length);
 			sb.append("</span>");
 		}
-		else if(job.isFinished()) {
-			sb.append("<span class=\"health_neutral\" >");
-			sb.append(serviceDependencies.length);
-			sb.append("</span>");
-		}
 		else {
-			StringBuffer bs = new StringBuffer();
+			StringBuffer down = new StringBuffer();
+			StringBuffer title = new StringBuffer();
 			for(String serviceName : serviceDependencies) {
-				String status = servicesRegistry.getServiceState(serviceName);
-				if(!status.equalsIgnoreCase(IServicesRegistry.constant_OK)) {
-					if(bs.length() != 0) {
-						bs.append("<br>");
+				if(title.length() > 0) {
+					title.append(",");
+				}
+				title.append(serviceName);
+				if(!job.isFinished()) {
+					String status = servicesRegistry.getServiceState(serviceName);
+					if(!status.equalsIgnoreCase(IServicesRegistry.constant_OK)) {
+						if(down.length() != 0) {
+							down.append("<br>");
+						}
+						down.append("<span class=\"health_red\" >");
+						down.append(serviceName);
+						down.append("=");
+						down.append(status);
+						down.append("</span>");
 					}
-					bs.append("<span class=\"health_red\" >");
-					bs.append(serviceName);
-					bs.append("=");
-					bs.append(status);
-					bs.append("</span>");
 				}
 			}
-			if(bs.length() != 0) {
-				sb.append(bs);
+			if(down.length() != 0) {
+				sb.append(down);
 			}
 			else {
-				sb.append("<span class=\"health_green\" >");
-				sb.append(serviceDependencies.length);
-				sb.append("</span>");
+				if(title.length() > 0) {
+					sb.append("<span class=\"health_green\" title=\""+title+"\">");
+					sb.append(serviceDependencies.length);
+					sb.append("</span>");
+				}
+				else {
+					sb.append("<span class=\"health_green\" >");
+					sb.append(serviceDependencies.length);
+					sb.append("</span>");
+				}
 			}
 		}
 		return sb.toString();
