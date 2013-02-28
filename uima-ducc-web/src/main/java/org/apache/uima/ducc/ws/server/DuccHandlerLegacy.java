@@ -50,12 +50,13 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
+import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
@@ -918,6 +919,11 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
+		DuccDataHelper duccDataHelper = DuccDataHelper.getInstance();
+		TreeMap<String, ArrayList<DuccId>> serviceToJobsMap = duccDataHelper.getServiceToJobsUsageMap();
+		TreeMap<String, ArrayList<String>> serviceToServicesMap = duccDataHelper.getServiceToServicesUsageMap();
+		TreeMap<String, ArrayList<DuccId>> serviceToReservationsMap = duccDataHelper.getServiceToReservationsUsageMap();
+		
 		ServicesRegistry servicesRegistry = new ServicesRegistry();
 		ServicesRegistryMap map = servicesRegistry.getMap();
 		if(!map.isEmpty()) {
@@ -1021,6 +1027,66 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				// Process Memory Size
 				sb.append("<td align=\"right\">");
 				sb.append(getValue(propertiesSvc,IServicesRegistry.process_memory_size,""));
+				sb.append("</td>");
+				// Jobs			
+				sb.append("<td align=\"right\">");
+				String jobs = "0";
+				if(serviceToJobsMap.containsKey(name)) {
+					ArrayList<DuccId> duccIds = serviceToJobsMap.get(name);
+					int size = duccIds.size();
+					if(size > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(DuccId duccId : duccIds) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						String title = "active Job Id list: "+idList;
+						jobs = "<span title=\""+title+"\">"+size+"</span>";
+					}
+				}
+				sb.append(jobs);
+				sb.append("</td>");
+				// Services
+				sb.append("<td align=\"right\">");
+				String services = "0";
+				if(serviceToServicesMap.containsKey(name)) {
+					ArrayList<String> duccIds = serviceToServicesMap.get(name);
+					int size = duccIds.size();
+					if(size > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : duccIds) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						String title = "active Service Id list: "+idList;
+						services = "<span title=\""+title+"\">"+size+"</span>";
+					}
+				}
+				sb.append(services);
+				sb.append("</td>");
+				// Reservations
+				sb.append("<td align=\"right\">");
+				String reservations = "0";
+				if(serviceToReservationsMap.containsKey(name)) {
+					ArrayList<DuccId> duccIds = serviceToReservationsMap.get(name);
+					int size = duccIds.size();
+					if(size > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(DuccId duccId : duccIds) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						String title = "active Reservation Id list: "+idList;
+						reservations = "<span title=\""+title+"\">"+size+"</span>";
+					}
+				}
+				sb.append(reservations);
 				sb.append("</td>");
 				// Description
 				sb.append("<td>");

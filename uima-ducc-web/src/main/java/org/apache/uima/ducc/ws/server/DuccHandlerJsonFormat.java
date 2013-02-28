@@ -65,6 +65,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeplo
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
+import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
@@ -1068,7 +1069,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
-
+		
+		DuccDataHelper duccDataHelper = DuccDataHelper.getInstance();
+		TreeMap<String, ArrayList<DuccId>> serviceToJobsMap = duccDataHelper.getServiceToJobsUsageMap();
+		TreeMap<String, ArrayList<String>> serviceToServicesMap = duccDataHelper.getServiceToServicesUsageMap();
+		TreeMap<String, ArrayList<DuccId>> serviceToReservationsMap = duccDataHelper.getServiceToReservationsUsageMap();
+		
 		ServicesRegistry servicesRegistry = new ServicesRegistry();
 		
 		IStateServices iss = StateServices.getInstance();
@@ -1169,6 +1175,60 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.scheduling_class,"")));
 				// Size
 				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.process_memory_size,"")));
+				// Jobs			
+				String jobs = "0";
+				if(serviceToJobsMap.containsKey(name)) {
+					ArrayList<DuccId> duccIds = serviceToJobsMap.get(name);
+					int size = duccIds.size();
+					if(size > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(DuccId duccId : duccIds) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						String title = "active Job Id list: "+idList;
+						jobs = "<span title=\""+title+"\">"+size+"</span>";
+					}
+				}
+				row.add(new JsonPrimitive(jobs));
+				// Services
+				String services = "0";
+				if(serviceToServicesMap.containsKey(name)) {
+					ArrayList<String> duccIds = serviceToServicesMap.get(name);
+					int size = duccIds.size();
+					if(size > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(String duccId : duccIds) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						String title = "active Service Id list: "+idList;
+						services = "<span title=\""+title+"\">"+size+"</span>";
+					}
+				}
+				row.add(new JsonPrimitive(services));
+				// Reservations
+				String reservations = "0";
+				if(serviceToReservationsMap.containsKey(name)) {
+					ArrayList<DuccId> duccIds = serviceToReservationsMap.get(name);
+					int size = duccIds.size();
+					if(size > 0) {
+						StringBuffer idList = new StringBuffer();
+						for(DuccId duccId : duccIds) {
+							if(idList.length() > 0) {
+								idList.append(",");
+							}
+							idList.append(duccId);
+						}
+						String title = "active Reservation Id list: "+idList;
+						reservations = "<span title=\""+title+"\">"+size+"</span>";
+					}
+				}
+				row.add(new JsonPrimitive(reservations));
 				// Description
 				StringBuffer sb = new StringBuffer();
 				String description = getValue(propertiesSvc,IStateServices.description,"");

@@ -803,7 +803,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			sb.append("0");
 			sb.append("</span>");
 		}
-		else if(serviceDependencies.length == 0) {
+		else if(job.isCompleted()){
 			sb.append("<span class=\"health_neutral\" >");
 			sb.append(serviceDependencies.length);
 			sb.append("</span>");
