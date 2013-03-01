@@ -10,6 +10,7 @@ import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.ducc.common.AServicePing;
 import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.resource.ResourceInitializationException;

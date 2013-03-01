@@ -21,6 +21,8 @@ package org.apache.uima.ducc.cli;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -33,6 +35,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.uima.ducc.api.IDuccMessageProcessor;
+import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -327,11 +330,44 @@ public class DuccUiUtilities {
 
         for ( String d : deplist ) {
             d = d.trim();
-            if ( d.startsWith(ServiceType.UimaAs.decode()) || d.startsWith(ServiceType.Custom.decode()) ) {
+            if ( d.startsWith(ServiceType.UimaAs.decode() + ":") || d.startsWith(ServiceType.Custom.decode() + ":") ) {
                 String nextdep = Utils.resolvePlaceholders(d, jvmargs);                
                 if ( resolved.containsKey(nextdep) ) {
                     throw new IllegalArgumentException("Circular dependencies with " + nextdep);
                 }
+        
+                if ( d.startsWith(ServiceType.UimaAs.decode()) ) {
+                    // hard to know if this is a good EP or not but se do know that it MUST have 2 ":" in it, and the broker must be a valid url
+                    // UIMA-AS : queuename : broker
+                    // This code comes from SM:ServiceSet.parseEndpoint.  How best to generalize these?
+                    ndx = d.indexOf(":");
+                    if ( ndx <= 0 ) {
+                        throw new IllegalArgumentException("Invalid UIMA-AS service id: " + d);                        
+                    }
+
+                    d = d.substring(ndx+1);
+                    ndx = d.indexOf(":");
+                    if ( ndx <= 0 ) {
+                        throw new IllegalArgumentException("Invalid UIMA-AS service id (missing or invalid broker URL): " + d);
+                    }
+                    String qname    = d.substring(0, ndx).trim();
+                    String broker   = d.substring(ndx+1).trim();
+                    
+                    @SuppressWarnings("unused")
+                    // this IS unused, it is here only to insure the string is parsed as a URL
+					URL url = null;
+                    try {                
+                        url = new URL(null, broker, new TcpStreamHandler());
+                    } catch (MalformedURLException e) {
+                        throw new IllegalArgumentException("Invalid broker URL in service ID: " + broker);
+                    }
+                    
+                    if ( qname.equals("") || broker.equals("") ) {
+                        throw new IllegalArgumentException("The endpoint cannot be parsed.  Expecting UIMA-AS:Endpoint:Broker, received " + d);
+                    }
+                    
+                }
+                                            
                 resolved.put(nextdep, nextdep);
             } else {
                 throw new IllegalArgumentException("Ill-formed or unsuported service type in dependency: " + d);

@@ -39,6 +39,7 @@ import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
 import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -130,6 +131,10 @@ public class ServiceSet
         this.key = key;
         this.id = id;
         parseEndpoint(key);
+
+        if ( this.service_type == ServiceType.Custom ) {
+            throw new IllegalStateException("Custom services may not be referenced as Implicit services.");
+        }
 
         this.service_type = ServiceType.UimaAs;
         this.service_class = ServiceClass.Implicit;
@@ -270,16 +275,16 @@ public class ServiceSet
 			} catch (MalformedURLException e) {
                 throw new IllegalArgumentException("Invalid broker URL: " + broker);
 			}
-            broker_host = url.getHost();
-            broker_port = url.getPort();
+            this.broker_host = url.getHost();
+            this.broker_port = url.getPort();
 
-            if ( endpoint.equals("") || broker.equals("") ) {
+            if ( this.endpoint.equals("") || this.broker.equals("") ) {
                 throw new IllegalArgumentException("The endpoint cannot be parsed.  Expecting UIMA-AS:Endpoint:Broker, received " + key);
             }
         } else {
             this.service_type = ServiceType.Custom;
             int ndx = ep.indexOf(":");
-            endpoint = ep.substring(ndx+1);
+            this.endpoint = ep.substring(ndx+1);
         }
 
     }
