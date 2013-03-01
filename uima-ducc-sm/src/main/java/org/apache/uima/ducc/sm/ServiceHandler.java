@@ -1157,7 +1157,9 @@ public class ServiceHandler
             
             for ( String dep : deps ) {
                 ServiceSet sset = serviceStateHandler.getServiceByName(dep);
-                clearEdges(sset, visited);
+                if ( sset != null ) {
+                	clearEdges(sset, visited);
+                }
             }
         }
             
@@ -1168,6 +1170,7 @@ public class ServiceHandler
                 if ( deps != null ) {
                     for ( String d : deps ) {
                         ServiceSet outgoing = serviceStateHandler.getServiceByName(d);
+                        if ( outgoing == null ) continue;
                         outgoing.setIncoming(node);
                         node.setOutgoing(outgoing);
                         edges++;
