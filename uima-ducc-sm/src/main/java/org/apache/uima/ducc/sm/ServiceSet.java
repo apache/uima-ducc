@@ -210,7 +210,7 @@ public class ServiceSet
 
         String idprop  = meta.getProperty("implementors", null);
         if ( idprop != null ) {
-            String[] ids = idprop.split(" ");
+            String[] ids = idprop.split("\\s");
             for ( String i : ids ) {
                 friendly_ids.put(Long.parseLong(i), null);
             }
@@ -368,7 +368,7 @@ public class ServiceSet
         String[] result = null;
 
         if ( depstr != null ) {
-            result = depstr.split(",");
+            result = depstr.split("\\s");
             for ( int i = 0; i < result.length; i++ ) {
                 result[i] = result[i].trim();
             }
@@ -1139,7 +1139,7 @@ public class ServiceSet
             logger.debug(methodName, id, "Start stdout:", s);
             
             if ( s.startsWith("Service") && s.endsWith("submitted") ) {
-                String[] toks = s.split(" ");
+                String[] toks = s.split("\\s");
                 long friendly = 0;
                 try {
                     friendly = Long.parseLong(toks[1]);

@@ -551,7 +551,7 @@ public class JobFactory {
             logger.debug(methodName, job.getDuccId(), "No service dependencies");
         } else {
             logger.debug(methodName, job.getDuccId(), "Adding service dependency", depstr);
-            String[] deps = depstr.split(",");      
+            String[] deps = depstr.split("\\s");      
             job.setServiceDependencies(deps);
         }
         // Service Endpoint

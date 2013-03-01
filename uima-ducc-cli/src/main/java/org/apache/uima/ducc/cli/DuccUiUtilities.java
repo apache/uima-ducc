@@ -321,7 +321,7 @@ public class DuccUiUtilities {
             return null;
         }
 
-        String[] deplist = dependency_string.split(",");
+        String[] deplist = dependency_string.split("\\s");
         Map<String, String> resolved = new HashMap<String, String>();
         if ( endpoint != null ) {
             resolved.put(endpoint, endpoint);
@@ -383,7 +383,7 @@ public class DuccUiUtilities {
         for ( String s : resolved.keySet() ) {
             sb.append(s);
             if ( (++ndx ) < len ) {
-                sb.append(",");
+                sb.append(" ");
             }
         }
         return sb.toString();

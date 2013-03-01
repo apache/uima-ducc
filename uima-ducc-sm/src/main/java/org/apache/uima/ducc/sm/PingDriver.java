@@ -340,7 +340,8 @@ class PingDriver
                     int my_ping_rate;
                     synchronized(ping_rate_sync) {
                         my_ping_rate = meta_ping_rate;
-                        if ( meta_ping_rate < META_PING_MAX ) {
+                        if ( (meta_ping_rate < META_PING_MAX) && ( missed_pings == 0) ) {
+                            // double, if not at max rate, and pinging is working 
                             meta_ping_rate = Math.min(META_PING_MAX, meta_ping_rate * 2);
                         }
                     }
