@@ -47,6 +47,16 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>  
     
+    <dependencySet>
+      <includes>
+        <include>com.thoughtworks.xstream:xstream</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputDirectory>ducc_runtime/lib/xstream</outputDirectory>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
      <dependencySet>
       <includes>
         <include>org.apache.uima:uima-ducc-common</include>
