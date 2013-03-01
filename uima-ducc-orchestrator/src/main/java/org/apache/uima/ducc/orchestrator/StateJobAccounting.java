@@ -20,6 +20,8 @@ package org.apache.uima.ducc.orchestrator;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
@@ -34,6 +36,45 @@ public class StateJobAccounting {
 	
 	public static StateJobAccounting getInstance() {
 		return instance;
+	}
+	
+	private boolean advance(IDuccWorkJob job) {
+		String methodName = "advance";
+		boolean retVal = false;
+		try {
+			DuccType duccType = job.getDuccType();
+			switch(duccType) {
+			case Service:
+				ServiceDeploymentType sdt = job.getServiceDeploymentType();
+				switch(sdt) {
+				case other:
+					JobState state = job.getJobState();
+					switch(state) {
+					case Initializing:
+						JobState next = JobState.Running;
+						JobState prev = state;
+						logger.info(methodName, job.getDuccId(),"current["+next+"] previous["+prev+"]"+" "+"-> skipped");
+						retVal = stateChange(job, next);
+						break;
+					default:
+						logger.debug(methodName, job.getDuccId(), "State is not "+JobState.Initializing+" state");
+						break;
+					}
+					break;
+				default:
+					logger.debug(methodName, job.getDuccId(), "Service is not ManagedReservation (other); ServiceDeploymentType="+sdt);
+					break;
+				}
+				break;
+			default:
+				logger.debug(methodName, job.getDuccId(), "DuccType="+duccType);
+				break;
+			}
+		}
+		catch(Exception e) {
+			logger.error(methodName, job.getDuccId(), e);
+		}
+		return retVal;
 	}
 	
 	public boolean stateChange(IDuccWorkJob job, JobState state) {
@@ -79,7 +120,10 @@ public class StateJobAccounting {
 		}
 		if(retVal) {
 			job.setJobState(state);
-			logger.info(methodName, job.getDuccId(),"current["+next+"] previous["+prev+"]");
+			boolean advanceVal = advance(job);
+			if(!advanceVal) {
+				logger.info(methodName, job.getDuccId(),"current["+next+"] previous["+prev+"]");
+			}
 		}
 		else {
 			try {
