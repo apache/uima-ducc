@@ -451,6 +451,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	private void buildReservationsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWork duccwork, DuccData duccData) {
 		String type="Reservation";
 		String id = normalize(duccId);
+		String reservationType = "Unmanaged";
+		if(duccwork instanceof DuccWorkJob) {
+			reservationType = "Managed";
+		}
 		sb.append("<td class=\"ducc-col-terminate\">");
 		if(terminateEnabled) {
 			if(!duccwork.isCompleted()) {
@@ -474,9 +478,16 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Id
-		sb.append("<td>");
-		sb.append(id);
-		sb.append("</td>");
+		if(reservationType.equals("Managed")) {
+			sb.append("<td valign=\"bottom\">");
+			sb.append("<a href=\"reservation.details.html?id="+id+"\">"+id+"</a>");
+			sb.append("</td>");
+		}
+		else {
+			sb.append("<td>");
+			sb.append(id);
+			sb.append("</td>");
+		}
 		// Start
 		sb.append("<td>");
 		sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfSubmission()));
@@ -519,10 +530,6 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append(stringNormalize(duccwork.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
 		sb.append("</td>");
 		// Type
-		String reservationType = "Unmanaged";
-		if(duccwork instanceof DuccWorkJob) {
-			reservationType = "Managed";
-		}
 		sb.append("<td>");
 		sb.append(reservationType);
 		sb.append("</td>");

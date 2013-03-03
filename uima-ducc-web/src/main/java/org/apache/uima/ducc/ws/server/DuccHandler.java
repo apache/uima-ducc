@@ -103,6 +103,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccLoginLink					= duccContext+"/login-link";
 	private String duccAuthenticationStatus 		= duccContext+"/authentication-status";
 	private String duccAuthenticatorVersion 		= duccContext+"/authenticator-version";
+	
 	private String duccJobIdData					= duccContext+"/job-id-data";
 	private String duccJobWorkitemsCountData		= duccContext+"/job-workitems-count-data";
 	private String duccJobProcessesData    			= duccContext+"/job-processes-data";
@@ -111,6 +112,10 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccJobSpecificationData 		= duccContext+"/job-specification-data";
 	private String duccJobInitializationFailData	= duccContext+"/job-initialization-fail-data";
 	private String duccJobRuntimeFailData			= duccContext+"/job-runtime-fail-data";
+	
+	private String duccReservationProcessesData    	= duccContext+"/reservation-processes-data";
+	private String duccReservationSpecificationData = duccContext+"/reservation-specification-data";
+	
 	private String duccServiceDeploymentsData    	= duccContext+"/service-deployments-data";
 	private String duccServiceRegistryData 			= duccContext+"/service-registry-data";
 	private String duccServiceSummaryData			= duccContext+"/service-summary-data";
@@ -255,6 +260,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			String fType = type;
 			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
 		}
+		if(type == "MR") {
+			String fType = "POP";
+			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+		}
 		else if(type == "SP") {
 			String fType = "UIMA";
 			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
@@ -328,6 +337,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		System.out.println(id);
 		 */
 		if(type.equals("SP")) {
+			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
+		}
+		else if(type.equals("MR")) {
 			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
 		}
 		else {
@@ -415,75 +427,79 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(process.getReasonForStoppingProcess());
 		}
 		sb.append("</td>");
-		// Time:initialization
-		List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
-		TimeWindow t;
-		t = (TimeWindow) process.getTimeWindowInit();
+		// Time:initializationTimeWindow t;
 		long timeInitMillis = 0;
-		try {
-			timeInitMillis = t.getElapsedMillis();
-		}
-		catch(Exception e) {
-		}
-		String initTime = "?";
-		if(t != null) {
-			initTime = t.getElapsed(job);
-		}
-		
-		sb.append("<td align=\"right\">");
-		if((t != null) && (t.isEstimated())) {
-			sb.append("<span title=\"estimated\" class=\"health_green\">");
+		if(type.equals("MR")) {
+			// 
 		}
 		else {
-			sb.append("<span class=\"health_black\">");
-		}
-		if(initTime == null) {
-			initTime = "0";
-		}
-		if(!job.isOperational()) {
-			if(upcList == null) {
-				initTime = "";
+			sb.append("<td align=\"right\">");
+			List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
+			TimeWindow t;
+			t = (TimeWindow) process.getTimeWindowInit();
+			try {
+				timeInitMillis = t.getElapsedMillis();
+			}
+			catch(Exception e) {
+			}
+			String initTime = "?";
+			if(t != null) {
+				initTime = t.getElapsed(job);
+			}
+			if((t != null) && (t.isEstimated())) {
+				sb.append("<span title=\"estimated\" class=\"health_green\">");
 			}
 			else {
-				if(upcList.isEmpty()) {
+				sb.append("<span class=\"health_black\">");
+			}
+			if(initTime == null) {
+				initTime = "0";
+			}
+			if(!job.isOperational()) {
+				if(upcList == null) {
 					initTime = "";
 				}
-			}
-		}
-		initTime = chomp("00:", initTime);
-		if(upcList != null) {
-			if(!upcList.isEmpty()) {
-				String id = ""+process.getDuccId().getFriendly();
-				initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
-				StringBuffer loadme = new StringBuffer();
-				loadme.append("<div id=\"loadme"+id+"\">");
-				loadme.append("<table>");
-				loadme.append("<tr>");
-				String ch1 = "Name";
-				String ch2 = "State";
-				String ch3 = "Time";
-				loadme.append("<td>"+"<b>"+ch1+"</b>");
-				loadme.append("<td>"+"<b>"+ch2+"</b>");
-				loadme.append("<td>"+"<b>"+ch3+"</b>");
-				Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
-				while(upcIterator.hasNext()) {
-					IUimaPipelineAEComponent upc = upcIterator.next();
-					String iName = upc.getAeName();
-					String iState = upc.getAeState().toString();
-					String iTime = formatDuration(upc.getInitializationTime());
-					loadme.append("<tr>");
-					loadme.append("<td>"+iName);
-					loadme.append("<td>"+iState);
-					loadme.append("<td>"+iTime);
+				else {
+					if(upcList.isEmpty()) {
+						initTime = "";
+					}
 				}
-				loadme.append("</table>");
-				loadme.append("</div>");
-				sb.append(loadme);
 			}
+			initTime = chomp("00:", initTime);
+			if(upcList != null) {
+				if(!upcList.isEmpty()) {
+					String id = ""+process.getDuccId().getFriendly();
+					initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
+					StringBuffer loadme = new StringBuffer();
+					loadme.append("<div id=\"loadme"+id+"\">");
+					loadme.append("<table>");
+					loadme.append("<tr>");
+					String ch1 = "Name";
+					String ch2 = "State";
+					String ch3 = "Time";
+					loadme.append("<td>"+"<b>"+ch1+"</b>");
+					loadme.append("<td>"+"<b>"+ch2+"</b>");
+					loadme.append("<td>"+"<b>"+ch3+"</b>");
+					Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
+					while(upcIterator.hasNext()) {
+						IUimaPipelineAEComponent upc = upcIterator.next();
+						String iName = upc.getAeName();
+						String iState = upc.getAeState().toString();
+						String iTime = formatDuration(upc.getInitializationTime());
+						loadme.append("<tr>");
+						loadme.append("<td>"+iName);
+						loadme.append("<td>"+iState);
+						loadme.append("<td>"+iTime);
+					}
+					loadme.append("</table>");
+					loadme.append("</div>");
+					sb.append(loadme);
+				}
+			}
+			sb.append(initTime);
+			sb.append("</span>");
+			sb.append("</td>");
 		}
-		sb.append(initTime);
-		sb.append("</span>");
-		sb.append("</td>");
 		/*
 		try {
 			long diff = 0;
@@ -498,6 +514,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		*/
 		// Time:run
+		TimeWindow t;
 		t = (TimeWindow) process.getTimeWindowRun();
 		long timeRunMillis = 0;
 		try {
@@ -536,42 +553,47 @@ public class DuccHandler extends DuccAbstractHandler {
 		catch(Exception e) {
 		}
 		*/
-		SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-		// Time:gc
-		long timeGC = 0;
-		try {
-			timeGC = process.getGarbageCollectionStats().getCollectionTime();
-		}
-		catch(Exception e) {
-		}
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String displayGC = dateFormat.format(new Date(timeGC));
-		displayGC = chomp("00:", displayGC);
-		sb.append("<td align=\"right\">");
-		sb.append(displayGC);
-		sb.append("</td>");
-		// Count:gc
-		long countGC = 0;
-		try {
-			countGC = process.getGarbageCollectionStats().getCollectionCount();
-		}
-		catch(Exception e) {
-		}
-		sb.append("<td align=\"right\">");
-		sb.append(countGC);
-		sb.append("</td>");
-		// %gc
-		double pctGC = 0;
-		double timeTotal = timeInitMillis + timeRunMillis;
-		if(timeTotal > 0) {
-			double denom = timeTotal;
-			double numer = timeGC;
-			pctGC = (numer/denom)*100;
-		}
 		DecimalFormat formatter = new DecimalFormat("##0.0");
-		sb.append("<td align=\"right\">");
-		sb.append(formatter.format(pctGC));
-		sb.append("</td>");
+		if(type.equals("MR")) {
+			// 
+		}
+		else {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+			// Time:gc
+			long timeGC = 0;
+			try {
+				timeGC = process.getGarbageCollectionStats().getCollectionTime();
+			}
+			catch(Exception e) {
+			}
+			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String displayGC = dateFormat.format(new Date(timeGC));
+			displayGC = chomp("00:", displayGC);
+			sb.append("<td align=\"right\">");
+			sb.append(displayGC);
+			sb.append("</td>");
+			// Count:gc
+			long countGC = 0;
+			try {
+				countGC = process.getGarbageCollectionStats().getCollectionCount();
+			}
+			catch(Exception e) {
+			}
+			sb.append("<td align=\"right\">");
+			sb.append(countGC);
+			sb.append("</td>");
+			// %gc
+			double pctGC = 0;
+			double timeTotal = timeInitMillis + timeRunMillis;
+			if(timeTotal > 0) {
+				double denom = timeTotal;
+				double numer = timeGC;
+				pctGC = (numer/denom)*100;
+			}
+			sb.append("<td align=\"right\">");
+			sb.append(formatter.format(pctGC));
+			sb.append("</td>");
+		}
 		/*
 		// Time:cpu
 		sb.append("<td align=\"right\">");
@@ -609,6 +631,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(displayPctRss);
 		sb.append("</td>");
 		if(type.equals("SP")) {
+			// 
+		}
+		else if(type.equals("MR")) {
 			// 
 		}
 		else {
@@ -657,39 +682,44 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</td>");
 		}
 		// Jconsole:Url
-		sb.append("<td>");
-		switch(process.getProcessState()) {
-		case Initializing:
-		case Running:
-			String jmxUrl = process.getProcessJmxUrl();
-			if(jmxUrl != null) {
-				sb.append(buildjConsoleLink(jmxUrl));
-			}
+		if(type.equals("MR")) {
+			// 
 		}
-		sb.append("</td>");
-		sb.append("</tr>");
-		if(fileExists(logsjobdir+errfile)) {
-			String href2 = null;
-			if(type == "JD") {
-				href2 = buildErrorLink(job,errfile);
-				if(href2.equals("0")) {
-					href2 = null;
+		else {
+			sb.append("<td>");
+			switch(process.getProcessState()) {
+			case Initializing:
+			case Running:
+				String jmxUrl = process.getProcessJmxUrl();
+				if(jmxUrl != null) {
+					sb.append(buildjConsoleLink(jmxUrl));
 				}
 			}
-			if(href2 != null) {
-				sb.append(tr);
-				// Id
-				sb.append("<td>");
-				sb.append("</td>");
-				// Err Log
-				sb.append("<td>");
-				sb.append(href2);
-				sb.append("</td>");
-				// Err Log Size (in MB)
-				sb.append("<td align=\"right\">");
-				sb.append(getFileSize(logsjobdir+errfile));
-				sb.append("</td>");
-				sb.append("</tr>");
+			sb.append("</td>");
+			sb.append("</tr>");
+			if(fileExists(logsjobdir+errfile)) {
+				String href2 = null;
+				if(type == "JD") {
+					href2 = buildErrorLink(job,errfile);
+					if(href2.equals("0")) {
+						href2 = null;
+					}
+				}
+				if(href2 != null) {
+					sb.append(tr);
+					// Id
+					sb.append("<td>");
+					sb.append("</td>");
+					// Err Log
+					sb.append("<td>");
+					sb.append(href2);
+					sb.append("</td>");
+					// Err Log Size (in MB)
+					sb.append("<td align=\"right\">");
+					sb.append(getFileSize(logsjobdir+errfile));
+					sb.append("</td>");
+					sb.append("</tr>");
+				}
 			}
 		}
 	}
@@ -868,6 +898,24 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 		return job;
+	}
+	
+	private DuccWorkJob getManagedReservation(String reservationNo) {
+		DuccWorkJob managedReservation = null;
+		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		if(duccWorkMap.getServiceKeySet().size()> 0) {
+			Iterator<DuccId> iterator = null;
+			iterator = duccWorkMap.getServiceKeySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId jobId = iterator.next();
+				String fid = ""+jobId.getFriendly();
+				if(reservationNo.equals(fid)) {
+					managedReservation = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+					break;
+				}
+			}
+		}
+		return managedReservation;
 	}
 	
 	private long getAdjustedTime(long time, IDuccWorkJob job) {
@@ -1181,7 +1229,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				Properties properties = DuccFile.getProperties(job);
+				Properties properties = DuccFile.getJobProperties(job);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
 				while(enumeration.hasMoreElements()) {
@@ -1323,6 +1371,107 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
 		buildJobProcessListEntry(sb, job, process, type, counter);
+	}
+	
+	private void handleDuccServletReservationProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletReservationProcessesData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		String reservationNo = request.getParameter("id");
+		
+		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		DuccWorkJob managedReservation = null;
+		if(duccWorkMap.getServiceKeySet().size()> 0) {
+			Iterator<DuccId> iterator = null;
+			iterator = duccWorkMap.getServiceKeySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId jobId = iterator.next();
+				String fid = ""+jobId.getFriendly();
+				if(reservationNo.equals(fid)) {
+					managedReservation = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+					break;
+				}
+			}
+		}
+		if(managedReservation != null) {
+			Iterator<DuccId> iterator = null;
+			int counter = 0;
+			String type = "MR";
+			iterator = managedReservation.getProcessMap().keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId processId = iterator.next();
+				IDuccProcess process = managedReservation.getProcessMap().get(processId);
+				buildServiceProcessListEntry(sb, managedReservation, process, type, ++counter);
+			}
+		}
+		if(sb.length() == 0) {
+			sb.append("<tr>");
+			sb.append("<td>");
+			sb.append("not found");
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private void handleDuccServletReservationSpecificationData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletReservationSpecificationData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		String reservationNo = request.getParameter("id");
+		
+		DuccWorkJob managedReservation = getManagedReservation(reservationNo);
+		if(managedReservation != null) {
+			try {
+				Properties properties = DuccFile.getManagedReservationProperties(managedReservation);
+				TreeMap<String,String> map = new TreeMap<String,String>();
+				Enumeration<?> enumeration = properties.keys();
+				while(enumeration.hasMoreElements()) {
+					String key = (String)enumeration.nextElement();
+					map.put(key, key);
+				}
+				Iterator<String> iterator = map.keySet().iterator();
+				sb.append("<table>");
+				sb.append("<tr class=\"ducc-head\">");
+				sb.append("<th>");
+				sb.append("Key");
+				sb.append("</th>");
+				sb.append("<th>");
+				sb.append("Value");
+				sb.append("</th>");
+				sb.append("</tr>");
+				int i = 0;
+				int counter = 0;
+				while(iterator.hasNext()) {
+					String key = iterator.next();
+					String value = properties.getProperty(key);
+					if(key.endsWith("classpath")) {
+						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
+						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
+						value = show+hide;
+						i++;
+					}
+					putJobSpecEntry(properties, key, value, sb, counter++);
+				}
+				sb.append("</table>");
+				sb.append("<br>");
+				sb.append("<br>");
+			}
+			catch(Exception e) {
+				duccLogger.warn(methodName, null, e);
+				sb = new StringBuffer();
+				sb.append("no data");
+			}
+		}
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
 	private void handleDuccServletServiceDeploymentsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
@@ -2646,6 +2795,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccJobRuntimeFailData)) {
 				handleDuccServletJobRuntimeFailData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccReservationProcessesData)) {
+				handleDuccServletReservationProcessesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccReservationSpecificationData)) {
+				handleDuccServletReservationSpecificationData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccServiceDeploymentsData)) {

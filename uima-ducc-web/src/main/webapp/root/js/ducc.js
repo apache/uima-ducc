@@ -493,6 +493,36 @@ function ducc_load_job_specification_data()
 	}	
 }
 
+function ducc_init_reservation_specification_data()
+{
+	try {
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+		$("#specification_data_area").html(data);
+	}
+	catch(err) {
+		ducc_error("ducc_init_reservation_specification_data",err);
+	}
+}
+
+function ducc_load_reservation_specification_data()
+{
+	try {
+		server_url= "/ducc-servlet/reservation-specification-data"+location.search;
+		$.ajax(
+		{
+			url : server_url,
+			success : function (data) 
+			{
+				$("#specification_data_area").html(data);
+				hide_show();
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_load_reservation_specification_data",err);
+	}	
+}
+
 function ducc_init_service_registry_data()
 {
 	try {
@@ -630,6 +660,43 @@ function ducc_init_job_processes_data()
 	}
 	catch(err) {
 		ducc_error("ducc_init_job_processes_data",err);
+	}
+}
+
+function ducc_load_reservation_processes_data()
+{
+	try {
+		server_url= "/ducc-servlet/reservation-processes-data"+location.search;
+		$.ajax(
+		{
+			url : server_url,
+			success : function (data) 
+			{
+				$("#processes_list_area").html(data);
+				ducc_cluetips();
+				hide_show();
+     			ducc_timestamp();
+				ducc_authentication();
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_load_reservation_processes_data",err);
+	}
+}
+
+function ducc_init_reservation_processes_data()
+{
+	try {
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+		$("#processes_list_area").html(data);
+		data = "...?"
+		$("#timestamp_area").html(data);
+		data = "...?"
+		$("#authentication_area").html(data);
+	}
+	catch(err) {
+		ducc_error("ducc_init_reservation_processes_data",err);
 	}
 }
 
@@ -934,32 +1001,6 @@ function ducc_load_job_submit_button()
 	}	
 }
 
-function ducc_load_submit_job_data()
-{
-	try {
-		ducc_load_job_form();
-		ducc_load_job_submit_button();
-		ducc_timestamp();
-		ducc_authentication();
-	}
-	catch(err) {
-		ducc_error("ducc_load_submit_job_data",err);
-	}
-}
-
-function ducc_init_submit_job_data()
-{
-	try {
-		data = "...?"
-		$("#timestamp_area").html(data);
-		data = "...?"
-		$("#authentication_area").html(data);
-	}
-	catch(err) {
-		ducc_error("ducc_init_submit_job_data",err);
-	}
-}
-
 function ducc_load_system_administration_data()
 {
 	try {
@@ -1249,6 +1290,12 @@ function ducc_init(type)
 			ducc_load_job_performance_data();
 			ducc_load_job_processes_data();
 		}
+		if(type == "reservation-details") {
+			ducc_init_reservation_processes_data();
+			ducc_init_reservation_specification_data();
+			ducc_load_reservation_processes_data();
+			ducc_load_reservation_specification_data();
+		}
 		if(type == "service-details") {
 			ducc_init_service_summary_data();
 			ducc_init_service_deployments_data();
@@ -1273,10 +1320,6 @@ function ducc_init(type)
 		if(type == "submit-reservation") {
 			ducc_init_submit_reservation_data();
 			ducc_load_submit_reservation_data();
-		}
-		if(type == "submit-job") {
-			ducc_init_submit_job_data();
-			ducc_load_submit_job_data();
 		}
 		if(type == "system-administration") {
 			ducc_init_system_administration_data();
@@ -1682,6 +1725,10 @@ function ducc_update_page(type)
 						ducc_load_job_processes_data();
 						ducc_load_job_workitems_count_data();
 					}
+					if(type == "reservation-details") {
+						//ducc_load_reservation_specification_data();
+						ducc_load_reservation_processes_data();
+					}
 					if(type == "service-details") {
 						//ducc_load_service_registry_data();
 						ducc_load_service_deployments_data();
@@ -2066,119 +2113,6 @@ function ducc_cancel_submit_reservation()
   	}
 	catch(err) {
 		ducc_error("ducc_cancel_submit_reservation",err);
-	}	
-}
-
-function ducc_confirm_submit_job()
-{
-	try {
-		var result=confirm("Submit?");
-		if (result==true) {
-  			ducc_submit_job();
-  			alert("Request sent");
-  			window.close();
-  		}
-   	}
-	catch(err) {
-		ducc_error("ducc_confirm_submit_job",err);
-	}	 		
-}
-
-function ducc_submit_job()
-{
-	try {
-		var e = document.getElementById("description");
-		var description = e.value;
-		var e = document.getElementById("jvm");
-		var jvm = e.value;
-		var e = document.getElementById("scheduling_class");
-		var scheduling_class = e.value;
-		var e = document.getElementById("log_directory");
-		var log_directory = e.value;
-		var e = document.getElementById("working_directory");
-		var working_directory = e.value;
-		var e = document.getElementById("driver_jvm_args");
-		var driver_jvm_args = e.value;
-		var e = document.getElementById("driver_classpath");
-		var driver_classpath = e.value;
-		var e = document.getElementById("driver_environment");
-		var driver_environment = e.value;
-		var e = document.getElementById("driver_memory_size");
-		var driver_memory_size = e.value;
-		var e = document.getElementById("driver_descriptor_CR");
-		var driver_descriptor_CR = e.value;
-		var e = document.getElementById("driver_descriptor_CR_overrides");
-		var driver_descriptor_CR_overrides = e.value;
-		var e = document.getElementById("process_jvm_args");
-		var process_jvm_args = e.value;
-		var e = document.getElementById("process_classpath");
-		var process_classpath = e.value;
-		var e = document.getElementById("process_environment");
-		var process_environment = e.value;
-		var e = document.getElementById("process_memory_size");
-		var process_memory_size = e.value;
-		var e = document.getElementById("process_descriptor_CM");
-		var process_descriptor_CM = e.value;
-		var e = document.getElementById("process_descriptor_AE");
-		var process_descriptor_AE = e.value;
-		var e = document.getElementById("process_descriptor_CC");
-		var process_descriptor_CC = e.value;
-		var e = document.getElementById("process_deployments_max");
-		var process_deployments_max = e.value;
-		var e = document.getElementById("process_deployments_min");
-		var process_deployments_min = e.value;
-		var e = document.getElementById("process_thread_count");
-		var process_thread_count = e.value;
-		var e = document.getElementById("process_get_meta_time_max");
-		var process_get_meta_time_max = e.value;
-		var e = document.getElementById("process_per_item_time_max");
-		var process_per_item_time_max = e.value;
-		$.ajax(
-		{
-			type: 'POST',
-			url : "/ducc-servlet/job-submit-request",
-			data: {'description':description,
-			   'jvm':jvm,
-			   'scheduling_class':scheduling_class,
-			   'log_directory':log_directory,
-			   'working_directory':working_directory,
-			   'driver_jvm_args':driver_jvm_args,
-			   'driver_classpath':driver_classpath,
-			   'driver_environment':driver_environment,
-			   'driver_memory_size':driver_memory_size,
-			   'driver_descriptor_CR':driver_descriptor_CR,
-			   'driver_descriptor_CR_overrides':driver_descriptor_CR_overrides,
-			   'process_jvm_args':process_jvm_args,
-			   'process_classpath':process_classpath,
-			   'process_environment':process_environment,
-			   'process_memory_size':process_memory_size,
-			   'process_descriptor_CM':process_descriptor_CM,
-			   'process_descriptor_AE':process_descriptor_AE,
-			   'process_descriptor_CC':process_descriptor_CC,
-			   'process_deployments_max':process_deployments_max,
-			   'process_deployments_min':process_deployments_min,
-			   'process_thread_count':process_thread_count,
-			   'process_get_meta_time_max':process_get_meta_time_max,
-			   'process_per_item_time_max':process_per_item_time_max,
-			  },
-			success : function (data) 
-			{
-				alert('success');
-			}
-		});
-	}
-	catch(err) {
-		ducc_error("ducc_submit_job",err);
-	}		
-}
-
-function ducc_cancel_submit_job()
-{
-  	try {
-  		window.close();
-  	}
-	catch(err) {
-		ducc_error("ducc_cancel_submit_job",err);
 	}	
 }
 

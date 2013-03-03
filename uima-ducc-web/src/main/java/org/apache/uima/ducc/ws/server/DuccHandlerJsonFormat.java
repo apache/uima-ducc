@@ -535,6 +535,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private JsonArray buildReservationRow(HttpServletRequest request, IDuccWork duccwork, DuccData duccData) {
 		String type="Reservation";
 		JsonArray row = new JsonArray();
+		String reservationType = "Unmanaged";
+		if(duccwork instanceof DuccWorkJob) {
+			reservationType = "Managed";
+		}
 		StringBuffer sb;
 		DuccId duccId = duccwork.getDuccId();
 		// Terminate
@@ -557,9 +561,16 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Id
 		sb = new StringBuffer();
-		sb.append("<span>");
-		sb.append(id);
-		sb.append("</span>");
+		if(reservationType.equals("Managed")) {
+			sb.append("<span>");
+			sb.append("<a href=\"reservation.details.html?id="+id+"\">"+id+"</a>");
+			sb.append("</span>");
+		}
+		else {
+			sb.append("<span>");
+			sb.append(id);
+			sb.append("</span>");
+		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// Start
 		row.add(new JsonPrimitive(getTimeStamp(request,duccwork.getDuccId(), duccwork.getStandardInfo().getDateOfSubmission())));
@@ -604,10 +615,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(stringNormalize(duccwork.getSchedulingInfo().getSchedulingClass(),messages.fetch("default"))));
 		// Type
 		sb = new StringBuffer();
-		String reservationType = "Unmanaged";
-		if(duccwork instanceof DuccWorkJob) {
-			reservationType = "Managed";
-		}
 		sb.append(reservationType);
 		row.add(new JsonPrimitive(sb.toString()));
 		// State

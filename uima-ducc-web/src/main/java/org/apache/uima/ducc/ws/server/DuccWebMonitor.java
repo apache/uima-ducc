@@ -250,7 +250,7 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 				duccLogger.info(location, duccId, "Job monitor start");
 				if(!tMap.containsKey(duccId)) {
 					try {
-						Properties properties = DuccFile.getProperties(dwj);
+						Properties properties = DuccFile.getJobProperties(dwj);
 						if(properties.containsKey(DuccUiConstants.name_monitor_cancel_job_on_interrupt)) {
 							TrackingInfo ti = new TrackingInfo();
 							ti.time = expiryMillis;
