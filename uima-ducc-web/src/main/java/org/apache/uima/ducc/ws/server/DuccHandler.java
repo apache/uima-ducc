@@ -1252,6 +1252,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					String key = iterator.next();
 					String value = properties.getProperty(key);
 					if(key.endsWith("classpath")) {
+						value = formatClasspath(value);
 						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
 						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
 						value = show+hide;
@@ -1452,6 +1453,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					String key = iterator.next();
 					String value = properties.getProperty(key);
 					if(key.endsWith("classpath")) {
+						value = formatClasspath(value);
 						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
 						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
 						value = show+hide;
@@ -1561,6 +1563,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				String key = iterator.next();
 				String value = properties.getProperty(key);
 				if(key.endsWith("classpath")) {
+					value = formatClasspath(value);
 					String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
 					String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
 					value = show+hide;
@@ -1582,6 +1585,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				String key = iterator.next();
 				String value = properties.getProperty(key);
 				if(key.endsWith("classpath")) {
+					value = formatClasspath(value);
 					String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
 					String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
 					value = show+hide;

@@ -849,4 +849,27 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return sb.toString();
 	}
 	
+	public String formatClasspath(String classpath) {
+		String retVal = classpath;
+		if(classpath != null) {
+			String[] cpList = classpath.split(":");
+			if(cpList != null) {
+				StringBuffer vb = new StringBuffer();
+				vb.append("<br>");
+				vb.append("<div>");
+				StringBuffer sb = new StringBuffer();
+				for(String item : cpList) {
+					if(sb.length() > 0) {
+						sb.append("<br>");
+					}
+					sb.append(item);
+				}
+				vb.append(sb);
+				vb.append("</div>");
+				retVal = vb.toString();
+			}
+		}
+		return retVal;
+	}
+	
 }
