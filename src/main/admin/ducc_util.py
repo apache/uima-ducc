@@ -410,6 +410,42 @@ class DuccUtil:
         os.environ['CLASSPATH'] = CLASSPATH
 
 
+    def set_classpath_for_cli(self):
+        # This is only needed if you use the API, not the executable jars.  The executable
+        # jars pull in everything needed.
+        ducc_home = self.DUCC_HOME
+        LIB       = ducc_home + '/lib'
+        RESOURCES = ducc_home + '/resources'
+
+        local_jars  = self.ducc_properties.get('ducc.local.jars')   #local mods
+    
+        CLASSPATH = ''
+    
+        if ( local_jars != None ):
+            extra_jars = local_jars.split()
+            for j in extra_jars:
+                CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
+            
+        CLASSPATH = CLASSPATH + ":" + LIB + '/slf4j/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/google-gson/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-log4j/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/xstream/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/uima/*'
+
+        # orchestrator http needs codecs
+        CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
+
+        # explicitly NOT ducc_test.jar
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-cli.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-common.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-transport.jar'
+
+        CLASSPATH = CLASSPATH + ':' + RESOURCES
+    
+        os.environ['CLASSPATH'] = CLASSPATH
+
+
     def format_classpath(self, cp):
         strings = cp.split(':')
         for s in strings:

@@ -22,7 +22,7 @@
   
   <properties>
     <DUCC_CP>
-uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.jar slf4j/slf4j-api.jar slf4j/slf4j-log4j12.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar  apache-camel/xstream-${xstream.version}.jar apache-camel/mina-core-${mina.core.version}.jar apache-camel/camel-context-${org.apache.camel.version}.jar apache-camel/camel-core-${org.apache.camel.version}.jar apache-camel/camel-http-${org.apache.camel.version}.jar apache-camel/camel-http4-${org.apache.camel.version}.jar apache-camel/camel-jetty-${org.apache.camel.version}.jar apache-camel/camel-jms-${org.apache.camel.version}.jar apache-camel/camel-mina-${org.apache.camel.version}.jar apache-camel/camel-servlet-${org.apache.camel.version}.jar apache-camel/camel-spring-${org.apache.camel.version}.jar apache-camel/camel-stream-${org.apache.camel.version}.jar apache-camel/camel-test-${org.apache.camel.version}.jar apache-camel/camel-test-spring-${org.apache.camel.version}.jar apache-camel/camel-xmlbeans-${org.apache.camel.version}.jar apache-camel/camel-xstream-${org.apache.camel.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uimaj-core-${org.apache.uima.version}.jar uima/uimaj-as-core-${org.apache.uima.as.version}.jar
+uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.jar slf4j/slf4j-api.jar slf4j/slf4j-log4j12.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar  apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uimaj-core-${org.apache.uima.version}.jar uima/uimaj-as-core-${org.apache.uima.as.version}.jar
     </DUCC_CP>
   </properties>
 
@@ -52,17 +52,17 @@ uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf
 
         <configuration>
 		  <archive>
-			<index>true</index>
+			<!-- index>true</index -->
 			<manifest>
 			  <addClasspath>false</addClasspath>
 			</manifest>
 			<manifestEntries>
+y			  <class-path>${DUCC_CP}</class-path>
 			  <Ducc-Version>${project.version}</Ducc-Version>
 			  <Ducc-OS-Id>${os.name} ${os.arch} ${os.version}</Ducc-OS-Id>
 			  <Ducc-Bassedir>${basedir}</Ducc-Bassedir>
 			  <Ducc-Java-Vendor>${java.vendor}</Ducc-Java-Vendor>
 			  <Project-Title>Apache UIMA DUCC</Project-Title>
-			  <class-path>${DUCC_CP}</class-path>
 			</manifestEntries>
 		  </archive>
 		</configuration>

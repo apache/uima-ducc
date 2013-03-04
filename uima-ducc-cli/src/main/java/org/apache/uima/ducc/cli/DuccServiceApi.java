@@ -79,7 +79,7 @@ public class DuccServiceApi
 
     boolean debug = false;
 
-    CamelContext context = null;
+    // CamelContext context = null;
 
     static boolean init_done = false;
 
@@ -448,16 +448,16 @@ public class DuccServiceApi
         init_done = true;
     }
 
-    synchronized protected DuccEventDispatcher connect() throws Exception
-    {
-		context = new DefaultCamelContext();
+    // synchronized protected DuccEventDispatcher connect() throws Exception
+    // {
+	// 	context = new DefaultCamelContext();
 
-		//ActiveMQComponent amqc = ActiveMQComponent.activeMQComponent(broker);
-        //context.addComponent(jms_provider, amqc);
-        //context.start();
-        DuccEventDispatcher duccEventDispatcher = new DuccEventDispatcher(context, endpoint);
-        return duccEventDispatcher;
-    }
+	// 	//ActiveMQComponent amqc = ActiveMQComponent.activeMQComponent(broker);
+    //     //context.addComponent(jms_provider, amqc);
+    //     //context.start();
+    //     DuccEventDispatcher duccEventDispatcher = new DuccEventDispatcher(context, endpoint);
+    //     return duccEventDispatcher;
+    // }
 
     private Pair<Integer, String> getId(CommandLine cl, ServiceVerb verb)
     {

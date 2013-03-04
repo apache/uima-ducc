@@ -151,7 +151,7 @@ public class ServiceSet
         job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
         job_props.put("working_directory", System.getProperty("user.dir")); // whatever my current dir is
         job_props.put("log_directory", System.getProperty("user.dir") + "/../logs");
-        job_props.put("service_ping_jvm_args", "-Xmx50M");
+        //job_props.put("service_ping_jvm_args", "-Xmx50M");
         props_filename = state_dir + "/services/" + id.toString() + ".svc";
         saveServiceProperties();
 
@@ -227,7 +227,7 @@ public class ServiceSet
                 if ( ! job_props.containsKey("service_ping_dolog")) {
                     job_props.put("service_ping_dolog", "false");
                 }        
-                job_props.put("service_ping_jvm_args", "-Xmx50M");
+                // job_props.put("service_ping_jvm_args", "-Xmx0M");
             }
         }
 

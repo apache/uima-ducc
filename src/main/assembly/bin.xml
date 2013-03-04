@@ -21,7 +21,6 @@ under the License.
   <id>bin</id>
   <formats>
     <format>tar.gz</format>  
-    <format>zip</format>
   </formats>
   
   <baseDirectory>apache-uima-ducc-${project.version}</baseDirectory> 
