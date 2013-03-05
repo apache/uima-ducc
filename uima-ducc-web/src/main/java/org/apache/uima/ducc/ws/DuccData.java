@@ -21,18 +21,24 @@ package org.apache.uima.ducc.ws;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
 import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
 
 
 public class DuccData {
 
+
+	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccData.class.getName());
+	
 	private static DuccWorkMap duccWorkMap = new DuccWorkMap();
 	private static DuccWorkMap duccWorkLive = new DuccWorkMap();
 	
@@ -40,9 +46,11 @@ public class DuccData {
 	private static ConcurrentSkipListMap<ReservationInfo,ReservationInfo> sortedReservations = new ConcurrentSkipListMap<ReservationInfo,ReservationInfo>();
 	private static ConcurrentSkipListMap<JobInfo,JobInfo> sortedServices = new ConcurrentSkipListMap<JobInfo,JobInfo>();
 
-	private static ConcurrentSkipListMap<DuccId,Object> keyMap = new ConcurrentSkipListMap<DuccId,Object>();
-	
+	private static ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = new ConcurrentSkipListMap<Info,Info>();
+
 	private static DuccData duccData = new DuccData();
+	
+	private static DuccId jobid = null;
 	
 	public static DuccData getInstance() {
 		return duccData;
@@ -122,47 +130,63 @@ public class DuccData {
 	}
 	
 	private void cacheManager(IDuccWork duccWork, Object cacheKey) {
-		DuccId duccId = duccWork.getDuccId();
-		if(keyMap.containsKey(duccId)) {
-			switch(duccWork.getDuccType()) {
-			case Job:
-				sortedJobs.remove(keyMap.get(duccId));
-				break;
-			case Reservation:
-				sortedReservations.remove(keyMap.get(duccId));
-				break;
-			case Service:
-				sortedServices.remove(keyMap.get(duccId));
-				break;
-			}
-			keyMap.remove(duccId);
-		}
-		if(!duccWork.isCompleted()) {
-			keyMap.put(duccId, cacheKey);
+		switch(duccWork.getDuccType()) {
+		case Job:
+			sortedJobs.remove(cacheKey);
+			break;
+		case Reservation:
+			if(cacheKey instanceof ReservationInfo) {
+				sortedReservations.remove(cacheKey);				}
+				else if(cacheKey instanceof Info) 
+					sortedCombinedReservations.remove(cacheKey);
+				
+			break;
+		case Service:
+			sortedServices.remove(cacheKey);
+			break;			
 		}
 	}
 	
 	private void updateSortedMaps(IDuccWork duccWork) {
+		String location = "updateSortedMaps";
+		Info info;
 		switch(duccWork.getDuccType()) {
-			case Job:
-				DuccWorkJob job = (DuccWorkJob)duccWork;
-				JobInfo jobInfo = new JobInfo(job);
-				cacheManager(job, jobInfo);
-				sortedJobs.put(jobInfo, jobInfo);
-				break;
-			case Reservation:
-				DuccWorkReservation reservation = (DuccWorkReservation)duccWork;
-				ReservationInfo reservationInfo = new ReservationInfo(reservation);
-				cacheManager(reservation, reservationInfo);
-				sortedReservations.put(reservationInfo, reservationInfo);
-				break;
-			case Service:
-				DuccWorkJob service = (DuccWorkJob)duccWork;
-				JobInfo serviceInfo = new JobInfo(service);
-				cacheManager(service, serviceInfo);
-				sortedServices.put(serviceInfo, serviceInfo);
-				break;
+		case Job:
+			DuccWorkJob job = (DuccWorkJob)duccWork;
+			JobInfo jobInfo = new JobInfo(job);
+			cacheManager(job, jobInfo);
+			sortedJobs.put(jobInfo, jobInfo);
+			break;
+		case Reservation:
+			DuccWorkReservation reservation = (DuccWorkReservation)duccWork;
+			ReservationInfo reservationInfo = new ReservationInfo(reservation);
+			cacheManager(reservation, reservationInfo);
+			sortedReservations.put(reservationInfo, reservationInfo);
+			info= new Info(reservation);
+			cacheManager(reservation, info);
+			sortedCombinedReservations.put(info, info);
+			break;
+		case Service:
+			DuccWorkJob service = (DuccWorkJob)duccWork;
+			JobInfo serviceInfo = new JobInfo(service);
+			cacheManager(service, serviceInfo);
+			sortedServices.put(serviceInfo, serviceInfo);
+			ServiceDeploymentType sdt = service.getServiceDeploymentType();
+			if(sdt != null) {
+				switch(sdt) {
+				case other:
+					info = new Info(service);
+					sortedCombinedReservations.put(info, info);
+					break;
+				default:
+					break;
+				}
+			}
 		}
+		logger.trace(location, jobid, "sortedJobs:"+sortedJobs.size()+" ");
+		logger.trace(location, jobid, "sortedReservations:"+sortedReservations.size()+" ");
+		logger.trace(location, jobid, "sortedServices:"+sortedServices.size()+" ");
+		logger.trace(location, jobid, "sortedCombinedReservations:"+sortedCombinedReservations.size()+" ");
 	}
 	
 	public ConcurrentSkipListMap<JobInfo,JobInfo> getSortedJobs() {
@@ -171,6 +195,10 @@ public class DuccData {
 	
 	public ConcurrentSkipListMap<ReservationInfo,ReservationInfo> getSortedReservations() {
 		return sortedReservations;
+	}
+	
+	public ConcurrentSkipListMap<Info,Info> getSortedCombinedReservations() {
+		return sortedCombinedReservations;
 	}
 	
 	public ConcurrentSkipListMap<JobInfo,JobInfo> getSortedServices() {

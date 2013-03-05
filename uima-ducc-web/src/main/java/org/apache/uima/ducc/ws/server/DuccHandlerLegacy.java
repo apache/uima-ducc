@@ -52,15 +52,14 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
+import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
-import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
@@ -830,60 +829,27 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		
 		DuccData duccData = DuccData.getInstance();
 		
-		ConcurrentSkipListMap<ReservationInfo,ReservationInfo> sortedReservations = duccData.getSortedReservations();
-		ConcurrentSkipListMap<JobInfo, JobInfo> sortedServices = duccData.getSortedServices();
-		ConcurrentSkipListMap<Long, Object> sortedCombined = new ConcurrentSkipListMap<Long, Object>();
-		
+		ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
+
 		ArrayList<String> users = getReservationsUsers(request);
 		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
 		
-		if((sortedReservations.size() > 0) || (sortedServices.size() > 0)) {
-			Iterator<Entry<ReservationInfo, ReservationInfo>> iR = sortedReservations.entrySet().iterator();
+		if((sortedCombinedReservations.size() > 0)) {
+			int counter = 0;
+			Iterator<Entry<Info, Info>> iR = sortedCombinedReservations.entrySet().iterator();
 			while(iR.hasNext()) {
-				ReservationInfo reservationInfo = iR.next().getValue();
-				DuccWorkReservation reservation = reservationInfo.getReservation();
-				String user = reservation.getStandardInfo().getUser().trim();
-				boolean completed = reservation.isCompleted();
+				Info info = iR.next().getValue();
+				IDuccWork dw = info.getDuccWork();
+				String user = dw.getStandardInfo().getUser().trim();
+				boolean completed = dw.isCompleted();
 				if(isListEligible(users, filterUsersStyle, user, completed)) {
-					Long key = new Long(reservation.getDuccId().getFriendly());
-					sortedCombined.put(key, reservation);
-				}
-			}
-			Iterator<Entry<JobInfo, JobInfo>> iS = sortedServices.entrySet().iterator();
-			while(iS.hasNext()) {
-				JobInfo jobInfo = iS.next().getValue();
-				DuccWorkJob job = jobInfo.getJob();
-				ServiceDeploymentType sdt = job.getServiceDeploymentType();
-				if(sdt != null) {
-					switch(sdt) {
-					case uima:
-					case custom:
-					default:
-						break;
-					case other:
-						String user = job.getStandardInfo().getUser().trim();
-						boolean completed = job.isCompleted();
-						if(isListEligible(users, filterUsersStyle, user, completed)) {
-							Long key = new Long(job.getDuccId().getFriendly());
-							sortedCombined.put(key, job);
-						}
-						break;
-					}
-				}
-			}
-			if(sortedCombined.size() > 0) {
-				int counter = 0;
-				Iterator<Long> keys = sortedCombined.descendingKeySet().iterator();
-				while(keys.hasNext()) {
-					Long key = keys.next();
-					Object object = sortedCombined.get(key);
-					if(object instanceof DuccWorkReservation) {
-						DuccWorkReservation reservation = (DuccWorkReservation) object;
+					if(dw instanceof DuccWorkReservation) {
+						DuccWorkReservation reservation = (DuccWorkReservation) dw;
 						sb.append(trGet(counter));
 						buildReservationsListEntry(request, sb, reservation.getDuccId(), reservation, duccData);
 					}
-					else if(object instanceof DuccWorkJob) {
-						DuccWorkJob job = (DuccWorkJob) object;
+					else if(dw instanceof DuccWorkJob) {
+						DuccWorkJob job = (DuccWorkJob) dw;
 						sb.append(trGet(counter));
 						buildReservationsListEntry(request, sb, job.getDuccId(), job, duccData);
 					}
@@ -894,11 +860,6 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 						break;
 					}
 				}
-			}
-			else {
-				sb.append("<tr>");
-				sb.append("<td>");
-				sb.append(messages.fetch("no reservations meet criteria"));
 			}
 		}
 		else {
