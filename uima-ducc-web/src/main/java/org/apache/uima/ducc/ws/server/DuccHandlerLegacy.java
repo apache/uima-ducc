@@ -174,51 +174,11 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("Swapping");
 				sb.append("</span>");
 			}
-			DuccWebMonitor duccWebMonitor = DuccWebMonitor.getInstance();
-			Long expiry = duccWebMonitor.getExpiry(duccId);
-			if(expiry != null) {
-				if(multi) {
-					sb.append(" ");
-				}
+			//
+			String monitor = getMonitor(duccId, multi);
+			if(monitor.length() > 0) {
 				multi = true;
-				String t2 = " left until auto-cancel, unless renewed";
-				String t1;
-				if(expiry == 0) {
-					t1 = "less than 1 minute";
-				}
-				else {
-					t1 = expiry+"+ minutes";
-				}
-				String text = t1+t2;
-				long expiryWarnTime = 3;
-				Properties properties = DuccWebProperties.get();
-				String key = "ducc.ws.job.automatic.cancel.minutes";
-				if(properties.containsKey(key)) {
-					String value = properties.getProperty(key);
-					try {
-						long time = Long.parseLong(value)/2;
-						if(time > 0) {
-							expiryWarnTime = time;
-						}
-					}
-					catch(Exception e) {
-						
-					}
-				}
-				if(expiry > expiryWarnTime) {
-					sb.append("<span class=\"health_green\" title=\""+text+"\">");
-					sb.append("MonitorActive");
-				}
-				else {
-					sb.append("<span class=\"health_red\" title=\""+text+"\">");
-					sb.append("MonitorWarning");
-				}
-				sb.append("</span>");
-			}
-			else if(duccWebMonitor.isCancelPending(duccId)) {
-				sb.append("<span class=\"health_red\" >");
-				sb.append("CancelPending...");
-				sb.append("</span>");
+				sb.append(monitor);
 			}
 			sb.append("</td>");
 		}
