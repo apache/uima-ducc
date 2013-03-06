@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ws;
 
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 
 public class Info implements Comparable<Info> {
@@ -90,7 +91,11 @@ public class Info implements Comparable<Info> {
 			IDuccWork dw2 = (IDuccWork)object;
 			String s1 = dw1.getDuccId().toString();
 			String s2 = dw2.getDuccId().toString();
-			retVal = s1.equals(s2);
+			DuccType dt1 = dw1.getDuccType();
+			DuccType dt2 = dw2.getDuccType();
+			if(dt1 == dt2) {
+				retVal = s1.equals(s2);
+			}
 		}
 		catch(Throwable t) {	
 		}

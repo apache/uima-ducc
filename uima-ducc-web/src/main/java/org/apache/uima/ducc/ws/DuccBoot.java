@@ -43,9 +43,9 @@ public class DuccBoot extends Thread {
 	
 	private static DuccId jobid = null;
 	
-	private static long maxJobs = 4096;
-	private static long maxReservations = 4096;
-	private static long maxServices = 4096;
+	public static long maxJobs = 4096;
+	public static long maxReservations = 4096;
+	public static long maxServices = 4096;
 	
 	public static void boot(CommonConfiguration commonConfiguration) {
 		DuccBoot duccBoot = new DuccBoot();
@@ -202,5 +202,6 @@ public class DuccBoot extends Thread {
 		restoreReservations(hpm, duccData);
 		restoreJobs(hpm, duccData);
 		restoreServices(hpm, duccData);
+		duccData.report();
 	}
 }

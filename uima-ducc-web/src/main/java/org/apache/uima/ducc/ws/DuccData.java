@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
@@ -36,21 +37,27 @@ import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceMa
 
 public class DuccData {
 
-
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccData.class.getName());
+	private static DuccId jobid = null;
 	
 	private static DuccWorkMap duccWorkMap = new DuccWorkMap();
 	private static DuccWorkMap duccWorkLive = new DuccWorkMap();
 	
 	private static ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = new ConcurrentSkipListMap<JobInfo,JobInfo>();
+	private static ConcurrentSkipListMap<DuccId,JobInfo> keyMapJobs = new ConcurrentSkipListMap<DuccId,JobInfo>();
+	
 	private static ConcurrentSkipListMap<ReservationInfo,ReservationInfo> sortedReservations = new ConcurrentSkipListMap<ReservationInfo,ReservationInfo>();
+	private static ConcurrentSkipListMap<DuccId,ReservationInfo> keyMapReservations = new ConcurrentSkipListMap<DuccId,ReservationInfo>();
+	
 	private static ConcurrentSkipListMap<JobInfo,JobInfo> sortedServices = new ConcurrentSkipListMap<JobInfo,JobInfo>();
-
+	private static ConcurrentSkipListMap<DuccId,JobInfo> keyMapServices = new ConcurrentSkipListMap<DuccId,JobInfo>();
+	
 	private static ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = new ConcurrentSkipListMap<Info,Info>();
-
+	private static ConcurrentSkipListMap<DuccId,Info> keyMapCombinedReservations = new ConcurrentSkipListMap<DuccId,Info>();
+	
 	private static DuccData duccData = new DuccData();
 	
-	private static DuccId jobid = null;
+	private static long slack = 100;
 	
 	public static DuccData getInstance() {
 		return duccData;
@@ -118,7 +125,114 @@ public class DuccData {
 				updateSortedMaps(duccWork);
 			}
 		}
+		prune();
 		setPublished();
+	}
+
+	private int pruneJobs() {
+		String location = "pruneJobs";
+		int pruned = 0;
+		if(sortedJobs.size() > (DuccBoot.maxJobs + slack)) {
+			int count = 0;
+			for(JobInfo jobInfo : sortedJobs.keySet()) {
+				if(!jobInfo.isOperational()) {
+					count++;
+					if(count > DuccBoot.maxJobs) {
+						DuccId duccId = jobInfo.getJob().getDuccId();
+						sortedJobs.remove(jobInfo);
+						keyMapJobs.remove(duccId);
+						logger.info(location, duccId, "size: "+sortedJobs.size());
+						pruned++;
+					}
+				}
+			}
+			logger.debug(location, jobid, "pruned: "+pruned);
+		}
+		return pruned;
+	}
+	
+	private int pruneReservations() {
+		String location = "pruneReservations";
+		int pruned = 0;
+		if(sortedReservations.size() > (DuccBoot.maxReservations + slack)) {
+			int count = 0;
+			for(ReservationInfo reservationInfo : sortedReservations.keySet()) {
+				if(!reservationInfo.isOperational()) {
+					count++;
+					if(count > DuccBoot.maxReservations) {
+						DuccId duccId = reservationInfo.getReservation().getDuccId();
+						sortedReservations.remove(reservationInfo);
+						keyMapReservations.remove(duccId);
+						logger.info(location, duccId, "size: "+sortedReservations.size());
+						pruned++;
+					}
+				}
+			}
+			logger.debug(location, jobid, "pruned: "+pruned);
+		}
+		return pruned;
+	}
+	
+	private int pruneServices() {
+		String location = "pruneServices";
+		int pruned = 0;
+		if(sortedServices.size() > (DuccBoot.maxServices + slack)) {
+			int count = 0;
+			for(JobInfo jobInfo : sortedServices.keySet()) {
+				if(!jobInfo.isOperational()) {
+					count++;
+					if(count > DuccBoot.maxServices) {
+						DuccId duccId = jobInfo.getJob().getDuccId();
+						sortedServices.remove(jobInfo);
+						keyMapServices.remove(duccId);
+						logger.info(location, duccId, "size: "+sortedServices.size());
+						pruned++;
+					}
+				}
+			}
+			logger.debug(location, jobid, "pruned: "+pruned);
+		}
+		return pruned;
+	}
+	
+	private int pruneCombinedReservations() {
+		String location = "pruneCombinedReservations";
+		int pruned = 0;
+		if(sortedCombinedReservations.size() > (DuccBoot.maxReservations + slack)) {
+			int count = 0;
+			for(Info info : sortedCombinedReservations.keySet()) {
+				if(!info.isOperational()) {
+					count++;
+					if(count > DuccBoot.maxReservations) {
+						DuccId duccId = info.getDuccWork().getDuccId();
+						sortedCombinedReservations.remove(info);
+						keyMapCombinedReservations.remove(duccId);
+						logger.info(location, duccId, "size: "+sortedCombinedReservations.size());
+						pruned++;
+					}
+				}
+			}
+			logger.debug(location, jobid, "pruned: "+pruned);
+		}
+		return pruned;
+	}
+	
+	public void report() {
+		String location = "report";
+		int jc = sortedJobs.size();
+		int rc = sortedReservations.size();
+		int sc = sortedServices.size();
+		int cc = sortedCombinedReservations.size();
+		logger.info(location, jobid, ""+jc+":"+rc+":"+sc+":"+cc);
+	}
+	
+	private void prune() {
+		String location = "prune";
+		int jc = pruneJobs();
+		int rc = pruneReservations();
+		int sc = pruneServices();
+		int cc = pruneCombinedReservations();
+		logger.debug(location, jobid, ""+jc+":"+rc+":"+sc+":"+cc);
 	}
 	
 	public DuccWorkMap get() {
@@ -129,64 +243,104 @@ public class DuccData {
 		return duccWorkLive;
 	}
 	
-	private void cacheManager(IDuccWork duccWork, Object cacheKey) {
-		switch(duccWork.getDuccType()) {
-		case Job:
-			sortedJobs.remove(cacheKey);
-			break;
-		case Reservation:
-			if(cacheKey instanceof ReservationInfo) {
-				sortedReservations.remove(cacheKey);				}
-				else if(cacheKey instanceof Info) 
-					sortedCombinedReservations.remove(cacheKey);
-				
-			break;
-		case Service:
-			sortedServices.remove(cacheKey);
-			break;			
+	private void updateJobs(IDuccWork duccWork) {
+		String location = "updateJobs";
+		DuccId duccId = duccWork.getDuccId();
+		DuccWorkJob job = (DuccWorkJob)duccWork;
+		if(keyMapJobs.containsKey(duccId)) {
+			sortedJobs.remove(keyMapJobs.get(duccId));
+			keyMapJobs.remove(duccId);
+		}
+		JobInfo jobInfo = new JobInfo(job);
+		sortedJobs.put(jobInfo, jobInfo);
+		if(!duccWork.isCompleted()) {
+			keyMapJobs.put(duccId, jobInfo);
+			logger.debug(location, duccId, "put job");
+		}
+	}
+	
+	private void updateReservations(IDuccWork duccWork) {
+		String location = "updateReservations";
+		DuccId duccId = duccWork.getDuccId();
+		DuccWorkReservation reservation = (DuccWorkReservation)duccWork;
+		if(keyMapReservations.containsKey(duccId)) {
+			sortedReservations.remove(keyMapReservations.get(duccId));
+			keyMapReservations.remove(duccId);
+		}
+		ReservationInfo reservationInfo = new ReservationInfo(reservation);
+		sortedReservations.put(reservationInfo, reservationInfo);
+		if(!duccWork.isCompleted()) {
+			keyMapReservations.put(duccId, reservationInfo);
+			logger.debug(location, duccId, "put reservation");
+		}
+		//
+		if(keyMapCombinedReservations.containsKey(duccId)) {
+			sortedCombinedReservations.remove(keyMapCombinedReservations.get(duccId));
+			keyMapCombinedReservations.remove(duccId);
+		}
+		Info rInfo = new Info(reservation);
+		sortedCombinedReservations.put(rInfo, rInfo);
+		if(!duccWork.isCompleted()) {
+			keyMapCombinedReservations.put(duccId, rInfo);
+			logger.debug(location, duccId, "put combined");
+		}
+	}
+	
+	private void updateServices(IDuccWork duccWork) {
+		String location = "updateServices";
+		DuccId duccId = duccWork.getDuccId();
+		DuccWorkJob service = (DuccWorkJob)duccWork;
+		if(keyMapServices.containsKey(duccId)) {
+			sortedServices.remove(keyMapServices.get(duccId));
+			keyMapServices.remove(duccId);
+		}
+		JobInfo serviceInfo = new JobInfo(service);
+		sortedServices.put(serviceInfo, serviceInfo);
+		if(!duccWork.isCompleted()) {
+			keyMapServices.put(duccId, serviceInfo);
+			logger.debug(location, duccId, "put service");
+		}
+		//
+		ServiceDeploymentType sdt = service.getServiceDeploymentType();
+		if(sdt != null) {
+			switch(sdt) {
+			case other:
+				if(keyMapCombinedReservations.containsKey(duccId)) {
+					sortedCombinedReservations.remove(keyMapCombinedReservations.get(duccId));
+					keyMapCombinedReservations.remove(duccId);
+				}
+				Info sInfo = new Info(service);
+				sortedCombinedReservations.put(sInfo, sInfo);
+				if(!duccWork.isCompleted()) {
+					keyMapCombinedReservations.put(duccId, sInfo);
+					logger.debug(location, duccId, "put combined");
+				}
+				break;
+			default:
+				break;
+			}
 		}
 	}
 	
 	private void updateSortedMaps(IDuccWork duccWork) {
-		String location = "updateSortedMaps";
-		Info info;
-		switch(duccWork.getDuccType()) {
-		case Job:
-			DuccWorkJob job = (DuccWorkJob)duccWork;
-			JobInfo jobInfo = new JobInfo(job);
-			cacheManager(job, jobInfo);
-			sortedJobs.put(jobInfo, jobInfo);
-			break;
-		case Reservation:
-			DuccWorkReservation reservation = (DuccWorkReservation)duccWork;
-			ReservationInfo reservationInfo = new ReservationInfo(reservation);
-			cacheManager(reservation, reservationInfo);
-			sortedReservations.put(reservationInfo, reservationInfo);
-			info= new Info(reservation);
-			cacheManager(reservation, info);
-			sortedCombinedReservations.put(info, info);
-			break;
-		case Service:
-			DuccWorkJob service = (DuccWorkJob)duccWork;
-			JobInfo serviceInfo = new JobInfo(service);
-			cacheManager(service, serviceInfo);
-			sortedServices.put(serviceInfo, serviceInfo);
-			ServiceDeploymentType sdt = service.getServiceDeploymentType();
-			if(sdt != null) {
-				switch(sdt) {
-				case other:
-					info = new Info(service);
-					sortedCombinedReservations.put(info, info);
+		if(duccWork != null) {
+			DuccType duccType = duccWork.getDuccType();
+			if(duccType != null) {
+				switch(duccWork.getDuccType()) {
+				case Job:
+					updateJobs(duccWork);
+					break;
+				case Reservation:
+					updateReservations(duccWork);
+					break;
+				case Service:
+					updateServices(duccWork);
 					break;
 				default:
 					break;
 				}
 			}
 		}
-		logger.trace(location, jobid, "sortedJobs:"+sortedJobs.size()+" ");
-		logger.trace(location, jobid, "sortedReservations:"+sortedReservations.size()+" ");
-		logger.trace(location, jobid, "sortedServices:"+sortedServices.size()+" ");
-		logger.trace(location, jobid, "sortedCombinedReservations:"+sortedCombinedReservations.size()+" ");
 	}
 	
 	public ConcurrentSkipListMap<JobInfo,JobInfo> getSortedJobs() {
@@ -197,12 +351,12 @@ public class DuccData {
 		return sortedReservations;
 	}
 	
-	public ConcurrentSkipListMap<Info,Info> getSortedCombinedReservations() {
-		return sortedCombinedReservations;
-	}
-	
 	public ConcurrentSkipListMap<JobInfo,JobInfo> getSortedServices() {
 		return sortedServices;
+	}
+	
+	public ConcurrentSkipListMap<Info,Info> getSortedCombinedReservations() {
+		return sortedCombinedReservations;
 	}
 	
 	public boolean isLive(DuccId duccId) {

@@ -406,26 +406,26 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 				ArrayList<String> stateSequence = monitorInfo.stateSequence;
 				if(stateSequence != null) {
 					if(stateSequence.contains(JobState.Completing.toString())) {
-						duccLogger.info(location, duccId, "state: <uncancelable> "+stateSequence);
+						duccLogger.debug(location, duccId, "state: <uncancelable> "+stateSequence);
 					}
 					else if(stateSequence.contains(JobState.Completed.toString())) {
-						duccLogger.info(location, duccId, "state: <uncancelable> "+stateSequence);
+						duccLogger.debug(location, duccId, "state: <uncancelable> "+stateSequence);
 					}
 					else {
-						duccLogger.info(location, duccId, "state: <cancelable> "+stateSequence);
+						duccLogger.debug(location, duccId, "state: <cancelable> "+stateSequence);
 						retVal = true;
 					}
 				}
 				else {
-					duccLogger.info(location, duccId, "stateSequence: <null>");
+					duccLogger.warn(location, duccId, "stateSequence: <null>");
 				}
 			}
 			else {
-				duccLogger.info(location, duccId, "monitorInfo: <null>");
+				duccLogger.warn(location, duccId, "monitorInfo: <null>");
 			}
 		}
 		else {
-			duccLogger.info(location, duccId, "already canceled");
+			duccLogger.debug(location, duccId, "already canceled");
 		}
 		duccLogger.trace(location, duccId, "exit");
 		return retVal;
