@@ -121,7 +121,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("<span class=\"ducc-col-terminate\">");
 		if(terminateEnabled) {
 			if(!job.isFinished()) {
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_job("+id+")\" value=\"Terminate\" "+getDisabled(request,job)+"/>");
+				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_job("+id+")\" value=\"Terminate\" "+getDisabledWithHover(request,job)+"/>");
 			}
 		}
 		sb.append("</span>");
@@ -507,7 +507,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("<span class=\"ducc-col-terminate\">");
 		if(terminateEnabled) {
 			if(!duccwork.isCompleted()) {
-				String disabled = getDisabled(request,duccwork);
+				String disabled = getDisabledWithHover(request,duccwork);
 				String user = duccwork.getStandardInfo().getUser();
 				if(user != null) {
 					if(user.equals(JdConstants.reserveUser)) {
@@ -1012,7 +1012,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					col.append("<span class=\"ducc-col-start\">");
 					if(buttonsEnabled) {
 						if(!deployments.equals(instances)) {
-							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
 						}
 					}
 					col.append("</span>");
@@ -1024,7 +1024,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					col.append("<span class=\"ducc-col-stop\">");
 					if(buttonsEnabled) {
 						if(!deployments.equals("0")) {
-							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
 						}
 					}
 					col.append("</span>");

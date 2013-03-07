@@ -1801,7 +1801,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletSystemAdminControlData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		boolean authorized = isAuthorized(request,null);
+		boolean authorized = isUserAuthorized(request,null);
 		boolean accept = SystemState.getInstance().isAcceptJobs();
 		String acceptMode = "disabled=disabled";
 		String blockMode = "disabled=disabled";
@@ -1845,7 +1845,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletSystemJobsControl";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		boolean authorized = isAuthorized(request,null);
+		boolean authorized = isUserAuthorized(request,null);
 		if(authorized) {
 			String userId = duccWebSessionManager.getUserId(request);
 			String name = "type";
@@ -2446,7 +2446,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			IDuccWorkJob duccWorkJob = (IDuccWorkJob) duccWorkMap.findDuccWork(DuccType.Job, value);
 			if(duccWorkJob != null) {
 				String resourceOwnerUserId = duccWorkJob.getStandardInfo().getUser().trim();
-				if(isAuthorized(request,resourceOwnerUserId)) {
+				if(isUserAuthorized(request,resourceOwnerUserId)) {
 					String arg1 = "-"+name;
 					String arg2 = value;
 					String userId = duccWebSessionManager.getUserId(request);
@@ -2562,7 +2562,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			IDuccWorkReservation duccWorkReservation = (IDuccWorkReservation) duccWorkMap.findDuccWork(DuccType.Reservation, value);
 			if(duccWorkReservation != null) {
 				String resourceOwnerUserId = duccWorkReservation.getStandardInfo().getUser().trim();
-				if(isAuthorized(request,resourceOwnerUserId)) {
+				if(isUserAuthorized(request,resourceOwnerUserId)) {
 					String arg1 = "-"+name;
 					String arg2 = value;
 					String userId = duccWebSessionManager.getUserId(request);
@@ -2629,7 +2629,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				IDuccWorkJob duccWorkJob = (IDuccWorkJob) duccWorkMap.findDuccWork(DuccType.Service, value);
 				if(duccWorkJob != null) {
 					String resourceOwnerUserId = duccWorkJob.getStandardInfo().getUser().trim();
-					if(isAuthorized(request,resourceOwnerUserId)) {
+					if(isUserAuthorized(request,resourceOwnerUserId)) {
 						String arg1 = "-"+name;
 						String arg2 = value;
 						String userId = duccWebSessionManager.getUserId(request);
@@ -2683,7 +2683,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			ServicesRegistry servicesRegistry = new ServicesRegistry();
 			String resourceOwnerUserId = servicesRegistry.findServiceUser(id);
 			if(resourceOwnerUserId != null) {
-				if(isAuthorized(request,resourceOwnerUserId)) {
+				if(isUserAuthorized(request,resourceOwnerUserId)) {
 					String arg1 = "--"+command;
 					String arg2 = id;
 					String userId = duccWebSessionManager.getUserId(request);

@@ -206,6 +206,80 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
+	public enum AuthorizationStatus { LoggedInOwner, LoggedInAdministrator, LoggedInNotOwner, LoggedInNotAdministrator, NotLoggedIn };
+	
+	public AuthorizationStatus getAuthorizationStatus(HttpServletRequest request, String resourceOwnerUserid) {
+		String methodName = "getAuthorizationStatus";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		AuthorizationStatus retVal = AuthorizationStatus.NotLoggedIn;
+		try {
+			String text = "";
+			boolean authenticated = duccWebSessionManager.isAuthentic(request);
+			String userId = duccWebSessionManager.getUserId(request);
+			if(authenticated) {
+				if(match(resourceOwnerUserid,userId)) {
+					text = "user "+userId+" is resource owner";
+					retVal = AuthorizationStatus.LoggedInOwner;
+				}
+				else {
+					RequestRole requestRole = getRole(request);
+					switch(requestRole) {
+					case User:
+						text = "user "+userId+" is not resource owner "+resourceOwnerUserid;
+						retVal = AuthorizationStatus.LoggedInNotOwner;
+						break;
+					case Administrator:
+						if(duccWebAdministrators.isAdministrator(userId)) {
+							text = "user "+userId+" is administrator";
+							retVal = AuthorizationStatus.LoggedInAdministrator;
+						}
+						else {
+							text = "user "+userId+" is not administrator ";
+							retVal = AuthorizationStatus.LoggedInNotAdministrator;
+						}
+						break;
+					}
+				}
+			}
+			else {
+				text = "user "+userId+" is not authenticated";
+				retVal = AuthorizationStatus.NotLoggedIn;
+			}
+			duccLogger.debug(methodName, null, messages.fetch(text));
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, null, e);
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+		return retVal;
+	}
+	
+	public boolean isUserAuthorized(HttpServletRequest request, String resourceOwnerUserid) {
+		String methodName = "isUserAuthorized";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		boolean retVal = false;
+		try {
+			AuthorizationStatus authorizationStatus = getAuthorizationStatus(request, resourceOwnerUserid);
+			switch(authorizationStatus) {
+			case LoggedInOwner:
+			case LoggedInAdministrator:
+				break;
+			case LoggedInNotOwner:
+			case LoggedInNotAdministrator:
+			case NotLoggedIn:
+				break;
+			default:
+				break;
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, null, e);
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+		return retVal;
+	}
+	
+	@Deprecated
 	public boolean isAuthorized(HttpServletRequest request, String resourceOwnerUserid) {
 		String methodName = "isAuthorized";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -713,11 +787,13 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 
+	@Deprecated
 	public String getDisabled(HttpServletRequest request, IDuccWork duccWork) {
 		String resourceOwnerUserId = duccWork.getStandardInfo().getUser();
 		return getDisabled(request, resourceOwnerUserId);
 	}
 
+	@Deprecated
 	public String getDisabled(HttpServletRequest request, String resourceOwnerUserId) {
 		String disabled = "disabled=\"disabled\"";
 		if(isAuthorized(request, resourceOwnerUserId)) {
@@ -725,7 +801,37 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return disabled;
 	}
-
+	
+	public String getDisabledWithHover(HttpServletRequest request, IDuccWork duccWork) {
+		String resourceOwnerUserId = duccWork.getStandardInfo().getUser();
+		return getDisabledWithHover(request, resourceOwnerUserId);
+	}
+	
+	public String getDisabledWithHover(HttpServletRequest request, String resourceOwnerUserId) {
+		String disabled = "disabled=\"disabled\"";
+		String hover = "";
+		AuthorizationStatus authorizationStatus = getAuthorizationStatus(request, resourceOwnerUserId);
+		switch(authorizationStatus) {
+		case LoggedInOwner:
+			disabled = "";
+			break;
+		case LoggedInAdministrator:
+			disabled = "";
+			break;
+		case LoggedInNotOwner:
+			hover = " title=\"Hint: Preferences can be used to change role to Administrator\"";
+			break;
+		case LoggedInNotAdministrator:
+			break;
+		case NotLoggedIn:
+			hover = " title=\"Hint: Login\"";
+			break;
+		default:
+			break;
+		}
+		return disabled+hover;
+	}
+	
 	public String buildjConsoleLink(String service) {
 		String location = "buildjConsoleLink";
 		String href = "<a href=\""+duccjConsoleLink+"?"+"service="+service+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+service+"</a>";

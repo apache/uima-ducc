@@ -102,7 +102,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("<td valign=\"bottom\" class=\"ducc-col-terminate\">");
 		if(terminateEnabled) {
 			if(!job.isFinished()) {
-				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_job("+id+")\" value=\"Terminate\" "+getDisabled(request,job)+"/>");
+				sb.append("<input type=\"button\" onclick=\"ducc_confirm_terminate_job("+id+")\" value=\"Terminate\" "+getDisabledWithHover(request,job)+"/>");
 			}
 		}
 		sb.append("</td>");
@@ -417,7 +417,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("<td class=\"ducc-col-terminate\">");
 		if(terminateEnabled) {
 			if(!duccwork.isCompleted()) {
-				String disabled = getDisabled(request,duccwork);
+				String disabled = getDisabledWithHover(request,duccwork);
 				String user = duccwork.getStandardInfo().getUser();
 				if(user != null) {
 					if(user.equals(JdConstants.reserveUser)) {
@@ -884,7 +884,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				if(type.equals(typeRegistered)) {
 					if(buttonsEnabled) {
 						if(!deployments.equals(instances)) {
-							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabled(request,user)+"/>");
+							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
 						}
 					}
 				}
@@ -894,7 +894,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				if(type.equals(typeRegistered)) {
 					if(buttonsEnabled) {
 						if(!deployments.equals("0")) {
-							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabled(request,user)+"/>");
+							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
 						}
 					}
 				}
