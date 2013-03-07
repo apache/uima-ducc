@@ -18,4 +18,4 @@ under the License.
 -->
 <td valign="top" align="right">
 Users:&nbsp
-<td valign="top"><input type="text" size="16" id="users_input" value="default" placeholder="user1 user2 user3...">
+<td valign="top"><input title="Hint: Preferences can be used to change user filtering" type="text" size="16" id="users_input" value="default" placeholder="user1 user2 user3...">

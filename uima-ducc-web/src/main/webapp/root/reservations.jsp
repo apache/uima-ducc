@@ -71,7 +71,7 @@ if (table_style.equals("scroll")) {
 <!-- *********************** column ************************ -->
 <td valign="middle" align="center">
 <div id="reservation_form_button">
-<button title="Login to enable" disabled style="font-size:8pt;">Request<br>Reservation</button>
+<button title="Hint: Login" disabled style="font-size:8pt;">Request<br>Reservation</button>
 </div>
 </td>
 <!-- *********************** column ************************ -->
