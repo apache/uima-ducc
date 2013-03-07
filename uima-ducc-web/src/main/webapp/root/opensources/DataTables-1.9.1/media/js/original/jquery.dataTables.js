@@ -8541,7 +8541,7 @@
 					fnCallback( json );
 				},
 				"dataType": "json",
-				"cache": true,
+				"cache": false,
 				"type": oSettings.sServerMethod,
 				"error": function (xhr, error, thrown) {
 					if ( error == "parsererror" ) {
