@@ -99,7 +99,7 @@ if (table_style.equals("scroll")) {
 if (table_style.equals("scroll")) {
 %>
 	<table id="services-table" width="100%">
-	<caption><b>Services Definitions List</b><br><i><small>click column heading to sort</small></i></caption>
+	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Services Definitions List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
 	<tr class="ducc-header">
 		<th class="ducc-col-button"></th>
@@ -131,7 +131,7 @@ if (table_style.equals("scroll")) {
 if (table_style.equals("classic")) {
 %>
 	<table width="100%">
-   	<caption><b>Services Definitions List</b><br><i><small>click column heading to sort</small></i></caption>
+   	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Services Definitions List</b><br><i><small>click column heading to sort</small></i></caption>
    	<tr>
     <td>
       <table class="sortable">

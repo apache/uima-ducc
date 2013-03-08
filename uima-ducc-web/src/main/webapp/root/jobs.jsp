@@ -100,7 +100,7 @@ if (table_style.equals("scroll")) {
 if (table_style.equals("scroll")) {
 %>
 	<table id="jobs-table" width="100%">
-	<caption><b>Jobs List</b><br><i><small>click column heading to sort</small></i></caption>
+	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Jobs List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
 	<tr class="ducc-header">
 	<th class="ducc-col-terminate"></th>
@@ -135,7 +135,7 @@ if (table_style.equals("scroll")) {
 if (table_style.equals("classic")) {
 %>
 	<table width="100%">
-   	<caption><b>Jobs List</b><br><i><small>click column heading to sort</small></i></caption>
+   	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Jobs List</b><br><i><small>click column heading to sort</small></i></caption>
    	<tr>
     <td>
       <table class="sortable">
