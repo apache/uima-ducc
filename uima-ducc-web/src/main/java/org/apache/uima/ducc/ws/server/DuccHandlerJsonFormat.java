@@ -133,9 +133,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Start
-		row.add(new JsonPrimitive(getTimeStamp(request,job.getDuccId(), job.getStandardInfo().getDateOfSubmission())));
+		sb = new StringBuffer();
+		sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
+		sb.append(getTimeStamp(request,job.getDuccId(), job.getStandardInfo().getDateOfSubmission()));
+		sb.append("</span>");
+		row.add(new JsonPrimitive(sb.toString()));
 		// End
-		row.add(new JsonPrimitive(getCompletionOrProjection(request,job)));
+		sb = new StringBuffer();
+		sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
+		sb.append(getCompletionOrProjection(request,job));
+		sb.append("</span>");
+		row.add(new JsonPrimitive(sb.toString()));
 		// User
 		sb = new StringBuffer();
 		String title = "";
@@ -533,15 +541,20 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// Start
-		row.add(new JsonPrimitive(getTimeStamp(request,duccwork.getDuccId(), duccwork.getStandardInfo().getDateOfSubmission())));
+		sb = new StringBuffer();
+		sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
+		sb.append(getTimeStamp(request,duccwork.getDuccId(), duccwork.getStandardInfo().getDateOfSubmission()));
+		sb.append("</span>");
+		row.add(new JsonPrimitive(sb.toString()));
 		// End
 		sb = new StringBuffer();
-		sb.append("<span>");
 		if(duccwork instanceof DuccWorkReservation) {
 			DuccWorkReservation reservation = (DuccWorkReservation) duccwork;
 			switch(reservation.getReservationState()) {
 			case Completed:
+				sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
 				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				sb.append("</span>");
 				break;
 			default:
 				break;
@@ -551,13 +564,14 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
 			switch(job.getJobState()) {
 			case Completed:
+				sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
 				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				sb.append("</span>");
 				break;
 			default:
 				break;
 			}
 		}
-		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// User
 		sb = new StringBuffer();

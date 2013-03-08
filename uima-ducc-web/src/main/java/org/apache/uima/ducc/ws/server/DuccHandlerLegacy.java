@@ -112,11 +112,15 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Start
 		sb.append("<td valign=\"bottom\">");
+		sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
 		sb.append(getTimeStamp(request,job.getDuccId(), job.getStandardInfo().getDateOfSubmission()));
+		sb.append("</span>");
 		sb.append("</td>");
 		// End
 		sb.append("<td valign=\"bottom\">");
+		sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
 		sb.append(getCompletionOrProjection(request,job));
+		sb.append("</span>");
 		sb.append("</td>");
 		// User
 		String title = "";
@@ -449,7 +453,9 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		}
 		// Start
 		sb.append("<td>");
+		sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
 		sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfSubmission()));
+		sb.append("</span>");
 		sb.append("</td>");
 		// End
 		sb.append("<td>");
@@ -457,7 +463,9 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			DuccWorkReservation reservation = (DuccWorkReservation) duccwork;
 			switch(reservation.getReservationState()) {
 			case Completed:
+				sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
 				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				sb.append("</span>");
 				break;
 			default:
 				break;
@@ -467,7 +475,9 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
 			switch(job.getJobState()) {
 			case Completed:
+				sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
 				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				sb.append("<span>");
 				break;
 			default:
 				break;
