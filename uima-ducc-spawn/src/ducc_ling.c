@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define VERSION "0.7.3a"
+#define VERSION "0.8.0"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -54,6 +54,7 @@
  * 2012-10-26 0.7.2 Print local port when redirecting, and match DUCC level. jrc
  * 2013-01-31 0.7.3 Print message '1001' as marker and flush stdout before exec.  ld
  * 2013-01-31 0.7.3a Print message '1002 CONSOLE REDIRECT' with fn.  jrc
+ * 2013-03-08 0.8.0 more complete ulimit suport. jrc
  */
 
 /**
@@ -270,39 +271,80 @@ void show_env(char **envp)
     }
 }
 
-/**
- * If DUCC_RLIMIT_CORE is in env, get its value and set the soft core limit.
- *
- * Number 4000
- */
+struct limit_set
+{
+    char * name;
+    int resource;
+};
+
+void set_one_limit(char *name, int resource, rlim_t val)
+{
+    struct rlimit limstruct;
+    char * lim_name = &name[5];
+    fprintf(stdout, "4000 Setting %s to %lld\n", lim_name, val);   // ( bypass DUCC_ in the name. i heart c. )
+    
+    getrlimit(resource, &limstruct);
+    fprintf(stdout, "4030 Before: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);
+
+    // prep the message, which we may never actually use
+    char buf[BUFLEN];
+    sprintf(buf, "4030 %s limit was not set.", name);
+
+    limstruct.rlim_cur = val;
+    int rc = setrlimit(resource, &limstruct);
+    if ( rc != 0 ) {
+        perror(buf);
+        return;
+    }
+    
+    getrlimit(resource, &limstruct);
+    fprintf(stdout, "4040 After: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);    
+}
+ 
 void set_limits()
 {
-    char *climit = getenv("DUCC_RLIMIT_CORE");
-    char buf[BUFLEN];
-
-    if ( climit != NULL ) {
-        char *en = 0;
-        long long lim = strtoll(climit, &en, 10);
-        struct rlimit limstruct;
+    struct limit_set limits[] = { 
+        { "DUCC_RLIMIT_CORE"   , RLIMIT_CORE},  
+        { "DUCC_RLIMIT_CPU"    , RLIMIT_CPU},
+        { "DUCC_RLIMIT_DATA"   , RLIMIT_DATA},
+        { "DUCC_RLIMIT_FSIZE"  , RLIMIT_FSIZE},
+        { "DUCC_RLIMIT_MEMLOCK", RLIMIT_MEMLOCK},
+        { "DUCC_RLIMIT_NOFILE" , RLIMIT_NOFILE},
+        { "DUCC_RLIMIT_NPROC"  , RLIMIT_NPROC},
+        { "DUCC_RLIMIT_RSS"    , RLIMIT_RSS},
+        { "DUCC_RLIMIT_STACK"  , RLIMIT_STACK},
+#ifndef __APPLE__
+        { "DUCC_RLIMIT_AS"        , RLIMIT_AS},
+        { "DUCC_RLIMIT_LOCKS"     , RLIMIT_LOCKS},
+        { "DUCC_RLIMIT_SIGPENDING", RLIMIT_SIGPENDING},
+        { "DUCC_RLIMIT_MSGQUEUE"  , RLIMIT_MSGQUEUE},
+        { "DUCC_RLIMIT_NICE"      , RLIMIT_NICE},
+        { "DUCC_RLIMIT_STACK"     , RLIMIT_STACK},
+        { "DUCC_RLIMIT_RTPRIO"    , RLIMIT_RTPRIO},
         
-        fprintf(stdout, "4000 Setting RLIMIT_CORE\n");
-        if (*en) {
-            fprintf(stderr, "4010 DUCC_RLIMIT_CORE is not numeric; core limit note set: %s\n", climit);
-            return;
-        }
+#endif
+    };
+    u_long len = sizeof(limits) / sizeof (struct limit_set);
+    int i;
 
-        getrlimit(RLIMIT_CORE, &limstruct);
-        fprintf(stdout, "4030 Before: RLIMIT_CORE soft[%lld] hard[%lld]\n", limstruct.rlim_cur, limstruct.rlim_max);
+    // fprintf(stdout, "SIZEOF limits = %lu \n", len);
+    for ( i = 0; i < len; i++ ) {
+         char *climit = getenv(limits[i].name);
+         if ( climit != NULL ) {
+             char *en = 0;
+             rlim_t lim = strtoll(climit, &en, 10);             
+             if (*en) {
+                 fprintf(stderr, "4010 %s is not numeric; core limit note set: %s\n", limits[i].name, climit);
+                 return;
+             }
+ 
+             // fprintf(stdout, "LIMIT: Set %s to %lld\n", limits[i].name, lim);
+             set_one_limit(limits[i].name, limits[i].resource, lim);
+         } else {
+             // fprintf(stdout, "LIMIT: Bypass %s\n", limits[i].name);
+         }
+     }
 
-        limstruct.rlim_cur = lim;
-        int rc = setrlimit(RLIMIT_CORE, &limstruct);
-        if ( rc != 0 ) {
-            perror("4030 Core soft limit was not set.");
-        }
-
-        getrlimit(RLIMIT_CORE, &limstruct);
-        fprintf(stdout, "4040 After: RLIMIT_CORE soft[%lld] hard[%lld]\n", limstruct.rlim_cur, limstruct.rlim_max);
-    }
 }
 
 #ifndef __APPLE__
@@ -371,6 +413,8 @@ void redirect_to_socket(char *sockloc)
     char * colon;
     char buf[BUFLEN];
 
+    fprintf(stdout, "JRC start socket redirect\n");
+
     colon = strchr(sockloc, ':');
     if ( colon == NULL ) {
         fprintf(stderr, "1700 invalid socket, missing port: %s\n", sockloc);
@@ -395,30 +439,32 @@ void redirect_to_socket(char *sockloc)
     // use the IP.
     //
     struct in_addr ip;
-    struct hostent *hp;    
+    //struct hostent *hp;    
     if (!inet_aton(hostname, &ip)) {
         fprintf(stderr, "1703 Can't parse IP address %s\n", hostname);
         exit(1);
     }
     fprintf(stdout, "1704 addr: %x\n", ip.s_addr);
 
-    if ((hp = gethostbyaddr((const void *)&ip, sizeof ip, AF_INET)) == NULL) {
-        fprintf(stderr, "1705 no name associated with %s\n", hostname);
-    } else {        
-        fprintf(stdout, "1706 Name associated with %s is %s\n", hostname, hp->h_name);
-    }
+//     if ((hp = gethostbyaddr((const void *)&ip, sizeof ip, AF_INET)) == NULL) {
+//         fprintf(stderr, "1705 no name associated with %s\n", hostname);
+//     } else {        
+//         fprintf(stdout, "1706 Name associated with %s is %s\n", hostname, hp->h_name);
+//     }
     
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
-    bcopy((char *)hp->h_addr, (char *)&serv_addr.sin_addr.s_addr,hp->h_length);
+    bcopy((char *)&ip.s_addr, (char *)&serv_addr.sin_addr.s_addr, sizeof(serv_addr.sin_addr.s_addr));
     serv_addr.sin_port = htons(port);
 
+    fprintf(stdout, "1705 About to connect\n");
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (connect(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("1707 Error connecting to console socket.");
         exit(1);
     }
+    fprintf(stdout, "1706 Connected\n");
 
     struct sockaddr sockname;
     int    namelen;
@@ -518,7 +564,7 @@ int main(int argc, char **argv, char **envp)
         redirect = 1;
     }
 
-    if ( redirect ) {
+    if ( redirect && ( filepath != NULL) ) {
         logfile = mklogfile(filepath);
     } else {
         fprintf(stdout, "300 Bypassing redirect of log.\n");
@@ -643,6 +689,8 @@ int main(int argc, char **argv, char **envp)
     if ( redirect ) {
         char *console_port = getenv("DUCC_CONSOLE_LISTENER");
         if ( console_port != NULL ) {
+            fprintf(stdout, "jrc starting console redirect.\n");
+            fflush(stdout);
             redirect_to_socket(console_port);
             if ( filepath != NULL ) {
                 // on console redirection, spit out the name of the log file it would have been
