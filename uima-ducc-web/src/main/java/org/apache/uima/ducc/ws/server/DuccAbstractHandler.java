@@ -819,12 +819,12 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			disabled = "";
 			break;
 		case LoggedInNotOwner:
-			hover = " title=\"Hint: Preferences can be used to change role to Administrator\"";
+			hover = " title=\""+DuccConstants.hintPreferencesRoleAdministrator+"\"";
 			break;
 		case LoggedInNotAdministrator:
 			break;
 		case NotLoggedIn:
-			hover = " title=\"Hint: Login\"";
+			hover = " title=\""+DuccConstants.hintLogin+"\"";
 			break;
 		default:
 			break;

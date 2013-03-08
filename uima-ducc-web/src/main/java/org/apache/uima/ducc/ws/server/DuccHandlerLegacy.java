@@ -283,7 +283,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		switch(getDescriptionStyle(request)) {
 		case Long:
 		default:
-			sb.append("<span>");
+			sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
 			sb.append(description);
 			sb.append("</span>");
 			break;
@@ -714,7 +714,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		switch(getDescriptionStyle(request)) {
 		case Long:
 		default:
-			sb.append("<span>");
+			sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
 			sb.append(description);
 			sb.append("</span>");
 			break;
@@ -1022,7 +1022,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				switch(getDescriptionStyle(request)) {
 				case Long:
 				default:
-					sb.append("<span>");
+					sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
 					sb.append(description);
 					sb.append("</span>");
 					break;
