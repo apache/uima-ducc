@@ -21,6 +21,7 @@ package org.apache.uima.ducc.sm;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -57,15 +58,18 @@ public class ServiceHandler
     private ServiceStateHandler serviceStateHandler = new ServiceStateHandler();
 	private ServiceMap serviceMap = new ServiceMap();       // note this is the sync object for publish
 
-    private HashMap<DuccId, IDuccWork> newJobs = new HashMap<DuccId, IDuccWork>();
-    private HashMap<DuccId, IDuccWork> newServices = new HashMap<DuccId, IDuccWork>();
+    private Map<DuccId, IDuccWork> newJobs = new HashMap<DuccId, IDuccWork>();
+    private Map<DuccId, IDuccWork> newServices = new HashMap<DuccId, IDuccWork>();
     
-    private HashMap<DuccId, IDuccWork> deletedJobs = new HashMap<DuccId, IDuccWork>();
-    private HashMap<DuccId, IDuccWork> deletedServices = new HashMap<DuccId, IDuccWork>();
+    private Map<DuccId, IDuccWork> deletedJobs = new HashMap<DuccId, IDuccWork>();
+    private Map<DuccId, IDuccWork> deletedServices = new HashMap<DuccId, IDuccWork>();
     
-    private HashMap<DuccId, IDuccWork> modifiedJobs = new HashMap<DuccId, IDuccWork>();
-    private HashMap<DuccId, IDuccWork> modifiedServices = new HashMap<DuccId, IDuccWork>();
-    
+    private Map<DuccId, IDuccWork> modifiedJobs = new HashMap<DuccId, IDuccWork>();
+    private Map<DuccId, IDuccWork> modifiedServices = new HashMap<DuccId, IDuccWork>();
+
+    private List<ApiHandler> pendingRequests = new LinkedList<ApiHandler>();
+    private Object stateUpdateLock = new Object();
+
     public ServiceHandler(IServiceManager serviceManager)
     {
         this.serviceManager = serviceManager;        
@@ -82,6 +86,7 @@ public class ServiceHandler
 			}
 
             try {
+                runCommands();           // enqueued orders that came in while I was away
                 processUpdates();
             } catch (Throwable t) {
                 logger.error(methodName, null, t);
@@ -106,54 +111,48 @@ public class ServiceHandler
     {
     	String methodName = "processUpdates";
         logger.info(methodName, null, "Processing updates.");
-        HashMap<DuccId, IDuccWork> incoming;
+        Map<DuccId, IDuccWork> deletedJobsMap      = new HashMap<DuccId, IDuccWork>();
+        Map<DuccId, IDuccWork> modifiedJobsMap     = new HashMap<DuccId, IDuccWork>();
+        Map<DuccId, IDuccWork> newJobsMap          = new HashMap<DuccId, IDuccWork>();
+        Map<DuccId, IDuccWork> deletedServicesMap  = new HashMap<DuccId, IDuccWork>();
+        Map<DuccId, IDuccWork> modifiedServicesMap = new HashMap<DuccId, IDuccWork>();
+        Map<DuccId, IDuccWork> newServicesMap      = new HashMap<DuccId, IDuccWork>();
 
-        incoming = new HashMap<DuccId, IDuccWork>();
-        synchronized(deletedJobs) {
-            incoming.putAll(deletedJobs);
-            deletedJobs.clear();
+        synchronized(stateUpdateLock) {
+                deletedJobsMap.putAll(deletedJobs);
+                deletedJobs.clear();
+                        
+                modifiedJobsMap.putAll(modifiedJobs);
+                modifiedJobs.clear();
+                       
+                deletedServicesMap.putAll(deletedServices);
+                deletedServices.clear();
+                        
+                modifiedServicesMap.putAll(modifiedServices);
+                modifiedServices.clear();
+            
+                newServicesMap.putAll(newServices);
+                newServices.clear();
+                        
+                newJobsMap.putAll(newJobs);
+                newJobs.clear();
         }
-        handleDeletedJobs(incoming);
 
-        incoming = new HashMap<DuccId, IDuccWork>();
-        synchronized(modifiedJobs) {
-            incoming.putAll(modifiedJobs);
-            modifiedJobs.clear();
-        }
-        handleModifiedJobs(incoming);
+        // We could potentially have several updates where a service or arrives, is modified, and then deleted, while
+        // we are busy.  Need to handle them in the right order.  
+        //
+        // Jobs are dependent on services but not the other way around - I think we need to handle services first,
+        // to avoid the case where something is dependent on something that will exist soon but doesn't currently.
+        handleNewServices     (newServicesMap     );
+        handleModifiedServices(modifiedServicesMap);
+        handleDeletedServices (deletedServicesMap );
+        handleImplicitServices(                   );
 
-        incoming = new HashMap<DuccId, IDuccWork>();
-        synchronized(deletedServices) {
-            incoming.putAll(deletedServices);
-            deletedServices.clear();
-        }
-        handleDeletedServices(incoming);
+        handleNewJobs         (newJobsMap         );
+        handleModifiedJobs    (modifiedJobsMap    );
+        handleDeletedJobs     (deletedJobsMap     );
 
-        incoming = new HashMap<DuccId, IDuccWork>();
-        synchronized(modifiedServices) {
-            incoming.putAll(modifiedServices);
-            modifiedServices.clear();
-        }
-        handleModifiedServices(incoming);
-        handleImplicitServices();
-
-        incoming = new HashMap<DuccId, IDuccWork>();
-        synchronized(newServices) {
-            incoming.putAll(newServices);
-            newServices.clear();
-        }
-        handleNewServices(incoming);
-
-        incoming = new HashMap<DuccId, IDuccWork>();
-        synchronized(newJobs) {
-            incoming.putAll(newJobs);
-            newJobs.clear();
-        }
-        handleNewJobs(incoming);
-
-        synchronized(serviceMap) {
-            serviceManager.publish(serviceMap);
-        }
+        serviceManager.publish(serviceMap);
 
         List<ServiceSet> regsvcs = serviceStateHandler.getRegisteredServices();
         for ( ServiceSet sset : regsvcs ) {
@@ -172,35 +171,40 @@ public class ServiceHandler
                                     )
     {
 
-        synchronized(newJobs) {
-            this.newJobs.putAll(newJobs);
-        }
-
-        synchronized(newServices) {
-            this.newServices.putAll(newServices);
-        }
-
-        synchronized(deletedJobs) {
-            this.deletedJobs.putAll(deletedJobs);
-        }
-
-        synchronized(deletedServices) {
+        synchronized(stateUpdateLock) {
+            this.newJobs.putAll(newJobs);            
+            this.newServices.putAll(newServices);            
+            this.deletedJobs.putAll(deletedJobs);            
             this.deletedServices.putAll(deletedServices);
-        }
-
-        synchronized(modifiedJobs) {
             this.modifiedJobs.putAll(modifiedJobs);
-        }
-
-        synchronized(modifiedServices) {
             this.modifiedServices.putAll(modifiedServices);
         }
-      
         synchronized(this) {
             notify();
         }
     } 
-    
+
+    void runCommands()
+    {
+        String methodName = "runCommands";
+        LinkedList<ApiHandler> tmp = new LinkedList<ApiHandler>();
+        synchronized(pendingRequests) {
+            tmp.addAll(pendingRequests);
+            pendingRequests.clear();
+        }
+        logger.info(methodName, null, "Running", tmp.size(), "API Tasks.");
+        for ( ApiHandler apih : tmp ) {
+            apih.run();
+        }
+    }
+
+    void addApiTask(ApiHandler apih)
+    {
+        synchronized(pendingRequests) {
+            pendingRequests.add(apih);
+        }
+    }
+
     /**
      * Resolves state for the job in id based on the what it is dependent upon - the independent services
      */
@@ -295,7 +299,7 @@ public class ServiceHandler
         return jobServices;
     }
  
-    protected void handleNewJobs(HashMap<DuccId, IDuccWork> work)
+    protected void handleNewJobs(Map<DuccId, IDuccWork> work)
     { 
         String methodName = "handleNewJobs";
 
@@ -380,7 +384,7 @@ public class ServiceHandler
         serviceStateHandler.removeServicesForJob(id);            
     }
 
-    protected void handleDeletedJobs(HashMap<DuccId, IDuccWork> work)
+    protected void handleDeletedJobs(Map<DuccId, IDuccWork> work)
     {
         String methodName = "handleCompletedJobs";
 
@@ -401,7 +405,7 @@ public class ServiceHandler
         serviceMap.removeAll(work.keySet());
     }
 
-    protected void handleModifiedJobs(HashMap<DuccId, IDuccWork> work)
+    protected void handleModifiedJobs(Map<DuccId, IDuccWork> work)
     {
         String methodName = "handleModifiedJobs";
 
@@ -433,7 +437,7 @@ public class ServiceHandler
 
     }
 
-    protected void handleNewServices(HashMap<DuccId, IDuccWork> work)
+    protected void handleNewServices(Map<DuccId, IDuccWork> work)
     {
         String methodName = "handleNewServices";
 
@@ -544,7 +548,7 @@ public class ServiceHandler
     // We're here because we got OR state for the service that it has stopped running.
     // Must clean up.
     //
-    protected void handleDeletedServices(HashMap<DuccId, IDuccWork> work)
+    protected void handleDeletedServices(Map<DuccId, IDuccWork> work)
     {
         String methodName = "handleDeletedServices";
 
@@ -595,7 +599,7 @@ public class ServiceHandler
         }
     }
 
-    protected void handleModifiedServices(HashMap<DuccId, IDuccWork> work)
+    protected void handleModifiedServices(Map<DuccId, IDuccWork> work)
     {
         String methodName = "handleModifiedServices";        
         
@@ -753,10 +757,13 @@ public class ServiceHandler
                                              sset.getId());
             }
 
-            // only start something if we don't have enought already going
-            ApiHandler  apih = new ApiHandler(ev, this);
-            Thread t = new Thread(apih);
-            t.start();
+            pendingRequests.add(new ApiHandler(ev, this));
+
+//             // only start something if we don't have enought already going
+//             ApiHandler  apih = new ApiHandler(ev, this);
+//             Thread t = new Thread(apih);
+//             t.start();
+
             return new ServiceReplyEvent(ServiceCode.OK, 
                                          "Service " + serviceIdString + " start request accepted, new instances[" + wanted + "]", 
                                          sset.getKey(), 
@@ -833,9 +840,10 @@ public class ServiceHandler
             
 
             if ( tolose > 0 ) {
-                ApiHandler  apih = new ApiHandler(ev, this);
-                Thread t = new Thread(apih);
-                t.start();
+                pendingRequests.add(new ApiHandler(ev, this));
+//                 ApiHandler  apih = new ApiHandler(ev, this);
+//                 Thread t = new Thread(apih);
+//                 t.start();
             }
 
             return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " stop request accepted for [" + tolose + "] instances.", sset.getKey(), sset.getId());
@@ -951,10 +959,10 @@ public class ServiceHandler
         }
 
     	if ( sset.isRegistered() ) {            
-            ApiHandler  apih = new ApiHandler(ev, this);
-
-            Thread t = new Thread(apih);
-            t.start();
+            pendingRequests.add(new ApiHandler(ev, this));
+//             ApiHandler  apih = new ApiHandler(ev, this);
+//             Thread t = new Thread(apih);
+//             t.start();
             return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " modify request accepted.", sset.getKey(), sset.getId());
         } else {
             return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + friendly + " is not a known service.", sset.getKey(), null);            
@@ -1005,9 +1013,10 @@ public class ServiceHandler
 
         if ( sset.isRegistered() ) {            
             sset.deregister();          // just sets a flag so we know how to handle it when it starts to die
-            ApiHandler  apih = new ApiHandler(ev, this);
-            Thread t = new Thread(apih);
-            t.start();
+            pendingRequests.add(new ApiHandler(ev, this));
+//             ApiHandler  apih = new ApiHandler(ev, this);
+//             Thread t = new Thread(apih);
+//             t.start();
             return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " unregistered. Shutting down implementors.", sset.getKey(), sset.getId());
         } else {
             return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + serviceIdString + " is not a registered service.", sset.getKey(), null);            
@@ -1184,12 +1193,12 @@ public class ServiceHandler
     {
 
         // Map of active service descriptors by endpoint.  For UIMA services, key is the endpoint.
-        private HashMap<String,  ServiceSet>  servicesByName     = new HashMap<String,  ServiceSet>();
-        private HashMap<Long,    ServiceSet>  servicesByFriendly = new HashMap<Long,    ServiceSet>();
+        private Map<String,  ServiceSet>  servicesByName     = new HashMap<String,  ServiceSet>();
+        private Map<Long,    ServiceSet>  servicesByFriendly = new HashMap<Long,    ServiceSet>();
 
         // For each job, the collection of services it is dependent upon
         // DUccId is a Job Id (or id for serice that has dependencies)
-        private HashMap<DuccId, Map<String, ServiceSet>>  servicesByJob = new HashMap<DuccId, Map<String, ServiceSet>>();
+        private Map<DuccId, Map<String, ServiceSet>>  servicesByJob = new HashMap<DuccId, Map<String, ServiceSet>>();
 
         ServiceStateHandler()
         {

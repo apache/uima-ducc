@@ -71,7 +71,7 @@ public class ServiceSet
     // key is job/service id, value is same.  it's a map for fast existence check
     HashMap<DuccId, DuccId> references = new HashMap<DuccId, DuccId>();
 
-    // For a registered service, here is my registered it
+    // For a registered service, here is my registered id
     DuccId id;
     HashMap<Long, DuccId> friendly_ids = new HashMap<Long, DuccId>();
 
@@ -416,14 +416,17 @@ public class ServiceSet
      */
     void enforceAutostart()
     {
+    	String methodName = "enforceAutostart";
         if ( ! autostart ) return;                   // not doing auto, nothing to do
         if ( stopped     ) return;                   // doing auto, but we've been manually stopped
 
         // could have more implementors than instances if some were started dynamically but the count not persisted
-        int needed = Math.max(0, instances - implementors.size());
+        int needed = Math.max(0, instances - friendly_ids.size());
 
+        logger.debug(methodName, null, "ENFORCE: ", needed);
         while ( (needed--) > 0 ) {
             start();
+            logger.debug(methodName, null, "ENFORCE: ", needed);
         }
     }
 
@@ -1064,6 +1067,7 @@ public class ServiceSet
     {
     	String methodName = "start";
 
+        logger.debug(methodName, null, "START START START START START START START START");
 //         if ( service_type == ServiceType.Custom ) { 
 //             establish();
 //             return;
@@ -1087,7 +1091,13 @@ public class ServiceSet
         };
             
         for ( int i = 0; i < args.length; i++ ) { 
-            logger.debug(methodName, null, "Args[", i, "]:", args[i]);
+            if ( i > 0 && (args[i-1].equals("-cp") ) ) {
+                // The classpaths can be just awful filling the logs with junk.  It will end up in the agent log
+                // anyway so let's inhibit it here.
+                logger.debug(methodName, null, "Args[", i, "]: <CLASSPATH>");
+            } else {
+                logger.debug(methodName, null, "Args[", i, "]:", args[i]);
+            }
         }
 
         ProcessBuilder pb = new ProcessBuilder(args);
@@ -1124,8 +1134,19 @@ public class ServiceSet
 		}
 
         // That was annoying.  Now search the lines for some hint of the id.
+        boolean inhibit_cp = false;
         for ( String s : stdout_lines ) {
-            logger.debug(methodName, id, "Start stdout:", s);
+            if ( inhibit_cp ) {
+                // The classpaths can be just awful filling the logs with junk.  It will end up in the agent log
+                // anyway so let's inhibit it here.
+                logger.debug(methodName, id, "<INHIBITED CP>");
+                inhibit_cp = false;
+            } else {
+                logger.debug(methodName, id, "Start stdout:", s);
+                if ( s.indexOf("-cp") >= 0 ) {
+                    inhibit_cp = true;
+                }
+            }
         }
 
         for ( String s : stderr_lines ) {
@@ -1160,6 +1181,7 @@ public class ServiceSet
             setServiceState(ServiceState.Initializing);
         }
         saveMetaProperties();
+        logger.debug(methodName, null, "ENDSTART ENDSTART ENDSTART ENDSTART ENDSTART ENDSTART");
     }
 
     /**

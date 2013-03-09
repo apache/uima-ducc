@@ -98,6 +98,8 @@ public class ServiceManagerComponent
     private String service_seqno = "service.seqno";
     private DuccIdFactory idFactory = new DuccIdFactory();
 
+    private boolean initialized = false;
+
 	public ServiceManagerComponent(CamelContext context) 
     {
 		super("ServiceManager", context);
@@ -212,6 +214,10 @@ public class ServiceManagerComponent
         } 
 
         idFactory = new DuccIdFactory(seq);
+
+        synchronized(this) {
+            initialized = true;
+        }
     }
 	
 	@Override
@@ -327,6 +333,7 @@ public class ServiceManagerComponent
             if ( w.getDuccType() == DuccType.Reservation ) continue;
 
             if ( !((DuccWorkJob)w).isActive() ) continue;         // not active, we don't care about it. likely after restart.
+
             logger.debug(methodName, w.getDuccId(), "Reconciling, adding", w.getDuccType());
 			switch(w.getDuccType()) {
               case Job:
@@ -337,8 +344,8 @@ public class ServiceManagerComponent
               case Service:
                   localMap.addDuccWork(w);
                   // An arbitrary process is **almost** the same as a service in terms of how most of DUCC
-                  // handles it.  In order to transparently reuse all that code it is classified as a
-                  // special type of service, "other", which the SM treats as a regular job.
+                  // handles it.  To me (SM), however, it is just like any other job so it goes into
+                  // the job map.
                   switch ( ((IDuccWorkService)w).getServiceDeploymentType() ) 
                   {
                       case uima:
@@ -357,7 +364,7 @@ public class ServiceManagerComponent
             }
         }
 
-        // Stuff on the left is stuff we have but or doesn't
+        // Stuff on the right is stuff we have but OR doesn't
         work = diffmap.getRight();
         for ( IDuccWork w : work.values() ) {
             if ( w.getDuccType() == DuccType.Reservation ) continue;
@@ -388,34 +395,54 @@ public class ServiceManagerComponent
             }
         }
 
-        // Now: stuff we both know about
+        // Now: stuff we both know about.  Stuff on left is incoming.
         for( DuccMapValueDifference<IDuccWork> jd: diffmap ) {
 
-            IDuccWork r = jd.getRight();
             IDuccWork l = jd.getLeft();
+            IDuccWork r = jd.getRight();
 
             if ( l.getDuccType() == DuccType.Reservation ) continue;
 
             logger.debug(methodName, l.getDuccId(), "Reconciling, incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
+            boolean active = ((DuccWorkJob)l).isActive();
 
             // Update our own state by replacing the old (right) object with the new (left)
 			switch(l.getDuccType()) {
               case Job:
-                  modifiedJobs.put(l.getDuccId(), l);
-                  localMap.addDuccWork(l);
+                  if ( active ) {
+                      modifiedJobs.put(l.getDuccId(), l);
+                      localMap.addDuccWork(l);
+                  } else {
+                      deletedJobs.put(l.getDuccId(), l);
+                      localMap.removeDuccWork(l.getDuccId());
+                  }
                   break;
 
               case Service:
-                  localMap.addDuccWork(l);
-                  switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
-                  {
-                      case uima:
-                      case custom:
-                          modifiedServices.put(l.getDuccId(), l);
-                          break;
-                      case other:
-                          modifiedJobs.put(l.getDuccId(), l);
-                          break;
+                  if ( active ) {
+                      localMap.addDuccWork(l);
+                      switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                          {
+                          case uima:
+                          case custom:
+                              modifiedServices.put(l.getDuccId(), l);
+                              break;
+                          case other:
+                              modifiedJobs.put(l.getDuccId(), l);
+                              break;
+                          }
+                  } else {
+                      localMap.removeDuccWork(l.getDuccId());
+                      switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                          {
+                          case uima:
+                          case custom:
+                              deletedServices.put(l.getDuccId(), l);
+                              break;
+                          case other:
+                              deletedJobs.put(l.getDuccId(), l);
+                              break;
+                          }
                   }
                   break;
 
@@ -658,6 +685,12 @@ public class ServiceManagerComponent
 
     public synchronized void orchestratorStateArrives(DuccWorkMap map)
     {
+    	String methodName = "orchestratorStateArrives";
+        if ( ! initialized ) {
+            logger.info(methodName, null, "SM not initialized, ignoring Orchestrator message.");
+            return;
+        }
+
         epochCounter++;
         incomingMap = map;
         notify();
