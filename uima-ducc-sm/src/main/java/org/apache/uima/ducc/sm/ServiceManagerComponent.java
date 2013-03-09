@@ -395,54 +395,34 @@ public class ServiceManagerComponent
             }
         }
 
-        // Now: stuff we both know about.  Stuff on left is incoming.
+        // Now: stuff we both know about
         for( DuccMapValueDifference<IDuccWork> jd: diffmap ) {
 
-            IDuccWork l = jd.getLeft();
             IDuccWork r = jd.getRight();
+            IDuccWork l = jd.getLeft();
 
             if ( l.getDuccType() == DuccType.Reservation ) continue;
 
             logger.debug(methodName, l.getDuccId(), "Reconciling, incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
-            boolean active = ((DuccWorkJob)l).isActive();
 
             // Update our own state by replacing the old (right) object with the new (left)
 			switch(l.getDuccType()) {
               case Job:
-                  if ( active ) {
-                      modifiedJobs.put(l.getDuccId(), l);
-                      localMap.addDuccWork(l);
-                  } else {
-                      deletedJobs.put(l.getDuccId(), l);
-                      localMap.removeDuccWork(l.getDuccId());
-                  }
+                  modifiedJobs.put(l.getDuccId(), l);
+                  localMap.addDuccWork(l);
                   break;
 
               case Service:
-                  if ( active ) {
-                      localMap.addDuccWork(l);
-                      switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
-                          {
-                          case uima:
-                          case custom:
-                              modifiedServices.put(l.getDuccId(), l);
-                              break;
-                          case other:
-                              modifiedJobs.put(l.getDuccId(), l);
-                              break;
-                          }
-                  } else {
-                      localMap.removeDuccWork(l.getDuccId());
-                      switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
-                          {
-                          case uima:
-                          case custom:
-                              deletedServices.put(l.getDuccId(), l);
-                              break;
-                          case other:
-                              deletedJobs.put(l.getDuccId(), l);
-                              break;
-                          }
+                  localMap.addDuccWork(l);
+                  switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                  {
+                      case uima:
+                      case custom:
+                          modifiedServices.put(l.getDuccId(), l);
+                          break;
+                      case other:
+                          modifiedJobs.put(l.getDuccId(), l);
+                          break;
                   }
                   break;
 
@@ -450,6 +430,7 @@ public class ServiceManagerComponent
                   break;
             }
         }
+
         handler.signalUpdates(
                               newJobs, 
                               newServices,                               
