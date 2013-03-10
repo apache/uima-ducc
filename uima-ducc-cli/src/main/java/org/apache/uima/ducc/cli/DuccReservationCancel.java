@@ -18,202 +18,123 @@
 */
 package org.apache.uima.ducc.cli;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
-import org.apache.uima.ducc.api.DuccMessage;
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
-import org.apache.uima.ducc.common.crypto.Crypto;
-import org.apache.uima.ducc.common.exception.DuccRuntimeException;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationReplyDuccEvent;
-import org.apache.uima.ducc.transport.event.DuccEvent;
-import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
-import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
-
 
 /**
  * Cancel a DUCC reservation
  */
 
-public class DuccReservationCancel extends DuccUi {
+public class DuccReservationCancel 
+    extends CliBase
+{
+
+    ReservationRequestProperties requestProperties = new ReservationRequestProperties();	
+    static String or_port = "ducc.orchestrator.http.port";
+    static String or_host = "ducc.orchestrator.node";
+
+    long canceledPid = -1;
+    String responseMessage = null;
+
+    UiOption[] opts = new UiOption []
+    {
+        UiOption.Help,
+        UiOption.Debug, 
+
+        UiOption.JobId,
+    };
+
 	
-	private IDuccMessageProcessor duccMessageProcessor = new DuccMessage();
-	
-	public DuccReservationCancel() {
+	public DuccReservationCancel(String [] args) 
+        throws Exception
+    {
+        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
 	}
-	
-	public DuccReservationCancel(IDuccMessageProcessor duccMessageProcessor) {
-		this.duccMessageProcessor = duccMessageProcessor;
+
+	public DuccReservationCancel(List<String> args) 
+        throws Exception
+    {
+        String[] arg_array = args.toArray(new String[args.size()]);
+        init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
 	}
-	
-	@SuppressWarnings("static-access")
-	private void addOptions(Options options) {
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_help).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_help).create());
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_role_administrator).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_role_administrator).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_reservation_id)
-				.withDescription(makeDesc(DuccUiConstants.desc_reservation_id,DuccUiConstants.exmp_reservation_id)).hasArg()
-				.withLongOpt(DuccUiConstants.name_reservation_id).create());
+
+	public DuccReservationCancel(Properties props) 
+        throws Exception
+    {
+        for ( Object k : props.keySet() ) {      
+            Object v = props.get(k);
+            requestProperties.put(k, v);
+        }
+        init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or");
 	}
-	
-	protected int help(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.setWidth(DuccUiConstants.help_width);
-		formatter.printHelp(DuccReservationCancel.class.getName(), options);
-		return 1;
+
+	public String getResponseMessage()
+	{
+		return responseMessage;
 	}
-	
-	public int run(String[] args) throws Exception {
-		ReservationRequestProperties reservationRequestProperties = new ReservationRequestProperties();
-		/*
-		 * parser is not thread safe?
-		 */
-		synchronized(DuccUi.class) {
-			Options options = new Options();
-			addOptions(options);
-			CommandLineParser parser = new PosixParser();
-			CommandLine commandLine = parser.parse(options, args);
-			/*
-			 * give help & exit when requested
-			 */
-			if (commandLine.hasOption(DuccUiConstants.name_help)) {
-				return help(options);
-			}
-			if(commandLine.getOptions().length == 0) {
-				return help(options);
-			}
-			/*
-			 * require DUCC_HOME 
-			 */
-			String ducc_home = Utils.findDuccHome();
-			if(ducc_home == null) {
-				duccMessageProcessor.err("missing required environment variable: DUCC_HOME");
-				return 1;
-			}
-			/*
-			 * detect duplicate options
-			 */
-			if (DuccUiUtilities.duplicate_options(duccMessageProcessor, commandLine)) {
-				return 1;
-			}
-			/*
-			 * marshal user
-			 */
-			String user = DuccUiUtilities.getUser();
-			reservationRequestProperties.setProperty(ReservationSpecificationProperties.key_user, user);
-			String property = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_signature_required);
-			if(property != null) {
-				String signatureRequiredProperty = property.trim().toLowerCase();
-				if(signatureRequiredProperty.equals("on")) {
-					Crypto crypto = new Crypto(System.getProperty("user.home"));
-					byte[] cypheredMessage = crypto.encrypt(user);
-					reservationRequestProperties.put(ReservationSpecificationProperties.key_signature, cypheredMessage);
-				}
-			}
-			/*
-			 * marshal command line options into properties
-			 */
-			Option[] optionList = commandLine.getOptions();
-			for (int i=0; i<optionList.length; i++) {
-				Option option = optionList[i];
-				String name = option.getLongOpt();
-				String value = option.getValue();
-				name = trimmer(name);
-				value = trimmer(value);
-				if(value == null) {
-					value = "";
-				}
-				reservationRequestProperties.setProperty(name, value);
-			}
-		}
-		/*
-		 * employ default broker/endpoint if not specified
-		 */
-		String broker = reservationRequestProperties.getProperty(ReservationRequestProperties.key_service_broker);
-		if(broker == null) {
-			broker = DuccUiUtilities.buildBrokerUrl();
-		}
-		String endpoint = reservationRequestProperties.getProperty(ReservationRequestProperties.key_service_endpoint);
-		if(endpoint == null) {
-			endpoint = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint_type)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint)
-				     ;
-		}
-		/*
-		 * send to JM & get reply
-		 */
-//		CamelContext context = new DefaultCamelContext();
-//		ActiveMQComponent amqc = ActiveMQComponent.activeMQComponent(broker);
-//		String jmsProvider = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider);
-//        context.addComponent(jmsProvider, amqc);
-//        context.start();
-//        DuccEventDispatcher duccEventDispatcher;
-//        duccEventDispatcher = new DuccEventDispatcher(context,endpoint);
-        
-    String port = 
-            DuccPropertiesResolver.
-              getInstance().
-                getProperty(DuccPropertiesResolver.ducc_orchestrator_http_port);
-    if ( port == null ) {
-      throw new DuccRuntimeException("Unable to Submit a Job. Ducc Orchestrator HTTP Port Not Defined. Add ducc.orchestrator.http.port ducc.properties");
-    }
-    String orNode = 
-            DuccPropertiesResolver.
-              getInstance().
-                getProperty(DuccPropertiesResolver.ducc_orchestrator_node);
-    if ( orNode == null ) {
-      throw new DuccRuntimeException("Unable to Submit a Job. Ducc Orchestrator Node Not Defined. Add ducc.orchestrator.node to ducc.properties");
-    }
-    
-    String targetUrl = "http://"+orNode+":"+port+"/or";
-    DuccEventHttpDispatcher duccEventDispatcher = new DuccEventHttpDispatcher(targetUrl);
-		 
-		    CancelReservationDuccEvent cancelReservationDuccEvent = new CancelReservationDuccEvent();
-        cancelReservationDuccEvent.setProperties(reservationRequestProperties);
-        DuccEvent duccRequestEvent = cancelReservationDuccEvent;
-        DuccEvent duccReplyEvent = null;
+
+	public boolean execute() 
+        throws Exception 
+    {
+
+        CancelReservationDuccEvent      cancelReservationDuccEvent      = new CancelReservationDuccEvent(requestProperties);
         CancelReservationReplyDuccEvent cancelReservationReplyDuccEvent = null;
         try {
-        	duccReplyEvent = duccEventDispatcher.dispatchAndWaitForDuccReply(duccRequestEvent);
+            cancelReservationReplyDuccEvent = (CancelReservationReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelReservationDuccEvent);
+        } catch (Exception e) {
+            addError("Job not submitted: " + e.getMessage());
+            return false;
+        } finally {
+            dispatcher.close();
         }
-        finally {
-          duccEventDispatcher.close();
-          //context.stop();
-        }
+			
         /*
          * process reply
          */
-        cancelReservationReplyDuccEvent = (CancelReservationReplyDuccEvent) duccReplyEvent;
-        // TODO handle null & rejected possibilities here
-    	String reservationId = cancelReservationReplyDuccEvent.getProperties().getProperty(ReservationReplyProperties.key_id);
-    	String msg = cancelReservationReplyDuccEvent.getProperties().getProperty(ReservationReplyProperties.key_message);
-    	duccMessageProcessor.out("Reservation"+" "+reservationId+" "+msg);
-		return 0;
+    	boolean rc = extractReply(cancelReservationReplyDuccEvent);            	
+    	responseMessage = cancelReservationReplyDuccEvent.getProperties().getProperty(UiOption.Message.pname());
+		return rc;
 	}
 	
 	public static void main(String[] args) {
 		try {
-			DuccReservationCancel duccReservationCancel = new DuccReservationCancel();
-			int rc = duccReservationCancel.run(args);
-            System.exit(rc == 0 ? 0 : 1);
+			DuccReservationCancel dsc = new DuccReservationCancel(args);
+			boolean rc = dsc.execute();
+
+            // Fetch messages if any.  null means none
+            String [] messages = dsc.getMessages();
+            String [] warnings = dsc.getWarnings();
+            String [] errors   = dsc.getErrors();
+
+            if ( messages != null ) {
+                for (String s : messages ) {
+                    System.out.println(s);
+                }
+            }
+
+            if ( warnings != null ) {
+                for (String s : warnings ) {
+                    System.out.println("WARN: " + s);
+                }
+            }
+
+            if ( errors != null ) {
+                for (String s : errors ) {
+                    System.out.println("ERROR: " + s);
+                }
+            }
+
+            long id = dsc.getDuccId();
+            String msg = dsc.getResponseMessage();
+            System.out.println("Reservation " + id + " " + msg);
+            System.exit(rc ? 0 : 1);
+
 		} catch (Exception e) {
-			e.printStackTrace();
+            System.out.println("Cannot cancel: " + e.getMessage());
             System.exit(1);
 		}
 	}

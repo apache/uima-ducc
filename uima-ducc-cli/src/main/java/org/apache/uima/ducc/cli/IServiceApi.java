@@ -154,7 +154,7 @@ public interface IServiceApi
         },            
 
         ServicePingDoLog { 
-            public String decode()      { return "service_ping_do_log"; }
+            public String decode()      { return "service_ping_dolog"; }
             public String description() { return "If specified, log the pinger, else suppress the log."; }
             public String argname()     { return "none"; }
         },            

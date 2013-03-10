@@ -19,8 +19,6 @@
 */
 package org.apache.uima.ducc.cli;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -42,18 +40,24 @@ class ConsoleListener
     private String       console_host_address;
 
     private boolean      in_shutdown = false;
-    private int          callers;   // number of remote processes we expect to listen for
 
-    ConsoleListener(CliBase submit)
-        throws Throwable
+    private IConsoleCallback consoleCb;
+    // private int          callers;   // number of remote processes we expect to listen for
+
+    boolean debug = false;
+    ConsoleListener(CliBase submit, IConsoleCallback consoleCb)
+        throws Exception
     {
         this.submit = submit;
         this.sock = new ServerSocket(0);
         this.console_listener_port  = sock.getLocalPort();
-
+        this.consoleCb = consoleCb;
+        
         NodeIdentity ni = new NodeIdentity();
         this.console_host_address = ni.getIp();            
-        this.callers = 1;         // assume we'll get at least one listener, else we would not have been called.
+
+        debug = submit.isDebug();
+        // this.callers = 1;         // assume we'll get at least one listener, else we would not have been called.
     }
 
     String getConsoleHostAddress()
@@ -66,33 +70,33 @@ class ConsoleListener
         return console_listener_port;
     }
 
-    /**
-     * The caller knows there may be more than one remote process calling us but
-     * we've no clue when or if they will show up.  We assume here they do, and 
-     * rely on some external influence to correct us if not.
-     */
-    synchronized void incrementCallers()
-    {
-        callers++;
-    }
+//     /**
+//      * The caller knows there may be more than one remote process calling us but
+//      * we've no clue when or if they will show up.  We assume here they do, and 
+//      * rely on some external influence to correct us if not.
+//      */
+//     synchronized void incrementCallers()
+//     {
+//         callers++;
+//     }
 
-    synchronized void waitForCompletion()
-    {
-        try {
-            while ( (callers > 0) && ( !in_shutdown) ) {
-                wait();
-            }
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    }
+//     synchronized void waitForCompletion()
+//     {
+//         try {
+//             while ( (callers > 0) && ( !in_shutdown) ) {
+//                 wait();
+//             }
+// 		} catch (InterruptedException e) {
+// 			// TODO Auto-generated catch block
+// 			e.printStackTrace();
+// 		}
+//     }
 
-    private synchronized void releaseWait()
-    {
-        callers--;
-        notify();
-    }
+//     private synchronized void releaseWait()
+//     {
+//         callers--;
+//         notify();
+//     }
 
     synchronized boolean isShutdown()
     {
@@ -101,6 +105,7 @@ class ConsoleListener
 
     void shutdown()
     {
+        if ( debug ) System.out.println("console listener: Shutdown starts");
         in_shutdown = true;
         try {
             sock.close();
@@ -114,32 +119,39 @@ class ConsoleListener
 
     private void delete(int port)
     {
-        listeners.remove(port);
-        if ( listeners.size() == 0 ) {
-            synchronized(submit) {
-                releaseWait();
-            }
+        int count;
+        synchronized(this) {
+            listeners.remove(port);
+            count = listeners.size();
+        }
+
+        if ( debug ) System.out.println("console listener: Removed listener, size = "  + listeners.size());
+        if ( count == 0 ) {
             shutdown();
         }
     }
 
     public void run()
     {
-        System.out.println("Listening on " + console_host_address + " " + console_listener_port);
+        if ( debug ) System.out.println("Listening on " + console_host_address + " " + console_listener_port);
 
         while ( true ) {
             try {                    
                 Socket s = sock.accept();
                 StdioListener sl = new StdioListener(s, this);
                 int p = s.getPort();
-                listeners.put(p, sl);
+                synchronized(this) {
+                    listeners.put(p, sl);
+                }
 
                 Thread t = new Thread(sl);
                 t.start();                
             } catch (Throwable t) {
                 if ( ! in_shutdown ) shutdown();
+                if ( debug ) System.out.println("console listener returns");
+                submit.consoleExits();
                 return;
-            }
+            } 
         }
     }
 
@@ -151,13 +163,11 @@ class ConsoleListener
         boolean done = false;
         ConsoleListener cl;
         String remote_host;
-        String leader;
+        String logfile = "N/A";
 
-        BufferedOutputStream logfile = null;
-        String filename = null;
         static final String console_tag = "1002 CONSOLE_REDIRECT ";
         int tag_len = 0;
-        boolean first_error = true;
+
 
         StdioListener(Socket sock, ConsoleListener cl)
         {
@@ -166,56 +176,31 @@ class ConsoleListener
 
             InetAddress ia = sock.getInetAddress();
             remote_host = ia.getHostName();
-            System.out.println("===== Listener starting: " + remote_host + ":" + sock.getPort());
-            int ndx = remote_host.indexOf('.');
-            if ( ndx >= 0 ) {
-                // this is just for console decoration, keep it short, who cares about the domain
-                remote_host = remote_host.substring(0, ndx);
-            }
-            leader = "[" + remote_host + "] ";
             tag_len = console_tag.length();
+
+            if ( debug ) System.out.println("===== Listener starting: " + remote_host + ":" + sock.getPort());
         }
 
         public void close()
             throws Throwable
         {
-            System.out.println("===== Listener completing: " + remote_host + ":" + sock.getPort());
+            if ( debug ) System.out.println("===== Listener completing: " + remote_host + ":" + sock.getPort());
             this.done = true;
             is.close();
             cl.delete(sock.getPort());
-
-            logfile.flush();
-            logfile.close();
         }
 
-        void tee(String leader, String line)
+        void doWrite(String line)
         {
-            try {
-				if ((logfile == null) && line.startsWith(console_tag)) {
-					filename = line.substring(tag_len);
-					logfile = new BufferedOutputStream(new FileOutputStream(filename));
-
-                    System.out.println("Create logfile " + filename);
-				}
-				if (logfile != null) {
-					logfile.write(leader.getBytes());
-					logfile.write(' ');
-					logfile.write(line.getBytes());
-					logfile.write('\n');
-                    logfile.flush();
-				} else {
-                    System.out.println("Bypass logfile");
-                } 
-			} catch (Exception e) {
-                if ( first_error ) {
-                    System.out.println("Cannot create or write log file[" + filename + "]: " + e.getMessage());
-                    e.printStackTrace();
-                }
-                first_error = false;
-			}
-			System.out.println(leader + line);
+            if ( line.startsWith(console_tag) ) {
+                logfile = line.substring(tag_len);
+                return;                                                                      // don't echo this
+            }
+            if ( logfile.equals("N/A") ) return;                                             // don't log until we get a log name
+            if ( line.startsWith("1001 Command launching...") && ( !debug) ) return;        // don't log duccling noise
+            consoleCb.stdout(remote_host, logfile, line);
         }
-
+        
         /**
          * We received a buffer of bytes that needs to be put into a string and printed.  We want
          * to split along \n boundaries so we can insert the host name at the start of every line.
@@ -235,7 +220,7 @@ class ConsoleListener
             if ( len < 0 ) {
                 // this is a lone linend.  Spew the partial if it exists and just return.
                 if ( partial != null ) {
-                    tee(leader, partial);
+                    doWrite(partial);
                     partial = null;
                 }
                 return;
@@ -250,12 +235,12 @@ class ConsoleListener
 
             for ( int i = 0; i < len; i++ ) {
                 // spew everything but the last line
-                tee(leader, lines[i]);
+                doWrite(lines[i]);
             }
 
             if ( tmp.endsWith("\n") ) {
                 // if the last line ends with linend, there is no partial, just spew
-                tee(leader, lines[len]);
+                doWrite(lines[len]);
                 partial = null;
             } else {
                 // otherwise, wait for the next buffer
@@ -279,7 +264,7 @@ class ConsoleListener
                 while ( (count = is.read(buf)) > 0 ) {
                     printlines(buf, count);
                 }
-                System.out.println(leader + "EOF:  exiting");
+                if ( debug ) System.out.println(remote_host + ": EOF:  exiting");
             } catch ( Throwable t ) {
                 t.printStackTrace();
             }

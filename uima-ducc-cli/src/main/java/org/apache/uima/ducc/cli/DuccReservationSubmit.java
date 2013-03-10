@@ -18,329 +18,178 @@
 */
 package org.apache.uima.ducc.cli;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Properties;
-import java.util.Set;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
-import org.apache.uima.ducc.api.DuccMessage;
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
-import org.apache.uima.ducc.common.crypto.Crypto;
-import org.apache.uima.ducc.common.exception.DuccRuntimeException;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
-import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
-import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
-import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 
 
 /**
  * Submit a DUCC reservation
  */
 
-public class DuccReservationSubmit extends DuccUi {
+public class DuccReservationSubmit 
+    extends CliBase
+{
+    static String or_port = "ducc.orchestrator.http.port";
+    static String or_host = "ducc.orchestrator.node";
+
+    ReservationRequestProperties requestProperties = new ReservationRequestProperties();
 	
-	private IDuccMessageProcessor duccMessageProcessor = new DuccMessage();
 	private String nodeList = "";
-	private String reservationId = "";
 	
-	public DuccReservationSubmit() {
-	}
-	
-	public DuccReservationSubmit(IDuccMessageProcessor duccMessageProcessor) {
-		this.duccMessageProcessor = duccMessageProcessor;
-	}
-
-	@SuppressWarnings("static-access")
-	private void addOptions(Options options) {
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_help).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_help).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_description)
-				.withDescription(makeDesc(DuccUiConstants.desc_description,DuccUiConstants.exmp_description)).hasArg()
-				.withLongOpt(DuccUiConstants.name_description).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_reservation_scheduling_class)
-				.withDescription(makeDesc(DuccUiConstants.desc_reservation_scheduling_class,DuccUiConstants.exmp_reservation_scheduling_class)).hasArg()
-				.withLongOpt(DuccUiConstants.name_reservation_scheduling_class).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_number_of_instances)
-				.withDescription(makeDesc(DuccUiConstants.desc_number_of_instances,DuccUiConstants.exmp_number_of_instances)).hasArg()
-				.withLongOpt(DuccUiConstants.name_number_of_instances).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_instance_memory_size)
-				.withDescription(makeDesc(DuccUiConstants.desc_instance_memory_size,DuccUiConstants.exmp_instance_memory_size)).hasArg()
-				.withLongOpt(DuccUiConstants.name_instance_memory_size).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_specification)
-				.withDescription(DuccUiConstants.desc_specification).hasArg()
-				.withLongOpt(DuccUiConstants.name_specification).create());
-	}
-
-	private String[] required_options = { };
-	
-	private boolean missing_required_options(CommandLine commandLine) {
-		boolean retVal = false;
-		for(int i=0; i<required_options.length; i++) {
-			String required_option = required_options[i];
-			if (!commandLine.hasOption(required_option)) {
-				duccMessageProcessor.err("missing required option: "+required_option);
-				retVal = true;
-			}
-		}
-		return retVal;
-	}
-	
-	protected int help(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.setWidth(DuccUiConstants.help_width);
-		formatter.printHelp(DuccReservationSubmit.class.getName(), options);
-		return DuccUiConstants.ERROR;
-	}
-	
-	public int run(String[] args) throws Exception {
-		ReservationRequestProperties reservationRequestProperties = new ReservationRequestProperties();
-		/*
-		 * parser is not thread safe?
-		 */
-		synchronized(DuccUi.class) {
-			Options options = new Options();
-			addOptions(options);
-			CommandLineParser parser = new PosixParser();
-			CommandLine commandLine = parser.parse(options, args);
-	
-			/*
-			 * give help & exit when requested
-			 */
-			if (commandLine.hasOption(DuccUiConstants.name_help)) {
-				return help(options);
-			}
-			if(commandLine.getOptions().length == 0) {
-				return help(options);
-			}
-			/*
-			 * require DUCC_HOME 
-			 */
-			String ducc_home = Utils.findDuccHome();
-			if(ducc_home == null) {
-				duccMessageProcessor.err("missing required environment variable: DUCC_HOME");
-				return DuccUiConstants.ERROR;
-			}
-			/*
-			 * detect duplicate options
-			 */
-			if (DuccUiUtilities.duplicate_options(duccMessageProcessor, commandLine)) {
-				return DuccUiConstants.ERROR;
-			}
-			/*
-			 * check for required options
-			 */
-			if (missing_required_options(commandLine)) {
-				return DuccUiConstants.ERROR;
-			}
-			/*
-			 * marshal user
-			 */
-			String user = DuccUiUtilities.getUser();
-			reservationRequestProperties.setProperty(ReservationSpecificationProperties.key_user, user);
-			String property = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_signature_required);
-			if(property != null) {
-				String signatureRequiredProperty = property.trim().toLowerCase();
-				if(signatureRequiredProperty.equals("on")) {
-					Crypto crypto = new Crypto(System.getProperty("user.home"));
-					byte[] cypheredMessage = crypto.encrypt(user);
-					reservationRequestProperties.put(ReservationSpecificationProperties.key_signature, cypheredMessage);
-				}
-			}
-			/*
-			 * marshal command line options into properties
-			 */
-			Option[] optionList = commandLine.getOptions();
-			// pass 1
-			for (int i=0; i<optionList.length; i++) {
-				Option option = optionList[i];
-				String name = option.getLongOpt();
-				if(name.equals(SpecificationProperties.key_specification)) {
-					File file = new File(option.getValue());
-					FileInputStream fis = new FileInputStream(file);
-					reservationRequestProperties.load(fis);
-				}
-			}
-			// trim
-			DuccUiUtilities.trimProperties(reservationRequestProperties);
-			// pass 2
-			for (int i=0; i<optionList.length; i++) {
-				Option option = optionList[i];
-				String name = option.getLongOpt();
-				String value = option.getValue();
-				name = trimmer(name);
-				value = trimmer(value);
-				reservationRequestProperties.setProperty(name, value);
-			}
-		}
-		/*
-		 * employ default broker/endpoint if not specified
-		 */
-		String broker = reservationRequestProperties.getProperty(ReservationRequestProperties.key_service_broker);
-		if(broker == null) {
-			broker = DuccUiUtilities.buildBrokerUrl();
-		}
-		String endpoint = reservationRequestProperties.getProperty(ReservationRequestProperties.key_service_endpoint);
-		if(endpoint == null) {
-			endpoint = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint_type)
-				     + ":"
-				     + DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_request_endpoint)
-				     ;
-		}
-		/*
-		 * identify invoker
-		 */
-		reservationRequestProperties.setProperty(ReservationRequestProperties.key_submitter_pid_at_host, ManagementFactory.getRuntimeMXBean().getName());
-		
-        boolean missingValue = false;
-        Set<Object> keys = reservationRequestProperties.keySet();
-        for(Object key : keys) {
-        	if(ReservationRequestProperties.keys_requiring_values.contains(key)) {
-        		Object oValue = reservationRequestProperties.get(key);
-        		if(oValue == null) {
-        			duccMessageProcessor.err("missing value for: "+key);
-        			missingValue = true;
-        		}
-        		else if(oValue instanceof String) {
-        			String sValue = (String)oValue;
-        			if(sValue.trim().length() < 1) {
-            			duccMessageProcessor.err("missing value for: "+key);
-            			missingValue = true;
-            		}
-        		}
-        		
-        	}
-        }
-        if(missingValue) {
-        	return DuccUiConstants.ERROR;
-        }
-		
-		/*
-		 * send to Orchestrator & get reply
-		 */
-//		CamelContext context = new DefaultCamelContext();
-//		ActiveMQComponent amqc = ActiveMQComponent.activeMQComponent(broker);
-//		String jmsProvider = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_jms_provider);
-//        context.addComponent(jmsProvider, amqc);
-//        context.start();
-//        DuccEventDispatcher duccEventDispatcher;
-//        duccEventDispatcher = new DuccEventDispatcher(context,endpoint);
-		
-    String port = 
-            DuccPropertiesResolver.
-              getInstance().
-                getProperty(DuccPropertiesResolver.ducc_orchestrator_http_port);
-    if ( port == null ) {
-      throw new DuccRuntimeException("Unable to Submit a Job. Ducc Orchestrator HTTP Port Not Defined. Add ducc.orchestrator.http.port ducc.properties");
+	public DuccReservationSubmit(ArrayList<String> args)
+        throws Exception
+    {
+        String[] arg_array = args.toArray(new String[args.size()]);
+        init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
     }
-    String orNode = 
-            DuccPropertiesResolver.
-              getInstance().
-                getProperty(DuccPropertiesResolver.ducc_orchestrator_node);
-    if ( orNode == null ) {
-      throw new DuccRuntimeException("Unable to Submit a Job. Ducc Orchestrator Node Not Defined. Add ducc.orchestrator.node to ducc.properties");
+
+	public DuccReservationSubmit(String[] args)
+        throws Exception
+    {
+        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
     }
-    
-    String targetUrl = "http://"+orNode+":"+port+"/or";
-    DuccEventHttpDispatcher duccEventDispatcher = new DuccEventHttpDispatcher(targetUrl);
-        SubmitReservationDuccEvent submitReservationDuccEvent = new SubmitReservationDuccEvent();
-        submitReservationDuccEvent.setProperties(reservationRequestProperties);
-        DuccEvent duccRequestEvent = submitReservationDuccEvent;
-        DuccEvent duccReplyEvent = null;
-        SubmitReservationReplyDuccEvent submitReservationReplyDuccEvent = null;
+
+	public DuccReservationSubmit(Properties props)
+        throws Exception
+    {
+        for ( Object k : props.keySet() ) {      
+            Object v = props.get(k);
+            requestProperties.put(k, v);
+        }
+        init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or");
+    }
+
+    UiOption[] opts = new UiOption[] {
+        UiOption.Help,
+        UiOption.Debug, 
+
+        UiOption.Description,
+        UiOption.SchedulingClass,
+        UiOption.NumberOfInstances,
+        UiOption.Specification,
+        UiOption.ReservationMemorySize,
+    };
+
+// 	@SuppressWarnings("static-access")
+// 	private void addOptions(Options options) {
+// // // 		options.addOption(OptionBuilder
+// // // 				.withDescription(DuccUiConstants.desc_help).hasArg(false)
+// // // 				.withLongOpt(DuccUiConstants.name_help).create());
+// // 		options.addOption(OptionBuilder
+// // 				.withArgName(DuccUiConstants.parm_description)
+// // 				.withDescription(makeDesc(DuccUiConstants.desc_description,DuccUiConstants.exmp_description)).hasArg()
+// // 				.withLongOpt(DuccUiConstants.name_description).create());
+// 		options.addOption(OptionBuilder
+// 				.withArgName(DuccUiConstants.parm_reservation_scheduling_class)
+// 				.withDescription(makeDesc(DuccUiConstants.desc_reservation_scheduling_class,DuccUiConstants.exmp_reservation_scheduling_class)).hasArg()
+// 				.withLongOpt(DuccUiConstants.name_reservation_scheduling_class).create());
+// 		options.addOption(OptionBuilder
+// 				.withArgName(DuccUiConstants.parm_number_of_instances)
+// 				.withDescription(makeDesc(DuccUiConstants.desc_number_of_instances,DuccUiConstants.exmp_number_of_instances)).hasArg()
+// 				.withLongOpt(DuccUiConstants.name_number_of_instances).create());
+// 		options.addOption(OptionBuilder
+// 				.withArgName(DuccUiConstants.parm_instance_memory_size)
+// 				.withDescription(makeDesc(DuccUiConstants.desc_instance_memory_size,DuccUiConstants.exmp_instance_memory_size)).hasArg()
+// 				.withLongOpt(DuccUiConstants.name_instance_memory_size).create());
+// 		options.addOption(OptionBuilder
+// 				.withArgName(DuccUiConstants.parm_specification)
+// 				.withDescription(DuccUiConstants.desc_specification).hasArg()
+// 				.withLongOpt(DuccUiConstants.name_specification).create());
+// 	}
+	
+	public boolean execute()
+    {		
+        if ( ! requestProperties.containsKey(UiOption.NumberOfInstances.pname()) ) {
+            requestProperties.put(UiOption.NumberOfInstances.pname(), UiOption.NumberOfInstances.deflt());
+        }
+     
+        SubmitReservationDuccEvent      ev    = new SubmitReservationDuccEvent(requestProperties);
+        SubmitReservationReplyDuccEvent reply = null;
+        
         try {
-        	duccReplyEvent = duccEventDispatcher.dispatchAndWaitForDuccReply(duccRequestEvent);
+            reply = (SubmitReservationReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
+        } catch (Exception e) {
+            addError("Reservation not submitted: " + e.getMessage());
+            return false;
+        } finally {
+            dispatcher.close();
         }
-        finally {
-          duccEventDispatcher.close();
-        	//context.stop();
-        }
+
         /*
-         * process reply
+         * process reply (gets friendlyId and messages.
          */
-        submitReservationReplyDuccEvent = (SubmitReservationReplyDuccEvent) duccReplyEvent;
-        int retVal = 0;
-        Properties properties = submitReservationReplyDuccEvent.getProperties();
-        @SuppressWarnings("unchecked")
-		ArrayList<String> value_submit_warnings = (ArrayList<String>) properties.get(ReservationSpecificationProperties.key_submit_warnings);
-        if(value_submit_warnings != null) {
-        	duccMessageProcessor.out("Reservation"+" "+"warnings:");
-        	Iterator<String> reasons = value_submit_warnings.iterator();
-        	while(reasons.hasNext()) {
-        		duccMessageProcessor.out(reasons.next());
-        	}
+        boolean rc = extractReply(reply);
+
+        if ( rc ) { 
+        	nodeList = reply.getProperties().getProperty(UiOption.ReservationNodeList.pname());
         }
-        @SuppressWarnings("unchecked")
-		ArrayList<String> value_submit_errors = (ArrayList<String>) properties.get(ReservationSpecificationProperties.key_submit_errors);
-        if(value_submit_errors != null) {
-        	duccMessageProcessor.out("Reservation"+" "+"errors:");
-        	Iterator<String> reasons = value_submit_errors.iterator();
-        	while(reasons.hasNext()) {
-        		duccMessageProcessor.out(reasons.next());
-        	}
-	        retVal = DuccUiConstants.ERROR;
-        }
-        if(retVal == DuccUiConstants.ERROR) {
-        	duccMessageProcessor.out("Reservation"+" "+"not"+" "+"submitted");
-        	return DuccUiConstants.ERROR;
-        }
-        else {
-        	reservationId = submitReservationReplyDuccEvent.getProperties().getProperty(ReservationRequestProperties.key_id);
-        	nodeList = submitReservationReplyDuccEvent.getProperties().getProperty(ReservationRequestProperties.key_node_list);
-        	duccMessageProcessor.out("Reservation"+" "+reservationId+" "+"submitted");
-        	boolean success = nodeList.trim().length() > 0;
-        	if(success) {
-        		duccMessageProcessor.out("resID = "+reservationId);
-        		duccMessageProcessor.out("nodes: "+nodeList);
-        	}
-        	else {
-        		duccMessageProcessor.out("Resources Unavailable");
-        	}
-            return new Integer(reservationId);
-        }
+
+        return rc;
+    }
+
+	
+	public String[] getHosts() 
+    {
+		  return this.nodeList.split("\\s");
 	}
 	
-	@Deprecated
-	public String getReservationId() {
-		  return this.reservationId;
-	}
-	
-	@Deprecated
-	public String[] getHosts() {
-		  return this.nodeList.split(" ");
-	}
-	
+    public String getHostsAsString()
+    {
+        return nodeList;
+    }
+
 	public static void main(String[] args) {
-		try {
-			DuccReservationSubmit duccReservationSubmit = new DuccReservationSubmit();
-			int rc = duccReservationSubmit.run(args);
-            System.exit(rc == 0 ? 0 : 1);
-		} catch (Exception e) {
-			e.printStackTrace();
+        try {
+            // Instantiate the object with args similar to the CLI, or a pre-built properties file
+            DuccReservationSubmit ds = new DuccReservationSubmit(args);
+
+            // Run the API.  If process_attach_console was specified in the args, a console listener is
+            // started but this call does NOT block on it.
+            boolean rc = ds.execute();
+
+            // Fetch messages if any.  null means none
+            String [] messages = ds.getMessages();
+            String [] warnings = ds.getWarnings();
+            String [] errors   = ds.getErrors();
+
+            if ( messages != null ) {
+                for (String s : messages ) {
+                    System.out.println(s);
+                }
+            }
+
+            if ( warnings != null ) {
+                for (String s : warnings ) {
+                    System.out.println("WARN: " + s);
+                }
+            }
+
+            if ( errors != null ) {
+                for (String s : errors ) {
+                    System.out.println("ERROR: " + s);
+                }
+            }
+
+            // If the return is 'true' then as best the API can tell, the submit worked
+            if ( rc ) {
+                
+                // Fetch the Ducc ID
+            	System.out.println("Process " + ds.getDuccId() + " submitted.");
+                System.out.println("ResID = " + ds.getDuccId());
+                System.out.println("nodes: "  + ds.getHostsAsString());
+            	System.exit(0);
+            } else {
+                System.out.println("Could not submit reservation.");
+                System.exit(1);
+            }
+        } catch (Exception e) {
+            System.out.println("Cannot initialize: " + e.getMessage() + ".");
             System.exit(1);
-		}
+        }
 	}
 	
 }

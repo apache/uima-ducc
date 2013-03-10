@@ -22,8 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import org.apache.camel.CamelContext;
-import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -78,8 +76,6 @@ public class DuccServiceApi
     String endpoint = null;
 
     boolean debug = false;
-
-    // CamelContext context = null;
 
     static boolean init_done = false;
 
@@ -447,17 +443,6 @@ public class DuccServiceApi
 
         init_done = true;
     }
-
-    // synchronized protected DuccEventDispatcher connect() throws Exception
-    // {
-	// 	context = new DefaultCamelContext();
-
-	// 	//ActiveMQComponent amqc = ActiveMQComponent.activeMQComponent(broker);
-    //     //context.addComponent(jms_provider, amqc);
-    //     //context.start();
-    //     DuccEventDispatcher duccEventDispatcher = new DuccEventDispatcher(context, endpoint);
-    //     return duccEventDispatcher;
-    // }
 
     private Pair<Integer, String> getId(CommandLine cl, ServiceVerb verb)
     {

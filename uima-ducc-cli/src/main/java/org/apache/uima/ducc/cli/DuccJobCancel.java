@@ -18,186 +18,146 @@
 */
 package org.apache.uima.ducc.cli;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
-import org.apache.uima.ducc.api.DuccMessage;
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
-import org.apache.uima.ducc.common.crypto.Crypto;
-import org.apache.uima.ducc.common.exception.DuccRuntimeException;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
-import org.apache.uima.ducc.transport.event.DuccEvent;
-import org.apache.uima.ducc.transport.event.cli.JobReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
-import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 
 /**
  * Cancel a DUCC job
  */
 
-public class DuccJobCancel extends DuccUi {
+public class DuccJobCancel 
+    extends CliBase
+{
 	
-	private IDuccMessageProcessor duccMessageProcessor = new DuccMessage();
+    JobRequestProperties jobRequestProperties = new JobRequestProperties();
+    static String or_port = "ducc.orchestrator.http.port";
+    static String or_host = "ducc.orchestrator.node";
+
+    long canceledPid = -1;
+    String responseMessage = null;
+
+    UiOption[] opts = new UiOption []
+    {
+        UiOption.Help,
+        UiOption.Debug, 
+
+        UiOption.JobId,
+        UiOption.DjPid,
+        UiOption.Reason,        
+    };
+
 	
-	public DuccJobCancel() {
+	public DuccJobCancel(String [] args) 
+        throws Exception
+    {
+        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", null);
 	}
-	
-	public DuccJobCancel(IDuccMessageProcessor duccMessageProcessor) {
-		this.duccMessageProcessor = duccMessageProcessor;
+
+	public DuccJobCancel(List<String> args) 
+        throws Exception
+    {
+        String[] arg_array = args.toArray(new String[args.size()]);
+        init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", null);
 	}
-	
-	@SuppressWarnings("static-access")
-	private void addOptions(Options options) {
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_help).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_help).create());
-		options.addOption(OptionBuilder
-				.withDescription(DuccUiConstants.desc_role_administrator).hasArg(false)
-				.withLongOpt(DuccUiConstants.name_role_administrator).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_job_id)
-				.withDescription(makeDesc(DuccUiConstants.desc_job_id,DuccUiConstants.exmp_job_id)).hasArg()
-				.withLongOpt(DuccUiConstants.name_job_id).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_djpid)
-				.withDescription(makeDesc(DuccUiConstants.desc_djpid,DuccUiConstants.exmp_djpid)).hasArg()
-				.withLongOpt(DuccUiConstants.name_djpid).create());
-		options.addOption(OptionBuilder
-				.withArgName(DuccUiConstants.parm_reason)
-				.withDescription(makeDesc(DuccUiConstants.desc_reason,DuccUiConstants.exmp_reason)).hasArg()
-				.withLongOpt(DuccUiConstants.name_reason).create());
+
+	public DuccJobCancel(Properties props) 
+        throws Exception
+    {
+        for ( Object k : props.keySet() ) {      
+            Object v = props.get(k);
+            jobRequestProperties.put(k, v);
+        }
+        init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", null, null);
 	}
-	
-	protected int help(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.setWidth(DuccUiConstants.help_width);
-		formatter.printHelp(DuccJobCancel.class.getName(), options);
-		return 1;
+
+	public long getCanceledPid()
+	{
+		return canceledPid;
 	}
-	
-	public int run(String[] args) throws Exception {
-		JobRequestProperties jobRequestProperties = new JobRequestProperties();
-		/*
-		 * parser is not thread safe?
-		 */
-		synchronized(DuccUi.class) {	
-			Options options = new Options();
-			addOptions(options);
-			CommandLineParser parser = new PosixParser();
-			CommandLine commandLine = parser.parse(options, args);
-			/*
-			 * give help & exit when requested
-			 */
-			if (commandLine.hasOption(DuccUiConstants.name_help)) {
-				return help(options);
-			}
-			if(commandLine.getOptions().length == 0) {
-				return help(options);
-			}
-			/*
-			 * require DUCC_HOME 
-			 */
-			String ducc_home = Utils.findDuccHome();
-			if(ducc_home == null) {
-				duccMessageProcessor.err("missing required environment variable: DUCC_HOME");
-				return 1;
-			}
-			/*
-			 * detect duplicate options
-			 */
-			if (DuccUiUtilities.duplicate_options(duccMessageProcessor, commandLine)) {
-				return 1;
-			}
-			/*
-			 * marshal user
-			 */
-			String user = DuccUiUtilities.getUser();
-			jobRequestProperties.setProperty(JobSpecificationProperties.key_user, user);
-			String property = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_signature_required);
-			if(property != null) {
-				String signatureRequiredProperty = property.trim().toLowerCase();
-				if(signatureRequiredProperty.equals("on")) {
-					Crypto crypto = new Crypto(System.getProperty("user.home"));
-					byte[] cypheredMessage = crypto.encrypt(user);
-					jobRequestProperties.put(JobSpecificationProperties.key_signature, cypheredMessage);
-				}
-			}
-			/*
-			 * marshal command line options into properties
-			 */
-			Option[] optionList = commandLine.getOptions();
-			for (int i=0; i<optionList.length; i++) {
-				Option option = optionList[i];
-				String name = option.getLongOpt();
-				String value = option.getValue();
-				if(value == null) {
-					value = "";
-				}
-				jobRequestProperties.setProperty(name, value);
-			}
-		}
-		// trim
-		DuccUiUtilities.trimProperties(jobRequestProperties);
+	public String getResponseMessage()
+	{
+		return responseMessage;
+	}
 		
-	    String port = 
-	            DuccPropertiesResolver.
-	              getInstance().
-	                getProperty(DuccPropertiesResolver.ducc_orchestrator_http_port);
-	    if ( port == null ) {
-	      throw new DuccRuntimeException("Unable to Cancel a Job. Ducc Orchestrator HTTP Port Not Defined. Add ducc.orchestrator.http.port ducc.properties");
-	    }
-	    String orNode = 
-	            DuccPropertiesResolver.
-	              getInstance().
-	                getProperty(DuccPropertiesResolver.ducc_orchestrator_node);
-	    if ( orNode == null ) {
-	      throw new DuccRuntimeException("Unable to Cancel a Job. Ducc Orchestrator Node Not Defined. Add ducc.orchestrator.node to ducc.properties");
-	    }
-	    
-	    String targetUrl = "http://"+orNode+":"+port+"/or";
-	    DuccEventHttpDispatcher duccEventDispatcher = new DuccEventHttpDispatcher(targetUrl);
-        CancelJobDuccEvent cancelJobDuccEvent = new CancelJobDuccEvent();
-        cancelJobDuccEvent.setProperties(jobRequestProperties);
-        DuccEvent duccRequestEvent = cancelJobDuccEvent;
-        DuccEvent duccReplyEvent = null;
+	public boolean execute() 
+        throws Exception 
+    {
+
+        CancelJobDuccEvent      cancelJobDuccEvent      = new CancelJobDuccEvent(jobRequestProperties);
         CancelJobReplyDuccEvent cancelJobReplyDuccEvent = null;
         try {
-        	duccReplyEvent = duccEventDispatcher.dispatchAndWaitForDuccReply(duccRequestEvent);
+            cancelJobReplyDuccEvent = (CancelJobReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelJobDuccEvent);
+        } catch (Exception e) {
+            addError("Job not submitted: " + e.getMessage());
+            return false;
+        } finally {
+            dispatcher.close();
         }
-        finally {
-          duccEventDispatcher.close();
-        	//context.stop();
-        }
+			
         /*
          * process reply
          */
-        cancelJobReplyDuccEvent = (CancelJobReplyDuccEvent) duccReplyEvent;
-        // TODO handle null & rejected possibilities here
-    	String jobId = cancelJobReplyDuccEvent.getProperties().getProperty(JobReplyProperties.key_id);
-    	String dpId = cancelJobReplyDuccEvent.getProperties().getProperty(JobReplyProperties.key_dpid);
-    	if(dpId != null) {
-    		jobId+="."+dpId;
-    	}
-    	String msg = cancelJobReplyDuccEvent.getProperties().getProperty(JobReplyProperties.key_message);
-    	duccMessageProcessor.out("Job"+" "+jobId+" "+msg);
-		return 0;
+    	boolean rc = extractReply(cancelJobReplyDuccEvent);
+        
+        String dpId = cancelJobReplyDuccEvent.getProperties().getProperty(UiOption.DjPid.pname());
+        if(dpId != null) {
+            canceledPid = Long.parseLong(dpId);
+        }
+    	
+    	responseMessage = cancelJobReplyDuccEvent.getProperties().getProperty(UiOption.Message.pname());
+
+        // need : getResponseMessage
+        //      : canceled Pids
+        //      : getDuccId
+    	// duccMessageProcessor.out("Job"+" "+jobId+" "+msg);
+		return rc;
 	}
 	
 	public static void main(String[] args) {
 		try {
-			DuccJobCancel duccJobCancel = new DuccJobCancel();
-			int rc = duccJobCancel.run(args);
-            System.exit(rc == 0 ? 0 : 1);
+			DuccJobCancel djc = new DuccJobCancel(args);
+			boolean rc = djc.execute();
+
+            // Fetch messages if any.  null means none
+            String [] messages = djc.getMessages();
+            String [] warnings = djc.getWarnings();
+            String [] errors   = djc.getErrors();
+
+            if ( messages != null ) {
+                for (String s : messages ) {
+                    System.out.println(s);
+                }
+            }
+
+            if ( warnings != null ) {
+                for (String s : warnings ) {
+                    System.out.println("WARN: " + s);
+                }
+            }
+
+            if ( errors != null ) {
+                for (String s : errors ) {
+                    System.out.println("ERROR: " + s);
+                }
+            }
+
+            long id = djc.getDuccId();
+            String msg = djc.getResponseMessage();
+            long dpid = djc .getCanceledPid();
+
+            if ( dpid == -1 ) {
+                System.out.println("Job " + id + " " + msg);
+            } else {
+                System.out.println("Process " + id + "." + dpid + " " + msg);
+            }
+
+            System.exit(rc ? 0 : 1);
 		} catch (Exception e) {
-			e.printStackTrace();
+            System.out.println("Cannot cancel: " + e.getMessage());
             System.exit(1);
 		}
 	}

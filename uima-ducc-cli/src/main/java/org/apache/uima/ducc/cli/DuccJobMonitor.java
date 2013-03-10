@@ -71,7 +71,7 @@ private Thread main = null;
 	private boolean info = true;
 	private boolean error = true;
 	private boolean debug = false;
-	
+    private boolean quiet = false;
 	private boolean timestamp = false;
 	
 	private int milliseconds 	= 1;
@@ -97,7 +97,7 @@ private Thread main = null;
 	}
 	
 	private void info(String message) {
-		if(info) {
+		if(info && !quiet) {
 			duccMessageProcessor.out(timestamp(message));
 		}
 	}
@@ -117,10 +117,12 @@ private Thread main = null;
 		return tMessage;
 	}
 	
-	public DuccJobMonitor() {
+	public DuccJobMonitor(boolean quiet) {
+        this.quiet = quiet;
 	}
 	
-	public DuccJobMonitor(IDuccMessageProcessor duccMessageProcessor) {
+	public DuccJobMonitor(IDuccMessageProcessor duccMessageProcessor, boolean quiet) {
+        this.quiet = quiet;
 		this.duccMessageProcessor = duccMessageProcessor;
 	}
 	
@@ -242,12 +244,12 @@ private Thread main = null;
 				help(options);
 				return rc.get();
 			}
-			/*
-			 * detect duplicate options
-			 */
-			if (DuccUiUtilities.duplicate_options(duccMessageProcessor, commandLine)) {
-				return 1;
-			}
+//			/*
+//			 * detect duplicate options
+//			 */
+//			if (DuccUiUtilities.duplicate_options(duccMessageProcessor, commandLine)) {
+//				return 1;
+//			}
 			/*
 			 * timestamp
 			 */
@@ -418,9 +420,9 @@ private Thread main = null;
        		arrayList.add("--"+DuccUiConstants.name_reason);
        		arrayList.add("\"submitter was terminated via interrupt\"");
        		String[] argList = arrayList.toArray(new String[0]);
-    		DuccJobCancel duccJobCancel = new DuccJobCancel();
-    		int retVal = duccJobCancel.run(argList);
-    		if(retVal == 0) {
+    		DuccJobCancel duccJobCancel = new DuccJobCancel(argList);
+    		boolean retVal = duccJobCancel.execute();
+    		if(retVal) {
     		}
     		else {
     		}
@@ -430,7 +432,7 @@ private Thread main = null;
 	}
 	public static void main(String[] args) {
 		try {
-			DuccJobMonitor duccJobMonitor = new DuccJobMonitor();
+			DuccJobMonitor duccJobMonitor = new DuccJobMonitor(false);
 			int rc = duccJobMonitor.run(args);
             System.exit(rc == 0 ? 0 : 1);
 		} catch (Exception e) {

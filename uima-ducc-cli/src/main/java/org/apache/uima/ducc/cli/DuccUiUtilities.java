@@ -34,7 +34,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -119,21 +118,21 @@ public class DuccUiUtilities {
 	
 	//**********
 	
-	public static boolean duplicate_options(IDuccMessageProcessor duccMessageProcessor, CommandLine commandLine) {
-		boolean retVal = false;
-		ArrayList<String> duplicates = DuccUiUtilities.getDuplicateOptions(commandLine);
-		if(!duplicates.isEmpty()) {
-			for(String duplicate : duplicates) {
-				duccMessageProcessor.err("duplicate option: "+duplicate);
-			}
-			retVal = true;
-		}
-		return retVal;
-	}
+// 	public static boolean duplicate_options(IDuccMessageProcessor duccMessageProcessor, CommandLine commandLine) {
+// 		boolean retVal = false;
+// 		ArrayList<String> duplicates = DuccUiUtilities.getDuplicateOptions(commandLine);
+// 		if(!duplicates.isEmpty()) {
+// 			for(String duplicate : duplicates) {
+// 				duccMessageProcessor.err("duplicate option: "+duplicate);
+// 			}
+// 			retVal = true;
+// 		}
+// 		return retVal;
+// 	}
 	
 	//**********
 	
-	public static boolean ducc_environment(IDuccMessageProcessor duccMessageProcessor, Properties jobRequestProperties, String key) {
+	public static boolean ducc_environment(CliBase base, Properties jobRequestProperties, String key) {
 		boolean retVal = true;
 		String source = "LD_LIBRARY_PATH";
 		String target = "DUCC_"+source;
@@ -141,13 +140,13 @@ public class DuccUiUtilities {
 		Properties environment_properties = environmentMap(environment_string);
 		if(environment_properties.containsKey(source)) {
 			if(environment_properties.containsKey(target)) {
-				duccMessageProcessor.err(key+" "+"environment conflict: "+target+" takes precedence over "+source);
+				base.addError(key+" "+"environment conflict: "+target+" takes precedence over "+source);
 			}
 			else {
 				target += "="+environment_properties.getProperty(source);
 				environment_string += " "+target;
 				jobRequestProperties.setProperty(key, environment_string);
-				duccMessageProcessor.out(key+": "+environment_string);
+				//duccMessageProcessor.out(key+": "+environment_string);
 			}
 		}
 		return retVal;

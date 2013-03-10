@@ -1,12 +1,32 @@
 package org.apache.uima.ducc.cli;
 
+import java.util.List;
+import java.util.Properties;
+
 public class DuccProcessCancel extends DuccServiceCancel
 {
-	
-	public int run(String[] args) 
-        throws Exception 
+
+	public DuccProcessCancel(String [] args) 
+        throws Exception
     {
-        return super.run(args);
+        super(args);
 	}
-		
+
+	public DuccProcessCancel(List<String> args) 
+        throws Exception
+    {
+        super(args);
+	}
+
+	public DuccProcessCancel(Properties props) 
+        throws Exception
+    {
+        super(props);
+	}
+
+    public boolean isService()
+    {
+        return false;
+    }
+			
 }
