@@ -18,10 +18,13 @@
 */
 package org.apache.uima.ducc.transport.event;
 
+import org.apache.uima.ducc.common.utils.DuccProperties;
+
 @SuppressWarnings("serial")
 public class CancelJobDuccEvent extends AbstractDuccJobEvent {
 	
-	public CancelJobDuccEvent() {
+	public CancelJobDuccEvent(DuccProperties props) {
 		super(EventType.CANCEL_JOB);
+		setProperties(props);
 	}
 }

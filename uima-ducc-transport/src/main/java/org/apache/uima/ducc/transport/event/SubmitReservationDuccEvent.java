@@ -18,10 +18,13 @@
 */
 package org.apache.uima.ducc.transport.event;
 
+import org.apache.uima.ducc.common.utils.DuccProperties;
+
 @SuppressWarnings("serial")
 public class SubmitReservationDuccEvent extends AbstractDuccReservationEvent {
 
-	public SubmitReservationDuccEvent() {
+	public SubmitReservationDuccEvent(DuccProperties props) {
 		super(EventType.SUBMIT_RESERVATION);
+		setProperties(props);
 	}
 }

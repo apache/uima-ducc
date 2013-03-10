@@ -27,7 +27,7 @@ public class Test {
 	public static void main(String[] args) {
 		try {
 			IDuccMessageProcessor messageHandler = new MessageHandler();
-			DuccJobMonitor duccJobMonitor = new DuccJobMonitor(messageHandler);
+			DuccJobMonitor duccJobMonitor = new DuccJobMonitor(messageHandler, false);
 			duccJobMonitor.run(args);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -18,10 +18,13 @@
 */
 package org.apache.uima.ducc.transport.event;
 
+import org.apache.uima.ducc.common.utils.DuccProperties;
+
 @SuppressWarnings("serial")
 public class SubmitJobDuccEvent extends AbstractDuccJobEvent {
 
-	public SubmitJobDuccEvent() {
+	public SubmitJobDuccEvent(DuccProperties props) {
 		super(EventType.SUBMIT_JOB);
+        setProperties(props);
 	}
 }
