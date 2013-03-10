@@ -289,20 +289,19 @@ public class ServiceSet
 
     }
 
-    void deleteProperties()
+    synchronized void deleteProperties()
     {
-        // note that we're NOT synchronized - be sure to call this in a context where that's ok
-        // we want to avoid synchronizing on file activity in case somethng hangs.  which probably
-        // hoses us anyway :(
         if ( meta_filename != null ) {
              File mf = new File(meta_filename);
              mf.delete();
          }
+        meta_filename = null;
 
          if ( props_filename != null ) {
              File pf = new File(props_filename);
              pf.delete();
          }
+         props_filename = null;
     }
 
     void setIncoming(ServiceSet sset)
@@ -530,9 +529,17 @@ public class ServiceSet
         return instances;
     }
 
-    void saveMetaProperties()
+    synchronized void saveMetaProperties()
     {
         String methodName = "saveMetaProperties";
+
+        if ( meta_filename == null ) {
+            // if this is null it was deleted and this is some kind of lingering thread updating, that
+            // we don't really want any more
+            logger.warn(methodName, id, "Meta properties is deleted, bypassing attempt to save.");
+            return;
+        }
+
         meta_props.put("stopped", ""+stopped);
         meta_props.put("service-state", ""+ getServiceState());
         meta_props.put("ping-active", "" + (serviceMeta != null));
