@@ -585,11 +585,11 @@ public abstract class CliBase
 
     synchronized void monitorExits(int rc)
     {
+        this.returnCode = rc;
         if ( waiter != null ) waiter.countDown();
         if ( console_listener != null ) {
             console_listener.shutdown();
         }
-        this.returnCode = rc;
     }
 
     // TODO TODO TODO - do we have to support lots of these for multi-threaded stuff?  Hope not ...
