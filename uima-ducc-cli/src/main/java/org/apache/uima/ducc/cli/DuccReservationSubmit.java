@@ -179,7 +179,7 @@ public class DuccReservationSubmit
                 
                 // Fetch the Ducc ID
             	System.out.println("Process " + ds.getDuccId() + " submitted.");
-                System.out.println("ResID = " + ds.getDuccId());
+                System.out.println("resID = " + ds.getDuccId());
                 System.out.println("nodes: "  + ds.getHostsAsString());
             	System.exit(0);
             } else {
