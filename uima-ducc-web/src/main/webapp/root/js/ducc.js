@@ -1706,46 +1706,42 @@ function ducc_update_page(type)
 			ducc_reservations_page();
 		}
 		for (var i=0; i < document.duccform.refresh.length; i++) {
-			if (document.duccform.refresh[i].checked) {
-				c_value = document.duccform.refresh[i].value;
-				if( c_value == "automatic") {
-					if(type == "jobs") {
-						ducc_load_jobs_data();
-					}
-					if(type == "services") {
-						ducc_load_services_data();
-					}
-					if(type == "reservations") {
-						ducc_load_reservations_data();
-					}
-					if(type == "job-details") {
-						//ducc_load_job_specification_data();
-						ducc_load_job_performance_data();
-						ducc_load_job_workitems_data();
-						ducc_load_job_processes_data();
-						ducc_load_job_workitems_count_data();
-					}
-					if(type == "reservation-details") {
-						//ducc_load_reservation_specification_data();
-						ducc_load_reservation_processes_data();
-					}
-					if(type == "service-details") {
-						//ducc_load_service_registry_data();
-						ducc_load_service_deployments_data();
-					}
-					if(type == "system-machines") {
-						ducc_load_machines_data();
-					}
-					if(type == "system-administration") {
-						ducc_load_system_administration_data();
-					}
-					if(type == "system-daemons") {
-						ducc_load_system_daemons_data();
-					}
-					if(type == "system-classes") {
-						ducc_load_system_classes_data();
-					}
-				}
+			if(type == "jobs") {
+				ducc_load_jobs_data();
+			}
+			if(type == "services") {
+				ducc_load_services_data();
+			}
+			if(type == "reservations") {
+				ducc_load_reservations_data();
+			}
+			if(type == "job-details") {
+				//ducc_load_job_specification_data();
+				ducc_load_job_performance_data();
+				ducc_load_job_workitems_data();
+				ducc_load_job_processes_data();
+				ducc_load_job_workitems_count_data();
+			}
+			if(type == "reservation-details") {
+				//ducc_load_reservation_specification_data();
+				ducc_load_reservation_processes_data();
+			}
+			if(type == "service-details") {
+				ducc_load_service_registry_data();
+				ducc_load_service_deployments_data();
+				ducc_service_update_form_button();
+			}
+			if(type == "system-machines") {
+				ducc_load_machines_data();
+			}
+			if(type == "system-administration") {
+				ducc_load_system_administration_data();
+			}
+			if(type == "system-daemons") {
+				ducc_load_system_daemons_data();
+			}
+			if(type == "system-classes") {
+				ducc_load_system_classes_data();
 			}
 		}
 	}
