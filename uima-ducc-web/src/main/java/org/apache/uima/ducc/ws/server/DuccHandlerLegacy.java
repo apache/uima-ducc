@@ -284,7 +284,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		// Description
 		sb.append("<td valign=\"bottom\">");
 		String description = stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none"));
-		switch(getDescriptionStyle(request)) {
+		switch(DuccCookies.getDescriptionStyle(request)) {
 		case Long:
 		default:
 			sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
@@ -322,7 +322,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		ArrayList<String> users = getJobsUsers(request);
 		DuccData duccData = DuccData.getInstance();
 		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
-		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
+		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		if(sortedJobs.size()> 0) {
 			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
 			int counter = 0;
@@ -721,7 +721,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		// Description
 		sb.append("<td>");
 		String description = stringNormalize(duccwork.getStandardInfo().getDescription(),messages.fetch("none"));
-		switch(getDescriptionStyle(request)) {
+		switch(DuccCookies.getDescriptionStyle(request)) {
 		case Long:
 		default:
 			sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
@@ -746,7 +746,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</tr>");
 	}
 	
-	private boolean isListEligible(ArrayList<String> users, FilterUsersStyle filterUsersStyle, String user, boolean completed) {
+	private boolean isListEligible(ArrayList<String> users, DuccCookies.FilterUsersStyle filterUsersStyle, String user, boolean completed) {
 		boolean list = false;
 		if(!users.isEmpty()) {
 			switch(filterUsersStyle) {
@@ -802,7 +802,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
 
 		ArrayList<String> users = getReservationsUsers(request);
-		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
+		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		
 		if((sortedCombinedReservations.size() > 0)) {
 			int counter = 0;
@@ -1029,7 +1029,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				// Description
 				sb.append("<td>");
 				String description = getValue(propertiesSvc,IServicesRegistry.description,"");
-				switch(getDescriptionStyle(request)) {
+				switch(DuccCookies.getDescriptionStyle(request)) {
 				case Long:
 				default:
 					sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
@@ -1252,7 +1252,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			sb.append("</td>");
 			// Boot Time
 			sb.append("<td>");
-			sb.append(getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,"")));
+			sb.append(getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,"")));
 			sb.append("</td>");
 			// Host IP
 			sb.append("<td>");
@@ -1288,7 +1288,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			sb.append("<td>");
 			String heartmaxTOD = TimeStamp.simpleFormat(DuccDaemonsData.getInstance().getMaxHeartbeatTOD(daemonName));
 			try {
-				heartmaxTOD = getTimeStamp(getDateStyle(request),heartmaxTOD);
+				heartmaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),heartmaxTOD);
 			}
 			catch(Exception e) {
 			}
@@ -1306,8 +1306,8 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			counter++;
 		}
 		// <Agents>
-		String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieAgents);
-		if(cookie.equals(DuccWebUtil.valueAgentsShow)) {
+		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
+		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
 			
 			ConcurrentSkipListMap<String,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
@@ -1343,7 +1343,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append(daemonName);
 				sb.append("</td>");	
 				// Boot Time
-				String bootTime = getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
 				sb.append("<td>");
 				sb.append(bootTime);
 				sb.append("</td>");
@@ -1390,7 +1390,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				if(heartbeatMaxTOD > 0) {
 					fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
 					try {
-						fmtHeartbeatMaxTOD = getTimeStamp(getDateStyle(request),fmtHeartbeatMaxTOD);
+						fmtHeartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),fmtHeartbeatMaxTOD);
 					}
 					catch(Exception e) {
 					}

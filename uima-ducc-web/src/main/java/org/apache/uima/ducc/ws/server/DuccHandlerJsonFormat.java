@@ -326,7 +326,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Description
 		sb = new StringBuffer();
 		String description = stringNormalize(job.getStandardInfo().getDescription(),messages.fetch("none"));
-		switch(getDescriptionStyle(request)) {
+		switch(DuccCookies.getDescriptionStyle(request)) {
 		case Long:
 		default:
 			sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
@@ -367,7 +367,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		ArrayList<String> users = getJobsUsers(request);
 		DuccData duccData = DuccData.getInstance();
 		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
-		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
+		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		if(sortedJobs.size()> 0) {
 			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
 			int counter = 0;
@@ -814,7 +814,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Description
 		sb = new StringBuffer();
 		String description = stringNormalize(duccwork.getStandardInfo().getDescription(),messages.fetch("none"));
-		switch(getDescriptionStyle(request)) {
+		switch(DuccCookies.getDescriptionStyle(request)) {
 		case Long:
 		default:
 			sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
@@ -840,7 +840,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		return row;
 	}
 	
-	private boolean isListEligible(ArrayList<String> users, FilterUsersStyle filterUsersStyle, String user, boolean completed) {
+	private boolean isListEligible(ArrayList<String> users, DuccCookies.FilterUsersStyle filterUsersStyle, String user, boolean completed) {
 		boolean list = false;
 		if(!users.isEmpty()) {
 			switch(filterUsersStyle) {
@@ -898,7 +898,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
 
 		ArrayList<String> users = getReservationsUsers(request);
-		FilterUsersStyle filterUsersStyle = getFilterUsersStyle(request);
+		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		
 		if((sortedCombinedReservations.size() > 0)) {
 			int counter = 0;
@@ -1148,7 +1148,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Description
 				StringBuffer sb = new StringBuffer();
 				String description = getValue(propertiesSvc,IStateServices.description,"");
-				switch(getDescriptionStyle(request)) {
+				switch(DuccCookies.getDescriptionStyle(request)) {
 				case Long:
 				default:
 					sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
@@ -1552,7 +1552,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			String name = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyDaemonName,daemonName.toString());
 			row.add(new JsonPrimitive(name));
 			// Boot Time
-			String boot = getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+			String boot = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
 			row.add(new JsonPrimitive(boot));
 			// Host IP
 			String ip = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
@@ -1576,7 +1576,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			// Heartbeat (max) TOD
 			String heartmaxTOD = TimeStamp.simpleFormat(DuccDaemonsData.getInstance().getMaxHeartbeatTOD(daemonName));
 			try {
-				heartmaxTOD = getTimeStamp(getDateStyle(request),heartmaxTOD);
+				heartmaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),heartmaxTOD);
 			}
 			catch(Exception e) {
 			}
@@ -1593,8 +1593,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 
 		// <Agents>
-		String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieAgents);
-		if(cookie.equals(DuccWebUtil.valueAgentsShow)) {
+		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
+		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
 			
 			ConcurrentSkipListMap<String,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
@@ -1625,7 +1625,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String daemonName = "Agent";
 				row.add(new JsonPrimitive(daemonName));
 				// Boot Time
-				String bootTime = getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
 				row.add(new JsonPrimitive(bootTime));
 				// Host IP
 				String hostIP = getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"");
@@ -1659,7 +1659,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				if(heartbeatMaxTOD > 0) {
 					fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
 					try {
-						fmtHeartbeatMaxTOD = getTimeStamp(getDateStyle(request),fmtHeartbeatMaxTOD);
+						fmtHeartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),fmtHeartbeatMaxTOD);
 					}
 					catch(Exception e) {
 					}

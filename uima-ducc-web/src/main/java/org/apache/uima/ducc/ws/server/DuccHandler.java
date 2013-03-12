@@ -135,6 +135,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccServiceStart   				= duccContext+"/service-start-request";
 	private String duccServiceStop   				= duccContext+"/service-stop-request";
 	
+	private String duccServiceUpdate   				= duccContext+"/service-update-request";
+	
 	private String jsonMachinesData 				= duccContext+"/json-machines-data";
 	private String jsonSystemClassesData 			= duccContext+"/json-system-classes-data";
 	private String jsonSystemDaemonsData 			= duccContext+"/json-system-daemons-data";
@@ -144,6 +146,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccJobSubmitButton    			= duccContext+"/job-get-submit-button";
 	private String duccReservationFormButton  		= duccContext+"/reservation-get-form-button";
 	private String duccReservationSubmitButton  	= duccContext+"/reservation-get-submit-button";
+	private String duccServiceUpdateFormButton  	= duccContext+"/service-update-get-form-button";
 	
 	private String duccReservationSchedulingClasses     = duccContext+"/reservation-scheduling-classes";
 	private String duccReservationInstanceMemorySizes   = duccContext+"/reservation-instance-memory-sizes";
@@ -1533,6 +1536,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			String name = request.getParameter("name");
 			ServicesRegistry servicesRegistry = new ServicesRegistry();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+			String hint = getLoginRefreshHint(request, response);
+			String enable_or_disable = getEnabledOrDisabled(request, response);;
 			sb.append("<table>");
 			sb.append("<tr class=\"ducc-head\">");
 			sb.append("<th>");
@@ -1542,60 +1547,133 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("Value");
 			sb.append("</th>");
 			sb.append("</tr>");
-			String prefix;
 			Properties properties;
-			TreeMap<String,String> map;
-			Enumeration<?> enumeration;
-			Iterator<String> iterator;
-			int i = 0;
-			int counter = 0;
-			//
-			prefix = "svc.";
-			properties = payload.svc;
-			map = new TreeMap<String,String>();
-			enumeration = properties.keys();
-			while(enumeration.hasMoreElements()) {
-				String key = (String)enumeration.nextElement();
-				map.put(key, key);
-			}
-			iterator = map.keySet().iterator();
-			while(iterator.hasNext()) {
-				String key = iterator.next();
-				String value = properties.getProperty(key);
-				if(key.endsWith("classpath")) {
-					value = formatClasspath(value);
-					String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-					String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-					value = show+hide;
-					i++;
+			if(payload != null) {
+				properties = payload.meta;
+				String resourceOwnerUserId = properties.getProperty(IServicesRegistry.user).trim();
+				if(!isUserAuthorized(request,resourceOwnerUserId)) {
+					if(hint.length() == 0) {
+						AuthorizationStatus authorizationStatus = getAuthorizationStatus(request, resourceOwnerUserId);
+						switch(authorizationStatus) {
+						case LoggedInOwner:
+						case LoggedInAdministrator:
+							break;
+						case LoggedInNotOwner:
+						case LoggedInNotAdministrator:
+							enable_or_disable = "disabled=\"disabled\"";
+							String userid = DuccWebSessionManager.getInstance().getUserId(request);
+							boolean administrator = DuccWebAdministrators.getInstance().isAdministrator(userid);
+							if(administrator) {
+								hint = "title=\""+DuccConstants.hintPreferencesRoleAdministrator+"\"";
+							}
+							else {
+								hint = "title=\""+DuccConstants.hintNotAuthorized+"\"";
+							}
+							break;
+						case NotLoggedIn:
+							break;
+						default:
+							break;
+						}
+					}
 				}
-				putJobSpecEntry(properties, prefix+key, value, sb, counter++);
-			}
-			//
-			prefix = "meta.";
-			properties = payload.meta;
-			map = new TreeMap<String,String>();
-			enumeration = properties.keys();
-			while(enumeration.hasMoreElements()) {
-				String key = (String)enumeration.nextElement();
-				map.put(key, key);
-			}
-			iterator = map.keySet().iterator();
-			while(iterator.hasNext()) {
-				String key = iterator.next();
-				String value = properties.getProperty(key);
-				if(key.endsWith("classpath")) {
-					value = formatClasspath(value);
-					String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
-					String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
-					value = show+hide;
-					i++;
+				String prefix;
+				TreeMap<String,String> map;
+				Enumeration<?> enumeration;
+				Iterator<String> iterator;
+				int i = 0;
+				int counter = 0;
+				//
+				prefix = "svc.";
+				properties = payload.svc;
+				map = new TreeMap<String,String>();
+				enumeration = properties.keys();
+				while(enumeration.hasMoreElements()) {
+					String key = (String)enumeration.nextElement();
+					map.put(key, key);
 				}
-				putJobSpecEntry(properties, prefix+key, value, sb, counter++);
+				iterator = map.keySet().iterator();
+				while(iterator.hasNext()) {
+					String key = iterator.next();
+					String value = properties.getProperty(key);
+					if(key.endsWith("classpath")) {
+						value = formatClasspath(value);
+						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
+						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
+						value = show+hide;
+						i++;
+					}
+					putJobSpecEntry(properties, prefix+key, value, sb, counter++);
+				}
+				//
+				prefix = "meta.";
+				properties = payload.meta;
+				map = new TreeMap<String,String>();
+				enumeration = properties.keys();
+				while(enumeration.hasMoreElements()) {
+					String key = (String)enumeration.nextElement();
+					map.put(key, key);
+				}
+				iterator = map.keySet().iterator();
+				while(iterator.hasNext()) {
+					String key = iterator.next();
+					String value = properties.getProperty(key);
+					if(key.endsWith("classpath")) {
+						value = formatClasspath(value);
+						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
+						String hide = "<div class=\"showdata\"><input type=\"submit\" name=\"hidecp\" value=\"Hide\" id=\"hidebutton"+i+"\"/>"+" "+value+"</div>";
+						value = show+hide;
+						i++;
+					}
+					key = key.trim();
+					// autostart
+					if(key.equalsIgnoreCase(IServicesRegistry.autostart)) {
+						if(value != null) {
+							value = value.trim();
+							if(value.equalsIgnoreCase(IServicesRegistry.constant_true)) {
+								StringBuffer replacement = new StringBuffer();
+								replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
+								replacement.append("<option value=\"true\"  selected=\"selected\">true</option>");
+								replacement.append("<option value=\"false\"                      >false</option>");
+								replacement.append("</select>");
+								value = replacement.toString();
+							}
+							else if(value.equalsIgnoreCase(IServicesRegistry.constant_false)) {
+								StringBuffer replacement = new StringBuffer();
+								replacement.append("<select id=\"autostart\""+enable_or_disable+" "+hint+">");
+								replacement.append("<option value=\"false\"  selected=\"selected\">false</option>");
+								replacement.append("<option value=\"true\"                        >true</option>");
+								replacement.append("</select>");
+								value = replacement.toString();
+							}
+						}
+					}
+					// instances
+					if(key.equalsIgnoreCase(IServicesRegistry.instances)) {
+						if(value != null) {
+							value = value.trim();
+							StringBuffer replacement = new StringBuffer();
+							replacement.append("<span id=\"instances_area\">");
+							replacement.append("<input type=\"text\" size=\"5\" id=\"instances\" value=\""+value+"\""+enable_or_disable+" "+hint+">");
+							replacement.append("</span>");
+							value = replacement.toString();
+						}
+					}
+					putJobSpecEntry(properties, prefix+key, value, sb, counter++);
+				}
+				sb.append("</table>");
+				sb.append("<br>");
+				sb.append("<br>");
 			}
-			sb.append("</table>");
-			sb.append("<br>");
-			sb.append("<br>");
+			else {
+				sb.append("<tr>");
+				sb.append("<td>");
+				sb.append("not found");
+				sb.append("</td>");
+				sb.append("<td>");
+				sb.append("</td>");
+				sb.append("</tr>");
+			}
 		}
 		catch(Exception e) {
 			duccLogger.warn(methodName, null, e);
@@ -2040,7 +2118,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(",");
 			sb.append(quote(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyDaemonName,daemonName.toString())));
 			sb.append(",");
-			sb.append(quote(getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""))));
+			sb.append(quote(getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""))));
 			sb.append(",");
 			sb.append(quote(getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyNodeIpAddress,"")));
 			sb.append(",");
@@ -2059,7 +2137,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(quote(heartmax));
 			sb.append(",");
 			try {
-				heartmaxTOD = getTimeStamp(getDateStyle(request),heartmaxTOD);
+				heartmaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),heartmaxTOD);
 			}
 			catch(Exception e) {
 			}
@@ -2072,8 +2150,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("]");
 		}
 		// <Agents>
-		String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieAgents);
-		if(cookie.equals(DuccWebUtil.valueAgentsShow)) {
+		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieAgents);
+		if(cookie.equals(DuccCookies.valueAgentsShow)) {
 			duccLogger.trace(methodName, jobid, "== show: "+cookie);
 			ConcurrentSkipListMap<String,MachineInfo> machines = DuccMachinesData.getInstance().getMachines();
 			Iterator<String> iterator = machines.keySet().iterator();
@@ -2111,7 +2189,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(quote(daemonName));
 				// Boot Time
 				sb.append(",");
-				String bootTime = getTimeStamp(getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
+				String bootTime = getTimeStamp(DuccCookies.getDateStyle(request),getPropertiesValue(properties,DuccDaemonRuntimeProperties.keyBootTime,""));
 				sb.append(quote(bootTime));
 				// Host IP
 				sb.append(",");
@@ -2152,7 +2230,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				if(heartbeatMaxTOD > 0) {
 					fmtHeartbeatMaxTOD = TimeStamp.simpleFormat(""+heartbeatMaxTOD);
 					try {
-						fmtHeartbeatMaxTOD = getTimeStamp(getDateStyle(request),fmtHeartbeatMaxTOD);
+						fmtHeartbeatMaxTOD = getTimeStamp(DuccCookies.getDateStyle(request),fmtHeartbeatMaxTOD);
 					}
 					catch(Exception e) {
 					}
@@ -2297,6 +2375,78 @@ public class DuccHandler extends DuccAbstractHandler {
 		String button = "<button style=\"font-size:8pt; background-color:green; color:ffffff;\" onclick=\"var newWin = window.open('submit.reservation.html','child','height=550,width=550,scrollbars'); newWin.focus(); return false;\">Request<br>Reservation</button>";
 		if(!isAuthenticated(request,response)) {
 			button = "<button title=\"Login to enable\" style=\"font-size:8pt;\" disabled>Request<br>Reservation</button>";
+		}
+		sb.append(button);
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private String getLoginRefreshHint(HttpServletRequest request,HttpServletResponse response) {
+		String retVal = "";
+		DuccCookies.RefreshMode refreshMode = DuccCookies.getRefreshMode(request);
+		if(!isAuthenticated(request,response)) {
+			switch(refreshMode) {
+			default:
+			case Automatic:
+				retVal = "title=\""+DuccConstants.hintLoginAndManual+"\"";
+				break;
+			case Manual:
+				retVal = "title=\""+DuccConstants.hintLogin+"\"";
+				break;
+			}
+		}
+		else {
+			switch(refreshMode) {
+			default:
+			case Automatic:
+				retVal = "title=\""+DuccConstants.hintManual+"\"";
+				break;
+			case Manual:
+				break;
+			}
+		}
+		return retVal;
+	}
+	
+	private String getEnabledOrDisabled(HttpServletRequest request,HttpServletResponse response) {
+		String retVal = "";
+		DuccCookies.RefreshMode refreshMode = DuccCookies.getRefreshMode(request);
+		if(!isAuthenticated(request,response)) {
+			switch(refreshMode) {
+			default:
+			case Automatic:
+				retVal = "disabled=\"disabled\"";
+				break;
+			case Manual:
+				retVal = "disabled=\"disabled\"";
+				break;
+			}
+		}
+		else {
+			switch(refreshMode) {
+			default:
+			case Automatic:
+				retVal = "disabled=\"disabled\"";
+				break;
+			case Manual:
+				break;
+			}
+		}
+		return retVal;
+	}
+	
+	private void handleDuccServletServiceUpdateFormButton(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceUpdateFormButton";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		String name = request.getParameter("name");
+		StringBuffer sb = new StringBuffer();
+		String hint = getLoginRefreshHint(request, response);
+		String enable_or_disable = getEnabledOrDisabled(request, response);
+		String button = "<button id=\"update_button\" "+hint+" onclick=\"ducc_update_service('"+name+"')\" style=\"font-size:8pt; background-color:green; color:ffffff;\">Update</button>";
+		if(enable_or_disable.length() > 0) {
+			button = "<button id=\"update_button\" "+enable_or_disable+" "+hint+" style=\"font-size:8pt;\">Update</button>";
 		}
 		sb.append(button);
 		response.getWriter().println(sb);
@@ -2454,7 +2604,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccJobCancel";
 					String jhome = System.getProperty("java.home");
-					RequestRole requestRole = getRole(request);
+					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
@@ -2570,7 +2720,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccReservationCancel";
 					String jhome = System.getProperty("java.home");
-					RequestRole requestRole = getRole(request);
+					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
@@ -2637,7 +2787,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						String java = "/bin/java";
 						String jclass = "org.apache.uima.ducc.cli.DuccServiceCancel";
 						String jhome = System.getProperty("java.home");
-						RequestRole requestRole = getRole(request);
+						DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 						switch(requestRole) {
 						case Administrator:
 							String arg3 = "--"+SpecificationProperties.key_role_administrator;
@@ -2669,6 +2819,80 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private void duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command, ArrayList<String> parms) 
+	{
+		String methodName = "duccServletServiceCommand";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		try {
+			String name = "id";
+			String value = request.getParameter(name).trim();
+			duccLogger.info(methodName, null, command+" "+messages.fetchLabel("name:")+value);
+			String text;
+			String result;
+			name = value.trim();
+			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+			if(payload != null) {
+				Properties properties = payload.meta;
+				String id = properties.getProperty(IServicesRegistry.numeric_id);
+				String resourceOwnerUserId = servicesRegistry.findServiceUser(id);
+				if(resourceOwnerUserId != null) {
+					if(isUserAuthorized(request,resourceOwnerUserId)) {
+						String arg1 = "--"+command;
+						String arg2 = id;
+						String userId = duccWebSessionManager.getUserId(request);
+						String cp = System.getProperty("java.class.path");
+						String java = "/bin/java";
+						String jclass = "org.apache.uima.ducc.cli.DuccServiceApi";
+						String jhome = System.getProperty("java.home");
+						DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
+						switch(requestRole) {
+						/*
+						case Administrator:
+							String arg3 = "--"+SpecificationProperties.key_role_administrator;
+							String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
+							result = DuccAsUser.duckling(userId, arglistAdministrator);
+							response.getWriter().println(result);
+							break;
+						case User:
+						*/
+						default:
+							ArrayList<String> arglist = new ArrayList<String>();
+							arglist.add("-u");
+							arglist.add(userId);
+							arglist.add("--");
+							arglist.add(jhome+java);
+							arglist.add("-cp");
+							arglist.add(cp);
+							arglist.add(jclass);
+							arglist.add(arg1);
+							arglist.add(arg2);
+							for(String parm : parms) {
+								arglist.add(parm);
+							}
+							String[] arglistUser = arglist.toArray(new String[0]);
+							result = DuccAsUser.duckling(userId, arglistUser);
+							response.getWriter().println(result);
+							break;	
+						}
+					}
+				}
+				else {
+					text = "name "+value+" not found";
+					duccLogger.debug(methodName, null, messages.fetch(text));
+				}
+			}
+			else {
+				result = text = "name "+value+" not found";
+				duccLogger.debug(methodName, null, messages.fetch(text));
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, null, e);
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
 	private void duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command) 
 	{
 		String methodName = "duccServletServiceCommand";
@@ -2691,7 +2915,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					String java = "/bin/java";
 					String jclass = "org.apache.uima.ducc.cli.DuccServiceApi";
 					String jhome = System.getProperty("java.home");
-					RequestRole requestRole = getRole(request);
+					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
 					/*
 					case Administrator:
@@ -2742,7 +2966,27 @@ public class DuccHandler extends DuccAbstractHandler {
 		
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}			
-				
+	
+	private void handleDuccServletServiceUpdate(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceUpdate";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		
+		String instances = request.getParameter("instances");
+		String autostart = request.getParameter("autostart");
+		
+		ArrayList<String> parms = new ArrayList<String>();
+		parms.add("--instances");
+		parms.add(instances);
+		parms.add("--autostart");
+		parms.add(autostart);
+		
+		duccServletServiceCommand(target,baseRequest,request,response,"modify",parms);
+		
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}		
+	
 	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -2891,6 +3135,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				handleDuccServletServiceStop(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
+			else if(reqURI.startsWith(duccServiceUpdate)) {
+				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
+				handleDuccServletServiceUpdate(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
 			else if(reqURI.startsWith(duccReservationSchedulingClasses)) {
 				handleDuccServletReservationSchedulingClasses(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
@@ -2917,6 +3166,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccReservationFormButton)) {
 				handleDuccServletReservationFormButton(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServiceUpdateFormButton)) {
+				handleDuccServletServiceUpdateFormButton(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobSubmitForm)) {

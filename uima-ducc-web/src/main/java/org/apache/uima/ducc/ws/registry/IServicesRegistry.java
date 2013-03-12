@@ -40,6 +40,7 @@ public class IServicesRegistry {
 	
 	public static final String constant_Available = "Available";
 	public static final String constant_true = "true";
+	public static final String constant_false = "false";
 	
 	public static final String constant_NotKnown = "NotKnown";
 	public static final String constant_NotAvailable = "NotAvailable";

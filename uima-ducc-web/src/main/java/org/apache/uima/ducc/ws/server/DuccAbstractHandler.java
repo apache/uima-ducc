@@ -48,6 +48,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
+import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public abstract class DuccAbstractHandler extends AbstractHandler {
@@ -77,8 +78,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public final int defaultRecordsReservations = 8;
 	public final int maximumRecordsServices = 4096;
 	public final int defaultRecordsServices = 12;
-
-	public final String defaultStyleDate = DuccWebUtil.valueStyleDateLong;
 	
 	public String dir_home = Utils.findDuccHome();
 	public String dir_resources = "resources";
@@ -176,7 +175,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	}
 	
 	public String getTimeStamp(HttpServletRequest request, DuccId jobId, String millis) {
-		return getTimeStamp(getDateStyle(request),getTimeStamp(jobId, millis));
+		return getTimeStamp(DuccCookies.getDateStyle(request),getTimeStamp(jobId, millis));
 	}
 	
 	private String getTimeStamp(DuccId jobId, String millis) {
@@ -222,7 +221,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 					retVal = AuthorizationStatus.LoggedInOwner;
 				}
 				else {
-					RequestRole requestRole = getRole(request);
+					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
 					case User:
 						text = "user "+userId+" is not resource owner "+resourceOwnerUserid;
@@ -263,6 +262,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			switch(authorizationStatus) {
 			case LoggedInOwner:
 			case LoggedInAdministrator:
+				retVal = true;
 				break;
 			case LoggedInNotOwner:
 			case LoggedInNotAdministrator:
@@ -294,7 +294,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 					retVal = true;
 				}
 				else {
-					RequestRole requestRole = getRole(request);
+					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
 					case User:
 						text = "user "+userId+" is not resource owner "+resourceOwnerUserid;
@@ -372,17 +372,17 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	}
 	
 	public ArrayList<String> getJobsUsers(HttpServletRequest request) {
-		String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieJobsUsers);
+		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieJobsUsers);
 		return getUsers(cookie);
 	}
 	
 	public ArrayList<String> getReservationsUsers(HttpServletRequest request) {
-		String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieReservationsUsers);
+		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieReservationsUsers);
 		return getUsers(cookie);
 	}
 	
 	public ArrayList<String> getServicesUsers(HttpServletRequest request) {
-		String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieServicesUsers);
+		String cookie = DuccCookies.getCookie(request,DuccCookies.cookieServicesUsers);
 		return getUsers(cookie);
 	}
 	
@@ -528,93 +528,10 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
-	public enum DateStyle { Long, Medium, Short };
-	
-	public DateStyle getDateStyle(HttpServletRequest request) {
-		DateStyle dateStyle = DateStyle.Long;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieStyleDate);
-			if(cookie.equals(DuccWebUtil.valueStyleDateLong)) {
-				dateStyle = DateStyle.Long;
-			}
-			else if(cookie.equals(DuccWebUtil.valueStyleDateMedium)) {
-				dateStyle = DateStyle.Medium;
-			}
-			else if(cookie.equals(DuccWebUtil.valueStyleDateShort)) {
-				dateStyle = DateStyle.Short;
-			}
-		}
-		catch(Exception e) {
-		}
-		return dateStyle;
-	}
-	
-	public enum DescriptionStyle { Long, Short };
-	
-	public DescriptionStyle getDescriptionStyle(HttpServletRequest request) {
-		DescriptionStyle descriptionStyle = DescriptionStyle.Long;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieStyleDescription);
-			if(cookie.equals(DuccWebUtil.valueStyleDescriptionLong)) {
-				descriptionStyle = DescriptionStyle.Long;
-			}
-			else if(cookie.equals(DuccWebUtil.valueStyleDescriptionShort)) {
-				descriptionStyle = DescriptionStyle.Short;
-			}
-		}
-		catch(Exception e) {
-		}
-		return descriptionStyle;
-	}
-	
-	public enum FilterUsersStyle { Include, IncludePlusActive, Exclude, ExcludePlusActive };
-	
-	public FilterUsersStyle getFilterUsersStyle(HttpServletRequest request) {
-		FilterUsersStyle filterUsersStyle = FilterUsersStyle.Include;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieStyleFilterUsers);
-			if(cookie.equals(DuccWebUtil.valueStyleFilterUsersInclude)) {
-				filterUsersStyle = FilterUsersStyle.Include;;
-			}
-			else if(cookie.equals(DuccWebUtil.valueStyleFilterUsersIncludePlusActive)) {
-				filterUsersStyle = FilterUsersStyle.IncludePlusActive;
-			}
-			else if(cookie.equals(DuccWebUtil.valueStyleFilterUsersExclude)) {
-				filterUsersStyle = FilterUsersStyle.Exclude;
-			}
-			else if(cookie.equals(DuccWebUtil.valueStyleFilterUsersExcludePlusActive)) {
-				filterUsersStyle = FilterUsersStyle.ExcludePlusActive;
-			}
-		}
-		catch(Exception e) {
-		}
-		return filterUsersStyle;
-	}
-	
-	public enum RequestRole { Administrator, User};
-	
-	public RequestRole getRole(HttpServletRequest request) {
-		RequestRole role = RequestRole.User;
-		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieRole);
-			if(cookie.equals(DuccWebUtil.valueRoleAdministrator)) {
-				role = RequestRole.Administrator;;
-			}
-			/*
-			else if(cookie.equals(DuccWebUtil.valueRoleUser)) {
-				role = RequestRole.User;
-			}
-			*/
-		}
-		catch(Exception e) {
-		}
-		return role;
-	}
-	
 	public int getJobsMax(HttpServletRequest request) {
 		int maxRecords = defaultRecordsJobs;
 		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieJobsMax);
+			String cookie = DuccCookies.getCookie(request,DuccCookies.cookieJobsMax);
 			int reqRecords = Integer.parseInt(cookie);
 			if(reqRecords <= maximumRecordsJobs) {
 				if(reqRecords > 0) {
@@ -630,7 +547,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public int getReservationsMax(HttpServletRequest request) {
 		int maxRecords = defaultRecordsReservations;
 		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieReservationsMax);
+			String cookie = DuccCookies.getCookie(request,DuccCookies.cookieReservationsMax);
 			int reqRecords = Integer.parseInt(cookie);
 			if(reqRecords <= maximumRecordsReservations) {
 				if(reqRecords > 0) {
@@ -646,7 +563,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public int getServicesMax(HttpServletRequest request) {
 		int maxRecords = defaultRecordsServices;
 		try {
-			String cookie = DuccWebUtil.getCookie(request,DuccWebUtil.cookieServicesMax);
+			String cookie = DuccCookies.getCookie(request,DuccCookies.cookieServicesMax);
 			int reqRecords = Integer.parseInt(cookie);
 			if(reqRecords <= maximumRecordsServices) {
 				if(reqRecords > 0) {

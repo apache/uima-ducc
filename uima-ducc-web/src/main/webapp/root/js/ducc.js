@@ -553,6 +553,23 @@ function ducc_load_service_registry_data()
 	}	
 }
 
+function ducc_service_update_form_button()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/service-update-get-form-button"+location.search,
+			success : function (data) 
+			{
+				$("#service_update_form_button").html(data);
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_service_update_form_button",err);
+	}
+}
+
 function ducc_load_service_deployments_data()
 {
 	try {
@@ -1303,6 +1320,7 @@ function ducc_init(type)
 			ducc_load_service_summary_data();
 			ducc_load_service_deployments_data();
 			ducc_load_service_registry_data();
+			ducc_service_update_form_button();
 		}
 		if(type == "system-machines") {
 			ducc_init_machines_data();
@@ -2164,6 +2182,35 @@ function ducc_submit_reservation()
 	}
 	catch(err) {
 		ducc_error("ducc_submit_reservation",err);
+	}		
+	return false;
+}
+
+function ducc_update_service(name)
+{
+	try {
+		var e = document.getElementById("autostart");
+		var autostart = e.options[e.selectedIndex].value;
+		var e = document.getElementById("instances");
+		var instances = e.value;
+		document.getElementById("update_button").disabled = 'disabled';
+		$.ajax(
+		{
+			type: 'POST',
+			async: false,
+			url : "/ducc-servlet/service-update-request",
+			data: {'id':name,'autostart':autostart,'instances':instances},
+			success : function (data) 
+			{
+				$.jGrowl(data, { life: 15000 });
+				setTimeout(function(){window.close();}, 15000);
+			}
+		});
+		setTimeout(function(){window.close();}, 15000);
+		document.getElementById("update_button").disabled = '';
+	}
+	catch(err) {
+		ducc_error("ducc_update_service",err);
 	}		
 	return false;
 }

@@ -32,4 +32,7 @@ public class DuccConstants {
 	public static final String hintPreferencesRoleAdministrator = "Hint: use Preferences -> Role [Administrator] to enable";
 	public static final String hintPreferencesDateStyle = "Hint: use Preferences -> Date Style to alter format";
 	public static final String hintLogin = "Hint: use Login to enable";
+	public static final String hintLoginAndManual = "Hint: use Login to enable and switch to Refresh = Manual";
+	public static final String hintManual = "Hint: switch to Refresh = Manual";
+	public static final String hintNotAuthorized = "Hint: not authorized";
 }

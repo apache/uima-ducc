@@ -113,28 +113,28 @@ public class DuccWebJobSpecificationProperties extends JobSpecificationPropertie
 		sb.append(entry(descriptionWithExample(DuccUiConstants.desc_jvm,DuccUiConstants.exmp_jvm),
 				key_jvm,
 				DuccUiConstants.labl_jvm,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_jvm)),DuccUiConstants.dval_jvm),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_jvm)),DuccUiConstants.dval_jvm),
 				null
 				));
 		
 		sb.append(entry(descriptionWithExample(DuccUiConstants.desc_scheduling_class,DuccUiConstants.exmp_scheduling_class),
 				key_scheduling_class,
 				DuccUiConstants.labl_scheduling_class,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_scheduling_class)),DuccUiConstants.dval_scheduling_class),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_scheduling_class)),DuccUiConstants.dval_scheduling_class),
 				schedulerClasses.getJobClasses()
 				));
 		
 		sb.append(entry(descriptionWithExample(DuccUiConstants.desc_log_directory,DuccUiConstants.exmp_log_directory),
 				key_log_directory,
 				DuccUiConstants.labl_log_directory,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_log_directory)),DuccUiConstants.dval_log_directory),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_log_directory)),DuccUiConstants.dval_log_directory),
 				null
 				));
 		
 		sb.append(entry(descriptionWithExample(DuccUiConstants.desc_working_directory,DuccUiConstants.exmp_working_directory),
 				key_working_directory,
 				DuccUiConstants.labl_working_directory,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_working_directory)),DuccUiConstants.dval_working_directory),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_working_directory)),DuccUiConstants.dval_working_directory),
 				null
 				));
 		
@@ -246,33 +246,33 @@ public class DuccWebJobSpecificationProperties extends JobSpecificationPropertie
 		sb.append(entry(DuccUiConstants.desc_process_deployments_max,
 				key_process_deployments_max,
 				DuccUiConstants.labl_process_deployments_max,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_process_deployments_max)),DuccUiConstants.dval_process_deployments_max),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_process_deployments_max)),DuccUiConstants.dval_process_deployments_max),
 				null
 		));
 		/*
 		sb.append(entry(DuccUiConstants.desc_process_deployments_min,
 				key_process_deployments_min,
 				DuccUiConstants.labl_process_deployments_min,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_process_deployments_min)),DuccUiConstants.dval_process_deployments_min),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_process_deployments_min)),DuccUiConstants.dval_process_deployments_min),
 				null
 		));
 		*/
 		sb.append(entry(DuccUiConstants.desc_process_thread_count,
 				key_process_thread_count,
 				DuccUiConstants.labl_process_thread_count,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_process_thread_count)),DuccUiConstants.dval_process_thread_count),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_process_thread_count)),DuccUiConstants.dval_process_thread_count),
 				null
 		));
 		sb.append(entry(DuccUiConstants.desc_process_get_meta_time_max,
 				key_process_get_meta_time_max,
 				DuccUiConstants.labl_process_get_meta_time_max,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_process_get_meta_time_max)),DuccUiConstants.dval_process_get_meta_time_max),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_process_get_meta_time_max)),DuccUiConstants.dval_process_get_meta_time_max),
 				null
 		));
 		sb.append(entry(DuccUiConstants.desc_process_per_item_time_max,
 				key_process_per_item_time_max,
 				DuccUiConstants.labl_process_per_item_time_max,
-				presetValue(DuccWebUtil.getCookieOrNull(request,DuccWebUtil.getCookieKey(DuccUiConstants.name_process_per_item_time_max)),DuccUiConstants.dval_process_per_item_time_max),
+				presetValue(DuccCookies.getCookieOrNull(request,DuccCookies.getCookieKey(DuccUiConstants.name_process_per_item_time_max)),DuccUiConstants.dval_process_per_item_time_max),
 				null
 		));
 		

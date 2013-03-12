@@ -85,6 +85,9 @@ under the License.
 			    <%@ include file="service.details.table.deployments.jsp" %>
 			</div>
 			<div id="tabs-2">
+				<div id="service_update_form_button">
+				<button title="Hint: Login" disabled style="font-size:8pt;">Update</button>
+				</div>
    				<div class="registry_data_div">
    					<span id="registry_data_area"></span>
    				</div>
