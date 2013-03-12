@@ -52,28 +52,31 @@ public class DuccServiceApi
     UiOption[] registration_options = {
         UiOption.Help,
         UiOption.Debug,
+        UiOption.Description,
+        UiOption.SchedulingClass,
+        UiOption.LogDirectory,
+        UiOption.WorkingDirectory,
+        UiOption.Jvm,
+        UiOption.ProcessJvmArgs,
+        UiOption.ProcessClasspath,
+        UiOption.ProcessEnvironment,
+        UiOption.ProcessMemorySize,
+        UiOption.ProcessDD,
+        UiOption.ProcessFailuresLimit,
+        UiOption.ClasspathOrder,
+        // UiOption.Specification          // not used for registration
+        UiOption.ServiceDependency,
+        UiOption.ServiceRequestEndpoint,
+        UiOption.ServiceLinger,
+        UiOption.ServicePingClass,
+        UiOption.ServicePingClasspath,
+        UiOption.ServicePingJvmArgs,
+        UiOption.ServicePingTimeout,
+        UiOption.ServicePingDoLog,
+
         UiOption.Register,
         UiOption.Autostart,
         UiOption.Instances,
-        UiOption.ClasspathOrder,
-        UiOption.Description,
-        UiOption.ProcessDD,
-        UiOption.ProcessMemorySize,
-        UiOption.ProcessClasspath,
-        UiOption.ProcessJvmArgs,
-        UiOption.ProcessEnvironment,
-        UiOption.ProcessFailuresLimit,
-        UiOption.SchedulingClass,
-        UiOption.WorkingDirectory,
-        UiOption.LogDirectory,
-        UiOption.Jvm,
-        UiOption.ServiceDependency,
-        UiOption.ServiceLinger,
-        UiOption.ServiceRequestEndpoint,
-        UiOption.ServicePingClass,
-        UiOption.ServicePingJvmArgs,
-        UiOption.ServicePingDoLog,
-        UiOption.ServicePingTimeout,
     }; 
 
     UiOption[] unregister_options = {
@@ -224,10 +227,6 @@ public class DuccServiceApi
         DuccProperties dp = new DuccProperties();
         init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", null, "services");
 
-        // A few spurious properties are set as an artifact of parsing the overly-complex command line, and need removal
-        dp.remove(UiOption.SubmitPid.pname());
-        dp.remove(UiOption.Register.pname());
-
         //
         // Now: get jvm args and resolve placeholders, in particular, the broker url
         //
@@ -280,7 +279,12 @@ public class DuccServiceApi
         Trinary autostart = getAutostart();
         String user = (String) dp.remove(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.remove(UiOption.Signature.pname());
-
+        
+        // A few spurious properties are set as an artifact of parsing the overly-complex command line, and need removal
+        dp.remove(UiOption.SubmitPid.pname());
+        dp.remove(UiOption.Register.pname());
+        dp.remove(UiOption.Instances.pname());
+        dp.remove(UiOption.Autostart.pname());
 
         ServiceRegisterEvent ev = new ServiceRegisterEvent(user, instances, autostart, endpoint, cli_props, auth_block);
 
