@@ -323,7 +323,7 @@ private Thread main = null;
 					message.append("state:"+NotFound);
 					thisMessage = message.toString();
 					info(thisMessage);
-					return rc.get();
+					// return rc.get();
 				}
 				
 				String state = "";
