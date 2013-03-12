@@ -559,8 +559,10 @@ public class ServiceManagerComponent
         byte[] auth_block= req.getAuth();
         boolean validated = false;
 
+        if ( ! signature_required ) return true;
+
         try {
-            validated = signature_required && check_signature(user, auth_block);
+            validated = check_signature(user, auth_block);
         } catch ( Throwable t ) {
             logger.error(methodName, null, "Crypto failure:", t.toString());
         }
