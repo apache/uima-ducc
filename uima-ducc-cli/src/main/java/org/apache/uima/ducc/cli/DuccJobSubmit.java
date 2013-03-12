@@ -417,10 +417,12 @@ public class DuccJobSubmit
             if ( rc ) {                
                 // Fetch the Ducc ID
             	System.out.println("Job " + ds.getDuccId() + " submitted");
+                int exit_code = 0;          // first best guess, waiting for completion.
                 if ( ds.waitForCompletion() ) {
-                    System.out.println("Job return code: " + ds.getReturnCode());
+                    exit_code = ds.getReturnCode();       // updated from wait.
+                    System.out.println("Job return code: " + exit_code);
                 }
-            	System.exit(0);
+            	System.exit(exit_code);
             } else {
                 System.out.println("Could not submit job");
                 System.exit(1);
