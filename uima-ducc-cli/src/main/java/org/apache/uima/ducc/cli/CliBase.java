@@ -197,7 +197,7 @@ public abstract class CliBase
      * @param args - array of arguments to the cli parser
      * @param boolean - if true, then add tick to insure required args are present
      */
-    private Options makeOptions(UiOption[] optlist, boolean strict)
+    protected Options makeOptions(UiOption[] optlist, boolean strict)
     {
         Options opts = new Options();
         for ( UiOption opt : optlist ) {

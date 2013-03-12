@@ -42,7 +42,7 @@ public interface IUiOptions
     // argname()     is a name for the argument for the usage() part of cli parser
     //
 
-
+	public static final int help_width = 120;
 
     public enum UiOption
     {

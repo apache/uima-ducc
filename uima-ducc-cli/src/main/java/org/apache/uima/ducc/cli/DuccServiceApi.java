@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
@@ -46,6 +48,71 @@ public class DuccServiceApi
     String sm_port = "ducc.sm.http.port";
     String sm_host = "ducc.sm.http.node";
     String endpoint = null;
+
+    UiOption[] registration_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Register,
+        UiOption.Autostart,
+        UiOption.Instances,
+        UiOption.ClasspathOrder,
+        UiOption.Description,
+        UiOption.ProcessDD,
+        UiOption.ProcessMemorySize,
+        UiOption.ProcessClasspath,
+        UiOption.ProcessJvmArgs,
+        UiOption.ProcessEnvironment,
+        UiOption.ProcessFailuresLimit,
+        UiOption.SchedulingClass,
+        UiOption.WorkingDirectory,
+        UiOption.LogDirectory,
+        UiOption.Jvm,
+        UiOption.ServiceDependency,
+        UiOption.ServiceLinger,
+        UiOption.ServiceRequestEndpoint,
+        UiOption.ServicePingClass,
+        UiOption.ServicePingJvmArgs,
+        UiOption.ServicePingDoLog,
+        UiOption.ServicePingTimeout,
+    }; 
+
+    UiOption[] unregister_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Unregister,
+    }; 
+
+
+    UiOption[] start_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Start,
+        UiOption.Instances,
+        UiOption.Update,
+    }; 
+
+    UiOption[] stop_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Stop,
+        UiOption.Instances,
+        UiOption.Update,
+    }; 
+
+    UiOption[] modify_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Modify,
+        UiOption.Instances,
+        UiOption.Autostart,
+        UiOption.Activate,
+    }; 
+
+    UiOption[] query_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Query,
+    }; 
 
     public DuccServiceApi()
     {
@@ -154,34 +221,8 @@ public class DuccServiceApi
     public IServiceReply register(String[] args)
         throws Exception
     {
-        UiOption[] opts = {
-            UiOption.Help,
-            UiOption.Debug,
-            UiOption.Register,
-            UiOption.Autostart,
-            UiOption.Instances,
-            UiOption.ClasspathOrder,
-            UiOption.Description,
-            UiOption.ProcessDD,
-            UiOption.ProcessMemorySize,
-            UiOption.ProcessClasspath,
-            UiOption.ProcessJvmArgs,
-            UiOption.ProcessEnvironment,
-            UiOption.ProcessFailuresLimit,
-            UiOption.SchedulingClass,
-            UiOption.WorkingDirectory,
-            UiOption.LogDirectory,
-            UiOption.Jvm,
-            UiOption.ServiceDependency,
-            UiOption.ServiceLinger,
-            UiOption.ServiceRequestEndpoint,
-            UiOption.ServicePingClass,
-            UiOption.ServicePingJvmArgs,
-            UiOption.ServicePingDoLog,
-            UiOption.ServicePingTimeout,
-        }; 
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), opts, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", null, "services");
 
         // A few spurious properties are set as an artifact of parsing the overly-complex command line, and need removal
         dp.remove(UiOption.SubmitPid.pname());
@@ -257,14 +298,8 @@ public class DuccServiceApi
     public IServiceReply unregister(String[] args)
         throws Exception
     {
-        UiOption[] opts = {
-            UiOption.Help,
-            UiOption.Debug,
-            UiOption.Unregister,
-        }; 
-
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), opts, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), unregister_options, args, dp, sm_host, sm_port, "sm", null, "services");
 
         Pair<Integer, String> id = getId(UiOption.Unregister);
         String user = dp.getProperty(UiOption.User.pname());
@@ -287,16 +322,8 @@ public class DuccServiceApi
     public IServiceReply start(String[] args)
         throws Exception
     {
-        UiOption[] opts = {
-            UiOption.Help,
-            UiOption.Debug,
-            UiOption.Start,
-            UiOption.Instances,
-            UiOption.Update,
-        }; 
-
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), opts, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), start_options, args, dp, sm_host, sm_port, "sm", null, "services");
 
         Pair<Integer, String> id = getId(UiOption.Start);
         String user = dp.getProperty(UiOption.User.pname());
@@ -325,16 +352,8 @@ public class DuccServiceApi
     public IServiceReply stop(String[] args)
         throws Exception
     {
-        UiOption[] opts = {
-            UiOption.Help,
-            UiOption.Debug,
-            UiOption.Stop,
-            UiOption.Instances,
-            UiOption.Update,
-        }; 
-
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), opts, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), stop_options, args, dp, sm_host, sm_port, "sm", null, "services");
 
         Pair<Integer, String> id = getId(UiOption.Stop);
         String user = dp.getProperty(UiOption.User.pname());
@@ -361,17 +380,8 @@ public class DuccServiceApi
     public IServiceReply modify(String[] args)
         throws Exception
     {
-        UiOption[] opts = {
-            UiOption.Help,
-            UiOption.Debug,
-            UiOption.Modify,
-            UiOption.Instances,
-            UiOption.Autostart,
-            UiOption.Activate,
-        }; 
-
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), opts, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), modify_options, args, dp, sm_host, sm_port, "sm", null, "services");
 
         Pair<Integer, String> id = getId(UiOption.Modify);
         String user = dp.getProperty(UiOption.User.pname());
@@ -400,17 +410,8 @@ public class DuccServiceApi
     public IServiceReply query(String[] args)
         throws Exception
     {
-        UiOption[] opts = {
-            UiOption.Help,
-            UiOption.Debug,
-            UiOption.Query,
-            UiOption.Instances,
-            UiOption.Autostart,
-            UiOption.Activate,
-        }; 
-
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), opts, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), query_options, args, dp, sm_host, sm_port, "sm", null, "services");
 
         Pair<Integer, String> id = null;
         String sid = cli_props.getProperty(UiOption.Query.pname()).trim();
@@ -432,15 +433,41 @@ public class DuccServiceApi
         }
     }
 
-    //
-    // single common exit point for CL invoction
-    //
-    protected void doExit(int rc)
+    void help()
     {
-        System.exit(rc);
+        HelpFormatter formatter = new HelpFormatter();
+        Options options;
+
+        formatter.setWidth(IUiOptions.help_width);
+
+        System.out.println("------------- Register Options ------------------");
+        options = makeOptions(registration_options, true);
+        formatter.printHelp(this.getClass().getName(), options);
+
+        System.out.println("\n\n------------- Unregister Options ------------------");
+        options = makeOptions(unregister_options, true);
+        formatter.printHelp(this.getClass().getName(), options);
+
+        System.out.println("\n\n------------- Start Options ------------------");
+        options = makeOptions(start_options, true);
+        formatter.printHelp(this.getClass().getName(), options);
+
+        System.out.println("\n\n------------- Stop Options ------------------");
+        options = makeOptions(stop_options, true);
+        formatter.printHelp(this.getClass().getName(), options);
+
+        System.out.println("\n\n------------- Modify Options ------------------");
+        options = makeOptions(modify_options, true);
+        formatter.printHelp(this.getClass().getName(), options);
+
+        System.out.println("\n\n------------- Query Options ------------------");
+        options = makeOptions(query_options, true);
+        formatter.printHelp(this.getClass().getName(), options);
+
+        System.exit(1);
     }
 
-    boolean execute() {return false;}
+    boolean execute() { return false; }
 
     static boolean format_reply(UiOption verb, IServiceReply reply)
     {
@@ -512,6 +539,13 @@ public class DuccServiceApi
         return format_reply(UiOption.Query, reply);
     }
 
+    static void Help()
+    {
+        DuccServiceApi api = new DuccServiceApi();
+        api.help();
+        System.exit(1);
+    }
+
     static UiOption getVerb(String[] args)
     {
         // need to scan args for the verb, and insure only one verb
@@ -529,6 +563,9 @@ public class DuccServiceApi
         for ( String s : args ) {
             if ( ! s.startsWith("--") ) continue;
             s = s.substring(2);
+
+            if ( s.equals("help") ) Help();
+
             for ( UiOption v : verbs ) {
                 if ( s.equals(v.pname() ) ) {
                     reply = v;
@@ -544,6 +581,7 @@ public class DuccServiceApi
             }
             throw new IllegalArgumentException("Duplicate service actions " + msg + ": not allowed.");
         }
+
         return reply;
     }
 
