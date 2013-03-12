@@ -156,16 +156,16 @@ public abstract class CliBase
     /*
      * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
      */
-    boolean resolve_service_dependencies(String endpoint, Properties props)
+    boolean resolve_service_dependencies(String endpoint)
     {
-        String jvmargs = props.getProperty(UiOption.ProcessJvmArgs.pname());
+        String jvmargs = cli_props.getProperty(UiOption.ProcessJvmArgs.pname());
         Properties jvmprops = DuccUiUtilities.jvmArgsToProperties(jvmargs);
 
-        String deps = props.getProperty(UiOption.ServiceDependency.pname());
+        String deps = cli_props.getProperty(UiOption.ServiceDependency.pname());
         try {
             deps = DuccUiUtilities.resolve_service_dependencies(endpoint, deps, jvmprops);                
             if ( deps != null ) {
-                props.setProperty(UiOption.ServiceDependency.pname(), deps);
+                cli_props.setProperty(UiOption.ServiceDependency.pname(), deps);
             }
             return true;
         } catch ( Throwable t ) {
@@ -311,10 +311,18 @@ public abstract class CliBase
             usage(null);
         }
 
-        // Load the specificaiton file, if given on the command line
-        String spec =  UiOption.Specification.pname();
-        if ( commandLine.hasOption(spec) ) {
-            String val = commandLine.getOptionValue(spec);
+        // Load the specificaiton file, if given on the command line.  Note that registration
+        // bypasses the somewhat redundant --specification kw so we check two options.
+        String spec1 =  UiOption.Specification.pname();
+        String val = null;
+        if ( commandLine.hasOption(spec1) ) {
+            val = commandLine.getOptionValue(spec1);
+        }
+        String spec2 =  UiOption.Register.pname();
+        if ( commandLine.hasOption(spec2) ) {
+            val = commandLine.getOptionValue(spec2);
+        }        
+        if ( val != null ) {
             File file = new File(val);
             FileInputStream fis = new FileInputStream(file);
             cli_props.load(fis);

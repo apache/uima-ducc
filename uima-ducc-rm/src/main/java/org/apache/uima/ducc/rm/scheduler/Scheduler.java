@@ -303,16 +303,20 @@ public class Scheduler
      * We only get one such name, so we give up the search if we find
      * it.
      */
+    static String cached_domain = null;
     private String getDomainName()
     {
     	String methodName = "getDomainName";
+
+        if ( cached_domain != null ) return cached_domain;
         try {
 			NodeIdentity ni   = new NodeIdentity();
 			for ( IIdentity id : ni.getNodeIdentities()) {
 			    String n = id.getName();
 			    int ndx = n.indexOf(".");
 			    if ( ndx > 0 ) {
-			        return n.substring(ndx + 1);
+			        cached_domain =  n.substring(ndx + 1);
+                    return cached_domain;
 			    }
 			}
 		} catch (Exception e) {

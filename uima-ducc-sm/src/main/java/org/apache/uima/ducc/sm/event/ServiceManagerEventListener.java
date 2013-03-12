@@ -75,7 +75,7 @@ public class ServiceManagerEventListener
 
     private ServiceReplyEvent failureEvent(String message)
     {
-        return new ServiceReplyEvent(ServiceCode.NOTOK, message, "no.endpoint", null);
+        return new ServiceReplyEvent(false, message, "no.endpoint", null);
     }
 
     private ServiceReplyEvent failureEvent()

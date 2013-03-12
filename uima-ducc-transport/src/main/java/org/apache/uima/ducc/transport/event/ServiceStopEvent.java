@@ -18,25 +18,21 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.sm.IService;
 
 @SuppressWarnings("serial")
 public class ServiceStopEvent 
     extends AServiceRequest
-    implements IService
 {
     private long friendly;
     private String epname;
-    private String user;
     private int instances;
     private boolean update;
 
-	public ServiceStopEvent(String user, long friendly, String epname)
+	public ServiceStopEvent(String user, long friendly, String epname, byte[] auth_block)
     {
-		super(EventType.SERVICE_STOP);
+		super(EventType.SERVICE_STOP, user, auth_block);
         this.friendly = friendly;
         this.epname = epname;
-        this.user = user;
         this.instances = -1;
 	}
 
@@ -48,10 +44,6 @@ public class ServiceStopEvent
     {
         return epname;
     }
-
-	public String getUser() {
-		return user;
-	}
 
     public int getInstances() {
         return instances;

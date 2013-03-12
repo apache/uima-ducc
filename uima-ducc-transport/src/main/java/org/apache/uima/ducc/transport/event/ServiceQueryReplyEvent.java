@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.event;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 
@@ -29,10 +30,10 @@ public class ServiceQueryReplyEvent
 {
     // same as a ServiceReply Event plus it has a collection of info about services.
 
-    ArrayList<IServiceDescription> services = new ArrayList<IServiceDescription>();
+    List<IServiceDescription> services = new ArrayList<IServiceDescription>();
     public ServiceQueryReplyEvent()
     {
-        super(ServiceCode.OK, "Query Reply", "No Endpoint", null);
+        super(true, "Query Reply", "No Endpoint", null);
     }
 
     public void addService(IServiceDescription s)
@@ -40,7 +41,7 @@ public class ServiceQueryReplyEvent
         this.services.add(s);
     }
 
-    public ArrayList<IServiceDescription> getServices()
+    public List<IServiceDescription> getServices()
     {
         return services;
     }
@@ -49,7 +50,7 @@ public class ServiceQueryReplyEvent
     {
         StringBuilder sb = new StringBuilder();
         if ( services.size() == 0 ) {
-            if ( this.getReturnCode() == ServiceCode.NOTOK ) {
+            if ( this.getReturnCode() == false ) {
                 return super.getMessage();
             } else {
                 return "No Services";

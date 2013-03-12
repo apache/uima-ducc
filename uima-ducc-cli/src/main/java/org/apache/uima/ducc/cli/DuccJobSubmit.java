@@ -356,7 +356,7 @@ public class DuccJobSubmit
         /*
          * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
          */
-        if ( ! resolve_service_dependencies(null, jobRequestProperties) ) {
+        if ( ! resolve_service_dependencies(null) ) {
             return false;
         }
 

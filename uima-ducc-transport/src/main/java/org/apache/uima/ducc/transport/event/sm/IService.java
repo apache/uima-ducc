@@ -29,11 +29,6 @@ public interface IService
     extends Serializable
 {
     static final String NULL = "<none>";     
-    public static enum ServiceCode 
-    {
-        OK,                   // API: The requested action succeeded
-        NOTOK                 // API: the Requested action did not succeed.
-    };
 
     //
     // For boolean options, we want a trinary: true, false, unset
@@ -53,79 +48,79 @@ public interface IService
         	}
     };
 
-    public enum ServiceVerb
-    {
-        //
-        // I want to expose these things to the API with the ugly upper-case notation but don't
-        // want that ugliness in the variables, so we have encode and decode routines to do the
-        // correct translation.
-        //
-        Register    { 
-            public String decode()      { return "register"; } 
-            public String description() { return "Register a service."; } 
-            public String argname()     { return "service-DD-specification."; } 
-        },
-        Unregister  { 
-            public String decode()      { return "unregister" ; } 
-            public String description() { return "Unregister a service." ; } 
-            public String argname()     { return "service-id-or-endpoint" ; } 
-        },
-        Start       { 
-            public String decode()      { return "start"; } 
-            public String description() { return "Start a registered service." ; } 
-            public String argname()     { return "service-id-or-endpoint" ; } 
-            },
-        Stop        { 
-            public String decode()      { return "stop"; } 
-            public String description() { return "Stop a registered service." ; } 
-            public String argname()     { return "service-id-or-endpoint [--instances number-to-stop]" ; } 
-        },
-        Modify      { 
-            public String decode()      { return "modify"; } 
-            public String description() { return "Modify meta properties for a registered service." ; } 
-            public String argname()     { return "modify-parameters" ; } 
-        },
-        Query       { 
-            public String decode()      { return "query"; } 
-            public String description() { return "Query registered services." ; } 
-            public String argname()     { return "none" ; } 
-        },
-        Help        { 
-            public String decode()      { return "help"; } 
-            public String description() { return "This help message." ; } 
-            public String argname()     { return "none" ; } 
-        },
-        Debug       { 
-            public String decode()      { return "debug"; } 
-            public String description() { return "Debug cli" ; } 
-            public String argname()     { return "none" ; } 
-        },
-        Unknown     { 
-            public String decode()      { return "unknown"; } 
-            public String description() { return "unknown" ; } 
-            public String argname()     { return "unknown" ; } 
-        },
-        ;
+//     public enum ServiceVerb
+//     {
+//         //
+//         // I want to expose these things to the API with the ugly upper-case notation but don't
+//         // want that ugliness in the variables, so we have encode and decode routines to do the
+//         // correct translation.
+//         //
+//         Register    { 
+//             public String decode()      { return "register"; } 
+//             public String description() { return "Register a service."; } 
+//             public String argname()     { return "service-DD-specification."; } 
+//         },
+//         Unregister  { 
+//             public String decode()      { return "unregister" ; } 
+//             public String description() { return "Unregister a service." ; } 
+//             public String argname()     { return "service-id-or-endpoint" ; } 
+//         },
+//         Start       { 
+//             public String decode()      { return "start"; } 
+//             public String description() { return "Start a registered service." ; } 
+//             public String argname()     { return "service-id-or-endpoint" ; } 
+//             },
+//         Stop        { 
+//             public String decode()      { return "stop"; } 
+//             public String description() { return "Stop a registered service." ; } 
+//             public String argname()     { return "service-id-or-endpoint [--instances number-to-stop]" ; } 
+//         },
+//         Modify      { 
+//             public String decode()      { return "modify"; } 
+//             public String description() { return "Modify meta properties for a registered service." ; } 
+//             public String argname()     { return "modify-parameters" ; } 
+//         },
+//         Query       { 
+//             public String decode()      { return "query"; } 
+//             public String description() { return "Query registered services." ; } 
+//             public String argname()     { return "none" ; } 
+//         },
+//         Help        { 
+//             public String decode()      { return "help"; } 
+//             public String description() { return "This help message." ; } 
+//             public String argname()     { return "none" ; } 
+//         },
+//         Debug       { 
+//             public String decode()      { return "debug"; } 
+//             public String description() { return "Debug cli" ; } 
+//             public String argname()     { return "none" ; } 
+//         },
+//         Unknown     { 
+//             public String decode()      { return "unknown"; } 
+//             public String description() { return "unknown" ; } 
+//             public String argname()     { return "unknown" ; } 
+//         },
+//         ;
 
-        public abstract String decode();
-        public abstract String description();
-        public abstract String argname();
+//         public abstract String decode();
+//         public abstract String description();
+//         public abstract String argname();
         
-        public static ServiceVerb encode(String value)
-        {
-            if ( value.equals("register") )   return Register;
-            if ( value.equals("unregister") ) return Unregister;
-            if ( value.equals("start") )      return Start;
-            if ( value.equals("stop") )       return Stop;
-            if ( value.equals("modify") )     return Modify;
-            if ( value.equals("query") )      return Query;
-            if ( value.equals("help") )       return Help;
-            if ( value.equals("debug") )      return Debug;
+//         public static ServiceVerb encode(String value)
+//         {
+//             if ( value.equals("register") )   return Register;
+//             if ( value.equals("unregister") ) return Unregister;
+//             if ( value.equals("start") )      return Start;
+//             if ( value.equals("stop") )       return Stop;
+//             if ( value.equals("modify") )     return Modify;
+//             if ( value.equals("query") )      return Query;
+//             if ( value.equals("help") )       return Help;
+//             if ( value.equals("debug") )      return Debug;
 
-            return Unknown;
-        }
+//             return Unknown;
+//         }
 
-    };
+//     };
 
     public enum ServiceType
     {

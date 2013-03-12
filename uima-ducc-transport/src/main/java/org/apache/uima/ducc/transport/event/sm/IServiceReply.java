@@ -16,37 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event;
+package org.apache.uima.ducc.transport.event.sm;
 
-@SuppressWarnings("serial")
-public class ServiceUnregisterEvent 
-    extends AServiceRequest
+import java.util.List;
+
+public interface IServiceReply
 {
+    public boolean getReturnCode();
+    public String getMessage();
+    public String getEndpoint();
+    public long getId();
 
-    private long friendly;
-    private String epname;
-
-	public ServiceUnregisterEvent(String user, long friendly, String epname, byte[] auth_block)
-    {
-		super(EventType.SERVICE_UNREGISTER, user, auth_block);
-        this.friendly = friendly;
-        this.epname = epname;
-	}
-
-	public long getFriendly() 
-    {
-		return friendly;
-	}
-
-    public String getEndpoint()
-    {
-        return epname;
-    }
-
-	@Override
-	public String toString() {
-		return "ServiceUnregisterEvent [friendly=" + friendly + ", user="
-				+ user + "]";
-	}
-
+    public List<IServiceDescription> getServiceDescriptions();
 }

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.event;
 
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
 
 @SuppressWarnings("serial")
 public class ServiceRegisterEvent 
@@ -28,13 +29,11 @@ public class ServiceRegisterEvent
     private int ninstances;
     private Trinary autostart;
     private String endpoint;
-    private String user;
     private DuccProperties descriptor;
 
-	public ServiceRegisterEvent(String user, int ninstances, Trinary autostart, String endpoint, DuccProperties descriptor)
+	public ServiceRegisterEvent(String user, int ninstances, Trinary autostart, String endpoint, DuccProperties descriptor, byte[] auth_block)
     {
-		super(EventType.SERVICE_REGISTER);
-        this.user = user;
+		super(EventType.SERVICE_REGISTER, user, auth_block);
         this.ninstances = ninstances;
         this.autostart = autostart;
         this.endpoint = endpoint;
@@ -51,11 +50,6 @@ public class ServiceRegisterEvent
 
 	public String getEndpoint() {
 		return endpoint;
-	}
-
-
-	public String getUser() {
-		return user;
 	}
 
 

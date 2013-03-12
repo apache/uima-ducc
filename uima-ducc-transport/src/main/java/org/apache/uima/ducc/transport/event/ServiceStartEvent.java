@@ -26,12 +26,10 @@ public class ServiceStartEvent
     private String epname;
     private int instances;
     private boolean update;
-    private String user;
 
-	public ServiceStartEvent(String user, int friendly, String epname)
+	public ServiceStartEvent(String user, int friendly, String epname, byte[] auth_block)
     {
-		super(EventType.SERVICE_START);
-        this.user = user;
+		super(EventType.SERVICE_START, user, auth_block);
         this.friendly = friendly;
         this.epname = epname;
         this.instances = -1;         // default, don't change number of instances
@@ -64,10 +62,6 @@ public class ServiceStartEvent
     {
         this.update = update;
     }
-
-	public String getUser() {
-		return user;
-	}
 
 	public String toString() {
 		return "ServiceStartEvent [friendly=" + friendly + ", user=" + user + ", instances=" + instances  + ", update=" + update

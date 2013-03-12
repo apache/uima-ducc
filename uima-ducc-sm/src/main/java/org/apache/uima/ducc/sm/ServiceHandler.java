@@ -715,7 +715,7 @@ public class ServiceHandler
             if ( sset == null ) {
                 reply.setMessage("Unrecognized service ID[" + friendly + "] Endpoint[" + epname + "]");
                 reply.setEndpoint(epname);
-                reply.setReturnCode(ServiceCode.NOTOK);
+                reply.setReturnCode(false);
             } else {
                 IServiceDescription sd = sset.query();
                 updateServiceQuery(sd, sset);
@@ -736,7 +736,7 @@ public class ServiceHandler
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
 
         if ( sset == null ) {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + serviceIdString + " does not exist.", null, null);
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.", null, null);
         }
 
         if ( sset.isRegistered() ) {
@@ -751,8 +751,8 @@ public class ServiceHandler
                 wanted = instances;
             }
             if ( wanted == 0 ) {
-                return new ServiceReplyEvent(ServiceCode.NOTOK, 
-                                             "Service " + serviceIdString + " is started, instances[" + running + "]: ", 
+                return new ServiceReplyEvent(true, 
+                                             "Service " + serviceIdString + " instances[" + running + "], no additional instances started. ", 
                                              sset.getKey(), 
                                              sset.getId());
             }
@@ -764,12 +764,12 @@ public class ServiceHandler
 //             Thread t = new Thread(apih);
 //             t.start();
 
-            return new ServiceReplyEvent(ServiceCode.OK, 
+            return new ServiceReplyEvent(true, 
                                          "Service " + serviceIdString + " start request accepted, new instances[" + wanted + "]", 
                                          sset.getKey(), 
                                          sset.getId());
         } else {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, 
+            return new ServiceReplyEvent(false, 
                                          "Service " + serviceIdString + " is not a registered service.", 
                                          sset.getKey(), 
                                          null);    
@@ -821,12 +821,12 @@ public class ServiceHandler
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
 
         if ( sset == null ) {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + serviceIdString + " does not exist.", null, null);
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.", null, null);
         }
 
         if ( sset.isRegistered() ) {
             if ( (sset.countImplementors() == 0) && ( sset.isUimaAs()) ) {
-                return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + serviceIdString + " is already stopped.", sset.getKey(), sset.getId());
+                return new ServiceReplyEvent(false, "Service " + serviceIdString + " is already stopped.", sset.getKey(), sset.getId());
             }
 
             int running    = sset.countImplementors();
@@ -846,9 +846,9 @@ public class ServiceHandler
 //                 t.start();
             }
 
-            return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " stop request accepted for [" + tolose + "] instances.", sset.getKey(), sset.getId());
+            return new ServiceReplyEvent(true, "Service " + serviceIdString + " stop request accepted for [" + tolose + "] instances.", sset.getKey(), sset.getId());
         } else {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + friendly + " is not a registered service.", sset.getKey(), null);            
+            return new ServiceReplyEvent(false, "Service " + friendly + " is not a registered service.", sset.getKey(), null);            
         }
 
     }
@@ -897,7 +897,7 @@ public class ServiceHandler
             sset = new ServiceSet(id, props_filename, meta_filename, props, meta);
         } catch (Throwable t) {
             error = t.getMessage();
-            return new ServiceReplyEvent(ServiceCode.NOTOK, t.getMessage(), "New Service", id);            
+            return new ServiceReplyEvent(false, t.getMessage(), "New Service", id);            
         }
 
         String key = sset.getKey();
@@ -936,14 +936,14 @@ public class ServiceHandler
 
         if ( error == null ) {
             serviceStateHandler.putServiceByName(sset.getKey(), sset);
-            return new ServiceReplyEvent(ServiceCode.OK, "Registered service.", key, id);
+            return new ServiceReplyEvent(true, "Registered service.", key, id);
         } else {
             File mf = new File(meta_filename);
             mf.delete();
             
             File pf = new File(props_filename);
             pf.delete();
-            return new ServiceReplyEvent(ServiceCode.NOTOK, error, key, id);
+            return new ServiceReplyEvent(false, error, key, id);
         }
     }
 
@@ -955,7 +955,7 @@ public class ServiceHandler
     	ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
         
         if ( sset == null ) {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Unrecognized service ID[" + friendly + "] Endpoint[" + epname + "]", "?", null);
+            return new ServiceReplyEvent(false, "Unrecognized service ID[" + friendly + "] Endpoint[" + epname + "]", "?", null);
         }
 
     	if ( sset.isRegistered() ) {            
@@ -963,9 +963,9 @@ public class ServiceHandler
 //             ApiHandler  apih = new ApiHandler(ev, this);
 //             Thread t = new Thread(apih);
 //             t.start();
-            return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " modify request accepted.", sset.getKey(), sset.getId());
+            return new ServiceReplyEvent(true, "Service " + serviceIdString + " modify request accepted.", sset.getKey(), sset.getId());
         } else {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + friendly + " is not a known service.", sset.getKey(), null);            
+            return new ServiceReplyEvent(false, "Service " + friendly + " is not a known service.", sset.getKey(), null);            
         }
     }
 
@@ -1008,7 +1008,7 @@ public class ServiceHandler
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
 
         if ( sset == null ) {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + serviceIdString + " does not exist.",  serviceIdString, null);
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.",  serviceIdString, null);
         }
 
         if ( sset.isRegistered() ) {            
@@ -1017,9 +1017,9 @@ public class ServiceHandler
 //             ApiHandler  apih = new ApiHandler(ev, this);
 //             Thread t = new Thread(apih);
 //             t.start();
-            return new ServiceReplyEvent(ServiceCode.OK, "Service " + serviceIdString + " unregistered. Shutting down implementors.", sset.getKey(), sset.getId());
+            return new ServiceReplyEvent(true, "Service " + serviceIdString + " unregistered. Shutting down implementors.", sset.getKey(), sset.getId());
         } else {
-            return new ServiceReplyEvent(ServiceCode.NOTOK, "Service " + serviceIdString + " is not a registered service.", sset.getKey(), null);            
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " is not a registered service.", sset.getKey(), null);            
         }
         
     }

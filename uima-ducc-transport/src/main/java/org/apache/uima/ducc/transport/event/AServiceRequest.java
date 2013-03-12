@@ -18,29 +18,44 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.sm.IService;
-
 /**
  * Common service constants.
  */
 @SuppressWarnings("serial")
 public abstract class AServiceRequest
     extends AbstractDuccEvent
-    implements IService
+    //implements IService
 {
+
+    String user;
+    byte[] auth_block;
+
     ServiceReplyEvent reply;
-	public AServiceRequest(EventType eventType)
+	public AServiceRequest(EventType eventType, String user, byte[] auth_block)
 	{
 		super(eventType);
+        this.user = user;
+        this.auth_block = auth_block;
 	}
 
     public ServiceReplyEvent getReply()
     {
         return reply;
     }
+
     public void setReply(ServiceReplyEvent reply)
     {
         this.reply = reply;
+    }
+
+    public String getUser()
+    {
+        return user;
+    }
+
+    public byte[] getAuth()
+    {
+        return auth_block;
     }
 
 	@Override

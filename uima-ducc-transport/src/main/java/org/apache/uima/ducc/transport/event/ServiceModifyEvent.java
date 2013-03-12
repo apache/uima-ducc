@@ -18,26 +18,23 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.sm.IService;
+import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
 
 @SuppressWarnings("serial")
 public class ServiceModifyEvent 
     extends AServiceRequest
-    implements IService
 {
     private long friendly;      // the "friendly" part of a DuccId
     private String epname;
-	private String user;
     private int instances;      // 0 ==> don't modify instances
     private Trinary autostart;
     private boolean activate;
 
-	public ServiceModifyEvent(String user, long friendly, String epname)
+	public ServiceModifyEvent(String user, long friendly, String epname, byte[] auth_block)
     {
-		super(EventType.SERVICE_STOP);
+		super(EventType.SERVICE_STOP, user, auth_block);
         this.friendly = friendly;
         this.epname = epname;
-        this.user = user;
         this.instances = -1;   // default, instances aren't changed
         this.autostart = Trinary.Unset;
         this.activate = false;
@@ -81,10 +78,6 @@ public class ServiceModifyEvent
     {
         return epname;
     }
-
-	public String getUser() {
-		return user;
-	}
 
 	@Override
 	public String toString() {

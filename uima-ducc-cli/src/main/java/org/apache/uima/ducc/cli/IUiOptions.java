@@ -46,6 +46,28 @@ public interface IUiOptions
 
     public enum UiOption
     {
+        Activate   { 
+            public String pname()       { return "activate"; } 
+            public String argname()     { return null; }
+            public String description() { return "If present, apply current service updates to the running instances.."; } 
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
+
+        Autostart   { 
+            public String pname()      { return "autostart"; } 
+            public String argname()     { return "boolean: true or false"; } 
+            public String description() { return "If True, start the service when DUCC starts."; } 
+            public String example()     { return null; }
+            public String deflt()       { return "false"; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
+
         CancelJobOnInterrupt { 
             public String pname()       { return "cancel_job_on_interrupt"; }
             public String argname()     { return null; }
@@ -200,6 +222,17 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
+        Instances   { 
+            public String pname()       { return "instances"; } 
+            public String argname()     { return "integer"; } 
+            public String description() { return "Number of service instances to start or stop."; } 
+            public String example()     { return null; }
+            public String deflt()       { return "1"; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
+
         JobId { 
             public String pname()       { return JobRequestProperties.key_id; }
             public String argname()     { return "string"; }
@@ -244,6 +277,17 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
+        Modify    { 
+             public String pname()      { return "modify"; } 
+             public String argname()     { return "modify-parameters" ; } 
+             public String description() { return "Modify meta properties for a registered service." ; } 
+             public String example()     { return null; }
+             public String deflt()       { return null; }
+             public String label()       { return name(); }
+             public boolean multiargs()  { return false; }
+             public boolean required()   { return true; }
+        },
+
         NumberOfInstances { 
             public String pname()       { return ReservationSpecificationProperties.key_number_of_instances; }
             public String argname()     { return "integer"; }
@@ -254,6 +298,17 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
+
+        Register    { 
+            public String pname()       { return "register"; } 
+            public String argname()     { return null; } 
+            public String description() { return "Register a service."; } 
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
 
         ServicePingClass { 
             public String pname()       { return "service_ping_class"; }
@@ -343,6 +398,27 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
+        Start       { 
+            public String pname()       { return "start"; } 
+            public String description() { return "Start a registered service." ; } 
+            public String argname()     { return "service-id-or-endpoint" ; } 
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return null; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
+
+        Stop        { 
+            public String pname()      { return "stop"; } 
+            public String description() { return "Stop a registered service." ; } 
+            public String argname()     { return "service-id-or-endpoint [--instances number-to-stop]" ; } 
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return null; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
 
         SubmitPid { 
             // generated
@@ -594,6 +670,17 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
+        Query       { 
+            public String pname()       { return "query"; } 
+            public String argname()     { return null; } 
+            public String description() { return "Query registered services." ; } 
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
+
         Reason { 
             // generated, not public
             public String pname()       { return JobRequestProperties.key_reason; }
@@ -737,6 +824,28 @@ public interface IUiOptions
         },            
 
 
+        Unregister  { 
+            public String pname()       { return "unregister" ; } 
+            public String argname()     { return "service-id-or-endpoint" ; } 
+            public String description() { return "Unregister a service." ; } 
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return null; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
+
+        Update { 
+            public String pname()       { return "update"; }
+            public String argname()     { return null; }
+            public String description() { return "If specified, update service registry with accompanying parameters."; }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return null; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },            
+
         User { 
             public String pname()       { return JobSpecificationProperties.key_user; };
             public String argname()     { return "userid"; }
@@ -759,7 +868,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-
 
         WorkingDirectory { 
             public String pname()       { return JobSpecificationProperties.key_working_directory; }

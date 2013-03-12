@@ -18,21 +18,24 @@
 */
 package org.apache.uima.ducc.transport.event;
 
+import java.util.List;
+
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.sm.IService;
+import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
+import org.apache.uima.ducc.transport.event.sm.IServiceReply;
 
 
 @SuppressWarnings("serial")
 public class ServiceReplyEvent 
     extends AbstractDuccEvent
-    implements IService
+    implements IServiceReply
 {
-    private ServiceCode return_code;
+    private boolean return_code;
     private String message = "N/A";
     private String endpoint;
     private DuccId id;
     
-	public ServiceReplyEvent(ServiceCode rc, String message, String endpoint, DuccId id)
+	public ServiceReplyEvent(boolean rc, String message, String endpoint, DuccId id)
     {
 		super(EventType.SERVICE_REPLY);
         this.return_code = rc;
@@ -41,11 +44,11 @@ public class ServiceReplyEvent
         this.id = id;
 	}
 
-	public ServiceCode getReturnCode() {
+	public boolean getReturnCode() {
 		return return_code;
 	}
 
-	public void setReturnCode(ServiceCode return_code) {
+	public void setReturnCode(boolean return_code) {
 		this.return_code = return_code;
 	}
 
@@ -65,17 +68,27 @@ public class ServiceReplyEvent
 		this.endpoint = endpoint;
 	}
 
-	public DuccId getId() {
+	public DuccId getDuccId() {
 		return id;
+	}
+
+	public long getId() 
+    {
+		return (id == null ) ? -1 : id.getFriendly();
 	}
 
 	public void setId(DuccId id) {
 		this.id = id;
 	}
 
+    public List<IServiceDescription> getServiceDescriptions()
+    {
+        return null;
+    }
+
 	@Override
 	public String toString() {
-		return "ServiceReplyEvent [return_code=" + return_code + ", message="
+		return "ServiceReplyEvent [return_code=" + (return_code ? "OK" : "NOTOK") + ", message="
 				+ message + ", endpoint=" + endpoint + ", id=" + id + "]";
 	}
 	

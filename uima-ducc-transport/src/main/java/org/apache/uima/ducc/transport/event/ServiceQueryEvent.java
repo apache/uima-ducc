@@ -22,14 +22,12 @@ package org.apache.uima.ducc.transport.event;
 public class ServiceQueryEvent 
     extends AServiceRequest
 {    
-    String user;
     long friendly;
     String epname;
 
-	public ServiceQueryEvent(String user, long friendly, String epname)
+	public ServiceQueryEvent(String user, long friendly, String epname, byte[] auth_block)
     {
-        super(EventType.SERVICE_QUERY);
-        this.user = user;
+        super(EventType.SERVICE_QUERY, user, auth_block);
         this.friendly = friendly;
         this.epname = epname;
 	}
@@ -41,9 +39,4 @@ public class ServiceQueryEvent
 	public String getEndpoint() {
 		return epname;
 	}
-
-	public String getUser()
-    {
-        return user;
-    }
 }

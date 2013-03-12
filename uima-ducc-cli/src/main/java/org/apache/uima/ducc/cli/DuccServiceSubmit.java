@@ -186,7 +186,7 @@ public class DuccServiceSubmit
                 return false;
         } 
 
-        if ( ! resolve_service_dependencies(service_endpoint, requestProperties) ) {            
+        if ( ! resolve_service_dependencies(service_endpoint) ) {            
             return false;
         }
         

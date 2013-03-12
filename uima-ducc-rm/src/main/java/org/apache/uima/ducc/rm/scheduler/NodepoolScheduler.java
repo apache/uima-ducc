@@ -1536,6 +1536,84 @@ public class NodepoolScheduler
                             HashMap<User, TreeMap<IRmJob, IRmJob>> jobs_by_user)
     {
     	String methodName = "takeFromTheRich";
+        // - Collect all shares from the jobs into a list, ordered by richest user and fattest job on biggst node
+        //      Prune shares on machines that are too small to satisfy the request.  Users are already ordered by
+        //      wealth so we pick off their jobs and sort by most shares.  Then collect the shares into a list
+        //      doing the prune.
+        Map<Share, Share> eligible = new TreeMap<Share, Share>(new FinalEvictionSorter());                
+        Map<Share, Share> removed  = new HashMap<Share, Share>();
+
+        // given is not the same as donated.size() because there may be multiple donated shares that
+        // combine into a single "given".  We'll track the actual number of shares made available for
+        // nh with 'given'
+        int given = 0;
+
+        int desiredOrder = nj.getShareOrder();
+        search : {
+            for ( User next_user : users_by_wealth.keySet() ) {
+                TreeMap<IRmJob, IRmJob> jobs = jobs_by_user.get(next_user);  // aready ordered by largest
+                for (IRmJob j : jobs.keySet()) {
+                    removed.putAll(j.getPendingRemoves());
+                    HashMap<Share, Share> ss = j.getPendingShares();
+                    ss.putAll(j.getAssignedShares());
+                    for ( Share s : ss.keySet() ) {
+                        if ( ! compatibleNodepools(s, nj) ) {
+                            logger.debug(methodName, nj.getId(), "Bypassing pending share of order", s.getShareOrder(), s.toString(), "becaose of incompatible nodepool");
+                            continue;
+                        }
+                        logger.debug(methodName, nj.getId(), "Pending share of order", s.getShareOrder(), s.toString(), "is compatible with class", nj.getResourceClass().getName());
+
+                        if ( removed.containsKey(s) ) {     // pending removal already
+                            continue;
+                        }
+
+                        Machine m = s.getMachine();
+                        int g = m.getVirtualShareOrder();                    // unused space on the machine
+
+                        // first the simplest and least disruptive case - can this be fixed by evicting a single share somewhere
+                        if ( (s.getShareOrder() + g) >= desiredOrder ) {     // clearing this share makes space
+                            logger.debug(methodName, nj.getId(), "Share of order", s.getShareOrder(), "from", j.getId(), "donated:", s);
+                            clearShare(s, nj);
+                            removed.put(s, s);         // keeps it off limits for further eviction
+                            given++;                // this was an exact match so a full ++ here
+                            if ( given == needed ) {
+                                break search;
+                            }
+                            continue;
+                        }
+                        
+                        // May be able to fix this by evicting multiple shares but let's do a full search first.  Save the
+                        // candidate shares for examination later.
+                        if ( m.getShareOrder() >= desiredOrder) {
+                            logger.debug(methodName, nj.getId(), "Eligible share of order", s.getShareOrder(), "for job of order", desiredOrder, ":", s);                        
+                            eligible.put(s, s);
+                        } 
+                    }            
+                }
+            }
+        }        
+        // here after breaking from search, we need to remove donated shares
+        return given;
+    }
+
+    /**
+     * This routine tries to find enough process that can be coopted from "rich" users for jobs that deserved
+     * shares but couldn't get them because of fragmentation.
+     *
+     * @param j               This is the job we are trying to find shrares for. 
+     * @param needed          This is the number of processes we need for job j.
+     * @param users_by_wealth This is all the users who can donate, ordered by wealth.
+     * @param jobs_by_user    This is all the candidate jobs owned by the user.  Note that this is not necessarily
+     *                        ALL the user's jobs, we will have culled everything that makes no sense to
+     *                        take from in the caller.
+     *
+     * @return THe number of processes recovered.
+     */
+    int takeFromTheRichA(IRmJob nj, int needed,
+                            TreeMap<User, User> users_by_wealth,
+                            HashMap<User, TreeMap<IRmJob, IRmJob>> jobs_by_user)
+    {
+    	String methodName = "takeFromTheRich";
         int given = 0;
 
         logger.debug(methodName, nj.getId(), "needed[", needed, "]");
@@ -1543,7 +1621,7 @@ public class NodepoolScheduler
         TreeMap<IRmJob, IRmJob> job_set  = new TreeMap<IRmJob, IRmJob>(new JobByShareSorter());    // the collection of rich users jobs to take from
         Map<Share, Share>   shares   = new TreeMap<Share, Share>(new FinalEvictionSorter());                
         Map<Share, Share>   removed  = new HashMap<Share, Share>();
-
+        
         List<User> allUsers = new ArrayList<User>();                                           // for debug
 
         for ( User next_user : users_by_wealth.keySet() ) {

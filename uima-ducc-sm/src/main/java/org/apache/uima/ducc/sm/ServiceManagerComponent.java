@@ -29,18 +29,22 @@ import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.crypto.Crypto;
+import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.LinuxUtils;
 import org.apache.uima.ducc.common.utils.MissingPropertyException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryReplyEvent;
@@ -97,8 +101,10 @@ public class ServiceManagerComponent
     private DuccProperties sm_props = null;
     private String service_seqno = "service.seqno";
     private DuccIdFactory idFactory = new DuccIdFactory();
-
+    
+    private boolean signature_required = true;
     private boolean initialized = false;
+    private boolean testmode = false;
 
 	public ServiceManagerComponent(CamelContext context) 
     {
@@ -231,6 +237,17 @@ public class ServiceManagerComponent
         meta_ping_timeout = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout", meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability", meta_ping_stability);
         default_ping_class = SystemPropertyResolver.getStringProperty("ducc.sm.default.uima-as.ping.class", UimaAsPing.class.getName());
+        String rm = SystemPropertyResolver.getStringProperty("ducc.runmode", "");
+        if ( rm.equals("Test") ) testmode = true;
+
+        // yuck
+        String sig = SystemPropertyResolver.getStringProperty("ducc.signature.required", "on");
+        signature_required = true;
+        if      ( sig.equals("on")  ) signature_required = true;
+        else if ( sig.equals("off") ) signature_required = false;
+        else {
+            logger.warn(methodName, null, "Incorrect value for property ducc.signature.required: " + sig + ". Setting to default of \"on\"");
+        }
 
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
         logger.info(methodName, null, "Service Manager starting:");
@@ -242,6 +259,8 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "    JVM Path                : ", System.getProperty("ducc.jvm"));
         logger.info(methodName, null, "    JMX URL                 : ", System.getProperty("ducc.jmx.url"));
         logger.info(methodName, null, "    OS Architecture         : ", System.getProperty("os.arch"));
+        logger.info(methodName, null, "    Crypto enabled          : ", signature_required);
+        logger.info(methodName, null, "    Test mode enabled       : ", testmode);
         logger.info(methodName, null, "    Service ping rate       : ", meta_ping_rate);
         logger.info(methodName, null, "    Service ping timeout    : ", meta_ping_timeout);
         logger.info(methodName, null, "    Service ping stability  : ", meta_ping_stability);
@@ -460,176 +479,6 @@ public class ServiceManagerComponent
         }
     }
 
-    /**
-    public void processIncomingOld(DuccWorkMap workMap) 
-    {
-		String methodName = "evaluateServiceRequirements";
-		logger.debug(methodName, null, "---Received Orchestrator State---");
-		synchronized(serviceMap) {
-			jobDisappeared(workMap);
-			jobNotActive(workMap);
-			servicesUpdate(workMap);
-		}
-	}
-	
-	private int jobDisappeared(DuccWorkMap workMap) 
-    {
-		String methodName = "jobDisappeared";
-		int count = 0;
-		Iterator<DuccId> serviceMapIterator = serviceMap.keySet().iterator();
-		while(serviceMapIterator.hasNext()) {
-			DuccId duccId = serviceMapIterator.next();
-			if(!workMap.containsKey(duccId)) {
-				count++;
-				serviceMap.removeService(duccId);
-				logger.info(methodName, duccId, "Job removed (disappeared)");
-			}
-		}
-		return count;
-	}
-	
-	private int jobNotActive(DuccWorkMap workMap) 
-    {
-		String methodName = "jobNotActive";
-		int count = 0;
-		Iterator<DuccId> workMapIterator = workMap.keySet().iterator();
-		while(workMapIterator.hasNext()) {
-			DuccId duccId = workMapIterator.next();
-			IDuccWork duccWork = workMap.findDuccWork(duccId);
-			switch(duccWork.getDuccType()) {
-			case Job:
-			case Service:
-				DuccWorkJob duccWorkJob = (DuccWorkJob) duccWork;
-				if(!duccWorkJob.isActive() && serviceMap.containsKey(duccId)) {
-					count++;
-					serviceMap.removeService(duccId);
-					logger.info(methodName, duccId, "Job removed");
-				}
-				break;
-			default:
-				break;
-			}
-		}
-		return count;
-	}
-	
-	private int servicesUpdate(DuccWorkMap workMap) 
-    {
-		String methodName = "servicesUpdate";
-		int count = 0;
-		Iterator<DuccId> workMapIterator = workMap.keySet().iterator();
-		while(workMapIterator.hasNext()) {
-			DuccId duccId = workMapIterator.next();
-			IDuccWork duccWork = workMap.findDuccWork(duccId);
-			switch(duccWork.getDuccType()) 
-            {
-                case Job:
-                case Service:
-                    DuccWorkJob job = (DuccWorkJob) duccWork;
-                    if ( job.isActive() ) {
-
-                        count++;
-                        Services jobServices = new Services();                    
-                        if( !serviceMap.containsKey(duccId) ) {
-                            serviceMap.addService(duccId, jobServices);
-                        }
-                        
-                        //
-                        // TODO: For now this always sets Running
-                        //
-                        boolean enabled = true;
-                        if ( !enabled ) {
-                            logger.info(methodName, job.getDuccId(), "Service check bypassed: return ServiceState.Running");
-                            jobServices.setState(ServiceState.Running);
-                        } else {
-                            
-                            //   TODO: Service manager will do this once it's ready.
-                            //         Will track state of service from OR state as a submitted POP.  Once
-                            //         state Running is reached a ping is needed.
-                            //   TODO: jobServices needs space for a collection of service states.
-                            //
-                            if ( dependenciesSatisfied(job) ) {
-                                jobServices.setState(ServiceState.Running);
-                            } else {
-                                jobServices.setState(ServiceState.NotAvailable);
-                            }
-                        }
-                        
-                        logger.info(methodName, duccId, "Job updated. State:", jobServices.getState());
-                    }
-                    break;
-    			default:
-                    break;
-			}
-		}
-		return count;
-	}
-*/
-//
-//	/**
-//	 * Returns true if job service dependencies are satisfied. False otherwise.
-//	 * 
-//	 * @param duccWorkJob - Job with (possible) dependencies on remote services
-//	 * @return - true if job's dependencies are satisfied. False otherwise
-//	 */
-//	private boolean dependenciesSatisfied(DuccWorkJob duccWorkJob) 
-//    {
-//		String methodName = "dependenciesSatisfied";
-//		try {
-//            String[] deps = duccWorkJob.getServiceDependencies();
-//            if ( deps == null ) {
-//                logger.info(methodName, duccWorkJob.getDuccId(), "No service dependencies, returns satisfied.");
-//                return true;
-//            }
-//
-//			List<ServiceSpecifier> remoteDependencies = new ArrayList<ServiceSpecifier>();
-//            for ( String dep : deps ) {
-//                remoteDependencies.add(new ServiceSpecifier(dep));
-//			}
-//			return validDependencies(duccWorkJob.getDuccId(),remoteDependencies);
-//		} catch( Exception e) {
-//			logger.error(methodName, duccWorkJob.getDuccId(), e);
-//		}
-//		return false;
-//	}
-
-	/**
-	 * Validates availability of remote services. Reads given deployment descriptor,
-	 * extracts AE descriptor and parses it to get ResourceSpecifier. The code then 
-	 * iterates over delegates looking for CustomResourceSpecifier type. If found, 
-	 * a delegate is a remote service which must be tested for availability. An instance
-	 * of UIMA AS client is created for each remote service to test GetMeta response. If 
-	 * a remote service does not respond, the client times out and service is considered
-	 * as not available.
-	 * 
-	 * @param ddFile - deployment descriptor file
-	 * @param duccId - job ducc id
-	 * @return - true is dependent services are available. False, otherwise.
-	 * @throws Exception
-	 */
-//	private boolean validDependencies(DuccId duccId, List<ServiceSpecifier> remotes) throws Exception 
-//    {
-//		String methodName = "validDependencies";
-//		boolean answer = true; 
-//
-//		//	iterate over remotes. Send GetMeta request to each one and wait for reply.
-//		//  If the remote is available it will respond. Otherwise, either a
-//		//  broker is down or service is not available and we time out.
-//		for( ServiceSpecifier remote : remotes ) {
-//            BaseUimaAsService sd = services.get(remote.key());
-//            if ( sd == null ) {                                         // make sure its registered
-//                logger.info(methodName, duccId, "Service not registered:", remote.key());
-//                answer = false;
-//            } else {
-//                boolean p = ping(sd);        // use a tmp so we can log
-//                answer &= p;
-//                logger.info(methodName, duccId, "Dependency available for", remote.key, ":", p);
-//            }
-//		} 
-//		return answer;
-//	}
-
-
     public void setTransportConfiguration(DuccEventDispatcher eventDispatcher, String endpoint)
     {
         this.eventDispatcher = eventDispatcher;
@@ -677,26 +526,6 @@ public class ServiceManagerComponent
         notify();
     }
 
-    /**
-     * Every ping needs to update state if it changes
-     */
-//    private boolean ping(BaseUimaAsService sd)
-//    {
-//    	String methodName = "ping";
-//        boolean answer = false;
-//        ServiceState oldState = sd.getState();
-//        answer = sd.ping();
-//        if ( sd.getState() != oldState ) {
-//        	try {
-//        		writeProps(sd);
-//        	} catch ( Throwable t ) {
-//        		// log the problem but this isn't a good reason to crash anything.
-//        		logger.error(methodName, null, "Cannot update state file after ping:", t.getMessage());
-//        	}
-//        }
-//        return answer;
-//    }
-
     private String serviceFileLocation()
     {
         return System.getProperty("DUCC_HOME") + "/state/services";
@@ -707,15 +536,42 @@ public class ServiceManagerComponent
         return serviceFileLocation() + "/" + fn;
     }
 
-//    public void writeProps(BaseUimaAsService sd)
-//    	throws Throwable
-//    {
-//        DuccProperties props = sd.getProperties();
-//        String fn = serviceFileKey(sd.getStringProperty("service-file-key"));
-//        FileOutputStream fos = new FileOutputStream(fn);
-//        props.store(fos, "Service Descriptor for " + sd.getKey());
-//        fos.close();        
-//    }
+	private boolean check_signature(String user, byte[] auth_block)
+        throws Throwable
+    {
+        String userHome = null;
+        if ( testmode ) {    
+            userHome = System.getProperty("user.home");
+        } else {
+            userHome = LinuxUtils.getUserHome(user);
+        }
+        
+        Crypto crypto = new Crypto(userHome,AccessType.READER);
+        String signature = (String)crypto.decrypt(auth_block);
+        
+        return user.equals(signature);
+	}
+
+    private boolean validate_user(String action, AServiceRequest req)
+    {
+    	String methodName = "validate_user";
+        String user = req.getUser();                
+        byte[] auth_block= req.getAuth();
+        boolean validated = false;
+
+        try {
+            validated = signature_required && check_signature(user, auth_block);
+        } catch ( Throwable t ) {
+            logger.error(methodName, null, "Crypto failure:", t.toString());
+        }
+
+        if ( ! validated ) {
+            logger.warn(methodName, null, "User", user, "cannot be validated.", action, "rejected.");
+            req.setReply(new ServiceReplyEvent(false, "User " + user + " cannot be validated. " + action + " rejected.", "NONE", null));
+            return false;
+        }
+        return true;
+    }
 
     public synchronized void register(ServiceRegisterEvent ev)
     {
@@ -724,15 +580,16 @@ public class ServiceManagerComponent
         String endpoint = ev.getEndpoint();
         int instances = ev.getNinstances();
         Trinary autostart = ev.getAutostart();
-        String user = ev.getUser();
-
+        String user = ev.getUser();        
+        
+        if ( ! validate_user("Register", ev) ) return;   // necessary messages emitted in here
 
         DuccId id = null;
         try {
             id = newId();
         } catch ( Exception e ) {
             logger.error(methodName, null, e);
-            ev.setReply(new ServiceReplyEvent(ServiceCode.NOTOK, "Internal error; unable to generate id", endpoint, null));
+            ev.setReply(new ServiceReplyEvent(false, "Internal error; unable to generate id", endpoint, null));
             return;
         }
         logger.debug(methodName, id, "Unique:", id.getUnique());
@@ -756,14 +613,10 @@ public class ServiceManagerComponent
         ev.setReply(reply);
 
         // Draw attentipn in the log on registration failures
-        switch ( reply.getReturnCode() ) {
-            case OK:
-                logger.info(methodName, id, ev.toString());
-                break;
-
-            case NOTOK:
-                logger.warn(methodName, id, ev.toString());
-                break;
+        if ( reply.getReturnCode() ) {
+            logger.info(methodName, id, ev.toString());
+        } else {
+            logger.warn(methodName, id, ev.toString());
         }
     }
 
@@ -771,6 +624,9 @@ public class ServiceManagerComponent
     {
         String methodName = "unregister";
         long id = ev.getFriendly();
+
+        if ( ! validate_user("Unregister", ev) ) return;   // necessary messages emitted in here
+
         logger.info(methodName, null, "De-registering service", id);
         ServiceReplyEvent reply = handler.unregister(ev);
         ev.setReply(reply);       
@@ -779,6 +635,9 @@ public class ServiceManagerComponent
     public synchronized void start(ServiceStartEvent ev)
     {
         String methodName = "startService";
+
+        if ( ! validate_user("Start", ev) ) return;   // necessary messages emitted in here
+
         logger.info(methodName, null, "Starting service", ev.toString());
         ServiceReplyEvent reply = handler.start(ev);
         ev.setReply(reply);
@@ -788,6 +647,9 @@ public class ServiceManagerComponent
     public synchronized void stop(ServiceStopEvent ev)
     {
         String methodName = "stopService";
+
+        if ( ! validate_user("Stop", ev) ) return;   // necessary messages emitted in here
+
         logger.info(methodName, null, "Stopping service", ev.toString());
         ServiceReplyEvent reply = handler.stop(ev);
         ev.setReply(reply);
@@ -797,6 +659,9 @@ public class ServiceManagerComponent
     public synchronized void query(ServiceQueryEvent ev)
     {
         String methodName = "query";
+
+        if ( ! validate_user("Query", ev) ) return;   // necessary messages emitted in here
+
         logger.info(methodName, null, "Query", ev.toString());
         ServiceQueryReplyEvent reply = handler.query(ev);
         ev.setReply(reply);
@@ -806,6 +671,9 @@ public class ServiceManagerComponent
     public synchronized void modify(ServiceModifyEvent ev)
     {
         String methodName = "modify";
+
+        if ( ! validate_user("Modify", ev) ) return;   // necessary messages emitted in here
+
         logger.info(methodName, null, "Modify", ev.toString());
         ServiceReplyEvent reply = handler.modify(ev);
         ev.setReply(reply);
@@ -822,18 +690,4 @@ public class ServiceManagerComponent
         fos.close();
         return id;
     }
-
-    /**
-	public static void main(String[] args) 
-    {
-		try {
-			ServiceManagerComponent sm = new ServiceManagerComponent(new DefaultCamelContext());
-			if ( sm.validDependencies( new DuccId(100), new ArrayList<RemoteService>()) ) {
-			}
-
-		} catch( Exception e) {
-			e.printStackTrace();
-		}
-	}
-	*/
 }

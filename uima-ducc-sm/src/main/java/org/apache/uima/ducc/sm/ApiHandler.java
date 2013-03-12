@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.sm;
 
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
@@ -38,7 +39,7 @@ class ApiHandler
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	ServiceVerb cmd;
+	UiOption cmd;
     ServiceHandler serviceHandler;
 
     long friendly;
@@ -50,7 +51,7 @@ class ApiHandler
 
     ApiHandler(ServiceUnregisterEvent event, ServiceHandler serviceHandler)
     {
-        this.cmd = ServiceVerb.Unregister;
+        this.cmd = UiOption.Unregister;
         this.friendly = event.getFriendly();
         this.endpoint = event.getEndpoint();
         this.serviceHandler = serviceHandler;
@@ -58,7 +59,7 @@ class ApiHandler
 
     ApiHandler(ServiceStartEvent event, ServiceHandler serviceHandler)
     {
-        this.cmd = ServiceVerb.Start;
+        this.cmd = UiOption.Start;
         this.friendly = event.getFriendly();
         this.endpoint = event.getEndpoint();
         this.instances = event.getInstances();
@@ -68,7 +69,7 @@ class ApiHandler
 
     ApiHandler(ServiceStopEvent event, ServiceHandler serviceHandler)
     {
-        this.cmd = ServiceVerb.Stop;
+        this.cmd = UiOption.Stop;
         this.friendly = event.getFriendly();
         this.endpoint = event.getEndpoint();
         this.instances = event.getInstances();
@@ -78,7 +79,7 @@ class ApiHandler
 
     ApiHandler(ServiceModifyEvent event, ServiceHandler serviceHandler)
     {
-        this.cmd = ServiceVerb.Modify;
+        this.cmd = UiOption.Modify;
         this.friendly = event.getFriendly();
         this.endpoint = event.getEndpoint();
         this.instances = event.getInstances();
