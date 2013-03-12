@@ -46,7 +46,6 @@ public class DuccServiceSubmit
     UiOption[] opts = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
-
         UiOption.Description,
         UiOption.SchedulingClass,
         UiOption.LogDirectory,
@@ -57,7 +56,6 @@ public class DuccServiceSubmit
         UiOption.ProcessEnvironment,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
-        UiOption.ProcessInitializationFailuresCap,
         UiOption.ProcessFailuresLimit,
         UiOption.ClasspathOrder,
         UiOption.Specification,
@@ -69,7 +67,6 @@ public class DuccServiceSubmit
         UiOption.ServicePingJvmArgs,
         UiOption.ServicePingTimeout,
         UiOption.ServicePingDoLog,
-        UiOption.ProcessGetMetaTimeMax,
     };
  
 	public DuccServiceSubmit(ArrayList<String> args)
