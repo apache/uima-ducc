@@ -323,29 +323,34 @@ public class DuccWebMonitor implements IListenerOrchestrator {
 		
 		int countAtArrival = updateCounter.get();
 		int countAtPresent = countAtArrival;
-		int sleepSecondsMax = 60;
+		int sleepSecondsMax = 3*60;
 		
 		DuccId duccId = getKey(jobId);
 		
 		if(duccId == null) {
 			int sleepSeconds = 0;
 			duccLogger.info(location, duccId, "Waiting for update...");
-			while(countAtArrival == countAtPresent) {
+			while(duccId == null) {
 				try {
+					duccLogger.debug(location, duccId, "Waiting continues...");
 					Thread.sleep(1000);
 					sleepSeconds += 1;
 					if(sleepSeconds > sleepSecondsMax) {
 						break;
 					}
+					countAtPresent = updateCounter.get();
+					if((countAtPresent-countAtArrival) > 2) {
+						break;
+					}
+					duccId = getKey(jobId);
 				}
 				catch(Exception e) {
 				}
-				countAtPresent = updateCounter.get();
 			}
 			duccLogger.info(location, duccId, "Waiting complete.");
 			duccId = getKey(jobId);
 		}
-			
+		
 		if(duccId != null) {
 			monitorInfo = jMap.get(duccId);
 			if(tMap.containsKey(duccId)) {

@@ -215,7 +215,7 @@ private Thread main = null;
 		return sb.toString();
 	}
 	
-	public int run(String[] args) throws Exception {
+	private int runInternal(String[] args) throws Exception {
 		/*
 		 * require DUCC_HOME 
 		 */
@@ -323,7 +323,14 @@ private Thread main = null;
 					message.append("state:"+NotFound);
 					thisMessage = message.toString();
 					info(thisMessage);
-					// return rc.get();
+					message = new StringBuffer();
+					message.append("id:"+jobId);
+					message.append(" ");
+					message.append("rc:"+RC_FAILURE);
+					thisMessage = message.toString();
+					info(thisMessage);
+					rc.set(RC_FAILURE);
+					return rc.get();
 				}
 				
 				String state = "";
@@ -430,6 +437,16 @@ private Thread main = null;
     		duccMessageProcessor.exception(e);
     	}
 	}
+	
+	public int run(String[] args) {
+       	try {
+       		runInternal(args);
+    	} catch (Exception e) {
+    		duccMessageProcessor.exception(e);
+    	}
+       	return rc.get();
+	}
+	
 	public static void main(String[] args) {
 		try {
 			DuccJobMonitor duccJobMonitor = new DuccJobMonitor(false);
