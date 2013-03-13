@@ -379,7 +379,7 @@ public class DuccJobSubmit
 
         if ( rc ) {
             saveSpec("job-specification.properties", jobRequestProperties);
-            startMonitors();       // starts conditionally, based on job spec and console listener present
+            startMonitors(false);       // starts conditionally, based on job spec and console listener present
         }
 
 		return rc;

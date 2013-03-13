@@ -482,6 +482,7 @@ void redirect_to_socket(char *sockloc)
     fflush(stdout);
     fflush(stderr);
 
+    int rc0 = dup2(sock, 0);
     int rc1 = dup2(sock, 1);
     int rc2 = dup2(sock, 2);
 

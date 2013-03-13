@@ -601,13 +601,13 @@ public abstract class CliBase
     }
 
     // TODO TODO TODO - do we have to support lots of these for multi-threaded stuff?  Hope not ...
-    protected synchronized void startMonitors()
+    protected synchronized void startMonitors(boolean start_stdin)
     	throws Exception
     {
         int wait_count = 0;
 
         if ( console_listener != null ) {
-            startConsoleListener();
+            startConsoleListener(start_stdin);
             wait_count++;
         }
         
@@ -666,10 +666,11 @@ public abstract class CliBase
     /**
      * Be sure to call this BEFORE submission, to insure the callback address is set in properties.
      */
-    protected synchronized void startConsoleListener()
+    protected synchronized void startConsoleListener(boolean start_stdin)
     	throws Exception
     {        
         if ( console_attach ) {
+            console_listener.startStdin(start_stdin);
             Thread t = new Thread(console_listener);
             t.start();
         } else {

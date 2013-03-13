@@ -159,7 +159,7 @@ public class DuccletSubmit
                     retval = false;
                 } else {
                     saveSpec("process.properties", serviceRequestProperties);
-                    startMonitors();       // starts conditionally, based on job spec and console listener present
+                    startMonitors(true);       // starts conditionally, based on job spec and console listener present
                 }
             }
         }
