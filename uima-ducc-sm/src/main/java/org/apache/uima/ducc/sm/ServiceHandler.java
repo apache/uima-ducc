@@ -734,9 +734,15 @@ public class ServiceHandler
         String epname = ev.getEndpoint();
         String serviceIdString = extractId(friendly, epname);
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
-
         if ( sset == null ) {
             return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.", null, null);
+        }
+
+        String userin = ev.getUser();
+        String userout = sset.getUser();
+
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Start declined: not owner.",  serviceIdString, null);
         }
 
         if ( sset.isRegistered() ) {
@@ -819,9 +825,15 @@ public class ServiceHandler
         String epname = ev.getEndpoint();
         String serviceIdString = extractId(friendly, epname);
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
-
         if ( sset == null ) {
             return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.", null, null);
+        }
+
+        String userin = ev.getUser();
+        String userout = sset.getUser();
+
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Start declined: not owner.",  serviceIdString, null);
         }
 
         if ( sset.isRegistered() ) {
@@ -953,11 +965,17 @@ public class ServiceHandler
         String epname = ev.getEndpoint();
         String serviceIdString = extractId(friendly, epname);
     	ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
-        
         if ( sset == null ) {
             return new ServiceReplyEvent(false, "Unrecognized service ID[" + friendly + "] Endpoint[" + epname + "]", "?", null);
         }
 
+        String userin = ev.getUser();
+        String userout = sset.getUser();
+
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Start declined: not owner.",  serviceIdString, null);
+        }
+        
     	if ( sset.isRegistered() ) {            
             pendingRequests.add(new ApiHandler(ev, this));
 //             ApiHandler  apih = new ApiHandler(ev, this);
@@ -1006,9 +1024,15 @@ public class ServiceHandler
         String epname = ev.getEndpoint();
         String serviceIdString = extractId(friendly, epname);
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
-
         if ( sset == null ) {
             return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.",  serviceIdString, null);
+        }
+
+        String userin = ev.getUser();
+        String userout = sset.getUser();
+
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Unregister declined: not owner.",  serviceIdString, null);
         }
 
         if ( sset.isRegistered() ) {            

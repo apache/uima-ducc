@@ -56,4 +56,6 @@ public interface IServiceManager
     public void publish(ServiceMap map);
 
     public DuccId newId() throws Exception;
+
+    public boolean isAdministrator(String user);
 }

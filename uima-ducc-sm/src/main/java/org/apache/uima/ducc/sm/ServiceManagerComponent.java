@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.apache.camel.CamelContext;
@@ -105,6 +106,8 @@ public class ServiceManagerComponent
     private boolean signature_required = true;
     private boolean initialized = false;
     private boolean testmode = false;
+
+    Map<String, String> administrators = new HashMap<String, String>();
 
 	public ServiceManagerComponent(CamelContext context) 
     {
@@ -225,7 +228,33 @@ public class ServiceManagerComponent
             initialized = true;
         }
     }
-	
+
+    void readAdministrators()
+    {
+    	String methodName = "readAdministrators";
+        File adminfile = new File(System.getProperty("DUCC_HOME") + "/resources/ducc.administrators");
+        if ( ! adminfile.exists() ) {
+            logger.info(methodName, null, "No ducc administrators found.");
+            return;
+        }
+        
+        Properties props = null;
+		try {
+			FileInputStream fis = new FileInputStream(adminfile);
+			props = new Properties();
+			props.load(fis);
+		} catch (Exception e) {
+            logger.warn(methodName, null, "Cannot read administroators file:", e.toString());
+            return;
+		}
+        
+        for ( Object k : props.keySet() ) {
+            String adm = ((String) k).trim();
+            administrators.put(adm, adm);
+            logger.info(methodName, null, "DUCC Administrator registered:", adm);
+        }
+    }
+
 	@Override
 	public void start(DuccService service, String[] args) throws Exception 
     {
@@ -267,6 +296,8 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "    DUCC Version            : ", Version.version());
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
 
+        readAdministrators();
+
         // Here is a good place to do any pre-start stuff
 
         // Start the main processing loop
@@ -291,6 +322,11 @@ public class ServiceManagerComponent
             logger.error(methodName, null, t);
         }
     	logger.info(methodName, null, "Service Manger returns.");
+    }
+
+    public boolean isAdministrator(String user)
+    {
+        return administrators.containsKey(user);
     }
 
     /**
