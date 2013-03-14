@@ -38,6 +38,7 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.ServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -103,6 +104,9 @@ public class ServiceSet
     // Registered services, the number of instances to maintain
     int instances = 1;
 
+    // max allowable failures before disabling autostart
+    int max_failures = 5;
+
     // UIMA-AS pinger
     IServiceMeta serviceMeta = null;
 
@@ -121,6 +125,11 @@ public class ServiceSet
     Timer timer = null;
     LingerTask linger = null;
     long linger_time = 5000;
+
+    // max allowed consecutive failures, current failure count
+    int failure_max = ServiceManagerComponent.failure_max;
+    int failure_start = 0;
+    int failure_run = 0;
 
     //JobState     job_state     = JobState.Undefined;
     //
@@ -199,8 +208,8 @@ public class ServiceSet
         this.meta_filename = meta_filename;
         this.service_state = ServiceState.NotAvailable;
         this.linger_time = props.getLongProperty(RegistrationOption.ServiceLinger.decode(), 5000);
-
         this.key = meta.getProperty("endpoint");
+        this.failure_max = props.getIntProperty(UiOption.ProcessFailuresLimit.pname(), ServiceManagerComponent.failure_max);
 
         parseEndpoint(key);
 
@@ -660,6 +669,12 @@ public class ServiceSet
         return false;            
     }
 
+    boolean containsImplementor(DuccId id)
+    {
+        // must use friendly, in case the thing was just started and not into the implementors set yet
+        return friendly_ids.containsKey(id.getFriendly());
+    }
+
     public void removeImplementor(DuccId id)
     {
         if ( ! implementors.containsKey(id ) ) return;  // quick short circuit if it's already gone
@@ -806,6 +821,10 @@ public class ServiceSet
     public synchronized void establish(DuccId id, JobState job_state)
     {
         String methodName = "establish.1";
+
+        if ( job_state == JobState.Running ) {
+            failure_run = 0;
+        }
 
         if ( service_class == ServiceClass.Implicit ) {
             startPingThread(); 
@@ -958,6 +977,19 @@ public class ServiceSet
     synchronized String getKey()
     {
         return key;
+    }
+
+    synchronized boolean runFailures()
+    {
+        String methodName = "runFailures";
+        if ( (++failure_run) > failure_max ) {
+            logger.debug(methodName, id, "RUN FAILURES EXCEEDED");
+            setAutostart(false);
+            failure_run = 0;
+            return true;
+        }
+        logger.debug(methodName, id, "RUN FAILURES NOT EXCEEDED YET", failure_run);
+        return false;
     }
 
     private void startPingThread()
@@ -1140,32 +1172,27 @@ public class ServiceSet
             logger.error(methodName, null, t);
 		}
 
+        for ( String s : stderr_lines ) {
+            logger.info(methodName, id, "Start stderr:", s);
+        }
+
         // That was annoying.  Now search the lines for some hint of the id.
         boolean inhibit_cp = false;
-        for ( String s : stdout_lines ) {
-            if ( inhibit_cp ) {
-                // The classpaths can be just awful filling the logs with junk.  It will end up in the agent log
-                // anyway so let's inhibit it here.
-                logger.debug(methodName, id, "<INHIBITED CP>");
-                inhibit_cp = false;
-            } else {
-                logger.debug(methodName, id, "Start stdout:", s);
-                if ( s.indexOf("-cp") >= 0 ) {
-                    inhibit_cp = true;
-                }
-            }
-        }
-
-        for ( String s : stderr_lines ) {
-            logger.debug(methodName, id, "Start stderr:", s);
-        }
-
-        // That was annoying.  Now search the lines for some hint of the id.
-
         boolean started = false;
         for ( String s : stdout_lines ) {
-            logger.debug(methodName, id, "Start stdout:", s);
-            
+
+            // simple logic to inhibit printing the danged classpath
+            if ( inhibit_cp ) {
+                inhibit_cp = false;
+                logger.info(methodName, id, "<INHIBITED CP>");
+            } else {
+                logger.info(methodName, id, "Start stdout:", s);
+            }
+
+            if ( s.indexOf("-cp") >= 0 ) {
+                inhibit_cp = true;
+            }
+
             if ( s.startsWith("Service") && s.endsWith("submitted") ) {
                 String[] toks = s.split("\\s");
                 long friendly = 0;
@@ -1183,9 +1210,16 @@ public class ServiceSet
         }
         
         if ( ! started ) {
-            logger.warn(methodName, null, "Request to start service " + id.toString() + " failed:", stdout_lines.toString() + " " + stderr_lines.toString());
+            logger.warn(methodName, null, "Request to start service " + id.toString() + " failed.");
+            if ( (++failure_start) >= (failure_max) ) {
+                logger.warn(methodName, null, "Start failure. Maximum consecutive failures[" + failure_max + "] exceeded{" + failure_start + "].  Autostart disabled.");
+                setAutostart(false);
+                failure_start = 0;
+            }
+
         } else {
             setServiceState(ServiceState.Initializing);
+            failure_start = 0;
         }
         saveMetaProperties();
         logger.debug(methodName, null, "ENDSTART ENDSTART ENDSTART ENDSTART ENDSTART ENDSTART");
@@ -1212,7 +1246,13 @@ public class ServiceSet
         };
         
         for ( int i = 0; i < args.length; i++ ) { 
-            logger.debug(methodName, null, "Args[", i, "]:", args[i]);
+            if ( i > 0 && (args[i-1].equals("-cp") ) ) {
+                // The classpaths can be just awful filling the logs with junk.  It will end up in the agent log
+                // anyway so let's inhibit it here.
+                logger.debug(methodName, null, "Args[", i, "]: <CLASSPATH>");
+            } else {
+                logger.debug(methodName, null, "Args[", i, "]:", args[i]);
+            }
         }
         
         ProcessBuilder pb = new ProcessBuilder(args);
@@ -1231,6 +1271,7 @@ public class ServiceSet
             InputStream stderr = p.getErrorStream();
             BufferedReader stdout_reader = new BufferedReader(new InputStreamReader(stdout));
             BufferedReader stderr_reader = new BufferedReader(new InputStreamReader(stderr));
+
             String line = null;
             while ( (line = stdout_reader.readLine()) != null ) {
                 stdout_lines.add(line);
@@ -1246,13 +1287,23 @@ public class ServiceSet
             logger.error(methodName, null, t);
         }
 
-        // That was annoying.  Now search the lines for some hint of the id.
+        boolean inhibit_cp = false;
         for ( String s : stdout_lines ) {
-            logger.debug(methodName, id, "Stop stdout:", s);
+            // simple logic to inhibit printing the danged classpath
+            if ( inhibit_cp ) {
+                inhibit_cp = false;
+                logger.info(methodName, id, "<INHIBITED CP>");
+            } else {
+                logger.info(methodName, id, "Stop stdout:", s);
+            }
+            
+            if ( s.indexOf("-cp") >= 0 ) {
+                inhibit_cp = true;
+            }
         }
             
         for ( String s : stderr_lines ) {
-            logger.debug(methodName, id, "Stop stderr:", s);
+            logger.info(methodName, id, "Stop stderr:", s);
         }
 
         // is this the last implementor?  if so the service is no longer available.

@@ -96,6 +96,8 @@ public class ServiceManagerComponent
     static int meta_ping_timeout = 500;      // timeout on ping 
     static String default_ping_class;
 
+    static int failure_max = 5;
+
     private String state_dir = null;
     private String state_file = null;
     private String descriptor_dir = null;
@@ -262,6 +264,7 @@ public class ServiceManagerComponent
 		super.start(service, args);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ServiceManager,getProcessJmxUrl());
 
+        failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.max", failure_max);
         meta_ping_rate = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate", meta_ping_rate);
         meta_ping_timeout = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout", meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability", meta_ping_stability);
@@ -293,6 +296,7 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "    Service ping rate       : ", meta_ping_rate);
         logger.info(methodName, null, "    Service ping timeout    : ", meta_ping_timeout);
         logger.info(methodName, null, "    Service ping stability  : ", meta_ping_stability);
+        logger.info(methodName, null, "    Instance Failure Max    : ", failure_max);
         logger.info(methodName, null, "    DUCC Version            : ", Version.version());
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
 

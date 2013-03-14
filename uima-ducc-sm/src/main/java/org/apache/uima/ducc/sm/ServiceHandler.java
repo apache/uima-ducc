@@ -36,6 +36,7 @@ import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
@@ -619,17 +620,17 @@ public class ServiceHandler
             if ( sset == null ) {
                 // may have already died and this is just leftover OR publications.
                 if ( w.isActive() ) {             // or maybe we just screwed up!
-                    try {
-                        throw new IllegalStateException("Got update for service " + id.toString() + " but no ServiceSet! Job state: " + w.getJobState());
-                    } catch ( Throwable t ) {
-                        // catch and log stack but don't crash SM
-                        logger.error(methodName, id, t);
-                        continue;
-                    }
+                    logger.info(methodName, id, "Got update for active service instance", id.toString(), "but no ServiceSet! Job state:", w.getJobState());
+                    continue;
                 }
                 continue;
             }
-
+            
+            if ( !sset.containsImplementor(id) ) {
+                logger.info(methodName, id, "Bypassing removed service instance for", endpoint);
+                continue;
+            }
+        
             ServiceDependency s = serviceMap.get(id);
             if ( w.isFinished() ) {              // nothing more, just dereference and maybe stop stuff I'm dependent upon
                 stopDependentServices(id);
@@ -640,6 +641,30 @@ public class ServiceHandler
 
             // now factor in cumulative state of the implementors and manage the ping thread as needed
             sset.establish(id, w.getJobState());
+
+            // State is established.  Now, if the instance died, remove it - OR will keep publishing it for a while and we want to ignore those
+            if ( ! w.isActive() ) {
+                sset.removeImplementor(id);
+
+                JobCompletionType jct = w.getCompletionType();
+                JobState          state = w.getJobState();
+                logger.info(methodName, id, "Removing stopped instance from maps: state[", state, "] completion[", jct, "]");
+                switch ( jct ) {
+                    case EndOfJob:
+                    case CanceledByUser:
+                    case CanceledByAdministrator:
+                    case Undefined:
+                        break;
+                    default:
+                        logger.debug(methodName, id, "RECORDING FAILURE");
+                        // all other cases are errors that contribute to the error count
+                        if ( sset.runFailures() ) {    // if true, the count is exceeeded, but reset
+                            logger.warn(methodName, null, "Process Failure: " + jct + " Maximum consecutive failures[" + sset.failure_run + "] max [" + sset.failure_max + "]");
+                        }
+                        break;
+                }
+                
+            }
 
             if ( (sset.getServiceState() == ServiceState.NotAvailable) && (sset.countReferences() == 0) ) {
                 // this service is now toast.  remove from our maps asap to avoid clashes if it gets
