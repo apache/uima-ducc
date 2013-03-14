@@ -205,7 +205,7 @@ public abstract class CliBase
             OptionBuilder.withLongOpt   (opt.pname());
             
             if ( opt.argname() == null ) { 
-                OptionBuilder.hasOptionalArg();   // permissive, these are booleans or inferred and we'll just ignore
+                OptionBuilder.hasArg(false);   // permissive, these are booleans or inferred and we'll just ignore
                                                   // spurious true, false, or other values
             } else {
                 OptionBuilder.withArgName(opt.argname());
