@@ -181,6 +181,23 @@ function ducc_authentication()
 	}
 }
 
+function ducc_utilization()
+{
+	try {
+		$.ajax(
+		{
+			url : "/ducc-servlet/cluster-utilization",
+			success : function (data) 
+			{
+				$("#utilization_area").html(data);
+			}
+		});
+	}
+	catch(err) {
+		ducc_error("ducc_utilization",err);
+	}
+}
+
 function ducc_init_common()
 {
 	try {
@@ -202,6 +219,7 @@ function ducc_load_common()
 		ducc_authenticator_version()
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 	}
 	catch(err) {
 		ducc_error("ducc_load_common",err);
@@ -230,6 +248,7 @@ function ducc_load_classic_jobs_data()
 				$("#jobs_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 				ducc_cluetips();
 			}
 		});
@@ -254,6 +273,7 @@ function ducc_load_scroll_jobs_callback()
 	try {
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 		ducc_cluetips();
 	}
 	catch(err) {
@@ -298,6 +318,7 @@ function ducc_load_classic_services_data()
 				$("#services_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 				ducc_cluetips();
 			}
 		});
@@ -322,6 +343,7 @@ function ducc_load_scroll_services_callback()
 	try {
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 		ducc_cluetips();
 	}
 	catch(err) {
@@ -584,6 +606,7 @@ function ducc_load_service_deployments_data()
 				hide_show();
      			ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 			}
 		});
 	}
@@ -657,6 +680,7 @@ function ducc_load_job_processes_data()
 				hide_show();
      			ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 			}
 		});
 	}
@@ -694,6 +718,7 @@ function ducc_load_reservation_processes_data()
 				hide_show();
      			ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 			}
 		});
 	}
@@ -739,6 +764,7 @@ function ducc_load_classic_machines_data()
 				$("#machines_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 				ducc_cluetips();
 			}
 		});
@@ -763,6 +789,7 @@ function ducc_load_scroll_machines_callback()
 	try {
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 		ducc_cluetips();
 	}
 	catch(err) {
@@ -824,6 +851,7 @@ function ducc_load_classic_reservations_data()
 				$("#reservations_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 				ducc_cluetips();
 			}
 		});
@@ -848,6 +876,7 @@ function ducc_load_scroll_reservations_callback()
 	try {
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 		ducc_cluetips();
 	}
 	catch(err) {
@@ -965,6 +994,7 @@ function ducc_load_submit_reservation_data()
 		ducc_load_reservation_submit_button();
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 	}
 	catch(err) {
 		ducc_error("ducc_load_submit_reservation_data",err);
@@ -1029,6 +1059,7 @@ function ducc_load_system_administration_data()
 				$("#system_administration_administrators_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 			}
 		});
 		$.ajax(
@@ -1039,6 +1070,7 @@ function ducc_load_system_administration_data()
 				$("#system_administration_control_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 			}
 		});
 	}
@@ -1086,6 +1118,7 @@ function ducc_load_classic_system_classes_data()
 				$("#system_classes_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 				ducc_cluetips();
 			}
 		});
@@ -1110,6 +1143,7 @@ function ducc_load_scroll_system_classes_callback()
 	try {
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 		ducc_cluetips();
 	}
 	catch(err) {
@@ -1225,6 +1259,7 @@ function ducc_load_classic_system_daemons_data()
 				$("#system_daemons_list_area").html(data);
 				ducc_timestamp();
 				ducc_authentication();
+				ducc_utilization();
 				ducc_cluetips();
 			}
 		});
@@ -1249,6 +1284,7 @@ function ducc_load_scroll_system_daemons_callback()
 	try {
 		ducc_timestamp();
 		ducc_authentication();
+		ducc_utilization();
 		ducc_cluetips();
 	}
 	catch(err) {

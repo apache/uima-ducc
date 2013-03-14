@@ -85,6 +85,7 @@ import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
@@ -125,6 +126,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccSystemJobsControl			= duccContext+"/jobs-control-request";
 	
 	private String duccClusterName 					= duccContext+"/cluster-name";
+	private String duccClusterUtilization 			= duccContext+"/cluster-utilization";
 	private String duccTimeStamp   					= duccContext+"/timestamp";
 	private String duccJobSubmit   					= duccContext+"/job-submit-request";
 	private String duccJobCancel   					= duccContext+"/job-cancel-request";
@@ -2273,6 +2275,28 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
 	
+	private void handleDuccServletClusterUtilization(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletClusterUtilization";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		
+		MachineSummaryInfo msi = DuccMachinesData.getInstance().getTotals();
+		
+		DecimalFormat percentageFormatter = new DecimalFormat("##0.0");
+		
+		String utilization = "0%";
+		if(msi.sharesTotal > 0) {
+			double percentage = (((1.0) * msi.sharesInuse) / ((1.0) * msi.sharesTotal)) * 100.0;
+			utilization = percentageFormatter.format(percentage)+"%";
+		}
+		
+		sb.append(utilization);
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
 	private void handleDuccServletTimeStamp(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3090,6 +3114,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			else if(reqURI.startsWith(duccClusterName)) {
 				handleDuccServletClusterName(target, baseRequest, request, response);
 				//DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccClusterUtilization)) {
+				handleDuccServletClusterUtilization(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccTimeStamp)) {
 				handleDuccServletTimeStamp(target, baseRequest, request, response);
