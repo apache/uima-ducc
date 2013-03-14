@@ -643,7 +643,12 @@ public class ServiceHandler
             sset.establish(id, w.getJobState());
 
             // State is established.  Now, if the instance died, remove it - OR will keep publishing it for a while and we want to ignore those
-            if ( ! w.isActive() ) {
+            if (  w.isActive() ) {
+                // Hard to know for sure, if there are a bunch of instances, some working and some not, how to manage this.
+                // But this is a state *change* of something, and the something is active, so probably the service is OK now
+                // if it hadn't been before.
+                sset.resetRunFailures();
+            } else {
                 sset.removeImplementor(id);
 
                 JobCompletionType jct = w.getCompletionType();
@@ -658,7 +663,7 @@ public class ServiceHandler
                     default:
                         logger.debug(methodName, id, "RECORDING FAILURE");
                         // all other cases are errors that contribute to the error count
-                        if ( sset.runFailures() ) {    // if true, the count is exceeeded, but reset
+                        if ( sset.excessiveRunFailures() ) {    // if true, the count is exceeeded, but reset
                             logger.warn(methodName, null, "Process Failure: " + jct + " Maximum consecutive failures[" + sset.failure_run + "] max [" + sset.failure_max + "]");
                         }
                         break;

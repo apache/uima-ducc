@@ -616,6 +616,11 @@ public class ServiceSet
         meta_props.setProperty("autostart", auto ? "true" : "false");
         this.autostart = auto;
         saveMetaProperties();
+        if ( auto ) {
+            // turning this on gives benefit of the doubt on failure management
+            failure_start = 0;
+            failure_run = 0;
+        }
     }
 
     synchronized void persistImplementors()
@@ -979,7 +984,12 @@ public class ServiceSet
         return key;
     }
 
-    synchronized boolean runFailures()
+    void resetRunFailures()
+    {
+        failure_run = 0;
+    }
+
+    synchronized boolean excessiveRunFailures()
     {
         String methodName = "runFailures";
         if ( (++failure_run) > failure_max ) {
