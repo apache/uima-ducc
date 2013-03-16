@@ -46,6 +46,7 @@ public class DuccReservationCancel
         UiOption.Debug, 
 
         UiOption.JobId,
+        UiOption.RoleAdministrator,
     };
 
 	

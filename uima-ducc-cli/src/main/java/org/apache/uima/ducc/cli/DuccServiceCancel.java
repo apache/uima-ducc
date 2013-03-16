@@ -46,6 +46,7 @@ public class DuccServiceCancel
         UiOption.Debug, 
 
         UiOption.JobId,
+        UiOption.RoleAdministrator,
     };
 
 	

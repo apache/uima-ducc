@@ -716,6 +716,17 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
+        RoleAdministrator { 
+            public String pname()       { return JobSpecificationProperties.key_role_administrator; }
+            public String argname()     { return null; }
+            public String description() { return "Act in the capacity of DUCC administrator."; }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return null; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },     
+        
         SchedulingClass { 
             public String pname()       { return JobSpecificationProperties.key_scheduling_class; }
             public String argname()     { return "scheduling class name"; }

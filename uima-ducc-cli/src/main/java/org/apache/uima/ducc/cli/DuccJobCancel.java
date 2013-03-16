@@ -47,7 +47,8 @@ public class DuccJobCancel
 
         UiOption.JobId,
         UiOption.DjPid,
-        UiOption.Reason,        
+        UiOption.Reason,  
+        UiOption.RoleAdministrator,
     };
 
 	
