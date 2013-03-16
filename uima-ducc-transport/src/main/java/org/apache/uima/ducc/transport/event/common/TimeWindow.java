@@ -18,9 +18,10 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+
+import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 
 public class TimeWindow implements ITimeWindow {
 
@@ -95,7 +96,7 @@ public class TimeWindow implements ITimeWindow {
 	public String getElapsed() {
 		String elapsed = "";
 		long elapsedTime = Long.valueOf(getDiff());
-		SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+		SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
 		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		elapsed = dateFormat.format(new Date(elapsedTime));
 		return elapsed;
@@ -121,7 +122,7 @@ public class TimeWindow implements ITimeWindow {
 				if(elapsed > tmax) {
 					elapsed = t1 - getStartLong();
 				}
-				SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+				SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
 				dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				retVal = dateFormat.format(new Date(elapsed));
 			//}
