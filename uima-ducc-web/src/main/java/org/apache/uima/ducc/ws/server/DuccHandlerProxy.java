@@ -29,6 +29,7 @@ import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.eclipse.jetty.server.Request;
 
 import com.google.gson.Gson;
@@ -92,7 +93,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
 		}
 		else {
-			MonitorInfo monitorInfo  = duccWebMonitor.renew(jobId);
+			MonitorInfo monitorInfo  = duccWebMonitor.renew(DuccType.Job, jobId);
 			Gson gson = new Gson();
 			String jSon = gson.toJson(monitorInfo);
 			duccLogger.debug(location, jobid, jSon);
@@ -110,7 +111,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		duccLogger.trace(location, jobid, "enter");
 		duccLogger.info(location, jobid, request.toString());
 		
-		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap();
+		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(DuccType.Job);
 		
 		Gson gson = new Gson();
 		String jSon = gson.toJson(eMap);

@@ -144,7 +144,7 @@ public class DuccWebServer {
 		try {
 			InetAddress inetAddress = InetAddress.getLocalHost();
 			String host = inetAddress.getCanonicalHostName();
-			DuccWebMonitor.getInstance().registerHostPort(host, ""+port);
+			DuccWebMonitor.getInstance().register(host, ""+port);
 		}
 		catch(Exception e) {
 			logger.error(methodName, jobid, e);

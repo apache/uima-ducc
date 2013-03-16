@@ -42,6 +42,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -898,8 +899,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	protected String getMonitor(DuccId duccId, boolean multi) {
 		StringBuffer sb = new StringBuffer();
 		DuccWebMonitor duccWebMonitor = DuccWebMonitor.getInstance();
-		Long expiry = duccWebMonitor.getExpiry(duccId);
-		if(!duccWebMonitor.isCanceler()) {
+		Long expiry = duccWebMonitor.getExpiry(DuccType.Job, duccId);
+		if(!duccWebMonitor.isAutoCancelEnabled()) {
 			if(expiry != null) {
 				String text = "webserver not primary";
 				sb.append("<span class=\"health_neutral\" title=\""+text+"\">");
@@ -945,7 +946,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			}
 			sb.append("</span>");
 		}
-		else if(duccWebMonitor.isCancelPending(duccId)) {
+		else if(duccWebMonitor.isCanceled(DuccType.Job, duccId)) {
 			sb.append("<span class=\"health_red\" >");
 			sb.append("CancelPending...");
 			sb.append("</span>");
