@@ -26,7 +26,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -57,6 +56,7 @@ import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -563,7 +563,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			// 
 		}
 		else {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
+			SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
 			// Time:gc
 			long timeGC = 0;
 			try {
