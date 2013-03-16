@@ -18,30 +18,38 @@
 */
 package org.apache.uima.ducc.common.utils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
-public class TimeStampConvert {
+public class SynchronizedSimpleDateFormat {
 
-	public static SynchronizedSimpleDateFormat simpleDateFormat = new SynchronizedSimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss.SSSZ");
+	private SimpleDateFormat simpleDateFormat;
 	
-	public static Date simpleFormat(String formattedDate) {
-		Date date = null;
-		if(formattedDate != null) {
-			try {
-				String fixedDate = "";
-				String[] dateParts = formattedDate.split(":");
-				for(int i=0; i < dateParts.length; i++) {
-					fixedDate += dateParts[i];
-					if(i+2 < dateParts.length) {
-						fixedDate+=":";
-					}
-				}
-				date = simpleDateFormat.parse(fixedDate);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return date;
+	public SynchronizedSimpleDateFormat() {
+		simpleDateFormat = new SimpleDateFormat();
 	}
-
+	
+	public SynchronizedSimpleDateFormat(String pattern) {
+		simpleDateFormat = new SimpleDateFormat(pattern);
+	}
+	
+	public void setTimeZone(TimeZone zone) {
+		synchronized(simpleDateFormat) {
+			simpleDateFormat.setTimeZone(zone);
+		}
+	}
+	
+	public String format(Date date) {
+		synchronized(simpleDateFormat) {
+			return simpleDateFormat.format(date);
+		}
+	}
+	
+	public Date parse(String source) throws ParseException {
+		synchronized(simpleDateFormat) {
+			return simpleDateFormat.parse(source);
+		}
+	}
 }

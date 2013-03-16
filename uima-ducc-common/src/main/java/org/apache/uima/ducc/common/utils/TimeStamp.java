@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.common.utils;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class TimeStamp {
@@ -27,7 +26,7 @@ public class TimeStamp {
 		return ""+System.currentTimeMillis();
 	}
 	
-	public static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss EEE");
+	public static SynchronizedSimpleDateFormat simpleDateFormat = new SynchronizedSimpleDateFormat("yyyy.MM.dd HH:mm:ss EEE");
 	
 	public static String simpleFormat(String millis) {
 		String retVal = "";
