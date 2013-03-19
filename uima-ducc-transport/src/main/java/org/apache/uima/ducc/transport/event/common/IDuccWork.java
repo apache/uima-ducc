@@ -53,4 +53,6 @@ public interface IDuccWork extends Serializable {
 	public boolean isSchedulable();
 	public boolean isCompleted();
 	public boolean isOperational();
+	
+	public boolean isCancelOnInterrupt();
 }

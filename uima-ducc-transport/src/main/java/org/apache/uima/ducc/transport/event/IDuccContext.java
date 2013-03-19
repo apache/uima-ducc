@@ -18,22 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.common.utils.DuccProperties;
-import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
-
-@SuppressWarnings("serial")
-public class CancelServiceDuccEvent extends AbstractDuccCancelEvent {
+public interface IDuccContext {
 	
-	/*
-	public CancelServiceDuccEvent(DuccProperties props) {
-		super(EventType.CANCEL_SERVICE);
-		setProperties(props);
-	}
-	*/
-	
-	public CancelServiceDuccEvent(DuccProperties props, DuccContext context) {
-		super(EventType.CANCEL_SERVICE);
-		setProperties(props);
-		setContext(context);
-	}
+	public enum DuccContext { Job, ManagedReservation, Reservation, Service, Unspecified };
 }

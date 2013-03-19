@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 
 
 @SuppressWarnings({ "rawtypes" })
@@ -90,6 +91,35 @@ public class DuccWorkMap implements Serializable, Map {
 				break;
 			default:
 				break;
+			}
+		}
+		return retVal;
+	}
+	
+	public Set<DuccId> getManagedReservationKeySet() {
+		Set<DuccId> retVal = new HashSet<DuccId>();
+		Iterator<DuccId> iterator = keySet().iterator();
+		while(iterator.hasNext()) {
+			DuccId duccId = iterator.next();
+			IDuccWork duccWork = concurrentWorkMap.get(duccId);
+			if(duccWork != null) {
+				switch(duccWork.getDuccType()) {
+				case Service:
+					DuccWorkJob service = (DuccWorkJob)duccWork;
+					ServiceDeploymentType sdt = service.getServiceDeploymentType();
+					if(sdt != null) {
+						switch(sdt) {
+						case other:
+							retVal.add(duccId);
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				default:
+					break;
+				}
 			}
 		}
 		return retVal;

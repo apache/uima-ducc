@@ -40,6 +40,7 @@ public abstract class ADuccWork implements IDuccWork {
     private String[] serviceDependencies = null;
     private ServiceDeploymentType serviceDeploymentType = null;
     private String serviceEndpoint = null; // generated in submit
+    private boolean cancelOnInterrupt = false;
 	
 	@Override
 	public DuccId getDuccId() {
@@ -138,7 +139,17 @@ public abstract class ADuccWork implements IDuccWork {
     {
         return serviceEndpoint;
     }
+    
+    public void setCancelOnInterrupt()
+    {
+        this.cancelOnInterrupt = true;
+    }
 
+    public boolean isCancelOnInterrupt()
+    {
+    	return cancelOnInterrupt;
+    }
+    
 	public boolean isSchedulable() {
 		throw new RuntimeException("subclass must override: should never be here!");
 	}
