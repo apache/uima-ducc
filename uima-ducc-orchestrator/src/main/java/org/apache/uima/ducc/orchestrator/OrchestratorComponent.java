@@ -50,6 +50,7 @@ import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
@@ -995,6 +996,7 @@ implements Orchestrator {
 			if(elapsed > Constants.SYNC_LIMIT) {
 				logger.debug(methodName, dwid, "elapsed msecs: "+elapsed);
 			}
+			DuccContext context = duccEvent.getContext();
 			if(duccWorkJob != null) {
 				dwid = duccWorkJob.getDuccId();
 				String reqUser = properties.getProperty(JobRequestProperties.key_user).trim();
@@ -1002,13 +1004,26 @@ implements Orchestrator {
 				String tgtUser = duccWorkJob.getStandardInfo().getUser().trim();
 				if(isAuthorized(dwid, reqUser, tgtUser, reqRole)) {
 					logger.debug(methodName, dwid, "reqUser:"+reqUser+" "+"reqRole:"+reqRole+" "+"tgtUser:"+tgtUser);
-					IRationale rationale = new Rationale("service canceled by "+reqUser);
-					stateManager.jobTerminate(duccWorkJob, JobCompletionType.CanceledByUser, rationale, ProcessDeallocationType.JobCanceled);
+					String type;
+					switch(context) {
+					case ManagedReservation:
+						type = "managed reservation";
+						break;
+					default:
+						type = "service";
+						break;
+					}
+					IRationale rationale = new Rationale(type+" canceled by "+reqUser);
+					JobCompletionType jobCompletionType = JobCompletionType.CanceledByUser;
+					if(reqRole.equals(SpecificationProperties.key_role_administrator)) {
+						jobCompletionType = JobCompletionType.CanceledByAdministrator;
+					}
+					stateManager.jobTerminate(duccWorkJob, jobCompletionType, rationale, ProcessDeallocationType.JobCanceled);
 					OrchestratorCheckpoint.getInstance().saveState();
 					// prepare for reply to canceler
 					properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_canceled);
 					duccEvent.setProperties(properties);
-					logger.info(methodName, dwid, messages.fetchLabel("service state")+duccWorkJob.getJobState());
+					logger.info(methodName, dwid, messages.fetchLabel(type+" state")+duccWorkJob.getJobState());
 				}
 				else {
 					// prepare not authorized reply 
@@ -1019,9 +1034,18 @@ implements Orchestrator {
 			}
 			else {
 				// prepare undefined reply 
-				properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_service_not_found);
+				String message;
+				switch(context) {
+				case ManagedReservation:
+					message = JobReplyProperties.msg_managed_reservation_not_found;
+					break;
+				default:
+					message = JobReplyProperties.msg_service_not_found;
+					break;
+				}
+				properties.put(JobReplyProperties.key_message, message);
 				duccEvent.setProperties(properties);
-				logger.info(methodName, dwid, jobId+" : "+messages.fetch(JobReplyProperties.msg_service_not_found));
+				logger.info(methodName, dwid, jobId+" : "+messages.fetch(message));
 			}
 		}
 		else {

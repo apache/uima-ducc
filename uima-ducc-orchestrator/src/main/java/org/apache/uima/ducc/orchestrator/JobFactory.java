@@ -562,6 +562,13 @@ public class JobFactory {
             logger.debug(methodName, job.getDuccId(), "Adding service endpoint", ep);
             job.setServiceEndpoint(ep);
         }
+        // Cancel On Interrupt
+        if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_job_on_interrupt)) {
+        	job.setCancelOnInterrupt();
+        }
+        if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_managed_reservation_on_interrupt)) {
+        	job.setCancelOnInterrupt();
+        }
 		//TODO be sure to clean-up fpath upon job completion!
 		return job;
 	}
