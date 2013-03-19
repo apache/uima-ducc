@@ -16,22 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.api.test;
+package org.apache.uima.ducc.cli;
 
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
-import org.apache.uima.ducc.cli.DuccJobMonitor;
+import org.apache.commons.cli.Options;
 
-public class Test {
-
-	public static void main(String[] args) {
-		try {
-			IDuccMessageProcessor messageHandler = new MessageHandler();
-			DuccJobMonitor duccJobMonitor = new DuccJobMonitor(messageHandler);
-			duccJobMonitor.run(args);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return;
-	}
-
+public interface IDuccMonitor {
+	
+	public void help(Options options);
+	public void cancel();
+	public String getUrl(String id);
 }

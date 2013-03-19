@@ -424,6 +424,28 @@ public class DuccUiConstants {
 	public static final String dval_monitor_cancel_job_on_interrupt = dval_submit_cancel_job_on_interrupt;
 	
 	/* 
+	 * submit Managed Reservation
+	 */
+	
+	public static final String name_submit_cancel_managed_reservation_on_interrupt = "cancel_managed_reservation_on_interrupt";
+	public static final String parm_submit_cancel_managed_reservation_on_interrupt = null;
+	public static final String desc_submit_cancel_managed_reservation_on_interrupt = "Cancel managed_reservation on interrupt (Ctrl-C); only possible when --"+name_wait_for_completion+" is also specified.";
+	public static final String labl_submit_cancel_managed_reservation_on_interrupt = null;
+	public static final String exmp_submit_cancel_managed_reservation_on_interrupt = null;
+	public static final String dval_submit_cancel_managed_reservation_on_interrupt = null;
+	
+	/* 
+	 * monitor Managed Reservation
+	 */
+	
+	public static final String name_monitor_cancel_managed_reservation_on_interrupt = name_submit_cancel_managed_reservation_on_interrupt;
+	public static final String parm_monitor_cancel_managed_reservation_on_interrupt = parm_submit_cancel_managed_reservation_on_interrupt;
+	public static final String desc_monitor_cancel_managed_reservation_on_interrupt = "Cancel managed_reservation on interrupt (Ctrl-C).";
+	public static final String labl_monitor_cancel_managed_reservation_on_interrupt = labl_submit_cancel_managed_reservation_on_interrupt;
+	public static final String exmp_monitor_cancel_managed_reservation_on_interrupt = exmp_submit_cancel_managed_reservation_on_interrupt;
+	public static final String dval_monitor_cancel_managed_reservation_on_interrupt = dval_submit_cancel_managed_reservation_on_interrupt;
+	
+	/* 
 	 * submit Service
 	 */
 	

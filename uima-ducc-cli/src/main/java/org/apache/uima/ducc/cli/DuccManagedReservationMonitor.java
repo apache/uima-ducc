@@ -26,38 +26,27 @@ import org.apache.uima.ducc.api.IDuccMessageProcessor;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
-public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
+public class DuccManagedReservationMonitor extends DuccMonitor implements IDuccMonitor {
 
-	public static String servlet = "/ducc-servlet/proxy-job-status";
+	public static String servlet = "/ducc-servlet/proxy-managed-reservation-status";
 	
-	public DuccJobMonitor() {
-		super(DuccContext.Job, true);
+	protected DuccManagedReservationMonitor() {
+		super(DuccContext.ManagedReservation, true);
 	}
 	
-	public DuccJobMonitor(IDuccMessageProcessor messageProcessor) {
-		super(DuccContext.Job, true, messageProcessor);
+	protected DuccManagedReservationMonitor(IDuccMessageProcessor messageProcessor) {
+		super(DuccContext.ManagedReservation, true, messageProcessor);
 	}
 	
-	@Deprecated
-	public DuccJobMonitor(boolean quiet) {
-		super(DuccContext.Job, true);
-	}
-	
-	@Deprecated
-	public DuccJobMonitor(IDuccMessageProcessor messageProcessor, boolean quiet) {
-		super(DuccContext.Job, true, messageProcessor);
-	}
-	
-	private DuccJobMonitor(String uniqueSignature) {
-		super(DuccContext.Job, false);
+	private DuccManagedReservationMonitor(boolean submit) {
+		super(DuccContext.ManagedReservation, submit);
 	}
 
 	public static void main(String[] args) {
 		int code = RC_FAILURE;
 		try {
-			String unique = null;
-			DuccJobMonitor jobMonitor = new DuccJobMonitor(unique);
-			code = jobMonitor.run(args);
+			DuccManagedReservationMonitor managedReservationMonitor = new DuccManagedReservationMonitor(false);
+			code = managedReservationMonitor.run(args);
 		} 
 		catch (Exception e) {
 			e.printStackTrace();
@@ -69,7 +58,7 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 	public void help(Options options) {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.setWidth(DuccUiConstants.help_width);
-		formatter.printHelp(DuccJobMonitor.class.getName(), options);
+		formatter.printHelp(DuccManagedReservationMonitor.class.getName(), options);
 		return;
 	}
 	
@@ -77,13 +66,13 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 	public void cancel() {
 		try {
        		ArrayList<String> arrayList = new ArrayList<String>();
-       		arrayList.add("--"+UiOption.JobId);
+       		arrayList.add("--"+UiOption.ManagedReservationId.pname());
        		arrayList.add(getId());
-       		arrayList.add("--"+UiOption.Reason);
+       		arrayList.add("--"+UiOption.Reason.pname());
        		arrayList.add("\"submitter was terminated via interrupt\"");
        		String[] argList = arrayList.toArray(new String[0]);
-    		DuccJobCancel jobCancel = new DuccJobCancel(argList);
-    		boolean retVal = jobCancel.execute();
+    		DuccManagedReservationCancel managedReservationCancel = new DuccManagedReservationCancel(argList);
+    		boolean retVal = managedReservationCancel.execute();
     		debug("cancel rc:"+retVal);
     	} catch (Exception e) {
     		messageProcessor.exception(e);
@@ -96,4 +85,5 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 		debug(urlString);
 		return urlString;
 	}
+
 }

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
@@ -379,7 +380,7 @@ public class DuccJobSubmit
 
         if ( rc ) {
             saveSpec("job-specification.properties", jobRequestProperties);
-            startMonitors(false);       // starts conditionally, based on job spec and console listener present
+            startMonitors(false, DuccContext.Job);       // starts conditionally, based on job spec and console listener present
         }
 
 		return rc;

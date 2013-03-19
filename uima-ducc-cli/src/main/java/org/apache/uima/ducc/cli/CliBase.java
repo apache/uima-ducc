@@ -46,6 +46,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.AbstractDuccOrchestratorEvent;
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
 public abstract class CliBase
     implements IUiOptions
@@ -601,7 +602,7 @@ public abstract class CliBase
     }
 
     // TODO TODO TODO - do we have to support lots of these for multi-threaded stuff?  Hope not ...
-    protected synchronized void startMonitors(boolean start_stdin)
+    protected synchronized void startMonitors(boolean start_stdin, DuccContext context)
     	throws Exception
     {
         int wait_count = 0;
@@ -611,16 +612,17 @@ public abstract class CliBase
             wait_count++;
         }
         
-        if ( cli_props.containsKey(UiOption.ServiceTypeOther.pname() ) ) {
-            if ( debug ) addMessage("Bypassing monitor for ducclet.");
-        } else {    
-            boolean monitor_attach = 
-                (cli_props.containsKey(UiOption.WaitForCompletion.pname()) || ( console_attach ));
+        boolean monitor_attach = 
+                (
+                cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
+                cli_props.containsKey(UiOption.CancelJobOnInterrupt.pname()) || 
+                cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) ||
+                console_attach
+                );
             
-            if ( monitor_attach ) {
-                wait_count++;
-                startJobMonitor(console_attach && !cli_props.containsKey(UiOption.WaitForCompletion.pname()));
-            }
+        if ( monitor_attach ) {
+            wait_count++;
+            startMonitor(context);
         }
 
         if ( wait_count > 0 ) {
@@ -628,11 +630,15 @@ public abstract class CliBase
         }
     }
 
-    protected synchronized void startJobMonitor(boolean quiet)
+    protected synchronized void startMonitor(DuccContext context)
     {
-        monitor_listener = new MonitorListener(this, friendlyId, cli_props, quiet);
+        monitor_listener = new MonitorListener(this, friendlyId, cli_props, context);
 
-        if (cli_props.containsKey(UiOption.WaitForCompletion.pname()) || ( console_listener != null) ) {
+        if (	cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
+        		cli_props.containsKey(UiOption.CancelJobOnInterrupt.pname()) || 
+        		cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) ||
+        		(console_listener != null) 
+        	) {
             Thread mlt = new Thread(monitor_listener);  //MonitorListenerThread
             mlt.start();
         }

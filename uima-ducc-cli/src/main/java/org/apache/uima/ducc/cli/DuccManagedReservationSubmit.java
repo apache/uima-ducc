@@ -28,21 +28,20 @@ import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 
 
 /**
- * Submit a DUCC service
+ * Submit a DUCC Managed Reservation
  */
-@Deprecated
-public class DuccletSubmit 
+
+public class DuccManagedReservationSubmit 
     extends CliBase
 {
+    private static String dt = "Managed Reservation";
     
-    static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.node";
-    boolean console_attach = false;
+    private static String or_port = "ducc.orchestrator.http.port";
+    private static String or_host = "ducc.orchestrator.node";
+   
+    private ServiceRequestProperties serviceRequestProperties;
 
-    int pid = -1;
-    ServiceRequestProperties serviceRequestProperties;
-
-    UiOption[] opts = new UiOption[] {
+    private UiOption[] opts = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
@@ -56,35 +55,37 @@ public class DuccletSubmit
         UiOption.SchedulingClass,
         UiOption.Specification,
         UiOption.WorkingDirectory,
+        UiOption.WaitForCompletion,
+        UiOption.CancelManagedReservationOnInterrupt,
     };
 
 
-    public DuccletSubmit(String[] args)
+    public DuccManagedReservationSubmit(String[] args)
         throws Exception
     {
         this(args, null);
     }
         
-    public DuccletSubmit(ArrayList<String> args)
+    public DuccManagedReservationSubmit(ArrayList<String> args)
         throws Exception
     {
         this(args, null);
     }
         
-    public DuccletSubmit(Properties props)
+    public DuccManagedReservationSubmit(Properties props)
         throws Exception
     {
         this(props, null);
     }
 
-    public DuccletSubmit(String[] args, IConsoleCallback consoleCb)
+    public DuccManagedReservationSubmit(String[] args, IConsoleCallback consoleCb)
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties();        
         init(this.getClass().getName(), opts, args, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
-    public DuccletSubmit(ArrayList<String> args, IConsoleCallback consoleCb)
+    public DuccManagedReservationSubmit(ArrayList<String> args, IConsoleCallback consoleCb)
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
@@ -92,7 +93,7 @@ public class DuccletSubmit
         init(this.getClass().getName(), opts, arg_array, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
-    public DuccletSubmit(Properties props, IConsoleCallback consoleCb) 
+    public DuccManagedReservationSubmit(Properties props, IConsoleCallback consoleCb) 
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties();
@@ -126,7 +127,7 @@ public class DuccletSubmit
         try {
             reply = (SubmitServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
         } catch (Exception e) {
-            addError("Process not submitted: " + e.getMessage());
+            addError(dt+" not submitted: " + e.getMessage());
             return false;
         } finally {
             dispatcher.close();
@@ -172,7 +173,7 @@ public class DuccletSubmit
     {
         try {
             // Instantiate the object with args similar to the CLI, or a pre-built properties file
-            DuccletSubmit ds = new DuccletSubmit(args);
+            DuccManagedReservationSubmit ds = new DuccManagedReservationSubmit(args);
 
             // Run the API.  If process_attach_console was specified in the args, a console listener is
             // started but this call does NOT block on it.
@@ -203,14 +204,13 @@ public class DuccletSubmit
 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {
-                
                 // Fetch the Ducc ID
-            	System.out.println("Process " + ds.getDuccId() + " submitted.");
+            	System.out.println(dt+" "+ds.getDuccId()+" submitted.");
                 ds.waitForCompletion();
-                System.out.println("Job return code: " + ds.getReturnCode());
+                System.out.println(dt+" return code: "+ds.getReturnCode());
             	System.exit(0);
             } else {
-                System.out.println("Could not submit process");
+                System.out.println("Could not submit "+dt);
                 System.exit(1);
             }
         } catch (Exception e) {

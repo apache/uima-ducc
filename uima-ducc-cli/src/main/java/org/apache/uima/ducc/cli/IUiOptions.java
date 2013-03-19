@@ -71,7 +71,7 @@ public interface IUiOptions
         CancelJobOnInterrupt { 
             public String pname()       { return "cancel_job_on_interrupt"; }
             public String argname()     { return null; }
-            public String description() { return "Cancel job on interrupt (Ctrl-C); only possible when --" + WaitForCompletion.pname() +" is also specified."; }
+            public String description() { return "Cancel job on interrupt (Ctrl-C)"; }
             public String example()     { return null; }
             public String deflt()       { return null; }
             public String label()       { return name(); }
@@ -79,6 +79,17 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
+        CancelManagedReservationOnInterrupt { 
+            public String pname()       { return "cancel_managed_reservation_on_interrupt"; }
+            public String argname()     { return null; }
+            public String description() { return "Cancel managed reservation on interrupt (Ctrl-C)"; }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        }, 
+        
         ClasspathOrder { 
             public String pname()       { return JobSpecificationProperties.key_classpath_order; }
             public String argname()     { return ClasspathOrderParms.UserBeforeDucc.name() + " or " + ClasspathOrderParms.DuccBeforeUser.name(); }
@@ -244,6 +255,17 @@ public interface IUiOptions
             public boolean required()   { return true; }
         },            
 
+        ManagedReservationId { 
+            public String pname()       { return JobRequestProperties.key_id; }
+            public String argname()     { return "string"; }
+            public String description() { return "The id of the managed reservation"; }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return null; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return true; }
+        },      
+        
         Jvm { 
             public String pname()       { return JobSpecificationProperties.key_jvm; }
             public String argname()     { return "path-name-to-java"; }
@@ -297,8 +319,19 @@ public interface IUiOptions
             public String label()       { return "Number of instances"; }
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
-        },            
-
+        },  
+        
+        Quiet { 
+            public String pname()       { return "quiet"; }
+            public String argname()     { return null; }
+            public String description() { return "Disable CLI Informational messages."; }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return null; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },  
+        
         Register    { 
             public String pname()       { return "register"; } 
             public String argname()     { return null; } 

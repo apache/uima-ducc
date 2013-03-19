@@ -23,6 +23,7 @@ import java.util.ArrayList;
 
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
 
 class MonitorListener
@@ -31,16 +32,16 @@ class MonitorListener
     CliBase        base  = null;
     long           jobid = 0;
     DuccProperties props = null;
-    boolean        quiet = false;
+    DuccContext    context = null;
+    
+    DuccMonitor monitor = null;
 
-    DuccJobMonitor monitor = null;
-
-    MonitorListener(CliBase base, long jobid, DuccProperties props, boolean quiet)
+    MonitorListener(CliBase base, long jobid, DuccProperties props, DuccContext context)
     {
-        this.base  = base;
+        this.base = base;
         this.jobid = jobid;
         this.props = props;
-        this.quiet = quiet;
+        this.context = context;
     }
 
     public void run()
@@ -55,6 +56,10 @@ class MonitorListener
                 arrayList.add("--" + UiOption.Debug.pname());
             }
 
+            if(props.containsKey(UiOption.Quiet.pname())) {
+                arrayList.add("--" + UiOption.Quiet.pname());
+            }
+            
             if(props.containsKey(DuccUiConstants.name_timestamp)) {
                 arrayList.add("--"+DuccUiConstants.name_timestamp);
             }
@@ -63,8 +68,19 @@ class MonitorListener
                 arrayList.add("--"+DuccUiConstants.name_monitor_cancel_job_on_interrupt);
             }
 
+            if(props.containsKey(DuccUiConstants.name_submit_cancel_managed_reservation_on_interrupt)) {
+                arrayList.add("--"+DuccUiConstants.name_monitor_cancel_managed_reservation_on_interrupt);
+            }
+            
             String[] argList = arrayList.toArray(new String[0]);
-            monitor = new DuccJobMonitor(quiet);
+            switch(context) {
+            case ManagedReservation:
+            	monitor = new DuccManagedReservationMonitor();
+            	break;
+            case Job:
+            	monitor = new DuccJobMonitor();
+            	break;
+            }
             retVal = monitor.run(argList);
         } catch (Exception e) {
             base.addMessage(e.getMessage());
