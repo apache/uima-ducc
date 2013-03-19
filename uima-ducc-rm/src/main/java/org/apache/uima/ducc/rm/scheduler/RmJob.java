@@ -1013,6 +1013,7 @@ public class RmJob
             } else  if ( resource_class.isExpandByDoubling() ) {
                 if ( (assignedShares.size() == 0) ) {
                     actual_cap = Math.max(1, resource_class.getInitializationCap());   // if we shrink to 0, need to restart from the init cap
+                    actual_cap = Math.min(base_cap, actual_cap);                       // must re-min this in case we have a base cap < class init cap
                 } else {
                     actual_cap = Math.min(potential_cap, assignedShares.size() * 2);
                 }
