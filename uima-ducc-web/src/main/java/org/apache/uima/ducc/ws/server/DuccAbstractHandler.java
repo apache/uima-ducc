@@ -896,10 +896,10 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
-	protected String getMonitor(DuccId duccId, boolean multi) {
+	protected String getMonitor(DuccId duccId, DuccType type, boolean multi) {
 		StringBuffer sb = new StringBuffer();
 		DuccWebMonitor duccWebMonitor = DuccWebMonitor.getInstance();
-		Long expiry = duccWebMonitor.getExpiry(DuccType.Job, duccId);
+		Long expiry = duccWebMonitor.getExpiry(type, duccId);
 		if(!duccWebMonitor.isAutoCancelEnabled()) {
 			if(expiry != null) {
 				String text = "webserver not primary";

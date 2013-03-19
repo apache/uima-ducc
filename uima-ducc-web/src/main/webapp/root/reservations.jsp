@@ -113,7 +113,7 @@ if (table_style.equals("scroll")) {
 			<th title="The number of resources (machines or shares, depending on class) assigned to this reservation">Allocation</th>
 			<th title="The combined number of PIDs on the assigned resource(s) for user">User<br>Processes</th>
 			<th title="The memory allocation per resource for this reservation, in GB">Size</th>
-			<th title="The list of of machines assigned to this reservation">List</th>
+			<th title="The machine(s) assigned to this reservation">Host<br>Names</th>
 			<th title="The user specified description of this reservation">Description</th>
 	</tr>
 	</thead>
@@ -145,7 +145,7 @@ if (table_style.equals("classic")) {
 			<th title="The number of resources (machines or shares, depending on class) assigned to this reservation">Allocation</th>
 			<th title="The combined number of PIDs on the assigned resource(s) for user">User<br>Processes</th>
 			<th title="The memory allocation per resource for this reservation, in GB">Size</th>
-			<th title="The list of of machines assigned to this reservation">List</th>
+			<th title="The machine(s) assigned to this reservation">Host<br>Names</th>
 			<th title="The user specified description of this reservation">Description</th>
 		</tr>
 		</thead>

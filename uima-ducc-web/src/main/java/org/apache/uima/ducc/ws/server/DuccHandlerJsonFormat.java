@@ -58,7 +58,9 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
@@ -108,6 +110,74 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	
 	public String getFileName() {
 		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
+	}
+	
+	private StringBuffer getReason(IDuccWorkJob job, DuccType type) {
+		StringBuffer sb = new StringBuffer();
+		if(job != null) {
+			DuccId duccId = job.getDuccId();
+			sb = new StringBuffer();
+			if(job.isOperational()) {
+				boolean multi = false;
+				sb.append("<span>");
+				ArrayList<String> swappingMachines = getSwappingMachines(job);
+				if(!swappingMachines.isEmpty()) {
+					StringBuffer mb = new StringBuffer();
+					for(String machine : swappingMachines) {
+						mb.append(machine);
+						mb.append(" ");
+					}
+					String ml = mb.toString().trim();
+					if(multi) {
+						sb.append(" ");
+					}
+					multi = true;
+					sb.append("<span class=\"health_red\" title=\""+ml+"\">");
+					sb.append("Swapping");
+					sb.append("</span>");
+				}
+				sb.append("</span>");
+				//
+				String monitor = getMonitor(duccId, type, multi);
+				if(monitor.length() > 0) {
+					multi = true;
+					sb.append(monitor);
+				}
+			}
+			else if(job.isCompleted()) {
+				JobCompletionType jobCompletionType = job.getCompletionType();
+				switch(jobCompletionType) {
+				case EndOfJob:
+					try {
+						int total = job.getSchedulingInfo().getIntWorkItemsTotal();
+						int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
+						int error = job.getSchedulingInfo().getIntWorkItemsError();
+						if(total != (done+error)) {
+							jobCompletionType = JobCompletionType.Premature;
+						}
+					}
+					catch(Exception e) {
+					}
+					sb.append("<span>");
+					break;
+				case Undefined:
+					sb.append("<span>");
+					break;
+				default:
+					IRationale rationale = job.getCompletionRationale();
+					if(rationale != null) {
+						sb.append("<span title=\""+rationale+"\">");
+					}
+					else {
+						sb.append("<span>");
+					}
+					break;
+				}
+				sb.append(jobCompletionType);
+				sb.append("</span>");
+			}
+		}
+		return sb;
 	}
 	
 	private JsonArray buildJobRow(HttpServletRequest request, IDuccWorkJob job, DuccData duccData, ServicesRegistry servicesRegistry) {
@@ -179,66 +249,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Reason
-		sb = new StringBuffer();
-		if(job.isOperational()) {
-			boolean multi = false;
-			sb.append("<span>");
-			ArrayList<String> swappingMachines = getSwappingMachines(job);
-			if(!swappingMachines.isEmpty()) {
-				StringBuffer mb = new StringBuffer();
-				for(String machine : swappingMachines) {
-					mb.append(machine);
-					mb.append(" ");
-				}
-				String ml = mb.toString().trim();
-				if(multi) {
-					sb.append(" ");
-				}
-				multi = true;
-				sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-				sb.append("Swapping");
-				sb.append("</span>");
-			}
-			sb.append("</span>");
-			//
-			String monitor = getMonitor(duccId, multi);
-			if(monitor.length() > 0) {
-				multi = true;
-				sb.append(monitor);
-			}
-		}
-		else if(job.isCompleted()) {
-			JobCompletionType jobCompletionType = job.getCompletionType();
-			switch(jobCompletionType) {
-			case EndOfJob:
-				try {
-					int total = job.getSchedulingInfo().getIntWorkItemsTotal();
-					int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
-					int error = job.getSchedulingInfo().getIntWorkItemsError();
-					if(total != (done+error)) {
-						jobCompletionType = JobCompletionType.Premature;
-					}
-				}
-				catch(Exception e) {
-				}
-				sb.append("<span>");
-				break;
-			case Undefined:
-				sb.append("<span>");
-				break;
-			default:
-				IRationale rationale = job.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<span title=\""+rationale+"\">");
-				}
-				else {
-					sb.append("<span>");
-				}
-				break;
-			}
-			sb.append(jobCompletionType);
-			sb.append("</span>");
-		}
+		sb = getReason(job,DuccType.Job);
 		row.add(new JsonPrimitive(sb.toString()));
 		// Services
 		sb = new StringBuffer();
@@ -667,56 +678,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			}
 		}
 		else if(duccwork instanceof DuccWorkJob) {
+			// Reason
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			switch(job.getCompletionType()) {
-			case Undefined:
-				break;
-			case CanceledByUser:
-			case CanceledByAdministrator:
-				try {
-					String cancelUser = duccwork.getStandardInfo().getCancelUser();
-					if(cancelUser != null) {
-						sb.append("<span title=\"canceled by "+cancelUser+"\">");
-						sb.append(duccwork.getCompletionTypeObject().toString());
-						sb.append("</span>");
-					}
-					else {							
-						IRationale rationale = job.getCompletionRationale();
-						if(rationale != null) {
-							sb.append("<span title=\""+rationale+"\">");
-							sb.append(duccwork.getCompletionTypeObject().toString());
-							sb.append("</span>");
-						}
-						else {
-							sb.append(duccwork.getCompletionTypeObject().toString());
-						}
-						
-					}
-				} 
-				catch(Exception e) {
-					IRationale rationale = job.getCompletionRationale();
-					if(rationale != null) {
-						sb.append("<span title=\""+rationale+"\">");
-						sb.append(duccwork.getCompletionTypeObject().toString());
-						sb.append("</span>");
-					}
-					else {
-						sb.append(duccwork.getCompletionTypeObject().toString());
-					}
-				}
-				break;
-			default:
-				IRationale rationale = job.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<span title=\""+rationale+"\">");
-					sb.append(duccwork.getCompletionTypeObject().toString());
-					sb.append("</span>");
-				}
-				else {
-					sb.append(duccwork.getCompletionTypeObject().toString());
-				}
-				break;
-			}
+			sb = getReason(job,DuccType.Reservation);
 		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// Allocation
@@ -787,6 +751,13 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			else {
 				sb.append("0");
 			}
+			Iterator<DuccId> iterator = job.getProcessMap().keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId processId = iterator.next();
+				IDuccProcess process = job.getProcessMap().get(processId);
+				String node = process.getNodeIdentity().getName();
+				nodeMap.put(node, 1);
+			}
 		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// Size
@@ -801,13 +772,30 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb = new StringBuffer();
 		sb.append("<span>");
 		if(!nodeMap.isEmpty()) {
-			sb.append("<select>");
-			for (String node: nodeMap.keySet()) {
-				Integer count = nodeMap.get(node);
-				String option = node+" "+"["+count+"]";
-				sb.append("<option>"+option+"</option>");
+			boolean useList = false;
+			if(nodeMap.size() > 1) {
+				useList = true;
 			}
-			sb.append("</select>");
+			if(useList) {
+				sb.append("<select>");
+			}
+			for (String node: nodeMap.keySet()) {
+				String option = node;
+				Integer count = nodeMap.get(node);
+				if(count > 1) {
+					option += " "+"["+count+"]";
+				}
+				if(useList) {
+					sb.append("<option>");
+				}
+				sb.append(option);
+				if(useList) {
+					sb.append("</option>");
+				}
+			}
+			if(useList) {
+				sb.append("</select>");
+			}
 		}
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));

@@ -42,21 +42,24 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 	public final String proxyJobStatus			= duccContextProxy+"-job-status";
 	public final String proxyJobMonitorReport	= duccContextProxy+"-job-monitor-report";
 	
+	public final String proxyManagedReservationStatus			= duccContextProxy+"-managed-reservation-status";
+	public final String proxyManagedReservationMonitorReport	= duccContextProxy+"-managed-reservation-monitor-report";
+	
 	DuccWebMonitor duccWebMonitor = DuccWebMonitor.getInstance();
 
-	private boolean isJobIdMissing(String jobId) {
+	private boolean isIdMissing(String id) {
 		boolean retVal = false;
-		if(jobId.length() == 0) {
+		if(id.length() == 0) {
 			retVal = true;
 		}
 		return retVal;
 	}
 	
-	private boolean isJobIdInvalid(String jobId) {
+	private boolean isIdInvalid(String id) {
 		boolean retVal = false;
 		try {
-			int id = Integer.parseInt(jobId);
-			if(id < 0) {
+			int value = Integer.parseInt(id);
+			if(value < 0) {
 				retVal = true;
 			}
 		}
@@ -82,13 +85,13 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 			jobId = "";
 		}
 		
-		if(isJobIdMissing(jobId)) {
-			String message = "Job id missing";
+		if(isIdMissing(jobId)) {
+			String message = "id missing";
 			duccLogger.info(location, jobid, message);
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
 		}
-		else if(isJobIdInvalid(jobId)) {
-			String message = "Job id invalid";
+		else if(isIdInvalid(jobId)) {
+			String message = "id invalid";
 			duccLogger.info(location, jobid, message);
 			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
 		}
@@ -121,6 +124,61 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		duccLogger.trace(location, jobid, "exit");
 	}
 	
+	private void handleServletManagedReservationStatus(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String location = "handleServletManagedReservationStatus";
+		duccLogger.trace(location, jobid, "enter");
+		duccLogger.info(location, jobid, request.toString());
+
+		String id = request.getParameter("id");
+		
+		if(id != null) {
+			id = id.trim();
+		}
+		else {
+			id = "";
+		}
+		
+		if(isIdMissing(id)) {
+			String message = "id missing";
+			duccLogger.info(location, jobid, message);
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+		}
+		else if(isIdInvalid(id)) {
+			String message = "id invalid";
+			duccLogger.info(location, jobid, message);
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, message);
+		}
+		else {
+			MonitorInfo monitorInfo  = duccWebMonitor.renew(DuccType.Reservation, id);
+			Gson gson = new Gson();
+			String jSon = gson.toJson(monitorInfo);
+			duccLogger.debug(location, jobid, jSon);
+			response.getWriter().println(jSon);
+			response.setContentType("application/json");
+		}
+		
+		duccLogger.trace(location, jobid, "exit");
+	}
+	
+	private void handleServletManagedReservationMonitorReport(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String location = "handleServletManagedReservationMonitorReport";
+		duccLogger.trace(location, jobid, "enter");
+		duccLogger.info(location, jobid, request.toString());
+
+		ConcurrentHashMap<DuccId,Long> eMap = duccWebMonitor.getExpiryMap(DuccType.Reservation);
+		
+		Gson gson = new Gson();
+		String jSon = gson.toJson(eMap);
+		duccLogger.debug(location, jobid, jSon);
+		response.getWriter().println(jSon);
+		response.setContentType("application/json");
+		duccLogger.trace(location, jobid, "exit");
+	}
+	
 	private void handleServletUnknown(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -143,6 +201,12 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		}
 		else if(reqURI.startsWith(proxyJobMonitorReport)) {
 			handleServletJobMonitorReport(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(proxyManagedReservationStatus)) {
+			handleServletManagedReservationStatus(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(proxyManagedReservationMonitorReport)) {
+			handleServletManagedReservationMonitorReport(target, baseRequest, request, response);
 		}
 		else {
 			handleServletUnknown(target, baseRequest, request, response);

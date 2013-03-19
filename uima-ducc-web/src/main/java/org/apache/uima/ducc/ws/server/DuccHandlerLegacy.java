@@ -49,7 +49,9 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
@@ -93,6 +95,73 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	
 	public String getFileName() {
 		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
+	}
+	
+	private String getReason(IDuccWorkJob job, DuccType type) {
+		StringBuffer sb = new StringBuffer();
+		if(job != null) {
+			DuccId duccId = job.getDuccId();
+			if(job.isOperational()) {
+				boolean multi = false;
+				sb.append("<td valign=\"bottom\">");
+				ArrayList<String> swappingMachines = getSwappingMachines(job);
+				if(!swappingMachines.isEmpty()) {
+					StringBuffer mb = new StringBuffer();
+					for(String machine : swappingMachines) {
+						mb.append(machine);
+						mb.append(" ");
+					}
+					String ml = mb.toString().trim();
+					if(multi) {
+						sb.append(" ");
+					}
+					multi = true;
+					sb.append("<span class=\"health_red\" title=\""+ml+"\">");
+					sb.append("Swapping");
+					sb.append("</span>");
+				}
+				//
+				String monitor = getMonitor(duccId, type, multi);
+				if(monitor.length() > 0) {
+					multi = true;
+					sb.append(monitor);
+				}
+				sb.append("</td>");
+			}
+			else if(job.isCompleted()) {
+				JobCompletionType jobCompletionType = job.getCompletionType();
+				switch(jobCompletionType) {
+				case EndOfJob:
+					try {
+						int total = job.getSchedulingInfo().getIntWorkItemsTotal();
+						int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
+						int error = job.getSchedulingInfo().getIntWorkItemsError();
+						if(total != (done+error)) {
+							jobCompletionType = JobCompletionType.Premature;
+						}
+					}
+					catch(Exception e) {
+					}
+					sb.append("<td valign=\"bottom\">");
+					break;
+				case Undefined:
+					sb.append("<td valign=\"bottom\">");
+					break;
+				default:
+					IRationale rationale = job.getCompletionRationale();
+					if(rationale != null) {
+						sb.append("<td valign=\"bottom\" title=\""+rationale+"\">");
+					}
+					else {
+						sb.append("<td valign=\"bottom\">");
+					}
+					break;
+				}
+				sb.append(jobCompletionType);
+				sb.append("</td>");
+			}
+		}
+		return sb.toString();
 	}
 	
 	private void buildJobsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData, ServicesRegistry servicesRegistry) {
@@ -159,65 +228,8 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Reason
-		if(job.isOperational()) {
-			boolean multi = false;
-			sb.append("<td valign=\"bottom\">");
-			ArrayList<String> swappingMachines = getSwappingMachines(job);
-			if(!swappingMachines.isEmpty()) {
-				StringBuffer mb = new StringBuffer();
-				for(String machine : swappingMachines) {
-					mb.append(machine);
-					mb.append(" ");
-				}
-				String ml = mb.toString().trim();
-				if(multi) {
-					sb.append(" ");
-				}
-				multi = true;
-				sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-				sb.append("Swapping");
-				sb.append("</span>");
-			}
-			//
-			String monitor = getMonitor(duccId, multi);
-			if(monitor.length() > 0) {
-				multi = true;
-				sb.append(monitor);
-			}
-			sb.append("</td>");
-		}
-		else if(job.isCompleted()) {
-			JobCompletionType jobCompletionType = job.getCompletionType();
-			switch(jobCompletionType) {
-			case EndOfJob:
-				try {
-					int total = job.getSchedulingInfo().getIntWorkItemsTotal();
-					int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
-					int error = job.getSchedulingInfo().getIntWorkItemsError();
-					if(total != (done+error)) {
-						jobCompletionType = JobCompletionType.Premature;
-					}
-				}
-				catch(Exception e) {
-				}
-				sb.append("<td valign=\"bottom\">");
-				break;
-			case Undefined:
-				sb.append("<td valign=\"bottom\">");
-				break;
-			default:
-				IRationale rationale = job.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<td valign=\"bottom\" title=\""+rationale+"\">");
-				}
-				else {
-					sb.append("<td valign=\"bottom\">");
-				}
-				break;
-			}
-			sb.append(jobCompletionType);
-			sb.append("</td>");
-		}
+		String reason = getReason(job, DuccType.Job);
+		sb.append(reason);
 		// Services
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		sb.append(evaluateServices(job,servicesRegistry));
@@ -521,8 +533,8 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Reason
-		sb.append("<td>");
 		if(duccwork instanceof DuccWorkReservation) {
+			sb.append("<td>");
 			DuccWorkReservation reservation = (DuccWorkReservation) duccwork;
 			switch(reservation.getCompletionType()) {
 			case Undefined:
@@ -573,60 +585,13 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				}
 				break;
 			}
+			sb.append("</td>");
 		}
 		else if(duccwork instanceof DuccWorkJob) {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			switch(job.getCompletionType()) {
-			case Undefined:
-				break;
-			case CanceledByUser:
-			case CanceledByAdministrator:
-				try {
-					String cancelUser = duccwork.getStandardInfo().getCancelUser();
-					if(cancelUser != null) {
-						sb.append("<span title=\"canceled by "+cancelUser+"\">");
-						sb.append(duccwork.getCompletionTypeObject().toString());
-						sb.append("</span>");
-					}
-					else {							
-						IRationale rationale = job.getCompletionRationale();
-						if(rationale != null) {
-							sb.append("<span title=\""+rationale+"\">");
-							sb.append(duccwork.getCompletionTypeObject().toString());
-							sb.append("</span>");
-						}
-						else {
-							sb.append(duccwork.getCompletionTypeObject().toString());
-						}
-						
-					}
-				} 
-				catch(Exception e) {
-					IRationale rationale = job.getCompletionRationale();
-					if(rationale != null) {
-						sb.append("<span title=\""+rationale+"\">");
-						sb.append(duccwork.getCompletionTypeObject().toString());
-						sb.append("</span>");
-					}
-					else {
-						sb.append(duccwork.getCompletionTypeObject().toString());
-					}
-				}
-				break;
-			default:
-				IRationale rationale = job.getCompletionRationale();
-				if(rationale != null) {
-					sb.append("<span title=\""+rationale+"\">");
-					sb.append(duccwork.getCompletionTypeObject().toString());
-					sb.append("</span>");
-				}
-				else {
-					sb.append(duccwork.getCompletionTypeObject().toString());
-				}
-				break;
-			}
+			String reason = getReason(job, DuccType.Reservation);
+			sb.append(reason);
 		}
-		sb.append("</td>");
 		// Allocation
 		sb.append("<td align=\"right\">");
 		sb.append(duccwork.getSchedulingInfo().getInstancesCount());
@@ -693,6 +658,13 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			else {
 				sb.append("0");
 			}
+			Iterator<DuccId> iterator = job.getProcessMap().keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId processId = iterator.next();
+				IDuccProcess process = job.getProcessMap().get(processId);
+				String node = process.getNodeIdentity().getName();
+				nodeMap.put(node, 1);
+			}
 		}
 		sb.append("</td>");
 		// Size
@@ -701,21 +673,33 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		MemoryUnits units = duccwork.getSchedulingInfo().getShareMemoryUnits();
 		sb.append(getProcessMemorySize(duccId,type,size,units));
 		sb.append("</td>");
-		// List
+		// Host Names
 		sb.append("<td>");
-		if(duccwork instanceof DuccWorkReservation) {
-			if(!nodeMap.isEmpty()) {
+		if(!nodeMap.isEmpty()) {
+			boolean useList = false;
+			if(nodeMap.size() > 1) {
+				useList = true;
+			}
+			if(useList) {
 				sb.append("<select>");
-				for (String node: nodeMap.keySet()) {
-					Integer count = nodeMap.get(node);
-					String option = node+" "+"["+count+"]";
-					sb.append("<option>"+option+"</option>");
+			}
+			for (String node: nodeMap.keySet()) {
+				String option = node;
+				Integer count = nodeMap.get(node);
+				if(count > 1) {
+					option += " "+"["+count+"]";
 				}
+				if(useList) {
+					sb.append("<option>");
+				}
+				sb.append(option);
+				if(useList) {
+					sb.append("</option>");
+				}
+			}
+			if(useList) {
 				sb.append("</select>");
 			}
-		}
-		else {
-			//TODO
 		}
 		sb.append("</td>");
 		// Description
