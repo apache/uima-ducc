@@ -334,72 +334,15 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		ArrayList<String> users = getJobsUsers(request);
 		DuccData duccData = DuccData.getInstance();
 		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = duccData.getSortedJobs();
-		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		if(sortedJobs.size()> 0) {
 			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
 			int counter = 0;
 			while(iterator.hasNext()) {
 				JobInfo jobInfo = iterator.next().getValue();
 				DuccWorkJob job = jobInfo.getJob();
-				boolean list = false;
-				if(!users.isEmpty()) {
-					String jobUser = job.getStandardInfo().getUser().trim();
-					switch(filterUsersStyle) {
-					case IncludePlusActive:
-						if(!job.isCompleted()) {
-							list = true;
-						}
-						else if(users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case ExcludePlusActive:
-						if(!job.isCompleted()) {
-							list = true;
-						}
-						else if(!users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Include:
-						if(users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					case Exclude:
-						if(!users.contains(jobUser)) {
-							if(maxRecords > 0) {
-								if (counter++ < maxRecords) {
-									list = true;
-								}
-							}
-						}
-						break;
-					}	
-				}
-				else {
-					if(!job.isCompleted()) {
-						list = true;
-					}
-					else if(maxRecords > 0) {
-						if (counter++ < maxRecords) {
-							list = true;
-						}
-					}
-				}
+				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, job);
 				if(list) {
+					counter++;
 					sb.append(trGet(counter));
 					buildJobsListEntry(request, sb, job.getDuccId(), job, duccData, servicesRegistry);
 				}
@@ -730,48 +673,6 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</tr>");
 	}
 	
-	private boolean isListEligible(ArrayList<String> users, DuccCookies.FilterUsersStyle filterUsersStyle, String user, boolean completed) {
-		boolean list = false;
-		if(!users.isEmpty()) {
-			switch(filterUsersStyle) {
-			case IncludePlusActive:
-				if(!completed) {
-					list = true;
-				}
-				else if(users.contains(user)) {
-						list = true;
-				}
-				break;
-			case ExcludePlusActive:
-				if(!completed) {
-					list = true;
-				}
-				else if(!users.contains(user)) {
-						list = true;
-				}
-				break;
-			case Include:
-				if(users.contains(user)) {
-						list = true;
-				}
-				break;
-			case Exclude:
-				if(!users.contains(user)) {
-						list = true;
-				}
-				break;
-			}	
-		}
-		else {
-			if(!completed) {
-				list = true;
-			}
-			else 
-				list = true;
-		}
-		return list;
-	}
-	
 	private void handleServletLegacyReservations(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -786,7 +687,6 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = duccData.getSortedCombinedReservations();
 
 		ArrayList<String> users = getReservationsUsers(request);
-		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		
 		if((sortedCombinedReservations.size() > 0)) {
 			int counter = 0;
@@ -794,9 +694,9 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			while(iR.hasNext()) {
 				Info info = iR.next().getValue();
 				IDuccWork dw = info.getDuccWork();
-				String user = dw.getStandardInfo().getUser().trim();
-				boolean completed = dw.isCompleted();
-				if(isListEligible(users, filterUsersStyle, user, completed)) {
+				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, dw);
+				if(list) {
+					counter++;
 					if(dw instanceof DuccWorkReservation) {
 						DuccWorkReservation reservation = (DuccWorkReservation) dw;
 						sb.append(trGet(counter));
@@ -809,9 +709,6 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 					}
 					else {
 						// huh?
-					}
-					if(counter++ > maxRecords) {
-						break;
 					}
 				}
 			}
