@@ -28,4 +28,5 @@ public class MonitorInfo {
 	public String error = "0";
 	public String retry = "0";
 	public String procs = "0";
+	public ArrayList<String> errorLogs = new ArrayList<String>();
 }
