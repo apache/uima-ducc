@@ -25,6 +25,7 @@ import java.lang.management.ManagementFactory;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -412,13 +413,24 @@ public abstract class DuccMonitor  {
 							return RC_SUCCESS;
 						}
 						else {
+							if(!monitorInfo.errorLogs.isEmpty()) {
+								message = new StringBuffer();
+								message.append("id:"+id);
+								message.append(" ");
+								ArrayList<String> errorLogs = monitorInfo.errorLogs;
+								for(String errorLog : errorLogs) {
+									message.append("file:"+errorLog);
+								}
+								thisMessage = message.toString();
+								info(thisMessage);
+							}
 							message = new StringBuffer();
 							message.append("id:"+id);
 							message.append(" ");
 							message.append("rc:"+RC_FAILURE);
 							thisMessage = message.toString();
 							info(thisMessage);
-							return RC_SUCCESS;
+							return RC_FAILURE;
 						}
 					}
 				}
