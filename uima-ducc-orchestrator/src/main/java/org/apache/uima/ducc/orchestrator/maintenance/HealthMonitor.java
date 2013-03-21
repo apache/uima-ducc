@@ -75,6 +75,26 @@ public class HealthMonitor {
 		return ckpt;
 	}
 	
+	private boolean isCancelJobCappedWithNoJobProcesses(IDuccWorkJob job) {
+		String methodName = "isCancelJobCappedWithNoJobProcesses";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		boolean ckpt = false;
+		long count = job.getProcessInitFailureCount();
+		long cap = job.getProcessInitFailureCap();
+		long procs = job.getAliveProcessCount();
+		logger.debug(methodName, null, "fail.count:"+count+" "+"fail.cap:"+cap+" "+"alive.procs:"+procs);
+		if(count >= cap) {
+			if(job.getAliveProcessCount() == 0) {
+				IRationale rationale = new Rationale("health monitor detected no resources assigned and job initialization failures cap reached:"+cap);
+				StateManager.getInstance().jobTerminate(job, JobCompletionType.ProcessInitializationFailure, rationale, ProcessDeallocationType.JobCanceled);
+				logger.info(methodName, job.getDuccId(), JobCompletionType.ProcessInitializationFailure);
+				ckpt = true;
+			}
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return ckpt;
+	}
+	
 	private boolean isCancelJobExcessiveProcessFailures(IDuccWorkJob job) {
 		String methodName = "isCancelJobExcessiveProcessFailures";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -188,6 +208,9 @@ public class HealthMonitor {
 					if(isCancelJobExcessiveProcessFailures(job)) {
 						ckpt = true;
 					}
+					else if(isCancelJobCappedWithNoJobProcesses(job)) {
+						ckpt = true;
+					}
 					else if(isCancelJobDriverProcessFailed(job)) {
 						ckpt = true;
 					}
@@ -236,6 +259,9 @@ public class HealthMonitor {
 						ckpt = true;
 					}
 					else if(isCancelJobExcessiveInitializationFailures(service)) {
+						ckpt = true;
+					}
+					else if(isCancelJobCappedWithNoJobProcesses(service)) {
 						ckpt = true;
 					}
 					long cap = service.getProcessInitFailureCap();
