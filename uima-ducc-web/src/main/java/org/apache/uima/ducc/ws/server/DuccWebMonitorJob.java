@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.ws.server;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -102,6 +103,14 @@ public class DuccWebMonitorJob {
 			monitorInfo.error = si.getWorkItemsError();
 			monitorInfo.retry = si.getWorkItemsRetry();
 			monitorInfo.procs = ""+dwj.getProcessMap().getAliveProcessCount();
+			
+			if(si.getIntWorkItemsError() > 0) {
+				String logsjobdir = dwj.getUserLogsDir()+dwj.getDuccId().getFriendly()+File.separator;
+				String logfile = "jd.err.log";
+				ArrayList<String> errorLogs = new ArrayList<String>();
+				errorLogs.add(logsjobdir+logfile);
+				monitorInfo.errorLogs = errorLogs;
+			}
 			
 			ArrayList<String> stateSequence = monitorInfo.stateSequence;
 			String state = dwj.getJobState().toString();
