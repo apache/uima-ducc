@@ -993,11 +993,14 @@ public class RmJob
         //
         
         int base_cap = Math.min(getMaxShares(), c);
+        if ( base_cap < 0 ) base_cap = 0;          // capped by OR
+
         int projected_cap = getProjectedCap();       
 
         int potential_cap = base_cap;
         int actual_cap = 0;
 
+        
         if ( resource_class.isUsePrediction() ) {
             if (projected_cap < base_cap ) {                     // If we project less need, revise the estimate down
                 potential_cap = Math.max(projected_cap, assignedShares.size());

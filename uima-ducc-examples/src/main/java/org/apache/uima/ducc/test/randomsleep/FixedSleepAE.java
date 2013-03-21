@@ -2,6 +2,7 @@ package org.apache.uima.ducc.test.randomsleep;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
@@ -35,7 +36,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
     String AE_Identifier = "*^^^^^^^^^ AE ";
 
     @Override
-        public void initialize(UimaContext uimaContext) throws ResourceInitializationException {
+    public void initialize(UimaContext uimaContext) throws ResourceInitializationException 
+    {
         super.initialize(uimaContext);
 
         long tid = Thread.currentThread().getId();
@@ -67,6 +69,35 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
                 logger.log(Level.INFO, "File: " + f.toString());
             }
         }
+
+        if ( System.getenv( "FAST_INIT_FAIL" ) != null ) {
+            // we want just enough init to get at least one process into RUNNING state, but all
+            // subsequent initializations to fail under this scenario.
+            String jobid = System.getProperty("ducc.job.id");
+            String wd = System.getProperty("user.dir");
+            String markerdir = wd + "/" + jobid + ".output";
+            System.out.println("LOOK IN " + markerdir);
+            File marker = new File(markerdir);
+            
+            String[] outputs = marker.list();
+            int count = 0;
+            for ( String s : outputs) {
+                if ( s.endsWith(".die") ) count++;
+                System.out.println("COUNT " + s + " count = " + count);
+                if ( count > 2 ) {
+                    throw new IllegalStateException("foo foo and foo");
+                }
+            }
+            File init_death = new File(markerdir + "/" + tid + ".die");
+            System.out.println("CREATE " + init_death);
+            try {
+                init_death.createNewFile();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        }
+
 
         long sleep;
         if ( !initComplete ) {                                    // longer init only the first tim
@@ -308,6 +339,12 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         // boolean       error      = false;
 
         String        msgheader   = "**-------> AE process " + pid + " TID " + tid + " task " + qid + " of " + total;
+
+        if ( System.getenv( "FAST_INIT_FAIL" ) != null ) {
+            // must insure nothing gets done in this case.
+            System.out.println("Croakamundo.");
+            System.exit(1);
+        }
 
         if ( marker == null) {
             if  (!logid.equals("None") ) {
