@@ -206,8 +206,11 @@ public class DuccManagedReservationSubmit
             if ( rc ) {
                 // Fetch the Ducc ID
             	System.out.println(dt+" "+ds.getDuccId()+" submitted.");
-                ds.waitForCompletion();
-                System.out.println(dt+" return code: "+ds.getReturnCode());
+            	int code = 0;
+            	if(ds.waitForCompletion()) {
+            		code = ds.getReturnCode();
+            	}
+                System.out.println(dt+" return code: "+code);
             	System.exit(0);
             } else {
                 System.out.println("Could not submit "+dt);
