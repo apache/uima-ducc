@@ -108,4 +108,8 @@ public interface IDuccProcess extends Serializable {
 	
 	public String getReasonForStoppingProcess();
 	public void setReasonForStoppingProcess(String reason);
+	
+	public void setProcessExitCode(int pExitCode );
+	public int getProcessExitCode();
+	
 }

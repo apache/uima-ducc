@@ -56,6 +56,7 @@ public class DuccProcess implements IDuccProcess {
 	private long cpuUsage;
 	private String reason;
 	private boolean initialized = false;
+	private int exitCode;
 	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity) {
 		setDuccId(duccId);
@@ -473,6 +474,14 @@ public class DuccProcess implements IDuccProcess {
 	@Override
 	public void resetInitialized() {
 		initialized = false;
+	}
+
+	public void setProcessExitCode(int pExitCode) {
+		this.exitCode = pExitCode;
+	}
+	
+	public int getProcessExitCode() {
+		return this.exitCode;
 	}
 
 }
