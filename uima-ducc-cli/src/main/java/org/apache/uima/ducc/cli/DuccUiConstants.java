@@ -33,6 +33,10 @@ public class DuccUiConstants {
 	
 	public static final String user = System.getProperty("user.name");
 	
+	public static final String job_specification_properties = "job-specification.properties";
+	public static final String service_specification_properties = "service-specification.properties";
+	public static final String managed_reservation_properties = "managed-reservation.properties";
+	
 	/*
 	 * common
 	 */

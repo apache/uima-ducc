@@ -217,7 +217,7 @@ public class DuccServiceSubmit
         boolean rc = extractReply(reply);
 
         if ( rc ) {
-            saveSpec("service-specification.properties", requestProperties);
+            saveSpec(DuccUiConstants.service_specification_properties, requestProperties);
         }
 
 		return rc;

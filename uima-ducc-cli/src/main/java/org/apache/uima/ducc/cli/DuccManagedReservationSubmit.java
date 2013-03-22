@@ -160,7 +160,7 @@ public class DuccManagedReservationSubmit
                 if ( friendlyId < 0 ) {
                     retval = false;
                 } else {
-                    saveSpec("process.properties", serviceRequestProperties);
+                    saveSpec(DuccUiConstants.managed_reservation_properties, serviceRequestProperties);
                     startMonitors(true, DuccContext.ManagedReservation);       // starts conditionally, based on job spec and console listener present
                 }
             }

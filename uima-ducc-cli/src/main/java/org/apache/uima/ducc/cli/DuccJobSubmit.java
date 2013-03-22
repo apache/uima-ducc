@@ -379,7 +379,7 @@ public class DuccJobSubmit
         boolean rc = extractReply(submitJobReplyDuccEvent);
 
         if ( rc ) {
-            saveSpec("job-specification.properties", jobRequestProperties);
+            saveSpec(DuccUiConstants.job_specification_properties, jobRequestProperties);
             startMonitors(false, DuccContext.Job);       // starts conditionally, based on job spec and console listener present
         }
 

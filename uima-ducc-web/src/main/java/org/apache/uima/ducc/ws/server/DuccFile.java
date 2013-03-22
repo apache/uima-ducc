@@ -24,20 +24,30 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.uima.ducc.cli.DuccUiConstants;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 
 public class DuccFile {
 	
 	public static Properties getJobProperties(IDuccWorkJob job) throws IOException {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		String name = "job-specification.properties";
+		String name = DuccUiConstants.job_specification_properties;
 		Properties properties = DuccFile.getProperties(directory, name);
 		return properties;
 	}
 	
 	public static Properties getManagedReservationProperties(IDuccWorkJob job) throws IOException {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		String name = "service-specification.properties";
+		// <hack>
+		try {
+			String hack_name = "process.properties";
+			Properties hack_properties = DuccFile.getProperties(directory, hack_name);
+			return hack_properties;
+		}
+		catch(Exception e) {
+		}
+		// </hack>
+		String name = DuccUiConstants.managed_reservation_properties;
 		Properties properties = DuccFile.getProperties(directory, name);
 		return properties;
 	}
