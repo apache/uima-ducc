@@ -222,7 +222,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	}
 	private void doExec(ProcessBuilder pb, String[] cmd, boolean isKillCmd) throws Exception {
 		String methodName = "doExec";
-
+		int exitCode=0;
 		try {
 			
 			StringBuilder sb = new StringBuilder((isKillCommand(cmdLine) ?"--->Killing Process ":"---> Launching Process:")
@@ -237,7 +237,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			// Drain process streams
 			postExecStep(process, logger, isKillCmd);
 			// block waiting for the process to terminate.
-			process.waitFor();
+			exitCode = process.waitFor();
 			if ( !isKillCommand(cmdLine) ) {
 				logger.info(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), ">>>>>>>>>>>>> Process with PID:"+((ManagedProcess)super.managedProcess).getDuccProcess().getPID()+" Terminated");
 			}
@@ -258,6 +258,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 			((ManagedProcess)super.managedProcess).getDuccProcess().setProcessState(ProcessState.Failed);
 			throw ex;
 		} finally {
+			//	associate exit code
+			((ManagedProcess) managedProcess).getDuccProcess().setProcessExitCode(exitCode);
 			//	 Per team discussion on Aug 31 2011, the process is stopped by an agent when initialization
 			//   times out or initialization failed. Both Initialization_Timeout and FailedIntialization imply
 			//   that the process is stopped.
