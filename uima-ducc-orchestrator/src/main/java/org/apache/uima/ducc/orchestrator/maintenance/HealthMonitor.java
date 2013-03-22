@@ -261,9 +261,6 @@ public class HealthMonitor {
 					else if(isCancelJobExcessiveInitializationFailures(service)) {
 						ckpt = true;
 					}
-					else if(isCancelJobCappedWithNoJobProcesses(service)) {
-						ckpt = true;
-					}
 					long cap = service.getProcessInitFailureCap();
 					// if an initialization cap was specified
 					if(cap > 0) {
