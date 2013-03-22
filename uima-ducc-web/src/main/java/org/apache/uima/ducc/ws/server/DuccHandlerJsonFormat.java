@@ -1087,6 +1087,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Size
 			row.add(new JsonPrimitive(""));
+			// Jobs
+			row.add(new JsonPrimitive(""));
+			// Services
+			row.add(new JsonPrimitive(""));
+			// Reservations
+			row.add(new JsonPrimitive(""));
 			// Description
 			row.add(new JsonPrimitive(""));
 			data.add(row);
