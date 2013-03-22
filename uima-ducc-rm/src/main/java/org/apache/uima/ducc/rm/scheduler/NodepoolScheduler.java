@@ -1592,9 +1592,15 @@ public class NodepoolScheduler
                 logger.trace(methodName, nj.getId(), "Not a candidate, insufficient rich jobs:", m.getId());
             }
         }
-        logger.debug(methodName, nj.getId(), "Found", eligibleMachines.size(), "machines to be searched in this order:");
-        for ( Machine m : eligibleMachines.keySet() ) {
-            logger.debug(methodName, nj.getId(), "Eligible machine:", m.getId());
+        if ( logger.isDebug() ) {
+            // print under debug, but don't do the log leader for each machine
+            logger.debug(methodName, nj.getId(), "Found", eligibleMachines.size(), "machines to be searched in this order:");
+            StringBuffer buf = new StringBuffer();
+            for ( Machine m : eligibleMachines.keySet() ) {
+                buf.append(m.getId());
+                buf.append(" ");
+            }
+            logger.debug(methodName, nj.getId(), "Eligible machines:", buf.toString());
         }
         // first part done
 
@@ -1603,10 +1609,23 @@ public class NodepoolScheduler
         do {
             int g = 0;
             for ( Machine m : eligibleMachines.keySet() ) {
-                HashMap<Share, Share> sh = m.getActiveShares();
+
+                //
+                // How best to order candidate shares?  You can choose the "wealthiest" first, but if it's not a good
+                // match by size, end up evicting too many shares which could include a not-so-wealthy share, or
+                // increase frag by breaking it up and leaving a useless bit.
+                //
+                // So we're going to try ordering shares by "wealthiest", but then if we find an exact match by size,
+                // order that to the front of the candidates.  We may not end up evicting the "wealthiest", but we
+                // should end up evicting tne least disruptive share.
+                //
+                List<Share> sh = new ArrayList<Share>();
+                sh.addAll(m.getActiveShares().values());
+                Collections.sort(sh, new ShareByWealthSorter());
+
                 g = m.getVirtualShareOrder();
                 List<Share> potentialShares     = new ArrayList<Share>();
-                for ( Share s : sh.values() ) {
+                for ( Share s : sh ) {
                     IRmJob j = s.getJob();
                     User u = j.getUser();
                     
@@ -1624,6 +1643,7 @@ public class NodepoolScheduler
                     if ( g >= orderNeeded ) break;
                 }
                 
+                // potentialShares should be properly ordered as discussed above at this point
                 if ( g >= orderNeeded ) {
                     // found enough on this machine for 1 share!
                     logger.debug(methodName, nj.getId(), "Clearing shares: g[", g, "], orderNeeded[", orderNeeded, "]");
@@ -1762,7 +1782,9 @@ public class NodepoolScheduler
 
             // while ( ( needed > 0 ) && takeFromTheRichX(nj, users_by_wealth, jobs_by_user) ) {
             needed -= takeFromTheRich(nj, needed, users_by_wealth, jobs_by_user);
-            if ( needed == 0 ) {
+            if ( needed <= 0 ) {
+                // This can go <0 if total space freed + unused space on a node adds up to >1 share.
+                // It's slimplest to just not sweat it and call it satisfied.
                 logger.info(methodName, nj.getId(), "Satisfied needs of job by taking from the rich.");
             } else {
                 logger.info(methodName, nj.getId(), "Could not get enough from the rich. Asked for", needy.get(nj), "still needing", needed);
@@ -1892,14 +1914,14 @@ public class NodepoolScheduler
 
                 int free = m.countFreedUpShares();                           // free space plus evicted shares - eventual space
                 if ( free != 0 ) {
-                    logger.debug(methodName, null, "Freed shares", free, "on machine", m.getId());
+                    logger.trace(methodName, null, "Freed shares", free, "on machine", m.getId());
                     for ( NodePool npj = np; npj != null; npj = npj.getParent() ) {        // must propogate up because of how these tables work
                         String id_j = npj.getId();
                         int[] vmach_j = vshares.get(id_j);
-                        logger.info(methodName, null, "Update v before: NP[", id_j, "] v:", fmtArray(vmach_j));
+                        logger.trace(methodName, null, "Update v before: NP[", id_j, "] v:", fmtArray(vmach_j));
                         vmach_j[free]++;                                         // This is the largest potential share that can be made on this machine,
                         // after evictions starting 'here' and propogating up
-                        logger.info(methodName, null, "Update v after : NP[", id_j, "] v:", fmtArray(vmach_j));
+                        logger.trace(methodName, null, "Update v after : NP[", id_j, "] v:", fmtArray(vmach_j));
                     }
                 }
                 
@@ -1933,9 +1955,9 @@ public class NodepoolScheduler
             int[] nmach = nshares.get(id);
             reworknShares(vmach, nmach);                                 // Populate nmach from vmach for this np, with free or potentially free shares
 
-            if ( logger.isDebug() ) {
-                logger.debug(methodName, null, "NP", id, "After check: virtual    free Space", fmtArray(vmach));
-                logger.debug(methodName, null, "NP", id, "After check: cumulative free Space", fmtArray(nmach));
+            if ( logger.isInfo() ) {
+                logger.info(methodName, null, "NP", id, "After check: virtual    free Space", fmtArray(vmach));
+                logger.info(methodName, null, "NP", id, "After check: cumulative free Space", fmtArray(nmach));
             }
         }
 
@@ -2370,6 +2392,33 @@ public class NodepoolScheduler
 
             if ( m1mem == m2mem ) return -1;       // for tree map, must not return 0 unless same object
             return (int) (m2mem - m1mem);          // largest machine first.
+        }
+    }
+
+    //
+    // Order shares by most wealthy owner - defrag
+    // Orders by wealthiest owner first.
+    //
+    static private class ShareByWealthSorter
+        implements Comparator<Share>
+    {
+        
+        public int compare(Share s1, Share s2)
+        {
+            if ( s1 == s2 ) return 0;       
+
+            int s1wealth = 0;
+            int s2wealth = 0;
+
+            IRmJob j1 = s1.getJob();
+            User u1 = j1.getUser();
+            s1wealth = u1.getShareWealth();
+
+            IRmJob j2 = s2.getJob();
+            User u2 = j2.getUser();
+            s2wealth = u2.getShareWealth();
+
+            return s2wealth - s1wealth;
         }
     }
 

@@ -309,7 +309,6 @@ public class ResourceClass
     /**
      * Add 's' ** quantum ** shares of the indicated order.
      * Return the actual number of shares, which might have been capped.
-     * @deprecated  
 
     public int setClassSharesByOrder(int order, int s)
     {
