@@ -1135,7 +1135,7 @@ public class StateManager {
 										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
 									}
 									if(!service.hasAliveProcess()) {
-										completeJob(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+										completeManagedReservation(service, new Rationale("state manager reported no viable service process exists, type="+processType));
 									}
 									break;
 								case Service:
@@ -1200,7 +1200,57 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private void advanceToCompleted(DuccWorkJob job) {
+		switch(job.getJobState()) {
+		case Completing:
+		case Completed:
+			break;
+		default:
+			if(job.getProcessMap().getAliveProcessCount() == 0) {
+				stateJobAccounting.stateChange(job, JobState.Completing);
+			}
+		}
+	}
+	
+	private void completeManagedReservation(DuccWorkJob service, IRationale rationale) {
+		String location = "completeManagedReservation";
+		DuccId jobid = null;
+		try {
+			
+			jobid = service.getDuccId();
+			Map<DuccId, IDuccProcess> map = service.getProcessMap().getMap();
+			int size = map.size();
+			if(size != 1) {
+				logger.warn(location, jobid, "size: "+size);
+				completeJob(service, rationale);
+			}
+			else {
+				Iterator<DuccId> iterator = map.keySet().iterator();
+				while(iterator.hasNext()) {
+					DuccId key = iterator.next();
+					IDuccProcess process = map.get(key);
+					int code = process.getProcessExitCode();
+					IRationale exitCode = new Rationale("code="+code);
+					switch(service.getCompletionType()) {
+					case Undefined:
+						service.setCompletion(JobCompletionType.ProgramExit, exitCode);
+						service.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+						break;
+					}
+					advanceToCompleted(service);
+					break;
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+			completeJob(service, rationale);
+		}
+	}
+	
 	private void completeJob(DuccWorkJob job, IRationale rationale) {
+		String location = "completeJob";
+		DuccId jobid = null;
 		switch(job.getCompletionType()) {
 		case Undefined:
 			job.setCompletion(JobCompletionType.EndOfJob, rationale);
@@ -1219,21 +1269,14 @@ public class StateManager {
 					}
 				}
 				catch(Exception e) {
+					logger.error(location, jobid, e);
 				}
 			}
 			break;
 		default:
 			break;
 		}
-		switch(job.getJobState()) {
-		case Completing:
-		case Completed:
-			break;
-		default:
-			if(job.getProcessMap().getAliveProcessCount() == 0) {
-				stateJobAccounting.stateChange(job, JobState.Completing);
-			}
-		}
+		advanceToCompleted(job);
 	}
 	
 	public void jobTerminate(IDuccWorkJob job, JobCompletionType jobCompletionType, IRationale rationale, ProcessDeallocationType processDeallocationType) {

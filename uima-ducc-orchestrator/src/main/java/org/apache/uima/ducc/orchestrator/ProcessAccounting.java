@@ -297,6 +297,8 @@ public class ProcessAccounting {
 				process.setCpuTime(inventoryProcess.getCpuTime());
 				logger.trace(methodName, job.getDuccId(), process.getDuccId(), "Cpu Time:"+process.getCpuTime());
 				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
+				process.setProcessExitCode(inventoryProcess.getProcessExitCode());
+				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process exit code")+process.getProcessExitCode());
 				break;
 			}
 		}
