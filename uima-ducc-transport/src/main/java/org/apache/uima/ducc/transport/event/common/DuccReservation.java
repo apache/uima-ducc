@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
@@ -28,9 +29,18 @@ public class DuccReservation implements IDuccReservation {
 	 */
 	private static final long serialVersionUID = 1L;
 	private DuccId duccId = null;
+	private Node  node = null;
 	private NodeIdentity  nodeIdentity = null;
 	private int shares = 0;
 	private ITimeWindow timeWindow = null;
+	
+	public DuccReservation(DuccId duccId, Node node, int shares) {
+		setDuccId(duccId);
+		setNode(node);
+		NodeIdentity nodeIdentity = node.getNodeIdentity();
+		setNodeIdentity(nodeIdentity);
+		setShares(shares);
+	}
 	
 	public DuccReservation(DuccId duccId, NodeIdentity nodeIdentity, int shares) {
 		setDuccId(duccId);
@@ -121,6 +131,16 @@ public class DuccReservation implements IDuccReservation {
 		} else if (!timeWindow.equals(other.timeWindow))
 			return false;
 		return true;
+	}
+
+	@Override
+	public Node getNode() {
+		return node;
+	}
+
+	@Override
+	public void setNode(Node node) {
+		this.node = node;
 	}
 	
 	// **********

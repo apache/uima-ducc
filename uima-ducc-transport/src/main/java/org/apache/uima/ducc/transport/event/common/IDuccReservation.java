@@ -20,6 +20,7 @@ package org.apache.uima.ducc.transport.event.common;
 
 import java.io.Serializable;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
@@ -28,6 +29,9 @@ public interface IDuccReservation extends Serializable {
 	
 	public DuccId getDuccId();
 	public void setDuccId(DuccId duccId);
+	
+	public Node getNode();
+	public void setNode(Node node);
 	
 	public NodeIdentity getNodeIdentity();
 	public void setNodeIdentity(NodeIdentity nodeIdentity);

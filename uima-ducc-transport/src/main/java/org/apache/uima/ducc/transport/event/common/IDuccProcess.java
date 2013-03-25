@@ -21,6 +21,7 @@ package org.apache.uima.ducc.transport.event.common;
 import java.io.Serializable;
 import java.util.List;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -38,6 +39,9 @@ public interface IDuccProcess extends Serializable {
 	
 	public NodeIdentity getNodeIdentity();
 	public void setNodeIdentity(NodeIdentity nodeIdentity);
+	
+	public Node getNode();
+	public void setNode(Node node);
 	
 	public String getPID();
 	public void setPID(String pid);

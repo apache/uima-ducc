@@ -21,6 +21,7 @@ package org.apache.uima.ducc.transport.event.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -38,6 +39,7 @@ public class DuccProcess implements IDuccProcess {
 	 */
 	private static final long serialVersionUID = 1L;
 	private DuccId duccId = null;
+	private Node  node = null;
 	private NodeIdentity  nodeIdentity = null;
 	private String pid = null;
 	private ProcessState processState = ProcessState.Undefined;
@@ -63,12 +65,27 @@ public class DuccProcess implements IDuccProcess {
 		setNodeIdentity(nodeIdentity);
 	}
 	
+	public DuccProcess(DuccId duccId, Node node) {
+		setDuccId(duccId);
+		setNode(node);
+		NodeIdentity nodeIdentity = node.getNodeIdentity();
+		setNodeIdentity(nodeIdentity);
+	}
+	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity, ProcessType processType) {
 		setDuccId(duccId);
 		setNodeIdentity(nodeIdentity);
 		setProcessType(processType);
 	}
-
+	
+	public DuccProcess(DuccId duccId, Node node, ProcessType processType) {
+		setDuccId(duccId);
+		setNode(node);
+		NodeIdentity nodeIdentity = node.getNodeIdentity();
+		setNodeIdentity(nodeIdentity);
+		setProcessType(processType);
+	}
+	
 	public List<IUimaPipelineAEComponent> getUimaPipelineComponents() {
 		return uimaPipelineComponentList;
 	}
@@ -482,6 +499,16 @@ public class DuccProcess implements IDuccProcess {
 	
 	public int getProcessExitCode() {
 		return this.exitCode;
+	}
+
+	@Override
+	public Node getNode() {
+		return node;
+	}
+
+	@Override
+	public void setNode(Node node) {
+		this.node = node;
 	}
 
 }
