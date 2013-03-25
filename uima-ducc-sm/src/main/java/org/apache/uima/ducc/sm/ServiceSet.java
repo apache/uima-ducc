@@ -429,7 +429,7 @@ public class ServiceSet
         if ( stopped     ) return;                   // doing auto, but we've been manually stopped
 
         // could have more implementors than instances if some were started dynamically but the count not persisted
-        int needed = Math.max(0, instances - friendly_ids.size());
+        int needed = Math.max(0, instances - countImplementors());
 
         logger.debug(methodName, null, "ENFORCE: ", needed);
         while ( (needed--) > 0 ) {
@@ -692,9 +692,16 @@ public class ServiceSet
         }
     }
 
-    public int countImplementors()
+    public synchronized int countImplementors()
     {
-        return implementors.size();
+        // The implementos and friendly_ids sets track each other carefully.  The former
+        // tracks process state via the remote process's DuccId.  The latter tracks
+        // what we've tried to start, but may not know the actual state for until we get
+        // Orchestrator publications.
+        //
+        // To avoid ugly races, we consider a process to be an implementor as soon as we
+        // get the "friendly" id from the Orchestrator.
+        return friendly_ids.size();
     }
 
     public synchronized int reference(DuccId id)
