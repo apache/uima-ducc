@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -798,7 +799,8 @@ public class StateManager {
 			Iterator<DuccId> resourceMapIterator = resourceMap.keySet().iterator();
 			while(resourceMapIterator.hasNext()) {
 				DuccId duccId = resourceMapIterator.next();
-				NodeIdentity nodeId = resourceMap.get(duccId).getNodeId();
+				Node node = resourceMap.get(duccId).getNode();
+				NodeIdentity nodeId = node.getNodeIdentity();
 				if(!processMap.containsKey(duccId)) {
 					ProcessType processType = null;
 					switch(duccWorkJob.getServiceDeploymentType()) {
@@ -811,7 +813,7 @@ public class StateManager {
 						processType = ProcessType.Job_Uima_AS_Process;
 						break;
 					}
-					DuccProcess process = new DuccProcess(duccId, nodeId, processType);
+					DuccProcess process = new DuccProcess(duccId, node, processType);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
 					process.setResourceState(ResourceState.Allocated);
@@ -876,7 +878,8 @@ public class StateManager {
 			logger.debug(methodName, duccWorkJob.getDuccId(), messages.fetchLabel("size")+processMap.size());
 			while(resourceMapIterator.hasNext()) {
 				DuccId duccId = resourceMapIterator.next();
-				NodeIdentity nodeId = resourceMap.get(duccId).getNodeId();
+				Node node = resourceMap.get(duccId).getNode();
+				NodeIdentity nodeId = node.getNodeIdentity();
 				logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource processing")
 					+" "+messages.fetchLabel("process")+duccId.getFriendly()
 					+" "+messages.fetchLabel("unique")+duccId.getUnique()
@@ -923,10 +926,11 @@ public class StateManager {
 			while(resourceMapIterator.hasNext()) {
 				DuccId duccId = resourceMapIterator.next();
 				IResource resource = resourceMap.get(duccId);
-				NodeIdentity nodeId = resource.getNodeId();
+				Node node = resource.getNode();
+				NodeIdentity nodeId = node.getNodeIdentity();
 				int shares = resource.countShares();
 				if(!reservationMap.containsKey(duccId)) {
-					DuccReservation reservation = new DuccReservation(duccId, nodeId, shares);
+					DuccReservation reservation = new DuccReservation(duccId, node, shares);
 					reservationMap.addReservation(reservation);
 					logger.info(methodName, duccId, messages.fetch("add resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
 					changes++;
@@ -949,7 +953,8 @@ public class StateManager {
 			Iterator<DuccId> resourceMapIterator = resourceMap.keySet().iterator();
 			while(resourceMapIterator.hasNext()) {
 				DuccId duccId = resourceMapIterator.next();
-				NodeIdentity nodeId = resourceMap.get(duccId).getNodeId();
+				Node node = resourceMap.get(duccId).getNode();
+				NodeIdentity nodeId = node.getNodeIdentity();
 				if(reservationMap.containsKey(duccId)) {
 					reservationMap.removeReservation(duccId);
 					logger.info(methodName, duccId, messages.fetch("remove resource")+" "+messages.fetchLabel("name")+nodeId.getName()+" "+messages.fetchLabel("ip")+nodeId.getIp());
