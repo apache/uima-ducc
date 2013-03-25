@@ -39,6 +39,8 @@ import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 
+import com.google.gson.Gson;
+
 
 /**
  * This process orchestrates scheduling.
@@ -888,8 +890,17 @@ public class Scheduler
     private int total_arrivals = 0;
     public void nodeArrives(Node node)
     {        
-    	// String methodName = "nodeArrives";
+    	String methodName = "nodeArrives";
         // The first block insures the node is in the scheduler's records as soon as possible
+
+        try {
+			Gson gson = new Gson();
+			String gnode = gson.toJson(node);
+			logger.info(methodName, null, "GSON:", gnode);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.error(methodName, null, e);
+		}
 
         total_arrivals++;       // report these in the main schedule loop
         synchronized(this) {

@@ -599,6 +599,7 @@ public class JobManagerConverter
         }
 
         if ( !scheduler.ready() ) {
+            // JRC dumpOrchestratorState(jobMap);
             logger.info(methodName, null, "Orchestrator event is discarded because scheduler is not yet ready.");
             return;
         }
@@ -765,7 +766,7 @@ public class JobManagerConverter
                 shares = j.getAssignedShares();
                 if ( shares != null ) {
                     for ( Share s : shares.values() ) {
-                        Resource r = new Resource(s.getId(), s.getNodeIdentity(), s.isPurged(), s.getShareOrder());
+                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
                         all_shares.put(s.getId(), r);
                         //logger.debug(methodName, j.getId(), "Assigned:", s.toString());
                     }
@@ -774,7 +775,7 @@ public class JobManagerConverter
                 shares = shrunken.get(j.getId());
                 if ( shares != null ) {
                     for ( Share s : shares.values() ) {
-                        Resource r = new Resource(s.getId(), s.getNodeIdentity(), s.isPurged(), s.getShareOrder());
+                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
                         shrunken_shares.put(s.getId(), r);
                         //logger.debug(methodName, j.getId(), "Shrunken:", s.toString());
                     }
@@ -783,7 +784,7 @@ public class JobManagerConverter
                 shares = expanded.get(j.getId());
                 if ( shares != null ) {
                     for ( Share s : shares.values() ) {
-                        Resource r = new Resource(s.getId(), s.getNodeIdentity(), s.isPurged(), s.getShareOrder());
+                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
                         expanded_shares.put(s.getId(), r);
                         //logger.debug(methodName, j.getId(), "Expanded:", s.toString());
                     }
@@ -808,5 +809,59 @@ public class JobManagerConverter
 
     }
 
+    // JRC    
+//     void dumpOrchestratorState(DuccWorkMap jobmap)
+//     {
+//     	String methodName = "dumpOrchetratorState";
+//         for ( IDuccWork w : jobmap.values() ) {
+//         	String prefix = "?";
+//             switch ( w.getDuccType() ) {
+//                 case Job:
+//                     prefix = "J";
+//                     break;
+//                 case Service:
+//                     prefix = "S";
+//                     break;
+//                 case Reservation:
+//                     prefix = "R";
+//                     break;
+//             }
+
+//             if ( w.isCompleted() ) {
+//                 logger.info(methodName, w.getDuccId(), "Ignoring completed work", prefix, w.getDuccId());
+//             }
+
+//             switch ( w.getDuccType() ) {
+//                 case Job: {
+//                     IDuccWorkExecutable de = (IDuccWorkExecutable) w;
+//                     IDuccProcessMap pm = de.getProcessMap();
+//                     logger.info(methodName, w.getDuccId(), "Received work of type", prefix, w.getDuccType(), "with", pm.size(), "processes.");
+//                     for ( IDuccProcess proc : pm.values() ) {
+//                         String pid = proc.getPID();
+//                         ProcessState state = proc.getProcessState();
+//                         logger.info(methodName, w.getDuccId(), "Found process", pid, "in state", state, "is complete:", proc.isComplete());
+//                     }
+//                     }
+//                     break;
+//                 case Service: {
+//                     IDuccWorkExecutable de = (IDuccWorkExecutable) w;
+//                     IDuccProcessMap pm = de.getProcessMap();
+//                     logger.info(methodName, w.getDuccId(), "Received work of type", prefix, w.getDuccType(), "with", pm.size(), "processes.");
+//                     }
+//                     break;
+//                 case Reservation: {
+//                     IDuccWorkReservation de = (IDuccWorkReservation) w;
+//                     IDuccReservationMap  rm = de.getReservationMap();
+//                     logger.info(methodName, w.getDuccId(), "Received work of type", prefix, w.getDuccType(), "with", rm.size(), "nodes.");
+//                     }
+//                     break;
+//                 default:
+//                     logger.info(methodName, w.getDuccId(), "Received work of type ?", w.getDuccType());
+//                     break;
+//             }
+
+//             logger.info(methodName, null, "Work:", w);
+//         }
+//     }
 }
 

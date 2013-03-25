@@ -18,16 +18,17 @@
 */
 package org.apache.uima.ducc.transport.event.rm;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class Resource implements IResource {
 
 	private static final long serialVersionUID = 1L;
-	private DuccId duccId;                // DuccId of the share, assigned by RM
-    private NodeIdentity nodeId;          // Node id, assigned by Agent
-    private boolean purged;               // Purged, for node failure
-    private int qShares;                  // Number of quantum shares this resource occupies
+	private DuccId  duccId;                // DuccId of the share, assigned by RM
+    private Node    node;                  // Node id, assigned by Agent
+    private boolean purged;                // Purged, for node failure
+    private int     qShares;               // Number of quantum shares this resource occupies
 
     // dissallow
     @SuppressWarnings("unused")
@@ -35,33 +36,34 @@ public class Resource implements IResource {
     {
     }
 
-    public Resource(DuccId duccId, NodeIdentity nodeId, boolean purged, int qShares) 
+    public Resource(DuccId duccId, Node node, boolean purged, int qShares) 
     {
         this.duccId  = duccId;
-        this.nodeId  = nodeId;
+        this.node    = node;        
         this.purged  = purged;
         this.qShares = qShares;
     }
 	
-    @Override
     public DuccId getId() 
     {
         return duccId;
     }
 
-    @Override
     public NodeIdentity getNodeId() 
     {
-        return nodeId;
+        return node.getNodeIdentity();
     }
 
-    @Override
+    public Node getNode()
+    {
+        return node;
+    }
+
     public boolean isPurged() 
     {
         return purged;
     }
 
-    @Override
     public int countShares()
     {
         return qShares;
@@ -69,6 +71,6 @@ public class Resource implements IResource {
 
     public String toString()
     {
-        return nodeId.getName() + "." + duccId.getFriendly() + ( purged ? "[P]" : "");
+        return getNodeId().getName() + "." + duccId.getFriendly() + ( purged ? "[P]" : "");
     }
 }

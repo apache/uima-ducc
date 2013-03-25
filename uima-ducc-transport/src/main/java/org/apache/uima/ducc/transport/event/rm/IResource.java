@@ -20,6 +20,7 @@ package org.apache.uima.ducc.transport.event.rm;
 
 import java.io.Serializable;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
@@ -40,6 +41,11 @@ public interface IResource extends Serializable
      * Returns the node identity where the share resides.
      */
     NodeIdentity getNodeId();     // The node where this resource resides, as provided by the Node Agent
+
+    /**
+     * Returns the actual node object for the resource.
+     */
+    Node getNode();
 
     /**
      * If true, this share has been purged because its node went AWOL.

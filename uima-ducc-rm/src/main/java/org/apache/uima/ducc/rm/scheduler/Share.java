@@ -18,10 +18,11 @@
 */
 package org.apache.uima.ducc.rm.scheduler;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 
 
 
@@ -156,6 +157,11 @@ public class Share
         return machine.getNodeIdentity();
     }
 
+    public Node getNode()
+    {
+    	return machine.getNode();
+    }
+    
     /**
      * The order of the share itself.
      */
