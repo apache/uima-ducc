@@ -33,12 +33,14 @@ package org.apache.uima.ducc.common.utils;
  *                    Many scripting updates. jrc
  * 2013-01-02  0.7.2  AP service support, unified ping for CUSTOM and UIMA services
  * 2013-02-03  0.7.3  First floor system from Apache distro.
+ * 2013-02-25  0.8.0  Second floor system from Apache distro. RM defrag, lots of SM updates,
+ *                      completed AP support in WS. CLI update, API creation.
  */
 public class Version
 {
     private static final int major = 0;       // Major version
-    private static final int minor = 7;       // Minor - may be API changes, or new function
-    private static final int ptf   = 3;       // Fix level, fully compatible with previous, no relevent new function
+    private static final int minor = 8;       // Minor - may be API changes, or new function
+    private static final int ptf   = 0;       // Fix level, fully compatible with previous, no relevent new function
     private static final String id = "beta";  // A short decoration, optional
 
     public final static String version()

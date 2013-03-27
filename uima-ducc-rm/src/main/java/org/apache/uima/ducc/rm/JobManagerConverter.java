@@ -21,11 +21,13 @@ package org.apache.uima.ducc.rm;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils;
-import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapDifference;
 import org.apache.uima.ducc.common.utils.DuccCollectionUtils.DuccMapValueDifference;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.rm.scheduler.IJobManager;
 import org.apache.uima.ducc.rm.scheduler.IRmJob;
@@ -46,12 +48,13 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.rm.IResource;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
 import org.apache.uima.ducc.transport.event.rm.Resource;
@@ -73,12 +76,16 @@ public class JobManagerConverter
     JobManagerUpdate lastJobManagerUpdate = new JobManagerUpdate();
 
     Map<IRmJob, IRmJob> refusedJobs = new HashMap<IRmJob, IRmJob>();
+    
+    boolean recovery = false;
 
     public JobManagerConverter(ISchedulerMain scheduler)
     {
         this.scheduler = scheduler;
         this.localMap = new DuccWorkMap();
         DuccLogger.setUnthreaded();
+
+        recovery = SystemPropertyResolver.getBooleanProperty("ducc.rm.fast.recovery", true);
     }
 
     int toInt(String s, int deflt)
@@ -587,6 +594,7 @@ public class JobManagerConverter
 
     }
 
+    boolean first_or_state = true;
     public void eventArrives(DuccWorkMap jobMap)
     {
     	String methodName = "eventArrives";
@@ -598,9 +606,25 @@ public class JobManagerConverter
             return;
         }
 
+        // The init file is read and configured ?
+        if ( ! scheduler.isInitialized() ) return;
+        
+        if ( first_or_state ) {
+            first_or_state = false;
+            if ( ! recoverFromOrchestrator(jobMap) ) {
+                logger.info(methodName, null, "There are no active jobs in map so can't build up state. Waiting for init stability.");
+                return;
+            } 
+            
+            if ( recovery ) {
+                logger.info(methodName, null, "Fast recovery is enabled: Recovered state from Orchestrator, starting scheduler.");
+                scheduler.start();
+            }
+        }
+
+        // scheduler is readied either by fast-recovery, or by init stability
         if ( !scheduler.ready() ) {
-            // JRC dumpOrchestratorState(jobMap);
-            logger.info(methodName, null, "Orchestrator event is discarded because scheduler is not yet ready.");
+            logger.info(methodName, null, "Orchestrator event is discarded: waiting for init stability.");
             return;
         }
 
@@ -809,59 +833,108 @@ public class JobManagerConverter
 
     }
 
-    // JRC    
-//     void dumpOrchestratorState(DuccWorkMap jobmap)
-//     {
-//     	String methodName = "dumpOrchetratorState";
-//         for ( IDuccWork w : jobmap.values() ) {
-//         	String prefix = "?";
-//             switch ( w.getDuccType() ) {
-//                 case Job:
-//                     prefix = "J";
-//                     break;
-//                 case Service:
-//                     prefix = "S";
-//                     break;
-//                 case Reservation:
-//                     prefix = "R";
-//                     break;
-//             }
+    /**
+     * Got an OR map and we're ok for fast recovery.  If the map has no "live" jobs we just ignore it - that's first-time
+     * startup and OR will not start if there is no JD node, so we do normal init stability.  Otherwise, we assume that the
+     * JD node is included, build the resource map, and allow scheduling to proceed.
+     */
+    boolean recoverFromOrchestrator(DuccWorkMap jobmap)
+    {
+    	String methodName = "recoverFromOrchestrator";
+        Map<Node, Node> nodes = new HashMap<Node, Node>();
+        for ( IDuccWork w : jobmap.values() ) {
+        	String prefix = "?";
+            switch ( w.getDuccType() ) {
+            case Job:
+                prefix = "JOB";
+                break;
+            case Service:
+                prefix = "SVC";
+                break;
+            case Reservation:
+                prefix = "RES";
+                break;
+            }
 
-//             if ( w.isCompleted() ) {
-//                 logger.info(methodName, w.getDuccId(), "Ignoring completed work", prefix, w.getDuccId());
-//             }
+            if ( w.isCompleted() ) {
+                logger.info(methodName, w.getDuccId(), "Ignoring completed work:", w.getDuccType(), ":", w.getStateObject());
+                continue;
+            }
+                        		
+            switch ( w.getDuccType() ) {
+                case Job:
+                    {
+                        IDuccWorkExecutable de = (IDuccWorkExecutable) w;
+                        IDuccProcessMap pm = de.getProcessMap();
+                        logger.info(methodName, w.getDuccId(), "Receive:", prefix, w.getDuccType(), w.getStateObject(), "processes[", pm.size(), "] Completed:", w.isCompleted());
 
-//             switch ( w.getDuccType() ) {
-//                 case Job: {
-//                     IDuccWorkExecutable de = (IDuccWorkExecutable) w;
-//                     IDuccProcessMap pm = de.getProcessMap();
-//                     logger.info(methodName, w.getDuccId(), "Received work of type", prefix, w.getDuccType(), "with", pm.size(), "processes.");
-//                     for ( IDuccProcess proc : pm.values() ) {
-//                         String pid = proc.getPID();
-//                         ProcessState state = proc.getProcessState();
-//                         logger.info(methodName, w.getDuccId(), "Found process", pid, "in state", state, "is complete:", proc.isComplete());
-//                     }
-//                     }
-//                     break;
-//                 case Service: {
-//                     IDuccWorkExecutable de = (IDuccWorkExecutable) w;
-//                     IDuccProcessMap pm = de.getProcessMap();
-//                     logger.info(methodName, w.getDuccId(), "Received work of type", prefix, w.getDuccType(), "with", pm.size(), "processes.");
-//                     }
-//                     break;
-//                 case Reservation: {
-//                     IDuccWorkReservation de = (IDuccWorkReservation) w;
-//                     IDuccReservationMap  rm = de.getReservationMap();
-//                     logger.info(methodName, w.getDuccId(), "Received work of type", prefix, w.getDuccType(), "with", rm.size(), "nodes.");
-//                     }
-//                     break;
-//                 default:
-//                     logger.info(methodName, w.getDuccId(), "Received work of type ?", w.getDuccType());
-//                     break;
-//             }
+                        for ( IDuccProcess proc : pm.values() ) {
+                            String pid = proc.getPID();
+                            ProcessState state = proc.getProcessState();
+                            Node n = proc.getNode();
+                            if ( n == null ) {
+                                logger.info(methodName, w.getDuccId(), "   Process[", pid, "] state [", state, "] is complete[", proc.isComplete(), "] Node [N/A] mem[N/A");
+                            } else {
+                                long mem = n .getNodeMetrics().getNodeMemory().getMemTotal();
+                                logger.info(methodName, w.getDuccId(), 
+                                            "   Process[", pid, 
+                                            "] state [", state, 
+                                            "] is complete [", proc.isComplete(),
+                                            "] Node [", n.getNodeIdentity().getName() + "." + proc.getDuccId(),                                            
+                                            "] mem [", mem, "]");                    
+                                logger.info(methodName, w.getDuccId(), "      Recover node[", n.getNodeIdentity().getName());
+                                // 
+                                // Note, not ignoring dead processes belonging to live jobs.  Is this best or should we be
+                                // more conservative and not use nodes that we don't know 100% for sure are ok?
+                                //
+                                nodes.put(n, n);
+                            }
+                        }
+                    }
+                    break;
 
-//             logger.info(methodName, null, "Work:", w);
-//         }
-//     }
+                case Service: 
+                    {
+                        IDuccWorkExecutable de = (IDuccWorkExecutable) w;
+                        IDuccProcessMap pm = de.getProcessMap();
+                        logger.info(methodName, w.getDuccId(), prefix, w.getDuccType(), "processes[", pm.size(), "].");
+                    }
+                    break;
+                    
+                case Reservation: 
+                    {
+                        IDuccWorkReservation de = (IDuccWorkReservation) w;
+                        IDuccReservationMap  rm = de.getReservationMap();
+
+                        logger.info(methodName, w.getDuccId(), "Receive:", prefix, w.getDuccType(), w.getStateObject(), "processes[", rm.size(), "] Completed:", w.isCompleted());
+                        
+                        for ( IDuccReservation r: rm.values()) {
+                            Node n = r.getNode();                        
+                            if ( n == null ) {
+                                logger.info(methodName, w.getDuccId(), 
+                                            "    Node [N/A] mem[N/A");
+                            } else {
+                                long mem = n .getNodeMetrics().getNodeMemory().getMemTotal();
+                                logger.info(methodName, w.getDuccId(), 
+                                            "   Node[", n.getNodeIdentity().getName(),
+                                            "] mem[", mem, "]");
+                                nodes.put(n, n);
+                            }
+                        }
+                    }
+                    break;
+
+                default:
+                    logger.info(methodName, w.getDuccId(), "Received work of type ?", w.getDuccType());
+                    break;
+            }
+        }
+        logger.info(methodName, null, "Recovered[", nodes.size(), "] nodes from OR state.");
+        for (Node n : nodes.values() ) {
+            scheduler.nodeArrives(n);
+        }
+        
+        return (nodes.size() != 0);
+    }
 }
 

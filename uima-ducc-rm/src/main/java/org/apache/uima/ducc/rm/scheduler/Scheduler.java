@@ -39,8 +39,6 @@ import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 
-import com.google.gson.Gson;
-
 
 /**
  * This process orchestrates scheduling.
@@ -133,7 +131,7 @@ public class Scheduler
     {
     }
 
-    public void init()
+    public synchronized void init()
         throws Exception
     {
         String methodName = "init";
@@ -225,6 +223,11 @@ public class Scheduler
                                                                                              + rmversion_ptf     + "-" 
                                                                                              + rmversion_string);
         initialized = true;
+    }
+
+    public synchronized boolean isInitialized()
+    {
+        return initialized;
     }
 
     public Machine getMachine(NodeIdentity ni)
@@ -638,12 +641,12 @@ public class Scheduler
      * We don't accept new work or even Orchestrator state updates until "ready". We do
      * want machines, but be sure the internal structures are protected.
      */
-    public boolean ready()
+    public synchronized boolean ready()
     {
     	return stability;
     }
 
-    public void start()
+    public synchronized void start()
     {
         stability = true;
     }
@@ -652,7 +655,7 @@ public class Scheduler
     {
     	String methodName = "handleDeadNodes";
     	
-        if ( ! initialized ) {
+        if ( ! isInitialized() ) {
             return;
         }
 
@@ -696,7 +699,11 @@ public class Scheduler
 //             return null;
 //         }
 
-        if ( ! stability ) {
+        if ( ! ready() ) {
+            return null;
+        }
+
+        if ( ! isInitialized() ) {
             return null;
         }
 
@@ -890,17 +897,8 @@ public class Scheduler
     private int total_arrivals = 0;
     public void nodeArrives(Node node)
     {        
-    	String methodName = "nodeArrives";
+    	// String methodName = "nodeArrives";
         // The first block insures the node is in the scheduler's records as soon as possible
-
-        try {
-			Gson gson = new Gson();
-			String gnode = gson.toJson(node);
-			logger.info(methodName, null, "GSON:", gnode);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.error(methodName, null, e);
-		}
 
         total_arrivals++;       // report these in the main schedule loop
         synchronized(this) {

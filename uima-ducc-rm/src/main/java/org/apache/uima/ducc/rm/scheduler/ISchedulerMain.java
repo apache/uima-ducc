@@ -61,6 +61,12 @@ public interface ISchedulerMain
 
     void queryMachines();
 
-    boolean ready();                    // we don't accept any state until scheduler is ready
+    // two flags are needed to cope with the asynchronous messages that can arrive at any time:
+    //    has the scheduler read it's config files and initialized structures?
+    //    has the scheduler discovered enough resources that it can schedule work?
+    boolean isInitialized();              // has scheduler read all it's config and set up its strucures?
+    boolean ready();                    // have enough resources checked in so scheduler can schedule work?
+
+    // once both initialized() and ready() occur, the RM scaffolding will enable scheduling by calling start
     void start();
 }
