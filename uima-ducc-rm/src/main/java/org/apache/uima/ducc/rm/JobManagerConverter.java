@@ -863,6 +863,7 @@ public class JobManagerConverter
                         		
             switch ( w.getDuccType() ) {
                 case Job:
+                case Service:
                     {
                         IDuccWorkExecutable de = (IDuccWorkExecutable) w;
                         IDuccProcessMap pm = de.getProcessMap();
@@ -893,13 +894,13 @@ public class JobManagerConverter
                     }
                     break;
 
-                case Service: 
-                    {
-                        IDuccWorkExecutable de = (IDuccWorkExecutable) w;
-                        IDuccProcessMap pm = de.getProcessMap();
-                        logger.info(methodName, w.getDuccId(), prefix, w.getDuccType(), "processes[", pm.size(), "].");
-                    }
-                    break;
+                // case Service: 
+                //     {
+                //         IDuccWorkExecutable de = (IDuccWorkExecutable) w;
+                //         IDuccProcessMap pm = de.getProcessMap();
+                //         logger.info(methodName, w.getDuccId(), prefix, w.getDuccType(), "processes[", pm.size(), "].");
+                //     }
+                //     break;
                     
                 case Reservation: 
                     {
