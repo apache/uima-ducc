@@ -28,7 +28,8 @@ import org.apache.uima.ducc.common.utils.Utils;
 
 public class DuccWebProperties {
 
-	static Properties properties = new Properties();
+	/*
+	public static Properties properties = new Properties();
 	
 	public static String key_MaxRecordsJobs = "MaxRecordsJobs";
 	public static String key_MaxRecordsReservations = "MaxRecordsReservations";
@@ -41,18 +42,22 @@ public class DuccWebProperties {
 	public static Properties instance() {
 		return (Properties)properties.clone();
 	}
+	*/
+	
+	public static String key_ducc_rm_share_quantum = "ducc.rm.share.quantum";
+	public static String val_ducc_rm_share_quantum = "15";
 	
 	private static String dir_home = Utils.findDuccHome();
 	private static String dir_resources = "resources";
 	private static String ducc_properties_filename = dir_home+File.separator+dir_resources+File.separator+"ducc.properties";
 	
 	public static Properties get() {
-		Properties properties = new Properties();
+		Properties currentProperties = new Properties();
 		try {
 			File file = new File(ducc_properties_filename);
 			FileInputStream fis;
 			fis = new FileInputStream(file);
-			properties.load(fis);
+			currentProperties.load(fis);
 			fis.close();
 		} 
 		catch (FileNotFoundException e) {
@@ -61,6 +66,17 @@ public class DuccWebProperties {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		return properties;
+		return currentProperties;
+	}
+	
+	public static String getProperty(String key, String defaultValue) {
+		String value = defaultValue;
+		Properties currentProperties = get();
+		if(currentProperties != null) {
+			if(currentProperties.containsKey(key)) {
+				value = currentProperties.getProperty(key).trim();
+			}
+		}
+		return value;
 	}
 }

@@ -126,15 +126,11 @@ public class DuccMachinesData {
 		catch(Throwable t) {
 			logger.warn(location, jobid, t);
 		}
-		Properties properties = DuccWebProperties.get();
-		String key_share_size = "ducc.rm.default.memory";
-		if(properties.containsKey(key_share_size)) {
-			try {
-				shareSize = Integer.parseInt(properties.getProperty(key_share_size).trim());
-			}
-			catch(Throwable t) {
-				logger.warn(location, jobid, t);
-			}
+		try {
+			shareSize = Integer.parseInt(DuccWebProperties.getProperty(DuccWebProperties.key_ducc_rm_share_quantum, DuccWebProperties.val_ducc_rm_share_quantum));
+		}
+		catch(Throwable t) {
+			logger.warn(location, jobid, t);
 		}
 		try {
 			InetAddress ia = InetAddress.getLocalHost();

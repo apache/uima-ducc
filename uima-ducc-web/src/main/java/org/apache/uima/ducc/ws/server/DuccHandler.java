@@ -2340,15 +2340,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		sb.append("<select id=\"instance_memory_size\">");
 		int shareSize = DuccConstants.defaultShareSize;
-		Properties properties = DuccWebProperties.get();
-		String key_share_size = "ducc.rm.default.memory";
-		if(properties.containsKey(key_share_size)) {
-			try {
-				shareSize = Integer.parseInt(properties.getProperty(key_share_size).trim());
-			}
-			catch(Throwable t) {
-				duccLogger.error(methodName, null, t);
-			}
+		try {
+			shareSize = Integer.parseInt(DuccWebProperties.getProperty(DuccWebProperties.key_ducc_rm_share_quantum, DuccWebProperties.val_ducc_rm_share_quantum));
+		}
+		catch(Throwable t) {
+			duccLogger.warn(methodName, jobid, t);
 		}
 		for(int i=0; i<DuccConstants.memorySizes.length; i++) {
 			int memorySize = DuccConstants.memorySizes[i]*shareSize;
