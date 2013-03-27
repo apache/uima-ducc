@@ -121,9 +121,11 @@ public class Scheduler
     //    4 - defrag code complete
     //  beta - not yet "real"!
     //
+    // Bring up to speed with rest of ducc version. 2013-03-06 jrc
+    //
     final static int rmversion_major = 0;
-    final static int rmversion_minor = 6;
-    final static int rmversion_ptf   = 4;  
+    final static int rmversion_minor = 8;
+    final static int rmversion_ptf   = 0;  
     final static String rmversion_string = "beta";
 
     boolean initialized = false;           // we refuse nodeupdates until this is true
@@ -197,12 +199,13 @@ public class Scheduler
         logger.info(methodName, null, "                       default tasks           : ", defaultNTasks);
         logger.info(methodName, null, "                       default memory          : ", defaultMemory);
         logger.info(methodName, null, "                       class definition file   : ", class_definitions);
-        logger.info(methodName, null, "                       RM:OR scheduling ratio  : ", SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.ratio", 
-                                                                                                                                 DEFAULT_SCHEDULING_RATIO) + ":1");
         logger.info(methodName, null, "                       eviction policy         : ", evictionPolicy);
         logger.info(methodName, null, "                       use prediction          : ", SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         logger.info(methodName, null, "                       prediction fudge factor : ", SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 10000));
         logger.info(methodName, null, "                       node stability          : ", nodeStability);
+        logger.info(methodName, null, "                       init stability          : ", SystemPropertyResolver.getIntProperty("ducc.rm.init.stability"));
+        logger.info(methodName, null, "                       fast recovery           : ", SystemPropertyResolver.getBooleanProperty("ducc.rm.fast.recovery", true));
+        logger.info(methodName, null, "                       RM publish rate         : ", SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", 60));
         logger.info(methodName, null, "                       metrics update rate     : ", SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", 
                                                                                                                                  DEFAULT_NODE_METRICS_RATE));
         logger.info(methodName, null, "                       initialization cap      : ", SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap"));
