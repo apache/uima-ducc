@@ -77,9 +77,9 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 	public void cancel() {
 		try {
        		ArrayList<String> arrayList = new ArrayList<String>();
-       		arrayList.add("--"+UiOption.JobId);
+       		arrayList.add("--"+UiOption.JobId.pname());
        		arrayList.add(getId());
-       		arrayList.add("--"+UiOption.Reason);
+       		arrayList.add("--"+UiOption.Reason.pname());
        		arrayList.add("\"submitter was terminated via interrupt\"");
        		String[] argList = arrayList.toArray(new String[0]);
     		DuccJobCancel jobCancel = new DuccJobCancel(argList);
