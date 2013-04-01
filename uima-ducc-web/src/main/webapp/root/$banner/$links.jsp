@@ -20,7 +20,7 @@ under the License.
 <tr>
 <td><span id="login_link_area"></span>
 <td>|
-<td><span id="logout_link_area"><a href="logout.html" onclick="var newWin = window.open(this.href,'child','height=600,width=475,scrollbars'); newWin.focus(); return false;">Logout</a></span>
+<td><span id="logout_link_area"></span>
 <td>|
 <td><span id="preferences_link_area"><a href="preferences.html" onclick="var newWin = window.open(this.href,'child','height=600,width=900,scrollbars'); newWin.focus(); return false;">Preferences</a></span>
 <td>|

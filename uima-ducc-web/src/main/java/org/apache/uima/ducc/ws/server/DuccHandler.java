@@ -102,6 +102,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccVersion						= duccContext+"/version";
 	
 	private String duccLoginLink					= duccContext+"/login-link";
+	private String duccLogoutLink					= duccContext+"/logout-link";
 	private String duccAuthenticationStatus 		= duccContext+"/authentication-status";
 	private String duccAuthenticatorVersion 		= duccContext+"/authenticator-version";
 	
@@ -196,13 +197,42 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletLoginLink";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
-		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Login</a>";
-		sb.append(href);
+		boolean userAuth = isAuthenticated(request,response);
+        if (userAuth) {
+        	sb.append("<span class=\"status_on\">");
+        	sb.append("Logged-in");
+        	sb.append("<span>");
+        }
+        else {
+    		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
+    		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Login</a>";
+    		sb.append(href);
+        }
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
-
+	
+	private void handleDuccServletLogoutLink(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletLogoutLink";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		boolean userAuth = isAuthenticated(request,response);
+        if (userAuth) {
+    		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
+    		String href = "<a href=\""+link+"logout.html\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Logout</a>";
+    		sb.append(href);
+        }
+        else {
+        	sb.append("<span class=\"status_off\">");
+        	sb.append("Logged-out");
+        	sb.append("<span>");
+        }
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
 	private void handleDuccServletVersion(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -224,12 +254,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		boolean userAuth = isAuthenticated(request,response);
         if (userAuth) {
         	sb.append("<span class=\"status_on\">");
-        	sb.append("logged in");
+        	sb.append("logged-in");
         	sb.append("<span>");
         }
         else {
         	sb.append("<span class=\"status_off\">");
-        	sb.append("logged out");
+        	sb.append("logged-out");
         	sb.append("<span>");
         }
 		response.getWriter().println(sb);
@@ -3033,6 +3063,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccLoginLink)) {
 				handleDuccServletLoginLink(target, baseRequest, request, response);
+			}
+			else if(reqURI.startsWith(duccLogoutLink)) {
+				handleDuccServletLogoutLink(target, baseRequest, request, response);
 			}
 			else if(reqURI.startsWith(duccJobIdData)) {
 				handleDuccServletJobIdData(target, baseRequest, request, response);

@@ -141,6 +141,14 @@ function ducc_links()
 				$("#login_link_area").html(data);
 			}
 		});
+		$.ajax(
+		{
+			url : "/ducc-servlet/logout-link",
+			success : function (data) 
+			{
+				$("#logout_link_area").html(data);
+			}
+		});
 	}
 	catch(err) {
 		ducc_error("ducc_links",err);
@@ -175,6 +183,7 @@ function ducc_authentication()
 				$("#authentication_area").html(data);
 			}
 		});
+		ducc_links();
 	}
 	catch(err) {
 		ducc_error("ducc_authentication",err);

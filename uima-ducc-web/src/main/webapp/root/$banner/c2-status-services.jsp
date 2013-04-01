@@ -29,10 +29,6 @@ under the License.
 <td valign="top"><span class="utilizationtitle" id="utilization_area">?</span>
 </tr>
 <tr>
-<td valign="top" align="right">Authentication:&nbsp
-<td valign="top"><span class="authenticationtitle" id="authentication_area">?</span>
-</tr>
-<tr>
 <%@ include file="$users.jsp" %>
 </tr>
 <tr>
