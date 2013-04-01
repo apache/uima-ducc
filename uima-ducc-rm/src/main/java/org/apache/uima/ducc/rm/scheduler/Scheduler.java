@@ -19,7 +19,10 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,7 +56,7 @@ public class Scheduler
     	SchedConstants
 {
     IJobManager jobManager;
-    DuccLogger     logger = DuccLogger.getLogger(Scheduler.class, COMPONENT_NAME);
+    static DuccLogger     logger = DuccLogger.getLogger(Scheduler.class, COMPONENT_NAME);
 
     boolean done = false;
     // Boolean force_epoch = false;
@@ -109,6 +112,13 @@ public class Scheduler
     int nodeStability = 3;
     boolean stability = false;
 
+    // all the stuff needed to manage persistent monotonically-increasing "friendly" ids
+    private String state_dir = null;
+    private static String rm_seqno = "rm.seqno";
+    private static String state_file = null;
+    private static DuccProperties rm_state = null;
+    private static DuccIdFactory idFactory;
+
     // static boolean expandByDoubling = true;
     // static int initializationCap = 2;      // Max allocation until we know initialization works in
                                            // units of *processes*, not shares (i.e.N-shares).
@@ -157,12 +167,29 @@ public class Scheduler
 
         nodeStability     = SystemPropertyResolver.getIntProperty("ducc.rm.node.stability", 3);        // number of node metrics updates to wait for before scheduling
                                                                                   // 0 means, just jump right in and don't wait
-        // initializationCap = RmUtil.getIntProperty("ducc.rm.initialization.cap", 2);
 
         dramOverride = SystemPropertyResolver.getLongProperty("ducc.rm.override.dram", 0);
         if ( dramOverride > 0 ) {
             dramOverride = dramOverride * (1024 * 1024);         // convert to KB
         }
+
+        state_dir = System.getProperty("DUCC_HOME") + "/state";
+        state_file = state_dir + "/rm.properties";
+        rm_state = new DuccProperties();
+        File sf = new File(state_file);
+        int seq = 0;
+        FileInputStream fos;
+        if ( sf.exists() ) {
+            fos = new FileInputStream(state_file);
+            try {
+                rm_state.load(fos);
+                String s = rm_state.getProperty(rm_seqno);
+                seq = Integer.parseInt(s) + 1;
+            } finally {
+                fos.close();
+            }
+        } 
+        idFactory = new DuccIdFactory(seq);
 
         try {
             schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.rm.ClassBasedScheduler");
@@ -1128,10 +1155,22 @@ public class Scheduler
         m.removeShare(s);
     }
 
-    private static DuccIdFactory idFactory = new DuccIdFactory();
-    public static DuccId newId()
+    public synchronized static DuccId newId()
     {
-        return idFactory.next();
+    	String methodName = "newId";
+        DuccId id = idFactory.next();
+        try {
+            rm_state.setProperty(rm_seqno, id.toString());
+            FileOutputStream fos = new FileOutputStream(state_file);
+            rm_state.store(fos, "Resource Manager Properties");
+            fos.close();
+        } catch ( Exception e ) {
+            logger.error(methodName, null, "CANNOT ALLOCATE NEW DUCC ID");
+            logger.error(methodName, null, "CANNOT ALLOCATE NEW DUCC ID");
+            logger.error(methodName, null, "CANNOT ALLOCATE NEW DUCC ID BECAUSE OF", e);
+            System.exit(1);
+        }
+        return id;
     }
 
     public void queryMachines()
