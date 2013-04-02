@@ -97,10 +97,10 @@ public class DuccWebMonitorManagedReservation {
 			DuccWorkJob dwr = (DuccWorkJob) dw;
 			MonitorInfo monitorInfo = mMap.get(duccId);
 			IDuccSchedulingInfo si = dwr.getSchedulingInfo();
-			monitorInfo.total = si.getWorkItemsTotal();
-			monitorInfo.done  = si.getWorkItemsCompleted();
-			monitorInfo.error = si.getWorkItemsError();
-			monitorInfo.retry = si.getWorkItemsRetry();
+			//monitorInfo.total = si.getWorkItemsTotal();		// ignore for MR, default to 0
+			//monitorInfo.done  = si.getWorkItemsCompleted();	// ignore for MR, default to 0
+			//monitorInfo.error = si.getWorkItemsError();		// ignore for MR, default to 0
+			//monitorInfo.retry = si.getWorkItemsRetry();		// ignore for MR, default to 0
 			monitorInfo.procs = ""+dwr.getProcessMap().getAliveProcessCount();
 			
 			ArrayList<String> stateSequence = monitorInfo.stateSequence;
