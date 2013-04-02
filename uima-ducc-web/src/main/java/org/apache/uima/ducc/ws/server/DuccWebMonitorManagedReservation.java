@@ -33,7 +33,6 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 
@@ -96,7 +95,7 @@ public class DuccWebMonitorManagedReservation {
 			}
 			DuccWorkJob dwr = (DuccWorkJob) dw;
 			MonitorInfo monitorInfo = mMap.get(duccId);
-			IDuccSchedulingInfo si = dwr.getSchedulingInfo();
+			//IDuccSchedulingInfo si = dwr.getSchedulingInfo();
 			//monitorInfo.total = si.getWorkItemsTotal();		// ignore for MR, default to 0
 			//monitorInfo.done  = si.getWorkItemsCompleted();	// ignore for MR, default to 0
 			//monitorInfo.error = si.getWorkItemsError();		// ignore for MR, default to 0
