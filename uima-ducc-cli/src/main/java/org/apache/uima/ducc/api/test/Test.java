@@ -18,14 +18,15 @@
 */
 package org.apache.uima.ducc.api.test;
 
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
+import org.apache.uima.ducc.cli.DefaultCallback;
 import org.apache.uima.ducc.cli.DuccJobMonitor;
+import org.apache.uima.ducc.cli.IDuccCallback;
 
 public class Test {
 
 	public static void main(String[] args) {
 		try {
-			IDuccMessageProcessor messageHandler = new MessageHandler();
+			IDuccCallback messageHandler = new DefaultCallback();
 			DuccJobMonitor duccJobMonitor = new DuccJobMonitor(messageHandler);
 			duccJobMonitor.run(args);
 		} catch (Exception e) {
