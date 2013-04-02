@@ -48,7 +48,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
