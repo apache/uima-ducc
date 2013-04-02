@@ -401,13 +401,36 @@ public abstract class DuccMonitor  {
 				if(state.equals(StateCompleted)) {
 					if(monitorInfo.procs.equals("0")) {
 						if(monitorInfo.total.equals(monitorInfo.done)) {
-							message = new StringBuffer();
-							message.append("id:"+id);
-							message.append(" ");
-							message.append("rc:"+RC_SUCCESS);
-							thisMessage = message.toString();
-							info(thisMessage);
-							return RC_SUCCESS;
+							if(monitorInfo.code.equals("0")) {
+								message = new StringBuffer();
+								message.append("id:"+id);
+								message.append(" ");
+								message.append("code:"+monitorInfo.code);
+								thisMessage = message.toString();
+								info(thisMessage);
+								message = new StringBuffer();
+								message.append("id:"+id);
+								message.append(" ");
+								message.append("rc:"+RC_SUCCESS);
+								thisMessage = message.toString();
+								info(thisMessage);
+								return RC_SUCCESS;
+							}
+							else {
+								message = new StringBuffer();
+								message.append("id:"+id);
+								message.append(" ");
+								message.append("code:"+monitorInfo.code);
+								thisMessage = message.toString();
+								info(thisMessage);
+								message = new StringBuffer();
+								message.append("id:"+id);
+								message.append(" ");
+								message.append("rc:"+RC_FAILURE);
+								thisMessage = message.toString();
+								info(thisMessage);
+								return RC_FAILURE;
+							}
 						}
 						else {
 							if(!monitorInfo.errorLogs.isEmpty()) {

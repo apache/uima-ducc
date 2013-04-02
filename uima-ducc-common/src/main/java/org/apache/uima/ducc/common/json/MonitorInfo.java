@@ -22,6 +22,7 @@ package org.apache.uima.ducc.common.json;
 import java.util.ArrayList;
 
 public class MonitorInfo {
+	public String code = "0";
 	public ArrayList<String> stateSequence = new ArrayList<String>();
 	public String total = "0";
 	public String done  = "0";

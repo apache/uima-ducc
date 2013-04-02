@@ -21,6 +21,7 @@ package org.apache.uima.ducc.ws.server;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +34,7 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 
@@ -102,6 +104,9 @@ public class DuccWebMonitorManagedReservation {
 			//monitorInfo.retry = si.getWorkItemsRetry();		// ignore for MR, default to 0
 			monitorInfo.procs = ""+dwr.getProcessMap().getAliveProcessCount();
 			
+			Map<DuccId, IDuccProcess> map = dwr.getProcessMap().getMap();
+			monitorInfo.code = getCode(map);
+			
 			ArrayList<String> stateSequence = monitorInfo.stateSequence;
 			String state = dwr.getJobState().toString();
 			if(!stateSequence.contains(state)) {
@@ -119,6 +124,20 @@ public class DuccWebMonitorManagedReservation {
 		}
 		
 		duccLogger.trace(location, jobid, "exit");
+	}
+	
+	protected String getCode(Map<DuccId, IDuccProcess> map) {
+		String code = "?";
+		if(map != null) {
+			Iterator<DuccId> iterator = map.keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId key = iterator.next();
+				IDuccProcess process = map.get(key);
+				code = ""+process.getProcessExitCode();
+				break;
+			}
+		}
+		return code;
 	}
 	
 	protected DuccId getKey(String jobId) {
