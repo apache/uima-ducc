@@ -48,6 +48,7 @@ public class DuccServiceApi
     String sm_port = "ducc.sm.http.port";
     String sm_host = "ducc.sm.http.node";
     String endpoint = null;
+    IDuccCallback callback = null;
 
     UiOption[] registration_options = {
         UiOption.Help,
@@ -117,8 +118,9 @@ public class DuccServiceApi
         UiOption.Query,
     }; 
 
-    public DuccServiceApi()
+    public DuccServiceApi(IDuccCallback cb)
     {
+        this.callback = cb;
     }
 
     private Pair<Integer, String> getId(UiOption opt)
@@ -225,7 +227,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", callback, "services");
 
         //
         // Now: get jvm args and resolve placeholders, in particular, the broker url
@@ -303,7 +305,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), unregister_options, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), unregister_options, args, dp, sm_host, sm_port, "sm", callback, "services");
 
         Pair<Integer, String> id = getId(UiOption.Unregister);
         String user = dp.getProperty(UiOption.User.pname());
@@ -327,7 +329,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), start_options, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), start_options, args, dp, sm_host, sm_port, "sm", callback, "services");
 
         Pair<Integer, String> id = getId(UiOption.Start);
         String user = dp.getProperty(UiOption.User.pname());
@@ -357,7 +359,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), stop_options, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), stop_options, args, dp, sm_host, sm_port, "sm", callback, "services");
 
         Pair<Integer, String> id = getId(UiOption.Stop);
         String user = dp.getProperty(UiOption.User.pname());
@@ -385,7 +387,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), modify_options, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), modify_options, args, dp, sm_host, sm_port, "sm", callback, "services");
 
         Pair<Integer, String> id = getId(UiOption.Modify);
         String user = dp.getProperty(UiOption.User.pname());
@@ -415,7 +417,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), query_options, args, dp, sm_host, sm_port, "sm", null, "services");
+        init(this.getClass().getName(), query_options, args, dp, sm_host, sm_port, "sm", callback, "services");
 
         Pair<Integer, String> id = null;
         String sid = cli_props.getProperty(UiOption.Query.pname()).trim();
@@ -498,7 +500,7 @@ public class DuccServiceApi
     static boolean Register(String[] args)
     	throws Exception
     {
-        DuccServiceApi api = new DuccServiceApi();
+        DuccServiceApi api = new DuccServiceApi(null);
         IServiceReply reply = api.register(args);
         return format_reply(UiOption.Register, reply);
     }
@@ -506,7 +508,7 @@ public class DuccServiceApi
     static boolean Unregister(String[] args)
     	throws Exception
     {
-        DuccServiceApi api = new DuccServiceApi();
+        DuccServiceApi api = new DuccServiceApi(null);
         IServiceReply reply = api.unregister(args);
         return format_reply(UiOption.Unregister, reply);
     }
@@ -514,7 +516,7 @@ public class DuccServiceApi
     static boolean Start(String[] args)
         throws Exception
     {
-        DuccServiceApi api = new DuccServiceApi();
+        DuccServiceApi api = new DuccServiceApi(null);
         IServiceReply reply = api.start(args);
         return format_reply(UiOption.Start, reply);
     }
@@ -522,7 +524,7 @@ public class DuccServiceApi
     static boolean Stop(String[] args)
         throws Exception
     {
-        DuccServiceApi api = new DuccServiceApi();
+        DuccServiceApi api = new DuccServiceApi(null);
         IServiceReply reply = api.stop(args);
         return format_reply(UiOption.Stop, reply);
     }
@@ -530,7 +532,7 @@ public class DuccServiceApi
     static boolean Modify(String[] args)
         throws Exception
     {
-        DuccServiceApi api = new DuccServiceApi();
+        DuccServiceApi api = new DuccServiceApi(null);
         IServiceReply reply = api.modify(args);
         return format_reply(UiOption.Modify, reply);
     }
@@ -538,14 +540,14 @@ public class DuccServiceApi
     static boolean Query(String[] args)
         throws Exception
     {
-        DuccServiceApi api = new DuccServiceApi();
+        DuccServiceApi api = new DuccServiceApi(null);
         IServiceReply reply = api.query(args);
         return format_reply(UiOption.Query, reply);
     }
 
     static void Help()
     {
-        DuccServiceApi api = new DuccServiceApi();
+        DuccServiceApi api = new DuccServiceApi(null);
         api.help();
         System.exit(1);
     }

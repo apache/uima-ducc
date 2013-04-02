@@ -46,11 +46,11 @@ class ConsoleListener
     private boolean      in_shutdown = false;
     private boolean      start_stdin = false;
 
-    private IConsoleCallback consoleCb;
+    private IDuccCallback consoleCb;
     // private int          callers;   // number of remote processes we expect to listen for
 
     boolean debug = false;
-    ConsoleListener(CliBase submit, IConsoleCallback consoleCb)
+    ConsoleListener(CliBase submit, IDuccCallback consoleCb)
         throws Exception
     {
         this.submit = submit;
@@ -208,15 +208,23 @@ class ConsoleListener
             cl.delete(sock.getPort());
         }
 
+        boolean do_console_out = false;
         void doWrite(String line)
         {
             if ( line.startsWith(console_tag) ) {
                 logfile = line.substring(tag_len);
                 return;                                                                      // don't echo this
             }
-            if ( logfile.equals("N/A") ) return;                                             // don't log until we get a log name
-            if ( line.startsWith("1001 Command launching...") && ( !debug) ) return;        // don't log duccling noise
-            consoleCb.stdout(remote_host, logfile, line);
+ 
+            if ( do_console_out ) {
+                consoleCb.consout(remote_host, (logfile == "N/A" ? null : logfile), line);
+            } else {
+                consoleCb.duccout(remote_host, (logfile == "N/A" ? null : logfile), line);                
+            }
+
+            if ( line.startsWith("1001 Command launching...")) {
+                do_console_out = true;
+            }
         }
         
         /**

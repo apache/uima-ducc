@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
@@ -34,7 +33,7 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 		super(DuccContext.Job, true);
 	}
 	
-	public DuccJobMonitor(IDuccMessageProcessor messageProcessor) {
+	public DuccJobMonitor(IDuccCallback messageProcessor) {
 		super(DuccContext.Job, true, messageProcessor);
 	}
 	
@@ -44,7 +43,7 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 	}
 	
 	@Deprecated
-	public DuccJobMonitor(IDuccMessageProcessor messageProcessor, boolean quiet) {
+	public DuccJobMonitor(IDuccCallback messageProcessor, boolean quiet) {
 		super(DuccContext.Job, true, messageProcessor);
 	}
 	
@@ -86,7 +85,7 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
     		boolean retVal = jobCancel.execute();
     		debug("cancel rc:"+retVal);
     	} catch (Exception e) {
-    		messageProcessor.exception(e);
+q    		messageProcessor.duccout(null, null, e.toString());
     	}
 	}
 

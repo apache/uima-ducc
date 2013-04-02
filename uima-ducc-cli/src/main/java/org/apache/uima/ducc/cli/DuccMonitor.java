@@ -36,8 +36,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
-import org.apache.uima.ducc.api.DuccMessage;
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -57,8 +55,6 @@ public abstract class DuccMonitor  {
 	protected static final String StateRunning = "Running";
 	protected static final String StateCompleting = "Completing";
 	protected static final String StateCompleted = "Completed";
-	
-	protected IDuccMessageProcessor messageProcessor = new DuccMessage();
 	
 	private Options options = new Options();
 	
@@ -84,6 +80,7 @@ public abstract class DuccMonitor  {
 	private DuccPropertiesResolver duccPropertiesResolver = null;
 	
 	private DuccContext context = null;
+    IDuccCallback messageProcessor = null;
 	
 	private SynchronizedSimpleDateFormat sdf = new SynchronizedSimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 	
@@ -126,10 +123,10 @@ public abstract class DuccMonitor  {
     };
 	
 	protected DuccMonitor(DuccContext context, boolean submit) {
-		initialize(context, submit, null);
+		initialize(context, submit, new DefaultCallback());
 	}
 	
-	protected DuccMonitor(DuccContext context, boolean submit, IDuccMessageProcessor messageProcessor) {
+	protected DuccMonitor(DuccContext context, boolean submit, IDuccCallback messageProcessor) {
 		initialize(context, submit, messageProcessor);
 	}
 	
@@ -154,7 +151,7 @@ public abstract class DuccMonitor  {
 		return id;
 	}
 	
-	private void initialize(DuccContext context, boolean submit, IDuccMessageProcessor messageProcessor) {
+	private void initialize(DuccContext context, boolean submit, IDuccCallback messageProcessor) {
 		// context
 		this.context = context;
 		// submit
@@ -215,31 +212,31 @@ public abstract class DuccMonitor  {
 	
 	protected void trace(String message) {
 		if(flag_trace.get()) {
-			messageProcessor.out(timestamp(message));
+			messageProcessor.duccout(null, null, timestamp(message));
 		}
 	}
 	
 	protected void debug(String message) {
 		if(flag_debug.get()) {
-			messageProcessor.out(timestamp(message));
+			messageProcessor.duccout(null, null, timestamp(message));
 		}
 	}
 	
 	protected void debug(Exception e) {
 		if(flag_debug.get()) {
-			messageProcessor.exception(e);
+			messageProcessor.duccout(null, null, e.toString());
 		}
 	}
 	
 	private void info(String message) {
 		if(flag_info.get()) {
-			messageProcessor.out(timestamp(message));
+			messageProcessor.duccout(null, null, timestamp(message));
 		}
 	}
 	
 	private void error(String message) {
 		if(flag_error.get()) {
-			messageProcessor.out(timestamp(message));
+			messageProcessor.duccout(null, null, timestamp(message));
 		}
 	}
 	
@@ -290,7 +287,7 @@ public abstract class DuccMonitor  {
 		// DUCC_HOME
 		String ducc_home = Utils.findDuccHome();
 		if(ducc_home == null) {
-			messageProcessor.err("missing required environment variable: DUCC_HOME");
+			messageProcessor.duccout(null, null, "Missing required environment variable: DUCC_HOME");
 			return RC_FAILURE;
 		}
 		// Ingest ducc.properties
@@ -512,7 +509,7 @@ public abstract class DuccMonitor  {
        		code = runInternal(args);
     	} 
        	catch (Exception e) {
-    		messageProcessor.exception(e);
+    		messageProcessor.duccout(null, null, e.toString());
     	}
        	debug("rc="+code);
        	return code;

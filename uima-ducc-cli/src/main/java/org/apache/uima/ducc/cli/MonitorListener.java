@@ -83,7 +83,7 @@ class MonitorListener
             }
             retVal = monitor.run(argList);
         } catch (Exception e) {
-            base.addMessage(e.getMessage());
+            base.message(e.toString());
             retVal = DuccUiConstants.ERROR;
         }
         base.monitorExits(retVal);

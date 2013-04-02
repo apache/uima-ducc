@@ -78,14 +78,14 @@ public class DuccManagedReservationSubmit
         this(props, null);
     }
 
-    public DuccManagedReservationSubmit(String[] args, IConsoleCallback consoleCb)
+    public DuccManagedReservationSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties();        
         init(this.getClass().getName(), opts, args, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
-    public DuccManagedReservationSubmit(ArrayList<String> args, IConsoleCallback consoleCb)
+    public DuccManagedReservationSubmit(ArrayList<String> args, IDuccCallback consoleCb)
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
@@ -93,7 +93,7 @@ public class DuccManagedReservationSubmit
         init(this.getClass().getName(), opts, arg_array, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
-    public DuccManagedReservationSubmit(Properties props, IConsoleCallback consoleCb) 
+    public DuccManagedReservationSubmit(Properties props, IDuccCallback consoleCb) 
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties();
@@ -127,7 +127,7 @@ public class DuccManagedReservationSubmit
         try {
             reply = (SubmitServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
         } catch (Exception e) {
-            addError(dt+" not submitted: " + e.getMessage());
+            message("ERROR:", dt, "not submitted:", e.toString());
             return false;
         } finally {
             dispatcher.close();
@@ -141,13 +141,17 @@ public class DuccManagedReservationSubmit
         @SuppressWarnings("unchecked")
 		ArrayList<String> or_warnings = (ArrayList<String>) properties.get(UiOption.SubmitWarnings.pname());
         if (or_warnings != null) {
-            addWarnings(or_warnings);
+        	for ( String s : or_warnings) {
+               message("WARN:", s);
+        	}
         }
 
         @SuppressWarnings("unchecked")
         ArrayList<String> or_errors = (ArrayList<String>) properties.get(UiOption.SubmitErrors.pname());
         if(or_errors != null) {
-            addErrors(or_errors);
+        	for ( String s : or_errors ) {
+                message("ERROR:", s);
+        	}
             retval = false;
         }
 
@@ -179,29 +183,6 @@ public class DuccManagedReservationSubmit
             // started but this call does NOT block on it.
             boolean rc = ds.execute();
 
-            // Fetch messages if any.  null means none
-            String [] messages = ds.getMessages();
-            String [] warnings = ds.getWarnings();
-            String [] errors   = ds.getErrors();
-
-            if ( messages != null ) {
-                for (String s : messages ) {
-                    System.out.println(s);
-                }
-            }
-
-            if ( warnings != null ) {
-                for (String s : warnings ) {
-                    System.out.println("WARN: " + s);
-                }
-            }
-
-            if ( errors != null ) {
-                for (String s : errors ) {
-                    System.out.println("ERROR: " + s);
-                }
-            }
-
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {
                 // Fetch the Ducc ID
@@ -210,7 +191,11 @@ public class DuccManagedReservationSubmit
             	if(ds.waitForCompletion()) {
             		code = ds.getReturnCode();
             	}
-                System.out.println(dt+" return code: "+code);
+                if ( code == 1000 ) {
+                    System.out.println(dt + ": no return code.");
+                } else {
+                    System.out.println(dt+" return code: "+code);
+                }
             	System.exit(0);
             } else {
                 System.out.println("Could not submit "+dt);

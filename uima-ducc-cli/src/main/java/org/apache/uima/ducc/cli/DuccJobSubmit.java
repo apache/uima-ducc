@@ -112,20 +112,20 @@ public class DuccJobSubmit
         this(props, null);
     }
 
-	public DuccJobSubmit(ArrayList<String> args, IConsoleCallback consoleCb)
+	public DuccJobSubmit(ArrayList<String> args, IDuccCallback consoleCb)
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
         init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
     }
 
-	public DuccJobSubmit(String[] args, IConsoleCallback consoleCb)
+	public DuccJobSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
     {
         init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
     }
 
-	public DuccJobSubmit(Properties props, IConsoleCallback consoleCb)
+	public DuccJobSubmit(Properties props, IDuccCallback consoleCb)
         throws Exception
     {
         for ( Object k : props.keySet() ) {      
@@ -197,7 +197,7 @@ public class DuccJobSubmit
 			}
 		}
 		catch(Throwable t) {
-            addThrowable(t);
+            message(t.toString());
 		}
 		return limit;
 	}
@@ -220,7 +220,7 @@ public class DuccJobSubmit
 				long procs = limit / threads;
 				p_procs = "unlimited";
 				String a_procs = ""+procs;
-				addMessage(UiOption.ProcessDeploymentsMax.pname() + ": requested[" + p_procs + "] adjusted to[" + a_procs + "]");
+				message(UiOption.ProcessDeploymentsMax.pname(), ": requested[" + p_procs + "] adjusted to[" + a_procs + "]");
 				properties.setProperty(UiOption.ProcessDeploymentsMax.pname(), a_procs);
 				retVal = true;
 			}
@@ -229,14 +229,14 @@ public class DuccJobSubmit
 				if( (procs * threads) > limit ) {
 					procs = limit / threads;
 					String a_procs = ""+procs;
-					addMessage(UiOption.ProcessDeploymentsMax.pname()+": requested["+p_procs+"] adjusted to["+a_procs + "]");
+					message(UiOption.ProcessDeploymentsMax.pname(), ": requested["+p_procs+"] adjusted to["+a_procs + "]");
 					properties.setProperty(UiOption.ProcessDeploymentsMax.pname(), a_procs);
 					retVal = true;
 				}
 			}
 		}
 		catch(Throwable t) {
-            addThrowable(t);
+            message(t.toString());
 		}
 		return retVal;
 	}
@@ -252,7 +252,7 @@ public class DuccJobSubmit
 			}
 		}
 		catch(Throwable t) {
-            addThrowable(t);
+            message(t.toString());
 		}
 		return propertyValue;
 	}
@@ -287,7 +287,7 @@ public class DuccJobSubmit
         try {
 			enrich_parameters_for_debug(jobRequestProperties);
         } catch (Exception e1) {
-            addThrowable(e1);
+            message(e1.toString());
             return false;
 		}
         
@@ -366,7 +366,7 @@ public class DuccJobSubmit
         try {
             submitJobReplyDuccEvent = (SubmitJobReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(submitJobDuccEvent);
         } catch (Exception e) {
-            addError("Job not submitted: " + e.getMessage());
+            message("Job not submitted: " + e.getMessage());
             stopListeners();
             return false;
         } finally {
@@ -390,30 +390,7 @@ public class DuccJobSubmit
 		try {
 			DuccJobSubmit ds = new DuccJobSubmit(args, null);
 			boolean rc = ds.execute();
-
-            // Fetch messages if any.  null means none
-            String [] messages = ds.getMessages();
-            String [] warnings = ds.getWarnings();
-            String [] errors   = ds.getErrors();
-
-            if ( messages != null ) {
-                for (String s : messages ) {
-                    System.out.println(s);
-                }
-            }
-
-            if ( warnings != null ) {
-                for (String s : warnings ) {
-                    System.out.println("WARN: " + s);
-                }
-            }
-
-            if ( errors != null ) {
-                for (String s : errors ) {
-                    System.out.println("ERROR: " + s);
-                }
-            }
-
+ 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {                
                 // Fetch the Ducc ID

@@ -140,7 +140,7 @@ public class DuccUiUtilities {
 		Properties environment_properties = environmentMap(environment_string);
 		if(environment_properties.containsKey(source)) {
 			if(environment_properties.containsKey(target)) {
-				base.addError(key+" "+"environment conflict: "+target+" takes precedence over "+source);
+				base.message("ERROR:", key, "environment conflict:", target, "takes precedence over", source);
 			}
 			else {
 				target += "="+environment_properties.getProperty(source);

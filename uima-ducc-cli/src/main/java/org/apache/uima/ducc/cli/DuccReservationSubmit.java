@@ -113,7 +113,7 @@ public class DuccReservationSubmit
         try {
             reply = (SubmitReservationReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
         } catch (Exception e) {
-            addError("Reservation not submitted: " + e.getMessage());
+            message("Reservation not submitted:", e.getMessage());
             return false;
         } finally {
             dispatcher.close();
@@ -150,29 +150,6 @@ public class DuccReservationSubmit
             // Run the API.  If process_attach_console was specified in the args, a console listener is
             // started but this call does NOT block on it.
             boolean rc = ds.execute();
-
-            // Fetch messages if any.  null means none
-            String [] messages = ds.getMessages();
-            String [] warnings = ds.getWarnings();
-            String [] errors   = ds.getErrors();
-
-            if ( messages != null ) {
-                for (String s : messages ) {
-                    System.out.println(s);
-                }
-            }
-
-            if ( warnings != null ) {
-                for (String s : warnings ) {
-                    System.out.println("WARN: " + s);
-                }
-            }
-
-            if ( errors != null ) {
-                for (String s : errors ) {
-                    System.out.println("ERROR: " + s);
-                }
-            }
 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {

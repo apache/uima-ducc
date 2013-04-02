@@ -134,7 +134,7 @@ public class DuccServiceSubmit
         try {
             deploymentType = getServiceType(requestProperties);
         } catch ( Throwable t ) {
-            addError(t.getMessage());
+            message(t.toString());
             return false;
         }
 
@@ -161,7 +161,7 @@ public class DuccServiceSubmit
                             System.out.println("service_endpoint:"+" "+service_endpoint);
                         }
                     } catch ( IllegalArgumentException e ) {
-                        addError("Cannot read/process DD descriptor for endpoint: " + e.getMessage());
+                        message("ERROR: Cannot read/process DD descriptor for endpoint:", e.getMessage());
                         return false;
                     }
                 } else {
@@ -172,7 +172,7 @@ public class DuccServiceSubmit
             case custom:
                 requestProperties.put(UiOption.ServiceTypeCustom.pname(), "");
                 if ( service_endpoint == null ) {
-                    addError("Missing endpoint for CUSTOM service.");
+                    message("ERROR: Missing endpoint for CUSTOM service.");
                     return false;
                 } else {
                     requestProperties.put(UiOption.ServiceRequestEndpoint.pname(), service_endpoint);
@@ -205,7 +205,7 @@ public class DuccServiceSubmit
         try {
             reply = (SubmitServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
         } catch (Exception e) {
-            addError("Process not submitted: " + e.getMessage());
+            message("Process not submitted:", e.getMessage());
             return false;
         } finally {
             dispatcher.close();
@@ -231,29 +231,6 @@ public class DuccServiceSubmit
             // Run the API.  If process_attach_console was specified in the args, a console listener is
             // started but this call does NOT block on it.
             boolean rc = ds.execute();
-
-            // Fetch messages if any.  null means none
-            String [] messages = ds.getMessages();
-            String [] warnings = ds.getWarnings();
-            String [] errors   = ds.getErrors();
-
-            if ( messages != null ) {
-                for (String s : messages ) {
-                    System.out.println(s);
-                }
-            }
-
-            if ( warnings != null ) {
-                for (String s : warnings ) {
-                    System.out.println("WARN: " + s);
-                }
-            }
-
-            if ( errors != null ) {
-                for (String s : errors ) {
-                    System.out.println("ERROR: " + s);
-                }
-            }
 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {

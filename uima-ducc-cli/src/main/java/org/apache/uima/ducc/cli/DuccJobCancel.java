@@ -93,7 +93,7 @@ public class DuccJobCancel
         try {
             cancelJobReplyDuccEvent = (CancelJobReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelJobDuccEvent);
         } catch (Exception e) {
-            addError("Job not submitted: " + e.getMessage());
+            message("Job not submitted:", e.getMessage());
             return false;
         } finally {
             dispatcher.close();
@@ -122,29 +122,6 @@ public class DuccJobCancel
 		try {
 			DuccJobCancel djc = new DuccJobCancel(args);
 			boolean rc = djc.execute();
-
-            // Fetch messages if any.  null means none
-            String [] messages = djc.getMessages();
-            String [] warnings = djc.getWarnings();
-            String [] errors   = djc.getErrors();
-
-            if ( messages != null ) {
-                for (String s : messages ) {
-                    System.out.println(s);
-                }
-            }
-
-            if ( warnings != null ) {
-                for (String s : warnings ) {
-                    System.out.println("WARN: " + s);
-                }
-            }
-
-            if ( errors != null ) {
-                for (String s : errors ) {
-                    System.out.println("ERROR: " + s);
-                }
-            }
 
             long id = djc.getDuccId();
             String msg = djc.getResponseMessage();

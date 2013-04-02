@@ -64,7 +64,7 @@ public abstract class CliBase
     protected Map<String, UiOption> reverseOptions = new HashMap<String, UiOption>();  // for lookup by string-name
 
     protected long friendlyId = -1;
-    protected int  returnCode = -1;
+    protected int  returnCode = 1000;
 
     protected DuccProperties cli_props;
     protected ArrayList<String> errors   = new ArrayList<String>();
@@ -78,7 +78,7 @@ public abstract class CliBase
     protected ConsoleListener  console_listener = null;
     protected String host_address = "N/A";
     protected boolean console_attach = false;
-    protected IConsoleCallback consoleCb = null;
+    protected IDuccCallback consoleCb = null;
 
     protected MonitorListener monitor_listener = null;
 
@@ -170,7 +170,7 @@ public abstract class CliBase
             }
             return true;
         } catch ( Throwable t ) {
-        	addThrowable(t);
+        	message("ERROR:", t.toString());
             return false;
         }
     }
@@ -267,21 +267,22 @@ public abstract class CliBase
     /**
      * Use this init if you you need a console callback and use the default log location.
      */
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet, IConsoleCallback consoleCb)
+    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet, IDuccCallback consoleCb)
     	throws Exception
     {
         this.init(myClassName, opts, args, cli_props, host_s, port_s, servlet, consoleCb, null);
     }
 
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet, IConsoleCallback consoleCb, String logExtension)
+    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet, IDuccCallback consoleCb, String logExtension)
     	throws Exception
     {
         if ( init_done ) return;
         
         if ( consoleCb == null ) {
-            consoleCb =  new DefaultConsoleCallback();
+            this.consoleCb =  new DefaultCallback();
+        } else {
+            this.consoleCb = consoleCb;
         }
-        this.consoleCb = consoleCb;
 
         this.myClassName = myClassName;
         ducc_home = Utils.findDuccHome();
@@ -411,7 +412,7 @@ public abstract class CliBase
 		Properties environment_properties = DuccUiUtilities.environmentMap(environment_string);
 		if (environment_properties.containsKey(source)) {
 			if (environment_properties.containsKey(target)) {
-                addWarning(key + " environment conflict: " + target + " takes precedence over " + source);
+                message("WARN", key, " environment conflict:", target, "takes precedence over", source);
 			} else {
 				target += "="+environment_properties.getProperty(source);
 				environment_string += " "+target;
@@ -438,19 +439,19 @@ public abstract class CliBase
         @SuppressWarnings("unchecked")
 		ArrayList<String> value_submit_warnings = (ArrayList<String>) properties.get(UiOption.SubmitWarnings.pname());
         if(value_submit_warnings != null) {
-        	addMessage("Job"+" "+"warnings:");
+        	message("Job warnings:");
         	Iterator<String> reasons = value_submit_warnings.iterator();
         	while(reasons.hasNext()) {
-        		addMessage(reasons.next());
+        		message("WARN:", reasons.next());
         	}
         }
         @SuppressWarnings("unchecked")
 		ArrayList<String> value_submit_errors = (ArrayList<String>) properties.get(UiOption.SubmitErrors.pname());
         if(value_submit_errors != null) {
-        	addError("Job"+" "+"errors:");
+        	message("Job errors:");
         	Iterator<String> reasons = value_submit_errors.iterator();
         	while(reasons.hasNext()) {
-        		addError(reasons.next());
+        		message("ERROR:", reasons.next());
         	}
 	        rc = false;
         }
@@ -527,54 +528,24 @@ public abstract class CliBase
         return (String) cli_props.getProperty(key);
     }
 
-    synchronized void addWarning(String w)
+    /**
+     * NOTE: We do NOT want to be intentionally throwing from the CLI.  Pls pass e.getMessage() or
+     *       e.toString() to this instead of throwing.
+     */
+    synchronized void message(String ... e )
     {
-        this.warnings.add(w);
-    }
-
-
-    synchronized void addError(String e )
-    {
-        this.errors.add(e);
-    }
-
-    synchronized void addMessage(String m)
-    {
-        this.messages.add(m);
-    }
-
-    synchronized void addThrowable(Throwable t)
-    {
-        this.errors.add(t.toString());
-        if ( debug ) {
-            t.printStackTrace();
+        if ( e.length > 1 ) {
+            StringBuffer sb = new StringBuffer();
+            int i = 0;
+            for (i = 0; i < e.length - 1; i++) {
+                sb.append(e[i]);
+                sb.append(' ');
+            }
+            sb.append(e[i]);
+            consoleCb.duccout(null, null, sb.toString());
+        } else {
+            consoleCb.duccout(null, null, e[0]);
         }
-    }
-
-
-    synchronized void addErrors(ArrayList<String> e)
-    {
-        this.errors.addAll(e);
-    }
-
-    synchronized void addWarnings(ArrayList<String> w)
-    {
-        this.warnings.addAll(w);
-    }
-
-    synchronized public String[] getMessages()
-    {
-        return messages.toArray(new String[messages.size()]);
-    }
-
-    synchronized public String[] getWarnings()
-    {
-        return warnings.toArray(new String[warnings.size()]);
-    }
-
-    synchronized public String[] getErrors()
-    {
-        return errors.toArray(new String[errors.size()]);
     }
 
     public int getReturnCode()
@@ -616,8 +587,7 @@ public abstract class CliBase
                 (
                 cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
                 cli_props.containsKey(UiOption.CancelJobOnInterrupt.pname()) || 
-                cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) ||
-                console_attach
+                cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) 
                 );
             
         if ( monitor_attach ) {
@@ -680,7 +650,7 @@ public abstract class CliBase
             Thread t = new Thread(console_listener);
             t.start();
         } else {
-            addWarning("Attermpt to start console but no console listener is defined.");
+            message("WARN: Attermpt to start console but no console listener is defined.");
         }
     }
 
@@ -701,7 +671,7 @@ public abstract class CliBase
     {
         if ( key != null ) {         
             if ( console_listener == null ) {
-                addWarning("Attempt to set console port but listener is not running.");
+                message("WARN: Attempt to set console port but listener is not running.");
                 return;
             }
 
@@ -745,45 +715,6 @@ public abstract class CliBase
 			e.printStackTrace();
 		}
         return false;
-    }
-
-    class DefaultConsoleCallback
-    	implements IConsoleCallback
-    {
-
-//             try {
-//                 if ((logfile == null) && line.startsWith(console_tag)) {
-//                     filename = line.substring(tag_len);
-//                     logfile = new BufferedOutputStream(new FileOutputStream(filename));
-                    
-//                     if ( debug ) System.out.println("Create logfile " + filename);
-//                 }
-//                 if (logfile != null) {
-//                     logfile.write(leader.getBytes());
-//                     logfile.write(' ');
-//                     logfile.write(line.getBytes());
-//                     logfile.write('\n');
-//                     logfile.flush();
-//                 } else {
-//                     if ( debug ) System.out.println("Bypass logfile");
-//                 } 
-//             } catch (Exception e) {
-//                 if ( first_error ) {
-//                     submit.addError("Cannot create or write log file[" + filename + "]: " + e.getMessage());
-//                 }
-//                 first_error = false;
-//             }
-//             consoleCb(leader + line);
-
-        public void stdout(String host, String logfile, String s) 
-        { 
-            //System.out.println("[" + host + "." + logfile + "] " + s); 
-            System.out.println("[" + host + "] " + s); 
-        }
-        public void stderr(String host, String logfile, String s) 
-        { 
-            System.out.println("[" + host + "." + logfile + "] " + s); 
-        }
     }
 
 }

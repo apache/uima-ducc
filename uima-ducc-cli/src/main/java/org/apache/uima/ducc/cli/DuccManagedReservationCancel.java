@@ -81,7 +81,7 @@ public class DuccManagedReservationCancel extends CliBase {
         try {
             cancelServiceReplyDuccEvent = (CancelServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelServiceDuccEvent);
         } catch (Exception e) {
-            addError("Cancel not submitted: " + e.getMessage());
+            message("Cancel not submitted:", e.getMessage());
             return false;
         } finally {
             dispatcher.close();
@@ -100,29 +100,6 @@ public class DuccManagedReservationCancel extends CliBase {
 		try {
 			DuccManagedReservationCancel dsc = new DuccManagedReservationCancel(args);
 			boolean rc = dsc.execute();
-
-            // Fetch messages if any.  null means none
-            String [] messages = dsc.getMessages();
-            String [] warnings = dsc.getWarnings();
-            String [] errors   = dsc.getErrors();
-
-            if ( messages != null ) {
-                for (String s : messages ) {
-                    System.out.println(s);
-                }
-            }
-
-            if ( warnings != null ) {
-                for (String s : warnings ) {
-                    System.out.println("WARN: " + s);
-                }
-            }
-
-            if ( errors != null ) {
-                for (String s : errors ) {
-                    System.out.println("ERROR: " + s);
-                }
-            }
 
             long id = dsc.getDuccId();
             String msg = dsc.getResponseMessage();

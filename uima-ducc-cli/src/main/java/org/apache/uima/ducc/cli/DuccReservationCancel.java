@@ -87,7 +87,7 @@ public class DuccReservationCancel
         try {
             cancelReservationReplyDuccEvent = (CancelReservationReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelReservationDuccEvent);
         } catch (Exception e) {
-            addError("Job not submitted: " + e.getMessage());
+            message("Job not submitted:", e.getMessage());
             return false;
         } finally {
             dispatcher.close();
@@ -104,30 +104,7 @@ public class DuccReservationCancel
 	public static void main(String[] args) {
 		try {
 			DuccReservationCancel dsc = new DuccReservationCancel(args);
-			boolean rc = dsc.execute();
-
-            // Fetch messages if any.  null means none
-            String [] messages = dsc.getMessages();
-            String [] warnings = dsc.getWarnings();
-            String [] errors   = dsc.getErrors();
-
-            if ( messages != null ) {
-                for (String s : messages ) {
-                    System.out.println(s);
-                }
-            }
-
-            if ( warnings != null ) {
-                for (String s : warnings ) {
-                    System.out.println("WARN: " + s);
-                }
-            }
-
-            if ( errors != null ) {
-                for (String s : errors ) {
-                    System.out.println("ERROR: " + s);
-                }
-            }
+			boolean rc = dsc.execute(); 
 
             long id = dsc.getDuccId();
             String msg = dsc.getResponseMessage();

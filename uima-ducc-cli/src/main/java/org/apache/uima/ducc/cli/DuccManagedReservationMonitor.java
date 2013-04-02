@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import org.apache.uima.ducc.api.IDuccMessageProcessor;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
@@ -34,7 +33,7 @@ public class DuccManagedReservationMonitor extends DuccMonitor implements IDuccM
 		super(DuccContext.ManagedReservation, true);
 	}
 	
-	protected DuccManagedReservationMonitor(IDuccMessageProcessor messageProcessor) {
+	protected DuccManagedReservationMonitor(IDuccCallback messageProcessor) {
 		super(DuccContext.ManagedReservation, true, messageProcessor);
 	}
 	
@@ -75,7 +74,7 @@ public class DuccManagedReservationMonitor extends DuccMonitor implements IDuccM
     		boolean retVal = managedReservationCancel.execute();
     		debug("cancel rc:"+retVal);
     	} catch (Exception e) {
-    		messageProcessor.exception(e);
+    		messageProcessor.duccout(null, null, e.toString());
     	}
 	}
 
