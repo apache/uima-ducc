@@ -381,7 +381,9 @@ public abstract class CliBase
         String directory = props.getProperty("log_directory") + File.separator + friendlyId;
         String fileName = directory + File.separator + name;
         File f = new File(directory);
-        if ( ! f.mkdirs() ) {
+
+        f.mkdirs();
+        if ( ! f.exists() ) {
             throw new IllegalStateException("Cannot create log directory: " + f.toString());
         }
 
