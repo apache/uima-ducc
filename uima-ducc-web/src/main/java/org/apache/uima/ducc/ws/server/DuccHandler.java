@@ -277,6 +277,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
 	
+	/*
 	private void handleDuccServletJobSubmitForm(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -288,7 +289,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-
+	*/
+	
 	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, String type) {
 		String retVal = "";
 		if(type == "UIMA") {
@@ -3229,10 +3231,12 @@ public class DuccHandler extends DuccAbstractHandler {
 				handleDuccServletServiceUpdateFormButton(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
+			/*
 			else if(reqURI.startsWith(duccJobSubmitForm)) {
 				handleDuccServletJobSubmitForm(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
+			*/
 			else if(reqURI.startsWith(duccLogData)) {
 				handleDuccServletLogData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
