@@ -36,6 +36,9 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_scheduling_priority = "scheduling_priority";
 	
 	public static String key_jvm = "jvm";
+	public static String key_jvm_args = "jvm_args";
+	public static String key_classpath = "classpath";
+	public static String key_environment = "environment";
 	
 	public static String key_process_debug          = "process_debug";
 	public static String key_driver_debug           = "driver_debug";
