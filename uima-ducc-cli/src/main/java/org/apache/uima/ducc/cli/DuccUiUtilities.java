@@ -46,7 +46,19 @@ import org.w3c.dom.NodeList;
 
 
 public class DuccUiUtilities {
-
+	
+	public static boolean isSupportedBeta() {
+		boolean retVal = false;
+		String key = DuccPropertiesResolver.ducc_submit_beta;
+		String value = DuccPropertiesResolver.getInstance().getProperty(key);
+		if(value != null) {
+			if(value.equalsIgnoreCase("on")) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
 	public static String getUser() {
 		String user = System.getProperty("user.name");
 		String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);

@@ -90,6 +90,17 @@ public interface IUiOptions
             public boolean required()   { return false; }
         }, 
         
+        Classpath { 
+            public String pname()       { return JobSpecificationProperties.key_classpath; }
+            public String description() { return "Classpath for the Job. Default is current classpath."; }
+            public String argname()     { return "java classpath"; }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return "ClassPath"; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },    
+        
         ClasspathOrder { 
             public String pname()       { return JobSpecificationProperties.key_classpath_order; }
             public String argname()     { return ClasspathOrderParms.UserBeforeDucc.name() + " or " + ClasspathOrderParms.DuccBeforeUser.name(); }
@@ -220,8 +231,19 @@ public interface IUiOptions
             public String label()       { return "DriverJvmArgs"; }
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
-        },            
-
+        },    
+        
+        Environment { 
+            public String pname()       { return JobSpecificationProperties.key_environment; }
+            public String argname()     { return "env vars"; }
+            public String description() { return "Blank-delimeted list of environment variables."; }
+            public String example()     { return "\"TERM=xterm DISPLAY=me.org.net:1.0\""; }
+            public String deflt()       { return null; }
+            public String label()       { return "Environment"; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },   
+        
         Help { 
             public String pname()       { return "help"; }
             public String argname()     { return null; }
@@ -253,8 +275,19 @@ public interface IUiOptions
             public String label()       { return null; }
             public boolean multiargs()  { return false; }
             public boolean required()   { return true; }
-        },            
-
+        },
+        
+        JvmArgs { 
+            public String pname()       { return JobSpecificationProperties.key_jvm_args; }
+            public String argname()     { return "jvm arguments"; }
+            public String description() { return "Blank-delimeted list of JVM Arguments passed to the job driver."; }
+            public String example()     { return "-Xmx100M -DMYVAR=foo"; }
+            public String deflt()       { return null; }
+            public String label()       { return "JvmArgs"; }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },    
+        
         ManagedReservationId { 
             public String pname()       { return JobRequestProperties.key_id; }
             public String argname()     { return "string"; }
@@ -520,7 +553,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-
         ProcessDescriptorCC { 
             public String pname()       { return JobSpecificationProperties.key_process_descriptor_CC; }
             public String description() { return "Process CAS Consumer for aggregate."; }
@@ -565,8 +597,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-
-
         ProcessDD { 
             public String pname()       { return JobSpecificationProperties.key_process_DD; }
             public String description() { return "Process deployment descriptor (mutually exclusive with CM+AE+CC)."; }
@@ -588,7 +618,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-
 
         ProcessEnvironment { 
             public String pname()       { return JobSpecificationProperties.key_process_environment; }
@@ -634,7 +663,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-
         ProcessInitializationFailuresCap { 
             public String pname()       { return JobSpecificationProperties.key_process_initialization_failures_cap; }
             public String description() { return "Maximum number of independent job process initialization failures (i.e. System.exit(), kill-15...) before the number of Job Processes is capped at the number in state Running currently.  Default is " + deflt() + "."; }
@@ -657,7 +685,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-
         ProcessJvmArgs { 
             public String pname()       { return JobSpecificationProperties.key_process_jvm_args; }
             public String argname()     { return "jvm arguments"; }
@@ -668,7 +695,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-
 
         ProcessMemorySize { 
             public String pname()       { return JobSpecificationProperties.key_process_memory_size; }
@@ -805,7 +831,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-
         Signature { 
             // generated, not public
             public String pname()       { return JobSpecificationProperties.key_signature; }
@@ -829,7 +854,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-
         SubmitErrors { 
             // generated, not public
             public String pname()       { return JobSpecificationProperties.key_submit_errors; }
@@ -841,7 +865,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-
 
         SubmitWarnings { 
             // generated, not public
@@ -855,7 +878,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-
         Timestamp { 
             public String pname()       { return "timestamp"; }
             public String argname()     { return null; }
@@ -866,7 +888,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-
 
         Unregister  { 
             public String pname()       { return "unregister" ; } 
@@ -900,7 +921,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-
 
         WaitForCompletion { 
             public String pname()       { return "wait_for_completion"; }
@@ -939,6 +959,41 @@ public interface IUiOptions
             if ( example() == null ) return description();
             return description() + "\nexample: " + example();
         }
+        
+        // Beta options helper functions
+        
+        public UiOption[] getBetaOptions() {
+        	UiOption[] list = { DriverClasspath, 
+        						DriverEnvironment,
+        						DriverJvmArgs,
+        						ProcessClasspath, 
+        						ProcessEnvironment,
+        						ProcessJvmArgs,
+        						};
+        	return list;
+        }
+        
+        public boolean isBetaOption(String pname) {
+        	boolean retVal = false;
+        	if(pname != null) {
+        		UiOption[] list = getBetaOptions();
+            	for(UiOption option : list) {
+            		if(pname.equals(option.pname())) {
+            			retVal = true;
+            		}
+            	}
+        	}
+        	return retVal;
+        }
+        
+        public boolean isBetaOption(UiOption option) {
+        	boolean retVal = false;
+        	if(option != null) {
+        		retVal = isBetaOption(option.pname());
+        	}
+        	return retVal;
+        }
+        
     };
 
     public enum ClasspathOrderParms

@@ -42,8 +42,55 @@ public class DuccJobSubmit
 	// public DuccJobSubmit(IDuccMessageProcessor duccMessageProcessor) {
 // 		this.duccMessageProcessor = duccMessageProcessor;
 // 	}
+    
+    UiOption[] opts_release = new UiOption[] {
+        UiOption.Help,
+        UiOption.Debug, 
 
-    UiOption[] opts = new UiOption[] {
+        UiOption.ProcessDebug,
+        UiOption.ProcessAttachConsole,
+        UiOption.DriverDebug,
+        UiOption.DriverAttachConsole,
+        UiOption.Timestamp,
+        UiOption.Description,
+        UiOption.SchedulingClass,
+
+        UiOption.LogDirectory,
+        UiOption.WorkingDirectory,
+        UiOption.Jvm,
+        
+        UiOption.JvmArgs,
+        UiOption.Classpath,
+        UiOption.Environment,
+       
+        UiOption.DriverDescriptorCR,
+        UiOption.DriverDescriptorCROverrides,
+        UiOption.DriverExceptionHandler,
+
+        UiOption.ProcessMemorySize,
+        UiOption.ProcessDD,
+        UiOption.ProcessDescriptorCM,
+        UiOption.ProcessDescriptorCMOverrides,
+        UiOption.ProcessDescriptorAE,
+        UiOption.ProcessDescriptorAEOverrides,
+        UiOption.ProcessDescriptorCC,
+        UiOption.ProcessDescriptorCCOverrides,
+        
+        UiOption.ProcessDeploymentsMax,
+        UiOption.ProcessInitializationFailuresCap,
+        UiOption.ProcessFailuresLimit,
+        UiOption.ProcessThreadCount,
+        UiOption.ProcessPerItemTimeMax,
+        UiOption.ProcessGetMetaTimeMax,
+
+        UiOption.Specification,
+        UiOption.WaitForCompletion,
+        UiOption.CancelJobOnInterrupt,
+        UiOption.ServiceDependency,
+        UiOption.ClasspathOrder,
+    };
+
+    UiOption[] opts_beta = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
 
@@ -59,6 +106,10 @@ public class DuccJobSubmit
         UiOption.WorkingDirectory,
         UiOption.Jvm,
 
+        UiOption.JvmArgs,
+        UiOption.Classpath,
+        UiOption.Environment,
+        
         UiOption.DriverJvmArgs,
         UiOption.DriverClasspath,
         UiOption.DriverEnvironment,
@@ -92,8 +143,9 @@ public class DuccJobSubmit
         UiOption.ServiceDependency,
         UiOption.ClasspathOrder,
     };
-
-
+    
+    UiOption[] opts = opts_release;
+    
 	public DuccJobSubmit(ArrayList<String> args)
         throws Exception
     {
@@ -116,13 +168,21 @@ public class DuccJobSubmit
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
+        }
         init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
     }
 
 	public DuccJobSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
     {
-        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+		init();
+		if(DuccUiUtilities.isSupportedBeta()) {
+       		opts = opts_beta;
+        }
+		init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
     }
 
 	public DuccJobSubmit(Properties props, IDuccCallback consoleCb)
@@ -131,6 +191,10 @@ public class DuccJobSubmit
         for ( Object k : props.keySet() ) {      
             Object v = props.get(k);
             jobRequestProperties.put(k, v);
+        }
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
         }
         init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
     }
@@ -147,7 +211,12 @@ public class DuccJobSubmit
     protected void enrich_parameters_for_debug(Properties props)
         throws Exception
     {
-        
+        String key_process = UiOption.ProcessJvmArgs.pname();
+        String key_driver = UiOption.ProcessJvmArgs.pname();
+        if(jobRequestProperties.containsKey(UiOption.JvmArgs.pname())) {
+        	key_process = UiOption.JvmArgs.pname();
+        	key_driver = UiOption.JvmArgs.pname();
+        }
         try {        
             int jp_debug_port = -1;
             int jd_debug_port = -2;       // a trick, must be different from jp_debug_port; see below
@@ -161,7 +230,7 @@ public class DuccJobSubmit
                 }
                 jp_debug_port = Integer.parseInt(jp_port_s);
                 
-                set_debug_parms(props, UiOption.ProcessJvmArgs.pname(), jp_debug_port);
+                set_debug_parms(props, key_process, jp_debug_port);
                 // For debugging, if the JP is being debugged, we have to force max processes to .1
                 props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
             }
@@ -173,7 +242,7 @@ public class DuccJobSubmit
                     throw new IllegalArgumentException("Missing port for " + do_debug);
                 }
                 jd_debug_port = Integer.parseInt(jd_port_s);
-                set_debug_parms(props, UiOption.ProcessJvmArgs.pname(), jd_debug_port);
+                set_debug_parms(props, key_driver, jd_debug_port);
             }
             
             if ( jp_debug_port == jd_debug_port ) {
@@ -272,11 +341,6 @@ public class DuccJobSubmit
 		}
 
     }
-	
-	private void adjust_jvm_args(Properties jobRequestProperties) {
-		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.DriverJvmArgs);
-		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_process_jvm_args, UiOption.ProcessJvmArgs);
-	}
 
 	//**********		
 	
@@ -291,23 +355,49 @@ public class DuccJobSubmit
             return false;
 		}
         
-		/*
-		 * employ default driver classpath if not specified
-		 */
-		String driver_classpath = jobRequestProperties.getProperty(UiOption.DriverClasspath.pname());
-		if(driver_classpath == null) {
-			driver_classpath = System.getProperty("java.class.path");
-			jobRequestProperties.setProperty(UiOption.DriverClasspath.pname(), driver_classpath);
-		}
-
-		/*
-		 * employ default process classpath if not specified
-		 */
-		String process_classpath = jobRequestProperties.getProperty(UiOption.ProcessClasspath.pname());
-		if(process_classpath == null) {
-			process_classpath = System.getProperty("java.class.path");
-			jobRequestProperties.setProperty(UiOption.ProcessClasspath.pname(), process_classpath);
-		}
+        boolean cp0 = jobRequestProperties.containsKey(UiOption.Classpath.pname());
+        boolean cpd = jobRequestProperties.containsKey(UiOption.DriverClasspath.pname());
+        boolean cpp = jobRequestProperties.containsKey(UiOption.ProcessClasspath.pname());
+        
+        if(cp0 && cpd) {
+        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Classpath.pname()+" and "+UiOption.DriverClasspath.pname());
+        }
+        if(cp0 && cpp) {
+        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Classpath.pname()+" and "+UiOption.ProcessClasspath.pname());
+        }
+        if(cp0) {
+        	// Nothing to do
+        }
+        else {
+        	if(cpd || cpp) {
+        		/*
+        		 * employ default driver classpath if not specified
+        		 */
+        		String driver_classpath = jobRequestProperties.getProperty(UiOption.DriverClasspath.pname());
+        		if(driver_classpath == null) {
+        			driver_classpath = System.getProperty("java.class.path");
+        			jobRequestProperties.setProperty(UiOption.DriverClasspath.pname(), driver_classpath);
+        		}
+        		/*
+        		 * employ default process classpath if not specified
+        		 */
+        		String process_classpath = jobRequestProperties.getProperty(UiOption.ProcessClasspath.pname());
+        		if(process_classpath == null) {
+        			process_classpath = System.getProperty("java.class.path");
+        			jobRequestProperties.setProperty(UiOption.ProcessClasspath.pname(), process_classpath);
+        		}
+        	}
+        	else {
+        		/*
+        		 * employ default classpath if not specified
+        		 */
+        		String classpath = jobRequestProperties.getProperty(UiOption.Classpath.pname());
+        		if(classpath == null) {
+        			classpath = System.getProperty("java.class.path");
+        			jobRequestProperties.setProperty(UiOption.Classpath.pname(), classpath);
+        		}
+        	}
+        }
         
 		/*
 		 * employ default process initialization failures cap if not specified
@@ -331,14 +421,36 @@ public class DuccJobSubmit
 		/*
 		 * set DUCC_LD_LIBRARY_PATH in driver, process environment
 		 */
-		if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.DriverEnvironment.pname())) {
-			return false;
-		}
-		
-		if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.ProcessEnvironment.pname())) {
-			return false;
-		}
-
+        boolean ev0 = jobRequestProperties.containsKey(UiOption.Environment.pname());
+        boolean evd = jobRequestProperties.containsKey(UiOption.DriverEnvironment.pname());
+        boolean evp = jobRequestProperties.containsKey(UiOption.ProcessEnvironment.pname());
+        if(ev0 && evd) {
+        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.DriverEnvironment.pname());
+        }
+        if(ev0 && evp) {
+        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.ProcessEnvironment.pname());
+        }
+        if(ev0) {
+        	if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname())) {
+    			return false;
+    		}
+        }
+        else {
+        	if(evd || evp) {
+        		if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.DriverEnvironment.pname())) {
+        			return false;
+        		}
+        		if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.ProcessEnvironment.pname())) {
+        			return false;
+        		}
+        	}
+        	else {
+        		if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname())) {
+        			return false;
+        		}
+        	}
+        }
+        
 		/*
 		 * limit total number of threads
 		 */
@@ -347,7 +459,29 @@ public class DuccJobSubmit
 		/*
 		 * adjust driver and process jvm args
 		 */
-		adjust_jvm_args(jobRequestProperties);
+        boolean ja0 = jobRequestProperties.containsKey(UiOption.JvmArgs.pname());
+        boolean jad = jobRequestProperties.containsKey(UiOption.DriverJvmArgs.pname());
+        boolean jap = jobRequestProperties.containsKey(UiOption.ProcessJvmArgs.pname());
+        
+        if(ja0 && jad) {
+        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.JvmArgs.pname()+" and "+UiOption.DriverJvmArgs.pname());
+        }
+        if(ja0 && jap) {
+        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.JvmArgs.pname()+" and "+UiOption.ProcessJvmArgs.pname());
+        }
+        
+        if(ja0) {
+        	adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.JvmArgs);
+        }
+        else {
+        	if(jad || jap) {
+        		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.DriverJvmArgs);
+        		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_process_jvm_args, UiOption.ProcessJvmArgs);
+        	}
+        	else {
+        		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.JvmArgs);
+        	}
+        }
 
 		/*
 		 * identify invoker

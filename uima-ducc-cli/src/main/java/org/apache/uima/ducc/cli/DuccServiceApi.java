@@ -50,7 +50,7 @@ public class DuccServiceApi
     String endpoint = null;
     IDuccCallback callback = null;
 
-    UiOption[] registration_options = {
+    UiOption[] registration_options_release = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Description,
@@ -58,6 +58,39 @@ public class DuccServiceApi
         UiOption.LogDirectory,
         UiOption.WorkingDirectory,
         UiOption.Jvm,
+        UiOption.JvmArgs,
+        UiOption.Classpath,
+        UiOption.Environment,
+        UiOption.ProcessMemorySize,
+        UiOption.ProcessDD,
+        UiOption.ProcessFailuresLimit,
+        UiOption.ClasspathOrder,
+        // UiOption.Specification          // not used for registration
+        UiOption.ServiceDependency,
+        UiOption.ServiceRequestEndpoint,
+        UiOption.ServiceLinger,
+        UiOption.ServicePingClass,
+        UiOption.ServicePingClasspath,
+        UiOption.ServicePingJvmArgs,
+        UiOption.ServicePingTimeout,
+        UiOption.ServicePingDoLog,
+
+        UiOption.Register,
+        UiOption.Autostart,
+        UiOption.Instances,
+    }; 
+
+    UiOption[] registration_options_beta = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Description,
+        UiOption.SchedulingClass,
+        UiOption.LogDirectory,
+        UiOption.WorkingDirectory,
+        UiOption.Jvm,
+        UiOption.JvmArgs,
+        UiOption.Classpath,
+        UiOption.Environment,
         UiOption.ProcessJvmArgs,
         UiOption.ProcessClasspath,
         UiOption.ProcessEnvironment,
@@ -79,7 +112,9 @@ public class DuccServiceApi
         UiOption.Autostart,
         UiOption.Instances,
     }; 
-
+    
+    UiOption[] registration_options = registration_options_release;
+    
     UiOption[] unregister_options = {
         UiOption.Help,
         UiOption.Debug,
@@ -206,8 +241,12 @@ public class DuccServiceApi
     String extractEndpoint(Properties jvmargs)
     {
         // If claspath is not specified, pick it up from the submitter's environment
-        String classpath = cli_props.getStringProperty(UiOption.ProcessClasspath.pname(), System.getProperty("java.class.path"));
-        cli_props.setProperty(UiOption.ProcessClasspath.pname(), classpath);
+    	String key_cp = UiOption.ProcessClasspath.pname();
+        if ( cli_props.containsKey(UiOption.Classpath.pname()) ) {
+        	key_cp = UiOption.Classpath.pname();
+        }
+        String classpath = cli_props.getStringProperty(key_cp, System.getProperty("java.class.path"));
+        cli_props.setProperty(key_cp, classpath);
         
         // No endpoint, resolve from the DD.
         String dd = cli_props.getStringProperty(UiOption.ProcessDD.pname()); // will throw if can't find the prop
@@ -227,12 +266,20 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	registration_options = registration_options_beta;
+        }
         init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", callback, "services");
 
         //
         // Now: get jvm args and resolve placeholders, in particular, the broker url
         //
-        String jvmarg_string = cli_props.getProperty(UiOption.ProcessJvmArgs.pname());
+        String key_ja = UiOption.ProcessJvmArgs.pname();
+        if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
+        	key_ja = UiOption.JvmArgs.pname();
+        }
+        String jvmarg_string = cli_props.getProperty(key_ja);
         Properties jvmargs = DuccUiUtilities.jvmArgsToProperties(jvmarg_string);
         DuccUiUtilities.resolvePropertiesPlaceholders(cli_props, jvmargs);
 
@@ -259,8 +306,12 @@ public class DuccServiceApi
         } else if ( endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
 
             // Infer the classpath (DuccProperties will return the default if the value isn't found.)
-            String classpath = cli_props.getStringProperty(UiOption.ProcessClasspath.pname(), System.getProperty("java.class.path"));
-            cli_props.setProperty(UiOption.ProcessClasspath.pname(), classpath);
+        	String key_cp = UiOption.ProcessClasspath.pname();
+            if ( cli_props.containsKey(UiOption.Classpath.pname()) ) {
+            	key_cp = UiOption.Classpath.pname();
+            }
+            String classpath = cli_props.getStringProperty(key_cp, System.getProperty("java.class.path"));
+            cli_props.setProperty(key_cp, classpath);
 
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
             // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one

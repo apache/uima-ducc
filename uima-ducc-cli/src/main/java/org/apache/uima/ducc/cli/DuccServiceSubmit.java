@@ -43,7 +43,7 @@ public class DuccServiceSubmit
     static String or_port = "ducc.orchestrator.http.port";
     static String or_host = "ducc.orchestrator.node";
 	
-    UiOption[] opts = new UiOption[] {
+    UiOption[] opts_release = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
@@ -51,6 +51,35 @@ public class DuccServiceSubmit
         UiOption.LogDirectory,
         UiOption.WorkingDirectory,
         UiOption.Jvm,
+        UiOption.JvmArgs,
+        UiOption.Classpath,
+        UiOption.Environment,
+        UiOption.ProcessMemorySize,
+        UiOption.ProcessDD,
+        UiOption.ProcessFailuresLimit,
+        UiOption.ClasspathOrder,
+        UiOption.Specification,
+        UiOption.ServiceDependency,
+        UiOption.ServiceRequestEndpoint,
+        UiOption.ServiceLinger,
+        UiOption.ServicePingClass,
+        UiOption.ServicePingClasspath,
+        UiOption.ServicePingJvmArgs,
+        UiOption.ServicePingTimeout,
+        UiOption.ServicePingDoLog,
+    };
+	
+    UiOption[] opts_beta = new UiOption[] {
+        UiOption.Help,
+        UiOption.Debug, 
+        UiOption.Description,
+        UiOption.SchedulingClass,
+        UiOption.LogDirectory,
+        UiOption.WorkingDirectory,
+        UiOption.Jvm,
+        UiOption.JvmArgs,
+        UiOption.Classpath,
+        UiOption.Environment,
         UiOption.ProcessJvmArgs,
         UiOption.ProcessClasspath,
         UiOption.ProcessEnvironment,
@@ -68,17 +97,27 @@ public class DuccServiceSubmit
         UiOption.ServicePingTimeout,
         UiOption.ServicePingDoLog,
     };
- 
+    
+    UiOption[] opts = opts_release;
+    
 	public DuccServiceSubmit(ArrayList<String> args)
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
+        }
         init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or", null, "services");
     }
 
 	public DuccServiceSubmit(String[] args)
         throws Exception
     {
+		init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
+        }
         init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or", null, "services");
     }
 
@@ -88,6 +127,10 @@ public class DuccServiceSubmit
         for ( Object k : props.keySet() ) {      
             Object v = props.get(k);
             requestProperties.put(k, v);
+        }
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
         }
         init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or", null, "services");
     }
@@ -127,7 +170,11 @@ public class DuccServiceSubmit
 	public boolean execute() 
         throws Exception 
     {
-        String jvmarg_string = (String) requestProperties.get(UiOption.ProcessJvmArgs.pname());
+		String key_ja = UiOption.ProcessJvmArgs.pname();
+	    if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
+	      	key_ja = UiOption.JvmArgs.pname();
+	    }
+		String jvmarg_string = (String) requestProperties.get(key_ja);
         Properties jvmargs = DuccUiUtilities.jvmArgsToProperties(jvmarg_string);
 
         ServiceDeploymentType deploymentType = null;
@@ -194,7 +241,11 @@ public class DuccServiceSubmit
         /*
 		 * set DUCC_LD_LIBRARY_PATH in process environment
 		 */
-		if (!DuccUiUtilities.ducc_environment(this, requestProperties, UiOption.ProcessEnvironment.pname())) {
+		String key_ev = UiOption.ProcessEnvironment.pname();
+	    if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
+	     	key_ev = UiOption.Environment.pname();
+	    }
+		if (!DuccUiUtilities.ducc_environment(this, requestProperties, key_ev)) {
             return false;
 		}
         requestProperties.put(UiOption.ProcessThreadCount.pname(), "1");         // enforce this - OR will complain if it's missing

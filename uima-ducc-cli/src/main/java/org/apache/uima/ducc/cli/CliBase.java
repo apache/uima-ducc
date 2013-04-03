@@ -159,7 +159,12 @@ public abstract class CliBase
      */
     boolean resolve_service_dependencies(String endpoint)
     {
-        String jvmargs = cli_props.getProperty(UiOption.ProcessJvmArgs.pname());
+    	String key_ja = UiOption.ProcessJvmArgs.pname();
+        if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
+        	key_ja = UiOption.JvmArgs.pname();
+        }
+    	String jvmargs = cli_props.getProperty(key_ja);
+        
         Properties jvmprops = DuccUiUtilities.jvmArgsToProperties(jvmargs);
 
         String deps = cli_props.getProperty(UiOption.ServiceDependency.pname());
@@ -273,6 +278,10 @@ public abstract class CliBase
         this.init(myClassName, opts, args, cli_props, host_s, port_s, servlet, consoleCb, null);
     }
 
+    protected synchronized void init() {
+    	ducc_home = Utils.findDuccHome();
+    }
+    
     protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet, IDuccCallback consoleCb, String logExtension)
     	throws Exception
     {
@@ -631,12 +640,19 @@ public abstract class CliBase
         if ( console_attach ) {
             console_listener = new ConsoleListener(this, consoleCb);
             
+            String key_pe = UiOption.ProcessEnvironment.pname();
+            String key_de = UiOption.DriverEnvironment.pname();
+            if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
+            	key_pe = UiOption.Environment.pname();
+            	key_de = UiOption.Environment.pname();
+            }
+            
             if ( cli_props.containsKey(UiOption.ProcessAttachConsole.pname()) ) {
-                set_console_port(cli_props, UiOption.ProcessEnvironment.pname());
+                set_console_port(cli_props, key_pe);
             } 
             
             if  (cli_props.containsKey(UiOption.DriverAttachConsole.pname()) ) {
-                set_console_port(cli_props, UiOption.DriverEnvironment.pname());
+                set_console_port(cli_props, key_de);
             } 
         }
     }

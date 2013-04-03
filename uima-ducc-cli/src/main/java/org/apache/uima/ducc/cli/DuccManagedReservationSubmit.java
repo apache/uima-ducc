@@ -41,10 +41,29 @@ public class DuccManagedReservationSubmit
    
     private ServiceRequestProperties serviceRequestProperties;
 
-    private UiOption[] opts = new UiOption[] {
+    private UiOption[] opts_release = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
+        UiOption.Environment,
+        UiOption.LogDirectory,
+        UiOption.ProcessAttachConsole,
+        UiOption.ProcessExecutable,
+        UiOption.ProcessExecutableArgs,
+        UiOption.ProcessFailuresLimit,
+        UiOption.ProcessMemorySize,
+        UiOption.SchedulingClass,
+        UiOption.Specification,
+        UiOption.WorkingDirectory,
+        UiOption.WaitForCompletion,
+        UiOption.CancelManagedReservationOnInterrupt,
+    };
+
+    private UiOption[] opts_beta = new UiOption[] {
+        UiOption.Help,
+        UiOption.Debug, 
+        UiOption.Description,
+        UiOption.Environment,
         UiOption.LogDirectory,
         UiOption.ProcessAttachConsole,
         UiOption.ProcessEnvironment,
@@ -58,7 +77,8 @@ public class DuccManagedReservationSubmit
         UiOption.WaitForCompletion,
         UiOption.CancelManagedReservationOnInterrupt,
     };
-
+    
+    private UiOption[] opts = opts_release;
 
     public DuccManagedReservationSubmit(String[] args)
         throws Exception
@@ -81,7 +101,11 @@ public class DuccManagedReservationSubmit
     public DuccManagedReservationSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
     {
-        serviceRequestProperties = new ServiceRequestProperties();        
+        serviceRequestProperties = new ServiceRequestProperties(); 
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
+        }
         init(this.getClass().getName(), opts, args, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
@@ -89,7 +113,11 @@ public class DuccManagedReservationSubmit
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
-        serviceRequestProperties = new ServiceRequestProperties();        
+        serviceRequestProperties = new ServiceRequestProperties();   
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
+        }
         init(this.getClass().getName(), opts, arg_array, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
@@ -102,6 +130,10 @@ public class DuccManagedReservationSubmit
         for ( Object k : props.keySet() ) {      
             Object v = props.get(k);
             serviceRequestProperties.put(k, v);
+        }
+        init();
+        if(DuccUiUtilities.isSupportedBeta()) {
+        	opts = opts_beta;
         }
         init(this.getClass().getName(), opts, null, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
@@ -118,8 +150,28 @@ public class DuccManagedReservationSubmit
         /*
          * set DUCC_LD_LIBRARY_PATH in process environment
          */
-        adjustLdLibraryPath(serviceRequestProperties, UiOption.ProcessEnvironment.pname());
-
+        boolean ev0 = serviceRequestProperties.containsKey(UiOption.Environment.pname());
+        boolean evp = serviceRequestProperties.containsKey(UiOption.ProcessEnvironment.pname());
+        if(ev0 && evp) {
+        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.ProcessEnvironment.pname());
+        }
+        if(ev0) {
+        	if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
+    			return false;
+    		}
+        }
+        else {
+        	if(evp) {
+        		if (!DuccUiUtilities.ducc_environment(this,serviceRequestProperties, UiOption.ProcessEnvironment.pname())) {
+        			return false;
+        		}
+        	}
+        	else {
+        		if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
+        			return false;
+        		}
+        	}
+        }
 
         SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties);
         SubmitServiceReplyDuccEvent reply = null;
