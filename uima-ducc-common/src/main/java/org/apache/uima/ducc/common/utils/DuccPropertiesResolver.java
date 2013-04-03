@@ -44,6 +44,8 @@ public class DuccPropertiesResolver {
 		initDefaultProperties();
 	}
 	
+	public static final String ducc_submit_beta = "ducc.submit.beta";
+	
 	public static final String ducc_submit_threads_limit = "ducc.submit.threads.limit";
 	public static final String ducc_submit_driver_jvm_args = "ducc.submit.driver.jvm.args";
 	public static final String ducc_submit_process_jvm_args = "ducc.submit.process.jvm.args";
