@@ -144,7 +144,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String jsonSystemClassesData 			= duccContext+"/json-system-classes-data";
 	private String jsonSystemDaemonsData 			= duccContext+"/json-system-daemons-data";
 
-	private String duccJobSubmitForm	    		= duccContext+"/job-submit-form";
+	//private String duccJobSubmitForm	    		= duccContext+"/job-submit-form";
 	
 	private String duccJobSubmitButton    			= duccContext+"/job-get-submit-button";
 	private String duccReservationFormButton  		= duccContext+"/reservation-get-form-button";
