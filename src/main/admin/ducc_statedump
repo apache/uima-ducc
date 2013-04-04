@@ -31,14 +31,20 @@ from ducc      import Ducc
 class DuccStateListener(DuccUtil):
 
     def run(self):
-        CMD = self.java() + ' com.ibm.ducc.test.tools.DuccListener ' + self.host + ' ' + self.port + ' ' + self.topic + \
-              ' ' + self.agent + \
-              ' ' + self.output + \
-              ' ' + self.timeout
-        #print CMD
+        CMD = self.java() + ' org.apache.uima.ducc.tools.DuccPubListener'
+        CMD = CMD + ' -host '  + self.host
+        CMD = CMD + ' -port '  + self.port
+        CMD = CMD + ' -topic ' + self.topic
+        if ( self.output != None ):
+            CMD = CMD + ' -output ' + self.output
+        if ( self.timeout != None ):
+            CMD = CMD + ' -timeout ' + self.timeout
+        CMD = CMD + ' -agent ' + self.agent
+
         os.system(CMD)
 
-    def usage(self):
+    def usage(self, msg):
+        print msg
         print "Usage:"
         print "   start_sim [options]"
         print "   If no options are given this help screen is shown."
@@ -66,15 +72,15 @@ class DuccStateListener(DuccUtil):
 
         self.host = 'localhost'
         self.port = '61616'
-        self.output = 'none'
-        self.timeout = 'none'
+        self.output = None
+        self.timeout = None
         self.state = 'or'
-        self.agent = "none"
+        self.agent = None
 
         try:
             opts, args = getopt.getopt(argv, 'n:o:p:s:t:?h')
         except:
-            self.invalid('Invalid arguments', ' '.join(argv))
+            self.usage('Invalid arguments ' + ' '.join(argv))
                        
         for ( o, a ) in opts:
             if o in ( '-n' ): 
@@ -112,7 +118,7 @@ class DuccStateListener(DuccUtil):
             self.topic = 'ducc.node.inventory'
             self.agent = toks[1]
         elif (self.state.startswith('metrics') ):
-            toks = self.self.state.split('@')
+            toks = self.state.split('@')
             print 'toks', toks
             if ( len(toks) != 2 ):
                 print "Invalid state, must be 'metrics@node'"
@@ -134,4 +140,8 @@ class DuccStateListener(DuccUtil):
 
 if __name__ == "__main__":
     dsl = DuccStateListener()
+    CLASSPATH = os.environ['CLASSPATH'] + ':' + os.environ['DUCC_HOME'] + '/examples/lib/uima-ducc-examples.jar'
+    for c in CLASSPATH.split(':'):
+        print c
+    os.environ['CLASSPATH'] = CLASSPATH
     dsl.main(sys.argv[1:])
