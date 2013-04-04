@@ -75,10 +75,10 @@ class MonitorListener
             String[] argList = arrayList.toArray(new String[0]);
             switch(context) {
             case ManagedReservation:
-            	monitor = new DuccManagedReservationMonitor();
+            	monitor = new DuccManagedReservationMonitor(base.getCallback());
             	break;
             case Job:
-            	monitor = new DuccJobMonitor();
+            	monitor = new DuccJobMonitor(base.getCallback());
             	break;
             }
             retVal = monitor.run(argList);

@@ -539,6 +539,11 @@ public abstract class CliBase
         return (String) cli_props.getProperty(key);
     }
 
+    IDuccCallback getCallback()
+    {
+        return consoleCb;
+    }
+
     /**
      * NOTE: We do NOT want to be intentionally throwing from the CLI.  Pls pass e.getMessage() or
      *       e.toString() to this instead of throwing.
