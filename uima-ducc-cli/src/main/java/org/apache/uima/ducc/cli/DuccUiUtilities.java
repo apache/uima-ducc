@@ -48,12 +48,12 @@ import org.w3c.dom.NodeList;
 public class DuccUiUtilities {
 	
 	public static boolean isSupportedBeta() {
-		boolean retVal = false;
+		boolean retVal = true;
 		String key = DuccPropertiesResolver.ducc_submit_beta;
 		String value = DuccPropertiesResolver.getInstance().getProperty(key);
 		if(value != null) {
-			if(value.equalsIgnoreCase("on")) {
-				retVal = true;
+			if(value.equalsIgnoreCase("off")) {
+				retVal = false;
 			}
 		}
 		return retVal;
