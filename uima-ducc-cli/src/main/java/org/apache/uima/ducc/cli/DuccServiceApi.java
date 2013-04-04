@@ -524,7 +524,7 @@ public class DuccServiceApi
         System.exit(1);
     }
 
-    boolean execute() { return false; }
+    protected boolean execute() { return false; }
 
     static boolean format_reply(UiOption verb, IServiceReply reply)
     {

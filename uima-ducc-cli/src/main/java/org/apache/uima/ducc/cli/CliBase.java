@@ -73,7 +73,7 @@ public abstract class CliBase
 
     protected boolean debug = false;
 
-    abstract boolean  execute() throws Exception;
+    protected abstract boolean execute() throws Exception;
 
     protected ConsoleListener  console_listener = null;
     protected String host_address = "N/A";
