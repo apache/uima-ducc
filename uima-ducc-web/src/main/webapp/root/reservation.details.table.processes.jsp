@@ -47,7 +47,7 @@ under the License.
 	<!--
 	<th title="Cumulative CPU time, hh:mm:ss">CPU</th>
 	-->
-	<th title="Resident Storage Size, as a percentage of process memory requirement in specification">%RSS</th>
+	<th title="Resident Storage Size in GB, current if state=running or maximum if state=completed">RSS</th>
 	<!--
 	<th title="Average seconds per work item">Time<br>Avg</th>
 	<th title="Maximum seconds for any work item">Time<br>Max</th>

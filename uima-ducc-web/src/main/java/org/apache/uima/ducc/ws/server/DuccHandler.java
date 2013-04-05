@@ -72,7 +72,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
-import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
@@ -640,6 +639,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(fmtCPU);
 		sb.append("</td>");
 		*/
+		
+		/*
 		// %rss
 		DuccId duccId = job.getDuccId();
 		String size = job.getSchedulingInfo().getShareMemorySize();
@@ -667,6 +668,15 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<td align=\"right\" "+title+">");
 		sb.append(displayPctRss);
 		sb.append("</td>");
+		*/
+		
+		double rss = process.getResidentMemory();
+		rss = rss/GB;
+		String displayRss = formatter.format(rss);
+		sb.append("<td align=\"right\" "+">");
+		sb.append(displayRss);
+		sb.append("</td>");
+		
 		if(type.equals("SP")) {
 			// 
 		}
