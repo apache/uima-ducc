@@ -32,6 +32,10 @@ public class CGroup implements Serializable {
 	private boolean reservation;
 	private int shares;
 	
+	public CGroup(IDuccId duccId) {
+		setId(id);
+	}
+	
 	public int getShares() {
 		return shares;
 	}
