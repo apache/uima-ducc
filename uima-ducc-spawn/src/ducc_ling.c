@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define VERSION "0.8.0"
+#define VERSION "0.8.1"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -55,6 +55,15 @@
  * 2013-01-31 0.7.3 Print message '1001' as marker and flush stdout before exec.  ld
  * 2013-01-31 0.7.3a Print message '1002 CONSOLE REDIRECT' with fn.  jrc
  * 2013-03-08 0.8.0 more complete ulimit suport. jrc
+ * 2013-03-08 0.8.1 set hard as well as soft ulimits, and make sure they are shown
+ *                  in both user and agent logs. jrc
+ */
+
+/**
+ * Numbering - every message is numbered to facilitate filtering and identification in
+ *             logs and messages.
+ *
+ * 4000 series - limits
  */
 
 /**
@@ -66,6 +75,34 @@
 #define BUFLEN (PATH_MAX)
 #define STRLEN (BUFLEN-1)
 #define MAX_COMPONENTS (10)
+
+struct limit_set
+{
+    char * name;
+    int resource;
+};
+
+struct limit_set limits[] = { 
+    { "DUCC_RLIMIT_CORE"   , RLIMIT_CORE},  
+    { "DUCC_RLIMIT_CPU"    , RLIMIT_CPU},
+    { "DUCC_RLIMIT_DATA"   , RLIMIT_DATA},
+    { "DUCC_RLIMIT_FSIZE"  , RLIMIT_FSIZE},
+    { "DUCC_RLIMIT_MEMLOCK", RLIMIT_MEMLOCK},
+    { "DUCC_RLIMIT_NOFILE" , RLIMIT_NOFILE},
+    { "DUCC_RLIMIT_NPROC"  , RLIMIT_NPROC},
+    { "DUCC_RLIMIT_RSS"    , RLIMIT_RSS},
+    { "DUCC_RLIMIT_STACK"  , RLIMIT_STACK},
+#ifndef __APPLE__
+    { "DUCC_RLIMIT_AS"        , RLIMIT_AS},
+    { "DUCC_RLIMIT_LOCKS"     , RLIMIT_LOCKS},
+    { "DUCC_RLIMIT_SIGPENDING", RLIMIT_SIGPENDING},
+    { "DUCC_RLIMIT_MSGQUEUE"  , RLIMIT_MSGQUEUE},
+    { "DUCC_RLIMIT_NICE"      , RLIMIT_NICE},
+    { "DUCC_RLIMIT_STACK"     , RLIMIT_STACK},
+    { "DUCC_RLIMIT_RTPRIO"    , RLIMIT_RTPRIO},        
+#endif
+};
+u_long limits_len = sizeof(limits) / sizeof (struct limit_set);
 
 void version()
 {
@@ -197,72 +234,6 @@ char * mklogfile(const char *filepath)
     return strdup(buf);
 }
 
-char * mklogfileOld(const char *base, char *subdir)
-{
-    //
-    // First step, the base must exist and be writable.
-    //
-    char buf[BUFLEN];
-    char *path_components[MAX_COMPONENTS];
-    char *next_tok = NULL;
-    char *final_tok = NULL;
-    char * jobid = getenv("JobId");
-
-    if ( jobid == NULL ) {
-        fprintf(stderr, "2230 Environment must contain \"JobId\" in order to write to a log file.\n");
-        return;
-    }
-
-    int i,j = 0;
-
-    char *tmp;
-
-    struct stat statbuf;
-
-    // if it exists and is a dir just return
-    if ( stat(base, &statbuf) == 0 ) {
-        fprintf(stdout, "2210 Directory %s exists.\n", base);
-        if ( ! ( statbuf.st_mode & S_IFDIR) ) { 
-            fprintf(stderr, "2200 Log base %s is not a directory\n", base);
-            return NULL;
-        }
-    }
-
-    if ( access(base, R_OK + W_OK + X_OK) != 0 ) {        // make sure I can use the base dir
-        snprintf(buf, STRLEN, "Can't access %s: %d\n", base, errno);
-        buf[STRLEN] = '\0';
-        perror(buf);
-        return NULL;
-    }
-    
-    i = 0;
-    for ( next_tok = strtok(subdir, "/"); next_tok; next_tok = strtok(NULL, "/") ) {
-        path_components[i++] = next_tok;
-    }
-
-    buf[0] = '\0';   // make it into a "" string
-    concat(buf, base);
-    for ( j = 0; j < i-1; j++ ) {
-        concat(buf, "/");
-        concat(buf, path_components[j]);        
-
-        if ( ! mksubdir(buf) ) {
-            return NULL;
-        }
-    }
-
-    concat(buf, "/");
-    concat(buf, jobid);
-    if ( ! mksubdir(buf) ) {
-        fprintf(stderr, "Can't make directory %s, quitting.\n", buf);
-        return NULL;
-    }
-
-    tmp = strdup(buf);
-    snprintf(buf, STRLEN, "%s/%s-%d.log", tmp, path_components[i-1], getpid());
-    return strdup(buf);
-}
-
 void show_env(char **envp)
 {
     int count = -1;
@@ -271,26 +242,33 @@ void show_env(char **envp)
     }
 }
 
-struct limit_set
+void query_limits()
 {
-    char * name;
-    int resource;
-};
+    struct rlimit limstruct;
+    int i;
+
+    for ( i = 0; i < limits_len; i++ ) {
+        getrlimit(limits[i].resource, &limstruct);
+        char *name = limits[i].name+12;
+        fprintf(stdout, "4050 Limits: %10s soft[%lld] hard[%lld]\n", name, limstruct.rlim_cur, limstruct.rlim_max);            
+    }
+}
 
 void set_one_limit(char *name, int resource, rlim_t val)
 {
     struct rlimit limstruct;
     char * lim_name = &name[5];
-    fprintf(stdout, "4000 Setting %s to %lld\n", lim_name, val);   // ( bypass DUCC_ in the name. i heart c. )
+    fprintf(stdout, "4010 Setting %s to %lld\n", lim_name, val);   // ( bypass DUCC_ in the name. i heart c. )
     
     getrlimit(resource, &limstruct);
-    fprintf(stdout, "4030 Before: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);
+    fprintf(stdout, "4020 Before: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);
 
     // prep the message, which we may never actually use
     char buf[BUFLEN];
     sprintf(buf, "4030 %s limit was not set.", name);
 
     limstruct.rlim_cur = val;
+    limstruct.rlim_max = val;
     int rc = setrlimit(resource, &limstruct);
     if ( rc != 0 ) {
         perror(buf);
@@ -303,48 +281,20 @@ void set_one_limit(char *name, int resource, rlim_t val)
  
 void set_limits()
 {
-    struct limit_set limits[] = { 
-        { "DUCC_RLIMIT_CORE"   , RLIMIT_CORE},  
-        { "DUCC_RLIMIT_CPU"    , RLIMIT_CPU},
-        { "DUCC_RLIMIT_DATA"   , RLIMIT_DATA},
-        { "DUCC_RLIMIT_FSIZE"  , RLIMIT_FSIZE},
-        { "DUCC_RLIMIT_MEMLOCK", RLIMIT_MEMLOCK},
-        { "DUCC_RLIMIT_NOFILE" , RLIMIT_NOFILE},
-        { "DUCC_RLIMIT_NPROC"  , RLIMIT_NPROC},
-        { "DUCC_RLIMIT_RSS"    , RLIMIT_RSS},
-        { "DUCC_RLIMIT_STACK"  , RLIMIT_STACK},
-#ifndef __APPLE__
-        { "DUCC_RLIMIT_AS"        , RLIMIT_AS},
-        { "DUCC_RLIMIT_LOCKS"     , RLIMIT_LOCKS},
-        { "DUCC_RLIMIT_SIGPENDING", RLIMIT_SIGPENDING},
-        { "DUCC_RLIMIT_MSGQUEUE"  , RLIMIT_MSGQUEUE},
-        { "DUCC_RLIMIT_NICE"      , RLIMIT_NICE},
-        { "DUCC_RLIMIT_STACK"     , RLIMIT_STACK},
-        { "DUCC_RLIMIT_RTPRIO"    , RLIMIT_RTPRIO},
-        
-#endif
-    };
-    u_long len = sizeof(limits) / sizeof (struct limit_set);
     int i;
 
-    // fprintf(stdout, "SIZEOF limits = %lu \n", len);
-    for ( i = 0; i < len; i++ ) {
+    for ( i = 0; i < limits_len; i++ ) {
          char *climit = getenv(limits[i].name);
          if ( climit != NULL ) {
              char *en = 0;
              rlim_t lim = strtoll(climit, &en, 10);             
              if (*en) {
-                 fprintf(stderr, "4010 %s is not numeric; core limit note set: %s\n", limits[i].name, climit);
+                 fprintf(stderr, "4000 %s is not numeric; core limit note set: %s\n", limits[i].name, climit);
                  return;
              }
- 
-             // fprintf(stdout, "LIMIT: Set %s to %lld\n", limits[i].name, lim);
              set_one_limit(limits[i].name, limits[i].resource, lim);
-         } else {
-             // fprintf(stdout, "LIMIT: Bypass %s\n", limits[i].name);
-         }
+         } 
      }
-
 }
 
 #ifndef __APPLE__
@@ -395,6 +345,7 @@ void redirect_to_file(char *filepath)
         perror(buf);
         exit(1);
     }
+
 }
 
 /**
@@ -410,8 +361,6 @@ void redirect_to_socket(char *sockloc)
     char *portname;
     char * colon;
     char buf[BUFLEN];
-
-    fprintf(stdout, "JRC start socket redirect\n");
 
     colon = strchr(sockloc, ':');
     if ( colon == NULL ) {
@@ -443,12 +392,6 @@ void redirect_to_socket(char *sockloc)
         exit(1);
     }
     fprintf(stdout, "1704 addr: %x\n", ip.s_addr);
-
-//     if ((hp = gethostbyaddr((const void *)&ip, sizeof ip, AF_INET)) == NULL) {
-//         fprintf(stderr, "1705 no name associated with %s\n", hostname);
-//     } else {        
-//         fprintf(stdout, "1706 Name associated with %s is %s\n", hostname, hp->h_name);
-//     }
     
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -483,6 +426,7 @@ void redirect_to_socket(char *sockloc)
     int rc0 = dup2(sock, 0);
     int rc1 = dup2(sock, 1);
     int rc2 = dup2(sock, 2);
+
 }
 
 /**
@@ -600,6 +544,11 @@ int main(int argc, char **argv, char **envp)
     //
     if ( switch_ids ) {
         pwd = getpwnam(userid);
+        if ( strcmp(userid, "ducc") == 0 ) {
+            fprintf(stderr, "850 May not switch to user \"ducc\"\n");
+            exit(1);
+        }
+
         if ( pwd == NULL ) {
             fprintf(stderr, "820 User \"%s\" does not exist.\n", userid);
             exit(1);
@@ -628,8 +577,29 @@ int main(int argc, char **argv, char **envp)
         }
     }
 
-    set_limits();         // AFTER the switch, set soft limits if needed
+    set_limits();         // AFTER the switch, set soft and limits if needed
+
+    query_limits();       // Once, for the agent
     renice();
+
+    //
+    // Set up logging dir.  We have swithed by this time so we can't do anything the user couldn't do.
+    //
+    if ( redirect ) {
+        char *console_port = getenv("DUCC_CONSOLE_LISTENER");
+        if ( console_port != NULL ) {
+            fflush(stdout);
+            redirect_to_socket(console_port);
+            if ( filepath != NULL ) {
+                // on console redirection, spit out the name of the log file it would have been
+                fprintf(stdout, "1002 CONSOLE_REDIRECT %s\n", logfile);
+            }
+        } else {
+            redirect_to_file(filepath);
+        }
+        version();             // this gets echoed as first message into the redirected log
+        query_limits();       // Once, for the user
+    }
 
     //
     // chdir to working dir if specified
@@ -637,12 +607,12 @@ int main(int argc, char **argv, char **envp)
     if ( workingdir != NULL ) {
         int rc = chdir(workingdir);
         if ( rc == -1 ) {
-            snprintf(buf, STRLEN,  "1110 Unable to switch to working director %s.", workingdir);
+            snprintf(buf, STRLEN,  "1110 Unable to switch to working directory %s.", workingdir);
             buf[STRLEN] = '\0';
             perror(buf);
             exit(1);
         }
-        fprintf(stdout, "1120 Changed to working dir %s\n", workingdir);
+        fprintf(stdout, "1120 Changed to working directory %s\n", workingdir);
     }
     
     // 
@@ -678,26 +648,6 @@ int main(int argc, char **argv, char **envp)
     fprintf(stdout, "1000 Command to exec: %s\n", argv[0]);
     for ( i = 1; i < argc; i++ ) {
         fprintf(stdout, "    arg[%d]: %s\n", i, argv[i]);
-    }
-
-    //
-    // Set up logging dir.  We have swithed by this time so we can't do anything the user couldn't do.
-    //
-    if ( redirect ) {
-        char *console_port = getenv("DUCC_CONSOLE_LISTENER");
-        if ( console_port != NULL ) {
-            fprintf(stdout, "jrc starting console redirect.\n");
-            fflush(stdout);
-            redirect_to_socket(console_port);
-            if ( filepath != NULL ) {
-                // on console redirection, spit out the name of the log file it would have been
-                fprintf(stdout, "1002 CONSOLE_REDIRECT %s\n", logfile);
-            }
-        } else {
-            redirect_to_file(filepath);
-        }
-
-        version();             // this gets echoed into the redirected log
     }
 
     fprintf(stdout, "1001 Command launching...\n");
