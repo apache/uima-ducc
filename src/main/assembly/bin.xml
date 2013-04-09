@@ -21,7 +21,7 @@ under the License.
   <id>bin</id>
   <formats>
     <format>tar.gz</format>  
-     <format>dir</format>
+    <!--format>dir</format-->
   </formats>
   
   <baseDirectory>apache-uima-ducc-${project.version}</baseDirectory> 
@@ -572,6 +572,14 @@ under the License.
       <!-- build up the verification test source -->
       <directory>uima-ducc-examples/src/main/java</directory>
       <outputDirectory>ducc_runtime/examples/src</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
+    <fileSet>
+      <!-- build up the verification test source -->
+      <directory>uima-ducc-examples/src/main/systemtest</directory>
+      <outputDirectory>ducc_runtime/examples/systemtest</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
