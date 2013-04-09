@@ -25,6 +25,7 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.common.utils.id.IDuccId;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
@@ -59,6 +60,7 @@ public class DuccProcess implements IDuccProcess {
 	private String reason;
 	private boolean initialized = false;
 	private int exitCode;
+	private CGroup cgroup;
 	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity) {
 		setDuccId(duccId);
@@ -500,7 +502,12 @@ public class DuccProcess implements IDuccProcess {
 	public int getProcessExitCode() {
 		return this.exitCode;
 	}
-
+	public void setCGroup( CGroup cgroup) {
+		this.cgroup = cgroup;
+	}
+	public CGroup getCGroup() {
+		return cgroup;
+	}
 	@Override
 	public Node getNode() {
 		return node;

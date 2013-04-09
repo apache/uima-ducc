@@ -25,6 +25,7 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.common.utils.id.IDuccId;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
@@ -115,5 +116,8 @@ public interface IDuccProcess extends Serializable {
 	
 	public void setProcessExitCode(int pExitCode );
 	public int getProcessExitCode();
+	
+	public void setCGroup( CGroup cgroup);
+	public CGroup getCGroup();
 	
 }
