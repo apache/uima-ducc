@@ -30,7 +30,14 @@ public class CGroup implements Serializable {
 	private IDuccId id;
 	private long maxMemoryLimit;
 	private boolean reservation;
+	private int shares;
 	
+	public int getShares() {
+		return shares;
+	}
+	public void setShares(int shares) {
+		this.shares = shares;
+	}
 	public boolean isReservation() {
 		return reservation;
 	}
