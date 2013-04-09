@@ -332,6 +332,7 @@ public class JobFactory {
 		DuccId duccId = jdIdFactory.next();
 		duccId.setFriendly(0);
 		DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
+		CGroupManager.assign(driverProcess);
 		driverProcess.setResourceState(ResourceState.Allocated);
 		driverProcess.setNodeIdentity(nodeIdentity);
 		driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);

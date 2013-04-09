@@ -814,6 +814,7 @@ public class StateManager {
 						break;
 					}
 					DuccProcess process = new DuccProcess(duccId, node, processType);
+					CGroupManager.assign(process);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
 					process.setResourceState(ResourceState.Allocated);
