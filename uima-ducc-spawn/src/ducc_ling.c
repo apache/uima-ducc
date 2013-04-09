@@ -395,8 +395,6 @@ void redirect_to_file(char *filepath)
         perror(buf);
         exit(1);
     }
-
-    version();             // this gets echoed into the redirected log
 }
 
 /**
@@ -485,8 +483,6 @@ void redirect_to_socket(char *sockloc)
     int rc0 = dup2(sock, 0);
     int rc1 = dup2(sock, 1);
     int rc2 = dup2(sock, 2);
-
-    version();             // this gets echoed into the redirected log
 }
 
 /**
@@ -700,6 +696,8 @@ int main(int argc, char **argv, char **envp)
         } else {
             redirect_to_file(filepath);
         }
+
+        version();             // this gets echoed into the redirected log
     }
 
     fprintf(stdout, "1001 Command launching...\n");

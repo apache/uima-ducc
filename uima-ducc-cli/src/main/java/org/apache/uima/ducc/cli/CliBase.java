@@ -309,6 +309,13 @@ public abstract class CliBase
 //                           .withDescription(makeDesc(DuccUiConstants.desc_driver_descriptor_CR,DuccUiConstants.exmp_driver_descriptor_CR)).hasArg()
 //                           .withLongOpt(DuccUiConstants.name_driver_descriptor_CR).create());
 
+        // If given only a properties file convert to an array of strings for the parser
+        if (args == null) {
+            args = mkArgs(cli_props);
+            cli_props.clear();
+        }
+        
+        // Initially don't check for required options as they may be in a specification file
         options = makeOptions(opts, false);
         commandLine = parser.parse(options, args);
 
@@ -322,7 +329,7 @@ public abstract class CliBase
             usage(null);
         }
 
-        // Load the specificaiton file, if given on the command line.  Note that registration
+        // Load the specification file, if given on the command line.  Note that registration
         // bypasses the somewhat redundant --specification kw so we check two options.
         String spec1 =  UiOption.Specification.pname();
         String val = null;
@@ -347,6 +354,7 @@ public abstract class CliBase
             cli_props.clear();
         }
 
+        // Even if no specification file provided, re-parse and check for required options
         options = makeOptions(opts, true);
         commandLine = parser.parse(options, args);
         enhanceProperties(commandLine, false);
@@ -558,9 +566,9 @@ public abstract class CliBase
                 sb.append(' ');
             }
             sb.append(e[i]);
-            consoleCb.duccout(null, null, sb.toString());
+            consoleCb.duccout(sb.toString());
         } else {
-            consoleCb.duccout(null, null, e[0]);
+            consoleCb.duccout(e[0]);
         }
     }
 

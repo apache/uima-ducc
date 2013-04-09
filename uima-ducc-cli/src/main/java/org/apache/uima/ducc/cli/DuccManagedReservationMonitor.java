@@ -74,7 +74,7 @@ public class DuccManagedReservationMonitor extends DuccMonitor implements IDuccM
     		boolean retVal = managedReservationCancel.execute();
     		debug("cancel rc:"+retVal);
     	} catch (Exception e) {
-    		messageProcessor.duccout(null, null, e.toString());
+    		messageProcessor.duccout(e.toString());
     	}
 	}
 

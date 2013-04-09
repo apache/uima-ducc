@@ -188,7 +188,6 @@ class ConsoleListener
         boolean shutdown = false;
         ConsoleListener cl;
         String remote_host;
-        String logfile = "N/A";
 
         static final String console_tag = "1002 CONSOLE_REDIRECT ";
         int tag_len = 0;
@@ -201,6 +200,7 @@ class ConsoleListener
 
             InetAddress ia = sock.getInetAddress();
             remote_host = ia.getHostName();
+            consoleCb.host(remote_host);
             tag_len = console_tag.length();
 
             if ( debug ) System.out.println("===== Listener starting: " + remote_host + ":" + sock.getPort());
@@ -220,14 +220,15 @@ class ConsoleListener
         void doWrite(String line)
         {
             if ( line.startsWith(console_tag) ) {
-                logfile = line.substring(tag_len);
+                String logfile = line.substring(tag_len);
+                consoleCb.logfile(logfile);
                 return;                                                                      // don't echo this
             }
  
             if ( do_console_out ) {
-                consoleCb.consout(remote_host, (logfile == "N/A" ? null : logfile), line);
+                consoleCb.consout(line);
             } else {
-                consoleCb.duccout(remote_host, (logfile == "N/A" ? null : logfile), line);                
+                consoleCb.duccout(line);                
             }
 
             if ( line.startsWith("1001 Command launching...")) {

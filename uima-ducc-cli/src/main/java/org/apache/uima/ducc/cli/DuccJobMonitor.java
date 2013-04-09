@@ -85,7 +85,7 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
     		boolean retVal = jobCancel.execute();
     		debug("cancel rc:"+retVal);
     	} catch (Exception e) {
-    		messageProcessor.duccout(null, null, e.toString());
+    		messageProcessor.duccout(e.toString());
     	}
 	}
 

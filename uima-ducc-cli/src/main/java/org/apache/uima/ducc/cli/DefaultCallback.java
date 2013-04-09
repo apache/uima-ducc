@@ -19,10 +19,10 @@
 package org.apache.uima.ducc.cli;
 
 
-public class DefaultCallback
-    implements IDuccCallback
-{
-    public void duccout(String host, String logfile, String s) 
+public class DefaultCallback implements IDuccCallback {
+    private String host;
+    
+    public void duccout(String s) 
     { 
         if ( host == null ) {
             System.out.println( s);
@@ -31,9 +31,18 @@ public class DefaultCallback
         }
     }
 
-    public void consout(String host, String logfile, String s) 
+    public void consout(String s) 
     { 
         System.out.println("[" + host + "] " + s); 
+    }
+
+    @Override
+    public void host(String name) {
+        host = name;
+    }
+
+    @Override
+    public void logfile(String name) {
     }
 }
 
