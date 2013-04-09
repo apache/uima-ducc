@@ -447,10 +447,10 @@ public class ServiceHandler
         for ( DuccId id : work.keySet() ) {
             DuccWorkJob w = (DuccWorkJob) work.get(id);
 
+            //
             // On restart we sometimes get stale stuff that we just ignore.
             // What else? Is the the right thing to do?
             //  
-            // TODO: For registered services we probably have to call some sort of recovery code
             if ( !w.isActive() ) {
                 logger.info(methodName, id, "Bypassing inactive service, state=", w.getStateObject());
                 continue;
@@ -473,9 +473,10 @@ public class ServiceHandler
             if ( sset == null ) {
                 // submitted, we just track but not much else
                 try {
-                    sset = new ServiceSet(id, endpoint, deps);             // creates a "submitted" service
+                    sset = new ServiceSet(serviceManager.newId(), id, endpoint, deps);             // creates a "submitted" service
+                    sset.addImplementor(id, w.getJobState());
                     serviceStateHandler.putServiceByName(endpoint, sset);
-                } catch ( IllegalArgumentException e ) {
+                } catch ( Exception e ) {
                     s.addMessage(endpoint, e.getMessage());
                     s.setState(ServiceState.NotAvailable);
                     continue;
@@ -1396,7 +1397,7 @@ public class ServiceHandler
             String key = "UIMA-AS:" + svc + ":tcp://foo:123";
             ServiceSet dep = serviceStateHandler.getServiceByName(key);
             if ( dep == null ) {
-                dep = new ServiceSet(new DuccId(friendly++), key, null);
+                dep = new ServiceSet(new DuccId(friendly++), new DuccId(0), key, null);
                 serviceStateHandler.putServiceByName(key, dep);
                 allServices[ndx++] = dep;
             }
@@ -1411,7 +1412,7 @@ public class ServiceHandler
                 String subkey = "UIMA-AS:" + subsvc + ":tcp://foo:123";
                 ServiceSet subdep = serviceStateHandler.getServiceByName(subkey);
                 if ( subdep == null ) {
-                    subdep = new ServiceSet(new DuccId(friendly++), subkey, null);
+                    subdep = new ServiceSet(new DuccId(friendly++), new DuccId(0), subkey, null);
                     serviceStateHandler.putServiceByName(subkey, subdep);
                     allServices[ndx++] = subdep;
                 }

@@ -181,19 +181,45 @@ public class ServiceSet
 
     //
     // Constructor for a submitted service
-    // @deprecated
-    public ServiceSet(DuccId id, String key, String[] independentServices)
+    //
+    public ServiceSet(DuccId id, DuccId first_implementor, String key, String[] independentServices)
     {
-        // deprecating for now
-        throw new IllegalStateException("Submitted services not supported");
-        /**
         this.key = key;
-        this.implementors.put(id, JobState.Undefined);
+        this.id = id;
+        this.friendly_ids.put(first_implementor.getFriendly(), null);
+
         this.independentServices = independentServices;
         this.service_class = ServiceClass.Submitted;        
 
         parseEndpoint(key);
-        */
+
+        String state_dir = System.getProperty("DUCC_HOME") + "/state";
+
+        job_props = new DuccProperties();
+        job_props.put("service_ping_class", ServiceManagerComponent.default_ping_class);
+        job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
+        job_props.put("service_ping_dolog", "false");
+        job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
+        job_props.put("working_directory", System.getProperty("user.dir")); // whatever my current dir is
+        job_props.put("log_directory", System.getProperty("user.dir") + "/../logs");
+        //job_props.put("service_ping_jvm_args", "-Xmx50M");
+        props_filename = state_dir + "/services/" + id.toString() + ".svc";
+        saveServiceProperties();
+
+        meta_props = new DuccProperties();
+        meta_props.put("user", System.getProperty("user.name"));
+        meta_props.put("endpoint", key);
+        meta_props.put("service-class", ""+service_class.decode());
+        meta_props.put("service-type", ""+service_type.decode());
+        meta_props.put("stopped", ""+stopped);
+        meta_props.put("service-state", ""+getServiceState());
+        meta_props.put("ping-active", "false");
+        meta_props.put("service-alive",      "false");
+        meta_props.put("service-healthy",    "false");
+        meta_props.put("service-statistics", "N/A");
+        meta_props.put("implementors", ""+id.getFriendly());
+        meta_filename = state_dir + "/services/" + id.toString() + ".meta";
+        saveMetaProperties();
     }
 
     //
@@ -443,7 +469,11 @@ public class ServiceSet
      */
     public void addImplementor(DuccId id, JobState js)
     {
+        if ( isSubmitted() ) {
+            friendly_ids.put(id.getFriendly(), id);
+        }
         implementors.put(id, js);
+        persistImplementors();
     }
 
     void promote()
@@ -485,6 +515,11 @@ public class ServiceSet
     boolean isImplicit()
     {
         return (service_class == ServiceClass.Implicit);
+    }
+
+    boolean isSubmitted()
+    {
+        return (service_class == ServiceClass.Submitted);
     }
 
     boolean isRegistered()
@@ -625,7 +660,7 @@ public class ServiceSet
 
     synchronized void persistImplementors()
     {
-        if ( ! isRegistered() ) return;
+        if ( isImplicit() ) return;
 
         if ( friendly_ids.size() == 0 ) {
             meta_props.remove("implementors");
@@ -1030,13 +1065,15 @@ public class ServiceSet
     synchronized void pingExited()
     {
         String methodName = "pingExited";
+
         if ( serviceMeta != null ) {
             logger.warn(methodName, id, "Pinger exited voluntarily, setting state to Undefined. Endpoint", endpoint);
             setServiceState(ServiceState.Undefined);    // not really sure what state is. it will be
-                                                        // checked and updated next run through the
-                                                        // main state machine, and maybe ping restarted.
+            // checked and updated next run through the
+            // main state machine, and maybe ping restarted.
             serviceMeta = null;
         }
+
         if ( isImplicit() ) {
             deleteProperties();
         } else {
@@ -1052,7 +1089,8 @@ public class ServiceSet
             serviceMeta.stop();
             serviceMeta = null;
         }
-        if ( isImplicit() ) {
+
+        if ( !isRegistered() ) {
             deleteProperties();
         } else {
             saveMetaProperties();
