@@ -128,7 +128,7 @@ y			  <class-path>${DUCC_CP}</class-path>
                   <index>false</index>                  
                   <manifest>
                     <addClasspath>false</addClasspath>
-                    <mainClass>org.apache.uima.ducc.cli.DuccletSubmit</mainClass>
+                    <mainClass>org.apache.uima.ducc.cli.DuccManagedReservationSubmit</mainClass>
                   </manifest>
                   <manifestEntries>
                     <class-path>${DUCC_CP}</class-path>
@@ -152,7 +152,7 @@ y			  <class-path>${DUCC_CP}</class-path>
                   <index>false</index>
                   <manifest>
                      <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccProcessCancel</mainClass>
+                     <mainClass>org.apache.uima.ducc.cli.DuccManagedReservationCancel</mainClass>
                   </manifest>
                   <manifestEntries>
                     <class-path>${DUCC_CP}</class-path>
