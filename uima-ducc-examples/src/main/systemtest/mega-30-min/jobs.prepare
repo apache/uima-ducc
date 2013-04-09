@@ -1,0 +1,35 @@
+# control file to create a random-like submission of jobs for batch submission
+# This represents jobs submitted over approximately 24 hours real time
+# Compression of 48 and spread 1800 gives a good 30 minute test on test system with
+# 136 15-G shares
+
+src.dir                     = jobs.in   # where the jobs are
+dest.dir                    = jobs      # where to put prepared jobs
+
+
+scheduling.classes          = background low normal high urgent   # classes
+scheduling.classes.background = 5                                   # weights for each class
+scheduling.classes.low        = 15
+scheduling.classes.normal     = 75
+scheduling.classes.high       = 15
+scheduling.classes.urgent     = 5
+
+job.services                 = 2 3 4 5 6 7
+job.services.2               = 25
+job.services.3               = 25
+job.services.4               = 25
+job.services.5               = 25
+job.services.6               = 25
+job.services.7               = 25
+
+
+job.memory                  = 28 42                              # memorys to assign
+job.memory.28               = 60
+job.memory.42               = 40
+
+# 24 hours into 30 minutes
+submission.spread           = 1800                                # number of *seconds* to try to spread submission over 
+compression                 = 48                                  # comporession for timings
+
+rewrite                     = true                                # false ==> don't randomize class or memory (ignore class and memory from above)
+

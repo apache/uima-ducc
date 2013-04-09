@@ -1,0 +1,32 @@
+# These jobs represent approximately 144 hours real time; adjust compression accordingly
+# Compresion of 12 and spread of 42000 produces a good 12 hour test on a system with 136 15G shares
+
+src.dir                     = projects/ducc/ducc_test/test/blade-2010-10-13-18/jobs.in   # where the jobs are
+dest.dir                    = projects/ducc/ducc_test/test/blade-2010-10-13-18/jobs      # where to put prepared jobs
+
+
+scheduling.classes        = normal normal-all normal-P7         # classes
+scheduling.classes.normal     = 33
+scheduling.classes.normal-all = 33
+scheduling.classes.normal-P7  = 34
+
+job.services             = 0 1 2 3 4 5 6 7
+job.services.0               = 25
+job.services.1               = 25
+job.services.2               = 25
+job.services.3               = 25
+job.services.4               = 25
+job.services.5               = 25
+job.services.6               = 25
+job.services.7               = 25
+
+job.memory                  = 13 28 37                               # memorys to assign
+job.memory.13               = 30
+job.memory.28               = 40
+job.memory.37               = 30
+
+submission.spread           = 42000                               # number of *seconds* to try to spread submission over 
+                                                                  # 0 means real time
+                                                                  # <= means use compression across realtim
+
+compression                 = 12                                  # comporession for timings

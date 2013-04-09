@@ -1,0 +1,157 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+#
+# This scirpt stops the ducc system-test simulator
+#
+import os
+import sys
+import time
+
+if ( not os.environ.has_key('DUCC_HOME') ):    
+    os.environ['DUCC_HOME'] = os.path.abspath('../..')
+
+DUCC_HOME=os.environ['DUCC_HOME']
+sys.path.append(DUCC_HOME + '/admin')
+
+import getopt
+
+from ducc_util import DuccUtil
+from ducc_util import DuccProperties
+from ducc import Ducc
+
+class StopSim(DuccUtil):
+
+    def signal_process(self, inst, data, signal):
+        (node, pid, pname) = data.split(' ')
+        if ( not (inst in self.default_components )):
+            cmp = 'agent'
+        else:
+            cmp = inst
+        print 'Stopping process', inst, 'on', node, pid, pname, 'with signal', signal
+        self.ssh(node, False, 'kill', signal, pid)
+
+        if ( inst == 'or' ):
+            self.remove_orchestrator_lock()
+
+    def usage(self, msg):
+
+        if ( msg != None ):
+            print ' '.join(msg)
+
+              
+        print "Usage:"
+        print "   stop_sim [options]"   
+        print "        If no options are given, all ducc processes from sim.pids are stopped using SIGINT"
+        print ""
+        print "Options:"
+        print "   -c --component compenent name"
+        print "        The name is one of", self.default_components, "or an ID from sim.pids or the nodelist"
+        print "        that was used to start DUCC"
+        print ""
+        print "   -i --instance instancid"  
+        print "        Sends SIGINT to the indicated process, enabling orderly shutdown."
+        print ""
+        print "   -k --kill"
+        print "        Sends SIGKILL to the indicated process"
+        print ""
+        print "   -p --pause"
+        print "        Sends SIGSTOP to the indicated process"
+        print ""
+        print "   -r --resume"
+        print "        Sends SIGCONT to the indicated process"
+        print ""
+        print "   -v, --version"
+        print "        Print the current DUCC version"
+        print ""
+        sys.exit(1) 
+            
+
+    def invalid(self, *msg):
+        if ( msg[0] != None ):
+            print ' '.join(msg)
+            
+            print "For usage run"
+            print "    stop_sim -h"
+            print 'or'
+            print '    stop_sim --help'
+            sys.exit(1)
+
+    def main(self, argv):
+
+        components = []
+        instances = []
+        signal = '-INT'
+
+        try:
+            opts, args = getopt.getopt(argv, 'c:i:kprvh?', ['component=', 'instance=', 'kill' 'pause', 'resume', 'version'])
+        except:
+            self.invalid('Invalid arguments', ' '.join(argv))
+                  
+        for ( o, a ) in opts:
+            if o in ( '-i', '--instance' ):
+                instances.append(a)
+            elif o in ( '-c', '--component' ):
+                instances.append(a)
+            elif o in ( '-k', '--kill' ):
+                signal = '-KILL'
+            elif o in ( '-p', '--pause' ):
+                signal = '-STOP'
+            elif o in ( '-r', '--resume' ):
+                signal = '-CONT'
+            elif o in ( '-v', '--version' ):
+                print self.version()
+                sys.exit(0)
+            elif o in ( '-h', '--help' ):
+                self.usage(None)
+            elif ( o == '-?'):
+                self.usage(None)
+            else:
+                self.invalid('bad args: ', ' '.join(argv))
+
+        pids = DuccProperties()
+        pids.load('sim.pids')
+
+        if ( (len(components) + len(instances)) == 0 ):
+            for (inst, data) in pids.items():
+                self.signal_process(inst, data, signal)
+                if ( signal in ('-KILL', '-INT') ):
+                    pids.delete(inst)
+
+        else:
+            for inst in instances:
+                data = pids.get(inst)
+                self.signal_process(inst, pids.get(inst), signal)
+                if ( signal in ('-KILL', '-INT') ):
+                    pids.delete(inst)
+
+        pids.write('sim.pids')
+
+        sleeptime = 5
+        print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
+        time.sleep(sleeptime)
+
+        if ( ('broker' in components) and self.automanage ):
+            print "Stopping broker"
+            self.stop_broker()                
+
+if __name__ == "__main__":
+    stopper = StopSim()
+    stopper.main(sys.argv[1:])

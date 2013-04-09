@@ -1,0 +1,38 @@
+# These jobs represent approximately 144 hours real time; adjust compression accordingly
+# Compresion of 12 produces an approximately 12 hour test on a system with 136 15G shares
+
+src.dir                     = jobs.in   # where the jobs are
+dest.dir                    = jobs      # where to put prepared jobs
+
+
+#scheduling.classes       = background low normal high urgent   # classes
+scheduling.classes        = normal                              # classes
+scheduling.classes.background = 5                                   # weights for each class
+scheduling.classes.low        = 15
+scheduling.classes.normal     = 75
+scheduling.classes.high       = 15
+scheduling.classes.urgent     = 5
+
+job.services             = 2 3 4 5 6 7
+#job.services.0               = 25
+#job.services.1               = 25
+job.services.2               = 25
+job.services.3               = 25
+job.services.4               = 25
+job.services.5               = 25
+job.services.6               = 25
+job.services.7               = 25
+
+
+job.memory              = 28 37                               # memorys to assign
+job.memory.28               = 50
+job.memory.37               = 50
+
+#submission.spread          = 5400                                # number of *seconds* to try to spread submission over 
+submission.spread           = 42000                               # number of *seconds* to try to spread submission over 
+                                                                  # 0 means real time
+                                                                  # <= means use compression across realtim
+
+compression                 = 12                                  # comporession for timings
+
+

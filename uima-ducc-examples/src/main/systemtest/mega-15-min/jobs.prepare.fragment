@@ -1,0 +1,31 @@
+# control file to create a random-like submission of jobs for batch submission
+# This represents jobs submitted over approximately 36 hours real time
+# Compression of 96 and spread 900 gives a good 15-20 minute test on test system with
+# 136 15-G shares
+
+src.dir                     = jobs.in   # where the jobs are
+dest.dir                    = jobs      # where to put prepared jobs
+
+
+scheduling.classes            = normal  # classes
+scheduling.classes.normal     = 75
+
+# job mem requirements are set to increase probability of fragmentation in
+# mixed machines of 31, 47, and 79GB.  The key is lots of 15G jobs, which
+# occupy "holes" and make it hard to fit things without defragmentation.
+job.memory                  = 15 28 37  # memorys to assign
+job.memory.15               = 40
+job.memory.28               = 20
+job.memory.37               = 30
+
+job.services                  = 2 3 4 5 6 7
+job.services.2                = 25
+job.services.3                = 25
+job.services.4                = 25
+job.services.5                = 25
+job.services.6                = 25
+job.services.7                = 25
+
+submission.spread           = 900                                 # number of *seconds* to try to spread submission over 
+
+compression                 = 96                                  # comporession for timings

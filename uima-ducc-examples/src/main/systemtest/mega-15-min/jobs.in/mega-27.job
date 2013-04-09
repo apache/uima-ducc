@@ -1,0 +1,6 @@
+elapsed = 150000 15000 15000 15000
+threads = 4
+user = Thor
+memory = 28
+class = nightly-test
+tod = 76621265
