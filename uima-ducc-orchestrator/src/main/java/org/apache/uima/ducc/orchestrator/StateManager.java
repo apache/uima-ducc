@@ -827,7 +827,7 @@ public class StateManager {
 					}
 					DuccProcess process = new DuccProcess(duccId, node, processType);
 					long process_max_size_in_bytes = quantum_size_in_bytes * resource.countShares();
-					CGroupManager.assign(process, process_max_size_in_bytes);
+					CGroupManager.assign(duccWorkJob.getDuccId(), process, process_max_size_in_bytes);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
 					process.setResourceState(ResourceState.Allocated);

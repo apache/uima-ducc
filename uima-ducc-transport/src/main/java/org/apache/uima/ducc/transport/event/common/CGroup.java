@@ -27,12 +27,15 @@ public class CGroup implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 	
-	private IDuccId id;
+	private IDuccId primaryId;
+	private IDuccId secondaryId;
 	private long maxMemoryLimit;  // in bytes
 	private boolean reservation;
 	private int shares;
 	
-	public CGroup(long max_size_in_bytes) {
+	public CGroup(IDuccId primaryId, IDuccId secondaryId, long max_size_in_bytes) {
+		setPrimaryId(primaryId);
+		setSecondaryId(secondaryId);
 		setMaxMemoryLimit(max_size_in_bytes);
 	}
 	
@@ -48,12 +51,38 @@ public class CGroup implements Serializable {
 	public void setReservation(boolean reservation) {
 		this.reservation = reservation;
 	}
-	public IDuccId getId() {
-		return id;
+	
+	public String getId() {
+		String retVal = null;
+		if(primaryId != null) {
+			if(secondaryId != null) {
+				retVal = ""+primaryId.getFriendly()+"."+secondaryId.getFriendly();
+			}
+			else {
+				retVal = ""+primaryId.getFriendly();
+			}
+		}
+		else {
+			if(secondaryId != null) {
+				retVal = "."+secondaryId.getFriendly();
+			}
+		}
+		return retVal;
 	}
-	public void setId(IDuccId id) {
-		this.id = id;
+	
+	protected IDuccId getPrimaryId() {
+		return primaryId;
 	}
+	protected void setPrimaryId(IDuccId primaryId) {
+		this.primaryId = primaryId;
+	}
+	protected IDuccId getSecondaryId() {
+		return secondaryId;
+	}
+	protected void setSecondaryId(IDuccId secondaryId) {
+		this.secondaryId = secondaryId;
+	}
+	
 	public long getMaxMemoryLimit() {
 		return maxMemoryLimit;
 	}

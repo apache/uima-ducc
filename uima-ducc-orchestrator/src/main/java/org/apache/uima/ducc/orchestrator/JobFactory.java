@@ -341,7 +341,7 @@ public class JobFactory {
 		DuccId duccId = jdIdFactory.next();
 		duccId.setFriendly(0);
 		DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
-		CGroupManager.assign(driverProcess, driver_max_size_in_bytes);
+		CGroupManager.assign(job.getDuccId(), driverProcess, driver_max_size_in_bytes);
 		driverProcess.setResourceState(ResourceState.Allocated);
 		driverProcess.setNodeIdentity(nodeIdentity);
 		driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);
