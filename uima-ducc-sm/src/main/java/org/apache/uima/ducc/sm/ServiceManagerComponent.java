@@ -149,8 +149,8 @@ public class ServiceManagerComponent
                     metaprops.load(meta_filename);
                     
                     String sc = metaprops.getProperty("service-class");
-                    if ( (sc != null) && ( sc.equals("Implicit") ) ) {
-                        logger.info(methodName, null, "Scrubbing implicit service", stem);
+                    if ( (sc != null) && ( sc.equals("Implicit") || sc.equals("Submitted") ) ) {
+                        logger.info(methodName, null, "Scrubbing", sc, "service", stem);
                         try {
                             File mf = new File(meta_filename);
                             mf.delete();

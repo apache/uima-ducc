@@ -63,7 +63,11 @@ class PingDriver
     String ping_class;
     String classpath;
     boolean ping_ok;
-    int missed_pings = 0;
+
+    int missed_pings = 0;            // didn't ping in specified time, but no error thrown
+    int errors = 0;                  // error, no good
+    int error_threshold = 5;         // max errors before we die
+
     ServiceSet sset;
     boolean test_mode = false;
 
@@ -85,9 +89,10 @@ class PingDriver
     String user;
     String working_directory;
     String log_directory;
-
     boolean do_log = true;
 
+    boolean shutdown = false;
+    
     PingDriver(ServiceSet sset)
     {        
         this.sset = sset;
@@ -97,12 +102,14 @@ class PingDriver
         this.endpoint          = meta_props.getStringProperty("endpoint");
         this.user              = meta_props.getStringProperty("user");
         String jvm_args_str    = job_props.getStringProperty("service_ping_jvm_args", "");
-        this.ping_class        = job_props.getStringProperty("service_ping_class");
-        this.meta_ping_timeout = job_props.getStringProperty("service_ping_timeout");
-        this.do_log            = job_props.getBooleanProperty("service_ping_dolog", true);
-        this.classpath         = job_props.getStringProperty("service_ping_classpath");
-        this.working_directory = job_props.getStringProperty("working_directory");
-        this.log_directory     = job_props.getStringProperty("log_directory");
+        this.ping_class        = job_props.getStringProperty("service_ping_class", null);
+        if ( this.ping_class != null ) {     // otherwise it's implicit or submitted and we don't care about any of these
+            this.meta_ping_timeout = job_props.getStringProperty("service_ping_timeout");
+            this.do_log            = job_props.getBooleanProperty("service_ping_dolog", true);
+            this.classpath         = job_props.getStringProperty("service_ping_classpath");
+            this.working_directory = job_props.getStringProperty("working_directory");
+            this.log_directory     = job_props.getStringProperty("log_directory");
+        }
 
         jvm_args_str = jvm_args_str + " -Dducc.sm.meta.ping.timeout=" + meta_ping_timeout;
         jvm_args_str = jvm_args_str.trim();
@@ -153,9 +160,82 @@ class PingDriver
         return meta_ping_rate;
     }
 
-    public void run() 
+    public void run()
+    {
+        if ( this.ping_class == null ) {
+            // This is the default ping driver, as configured in ducc.propeties, to be run in
+            // an in-process thread
+            runAsThread();
+        } else {
+            // The user specified a pinger, run it as an extranal process under that user's identity
+            runAsProcess();
+        }
+
+    }
+
+    void handleStatistics(ServiceStatistics stats)
+    {
+        String methodName = "handleStatistics";
+
+        this.service_statistics = stats;
+        if ( stats == null ) {
+            logger.error(methodName, sset.getId(), "Service statics are null!");
+            errors++;
+        } else {
+            if ( service_statistics.isAlive() ) {
+                synchronized(this) {
+                    sset.setResponsive();
+                }
+                logger.info(methodName, sset.getId(), "Ping ok: ", endpoint, stats.toString());
+                missed_pings = 0;
+            } else {
+                logger.error(methodName, sset.getId(), "Missed_pings ", missed_pings, "endpoint", endpoint);
+                if ( ++missed_pings > meta_ping_stability ) {
+                    sset.setUnresponsive();
+                    logger.info(methodName, sset.getId(), "Seting state to unresponsive, endpoint",endpoint);
+                } else {
+                    sset.setWaiting();
+                    logger.info(methodName, sset.getId(), "Seting state to waiting, endpoint,", endpoint);
+                }                
+            }
+        }
+
+    }
+
+    public void runAsThread()
+    {
+    	String methodName = "runAsThread";
+        UimaAsPing uap = new UimaAsPing(logger);
+        logger.info(methodName, sset.getId(), "Starting INTERNAL ping.");
+        try {
+            uap.init(endpoint);
+        } catch ( Throwable t ) {
+            logger.warn(methodName, sset.getId(), t);
+            sset.pingExited();
+        }
+        while ( ! shutdown ) {
+            
+            handleStatistics(uap.getStatistics());
+            if ( errors > error_threshold ) {
+                uap.stop();
+                logger.warn(methodName, sset.getId(), "Ping exited because of excess errors: ", errors);
+                sset.pingExited();
+            }
+            
+            try {
+				Thread.sleep(meta_ping_rate);
+			} catch (InterruptedException e) {
+                // nothing, if we were shutdown we'll exit anyway, otherwise who cares
+			}
+            
+        }
+    }
+
+    public void runAsProcess() 
     {
         String methodName = "run";
+        logger.info(methodName, sset.getId(), "Starting EXTERNAL ping.");
+
         try {
             pinger =  new PingThread();
         } catch ( Throwable t ) {
@@ -244,10 +324,13 @@ class PingDriver
 
     public void stop()
     {
-        pinger.stop();
-        sin_listener.stop();
-        ser_listener.stop();
-        ping_main.destroy();
+        shutdown = true;
+        if ( this.ping_class != null ) {
+            if ( pinger       != null ) pinger.stop();
+            if ( sin_listener != null ) sin_listener.stop();
+            if ( ser_listener != null ) ser_listener.stop();
+            if ( ping_main    != null ) ping_main.destroy();
+        }
     }
 
     class PingThread
@@ -256,8 +339,6 @@ class PingDriver
         ServerSocket server;
         int port = -1;
         boolean done = false;
-        int errors =0;
-        int error_threshold = 5;
 
         PingThread()
             throws IOException
@@ -309,30 +390,7 @@ class PingDriver
                     }
                     
                     // Try to read the response
-                    // TODO: set the socket timeout on this
-                    service_statistics = (ServiceStatistics) ois.readObject();
-                    if ( service_statistics == null ) {
-                        logger.error(methodName, sset.getId(), "Stats are null!");
-                        errors++;
-                    } else {
-                        if ( service_statistics.isAlive() ) {
-                            synchronized(this) {
-                                if ( done ) return;
-                                sset.setResponsive();
-                            }
-                            logger.info(methodName, sset.getId(), "Ping ok: ", endpoint, service_statistics.toString());
-                            missed_pings = 0;
-                        } else {
-                            logger.error(methodName, sset.getId(), "Missed_pings ", missed_pings, "endpoint", endpoint);
-                            if ( ++missed_pings > meta_ping_stability ) {
-                                sset.setUnresponsive();
-                                logger.info(methodName, sset.getId(), "Seting state to unresponsive, endpoint",endpoint);
-                            } else {
-                                sset.setWaiting();
-                                logger.info(methodName, sset.getId(), "Seting state to waiting, endpoint,", endpoint);
-                            }                
-                        }
-                    }
+                    handleStatistics((ServiceStatistics) ois.readObject());
 
                     // This kliudge is required because we have to insure that pings aren't too frequent or ActiveMQ will get OutOfMemory errors.
                     // So we do exponential backoff.  If a new job references the service we set the ping rate to something frequent for a while
@@ -348,9 +406,9 @@ class PingDriver
 
                     // Wait a bit for the next one
                     try {
-                        logger.info(methodName, sset.getId(), "SLEEPING", my_ping_rate, "ms", sset.toString());
+                        // logger.info(methodName, sset.getId(), "SLEEPING", my_ping_rate, "ms", sset.toString());
                         Thread.sleep(my_ping_rate);
-                        logger.info(methodName, sset.getId(), "SLEEP returns", sset.toString());
+                        // logger.info(methodName, sset.getId(), "SLEEP returns", sset.toString());
                     } catch (InterruptedException e) {
                         // nothing
                     }

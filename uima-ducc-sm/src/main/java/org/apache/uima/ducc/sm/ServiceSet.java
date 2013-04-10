@@ -150,16 +150,14 @@ public class ServiceSet
 
         String state_dir = System.getProperty("DUCC_HOME") + "/state";
 
-        // need job props and meta props so pinger works
-        // job props: , service_ping_class, service_ping_classpath, working_directory, log_directory
+        // Need job props and meta props for webserver.
+        // The pinger is always the default configured UIMA-AS pinger.
+        //
+        // job props: working_directory, log_directory
         // meta props: endpoint, user
         job_props = new DuccProperties();
-        job_props.put("service_ping_class", ServiceManagerComponent.default_ping_class);
-        job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
-        job_props.put("service_ping_dolog", "false");
-        job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
-        job_props.put("working_directory", System.getProperty("user.dir")); // whatever my current dir is
-        job_props.put("log_directory", System.getProperty("user.dir") + "/../logs");
+        // job_props.put("working_directory", System.getProperty("user.dir")); // whatever my current dir is
+        // job_props.put("log_directory", System.getProperty("user.dir") + "/../logs");
         //job_props.put("service_ping_jvm_args", "-Xmx50M");
         props_filename = state_dir + "/services/" + id.toString() + ".svc";
         saveServiceProperties();
@@ -194,14 +192,13 @@ public class ServiceSet
         parseEndpoint(key);
 
         String state_dir = System.getProperty("DUCC_HOME") + "/state";
-
+        // Need job props and meta props for webserver.
+        // The pinger is always the default configured UIMA-AS pinger.
+        // Submitted services must always be UIMA-AS services, for now, checked in caller.
+        //
+        // job props: working_directory, log_directory
+        // meta props: endpoint, user
         job_props = new DuccProperties();
-        job_props.put("service_ping_class", ServiceManagerComponent.default_ping_class);
-        job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
-        job_props.put("service_ping_dolog", "false");
-        job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
-        job_props.put("working_directory", System.getProperty("user.dir")); // whatever my current dir is
-        job_props.put("log_directory", System.getProperty("user.dir") + "/../logs");
         //job_props.put("service_ping_jvm_args", "-Xmx50M");
         props_filename = state_dir + "/services/" + id.toString() + ".svc";
         saveServiceProperties();
@@ -254,18 +251,12 @@ public class ServiceSet
 
         parseIndependentServices();
 
-        if ( service_type == ServiceType.UimaAs ) {            
-            if ( ! job_props.containsKey("service_ping_class" ) ) {
-                job_props.put("service_ping_class", ServiceManagerComponent.default_ping_class);
-                job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
-                // this lets us turn on debug logging for the default pinger
-                if ( ! job_props.containsKey("service_ping_dolog")) {
-                    job_props.put("service_ping_dolog", "false");
-                }        
-                // job_props.put("service_ping_jvm_args", "-Xmx0M");
-            }
-        }
-
+        if ( ! job_props.containsKey("service_ping_classpath")) {
+            job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
+        }        
+        if ( ! job_props.containsKey("service_ping_dolog")) {
+            job_props.put("service_ping_dolog", "false");
+        }        
         if ( !job_props.containsKey("service_ping_timeout") ) {
             job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
         }

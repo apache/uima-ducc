@@ -12,6 +12,7 @@ import org.apache.uima.ducc.common.AServicePing;
 import org.apache.uima.ducc.common.ServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.UimaAsServiceMonitor;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
@@ -30,6 +31,17 @@ public class UimaAsPing
     int    broker_jmx_port;
     boolean connected;
     UimaAsServiceMonitor monitor;
+    DuccLogger logger = null;
+    
+    UimaAsPing()
+    {
+        this.logger = null;
+    }
+
+    UimaAsPing(DuccLogger logger)
+    {
+        this.logger = logger;
+    }
 
     public void init(String ep)
         throws Exception
@@ -55,6 +67,7 @@ public class UimaAsPing
         broker_host = url.getHost();
         // not needed here fyi broker_port = url.getPort();
 
+        
         String to = System.getProperty("ducc.sm.meta.ping.timeout");
         meta_timeout = Integer.parseInt(to);
 
@@ -72,26 +85,38 @@ public class UimaAsPing
 
     public void stop()
     {
+        if ( monitor != null ) monitor.stop();
+    }
+
+    private void doLog(String methodName, String msg)
+    {
+        if ( logger == null ) {
+            System.out.println(msg);
+        } else {
+            logger.info(methodName, null, msg);
+        }
     }
 
     private synchronized void init_monitor()
     {
+        String methodName = "init_monitor";
         if ( ! connected ) {
             try {
-                System.out.println("Initializing monitor");
+                doLog(methodName, "Initializing monitor");
                 monitor.init(ep);
                 connected = true;
-                System.out.println("Monitor initialized");
+                doLog(methodName, "Monitor initialized");
             } catch (Throwable t ) {
                 connected = false;
                 // t.printStackTrace();
-                System.err.println("Cannot initialize monitor: " + t.getMessage());
+                doLog(methodName, "Cannot initialize monitor: " + t.toString());
             }
         }
     }
 
     public ServiceStatistics getStatistics()
     {
+        String methodName = "getStatistics";
         ServiceStatistics statistics = new ServiceStatistics(false, false, "<NA>");
 
         // Instantiate Uima AS Client
@@ -116,8 +141,7 @@ public class UimaAsPing
             // System.out.println("getMeta ok: " + ep);
 
         } catch( ResourceInitializationException e) {
-            System.out.println("Cannot issue getMeta: " + e.getMessage());
-            e.printStackTrace();
+            doLog(methodName, "Cannot issue getMeta: " + e.toString());
         } finally {
             uimaAsEngine.stop();
         }
