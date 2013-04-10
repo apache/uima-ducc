@@ -69,6 +69,15 @@ public class JobFactory {
 		return jobFactory;
 	}
 	
+	private long driver_max_size_in_bytes = 0;
+	
+	public JobFactory() {
+		String ducc_jd_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_share_quantum);
+		long oneKB = 1024;
+		long oneMB = 1024*oneKB;
+		driver_max_size_in_bytes = Long.parseLong(ducc_jd_share_quantum) * oneMB;
+	}
+	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
@@ -332,7 +341,7 @@ public class JobFactory {
 		DuccId duccId = jdIdFactory.next();
 		duccId.setFriendly(0);
 		DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
-		CGroupManager.assign(driverProcess);
+		CGroupManager.assign(driverProcess, driver_max_size_in_bytes);
 		driverProcess.setResourceState(ResourceState.Allocated);
 		driverProcess.setNodeIdentity(nodeIdentity);
 		driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);

@@ -28,12 +28,12 @@ public class CGroup implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private IDuccId id;
-	private long maxMemoryLimit;
+	private long maxMemoryLimit;  // in bytes
 	private boolean reservation;
 	private int shares;
 	
-	public CGroup(IDuccId duccId) {
-		setId(id);
+	public CGroup(long max_size_in_bytes) {
+		setMaxMemoryLimit(max_size_in_bytes);
 	}
 	
 	public int getShares() {

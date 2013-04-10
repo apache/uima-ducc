@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
@@ -76,6 +77,16 @@ public class StateManager {
 	
 	public static StateManager getInstance() {
 		return stateManager;
+	}
+	
+	private long quantum_size_in_bytes = 0;
+	
+	public StateManager() {
+		String ducc_rm_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
+		long oneKB = 1024;
+		long oneMB = 1024*oneKB;
+		long oneGB = 1024*oneMB;
+		quantum_size_in_bytes = Long.parseLong(ducc_rm_share_quantum) * oneGB;
 	}
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
@@ -799,6 +810,7 @@ public class StateManager {
 			Iterator<DuccId> resourceMapIterator = resourceMap.keySet().iterator();
 			while(resourceMapIterator.hasNext()) {
 				DuccId duccId = resourceMapIterator.next();
+				IResource resource = resourceMap.get(duccId);
 				Node node = resourceMap.get(duccId).getNode();
 				NodeIdentity nodeId = node.getNodeIdentity();
 				if(!processMap.containsKey(duccId)) {
@@ -814,7 +826,8 @@ public class StateManager {
 						break;
 					}
 					DuccProcess process = new DuccProcess(duccId, node, processType);
-					CGroupManager.assign(process);
+					long process_max_size_in_bytes = quantum_size_in_bytes * resource.countShares();
+					CGroupManager.assign(process, process_max_size_in_bytes);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
 					process.setResourceState(ResourceState.Allocated);

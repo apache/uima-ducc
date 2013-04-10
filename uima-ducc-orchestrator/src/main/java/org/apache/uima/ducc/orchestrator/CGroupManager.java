@@ -18,15 +18,13 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
-import org.apache.uima.ducc.common.utils.id.IDuccId;
 import org.apache.uima.ducc.transport.event.common.CGroup;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 
 public class CGroupManager {
 
-	public static void assign(IDuccProcess process) {
-		IDuccId duccId = process.getDuccId();
-		CGroup cgroup = new CGroup(duccId);
+	public static void assign(IDuccProcess process, long max_size_in_bytes) {
+		CGroup cgroup = new CGroup(max_size_in_bytes);
 		process.setCGroup(cgroup);
 	}
 }
