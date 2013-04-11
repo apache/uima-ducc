@@ -95,6 +95,8 @@ public class DuccPropertiesResolver {
 		defaultProperties.put(ducc_orchestrator_request_endpoint,"ducc.orchestrator.request");
 		defaultProperties.put(default_process_get_meta_time_max,"1");
 		defaultProperties.put(default_process_per_item_time_max,"1");
+		defaultProperties.put(ducc_rm_share_quantum,"10");
+		defaultProperties.put(ducc_jd_share_quantum,"300");
 	}
 	
 	private void init(Properties properties) {
