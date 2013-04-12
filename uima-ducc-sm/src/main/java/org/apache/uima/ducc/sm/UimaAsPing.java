@@ -141,7 +141,7 @@ public class UimaAsPing
             // System.out.println("getMeta ok: " + ep);
 
         } catch( ResourceInitializationException e) {
-            doLog(methodName, "Cannot issue getMeta: " + e.toString());
+            doLog(methodName, "Cannot issue getMeta to: " + endpoint + ":" + broker);
         } finally {
             uimaAsEngine.stop();
         }

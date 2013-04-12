@@ -147,6 +147,8 @@ class PingDriver
 
     public void reference()
     {
+        if ( this.ping_class == null ) return;   // internal ping, doesn't need this kludge
+
         synchronized(ping_rate_sync) {
             meta_ping_rate = 500;
         }
@@ -162,13 +164,18 @@ class PingDriver
 
     public void run()
     {
+    	String methodName = "run";
         if ( this.ping_class == null ) {
             // This is the default ping driver, as configured in ducc.propeties, to be run in
             // an in-process thread
+            logger.info(methodName, sset.getId(), "Starting INTERNAL ping.");
             runAsThread();
+            logger.info(methodName, sset.getId(), "Ending INTERNAL ping.");
         } else {
             // The user specified a pinger, run it as an extranal process under that user's identity
+            logger.info(methodName, sset.getId(), "Starting EXTERNAL ping.");
             runAsProcess();
+            logger.info(methodName, sset.getId(), "Ending EXTERNAL ping.");
         }
 
     }
@@ -206,7 +213,6 @@ class PingDriver
     {
     	String methodName = "runAsThread";
         UimaAsPing uap = new UimaAsPing(logger);
-        logger.info(methodName, sset.getId(), "Starting INTERNAL ping.");
         try {
             uap.init(endpoint);
         } catch ( Throwable t ) {
@@ -234,7 +240,6 @@ class PingDriver
     public void runAsProcess() 
     {
         String methodName = "run";
-        logger.info(methodName, sset.getId(), "Starting EXTERNAL ping.");
 
         try {
             pinger =  new PingThread();
