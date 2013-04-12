@@ -108,7 +108,7 @@ public class DuccServiceSubmit
         if(DuccUiUtilities.isSupportedBeta()) {
         	opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or", null, "services");
+        init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or", null, null);
     }
 
 	public DuccServiceSubmit(String[] args)
@@ -118,7 +118,7 @@ public class DuccServiceSubmit
         if(DuccUiUtilities.isSupportedBeta()) {
         	opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or", null, "services");
+        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or", null, null);
     }
 
 	public DuccServiceSubmit(Properties props)
@@ -132,7 +132,7 @@ public class DuccServiceSubmit
         if(DuccUiUtilities.isSupportedBeta()) {
         	opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or", null, "services");
+        init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or", null, null);
     }
 	
     // TODO: if uima-as, then DD is required

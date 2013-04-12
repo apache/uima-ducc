@@ -270,7 +270,7 @@ public class DuccServiceApi
         if(DuccUiUtilities.isSupportedBeta()) {
         	registration_options = registration_options_beta;
         }
-        init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", callback, "services");
+        init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", callback, null);
 
         //
         // Now: get jvm args and resolve placeholders, in particular, the broker url
@@ -356,7 +356,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), unregister_options, args, dp, sm_host, sm_port, "sm", callback, "services");
+        init(this.getClass().getName(), unregister_options, args, dp, sm_host, sm_port, "sm", callback, null);
 
         Pair<Integer, String> id = getId(UiOption.Unregister);
         String user = dp.getProperty(UiOption.User.pname());
@@ -380,7 +380,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), start_options, args, dp, sm_host, sm_port, "sm", callback, "services");
+        init(this.getClass().getName(), start_options, args, dp, sm_host, sm_port, "sm", callback, null);
 
         Pair<Integer, String> id = getId(UiOption.Start);
         String user = dp.getProperty(UiOption.User.pname());
@@ -410,7 +410,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), stop_options, args, dp, sm_host, sm_port, "sm", callback, "services");
+        init(this.getClass().getName(), stop_options, args, dp, sm_host, sm_port, "sm", callback, null);
 
         Pair<Integer, String> id = getId(UiOption.Stop);
         String user = dp.getProperty(UiOption.User.pname());
@@ -438,7 +438,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), modify_options, args, dp, sm_host, sm_port, "sm", callback, "services");
+        init(this.getClass().getName(), modify_options, args, dp, sm_host, sm_port, "sm", callback, null);
 
         Pair<Integer, String> id = getId(UiOption.Modify);
         String user = dp.getProperty(UiOption.User.pname());
@@ -468,7 +468,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), query_options, args, dp, sm_host, sm_port, "sm", callback, "services");
+        init(this.getClass().getName(), query_options, args, dp, sm_host, sm_port, "sm", callback, null);
 
         Pair<Integer, String> id = null;
         String sid = cli_props.getProperty(UiOption.Query.pname()).trim();
