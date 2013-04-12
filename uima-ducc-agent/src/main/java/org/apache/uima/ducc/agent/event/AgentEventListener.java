@@ -48,6 +48,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 public class AgentEventListener implements DuccEventDelegateListener {
 	DuccLogger logger = DuccLogger.getLogger(this.getClass(), Agent.COMPONENT_NAME);
 	ProcessLifecycleController lifecycleController = null;
+	// On startup of the Agent we may need to do cleanup of cgroups.
+	// This cleanup will happen once right after processing of the first OR publication.
+	private boolean cleanupPhase = true;  
 	
 	private NodeAgent agent;
 	public AgentEventListener(NodeAgent agent, ProcessLifecycleController lifecycleController) {
@@ -98,39 +101,46 @@ public class AgentEventListener implements DuccEventDelegateListener {
 //	  }
 	  
 		try {
-		  //  print JP report targeted for this node
-		  reportIncomingStateForThisNode(duccEvent);
-		  
-		  List<DuccUserReservation> reservations = 
-		           duccEvent.getUserReservations();
-		   agent.setReservations(reservations);
-			//	Stop any process that is in this Agent's inventory but not associated with any
-			//  of the jobs we just received
-			agent.takeDownProcessWithNoJob(agent,duccEvent.getJobList());
-			//	iterate over all jobs and reconcile those processes that are assigned to this agent. First,
-			//  look at the job's JD process and than JPs.
-			for( IDuccJobDeployment jobDeployment : duccEvent.getJobList()) {
-				//	check if this node is a target for this job's JD 
-				if ( isTargetNodeForProcess(jobDeployment.getJdProcess()) ) {
-					// agent will check the state of JD process and either start, stop, or take no action
-					ICommandLine jdCommandLine = jobDeployment.getJdCmdLine();
-					if(jdCommandLine != null) {
-						agent.reconcileProcessStateAndTakeAction(lifecycleController, jobDeployment.getJdProcess(), jobDeployment.getJdCmdLine(), 
-							jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
-					}
-					else {
-						logger.error("onDuccJobsStateEvent", null, "job is service");
-					}
-				} 
-				// check JPs
-				for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
-					if ( isTargetNodeForProcess(process) ) {
-	          // agent will check the state of JP process and either start, stop, or take no action 
-						agent.reconcileProcessStateAndTakeAction(lifecycleController, process, jobDeployment.getJpCmdLine(), 
+
+		  synchronized( this ) {
+			  //  print JP report targeted for this node
+			  reportIncomingStateForThisNode(duccEvent);
+
+			  List<DuccUserReservation> reservations = 
+			           duccEvent.getUserReservations();
+			  if ( cleanupPhase ) {   // true on Agent startup
+				  // cleanup reservation cgroups
+			  }
+			   agent.setReservations(reservations);
+				//	Stop any process that is in this Agent's inventory but not associated with any
+				//  of the jobs we just received
+				agent.takeDownProcessWithNoJob(agent,duccEvent.getJobList());
+				//	iterate over all jobs and reconcile those processes that are assigned to this agent. First,
+				//  look at the job's JD process and than JPs.
+				for( IDuccJobDeployment jobDeployment : duccEvent.getJobList()) {
+					//	check if this node is a target for this job's JD 
+					if ( isTargetNodeForProcess(jobDeployment.getJdProcess()) ) {
+						// agent will check the state of JD process and either start, stop, or take no action
+						ICommandLine jdCommandLine = jobDeployment.getJdCmdLine();
+						if(jdCommandLine != null) {
+							agent.reconcileProcessStateAndTakeAction(lifecycleController, jobDeployment.getJdProcess(), jobDeployment.getJdCmdLine(), 
 								jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
+						}
+						else {
+							logger.error("onDuccJobsStateEvent", null, "job is service");
+						}
+					} 
+					// check JPs
+					for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
+						if ( isTargetNodeForProcess(process) ) {
+		          // agent will check the state of JP process and either start, stop, or take no action 
+							agent.reconcileProcessStateAndTakeAction(lifecycleController, process, jobDeployment.getJpCmdLine(), 
+									jobDeployment.getStandardInfo(), jobDeployment.getProcessMemoryAssignment(), jobDeployment.getJobId());
+						}
 					}
 				}
-			}
+			  
+		  }
 		} catch( Exception e ) {
 			logger.error("onDuccJobsStateEvent", null, e);
 		}

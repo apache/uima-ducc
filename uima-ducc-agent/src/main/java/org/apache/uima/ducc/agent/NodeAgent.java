@@ -18,9 +18,11 @@
 */
 package org.apache.uima.ducc.agent;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
@@ -42,9 +44,11 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.agent.config.AgentConfiguration;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
+import org.apache.uima.ducc.agent.launcher.CGroupsManager;
 import org.apache.uima.ducc.agent.launcher.Launcher;
 import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.agent.metrics.collectors.NodeUsersCollector;
+import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -74,6 +78,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
+import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
 
 
@@ -124,6 +129,15 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   private RogueProcessReaper rogueProcessReaper = 
           new RogueProcessReaper(logger, 5, 10);
   
+  public volatile  boolean useCgroups = false;
+  
+  public CGroupsManager cgroupsManager = null;
+  
+  public Node node = null;
+  
+  public volatile boolean excludeAPs = false;
+
+  public int shareQuantum;
   /**
    * Ctor used exclusively for black-box testing of this class.
    */
@@ -133,6 +147,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public NodeAgent(NodeIdentity ni) {
     this();
     this.nodeIdentity = ni;
+    
   }
 
   /**
@@ -152,6 +167,66 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     this.launcher = launcher;
     this.configurationFactory = factory;
     this.commonProcessDispatcher = factory.getCommonProcessDispatcher(context);
+    
+    if ( System.getProperty("ducc.rm.share.quantum") != null && System.getProperty("ducc.rm.share.quantum").trim().length() > 0 ) {
+	    shareQuantum = Integer.parseInt(System.getProperty("ducc.rm.share.quantum").trim());
+	}
+    /* Enable CGROUPS */ 
+    String cgroups;
+    boolean excludeNodeFromCGroups=false;
+    if ( ( cgroups = System.getProperty("ducc.agent.launcher.cgroups.enable")) != null ) {
+    	if ( cgroups.equalsIgnoreCase("true")) {
+    		// Load exclusion file. Some nodes may be excluded from cgroups
+    		String exclusionFile; 
+    		
+    		// get the name of the exclusion file from ducc.properties
+    		if ( ( exclusionFile = System.getProperty("ducc.agent.exclusion.file")) != null ) {
+    			//	Parse node exclusion file and determine if cgroups and AP deployment
+    			//  is allowed on this node
+    			NodeExclusionParser exclusionParser = new NodeExclusionParser();
+    			exclusionParser.parse(exclusionFile);
+    			excludeNodeFromCGroups = exclusionParser.cgroupsExcluded();
+    			excludeAPs = exclusionParser.apExcluded();
+    			
+    			System.out.println("excludeNodeFromCGroups="+excludeNodeFromCGroups+" excludeAPs="+excludeAPs);
+    		 } else {
+    			 System.out.println("Running with No exclusion File");
+    		 }
+    		// node not in the exclusion list for cgroups
+    		if ( !excludeNodeFromCGroups ) {
+    			// get the top level cgroup folder from ducc.properties. If not defined, use /cgroup/ducc as default
+    			String cgroupsBaseDir = 
+        				System.getProperty("ducc.agent.launcher.cgroups.basedir");
+        		if ( cgroupsBaseDir == null ) {
+        			cgroupsBaseDir = "/cgroup/ducc";
+        		}
+        		// get the cgroup subsystems. If not defined, default to the memory subsystem
+        		String cgroupsSubsystems = 
+        				System.getProperty("ducc.agent.launcher.cgroups.subsystems");
+        		if ( cgroupsSubsystems == null ) {
+        			cgroupsSubsystems = "memory";
+        		}
+        		cgroupsManager = new CGroupsManager(cgroupsBaseDir, cgroupsSubsystems, logger);
+        		// check if cgroups base directory exists in the filesystem which means that cgroups 
+        		// and cgroups convenience package are installed and the daemon is up and running.
+        		if ( cgroupsManager.cgroupExists(cgroupsBaseDir) ) {
+            		useCgroups = true;
+            		logger.info("nodeAgent", null,
+                            "------- Agent Running with CGroups Enabled");
+            		
+        		} else {
+        			logger.info("nodeAgent", null,
+                            "------- CGroups Not Installed on this Machine");
+        		}
+    		}
+    		
+    	}
+    } else {
+    	logger.info("nodeAgent", null,
+                "------- CGroups Not Enabled on this Machine");
+    }
+    logger.info("nodeAgent", null,"CGroup Support="+useCgroups+" excludeNodeFromCGroups="+excludeNodeFromCGroups+" excludeAPs="+excludeAPs);
+
     String useSpawn = System.getProperty("ducc.agent.launcher.use.ducc_spawn");
     if (useSpawn != null && useSpawn.toLowerCase().equals("true")) {
       runWithDuccLing = true;
@@ -184,6 +259,25 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   }
  
+  public void setNodeInfo( Node node ) {
+	  this.node = node;
+  }
+  
+  public Node getNodeInfo() {
+	  return node;
+  }
+  
+  public int getNodeTotalNumberOfShares() {
+	  int shareQuantum = 0;
+	  int shares = 1;
+	  if ( System.getProperty("ducc.rm.share.quantum") != null && System.getProperty("ducc.rm.share.quantum").trim().length() > 0 ) {
+		    shareQuantum = Integer.parseInt(System.getProperty("ducc.rm.share.quantum").trim());
+	     shares = (int)getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal()/shareQuantum;  // get number of shares
+		 if ( (getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal() % shareQuantum) > 0 ) shares++; // ciel
+	  }
+	  
+	  return shares;
+	}
   public void start(DuccService service) throws Exception {
 		super.start(service, null);
 		String name = nodeIdentity.getName();
@@ -326,7 +420,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    * @param workDuccId - job id
    */
   public void reconcileProcessStateAndTakeAction(ProcessLifecycleController lifecycleController,
-          IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info, long processMemoryAssignment, DuccId workDuccId) {
+          IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info, ProcessMemoryAssignment processMemoryAssignment, DuccId workDuccId) {
     String methodName = "reconcileProcessStateAndTakeAction";
     try {
       inventorySemaphore.acquire();
@@ -395,7 +489,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 + process.getDuccId() + " is already in agent's inventory.");
         return;
       }
-      startProcess(process, commandLine, info, workDuccId,0);
+      startProcess(process, commandLine, info, workDuccId, new ProcessMemoryAssignment());
     } catch (InterruptedException e) {
       logger.error(methodName, null, e);
     } finally {
@@ -451,7 +545,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    * 
    */
   public void startProcess(IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info,
-          DuccId workDuccId, long processMemoryAssignment) {
+          DuccId workDuccId, ProcessMemoryAssignment processMemoryAssignment) {
     String methodName = "startProcess";
 
     try {
@@ -772,7 +866,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    *          - fully defined command line that will be used to exec the process.
    */
   private void deployProcess(IDuccProcess process, ICommandLine commandLine,
-          IDuccStandardInfo info, DuccId workDuccId, long processMemoryAssignment) {
+          IDuccStandardInfo info, DuccId workDuccId, ProcessMemoryAssignment processMemoryAssignment) {
     String methodName = "deployProcess";
     synchronized (monitor) {
       boolean deployProcess = true;
@@ -878,7 +972,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 + " Not in Agent's inventory. Adding to the inventory with state=Stopped");
         process.setProcessState(ProcessState.Stopped);
         inventory.put(process.getDuccId(), process);
-        deployedProcesses.add(new ManagedProcess(process, null, this, logger,0));
+        deployedProcesses.add(new ManagedProcess(process, null, this, logger, new ProcessMemoryAssignment()));
       }
     }
   }
@@ -1356,4 +1450,49 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       e.printStackTrace();
     }
   }
+
+	private class NodeExclusionParser {
+		private boolean excludeNodeFromCGroups = false;
+		private boolean excludeAP = false;
+
+		public void parse(String exclFile) throws Exception {
+		// <node>=cgroup,ap
+			File exclusionFile = new File(exclFile);
+			if ( !exclusionFile.exists() ) {
+				return;
+			}
+			BufferedReader br = new BufferedReader(new FileReader(exclusionFile));
+			String line;
+			NodeIdentity node = getIdentity();
+			String nodeName = node.getName();
+			if ( nodeName.indexOf(".") > -1 ) {
+				nodeName = nodeName.substring(0, nodeName.indexOf("."));
+			}
+			
+			while ((line = br.readLine()) != null) {
+			   if ( line.startsWith(nodeName ) ) {
+				   String exclusions = line.substring( line.indexOf("=")+1);
+				   String[] parsedExclusions = exclusions.split(",");
+				   for( String exclusion : parsedExclusions ) {
+					  
+					   if ( exclusion.trim().equals("cgroup")  ) {
+						   excludeNodeFromCGroups = true;
+						  
+					   } else if  ( exclusion.trim().equals("ap")) {
+						   excludeAP = true;
+						   
+					   }
+				   }
+				   break;
+			   }
+			}
+			br.close();
+	  }
+		public boolean apExcluded() {
+			return excludeAP;
+		}
+		public boolean cgroupsExcluded() {
+			return excludeNodeFromCGroups;
+		}
+	}
 }

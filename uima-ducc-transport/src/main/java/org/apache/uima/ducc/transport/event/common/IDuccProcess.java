@@ -103,6 +103,7 @@ public interface IDuccProcess extends Serializable {
 		Croaked,
 		Deallocated,
 		ExceededShareSize,
+		ExceededSwapThreshold,
 		FailedInitialization,
 		InitializationTimeout,
 		JPHasNoActiveJob, 
@@ -118,5 +119,11 @@ public interface IDuccProcess extends Serializable {
 	
 	public void setCGroup( CGroup cgroup);
 	public CGroup getCGroup();
+	
+	public void setMajorFaults(long faultCount);
+	public long getMajorFaults();
+	
+	public void setSwapUsage(long susage);
+	public long getSwapUsage();
 	
 }

@@ -22,9 +22,10 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
+import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
 
 public interface ProcessLifecycleController {
-	public void startProcess(IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info, DuccId workDuccId, long shareMemorySize);
+	public void startProcess(IDuccProcess process, ICommandLine commandLine, IDuccStandardInfo info, DuccId workDuccId, ProcessMemoryAssignment pma);
 	public void stopProcess( IDuccProcess process );
 }

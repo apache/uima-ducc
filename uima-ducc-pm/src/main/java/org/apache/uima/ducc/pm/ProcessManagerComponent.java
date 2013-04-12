@@ -36,6 +36,7 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
+import org.apache.uima.ducc.transport.event.common.CGroup;
 import org.apache.uima.ducc.transport.event.common.DuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
@@ -47,6 +48,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
 /**
  * The ProcessManager's main role is to receive Orchestrator updates, trim received state and
@@ -94,26 +96,48 @@ implements ProcessManager {
 	
 	/* New Code */
 	
+	private long normalizeMemory(String processMemoryAssignment, MemoryUnits units) {
+		 //  Get user defined memory assignment for the JP
+	    long normalizedProcessMemoryRequirements =
+	            Long.parseLong(processMemoryAssignment);
+	    // Normalize memory requirements for JPs into Gigs 
+	    if ( units.equals(MemoryUnits.KB ) ) {
+	      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/(1024*1024);
+	    } else if ( units.equals(MemoryUnits.MB ) ) {
+	      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/1024;
+	    } else if ( units.equals(MemoryUnits.GB ) ) {
+	      //  already normalized
+	    } else if ( units.equals(MemoryUnits.TB ) ) {
+	      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements*1024;
+	    }
+	    return normalizedProcessMemoryRequirements;
+	}
+	private int getShares(long normalizedProcessMemoryRequirements ) {
+	    int shares = (int)normalizedProcessMemoryRequirements/shareQuantum;  // get number of shares
+	    if ( (normalizedProcessMemoryRequirements % shareQuantum) > 0 ) shares++; // ciel
+	    return shares;
+	}
 	private long calculateProcessMemoryAssignment( String processMemoryAssignment, MemoryUnits units) {
-    //  Get user defined memory assignment for the JP
-    long normalizedProcessMemoryRequirements =
-            Long.parseLong(processMemoryAssignment);
-    // Normalize memory requirements for JPs into Gigs 
-    if ( units.equals(MemoryUnits.KB ) ) {
-      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/(1024*1024);
-    } else if ( units.equals(MemoryUnits.MB ) ) {
-      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/1024;
-    } else if ( units.equals(MemoryUnits.GB ) ) {
-      //  already normalized
-    } else if ( units.equals(MemoryUnits.TB ) ) {
-      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements*1024;
-    }
+      //  Get user defined memory assignment for the JP
+      long normalizedProcessMemoryRequirements = normalizeMemory(processMemoryAssignment,units);
+    
+//            Long.parseLong(processMemoryAssignment);
+//    // Normalize memory requirements for JPs into Gigs 
+//    if ( units.equals(MemoryUnits.KB ) ) {
+//      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/(1024*1024);
+//    } else if ( units.equals(MemoryUnits.MB ) ) {
+//      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/1024;
+//    } else if ( units.equals(MemoryUnits.GB ) ) {
+//      //  already normalized
+//    } else if ( units.equals(MemoryUnits.TB ) ) {
+//      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements*1024;
+//    }
     int shares = (int)normalizedProcessMemoryRequirements/shareQuantum;  // get number of shares
     if ( (normalizedProcessMemoryRequirements % shareQuantum) > 0 ) shares++; // ciel
     // normalize to get process memory in terms of Megs
     long processAdjustedMemorySize = shares * shareQuantum * 1024;  
     //  add fudge factor (5% default)  to adjusted memory computed above 
-    processAdjustedMemorySize += (processAdjustedMemorySize * ((double)fudgeFactor/100));        
+    //processAdjustedMemorySize += (processAdjustedMemorySize * ((double)fudgeFactor/100));        
     return processAdjustedMemorySize;
 	}
 
@@ -132,30 +156,48 @@ implements ProcessManager {
 	        DuccWorkJob dcj = (DuccWorkJob)entry.getValue();
 	        //  Create process list for each job
 	        List<IDuccProcess> jobProcessList = new ArrayList<IDuccProcess>();
+	        
+	        long normalizedProcessMemoryRequirements = normalizeMemory(dcj.getSchedulingInfo().getShareMemorySize(),dcj.getSchedulingInfo().getShareMemoryUnits());
+	        int shares = getShares(normalizedProcessMemoryRequirements);
+	        long processAdjustedMemorySize = shares * shareQuantum * 1024;  
+	        ProcessMemoryAssignment pma = new ProcessMemoryAssignment();
+	        pma.setShares(shares);
+	        pma.setNormalizedMemoryInMBs(processAdjustedMemorySize);
+	        
+	    
 	        //  Copy job processes 
 	        for( Entry<DuccId,IDuccProcess> jpProcess : dcj.getProcessMap().getMap().entrySet()) {
 	          jobProcessList.add(jpProcess.getValue());
 	        }
-
+	        
+	        
+	        
 	        if ( dcj.getUimaDeployableConfiguration() instanceof DuccUimaDeploymentDescriptor ) {
 	          //  Add deployment UIMA AS deployment descriptor path
 	          ((JavaCommandLine)dcj.getCommandLine()).
 	            addArgument(((DuccUimaDeploymentDescriptor)dcj.getUimaDeployableConfiguration()).getDeploymentDescriptorPath());
 	        }
+	        
+	        
 	        //  Calculate Process memory allocation including a fudge factor (if one is defined). The
 	        //  returned value is in terms of Megs.
-	        long processAdjustedMemorySize = 
-	                calculateProcessMemoryAssignment(dcj.getSchedulingInfo().getShareMemorySize(), 
-	                        dcj.getSchedulingInfo().getShareMemoryUnits());
-
+//	        long processAdjustedMemorySize = 
+//	                calculateProcessMemoryAssignment(dcj.getSchedulingInfo().getShareMemorySize(), 
+//	                        dcj.getSchedulingInfo().getShareMemoryUnits());
+	        //  add fudge factor (5% default)  to adjust memory computed above 
+	        processAdjustedMemorySize += (processAdjustedMemorySize * ((double)fudgeFactor/100));
+	        pma.setMaxMemoryWithFudge(processAdjustedMemorySize);
+	        
 	        logger.info(methodName,dcj.getDuccId(),"--------------- User Requested Memory For Process:"+dcj.getSchedulingInfo().getShareMemorySize()+dcj.getSchedulingInfo().getShareMemoryUnits()+" PM Calculated Memory Assignment of:"+processAdjustedMemorySize);
 	        
 	        ICommandLine driverCmdLine = null;
 	        IDuccProcess driverProcess = null;
 	        switch(dcj.getDuccType()) {
 	        case Job:
+		       
 	          driverCmdLine = dcj.getDriver().getCommandLine();
 	          driverProcess = dcj.getDriver().getProcessMap().entrySet().iterator().next().getValue();
+	          
 	          break;
 	        case Service:
 	          //logger.info(methodName,null,"!!!!!!!!!!!!! GOT SERVICE");
@@ -164,11 +206,13 @@ implements ProcessManager {
 	        default:
 	          
 	        }
+	        
 	        jobDeploymentList.add( new DuccJobDeployment(dcj.getDuccId(), driverCmdLine,
 	                           dcj.getCommandLine(), 
 	                           dcj.getStandardInfo(),
 	                           driverProcess,
-	                           processAdjustedMemorySize,
+	                           pma,
+	                           //processAdjustedMemorySize,
 	                           jobProcessList ));
 	      } else if (entry.getValue() instanceof DuccWorkReservation ) {
 	        String userId = ((DuccWorkReservation) entry.getValue()).getStandardInfo().getUser();

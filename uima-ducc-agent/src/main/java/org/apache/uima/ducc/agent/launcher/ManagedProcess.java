@@ -38,6 +38,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
+import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
 
 
@@ -137,18 +138,24 @@ public class ManagedProcess implements Process {
 	
 	private transient DuccLogger logger;
 	
-	private long processMemoryAssignment;
+	//private long processMemoryAssignment;
+	
+	private long maxSwapThreshold;
+	
+	
+
+	private ProcessMemoryAssignment processMemoryAssignment;
 	
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine) {
-		this(process, commandLine, null, null,0);
+		this(process, commandLine, null, null, new ProcessMemoryAssignment());
 	}
 
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine,boolean agentProcess) {
-		this(process, commandLine, null, null,0);
+		this(process, commandLine, null, null,new ProcessMemoryAssignment());
 		this.agentProcess = agentProcess;
 	}
 
-	public ManagedProcess(IDuccProcess process, ICommandLine commandLine,ProcessLifecycleObserver observer, DuccLogger logger, long processMemoryAssignment) {
+	public ManagedProcess(IDuccProcess process, ICommandLine commandLine,ProcessLifecycleObserver observer, DuccLogger logger, ProcessMemoryAssignment processMemoryAssignment) {
 		this.commandLine = commandLine;
 		this.duccProcess = process;
 		this.observer = observer;
@@ -603,7 +610,7 @@ public class ManagedProcess implements Process {
 		this.future = future;
 	}
 
-  public long getProcessMemoryAssignment() {
+  public ProcessMemoryAssignment getProcessMemoryAssignment() {
     return processMemoryAssignment;
   }
 
@@ -614,4 +621,12 @@ public class ManagedProcess implements Process {
   public void setSocketEndpoint(String socketEndpoint) {
     this.socketEndpoint = socketEndpoint;
   }
+  
+  public long getMaxSwapThreshold() {
+		return maxSwapThreshold;
+	}
+
+  public void setMaxSwapThreshold(long maxSwapThreshold) {
+		this.maxSwapThreshold = maxSwapThreshold;
+	}
 }

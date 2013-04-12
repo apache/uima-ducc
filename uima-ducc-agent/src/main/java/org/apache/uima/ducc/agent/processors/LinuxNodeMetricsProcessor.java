@@ -118,6 +118,11 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
               cpuFuture.get(), nuiFuture.get());
       
 			Node node = new DuccNode(agent.getIdentity(), nodeMetrics);
+			// Make the agent aware how much memory is available on the node. Do this once.
+			if ( agent.getNodeInfo() == null ) {
+				agent.setNodeInfo(node);
+			}
+						
 			((DuccNode)node).duccLingExists(agent.duccLingExists());
 			((DuccNode)node).runWithDuccLing(agent.runWithDuccLing());
 			logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getName()+" Posting Memory:"

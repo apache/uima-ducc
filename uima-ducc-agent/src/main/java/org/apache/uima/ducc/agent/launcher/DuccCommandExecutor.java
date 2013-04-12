@@ -40,10 +40,10 @@ import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
-import org.apache.uima.ducc.transport.event.common.ITimeWindow;
-import org.apache.uima.ducc.transport.event.common.TimeWindow;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
+import org.apache.uima.ducc.transport.event.common.TimeWindow;
 
 
 public class DuccCommandExecutor extends CommandExecutor {
@@ -73,24 +73,182 @@ public class DuccCommandExecutor extends CommandExecutor {
 		// default 
 		return false;
 	}
+	/**
+	 * Test if a given DuccProcess owns a cgroup on this node. Return false if the process is JD since JDs dont own 
+	 * a cgroup in which they run. 
+	 * 
+	 * An owner process DuccId matches cgroup name. 
+	 *  
+	 * @param duccProcess
+	 * @return
+	 * @throws Exception
+	 */
+    private boolean cgroupOwner(IDuccProcess duccProcess ) throws Exception {
+    	if (  duccProcess.getProcessType().equals(ProcessType.Pop) ) {
+    		return false;   // JD
+    	} else if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+duccProcess.getCGroup().getId() ) ) {
+    		return true;
+    	}
+    	return false;
+    }
+    private boolean createCGroupContainer(IDuccProcess duccProcess, String containerId, String owner ) throws Exception {
+  	//	create cgroups container and assign limits
+    	if ( agent.cgroupsManager.createContainer( containerId, owner, useDuccSpawn()) ) {
+    		return agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
+					owner, useDuccSpawn(), duccProcess.getCGroup().getMaxMemoryLimit());
 
+//			 if ( isJD(duccProcess) ) {
+//		    		agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
+//							owner, useDuccSpawn(), duccProcess.getCGroup().getShares()* agent.shareQuantum); //duccProcess.getCGroup().getMaxMemoryLimit());
+//			 } else {
+//		    		agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
+//							owner, useDuccSpawn(),duccProcess.getCGroup().getShares()* agent.shareQuantum); //((ManagedProcess)super.managedProcess).getProcessMemoryAssignment().getNormalizedMemoryInMBs());
+//			 }
+//			 float percentOfTotal =  ((ManagedProcess)super.managedProcess).getProcessMemoryAssignment().getShares()/agent.getNodeTotalNumberOfShares();
+//		     long maxProcessSwapUsage = (long) (agent.getNodeInfo().getNodeMetrics().getNodeMemory().getSwapTotal()*percentOfTotal);
+		     
+	     
+		     /** NEED TO START DAEMON THREAD TO CHECK SWAP USAGE OF THIS PROCESS */
+		     //return true;
+		} 
+		return false;
+    }
+    private boolean isJD(IDuccProcess duccProcess ) {
+    	return duccProcess.getProcessType().equals(ProcessType.Pop);
+    }
+    private String getContainerId() {
+    	String containerId;
+		if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service)) {
+			containerId = String.valueOf(((ManagedProcess) managedProcess).getDuccProcess().getCGroup().getId());
+		} else {
+			containerId = ((ManagedProcess) managedProcess).getWorkDuccId().getFriendly()+"."+((ManagedProcess) managedProcess).getDuccProcess().getCGroup().getId();
+		}
+		return containerId;
+    }
 	public Process exec(ICommandLine cmdLine, Map<String, String> processEnv)
 			throws Exception {
 		String methodName = "exec";
 		try {
 			String[] cmd = getDeployableCommandLine(cmdLine,processEnv);			
 			if ( isKillCommand(cmdLine) ) {
-        logger.info(methodName, null, "Killing process");
+				logger.info(methodName, null, "Killing process");
 				stopProcess(cmdLine, cmd);
 			} else {
-				startProcess(cmdLine, cmd, processEnv);
+				IDuccProcess duccProcess = ((ManagedProcess) managedProcess).getDuccProcess();
+  			    
+				
+				// Calculate how much swap space the process is allowed to use. The calculation is based on
+				// the percentage of real memory the process is assigned. The process is entitled the
+				// same percentage of the swap.
+				// Normalize node's total memory as it is expressed in KB. The calculation below is based on bytes.
+				double percentOfTotal =  ((double)duccProcess.getCGroup().getMaxMemoryLimit())/
+						(agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal()*1024); // need bytes
+
+				
+				//  substract 1Gig from total swap on this node to accommodate OS needs for swapping. The 
+				//  getSwapTotal() returns swap space in KBs so normalize 1Gig
+				long adjustedTotalSwapAvailable =
+						agent.getNodeInfo().getNodeMetrics().getNodeMemory().getSwapTotal() - 1048576;
+				// calculate the portion (in bytes) of swap this process is entitled to
+				long maxProcessSwapUsage = 
+						 (long) (adjustedTotalSwapAvailable*percentOfTotal)*1024;
+				 // assigned how much swap this process is entitled to. If it exceeds this number the Agent
+				 // will kill the process.
+				 ((ManagedProcess) managedProcess).setMaxSwapThreshold(maxProcessSwapUsage);
+  			    logger.info(methodName, null, "---Process DuccId:"+duccProcess.getDuccId()+
+	  			    		" CGroup.getMaxMemoryLimit():"+((duccProcess.getCGroup().getMaxMemoryLimit()/1024)/1024)+" MBs"+
+	  			    		" Node Memory Total:"+(agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal()/1024)+" MBs"+
+	  			    		" Percentage Of Real Memory:"+percentOfTotal+
+	  			    		" Adjusted Total Swap Available On Node:"+adjustedTotalSwapAvailable/1024+" MBs"+
+	  			    		" Process Entitled To Max:"+(maxProcessSwapUsage/1024)/1024+" MBs of Swap"
+	  			    		);
+
+  			    //logger.info(methodName, null, "The Process With ID:"+duccProcess.getDuccId()+" is Entitled to the Max "+( (maxProcessSwapUsage/1024)/1024)+" Megs of Swap Space");
+				     
+				// if configured to use cgroups and the process is the cgroup owner, create a cgroup
+				// using Process DuccId as a name. Additional processes may be injected into the
+				// cgroup by declaring cgroup owner id.
+				if ( agent.useCgroups ) {
+					  
+					
+					// cgroup container id
+					//long containerId;
+					//	JDs are of type Pop (Plain Old Process). JDs run in a reservation. The cgroup container
+					//  is created for the reservation and we co-locate as many JDs as we can fit in it.
+					//String containerId = ((ManagedProcess) managedProcess).getWorkDuccId()+"."+duccProcess.getCGroup().getId().getFriendly();
+					String containerId = getContainerId();
+					logger.info(methodName, null, "Creating CGroup with ID:"+containerId);					
+					if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+containerId) ) {
+						
+						// create cgroup container for JDs
+						try {
+							if ( createCGroupContainer(duccProcess, containerId, ((ManagedProcess)super.managedProcess).getOwner()) ) {
+								logger.info(methodName, null, "Created CGroup with ID:"+containerId+" With Memory Limit="+((ManagedProcess)super.managedProcess).getDuccProcess().getCGroup().getMaxMemoryLimit()+" Bytes");
+							} else {
+								logger.info(methodName, null, "Failed To Create CGroup with ID:"+containerId);
+							}
+						} catch( Exception e) {
+							logger.error(methodName, null, e);
+							
+						}
+					} else {
+						logger.info(methodName, null, "CGroup Exists with ID:"+containerId);					
+
+					}
+/*					
+					if (  isJD(duccProcess) ) {
+						//	For JDs the container is the reservation id
+						containerId = duccProcess.getCGroup().getId().getFriendly();
+						//	check if we need to create a cgroup for JDs. First JD deployment will force creation 
+						//  of cgroup container
+						if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+duccProcess.getCGroup().getId().getFriendly()) ) {
+							// create cgroup container for JDs
+							try {
+								if ( createCGroupContainer(duccProcess, containerId, "ducc") ) {
+									logger.info(methodName, null, "Created CGroup with ID:"+containerId);
+								} else {
+									logger.info(methodName, null, "Failed To Create CGroup with ID:"+containerId);
+								}
+							} catch( Exception e) {
+								logger.error(methodName, null, e);
+								
+							}
+						}
+ 					} else 	if ( cgroupOwner(duccProcess)) {  
+ 						
+ 						containerId = duccProcess.getCGroup().getId().getFriendly();
+ 						//  create cgroup container for JP/AP
+ 						createCGroupContainer(duccProcess, containerId, ((ManagedProcess)super.managedProcess).getOwner());
+						     
+//						     // NEED TO START DAEMON THREAD TO CHECK SWAP USAGE OF THIS PROCESS 
+//						}
+
+						
+					} else {
+						containerId = duccProcess.getCGroup().getId().getFriendly();
+					}
+	*/
+				String[] cgroupCmd = new String[cmd.length+3];
+					cgroupCmd[0] = "/usr/bin/cgexec";
+					cgroupCmd[1] = "-g";
+					cgroupCmd[2] = agent.cgroupsManager.getSubsystems()+":ducc/"+containerId;
+					int inx = 3;
+					for ( String cmdPart : cmd ) {
+						cgroupCmd[inx++] = cmdPart;
+					}
+					startProcess(cmdLine, cgroupCmd, processEnv);
+				} else {
+					// dont use CGroups 
+					startProcess(cmdLine, cmd, processEnv);
+				}
+
 			}
 			return managedProcess;
 		} catch (Exception e) {
-		  if ( ((ManagedProcess)super.managedProcess).getDuccProcess() != null ) {
-  	    DuccId duccId = ((ManagedProcess)super.managedProcess).getDuccId();
-	      logger.error(methodName, duccId, ((ManagedProcess)super.managedProcess).getDuccProcess().getDuccId(), e, new Object[]{});
-		  }
+			if ( ((ManagedProcess)super.managedProcess).getDuccProcess() != null ) {
+				DuccId duccId = ((ManagedProcess)super.managedProcess).getDuccId();
+				logger.error(methodName, duccId, ((ManagedProcess)super.managedProcess).getDuccProcess().getDuccId(), e, new Object[]{});
+			}
 			throw e;
 		} 
 	}
@@ -160,6 +318,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	          } else {
 	            logger.info(methodName,((ManagedProcess)super.managedProcess).getDuccId(),"------------ Agent Dispatched STOP Request to Process with PID:"+((ManagedProcess) managedProcess).getDuccProcess().getPID()+" Process State: "+((ManagedProcess) managedProcess).getDuccProcess().getProcessState()+" .Process Not In Running State");
 	          }
+
 	        } catch (TimeoutException tex) { // on time out kill the process
 	          if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Running)) {
 	            logger.info(methodName,((ManagedProcess)super.managedProcess).getDuccId(),"------------ Agent Timed-out Waiting for Process with PID:"+((ManagedProcess) managedProcess).getDuccProcess().getPID()+" to Stop. Process State:"+((ManagedProcess) managedProcess).getDuccProcess().getProcessState()+" .Process did not stop in alloted time of "+maxTimeToWaitForProcessToStop+" millis");
@@ -178,47 +337,47 @@ public class DuccCommandExecutor extends CommandExecutor {
 	
 	private void startProcess(ICommandLine cmdLine,String[] cmd, Map<String, String> processEnv) throws Exception {
 		String methodName = "startProcess";
-		
-		ITimeWindow twr = new TimeWindow();
-			String millis;
-			millis = TimeStamp.getCurrentMillis();
-			
-			((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowRun(twr);
-			twr.setStart(millis);
-			ProcessBuilder pb = new ProcessBuilder(cmd);
 
-			if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop) ||
- 	         ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service)   ) {
-				ITimeWindow twi = new TimeWindow();
-				((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowInit(twi);
-				twi.setStart(millis);
-				twi.setEnd(millis);
+		ITimeWindow twr = new TimeWindow();
+		String millis;
+		millis = TimeStamp.getCurrentMillis();
+        
+		((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowRun(twr);
+		twr.setStart(millis);
+		ProcessBuilder pb = new ProcessBuilder(cmd);
+
+		if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop) ||
+				((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service)   ) {
+			ITimeWindow twi = new TimeWindow();
+			((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowInit(twi);
+			twi.setStart(millis);
+			twi.setEnd(millis);
+		}
+		Map<String, String> env = pb.environment();
+		// enrich Process environment
+		env.putAll(processEnv);
+		if( cmdLine instanceof ACommandLine ) {
+			// enrich Process environment with one from a given command line
+			env.putAll(((ACommandLine)cmdLine).getEnvironment());
+		}
+		if ( logger.isTrace()) {
+			// <dump>
+			Iterator<String> iterator = env.keySet().iterator();
+			while(iterator.hasNext()) {
+				String key = iterator.next();
+				String value = env.get(key);
+				String message = "key:"+key+" "+"value:"+value;
+				logger.trace(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), message);
 			}
-			Map<String, String> env = pb.environment();
-			// enrich Process environment
-			env.putAll(processEnv);
-			if( cmdLine instanceof ACommandLine ) {
-				// enrich Process environment with one from a given command line
-				env.putAll(((ACommandLine)cmdLine).getEnvironment());
-			}
-			if ( logger.isTrace()) {
-	      // <dump>
-	      Iterator<String> iterator = env.keySet().iterator();
-	      while(iterator.hasNext()) {
-	        String key = iterator.next();
-	        String value = env.get(key);
-	        String message = "key:"+key+" "+"value:"+value;
-	        logger.trace(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), message);
-	      }
-			}
-			try {
-				doExec(pb, cmd, isKillCommand(cmdLine));
-			} catch(Exception e) {
-				throw e;
-			} finally {
-				millis = TimeStamp.getCurrentMillis();
-				twr.setEnd(millis);
-			}
+		}
+		try {
+			doExec(pb, cmd, isKillCommand(cmdLine));
+		} catch(Exception e) {
+			throw e;
+		} finally {
+			millis = TimeStamp.getCurrentMillis();
+			twr.setEnd(millis);
+		}
 	}
 	private void doExec(ProcessBuilder pb, String[] cmd, boolean isKillCmd) throws Exception {
 		String methodName = "doExec";
@@ -240,7 +399,14 @@ public class DuccCommandExecutor extends CommandExecutor {
 			exitCode = process.waitFor();
 			if ( !isKillCommand(cmdLine) ) {
 				logger.info(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), ">>>>>>>>>>>>> Process with PID:"+((ManagedProcess)super.managedProcess).getDuccProcess().getPID()+" Terminated");
+				//	 Process is dead, determine if the cgroup container should be destroyed as well.
+				if ( agent.useCgroups ) { 
+					String containerId = getContainerId();
+					agent.cgroupsManager.destroyContainer(containerId);
+					logger.info(methodName, null, "Removed CGroup Container with ID:"+containerId);
+				}
 			}
+			
 		} catch( NullPointerException ex) {
 			((ManagedProcess)super.managedProcess).getDuccProcess().setProcessState(ProcessState.Failed);
 			StringBuffer sb = new StringBuffer();

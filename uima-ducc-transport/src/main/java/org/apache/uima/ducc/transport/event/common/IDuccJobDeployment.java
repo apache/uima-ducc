@@ -62,6 +62,6 @@ public interface IDuccJobDeployment extends Serializable {
 	 * Returns memory size assigned by user to this process
 	 * @return
 	 */
-  public long getProcessMemoryAssignment();
+  public ProcessMemoryAssignment getProcessMemoryAssignment();
 
 }
