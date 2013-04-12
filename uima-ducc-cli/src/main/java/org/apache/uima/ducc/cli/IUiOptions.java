@@ -56,7 +56,18 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },
-
+        
+        AllInOne   { 
+            public String pname()      { return "all_in_one"; } 
+            public String argname()     { return "local|remote"; } 
+            public String description() { return "Run driver and pipeline in single process."; } 
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },
+        
         Autostart   { 
             public String pname()      { return "autostart"; } 
             public String argname()     { return "boolean: true or false"; } 

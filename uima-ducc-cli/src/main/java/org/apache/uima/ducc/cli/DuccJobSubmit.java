@@ -22,6 +22,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
@@ -43,10 +44,12 @@ public class DuccJobSubmit
 // 		this.duccMessageProcessor = duccMessageProcessor;
 // 	}
     
-    UiOption[] opts_release = new UiOption[] {
+    public static UiOption[] opts_release = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
 
+        UiOption.AllInOne,
+        
         UiOption.ProcessDebug,
         UiOption.ProcessAttachConsole,
         UiOption.DriverDebug,
@@ -59,14 +62,15 @@ public class DuccJobSubmit
         UiOption.WorkingDirectory,
         UiOption.Jvm,
         
-        UiOption.JvmArgs,
         UiOption.Classpath,
         UiOption.Environment,
        
+        UiOption.DriverJvmArgs,
         UiOption.DriverDescriptorCR,
         UiOption.DriverDescriptorCROverrides,
         UiOption.DriverExceptionHandler,
 
+        UiOption.ProcessJvmArgs,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
         UiOption.ProcessDescriptorCM,
@@ -90,10 +94,12 @@ public class DuccJobSubmit
         UiOption.ClasspathOrder,
     };
 
-    UiOption[] opts_beta = new UiOption[] {
+    public static UiOption[] opts_beta = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
 
+        UiOption.AllInOne,
+        
         UiOption.ProcessDebug,
         UiOption.ProcessAttachConsole,
         UiOption.DriverDebug,
@@ -144,7 +150,7 @@ public class DuccJobSubmit
         UiOption.ClasspathOrder,
     };
     
-    UiOption[] opts = opts_release;
+    public static UiOption[] opts = opts_release;
     
 	public DuccJobSubmit(ArrayList<String> args)
         throws Exception
@@ -520,28 +526,46 @@ public class DuccJobSubmit
 		return rc;
 	}
 	
+	private boolean isAllInOne() {
+		return jobRequestProperties.containsKey(UiOption.AllInOne.pname());
+	}
+	
+	private static void main_job(String[] args, DuccJobSubmit ds) throws Exception {
+		boolean rc = ds.execute();
+        // If the return is 'true' then as best the API can tell, the submit worked
+        if ( rc ) {                
+            // Fetch the Ducc ID
+        	System.out.println("Job " + ds.getDuccId() + " submitted");
+            int exit_code = 0;          // first best guess, waiting for completion.
+            if ( ds.waitForCompletion() ) {
+                exit_code = ds.getReturnCode();       // updated from wait.
+                System.out.println("Job return code: " + exit_code);
+            }
+        	System.exit(exit_code);
+        } else {
+            System.out.println("Could not submit job");
+            System.exit(1);
+        }
+	}
+	
+	private static void main_aio(String[] args) throws Exception {
+		AllInOneLauncher allInOneLauncher = new AllInOneLauncher(args);
+		allInOneLauncher.go();
+	}
+	
 	public static void main(String[] args) {
 		try {
 			DuccJobSubmit ds = new DuccJobSubmit(args, null);
-			boolean rc = ds.execute();
- 
-            // If the return is 'true' then as best the API can tell, the submit worked
-            if ( rc ) {                
-                // Fetch the Ducc ID
-            	System.out.println("Job " + ds.getDuccId() + " submitted");
-                int exit_code = 0;          // first best guess, waiting for completion.
-                if ( ds.waitForCompletion() ) {
-                    exit_code = ds.getReturnCode();       // updated from wait.
-                    System.out.println("Job return code: " + exit_code);
-                }
-            	System.exit(exit_code);
-            } else {
-                System.out.println("Could not submit job");
-                System.exit(1);
-            }
-        } catch (Exception e) {
-            System.out.println("Cannot initialize: " + e.getMessage());
+			if(ds.isAllInOne()) {
+				main_aio(args);
+			}
+			else {
+				main_job(args, ds);
+			}
+		}
+		catch(Exception e) {
+			System.out.println("Cannot initialize: " + e.getMessage());
             System.exit(1);
-        }
+		}
 	}
 }
