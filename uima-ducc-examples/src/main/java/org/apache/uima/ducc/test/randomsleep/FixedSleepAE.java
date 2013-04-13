@@ -35,6 +35,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
     Marker marker;
     String AE_Identifier = "*^^^^^^^^^ AE ";
 
+    ArrayList< long[] > bloated_space = new ArrayList< long[] >();
+
     @Override
     public void initialize(UimaContext uimaContext) throws ResourceInitializationException 
     {
@@ -167,7 +169,9 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         
     /**
      * Need to simulate a process that leaks.  We just allocate stuff until we die somehow.  
-     * Careful, this can be pretty nasty if not contained by the infrastructure.
+     * Careful, this can be pretty nasty if not contained by the infrastructure.  
+     *
+     * Older code = use the Bloater class for better results.
      */
     void runBloater(String gb)
     {
@@ -358,8 +362,9 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             dolog(msgheader + " sleeping " + elapsed + " MS.");
             String bloat = System.getenv("PROCESS_BLOAT");
             if ( bloat != null ) {
-                dolog(msgheader + " Running bloater instead of sleeping with bloat " + bloat);
-                runBloater(bloat);
+                long gb = Long.parseLong(bloat) * 1024 * 1024 * 1024;
+                Bloat bl = new Bloat(msgheader, gb, elapsed);
+                bl.start();
             }
 
             randomError(error_rate, msgheader);           
@@ -431,4 +436,54 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         }
     }
 
+    class Bloat
+        extends Thread
+    {
+        int NUM_UPDATES = 10;
+        long howmuch;
+        long elapsed;
+        String msgheader;
+        //
+        // want to bloat to max about halfway before the sleep exits, if possible
+        //
+        Bloat(String msgheader, long howmuch, long elapsed)
+        {
+            this.msgheader = msgheader;
+            this.howmuch = howmuch;            // total bloat, in bytes
+            this.elapsed = elapsed;            // how long this process will live
+        }
+        
+        void increase()
+        {
+            long amount = howmuch / NUM_UPDATES;
+            long current = 0;
+            long increment = 1024*1024*1024/8;                 // a gigish, in longs
+            while ( current < amount ) {                
+            	dolog(msgheader + " ====> Allocating " + (increment*8) + " bytes.");
+                long[]  longs = new long[ (int) increment ];  // approximately howmuch/NUM_UPDATES bytes
+                bloated_space.add(longs);
+                current += (increment*8);
+            	dolog(msgheader + " ====> Current " + current );
+            }
+            dolog(msgheader + " ====> Allocated " + current + " bytes.");
+        }
+        
+        public void run()
+        {
+            long bloat_target = elapsed/2;              // want to fully bloat after this long
+            long sleep_time = bloat_target/NUM_UPDATES; // will do in NUM_UPDATES increments, sleep this long
+            long total = 0;                             // how long i've slept
+            dolog(msgheader + " Starting bloater: " + howmuch + " bytes over " + bloat_target + " ms.");
+            while (total < bloat_target ) {             // done yet?
+                increase();                             // bloat a bit
+                try {
+                    dolog(msgheader + " Sleeping " + sleep_time + "ms");
+                    Thread.sleep(sleep_time);
+				} catch (InterruptedException e) {
+					// don't care
+				} 
+                total += sleep_time;                   // account for it
+            }
+        }
+    }
 }
