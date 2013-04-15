@@ -76,7 +76,12 @@ public class DefaultNodeMetricsProcessor extends BaseProcessor implements
 	    //Node node = new DuccNode(new NodeIdentity(), nodeMetrics);
 	    // jrc 2011-07-30 I think this needs to be agent.getIdentity(), not create a new identity.
 	    Node node = new DuccNode(agent.getIdentity(), nodeMetrics);
-	    
+		
+	    // Make the agent aware how much memory is available on the node. Do this once.
+		if ( agent.getNodeInfo() == null ) {
+			agent.setNodeInfo(node);
+		}
+		
 	    logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getName()+" Posting Users:"+
 	            node.getNodeMetrics().getNodeUsersMap().size());
 	    
