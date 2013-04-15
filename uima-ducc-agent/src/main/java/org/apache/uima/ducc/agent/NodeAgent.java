@@ -168,7 +168,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     super(COMPONENT_NAME, context);
     
     // Running a real agent 
-    virtualAgent = false;
+    virtualAgent = System.getProperty("ducc.agent.virtual") == null ? false : true;
     
     this.nodeIdentity = nodeIdentity;
     this.launcher = launcher;
