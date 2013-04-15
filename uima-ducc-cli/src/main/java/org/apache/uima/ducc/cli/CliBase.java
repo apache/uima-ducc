@@ -610,6 +610,7 @@ public abstract class CliBase
         boolean monitor_attach = 
                 (
                 cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
+                cli_props.containsKey(UiOption.CancelOnInterrupt.pname()) || 
                 cli_props.containsKey(UiOption.CancelJobOnInterrupt.pname()) || 
                 cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) 
                 );
@@ -629,6 +630,7 @@ public abstract class CliBase
         monitor_listener = new MonitorListener(this, friendlyId, cli_props, context);
 
         if (	cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
+        		cli_props.containsKey(UiOption.CancelOnInterrupt.pname()) ||
         		cli_props.containsKey(UiOption.CancelJobOnInterrupt.pname()) || 
         		cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) ||
         		(console_listener != null) 
