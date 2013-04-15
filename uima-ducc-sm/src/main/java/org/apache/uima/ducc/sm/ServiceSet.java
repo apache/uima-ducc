@@ -341,6 +341,11 @@ public class ServiceSet
         successors.clear();
     }
 
+    boolean isStopped()
+    {
+        return stopped;
+    }
+
     boolean hasPredecessor()
     {
         return predecessors.size() != 0;
@@ -1063,6 +1068,8 @@ public class ServiceSet
             // checked and updated next run through the
             // main state machine, and maybe ping restarted.
             serviceMeta = null;
+        } else {
+            setServiceState(ServiceState.NotAvailable);
         }
 
         if ( isImplicit() ) {
@@ -1153,12 +1160,12 @@ public class ServiceSet
     	String methodName = "start";
 
         logger.debug(methodName, null, "START START START START START START START START");
-//         if ( service_type == ServiceType.Custom ) { 
-//             establish();
-//             return;
-//         }
+        this.stopped = false; 
 
-        this.stopped = false;          // for registered
+        if ( ! isStartable() ) {
+            establish();  // this will just start the ping thread
+            return;
+        }
 
         // Simple use of ducc_ling, just submit as the user.  The specification will have the working directory
         // and classpath needed for the service, handled by the Orchestrator and Job Driver.
@@ -1368,9 +1375,14 @@ public class ServiceSet
     {
         String methodName = "stop";
         logger.debug(methodName, id, "Stopping all implementors");
+        this.stopped = true;
         stopPingThread();
         setServiceState(ServiceState.Stopping);
-        this.stopped = true;
+
+        if ( ! isStartable() ) {         // CUSTOM ping-only service
+            return;
+        }
+
         for ( DuccId id : implementors.keySet() ) {
             stopOneProcess(id);
         }
@@ -1384,8 +1396,14 @@ public class ServiceSet
     void stop(int count)
     {
         String methodName = "stop(count)";
-        logger.debug(methodName, id, "Stopping", count, "implementors");
+
+        if ( ! isStartable() ) {         // CUSTOM ping-only, only one running, let common code do the honors
+            stop();
+            return;
+        }
+
         this.stopped = true;
+        logger.debug(methodName, id, "Stopping", count, "implementors");
         for ( DuccId id: implementors.keySet() ) {
             if ( (count--) > 0 ) {
                 stopOneProcess(id);

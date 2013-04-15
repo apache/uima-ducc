@@ -840,13 +840,8 @@ public class ServiceHandler
         }
                           
         for ( int i = 0; i < wanted; i++ ) {
-            if ( sset.isStartable() ) {
-                sset.start();
-            } else {
-                sset.establish();  // this will just start the ping thread
-            }
+            sset.start();
         } 
-
 
     }
 
@@ -868,28 +863,12 @@ public class ServiceHandler
         }
 
         if ( sset.isRegistered() ) {
-            if ( (sset.countImplementors() == 0) && ( sset.isUimaAs()) ) {
+            if ( sset.isStopped() ) {
                 return new ServiceReplyEvent(false, "Service " + serviceIdString + " is already stopped.", sset.getKey(), sset.getId());
             }
 
-            int running    = sset.countImplementors();
-            int instances  = ev.getInstances();
-            int tolose;
-            if ( instances == -1 ) {
-                tolose     = running;
-            } else {
-                tolose     = Math.min(instances, running);
-            }
-            
-
-            if ( tolose > 0 ) {
-                pendingRequests.add(new ApiHandler(ev, this));
-//                 ApiHandler  apih = new ApiHandler(ev, this);
-//                 Thread t = new Thread(apih);
-//                 t.start();
-            }
-
-            return new ServiceReplyEvent(true, "Service " + serviceIdString + " stop request accepted for [" + tolose + "] instances.", sset.getKey(), sset.getId());
+            pendingRequests.add(new ApiHandler(ev, this));
+            return new ServiceReplyEvent(true, "Service " + serviceIdString + " stop request accepted.", sset.getKey(), sset.getId());
         } else {
             return new ServiceReplyEvent(false, "Service " + friendly + " is not a registered service.", sset.getKey(), null);            
         }
