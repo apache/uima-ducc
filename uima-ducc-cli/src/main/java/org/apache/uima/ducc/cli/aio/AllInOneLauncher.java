@@ -963,7 +963,7 @@ public class AllInOneLauncher extends CliBase {
 				String name = nvp[0];
 				String value = nvp[1];
 				message = "environment: "+name+"="+value;
-				mh.info(cid, mid, message);
+				mh.frameworkInfo(cid, mid, message);
 				env.put(name, value);
 			}
 		}
