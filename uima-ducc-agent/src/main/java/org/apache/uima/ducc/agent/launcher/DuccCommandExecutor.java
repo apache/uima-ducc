@@ -73,49 +73,16 @@ public class DuccCommandExecutor extends CommandExecutor {
 		// default 
 		return false;
 	}
-	/**
-	 * Test if a given DuccProcess owns a cgroup on this node. Return false if the process is JD since JDs dont own 
-	 * a cgroup in which they run. 
-	 * 
-	 * An owner process DuccId matches cgroup name. 
-	 *  
-	 * @param duccProcess
-	 * @return
-	 * @throws Exception
-	 */
-    private boolean cgroupOwner(IDuccProcess duccProcess ) throws Exception {
-    	if (  duccProcess.getProcessType().equals(ProcessType.Pop) ) {
-    		return false;   // JD
-    	} else if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+duccProcess.getCGroup().getId() ) ) {
-    		return true;
-    	}
-    	return false;
-    }
+	
     private boolean createCGroupContainer(IDuccProcess duccProcess, String containerId, String owner ) throws Exception {
   	//	create cgroups container and assign limits
     	if ( agent.cgroupsManager.createContainer( containerId, owner, useDuccSpawn()) ) {
     		return agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
 					owner, useDuccSpawn(), duccProcess.getCGroup().getMaxMemoryLimit());
-
-//			 if ( isJD(duccProcess) ) {
-//		    		agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
-//							owner, useDuccSpawn(), duccProcess.getCGroup().getShares()* agent.shareQuantum); //duccProcess.getCGroup().getMaxMemoryLimit());
-//			 } else {
-//		    		agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
-//							owner, useDuccSpawn(),duccProcess.getCGroup().getShares()* agent.shareQuantum); //((ManagedProcess)super.managedProcess).getProcessMemoryAssignment().getNormalizedMemoryInMBs());
-//			 }
-//			 float percentOfTotal =  ((ManagedProcess)super.managedProcess).getProcessMemoryAssignment().getShares()/agent.getNodeTotalNumberOfShares();
-//		     long maxProcessSwapUsage = (long) (agent.getNodeInfo().getNodeMetrics().getNodeMemory().getSwapTotal()*percentOfTotal);
-		     
-	     
-		     /** NEED TO START DAEMON THREAD TO CHECK SWAP USAGE OF THIS PROCESS */
-		     //return true;
 		} 
 		return false;
     }
-    private boolean isJD(IDuccProcess duccProcess ) {
-    	return duccProcess.getProcessType().equals(ProcessType.Pop);
-    }
+
     private String getContainerId() {
     	String containerId;
 		if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service)) {
@@ -135,77 +102,52 @@ public class DuccCommandExecutor extends CommandExecutor {
 				stopProcess(cmdLine, cmd);
 			} else {
 				IDuccProcess duccProcess = ((ManagedProcess) managedProcess).getDuccProcess();
-  			    
-				
-				// Calculate how much swap space the process is allowed to use. The calculation is based on
-				// the percentage of real memory the process is assigned. The process is entitled the
-				// same percentage of the swap.
-				// Normalize node's total memory as it is expressed in KB. The calculation below is based on bytes.
-				double percentOfTotal =  ((double)duccProcess.getCGroup().getMaxMemoryLimit())/
-						(agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal()*1024); // need bytes
+                // If running a real agent on a node, collect swap info and assign max swap usage threshold
+				// for each process. In virtual mode, where there are multiple agents per node, we dont
+				// set nor enforce swap limits.
+				if ( !agent.virtualAgent) {
+					// Calculate how much swap space the process is allowed to use. The calculation is based on
+					// the percentage of real memory the process is assigned. The process is entitled the
+					// same percentage of the swap.
+					// Normalize node's total memory as it is expressed in KB. The calculation below is based on bytes.
+					double percentOfTotal =  ((double)duccProcess.getCGroup().getMaxMemoryLimit())/
+							(agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal()*1024); // need bytes
 
-				
-				//  substract 1Gig from total swap on this node to accommodate OS needs for swapping. The 
-				//  getSwapTotal() returns swap space in KBs so normalize 1Gig
-				long adjustedTotalSwapAvailable =
-						agent.getNodeInfo().getNodeMetrics().getNodeMemory().getSwapTotal() - 1048576;
-				// calculate the portion (in bytes) of swap this process is entitled to
-				long maxProcessSwapUsage = 
-						 (long) (adjustedTotalSwapAvailable*percentOfTotal)*1024;
-				 // assigned how much swap this process is entitled to. If it exceeds this number the Agent
-				 // will kill the process.
-				 ((ManagedProcess) managedProcess).setMaxSwapThreshold(maxProcessSwapUsage);
-  			    logger.info(methodName, null, "---Process DuccId:"+duccProcess.getDuccId()+
-	  			    		" CGroup.getMaxMemoryLimit():"+((duccProcess.getCGroup().getMaxMemoryLimit()/1024)/1024)+" MBs"+
-	  			    		" Node Memory Total:"+(agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal()/1024)+" MBs"+
-	  			    		" Percentage Of Real Memory:"+percentOfTotal+
-	  			    		" Adjusted Total Swap Available On Node:"+adjustedTotalSwapAvailable/1024+" MBs"+
-	  			    		" Process Entitled To Max:"+(maxProcessSwapUsage/1024)/1024+" MBs of Swap"
-	  			    		);
-
-  			    //logger.info(methodName, null, "The Process With ID:"+duccProcess.getDuccId()+" is Entitled to the Max "+( (maxProcessSwapUsage/1024)/1024)+" Megs of Swap Space");
-				     
-				// if configured to use cgroups and the process is the cgroup owner, create a cgroup
-				// using Process DuccId as a name. Additional processes may be injected into the
-				// cgroup by declaring cgroup owner id.
-				if ( agent.useCgroups ) {
-					  
 					
-					// cgroup container id
-					//long containerId;
-					//	JDs are of type Pop (Plain Old Process). JDs run in a reservation. The cgroup container
-					//  is created for the reservation and we co-locate as many JDs as we can fit in it.
-					//String containerId = ((ManagedProcess) managedProcess).getWorkDuccId()+"."+duccProcess.getCGroup().getId().getFriendly();
-					String containerId = getContainerId();
-					logger.info(methodName, null, "Creating CGroup with ID:"+containerId);					
-					if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+containerId) ) {
-						
-						// create cgroup container for JDs
-						try {
-							if ( createCGroupContainer(duccProcess, containerId, ((ManagedProcess)super.managedProcess).getOwner()) ) {
-								logger.info(methodName, null, "Created CGroup with ID:"+containerId+" With Memory Limit="+((ManagedProcess)super.managedProcess).getDuccProcess().getCGroup().getMaxMemoryLimit()+" Bytes");
-							} else {
-								logger.info(methodName, null, "Failed To Create CGroup with ID:"+containerId);
-							}
-						} catch( Exception e) {
-							logger.error(methodName, null, e);
-							
-						}
-					} else {
-						logger.info(methodName, null, "CGroup Exists with ID:"+containerId);					
+					//  substract 1Gig from total swap on this node to accommodate OS needs for swapping. The 
+					//  getSwapTotal() returns swap space in KBs so normalize 1Gig
+					long adjustedTotalSwapAvailable =
+							agent.getNodeInfo().getNodeMetrics().getNodeMemory().getSwapTotal() - 1048576;
+					// calculate the portion (in bytes) of swap this process is entitled to
+					long maxProcessSwapUsage = 
+							 (long) (adjustedTotalSwapAvailable*percentOfTotal)*1024;
+					 // assigned how much swap this process is entitled to. If it exceeds this number the Agent
+					 // will kill the process.
+					 ((ManagedProcess) managedProcess).setMaxSwapThreshold(maxProcessSwapUsage);
+	  			    logger.info(methodName, null, "---Process DuccId:"+duccProcess.getDuccId()+
+		  			    		" CGroup.getMaxMemoryLimit():"+((duccProcess.getCGroup().getMaxMemoryLimit()/1024)/1024)+" MBs"+
+		  			    		" Node Memory Total:"+(agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal()/1024)+" MBs"+
+		  			    		" Percentage Of Real Memory:"+percentOfTotal+
+		  			    		" Adjusted Total Swap Available On Node:"+adjustedTotalSwapAvailable/1024+" MBs"+
+		  			    		" Process Entitled To Max:"+(maxProcessSwapUsage/1024)/1024+" MBs of Swap"
+		  			    		);
 
-					}
-/*					
-					if (  isJD(duccProcess) ) {
-						//	For JDs the container is the reservation id
-						containerId = duccProcess.getCGroup().getId().getFriendly();
-						//	check if we need to create a cgroup for JDs. First JD deployment will force creation 
-						//  of cgroup container
-						if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+duccProcess.getCGroup().getId().getFriendly()) ) {
+	  			    //logger.info(methodName, null, "The Process With ID:"+duccProcess.getDuccId()+" is Entitled to the Max "+( (maxProcessSwapUsage/1024)/1024)+" Megs of Swap Space");
+					// if configured to use cgroups and the process is the cgroup owner, create a cgroup
+					// using Process DuccId as a name. Additional processes may be injected into the
+					// cgroup by declaring cgroup owner id.
+					if ( agent.useCgroups ) {
+						//	JDs are of type Pop (Plain Old Process). JDs run in a reservation. The cgroup container
+						//  is created for the reservation and we co-locate as many JDs as we can fit in it.
+						//String containerId = ((ManagedProcess) managedProcess).getWorkDuccId()+"."+duccProcess.getCGroup().getId().getFriendly();
+						String containerId = getContainerId();
+						logger.info(methodName, null, "Creating CGroup with ID:"+containerId);					
+						if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+containerId) ) {
+							
 							// create cgroup container for JDs
 							try {
-								if ( createCGroupContainer(duccProcess, containerId, "ducc") ) {
-									logger.info(methodName, null, "Created CGroup with ID:"+containerId);
+								if ( createCGroupContainer(duccProcess, containerId, ((ManagedProcess)super.managedProcess).getOwner()) ) {
+									logger.info(methodName, null, "Created CGroup with ID:"+containerId+" With Memory Limit="+((ManagedProcess)super.managedProcess).getDuccProcess().getCGroup().getMaxMemoryLimit()+" Bytes");
 								} else {
 									logger.info(methodName, null, "Failed To Create CGroup with ID:"+containerId);
 								}
@@ -213,34 +155,30 @@ public class DuccCommandExecutor extends CommandExecutor {
 								logger.error(methodName, null, e);
 								
 							}
-						}
- 					} else 	if ( cgroupOwner(duccProcess)) {  
- 						
- 						containerId = duccProcess.getCGroup().getId().getFriendly();
- 						//  create cgroup container for JP/AP
- 						createCGroupContainer(duccProcess, containerId, ((ManagedProcess)super.managedProcess).getOwner());
-						     
-//						     // NEED TO START DAEMON THREAD TO CHECK SWAP USAGE OF THIS PROCESS 
-//						}
+						} else {
+							logger.info(methodName, null, "CGroup Exists with ID:"+containerId);					
 
-						
+						}
+
+					    String[] cgroupCmd = new String[cmd.length+3];
+						cgroupCmd[0] = "/usr/bin/cgexec";
+						cgroupCmd[1] = "-g";
+						cgroupCmd[2] = agent.cgroupsManager.getSubsystems()+":ducc/"+containerId;
+						int inx = 3;
+						for ( String cmdPart : cmd ) {
+							cgroupCmd[inx++] = cmdPart;
+						}
+						startProcess(cmdLine, cgroupCmd, processEnv);
 					} else {
-						containerId = duccProcess.getCGroup().getId().getFriendly();
+						// Not configured to use CGroups 
+						startProcess(cmdLine, cmd, processEnv);
 					}
-	*/
-				String[] cgroupCmd = new String[cmd.length+3];
-					cgroupCmd[0] = "/usr/bin/cgexec";
-					cgroupCmd[1] = "-g";
-					cgroupCmd[2] = agent.cgroupsManager.getSubsystems()+":ducc/"+containerId;
-					int inx = 3;
-					for ( String cmdPart : cmd ) {
-						cgroupCmd[inx++] = cmdPart;
-					}
-					startProcess(cmdLine, cgroupCmd, processEnv);
 				} else {
-					// dont use CGroups 
+					// dont use CGroups on virtual agents
 					startProcess(cmdLine, cmd, processEnv);
 				}
+				     
+
 
 			}
 			return managedProcess;
