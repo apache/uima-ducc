@@ -79,10 +79,21 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },
 
+        CancelOnInterrupt { 
+            public String pname()       { return "cancel_on_interrupt"; }
+            public String argname()     { return null; }
+            public String description() { return "Cancel on interrupt (Ctrl-C). Implies "+WaitForCompletion.pname(); }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },       
+        
         CancelJobOnInterrupt { 
             public String pname()       { return "cancel_job_on_interrupt"; }
             public String argname()     { return null; }
-            public String description() { return "Cancel job on interrupt (Ctrl-C)"; }
+            public String description() { return "same as "+CancelOnInterrupt.pname(); }
             public String example()     { return null; }
             public String deflt()       { return null; }
             public String label()       { return name(); }
@@ -93,7 +104,7 @@ public interface IUiOptions
         CancelManagedReservationOnInterrupt { 
             public String pname()       { return "cancel_managed_reservation_on_interrupt"; }
             public String argname()     { return null; }
-            public String description() { return "Cancel managed reservation on interrupt (Ctrl-C)"; }
+            public String description() { return "same as "+CancelOnInterrupt.pname(); }
             public String example()     { return null; }
             public String deflt()       { return null; }
             public String label()       { return name(); }
