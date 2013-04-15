@@ -81,6 +81,7 @@ class StartSim(DuccUtil):
         CMDPARMS.append('-Djava.library.path=' + self.DUCC_HOME)
         CMDPARMS.append('-Xmx100M')
         CMDPARMS.append('-Dducc.agent.node.metrics.fake.memory.size=' + str(memory))
+        CMDPARMS.append('-Dducc.agent.virtual')
         CMDPARMS.append('org.apache.uima.ducc.common.main.DuccService')
         
         print "Start agent with pnode", pnode, "IP", ip, "memory", memory
