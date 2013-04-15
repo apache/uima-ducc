@@ -42,6 +42,7 @@ import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
+import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -150,7 +151,7 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
       this.deployedProcesses = deployedProcesses;
     }
     public void startProcess(IDuccProcess process, ICommandLine commandLine,
-            IDuccStandardInfo info, DuccId workDuccId, long shareMemorySize) {
+            IDuccStandardInfo info, DuccId workDuccId, ProcessMemoryAssignment shareMemorySize) {
     }
 
     public void stopProcess(IDuccProcess process) {
