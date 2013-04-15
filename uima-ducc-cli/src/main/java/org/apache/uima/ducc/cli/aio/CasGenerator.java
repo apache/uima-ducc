@@ -112,7 +112,7 @@ public class CasGenerator {
         cr_fid = cr.getProcessingResourceMetaData().getFsIndexes();
         initTotal();
         mh.frameworkInfo(cid, mid, "total:"+getTotal());
-        mh.info("total:"+getTotal());
+        mh.frameworkInfo("total:"+getTotal());
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	

@@ -47,14 +47,15 @@ public class DuccJobSubmit
     public static UiOption[] opts_release = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
-
+        UiOption.Timestamp,
+        
         UiOption.AllInOne,
         
         UiOption.ProcessDebug,
         UiOption.ProcessAttachConsole,
         UiOption.DriverDebug,
         UiOption.DriverAttachConsole,
-        UiOption.Timestamp,
+        
         UiOption.Description,
         UiOption.SchedulingClass,
 
@@ -89,7 +90,7 @@ public class DuccJobSubmit
 
         UiOption.Specification,
         UiOption.WaitForCompletion,
-        UiOption.CancelJobOnInterrupt,
+        UiOption.CancelOnInterrupt,
         UiOption.ServiceDependency,
         UiOption.ClasspathOrder,
     };
@@ -97,14 +98,15 @@ public class DuccJobSubmit
     public static UiOption[] opts_beta = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
-
+        UiOption.Timestamp,
+        
         UiOption.AllInOne,
         
         UiOption.ProcessDebug,
         UiOption.ProcessAttachConsole,
         UiOption.DriverDebug,
         UiOption.DriverAttachConsole,
-        UiOption.Timestamp,
+        
         UiOption.Description,
         UiOption.SchedulingClass,
 
@@ -112,7 +114,6 @@ public class DuccJobSubmit
         UiOption.WorkingDirectory,
         UiOption.Jvm,
 
-        UiOption.JvmArgs,
         UiOption.Classpath,
         UiOption.Environment,
         
@@ -145,6 +146,7 @@ public class DuccJobSubmit
 
         UiOption.Specification,
         UiOption.WaitForCompletion,
+        UiOption.CancelOnInterrupt,
         UiOption.CancelJobOnInterrupt,
         UiOption.ServiceDependency,
         UiOption.ClasspathOrder,
@@ -219,10 +221,6 @@ public class DuccJobSubmit
     {
         String key_process = UiOption.ProcessJvmArgs.pname();
         String key_driver = UiOption.ProcessJvmArgs.pname();
-        if(jobRequestProperties.containsKey(UiOption.JvmArgs.pname())) {
-        	key_process = UiOption.JvmArgs.pname();
-        	key_driver = UiOption.JvmArgs.pname();
-        }
         try {        
             int jp_debug_port = -1;
             int jd_debug_port = -2;       // a trick, must be different from jp_debug_port; see below
@@ -465,28 +463,12 @@ public class DuccJobSubmit
 		/*
 		 * adjust driver and process jvm args
 		 */
-        boolean ja0 = jobRequestProperties.containsKey(UiOption.JvmArgs.pname());
         boolean jad = jobRequestProperties.containsKey(UiOption.DriverJvmArgs.pname());
         boolean jap = jobRequestProperties.containsKey(UiOption.ProcessJvmArgs.pname());
         
-        if(ja0 && jad) {
-        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.JvmArgs.pname()+" and "+UiOption.DriverJvmArgs.pname());
-        }
-        if(ja0 && jap) {
-        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.JvmArgs.pname()+" and "+UiOption.ProcessJvmArgs.pname());
-        }
-        
-        if(ja0) {
-        	adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.JvmArgs);
-        }
-        else {
-        	if(jad || jap) {
-        		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.DriverJvmArgs);
-        		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_process_jvm_args, UiOption.ProcessJvmArgs);
-        	}
-        	else {
-        		adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.JvmArgs);
-        	}
+        if(jad || jap) {
+        	adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.DriverJvmArgs);
+        	adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_process_jvm_args, UiOption.ProcessJvmArgs);
         }
 
 		/*

@@ -106,11 +106,11 @@ public class AllInOne extends CliBase {
 		mh.frameworkTrace(cid, mid, "enter");
 		int count = 0;
 		int total = casGenerator.getTotal();
-		mh.frameworkInfo(cid, mid, "total:"+total);
+		mh.frameworkDebug(cid, mid, "total:"+total);
 		CAS cas = null;
 		while(casGenerator.hasNext()) {
 			cas = casGenerator.getCas(cas);
-			mh.frameworkInfo(cid, mid, "cas:"+count);
+			mh.frameworkDebug(cid, mid, "cas:"+count);
 			casPipeline.process(cas);
 			count++;
 		}
