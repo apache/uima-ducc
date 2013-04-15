@@ -110,6 +110,7 @@ public abstract class DuccMonitor  {
         UiOption.Quiet, 
         UiOption.Timestamp, 
         UiOption.ManagedReservationId,
+        UiOption.CancelOnInterrupt,
         UiOption.CancelManagedReservationOnInterrupt,
     };
 	
@@ -313,6 +314,9 @@ public abstract class DuccMonitor  {
 			}
 			if (commandLine.hasOption(UiOption.Debug.pname())) {
 				flag_debug.set(true);
+			}
+			if (commandLine.hasOption(UiOption.CancelOnInterrupt.pname())) {
+				flag_cancel_on_interrupt.set(true);
 			}
 			if (commandLine.hasOption(UiOption.CancelJobOnInterrupt.pname())) {
 				flag_cancel_on_interrupt.set(true);
