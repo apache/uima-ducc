@@ -181,7 +181,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     /* Enable CGROUPS */ 
     String cgroups;
     boolean excludeNodeFromCGroups=false;
-    if ( ( cgroups = System.getProperty("ducc.agent.launcher.cgroups.enable")) != null ) {
+    if ( !virtualAgent && ( cgroups = System.getProperty("ducc.agent.launcher.cgroups.enable")) != null ) {
     	if ( cgroups.equalsIgnoreCase("true")) {
     		// Load exclusion file. Some nodes may be excluded from cgroups
     		String exclusionFile; 
