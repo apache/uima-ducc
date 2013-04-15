@@ -138,6 +138,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public volatile boolean excludeAPs = false;
 
   public int shareQuantum;
+  
+  public boolean virtualAgent = true;
+  
   /**
    * Ctor used exclusively for black-box testing of this class.
    */
@@ -163,6 +166,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public NodeAgent(NodeIdentity nodeIdentity, Launcher launcher, CamelContext context,
           AgentConfiguration factory) throws Exception {
     super(COMPONENT_NAME, context);
+    
+    // Running a real agent 
+    virtualAgent = false;
+    
     this.nodeIdentity = nodeIdentity;
     this.launcher = launcher;
     this.configurationFactory = factory;
