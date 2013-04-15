@@ -56,7 +56,7 @@ public class DuccManagedReservationSubmit
         UiOption.Specification,
         UiOption.WorkingDirectory,
         UiOption.WaitForCompletion,
-        UiOption.CancelManagedReservationOnInterrupt,
+        UiOption.CancelOnInterrupt,
     };
 
     private UiOption[] opts_beta = new UiOption[] {
@@ -75,6 +75,7 @@ public class DuccManagedReservationSubmit
         UiOption.Specification,
         UiOption.WorkingDirectory,
         UiOption.WaitForCompletion,
+        UiOption.CancelOnInterrupt,
         UiOption.CancelManagedReservationOnInterrupt,
     };
     
