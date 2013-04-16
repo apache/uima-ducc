@@ -36,7 +36,6 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.CGroup;
 import org.apache.uima.ducc.transport.event.common.DuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
@@ -46,8 +45,8 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
-import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 
 /**
@@ -116,29 +115,6 @@ implements ProcessManager {
 	    int shares = (int)normalizedProcessMemoryRequirements/shareQuantum;  // get number of shares
 	    if ( (normalizedProcessMemoryRequirements % shareQuantum) > 0 ) shares++; // ciel
 	    return shares;
-	}
-	private long calculateProcessMemoryAssignment( String processMemoryAssignment, MemoryUnits units) {
-      //  Get user defined memory assignment for the JP
-      long normalizedProcessMemoryRequirements = normalizeMemory(processMemoryAssignment,units);
-    
-//            Long.parseLong(processMemoryAssignment);
-//    // Normalize memory requirements for JPs into Gigs 
-//    if ( units.equals(MemoryUnits.KB ) ) {
-//      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/(1024*1024);
-//    } else if ( units.equals(MemoryUnits.MB ) ) {
-//      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements/1024;
-//    } else if ( units.equals(MemoryUnits.GB ) ) {
-//      //  already normalized
-//    } else if ( units.equals(MemoryUnits.TB ) ) {
-//      normalizedProcessMemoryRequirements = (int)normalizedProcessMemoryRequirements*1024;
-//    }
-    int shares = (int)normalizedProcessMemoryRequirements/shareQuantum;  // get number of shares
-    if ( (normalizedProcessMemoryRequirements % shareQuantum) > 0 ) shares++; // ciel
-    // normalize to get process memory in terms of Megs
-    long processAdjustedMemorySize = shares * shareQuantum * 1024;  
-    //  add fudge factor (5% default)  to adjusted memory computed above 
-    //processAdjustedMemorySize += (processAdjustedMemorySize * ((double)fudgeFactor/100));        
-    return processAdjustedMemorySize;
 	}
 
 	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap) {
