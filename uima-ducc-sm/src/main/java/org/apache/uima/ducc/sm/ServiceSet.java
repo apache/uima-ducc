@@ -647,6 +647,11 @@ public class ServiceSet
         }
     }
 
+    synchronized boolean isAutostart()
+    {
+        return autostart;
+    }
+
     synchronized void persistImplementors()
     {
         if ( isImplicit() ) return;

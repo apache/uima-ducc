@@ -281,7 +281,9 @@ public class ServiceHandler
                     // Registered but not alive, well, we can fix that!
                     int ninstances = sset.getNInstances();
                     logger.debug(methodName, sset.getId(), "Reference-starting registered service, instances =", ninstances);
-                    sset.setReferencedStart(true);
+                    if ( ! sset.isAutostart() ) {         // must avoid races ith autostart for referenced start
+                        sset.setReferencedStart(true);
+                    }
                     for ( int i = 0; i < ninstances; i++ ) {
                         if ( ! sset.start() ) {
                             s.addMessage(dep, "Can't start independent service.");
@@ -378,8 +380,12 @@ public class ServiceHandler
                     serviceStateHandler.removeService(dep);
                 }
                 if ( sset.isRegistered() && sset.isReferencedStart() ) {
-                    logger.debug(methodName, id, "Stopping reference-started service", dep, "refcount", count);
-                    sset.lingeringStop();
+                    if ( sset.isAutostart() ) {            // could have happened after the reference
+                        sset.setReferencedStart(false);    // so we don't linger, just reset
+                    } else {
+                        logger.debug(methodName, id, "Stopping reference-started service", dep, "refcount", count);
+                        sset.lingeringStop();
+                    }
                 }
 
             }
