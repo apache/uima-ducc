@@ -283,7 +283,11 @@ public class ServiceHandler
                     logger.debug(methodName, sset.getId(), "Reference-starting registered service, instances =", ninstances);
                     sset.setReferencedStart(true);
                     for ( int i = 0; i < ninstances; i++ ) {
-                        sset.start();
+                        if ( ! sset.start() ) {
+                            s.addMessage(dep, "Can't start independent service.");
+                            s.setState(ServiceState.NotAvailable);
+                            break;
+                        }
                     }
                 }
                 
@@ -648,7 +652,7 @@ public class ServiceHandler
                 // Hard to know for sure, if there are a bunch of instances, some working and some not, how to manage this.
                 // But this is a state *change* of something, and the something is active, so probably the service is OK now
                 // if it hadn't been before.
-                sset.resetRunFailures();
+                //  sset.resetRunFailures();
             } else {
                 sset.removeImplementor(id);
 
@@ -666,6 +670,8 @@ public class ServiceHandler
                         // all other cases are errors that contribute to the error count
                         if ( sset.excessiveRunFailures() ) {    // if true, the count is exceeeded, but reset
                             logger.warn(methodName, null, "Process Failure: " + jct + " Maximum consecutive failures[" + sset.failure_run + "] max [" + sset.failure_max + "]");
+                        } else {
+                            sset.start();
                         }
                         break;
                 }
@@ -838,9 +844,11 @@ public class ServiceHandler
         if ( update ) {
             sset.setNInstances(running + instances);
         }
-                          
+                
+        sset.resetRunFailures();                  // manual start overrides, if there's still a problem
+                                                  // the service will be stopped soon anyway.
         for ( int i = 0; i < wanted; i++ ) {
-            sset.start();
+            if ( !sset.start() ) break;
         } 
 
     }
@@ -1011,7 +1019,7 @@ public class ServiceHandler
                 
                 if ( diff > 0 ) {
                     while ( diff-- > 0 ) {
-                        sset.start();
+                        if ( !sset.start() ) break;
                     }
                 } else if ( diff < 0 ) {
                     sset.stop(-diff);

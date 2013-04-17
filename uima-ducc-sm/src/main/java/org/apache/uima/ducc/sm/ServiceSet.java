@@ -104,9 +104,6 @@ public class ServiceSet
     // Registered services, the number of instances to maintain
     int instances = 1;
 
-    // max allowable failures before disabling autostart
-    int max_failures = 5;
-
     // UIMA-AS pinger
     IServiceMeta serviceMeta = null;
 
@@ -126,10 +123,8 @@ public class ServiceSet
     LingerTask linger = null;
     long linger_time = 5000;
 
-    // max allowed consecutive failures, current failure count
     int failure_max = ServiceManagerComponent.failure_max;
-    int failure_start = 0;
-    int failure_run = 0;
+    int failure_run = 0;                   // max allowed consecutive failures, current failure count
 
     //JobState     job_state     = JobState.Undefined;
     //
@@ -446,17 +441,16 @@ public class ServiceSet
      */
     void enforceAutostart()
     {
-    	String methodName = "enforceAutostart";
+    	//String methodName = "enforceAutostart";
         if ( ! autostart ) return;                   // not doing auto, nothing to do
         if ( stopped     ) return;                   // doing auto, but we've been manually stopped
+        if ( failure_run >= failure_max ) return;    // too  many failures, no more enforcement
 
         // could have more implementors than instances if some were started dynamically but the count not persisted
         int needed = Math.max(0, instances - countImplementors());
 
-        logger.debug(methodName, null, "ENFORCE: ", needed);
         while ( (needed--) > 0 ) {
-            start();
-            logger.debug(methodName, null, "ENFORCE: ", needed);
+            if ( ! start() ) break;
         }
     }
 
@@ -649,7 +643,6 @@ public class ServiceSet
         saveMetaProperties();
         if ( auto ) {
             // turning this on gives benefit of the doubt on failure management
-            failure_start = 0;
             failure_run = 0;
         }
     }
@@ -865,10 +858,6 @@ public class ServiceSet
     {
         String methodName = "establish.1";
 
-        if ( job_state == JobState.Running ) {
-            failure_run = 0;
-        }
-
         if ( service_class == ServiceClass.Implicit ) {
             startPingThread(); 
             return;
@@ -1032,8 +1021,6 @@ public class ServiceSet
         String methodName = "runFailures";
         if ( (++failure_run) > failure_max ) {
             logger.debug(methodName, id, "RUN FAILURES EXCEEDED");
-            setAutostart(false);
-            failure_run = 0;
             return true;
         }
         logger.debug(methodName, id, "RUN FAILURES NOT EXCEEDED YET", failure_run);
@@ -1155,7 +1142,7 @@ public class ServiceSet
     /**
      * This assumes the caller has already verified that I'm a registered service.
      */
-    void start()
+    boolean start()
     {
     	String methodName = "start";
 
@@ -1164,7 +1151,7 @@ public class ServiceSet
 
         if ( ! isStartable() ) {
             establish();  // this will just start the ping thread
-            return;
+            return true;
         }
 
         // Simple use of ducc_ling, just submit as the user.  The specification will have the working directory
@@ -1261,21 +1248,17 @@ public class ServiceSet
 
             }
         }
-        
+
+        boolean rc = true;
         if ( ! started ) {
             logger.warn(methodName, null, "Request to start service " + id.toString() + " failed.");
-            if ( (++failure_start) >= (failure_max) ) {
-                logger.warn(methodName, null, "Start failure. Maximum consecutive failures[" + failure_max + "] exceeded{" + failure_start + "].  Autostart disabled.");
-                setAutostart(false);
-                failure_start = 0;
-            }
-
+            setAutostart(false);
         } else {
             setServiceState(ServiceState.Initializing);
-            failure_start = 0;
         }
         saveMetaProperties();
         logger.debug(methodName, null, "ENDSTART ENDSTART ENDSTART ENDSTART ENDSTART ENDSTART");
+        return rc;
     }
 
     /**
@@ -1402,7 +1385,6 @@ public class ServiceSet
             return;
         }
 
-        this.stopped = true;
         logger.debug(methodName, id, "Stopping", count, "implementors");
         for ( DuccId id: implementors.keySet() ) {
             if ( (count--) > 0 ) {
