@@ -501,7 +501,7 @@ implements Orchestrator {
 	}
 	private boolean isSignatureInvalid(Properties properties) {
 		String methodName = "isSignatureInvalid";
-		boolean retVal = false;
+		boolean retVal = true;
 		try {
 			if(orchestratorCommonArea.isSignatureRequired()) {
 				String user = properties.getProperty(SpecificationProperties.key_user);
@@ -514,13 +514,13 @@ implements Orchestrator {
 				}
 				Crypto crypto = new Crypto(userHome,AccessType.READER);
 				String signature = (String)crypto.decrypt((byte[])properties.get(SpecificationProperties.key_signature));
-				if(!user.equals(signature)) {
+				retVal = !user.equals(signature);
+				if(retVal) {
 					logger.warn(methodName, null, "user:"+user+" signature:"+signature+" valid:n");
 				}
 				else {
 					logger.debug(methodName, null, "user:"+user+" signature:"+signature+" valid:y");
 				}
-				retVal = !user.equals(signature);
 			}
 		}
 		catch(Throwable t) {
