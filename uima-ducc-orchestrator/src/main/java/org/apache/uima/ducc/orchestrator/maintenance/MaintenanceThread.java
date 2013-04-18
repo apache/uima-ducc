@@ -44,7 +44,6 @@ public class MaintenanceThread extends Thread {
 	
 	private StateManager stateManager = StateManager.getInstance();
 	private HealthMonitor healthMonitor = HealthMonitor.getInstance();
-	private MqReaper mqReaper = MqReaper.getInstance();
 	
 	private long minMillis = 1000;
 	private long wakeUpMillis = 2*60*1000;
@@ -102,7 +101,14 @@ public class MaintenanceThread extends Thread {
 				if(isTime()) {
 					stateManager.prune(workMap);
 					healthMonitor.ajudicate();
-					mqReaper.removeUnusedJdQueues(workMap);
+					try {
+						MqReaper mqReaper = MqReaper.getInstance();
+						mqReaper.removeUnusedJdQueues(workMap);
+					}
+					catch(Exception e) {
+						MqReaper.resetInstance();
+					}
+					
 				}
 			}
 			catch(Throwable t) {

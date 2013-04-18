@@ -39,6 +39,6 @@ public class ORTracer implements Processor {
 	@Override
 	public void process(Exchange arg0) throws Exception {
 		String location = "process";
-		logger.info(location, jobid, name);
+		logger.debug(location, jobid, name);
 	}
 }
