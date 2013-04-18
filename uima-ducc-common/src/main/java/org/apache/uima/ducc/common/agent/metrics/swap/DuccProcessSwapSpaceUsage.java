@@ -31,10 +31,7 @@ public class DuccProcessSwapSpaceUsage implements ProcessSwapSpaceUsage {
 				ProcessBuilder pb = new ProcessBuilder();
 				//String[] command = {execScript,pid};
 				pb.command(command); //command);
-				String cmd = "";
-				for( String c : command) {
-					cmd += " "+ c;
-				}
+
 				//logger.info("------------ getSwapUsage-", null, cmd);
 				pb.redirectErrorStream(true);
 				Process swapCollectorProcess = pb.start();
