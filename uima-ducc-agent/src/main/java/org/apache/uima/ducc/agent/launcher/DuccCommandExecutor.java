@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.management.RuntimeErrorException;
+
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -143,17 +145,23 @@ public class DuccCommandExecutor extends CommandExecutor {
 						String containerId = getContainerId();
 						logger.info(methodName, null, "Creating CGroup with ID:"+containerId);					
 						if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+containerId) ) {
-							
+							boolean failed = false;
 							// create cgroup container for JDs
 							try {
 								if ( createCGroupContainer(duccProcess, containerId, ((ManagedProcess)super.managedProcess).getOwner()) ) {
 									logger.info(methodName, null, "Created CGroup with ID:"+containerId+" With Memory Limit="+((ManagedProcess)super.managedProcess).getDuccProcess().getCGroup().getMaxMemoryLimit()+" Bytes");
 								} else {
 									logger.info(methodName, null, "Failed To Create CGroup with ID:"+containerId);
+									duccProcess.setProcessState(ProcessState.Failed);
+									duccProcess.setReasonForStoppingProcess("CGroupsPermissionDenied");
+									failed = true;
 								}
 							} catch( Exception e) {
 								logger.error(methodName, null, e);
 								
+							}
+							if ( failed ) {
+								throw new RuntimeException("The Agent is Unable To Create A CGroup with Container ID: "+containerId+". Rejecting Deployment of Process with ID:"+duccProcess.getDuccId());
 							}
 						} else {
 							logger.info(methodName, null, "CGroup Exists with ID:"+containerId);					

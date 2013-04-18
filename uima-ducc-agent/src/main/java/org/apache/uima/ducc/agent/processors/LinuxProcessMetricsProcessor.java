@@ -55,8 +55,8 @@ implements ProcessMetricsProcessor {
 	private DuccLogger logger;
 	private ManagedProcess managedProcess;
 	private NodeAgent agent;
-  private int fudgeFactor = 5;  // default is 5%
-  	private int logCounter=0;
+    private int fudgeFactor = 5;  // default is 5%
+  	//private int logCounter=0;
 	public LinuxProcessMetricsProcessor(DuccLogger logger, IDuccProcess process, NodeAgent agent,String statmFilePath, String nodeStatFilePath, String processStatFilePath, ManagedProcess managedProcess) throws FileNotFoundException{
 		this.logger = logger;
 		statmFile = new RandomAccessFile(statmFilePath, "r");
@@ -64,7 +64,7 @@ implements ProcessMetricsProcessor {
 		processStatFile = new RandomAccessFile(processStatFilePath, "r");
 		this.managedProcess = managedProcess;
 		this.agent = agent;
-		pool = Executors.newFixedThreadPool(3);
+		pool = Executors.newFixedThreadPool(30);
 		this.process = process;
     gcStatsCollector = new DuccGarbageStatsCollector(logger, process);
 		//	read the block size from ducc.properties
@@ -113,8 +113,9 @@ implements ProcessMetricsProcessor {
 			String DUCC_HOME = Utils.findDuccHome();
 			//	executes script DUCC_HOME/admin/ducc_get_process_swap_usage.sh which sums up swap used by a process
 			DuccProcessSwapSpaceUsage processSwapSpaceUsage = 
-					new DuccProcessSwapSpaceUsage(process.getPID(),DUCC_HOME+"/admin/ducc_get_process_swap_usage.sh", logger);
-			
+					new DuccProcessSwapSpaceUsage(process.getPID(), managedProcess.getOwner(), DUCC_HOME+"/admin/ducc_get_process_swap_usage.sh", logger);
+
+
 			logger.trace("process", null, "----------- PID:"+process.getPID()+" Cumulative CPU Time (jiffies):"+processCpuUsage.get().getTotalJiffies()); 
 			//	Publish cumulative CPU usage
 			process.setCpuTime(processCpuUsage.get().getTotalJiffies());
@@ -122,16 +123,17 @@ implements ProcessMetricsProcessor {
 			// collects process Major faults (swap in memory)
 			process.setMajorFaults(majorFaults);
 			//	Current Process Swap Usage in bytes
+			long st = System.currentTimeMillis();
 			long processSwapUsage = processSwapSpaceUsage.getSwapUsage()*1024;
 			//	collects swap usage from /proc/<PID>/smaps file via a script DUCC_HOME/admin/collect_process_swap_usage.sh
 			process.setSwapUsage(processSwapUsage);
-			if ( (logCounter % 100 ) == 0 ) {
-			   logger.info("process", null, "----------- PID:"+process.getPID()+" Major Faults:"+majorFaults+" Process Swap Usage:"+processSwapUsage); 
-			}
-			logCounter++;
+		//	if ( (logCounter % 2 ) == 0 ) {
+			   logger.info("process", null, "----------- PID:"+process.getPID()+" Major Faults:"+majorFaults+" Process Swap Usage:"+processSwapUsage+" Max Swap Usage Allowed:"+managedProcess.getMaxSwapThreshold()+" Time to Collect Swap Usage:"+ (System.currentTimeMillis()-st)); 
+			//}
+			//logCounter++;
 			
 			if (processSwapUsage > 0 && processSwapUsage > managedProcess.getMaxSwapThreshold()) {
-				logger.error("process", null, "\n\n********************************************************\n\tProcess with PID:"+managedProcess.getPid()+ " Exceeded its max swap usage assignment  of "+ managedProcess.getMaxSwapThreshold()+" MBs. This Process Swap Usage is: "+processSwapUsage+" MBs .Killing process ...\n********************************************************\n\n" );
+				logger.error("process", null, "\n\n********************************************************\n\tProcess with PID:"+managedProcess.getPid()+ " Exceeded its Max Swap Usage Threshold of "+ (managedProcess.getMaxSwapThreshold()/1024)/1024+" MBs. The Current Swap Usage is: "+(processSwapUsage/1024)/1024+" MBs .Killing process ...\n********************************************************\n\n" );
 				try {
 					managedProcess.kill();  // mark it for death
 					process.setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededSwapThreshold.toString());

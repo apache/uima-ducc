@@ -139,7 +139,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   public int shareQuantum;
   
-  public boolean virtualAgent = true;
+  public boolean virtualAgent = false;
   
   /**
    * Ctor used exclusively for black-box testing of this class.
@@ -194,7 +194,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     			exclusionParser.parse(exclusionFile);
     			excludeNodeFromCGroups = exclusionParser.cgroupsExcluded();
     			excludeAPs = exclusionParser.apExcluded();
-    			
+    			if ( excludeNodeFromCGroups ) {
+        			logger.info("nodeAgent", null,
+                            "------- Node Explicitly Excluded From Using CGroups. Check File:"+exclusionFile);
+    			}
     			System.out.println("excludeNodeFromCGroups="+excludeNodeFromCGroups+" excludeAPs="+excludeAPs);
     		 } else {
     			 System.out.println("Running with No exclusion File");
@@ -220,6 +223,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             		useCgroups = true;
             		logger.info("nodeAgent", null,
                             "------- Agent Running with CGroups Enabled");
+            		try {
+            			// remove stale CGroups
+            			cgroupsManager.cleanupOnStartup();
+            		} catch( Exception e) {
+            			logger.error("nodeAgent", null,e);
+                                
+            		}
             		
         		} else {
         			logger.info("nodeAgent", null,
