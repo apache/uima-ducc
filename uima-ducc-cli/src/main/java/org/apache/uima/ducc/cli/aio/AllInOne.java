@@ -42,6 +42,8 @@ public class AllInOne extends CliBase {
 	
 	private JobRequestProperties jobRequestProperties = new JobRequestProperties(); 
 	
+	private boolean showStats = true;
+	
 	CasGenerator casGenerator;
 	CasPipeline casPipeline;
 	
@@ -117,12 +119,19 @@ public class AllInOne extends CliBase {
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
+	private void statistics() {
+		if(showStats) {
+			casPipeline.dumpStatistics(System.out);
+		}
+	}
+	
 	public void go() throws Exception {
 		String mid = "go";
 		mh.frameworkTrace(cid, mid, "enter");
 		examine();
 		initialize();
 		process();
+		statistics();
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	

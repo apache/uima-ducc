@@ -21,6 +21,7 @@ package org.apache.uima.ducc.cli.aio;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.Properties;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
+import org.apache.uima.analysis_engine.AnalysisEngineManagement;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
@@ -161,5 +163,26 @@ public class CasPipeline {
 	public CAS process(CAS cas) throws AnalysisEngineProcessException {
 		ae.process(cas);
 		return cas;
+	}
+	
+	public void dumpStatistics(PrintStream out) {
+		out.println("");
+		out.println("+---------------------------+");
+		out.println("| UIMA Component Statistics |");
+		out.println("+---------------------------+");
+		out.println("");
+		AnalysisEngineManagement aem = ae.getManagementInterface();
+	    dumpComponentStatistics(out, 0, aem);
+	}
+
+	private static void dumpComponentStatistics(PrintStream out, int level, AnalysisEngineManagement aem) {
+		String indent = "";
+	    for (int i = 0; i < level; i++) {
+	    	indent += "  ";
+	    }
+	    out.println(indent+aem.getName()+": "+aem.getAnalysisTime()+"ms, ");
+	    for (AnalysisEngineManagement childAem : (Iterable<AnalysisEngineManagement>) (aem.getComponents().values())) {
+	    	dumpComponentStatistics(out, level+1, childAem);
+	    }
 	}
 }
