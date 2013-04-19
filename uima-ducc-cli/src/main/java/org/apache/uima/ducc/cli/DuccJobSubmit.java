@@ -546,7 +546,7 @@ public class DuccJobSubmit
 			}
 		}
 		catch(Exception e) {
-			System.out.println("Cannot initialize: " + e.getMessage());
+			System.out.println("Cannot initialize: " + e);
             System.exit(1);
 		}
 	}

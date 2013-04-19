@@ -225,8 +225,8 @@ public interface IUiOptions
         DriverEnvironment { 
             public String pname()       { return JobSpecificationProperties.key_driver_environment; }
             public String argname()     { return "env vars"; }
-            public String description() { return "Blank-delimeted list of environment variables."; }
-            public String example()     { return "\"TERM=xterm DISPLAY=me.org.net:1.0\""; }
+            public String description() { return "Blank-delimited list of environment variables."; }
+            public String example()     { return "TERM=xterm DISPLAY=me.org.net:1.0"; }
             public String deflt()       { return null; }
             public String label()       { return "DriverEnvironment"; }
             public boolean multiargs()  { return false; }
@@ -247,7 +247,7 @@ public interface IUiOptions
         DriverJvmArgs { 
             public String pname()       { return JobSpecificationProperties.key_driver_jvm_args; }
             public String argname()     { return "jvm arguments"; }
-            public String description() { return "Blank-delimeted list of JVM Arguments passed to the job driver."; }
+            public String description() { return "Blank-delimited list of JVM Arguments passed to the job driver."; }
             public String example()     { return "-Xmx100M -DMYVAR=foo"; }
             public String deflt()       { return null; }
             public String label()       { return "DriverJvmArgs"; }
@@ -258,8 +258,8 @@ public interface IUiOptions
         Environment { 
             public String pname()       { return JobSpecificationProperties.key_environment; }
             public String argname()     { return "env vars"; }
-            public String description() { return "Blank-delimeted list of environment variables."; }
-            public String example()     { return "\"TERM=xterm DISPLAY=me.org.net:1.0\""; }
+            public String description() { return "Blank-delimited list of environment variables."; }
+            public String example()     { return "TERM=xterm DISPLAY=me.org.net:1.0"; }
             public String deflt()       { return null; }
             public String label()       { return "Environment"; }
             public boolean multiargs()  { return false; }
@@ -280,7 +280,7 @@ public interface IUiOptions
         Instances   { 
             public String pname()       { return "instances"; } 
             public String argname()     { return "integer"; } 
-            public String description() { return "Number of service instances to start or stop."; } 
+            public String description() { return "Number of service processes."; } 
             public String example()     { return null; }
             public String deflt()       { return "1"; }
             public String label()       { return name(); }
@@ -302,7 +302,7 @@ public interface IUiOptions
         JvmArgs { 
             public String pname()       { return JobSpecificationProperties.key_jvm_args; }
             public String argname()     { return "jvm arguments"; }
-            public String description() { return "Blank-delimeted list of JVM Arguments passed to the job driver."; }
+            public String description() { return "Blank-delimited list of JVM Arguments passed to the job driver."; }
             public String example()     { return "-Xmx100M -DMYVAR=foo"; }
             public String deflt()       { return null; }
             public String label()       { return "JvmArgs"; }
@@ -356,7 +356,7 @@ public interface IUiOptions
 
         Modify    { 
              public String pname()      { return "modify"; } 
-             public String argname()     { return "modify-parameters" ; } 
+             public String argname()     { return "service-id-or-endpoint" ; } 
              public String description() { return "Modify meta properties for a registered service." ; } 
              public String example()     { return null; }
              public String deflt()       { return null; }
@@ -500,7 +500,7 @@ public interface IUiOptions
         Stop        { 
             public String pname()      { return "stop"; } 
             public String description() { return "Stop a registered service." ; } 
-            public String argname()     { return "service-id-or-endpoint [--instances number-to-stop]" ; } 
+            public String argname()     { return "service-id-or-endpoint" ; } 
             public String example()     { return null; }
             public String deflt()       { return null; }
             public String label()       { return null; }
@@ -644,7 +644,7 @@ public interface IUiOptions
         ProcessEnvironment { 
             public String pname()       { return JobSpecificationProperties.key_process_environment; }
             public String argname()     { return "environment-var-list"; }
-            public String description() { return "Blank delimeted list of Environment variables."; }
+            public String description() { return "Blank delimited list of Environment variables."; }
             public String example()     { return "A=B MYENV=foo"; }
             public String deflt()       { return null; }
             public String label()       { return "ProcessEnvironment"; }
@@ -710,7 +710,7 @@ public interface IUiOptions
         ProcessJvmArgs { 
             public String pname()       { return JobSpecificationProperties.key_process_jvm_args; }
             public String argname()     { return "jvm arguments"; }
-            public String description() { return "Blank-delimeted list of JVM Arguments passed to each process"; }
+            public String description() { return "Blank-delimited list of JVM Arguments passed to each process"; }
             public String example()     { return "-Xmx100M -DMYVAR=foo"; }
             public String deflt()       { return null; }
             public String label()       { return "ProcessJvmArgs"; }

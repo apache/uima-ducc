@@ -615,7 +615,7 @@ public class DuccServiceApi
             UiOption.Unregister
         };        
         List<UiOption> check = new ArrayList<UiOption>();
-        UiOption reply = null; ;
+        UiOption reply = UiOption.Help;
 
         for ( String s : args ) {
             if ( ! s.startsWith("--") ) continue;
@@ -636,7 +636,7 @@ public class DuccServiceApi
             for ( UiOption o : check ) {
                 msg = msg + " " + o;
             }
-            throw new IllegalArgumentException("Duplicate service actions " + msg + ": not allowed.");
+            throw new IllegalArgumentException("Duplicate service actions: " + msg );
         }
 
         return reply;

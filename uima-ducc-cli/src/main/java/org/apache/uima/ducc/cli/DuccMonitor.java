@@ -213,31 +213,31 @@ public abstract class DuccMonitor  {
 	
 	protected void trace(String message) {
 		if(flag_trace.get()) {
-			messageProcessor.duccout(timestamp(message));
+			messageProcessor.status(timestamp(message));
 		}
 	}
 	
 	protected void debug(String message) {
 		if(flag_debug.get()) {
-			messageProcessor.duccout(timestamp(message));
+			messageProcessor.status(timestamp(message));
 		}
 	}
 	
 	protected void debug(Exception e) {
 		if(flag_debug.get()) {
-			messageProcessor.duccout(e.toString());
+			messageProcessor.status(e.toString());
 		}
 	}
 	
 	private void info(String message) {
 		if(flag_info.get()) {
-			messageProcessor.duccout(timestamp(message));
+			messageProcessor.status(timestamp(message));
 		}
 	}
 	
 	private void error(String message) {
 		if(flag_error.get()) {
-			messageProcessor.duccout(timestamp(message));
+			messageProcessor.status(timestamp(message));
 		}
 	}
 	
@@ -288,7 +288,7 @@ public abstract class DuccMonitor  {
 		// DUCC_HOME
 		String ducc_home = Utils.findDuccHome();
 		if(ducc_home == null) {
-			messageProcessor.duccout("Missing required environment variable: DUCC_HOME");
+			messageProcessor.status("Missing required environment variable: DUCC_HOME");
 			return RC_FAILURE;
 		}
 		// Ingest ducc.properties
@@ -536,7 +536,7 @@ public abstract class DuccMonitor  {
        		code = runInternal(args);
     	} 
        	catch (Exception e) {
-    		messageProcessor.duccout(e.toString());
+    		messageProcessor.status(e.toString());
     	}
        	debug("rc="+code);
        	return code;

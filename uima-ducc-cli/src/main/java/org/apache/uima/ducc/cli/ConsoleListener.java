@@ -19,9 +19,11 @@
 */
 package org.apache.uima.ducc.cli;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -43,11 +45,13 @@ class ConsoleListener
 
     private boolean      in_shutdown = false;
     private boolean      start_stdin = false;
-
+    private int          numConnected = 0;
+    
     private IDuccCallback consoleCb;
     // private int          callers;   // number of remote processes we expect to listen for
 
     boolean debug = false;
+    
     ConsoleListener(CliBase submit, IDuccCallback consoleCb)
         throws Exception
     {
@@ -60,7 +64,6 @@ class ConsoleListener
         this.console_host_address = ni.getIp();            
 
         debug = submit.isDebug();
-        // this.callers = 1;         // assume we'll get at least one listener, else we would not have been called.
     }
 
     String getConsoleHostAddress()
@@ -72,34 +75,6 @@ class ConsoleListener
     {
         return console_listener_port;
     }
-
-//     /**
-//      * The caller knows there may be more than one remote process calling us but
-//      * we've no clue when or if they will show up.  We assume here they do, and 
-//      * rely on some external influence to correct us if not.
-//      */
-//     synchronized void incrementCallers()
-//     {
-//         callers++;
-//     }
-
-//     synchronized void waitForCompletion()
-//     {
-//         try {
-//             while ( (callers > 0) && ( !in_shutdown) ) {
-//                 wait();
-//             }
-// 		} catch (InterruptedException e) {
-// 			// TODO Auto-generated catch block
-// 			e.printStackTrace();
-// 		}
-//     }
-
-//     private synchronized void releaseWait()
-//     {
-//         callers--;
-//         notify();
-//     }
 
     synchronized boolean isShutdown()
     {
@@ -128,12 +103,12 @@ class ConsoleListener
             Pair<StdioReader, StdioWriter> listener = listeners.remove(port);
             if ( listener != null ) {
                 try {
-					listener.first().shutdown();
-					listener.second().shutdown();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                    listener.first().shutdown();
+                    listener.second().shutdown();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
             count = listeners.size();
         }
@@ -156,11 +131,12 @@ class ConsoleListener
         while ( true ) {
             try {                    
                 Socket s = sock.accept();
-                StdioReader sr = new StdioReader(s, this);
+                StdioReader sr = new StdioReader(s);
                 StdioWriter sw = new StdioWriter(s);
                 int p = s.getPort();
                 synchronized(this) {
                     listeners.put(p, new Pair<StdioReader, StdioWriter>(sr, sw));
+                    sr.idNum = ++numConnected;
                 }
 
                 Thread t = new Thread(sr, "STDOUT");
@@ -188,19 +164,18 @@ class ConsoleListener
         boolean shutdown = false;
         ConsoleListener cl;
         String remote_host;
+        private PrintWriter logout = null;
 
         static final String console_tag = "1002 CONSOLE_REDIRECT ";
         int tag_len = 0;
+        private int idNum;
 
-
-        StdioReader(Socket sock, ConsoleListener cl)
+        StdioReader(Socket sock)
         {
             this.sock = sock;
-            this.cl = cl;
 
             InetAddress ia = sock.getInetAddress();
             remote_host = ia.getHostName();
-            consoleCb.host(remote_host);
             tag_len = console_tag.length();
 
             if ( debug ) System.out.println("===== Listener starting: " + remote_host + ":" + sock.getPort());
@@ -213,26 +188,36 @@ class ConsoleListener
             if ( debug ) System.out.println("===== Listener completing: " + remote_host + ":" + sock.getPort());
             shutdown = true;
             is.close();
-            cl.delete(sock.getPort());
+            if (logout != null) {
+              logout.close();
+            }
+            // Tell the ConsoleListener that it should shutdown all listeners on this port (self included!)
+            delete(sock.getPort());
         }
 
         boolean do_console_out = false;
+
         void doWrite(String line)
         {
             if ( line.startsWith(console_tag) ) {
                 String logfile = line.substring(tag_len);
-                consoleCb.logfile(logfile);
-                return;                                                                      // don't echo this
+                try {
+                  logout = new PrintWriter(logfile);
+                  return;
+                } catch (FileNotFoundException e) {
+                  consoleCb.status("Failed to create log file: " + logfile);
+                  e.printStackTrace();
+                }
             }
- 
+            if (logout != null) {
+              logout.println(line);
+            }
             if ( do_console_out ) {
-                consoleCb.consout(line);
+                consoleCb.console(idNum, line);
             } else {
-                consoleCb.duccout(line);                
-            }
-
-            if ( line.startsWith("1001 Command launching...")) {
-                do_console_out = true;
+                if ( line.startsWith("1001 Command launching...")) {
+                  do_console_out = true;
+                }
             }
         }
         
@@ -337,15 +322,15 @@ class ConsoleListener
                 if ( out != null ) {
                     out.close();
                 }
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
 
         public void run()
         {
-        	if ( debug ) System.out.println("STDIN LISTENER STARTS *******");
+            if ( debug ) System.out.println("STDIN LISTENER STARTS *******");
             try {
                 out = sock.getOutputStream();
             } catch (Exception e) {
@@ -357,7 +342,7 @@ class ConsoleListener
             byte[] buf = new byte[4096];
             int dbg = 0;
             try {
-				while ( true ) {
+                while ( true ) {
                     int cnt = System.in.available();
                     if ( cnt > 0 ) {
                         while ( cnt > 0) {
@@ -380,9 +365,9 @@ class ConsoleListener
                         }
                     }
                 }
-			} catch (IOException e) {
+            } catch (IOException e) {
                 System.out.println("Error in process stdin redirection - redirection ended. " + e.toString());
-			} finally {
+            } finally {
                 close();
             }
             if ( debug ) System.out.println("***********STDIN returns");

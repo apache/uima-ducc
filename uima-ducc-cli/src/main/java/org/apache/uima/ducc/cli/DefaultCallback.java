@@ -15,35 +15,21 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/
+ */
 package org.apache.uima.ducc.cli;
 
-
 public class DefaultCallback implements IDuccCallback {
-    private String host;
-    
-    public void duccout(String s) 
-    { 
-        if ( host == null ) {
-            System.out.println( s);
-        } else {
-            System.out.println("[" + host + "] " + s); 
-        }
-    }
 
-    public void consout(String s) 
-    { 
-        System.out.println("[" + host + "] " + s); 
-    }
+  @Override
+  public void console(int pnum, String msg) {
+    System.out.println("[" + pnum + "] " + msg);
+  }
 
-    @Override
-    public void host(String name) {
-        host = name;
-    }
+  @Override
+  public void status(String msg) {
+    System.out.println(msg);
+  }
 
-    @Override
-    public void logfile(String name) {
-    }
 }
 
 

@@ -24,10 +24,8 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
@@ -35,7 +33,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDucc;
@@ -61,7 +58,6 @@ public abstract class CliBase
     protected Options options;
     protected CommandLineParser parser;
     protected CommandLine commandLine;
-    protected Map<String, UiOption> reverseOptions = new HashMap<String, UiOption>();  // for lookup by string-name
 
     protected long friendlyId = -1;
     protected int  returnCode = 1000;
@@ -207,25 +203,15 @@ public abstract class CliBase
     {
         Options opts = new Options();
         for ( UiOption opt : optlist ) {
-            OptionBuilder.withDescription(opt.makeDesc());
-            OptionBuilder.withLongOpt   (opt.pname());
-            
-            if ( opt.argname() == null ) { 
-                OptionBuilder.hasOptionalArg();   // permissive, these are booleans or inferred and we'll just ignore
-                                                  // spurious true, false, or other values
-            } else {
-                OptionBuilder.withArgName(opt.argname());
-                if ( opt.multiargs() ) {
-                    OptionBuilder.hasArgs();
-                } else {
-                    OptionBuilder.hasArgs(1);
-                }
+            String arg = opt.argname();
+            Option o = new Option(null, opt.pname(), (arg != null), opt.makeDesc());
+            o.setArgName(arg);
+            o.setRequired(strict && opt.required());
+            if (opt.multiargs()) {
+              o.setArgs(Option.UNLIMITED_VALUES);   // (Untested as we have no multiarg options)
             }
-
-            if ( strict && opt.required() ) OptionBuilder.isRequired();
-
-            Option o = OptionBuilder.create();
             opts.addOption(o);
+            // Note: avoid OptionBuilder as is not thread-safe
         }
         return opts;
     }
@@ -236,9 +222,11 @@ public abstract class CliBase
         for ( Object o : props.keySet() ) {
             String k = (String) o;
             String v = props.getStringProperty(k, "");
-
             arglist.add("--" + k);
-            arglist.add(v);
+            // Assume an empty value indicates a boolean option
+            if (v.length() > 0) {
+              arglist.add(v);
+            }
         }
         return arglist.toArray(new String[arglist.size()]);
     }
@@ -252,7 +240,7 @@ public abstract class CliBase
             }
             String k = o.getLongOpt().trim();
             String v = o.getValue();
-            if ( v == null ) v = "";
+            if ( v == null ) v = "";      // Boolean options have an empty value
             v = v.trim();
 
             cli_props.put(k, v);
@@ -272,7 +260,8 @@ public abstract class CliBase
     /**
      * Use this init if you you need a console callback and use the default log location.
      */
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet, IDuccCallback consoleCb)
+    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, 
+            String host_s, String port_s, String servlet, IDuccCallback consoleCb)
     	throws Exception
     {
         this.init(myClassName, opts, args, cli_props, host_s, port_s, servlet, consoleCb, null);
@@ -282,7 +271,8 @@ public abstract class CliBase
     	ducc_home = Utils.findDuccHome();
     }
     
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet, IDuccCallback consoleCb, String logExtension)
+    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props,
+				     String host_s, String port_s, String servlet, IDuccCallback consoleCb, String logExtension)
     	throws Exception
     {
         if ( init_done ) return;
@@ -566,9 +556,9 @@ public abstract class CliBase
                 sb.append(' ');
             }
             sb.append(e[i]);
-            consoleCb.duccout(sb.toString());
+            consoleCb.status(sb.toString());
         } else {
-            consoleCb.duccout(e[0]);
+            consoleCb.status(e[0]);
         }
     }
 
