@@ -108,7 +108,7 @@ if (table_style.equals("scroll")) {
 		<th title="The service name">Name</th>
 		<th title="The service type">Type</th>
 		<th title="The service state">State</th>
-		<th title="The service pinger">Pinging</th>
+		<th title="The service pinger">Pinger</th>
 		<th title="The service health">Health</th>
 		<th title="The service number of instances">Instances</th>
 		<th title="The service number of deployments">Deployments</th>
@@ -143,7 +143,7 @@ if (table_style.equals("classic")) {
 		<th title="The service name">Name</th>
 		<th title="The service type">Type</th>
 		<th title="The service state">State</th>
-		<th title="The service pinger">Pinging</th>
+		<th title="The service pinger">Pinger</th>
 		<th title="The service health">Health</th>
 		<th title="The service number of instances">Instances</th>
 		<th title="The service number of deployments">Deployments</th>
