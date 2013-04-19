@@ -57,6 +57,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		ThreadLocation threadLocation = null;
 		try {
 			casId = ""+status.getCAS().hashCode();
+			jobDriver.queued(jobDriver.getWorkItem(casId));
 			threadLocation = jobDriver.getCasDispatchMap().get(casId);
 			DuccId jobid = jobDriver.getJob().getDuccId();
 			duccOut.debug(methodName, jobid, "action:send "+threadLocation.getInfo());
@@ -86,11 +87,12 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		ThreadLocation threadLocation = null;
 		try {
 			casId = ""+status.getCAS().hashCode();
+			String PID = pid.split(":")[0];
+			jobDriver.dequeued(jobDriver.getWorkItem(casId), nodeIP, PID);
 			threadLocation = jobDriver.getCasDispatchMap().get(casId);
 			threadLocation.setNodeId(nodeIP);
 			threadLocation.setProcessId(pid);
 			duccOut.debug(methodName, jobDriver.getJob().getDuccId(), "action:process "+threadLocation.getInfo());
-			String PID = pid.split(":")[0];
 			jobDriver.assignLocation(jobDriver, casId, nodeIP, PID);
 			jobDriver.getDriverStatusReportLive().workItemOperatingStart(casId, nodeIP, PID);
 			duccOut.debug(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+pid);

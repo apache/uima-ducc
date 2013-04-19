@@ -20,7 +20,11 @@ package org.apache.uima.ducc.jd.client;
 
 public interface IWorkItemMonitor {
 	
+	public WorkItem getWorkItem(String casId);
+	
 	public void start(WorkItem workItem);
+	public void queued(WorkItem workItem);
+	public void dequeued(WorkItem workitem, String node, String pid);
 	public void ended(WorkItem workitem);
 	public void exception(WorkItem workitem, Exception e);
 }

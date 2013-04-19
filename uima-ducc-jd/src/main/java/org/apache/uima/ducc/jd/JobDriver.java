@@ -1089,6 +1089,43 @@ public class JobDriver extends Thread implements IJobDriver {
 	}
 	
 	@Override
+	public WorkItem getWorkItem(String casId) {
+		String location = "getWorkItem";
+		WorkItem workItem = null;
+		if(casId != null) {
+			workItem = casWorkItemMap.get(casId);
+			if(workItem == null) {
+				duccOut.warn(location, jobid, casId);
+			}
+		}
+		return workItem;
+	}
+	
+	@Override
+	public void queued(WorkItem workItem) {
+		String location = "queued";
+		try {
+			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
+		}
+		catch(Exception e) {
+			duccOut.error(location, jobid, "processing error?", e);
+		}
+		return;
+	}
+	
+	@Override
+	public void dequeued(WorkItem workItem, String node, String pid) {
+		String location = "dequeued";
+		try {
+			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText()+" "+"node:"+node+" "+"pid:"+pid);
+		}
+		catch(Exception e) {
+			duccOut.error(location, jobid, "processing error?", e);
+		}
+		return;
+	}
+	
+	@Override
 	public void start(WorkItem workItem) {
 		String location = "start";
 		try {
