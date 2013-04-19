@@ -42,6 +42,7 @@ if (table_style.equals("scroll")) {
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
 									$('td:eq(0)', nRow).css( "text-align", "right" );
                              		$('td:eq(1)', nRow).css( "text-align", "right" );
+                             		$('td:eq(3)', nRow).css( "text-align", "right" );
                              		$('td:eq(8)', nRow).css( "text-align", "right" );
                              		$('td:eq(9)', nRow).css( "text-align", "right" );
                              		$('td:eq(10)', nRow).css( "text-align", "right" );
@@ -106,7 +107,7 @@ if (table_style.equals("scroll")) {
 	<th class="ducc-col-terminate"></th>
 	<th title="The system assigned id for this job" class="sorttable_numeric">Id</th>
 	<th title="The time this job was submitted">Start</th>
-	<th title="The time this job was finished (or the projected time until finish if presently running)">End</th>
+	<th title="The time this job lasted (or the projected time until finish if presently running), units ddd:hh:mm:ss">Duration</th>
 	<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this job">User</th>
 	<th title="The user specified class of this job">Class</th>
 	<th title="The current state of this job">State</th>
@@ -144,7 +145,7 @@ if (table_style.equals("classic")) {
 		<th class="ducc-col-terminate"></th>
 		<th title="The system assigned id for this job" class="sorttable_numeric">Id</th>
 		<th title="The time this job was submitted">Start</th>
-		<th title="The time this job was finished (or the projected time until finish if presently running)">End</th>
+		<th title="The time this job lasted (or the projected time until finish if presently running), units ddd:hh:mm:ss">Duration</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this job">User</th>
 		<th title="The user specified class of this job">Class</th>
 		<th title="The current state of this job">State</th>

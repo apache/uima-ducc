@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -46,10 +45,12 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
+import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public abstract class DuccAbstractHandler extends AbstractHandler {
@@ -173,6 +174,24 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			}
 		}
 		return sb.toString();
+	}
+	
+	public String getDuration(HttpServletRequest request, DuccId jobId, String millisV2, String millisV1) {
+		String methodName = "getDuration";
+		String retVal = "";
+		try {
+			long d2 = Long.parseLong(millisV2);
+			long d1 = Long.parseLong(millisV1);
+			long diff = d2 - d1;
+			retVal = FormatHelper.duration(diff);
+		}
+		catch(Exception e) {
+			duccLogger.trace(methodName, null, "no worries", e);
+		}
+		catch(Throwable t) {
+			duccLogger.trace(methodName, null, "no worries", t);
+		}
+		return retVal;
 	}
 	
 	public String getTimeStamp(HttpServletRequest request, DuccId jobId, String millis) {
@@ -624,8 +643,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 
-	public String getCompletionOrProjection(HttpServletRequest request, IDuccWorkJob job) {
-		String methodName = "getCompletionOrProjection";
+	public String getCompletion(HttpServletRequest request, IDuccWorkJob job) {
+		String methodName = "getCompletion";
 		String retVal = "";
 		try {
 			String tVal = job.getStandardInfo().getDateOfCompletion();
@@ -638,69 +657,126 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		catch(Throwable t) {
 			duccLogger.trace(methodName, null, "no worries", t);
 		}
+		return retVal;
+	}
+
+	public String getCompletion(HttpServletRequest request, IDuccWorkReservation reservation) {
+		String methodName = "getCompletion";
+		String retVal = "";
 		try {
-			if(retVal.trim().length() == 0) {
-				IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
-				IDuccPerWorkItemStatistics perWorkItemStatistics = schedulingInfo.getPerWorkItemStatistics();
-				if (perWorkItemStatistics == null) {
-					return "";
-				}
-				//
-				int total = schedulingInfo.getIntWorkItemsTotal();
-				int completed = schedulingInfo.getIntWorkItemsCompleted();
-				int error = schedulingInfo.getIntWorkItemsError();
-				int remainingWorkItems = total - (completed + error);
-				if(remainingWorkItems > 0) {
-					int usableProcessCount = job.getProcessMap().getUsableProcessCount();
-					if(usableProcessCount > 0) {
-						if(completed > 0) {
-							int threadsPerProcess = schedulingInfo.getIntThreadsPerShare();
-							int totalThreads = usableProcessCount * threadsPerProcess;
-							double remainingIterations = remainingWorkItems / totalThreads;
-							double avgMillis = perWorkItemStatistics.getMean();
-							double projectedTime = 0;
-							if(remainingIterations > 0) {
-								projectedTime = avgMillis * remainingIterations;
-							}
-							else {
-								projectedTime = avgMillis - (Calendar.getInstance().getTimeInMillis() - job.getSchedulingInfo().getMostRecentWorkItemStart());
-							}
-							if(projectedTime < 0) {
-								projectedTime = 0;
-							}
+			String tVal = reservation.getStandardInfo().getDateOfCompletion();
+			duccLogger.trace(methodName, null, tVal);
+			retVal = getTimeStamp(request,reservation.getDuccId(),tVal);
+		}
+		catch(Exception e) {
+			duccLogger.trace(methodName, null, "no worries", e);
+		}
+		catch(Throwable t) {
+			duccLogger.trace(methodName, null, "no worries", t);
+		}
+		return retVal;
+	}
+	
+	public String getDuration(HttpServletRequest request, IDuccWork dw) {
+		String methodName = "getDuration";
+		String retVal = "";
+		try {
+			String v2 = dw.getStandardInfo().getDateOfCompletion();
+			String v1 = dw.getStandardInfo().getDateOfSubmission();
+			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
+			retVal = getDuration(request,dw.getDuccId(),v2,v1);
+		}
+		catch(Exception e) {
+			duccLogger.trace(methodName, null, "no worries", e);
+		}
+		catch(Throwable t) {
+			duccLogger.trace(methodName, null, "no worries", t);
+		}
+		return retVal;
+	}
+	
+	public String getDuration(HttpServletRequest request, IDuccWork dw, long now) {
+		String methodName = "getDuration";
+		String retVal = "";
+		try {
+			String v2 = ""+now;
+			String v1 = dw.getStandardInfo().getDateOfSubmission();
+			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
+			retVal = getDuration(request,dw.getDuccId(),v2,v1);
+		}
+		catch(Exception e) {
+			duccLogger.trace(methodName, null, "no worries", e);
+		}
+		catch(Throwable t) {
+			duccLogger.trace(methodName, null, "no worries", t);
+		}
+		return retVal;
+	}
+	
+	public String getProjection(HttpServletRequest request, IDuccWorkJob job) {
+		String methodName = "getProjection";
+		String retVal = "";
+		try {
+			IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
+			IDuccPerWorkItemStatistics perWorkItemStatistics = schedulingInfo.getPerWorkItemStatistics();
+			if (perWorkItemStatistics == null) {
+				return "";
+			}
+			int total = schedulingInfo.getIntWorkItemsTotal();
+			int completed = schedulingInfo.getIntWorkItemsCompleted();
+			int error = schedulingInfo.getIntWorkItemsError();
+			int remainingWorkItems = total - (completed + error);
+			if(remainingWorkItems > 0) {
+				int usableProcessCount = job.getProcessMap().getUsableProcessCount();
+				if(usableProcessCount > 0) {
+					if(completed > 0) {
+						int threadsPerProcess = schedulingInfo.getIntThreadsPerShare();
+						int totalThreads = usableProcessCount * threadsPerProcess;
+						double remainingIterations = remainingWorkItems / totalThreads;
+						double avgMillis = perWorkItemStatistics.getMean();
+						double projectedTime = 0;
+						if(remainingIterations > 0) {
+							projectedTime = avgMillis * remainingIterations;
+						}
+						else {
+							projectedTime = avgMillis - (Calendar.getInstance().getTimeInMillis() - job.getSchedulingInfo().getMostRecentWorkItemStart());
+						}
+						if(projectedTime > 0) {
 							long millis = Math.round(projectedTime);
-							long days = TimeUnit.MILLISECONDS.toDays(millis);
-							millis -= TimeUnit.DAYS.toMillis(days);
-							long hours = TimeUnit.MILLISECONDS.toHours(millis);
-							millis -= TimeUnit.HOURS.toMillis(hours);
-							long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
-							millis -= TimeUnit.MINUTES.toMillis(minutes);
-							long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
-							String remainingTime = String.format("%02d", hours)+":"+String.format("%02d", minutes)+":"+String.format("%02d", seconds);
-							if(days > 0) {
-								remainingTime = days+":"+remainingTime;
+							if(millis > 1000) {
+								retVal = FormatHelper.duration(millis);
 							}
-							retVal = "projected +"+remainingTime;
-							double max = Math.round(perWorkItemStatistics.getMax()/100.0)/10.0;
-							double min = Math.round(perWorkItemStatistics.getMin()/100.0)/10.0;
-							double avg = Math.round(perWorkItemStatistics.getMean()/100.0)/10.0;
-							double dev = Math.round(perWorkItemStatistics.getStandardDeviation()/100.0)/10.0;
-							retVal = "<span title=\""+"seconds-per-work-item "+"Max:"+max+" "+"Min:"+min+" "+"Avg:"+avg+" "+"Dev:"+dev+"\""+">"+retVal+"</span>";
 						}
 					}
-					else {
-						if(job.isRunnable()) {
-							retVal = "suspended";
-						}
-					}
-				}
-				else {
-					retVal = "finished";
 				}
 			}
 		}
 		catch(Throwable t) {
 			duccLogger.trace(methodName, null, t);
+		}
+		return retVal;
+	}
+	
+	public String decorateDuration(HttpServletRequest request, IDuccWorkJob job, String duration) {
+		String retVal = duration;
+		String cVal = getCompletion(request,job);
+		if(cVal != null) {
+			if(cVal.length() > 0) {
+				String title = "title=\""+"End="+cVal+"\"";
+				retVal = "<span "+title+">"+duration+"</span>";
+			}
+		}
+		return retVal;
+	}
+	
+	public String decorateDuration(HttpServletRequest request, IDuccWorkReservation reservation, String duration) {
+		String retVal = duration;
+		String cVal = getCompletion(request,reservation);
+		if(cVal != null) {
+			if(cVal.length() > 0) {
+				String title = "title=\""+"End="+cVal+"\"";
+				retVal = "<span "+title+">"+duration+"</span>";
+			}
 		}
 		return retVal;
 	}

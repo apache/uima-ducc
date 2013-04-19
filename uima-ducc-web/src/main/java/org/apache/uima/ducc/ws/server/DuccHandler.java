@@ -88,6 +88,7 @@ import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
+import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandler extends DuccAbstractHandler {
@@ -521,7 +522,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						IUimaPipelineAEComponent upc = upcIterator.next();
 						String iName = upc.getAeName();
 						String iState = upc.getAeState().toString();
-						String iTime = formatDuration(upc.getInitializationTime());
+						String iTime = FormatHelper.duration(upc.getInitializationTime());
 						loadme.append("<tr>");
 						loadme.append("<td>"+iName);
 						loadme.append("<td>"+iState);
@@ -1076,25 +1077,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private static String formatDuration(final long millis) {
-		long seconds = millis / 1000;
-		long dd =   seconds / 86400;
-		long hh =  (seconds % 86400) / 3600;
-		long mm = ((seconds % 86400) % 3600) / 60;
-		long ss = ((seconds % 86400) % 3600) % 60;
-		String text = String.format("%d:%02d:%02d:%02d", dd, hh, mm, ss);
-		if(dd == 0) {
-			text = String.format("%02d:%02d:%02d", hh, mm, ss);
-			if(hh == 0) {
-				text = String.format("%02d:%02d", mm, ss);
-				if(mm == 0) {
-					text = String.format("%02d", ss);
-				}
-			}
-		}
-		return text;
-	}
-	
 	private void handleDuccServletJobPerformanceData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1189,22 +1171,22 @@ public class DuccHandler extends DuccAbstractHandler {
 					// Total
 					sb.append("<td align=\"right\">");
 					ltime = (long)time_total;
-					sb.append(formatDuration(ltime));
+					sb.append(FormatHelper.duration(ltime));
 					// % of Total
 					sb.append("<td align=\"right\">");
 					sb.append(formatter.format(100));
 					// Avg
 					sb.append("<td align=\"right\">");
 					ltime = (long)time_avg;
-					sb.append(formatDuration(ltime));
+					sb.append(FormatHelper.duration(ltime));
 					// Min
 					sb.append("<td align=\"right\">");
 					ltime = (long)time_min;
-					sb.append(formatDuration(ltime));
+					sb.append(FormatHelper.duration(ltime));
 					// Max
 					sb.append("<td align=\"right\">");
 					ltime = (long)time_max;
-					sb.append(formatDuration(ltime));
+					sb.append(FormatHelper.duration(ltime));
 				    // pass 2
 				    for (int i = 0; i < numstats; ++i) {
 				    	sb.append(trGet(counter++));
@@ -1215,7 +1197,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						sb.append("<td align=\"right\">");
 						time = uimaStats.get(i).getAnalysisTime();
 						ltime = (long)time;
-						sb.append(formatDuration(ltime));
+						sb.append(FormatHelper.duration(ltime));
 						// % of Total
 						sb.append("<td align=\"right\">");
 						double dtime = (time/time_total)*100;
@@ -1224,17 +1206,17 @@ public class DuccHandler extends DuccAbstractHandler {
 						sb.append("<td align=\"right\">");
 						time = time/casCount;
 						ltime = (long)time;
-						sb.append(formatDuration(ltime));
+						sb.append(FormatHelper.duration(ltime));
 						// Min
 						sb.append("<td align=\"right\">");
 						time = uimaStats.get(i).getAnalysisMinTime();
 						ltime = (long)time;
-						sb.append(formatDuration(ltime));
+						sb.append(FormatHelper.duration(ltime));
 						// Max
 						sb.append("<td align=\"right\">");
 						time = uimaStats.get(i).getAnalysisMaxTime();
 						ltime = (long)time;
-						sb.append(formatDuration(ltime));
+						sb.append(FormatHelper.duration(ltime));
 					}
 					sb.append("</table>");
 			    }

@@ -42,6 +42,7 @@ if (table_style.equals("scroll")) {
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
 									$('td:eq(0)', nRow).css( "text-align", "right" );
                              		$('td:eq(1)', nRow).css( "text-align", "right" );
+                             		$('td:eq(3)', nRow).css( "text-align", "right" );
                              		$('td:eq(9)', nRow).css( "text-align", "right" );
                              		$('td:eq(10)', nRow).css( "text-align", "right" );
                              		$('td:eq(11)', nRow).css( "text-align", "right" );
@@ -104,7 +105,7 @@ if (table_style.equals("scroll")) {
 	<th class="ducc-col-terminate"></th>
 			<th title="The system assigned id for this reservation">Id</th>
 			<th title="The time this reservation was submitted">Start</th>
-			<th title="The time this reservation was finished">End</th>
+			<th title="The time this reservation lasted, units ddd:hh:mm:ss">Duration</th>
 			<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this reservation">User</th>
 			<th title="The user specified class of this reservation">Class</th>
 			<th title="The type of this reservation">Type</th>
@@ -136,7 +137,7 @@ if (table_style.equals("classic")) {
 		<th class="ducc-col-terminate"></th>
 			<th title="The system assigned id for this reservation">Id</th>
 			<th title="The time this reservation was submitted">Start</th>
-			<th title="The time this reservation was finished">End</th>
+			<th title="The time this reservation lasted, units ddd:hh:mm:ss">Duration</th>
 			<th class="ducc-no-filter" id="user_column_heading" title="The user who submitted this reservation">User</th>
 			<th title="The user specified class of this reservation">Class</th>
 			<th title="The type of this reservation">Type</th>

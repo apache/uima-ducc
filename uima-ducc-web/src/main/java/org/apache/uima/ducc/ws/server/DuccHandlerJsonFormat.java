@@ -60,6 +60,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
+import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -180,7 +181,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		return sb;
 	}
 	
-	private JsonArray buildJobRow(HttpServletRequest request, IDuccWorkJob job, DuccData duccData, ServicesRegistry servicesRegistry) {
+	private JsonArray buildJobRow(HttpServletRequest request, IDuccWorkJob job, DuccData duccData, long now, ServicesRegistry servicesRegistry) {
 		String type="Job";
 		JsonArray row = new JsonArray();
 		StringBuffer sb;
@@ -208,11 +209,26 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append(getTimeStamp(request,job.getDuccId(), job.getStandardInfo().getDateOfSubmission()));
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
-		// End
+		// Duration
 		sb = new StringBuffer();
-		sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
-		sb.append(getCompletionOrProjection(request,job));
-		sb.append("</span>");
+		if(job.isCompleted()) {
+			String duration = getDuration(request,job);
+			String decoratedDuration = decorateDuration(request,job, duration);
+			sb.append("<span>");
+			sb.append(decoratedDuration);
+			sb.append("</span>");
+		}
+		else {
+			String duration = getDuration(request,job,now);
+			String decoratedDuration = decorateDuration(request,job, duration);
+			String projection = getProjection(request,job);
+			sb.append("<span class=\"health_green\""+">");
+			sb.append(decoratedDuration);
+			sb.append("</span>");
+			if(projection.length() > 0) {
+				sb.append("+"+"<i title=\"projected time to completion\">"+projection+"</i>");
+			}
+		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// User
 		sb = new StringBuffer();
@@ -302,7 +318,16 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		// Done
 		sb = new StringBuffer();
 		sb.append("<span>");
-		sb.append(job.getSchedulingInfo().getWorkItemsCompleted());
+		IDuccPerWorkItemStatistics perWorkItemStatistics = job.getSchedulingInfo().getPerWorkItemStatistics();
+		String done = job.getSchedulingInfo().getWorkItemsCompleted();
+		if (perWorkItemStatistics != null) {
+			double max = Math.round(perWorkItemStatistics.getMax()/100.0)/10.0;
+			double min = Math.round(perWorkItemStatistics.getMin()/100.0)/10.0;
+			double avg = Math.round(perWorkItemStatistics.getMean()/100.0)/10.0;
+			double dev = Math.round(perWorkItemStatistics.getStandardDeviation()/100.0)/10.0;
+			done = "<span title=\""+"seconds-per-work-item "+"Max:"+max+" "+"Min:"+min+" "+"Avg:"+avg+" "+"Dev:"+dev+"\""+">"+done+"</span>";
+		}
+		sb.append(done);
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Error
@@ -374,6 +399,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		ServicesRegistry servicesRegistry = new ServicesRegistry();
 		
+		long now = System.currentTimeMillis();
+		
 		int maxRecords = getJobsMax(request);
 		ArrayList<String> users = getJobsUsers(request);
 		DuccData duccData = DuccData.getInstance();
@@ -387,7 +414,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, job);
 				if(list) {
 					counter++;
-					JsonArray row = buildJobRow(request, job, duccData, servicesRegistry);
+					JsonArray row = buildJobRow(request, job, duccData, now, servicesRegistry);
 					data.add(row);
 				}
 			}
@@ -454,7 +481,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	}
 	
 	
-	private JsonArray buildReservationRow(HttpServletRequest request, IDuccWork duccwork, DuccData duccData) {
+	private JsonArray buildReservationRow(HttpServletRequest request, IDuccWork duccwork, DuccData duccData, long now) {
 		String type="Reservation";
 		JsonArray row = new JsonArray();
 		String reservationType = "Unmanaged";
@@ -500,17 +527,24 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append(getTimeStamp(request,duccwork.getDuccId(), duccwork.getStandardInfo().getDateOfSubmission()));
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
-		// End
+		// Duration
 		sb = new StringBuffer();
 		if(duccwork instanceof DuccWorkReservation) {
 			DuccWorkReservation reservation = (DuccWorkReservation) duccwork;
 			switch(reservation.getReservationState()) {
 			case Completed:
-				sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
-				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				sb.append("<span>");
+				String duration = getDuration(request,reservation);
+				String decoratedDuration = decorateDuration(request,reservation, duration);
+				sb.append(decoratedDuration);
 				sb.append("</span>");
 				break;
 			default:
+				sb.append("<span class=\"health_green\""+">");
+				duration = getDuration(request,reservation,now);
+				decoratedDuration = decorateDuration(request,reservation, duration);
+				sb.append(decoratedDuration);
+				sb.append("</span>");
 				break;
 			}
 		}
@@ -518,11 +552,18 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
 			switch(job.getJobState()) {
 			case Completed:
-				sb.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
-				sb.append(getTimeStamp(request,duccwork.getDuccId(),duccwork.getStandardInfo().getDateOfCompletion()));
+				sb.append("<span>");
+				String duration = getDuration(request,job);
+				String decoratedDuration = decorateDuration(request,job, duration);
+				sb.append(decoratedDuration);
 				sb.append("</span>");
 				break;
 			default:
+				sb.append("<span class=\"health_green\""+">");
+				duration = getDuration(request,job,now);
+				decoratedDuration = decorateDuration(request,job, duration);
+				sb.append(decoratedDuration);
+				sb.append("</span>");
 				break;
 			}
 		}
@@ -788,6 +829,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 
 		ArrayList<String> users = getReservationsUsers(request);
 		
+		long now = System.currentTimeMillis();
+		
 		if((sortedCombinedReservations.size() > 0)) {
 			int counter = 0;
 			Iterator<Entry<Info, Info>> iR = sortedCombinedReservations.entrySet().iterator();
@@ -799,12 +842,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					counter++;
 					if(dw instanceof DuccWorkReservation) {
 						DuccWorkReservation reservation = (DuccWorkReservation) dw;
-						JsonArray row = buildReservationRow(request, reservation, duccData);
+						JsonArray row = buildReservationRow(request, reservation, duccData, now);
 						data.add(row);
 					}
 					else if(dw instanceof DuccWorkJob) {
 						DuccWorkJob job = (DuccWorkJob) dw;
-						JsonArray row = buildReservationRow(request, job, duccData);
+						JsonArray row = buildReservationRow(request, job, duccData, now);
 						data.add(row);
 					}
 					else {
