@@ -20,6 +20,8 @@ package org.apache.uima.ducc.ws.server;
 
 public class DuccConstants {
 
+	public static final int workItemsDisplayMax = 4096;
+	
 	public static final String FAIR_SHARE = "FAIR_SHARE";
 	public static final String FIXED_SHARE = "FIXED_SHARE";
 	public static final String RESERVE = "RESERVE";

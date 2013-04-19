@@ -979,7 +979,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		return adjustedTime;
 	}
-	
 	private void handleDuccServletJobWorkitemsData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1008,6 +1007,34 @@ public class DuccHandler extends DuccAbstractHandler {
 			    	for (Entry<IWorkItemState, IWorkItemState> entry : sortedMap.entrySet()) {
 			    		IWorkItemState wis = entry.getValue();
 					    sb.append(trGet(counter++));
+			    		if(counter > DuccConstants.workItemsDisplayMax) {
+			    			// SeqNo
+							sb.append("<td align=\"right\">");
+							sb.append("*****");
+							// Id
+							sb.append("<td align=\"right\">");
+							sb.append("*****");
+							// Status
+							sb.append("<td align=\"right\">");
+							sb.append("display");
+							// Queuing Time (sec)
+							sb.append("<td align=\"right\">");
+							sb.append("limit");
+							// Processing Time (sec)
+							sb.append("<td align=\"right\">");
+							sb.append("reached");
+							// Node (IP)
+							sb.append("<td align=\"right\">");
+							sb.append("*****");
+							// Node (Name)
+							sb.append("<td align=\"right\">");
+							sb.append("*****");
+							// PID
+							sb.append("<td align=\"right\">");
+							sb.append("*****");
+			    			duccLogger.warn(methodName, job.getDuccId(), "work items display max:"+DuccConstants.workItemsDisplayMax);
+			    			break;
+			    		}
 			    		// SeqNo
 						sb.append("<td align=\"right\">");
 						sb.append(wis.getSeqNo());
