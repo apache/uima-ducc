@@ -995,11 +995,11 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 				row.add(new JsonPrimitive(s0+s1+s2));
 				// Pinging
-				String pinging = DuccHandlerUtils.getInterpretedYesNo(state, propertiesMeta, IServicesRegistry.ping_active);
+				String pinging = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.ping_active);
 				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging);
 				row.add(new JsonPrimitive(decoratedPinging));
 				// Health
-				String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
+				String health = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.service_healthy);
 				String statistics = null;
 				if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
 					statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);

@@ -27,14 +27,10 @@ public class DuccHandlerUtils {
 	private static String valueTrue = "True";
 	private static String valueFalse = "False";
 	
-	private static String valueYes = "Yes";
-	private static String valueNo = "No";
+	private static String valueUp = "Up";
+	private static String valueDown = "Down";
 	
-	
-	private static String valueGood = "Good";
-	private static String valuePoor = "Poor";
-	
-	private static String health_neutral = "health_neutral";
+	//private static String health_neutral = "health_neutral";
 	private static String health_green = "health_green";
 	private static String health_red = "health_red";
 	
@@ -53,37 +49,17 @@ public class DuccHandlerUtils {
 		return retVal;
 	}
 	
-	public static String getInterpretedYesNo(String state, Properties propertiesMeta, String key) {
+	public static String getInterpretedUpDown(String state, Properties propertiesMeta, String key) {
 		String retVal = "";
 		if(state != null) {
 			if(state.equals(stateAvailable)) {
 				String value = getUninterpreted(propertiesMeta, key);
 				value = value.trim();
 				if(value.equalsIgnoreCase(valueTrue)) {
-					retVal = valueYes;
+					retVal = valueUp;
 				}
 				else if(value.equalsIgnoreCase(valueFalse)) {
-					retVal = valueNo;
-				}
-				else {
-					retVal = value;
-				}
-			}
-		}
-		return retVal;
-	}
-	
-	public static String getInterpretedGoodPoor(String state, Properties propertiesMeta, String key) {
-		String retVal = "";
-		if(state != null) {
-			if(state.equals(stateAvailable)) {
-				String value = getUninterpreted(propertiesMeta, key);
-				value = value.trim();
-				if(value.equalsIgnoreCase(valueTrue)) {
-					retVal = valueGood;
-				}
-				else if(value.equalsIgnoreCase(valueFalse)) {
-					retVal = valuePoor;
+					retVal = valueDown;
 				}
 				else {
 					retVal = value;
@@ -127,30 +103,16 @@ public class DuccHandlerUtils {
 		String retVal = "";
 		if(value != null) {
 			String tValue = value.trim();
-			if(tValue.equalsIgnoreCase(valueYes)) {
-				StringBuffer sb = new StringBuffer();
-				sb.append(openSpan(health_neutral, popup));
-				sb.append(tValue);
-				sb.append(closeSpan());
-				retVal = sb.toString();
-			}
-			else if(tValue.equalsIgnoreCase(valueNo)) {
+			if(tValue.equalsIgnoreCase(valueDown)) {
 				StringBuffer sb = new StringBuffer();
 				sb.append(openSpan(health_red, popup));
 				sb.append(tValue);
 				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
-			else if(tValue.equalsIgnoreCase(valueGood)) {
+			else if(tValue.equalsIgnoreCase(valueUp)) {
 				StringBuffer sb = new StringBuffer();
 				sb.append(openSpan(health_green, popup));
-				sb.append(tValue);
-				sb.append(closeSpan());
-				retVal = sb.toString();
-			}
-			else if(tValue.equalsIgnoreCase(valuePoor)) {
-				StringBuffer sb = new StringBuffer();
-				sb.append(openSpan(health_red, popup));
 				sb.append(tValue);
 				sb.append(closeSpan());
 				retVal = sb.toString();

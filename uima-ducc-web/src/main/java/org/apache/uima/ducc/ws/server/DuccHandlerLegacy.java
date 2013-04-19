@@ -855,13 +855,13 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");
 				// Pinging
 				sb.append("<td>");
-				String pinging = DuccHandlerUtils.getInterpretedYesNo(state, propertiesMeta, IServicesRegistry.ping_active);
+				String pinging = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.ping_active);
 				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging,null);
 				sb.append(decoratedPinging);
 				sb.append("</td>");
 				// Health
 				sb.append("<td>");
-				String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
+				String health = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.service_healthy);
 				String statistics = null;
 				if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
 					statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
