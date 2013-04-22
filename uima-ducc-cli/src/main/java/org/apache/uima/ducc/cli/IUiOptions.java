@@ -171,7 +171,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_description; }
             public String argname()     { return "string"; }
             public String description() { return "Description of the run."; }
-            public String example()     { return "--description My excellent job!"; }
+            public String example()     { return "My excellent job!"; }
             public String deflt()       { return null; }
             public String label()       { return "Description"; }
             public boolean multiargs()  { return false; }
@@ -389,13 +389,10 @@ public interface IUiOptions
         
         Register    { 
             public String pname()       { return "register"; } 
-            public String argname()     { return null; } 
+            public String argname()     { return "specification-file (optional)"; } 
             public String description() { return "Register a service."; } 
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
 
         ServicePingClass { 
@@ -534,8 +531,8 @@ public interface IUiOptions
         ProcessDebug { 
             public String pname()       { return "process_debug"; }
             public String argname()     { return "debugger-port-number"; }
-            public String description() { return "Append JVM debug flags to the jvm arguments to start the Job Process in remobe debug mode."; }
-            public String example()     { return "--process_debug 8000"; }
+            public String description() { return "Listening port number the remote process is to connect to."; }
+            public String example()     { return "8000"; }
             public String deflt()       { return null; }
             public String label()       { return "ProcessDebug"; }
             public boolean multiargs()  { return false; }
@@ -753,13 +750,10 @@ public interface IUiOptions
 
         Query       { 
             public String pname()       { return "query"; } 
-            public String argname()     { return null; } 
-            public String description() { return "Query registered services." ; } 
+            public String argname()     { return "service-id-or-endpoint (optional)" ; } 
+            public String description() { return "Query a registered service, or all." ; } 
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
 
         Reason { 
@@ -812,7 +806,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_scheduling_class; }
             public String argname()     { return "scheduling class name"; }
             public String description() { return "The class to run the job in."; }
-            public String example()     { return "A=B MYENV=foo"; }
+            public String example()     { return "normal"; }
             public String deflt()       { return null; }
             public String label()       { return "SchedulingClass"; }
             public boolean multiargs()  { return false; }
@@ -823,7 +817,7 @@ public interface IUiOptions
             public String pname()       { return "service_linger"; }
             public String argname()     { return "seconds"; }
             public String description() { return "Time in milliseconds to wait after last referring job or service exits before stopping a non-autostarted service."; }
-            public String example()     { return "--service_linger 1000"; }
+            public String example()     { return null; }
             public String deflt()       { return "300000"; } // 5 minutes
             public String label()       { return name(); }
             public boolean multiargs()  { return false; }
@@ -867,6 +861,7 @@ public interface IUiOptions
 
         Specification { 
             public String pname()       { return JobSpecificationProperties.key_specification; }
+            public String sname()       { return "f"; }
             public String argname()     { return "file"; }
             public String description() { return "Properties file comprising the specification, where the keys are names of parameters. Individual parameters take precedence over those specified in properties file, if any."; }
             public String example()     { return null; }
@@ -966,15 +961,17 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
         ;
-                  
-        public abstract String  pname();            // name of the option, e.g.  --description
-        public abstract String  argname();          // type of its argument, or null if none
-        public abstract boolean multiargs();        // the option can have >1 arg
-        public abstract boolean required();         // this option is required
-        public abstract String  description();      // description of what it is
-        public abstract String  example();          // example of usage
-        public abstract String  deflt();            // defalt, or ""
-        public abstract String  label();            // Parameter name for label in web form
+          
+        // Each option must implement the first few methods,
+        public abstract String  pname();             // name of the option, e.g.  --description
+        public abstract String  argname();           // type of its argument, or null if none
+        public abstract String  description();       // description of what it is
+        public abstract String  example();           // example of usage
+        public boolean multiargs() { return false; } // the option can have >1 arg
+        public boolean required()  { return false; } // this option is required
+        public String  deflt()     { return null; }  // default, or ""
+        public String  label()     { return null; }  // Parameter name for label in web form
+        public String sname()      { return null; }  // short name of option
 
         public String makeDesc()
         {

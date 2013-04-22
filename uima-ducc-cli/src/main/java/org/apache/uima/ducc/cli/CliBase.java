@@ -110,13 +110,13 @@ public abstract class CliBase
 
         /*
          * make sure the logdir is actually legal.
+         * JD may also be creating it so to reduce any race or NFS delay blindly create and then test
          */
         File f = new File(log_directory);
 
+        f.mkdirs();
         if ( ! f.exists() ) {
-            if (! f.mkdirs() ) {
-                throw new IllegalArgumentException("Cannot create log directory " + log_directory);
-            }
+            throw new IllegalArgumentException("getLogDirectory: Cannot create log directory " + log_directory);
         }
 
         if ( ! f.isDirectory() ) {
@@ -204,8 +204,9 @@ public abstract class CliBase
         Options opts = new Options();
         for ( UiOption opt : optlist ) {
             String arg = opt.argname();
-            Option o = new Option(null, opt.pname(), (arg != null), opt.makeDesc());
+            Option o = new Option(opt.sname(), opt.pname(), (arg != null), opt.makeDesc());
             o.setArgName(arg);
+            o.setOptionalArg(arg != null && arg.endsWith("(optional)"));
             o.setRequired(strict && opt.required());
             if (opt.multiargs()) {
               o.setArgs(Option.UNLIMITED_VALUES);   // (Untested as we have no multiarg options)
@@ -391,7 +392,7 @@ public abstract class CliBase
 
         f.mkdirs();
         if ( ! f.exists() ) {
-            throw new IllegalStateException("Cannot create log directory: " + f.toString());
+            throw new IllegalStateException("saveSpec: Cannot create log directory: " + f.toString());
         }
 
         String comments = null;
