@@ -1213,6 +1213,12 @@ public class JobDriver extends Thread implements IJobDriver {
 			remove(workItem);
 			casSource.recycle(workItem.getCAS());
 			accountingWorkItemIsError(workItem.getProcessId());
+			try {
+				queueCASes(1,queue,workItemFactory);
+			}
+			catch(Exception exception) {
+				duccOut.error(location, jobid, "processing error?", exception);
+			}
 			break;
 		case ProcessContinue_CasRetry:
 			retry(workItem);
