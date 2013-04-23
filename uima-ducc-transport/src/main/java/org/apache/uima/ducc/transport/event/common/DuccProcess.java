@@ -62,6 +62,7 @@ public class DuccProcess implements IDuccProcess {
 	private CGroup cgroup;
 	private long majorFaults;
 	private long swapUsage;
+	private long swapUsageMax;
 	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity) {
 		setDuccId(duccId);
@@ -519,24 +520,33 @@ public class DuccProcess implements IDuccProcess {
 		this.node = node;
 	}
 
+	@Override
 	public void setMajorFaults(long faultCount) {
 		this.majorFaults = faultCount;	
 	}
 
+	@Override
 	public long getMajorFaults() {
 		return majorFaults;
 	}
 
-	
+	@Override
 	public void setSwapUsage(long susage) {
 		this.swapUsage = susage;
-		
 	}
 
-	
+	@Override
 	public long getSwapUsage() {
-		
 		return swapUsage;
 	}
 
+	@Override
+	public void setSwapUsageMax(long susage) {
+		this.swapUsageMax = susage;
+	}
+
+	@Override
+	public long getSwapUsageMax() {
+		return swapUsageMax;
+	}
 }

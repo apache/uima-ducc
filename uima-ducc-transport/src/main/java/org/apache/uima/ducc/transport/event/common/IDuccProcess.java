@@ -125,5 +125,7 @@ public interface IDuccProcess extends Serializable {
 	
 	public void setSwapUsage(long susage);
 	public long getSwapUsage();
-	
+
+	public void setSwapUsageMax(long susage);
+	public long getSwapUsageMax();
 }
