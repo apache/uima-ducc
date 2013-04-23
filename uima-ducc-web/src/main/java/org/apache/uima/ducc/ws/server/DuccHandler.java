@@ -360,6 +360,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	
 	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
+		String location = "buildJobProcessListEntry";
 		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String logfile = buildLogFileName(job, process, type);
 		String errfile = "jd.err.log";
@@ -476,6 +477,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			t = (TimeWindow) process.getTimeWindowInit();
 			try {
 				timeInitMillis = t.getElapsedMillis();
+				duccLogger.debug(location, jobid, "init millis = "+timeInitMillis);
 			}
 			catch(Exception e) {
 			}
@@ -556,6 +558,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		long timeRunMillis = 0;
 		try {
 			timeRunMillis = t.getElapsedMillis();
+			duccLogger.debug(location, jobid, "run millis = "+timeRunMillis);
 		}
 		catch(Exception e) {
 		}
