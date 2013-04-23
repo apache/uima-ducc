@@ -40,5 +40,6 @@ public interface Agent extends ProcessLifecycleController {
 	public boolean isRogueProcess(String uid, Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi ) throws Exception;	
 	public void copyAllUserReservations(TreeMap<String,NodeUsersInfo> map);
 	public RogueProcessReaper getRogueProcessReaper();
-  public boolean isManagedProcess(Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi);
+    public boolean isManagedProcess(Set<NodeUsersCollector.ProcessInfo> processList, NodeUsersCollector.ProcessInfo cpi);
+    public int getOSPageSize();
 }

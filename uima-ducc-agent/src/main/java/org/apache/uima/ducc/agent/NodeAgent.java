@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
@@ -141,6 +142,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   
   public boolean virtualAgent = false;
   
+  public boolean pageSizeFetched = false;
+  
   /**
    * Ctor used exclusively for black-box testing of this class.
    */
@@ -174,6 +177,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     this.launcher = launcher;
     this.configurationFactory = factory;
     this.commonProcessDispatcher = factory.getCommonProcessDispatcher(context);
+        
+    // fetch Page Size from the OS and cache it
+    getOSPageSize();
     
     if ( System.getProperty("ducc.rm.share.quantum") != null && System.getProperty("ducc.rm.share.quantum").trim().length() > 0 ) {
 	    shareQuantum = Integer.parseInt(System.getProperty("ducc.rm.share.quantum").trim());
@@ -260,22 +266,39 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
       
     }
-    /*
-    int nodeStability=0;
-    long node_metrics_publish_rate=0;
-    
-    if ( System.getProperty("ducc.rm.node.stability") != null ) {
-      nodeStability = Integer.parseInt(System.getProperty("ducc.rm.node.stability"));
-    }
-    if ( System.getProperty("ducc.agent.node.metrics.publish.rate") != null ) {
-      node_metrics_publish_rate = Long.parseLong(System.getProperty("ducc.agent.node.metrics.publish.rate"));
-    }
-    */
-//    nodeMonitor = new AgentMonitor(this, logger,nodeStability, (int)node_metrics_publish_rate);
-//    nodeMonitor.start();
-
   }
- 
+  
+  public int getOSPageSize() {
+	  InputStreamReader in = null;
+	  int pageSize = 4096;  // default
+	  if ( !pageSizeFetched ) { // fetch the page size from the OS once and cache it
+		  pageSizeFetched = true;
+		  try {
+			    ProcessBuilder pb = new ProcessBuilder();
+				pb.command(new String[] {"/usr/bin/getconf","PAGESIZE"}); 
+				pb.redirectErrorStream(true);
+				Process p = pb.start();
+				in = new InputStreamReader(p.getInputStream());
+				BufferedReader reader = new BufferedReader(in);
+				String line=null;
+						
+				while ((line = reader.readLine()) != null) {
+					pageSize = Integer.parseInt(line.trim());
+					logger.info("getOSPageSize",null, "OS Page Size:"+pageSize);
+				}
+		  } catch(Exception e) {
+			  logger.error("getOSPageSize",null,e);
+		  } finally {
+			  if ( in != null ) {
+				  try {
+				     in.close();
+				  } catch( Exception ex) {}
+			  }
+		  }
+	  }
+	  
+	  return pageSize;
+  }
   public void setNodeInfo( Node node ) {
 	  this.node = node;
   }

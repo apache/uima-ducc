@@ -66,22 +66,17 @@ implements ProcessMetricsProcessor {
 		this.agent = agent;
 		pool = Executors.newFixedThreadPool(30);
 		this.process = process;
-    gcStatsCollector = new DuccGarbageStatsCollector(logger, process);
-		//	read the block size from ducc.properties
-		if ( System.getProperty("os.page.size") != null ) {
-			try {
-				blockSize = Integer.parseInt(System.getProperty("os.page.size"));
-			} catch(NumberFormatException e) {
-				e.printStackTrace();
-			}
-		}
-    if ( System.getProperty("ducc.agent.share.size.fudge.factor") != null ) {
-      try {
-        fudgeFactor = Integer.parseInt(System.getProperty("ducc.agent.share.size.fudge.factor"));
-      } catch(NumberFormatException e) {
-        e.printStackTrace();
-      }
-    }
+        gcStatsCollector = new DuccGarbageStatsCollector(logger, process);
+		
+		blockSize = agent.getOSPageSize();
+		
+       if ( System.getProperty("ducc.agent.share.size.fudge.factor") != null ) {
+         try {
+           fudgeFactor = Integer.parseInt(System.getProperty("ducc.agent.share.size.fudge.factor"));
+         } catch(NumberFormatException e) {
+           e.printStackTrace();
+         }
+       }
 		
 	}
 	public void close() {
@@ -177,12 +172,5 @@ implements ProcessMetricsProcessor {
 		}
 		
 	}
-	public static void main(String[] args) {
-		try {
-//			LinuxProcessMetricsProcessor p = new LinuxProcessMetricsProcessor(null,null,args[0]);
-//			p.process(null);
-		} catch( Exception e) {
-			e.printStackTrace();
-		}
-	}
+
 }
