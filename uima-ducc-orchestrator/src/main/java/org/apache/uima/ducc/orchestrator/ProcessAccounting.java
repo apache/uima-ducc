@@ -174,6 +174,25 @@ public class ProcessAccounting {
 		return retVal;
 	}
 	
+	public void copyInventorySwapUsage(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "copyInventorySwapUsage";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		process.setSwapUsage(inventoryProcess.getSwapUsage());
+		if(process.getSwapUsageMax() < process.getSwapUsage()) {
+			process.setSwapUsageMax(process.getSwapUsage());
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return;
+	}
+	
+	public void copyInventoryMajorFaults(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "copyInventoryMajorFaults";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		process.setMajorFaults(inventoryProcess.getMajorFaults());
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return;
+	}
+	
 	public void copyTimeInit(IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyTimeInit";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -456,6 +475,10 @@ public class ProcessAccounting {
 							}
 							// Process Pipeline Components State
 							copyUimaPipelineComponentsState(job, inventoryProcess, process);
+							// Process Swap Usage
+							copyInventorySwapUsage(job, inventoryProcess, process);
+							// Process Major Faults
+							copyInventoryMajorFaults(job, inventoryProcess, process);
 						}
 						else {
 							logger.warn(methodName, jobId, processId, messages.fetch("process not found job's process table"));
