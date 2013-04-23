@@ -286,6 +286,10 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
     public RogueProcessReaper getRogueProcessReaper() {
       return rogueProcessReaper;
     }
+	public int getOSPageSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
     
   }
   
