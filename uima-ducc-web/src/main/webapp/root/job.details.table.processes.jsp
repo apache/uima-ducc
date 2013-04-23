@@ -38,8 +38,12 @@ under the License.
 	<th title="Process initialization time, hh:mm:ss, as reported by the agent managing the process. The agent reports initialization start and end times. The time reported here is the difference between them, unless initialization is ongoing then the end time is estimated as now.">Time<br>Init</th>
 	<th title="Process run time (not including process initialization time), hh:mm:ss, as reported by the agent managing the process. The agent reports run start and end times. The time reported here is the difference between them, unless the process is still running then the end time is estimated as now.">Time<br>Run</th>
 	<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
+	<!--
 	<th title="Process total number of garbage collections that have occurred">Count<br>GC</th>
 	<th title="Process percentage of time spent in garbage collections, relative to total of initialization + run times">%GC</th>
+	-->
+	<th title="Process count of major faults which required loading a memory page from disk">PgIn</th>
+	<th title="Process GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
 	<!--
 	<th title="Cumulative CPU time, hh:mm:ss">CPU</th>
 	-->

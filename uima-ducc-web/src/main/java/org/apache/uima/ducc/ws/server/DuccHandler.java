@@ -609,6 +609,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("<td align=\"right\">");
 			sb.append(displayGC);
 			sb.append("</td>");
+			/*
 			// Count:gc
 			long countGC = 0;
 			try {
@@ -619,6 +620,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("<td align=\"right\">");
 			sb.append(countGC);
 			sb.append("</td>");
+			
 			// %gc
 			double pctGC = 0;
 			double timeTotal = timeInitMillis + timeRunMillis;
@@ -630,6 +632,37 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("<td align=\"right\">");
 			sb.append(formatter.format(pctGC));
 			sb.append("</td>");
+			*/
+			// PgIn
+			long faults = 0;
+			try {
+				faults = process.getMajorFaults();
+			}
+			catch(Exception e) {
+			}
+			sb.append("<td align=\"right\">");
+			sb.append(faults);
+			sb.append("</td>");
+			// Swap
+			if(process.isComplete()) {
+				double swap = process.getSwapUsageMax();
+				swap = swap/GB;
+				String displaySwap = formatter.format(swap);
+				sb.append("<td align=\"right\" "+">");
+				sb.append(displaySwap);
+				sb.append("</td>");
+			}
+			else {
+				double swap = process.getSwapUsage();
+				swap = swap/GB;
+				String displaySwap = formatter.format(swap);
+				double swapMax = process.getSwapUsageMax();
+				swapMax = swapMax/GB;
+				String displaySwapMax = formatter.format(swapMax);
+				sb.append("<td title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
+				sb.append(displaySwap);
+				sb.append("</td>");
+			}
 		}
 		/*
 		// Time:cpu
@@ -670,14 +703,25 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(displayPctRss);
 		sb.append("</td>");
 		*/
-		
-		double rss = process.getResidentMemory();
-		rss = rss/GB;
-		String displayRss = formatter.format(rss);
-		sb.append("<td align=\"right\" "+">");
-		sb.append(displayRss);
-		sb.append("</td>");
-		
+		if(process.isComplete()) {
+			double rss = process.getResidentMemoryMax();
+			rss = rss/GB;
+			String displayRss = formatter.format(rss);
+			sb.append("<td align=\"right\" "+">");
+			sb.append(displayRss);
+			sb.append("</td>");
+		}
+		else {
+			double rss = process.getResidentMemory();
+			rss = rss/GB;
+			String displayRss = formatter.format(rss);
+			double rssMax = process.getResidentMemoryMax();
+			rssMax = rssMax/GB;
+			String displayRssMax = formatter.format(rssMax);
+			sb.append("<td title=\"max="+displayRssMax+"\" align=\"right\" "+">");
+			sb.append(displayRss);
+			sb.append("</td>");
+		}
 		if(type.equals("SP")) {
 			// 
 		}
