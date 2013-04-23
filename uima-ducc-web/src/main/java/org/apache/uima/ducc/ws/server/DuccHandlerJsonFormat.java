@@ -226,7 +226,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			sb.append(decoratedDuration);
 			sb.append("</span>");
 			if(projection.length() > 0) {
-				sb.append("+"+"<i title=\"projected time to completion\">"+projection+"</i>");
+				sb.append("+"+"<span title=\"projected time to completion\"><i>"+projection+"</i></span>");
 			}
 		}
 		row.add(new JsonPrimitive(sb.toString()));

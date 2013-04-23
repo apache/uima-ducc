@@ -203,7 +203,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			sb.append(decoratedDuration);
 			sb.append("</span>");
 			if(projection.length() > 0) {
-				sb.append("+"+"<i title=\"projected time to completion\">"+projection+"</i>");
+				sb.append("+"+"<span title=\"projected time to completion\"><i>"+projection+"</i></span>");
 			}
 		}
 		sb.append("</td>");
