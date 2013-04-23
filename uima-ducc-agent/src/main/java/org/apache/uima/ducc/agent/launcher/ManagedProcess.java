@@ -298,9 +298,9 @@ public class ManagedProcess implements Process {
 		//	Fetch stderr from the deployed process
 		InputStream stderr = process.getErrorStream();
 		//	Create dedicated thread to consume std output stream from the process 
-		stdOutReader = new ProcessStreamConsumer(logger, group, "StdOutputReader", stdin, pStream);
+		stdOutReader = new ProcessStreamConsumer(logger, group, "StdOutputReader", stdin, pStream, workDuccId);
 		//	Create dedicated thread to consume std error stream from the process 
-		stdErrReader = new ProcessStreamConsumer(logger,  group, "StdErrorReader", stderr, pStream);
+		stdErrReader = new ProcessStreamConsumer(logger,  group, "StdErrorReader", stderr, pStream, workDuccId);
 		
 		//	Start both stream consumer threads
 		stdOutReader.start();

@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
 public class ProcessStreamConsumer extends Thread {
@@ -33,14 +34,17 @@ public class ProcessStreamConsumer extends Thread {
 	private InputStream is;
 	private PrintStream os;
 	DuccLogger logger;
+	private DuccId workDuccId;
+	
 	private StringBuffer errStreamBuffer = new StringBuffer();
 	public ProcessStreamConsumer(DuccLogger logger, ThreadGroup threadGroup,
-				final String threadName, InputStream is, PrintStream os) {
+				final String threadName, InputStream is, PrintStream os, DuccId workDuccId) {
 		super(threadGroup, threadName);
 		this.os = os;
 		this.is = is;
 		this.logger = logger;
 		setDaemon(true);
+		this.workDuccId = workDuccId;
 	}
   public String getDataFromStream() {
     return errStreamBuffer.toString();
@@ -54,13 +58,13 @@ public class ProcessStreamConsumer extends Thread {
 			while ((line = reader.readLine()) != null) {
 				line += LS;
 				if ( "StdErrorReader".equals(Thread.currentThread().getName())) {
-					logger.error("ProcessStreamConsumer.run()", null, line.trim());
+					logger.error("ProcessStreamConsumer.run()", workDuccId, line.trim());
 					os.print("ERR>>>"+line);
 					// Save stderr stream into a local buffer. When the process exits unexpectedly
 					// errors will be copied to a Process object.
 					errStreamBuffer.append(line.trim());  
 				} else {
-					logger.info("ProcessStreamConsumer.run()", null, line.trim());
+					logger.info("ProcessStreamConsumer.run()", workDuccId, line.trim());
 					os.print("OUT>>>"+line);
 				}
 			}
