@@ -144,6 +144,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   
   public boolean pageSizeFetched = false;
   
+  public int pageSize = 4096; // default
+  
   /**
    * Ctor used exclusively for black-box testing of this class.
    */
@@ -270,7 +272,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   
   public int getOSPageSize() {
 	  InputStreamReader in = null;
-	  int pageSize = 4096;  // default
+	  
 	  if ( !pageSizeFetched ) { // fetch the page size from the OS once and cache it
 		  pageSizeFetched = true;
 		  try {
