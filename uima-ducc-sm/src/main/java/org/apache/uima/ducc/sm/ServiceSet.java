@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.sm;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -75,6 +74,7 @@ public class ServiceSet
     // For a registered service, here is my registered id
     DuccId id;
     HashMap<Long, DuccId> friendly_ids = new HashMap<Long, DuccId>();
+    String history_key = "work-instances";
 
     // incoming nodes, for dup checking
     List<ServiceSet> predecessors = new ArrayList<ServiceSet>();
@@ -312,17 +312,18 @@ public class ServiceSet
 
     synchronized void deleteProperties()
     {
-        if ( meta_filename != null ) {
-             File mf = new File(meta_filename);
-             mf.delete();
-         }
-        meta_filename = null;
 
-         if ( props_filename != null ) {
-             File pf = new File(props_filename);
-             pf.delete();
-         }
-         props_filename = null;
+        // be sure to move any services that seem not to have croaked yet to history
+        String history = meta_props.getStringProperty(history_key, "");
+        for ( Long id : friendly_ids.keySet() ) {
+            history = history + " " + id.toString();
+        }
+        meta_props.put(history_key, history);
+        meta_props.remove("implementors");
+
+        ServiceManagerComponent.deleteProperties(id.toString(), meta_filename, meta_props, props_filename, job_props);
+        meta_filename = null;
+        props_filename = null;
     }
 
     void setIncoming(ServiceSet sset)
@@ -422,6 +423,7 @@ public class ServiceSet
     void synchronizeImplementors(Map<DuccId, JobState> work)
     {
         HashMap<Long, DuccId> newmap = new HashMap<Long, DuccId>();
+        // first loop synchronized 'friendly_ids' with live jobs comining in
         for ( DuccId id : work.keySet() ) {
 
             long fid = id.getFriendly();
@@ -431,6 +433,16 @@ public class ServiceSet
                 newmap.put(fid, id);
             }
         }
+
+        // second loop synchronizes history with jobs that used to be live and aren't any more (because of restart)
+        String history = meta_props.getStringProperty(history_key, "");
+        for ( Long friendly : friendly_ids.keySet() ) {
+            DuccId id = newmap.get(friendly);
+            if ( id == null ) {
+                history = history + " " + friendly;
+            }
+        }
+        meta_props.put(history_key, history);
 
         friendly_ids = newmap;                       // replace persisted version with validated version from OR state
         persistImplementors();
@@ -711,10 +723,15 @@ public class ServiceSet
 
     public void removeImplementor(DuccId id)
     {
+        String methodName = "removeImplementors";
         if ( ! implementors.containsKey(id ) ) return;  // quick short circuit if it's already gone
 
+        logger.debug(methodName, this.id, "Removing implementor", id);
         implementors.remove(id);
         friendly_ids.remove(id.getFriendly());
+        String history = meta_props.getStringProperty(history_key, "");
+        history = history + " " + id.toString();
+        meta_props.put(history_key, history);
         persistImplementors();
         if ( implementors.size() == 0 ) {
             stopPingThread();

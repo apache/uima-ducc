@@ -1089,19 +1089,6 @@ public class ServiceHandler
         }
 
         sset.deleteProperties();
-
-        // String metafn =  sset.getMetaFilename();
-        // String propsfn = sset.getPropsFilename();
-
-        // if ( metafn != null ) {
-        //     File mf = new File(metafn);
-        //     mf.delete();
-        // }
-        // if ( propsfn != null ) {
-        //     File pf = new File(propsfn);
-        //     pf.delete();
-        // }
-
     }
 
     String extractId(long friendly, String epname)

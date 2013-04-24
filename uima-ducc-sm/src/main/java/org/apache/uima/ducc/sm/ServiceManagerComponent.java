@@ -133,6 +133,10 @@ public class ServiceManagerComponent
 			if ( ! descdir.exists() ) {
 				descdir.mkdirs();
 			}
+			File histdir = new File(serviceHistoryLocation());
+			if ( ! histdir.exists() ) {
+				histdir.mkdirs();
+			}
 			String[] desclist = descdir.list();
 			for ( String d : desclist) {
                 if ( d.endsWith(".svc") ) {
@@ -151,18 +155,7 @@ public class ServiceManagerComponent
                     String sc = metaprops.getProperty("service-class");
                     if ( (sc != null) && ( sc.equals("Implicit") || sc.equals("Submitted") ) ) {
                         logger.info(methodName, null, "Scrubbing", sc, "service", stem);
-                        try {
-                            File mf = new File(meta_filename);
-                            mf.delete();
-                        } catch ( Throwable t ) {
-                            // nothing to do about it, ignore.
-                        }
-                        try {
-                            File pf = new File(props_filename);
-                            pf.delete();
-                        } catch ( Throwable t ) {
-                            // nothing to do about it, ignore.
-                        }
+                        deleteProperties(stem, meta_filename, metaprops, props_filename, props);
                         continue;
                     }
                     
@@ -566,9 +559,14 @@ public class ServiceManagerComponent
         notify();
     }
 
-    private String serviceFileLocation()
+    static String serviceFileLocation()
     {
         return System.getProperty("DUCC_HOME") + "/state/services";
+    }
+
+    static String serviceHistoryLocation()
+    {
+        return System.getProperty("DUCC_HOME") + "/history/services-registry/";
     }
 
     private String serviceFileKey(String fn)
@@ -722,14 +720,58 @@ public class ServiceManagerComponent
         //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
     }
 
-    public synchronized DuccId newId()
+    Object idSync = new Object();
+    public DuccId newId()
         throws Exception
     {
-        DuccId id = idFactory.next();
-        sm_props.setProperty(service_seqno, id.toString());
-        FileOutputStream fos = new FileOutputStream(state_file);
-        sm_props.store(fos, "Service Manager Properties");
-        fos.close();
+    	DuccId id = null;
+        synchronized(idSync) {
+            id = idFactory.next();
+            sm_props.setProperty(service_seqno, id.toString());
+            FileOutputStream fos = new FileOutputStream(state_file);
+            sm_props.store(fos, "Service Manager Properties");
+            fos.close();
+        }
         return id;
     }
+
+
+    static void deleteProperties(String id, String meta_filename, Properties meta_props, String props_filename, Properties job_props)
+    {
+        // NOTE: During init we may now know the ID as a DuccId so it has to be passed in as a string
+
+    	String methodName = "deleteProperties";
+        // Save a copy in history, and then delete the original
+        String history_dir = serviceHistoryLocation();
+        if ( meta_filename != null ) {
+            File mfh = new File(history_dir + id + ".meta");
+			try {
+				FileOutputStream fos = new FileOutputStream(mfh);
+				meta_props.store(fos, "Archived meta descriptor");            
+				fos.close();
+			} catch (Exception e) {
+				logger.warn(methodName, null, id + ": Unable to save history to \"" + mfh.toString(), ": ", e.toString() + "\"");
+			}
+
+            File mf = new File(meta_filename);
+            mf.delete();
+         }
+        meta_filename = null;
+
+         if ( props_filename != null ) {
+             File pfh = new File(history_dir + id + ".svc");
+             try {
+				FileOutputStream fos = new FileOutputStream(pfh);
+				 job_props.store(fos, "Archived meta descriptor");            
+				 fos.close();
+			} catch (Exception e) {
+                 logger.warn(methodName, null, id + ":Unable to save history to \"" + pfh.toString(), ": ", e.toString() + "\"");
+			}
+
+             File pf = new File(props_filename);
+             pf.delete();
+         }
+         props_filename = null;
+    }
+
 }
