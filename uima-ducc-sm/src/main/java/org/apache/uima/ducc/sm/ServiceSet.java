@@ -1241,6 +1241,8 @@ public class ServiceSet
         // That was annoying.  Now search the lines for some hint of the id.
         boolean inhibit_cp = false;
         boolean started = false;
+        StringBuffer submit_buffer = new StringBuffer();
+        boolean recording = false;
         for ( String s : stdout_lines ) {
 
             // simple logic to inhibit printing the danged classpath
@@ -1253,6 +1255,15 @@ public class ServiceSet
 
             if ( s.indexOf("-cp") >= 0 ) {
                 inhibit_cp = true;
+            }
+
+            if ( recording ) {
+                submit_buffer.append(s.trim());
+                submit_buffer.append(";");
+            }
+            if ( s.startsWith("1001 Command launching...") ) {
+                recording = true;
+                continue;
             }
 
             if ( s.startsWith("Service") && s.endsWith("submitted") ) {
@@ -1274,8 +1285,10 @@ public class ServiceSet
         boolean rc = true;
         if ( ! started ) {
             logger.warn(methodName, null, "Request to start service " + id.toString() + " failed.");
+            meta_props.put("submit_error", submit_buffer.toString());
             setAutostart(false);
         } else {
+            meta_props.remove("submit_error");
             setServiceState(ServiceState.Initializing);
         }
         saveMetaProperties();
