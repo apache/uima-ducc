@@ -20,6 +20,7 @@ package org.apache.uima.ducc.jd;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.camel.CamelContext;
@@ -40,6 +41,8 @@ import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
+import org.apache.uima.ducc.transport.json.jp.JobProcessCollection;
+import org.apache.uima.ducc.transport.json.jp.JobProcessData;
 
 
 public class JobDriverComponent extends AbstractDuccComponent 
@@ -63,6 +66,8 @@ implements IJobDriverComponent {
 	private String jdQueue;
 	
 	private AtomicInteger publicationCounter = new AtomicInteger(0);
+	
+	private JobProcessCollection jpc = null;
 	
 //	private int retryCount = 0;
 //	private int retryLimit = 2;
@@ -161,6 +166,7 @@ implements IJobDriverComponent {
 			synchronized(jobId) {
 				if(thread != null) {
 					thread.setJob(job);
+					jpc = new JobProcessCollection(job);
 				}
 				if(thread == null) {
 					duccOut.debug(methodName, job.getDuccId(), job.getJobState());
@@ -173,6 +179,13 @@ implements IJobDriverComponent {
 					catch(Exception e) {
 						duccOut.error(methodName, job.getDuccId(), e.getMessage(), e);
 					}
+				}
+				try {
+					ConcurrentSkipListMap<Long, JobProcessData> map = jpc.transform(job);
+					jpc.exportData(map);
+				}
+				catch(Exception e) {
+					duccOut.error(methodName, job.getDuccId(), e.getMessage(), e);
 				}
 			}
 			/*
