@@ -42,7 +42,7 @@ under the License.
       <!-- useTransitiveDependencies>false</useTransitiveDependencies -->
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/slf4j</outputDirectory>
-      <!-- useProjectArtifact>false</useProjectArtifact -->
+      <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>  
@@ -53,6 +53,7 @@ under the License.
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/xstream</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
@@ -69,11 +70,11 @@ under the License.
         <include>org.apache.uima:uima-ducc-sm</include>
         <include>org.apache.uima:uima-ducc-orchestrator</include>
         <include>org.apache.uima:uima-ducc-web</include>
-        
+        <include>org.apache.uima:uima-ducc-examples</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib</outputDirectory>
-      <useProjectArtifact>true</useProjectArtifact>
+      <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
@@ -114,41 +115,6 @@ under the License.
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
-
-
-    <!-- dependencySet>
-      <unpack>false</unpack>
-      <outputDirectory>runtime/webserver2/lib</outputDirectory>
-      <useTransitiveDependencies>true</useTransitiveDependencies>
-      <includes>
-        <include>org.eclipse.jetty:jetty-server</include>
-        <include>org.eclipse.jetty:jetty-ajp</include>
-        <include>org.eclipse.jetty:jetty-annotations</include>
-        <include>org.eclipse.jetty:jetty-client</include>
-        <include>org.eclipse.jetty:jetty-continuation</include>
-        <include>org.eclipse.jetty:jetty-deploy</include>
-        <include>org.eclipse.jetty:jetty-http</include>
-        <include>org.eclipse.jetty:jetty-io</include>
-        <include>org.eclipse.jetty:jetty-jmx</include>
-        <include>org.eclipse.jetty:jetty-jndi</include>
-        <include>org.eclipse.jetty:jetty-overlay-deployer</include>
-        <include>org.eclipse.jetty:jetty-plus</include>
-        <include>org.eclipse.jetty:jetty-policy</include>
-        <include>org.eclipse.jetty:jetty-rewrite</include>
-        <include>org.eclipse.jetty:jetty-security</include>
-        <include>org.eclipse.jetty:jetty-servlet</include>
-        <include>org.eclipse.jetty:jetty-servlets</include>
-        <include>org.eclipse.jetty:jetty-util</include>
-        <include>org.eclipse.jetty:jetty-webapp</include>
-        <include>org.eclipse.jetty:jetty-websocket</include>
-        <include>org.eclipse.jetty:jetty-xml</include>
-        <include>javax.servlet:servlet-api</include>
-      </includes>
-    </dependencySet -->
-
-
-
-
 
      <dependencySet>
       <includes>
@@ -329,17 +295,19 @@ under the License.
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
 
-    <!-- fileSet>
-      <directory>target/activemq/apache-activemq-5.6.0</directory>
-      <outputDirectory>ducc_runtime/activemq</outputDirectory>
-      <fileMode>755</fileMode>
-      <directoryMode>755</directoryMode>
-      
-    </fileSet -->
+   
 
     <fileSet>
       <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
       <outputDirectory>ducc_runtime/activemq</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+    
+    
+    <fileSet>
+      <directory>target/jetty/jetty-distribution-7.4.4.v20110707/lib</directory>
+      <outputDirectory>ducc_runtime/webserver/lib</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -439,77 +407,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
 
-    <!-- fileSet>
-      <directory>src/main/webserver</directory>
-      <outputDirectory>ducc_runtime/webserver</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet -->
-
-    <fileSet>
-      <directory>src/main/webserver/jetty/lib</directory>
-      <outputDirectory>ducc_runtime/webserver/lib</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-    <!-- fileSet>
-      <directory>src/main/webserver/images</directory>
-      <outputDirectory>ducc_runtime/webserver/root/images</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-    <fileSet>
-      <directory>src/main/webserver/cluetip</directory>
-      <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-
-    <fileSet>
-      <directory>src/main/webserver/DataTables-1.9.1</directory>
-      <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-    <fileSet>
-      <directory>src/main/webserver/jgrowl</directory>
-      <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-    <fileSet>
-      <directory>src/main/webserver/jquery-1.4.2</directory>
-      <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-    <fileSet>
-      <directory>src/main/webserver/cluetip/jquery-ui-1.8.4</directory>
-      <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-    <fileSet>
-      <directory>src/main/webserver/navigation</directory>
-      <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-    <fileSet>
-      <directory>src/main/webserver/sorttable-v2</directory>
-      <outputDirectory>ducc_runtime/webserver/root/opensources</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet -->
-
-    
+        
     <fileSet>
       <directory>uima-ducc-web/src/main/webapp/etc</directory>
       <outputDirectory>ducc_runtime/webserver/etc</outputDirectory>
