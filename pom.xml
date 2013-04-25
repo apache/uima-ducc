@@ -31,6 +31,27 @@
 	<description>The top project for UIMA-DUCC</description>
 	<url>${uimaWebsiteUrl}</url>
 
+
+<!-- Special inheritance note
+       even though the <scm> element that follows is exactly the
+       same as those in super poms, it cannot be inherited because
+       there is some special code that computes the connection elements
+       from the chain of parent poms, if this is omitted.
+
+       Keeping this a bit factored allows cutting/pasting the <scm>
+       element, and just changing the following two properties -->
+  <scm>
+    <connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/trunk
+    </connection>
+    <developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/trunk
+    </developerConnection>
+    <url>
+      http://svn.apache.org/viewvc/uima/uima-ducc/trunk
+    </url>
+  </scm>
+
     <!--  name the artifacts (zip,tar) -->
 	<properties>
 		<assemblyFinalName>uima-ducc-${project.version}</assemblyFinalName>
@@ -102,6 +123,154 @@
 		
 		<plugins>
       
+      <!-- plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          
+          <execution>
+            <id>download-jquery-ui</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <get src="http://jquery-ui.googlecode.com/files/jquery-ui-1.8.4.zip" 
+                     dest="${project.build.directory}/jquery-ui-1.8.4.zip" /> 
+                 <unzip src="${project.build.directory}/jquery-ui-1.8.4.zip" dest="${project.build.directory}/jquery-ui-1.8.4"/>
+               
+              </target>
+              
+            </configuration>
+          </execution>
+
+
+     
+          <execution>
+            <id>download-DataTables</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <get src="http://datatables.net/releases/DataTables-1.9.1.zip" 
+                     dest="${project.build.directory}/DataTables-1.9.1.zip" /> 
+                 <unzip src="${project.build.directory}/DataTables-1.9.1.zip" dest="${project.build.directory}/DataTables-1.9.1"/>
+
+                 <get src="https://github.com/DataTables/Plugins/blob/master/api/fnReloadAjax.js" 
+                     dest="${project.build.directory}/fnReloadAjax.js" /> 
+                 
+
+
+              </target>
+              
+            </configuration>
+          </execution>
+          
+          
+            <execution>
+            <id>download-cluetip</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <get src="https://github.com/kswedberg/jquery-cluetip/blob/master/jquery.cluetip.css" 
+                     dest="${project.build.directory}/jquery.cluetip.css" /> 
+                 <get src="https://github.com/kswedberg/jquery-cluetip/blob/master/jquery.cluetip.js" 
+                     dest="${project.build.directory}/jquery.cluetip.js" /> 
+                 
+
+
+              </target>
+              
+            </configuration>
+          </execution>
+          
+          
+          <execution>
+            <id>download-jgrowl</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <get src="https://github.com/stanlemon/jGrowl/blob/1.2.7/jquery.jgrowl.css" 
+                     dest="${project.build.directory}/jquery.jgrowl.css" /> 
+                 <get src="https://github.com/stanlemon/jGrowl/blob/1.2.7/jquery.jgrowl.js" 
+                     dest="${project.build.directory}/jquery.jgrowl.js" /> 
+                 
+
+
+              </target>
+              
+            </configuration>
+          </execution>
+          
+          <execution>
+            <id>download-jquery</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <get src="http://code.jquery.com/jquery-1.9.1.js" 
+                     dest="${project.build.directory}/jquery-1.9.1.js" /> 
+              </target>
+              
+            </configuration>
+          </execution>
+          <execution>
+            <id>download-sorttable</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                 <get src="http://kryogenix.org/code/browser/sorttable/sorttable.js" 
+                     dest="${project.build.directory}/sorttable.js" /> 
+              </target>
+              
+            </configuration>
+          </execution>         
+        </executions>
+      </plugin -->
+      
+      
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate checksums for binary artifacts</id>
+            <goals><goal>run</goal></goals>
+            <phase>verify</phase>
+            <configuration>
+              <target>
+                <checksum algorithm="sha1" format="MD5SUM">
+                  <fileset dir="${project.build.directory}">
+                    <include name="*.zip" />
+                    <include name="*.gz" />
+                  </fileset>
+                </checksum>
+                <checksum algorithm="md5" format="MD5SUM">
+                  <fileset dir="${project.build.directory}">
+                    <include name="*.zip" />
+                    <include name="*.gz" />
+                  </fileset>
+                </checksum>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
@@ -125,79 +294,32 @@
               </artifactItems>
             </configuration>
           </execution>
-        </executions>        
-      </plugin>
-      <!-- plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
+          
+          
           <execution>
-            <id>download-amq</id>
+            <!-- use the dependency:unpack goal to unpack the Jetty release --> 
+            <id>unpack-jetty-distro</id>
             <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
+            <goals><goal>unpack</goal></goals>
             <configuration>
-              <target>
-                 <get src="http://apache.mesi.com.ar/activemq/apache-activemq/5.6.0/apache-activemq-5.6.0-bin.zip" 
-                     dest="${project.build.directory}/apache-activemq-5.6.0-bin.zip" /> 
-                 <unzip src="${project.build.directory}/apache-activemq-5.6.0-bin.zip" dest="${project.build.directory}/activemq"/>
-              </target>
-              
-            </configuration>
-          </execution>
-        </executions>
-      </plugin -->
-      <!-- plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>unpack</id>
-            <configuration>
-              <target>      
-              <unzip src="${project.build.directory}/apache-activemq-5.6.0-bin.zip" dest="${project.build.directory}/activemq"/>
-              </target>
-            </configuration>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin -->
-
-<!-- plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>2.6</version>
-        
-        <executions>
-          <execution>
-            <id>copy</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <remoteRepositories>http://ebr.springsource.com/repository/</remoteRepositories>
+              <overWriteIfNewer>true</overWriteIfNewer>
               <artifactItems>
                 <artifactItem>
-                  <groupId>net.sourceforge.cglib</groupId>
-                  <artifactId>com.springsource.net.sf.cglib</artifactId>
-                  <version>2.2.0</version>
-                  <type>jar</type>
-                  <overWrite>false</overWrite>
-                  <outputDirectory>${project.build.directory}/ducc_runtime/lib/springframework</outputDirectory>
-                  <destFileName>com.springsource.net.sf.cglib-2.2.0.jar</destFileName>
+                  <groupId>org.eclipse.jetty</groupId>
+                  <artifactId>jetty-distribution</artifactId>
+                  <version>${jetty.version}</version>
+                  <type>zip</type>
+                  <outputDirectory>${project.build.directory}/jetty</outputDirectory>
                 </artifactItem>
               </artifactItems>
             </configuration>
           </execution>
-        </executions>
-      </plugin -->
-			<!-- plugin>
+          
+          
+        </executions>        
+      </plugin>
+      
+			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.5</version>
 				<executions>
@@ -224,9 +346,9 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin -->
+			</plugin>
 
-         <!-- plugin>
+         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-changes-plugin</artifactId>
           <version>2.8</version>
@@ -249,7 +371,7 @@
               </configuration>
             </execution>
           </executions>
-        </plugin -->
+        </plugin>
         <!-- run Release Audit Tool (RAT) on src and bin distrs -->
       	<!-- plugin>
 	               
@@ -327,27 +449,62 @@
         	</executions>
       	</plugin -->
 
-<!-- plugin>
-  <groupId>org.apache.maven.plugins</groupId>
-  <artifactId>maven-antrun-plugin</artifactId>
-  <executions>
-    <execution>
-      <id>create-empty-directory</id>
-      <phase>package</phase>
-      <goals>
-        <goal>run</goal>
-      </goals>
-      <configuration>
-        <tasks>
-          <mkdir dir="ducc_runtime/state" />
-        </tasks>
-      </configuration>
-    </execution>
-  </executions>
-</plugin -->			
+	
 		</plugins>
 		<!-- /pluginManagement -->
 	</build>
+
+<profiles>
+    <profile>
+      <id>apache-release</id>
+      <build>
+        <plugins>
+          <!-- https://issues.apache.org/jira/browse/UIMA-2008 -->
+          <!-- no maven deployment, do manual checksums -->
+          <!-- source-release artifact deployed from apache mirrors -->
+          <plugin>
+            <artifactId>maven-deploy-plugin</artifactId>      
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>generate checksums for source-release</id>
+                <goals><goal>run</goal></goals>
+                <phase>verify</phase>
+                <configuration>
+                  <target>
+                    <checksum algorithm="sha1" format="MD5SUM" file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
+                    <checksum algorithm="md5" format="MD5SUM" file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        <!-- Run jira report -->
+        <!-- depends on having -DjiraVersion set -->
+          <plugin>
+            <artifactId>maven-changes-plugin</artifactId>
+            <version>2.8</version>
+            <executions>
+              <execution>
+                <id>default-cli</id>
+                <configuration>
+                  <fixVersionIds>${jiraVersion}</fixVersionIds>
+                  <sortColumnNames>Type, Status, Key</sortColumnNames>
+                </configuration>
+              </execution>
+            </executions>  
+          </plugin>
+        
+        </plugins>
+      </build>
+    </profile>
+    
+  </profiles>
 
     <!-- Include all ducc modules  -->
 	<modules>
