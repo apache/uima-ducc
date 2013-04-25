@@ -201,6 +201,26 @@ public class ProcessAccounting {
 		return;
 	}
 	
+	public void copyInventoryGCStats(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "copyInventoryGCStats";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		if ( inventoryProcess.getGarbageCollectionStats() != null ) {
+			process.setGarbageCollectionStats(inventoryProcess.getGarbageCollectionStats());
+			logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "GC Stats Count:"+process.getGarbageCollectionStats().getCollectionCount());
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return;
+	}
+	
+	public void copyInventoryCpuTime(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "copyInventoryCpuTime";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		process.setCpuTime(inventoryProcess.getCpuTime());
+		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time:"+process.getCpuTime());
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return;
+	}
+	
 	public void copyTimeInit(IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyTimeInit";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -312,16 +332,10 @@ public class ProcessAccounting {
 			//	break;
 			default:
 				process.advanceProcessState(inventoryProcess.getProcessState());
+				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
 				if ( inventoryProcess.getProcessJmxUrl() != null && process.getProcessJmxUrl() == null) {
 					process.setProcessJmxUrl(inventoryProcess.getProcessJmxUrl());
 				}
-				if ( inventoryProcess.getGarbageCollectionStats() != null ) {
-					process.setGarbageCollectionStats(inventoryProcess.getGarbageCollectionStats());
-					logger.trace(methodName, job.getDuccId(), process.getDuccId(), "GC Stats Count:"+process.getGarbageCollectionStats().getCollectionCount());
-				}
-				process.setCpuTime(inventoryProcess.getCpuTime());
-				logger.trace(methodName, job.getDuccId(), process.getDuccId(), "Cpu Time:"+process.getCpuTime());
-				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
 				process.setProcessExitCode(inventoryProcess.getProcessExitCode());
 				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process exit code")+process.getProcessExitCode());
 				break;
@@ -487,6 +501,10 @@ public class ProcessAccounting {
 							copyInventoryMajorFaults(job, inventoryProcess, process);
 							// Process Rss
 							copyInventoryRss(job, inventoryProcess, process);
+							// Process GC Stats
+							copyInventoryGCStats(job, inventoryProcess, process);
+							// Process CPU Time
+							copyInventoryCpuTime(job, inventoryProcess, process);
 						}
 						else {
 							logger.warn(methodName, jobId, processId, messages.fetch("process not found job's process table"));
