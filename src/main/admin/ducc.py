@@ -109,6 +109,9 @@ class Ducc(DuccUtil):
             if ( c == 'ws' ):
                 #see if the ws jsp compilation directory is specified
                 compdir = self.ducc_properties.get('ducc.ws.jsp.compilation.directory')
+                if ( not os.path.exists(compdir) ):
+                    os.makedirs(compdir)
+
                 if ( compdir != None ):
                     jvm_opts.append('-Djava.io.tmpdir=' + compdir)
 
