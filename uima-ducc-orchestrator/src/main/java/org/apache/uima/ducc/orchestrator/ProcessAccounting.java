@@ -193,6 +193,14 @@ public class ProcessAccounting {
 		return;
 	}
 	
+	public void copyInventoryRss(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "copyInventoryRss";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		process.setResidentMemory(inventoryProcess.getResidentMemory());
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return;
+	}
+	
 	public void copyTimeInit(IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyTimeInit";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -311,8 +319,6 @@ public class ProcessAccounting {
 					process.setGarbageCollectionStats(inventoryProcess.getGarbageCollectionStats());
 					logger.trace(methodName, job.getDuccId(), process.getDuccId(), "GC Stats Count:"+process.getGarbageCollectionStats().getCollectionCount());
 				}
-				process.setResidentMemory(inventoryProcess.getResidentMemory());
-				logger.trace(methodName, job.getDuccId(), process.getDuccId(), "Resident Memory:"+process.getResidentMemory());
 				process.setCpuTime(inventoryProcess.getCpuTime());
 				logger.trace(methodName, job.getDuccId(), process.getDuccId(), "Cpu Time:"+process.getCpuTime());
 				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
@@ -479,6 +485,8 @@ public class ProcessAccounting {
 							copyInventorySwapUsage(job, inventoryProcess, process);
 							// Process Major Faults
 							copyInventoryMajorFaults(job, inventoryProcess, process);
+							// Process Rss
+							copyInventoryRss(job, inventoryProcess, process);
 						}
 						else {
 							logger.warn(methodName, jobId, processId, messages.fetch("process not found job's process table"));
