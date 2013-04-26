@@ -166,7 +166,6 @@ implements IJobDriverComponent {
 			synchronized(jobId) {
 				if(thread != null) {
 					thread.setJob(job);
-					jpc = new JobProcessCollection(job);
 				}
 				if(thread == null) {
 					duccOut.debug(methodName, job.getDuccId(), job.getJobState());
@@ -175,6 +174,7 @@ implements IJobDriverComponent {
 						thread = new JobDriver();
 						thread.initialize(job, getProcessJmxUrl());
 						thread.start();
+						jpc = new JobProcessCollection(job);
 					}
 					catch(Exception e) {
 						duccOut.error(methodName, job.getDuccId(), e.getMessage(), e);
