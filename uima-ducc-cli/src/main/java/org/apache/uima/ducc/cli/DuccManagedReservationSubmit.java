@@ -105,7 +105,7 @@ public class DuccManagedReservationSubmit
         serviceRequestProperties = new ServiceRequestProperties(); 
         init();
         if(DuccUiUtilities.isSupportedBeta()) {
-        	opts = opts_beta;
+            opts = opts_beta;
         }
         init(this.getClass().getName(), opts, args, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
@@ -117,7 +117,7 @@ public class DuccManagedReservationSubmit
         serviceRequestProperties = new ServiceRequestProperties();   
         init();
         if(DuccUiUtilities.isSupportedBeta()) {
-        	opts = opts_beta;
+            opts = opts_beta;
         }
         init(this.getClass().getName(), opts, arg_array, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
@@ -134,7 +134,7 @@ public class DuccManagedReservationSubmit
         }
         init();
         if(DuccUiUtilities.isSupportedBeta()) {
-        	opts = opts_beta;
+            opts = opts_beta;
         }
         init(this.getClass().getName(), opts, null, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
@@ -154,24 +154,24 @@ public class DuccManagedReservationSubmit
         boolean ev0 = serviceRequestProperties.containsKey(UiOption.Environment.pname());
         boolean evp = serviceRequestProperties.containsKey(UiOption.ProcessEnvironment.pname());
         if(ev0 && evp) {
-        	throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.ProcessEnvironment.pname());
+            throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.ProcessEnvironment.pname());
         }
         if(ev0) {
-        	if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
-    			return false;
-    		}
+            if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
+                return false;
+            }
         }
         else {
-        	if(evp) {
-        		if (!DuccUiUtilities.ducc_environment(this,serviceRequestProperties, UiOption.ProcessEnvironment.pname())) {
-        			return false;
-        		}
-        	}
-        	else {
-        		if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
-        			return false;
-        		}
-        	}
+            if(evp) {
+                if (!DuccUiUtilities.ducc_environment(this,serviceRequestProperties, UiOption.ProcessEnvironment.pname())) {
+                    return false;
+                }
+            }
+            else {
+                if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
+                    return false;
+                }
+            }
         }
 
         SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties);
@@ -179,9 +179,6 @@ public class DuccManagedReservationSubmit
         
         try {
             reply = (SubmitServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(ev);
-        } catch (Exception e) {
-            message("ERROR:", dt, "not submitted:", e.toString());
-            return false;
         } finally {
             dispatcher.close();
         }
@@ -192,19 +189,19 @@ public class DuccManagedReservationSubmit
         boolean retval = true;
         Properties properties = reply.getProperties();
         @SuppressWarnings("unchecked")
-		ArrayList<String> or_warnings = (ArrayList<String>) properties.get(UiOption.SubmitWarnings.pname());
+        ArrayList<String> or_warnings = (ArrayList<String>) properties.get(UiOption.SubmitWarnings.pname());
         if (or_warnings != null) {
-        	for ( String s : or_warnings) {
+            for ( String s : or_warnings) {
                message("WARN:", s);
-        	}
+            }
         }
 
         @SuppressWarnings("unchecked")
         ArrayList<String> or_errors = (ArrayList<String>) properties.get(UiOption.SubmitErrors.pname());
         if(or_errors != null) {
-        	for ( String s : or_errors ) {
+            for ( String s : or_errors ) {
                 message("ERROR:", s);
-        	}
+            }
             retval = false;
         }
 
@@ -228,6 +225,7 @@ public class DuccManagedReservationSubmit
         
     public static void main(String[] args) 
     {
+        int code = 1; // Assume the worst
         try {
             // Instantiate the object with args similar to the CLI, or a pre-built properties file
             DuccManagedReservationSubmit ds = new DuccManagedReservationSubmit(args);
@@ -238,25 +236,16 @@ public class DuccManagedReservationSubmit
 
             // If the return is 'true' then as best the API can tell, the submit worked
             if ( rc ) {
-                // Fetch the Ducc ID
-            	System.out.println(dt+" "+ds.getDuccId()+" submitted.");
-            	int code = 0;
-            	if(ds.waitForCompletion()) {
-            		code = ds.getReturnCode();
-            	}
-                if ( code == 1000 ) {
-                    System.out.println(dt + ": no return code.");
-                } else {
-                    System.out.println(dt+" return code: "+code);
-                }
-            	System.exit(0);
+                System.out.println(dt+" "+ds.getDuccId()+" submitted.");
+                code = ds.getReturnCode();
             } else {
-                System.out.println("Could not submit "+dt);
-                System.exit(1);
+                System.out.println(dt+" Could not submit ");
             }
         } catch (Exception e) {
-            System.out.println("Cannot initialize: " + e.getMessage());
-            System.exit(1);
+            System.out.println(dt+" Cannot initialize: " + e.getMessage());
+        } finally {
+            // Set the process exit code
+            System.exit(code);
         }
     }
     

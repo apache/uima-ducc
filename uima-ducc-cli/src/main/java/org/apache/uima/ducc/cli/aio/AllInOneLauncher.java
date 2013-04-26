@@ -32,6 +32,7 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
+import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -1106,24 +1107,15 @@ public class AllInOneLauncher extends CliBase {
 		boolean rc = ds.execute();
 		
 		String dt = "Managed Reservation";
-		if ( rc ) {
-            // Fetch the Ducc ID
-        	System.out.println(dt+" "+ds.getDuccId()+" submitted.");
-        	int code = 0;
-        	if(ds.waitForCompletion()) {
-        		code = ds.getReturnCode();
-        	}
-            if ( code == 1000 ) {
-                System.out.println(dt + ": no return code.");
-            } else {
-                System.out.println(dt+" return code: "+code);
-            }
-        	System.exit(0);
-        } else {
-            System.out.println("Could not submit "+dt);
-            System.exit(1);
-        }
-		
+    if (rc) {
+      System.out.println(dt + " " + ds.getDuccId() + " submitted.");
+      int code = ds.getReturnCode();
+      System.exit(code);
+    } else {
+      System.out.println("Could not submit " + dt);
+      System.exit(1);
+    }
+
 		mh.frameworkDebug(cid, mid, "rc="+rc);
 		mh.frameworkTrace(cid, mid, "exit");
 	}

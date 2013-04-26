@@ -60,7 +60,7 @@ public abstract class CliBase
     protected CommandLine commandLine;
 
     protected long friendlyId = -1;
-    protected int  returnCode = 1000;
+    protected int  returnCode = 0;
 
     protected DuccProperties cli_props;
     protected ArrayList<String> errors   = new ArrayList<String>();
@@ -136,11 +136,11 @@ public abstract class CliBase
 
     void setWorkingDirectory()
     {
-		String working_directory = cli_props.getProperty(UiOption.WorkingDirectory.pname());
-		if(working_directory == null) {
-			working_directory = System.getProperty("user.dir");
-			cli_props.setProperty(UiOption.WorkingDirectory.pname(), working_directory);
-		}
+        String working_directory = cli_props.getProperty(UiOption.WorkingDirectory.pname());
+        if(working_directory == null) {
+            working_directory = System.getProperty("user.dir");
+            cli_props.setProperty(UiOption.WorkingDirectory.pname(), working_directory);
+        }
         File f = new File(working_directory);
         if ( ! f.exists() ) {
             throw new IllegalArgumentException("Working directory " + working_directory + " does not exist.");
@@ -155,11 +155,11 @@ public abstract class CliBase
      */
     boolean resolve_service_dependencies(String endpoint)
     {
-    	String key_ja = UiOption.ProcessJvmArgs.pname();
+        String key_ja = UiOption.ProcessJvmArgs.pname();
         if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
-        	key_ja = UiOption.JvmArgs.pname();
+            key_ja = UiOption.JvmArgs.pname();
         }
-    	String jvmargs = cli_props.getProperty(key_ja);
+        String jvmargs = cli_props.getProperty(key_ja);
         
         Properties jvmprops = DuccUiUtilities.jvmArgsToProperties(jvmargs);
 
@@ -171,13 +171,13 @@ public abstract class CliBase
             }
             return true;
         } catch ( Throwable t ) {
-        	message("ERROR:", t.toString());
+            message("ERROR:", t.toString());
             return false;
         }
     }
 
     void setUser()
-    	throws Exception
+        throws Exception
     {
         /*
          * marshal user
@@ -253,7 +253,7 @@ public abstract class CliBase
      * Use this init if you use the default log location and don't need a console callback.
      */
     protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet)
-    	throws Exception
+        throws Exception
     {
         this.init(myClassName, opts, args, cli_props, host_s, port_s, servlet, null, null);
     }
@@ -263,18 +263,18 @@ public abstract class CliBase
      */
     protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, 
             String host_s, String port_s, String servlet, IDuccCallback consoleCb)
-    	throws Exception
+        throws Exception
     {
         this.init(myClassName, opts, args, cli_props, host_s, port_s, servlet, consoleCb, null);
     }
 
     protected synchronized void init() {
-    	ducc_home = Utils.findDuccHome();
+        ducc_home = Utils.findDuccHome();
     }
     
     protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props,
-				     String host_s, String port_s, String servlet, IDuccCallback consoleCb, String logExtension)
-    	throws Exception
+                     String host_s, String port_s, String servlet, IDuccCallback consoleCb, String logExtension)
+        throws Exception
     {
         if ( init_done ) return;
         
@@ -414,22 +414,22 @@ public abstract class CliBase
         fos.close();
     }
 
-	void adjustLdLibraryPath(DuccProperties requestProps, String key) 
+    void adjustLdLibraryPath(DuccProperties requestProps, String key) 
     {
-		String source = "LD_LIBRARY_PATH";
-		String target = "DUCC_"+source;
-		String environment_string = requestProps.getProperty(key);
-		Properties environment_properties = DuccUiUtilities.environmentMap(environment_string);
-		if (environment_properties.containsKey(source)) {
-			if (environment_properties.containsKey(target)) {
+        String source = "LD_LIBRARY_PATH";
+        String target = "DUCC_"+source;
+        String environment_string = requestProps.getProperty(key);
+        Properties environment_properties = DuccUiUtilities.environmentMap(environment_string);
+        if (environment_properties.containsKey(source)) {
+            if (environment_properties.containsKey(target)) {
                 message("WARN", key, " environment conflict:", target, "takes precedence over", source);
-			} else {
-				target += "="+environment_properties.getProperty(source);
-				environment_string += " "+target;
-				requestProps.setProperty(key, environment_string);
-			}
-		}
-	}
+            } else {
+                target += "="+environment_properties.getProperty(source);
+                environment_string += " "+target;
+                requestProps.setProperty(key, environment_string);
+            }
+        }
+    }
 
     /**
      * Extract messages and job pid from reply.  This sets messages and errors into the appropriate
@@ -447,23 +447,23 @@ public abstract class CliBase
         boolean rc = true;
         Properties properties = reply.getProperties();
         @SuppressWarnings("unchecked")
-		ArrayList<String> value_submit_warnings = (ArrayList<String>) properties.get(UiOption.SubmitWarnings.pname());
+        ArrayList<String> value_submit_warnings = (ArrayList<String>) properties.get(UiOption.SubmitWarnings.pname());
         if(value_submit_warnings != null) {
-        	message("Job warnings:");
-        	Iterator<String> reasons = value_submit_warnings.iterator();
-        	while(reasons.hasNext()) {
-        		message("WARN:", reasons.next());
-        	}
+            message("Job warnings:");
+            Iterator<String> reasons = value_submit_warnings.iterator();
+            while(reasons.hasNext()) {
+                message("WARN:", reasons.next());
+            }
         }
         @SuppressWarnings("unchecked")
-		ArrayList<String> value_submit_errors = (ArrayList<String>) properties.get(UiOption.SubmitErrors.pname());
+        ArrayList<String> value_submit_errors = (ArrayList<String>) properties.get(UiOption.SubmitErrors.pname());
         if(value_submit_errors != null) {
-        	message("Job errors:");
-        	Iterator<String> reasons = value_submit_errors.iterator();
-        	while(reasons.hasNext()) {
-        		message("ERROR:", reasons.next());
-        	}
-	        rc = false;
+            message("Job errors:");
+            Iterator<String> reasons = value_submit_errors.iterator();
+            while(reasons.hasNext()) {
+                message("ERROR:", reasons.next());
+            }
+            rc = false;
         }
 
         String pid =  reply.getProperties().getProperty(UiOption.JobId.pname());
@@ -510,7 +510,7 @@ public abstract class CliBase
             return false;
         }
         cli_props.setProperty(key, value);
-    	return true;
+        return true;
     }
 
     public boolean isDebug()
@@ -563,8 +563,12 @@ public abstract class CliBase
         }
     }
 
+    /*
+     * Return code is only available when the monitor wait completes ... if not waiting then assume success
+     */
     public int getReturnCode()
     {
+        waitForCompletion();
         return returnCode;
     }
 
@@ -589,12 +593,11 @@ public abstract class CliBase
 
     // TODO TODO TODO - do we have to support lots of these for multi-threaded stuff?  Hope not ...
     protected synchronized void startMonitors(boolean start_stdin, DuccContext context)
-    	throws Exception
+        throws Exception
     {
         int wait_count = 0;
 
         if ( console_listener != null ) {
-            startConsoleListener(start_stdin);
             wait_count++;
         }
         
@@ -608,27 +611,25 @@ public abstract class CliBase
             
         if ( monitor_attach ) {
             wait_count++;
-            startMonitor(context);
         }
 
+        // Probably over-cautious but create the waiter before starting the threads that use it
         if ( wait_count > 0 ) {
             waiter = new CountDownLatch(wait_count);
+            if ( console_listener != null ) {
+                startConsoleListener(start_stdin);
+            }
+            if ( monitor_attach ) {
+                startMonitor(context);
+            }
         }
     }
 
     protected synchronized void startMonitor(DuccContext context)
     {
         monitor_listener = new MonitorListener(this, friendlyId, cli_props, context);
-
-        if (	cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
-        		cli_props.containsKey(UiOption.CancelOnInterrupt.pname()) ||
-        		cli_props.containsKey(UiOption.CancelJobOnInterrupt.pname()) || 
-        		cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) ||
-        		(console_listener != null) 
-        	) {
-            Thread mlt = new Thread(monitor_listener);  //MonitorListenerThread
-            mlt.start();
-        }
+        Thread mlt = new Thread(monitor_listener);  //MonitorListenerThread
+        mlt.start();
     }
 
     /**
@@ -637,7 +638,7 @@ public abstract class CliBase
      * submission fails.
      */
     protected void initConsoleListener()
-    	throws Exception
+        throws Exception
     {
         console_attach =
             cli_props.containsKey(UiOption.ProcessAttachConsole.pname()) ||
@@ -649,8 +650,8 @@ public abstract class CliBase
             String key_pe = UiOption.ProcessEnvironment.pname();
             String key_de = UiOption.DriverEnvironment.pname();
             if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
-            	key_pe = UiOption.Environment.pname();
-            	key_de = UiOption.Environment.pname();
+                key_pe = UiOption.Environment.pname();
+                key_de = UiOption.Environment.pname();
             }
             
             if ( cli_props.containsKey(UiOption.ProcessAttachConsole.pname()) ) {
@@ -667,7 +668,7 @@ public abstract class CliBase
      * Be sure to call this BEFORE submission, to insure the callback address is set in properties.
      */
     protected synchronized void startConsoleListener(boolean start_stdin)
-    	throws Exception
+        throws Exception
     {        
         if ( console_attach ) {
             console_listener.startStdin(start_stdin);
@@ -730,14 +731,14 @@ public abstract class CliBase
     public boolean waitForCompletion()
     {
         try {
-			if ( waiter != null ) {
+            if ( waiter != null ) {
                 waiter.await();
                 return true;
             }
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return false;
     }
 
