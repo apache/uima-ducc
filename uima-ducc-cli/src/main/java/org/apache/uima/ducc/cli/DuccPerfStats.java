@@ -418,6 +418,7 @@ public class DuccPerfStats
 
     protected void formatSummary()
     {
+        //
         PerformanceSummaryReader psf = new PerformanceSummaryReader(dir);
         PerformanceMetricsSummaryMap pms = psf.readSummary();
         if ( pms == null ) return;
