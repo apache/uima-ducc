@@ -242,7 +242,7 @@ public class StateJobAccounting {
 		case Running:								break;
 		case Undefined:								break;
 		case WaitingForDriver:						break;
-		case WaitingForResources:					break;
+		case WaitingForResources:	retVal = true;	break;
 		case WaitingForServices:	retVal = true;	break;
 		}
 		return retVal;

@@ -399,8 +399,14 @@ public class StateManager {
 						break;
 					case Initializing:	
 						switch(duccWorkJob.getJobState()) {
-						case WaitingForDriver:
-							stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
+						case WaitingForDriver: 
+							JobState nextState = JobState.WaitingForServices;
+							if(duccWorkJob.getServiceDependencies() == null) {
+								String message = messages.fetch("bypass")+" "+nextState;
+								logger.debug(methodName, duccId, message);
+								nextState = JobState.WaitingForResources;
+							}
+							stateJobAccounting.stateChange(duccWorkJob, nextState);
 							break;
 						case Initializing:
 							break;
