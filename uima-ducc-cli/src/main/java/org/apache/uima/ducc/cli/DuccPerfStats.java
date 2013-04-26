@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.cli;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,8 +36,15 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
-import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
+import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
+import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
+import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryItem;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryReader;
@@ -47,6 +56,9 @@ public class DuccPerfStats
     boolean csv = false;
     boolean summary = false;
     boolean workitems = false;
+    boolean processes = false;
+
+    String jobid = null;
 
     String dir = ".";
 
@@ -60,16 +72,11 @@ public class DuccPerfStats
         // want that ugliness in the variables, so we have encode and decode routines to do the
         // correct translation.
         //
-        Summary  { 
-            public String decode()      { return "summary" ; } 
-            public String description() { return "Display only job summary statistics (default)." ; } 
-            public String argname()     { return null ; } 
+        ReportType  { 
+            public String decode()      { return "report" ; } 
+            public String description() { return "Specify the report type."; }
+            public String argname()     { return "summary or processes or workitems"; }
         },
-        WorkItems       { 
-            public String decode()      { return "workitems"; } 
-            public String description() { return "Display only work item statistics." ; } 
-            public String argname()     { return null ; } 
-            },
         Csv        { 
             public String decode()      { return "csv"; } 
             public String description() { return "Format display in CSV." ; } 
@@ -108,8 +115,7 @@ public class DuccPerfStats
 
         public static ClOptions encode(String value)
         {
-            if ( value.equals("summary") )   return Summary;
-            if ( value.equals("workitems") ) return WorkItems;
+            if ( value.equals("report") )    return ReportType;
             if ( value.equals("csv") )       return Csv;
             if ( value.equals("job") )       return Job;
             if ( value.equals("logdir") )    return Logdir;
@@ -267,13 +273,17 @@ public class DuccPerfStats
 
         System.out.println("Sort fields for job summary: " + summaryFields);
         System.out.println("Sort fields for work items : " + workItemFields);
-        
+        System.out.println("The process details listing does not provide for sorting.");
+        System.out.println("");        
         System.out.println("Examples:");
         System.out.println("Format job summary statistics from the current directory:");
-        System.out.println("   ducc_perf_stats -summary");
+        System.out.println("   ducc_perf_stats -report summary");
         System.out.println("");
         System.out.println("Format work item detailsfrom the current directory:");
-        System.out.println("   ducc_perf_stats -workitems");
+        System.out.println("   ducc_perf_stats -report workitems");
+        System.out.println("");
+        System.out.println("Format process details from job history");
+        System.out.println("   ducc_perf_stats -report processes");
         System.out.println("");
         System.out.println("Format job summary statistics from some log directory and print in CSV:");
         System.out.println("   ducc_perf_stats -directory /home/bob/ducc/logs -job 33 -summary -csv");
@@ -316,6 +326,94 @@ public class DuccPerfStats
             buf.append(s);
         }
         return buf.toString();
+    }
+
+    protected IDuccWorkJob readJob(String job)
+    	throws Exception
+    {
+    	String ducc_home = Utils.findDuccHome();
+        if ( ducc_home == null ) return null;
+
+        String history = ducc_home + "/history/jobs/" + job + ".dwj";
+
+        FileInputStream fis = null;
+        ObjectInputStream in = null;
+        fis = new FileInputStream(history);
+        in = new ObjectInputStream(fis);
+        IDuccWorkJob reply = (IDuccWorkJob) in.readObject();
+        in.close();
+        return reply;
+    }
+
+    protected void formatProcesses(String job)
+    {
+        try {
+			IDuccWorkJob dwj = readJob(job);
+			IDuccProcessMap pmap = dwj.getProcessMap();
+            String headerFmt =    "%25s %8s %12s %12s %12s %12s %12s %12s %10s %8s %8s %8s %8s %8s %8s %8s %s"; 
+            String underline =    dup("-", 25) + " -------- ------------ ------------ ------------ ------------ ------------ ------------ ---------- -------- -------- -------- -------- -------- -------- -------- -----------------";
+            String dataFmt = null;
+
+            if ( csv ) {
+                dataFmt   = "%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s"; 
+            } else {
+                dataFmt   = "%25.25s %8s %12d %12d %12d %12d %12d %12d %10d %8d %8d %8d %8d %8d %8d %8d %s"; 
+                System.out.println(String.format(headerFmt, "Node", "Pid", "Init Time",
+                                                 "Mem", "MemMax", "Faults", "Swap", "MaxSwap", "CPU", 
+                                                 "gcCount", "gcTime",
+                                                 "wiDisp", "wiDone", "wiError", "wiRetry", "wiPrmpt",
+                                                 "Exit Reason"));            
+                System.out.println(underline);
+            }
+
+			for (DuccId id : pmap.keySet() ) {
+				IDuccProcess idp = pmap.getProcess(id);
+				String node = idp.getNodeIdentity().getName();
+				String pid = idp.getPID();
+                String exit_reason = idp.getReasonForStoppingProcess();
+
+                long mem = idp.getResidentMemory();
+				long memmax = idp.getResidentMemoryMax();
+				long major_faults = idp.getMajorFaults();
+				long swap_usage = idp.getSwapUsage();
+				long max_swap_usage = idp.getSwapUsageMax();
+				long cpu_time = idp.getCpuTime();
+				
+				long init_time = idp.getTimeWindowInit().getElapsedMillis();
+
+				ProcessGarbageCollectionStats gcStats = idp.getGarbageCollectionStats();
+                long gcCollectionCount = 0;
+                long gcCollectionTime = 0;
+                if ( gcStats != null ) {
+                    gcCollectionCount = gcStats.getCollectionCount();
+                    gcCollectionTime = gcStats.getCollectionTime();
+                }
+				
+				IDuccProcessWorkItems idpw = idp.getProcessWorkItems();
+                long wiDispatch = 0;
+                long wiDone     = 0;
+                long wiError    = 0;
+                long wiRetry    = 0; 
+                long wiPreempt  = 0;                 
+                if ( idpw != null ) {
+                    wiDispatch = idpw.getCountDispatch();
+                    wiDone     = idpw.getCountDone();
+                    wiError    = idpw.getCountError();
+                    wiRetry    = idpw.getCountRetry();
+                    wiPreempt  = idpw.getCountPreempt();
+                }
+
+                if ( csv ) {
+                } else {
+                    System.out.println(String.format(dataFmt, node, pid, init_time,
+                                                     mem, memmax, major_faults, swap_usage, max_swap_usage, cpu_time, gcCollectionCount, gcCollectionTime,
+                                                     wiDispatch, wiDone, wiError, wiRetry, wiPreempt,
+                                                     (exit_reason==null?"Completion":exit_reason)));
+                }
+			}
+		} catch (Exception e1) {
+			e1.printStackTrace();
+		}
     }
 
     protected void formatSummary()
@@ -379,8 +477,8 @@ public class DuccPerfStats
         int nodemax = 0;
 
         ArrayList<IWorkItemState> items = new ArrayList<IWorkItemState>();
-        for ( Long l : map.keySet() ) {
-            IWorkItemState iws = map.get(l);
+        for ( Object k : map.keySet() ) {
+            IWorkItemState iws = map.get(k);
             String id   = iws.getWiId();
             String node = iws.getNode();            
             if ( node == null ) node = "<unassigned>";
@@ -445,19 +543,18 @@ public class DuccPerfStats
         if ( commandLine.hasOption(ClOptions.Csv.decode()) ) {
             csv = true;
         }
-        if ( commandLine.hasOption(ClOptions.Summary.decode()) ) {
-            summary = true;
-        }
-        if ( commandLine.hasOption(ClOptions.WorkItems.decode()) ) {
-            workitems = true;
-        }
-
-        if ( summary && workitems ) {            // both is an oopsie
-            usage("Must specify only one of " + ClOptions.Summary.decode() + " or " + ClOptions.WorkItems.decode());
-        }
-
-        if ( ! (summary || workitems) ) {        // neither, use default
-            summary = true;
+        if ( commandLine.hasOption(ClOptions.ReportType.decode()) ) {
+            String type = commandLine.getOptionValue(ClOptions.ReportType.decode());
+            if ( type.equals("summary") ) {
+                summary = true;
+            } else if (type.equals("processes") ) {
+                processes = true;
+            } else if ( type.equals("workitems") ) {
+                workitems = true;
+            } else {
+                System.out.println("Invalid report type: " + type);
+                usage(options);
+            }
         }
 
         String logdir = commandLine.getOptionValue(ClOptions.Logdir.decode());
@@ -491,12 +588,15 @@ public class DuccPerfStats
         if ( ! f.exists() || ! f.isDirectory() ) {
             usage(dir + " is does not exist or is not a directory.");
         }
-
+        
         if ( summary ) {
             formatSummary();
         }
         if ( workitems ) {
             formatWorkItems();
+        }
+        if ( processes ) {
+            formatProcesses(job);
         }
     }
 
