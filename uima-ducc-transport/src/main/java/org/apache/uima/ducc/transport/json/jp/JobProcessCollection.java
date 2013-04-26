@@ -34,6 +34,7 @@ import java.util.zip.GZIPOutputStream;
 
 import org.apache.uima.ducc.common.utils.IOHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
@@ -386,8 +387,11 @@ public class JobProcessCollection {
 		if(job != null) {
 			IDuccProcessMap jpMap = job.getProcessMap();
 			transform(map, job, jpMap);
-			IDuccProcessMap jdMap = job.getDriver().getProcessMap();
-			transform(map, job, jdMap);
+			DuccWorkPopDriver driver = job.getDriver();
+			if(driver != null) {
+				IDuccProcessMap jdMap = driver.getProcessMap();
+				transform(map, job, jdMap);
+			}
 		}
 		return map;
 	}
