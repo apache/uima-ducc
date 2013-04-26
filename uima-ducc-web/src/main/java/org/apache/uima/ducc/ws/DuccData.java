@@ -55,6 +55,8 @@ public class DuccData {
 	private static ConcurrentSkipListMap<Info,Info> sortedCombinedReservations = new ConcurrentSkipListMap<Info,Info>();
 	private static ConcurrentSkipListMap<DuccId,Info> keyMapCombinedReservations = new ConcurrentSkipListMap<DuccId,Info>();
 	
+	private static PagingObserver pagingObserver = PagingObserver.getInstance();
+	
 	private static DuccData duccData = new DuccData();
 	
 	private static long slack = 100;
@@ -113,6 +115,7 @@ public class DuccData {
 	}
 	
 	public void put(DuccWorkMap map) {
+		String location = "put";
 		synchronized(this) {
 			DuccWorkMap mapCopy = map.deepCopy();
 			mergeHistory(map);
@@ -123,6 +126,19 @@ public class DuccData {
 				IDuccWork duccWork = map.findDuccWork(duccId);
 				duccWorkMap.addDuccWork(duccWork);
 				updateSortedMaps(duccWork);
+				pagingObserver.put(duccWork);
+				PagingInfo pi;
+				long dataTotal = 0;
+				long diffTotal = 0;
+				pi = pagingObserver.getData(duccId);
+				if(pi != null) {
+					dataTotal = pi.total;
+				}
+				pi = pagingObserver.getDiff(duccId);
+				if(pi != null) {
+					diffTotal = pi.total;
+				}
+				logger.debug(location, duccId, "dataTotal:"+dataTotal+" "+"diffTotal:"+diffTotal);
 			}
 		}
 		prune();
@@ -141,6 +157,7 @@ public class DuccData {
 						DuccId duccId = jobInfo.getJob().getDuccId();
 						sortedJobs.remove(jobInfo);
 						keyMapJobs.remove(duccId);
+						pagingObserver.remove(duccId);
 						logger.info(location, duccId, "size: "+sortedJobs.size());
 						pruned++;
 					}

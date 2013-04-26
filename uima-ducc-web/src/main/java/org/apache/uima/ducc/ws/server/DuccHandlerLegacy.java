@@ -63,6 +63,7 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.PagingObserver;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
@@ -77,6 +78,8 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 
+	private static PagingObserver pagingObserver = PagingObserver.getInstance();
+	
 	public final String legacyJobs 					= duccContextLegacy+"-jobs-data";
 	public final String legacyReservations 			= duccContextLegacy+"-reservations-data";
 	public final String legacyServices			 	= duccContextLegacy+"-services-data";
@@ -105,25 +108,19 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			if(job.isOperational()) {
 				boolean multi = false;
 				sb.append("<td valign=\"bottom\">");
-				ArrayList<String> swappingMachines = getSwappingMachines(job);
-				if(!swappingMachines.isEmpty()) {
-					StringBuffer mb = new StringBuffer();
-					for(String machine : swappingMachines) {
-						mb.append(machine);
-						mb.append(" ");
-					}
-					String ml = mb.toString().trim();
-					if(multi) {
-						sb.append(" ");
-					}
+				if(pagingObserver.isPaging(job)) {
 					multi = true;
-					sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-					sb.append("Swapping");
+					String title = "a page-in operation occurred for at least one process during the past "+PagingObserver.intervalInSeconds+" seconds";
+					sb.append("<span class=\"health_red\" title=\""+title+"\">");
+					sb.append("Paging");
 					sb.append("</span>");
 				}
 				//
 				String monitor = getMonitor(duccId, type, multi);
 				if(monitor.length() > 0) {
+					if(multi) {
+						sb.append(" ");
+					}
 					multi = true;
 					sb.append(monitor);
 				}

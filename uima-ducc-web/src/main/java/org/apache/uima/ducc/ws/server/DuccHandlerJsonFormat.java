@@ -72,6 +72,7 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.PagingObserver;
 import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
@@ -90,6 +91,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 
+	private static PagingObserver pagingObserver = PagingObserver.getInstance();
+	
 	private final String jsonFormatJobsAaData					= duccContextJsonFormat+"-aaData-jobs";
 	private final String jsonFormatReservationsAaData			= duccContextJsonFormat+"-aaData-reservations";
 	private final String jsonFormatServicesAaData				= duccContextJsonFormat+"-aaData-services";
@@ -121,26 +124,20 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			if(job.isOperational()) {
 				boolean multi = false;
 				sb.append("<span>");
-				ArrayList<String> swappingMachines = getSwappingMachines(job);
-				if(!swappingMachines.isEmpty()) {
-					StringBuffer mb = new StringBuffer();
-					for(String machine : swappingMachines) {
-						mb.append(machine);
-						mb.append(" ");
-					}
-					String ml = mb.toString().trim();
-					if(multi) {
-						sb.append(" ");
-					}
+				if(pagingObserver.isPaging(job)) {
 					multi = true;
-					sb.append("<span class=\"health_red\" title=\""+ml+"\">");
-					sb.append("Swapping");
+					String title = "a page-in operation occurred for at least one process during the past "+PagingObserver.intervalInSeconds+" seconds";
+					sb.append("<span class=\"health_red\" title=\""+title+"\">");
+					sb.append("Paging");
 					sb.append("</span>");
 				}
 				sb.append("</span>");
 				//
 				String monitor = getMonitor(duccId, type, multi);
 				if(monitor.length() > 0) {
+					if(multi) {
+						sb.append(" ");
+					}
 					multi = true;
 					sb.append(monitor);
 				}

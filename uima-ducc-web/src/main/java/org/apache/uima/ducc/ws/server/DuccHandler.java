@@ -43,7 +43,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.authentication.AuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -424,6 +423,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		case Initializing:
 		case Running:
 			sb.append("<td>");
+			/*
 			NodeIdentity nodeId = jp.getNodeIdentity();
 			if(nodeId != null) {
 				String ip = nodeId.getIp();
@@ -433,6 +433,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append("</span>");
 				}
 			}
+			*/
 			sb.append("</td>");
 			break;
 		default:
