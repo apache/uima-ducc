@@ -537,6 +537,10 @@ public class DuccPerfStats
             usage("Cannot parse command line: " + e.getMessage());            
 		}
 
+        if ( args.length == 0 ) {
+            usage(options);
+        }
+
         if ( commandLine.hasOption(ClOptions.Help.decode()) ) {
             usage(options);
         }
