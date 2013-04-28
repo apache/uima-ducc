@@ -91,6 +91,7 @@ public abstract class DuccMonitor  {
         UiOption.Quiet, 
         UiOption.Timestamp, 
         UiOption.JobId,
+        UiOption.CancelOnInterrupt,
         UiOption.CancelJobOnInterrupt,
     };
     
