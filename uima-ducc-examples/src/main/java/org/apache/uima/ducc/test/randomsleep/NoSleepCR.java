@@ -15,7 +15,7 @@ public class NoSleepCR extends CollectionReader_ImplBase {
 		
 	private volatile Logger logger;
     int qcount = 0;
-	@Override
+	
 	public void initialize() throws ResourceInitializationException {	
 		super.initialize();
 
@@ -27,7 +27,7 @@ public class NoSleepCR extends CollectionReader_ImplBase {
 	}
 
     static int get_next_counter = 0;	
-	@Override
+	
 	public synchronized void getNext(CAS cas) throws IOException, CollectionException 
     {
         if ( get_next_counter < qcount ) {
@@ -37,19 +37,19 @@ public class NoSleepCR extends CollectionReader_ImplBase {
         }
 	}
 
-	@Override
+	
 	public void close() throws IOException {
 		logger.log(Level.INFO, "close");
 	}
 
-	@Override
+	
 	public Progress[] getProgress() {
 		ProgressImpl[] retVal = new ProgressImpl[1];
 		retVal[0] = new ProgressImpl(get_next_counter, qcount, "WorkItems");
 		return retVal;
 	}
 
-	@Override
+	
 	public boolean hasNext() throws IOException, CollectionException {
 		return get_next_counter < qcount;
 	}

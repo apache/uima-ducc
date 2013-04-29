@@ -29,7 +29,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
     private volatile String jobid;
     PrintStream jdmark;
 
-    @Override
+    
         public void initialize() throws ResourceInitializationException {       
         super.initialize();
 
@@ -109,7 +109,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
     }
 
     static int get_next_counter = 0;    
-    @Override
+    
     public synchronized void getNext(CAS cas) throws IOException, CollectionException 
     {
         logger.log(Level.INFO, " ****** getNext[" + index + "]: " + workitems.get(index) + " getNext invocation " + get_next_counter++);
@@ -135,7 +135,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
         }
     }
 
-    @Override
+    
     public void close() throws IOException 
     {
         logger.log(Level.INFO, "close");
@@ -146,7 +146,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
         
     }
 
-    @Override
+    
     public Progress[] getProgress() 
     {
         logger.log(Level.INFO, "getProgress");
@@ -155,7 +155,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
         return retVal;
     }
 
-    @Override
+    
     public boolean hasNext() throws IOException, CollectionException 
     {
         logger.log(Level.INFO, "hasNext");

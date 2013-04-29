@@ -30,7 +30,7 @@ public class DDSleepCR extends CollectionReader_ImplBase {
     //private volatile int work_items_remaining = 0;
     PrintStream jdmark;
 
-    @Override
+    
         public void initialize() throws ResourceInitializationException {       
         super.initialize();
 
@@ -104,7 +104,7 @@ public class DDSleepCR extends CollectionReader_ImplBase {
     }
 
     static int get_next_counter = 0;    
-    @Override
+    
     public synchronized void getNext(CAS cas) throws IOException, CollectionException 
     {
 
@@ -135,7 +135,7 @@ public class DDSleepCR extends CollectionReader_ImplBase {
         }
     }
 
-    @Override
+    
     public void close() throws IOException 
     {
         logger.log(Level.INFO, "close");
@@ -146,7 +146,7 @@ public class DDSleepCR extends CollectionReader_ImplBase {
         
     }
 
-    @Override
+    
     public Progress[] getProgress() 
     {
         logger.log(Level.INFO, "getProgress");
@@ -155,7 +155,7 @@ public class DDSleepCR extends CollectionReader_ImplBase {
         return retVal;
     }
 
-    @Override
+    
     public boolean hasNext() throws IOException, CollectionException 
     {
         logger.log(Level.INFO, "hasNext");
