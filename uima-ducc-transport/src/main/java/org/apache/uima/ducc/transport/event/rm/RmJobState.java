@@ -64,26 +64,26 @@ public class RmJobState implements IRmJobState {
         this.reason = refusalReason;
     }
 
-    @Override
+    
     public DuccId getId() 
     {
         return duccId;
     }
 
 
-    @Override
+    
     public Map<DuccId, IResource> getResources() 
     {
         return resources;
     }
 
-    @Override
+    
     public Map<DuccId, IResource> getPendingRemovals() 
     {
         return pendingRemovals;
     }
 
-    @Override
+    
     public Map<DuccId, IResource> getPendingAdditions() 
     {
         return pendingAdditions;

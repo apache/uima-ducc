@@ -56,43 +56,43 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 		setCompletionTypeObject(IDuccCompletionType.ReservationCompletionType.Undefined);
 	}
 
-	@Override
+	
 	public IDuccReservationMap getReservationMap() {
 		return duccReservationMap;
 	}
 
-	@Override
+	
 	public void setReservationMap(IDuccReservationMap reservationMap) {
 		this.duccReservationMap = reservationMap;
 	}
 	
-	@Override
+	
 	public ReservationState getReservationState() {
 		return (ReservationState)getStateObject();
 	}
 
-	@Override
+	
 	public void setReservationState(ReservationState reservationState) {
 		setStateObject(reservationState);
 	}
 
-	@Override
+	
 	public void setCompletion(ReservationCompletionType completionType, IRationale completionRationale) {
 		setCompletionType(completionType);
 		setCompletionRationale(completionRationale);
 	}
 	
-	@Override
+	
 	public ReservationCompletionType getCompletionType() {
 		return (ReservationCompletionType)getCompletionTypeObject();
 	}
 
-	@Override
+	
 	public void setCompletionType(ReservationCompletionType completionType) {
 		setCompletionTypeObject(completionType);
 	}
 	
-	@Override
+	
 	public IRationale getCompletionRationale() {
 		IRationale retVal = null;
 		try {
@@ -109,7 +109,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 		return retVal;
 	}
 	
-	@Override
+	
 	public void setCompletionRationale(IRationale completionRationale) {
 		this.completionRationale = completionRationale;
 	}
@@ -171,7 +171,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 		return isCompleted();
 	}
 	
-	@Override
+	
 	public boolean isOperational() {
 		boolean retVal = true;
 		switch(getReservationState()) {
@@ -327,7 +327,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	
 	// **********
 	
-	@Override
+	
 	public int hashCode() {
 		return super.hashCode();
 	}

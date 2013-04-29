@@ -34,7 +34,7 @@ public class Rationale implements IRationale {
 		setText(text);
 	}
 	
-	@Override
+	
 	public String getText() {
 		return text;
 	}
@@ -43,17 +43,17 @@ public class Rationale implements IRationale {
 		this.text = text;
 	}
 	
-	@Override
+	
 	public String toString() {
 		return getText();
 	}
 
-	@Override
+	
 	public boolean isSpecified() {
 		return !isUnspecified();
 	}
 	
-	@Override
+	
 	public boolean isUnspecified() {
 		boolean retVal = false;
 		if(text == null) {

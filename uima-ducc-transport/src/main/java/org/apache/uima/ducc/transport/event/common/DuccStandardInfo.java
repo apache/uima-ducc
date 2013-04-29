@@ -40,77 +40,77 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	private String workingDirectory = null;
 	private String[] notifications = null;
 	
-	@Override
+	
 	public String getUser() {
 		return user;
 	}
 
-	@Override
+	
 	public void setUser(String user) {
 		this.user = user;
 	}
 
-	@Override
+	
 	public String getSubmitter() {
 		return submitter;
 	}
 
-	@Override
+	
 	public void setSubmitter(String submitter) {
 		this.submitter = submitter;
 	}
 
-	@Override
+	
 	public String getCancelUser() {
 		return cancelUser;
 	}
 
-	@Override
+	
 	public void setCancelUser(String user) {
 		this.cancelUser = user;
 	}
 	
-	@Override
+	
 	public String getDescription() {
 		return description;
 	}
 
-	@Override
+	
 	public void setDescription(String description) {
 		this.description = description;
 	}
 
-	@Override
+	
 	public String getDateOfSubmission() {
 		return dateOfSubmission;
 	}
 
-	@Override
+	
 	public void setDateOfSubmission(String dateOfSubmission) {
 		this.dateOfSubmission = dateOfSubmission;
 	}
 
-	@Override
+	
 	public String getDateOfCompletion() {
 		return dateOfCompletion;
 	}
 
-	@Override
+	
 	public void setDateOfCompletion(String dateOfCompletion) {
 		this.dateOfCompletion = dateOfCompletion;
 	}
 
-	@Override
+	
 	public String getDateOfShutdownProcesses() {
 		return dateOfShutdownProcesses;
 	}
 
-	@Override
+	
 	public void setDateOfShutdownProcesses(String dateOfShutdownProcesses) {
 		this.dateOfShutdownProcesses = dateOfShutdownProcesses;
 	}
 	
-	@Override
+	
 	public long getDateOfSubmissionMillis(long otherwise) {
 		long millis = otherwise;
 		try {
@@ -120,17 +120,17 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return millis;
 	}
 
-	@Override
+	
 	public long getDateOfSubmissionMillis() {
 		return getDateOfSubmissionMillis(0);
 	}
 	
-	@Override
+	
 	public void setDateOfSubmissionMillis(long dateOfSubmission) {
 		this.dateOfSubmission = ""+dateOfSubmission;
 	}
 
-	@Override
+	
 	public long getDateOfCompletionMillis(long otherwise) {
 		long millis = otherwise;
 		try {
@@ -140,17 +140,17 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return millis;
 	}
 
-	@Override
+	
 	public long getDateOfCompletionMillis() {
 		return getDateOfCompletionMillis(0);
 	}
 	
-	@Override
+	
 	public void setDateOfCompletionMillis(long dateOfCompletion) {
 		this.dateOfCompletion = ""+dateOfCompletion;
 	}
 
-	@Override
+	
 	public long getDateOfShutdownProcessesMillis(long otherwise) {
 		long millis = otherwise;
 		try {
@@ -160,47 +160,47 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return millis;
 	}
 
-	@Override
+	
 	public long getDateOfShutdownProcessesMillis() {
 		return getDateOfShutdownProcessesMillis(0);
 	}
 	
-	@Override
+	
 	public void setDateOfShutdownProcessesMillis(long dateOfShutdownProcesses) {
 		this.dateOfShutdownProcesses = ""+dateOfShutdownProcesses;
 	}
 	
-	@Override
+	
 	public String getLogDirectory() {
 		return logDirectory;
 	}
 
-	@Override
+	
 	public void setLogDirectory(String logDirectory) {
 		this.logDirectory = logDirectory;
 	}
 
-	@Override
+	
 	public String getWorkingDirectory() {
 		return workingDirectory;
 	}
 
-	@Override
+	
 	public void setWorkingDirectory(String workingDirectory) {
 		this.workingDirectory = workingDirectory;
 	}
 	
-	@Override
+	
 	public String[] getNotifications() {
 		return notifications;
 	}
 
-	@Override
+	
 	public void setNotifications(String[] notifications) {
 		this.notifications = notifications;
 	}
 
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -225,7 +225,7 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 		return result;
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -276,7 +276,7 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	
 	// **********
 	
-//	@Override
+//	
 //	public int hashCode() {
 //		final int prime = 31;
 //		int result = 1;

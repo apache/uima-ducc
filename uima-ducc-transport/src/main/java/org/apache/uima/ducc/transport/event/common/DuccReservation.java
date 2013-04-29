@@ -48,22 +48,22 @@ public class DuccReservation implements IDuccReservation {
 		setShares(shares);
 	}
 	
-	@Override
+	
 	public DuccId getDuccId() {
 		return duccId;
 	}
 
-	@Override
+	
 	public void setDuccId(DuccId duccId) {
 		this.duccId = duccId;
 	}
 
-	@Override
+	
 	public NodeIdentity getNodeIdentity() {
 		return nodeIdentity;
 	}
 
-	@Override
+	
 	public int getShares() {
 		int retVal = 0;
 		try {
@@ -74,27 +74,27 @@ public class DuccReservation implements IDuccReservation {
 		return retVal;
 	}
 
-	@Override
+	
 	public void setShares(int shares) {
 		this.shares = shares;
 	}
 	
-	@Override
+	
 	public void setNodeIdentity(NodeIdentity nodeIdentity) {
 		this.nodeIdentity = nodeIdentity;
 	}
 
-	@Override
+	
 	public ITimeWindow getTimeWindow() {
 		return timeWindow;
 	}
 
-	@Override
+	
 	public void setTimeWindow(ITimeWindow timeWindow) {
 		this.timeWindow = timeWindow;
 	}
 
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -106,7 +106,7 @@ public class DuccReservation implements IDuccReservation {
 		return result;
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -133,19 +133,19 @@ public class DuccReservation implements IDuccReservation {
 		return true;
 	}
 
-	@Override
+	
 	public Node getNode() {
 		return node;
 	}
 
-	@Override
+	
 	public void setNode(Node node) {
 		this.node = node;
 	}
 	
 	// **********
 	
-//	@Override
+//	
 //	public int hashCode() {
 //		final int prime = 31;
 //		int result = 1;

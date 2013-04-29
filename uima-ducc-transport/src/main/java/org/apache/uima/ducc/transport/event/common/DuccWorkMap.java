@@ -337,68 +337,68 @@ public class DuccWorkMap implements Serializable, Map {
 	 * *****
 	 */	
 	
-	@Override
+	
 	public int size() {
 		return concurrentWorkMap.size();
 	}
 
-	@Override
+	
 	public boolean isEmpty() {
 		return concurrentWorkMap.isEmpty();
 	}
 
-	@Override
+	
 	public boolean containsKey(Object key) {
 		return concurrentWorkMap.containsKey(key);
 	}
 
-	@Override
+	
 	public boolean containsValue(Object value) {
 		return concurrentWorkMap.containsValue((IDuccWork)value);
 	}
 
-	@Override
+	
 	public Object get(Object key) {
 		return concurrentWorkMap.get((DuccId)key);
 	}
 
-	@Override
+	
 	public Object put(Object key, Object value) {
 		return concurrentWorkMap.put((DuccId)key, (IDuccWork)value);
 	}
 
-	@Override
+	
 	public Object remove(Object key) {
 		return concurrentWorkMap.remove(key);
 	}
 
 	@SuppressWarnings("unchecked")
-	@Override
+	
 	public void putAll(Map m) {
 		concurrentWorkMap.putAll(m);
 	}
 
-	@Override
+	
 	public void clear() {
 		 concurrentWorkMap.clear();
 	}
 
-	@Override
+	
 	public Set<DuccId> keySet() {
 		return concurrentWorkMap.keySet();
 	}
 
-	@Override
+	
 	public Collection<IDuccWork> values() {
 		return concurrentWorkMap.values();
 	}
 
-	@Override
+	
 	public Set entrySet() {
 		return concurrentWorkMap.entrySet();
 	}
 
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -412,7 +412,7 @@ public class DuccWorkMap implements Serializable, Map {
 		return result;
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;

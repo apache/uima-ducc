@@ -31,39 +31,39 @@ public class ADuccWorkExecutable extends ADuccWork implements IDuccWorkExecutabl
 //	private IDuccUimaAggregate uimaAggregate = null;
 	private IDuccUimaDeployableConfiguration uimaDeployableConfiguration = null;
 	
-	@Override
+	
 	public IDuccProcessMap getProcessMap() {
 		return processMap;
 	}
 
-	@Override
+	
 	public void setProcessMap(IDuccProcessMap processMap) {
 		this.processMap = processMap;
 	}
 
-	@Override
+	
 	public ICommandLine getCommandLine() {
 		return commandLine;
 	}
 
-	@Override
+	
 	public void setCommandLine(ICommandLine commandLine) {
 		this.commandLine = commandLine;
 	}
 
-//	@Override
+//	
 //	public IDuccUimaAggregate getUimaAggregate() {
 //		return uimaAggregate;
 //	}
 //
-//	@Override
+//	
 //	public void setUimaAggregate(IDuccUimaAggregate uimaAggregate) {
 //		this.uimaAggregate = uimaAggregate;
 //	}
 	
 	// **********
 	
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

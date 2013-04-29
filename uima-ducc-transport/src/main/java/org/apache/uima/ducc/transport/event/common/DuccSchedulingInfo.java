@@ -64,24 +64,24 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	@Deprecated
 	private String workItemsPending = defaultWorkItemsPending;
 	
-	@Override
+	
 	public String getSchedulingClass() {
 		return schedulingClass;
 	}
 
-	@Override
+	
 	public void setSchedulingClass(String schedulingClass) {
 		if(schedulingClass != null) {
 			this.schedulingClass = schedulingClass;
 		}
 	}
 
-	@Override
+	
 	public String getSchedulingPriority() {
 		return schedulingPriority;
 	}
 
-	@Override
+	
 	public void setSchedulingPriority(String schedulingPriority) {
 		if(schedulingPriority != null) {
 			this.schedulingPriority = schedulingPriority;
@@ -89,12 +89,12 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	}
 
 
-	@Override
+	
 	public String getInstancesCount() {
 		return instancesCount;
 	}
 
-	@Override
+	
 	public void setInstancesCount(String instancesCount) {
 		if(instancesCount != null) {
 			this.instancesCount = instancesCount;
@@ -102,44 +102,44 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	}
 	
 	@Deprecated
-	@Override
+	
 	public String getMachinesCount() {
 		return machinesCount;
 	}
 
 	@Deprecated
-	@Override
+	
 	public void setMachinesCount(String machinesCount) {
 		if(machinesCount != null) {
 			this.machinesCount = machinesCount;
 		}
 	}
 	
-	@Override
+	
 	public String getShareMemorySize() {
 		return shareMemorySize;
 	}
 
-	@Override
+	
 	public void setShareMemorySize(String size) {
 		if(size != null) {
 			this.shareMemorySize = size;
 		}
 	}
 
-	@Override
+	
 	public MemoryUnits getShareMemoryUnits() {
 		return shareMemoryUnits;
 	}
 
-	@Override
+	
 	public void setShareMemoryUnits(MemoryUnits units) {
 		if(units != null) {
 			this.shareMemoryUnits = units;
 		}
 	}
 	
-	@Override
+	
 	public long getLongSharesMax() {
 		long retVal = -1;
 		try {
@@ -150,99 +150,99 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		return retVal;
 	}
 	
-	@Override
+	
 	public void setLongSharesMax(long shares) {
 		this.sharesMax = ""+shares;
 	}
 	
-	@Override
+	
 	public String getSharesMax() {
 		return sharesMax;
 	}
 
-	@Override
+	
 	public void setSharesMax(String shares) {
 		if(shares != null) {
 			this.sharesMax = shares.trim();
 		}
 	}
 
-	@Override
+	
 	public String getSharesMin() {
 		return this.sharesMin;
 	}
 
-	@Override
+	
 	public void setSharesMin(String shares) {
 		if(shares != null) {
 			this.sharesMin = shares;
 		}
 	}
 	
-	@Override
+	
 	public String getThreadsPerShare() {
 		return threadsPerShare;
 	}
 	
-	@Override
+	
 	public int getIntThreadsPerShare() {
 		return Integer.parseInt(threadsPerShare);
 	}
 
-	@Override
+	
 	public void setThreadsPerShare(String number) {
 		if(number != null) {
 			this.threadsPerShare = number;
 		}
 	}
 	
-	@Override
+	
 	public String getWorkItemsTotal() {
 		return workItemsTotal;
 	}
 
-	@Override
+	
 	public void setWorkItemsTotal(String number) {
 		if(number != null) {
 			this.workItemsTotal = number;
 		}
 	}
 	
-	@Override
+	
 	public int getIntWorkItemsTotal() {
 		return Integer.parseInt(workItemsTotal);
 	}
 	
-	@Override
+	
 	public String getWorkItemsCompleted() {
 		return workItemsCompleted;
 	}
 
-	@Override
+	
 	public void setWorkItemsCompleted(String number) {
 		if(number != null) {
 			this.workItemsCompleted = number;
 		}
 	}
 	
-	@Override
+	
 	public int getIntWorkItemsCompleted() {
 		return Integer.parseInt(workItemsCompleted);
 	}
 	
-	@Override
+	
 	public String getWorkItemsDispatched() {
 		return workItemsDispatched;
 	}
 
-	@Override
+	
 	public void setWorkItemsDispatched(String number) {
 		if(number != null) {
 			this.workItemsDispatched = number;
 		}
 	}
 
-	@Override
+	
 	public ConcurrentHashMap<Integer,DuccId> getLimboMap() {
 		if(limboMap == null) {
 			return new ConcurrentHashMap<Integer,DuccId>();
@@ -253,14 +253,14 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		
 	}
 
-	@Override
+	
 	public void setLimboMap(ConcurrentHashMap<Integer,DuccId> map) {
 		if(map != null) {
 			this.limboMap = map;
 		}
 	}
 
-	@Override
+	
 	public ConcurrentHashMap<String,DuccId> getCasQueuedMap() {
 		if(casQueuedMap == null) {
 			return new ConcurrentHashMap<String,DuccId>();
@@ -271,43 +271,43 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		
 	}
 
-	@Override
+	
 	public void setCasQueuedMap(ConcurrentHashMap<String,DuccId> map) {
 		if(map != null) {
 			this.casQueuedMap = map;
 		}
 	}
 	
-	@Override
+	
 	public String getWorkItemsError() {
 		return workItemsError;
 	}
 
-	@Override
+	
 	public void setWorkItemsError(String number) {
 		if(number != null) {
 			this.workItemsError = number;
 		}
 	}
 	
-	@Override
+	
 	public int getIntWorkItemsError() {
 		return Integer.parseInt(workItemsError);
 	}
 	
-	@Override
+	
 	public String getWorkItemsRetry() {
 		return workItemsRetry;
 	}
 
-	@Override
+	
 	public void setWorkItemsRetry(String number) {
 		if(number != null) {
 			this.workItemsRetry = number;
 		}
 	}
 	
-	@Override
+	
 	public String getWorkItemsPreempt() {
 		if(workItemsPreempt == null) {
 			workItemsPreempt = "0";
@@ -315,54 +315,54 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		return workItemsPreempt;
 	}
 
-	@Override
+	
 	public void setWorkItemsPreempt(String number) {
 		if(number != null) {
 			this.workItemsPreempt = number;
 		}
 	}
 	
-	@Override
+	
 	public IDuccPerWorkItemStatistics getPerWorkItemStatistics() {
 		return perWorkItemStatistics;
 	}
 	
-	@Override
+	
 	public void setPerWorkItemStatistics(IDuccPerWorkItemStatistics value) {
 		perWorkItemStatistics = value;
 	}
 	
-	@Override
+	
 	public PerformanceMetricsSummaryMap getPerformanceMetricsSummaryMap() {
 		return performanceMetricsSummaryMap;
 	}
 	
-	@Override
+	
 	public void setMostRecentWorkItemStart(long time) {
 		mostRecentWorkItemStart = time;
 	}
 	
-	@Override
+	
 	public long getMostRecentWorkItemStart() {
 		return mostRecentWorkItemStart;
 	}
 	
 	
 	@Deprecated
-	@Override
+	
 	public String getWorkItemsPending() {
 		return workItemsPending;
 	}
 	
 	@Deprecated
-	@Override
+	
 	public void setWorkItemsPending(String number) {
 		if(number != null) {
 			this.workItemsPending = number;
 		}
 	}
 
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -407,7 +407,7 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		return result;
 	}
 
-	@Override
+	
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
@@ -495,7 +495,7 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	
 	// **********
 	
-//	@Override
+//	
 //	public int hashCode() {
 //		final int prime = 31;
 //		int result = 1;

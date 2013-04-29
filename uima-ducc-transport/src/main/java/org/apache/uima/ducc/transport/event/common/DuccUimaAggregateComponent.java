@@ -34,22 +34,22 @@ public class DuccUimaAggregateComponent implements IDuccUimaAggregateComponent {
 		setOverrides(overrides);
 	}
 	
-	@Override
+	
 	public String getDescriptor() {
 		return this.descriptor;
 	}
 
-	@Override
+	
 	public void setDescriptor(String descriptor) {
 		this.descriptor = descriptor;
 	}
 
-	@Override
+	
 	public List<String> getOverrides() {
 		return this.overrides;
 	}
 
-	@Override
+	
 	public void setOverrides(List<String> overrides) {
 		this.overrides = overrides;
 	}

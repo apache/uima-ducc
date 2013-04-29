@@ -34,12 +34,12 @@ public class UimaStatistic implements Comparable<UimaStatistic> {
 	    this.analysisMaxTime = anMaxTime;
 	  }
 
-	  @Override
+	  
 	  public int compareTo(UimaStatistic other) {
 	    return - Long.signum(analysisTime - other.analysisTime);
 	  }
 
-	  @Override
+	  
 	  public String toString() {
 //	    return "UimaStatistic [name=" + shortName + ", analysisTime=" + analysisTime
 //	            + ", longName=" + longName + "]";

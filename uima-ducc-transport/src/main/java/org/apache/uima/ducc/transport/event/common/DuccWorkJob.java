@@ -63,7 +63,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		setCompletionTypeObject(IDuccCompletionType.JobCompletionType.Undefined);
 	}
 	
-	@Override
+	
 	public String getUserLogsDir() {
 		String retVal = getLogDirectory();
 		if(!retVal.endsWith(File.separator)) {
@@ -72,64 +72,64 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return retVal;
 	}
 	
-	@Override
+	
 	public DuccWorkPopDriver getDriver() {
 		return driver;
 	}
 	
-	@Override
+	
 	public void setDriver(DuccWorkPopDriver driver) {
 		this.driver = driver;
 	}
 
 
-	@Override
+	
 	public String getjobBroker() {
 		return jobBroker;
 	}
 
-	@Override
+	
 	public void setJobBroker(String broker) {
 		this.jobBroker = broker;
 	}
 
-	@Override
+	
 	public String getjobQueue() {
 		return this.jobQueue;
 	}
 
-	@Override
+	
 	public void setJobQueue(String queue) {
 		this.jobQueue = queue;
 	}
 
-	@Override
+	
 	public JobState getJobState() {
 		return (JobState)getStateObject();
 	}
 
-	@Override
+	
 	public void setJobState(JobState jobState) {
 		setStateObject(jobState);
 	}
 
-	@Override
+	
 	public void setCompletion(JobCompletionType completionType, IRationale completionRationale) {
 		setCompletionType(completionType);
 		setCompletionRationale(completionRationale);
 	}
 	
-	@Override
+	
 	public JobCompletionType getCompletionType() {
 		return (JobCompletionType)getCompletionTypeObject();
 	}
 
-	@Override
+	
 	public void setCompletionType(JobCompletionType completionType) {
 		setCompletionTypeObject(completionType);
 	}
 	
-	@Override
+	
 	public IRationale getCompletionRationale() {
 		IRationale retVal = null;
 		try {
@@ -146,7 +146,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return retVal;
 	}
 	
-	@Override
+	
 	public void setCompletionRationale(IRationale completionRationale) {
 		this.completionRationale = completionRationale;
 	}
@@ -231,7 +231,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return retVal;
 	}
 	
-	@Override
+	
 	public boolean isOperational() {
 		boolean retVal = true;
 		switch(getJobState()) {
@@ -355,7 +355,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return;
 	}
 
-	@Override
+	
 	public long getAliveProcessCount() {
 		long retVal = 0;
 		IDuccProcessMap processMap = this.getProcessMap();
@@ -366,14 +366,14 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return retVal;
 	}
 
-	@Override
+	
 	public boolean hasAliveProcess() {
 		return (getAliveProcessCount() > 0);
 	}
 	
 	// **********
 	
-	@Override
+	
 	public int hashCode() {
 		//return super.hashCode();
 		final int prime = 31;

@@ -42,72 +42,72 @@ public abstract class ADuccWork implements IDuccWork {
     private String serviceEndpoint = null; // generated in submit
     private boolean cancelOnInterrupt = false;
 	
-	@Override
+	
 	public DuccId getDuccId() {
 		return duccId;
 	}
 
-	@Override
+	
 	public void setDuccId(DuccId duccId) {
 		this.duccId = duccId;
 	}
 	
-	@Override
+	
 	public String getId() {
 		return duccId.toString();
 	}
 
-	@Override
+	
 	public int getHashCode() {
 		return duccId.hashCode();
 	}
 	
-	@Override
+	
 	public DuccType getDuccType() {
 		return duccType;
 	}
 
-	@Override
+	
 	public void setDuccType(DuccType duccType) {
 		this.duccType = duccType;
 	}
 
-	@Override
+	
 	public IDuccStandardInfo getStandardInfo() {
 		return duccStandardInfo;
 	}
 
-	@Override
+	
 	public void setStandardInfo(IDuccStandardInfo standardInfo) {
 		this.duccStandardInfo = standardInfo;;
 	}
 
-	@Override
+	
 	public IDuccSchedulingInfo getSchedulingInfo() {
 		return duccSchedulingInfo;
 	}
 
-	@Override
+	
 	public void setSchedulingInfo(IDuccSchedulingInfo schedulingInfo) {
 		this.duccSchedulingInfo = schedulingInfo;
 	}
 
-	@Override
+	
 	public Object getStateObject() {
 		return stateObject;
 	}
 
-	@Override
+	
 	public void setStateObject(Object state) {
 		this.stateObject = state;
 	}
 
-	@Override
+	
 	public Object getCompletionTypeObject() {
 		return completionTypeObject;
 	}
 
-	@Override
+	
 	public void setCompletionTypeObject(Object completionType) {
 		this.completionTypeObject = completionType;
 	}
@@ -165,7 +165,7 @@ public abstract class ADuccWork implements IDuccWork {
 	
 	// **********
 	
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

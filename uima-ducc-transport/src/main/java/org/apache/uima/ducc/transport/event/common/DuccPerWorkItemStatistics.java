@@ -37,22 +37,22 @@ public class DuccPerWorkItemStatistics implements IDuccPerWorkItemStatistics {
 		this.stddev = stddev;
 	}
 
-	@Override
+	
 	public double getMax() {
 		return max;
 	}
 
-	@Override
+	
 	public double getMin() {
 		return min;
 	}
 
-	@Override
+	
 	public double getMean() {
 		return mean;
 	}
 
-	@Override
+	
 	public double getStandardDeviation() {
 		return stddev;
 	}

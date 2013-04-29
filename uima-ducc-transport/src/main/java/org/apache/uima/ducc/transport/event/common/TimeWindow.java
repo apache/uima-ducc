@@ -35,17 +35,17 @@ public class TimeWindow implements ITimeWindow {
 	public TimeWindow() {
 	}
 	
-	@Override
+	
 	public String getStart() {
 		return timeStart;
 	}
 
-	@Override
+	
 	public void setStart(String time) {
 		this.timeStart = time;
 	}
 	
-	@Override
+	
 	public long getStartLong() {
 		long retVal = -1;
 		try {
@@ -56,22 +56,22 @@ public class TimeWindow implements ITimeWindow {
 		return retVal;
 	}
 
-	@Override
+	
 	public void setStartLong(long time) {
 		setStart(String.valueOf(time));
 	}
 
-	@Override
+	
 	public String getEnd() {
 		return timeEnd;
 	}
 
-	@Override
+	
 	public void setEnd(String time) {
 		this.timeEnd = time;
 	}
 	
-	@Override
+	
 	public long getEndLong() {
 		long retVal = -1;
 		try {
@@ -82,17 +82,17 @@ public class TimeWindow implements ITimeWindow {
 		return retVal;
 	}
 
-	@Override
+	
 	public void setEndLong(long time) {
 		setEnd(String.valueOf(time));
 	}
 	
-	@Override
+	
 	public String getDiff() {
 		return ""+getElapsedMillis();
 	}
 	
-	@Override
+	
 	public String getElapsed() {
 		String elapsed = "";
 		long elapsedTime = Long.valueOf(getDiff());
@@ -102,7 +102,7 @@ public class TimeWindow implements ITimeWindow {
 		return elapsed;
 	}
 	
-	@Override
+	
 	public String getElapsed(IDuccWorkJob job) {
 		String retVal = null;
 		if(isEstimated()) {
@@ -133,7 +133,7 @@ public class TimeWindow implements ITimeWindow {
 		return retVal;
 	}
 	
-	@Override
+	
 	public long getElapsedMillis() {
 		String t0 = getStart();
 		String t1 = getEnd();
@@ -150,7 +150,7 @@ public class TimeWindow implements ITimeWindow {
 		return diff.longValue();
 	}
 
-	@Override
+	
 	public boolean isEstimated() {
 		boolean retVal = false;
 		if(getStart() == null) {

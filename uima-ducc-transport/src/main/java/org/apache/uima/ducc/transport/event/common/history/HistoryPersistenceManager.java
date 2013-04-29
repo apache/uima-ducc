@@ -76,7 +76,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return retVal;
 	}
 	
-	@Override
+	
 	public void jobSaveConditional(IDuccWorkJob duccWorkJob) throws IOException {
 		String id = normalize(""+duccWorkJob.getDuccId().getFriendly());
 		String fileName = historyDirectory_jobs+File.separator+id+"."+dwj;
@@ -86,7 +86,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		}
 	}
 	
-	@Override
+	
 	public void jobSave(IDuccWorkJob duccWorkJob) throws IOException {
 		String id = normalize(""+duccWorkJob.getDuccId().getFriendly());
 		String fileName = historyDirectory_jobs+File.separator+id+"."+dwj;
@@ -97,7 +97,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		out.writeObject(duccWorkJob);
 		out.close();
 	}
-	@Override
+	
 	public IDuccWorkJob jobRestore(String fileName) {
 		return jobRestore(fileName, Verbosity.SPEAK);
 	}
@@ -126,13 +126,13 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return job;
 	}
 	
-	@Override
+	
 	public IDuccWorkJob jobRestore(DuccId duccId) {
 		String fileName = duccId.getFriendly()+"."+dwj;
 		return jobRestore(fileName, Verbosity.QUIET);
 	}
 	
-	@Override
+	
 	public ArrayList<String> jobList() {
 		ArrayList<String> retVal = new ArrayList<String>();
 		File folder = new File(historyDirectory_jobs);
@@ -150,7 +150,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return retVal;
 	}
 	
-	@Override
+	
 	public ArrayList<IDuccWorkJob> jobRestore() throws IOException, ClassNotFoundException {
 		ArrayList<IDuccWorkJob> retVal = new ArrayList<IDuccWorkJob>();
 		ArrayList<String> jobFileNames = jobList();
@@ -165,7 +165,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return retVal;
 	}
 
-	@Override
+	
 	public void reservationSaveConditional(IDuccWorkReservation duccWorkReservation) throws IOException {
 		String id = normalize(""+duccWorkReservation.getDuccId().getFriendly());
 		String fileName = historyDirectory_jobs+File.separator+id+"."+dwr;
@@ -175,7 +175,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		}
 	}
 	
-	@Override
+	
 	public void reservationSave(IDuccWorkReservation duccWorkReservation) throws IOException {
 		String id = normalize(""+duccWorkReservation.getDuccId().getFriendly());
 		String fileName = historyDirectory_reservations+File.separator+id+"."+dwr;
@@ -187,7 +187,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		out.close();
 	}
 	
-	@Override
+	
 	public IDuccWorkReservation reservationRestore(String fileName) {
 		return reservationRestore(fileName, Verbosity.SPEAK);
 	}
@@ -216,7 +216,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return reservation;
 	}
 	
-	@Override
+	
 	public ArrayList<String> reservationList() {
 		ArrayList<String> retVal = new ArrayList<String>();
 		File folder = new File(historyDirectory_reservations);
@@ -234,7 +234,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return retVal;
 	}
 	
-	@Override
+	
 	public ArrayList<IDuccWorkReservation> reservationRestore() throws IOException, ClassNotFoundException {
 		ArrayList<IDuccWorkReservation> retVal = new ArrayList<IDuccWorkReservation>();
 		ArrayList<String> reservationFileNames = reservationList();
@@ -249,13 +249,13 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return retVal;
 	}
 	
-	@Override
+	
 	public IDuccWorkReservation reservationRestore(DuccId duccId) {
 		String fileName = duccId.getFriendly()+"."+dwr;
 		return reservationRestore(fileName, Verbosity.QUIET);
 	}
 
-	@Override
+	
 	public void serviceSaveConditional(IDuccWorkService duccWorkService)
 			throws IOException {
 		String id = normalize(""+duccWorkService.getDuccId().getFriendly());
@@ -266,7 +266,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		}
 	}
 
-	@Override
+	
 	public void serviceSave(IDuccWorkService duccWorkService)
 			throws IOException {
 		String id = normalize(""+duccWorkService.getDuccId().getFriendly());
@@ -279,7 +279,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		out.close();
 	}
 
-	@Override
+	
 	public IDuccWorkService serviceRestore(String fileName) {
 		return serviceRestore(fileName, Verbosity.SPEAK);
 	}
@@ -308,7 +308,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return service;
 	}
 
-	@Override
+	
 	public ArrayList<String> serviceList() {
 		ArrayList<String> retVal = new ArrayList<String>();
 		File folder = new File(historyDirectory_services);
@@ -326,7 +326,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return retVal;
 	}
 
-	@Override
+	
 	public ArrayList<IDuccWorkService> serviceRestore() throws IOException,
 			ClassNotFoundException {
 		ArrayList<IDuccWorkService> retVal = new ArrayList<IDuccWorkService>();
@@ -342,7 +342,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return retVal;
 	}
 
-	@Override
+	
 	public IDuccWorkService serviceRestore(DuccId duccId) {
 		String fileName = duccId.getFriendly()+"."+dws;
 		return serviceRestore(fileName, Verbosity.QUIET);

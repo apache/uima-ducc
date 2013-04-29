@@ -53,62 +53,62 @@ public class DuccUimaAggregate implements IDuccUimaAggregate {
 		setComponents(components);
 	}
 	
-	@Override
+	
 	public List<IDuccUimaAggregateComponent> getComponents() {
 		return components;
 	}
 	
-	@Override
+	
 	public void setComponents(List<IDuccUimaAggregateComponent> components) {
 		this.components = components;
 	}
 	
-	@Override
+	
 	public String getName() {
 		return name;
 	}
 
-	@Override
+	
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@Override
+	
 	public String getDescription() {
 		return description;
 	}
 
-	@Override
+	
 	public void setDescription(String description) {
 		this.description = description;
 	}
 
-	@Override
+	
 	public int getThreadCount() {
 		return threadCount;
 	}
 
-	@Override
+	
 	public void setThreadCount(int threadCount) {
 		this.threadCount = threadCount;
 	}
 
-	@Override
+	
 	public String getBrokerURL() {
 		return brokerURL;
 	}
 
-	@Override
+	
 	public void setBrokerURL(String brokerURL) {
 		this.brokerURL = brokerURL;
 	}
 
-	@Override
+	
 	public String getEndpoint() {
 		return endpoint;
 	}
 
-	@Override
+	
 	public void setEndpoint(String endpoint) {
 		this.endpoint = endpoint;
 	}

@@ -38,28 +38,28 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 	 */
 	private static final long serialVersionUID = 1L;
 
-	@Override
+	
 	public void addProcess(IDuccProcess process) {
 		synchronized(this) {
 			put(process.getDuccId(),process);
 		}
 	}
 	
-	@Override
+	
 	public IDuccProcess getProcess(DuccId duccId) {
 		synchronized(this) {
 			return get(duccId);
 		}
 	}
 	
-	@Override
+	
 	public void removeProcess(DuccId duccId) {
 		synchronized(this) {
 			remove(duccId);
 		}
 	}
 	
-	@Override
+	
 	public IDuccProcess findProcess(String nodeIP, String processId) {
 		IDuccProcess retVal = null;
 		synchronized(this) {
@@ -126,7 +126,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 	}
 	
 	/*
-	@Override
+	
 	public int getFailedProcessCount() {
 		int retVal = 0;
 		synchronized(this) {
@@ -142,7 +142,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 	}
 	*/
 	
-	@Override
+	
 	public int getFailedUnexpectedProcessCount() {
 		int retVal = 0;
 		synchronized(this) {
@@ -161,7 +161,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return retVal;
 	}
 	
-	@Override
+	
 	public int getReadyProcessCount() {
 		int retVal = 0;
 		synchronized(this) {
@@ -177,7 +177,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return retVal;
 	}
 	
-	@Override
+	
 	public int getUsableProcessCount() {
 		int retVal = 0;
 		synchronized(this) {
@@ -195,7 +195,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return retVal;
 	}
 
-	@Override
+	
 	public int getAliveProcessCount() {
 		int retVal = 0;
 		synchronized(this) {
@@ -211,12 +211,12 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return retVal;
 	}
 
-	@Override
+	
 	public Map<DuccId, IDuccProcess> getMap() {
 		return this;
 	}
 	
-	@Override
+	
 	public IDuccProcessMap deepCopy() {
 		synchronized (this) {
 			return (IDuccProcessMap) SerializationUtils.clone(this);
@@ -224,7 +224,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 	}
 
 
-	@Override
+	
 	public ArrayList<DuccId> getFailedInitialization() {
 		ArrayList<DuccId> list = new ArrayList<DuccId>();
 		String failedInitialization = ReasonForStoppingProcess.FailedInitialization.toString().trim();
@@ -255,7 +255,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return list;
 	}
 
-	@Override
+	
 	public ArrayList<DuccId> getFailedNotInitialization() {
 		ArrayList<DuccId> list = new ArrayList<DuccId>();
 		String failedInitialization = ReasonForStoppingProcess.FailedInitialization.toString().trim();
@@ -290,13 +290,13 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return list;
 	}
 
-	@Override
+	
 	public int getFailedInitializationCount() {
 		ArrayList<DuccId> list = getFailedInitialization();
 		return list.size();
 	}
 
-	@Override
+	
 	public int getFailedNotInitializationCount() {
 		ArrayList<DuccId> list = getFailedNotInitialization();
 		return list.size();

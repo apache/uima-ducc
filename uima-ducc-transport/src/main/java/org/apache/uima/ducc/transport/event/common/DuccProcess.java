@@ -98,42 +98,42 @@ public class DuccProcess implements IDuccProcess {
 		this.uimaPipelineComponentList = uimaPipelineComponentList;
 	}
 
-	@Override
+	
 	public DuccId getDuccId() {
 		return duccId;
 	}
 
-	@Override
+	
 	public void setDuccId(DuccId duccId) {
 		this.duccId = duccId;
 	}
 
-	@Override
+	
 	public NodeIdentity getNodeIdentity() {
 		return nodeIdentity;
 	}
 
-	@Override
+	
 	public void setNodeIdentity(NodeIdentity nodeIdentity) {
 		this.nodeIdentity = nodeIdentity;
 	}
 
-	@Override
+	
 	public String getPID() {
 		return pid;
 	}
 
-	@Override
+	
 	public void setPID(String pid) {
 		this.pid = pid;
 	}
 
-	@Override
+	
 	public ProcessState getProcessState() {
 		return processState;
 	}
 
-	@Override
+	
 	public void setProcessState(ProcessState processState) {
 		this.processState = processState;
 	}
@@ -149,7 +149,7 @@ public class DuccProcess implements IDuccProcess {
 	Killed,         		// Agent forcefully killed the process
 	Undefined	
 */	
-	@Override
+	
 	public void advanceProcessState(ProcessState nextProcessState) {
 		switch(getProcessState()) {
 			case Starting:
@@ -204,47 +204,47 @@ public class DuccProcess implements IDuccProcess {
 		}
 	}
 	
-	@Override
+	
 	public ResourceState getResourceState() {
 		return resourceState;
 	}
 
-	@Override
+	
 	public void setResourceState(ResourceState resourceState) {
 		this.resourceState = resourceState;
 	}
 
-	@Override
+	
 	public ProcessDeallocationType getProcessDeallocationType() {
 		return deallocationType;
 	}
 
-	@Override
+	
 	public void setProcessDeallocationType(ProcessDeallocationType deallocationType) {
 		this.deallocationType = deallocationType;
 	}
 	
-	@Override
+	
 	public ITimeWindow getTimeWindowInit() {
 		return timeWindowInit;
 	}
 
-	@Override
+	
 	public void setTimeWindowInit(ITimeWindow timeWindow) {
 		this.timeWindowInit = timeWindow;
 	}
 
-	@Override
+	
 	public ITimeWindow getTimeWindowRun() {
 		return timeWindowRun;
 	}
 
-	@Override
+	
 	public void setTimeWindowRun(ITimeWindow timeWindow) {
 		this.timeWindowRun = timeWindow;
 	}
 
-	@Override
+	
 	public boolean stateChange(ProcessState state) {
 		boolean retVal = false;
 		if(retVal==false) {
@@ -253,7 +253,7 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 
-	@Override
+	
 	public boolean isActive() {
 		boolean retVal = false;
 		switch(processState) {
@@ -265,7 +265,7 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 
-	@Override
+	
 	public boolean isReady() {
 		boolean retVal = false;
 		switch(processState) {
@@ -276,7 +276,7 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 	
-	@Override
+	
 	public boolean isFailed() {
 		boolean retVal = false;
 		switch(processState) {
@@ -305,7 +305,7 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 	
-	@Override
+	
 	public boolean isPreempted() {
 		boolean retVal = false;
 		switch(deallocationType) {
@@ -316,7 +316,7 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 	
-	@Override
+	
 	public boolean isComplete() {
 		boolean retVal = false;
 		switch(processState) {
@@ -332,7 +332,7 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 	
-	@Override
+	
 	public boolean isDeallocated() {
 		boolean retVal = false;
 		switch(resourceState) {
@@ -343,7 +343,7 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 	
-	@Override
+	
 	public boolean isDefunct() {
 		boolean retVal = false;
 		switch(resourceState) {
@@ -356,7 +356,7 @@ public class DuccProcess implements IDuccProcess {
 	
 	// **********
 	
-	@Override
+	
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -456,12 +456,12 @@ public class DuccProcess implements IDuccProcess {
 		return processJmxUrl;
 	}
 
-	@Override
+	
 	public IDuccProcessWorkItems getProcessWorkItems() {
 		return processWorkItems;
 	}
 
-	@Override
+	
 	public void setProcessWorkItems(IDuccProcessWorkItems processWorkItems) {
 		this.processWorkItems = processWorkItems;
 	}
@@ -482,17 +482,17 @@ public class DuccProcess implements IDuccProcess {
     this.reason = reason;
   }
   	
-	@Override
+	
 	public boolean isInitialized() {
 		return initialized;
 	}
 
-	@Override
+	
 	public void setInitialized() {
 		initialized = true;
 	}
 
-	@Override
+	
 	public void resetInitialized() {
 		initialized = false;
 	}
@@ -510,42 +510,42 @@ public class DuccProcess implements IDuccProcess {
 	public CGroup getCGroup() {
 		return cgroup;
 	}
-	@Override
+	
 	public Node getNode() {
 		return node;
 	}
 
-	@Override
+	
 	public void setNode(Node node) {
 		this.node = node;
 	}
 
-	@Override
+	
 	public void setMajorFaults(long faultCount) {
 		this.majorFaults = faultCount;	
 	}
 
-	@Override
+	
 	public long getMajorFaults() {
 		return majorFaults;
 	}
 
-	@Override
+	
 	public void setSwapUsage(long susage) {
 		this.swapUsage = susage;
 	}
 
-	@Override
+	
 	public long getSwapUsage() {
 		return swapUsage;
 	}
 
-	@Override
+	
 	public void setSwapUsageMax(long susage) {
 		this.swapUsageMax = susage;
 	}
 
-	@Override
+	
 	public long getSwapUsageMax() {
 		return swapUsageMax;
 	}
