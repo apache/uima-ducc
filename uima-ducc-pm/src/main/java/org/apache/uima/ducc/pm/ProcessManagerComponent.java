@@ -279,7 +279,7 @@ implements ProcessManager {
 		}
 	}
 	
-	@Override
+
 	public PmStateDuccEvent getState() {
 		String methodName = "PmStateDuccEvent";
 		logger.trace(methodName,null,"");
