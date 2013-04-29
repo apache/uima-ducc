@@ -214,7 +214,7 @@ public class DuccHandlerProxy extends DuccAbstractHandler {
 		duccLogger.trace(location, jobid, "exit");
 	}
 	
-	@Override
+	
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) 
 	throws IOException, ServletException {
 		String location = "handle";

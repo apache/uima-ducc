@@ -1547,7 +1547,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
-	@Override
+	
 	public void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException {
 		String methodName = "handle";

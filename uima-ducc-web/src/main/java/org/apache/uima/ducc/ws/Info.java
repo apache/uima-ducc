@@ -59,7 +59,7 @@ public class Info implements Comparable<Info> {
 		return _dw.isOperational();
 	}
 	
-	@Override
+	
 	public int compareTo(Info info) {
 		int retVal = 0;
 		IDuccWork dw1 = this._dw;
@@ -83,7 +83,7 @@ public class Info implements Comparable<Info> {
 		return retVal;
 	}
 	
-	@Override 
+	 
 	public boolean equals(Object object) {
 		boolean retVal = false;
 		try {
@@ -102,7 +102,7 @@ public class Info implements Comparable<Info> {
 		return retVal;
 	}
 	
-	@Override 
+	 
 	public int hashCode() {
 		IDuccWork dw = this._dw;
 		String s1 = dw.getDuccId().toString();

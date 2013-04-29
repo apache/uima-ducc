@@ -36,7 +36,7 @@ public class ReservationInfo implements Comparable<ReservationInfo> {
 		return _reservation.isOperational();
 	}
 	
-	@Override
+	
 	public int compareTo(ReservationInfo reservation) {
 		int retVal = 0;
 		ReservationInfo r1 = this;
@@ -60,7 +60,7 @@ public class ReservationInfo implements Comparable<ReservationInfo> {
 		return retVal;
 	}
 	
-	@Override 
+	 
 	public boolean equals(Object object) {
 		boolean retVal = false;
 		try {
@@ -77,7 +77,7 @@ public class ReservationInfo implements Comparable<ReservationInfo> {
 		return retVal;
 	}
 	
-	@Override 
+	 
 	public int hashCode() {
 		ReservationInfo i1 = this;
 		DuccWorkReservation j1 = i1.getReservation();

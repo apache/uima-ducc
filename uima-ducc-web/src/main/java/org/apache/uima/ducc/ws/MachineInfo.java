@@ -230,7 +230,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return retVal;
 	}	
 	
-	@Override
+	
 	public int compareTo(MachineInfo machine) {
 		int retVal = 0;
 		MachineInfo m1 = this;

@@ -36,7 +36,7 @@ public class JobInfo implements Comparable<JobInfo> {
 		return _job.isOperational();
 	}
 	
-	@Override
+	
 	public int compareTo(JobInfo job) {
 		int retVal = 0;
 		JobInfo j1 = this;
@@ -60,7 +60,7 @@ public class JobInfo implements Comparable<JobInfo> {
 		return retVal;
 	}
 	
-	@Override 
+	 
 	public boolean equals(Object object) {
 		boolean retVal = false;
 		try {
@@ -77,7 +77,7 @@ public class JobInfo implements Comparable<JobInfo> {
 		return retVal;
 	}
 	
-	@Override 
+	 
 	public int hashCode() {
 		JobInfo i1 = this;
 		DuccWorkJob j1 = i1.getJob();
