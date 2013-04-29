@@ -48,14 +48,14 @@ public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 		initialize(directory);
 	}
 	
-	@Override
+	
 	public void initialize(String directory) {
 		this.filename = IOHelper.marryDir2File(directory,work_item_status_json_gz);
 	}
 
 	public final String encoding = "UTF-8";
 	
-	@Override
+	
 	public void exportData(ConcurrentSkipListMap<Long, IWorkItemState> map) throws IOException {
 		BufferedWriter writer = null;
 		OutputStreamWriter osr = null;
@@ -105,7 +105,7 @@ public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 		return size-1;
 	}
 	
-	@Override
+	
 	public ConcurrentSkipListMap<Long, IWorkItemState> importData() throws IOException, ClassNotFoundException {
 		ConcurrentSkipListMap<Long, IWorkItemState> map = new ConcurrentSkipListMap<Long, IWorkItemState>();
 		BufferedReader reader = null;

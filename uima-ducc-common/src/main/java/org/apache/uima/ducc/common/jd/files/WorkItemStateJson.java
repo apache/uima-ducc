@@ -43,12 +43,12 @@ public class WorkItemStateJson implements IPersistenceWorkItemState {
 		initialize(directory);
 	}
 	
-	@Override
+	
 	public void initialize(String directory) {
 		this.filename = IOHelper.marryDir2File(directory,work_item_status_json);
 	}
 
-	@Override
+	
 	public void exportData(ConcurrentSkipListMap<Long, IWorkItemState> map) throws IOException {
 		FileWriter fw = null;
 		try {
@@ -64,7 +64,7 @@ public class WorkItemStateJson implements IPersistenceWorkItemState {
 		}
 	}
 
-	@Override
+	
 	public ConcurrentSkipListMap<Long, IWorkItemState> importData() throws IOException, ClassNotFoundException {
 		ConcurrentSkipListMap<Long, IWorkItemState> map = null;
 		FileReader fr = null;

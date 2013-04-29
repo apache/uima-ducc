@@ -31,62 +31,60 @@ public class JobPerformanceSummary implements IJobPerformanceSummary {
 	private AtomicLong analysisTimeMin = new AtomicLong(-1);
 	private AtomicLong analysisTimeMax = new AtomicLong(-1);
 
-	@Override
+
 	public String getName() {
 		return name;
 	}
 
-	@Override
+
 	public void setName(String value) {
 		name = value;
 	}
 
-	@Override
+
 	public String getUniqueName() {
 		return uniqueName;
 	}
 
-	@Override
 	public void setUniqueName(String value) {
 		uniqueName = value;
 	}
 
-	@Override
+
 	public long getAnalysisTime() {
 		return analysisTime.get();
 	}
 
-	@Override
+
 	public void setAnalysisTime(long value) {
 		analysisTime.set(value);
 	}
 
-	@Override
+
 	public long getAnalysisTimeMin() {
 		return analysisTimeMin.get();
 	}
 
-	@Override
 	public void setAnalysisTimeMin(long value) {
 		analysisTimeMin.set(value);
 	}
 
-	@Override
+
 	public long getAnalysisTimeMax() {
 		return analysisTimeMax.get();
 	}
 
-	@Override
+
 	public void setAnalysisTimeMax(long value) {
 		analysisTimeMax.set(value);
 	}
 
-	@Override
+
 	public long getNumProcessed() {
 		return numProcessed.get();
 	}
 
-	@Override
+
 	public void setNumProcessed(long value) {
 		numProcessed.set(value);
 	}

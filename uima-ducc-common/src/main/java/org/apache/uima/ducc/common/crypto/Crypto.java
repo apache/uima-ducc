@@ -309,7 +309,7 @@ public class Crypto implements ICrypto {
 		return object;
 	}
 	
-	@Override
+
 	public byte[] encrypt(Object o) throws CryptoException {
 		try {
 			Key key = getPrivateKeyFromFile(filePvt);
@@ -321,7 +321,7 @@ public class Crypto implements ICrypto {
 		}
 	}
 	
-	@Override
+
 	public Object decrypt(byte[] byteArray) throws CryptoException {
 		try {
 			Key key = getPubicKeyFromFile(filePub);

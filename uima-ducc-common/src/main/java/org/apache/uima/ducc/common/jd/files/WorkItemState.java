@@ -49,42 +49,42 @@ public class WorkItemState implements IWorkItemState {
 		this.seqNo = ""+seqNo;
 	}
 	
-	@Override
+	
 	public String getSeqNo() {
 		return seqNo;
 	}
 
-	@Override
+	
 	public String getWiId() {
 		return wiId;
 	}
 
-	@Override
+	
 	public void setWiId(String wiId) {
 		this.wiId = wiId;
 	}
 
-	@Override
+	
 	public String getNode() {
 		return node;
 	}
 	
-	@Override
+	
 	public void setNode(String node) {
 		this.node = node;
 	}
 
-	@Override
+	
 	public String getPid() {
 		return pid;
 	}
 	
-	@Override
+	
 	public void setPid(String pid) {
 		this.pid = pid;
 	}
 	
-	@Override
+	
 	public State getState() {
 		State retVal = state;
 		// legacy
@@ -112,19 +112,19 @@ public class WorkItemState implements IWorkItemState {
 		return retVal;
 	}
 
-	@Override
+	
 	public void stateStart() {
 		state = State.start;
 		millisAtStart = System.currentTimeMillis();
 	}
 
-	@Override
+	
 	public void stateQueued() {
 		state = State.queued;
 		millisAtQueued = System.currentTimeMillis();
 	}
 
-	@Override
+	
 	public void stateOperating() {
 		state = State.operating;
 		//jpIp = ip;
@@ -132,24 +132,24 @@ public class WorkItemState implements IWorkItemState {
 		millisAtOperating = System.currentTimeMillis();
 	}
 
-	@Override
+	
 	public void stateEnded() {
 		state = State.ended;
 		millisAtFinish = System.currentTimeMillis();
 	}
 
-	@Override
+	
 	public void stateError() {
 		state = State.error;
 		millisAtFinish = System.currentTimeMillis();
 	}
 
-	@Override
+	
 	public void stateRetry() {
 		state = State.retry;
 	}
 
-	@Override
+	
 	public long getMillisOverhead() {
 		long retVal = 0;
 		if(millisAtStart > 0) {
@@ -166,7 +166,7 @@ public class WorkItemState implements IWorkItemState {
 		return retVal;
 	}
 
-	@Override
+	
 	public long getMillisProcessing() {
 		long retVal = 0;
 		if(millisAtOperating > 0) {

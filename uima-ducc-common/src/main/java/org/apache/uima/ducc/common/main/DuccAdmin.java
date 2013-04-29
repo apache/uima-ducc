@@ -277,7 +277,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 		}
 	}
 
-	@Override
+	
 	public void completed(ProcessCompletionResult result) {
 		StringBuffer sb = new StringBuffer();
 		if (result.exitCode != 0) {

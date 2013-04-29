@@ -34,12 +34,12 @@ public class AuthenticationManager implements IAuthenticationManager {
 		return instance;
 	}
 	
-	@Override
+
 	public String getVersion() {
 		return version;
 	}
 	
-	@Override
+
 	public IAuthenticationResult isAuthenticate(String userid, String domain, String password) {
 		IAuthenticationResult authenticationResult = default_authenticationResult;
 		String ducc_pw = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_ws_authentication_pw);
@@ -53,7 +53,7 @@ public class AuthenticationManager implements IAuthenticationManager {
 		return authenticationResult;
 	}
 
-	@Override
+
 	public IAuthenticationResult isGroupMember(String userid, String domain, Role role) {
 		AuthenticationResult authenticationResult = new AuthenticationResult();
 		authenticationResult.setSuccess();

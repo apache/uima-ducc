@@ -47,14 +47,13 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 		initialize(directory);
 	}
 	
-	@Override
+
 	public void initialize(String directory) {
 		this.filename = IOHelper.marryDir2File(directory,job_performance_summary_json_gz);
 	}
 
 	public final String encoding = "UTF-8";
-	
-	@Override
+
 	public void exportData(JobPerformanceSummaryData data) throws IOException {
 		BufferedWriter writer = null;
 		OutputStreamWriter osr = null;
@@ -104,7 +103,7 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 		return size-1;
 	}
 	
-	@Override
+
 	public JobPerformanceSummaryData importData() throws IOException, ClassNotFoundException {
 		JobPerformanceSummaryData data = new JobPerformanceSummaryData();
 		BufferedReader reader = null;

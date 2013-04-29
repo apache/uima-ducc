@@ -78,12 +78,12 @@ public class StateServices implements IStateServices {
 		return retVal;
 	}
 
-	@Override
+	
 	public ArrayList<String> getSvcList() {
 		return getList(IStateServices.svc);
 	}
 
-	@Override
+	
 	public ArrayList<String> getMetaList() {
 		return getList(IStateServices.meta);
 	}
@@ -104,7 +104,7 @@ public class StateServices implements IStateServices {
 		return properties;
 	}
 	
-	@Override
+	
 	public StateServicesDirectory getStateServicesDirectory() throws IOException {
 		StateServicesDirectory ssd = new StateServicesDirectory();
 		ArrayList<String> svcList = getSvcList();
