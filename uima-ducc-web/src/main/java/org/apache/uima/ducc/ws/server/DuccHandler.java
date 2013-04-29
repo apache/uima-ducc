@@ -2670,9 +2670,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("  </security>");
 		sb.append("  <resources>");
 		sb.append("    <j2se version=\"1.6+\" />");
-		sb.append("    <jar href=\"jconsole.jar\" main=\"true\"/>");
+		sb.append("    <jar href=\"jconsole-wrapper-signed.jar\" main=\"true\"/>");
 		sb.append("  </resources>");
-		sb.append("  <application-desc main-class=\"sun.tools.jconsole.JConsole\">");
+		sb.append("  <application-desc main-class=\"org.apache.uima.ducc.ws.jconsole.JConsoleWrapper\">");
 		sb.append("    <argument>"+service+"</argument>");
 		sb.append("  </application-desc>");
 		sb.append("</jnlp>");
