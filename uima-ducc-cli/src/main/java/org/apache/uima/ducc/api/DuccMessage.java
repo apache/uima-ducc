@@ -20,22 +20,22 @@ package org.apache.uima.ducc.api;
 
 public class DuccMessage implements IDuccMessageProcessor {
 
-	@Override
+
 	public void out(String message) {
 		System.out.println(message);
 	}
 	
-	@Override
+
 	public void err(String message) {
 		System.err.println(message);
 	}
 
-	@Override
+
 	public void exception(Exception e) {
 		e.printStackTrace();
 	}
 
-	@Override
+
 	public void throwable(Throwable t) {
 		t.printStackTrace();
 	}

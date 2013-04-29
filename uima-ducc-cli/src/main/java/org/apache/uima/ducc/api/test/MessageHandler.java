@@ -24,23 +24,23 @@ public class MessageHandler implements IDuccMessageProcessor {
 
 	private String prefix = MessageHandler.class.getSimpleName()+": ";
 	
-	@Override
+
 	public void out(String message) {
 		System.out.println(prefix+message);
 	}
 
-	@Override
+
 	public void err(String message) {
 		System.err.println(prefix+message);
 	}
 
-	@Override
+
 	public void exception(Exception e) {
 		System.out.println(prefix);
 		e.printStackTrace();
 	}
 
-	@Override
+
 	public void throwable(Throwable t) {
 		System.out.println(prefix);
 		t.printStackTrace();

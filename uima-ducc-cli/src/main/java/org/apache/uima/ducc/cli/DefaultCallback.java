@@ -20,12 +20,12 @@ package org.apache.uima.ducc.cli;
 
 public class DefaultCallback implements IDuccCallback {
 
-  @Override
+
   public void console(int pnum, String msg) {
     System.out.println("[" + pnum + "] " + msg);
   }
 
-  @Override
+
   public void status(String msg) {
     System.out.println(msg);
   }
