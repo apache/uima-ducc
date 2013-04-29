@@ -684,7 +684,7 @@ public interface IUiOptions
 
         ProcessInitializationFailuresCap { 
             public String pname()       { return JobSpecificationProperties.key_process_initialization_failures_cap; }
-            public String description() { return "Maximum number of independent job process initialization failures (i.e. System.exit(), kill-15...) before the number of Job Processes is capped at the number in state Running currently.  Default is " + deflt() + "."; }
+            public String description() { return "Number of unexpected job process initialization failures (i.e. System.exit(), kill-15...) before the number of Job Processes is capped at the number in state Running currently.  Default is " + deflt() + "."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
             public String deflt()       { return "99"; }
@@ -695,7 +695,7 @@ public interface IUiOptions
 
         ProcessFailuresLimit { 
             public String pname()       { return JobSpecificationProperties.key_process_failures_limit; }
-            public String description() { return "Maximum number of independent job process failures (i.e. System.exit(), kill-15...) before job is terminated."; }
+            public String description() { return "Number of unexpected job process failures (i.e. System.exit(), kill-15...) that will cause the job to be terminated."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
             public String deflt()       { return "20"; }

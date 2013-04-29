@@ -235,8 +235,9 @@ public class DuccJobSubmit
                 jp_debug_port = Integer.parseInt(jp_port_s);
                 
                 set_debug_parms(props, key_process, jp_debug_port);
-                // For debugging, if the JP is being debugged, we have to force max processes to .1
+                // For debugging, if the JP is being debugged, we have to force max processes to 1 & no restarts
                 props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
+                props.setProperty(UiOption.ProcessFailuresLimit.pname(), "1");
             }
 
             do_debug = UiOption.DriverDebug.pname();
