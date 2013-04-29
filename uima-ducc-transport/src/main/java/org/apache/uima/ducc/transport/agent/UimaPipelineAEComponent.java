@@ -43,13 +43,13 @@ public class UimaPipelineAEComponent implements IUimaPipelineAEComponent {
 	}
 
 	
-	@Override
+	
 	public String getAeName() {
 		// TODO Auto-generated method stub
 		return name;
 	}
 
-	@Override
+	
 	public State getAeState() {
 		// TODO Auto-generated method stub
 		return state;
