@@ -154,16 +154,10 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccReservationInstanceMemorySizes   = duccContext+"/reservation-instance-memory-sizes";
 	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-instance-memory-units";
 	private String duccReservationNumberOfInstances	    = duccContext+"/reservation-number-of-instances";
-
-	private DuccWebServer duccWebServer = null;
 	
 	public DuccHandler(DuccWebServer duccWebServer) {
-		this.duccWebServer = duccWebServer;
+		super.init(duccWebServer);
 		initializeAuthenticator();
-	}
-	
-	public DuccWebServer getDuccWebServer() {
-		return duccWebServer;
 	}
 	
 	public String getFileName() {

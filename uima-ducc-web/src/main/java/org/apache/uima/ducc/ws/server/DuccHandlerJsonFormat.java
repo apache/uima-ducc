@@ -102,14 +102,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	
 	private final String jsonFormatMachines 		= duccContextJsonFormat+"-machines";
 	private final String jsonFormatReservations 	= duccContextJsonFormat+"-reservations";
-	private DuccWebServer duccWebServer = null;
 	
 	public DuccHandlerJsonFormat(DuccWebServer duccWebServer) {
-		this.duccWebServer = duccWebServer;
-	}
-	
-	public DuccWebServer getDuccWebServer() {
-		return duccWebServer;
+		super.init(duccWebServer);
 	}
 	
 	public String getFileName() {

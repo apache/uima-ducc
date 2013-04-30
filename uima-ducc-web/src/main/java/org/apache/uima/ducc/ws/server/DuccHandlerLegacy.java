@@ -87,16 +87,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	public final String legacySystemDaemons	 		= duccContextLegacy+"-system-daemons-data";
 	public final String legacySystemMachines	 	= duccContextLegacy+"-system-machines-data";
 	
-	private DuccWebServer duccWebServer = null;
-	
 	public DuccHandlerLegacy(DuccWebServer duccWebServer) {
-		this.duccWebServer = duccWebServer;
+		super.init(duccWebServer);
 	}
-	
-	public DuccWebServer getDuccWebServer() {
-		return duccWebServer;
-	}
-	
+
 	public String getFileName() {
 		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
 	}

@@ -92,6 +92,21 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public static final String valueStateTypeInactive = "inactive";
 	public static final String valueStateTypeDefault = valueStateTypeAll;
 	
+	protected String root_dir = null;
+	protected String jconsole_wrapper_signed_jar = null;
+
+	protected DuccWebServer duccWebServer = null;
+	
+	public void init(DuccWebServer duccWebServer) {
+		this.duccWebServer = duccWebServer;
+		root_dir = duccWebServer.getRootDir();
+		jconsole_wrapper_signed_jar = root_dir+File.separator+"lib"+File.separator+"webstart"+File.separator+"jconsole-wrapper-signed.jar";
+	}
+	
+	public DuccWebServer getDuccWebServer() {
+		return duccWebServer;
+	}
+	
 	public enum RequestStateType {
 		Active,
 		Inactive,
@@ -828,9 +843,15 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	
 	public String buildjConsoleLink(String service) {
 		String location = "buildjConsoleLink";
-		String href = "<a href=\""+duccjConsoleLink+"?"+"service="+service+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+service+"</a>";
-		duccLogger.trace(location, null, href);
-		return href;
+		String retVal = service;
+		if(jconsole_wrapper_signed_jar != null) {
+			File file = new File(jconsole_wrapper_signed_jar);
+			if(file.exists()) {
+				retVal = "<a href=\""+duccjConsoleLink+"?"+"service="+service+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+service+"</a>";
+			}
+		}
+		duccLogger.trace(location, null, retVal);
+		return retVal;
 	}
 	
 	public String buildErrorLink(IDuccWorkJob job) {
