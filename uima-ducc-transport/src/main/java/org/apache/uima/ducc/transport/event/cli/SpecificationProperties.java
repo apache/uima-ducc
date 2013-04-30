@@ -28,6 +28,8 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 @SuppressWarnings("serial")
 public class SpecificationProperties extends DuccProperties implements Serializable {
 	
+	public static String key_cancel_on_interrupt = "cancel_on_interrupt";
+	
 	public static String key_submit_errors = "submit_errors";
 	public static String key_submit_warnings = "submit_warnings";
 	

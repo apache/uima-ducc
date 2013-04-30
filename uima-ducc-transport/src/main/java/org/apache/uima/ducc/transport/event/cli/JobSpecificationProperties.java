@@ -83,8 +83,8 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
     
 	public static String key_classpath_order = "classpath_order";
 	
+	// Deprecated
 	public static String key_cancel_job_on_interrupt = "cancel_job_on_interrupt";
-	public static String key_cancel_managed_reservation_on_interrupt = "cancel_managed_reservation_on_interrupt";
 
 	public static String[] keys = {
 		JobRequestProperties.key_signature,
@@ -127,7 +127,6 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
         key_wait_for_completion,
         key_classpath_order,
         key_cancel_job_on_interrupt,
-        key_cancel_managed_reservation_on_interrupt,
 	};
 	
 	public boolean isRecognized(String key) {

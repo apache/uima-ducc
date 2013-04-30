@@ -25,6 +25,7 @@ import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
+import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 
 /**
  * These are the constants supported by the 'not-using-a-props-file' form of registration in DuccServiceApi.
@@ -80,7 +81,7 @@ public interface IUiOptions
         },
 
         CancelOnInterrupt { 
-            public String pname()       { return "cancel_on_interrupt"; }
+            public String pname()       { return SpecificationProperties.key_cancel_on_interrupt; }
             public String argname()     { return null; }
             public String description() { return "Cancel on interrupt (Ctrl-C). Implies "+WaitForCompletion.pname(); }
             public String example()     { return null; }
@@ -90,8 +91,9 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },       
         
+        // Deprecated
         CancelJobOnInterrupt { 
-            public String pname()       { return "cancel_job_on_interrupt"; }
+            public String pname()       { return JobSpecificationProperties.key_cancel_job_on_interrupt; }
             public String argname()     { return null; }
             public String description() { return "same as "+CancelOnInterrupt.pname(); }
             public String example()     { return null; }
@@ -101,8 +103,9 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
+		// Deprecated
         CancelManagedReservationOnInterrupt { 
-            public String pname()       { return "cancel_managed_reservation_on_interrupt"; }
+            public String pname()       { return ReservationSpecificationProperties.key_cancel_managed_reservation_on_interrupt; }
             public String argname()     { return null; }
             public String description() { return "same as "+CancelOnInterrupt.pname(); }
             public String example()     { return null; }

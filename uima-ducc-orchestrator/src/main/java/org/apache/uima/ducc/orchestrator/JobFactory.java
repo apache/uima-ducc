@@ -41,6 +41,7 @@ import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.PropertiesHelper;
+import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccSchedulingInfo;
@@ -574,10 +575,13 @@ public class JobFactory {
             job.setServiceEndpoint(ep);
         }
         // Cancel On Interrupt
-        if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_job_on_interrupt)) {
+        if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_on_interrupt)) {
         	job.setCancelOnInterrupt();
         }
-        if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_managed_reservation_on_interrupt)) {
+        else if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_job_on_interrupt)) {
+        	job.setCancelOnInterrupt();
+        }
+        else if(jobRequestProperties.containsKey(ReservationSpecificationProperties.key_cancel_managed_reservation_on_interrupt)) {
         	job.setCancelOnInterrupt();
         }
 		//TODO be sure to clean-up fpath upon job completion!
