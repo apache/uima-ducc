@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.common;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
@@ -172,7 +173,7 @@ public class UimaAsServiceMonitor
 
     private String format()
     {
-        return "avgNQ[" + enqueueTime
+        return "AveNQ[" + new DecimalFormat("####.##").format(enqueueTime)
             +  "] Consum[" + consumerCount
             +  "] Prod[" + producerCount
             +  "] Qsize[" + queueSize
