@@ -122,7 +122,7 @@ public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 	        reader = new BufferedReader(isr);
 	        reader.read(cbuf);
 	        String json = new String(cbuf);
-	        Type typeOfMap = new TypeToken<ConcurrentSkipListMap<String,WorkItemState>>() { }.getType();
+	        Type typeOfMap = new TypeToken<ConcurrentSkipListMap<Long, WorkItemState>>() { }.getType();
 			map = gson.fromJson(json, typeOfMap);
 		}
 		catch(Exception e) {
