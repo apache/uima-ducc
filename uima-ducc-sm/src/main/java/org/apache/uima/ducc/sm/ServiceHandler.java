@@ -660,31 +660,33 @@ public class ServiceHandler
                 // if it hadn't been before.
                 //  sset.resetRunFailures();
             } else {
-                sset.removeImplementor(id);
-
-                JobCompletionType jct = w.getCompletionType();
                 JobState          state = w.getJobState();
-                logger.info(methodName, id, "Removing stopped instance from maps: state[", state, "] completion[", jct, "]");
-                switch ( jct ) {
-                    case EndOfJob:
-                    case CanceledByUser:
-                    case CanceledByAdministrator:
-                    case Undefined:
-                        break;
-                    default:
-                        logger.debug(methodName, id, "RECORDING FAILURE");
-                        // all other cases are errors that contribute to the error count
-                        if ( sset.excessiveRunFailures() ) {    // if true, the count is exceeeded, but reset
-                            logger.warn(methodName, null, "Process Failure: " + jct + " Maximum consecutive failures[" + sset.failure_run + "] max [" + sset.failure_max + "]");
-                        } else {
-                            sset.start();
-                        }
-                        break;
-                }
                 
+                if ( state == JobState.Completed ) {
+                    sset.removeImplementor(id);
+                    JobCompletionType jct = w.getCompletionType();
+                        
+                    logger.info(methodName, id, "Removing stopped instance from maps: state[", state, "] completion[", jct, "]");
+                    switch ( jct ) {
+                        case EndOfJob:
+                        case CanceledByUser:
+                        case CanceledByAdministrator:
+                        case Undefined:
+                            break;
+                        default:
+                            logger.debug(methodName, id, "RECORDING FAILURE");
+                            // all other cases are errors that contribute to the error count
+                            if ( sset.excessiveRunFailures() ) {    // if true, the count is exceeeded, but reset
+                                logger.warn(methodName, null, "Process Failure: " + jct + " Maximum consecutive failures[" + sset.failure_run + "] max [" + sset.failure_max + "]");
+                            } else {
+                                sset.start();
+                            }
+                            break;
+                    }
+                }
             }
 
-            if ( (sset.getServiceState() == ServiceState.NotAvailable) && (sset.countReferences() == 0) ) {
+            if ( (sset.getServiceState() == ServiceState.NotAvailable) && (sset.countReferences() == 0) && (sset.countImplementors() == 0) ) {
                 // this service is now toast.  remove from our maps asap to avoid clashes if it gets
                 // resubmitted before the OR can purge it.
                 if ( ! sset.isRegistered() ) {

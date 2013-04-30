@@ -104,8 +104,13 @@ public class ServiceSet
     // Registered services, the number of instances to maintain
     int instances = 1;
 
-    // UIMA-AS pinger
+    // Service pinger
     IServiceMeta serviceMeta = null;
+
+    // After stopping a pinger we need to discard it,and we usually need to stop it well before
+    // it is ok to delete residual state such as UIMA-AS queues.  Instead of discarding it, we
+    // stash it here to use once the last implementor seems to be dead.
+    IServiceMeta residualMeta = null;
 
     // registered services state files
     DuccProperties job_props  = null;
@@ -729,12 +734,19 @@ public class ServiceSet
         logger.debug(methodName, this.id, "Removing implementor", id);
         implementors.remove(id);
         friendly_ids.remove(id.getFriendly());
+        if ( implementors.size() == 0 ) {
+            stopPingThread();
+        }
         String history = meta_props.getStringProperty(history_key, "");
         history = history + " " + id.toString();
         meta_props.put(history_key, history);
         persistImplementors();
-        if ( implementors.size() == 0 ) {
-            stopPingThread();
+
+        if ( (implementors.size() == 0) && (residualMeta != null) ) {  // Went to 0 and there was a pinger?
+            if ( isRegistered() || isSubmitted() ) {                   // Is one of our happy cases?
+                residualMeta.clearQueues();                            // Try to clear residal state.
+                residualMeta = null;                                   // All done now.
+            }
         }
     }
 
@@ -1074,8 +1086,10 @@ public class ServiceSet
         if ( serviceMeta != null ) {
             logger.warn(methodName, id, "Pinger exited voluntarily, setting state to Undefined. Endpoint", endpoint);
             setServiceState(ServiceState.Undefined);    // not really sure what state is. it will be
+
             // checked and updated next run through the
             // main state machine, and maybe ping restarted.
+            residualMeta = serviceMeta;
             serviceMeta = null;
         } else {
             setServiceState(ServiceState.NotAvailable);
@@ -1085,15 +1099,17 @@ public class ServiceSet
             deleteProperties();
         } else {
             saveMetaProperties();
-        }
+        }        
     }
 
     public synchronized void stopPingThread()
     {
         String methodName = "stopPingThread";
+
         if ( serviceMeta != null ) {
             logger.debug(methodName, id, "Stopping ping thread, endpoint", endpoint);
             serviceMeta.stop();
+            residualMeta = serviceMeta;
             serviceMeta = null;
         }
 

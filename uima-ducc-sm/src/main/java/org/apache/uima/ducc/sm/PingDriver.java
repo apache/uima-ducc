@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
+import org.apache.uima.ducc.common.AServicePing;
 import org.apache.uima.ducc.common.ServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -93,6 +94,8 @@ class PingDriver
 
     boolean shutdown = false;
     
+    AServicePing internal_pinger = null;
+    
     PingDriver(ServiceSet sset)
     {        
         this.sset = sset;
@@ -156,7 +159,21 @@ class PingDriver
             ping_thread.interrupt();
         }
     }
-
+    
+    public void clearQueues()
+    {
+    	String methodName = "clearQueues";
+        if ( internal_pinger != null ) {
+            try {
+				internal_pinger.clearQueues();
+			} catch (Throwable e) {
+                logger.warn(methodName, sset.getId(), "Error clearing queues: ", e.toString());
+			}
+        } else {
+            // external pinger
+        }
+    }
+    
     synchronized int getMetaPingRate()
     {
         return meta_ping_rate;
@@ -212,18 +229,18 @@ class PingDriver
     public void runAsThread()
     {
     	String methodName = "runAsThread";
-        UimaAsPing uap = new UimaAsPing(logger);
+        internal_pinger = new UimaAsPing(logger);
         try {
-            uap.init(endpoint);
+            internal_pinger.init(endpoint);
         } catch ( Throwable t ) {
             logger.warn(methodName, sset.getId(), t);
             sset.pingExited();
         }
         while ( ! shutdown ) {
             
-            handleStatistics(uap.getStatistics());
+            handleStatistics(internal_pinger.getStatistics());
             if ( errors > error_threshold ) {
-                uap.stop();
+                internal_pinger.stop();
                 logger.warn(methodName, sset.getId(), "Ping exited because of excess errors: ", errors);
                 sset.pingExited();
             }

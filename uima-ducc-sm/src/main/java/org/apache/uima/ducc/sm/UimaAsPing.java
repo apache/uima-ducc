@@ -74,7 +74,6 @@ public class UimaAsPing
         
         broker_jmx_port = SystemPropertyResolver.getIntProperty("ducc.sm.meta.jmx.port", 1099);
         this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
-        init_monitor();
 
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
@@ -88,29 +87,18 @@ public class UimaAsPing
         if ( monitor != null ) monitor.stop();
     }
 
+    public void clearQueues()
+    	throws Throwable
+    {
+        monitor.clearQueues();
+    } 
+
     private void doLog(String methodName, String msg)
     {
         if ( logger == null ) {
             System.out.println(msg);
         } else {
             logger.info(methodName, null, msg);
-        }
-    }
-
-    private synchronized void init_monitor()
-    {
-        String methodName = "init_monitor";
-        if ( ! connected ) {
-            try {
-                doLog(methodName, "Initializing monitor");
-                monitor.init(ep);
-                connected = true;
-                doLog(methodName, "Monitor initialized");
-            } catch (Throwable t ) {
-                connected = false;
-                // t.printStackTrace();
-                doLog(methodName, "Cannot initialize monitor: " + t.toString());
-            }
         }
     }
 
@@ -128,12 +116,7 @@ public class UimaAsPing
 
         try {
             //	this sends GetMeta request and blocks waiting for a reply
-            init_monitor();
-            if ( connected ) {
-                statistics = monitor.getStatistics();
-            } else {
-                return statistics;
-            }
+            statistics = monitor.getStatistics();
 
             uimaAsEngine.initialize(appCtx);
             statistics.setAlive(true);
@@ -142,8 +125,14 @@ public class UimaAsPing
 
         } catch( ResourceInitializationException e) {
             doLog(methodName, "Cannot issue getMeta to: " + endpoint + ":" + broker);
+            statistics.setHealthy(false);
+            statistics.setAlive(false);
         } finally {
-            uimaAsEngine.stop();
+            try {
+				uimaAsEngine.stop();
+			} catch (Throwable e) {
+				doLog(methodName, "Exception on UIMA-AS connection stop:" + e.toString());
+			}
         }
 
         return statistics;
