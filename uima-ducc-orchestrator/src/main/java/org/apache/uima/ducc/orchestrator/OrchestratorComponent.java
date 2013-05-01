@@ -435,6 +435,8 @@ implements Orchestrator {
 											+" "+
 											messages.fetchLabel("active service count")+activeServices
 											);
+			int jobDriverNodeCount = hostManager.nodes();
+			workMapCopy.setJobDriverNodeCount(jobDriverNodeCount);
 			orchestratorStateDuccEvent.setWorkMap(workMapCopy);
 			//stateManager.prune(workMapCopy);
 			//healthMonitor.cancelNonViableJobs();

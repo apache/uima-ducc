@@ -42,6 +42,8 @@ public class DuccWorkMap implements Serializable, Map {
 	
 	private ConcurrentHashMap<DuccId,IDuccWork> concurrentWorkMap = new ConcurrentHashMap<DuccId,IDuccWork>();
 	
+	private AtomicInteger atomicJobDriverNodeCount = new AtomicInteger(0);
+	
 	private AtomicInteger atomicJobCount = new AtomicInteger(0);
 	private AtomicInteger atomicServiceCount = new AtomicInteger(0);
 	private AtomicInteger atomicReservationCount = new AtomicInteger(0);
@@ -56,6 +58,18 @@ public class DuccWorkMap implements Serializable, Map {
 		concurrentReservationMap = new ConcurrentHashMap<String,DuccId>();
 	}
 
+	public boolean isJobDriverNodeAssigned() {
+		return atomicJobDriverNodeCount.get() > 0;
+	}
+	
+	public int getJobDriverNodeCount() {
+		return atomicJobDriverNodeCount.get();
+	}
+	
+	public void setJobDriverNodeCount(int count) {
+		atomicJobDriverNodeCount = new AtomicInteger(count);
+	}
+	
 	public int getJobCount() {
 		return atomicJobCount.get();
 	}
