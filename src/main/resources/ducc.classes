@@ -1,9 +1,15 @@
-scheduling.class_set    = background low normal high urgent weekly fixed reserve JobDriver
+scheduling.class_set    = background low normal high urgent weekly fixed reserve JobDriver debug
 scheduling.default.name = normal
 scheduling.default.name.reserve = fixed
 
 scheduling.nodepool           = jobdriver
 scheduling.nodepool.jobdriver = jobdriver.nodes
+
+#
+# class to use when debug or all-in-one is specified
+# and .debug is absent from fair_share class
+#
+scheduling.default.name.debug = debug
 
 #
 # The first five classes are blade-like unfair share
@@ -12,6 +18,7 @@ scheduling.class.background.policy       = FAIR_SHARE
 scheduling.class.background.share_weight = 1
 scheduling.class.background.priority     = 10
 scheduling.class.background.cap          = 0
+scheduling.class.background.debug        = debug
 
 scheduling.class.low.policy              = FAIR_SHARE
 scheduling.class.low.share_weight        = 50
@@ -75,4 +82,14 @@ scheduling.class.JobDriver.priority              = 0
 scheduling.class.JobDriver.cap                   = 0
 scheduling.class.JobDriver.enforce.memory        = false
 scheduling.class.JobDriver.max_machines     	 = 5
-scheduling.class.JobDriver.nodepool              = jobdriver
+
+#
+# used for debug and all-in-one
+#
+
+scheduling.class.debug.policy       = FIXED_SHARE
+scheduling.class.debug.share_weight = 1
+scheduling.class.debug.priority     = 9
+scheduling.class.debug.cap          = 0
+scheduling.class.debug.debug        = irrelevant
+
