@@ -21,11 +21,17 @@ package org.apache.uima.ducc.common.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
+
+import org.apache.commons.lang.StringUtils;
 
 public class DuccSchedulerClasses {
 	
 	public static final String FAIR_SHARE = "FAIR_SHARE";
+	public static final String FIXED_SHARE = "FIXED_SHARE";
+	public static final String RESERVE = "RESERVE";
+	public static final String JobDriver = "JobDriver";
 	
 	private static DuccSchedulerClasses instance = null;
 	
@@ -122,5 +128,37 @@ public class DuccSchedulerClasses {
 			retVal = class_name;
 		}
 		return retVal;
+	}
+	
+	public String[] getReserveClasses() {
+		ArrayList<String> classList = new ArrayList<String>();
+		Properties properties = getClasses();
+		String class_set = properties.getProperty("scheduling.class_set");
+		class_set.trim();
+		if(class_set != null) {
+			String[] class_array = StringUtils.split(class_set);
+			for(int i=0; i<class_array.length; i++) {
+				String class_name = class_array[i].trim();
+				String policy = getProperty(properties,"scheduling.class."+class_name+".policy");
+				if(policy.equals(FIXED_SHARE)) {
+					classList.add(class_name);
+				}
+				else if(policy.equals(RESERVE) && !class_name.equals(JobDriver)) {
+					classList.add(class_name);
+				}
+			}
+		}
+		String[] retVal = classList.toArray(new String[0]);
+		return retVal;
+	}
+	
+	public String getReserveClassDefaultName() {
+		String name = "";
+		Properties properties = getClasses();
+		String value = properties.getProperty("scheduling.default.name.reserve");
+		if(value != null) {
+			name = value.trim();
+		}
+		return name;
 	}
 }
