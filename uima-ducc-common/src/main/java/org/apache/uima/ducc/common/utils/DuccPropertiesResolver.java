@@ -73,6 +73,7 @@ public class DuccPropertiesResolver {
 	
 	public static final String ducc_jd_queue_prefix = "ducc.jd.queue.prefix";
 	
+	public static final String ducc_rm_class_definitions = "ducc.rm.class.definitions";
 	public static final String ducc_rm_share_quantum = "ducc.rm.share.quantum";
 	public static final String ducc_jd_share_quantum = "ducc.jd.share.quantum";
 	
