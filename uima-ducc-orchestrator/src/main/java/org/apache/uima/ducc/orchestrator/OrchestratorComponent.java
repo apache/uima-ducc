@@ -474,6 +474,8 @@ implements Orchestrator {
 											+" "+
 											messages.fetchLabel("active service count")+activeServices
 											);
+			int jobDriverNodeCount = hostManager.nodes();
+			workMapCopy.setJobDriverNodeCount(jobDriverNodeCount);
 			long t2 = System.currentTimeMillis();
 			orchestratorAbbreviatedStateDuccEvent.setWorkMap(workMapCopy);
 			long t3 = System.currentTimeMillis();
