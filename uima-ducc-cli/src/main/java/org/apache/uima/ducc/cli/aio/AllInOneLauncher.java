@@ -32,10 +32,10 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
-import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
 public class AllInOneLauncher extends CliBase {
@@ -47,8 +47,6 @@ public class AllInOneLauncher extends CliBase {
 	
 	private static String remote = "remote";
 	private static String local = "local";
-	
-	private static String fixed = "fixed";
 	
 	private static String enter = "enter";
 	private static String exit = "exit";
@@ -82,7 +80,8 @@ public class AllInOneLauncher extends CliBase {
 	
 	private String process_memory_size = null;
 	private String description = null;
-	private String scheduling_class = fixed;
+	
+	private String scheduling_class = null;
 	
 	private String specification = null;
 	
@@ -458,6 +457,51 @@ public class AllInOneLauncher extends CliBase {
 		mh.frameworkTrace(cid, mid, enter);
 		String pname = UiOption.SchedulingClass.pname();
 		if(isLocal()) {
+			String message = pname+"="+scheduling_class+" not considered";
+			mh.frameworkDebug(cid, mid, message);
+			used(pname);
+		}
+		else {
+			DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+			if(jobRequestProperties.containsKey(pname)) {
+				String user_scheduling_class = jobRequestProperties.getProperty(pname);
+				if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
+					scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
+					if(scheduling_class != null) {
+						String message = pname+"="+scheduling_class+" [replacement, specific]";
+						mh.frameworkDebug(cid, mid, message);
+						used(pname);
+					}
+					else {
+						scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+						String message = pname+"="+scheduling_class+" [replacement, default]";
+						mh.frameworkDebug(cid, mid, message);
+						used(pname);
+					}
+				}
+				else {
+					scheduling_class = user_scheduling_class;
+					String message = pname+"="+scheduling_class+" [original]";
+					mh.frameworkDebug(cid, mid, message);
+					used(pname);
+				}
+			}
+			else {
+				scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+				String message = pname+"="+scheduling_class+" [default]";
+				mh.frameworkDebug(cid, mid, message);
+				used(pname);
+			}
+		}
+		mh.frameworkTrace(cid, mid, exit);
+	}
+	
+	/*
+	private void examine_scheduling_class() {
+		String mid = "examine_scheduling_class";
+		mh.frameworkTrace(cid, mid, enter);
+		String pname = UiOption.SchedulingClass.pname();
+		if(isLocal()) {
 			String message = pname+"="+scheduling_class;
 			mh.frameworkDebug(cid, mid, message);
 			used(pname);
@@ -475,7 +519,8 @@ public class AllInOneLauncher extends CliBase {
 		}
 		mh.frameworkTrace(cid, mid, exit);
 	}
-
+	*/
+	
 	private void examine_process_deployments_max() {
 		String mid = "examine_process_deployments_max";
 		mh.frameworkTrace(cid, mid, enter);

@@ -24,6 +24,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
@@ -238,6 +239,39 @@ public class DuccJobSubmit
                 // For debugging, if the JP is being debugged, we have to force max processes to 1 & no restarts
                 props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
                 props.setProperty(UiOption.ProcessFailuresLimit.pname(), "1");
+                
+                // Alter scheduling class?
+                String scheduling_class = null;
+                String text = null;
+                String pname = UiOption.SchedulingClass.pname();
+                DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+    			if(jobRequestProperties.containsKey(pname)) {
+    				String user_scheduling_class = jobRequestProperties.getProperty(pname);
+    				if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
+    					scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
+    					if(scheduling_class != null) {
+    						text = pname+"="+scheduling_class+" [replacement, specific]";
+    					}
+    					else {
+    						scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+    						text = pname+"="+scheduling_class+" [replacement, default]";
+    					}
+    				}
+    				else {
+    					scheduling_class = user_scheduling_class;
+    					text = pname+"="+scheduling_class+" [original]";
+    				}
+    			}
+    			else {
+    				scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+    				text = pname+"="+scheduling_class+" [default]";
+    			}
+    			if(scheduling_class != null) {
+    				 props.setProperty(pname, scheduling_class);
+    				 if(text != null) {
+    					 message(text);
+    				 }
+    			}
             }
 
             do_debug = UiOption.DriverDebug.pname();
