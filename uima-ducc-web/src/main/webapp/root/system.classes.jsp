@@ -109,6 +109,7 @@ if (table_style.equals("scroll")) {
 	<th align="left">Prediction Fudge</th>
 	<th align="left">Max Allocation</th>
 	<th align="left">Nodepool</th>
+	<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Debug Class</th>
 	</tr>
 	</thead>
 	<tbody id="system_classes_list_area">
@@ -141,6 +142,7 @@ if (table_style.equals("classic")) {
 			<th align="left">Prediction Fudge</th>
 			<th align="left">Max Allocation</th>
 			<th align="left">Nodepool</th>
+			<th align="left" title="corresponding non-preemptable specific [or default] class name, if any">Debug Class</th>
 		</tr>
 		</thead>
 		<tbody id="system_classes_list_area">

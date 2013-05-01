@@ -50,6 +50,7 @@ import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -1326,7 +1327,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonArray data = new JsonArray();
 		JsonArray row;
 		
-		DuccWebSchedulerClasses schedulerClasses = new DuccWebSchedulerClasses(getFileName());
+		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
 		DuccProperties properties = schedulerClasses.getClasses();
 		String class_set = properties.getProperty("scheduling.class_set");
 		class_set.trim();
@@ -1416,6 +1417,22 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				val = properties.getStringProperty("scheduling.class."+class_name+".nodepool", "--global--");
 				row.add(new JsonPrimitive(val));
 				
+				// Debug
+				val = "-";
+				if(schedulerClasses.isPreemptable(class_name)) {
+					if(schedulerClasses.isPreemptable(class_name)) {
+						String v1 = properties.getStringProperty("scheduling.class."+class_name+".debug", "");
+						if(!v1.equals("")) {
+							val = v1;
+						}
+						else {
+							String v2 = properties.getStringProperty("scheduling.default.name.debug", "");
+							if(!v2.equals("")) {
+								val = "["+v2+"]";
+							}
+						}
+					}
+				}
 				data.add(row);
 			}
 		}

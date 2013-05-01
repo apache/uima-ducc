@@ -55,6 +55,7 @@ import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
@@ -2046,7 +2047,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("{ ");
 		sb.append("\"aaData\": [ ");
 		
-		DuccWebSchedulerClasses schedulerClasses = new DuccWebSchedulerClasses(getFileName());
+		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
 		DuccProperties properties = schedulerClasses.getClasses();
 		String class_set = properties.getProperty("scheduling.class_set");
 		class_set.trim();
@@ -2408,7 +2409,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		sb.append("<select id=\"scheduling_class\">");
-		DuccWebSchedulerClasses schedulerClasses = new DuccWebSchedulerClasses(getFileName());
+		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
 		String[] class_array = schedulerClasses.getReserveClasses();
 		String defaultName = schedulerClasses.getReserveClassDefaultName();
 		for(int i=0; i<class_array.length; i++) {

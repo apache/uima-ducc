@@ -22,11 +22,6 @@ public class DuccConstants {
 
 	public static final int workItemsDisplayMax = 4096;
 	
-	public static final String FAIR_SHARE = "FAIR_SHARE";
-	public static final String FIXED_SHARE = "FIXED_SHARE";
-	public static final String RESERVE = "RESERVE";
-	public static final String JobDriver = "JobDriver";
-	
 	public static final int defaultShareSize = 15;
 	public static final int[] memorySizes = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 	
