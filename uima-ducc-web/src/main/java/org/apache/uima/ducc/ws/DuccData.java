@@ -260,6 +260,18 @@ public class DuccData {
 		return duccWorkLive;
 	}
 	
+	public int getJobDriverNodes() {
+		String location = "getJobDriverNodes";
+		int retVal = 0;
+		try {
+			retVal = duccWorkLive.getJobCount();
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
 	private void updateJobs(IDuccWork duccWork) {
 		String location = "updateJobs";
 		DuccId duccId = duccWork.getDuccId();

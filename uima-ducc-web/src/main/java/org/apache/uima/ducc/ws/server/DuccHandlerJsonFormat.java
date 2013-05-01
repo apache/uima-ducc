@@ -1461,26 +1461,32 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 
 		for(DaemonName daemonName : DuccDaemonRuntimeProperties.daemonNames) {
 			row = new JsonArray();
-			String status = "unknown";
+			String status = "";
 			String heartbeat = "*";
 			String heartmax = "*";
 			Properties properties = DuccDaemonRuntimeProperties.getInstance().get(daemonName);
 			switch(daemonName) {
 			case Webserver:
-				status = "up";
+				status = DuccHandlerUtils.up();
 				break;
 			default:
-				status = "unknown";
+				status = DuccHandlerUtils.unknown();
 				heartbeat = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
 				long timeout = getMillisMIA(daemonName)/1000;
 				if(timeout > 0) {
 					try {
 						long overtime = timeout - Long.parseLong(heartbeat);
 						if(overtime < 0) {
-							status = "down";
+							status = DuccHandlerUtils.down();
 						}
 						else {
-							status = "up";
+							status = DuccHandlerUtils.up();
+							if(daemonName.equals(DaemonName.Orchestrator)) {
+								int jdCount = DuccData.getInstance().getLive().getJobDriverNodeCount();
+								if(jdCount == 0) {
+									status = DuccHandlerUtils.up_provisional(", pending JD allocation");
+								}
+							}
 						}
 					}
 					catch(Throwable t) {
@@ -1552,16 +1558,16 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String machineStatus = machineInfo.getStatus();
 				if(machineStatus.equals("down")) {
 					//status.append("<span class=\"health_red\""+">");
-					status.append(machineStatus);
+					status.append(DuccHandlerUtils.down());
 					//status.append("</span>");
 				}
 				else if(machineStatus.equals("up")) {
 					//status.append("<span class=\"health_green\""+">");
-					status.append(machineStatus);
+					status.append(DuccHandlerUtils.up());
 					//status.append("</span>");
 				}
 				else {
-					status.append("unknown");
+					status.append(DuccHandlerUtils.unknown());
 				}
 				row.add(new JsonPrimitive(status.toString()));
 				// Daemon Name

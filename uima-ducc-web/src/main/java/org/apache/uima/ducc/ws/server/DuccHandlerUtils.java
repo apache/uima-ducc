@@ -124,4 +124,36 @@ public class DuccHandlerUtils {
 		return retVal;
 	}
 	
+	public static String down() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("<span class=\"health_red\""+">");
+		sb.append("down");
+		sb.append("</span>");
+		return sb.toString();
+	}
+	
+	public static String up() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("<span class=\"health_green\""+">");
+		sb.append("up");
+		sb.append("</span>");
+		return sb.toString();
+	}
+	
+	public static String up_provisional(String text) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("<span class=\"health_black\""+">");
+		sb.append("up"+text);
+		sb.append("</span>");
+		return sb.toString();
+	}
+	
+	public static String unknown() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("<span class=\"health_black\""+">");
+		sb.append("unknown");
+		sb.append("</span>");
+		return sb.toString();
+	}
+	
 }
