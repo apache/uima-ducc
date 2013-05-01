@@ -354,6 +354,7 @@ public class ServiceManagerComponent
     {
 		String methodName = "processIncoming";
 
+        
         HashMap<DuccId, IDuccWork> newJobs = new HashMap<DuccId, IDuccWork>();
         HashMap<DuccId, IDuccWork> newServices = new HashMap<DuccId, IDuccWork>();
 
@@ -550,7 +551,12 @@ public class ServiceManagerComponent
     {
     	String methodName = "orchestratorStateArrives";
         if ( ! initialized ) {
-            logger.info(methodName, null, "SM not initialized, ignoring Orchestrator message.");
+            logger.info(methodName, null, "SM not initialized, ignoring Orchestrator state update.");
+            return;
+        }
+
+        if ( ! map.isJobDriverNodeAssigned() ) {
+            logger.info(methodName, null, "Orchestrator JD node not assigned, ignoring Orchestrator state update.");
             return;
         }
 
