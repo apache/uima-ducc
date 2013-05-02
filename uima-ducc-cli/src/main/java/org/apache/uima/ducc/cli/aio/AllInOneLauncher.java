@@ -34,7 +34,6 @@ import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
@@ -105,11 +104,6 @@ public class AllInOneLauncher extends CliBase {
 	public AllInOneLauncher(String[] args) throws Exception {
 		this.args = args;
 		init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
-		String key = DuccPropertiesResolver.ducc_submit_all_in_one_class;
-		String value = DuccPropertiesResolver.getInstance().getFileProperty(key);
-		if(value != null) {
-			scheduling_class = value;
-		}
 	}
 	
 	private boolean isLocal() {
