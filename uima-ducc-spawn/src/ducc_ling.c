@@ -544,10 +544,6 @@ int main(int argc, char **argv, char **envp)
     //
     if ( switch_ids ) {
         pwd = getpwnam(userid);
-        if ( strcmp(userid, "ducc") == 0 ) {
-            fprintf(stderr, "850 May not switch to user \"ducc\"\n");
-            exit(1);
-        }
 
         if ( pwd == NULL ) {
             fprintf(stderr, "820 User \"%s\" does not exist.\n", userid);
