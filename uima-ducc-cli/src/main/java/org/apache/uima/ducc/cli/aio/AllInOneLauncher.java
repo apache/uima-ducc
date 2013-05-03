@@ -32,6 +32,7 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
+import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
@@ -103,6 +104,12 @@ public class AllInOneLauncher extends CliBase {
 	
 	public AllInOneLauncher(String[] args) throws Exception {
 		this.args = args;
+		init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+	}
+	
+	public AllInOneLauncher(String[] args, IDuccCallback consoleCb) throws Exception {
+		this.args = args;
+		mh = new MessageHandler(consoleCb);
 		init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
 	}
 	
@@ -1016,14 +1023,24 @@ public class AllInOneLauncher extends CliBase {
         InputStreamReader isr = new InputStreamReader(is);
         BufferedReader ibr = new BufferedReader(isr);
         while ((line = ibr.readLine()) != null) {
-            System.out.println(line);
+        	if(consoleCb != null) {
+    			consoleCb.status(line);
+    		}
+        	else {
+        		System.out.println(line);
+        	}
         }
         
         InputStream es = process.getErrorStream();
         InputStreamReader esr = new InputStreamReader(es);
         BufferedReader ebr = new BufferedReader(esr);
         while ((line = ebr.readLine()) != null) {
-            System.err.println(line);
+        	if(consoleCb != null) {
+    			consoleCb.status(line);
+    		}
+        	else {
+        		System.err.println(line);
+        	}
         }
         
 		mh.frameworkTrace(cid, mid, "exit");
@@ -1142,18 +1159,38 @@ public class AllInOneLauncher extends CliBase {
 			addArg(cmdLine, "true");
 		}
 		String[] argList = cmdLine.toArray(new String[0]);
-		DuccManagedReservationSubmit ds = new DuccManagedReservationSubmit(argList);
-		boolean rc = ds.execute();
+		DuccManagedReservationSubmit mr = null;
+		if(consoleCb != null) {
+			mr = new DuccManagedReservationSubmit(argList, consoleCb);
+		}
+		else {
+			mr = new DuccManagedReservationSubmit(argList, consoleCb);
+		}
+		boolean rc = mr.execute();
 		
 		String dt = "Managed Reservation";
-    if (rc) {
-      System.out.println(dt + " " + ds.getDuccId() + " submitted.");
-      int code = ds.getReturnCode();
-      System.exit(code);
-    } else {
-      System.out.println("Could not submit " + dt);
-      System.exit(1);
-    }
+		
+		if (rc) {
+			String line = dt + " " + mr.getDuccId() + " submitted.";
+			if(consoleCb != null) {
+    			consoleCb.status(line);
+    		}
+        	else {
+        		System.out.println(line);
+        	}
+			int code = mr.getReturnCode();
+			System.exit(code);
+		} 
+		else {
+			String line = "Could not submit " + dt;
+			if(consoleCb != null) {
+    			consoleCb.status(line);
+    		}
+        	else {
+        		System.out.println(line);
+        	}
+			System.exit(1);
+		}
 
 		mh.frameworkDebug(cid, mid, "rc="+rc);
 		mh.frameworkTrace(cid, mid, "exit");
@@ -1175,7 +1212,12 @@ public class AllInOneLauncher extends CliBase {
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
-	public void go() throws Exception {
+	public boolean execute() throws Exception {
+		go();
+		return true;
+	}
+	
+	protected void go() throws Exception {
 		String mid = "go";
 		mh.frameworkTrace(cid, mid, "enter");
 		examine();
@@ -1188,8 +1230,5 @@ public class AllInOneLauncher extends CliBase {
 		allInOneLauncher.go();
 	}
 	
-	@Override
-	protected boolean execute() throws Exception {
-		return false;
-	}
+
 }

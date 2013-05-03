@@ -21,6 +21,8 @@ package org.apache.uima.ducc.cli.aio;
 import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.cli.IDuccCallback;
+
 public class MessageHandler implements IMessageHandler {
 	
 	private ConcurrentHashMap<Level,Toggle> map = new ConcurrentHashMap<Level,Toggle>();
@@ -28,7 +30,14 @@ public class MessageHandler implements IMessageHandler {
 	private Toggle timestamping = Toggle.Off;
 	private Toggle typeIdentifying = Toggle.On;
 	
+	private IDuccCallback consoleCb = null;
+	
 	public MessageHandler() {
+		initialize();
+	}
+	
+	public MessageHandler(IDuccCallback consoleCb) {
+		this.consoleCb = consoleCb;
 		initialize();
 	}
 	
@@ -109,8 +118,13 @@ public class MessageHandler implements IMessageHandler {
 			Date date = new Date();
 			text = date+" "+text;
 		}
-		System.out.println(text);
-		System.out.flush();
+		if(consoleCb != null) {
+			consoleCb.status(text);
+		}
+		else {
+			System.out.println(text);
+			System.out.flush();
+		}
 	}
 	
 	private void syserr(Level level, String message) {
@@ -126,8 +140,13 @@ public class MessageHandler implements IMessageHandler {
 			Date date = new Date();
 			text = date+" "+text;
 		}
-		System.err.println(text);
-		System.err.flush();
+		if(consoleCb != null) {
+			consoleCb.status(text);
+		}
+		else {
+			System.err.println(text);
+			System.err.flush();
+		}
 	}
 	
 	public void info(String message) {

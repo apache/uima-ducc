@@ -217,6 +217,21 @@ public abstract class CliBase
         return opts;
     }
 
+    protected String[] mkArgs(Properties props)
+    {
+        List<String> arglist = new ArrayList<String>();
+        for ( Object o : props.keySet() ) {
+            String k = (String) o;
+            String v = props.getProperty(k, "");
+            arglist.add("--" + k);
+            // Assume an empty value indicates a boolean option
+            if (v.length() > 0) {
+              arglist.add(v);
+            }
+        }
+        return arglist.toArray(new String[arglist.size()]);
+    }
+    
     private String[] mkArgs(DuccProperties props)
     {
         List<String> arglist = new ArrayList<String>();
@@ -538,7 +553,7 @@ public abstract class CliBase
         return (String) cli_props.getProperty(key);
     }
 
-    IDuccCallback getCallback()
+    protected IDuccCallback getCallback()
     {
         return consoleCb;
     }

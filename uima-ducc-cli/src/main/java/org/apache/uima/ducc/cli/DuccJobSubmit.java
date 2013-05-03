@@ -155,22 +155,36 @@ public class DuccJobSubmit
     
     public static UiOption[] opts = opts_release;
     
+    private AllInOneLauncher allInOneLauncher = null;
+    
     public DuccJobSubmit(ArrayList<String> args)
         throws Exception
     {
         this(args, null);
+        if(isAllInOne()) {
+        	String[] aioArgs = args.toArray(new String[0]);
+        	allInOneLauncher = new AllInOneLauncher(aioArgs);
+        }
     }
 
     public DuccJobSubmit(String[] args)
         throws Exception
     {
         this(args, null);
+        if(isAllInOne()) {
+        	String[] aioArgs = args;
+        	allInOneLauncher = new AllInOneLauncher(aioArgs);
+        }
     }
 
     public DuccJobSubmit(Properties props)
         throws Exception
     {
         this(props, null);
+        if(isAllInOne()) {
+        	String[] aioArgs = mkArgs(props);
+        	allInOneLauncher = new AllInOneLauncher(aioArgs);
+        }
     }
 
     public DuccJobSubmit(ArrayList<String> args, IDuccCallback consoleCb)
@@ -182,6 +196,10 @@ public class DuccJobSubmit
             opts = opts_beta;
         }
         init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+        if(isAllInOne()) {
+        	String[] aioArgs = args.toArray(new String[0]);
+        	allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+        }
     }
 
     public DuccJobSubmit(String[] args, IDuccCallback consoleCb)
@@ -192,6 +210,10 @@ public class DuccJobSubmit
                opts = opts_beta;
         }
         init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+        if(isAllInOne()) {
+        	String[] aioArgs = args;
+        	allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+        }
     }
 
     public DuccJobSubmit(Properties props, IDuccCallback consoleCb)
@@ -206,6 +228,10 @@ public class DuccJobSubmit
             opts = opts_beta;
         }
         init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+        if(isAllInOne()) {
+        	String[] aioArgs = mkArgs(props);
+        	allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+        }
     }
 
     private void set_debug_parms(Properties props, String key, int port)
@@ -383,7 +409,18 @@ public class DuccJobSubmit
 
     //**********        
     
-    public boolean execute() 
+    public boolean execute() throws Exception {
+    	if(isAllInOne()) {
+    		return execute_aio();
+    	}
+    	return execute_job();
+    }
+    
+    private boolean execute_aio() throws Exception {
+    	return allInOneLauncher.execute();
+    }
+    
+    private boolean execute_job() 
         throws Exception 
     {
                     
@@ -561,8 +598,8 @@ public class DuccJobSubmit
     }
     
     private static void main_aio(String[] args) throws Exception {
-        AllInOneLauncher allInOneLauncher = new AllInOneLauncher(args);
-        allInOneLauncher.go();
+        AllInOneLauncher main_allInOneLauncher = new AllInOneLauncher(args);
+        main_allInOneLauncher.execute();
     }
     
     public static void main(String[] args) {
