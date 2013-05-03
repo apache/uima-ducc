@@ -54,6 +54,8 @@ if (table_style.equals("scroll")) {
                              		$('td:eq(16)', nRow).css( "text-align", "right" );
                              		$('td:eq(17)', nRow).css( "text-align", "right" );
                              		$('td:eq(18)', nRow).css( "text-align", "right" );
+                             		$('td:eq(19)', nRow).css( "text-align", "right" );
+                             		$('td:eq(20)', nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -116,6 +118,8 @@ if (table_style.equals("scroll")) {
 	<th title="The number of job processes currently running">Proc-<br>esses</th>
 	<th title="The number of job processes that failed during initialization">Init<br>Fails</th>
 	<th title="The number of job processes that failed during runtime (post-initialization)">Run<br>Fails</th>
+	<th title="The count for all job processes of major faults which required loading a memory page from disk">Pgin</th>
+	<th title="The GB swapped out to disk for all job processes, current if state=running or maximum if state=completed">Swap</th>
 	<th title="Each job process size, in GB">Size</th>
 	<th title="The total number of work items for this job">Total</th>
 	<th title="The number of work items that completed successfully">Done</th>
@@ -154,6 +158,8 @@ if (table_style.equals("classic")) {
 		<th title="The number of job processes currently running">Proc-<br>esses</th>
 		<th title="The number of job processes that failed during initialization">Init<br>Fails</th>
 		<th title="The number of job processes that failed during runtime (post-initialization)">Run<br>Fails</th>
+		<th title="The count for all job processes of major faults which required loading a memory page from disk">Pgin</th>
+		<th title="The GB swapped out to disk for all job processes, current if state=running or maximum if state=completed">Swap</th>
 		<th title="Each job process size, in GB">Size</th>
 		<th title="The total number of work items for this job">Total</th>
 		<th title="The number of work items that completed successfully">Done</th>

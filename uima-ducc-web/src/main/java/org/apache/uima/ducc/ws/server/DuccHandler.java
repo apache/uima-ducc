@@ -61,6 +61,7 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
+import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
@@ -319,10 +320,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 	
-	private double KB = 1000;
-	private double MB = 1000*KB;
-	private double GB = 1000*MB;
-	
 	DecimalFormat sizeFormatter = new DecimalFormat("##0.00");
 	
 	private boolean fileExists(String fileName) {
@@ -344,7 +341,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		try {
 			File file = new File(fileName);
 			double size = file.length();
-			size = size / MB;
+			size = size / Constants.MB;
 			retVal = sizeFormatter.format(size);
 		}
 		catch(Exception e) {
@@ -645,7 +642,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			// Swap
 			if(process.isComplete()) {
 				double swap = process.getSwapUsageMax();
-				swap = swap/GB;
+				swap = swap/Constants.GB;
 				String displaySwap = formatter.format(swap);
 				sb.append("<td align=\"right\" "+">");
 				sb.append(displaySwap);
@@ -653,10 +650,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else {
 				double swap = process.getSwapUsage();
-				swap = swap/GB;
+				swap = swap/Constants.GB;
 				String displaySwap = formatter.format(swap);
 				double swapMax = process.getSwapUsageMax();
-				swapMax = swapMax/GB;
+				swapMax = swapMax/Constants.GB;
 				String displaySwapMax = formatter.format(swapMax);
 				sb.append("<td title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
 				sb.append(displaySwap);
@@ -704,7 +701,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		*/
 		if(process.isComplete()) {
 			double rss = process.getResidentMemoryMax();
-			rss = rss/GB;
+			rss = rss/Constants.GB;
 			String displayRss = formatter.format(rss);
 			sb.append("<td align=\"right\" "+">");
 			sb.append(displayRss);
@@ -712,10 +709,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		else {
 			double rss = process.getResidentMemory();
-			rss = rss/GB;
+			rss = rss/Constants.GB;
 			String displayRss = formatter.format(rss);
 			double rssMax = process.getResidentMemoryMax();
-			rssMax = rssMax/GB;
+			rssMax = rssMax/Constants.GB;
 			String displayRssMax = formatter.format(rssMax);
 			sb.append("<td title=\"max="+displayRssMax+"\" align=\"right\" "+">");
 			sb.append(displayRss);

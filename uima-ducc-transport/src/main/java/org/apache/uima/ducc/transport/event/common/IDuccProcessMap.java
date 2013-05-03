@@ -46,4 +46,8 @@ public interface IDuccProcessMap extends Map<DuccId,IDuccProcess>, Serializable 
 	
 	public Map<DuccId,IDuccProcess> getMap();
 	public IDuccProcessMap deepCopy();
+	
+	public long getPgInCount();
+	public double getSwapUsageGb();
+	public double getSwapUsageGbMax();
 }

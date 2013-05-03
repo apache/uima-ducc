@@ -27,6 +27,7 @@ import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
@@ -301,5 +302,43 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		ArrayList<DuccId> list = getFailedNotInitialization();
 		return list.size();
 	}
-
+	
+	public long getPgInCount() {
+		long retVal = 0;
+		synchronized(this) {
+			Iterator<IDuccProcess> iterator = this.values().iterator();
+			while(iterator.hasNext()) {
+				IDuccProcess process = iterator.next();
+				retVal += process.getMajorFaults();
+			}
+		}
+		return retVal;
+	}
+	
+	public double getSwapUsageGb() {
+		double retVal = 0;
+		synchronized(this) {
+			Iterator<IDuccProcess> iterator = this.values().iterator();
+			while(iterator.hasNext()) {
+				IDuccProcess process = iterator.next();
+				double swap = process.getSwapUsage();
+				retVal += swap/Constants.GB;
+			}
+		}
+		return retVal;
+	}
+	
+	public double getSwapUsageGbMax() {
+		double retVal = 0;
+		synchronized(this) {
+			Iterator<IDuccProcess> iterator = this.values().iterator();
+			while(iterator.hasNext()) {
+				IDuccProcess process = iterator.next();
+				double swap = process.getSwapUsageMax();
+				retVal += swap/Constants.GB;
+			}
+		}
+		return retVal;
+	}
+	
 }

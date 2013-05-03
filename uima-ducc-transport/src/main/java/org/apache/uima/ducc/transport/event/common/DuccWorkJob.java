@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -369,6 +370,52 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	
 	public boolean hasAliveProcess() {
 		return (getAliveProcessCount() > 0);
+	}
+	
+	public long getPgInCount() {
+		long retVal = 0;
+		IDuccProcessMap map = getProcessMap();
+		if(map != null) {
+			retVal += map.getPgInCount();
+		}
+		DuccWorkPopDriver driver = getDriver();
+		if(driver != null) {
+			map = driver.getProcessMap();
+			retVal += map.getPgInCount();
+		}
+		return retVal;
+	}
+	
+	public double getSwapUsageGb() {
+		double retVal = 0;
+		IDuccProcessMap map = getProcessMap();
+		if(map != null) {
+			double swap = map.getSwapUsageGb();
+			retVal += swap/Constants.GB;
+		}
+		DuccWorkPopDriver driver = getDriver();
+		if(driver != null) {
+			map = driver.getProcessMap();
+			double swap = map.getSwapUsageGb();
+			retVal += swap/Constants.GB;
+		}
+		return retVal;
+	}
+	
+	public double getSwapUsageGbMax() {
+		long retVal = 0;
+		IDuccProcessMap map = getProcessMap();
+		if(map != null) {
+			double swap = map.getSwapUsageGbMax();
+			retVal += swap/Constants.GB;
+		}
+		DuccWorkPopDriver driver = getDriver();
+		if(driver != null) {
+			map = driver.getProcessMap();
+			double swap = map.getSwapUsageGbMax();
+			retVal += swap/Constants.GB;
+		}
+		return retVal;
 	}
 	
 	// **********

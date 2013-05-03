@@ -20,6 +20,7 @@ package org.apache.uima.ducc.ws.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -48,12 +49,12 @@ import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
+import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
-import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
@@ -64,7 +65,6 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
-import org.apache.uima.ducc.ws.PagingObserver;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
@@ -79,7 +79,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 
-	private static PagingObserver pagingObserver = PagingObserver.getInstance();
+	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
 	public final String legacyJobs 					= duccContextLegacy+"-jobs-data";
 	public final String legacyReservations 			= duccContextLegacy+"-reservations-data";
@@ -102,6 +102,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			DuccId duccId = job.getDuccId();
 			if(job.isOperational()) {
 				boolean multi = false;
+				/*
 				sb.append("<td valign=\"bottom\">");
 				if(pagingObserver.isPaging(job)) {
 					multi = true;
@@ -110,6 +111,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 					sb.append("Paging");
 					sb.append("</span>");
 				}
+				*/
 				//
 				String monitor = getMonitor(duccId, type, multi);
 				if(monitor.length() > 0) {
@@ -265,6 +267,21 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		// Runtime Failures
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		sb.append(buildRuntimeFailuresLink(job));
+		sb.append("</td>");
+		// Pgin
+		sb.append("<td valign=\"bottom\" align=\"right\">");
+		long pgin = job.getPgInCount();
+		sb.append(""+pgin);
+		sb.append("</td>");
+		// Swap
+		DecimalFormat formatter = new DecimalFormat("##0.0");
+		sb.append("<td valign=\"bottom\" align=\"right\">");
+		double swap = job.getSwapUsageGbMax();
+		if(job.isCompleted()) {
+			swap = job.getSwapUsageGbMax();
+		}
+		String displaySwapMax = formatter.format(swap);
+		sb.append(displaySwapMax);
 		sb.append("</td>");
 		// Size
 		sb.append("<td valign=\"bottom\" align=\"right\">");

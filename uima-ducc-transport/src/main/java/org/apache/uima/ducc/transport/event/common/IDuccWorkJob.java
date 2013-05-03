@@ -74,4 +74,8 @@ public interface IDuccWorkJob extends IDuccWorkService, IDuccWorkExecutable, Ser
 	
 	public long getAliveProcessCount();
 	public boolean hasAliveProcess();
+	
+	public long getPgInCount();
+	public double getSwapUsageGb();
+	public double getSwapUsageGbMax();
 }
