@@ -475,10 +475,10 @@ public class DuccPerfStats
         }
         ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateManager.getMap();
         int namemax = 0;
-        int nodemax = 0;
+        int nodemax = 0; 
 
         ArrayList<IWorkItemState> items = new ArrayList<IWorkItemState>();
-        for ( Object k : map.keySet() ) {
+        for ( Long k: map.keySet() ) {
             IWorkItemState iws = map.get(k);
             String id   = iws.getWiId();
             String node = iws.getNode();            
