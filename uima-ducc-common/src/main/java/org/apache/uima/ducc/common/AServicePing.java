@@ -38,13 +38,4 @@ public abstract class AServicePing
      */
     public abstract ServiceStatistics getStatistics();
     
-    /**
-     * Clears lingering service state.  In the case of UIMA-AS services, this will delete the
-     * queue, if nobody is using it any more.  Other types of services do service-specific things.y
-     */
-    public void clearQueues()
-    	throws Throwable
-    {
-        // default, do nothing
-    }
 }

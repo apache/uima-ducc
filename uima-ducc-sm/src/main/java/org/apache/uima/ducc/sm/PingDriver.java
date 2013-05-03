@@ -85,6 +85,7 @@ class PingDriver
     int meta_ping_stability;
     String meta_ping_timeout;
     Thread ping_thread;
+    boolean internal_ping = true;
     ServiceStatistics service_statistics = null;
 
     String user;
@@ -106,7 +107,13 @@ class PingDriver
         this.user              = meta_props.getStringProperty("user");
         String jvm_args_str    = job_props.getStringProperty("service_ping_jvm_args", "");
         this.ping_class        = job_props.getStringProperty("service_ping_class", null);
-        if ( this.ping_class != null ) {     // otherwise it's implicit or submitted and we don't care about any of these
+
+        
+
+        if ( (ping_class == null) || ping_class.equals(UimaAsPing.class.getName()) ) {
+            internal_ping = true;
+        } else {
+            internal_ping = false;
             this.meta_ping_timeout = job_props.getStringProperty("service_ping_timeout");
             this.do_log            = job_props.getBooleanProperty("service_ping_dolog", true);
             this.classpath         = job_props.getStringProperty("service_ping_classpath");
@@ -137,7 +144,7 @@ class PingDriver
 
         this.endpoint = dp.getStringProperty("endpoint");
         String jvm_args_str = dp.getStringProperty("service_ping_jvm_args", "");
-        this.ping_class = dp.getStringProperty("service_ping_ping");
+        this.ping_class = dp.getStringProperty("service_ping_class");
         this.classpath = dp.getStringProperty("service_ping_classpath");
         jvm_args = jvm_args_str.split(" ");
         this.test_mode = true;
@@ -150,7 +157,7 @@ class PingDriver
 
     public void reference()
     {
-        if ( this.ping_class == null ) return;   // internal ping, doesn't need this kludge
+        if ( internal_ping ) return;   // internal ping, doesn't need this kludge
 
         synchronized(ping_rate_sync) {
             meta_ping_rate = 500;
@@ -159,21 +166,7 @@ class PingDriver
             ping_thread.interrupt();
         }
     }
-    
-    public void clearQueues()
-    {
-    	String methodName = "clearQueues";
-        if ( internal_pinger != null ) {
-            try {
-				internal_pinger.clearQueues();
-			} catch (Throwable e) {
-                logger.warn(methodName, sset.getId(), "Error clearing queues: ", e.toString());
-			}
-        } else {
-            // external pinger
-        }
-    }
-    
+        
     synchronized int getMetaPingRate()
     {
         return meta_ping_rate;
@@ -182,7 +175,8 @@ class PingDriver
     public void run()
     {
     	String methodName = "run";
-        if ( this.ping_class == null ) {
+
+        if ( internal_ping ) {
             // This is the default ping driver, as configured in ducc.propeties, to be run in
             // an in-process thread
             logger.info(methodName, sset.getId(), "Starting INTERNAL ping.");
@@ -347,7 +341,7 @@ class PingDriver
     public void stop()
     {
         shutdown = true;
-        if ( this.ping_class != null ) {
+        if ( !internal_ping ) {
             if ( pinger       != null ) pinger.stop();
             if ( sin_listener != null ) sin_listener.stop();
             if ( ser_listener != null ) ser_listener.stop();
@@ -394,7 +388,21 @@ class PingDriver
                 ping_ok = false;         // we expect the callback to change this
 				while ( true ) {
                     synchronized(this) {
-                        if ( done ) return;
+                        if ( done ) {
+                            // Ask for the ping
+                            try {
+                                logger.trace(methodName, sset.getId(), "PingDriver: ping QUIT");
+                                out.write('Q');
+                                out.flush();
+                            } catch (IOException e1) {
+                                logger.error(methodName, sset.getId(), e1);
+                                errors++;
+                            }
+                            ois.close();
+                            out.close();
+                            in.close();                            
+                            return;
+                        }
                     }
 
                     if ( errors > error_threshold ) {

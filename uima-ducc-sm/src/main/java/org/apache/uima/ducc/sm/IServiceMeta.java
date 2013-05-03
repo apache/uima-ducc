@@ -28,5 +28,4 @@ interface IServiceMeta
     public void run();
     public void stop();
     public void reference();
-    public void clearQueues();
 }

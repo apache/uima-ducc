@@ -40,6 +40,7 @@ import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.ServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
+import org.apache.uima.ducc.common.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -742,10 +743,39 @@ public class ServiceSet
         meta_props.put(history_key, history);
         persistImplementors();
 
-        if ( (implementors.size() == 0) && (residualMeta != null) ) {  // Went to 0 and there was a pinger?
-            if ( isRegistered() || isSubmitted() ) {                   // Is one of our happy cases?
-                residualMeta.clearQueues();                            // Try to clear residal state.
-                residualMeta = null;                                   // All done now.
+        //
+        // So much to check here
+        // -  all implementors gone?
+        // - is it a registered, not-ping-only service, or a submitted service (startable)
+        // - is it a uima-as service, with an internal pinger?
+        // Only if all that is true, we'll clear out the queues.
+        //==
+        logger.debug(methodName, id, "implementors.size()", implementors.size(),
+                     "service_class", service_class,
+                     "isStartable()", isStartable(),
+                     "isSubmitted()", isSubmitted(),
+                     "service_type", service_type,
+                     "ping_class", job_props.getStringProperty("service_ping_class", UimaAsPing.class.getName())
+                     );
+
+        if ( implementors.size() == 0 ) {     // Went to 0 and there was a pinger?
+            if ( ( (service_class == ServiceClass.Registered) && isStartable()) || isSubmitted() ) {   // Is one of our happy cases (not ping-only, we don't know much about it.)
+                if ( service_type == ServiceType.UimaAs ) {
+                    // Either no pinger specified, in which case the default is used.  Or, it is specified, and if it
+                    // matches the default, we get to clear anyway.
+                    String pingclass = job_props.getStringProperty("service_ping_class", UimaAsPing.class.getName());
+                    if ( pingclass.equals(UimaAsPing.class.getName()) ) {
+                        UimaAsServiceMonitor monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
+                        logger.debug(methodName, id, "Clearing queues");
+                        try {
+                        	monitor.init(null);
+							monitor.clearQueues();
+						} catch (Throwable e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+                    }
+                }
             }
         }
     }

@@ -87,12 +87,6 @@ public class UimaAsPing
         if ( monitor != null ) monitor.stop();
     }
 
-    public void clearQueues()
-    	throws Throwable
-    {
-        monitor.clearQueues();
-    } 
-
     private void doLog(String methodName, String msg)
     {
         if ( logger == null ) {

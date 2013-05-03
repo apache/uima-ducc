@@ -31,12 +31,10 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.activemq.broker.jmx.BrokerViewMBean;
 import org.apache.activemq.broker.jmx.QueueViewMBean;
-import org.apache.uima.ducc.common.utils.DuccLogger;
 
 public class UimaAsServiceMonitor
     extends AServicePing
 {
-	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), "SM");	
 
     private String qname;
     private String broker_url;
@@ -95,7 +93,6 @@ public class UimaAsServiceMonitor
         throws Exception
     {
         String methodName = "init";
-        logger.info(methodName, null, "INIT");
 
         JMXServiceURL url = new JMXServiceURL(broker_url);
         jmxc = JMXConnectorFactory.connect(url);
@@ -142,25 +139,14 @@ public class UimaAsServiceMonitor
         String methodName = "clearQueues";
         init(null);
 
-        logger.info(methodName, null, "Clear queues starts.");
         if ( ( qname != null ) && ( brokerMBean != null ) ) {
-            consumerCount  = monitoredQueue.getConsumerCount();
-            producerCount  = monitoredQueue.getProducerCount();
-            logger.info(methodName, null, "Trying to clear: cousumerCount[", consumerCount, "] producerCount[", producerCount, "]");
-            if ( (consumerCount == 0) && (producerCount == 0) ) {
-                brokerMBean.removeQueue(qname);
-            }
+            brokerMBean.removeQueue(qname);
         }
         stop();
-        logger.info(methodName, null, "Clear queues returns.");
-
     }
 
     public void stop()
     {
-        String methodName = "stop";
-        logger.info(methodName, null, "STOP");
-
         try {
 			if ( jmxc != null ) {
 			    jmxc.close();
@@ -194,7 +180,6 @@ public class UimaAsServiceMonitor
     {
     	String methodName = "collect";
         init(null);
-        logger.info(methodName, null, "Collect stats", monitoredQueue);
         if ( monitoredQueue != null ) {
             enqueueTime    = monitoredQueue.getAverageEnqueueTime();
             consumerCount  = monitoredQueue.getConsumerCount();
