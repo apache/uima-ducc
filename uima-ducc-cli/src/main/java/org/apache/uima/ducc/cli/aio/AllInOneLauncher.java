@@ -453,7 +453,7 @@ public class AllInOneLauncher extends CliBase {
 		mh.frameworkTrace(cid, mid, exit);
 	}
 	
-	private void examine_scheduling_class() {
+	private void examine_scheduling_class() throws MissingArgumentException {
 		String mid = "examine_scheduling_class";
 		mh.frameworkTrace(cid, mid, enter);
 		String pname = UiOption.SchedulingClass.pname();
@@ -463,22 +463,25 @@ public class AllInOneLauncher extends CliBase {
 			used(pname);
 		}
 		else {
+			String user_scheduling_class = jobRequestProperties.getProperty(pname);
+			if(user_scheduling_class == null) {
+				throw new MissingArgumentException(pname);
+			}
 			DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-			if(jobRequestProperties.containsKey(pname)) {
-				String user_scheduling_class = jobRequestProperties.getProperty(pname);
-				if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
-					scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
-					if(scheduling_class != null) {
-						String message = pname+"="+scheduling_class+" [replacement, specific]";
-						mh.frameworkDebug(cid, mid, message);
-						used(pname);
-					}
-					else {
-						scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-						String message = pname+"="+scheduling_class+" [replacement, default]";
-						mh.frameworkDebug(cid, mid, message);
-						used(pname);
-					}
+			if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
+				String default_scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+				String specific_scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
+				if(specific_scheduling_class != null) {
+					scheduling_class = specific_scheduling_class;
+					String message = pname+"="+scheduling_class+" [replacement, specific]";
+					mh.frameworkDebug(cid, mid, message);
+					used(pname);
+				}
+				else if(default_scheduling_class != null) {
+					scheduling_class = default_scheduling_class;
+					String message = pname+"="+scheduling_class+" [replacement, default]";
+					mh.frameworkDebug(cid, mid, message);
+					used(pname);
 				}
 				else {
 					scheduling_class = user_scheduling_class;
@@ -486,12 +489,6 @@ public class AllInOneLauncher extends CliBase {
 					mh.frameworkDebug(cid, mid, message);
 					used(pname);
 				}
-			}
-			else {
-				scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-				String message = pname+"="+scheduling_class+" [default]";
-				mh.frameworkDebug(cid, mid, message);
-				used(pname);
 			}
 		}
 		mh.frameworkTrace(cid, mid, exit);

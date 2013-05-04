@@ -86,46 +86,31 @@ public class DuccSchedulerClasses {
 	}
 	
 	public String getDebugClassDefaultName() {
-		String name = "";
+		String retVal = null;
 		Properties properties = getClasses();
-		String value = properties.getProperty("scheduling.default.name.debug");
+		String key = "scheduling.default.name.debug";
+		String value = properties.getProperty(key);
 		if(value != null) {
-			name = value.trim();
+			value = value.trim();
+			if(value.length() > 0) {
+				retVal = value;
+			}
 		}
-		return name;
+		return retVal;
 	}
 	
 	public String getDebugClassSpecificName(String class_name) {
 		String retVal = null;
 		if(class_name != null) {
 			Properties properties = getClasses();
-			String name = properties.getProperty("scheduling.class."+class_name+".debug", "");
-			if(name.equals("")) {
-				name = getDebugClassDefaultName();
-				if(name.equals("")) {
+			String key = "scheduling.class."+class_name+".debug";
+			String value = properties.getProperty(key);
+			if(value != null) {
+				value = value.trim();
+				if(value.length() > 0) {
+					retVal = value;
 				}
-				else {
-					retVal = name;
-				}
 			}
-			else {
-				retVal = name;
-			}
-		}
-		return retVal;
-	}
-	
-	public String getDebugClassName(String class_name) {
-		String retVal = null;
-		if(isPreemptable(class_name)) {
-			String name = getDebugClassSpecificName(class_name);
-			if(name == null) {
-				name = getDebugClassDefaultName();
-			}
-			retVal = name;
-		}
-		else {
-			retVal = class_name;
 		}
 		return retVal;
 	}
