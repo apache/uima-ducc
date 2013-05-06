@@ -92,7 +92,7 @@ public class UimaAsServiceMonitor
     public void init(String parm /* parm not used in this impl */)
         throws Exception
     {
-        String methodName = "init";
+        // String methodName = "init";
 
         JMXServiceURL url = new JMXServiceURL(broker_url);
         jmxc = JMXConnectorFactory.connect(url);
@@ -136,7 +136,7 @@ public class UimaAsServiceMonitor
     public void clearQueues()
         throws Throwable
     {
-        String methodName = "clearQueues";
+        // String methodName = "clearQueues";
         init(null);
 
         if ( ( qname != null ) && ( brokerMBean != null ) ) {
@@ -178,7 +178,7 @@ public class UimaAsServiceMonitor
     private void collect()
         throws Throwable
     {
-    	String methodName = "collect";
+    	// String methodName = "collect";
         init(null);
         if ( monitoredQueue != null ) {
             enqueueTime    = monitoredQueue.getAverageEnqueueTime();
