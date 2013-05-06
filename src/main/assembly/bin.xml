@@ -487,6 +487,13 @@ under the License.
   <files>
   
   <file>
+      <source>uima-ducc-ducbook/target/site/d/book.html</source>
+      <outputDirectory>ducc_runtime/webserver/root</outputDirectory>
+      <destName>system.duccbook.html</destName>
+      <fileMode>644</fileMode>
+    </file>
+
+  <file>
       <source>src/main/scripts/dd2spring.xsl</source>
       <outputDirectory>ducc_runtime/resources</outputDirectory>
       <destName>dd2spring.xsl</destName>
