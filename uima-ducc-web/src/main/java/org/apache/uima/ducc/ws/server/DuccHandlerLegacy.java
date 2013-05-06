@@ -48,7 +48,6 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
@@ -94,69 +93,6 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 
 	public String getFileName() {
 		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
-	}
-	
-	private String getReason(IDuccWorkJob job, DuccType type) {
-		StringBuffer sb = new StringBuffer();
-		if(job != null) {
-			DuccId duccId = job.getDuccId();
-			if(job.isOperational()) {
-				boolean multi = false;
-				/*
-				sb.append("<td valign=\"bottom\">");
-				if(pagingObserver.isPaging(job)) {
-					multi = true;
-					String title = "a page-in operation occurred for at least one process during the past "+PagingObserver.intervalInSeconds+" seconds";
-					sb.append("<span class=\"health_red\" title=\""+title+"\">");
-					sb.append("Paging");
-					sb.append("</span>");
-				}
-				*/
-				//
-				String monitor = getMonitor(duccId, type, multi);
-				if(monitor.length() > 0) {
-					if(multi) {
-						sb.append(" ");
-					}
-					multi = true;
-					sb.append(monitor);
-				}
-				sb.append("</td>");
-			}
-			else if(job.isCompleted()) {
-				JobCompletionType jobCompletionType = job.getCompletionType();
-				switch(jobCompletionType) {
-				case EndOfJob:
-					try {
-						int total = job.getSchedulingInfo().getIntWorkItemsTotal();
-						int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
-						int error = job.getSchedulingInfo().getIntWorkItemsError();
-						if(total != (done+error)) {
-							jobCompletionType = JobCompletionType.Premature;
-						}
-					}
-					catch(Exception e) {
-					}
-					sb.append("<td valign=\"bottom\">");
-					break;
-				case Undefined:
-					sb.append("<td valign=\"bottom\">");
-					break;
-				default:
-					IRationale rationale = job.getCompletionRationale();
-					if(rationale != null) {
-						sb.append("<td valign=\"bottom\" title=\""+rationale+"\">");
-					}
-					else {
-						sb.append("<td valign=\"bottom\">");
-					}
-					break;
-				}
-				sb.append(jobCompletionType);
-				sb.append("</td>");
-			}
-		}
-		return sb.toString();
 	}
 	
 	private void buildJobsListEntry(HttpServletRequest request, StringBuffer sb, DuccId duccId, IDuccWorkJob job, DuccData duccData, long now, ServicesRegistry servicesRegistry) {
@@ -238,8 +174,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Reason
-		String reason = getReason(job, DuccType.Job);
+		String reason = getReason(job, DuccType.Job).toString();
+		sb.append("<td>");
 		sb.append(reason);
+		sb.append("</td>");
 		// Services
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		sb.append(evaluateServices(job,servicesRegistry));
@@ -584,8 +522,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		}
 		else if(duccwork instanceof DuccWorkJob) {
 			DuccWorkJob job = (DuccWorkJob) duccwork;
-			String reason = getReason(job, DuccType.Reservation);
+			String reason = getReason(job, DuccType.Reservation).toString();
+			sb.append("<td>");
 			sb.append(reason);
+			sb.append("</td>");
 		}
 		// Allocation
 		sb.append("<td align=\"right\">");

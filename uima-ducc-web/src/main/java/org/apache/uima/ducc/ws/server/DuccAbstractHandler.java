@@ -41,6 +41,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
+import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
@@ -1049,5 +1051,74 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			sb.append("</span>");
 		}
 		return sb.toString();
+	}
+	
+	protected StringBuffer getReason(IDuccWorkJob job, DuccType type) {
+		StringBuffer sb = new StringBuffer();
+		try {
+			if(job != null) {
+				DuccId duccId = job.getDuccId();
+				sb = new StringBuffer();
+				if(job.isOperational()) {
+					boolean multi = false;
+					/*
+					sb.append("<span>");
+					if(pagingObserver.isPaging(job)) {
+						multi = true;
+						String title = "a page-in operation occurred for at least one process during the past "+PagingObserver.intervalInSeconds+" seconds";
+						sb.append("<span class=\"health_red\" title=\""+title+"\">");
+						sb.append("Paging");
+						sb.append("</span>");
+					}
+					sb.append("</span>");
+					*/
+					//
+					String monitor = getMonitor(duccId, type, multi);
+					if(monitor.length() > 0) {
+						if(multi) {
+							sb.append(" ");
+						}
+						multi = true;
+						sb.append(monitor);
+					}
+				}
+				else if(job.isCompleted()) {
+					JobCompletionType jobCompletionType = job.getCompletionType();
+					switch(jobCompletionType) {
+					case EndOfJob:
+						try {
+							int total = job.getSchedulingInfo().getIntWorkItemsTotal();
+							int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
+							int error = job.getSchedulingInfo().getIntWorkItemsError();
+							if(total != (done+error)) {
+								jobCompletionType = JobCompletionType.Premature;
+							}
+						}
+						catch(Exception e) {
+						}
+						sb.append("<span>");
+						break;
+					case Undefined:
+						sb.append("<span>");
+						break;
+					default:
+						IRationale rationale = job.getCompletionRationale();
+						if(rationale != null) {
+							sb.append("<span title=\""+rationale+"\">");
+						}
+						else {
+							sb.append("<span>");
+						}
+						break;
+					}
+					sb.append(jobCompletionType);
+					sb.append("</span>");
+				}
+			}
+		}
+		catch(Exception e) {
+			sb.append(e.getMessage());
+		}
+		return sb;
 	}
 }
