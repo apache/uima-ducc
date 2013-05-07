@@ -15,7 +15,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/
+ */
 package org.apache.uima.ducc.common.component;
 
 import java.lang.management.ManagementFactory;
@@ -49,7 +49,6 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.Utils;
 
-
 /**
  * Abstract class which every Ducc component should extend from. Provides support for loading
  * property files and resolving any placeholders in property values. Creates a special purpose Camel
@@ -72,7 +71,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   private Object monitor = new Object();
 
   private DuccLogger logger;
-  
+
   public AbstractDuccComponent(String componentName) {
     this(componentName, null);
   }
@@ -81,6 +80,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     this.componentName = componentName;
     setContext(context);
   }
+
   /**
    * Creates Camel Router for Ducc admin events. Any event arriving on this channel will be handled
    * by this abstract class.
@@ -98,21 +98,32 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         System.out.println("Configuring Admin Channel on Endpoint:" + endpoint);
         onException(Exception.class).handled(true).process(new ErrorProcessor());
 
-        from(endpoint)
-        .routeId("AdminRoute")
-        .unmarshal().xstream().process(new AdminEventProcessor(delegate));
+        from(endpoint).routeId("AdminRoute").unmarshal().xstream()
+                .process(new AdminEventProcessor(delegate));
       }
     });
+    DuccLogger dl = getLogger();
+    if (dl != null) {
+      logger = dl;
+      logger.info("startAdminChannel", null, "Admin Channel Activated on endpoint:" + endpoint);
+    }
   }
+
   public DuccLogger getLogger() {
-    return null;  // ducc components can override this
+    return null; // ducc components can override this
   }
+
   public class ErrorProcessor implements Processor {
 
     public void process(Exchange exchange) throws Exception {
       // the caused by exception is stored in a property on the exchange
       Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
       caused.printStackTrace();
+      DuccLogger dl = getLogger();
+      if (dl != null) {
+        dl.error("ErrorProcessor.process()", null, caused);
+
+      }
     }
   }
 
@@ -252,7 +263,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   public void start(DuccService service, String[] args) throws Exception {
     String endpoint = null;
     this.service = service;
-    if (System.getProperty("ducc.deploy.components") != null && !System.getProperty("ducc.deploy.components").equals("uima-as") && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
+    if (System.getProperty("ducc.deploy.components") != null
+            && !System.getProperty("ducc.deploy.components").equals("uima-as")
+            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
       System.out.println(".....Starting Admin Channel on endpoint:" + endpoint);
       startAdminChannel(endpoint, this);
     }
@@ -277,8 +290,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     // Register Ducc Component MBean with JMX.
     MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
-    ObjectName name = new ObjectName("org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
-            + getClass().getSimpleName());
+    ObjectName name = new ObjectName(
+            "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
+                    + getClass().getSimpleName());
     mbs.registerMBean(this, name);
   }
 
@@ -287,13 +301,13 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   }
 
   public void stop() throws Exception {
-    if ( getLogger() != null ) {
+    if (getLogger() != null) {
       logger = getLogger();
     }
-    if ( logger == null ) {
+    if (logger == null) {
       System.out.println("----------stop() called");
     } else {
-      logger.info("stop", null,"----------stop() called");
+      logger.info("stop", null, "----------stop() called");
     }
     synchronized (monitor) {
       if (stopping) {
@@ -304,41 +318,41 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     Thread th = new Thread(new Runnable() {
       public void run() {
         try {
-          if ( logger == null ) {
+          if (logger == null) {
             System.out.println("Stopping Camel Routes");
           } else {
-            logger.info("stop", null,"Stopping Camel Routes");
+            logger.info("stop", null, "Stopping Camel Routes");
           }
-          
+
           List<Route> routes = context.getRoutes();
           for (Route route : routes) {
-            System.out.println("--- Stopping Route:"+route.getId());
+            System.out.println("--- Stopping Route:" + route.getId());
             route.getConsumer().stop();
-//            List<Service> services = route.getServices();
-//            for (Service service : services) {
-//              System.out.println("Stopping Route:"+route.getId());
-//              service.stop();
-//            }
-            System.out.println("--- Stopping Endpoint Route:"+route.getId());
+            // List<Service> services = route.getServices();
+            // for (Service service : services) {
+            // System.out.println("Stopping Route:"+route.getId());
+            // service.stop();
+            // }
+            System.out.println("--- Stopping Endpoint Route:" + route.getId());
             route.getEndpoint().stop();
           }
- 
+
           System.out.println("--- Stopping AMQC");
           ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
           amqc.stop();
           System.out.println("Stopping AMQC - shutdown");
           amqc.shutdown();
 
-          if ( logger == null ) {
+          if (logger == null) {
             System.out.println("Stopping Camel Context");
           } else {
-            logger.info("stop", null,"Stopping Camel Context");
+            logger.info("stop", null, "Stopping Camel Context");
           }
           context.stop();
-          if ( logger == null ) {
+          if (logger == null) {
             System.out.println("Camel Context Stopped");
           } else {
-            logger.info("stop", null,"Camel Context Stopped");
+            logger.info("stop", null, "Camel Context Stopped");
           }
 
           ObjectName name = new ObjectName(
@@ -357,10 +371,10 @@ public abstract class AbstractDuccComponent implements DuccComponent,
           if (service != null) {
             service.stop();
           }
-          if ( logger == null ) {
+          if (logger == null) {
             System.out.println("Component cleanup completed - terminating process");
           } else {
-            logger.info("stop", null,"Component cleanup completed - terminating process");
+            logger.info("stop", null, "Component cleanup completed - terminating process");
           }
 
         } catch (Exception e) {
@@ -434,26 +448,36 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
 
     public void process(final Exchange exchange) throws Exception {
+      logger = getLogger();
+      if (logger != null) {
+
+        logger.info("AdminEventProcessor.process()", null, "Received Admin Message of Type:"
+                + exchange.getIn().getBody().getClass().getName());
+      }
       if (exchange.getIn().getBody() instanceof DuccAdminEventKill) {
-        //  start a new thread to process the admin kill event. Need to do this
-        //  so that Camel thread associated with admin channel can go back to
-        //  its pool. Otherwise, we will not be able to stop the admin channel.
+        // start a new thread to process the admin kill event. Need to do this
+        // so that Camel thread associated with admin channel can go back to
+        // its pool. Otherwise, we will not be able to stop the admin channel.
         Thread th = new Thread(new Runnable() {
           public void run() {
             try {
               delegate.onDuccAdminKillEvent((DuccAdminEventKill) exchange.getIn().getBody());
-            } catch(Exception e) {
-              
+            } catch (Exception e) {
+
             }
           }
         });
         th.start();
       } else {
-        System.out
-                .println("---------- Ducc Process Received Unknown Message on Admin Channel. Message Type:"
-                        + exchange.getIn().getBody().getClass().getName());
+        handleAdminEvent((DuccAdminEvent) exchange.getIn().getBody());
       }
     }
+  }
+
+  /**
+   * Components interested in receiving DuccAdminEvents should override this method
+   */
+  public void handleAdminEvent(DuccAdminEvent event) throws Exception {
   }
 
   static class ServiceShutdownHook extends Thread {
@@ -464,52 +488,44 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
 
     public void run() {
-       try {
-         System.out.println("DUCC Service Caught Kill Signal - Registering Killer Task and Stopping ...");
-          
-         //  schedule a kill task which will kill this process after 1 minute
-         Timer killTimer = new Timer();
-         killTimer.schedule( new KillerThreadTask(), 60*1000);  
+      try {
+        System.out
+                .println("DUCC Service Caught Kill Signal - Registering Killer Task and Stopping ...");
 
-         // try to stop the process cleanly
-         duccProcess.stop();
-       } catch (Exception e) {
-         e.printStackTrace();
-       }
+        // schedule a kill task which will kill this process after 1 minute
+        Timer killTimer = new Timer();
+        killTimer.schedule(new KillerThreadTask(), 60 * 1000);
+
+        // try to stop the process cleanly
+        duccProcess.stop();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
   }
 
   // This task will run if stop() fails to stop the process within 1 minute
   static class KillerThreadTask extends TimerTask {
     public void run() {
-        try {
-          System.out.println("Process is about to kill itself via Runtime.getRuntime().halt()");
-          // Take the jvm down hard. This call will not 
-          // invoke registered ShutdownHooks and just
-          // terminates the jvm.
-          Runtime.getRuntime().halt(-1);
-/*
-          String[] killcmd = new String[3];
-          if ( Utils.isWindows() ) {
-            killcmd[0] = "taskkill";
-            killcmd[1] = "/PID";
-          } else {
-            killcmd[0] = "/bin/kill";
-            killcmd[1] = "-9";
-          }
-          //  get this process PID
-          killcmd[2] = Utils.getPID(); 
-          ProcessBuilder pb = new ProcessBuilder(killcmd);
-          pb.redirectErrorStream(true);
-          //  kill itself via hard OS specific kill cmd
-          pb.start();
-          // should be the last thing this process does
-*/  
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
+      try {
+        System.out.println("Process is about to kill itself via Runtime.getRuntime().halt()");
+        // Take the jvm down hard. This call will not
+        // invoke registered ShutdownHooks and just
+        // terminates the jvm.
+        Runtime.getRuntime().halt(-1);
+        /*
+         * String[] killcmd = new String[3]; if ( Utils.isWindows() ) { killcmd[0] = "taskkill";
+         * killcmd[1] = "/PID"; } else { killcmd[0] = "/bin/kill"; killcmd[1] = "-9"; } // get this
+         * process PID killcmd[2] = Utils.getPID(); ProcessBuilder pb = new ProcessBuilder(killcmd);
+         * pb.redirectErrorStream(true); // kill itself via hard OS specific kill cmd pb.start(); //
+         * should be the last thing this process does
+         */
+      } catch (Exception e) {
+        e.printStackTrace();
       }
+    }
   }
+
   public void setLogLevel(String clz, String level) {
     service.setLogLevel(clz, level);
   }

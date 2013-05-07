@@ -16,13 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.component;
+package org.apache.uima.ducc.common.admin.event;
 
-import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
-import org.apache.uima.ducc.common.main.DuccService;
+public class DuccAdminEventStopMetrics extends DuccAdminEvent  {
+	private static final long serialVersionUID = 6499822168988392919L;
+	// comma separated list of nodes that are target for this message
+	private String targetNodes = new String();
 
-public interface DuccLifecycle {
-	public void start(DuccService service) throws Exception;
-	public void stop() throws Exception;
-	public void handleAdminEvent(DuccAdminEvent event) throws Exception;
+	
+	public DuccAdminEventStopMetrics(String nodes) {
+		this.targetNodes = nodes;
+	}
+	/**
+	 * Returns comma separated list of target nodes for this message
+	 * @return
+	 */
+	public String getTargetNodes() {
+		return this.targetNodes;
+	}
+
 }
