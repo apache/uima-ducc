@@ -162,8 +162,8 @@ public class DuccJobSubmit
     {
         this(args, null);
         if(isAllInOne()) {
-        	String[] aioArgs = args.toArray(new String[0]);
-        	allInOneLauncher = new AllInOneLauncher(aioArgs);
+            String[] aioArgs = args.toArray(new String[0]);
+            allInOneLauncher = new AllInOneLauncher(aioArgs);
         }
     }
 
@@ -172,8 +172,8 @@ public class DuccJobSubmit
     {
         this(args, null);
         if(isAllInOne()) {
-        	String[] aioArgs = args;
-        	allInOneLauncher = new AllInOneLauncher(aioArgs);
+            String[] aioArgs = args;
+            allInOneLauncher = new AllInOneLauncher(aioArgs);
         }
     }
 
@@ -182,8 +182,8 @@ public class DuccJobSubmit
     {
         this(props, null);
         if(isAllInOne()) {
-        	String[] aioArgs = mkArgs(props);
-        	allInOneLauncher = new AllInOneLauncher(aioArgs);
+            String[] aioArgs = mkArgs(props);
+            allInOneLauncher = new AllInOneLauncher(aioArgs);
         }
     }
 
@@ -197,8 +197,8 @@ public class DuccJobSubmit
         }
         init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
         if(isAllInOne()) {
-        	String[] aioArgs = args.toArray(new String[0]);
-        	allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+            String[] aioArgs = args.toArray(new String[0]);
+            allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
         }
     }
 
@@ -211,8 +211,8 @@ public class DuccJobSubmit
         }
         init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
         if(isAllInOne()) {
-        	String[] aioArgs = args;
-        	allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+            String[] aioArgs = args;
+            allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
         }
     }
 
@@ -229,8 +229,8 @@ public class DuccJobSubmit
         }
         init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
         if(isAllInOne()) {
-        	String[] aioArgs = mkArgs(props);
-        	allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+            String[] aioArgs = mkArgs(props);
+            allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
         }
     }
 
@@ -271,33 +271,33 @@ public class DuccJobSubmit
                 String text = null;
                 String pname = UiOption.SchedulingClass.pname();
                 DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-    			if(jobRequestProperties.containsKey(pname)) {
-    				String user_scheduling_class = jobRequestProperties.getProperty(pname);
-    				if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
-    					scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
-    					if(scheduling_class != null) {
-    						text = pname+"="+scheduling_class+" [replacement, specific]";
-    					}
-    					else {
-    						scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-    						text = pname+"="+scheduling_class+" [replacement, default]";
-    					}
-    				}
-    				else {
-    					scheduling_class = user_scheduling_class;
-    					text = pname+"="+scheduling_class+" [original]";
-    				}
-    			}
-    			else {
-    				scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-    				text = pname+"="+scheduling_class+" [default]";
-    			}
-    			if(scheduling_class != null) {
-    				 props.setProperty(pname, scheduling_class);
-    				 if(text != null) {
-    					 message(text);
-    				 }
-    			}
+                if(jobRequestProperties.containsKey(pname)) {
+                    String user_scheduling_class = jobRequestProperties.getProperty(pname);
+                    if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
+                        scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
+                        if(scheduling_class != null) {
+                            text = pname+"="+scheduling_class+" [replacement, specific]";
+                        }
+                        else {
+                            scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+                            text = pname+"="+scheduling_class+" [replacement, default]";
+                        }
+                    }
+                    else {
+                        scheduling_class = user_scheduling_class;
+                        text = pname+"="+scheduling_class+" [original]";
+                    }
+                }
+                else {
+                    scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+                    text = pname+"="+scheduling_class+" [default]";
+                }
+                if(scheduling_class != null) {
+                     props.setProperty(pname, scheduling_class);
+                     if(text != null) {
+                         message(text);
+                     }
+                }
             }
 
             do_debug = UiOption.DriverDebug.pname();
@@ -410,14 +410,14 @@ public class DuccJobSubmit
     //**********        
     
     public boolean execute() throws Exception {
-    	if(isAllInOne()) {
-    		return execute_aio();
-    	}
-    	return execute_job();
+        if(isAllInOne()) {
+            return execute_aio();
+        }
+        return execute_job();
     }
     
     private boolean execute_aio() throws Exception {
-    	return allInOneLauncher.execute();
+        return allInOneLauncher.execute();
     }
     
     private boolean execute_job() 

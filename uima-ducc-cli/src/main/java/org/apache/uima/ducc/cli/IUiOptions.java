@@ -43,7 +43,7 @@ public interface IUiOptions
     // argname()     is a name for the argument for the usage() part of cli parser
     //
 
-	public static final int help_width = 120;
+    public static final int help_width = 120;
 
     public enum UiOption
     {
@@ -103,7 +103,7 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-		// Deprecated
+        // Deprecated
         CancelManagedReservationOnInterrupt { 
             public String pname()       { return ReservationSpecificationProperties.key_cancel_managed_reservation_on_interrupt; }
             public String argname()     { return null; }
@@ -985,41 +985,41 @@ public interface IUiOptions
         // Beta options helper functions
         
         public UiOption[] getBetaOptions() {
-        	UiOption[] list = { DriverClasspath, 
-        						DriverEnvironment,
-        						DriverJvmArgs,
-        						ProcessClasspath, 
-        						ProcessEnvironment,
-        						ProcessJvmArgs,
-        						};
-        	return list;
+            UiOption[] list = { DriverClasspath, 
+                                DriverEnvironment,
+                                DriverJvmArgs,
+                                ProcessClasspath, 
+                                ProcessEnvironment,
+                                ProcessJvmArgs,
+                                };
+            return list;
         }
         
         public boolean isBetaOption(String pname) {
-        	boolean retVal = false;
-        	if(pname != null) {
-        		UiOption[] list = getBetaOptions();
-            	for(UiOption option : list) {
-            		if(pname.equals(option.pname())) {
-            			retVal = true;
-            		}
-            	}
-        	}
-        	return retVal;
+            boolean retVal = false;
+            if(pname != null) {
+                UiOption[] list = getBetaOptions();
+                for(UiOption option : list) {
+                    if(pname.equals(option.pname())) {
+                        retVal = true;
+                    }
+                }
+            }
+            return retVal;
         }
         
         public boolean isBetaOption(UiOption option) {
-        	boolean retVal = false;
-        	if(option != null) {
-        		retVal = isBetaOption(option.pname());
-        	}
-        	return retVal;
+            boolean retVal = false;
+            if(option != null) {
+                retVal = isBetaOption(option.pname());
+            }
+            return retVal;
         }
         
     };
 
     public enum ClasspathOrderParms
-    {    	    	
+    {               
         UserBeforeDucc   { 
             public String pname()      { return DuccUiConstants.classpath_order_user_before_ducc; } 
             public String description() { return "Start process with user's classpath ahead of DUCC's"; }
