@@ -47,44 +47,44 @@ import com.google.gson.Gson;
 
 public abstract class DuccMonitor  {
 
-	protected static final int RC_SUCCESS = 0;
-	protected static final int RC_FAILURE = 1;
-	protected static final int RC_HELP = RC_FAILURE;
-	
-	protected static final String NotFound = "NotFound";
-	protected static final String StateRunning = "Running";
-	protected static final String StateCompleting = "Completing";
-	protected static final String StateCompleted = "Completed";
-	
-	private Options options = new Options();
-	
-	private UiOption[] opts = new UiOption[0];
+    protected static final int RC_SUCCESS = 0;
+    protected static final int RC_FAILURE = 1;
+    protected static final int RC_HELP = RC_FAILURE;
     
-	private String id = null;
-	
-	private AtomicBoolean flag_cancel_on_interrupt = new AtomicBoolean(false);
-	private AtomicBoolean flag_debug = new AtomicBoolean(false);
-	private AtomicBoolean flag_error = new AtomicBoolean(true);
-	private AtomicBoolean flag_info = new AtomicBoolean(true);
-	private AtomicBoolean flag_trace = new AtomicBoolean(false);
-	private AtomicBoolean flag_timestamp = new AtomicBoolean(false);
-	
-	private AtomicBoolean flag_observer = new AtomicBoolean(true);
-	
-	private int milliseconds 	= 1;
-	private int seconds			= 1000*milliseconds;
-	private int wakeupInterval 	= 15*seconds;
-	private int urlTimeout 		= 1*60*seconds;
-	
-	private Thread main = null;
-	private DuccPropertiesResolver duccPropertiesResolver = null;
-	
-	private DuccContext context = null;
+    protected static final String NotFound = "NotFound";
+    protected static final String StateRunning = "Running";
+    protected static final String StateCompleting = "Completing";
+    protected static final String StateCompleted = "Completed";
+    
+    private Options options = new Options();
+    
+    private UiOption[] opts = new UiOption[0];
+    
+    private String id = null;
+    
+    private AtomicBoolean flag_cancel_on_interrupt = new AtomicBoolean(false);
+    private AtomicBoolean flag_debug = new AtomicBoolean(false);
+    private AtomicBoolean flag_error = new AtomicBoolean(true);
+    private AtomicBoolean flag_info = new AtomicBoolean(true);
+    private AtomicBoolean flag_trace = new AtomicBoolean(false);
+    private AtomicBoolean flag_timestamp = new AtomicBoolean(false);
+    
+    private AtomicBoolean flag_observer = new AtomicBoolean(true);
+    
+    private int milliseconds    = 1;
+    private int seconds         = 1000*milliseconds;
+    private int wakeupInterval  = 15*seconds;
+    private int urlTimeout      = 1*60*seconds;
+    
+    private Thread main = null;
+    private DuccPropertiesResolver duccPropertiesResolver = null;
+    
+    private DuccContext context = null;
     IDuccCallback messageProcessor = null;
-	
-	private SynchronizedSimpleDateFormat sdf = new SynchronizedSimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-	
-	private UiOption[] optsSubmitJob = new UiOption []
+    
+    private SynchronizedSimpleDateFormat sdf = new SynchronizedSimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+    
+    private UiOption[] optsSubmitJob = new UiOption []
     {
         UiOption.Help,
         UiOption.Debug, 
@@ -95,7 +95,7 @@ public abstract class DuccMonitor  {
         UiOption.CancelJobOnInterrupt,
     };
     
-	private UiOption[] optsMonitorJob = new UiOption []
+    private UiOption[] optsMonitorJob = new UiOption []
     {
         UiOption.Help,
         UiOption.Debug, 
@@ -103,8 +103,8 @@ public abstract class DuccMonitor  {
         UiOption.Timestamp, 
         UiOption.JobId,
     };
-	
-	private UiOption[] optsSubmitManagedReservation = new UiOption []
+    
+    private UiOption[] optsSubmitManagedReservation = new UiOption []
     {
         UiOption.Help,
         UiOption.Debug, 
@@ -114,8 +114,8 @@ public abstract class DuccMonitor  {
         UiOption.CancelOnInterrupt,
         UiOption.CancelManagedReservationOnInterrupt,
     };
-	
-	private UiOption[] optsMonitorManagedReservation = new UiOption []
+    
+    private UiOption[] optsMonitorManagedReservation = new UiOption []
     {
         UiOption.Help,
         UiOption.Debug, 
@@ -123,29 +123,29 @@ public abstract class DuccMonitor  {
         UiOption.Timestamp, 
         UiOption.ManagedReservationId,
     };
-	
-	protected DuccMonitor(DuccContext context, boolean submit) {
-		initialize(context, submit, new DefaultCallback());
-	}
-	
-	protected DuccMonitor(DuccContext context, boolean submit, IDuccCallback messageProcessor) {
-		initialize(context, submit, messageProcessor);
-	}
-	
-	public abstract void help(Options options);
-	public abstract void cancel();
-	public abstract String getUrl(String id);
-	
-	public String getHost() {
-		String host = duccPropertiesResolver.getFileProperty("ducc.ws.node");
-		if(host == null) {
-			host = duccPropertiesResolver.getFileProperty("ducc.head");
-		}
-		return host;
-	}
-	
-	public String getPort() {
-		String port = duccPropertiesResolver.getFileProperty("ducc.ws.port");
+    
+    protected DuccMonitor(DuccContext context, boolean submit) {
+        initialize(context, submit, new DefaultCallback());
+    }
+    
+    protected DuccMonitor(DuccContext context, boolean submit, IDuccCallback messageProcessor) {
+        initialize(context, submit, messageProcessor);
+    }
+    
+    public abstract void help(Options options);
+    public abstract void cancel();
+    public abstract String getUrl(String id);
+    
+    public String getHost() {
+        String host = duccPropertiesResolver.getFileProperty("ducc.ws.node");
+        if(host == null) {
+            host = duccPropertiesResolver.getFileProperty("ducc.head");
+        }
+        return host;
+    }
+    
+    public String getPort() {
+        String port = duccPropertiesResolver.getFileProperty("ducc.ws.port");
         return port;
     }
     
