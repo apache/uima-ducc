@@ -145,6 +145,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   public int pageSize = 4096; // default
 
+  public int cpuClockRate = 100;
   /**
    * Ctor used exclusively for black-box testing of this class.
    */
@@ -181,7 +182,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     this.commonProcessDispatcher = factory.getCommonProcessDispatcher(context);
 
     // fetch Page Size from the OS and cache it
-    getOSPageSize();
+    pageSize = getOSPageSize();
+    logger.info("NodeAgent", null, "OS Page Size:" + pageSize);
+
+    cpuClockRate = getOSClockRate();
+    logger.info("NodeAgent", null, "OS Clock Rate:" + cpuClockRate);
 
     if (System.getProperty("ducc.rm.share.quantum") != null
             && System.getProperty("ducc.rm.share.quantum").trim().length() > 0) {
@@ -276,37 +281,37 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   }
 
   public int getOSPageSize() {
+    return runOSCommand(new String[] { "/usr/bin/getconf", "PAGESIZE" });
+  }
+  public int getOSClockRate() {
+    return runOSCommand(new String[] { "/usr/bin/getconf", "CLK_TCK" });
+  }
+  private int runOSCommand(String[] cmd) {
     InputStreamReader in = null;
+    int retVal = 0;
+    try {
+      ProcessBuilder pb = new ProcessBuilder();
+      pb.command(cmd);
+      pb.redirectErrorStream(true);
+      Process p = pb.start();
+      in = new InputStreamReader(p.getInputStream());
+      BufferedReader reader = new BufferedReader(in);
+      String line = null;
 
-    if (!pageSizeFetched) { // fetch the page size from the OS once and
-      // cache it
-      pageSizeFetched = true;
-      try {
-        ProcessBuilder pb = new ProcessBuilder();
-        pb.command(new String[] { "/usr/bin/getconf", "PAGESIZE" });
-        pb.redirectErrorStream(true);
-        Process p = pb.start();
-        in = new InputStreamReader(p.getInputStream());
-        BufferedReader reader = new BufferedReader(in);
-        String line = null;
-
-        while ((line = reader.readLine()) != null) {
-          pageSize = Integer.parseInt(line.trim());
-          logger.info("getOSPageSize", null, "OS Page Size:" + pageSize);
-        }
-      } catch (Exception e) {
-        logger.error("getOSPageSize", null, e);
-      } finally {
-        if (in != null) {
-          try {
-            in.close();
-          } catch (Exception ex) {
-          }
+      while ((line = reader.readLine()) != null) {
+        retVal = Integer.parseInt(line.trim());
+      }
+    } catch (Exception e) {
+      logger.error("runOSCommand", null, e);
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (Exception ex) {
         }
       }
     }
-
-    return pageSize;
+    return retVal;
   }
 
   public void setNodeInfo(Node node) {
