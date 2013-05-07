@@ -45,6 +45,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEventStopMetrics;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.launcher.ssh.DuccRemoteLauncher;
 import org.apache.uima.ducc.common.launcher.ssh.DuccRemoteLauncher.ProcessCompletionCallback;
@@ -58,7 +59,7 @@ import com.thoughtworks.xstream.XStream;
  * processes. Usage:
  * 
  * DuccAdmin -killAll - stops all Ducc components
- * 
+ * DuccAdmin -quiesceAgents <node1,node2..>- quiesces named nodes
  */
 public class DuccAdmin extends AbstractDuccComponent implements
 		ProcessCompletionCallback {
@@ -66,7 +67,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			.getProperty("file.separator");
 
 	public static enum DuccCommands {
-		killAll, startAgents
+		killAll, startAgents, quiesceAgents
 	};
 
 	private String brokerUrl;
@@ -141,6 +142,14 @@ public class DuccAdmin extends AbstractDuccComponent implements
 				.create("startAgents");
 		posixOptions.addOption(startAgentsOption);
 
+		@SuppressWarnings("static-access")
+    Option quiesceAgentsOption = OptionBuilder
+        .hasArgs(1)
+        .withDescription(
+            "quiescing agents defined in arg1")
+        .create("quiesceAgents");
+    posixOptions.addOption(quiesceAgentsOption);
+    
 		return posixOptions;
 	}
 
@@ -172,6 +181,10 @@ public class DuccAdmin extends AbstractDuccComponent implements
 		System.out.println("DuccAdmin sent Kill to all Ducc processes ...");
 	}
 
+	private void quiesceAgents(String nodes) throws Exception {
+    dispatch(serializeAdminEvent(new DuccAdminEventStopMetrics(nodes)));
+    System.out.println("DuccAdmin sent Quiesce request to Ducc Agents ...");
+	}
 	/**
 	 * Return contents of the provided command file.
 	 * 
@@ -261,7 +274,12 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			String[] args = commandLine
 					.getOptionValues(DuccCommands.startAgents.name());
 			startAgents(args[0], args[1]);
-		}
+		} else if (commandLine.hasOption(DuccCommands.quiesceAgents.name())) {
+      System.out.println("---------- Quiescing Agents");
+      String[] args = commandLine
+          .getOptionValues(DuccCommands.quiesceAgents.name());
+      quiesceAgents(args[0]);
+    }
 
 	}
 

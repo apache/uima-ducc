@@ -1655,7 +1655,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       String[] nodes = ((DuccAdminEventStopMetrics) event).getTargetNodes().split(",");
       //  Check if this message applies to this node
       for (String targetNode : nodes) {
-        if (Utils.isMachineNameMatch(targetNode, getIdentity().getName())) {
+        if (Utils.isMachineNameMatch(targetNode.trim(), getIdentity().getName())) {
           logger.info("handleAdminEvent", null,
                   "... Agent Received an Admin Request to Stop Metrics Collection and Publishing");
           //  Stop Camel route responsible for driving collection and publishing of metrics
