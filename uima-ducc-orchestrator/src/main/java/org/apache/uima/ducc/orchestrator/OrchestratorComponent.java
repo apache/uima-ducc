@@ -503,11 +503,12 @@ implements Orchestrator {
 		}
 		value_submit_errors.add(error_message);
 	}
-	private boolean isSignatureInvalid(Properties properties) {
-		String methodName = "isSignatureInvalid";
+	private boolean isSignatureValid(Properties properties) {
+		String methodName = "isSignatureValid";
 		boolean retVal = true;
 		try {
 			if(orchestratorCommonArea.isSignatureRequired()) {
+				retVal = false;
 				String user = properties.getProperty(SpecificationProperties.key_user);
 				String userHome = LinuxUtils.getUserHome(user);
 				String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);
@@ -518,12 +519,13 @@ implements Orchestrator {
 				}
 				Crypto crypto = new Crypto(userHome,AccessType.READER);
 				String signature = (String)crypto.decrypt((byte[])properties.get(SpecificationProperties.key_signature));
-				retVal = !user.equals(signature);
-				if(retVal) {
-					logger.warn(methodName, null, "user:"+user+" signature:"+signature+" valid:n");
+				if(user.equals(signature)) {
+					logger.debug(methodName, null, "user:"+user+" signature:"+signature+" valid:y");
+					retVal = true;
 				}
 				else {
-					logger.debug(methodName, null, "user:"+user+" signature:"+signature+" valid:y");
+					logger.debug(methodName, null, "user:"+user+" signature:"+signature+" valid:n");
+					//retVal = false;
 				}
 			}
 		}
@@ -584,7 +586,7 @@ implements Orchestrator {
 		try {
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
 			int jdNodes = hostManager.nodes();
-			if(isSignatureInvalid(properties)) {
+			if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
@@ -641,7 +643,7 @@ implements Orchestrator {
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
-		if(isSignatureInvalid(properties)) {
+		if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
@@ -709,7 +711,7 @@ implements Orchestrator {
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
-		if(isSignatureInvalid(properties)) {
+		if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
@@ -784,7 +786,7 @@ implements Orchestrator {
 		logger.trace(methodName, null, messages.fetch("enter"));	
 		try {
 			Properties properties = duccEvent.getProperties();
-			if(isSignatureInvalid(properties)) {
+			if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
@@ -851,7 +853,7 @@ implements Orchestrator {
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
-		if(isSignatureInvalid(properties)) {
+		if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
@@ -926,7 +928,7 @@ implements Orchestrator {
 		try {
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
 			NodeIdentity nodeIdentity = hostManager.getNode();
-			if(isSignatureInvalid(properties)) {
+			if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
@@ -985,7 +987,7 @@ implements Orchestrator {
 		DuccId dwid = null;
 		logger.trace(methodName, dwid, messages.fetch("enter"));
 		Properties properties = duccEvent.getProperties();
-		if(isSignatureInvalid(properties)) {
+		if(!isSignatureValid(properties)) {
 			String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
 			logger.error(methodName, dwid, error_message);
 			submitError(properties, error_message);
