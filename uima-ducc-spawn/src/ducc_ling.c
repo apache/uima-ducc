@@ -40,7 +40,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 
-#define VERSION "0.8.1"
+#define VERSION "0.8.2"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -57,6 +57,7 @@
  * 2013-03-08 0.8.0 more complete ulimit suport. jrc
  * 2013-03-08 0.8.1 set hard as well as soft ulimits, and make sure they are shown
  *                  in both user and agent logs. jrc
+ * 2013-05-07 0.8.2 Implement append (-a) option. jrc
  */
 
 /**
@@ -113,7 +114,7 @@ void version()
 void usage()
 {
     fprintf(stderr, "999 Usage:\n");
-    fprintf(stderr, "999   ducc_ling <-u user> [-w workingdir] [-f filepath] -- program_name [program args]\n");
+    fprintf(stderr, "999   ducc_ling <-u user> [-a] [-w workingdir] [-f filepath] -- program_name [program args]\n");
     exit(1);
 }
 
@@ -429,6 +430,22 @@ void redirect_to_socket(char *sockloc)
 
 }
 
+int do_append(char *filepath, int argc, char **argv)
+{
+    FILE *fp = fopen(filepath, "a");
+    if ( fp == NULL ) {
+        perror("1800 Cannot open file for append.");
+        return 1;
+    }
+    int i = 0;
+    for (i = 0; i < argc; i++) {
+        fprintf(fp, "%s ", argv[i]);
+    }
+    fprintf(fp, "\n");
+    fclose(fp);
+    return(0);
+}
+
 /**
  * Proposed calling conventtion:
  *    ducc_ling <duccling args> -- executable_name <executable args>
@@ -445,6 +462,10 @@ void redirect_to_socket(char *sockloc)
  *       -w <workingdir>  - if provided, ducc_ling will attempt to cd to the
  *                          specified dir as workingdir before execing to
  *                          the indicated process.
+ *       -a               - "append" option - if specified, the args are appended
+ *                          to the **exact** file path specified in -f.  This 
+ *                          provides an efficient way for DUCC to update some logs
+ *                          in use space.
  *
  *     If -f is missing, no redirection is performed and no files are created.
  */
@@ -460,6 +481,7 @@ int main(int argc, char **argv, char **envp)
     int switch_ids = 0;
     int redirect = 0;
     char buf[BUFLEN];
+    int append = 0;
 
     version();            // this gets echoed into the Agent's log
 
@@ -469,8 +491,11 @@ int main(int argc, char **argv, char **envp)
     	exit(1);
     }
 
-    while ( (opt = getopt(argc, argv, "f:w:u:h?") ) != -1) {
+    while ( (opt = getopt(argc, argv, "af:w:u:h?") ) != -1) {
         switch (opt) {
+        case 'a':
+            append = 1;
+            break;
         case 'u':
             userid = optarg;
             break;
@@ -571,6 +596,10 @@ int main(int argc, char **argv, char **envp)
         } else {
             fprintf(stdout, "840 Switched to user %d.\n", pwd-> pw_uid);
         }
+    }
+
+    if ( append ) {
+        return do_append(filepath, argc, argv);
     }
 
     set_limits();         // AFTER the switch, set soft and limits if needed
