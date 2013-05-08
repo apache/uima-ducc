@@ -813,7 +813,7 @@ public interface IUiOptions
             public String deflt()       { return null; }
             public String label()       { return "SchedulingClass"; }
             public boolean multiargs()  { return false; }
-            public boolean required()   { return true; }
+            public boolean required()   { return false; }
         },            
 
         ServiceLinger { 

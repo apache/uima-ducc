@@ -161,45 +161,24 @@ public class DuccJobSubmit
         throws Exception
     {
         this(args, null);
-        if(isAllInOne()) {
-            String[] aioArgs = args.toArray(new String[0]);
-            allInOneLauncher = new AllInOneLauncher(aioArgs);
-        }
     }
 
     public DuccJobSubmit(String[] args)
         throws Exception
     {
         this(args, null);
-        if(isAllInOne()) {
-            String[] aioArgs = args;
-            allInOneLauncher = new AllInOneLauncher(aioArgs);
-        }
     }
 
     public DuccJobSubmit(Properties props)
         throws Exception
     {
         this(props, null);
-        if(isAllInOne()) {
-            String[] aioArgs = mkArgs(props);
-            allInOneLauncher = new AllInOneLauncher(aioArgs);
-        }
     }
 
     public DuccJobSubmit(ArrayList<String> args, IDuccCallback consoleCb)
         throws Exception
     {
-        String[] arg_array = args.toArray(new String[args.size()]);
-        init();
-        if(DuccUiUtilities.isSupportedBeta()) {
-            opts = opts_beta;
-        }
-        init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
-        if(isAllInOne()) {
-            String[] aioArgs = args.toArray(new String[0]);
-            allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
-        }
+        this(args.toArray(new String[args.size()]), consoleCb);
     }
 
     public DuccJobSubmit(String[] args, IDuccCallback consoleCb)
@@ -207,12 +186,11 @@ public class DuccJobSubmit
     {
         init();
         if(DuccUiUtilities.isSupportedBeta()) {
-               opts = opts_beta;
+            opts = opts_beta;
         }
         init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
         if(isAllInOne()) {
-            String[] aioArgs = args;
-            allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+            allInOneLauncher = new AllInOneLauncher(args, consoleCb);
         }
     }
 
@@ -229,8 +207,8 @@ public class DuccJobSubmit
         }
         init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
         if(isAllInOne()) {
-            String[] aioArgs = mkArgs(props);
-            allInOneLauncher = new AllInOneLauncher(aioArgs, consoleCb);
+            String[] args = mkArgs(props);
+            allInOneLauncher = new AllInOneLauncher(args, consoleCb);
         }
     }
 
@@ -410,19 +388,9 @@ public class DuccJobSubmit
     //**********        
     
     public boolean execute() throws Exception {
-        if(isAllInOne()) {
-            return execute_aio();
+        if(allInOneLauncher != null) {
+            return allInOneLauncher.execute();
         }
-        return execute_job();
-    }
-    
-    private boolean execute_aio() throws Exception {
-        return allInOneLauncher.execute();
-    }
-    
-    private boolean execute_job() 
-        throws Exception 
-    {
                     
         try {
             enrich_parameters_for_debug(jobRequestProperties);
@@ -580,36 +548,35 @@ public class DuccJobSubmit
         return rc;
     }
     
+    /*
+     * Return appropriate rc when job has completed
+     */
+    public int getReturnCode() {
+      if (allInOneLauncher != null) {
+        return allInOneLauncher.getReturnCode();
+      }
+      return super.getReturnCode();
+    }
+    
     private boolean isAllInOne() {
         return jobRequestProperties.containsKey(UiOption.AllInOne.pname());
     }
-    
-    private static void main_job(String[] args, DuccJobSubmit ds) throws Exception {
-        boolean rc = ds.execute();
-        // If the return is 'true' then as best the API can tell, the submit worked
-        if ( rc ) {                
-            System.out.println("Job " + ds.getDuccId() + " submitted");
-            int exit_code = ds.getReturnCode();       // after waiting if requested
-            System.exit(exit_code);
-        } else {
-            System.out.println("Could not submit job");
-            System.exit(1);
-        }
-    }
-    
-    private static void main_aio(String[] args) throws Exception {
-        AllInOneLauncher main_allInOneLauncher = new AllInOneLauncher(args);
-        main_allInOneLauncher.execute();
-    }
-    
+
+    /*
+     * Main methid
+     */
     public static void main(String[] args) {
         try {
             DuccJobSubmit ds = new DuccJobSubmit(args, null);
-            if(ds.isAllInOne()) {
-                main_aio(args);
-            }
-            else {
-                main_job(args, ds);
+            boolean rc = ds.execute();
+            // If the return is 'true' then as best the API can tell, the submit worked
+            if ( rc ) {                
+                System.out.println("Job " + ds.getDuccId() + " submitted");
+                int exit_code = ds.getReturnCode();       // after waiting if requested
+                System.exit(exit_code);
+            } else {
+                System.out.println("Could not submit job");
+                System.exit(1);
             }
         }
         catch(Exception e) {

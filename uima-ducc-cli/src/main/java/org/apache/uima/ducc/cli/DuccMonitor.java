@@ -403,56 +403,35 @@ public abstract class DuccMonitor  {
                     info(thisMessage);
                     lastMessage = thisMessage;
                 }
-                if(state.equals(StateCompleted)) {
-                    if(monitorInfo.procs.equals("0")) {
-                        if(monitorInfo.total.equals(monitorInfo.done)) {
-                            if(monitorInfo.code.equals("0")) {
-                                message = new StringBuffer();
-                                message.append("id:"+id);
-                                message.append(" ");
-                                message.append("code:"+monitorInfo.code);
-                                thisMessage = message.toString();
-                                info(thisMessage);
-                                message = new StringBuffer();
-                                message.append("id:"+id);
-                                message.append(" ");
-                                message.append("rc:"+RC_SUCCESS);
-                                thisMessage = message.toString();
-                                info(thisMessage);
-                                return RC_SUCCESS;
-                            }
-                            else {
-                                message = new StringBuffer();
-                                message.append("id:"+id);
-                                message.append(" ");
-                                message.append("code:"+monitorInfo.code);
-                                thisMessage = message.toString();
-                                info(thisMessage);
-                                message = new StringBuffer();
-                                message.append("id:"+id);
-                                message.append(" ");
-                                message.append("rc:"+RC_FAILURE);
-                                thisMessage = message.toString();
-                                info(thisMessage);
-                                return RC_FAILURE;
-                            }
-                        }
-                        else {
+                if (state.equals(StateCompleted)) {
+		    if (monitorInfo.procs.equals("0")) {
+			if (monitorInfo.total.equals(monitorInfo.done)) {
+			    int rc = RC_FAILURE;
+			    message = new StringBuffer();
+			    message.append("id:" + id);
+			    try {
+				rc = Integer.parseInt(monitorInfo.code);
+				message.append(" rc:" + rc);
+			    } catch (NumberFormatException e) {
+				message.append(" code:" + monitorInfo.code);
+			    }
+			    thisMessage = message.toString();
+			    info(thisMessage);
+			    return rc;
+			} else {
                             if(!monitorInfo.errorLogs.isEmpty()) {
                                 message = new StringBuffer();
                                 message.append("id:"+id);
-                                message.append(" ");
                                 ArrayList<String> errorLogs = monitorInfo.errorLogs;
                                 for(String errorLog : errorLogs) {
-                                    message.append("file:"+errorLog);
+                                    message.append(" file:"+errorLog);
                                 }
                                 thisMessage = message.toString();
                                 info(thisMessage);
                             }
                             message = new StringBuffer();
                             message.append("id:"+id);
-                            message.append(" ");
-                            message.append("rc:"+RC_FAILURE);
+                            message.append(" rc:"+RC_FAILURE);
                             thisMessage = message.toString();
                             info(thisMessage);
                             return RC_FAILURE;

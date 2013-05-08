@@ -1,5 +1,5 @@
 /*
-as * Licensed to the Apache Software Foundation (ASF) under one
+ * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -35,6 +35,7 @@ import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
 import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
@@ -53,8 +54,6 @@ public class AllInOneLauncher extends CliBase {
     
     private String allInOneType = null;
     
-    private String attach_console = null;
-    
     private String jvm = null;
     private String log_directory = null;
     private String working_directory = null;
@@ -63,6 +62,7 @@ public class AllInOneLauncher extends CliBase {
     private String environment = null;
     
     private String process_jvm_args = null;
+    private String debug_jvm_args = null;
     
     private String driver_descriptor_CR = null;
     private String driver_descriptor_CR_overrides = null;
@@ -101,10 +101,12 @@ public class AllInOneLauncher extends CliBase {
     private UiOption[] opts = DuccJobSubmit.opts;
     
     private HashMap<String,String> optionsMap = new HashMap<String,String>();
+
+
     
     public AllInOneLauncher(String[] args) throws Exception {
         this.args = args;
-        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", null, null);
     }
     
     public AllInOneLauncher(String[] args, IDuccCallback consoleCb) throws Exception {
@@ -112,7 +114,7 @@ public class AllInOneLauncher extends CliBase {
         mh = new MessageHandler(consoleCb);
         init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
     }
-    
+
     private boolean isLocal() {
         return allInOneType.equalsIgnoreCase(local);
     }
@@ -170,15 +172,11 @@ public class AllInOneLauncher extends CliBase {
     private void examine_process_debug() {
         String mid = "examine_process_debug";
         mh.frameworkTrace(cid, mid, enter);
-        if(jobRequestProperties.containsKey(UiOption.Debug.pname())) {
-            return;
-        }
         String pname = UiOption.ProcessDebug.pname();
-        debug = jobRequestProperties.containsKey(pname);
-        if(debug) {
-            enableDebugFlags();
-            String message = "true";
-            mh.frameworkDebug(cid, mid, message);
+        if (jobRequestProperties.containsKey(pname)) {
+            int port = Integer.parseInt(jobRequestProperties.getProperty(pname));
+            debug_jvm_args = " -Xdebug -Xrunjdwp:transport=dt_socket,address=" + host_address + ":" + port;         
+            mh.frameworkDebug(cid, mid, debug_jvm_args);
             used(pname);
         }
         mh.frameworkTrace(cid, mid, exit);
@@ -239,8 +237,7 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.ProcessAttachConsole.pname();
         if(jobRequestProperties.containsKey(pname)) {
-            attach_console = jobRequestProperties.getProperty(pname);
-            String message = attach_console;
+            String message = "attach_console";
             mh.frameworkDebug(cid, mid, message);
             used(pname);
         }
@@ -311,9 +308,14 @@ public class AllInOneLauncher extends CliBase {
         String pname = UiOption.ProcessJvmArgs.pname();
         if(jobRequestProperties.containsKey(pname)) {
             process_jvm_args = jobRequestProperties.getProperty(pname);
+            if (debug_jvm_args != null) {
+                process_jvm_args += debug_jvm_args;
+            }
             String message = process_jvm_args;
             mh.frameworkDebug(cid, mid, message);
             used(pname);
+        } else {
+            process_jvm_args = debug_jvm_args;
         }
         mh.frameworkTrace(cid, mid, exit);
     }
@@ -325,83 +327,50 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, exit);
     }
     
-    private void examine_classpath() {
+    private void examine_classpath() throws IOException {
         String mid = "examine_classpath";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.Classpath.pname();
-        if(jobRequestProperties.containsKey(pname)) {
+        if (jobRequestProperties.containsKey(pname)) {
             classpath = jobRequestProperties.getProperty(pname);
-            String message = classpath;
-            mh.frameworkDebug(cid, mid, message);
             used(pname);
-        }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_process_classpath() {
-        String mid = "examine_process_classpath";
-        mh.frameworkTrace(cid, mid, enter);
-        if(jobRequestProperties.containsKey(UiOption.Classpath.pname())) {
-            return;
-        }
-        String pname = UiOption.ProcessClasspath.pname();
-        if(jobRequestProperties.containsKey(pname)) {
-            classpath = jobRequestProperties.getProperty(pname);
-            String message = classpath;
-            mh.frameworkDebug(cid, mid, message);
-            used(pname);
-        }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_driver_classpath() {
-        String mid = "examine_driver_classpath";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_classpath_order() {
-        String mid = "examine_classpath_order";
-        String pname = UiOption.ClasspathOrder.pname();
-        if(jobRequestProperties.containsKey(pname)) {
-            String value = jobRequestProperties.getProperty(pname);
-            if(value != null) {
-                if(value.equalsIgnoreCase(ClasspathOrderParms.UserBeforeDucc.name())) {
-                    classpath_user_first = true;
-                }
-                else if(value.equalsIgnoreCase(ClasspathOrderParms.DuccBeforeUser.name())) {
-                    classpath_user_first = false;
-                }
-                else {
-                    throw new IllegalArgumentException(UiOption.ClasspathOrder.pname()+": "+value);
-                }
-            }
-            String message = value;
-            mh.frameworkDebug(cid, mid, message);
-            used(pname);
-        }
-    }
-    
-    private void reconcile_classpath() {
-        String mid = "reconcile_classpath";
-        if(classpath != null) {
-            if(classpath_user_first) {
-                classpath = System.getProperty("java.class.path")+File.pathSeparatorChar+classpath;
-                String message = "user first";
-                mh.frameworkInfo(cid, mid, message);
-            }
-            else {
-                classpath = classpath+File.pathSeparatorChar+System.getProperty("java.class.path");
-                String message = "user last";
-                mh.frameworkInfo(cid, mid, message);
+        } else {
+            pname = UiOption.ProcessClasspath.pname();
+            if (jobRequestProperties.containsKey(pname)) {
+                classpath = jobRequestProperties.getProperty(pname);
+                used(pname);
+            } else {
+                classpath = System.getProperty("java.class.path");
             }
         }
-        else {
-            classpath = System.getProperty("java.class.path");
-            String message = "user only";
-            mh.frameworkInfo(cid, mid, message);
+        String message = classpath;
+        mh.frameworkDebug(cid, mid, message);
+
+        pname = UiOption.ClasspathOrder.pname();
+        String value;
+        if (jobRequestProperties.containsKey(pname)) {
+            value = jobRequestProperties.getProperty(pname);
+            used(pname);
+        } else {
+            value = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_job_factory_classpath_order);
         }
+        if (ClasspathOrderParms.UserBeforeDucc.pname().equalsIgnoreCase(value)) {
+            classpath_user_first = true;
+        } else if (ClasspathOrderParms.DuccBeforeUser.pname().equalsIgnoreCase(value)) {
+            classpath_user_first = false;
+        } else {
+            throw new IllegalArgumentException(UiOption.ClasspathOrder.pname()+": "+value);
+        }
+        message = value;
+        mh.frameworkDebug(cid, mid, message);
+
+        String duccClasspath = getDuccClasspath();
+        if (classpath_user_first) {
+            classpath = classpath + File.pathSeparatorChar + duccClasspath;
+        } else {
+            classpath = duccClasspath + File.pathSeparatorChar + classpath;
+        }
+        mh.frameworkTrace(cid, mid, exit);
     }
     
     private void examine_environment() {
@@ -457,67 +426,30 @@ public class AllInOneLauncher extends CliBase {
         String mid = "examine_scheduling_class";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.SchedulingClass.pname();
-        if(isLocal()) {
-            String message = pname+"="+scheduling_class+" not considered";
-            mh.frameworkDebug(cid, mid, message);
-            used(pname);
-        }
-        else {
-            String user_scheduling_class = jobRequestProperties.getProperty(pname);
-            if(user_scheduling_class == null) {
-                throw new MissingArgumentException(pname);
-            }
+        if (jobRequestProperties.containsKey(pname)) {
             DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-            if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
-                String default_scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-                String specific_scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
-                if(specific_scheduling_class != null) {
+            scheduling_class = jobRequestProperties.getProperty(pname);
+            String message = pname + "=" + scheduling_class + " [original]";
+            if (isLocal()) {
+                message = pname + "=" + scheduling_class + " not considered";
+            } else if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
+                String specific_scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(scheduling_class);
+                if (specific_scheduling_class != null) {
                     scheduling_class = specific_scheduling_class;
-                    String message = pname+"="+scheduling_class+" [replacement, specific]";
-                    mh.frameworkDebug(cid, mid, message);
-                    used(pname);
-                }
-                else if(default_scheduling_class != null) {
-                    scheduling_class = default_scheduling_class;
-                    String message = pname+"="+scheduling_class+" [replacement, default]";
-                    mh.frameworkDebug(cid, mid, message);
-                    used(pname);
-                }
-                else {
-                    scheduling_class = user_scheduling_class;
-                    String message = pname+"="+scheduling_class+" [original]";
-                    mh.frameworkDebug(cid, mid, message);
-                    used(pname);
+                    message = pname + "=" + scheduling_class + " [replacement, specific]";
+                } else {
+                    String default_scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
+                    if (default_scheduling_class != null) {
+                        scheduling_class = default_scheduling_class;
+                        message = pname + "=" + scheduling_class + " [replacement, default]";
+                    }
                 }
             }
-        }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    /*
-    private void examine_scheduling_class() {
-        String mid = "examine_scheduling_class";
-        mh.frameworkTrace(cid, mid, enter);
-        String pname = UiOption.SchedulingClass.pname();
-        if(isLocal()) {
-            String message = pname+"="+scheduling_class;
             mh.frameworkDebug(cid, mid, message);
             used(pname);
         }
-        else if(jobRequestProperties.containsKey(pname)) {
-            String user_scheduling_class = jobRequestProperties.getProperty(pname);
-            String message = pname+"="+scheduling_class;
-            if(user_scheduling_class == null) {
-            }
-            else if(!user_scheduling_class.trim().equals(scheduling_class)) {
-                message = pname+"="+scheduling_class+" "+"replaces"+" "+user_scheduling_class;
-            }
-            mh.frameworkInfo(cid, mid, message);
-            used(pname);
-        }
         mh.frameworkTrace(cid, mid, exit);
     }
-    */
     
     private void examine_process_deployments_max() {
         String mid = "examine_process_deployments_max";
@@ -849,7 +781,7 @@ public class AllInOneLauncher extends CliBase {
         }
     }
     
-    private void examine() throws MissingArgumentException, IllegalArgumentException {
+    private void examine() throws MissingArgumentException, IllegalArgumentException, IOException {
         String mid = "examine";
         mh.frameworkTrace(cid, mid, "enter");
         
@@ -883,10 +815,6 @@ public class AllInOneLauncher extends CliBase {
         
         // classpath
         examine_classpath();
-        examine_process_classpath();
-        examine_driver_classpath();
-        examine_classpath_order();
-        reconcile_classpath();
         
         // environment
         examine_environment();
@@ -949,6 +877,16 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, "exit");
     }
     
+    private String getDuccClasspath() throws IOException {
+        StringBuilder sb = new StringBuilder();
+        File uimalib = new File(ducc_home + "/lib/uima");
+        for (File f : uimalib.listFiles()) {
+            sb.append(File.pathSeparator);
+            sb.append(f.getCanonicalPath());
+        }
+        return sb.substring(2);
+    }
+    
     private void launch_local() throws IOException {
         String mid = "launch_local";
         mh.frameworkTrace(cid, mid, "enter");
@@ -976,7 +914,6 @@ public class AllInOneLauncher extends CliBase {
             }
         }
 
-        //commandArray.add("org.apache.uima.ducc.cli.aio.AllInOne");
         commandArray.add(AllInOne.class.getCanonicalName());
         
         for(String arg : args) {
@@ -1011,7 +948,7 @@ public class AllInOneLauncher extends CliBase {
                 env.put(name, value);
             }
         }
-        
+        pb.redirectErrorStream(true);
         Process process = pb.start();
         
         String line;
@@ -1020,26 +957,14 @@ public class AllInOneLauncher extends CliBase {
         InputStreamReader isr = new InputStreamReader(is);
         BufferedReader ibr = new BufferedReader(isr);
         while ((line = ibr.readLine()) != null) {
-            if(consoleCb != null) {
-                consoleCb.status(line);
-            }
-            else {
-                System.out.println(line);
-            }
+            consoleCb.status(line);
         }
-        
-        InputStream es = process.getErrorStream();
-        InputStreamReader esr = new InputStreamReader(es);
-        BufferedReader ebr = new BufferedReader(esr);
-        while ((line = ebr.readLine()) != null) {
-            if(consoleCb != null) {
-                consoleCb.status(line);
-            }
-            else {
-                System.err.println(line);
-            }
+        ibr.close();
+        try {
+            returnCode = process.waitFor();
+        } catch (InterruptedException e) {
         }
-        
+                
         mh.frameworkTrace(cid, mid, "exit");
     }
     
@@ -1060,54 +985,45 @@ public class AllInOneLauncher extends CliBase {
         return sb.toString();
     }
     
+    /*
+     * Options that AllInOne needs
+     */
+    UiOption[] allInOneOpts = {
+          UiOption.Debug,
+          UiOption.Timestamp,
+          UiOption.DriverDescriptorCR,
+          UiOption.DriverDescriptorCROverrides,
+          UiOption.ProcessDD,
+          UiOption.ProcessDescriptorCM,
+          UiOption.ProcessDescriptorCMOverrides,
+          UiOption.ProcessDescriptorAE,
+          UiOption.ProcessDescriptorAEOverrides,
+          UiOption.ProcessDescriptorCC,
+          UiOption.ProcessDescriptorCCOverrides };
+    
+    /*
+     * Create a string hold the args for the java command.
+     * If any values contain blanks they would have to be quoted, instead restrict the args
+     * to just those needed to run the pipeline.
+     */
     private String getProcessExecutableArgs() {
         String mid = "getProcessExecutableArgs";
         mh.frameworkTrace(cid, mid, "enter");
         StringBuffer sb = new StringBuffer();
         if(process_jvm_args != null) {
             sb.append(process_jvm_args);
-            sb.append(" ");
         }
-        sb.append("-classpath");
+        sb.append(" -classpath");
         sb.append(" ");
         sb.append(classpath);
         sb.append(" ");
-        sb.append(this.getClass().getCanonicalName());
+        sb.append(AllInOne.class.getCanonicalName());
         sb.append(" ");
-        boolean skipNext = false;
-        for(String arg : args) {
-            if(skipNext) {
-                skipNext = false;
-            }
-            else if(arg.trim().equalsIgnoreCase("--"+UiOption.AllInOne.pname())) {
-                skipNext = true;
-                sb.append(arg);
-                sb.append(" ");
-                sb.append(local);
-                sb.append(" ");
-            }
-            else if(arg.trim().equalsIgnoreCase("--"+UiOption.DriverClasspath.pname())) {
-                skipNext = true;
-            }
-            else if(arg.trim().equalsIgnoreCase("--"+UiOption.ProcessClasspath.pname())) {
-                skipNext = true;
-            }
-            else if(arg.trim().equalsIgnoreCase("--"+UiOption.Classpath.pname())) {
-                skipNext = true;
-            }
-            else if(arg.trim().equalsIgnoreCase("--"+UiOption.DriverEnvironment.pname())) {
-                skipNext = true;
-            }
-            else if(arg.trim().equalsIgnoreCase("--"+UiOption.ProcessEnvironment.pname())) {
-                skipNext = true;
-            }
-            else if(arg.trim().equalsIgnoreCase("--"+UiOption.Environment.pname())) {
-                skipNext = true;
-            }
-            else {
-                sb.append(arg);
-                sb.append(" ");
-            }
+        for (UiOption opt : allInOneOpts) {
+          String val = jobRequestProperties.getProperty(opt.pname());
+          if (val != null) {
+            sb.append(" --" + opt.pname() + " " + val);
+          }
         }
         mh.frameworkTrace(cid, mid, "exit");
         return sb.toString();
@@ -1121,11 +1037,9 @@ public class AllInOneLauncher extends CliBase {
         addArg(cmdLine, getProcessExecutable());
         addArg(cmdLine, "--"+UiOption.ProcessExecutableArgs.pname());
         addArg(cmdLine, getProcessExecutableArgs());
-        addArg(cmdLine, "--"+UiOption.SchedulingClass.pname());
-        addArg(cmdLine, scheduling_class);
-        if(attach_console != null) {
-            addArg(cmdLine, "--"+UiOption.ProcessAttachConsole.pname());
-            addArg(cmdLine, attach_console);
+        if(scheduling_class != null) {
+            addArg(cmdLine, "--"+UiOption.SchedulingClass.pname());
+            addArg(cmdLine, scheduling_class);
         }
         if(environment != null) {
             addArg(cmdLine, "--"+UiOption.Environment.pname());
@@ -1149,44 +1063,27 @@ public class AllInOneLauncher extends CliBase {
         }
         if(wait_for_completion) {
             addArg(cmdLine, "--"+UiOption.WaitForCompletion.pname());
-            addArg(cmdLine, "true");
         }
         if(cancel_on_interrupt) {
             addArg(cmdLine, "--"+UiOption.CancelOnInterrupt.pname());
-            addArg(cmdLine, "true");
         }
-        String[] argList = cmdLine.toArray(new String[0]);
-        DuccManagedReservationSubmit mr = null;
-        if(consoleCb != null) {
-            mr = new DuccManagedReservationSubmit(argList, consoleCb);
-        }
-        else {
-            mr = new DuccManagedReservationSubmit(argList, consoleCb);
-        }
+        addArg(cmdLine, "--"+UiOption.ProcessAttachConsole.pname());    // Always return console output to match "local"
+
+        String[] argList = cmdLine.toArray(new String[cmdLine.size()]);
+        
+        DuccManagedReservationSubmit mr = new DuccManagedReservationSubmit(argList, consoleCb);
         boolean rc = mr.execute();
         
         String dt = "Managed Reservation";
         
         if (rc) {
             String line = dt + " " + mr.getDuccId() + " submitted.";
-            if(consoleCb != null) {
-                consoleCb.status(line);
-            }
-            else {
-                System.out.println(line);
-            }
-            int code = mr.getReturnCode();
-            System.exit(code);
+            consoleCb.status(line);
+            returnCode = mr.getReturnCode();
         } 
         else {
             String line = "Could not submit " + dt;
-            if(consoleCb != null) {
-                consoleCb.status(line);
-            }
-            else {
-                System.out.println(line);
-            }
-            System.exit(1);
+            consoleCb.status(line);
         }
 
         mh.frameworkDebug(cid, mid, "rc="+rc);
@@ -1210,21 +1107,23 @@ public class AllInOneLauncher extends CliBase {
     }
     
     public boolean execute() throws Exception {
-        go();
+        String mid = "execute";
+        mh.frameworkTrace(cid, mid, "enter");
+        examine();
+        returnCode = -1;  // Some "failure" value in case the local/remote launch doesn't complete
+        launch();
+        mh.frameworkTrace(cid, mid, "exit");
         return true;
     }
     
-    protected void go() throws Exception {
-        String mid = "go";
-        mh.frameworkTrace(cid, mid, "enter");
-        examine();
-        launch();
-        mh.frameworkTrace(cid, mid, "exit");
+    public int getReturnCode() {
+      return returnCode;
     }
     
     public static void main(String[] args) throws Exception {
         AllInOneLauncher allInOneLauncher = new AllInOneLauncher(args);
-        allInOneLauncher.go();
+        allInOneLauncher.execute();
+        System.exit(allInOneLauncher.getReturnCode());
     }
     
 
