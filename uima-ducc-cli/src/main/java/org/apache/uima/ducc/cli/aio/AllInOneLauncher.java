@@ -426,26 +426,42 @@ public class AllInOneLauncher extends CliBase {
         String mid = "examine_scheduling_class";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.SchedulingClass.pname();
+        if(!jobRequestProperties.containsKey(pname)) {
+           	DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+           	String scheduling_class = duccSchedulerClasses.getDefaultClassName();
+           	if(scheduling_class != null) {
+           		jobRequestProperties.put(pname, scheduling_class);
+           		String text = pname+"="+scheduling_class+" [default]";
+           		mh.debug(cid, mid, text);
+           	}
+           	else {
+           		throw new MissingArgumentException(pname);
+           	}
+        }
         if (jobRequestProperties.containsKey(pname)) {
             DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
             scheduling_class = jobRequestProperties.getProperty(pname);
             String message = pname + "=" + scheduling_class + " [original]";
             if (isLocal()) {
                 message = pname + "=" + scheduling_class + " not considered";
+                mh.debug(cid, mid, message);
             } else if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
                 String specific_scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(scheduling_class);
                 if (specific_scheduling_class != null) {
                     scheduling_class = specific_scheduling_class;
+                    jobRequestProperties.put(pname, scheduling_class);
                     message = pname + "=" + scheduling_class + " [replacement, specific]";
+                    mh.info(cid, mid, message);
                 } else {
                     String default_scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
                     if (default_scheduling_class != null) {
                         scheduling_class = default_scheduling_class;
+                        jobRequestProperties.put(pname, scheduling_class);
                         message = pname + "=" + scheduling_class + " [replacement, default]";
+                        mh.info(cid, mid, message);
                     }
                 }
             }
-            mh.frameworkDebug(cid, mid, message);
             used(pname);
         }
         mh.frameworkTrace(cid, mid, exit);

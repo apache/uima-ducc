@@ -85,6 +85,20 @@ public class DuccSchedulerClasses {
 		return retVal;
 	}
 	
+	public String getDefaultClassName() {
+		String retVal = null;
+		Properties properties = getClasses();
+		String key = "scheduling.default.name";
+		String value = properties.getProperty(key);
+		if(value != null) {
+			value = value.trim();
+			if(value.length() > 0) {
+				retVal = value;
+			}
+		}
+		return retVal;
+	}
+	
 	public String getDebugClassDefaultName() {
 		String retVal = null;
 		Properties properties = getClasses();
