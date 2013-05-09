@@ -1,0 +1,114 @@
+    \section{ducc\_process\_submit}
+
+    \paragraph{Description:}
+       Usse {\em ducc\_process\_submit} to submit a Managed Reservation, also known as an
+       arbitrary process to DUCC.  The process launched is any process at all.  The intention
+       of this function is an alternative to utilities such as {\em ssh}, such that the
+       spawned processes are fully managed by DUCC.  This allows the DUCC scheduler to allocate
+       the necessary resources (and prevent over-allocation), and the DUCC runtime environment
+       to manage process lifetime.
+
+       If {\em process\_attach\_console} is specified, Stdin, Stderr, and Stdout of the remote
+       process are redirected to the submitting console.  It is thus possible to run interactive
+       sessions with remote processes where the resources are managed by DUCC.
+
+    \paragraph{Usage:}
+    \begin{description}
+    \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-process-submit.jar {\em options}
+    \item[Script wrapper] java -jar \ducchome/bin/ducc-process-submit {\em options}
+    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-process-submit.jar org.apache.uima.ducc.cli.DuccManagedReservationCancel {\em options}
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+    
+        \item[--cancel\_managed\_reservation\_on\_interrupt ] Cancel managed reservation on interrupt
+          (Ctrl-C).  If running with {\em--wait\_for\_completion} and this flag is specified,
+          terminating the submit process will result in the remote process being terminated.
+
+        \item[--description {[text]}] The text is any string used to describe the process. It is
+          displayed in the Web Server.
+
+        \item[--debug ] Prints internal debugging information, intended for DUCC developers or
+          extended problem determination.
+
+        \item[--environment {[env vars]}] Blank-delimeted list of environment variables.  example:
+          "TERM=xterm DISPLAY=me.org.net:1.0".  If specified, this is set in the remote process as
+          it is spawned.
+
+        \item[--help] Prints the usage text to the console.
+
+        \item[--log\_directory {[path-to-log directory]} ] This specifies the path to the directory
+          for the user logs. If not specified, the default is the user's home directory.
+          
+          Within this directory DUCC creates a subdirectory for each job, using the numerical 
+          ID of the job. The format of the generated log file names is descripbed in Chapter 5, Job 
+          Logs [47]. 
+
+        \item[--process\_attach\_console] If specified, redirect remote process (as
+          opposed to driver) stdout and stderr to the local submitting console.
+          
+        \item[--process\_environment {[environment]} ] This specifies environment parameters for the
+          Job Processes. If present, they are added to the Job Process environment as the process is
+          spawned. It must be a quoted, blankdelimeted lsit of name-value pairs. For example:
+\begin{verbatim}
+"--process_environment TERM=xterm DISPLAY=:1.0" 
+\end{verbatim}
+          
+          Note: On Secure Linux systems, the environemnt variable 
+          LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
+          necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
+          specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
+          LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
+          example: 
+          
+\begin{verbatim}
+"--process_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\\_PATH=/my/own/
+\end{verbatim}
+
+        \item[--process\_executable {[program name]}] This is the full path to a program to be
+          executed.
+
+        \item[--process\_executable\_args {[argument list]}] Blank-delimited list of arguments for
+          {\em process\_executable}.
+
+        \item[--process\_memory\_size {[size]} ] This specifies the maximum amount of RAM in GB to
+          be allocated to each ]rocess.  This value is used by the Resource Manager to allocate
+          resources. if this amount is exceeded by a process the Agent terminates the process with a
+          ShareSizeExceeded message.
+
+        \item[--scheduling\_class {[classname]} ] This specifies the name of the scheuling class the
+          RM will use to determine the resource allocation for each process. The names of the
+          classes are installation dependent. If not specified, the default is taken from the global
+          DUCC configuration ducc.properties.
+
+        \item[--specifiecaiton {[file]} ] All the parameters used to submit a process may be placed
+          in a standard Java properties file.  This file may then be used to submit the process
+          (rather than providing all the parameters directory to submit).
+          
+          For example, 
+\begin{verbatim}
+ducc_process_submit --specification job.props 
+\end{verbatim}
+
+          where the job.props contains: 
+\begin{verbatim}
+working\_directory=/Users/challngr/projects/ducc/ducc\_test/test/bin 
+process\_environment=AE\_INIT\_TIME=10000 DUCC\_LD\_LIBRARY\_PATH=/a/bogus/path 
+log\_directory=/Users/challngr/ducc/logs/ 
+description=../simple/jobs/1.job[AE] 
+scheduling\_class=normal 
+process\_memory\_size=15 
+\end{verbatim}
+
+        \item[--wait\_for\_completion ] If specified, the submit command does not return control to
+          the console immediately, and instead monitors the DUCC state traffic and prints
+          information about the process as it progresses.
+          
+        \item[--working\_directory ] This specifies the working directory to be set by the Job
+          Driver and Job Process processes.  If not specified, the current directory is used.
+
+     \end{description}
+        
+    \paragraph{Notes:}
+

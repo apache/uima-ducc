@@ -1,0 +1,407 @@
+    \section{ducc\_submit}
+       The source for this section is ducc\_duccbook/documents/part-user/cli/submit.xml.
+       \paragraph{Description:}
+           The submit CLI is used to submit work for execution by DUCC. DUCC assigns a unique id to the
+           job and schedules it for execution. The submitter may optionally request that the progress of
+           the job is monitored, in which case the state of the job as it progresses through its
+           lifetime is printed on the console.
+       \paragraph{Usage:}
+           \begin{description}
+             \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-submit.jar {\em options}
+             \item[Script wrapper] java -jar \ducchome/bin/ducc-submit {\em options}
+             \item[Java Main]      java -cp \ducchome/lib/uima-ducc-submit.jar org.apache.uima.ducc.cli.DuccJobSubmit {\em options}
+           \end{description}
+
+        \paragraph{Options:}
+           \begin{description}
+
+           \item[--all\_in\_one $<$local | remote $>$]
+               Run driver and pipeline in single process.  If {\em local} is specified, the
+               process is executed on the local machine, for example, in the current Eclipse session.
+               If {\em remote} is specified, the jobs is submitted to DUCC as a {\em manged reservation}
+               and run on some (presumably larger) machine allocated by DUCC.
+
+           \item[--cancel\_job\_on\_interrupt].  If the job is started with --wait\_for\_completion, this
+             option causes the job to be canceled with Ctrl-C. If --cancel\_job\_on\_interrupt is not
+             specified, the job monitor will be terminated but the job will continue to run.
+
+             If --wait\_for\_completin is not specified this option is ignored. 
+
+           \item[--classpath] The classpath used for the job.  If specified, this is used
+             for both the driver and each process, overriding {\em process\_classpath} and
+             {\em driver\_classpath}.
+
+           \item[--classpath\_order {[UserBeforeDucc | DuccBeforeUser]} ]
+             When DUCC deploys a process, set the user-supplied classpath before DUCC-supplied
+             classpath, or the reverse.
+             
+           \item[--debug] Enable debugging messages. This is primarily for debugging DUCC itself.
+
+           \item[--description {[text]}] The text is any string used to describe the job. It is
+             displayed in the Web Server.             
+
+           \item[--driver\_attach\_console] If specified, redirect remote job driver stdout and stderr
+             to the local submitting console.
+
+           \item[--driver\_classpath {[classpath]}]
+             This is the classpath for the Job Driver, necessary for DUCC to find the Collection Reader. 
+
+           \item[--driver\_debug {[debugger-address]}] Append JVM debug flags to the jvm arguments
+             to start the JobDriver in remote debug mode.  The remote process debugger will attempt
+             to contact the specified port. The address is of the form {\tt host:port}.
+
+           \item[--driver\_descriptor\_CR {[descriptor.xml]} ]
+             This is the XML descriptor for the Collection Reader. It is searched for as a resource as 
+             described above. 
+
+           \item[--driver\_descriptor\_CR\_overrides {[list]} ]
+             
+             This is the Job Driver collection reader configuration overrides. They are specified as 
+             name/value pairs in a comma-delimeted list. For example: 
+             \begin{verbatim}
+--driver\_descriptor\_CR\_overrides name1=value1,name2=value2...
+             \end{verbatim}
+             
+             
+           \item[--driver\_environment {[list]} ]
+
+             This specifies environment parameters for the Job Driver. If present, they are added to the 
+             Job Driver's environment as the process is spawned. It must be a quoted, blank-delimeted 
+             lsit of name-value pairs. For example: 
+             \begin{verbatim}
+"TERM=xterm DISPLAY=:1.0" 
+             \end{verbatim}
+             
+             Note: On Secure Linux systems, the environemnt variable 
+             LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
+             necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
+             specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
+             LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
+             example: 
+             \begin{verbatim}
+"--process\_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/
+            \end{verbatim}
+
+           \item[--driver\_exception\_handler {[classname]}] Driver Exception handler class.  Must
+             implement org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler.
+
+           \item[--driver\_jvm\_args {[list]} ]
+
+             This specifes extra JVM arguments to be provided to the Job Driver process. It is a blankdelimeted 
+             list of strings. Example: 
+             \begin{verbatim}
+--driver\_jvm\_args -Xmx100M -Xms50M 
+             \end{verbatim}
+             
+           \item[--driver\_memory\_size {[size-in-GB]} ]
+
+             This specifies the size of memory for the Job Driver, in GB. Example: 
+             \begin{verbatim}
+--driver\_memory\_size 16 
+             \end{verbatim}
+
+           \item[--environment {[env vars]}] Blank-delimeted list of environment variables.  example:
+             "TERM=xterm DISPLAY=me.org.net:1.0".  If specified, this is used for all DUCC processes
+             in the job, overriding {\em --driver\_environment} and {\em --process\_environment} if they
+             are specified.
+             
+           \item[--help ]
+
+             Prints the usage text to the console. 
+
+           \item[--jvm {[path-to-java]}  ]
+
+             States the JVM to use. If not specified, the same JVM used by the Agents is used. 
+             Example: 
+             \begin{verbatim}
+--jvm /share/jdk1.6/bin/java 
+             \end{verbatim}
+             
+           \item[--log\_directory {[path-to-log directory]} ]
+
+             This specifies the path to the directory for the user logs. If not specified, the default is the 
+             user's home directory. Example: 
+             \begin{verbatim}
+--log\_directory /home/bob 
+             \end{verbatim}
+             
+             Within this directory DUCC creates a subdirectory for each job, using the numerical 
+             ID of the job. The format of the generated log file names is descripbed in Chapter 5, Job 
+             Logs [47]. 
+             
+             Note: Note that --log\_directory specifies only the path to a directory where 
+             logs are to be stored. In order to manage multiple processes running in multiple 
+             machines DUCC, sub-directory and file names are generated by DUCC and may 
+             not be directly specified. 
+
+           \item[--process\_attach\_console] If specified, redirect remote process (as
+             opposed to driver) stdout and stderr to the local submitting console.
+
+           \item[--process\_classpath {[ClASSPATH]} ]
+
+             This specifies the Java CLASSPATH to use in each Job Process (JP) and must be 
+             specified. Example: 
+             \begin{verbatim}
+--process\_classpath a.jar:b.jar 
+             \end{verbatim}
+             
+           \item[--process\_DD {[DD descriptor]}  ]
+
+             This specifies a UIMA Deployment Descriptor for the job processes for DD-style jobs. 
+             This is mutually exclusive with --process\_descriptor\_AE, --process\_descriptor\_CM, 
+             and --process\_descriptor\_CC. This descriptor is a resource that is searched for in the 
+             CLASSPATH and data path as described in the notes [26]. For example: 
+             \begin{verbatim}
+--process\_DD /home/billy/resource/DD\_foo.xml 
+             \end{verbatim}
+
+           \item[--process\_debug {[debugger-address]}] Append JVM debug flags to the jvm
+             arguments to start the Job Process in remobe debug mode.  The remote process will
+             start its debugger and attempt to contact the (Eclipse) debugger on the specified port.
+             The address is of the form {\tt host:port}.
+             
+           \item[--process\_deployments\_max {[integer]} ]
+
+             This specifies the maximum nunber of Job Processes to deploy at any given time. If not 
+             specified, DUCC will attempt to provide the largest number of processes, within the 
+             constraints of fair\_share scheduling and the number of pending work items still to be done 
+             in the job. 
+             \begin{verbatim}
+--process\_deployments\_max 66 
+             \end{verbatim}
+
+
+           \item[--process\_descriptor\_AE {[descriptor]}  ]
+
+             This specifies Analysis Engine descriptor to be deployed in the Job Processes. This 
+             descriptor is a resource that is searched for in the CLASSPATH and data path as described 
+             in the notes. It is mutually exclusive with --process\_DD For example: 
+             \begin{verbatim}
+--process\_descriptor\_AE /home/billy/resource/AE\_foo.xml 
+             \end{verbatim}
+
+
+           \item[--process\_descriptor\_AE\_overrides {[list]}  ]
+
+             This specifies AE overrides. It is a comma-delimeted list of name/value pairs. Example: 
+             \begin{verbatim}
+--process\_descriptor\_AE\_Overrides name1=value1,name2=value2 
+             \end{verbatim}
+             
+           \item[--process\_descriptor\_CC {[descriptor]}  ]
+
+             This specifies the CAS Consumer descriptor to be deployed in the Job Processes. This 
+             descriptor is a resource that is searched for in the CLASSPATH and data path as described 
+             in the notes. It is mutually exclusive with --process\_DD For example: 
+             \begin{verbatim}
+--process\_descriptor\_CC /home/billy/resourceCCE\_foo.xml 
+             \end{verbatim}
+             
+           \item[--process\_descriptor\_CC\_overrides {[list]}  ]
+
+             This specifies CC overrides. It is a comma-delimeted list of name/value pairs. Example: 
+             \begin{verbatim}
+--process\_descriptor\_CC\_overrides name1=value1,name2=value2 
+             \end{verbatim}
+             
+           \item[--process\_descriptor\_CM {[descriptor]} ]
+
+             This specifies the CAS Multiplier descriptor to be deployed in the Job Processes. This 
+             descriptor is a resource that is searched for in the CLASSPATH and data path as described 
+             in the notes. It is mutually exclusive with --process\_DD For example: 
+             \begin{verbatim}             
+--process\_descriptor\_CM /home/billy/resource/CM\_foo.xml 
+             \end{verbatim}
+
+           \item[--process\_descriptor\_CM\_overrides {[list]}  ]
+
+             This specifies CM overrides. It is a comma-delimeted list of name/value pairs. Example: 
+             \begin{verbatim}
+--process\_descriptor\_CM\_overrides name1=value1,name2=value2 
+\end{verbatim}
+             
+           \item[--process\_environment {[environment]} ]
+
+             This specifies environment parameters for the Job Processes. If present, they are added 
+             to the Job Process environment as the process is spawned. It must be a quoted, blankdelimeted 
+             lsit of name-value pairs. For example: 
+             \begin{verbatim}
+
+"--process\_environment TERM=xterm DISPLAY=:1.0" 
+             \end{verbatim}
+  
+             Note: On Secure Linux systems, the environemnt variable 
+             LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
+             necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
+             specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
+             LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
+             example: 
+
+             \begin{verbatim}
+"--process\_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/
+             \end{verbatim}
+
+           \item[--process\_failures\_limit {[integer]} ]
+
+             This specifies the maximum number of individual Job Process (JP) failures that are to be 
+             tolerated before killing the job. The default is 15. If this limit is exceeded over the lifetime 
+             of a job DUCC terminates the entire job. 
+             \begin{verbatim}
+"--process\_failures\_limit 23" 
+\end{verbatim}
+             
+           \item[--process\_get\_meta\_time\_max {[integer]}  ]
+
+             When a job is started the Job Driver issus a single "get-meta" requests to the
+             (DUCCgenerated) endpoint of the JP processes for the job to insure that at least one
+             UIMA-AS server processes for the job have started. This parameter specifies the time in
+             seconds to wait for a response. If the request times out the Job Driver assumes that no
+             UIMA-AS service for the job was able to start and it terminates the job. If not
+             specified, the timeout is 2 minutes. Example:
+             \begin{verbatim}
+"--process\_get\_meta\_time\_max 10" 
+             \end{verbatim}
+             
+           \item[--process\_initialization\_failures\_cap {[integer]}  ]
+
+             This specifies the maximum number of independent Job Process initialization failures (i.e. 
+             System.exit(), kill-15...) before the number of Job Processes is capped at the number in 
+             state Running currently. The default is 99. Example: 
+             \begin{verbatim}
+--process\_initialization\_failures\_cap 62 
+             \end{verbatim}
+             
+             Note that the job is NOT killed if there are processes that have passed initialization and are 
+             running. If this limit is reached, the only action is to not start new processes for the job. 
+
+           \item[--process\_jvm\_args {[list]}  ]
+
+             This specifies additinal arguments to be passed to the Job Process JVM. Example: 
+             \begin{verbatim}
+--process\_jvm\_args -Xmx400M -Xms100M 
+             \end{verbatim}
+             
+           \item[--process\_memory\_size {[size]}  ]
+
+             This specifies the maximum amount of RAM in GB to be allocated to each Job Process. 
+             This value is used by the Resource Manager to allocate resources. if this amount is 
+             exceeded by a Job Process the Agent terminates the process with a ShareSizeExceeded 
+             message.
+
+           \item[--process\_per\_item\_time\_max {[integer]}  ]
+
+             This specifies the maximum time in minutes that the Job Driver will wait for a Job 
+             Processes to process a CAS. If a timeout occurs the process is terminated and the CAS 
+             marked in error (not retried). If not specified, the default is 1 minute. Example: 
+             \begin{verbatim}
+--process\_per\_item\_time\_max 60 
+             \end{verbatim}
+             
+           \item[--process\_thread\_count {[integer]} ]
+
+             This specifies the number of threads per process to be deployed. It is used by the Resource 
+             Manager to determine how many processes are needed, by the Agent to determine 
+             howmany threads to spawn, and by the Job Driver to determine how many CASs to 
+             dispatch. If not specified, the default is 4. Example: 
+             \begin{verbatim}
+--process\_thread\_count 7 
+             \end{verbatim}
+             
+           \item[--scheduling\_class {[classname]}  ]
+
+             This specifies the name of the scheuling class the RM will use to determine the resource 
+             allocation for each process. The names of the classes are installation dependent. If not 
+             specified, the default is taken from the global DUCC configuration ducc.properties. 
+             Example: 
+             \begin{verbatim}
+--schedling\_class normal 
+             \end{verbatim}
+             
+           \item[--service\_dependency{[list]}  ]
+
+             This specifies a comma-delimeted list of services the job processes are dependent upon. 
+             Each endpoint must be of the form UIMA-AS:endpoint:broker\_url where endpoint is the 
+             UIMA-AS service endpoint and broker\_url is the ActiveMQ broker URL. 
+             
+             In the example are two dependencies, one with endpoint RandomSleepAE and 
+             broker tcp:bluej682:61616, and the other with endpoint OtherEp and broker URL 
+             tcp:bluej123:123. Example:
+             \begin{verbatim}
+ --service\_dependency UIMA-AS:RandomSleepAE:tcp:bluej682:61616, \ 
+UIMA-AS:OtherEp:tcp:bluej123:123 
+             \end{verbatim}
+
+           \item[--specifiecaiton {[file]}  ]
+
+             All the parameters used to submit a job may be placed in a standard Java properties file. 
+             This file may then be used to submit the job (rather than providing all the parameters 
+             directory to submit). 
+
+             For example, 
+             \begin{verbatim}
+ducc\_submit --specification job.props 
+\end{verbatim}
+
+             where the job.props contains: 
+\begin{verbatim}
+working\_directory=/Users/challngr/projects/ducc/ducc\_test/test/bin 
+process\_get\_meta\_time\_max=5 
+process\_failures\_limit=20 
+driver\_descriptor\_CR=org.apache.uima.ducc.test.randomsleep.FixedSleepCR 
+driver\_environment=DUCC\_LD\_LIBRARY\_PATH=/a/other/bogus/path 
+process\_environment=AE\_INIT\_TIME=10000 DUCC\_LD\_LIBRARY\_PATH=/a/bogus/path 
+driver\_classpath=/home/bob/duccapps/ducky\_driver.jar 
+log\_directory=/Users/challngr/ducc/logs/ 
+process\_thread\_count=1 
+driver\_descriptor\_CR\_overrides=jobfile:../simple/jobs/1.job,compression:10 
+process\_initialization\_failures\_cap=99 
+process\_per\_item\_time\_max=60 
+driver\_jvm\_args=-Xmx500M 
+process\_descriptor\_AE=org.apache.uima.ducc.test.randomsleep.FixedSleepAE 
+process\_classpath=/home/bob/duccapps/ducky\_process.jar 
+description=../simple/jobs/1.job[AE] 
+process\_jvm\_args=-Xmx100M -DdefaultBrokerURL=tcp://localhost:61616 
+scheduling\_class=normal 
+process\_memory\_size=15 
+\end{verbatim}
+             
+           \item[--timestamp ]
+
+             If specified, messages from the submit process are timestamped. This is intended primarily 
+             for use with a monitor with --wait\_for\_completion. 
+
+           \item[--wait\_for\_completion ]             
+             If specified, the submit command does not return control to the consoke immediately, 
+             and instead monitors the DUCC state traffic and prints information about the job as it 
+             progresses. 
+             
+           \item[--working\_directory ]             
+             This specifies the working directory to be set by the Job Driver and Job Process processes. 
+             If not specified, the current directory is used.
+  \end{description}
+             
+  \paragraph{Notes:}
+  
+  When searching for UIMA XML resource files such as descriptors, DUCC searches both the 
+  classpath and the data path according to the following rules: 
+  
+  \begin{enumerate}
+  \item If the resource ends in .xml it is assumed the resource is a file and the path is either an 
+    absolute path or a path relative to the specified working directory. If the file is not found 
+    the search exits and the job is terminated. 
+    
+  \item If the resource does not end in .xml, DUCC creates a path by replacing the "." 
+    separators with "/" and appending ".xml". It then searches two places: 
+    \begin{enumerate}
+    \item The user's CLASSPATH as a file (that is, not in a jar), and 
+    \item In the jar files provided in the user's CLASSPATH. 
+    \end{enumerate}
+    If the resource is found in either place the search is successful. Otherwise the search 
+    fails and the job is terminated. 
+    
+    The resource search-order rules apply to all of the following submit parameters: 
+    ¥ --driver\_descriptor\_CR 
+    ¥ --process\_descriptor\_AE 
+    ¥ --process\_descriptor\_CC 
+    ¥ --process\_descriptor\_CM 
+  \end{enumerate}

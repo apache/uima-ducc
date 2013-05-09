@@ -1,0 +1,381 @@
+    \section{ducc\_services}
+
+    \paragraph{Description:}
+
+        The ducc\_services CLI is used to manage service registration. It has a number of functions 
+        as listed below. Additionally the ducc\_services CLI wraps ducc\_service\_submit and 
+        ducc\_service\_cancel for convenience. 
+        
+        The functions include: 
+        \begin{description}
+            \item[Register] This registers a service with the Service Manager. A registered service is
+              retained by DUCC until it is unregistered.
+              
+            \item[Unregister] This unregisters a service with the Service Manager. When a service is
+              unregistered DUCC optionally stops the service instance, if any, and discards all knowledge of
+              it.
+              
+            \item[Start] The start function instructs DUCC to alllocate resources for a service and to
+              start it in those resources. The service remains running until explictly stopped. DUCC
+              will attempt to keep the service instances running if they should fail. The start function
+              is also used to increase the number of running service instances if desired.
+              
+            \item[Stop] The stop function stops some or all service instances.
+              
+            \item[Query] The query function returns detailed information about all known services, both
+              registerd and otherwise.
+              
+            \item[Modify] The modify function allows some aspectes of a registered service to be updated
+              without reregistereing the service. It optionally alters the running service instances to
+              conform with the updates.    
+        \end{description}
+            
+
+    \paragraph{Usage:}
+       \begin{description}
+          \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-services.jar {\em options}
+          \item[Script wrapper] java -jar \ducchome/bin/ducc-services {\em options}
+          \item[Java Main]      java -cp \ducchome/lib/uima-ducc-services.jar org.apache.uima.ducc.cli.DuccServiceApi {\em options}
+          \end{description}
+          
+          The ducc\_services CLI requires one of the verbs listed above as the first argument. Other arguments are determined
+          by the verb.
+
+    \paragraph{Options:}
+
+    \subsection{Common Options}
+        These options are common to all of the service verbs:
+        \begin{description}
+           \item[--debug ]          
+             Prints internal debugging information, intended for DUCC developers or extended problem determination.                    
+           \item[--id {[jobid]}]
+             The ID is the id of the job to cancel.
+           \item[--help]
+             Prints the usage text to the console. 
+        \end{description}
+        
+    \subsection{ducc\_services --register Options}
+
+       The {\em register} function submits a service description to DUCC.  DUCC stores this 
+       information until it is {\em unregistered}.  Once registered, a service may be
+       started, stopped, etc.
+
+       \begin{description}
+           \item[--register] {[specification file] [options]}]
+
+             The properties file is optional. It is a standard Java properties files containing all the 
+             registration options for the service. The override options are then applied to define the 
+             service (taking precedence). It is possible to register a service using just a properties file, 
+             just override options, or both. 
+             
+             The properties in the properties file are identical to the command-line parameters, but with 
+             the leading "--" removed. In the example below, the properties file {\em service.reg} is used
+             to register a service, with the number of instances specified as ``2''.
+\begin{verbatim}
+ducc_services --register service.reg --instances 2
+\end{verbatim} 
+
+\begin{verbatim}
+process_environment = DUCC_LD_LIBRARY_PATH=/my/own/lib.so 
+description = Test Service 0 
+process_jvm_args = -Xmx100M -DdefaultBrokerURL=tcp://bluej291:61617 
+process_classpath = ../../lib/ducc-test.jar 
+process_memory_size = 15 
+working_directory = /home/bob/service-descriptors 
+process_DD = Service_FixedSleep_0.xml 
+scheduling_class = fixed 
+\end{verbatim}
+         
+           \item[--description {[text]}] The text is any string used to describe the job. It is
+             displayed in the Web Server. 
+
+           \item[--instances {[number-of-instances]}] This defines the default number of service
+             instances to start. If not specified, the default is
+             
+           \item[--jvm {[path-to-java]}] States the JVM to use. If not specified, the same JVM used by
+             the Agents is used. 
+
+           \item[--log\_directory {[path-to-log directory]}] This specifies the path to the directory
+             for the user logs. If not specified, the default is the user's home directory.
+
+             Within this directory DUCC creates a subdirectory for each job, using the numerical 
+             ID of the job. The format of the generated log file names is descripbed in JRC-NEED-REFERENCE.
+
+           \item[--process\_classpath {[ClASSPATH]}] This specifies the Java CLASSPATH to use in each
+             Job Process (JP) and must be specified.
+
+           \item[--process\_DD {[DD descriptor]}] This specifies a UIMA Deployment Descriptor (DD) for
+             the service.
+
+           \item[--process\_environment {[environment]}] This specifies environment parameters for the
+             Job Processes. If present, they are added to the Job Process environment as the process is
+             spawned. It must be a quoted, blankdelimeted lsit of name-value pairs. For example:
+\begin{verbatim}
+"--process_environment TERM=xterm DISPLAY=:1.0" 
+\end{verbatim}
+             
+           \item[--process\_failures\_limit {[integer]}] This specifies the maximum number of individual
+             Job Process (JP) failures that are to be tolerated before killing the job. The default is
+             15. If this limit is exceeded over the lifetime of a job DUCC terminates the entire job.
+
+           \item[--process\_jvm\_args {[list]}] This specifies additinal arguments to be passed to the
+             Job Process JVM. Example:
+
+\begin{verbatim}
+--process_jvm_args -Xmx400M -Xms100M 
+\end{verbatim}
+             
+           \item[--process\_memory\_size {[size]}] This specifies the maximum amount of RAM in GB to be
+             allocated to each Job Process.  This value is used by the Resource Manager to allocate
+             resources. if this amount is exceeded by a Job Process the Agent terminates the process
+             with a ShareSizeExceeded message.
+
+           \item[--scheduling\_class {[classname]}] This specifies the name of the scheuling class the
+             RM will use to determine the resource allocation for each process. The names of the classes
+             are installation dependent.
+
+             Note: Note that in general one should select a non-preemptable class such as 
+             fixed> or reserve for services. Otherwise DUCC may grow or shrink the number 
+             of processes used by the service. It IS legal and supported to use a fair-share class 
+             however. 
+
+           \item[--service\_ping\_classpath {[classpath]}] This specifies the classpath to be used when
+             starting a user-supplied pinger.  See JRC-NEED-REF {\em --service\_ping\_class}.
+
+           \item[--service\_request\_endpoint {[CUSTOM:string]}] This provides the name of the endpoint
+             to used for non-UIMA-AS services. The endpoint must start with the characters "CUSTOM:"
+             followed by any unique string (with no embedded blanks).
+             service. Example:
+\begin{verbatim}
+--service_custom_endpoint CUSTOM:jrc.service.endpoint 
+\end{verbatim}
+             
+           \item[--service\_ping\_jvm\_args {[list]}] This supplies extra arguments to the JVM for the
+             CUSTOM ping object. Example:
+\begin{verbatim}
+--service_custom_jvm_args -Xmx 400M -Xms100M 
+\end{verbatim}
+             
+           \item[--service\_ping\_class {[java class]}] This supplies the java class name for a CUSTOM
+             ping object. The class must the interface org.apache.uima.ducc.IServiceMeta as described in
+             the API section. DUCC wraps the customer ping object in a management object with a "main"
+             and calls the implemented interfaces periodically to insure the custom service is
+             functioning, and to gather performance statistics. 
+             
+           \item[--service\_dependency {[list}]] This specifies a comma-delimeted list of services the
+             job processes are dependent upon (``independent'' services), if any.  For each independent
+             service, the endpoint must be of the form UIMA-AS:queuename:broker-url or CUSTOM:string.
+             
+             In the example are two dependencies, a UIMA-AS service with endpoint RandomSleepAE and broker
+             tcp:BobsGreatQueue:host1:61616, and the other with CUSTOM endpoint
+             OtherEp:OtherHost:OtherPort.
+             
+\begin{verbatim}
+--service_dependency UIMA-AS:BobsGreatQueue:host1:61616 CUSTOM:OtherEp:OtherHost:OtherPort
+\end{verbatim}
+             
+           \item[--service\_linger {[time in seconds]}] This specifies the time, in seconds, that a
+             service should be kept alive after its last reference has exited, in anticipation of new work
+             entering the system and using it. This is only applicable to services that are not
+             automatically started at boot time. 
+             
+           \item[--working\_directory {[directory]}] This specifies the working directory to be set by the
+             Job Driver and Job Process processes.  If not specified, the current directory is
+             used.
+       \end{description}
+
+
+    \subsection{ducc\_services --start Options}
+
+    The start function instructs DUCC to alllocate resources for a service and to start it in those
+    resources. The service remains running until explictly stopped. DUCC will attempt to keep the
+    service instances running if they should fail. The start function is also used to increase the
+    number of running service instances if desired.
+    
+       \begin{description}
+       \item[--start {[service-id | endpoint]}] This indicates that a service is to be started. The service id
+         is either the numeric ID assigned by DUCC when the service is registered, or the service
+         endpoint string.  Example:
+\begin{verbatim}
+ducc_services --start 23 
+ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 
+\end{verbatim}
+         
+       \item[--instances {[integer]}] This is the number of instances to start. If omitted, the
+         registered number of instances is started. If the number is specified, the number is added
+         to the currently number of running instances. Thus if five instances are running and
+         ducc\_services --start 33 --instances 5 is issued, five more service instances ar started
+         for service 33 for a totoal of ten. The registry is updated only if the --update option is
+         also specified.
+\begin{verbatim}
+Example: 
+
+ducc_services --start 23 --intances 5 
+
+ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 \ 
+--instances 3 --update 
+\end{verbatim}
+       \item[--update]If specified, the registry is updated to the total number of started
+         instances.  Example:
+\begin{verbatim}
+ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 \ 
+--instances 3 --update 
+\end{verbatim}
+       \end{description}
+
+    \subsection{ducc\_services --stop Options}
+    The stop function instructs DUCC to stop some number of service instances. If no specific number
+    is specified, all instances are stopped. This is used only for registered services. Use
+    ducc\_service\_cancel [34] to stop submitted services.
+
+    \begin{description}
+
+  \item[--stop {[service-id | endpoint]}] This specifies the service to be stopped. The service id
+         is either the numeric ID assigned by DUCC when the service is registered, or the service
+         endpoint string. Example:
+\begin{verbatim}
+ducc_services --stop 23 
+ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 
+\end{verbatim}
+         
+       \item[--instances {[integer]}] This is the number of instances to stop. If omitted, all
+         instances for the service are stopped.  If a number is specified, then only the specified
+         number of instances are stopped. Thus if ten instances are running and ducc\_services --stop
+         33 --instances 5 is issued, five (randomly selected) service instances are stopped for
+         service 33, leaving five running.  The registry is updated only if the --update option is
+         specified. The registered number of instances is never reduced to 0.
+
+         Example: 
+\begin{verbatim}
+ducc_services --stop 23 --intances 5 
+ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3  
+\end{verbatim}
+
+       \item[--update] If specified, the registry is updated to the total number of instances
+         remaining, but is never reduced below 1.
+
+         Example: 
+\begin{verbatim}
+ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --update
+\end{verbatim}
+
+    \end{description}
+
+    \subsection{ducc\_services --modify Options}
+    The modify function dynamically updates some of the attributes of a registered service. 
+    
+    \begin{description}
+        \item[--modify {[service-id | endpoint]}]  This identifies the service to modify. The service id is either
+          the numeric ID assigned by DUCC when the service is registered, or the service endpoint
+          string.  Example:
+\begin{verbatim}
+ducc_services --modify 23 --instances 3 
+ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --intances 2 
+\end{verbatim}
+
+        \item[ --instances {[integer]}] This updates the number of services instances that are
+          started when the service is started.  Only the registration is updated. If the --activate
+          option is also specified, running instances are stopped or started as needed to match the
+          new number.
+
+          Example: 
+\begin{verbatim}
+ducc_services --modify 23 --intances 5 
+ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --activate 
+\end{verbatim}
+
+        \item[ --activate {[integer]}] When specified, the number of running service instances is
+          increased or decreased to match the newly specified number.
+
+          Example: 
+\begin{verbatim}
+ducc_services --modify 23 --intances 5 
+ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --activate 
+\end{verbatim}
+
+        \item[ --autostart {["true" or "false"]}] This changes the autostart property for the
+          registered services. When set to "true", the service is started automatically when the
+          DUCC system is started.
+
+          Example: 
+\begin{verbatim}
+ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false 
+\end{verbatim}
+        \end{description}
+
+    \subsection{ducc\_services -query Options}
+    The query function returns details about all known services of all types and classes, including 
+    the DUCC ids of the service instances (for submitted and registered services), the DUCC ids of 
+    the jobs using each service, and a summary of each service's queue and performance statistics, 
+    when available. 
+    
+
+    \begin{description}
+    \item[--query {[service-id | endpoint]}] This indicates that a service is to be stopped. The
+      service id is either the numeric ID assigned by DUCC when the service is registered, or the
+      service endpoint string.
+
+      If no id is given, information about all services is returned. 
+
+      Below is a query against a system with three services. 
+
+      The service with endpoint UIMA-AS:FixedSleepAE\_6:tcp://bobmach291:61617 is a service 
+      submitted outside of DUCC so it is marked as Internal and has no implementing processes 
+      tha are known to DUCC. It is used by job 0 and is active, available, and being actively 
+      pinged. The ActiveMq queue statistics are shown. 
+
+      The service with endpoint UIMA-AS:FixedSleepAE\_5:tcp://bobmach:61617 is a 
+      registered service, whose registered numeric id is 2. It is registered for two instnaces and 
+      no autostart. Since it is not autostarted, it will be terminated when it is no longer used. It 
+      will linger for 5 seconds after the last referencing job completes, in case a subsequent job 
+      that uses it enters the system (not a realistic linger time!). It is currently used (referenced) 
+      by DUCC jobs 1 and 5. 
+
+      The service with endpoint UIMA-AS:FixedSleepAE\_1:tcp://bobmach:61617 is a 
+      submitted service. It was submitted twice, and so has two implementors, DUCC service 
+      jobs 0 and 1. It is referenced by job 7. It will continue to run until somebody cancels it, 
+      even if it is not used. 
+
+\begin{verbatim}
+Service: UIMA-AS:FixedSleepAE_6:tcp://bobmach291:61617 
+Service Class : Implicit 
+Implementors : (N/A) 
+References : 0 
+Dependencies : none 
+Service State : Available 
+Ping Active : true 
+Autostart : false 
+Manual Stop : false 
+Queue Statistics: 
+Consum Prod Qsize minNQ maxNQ expCnt inFlgt DQ NQ Disp 
+78 240 170 2 36414 0 0 636 806 636 
+
+Service: UIMA-AS:FixedSleepAE_5:tcp://bobmach291:61617 
+Service Class : Registered as ID 2 instances[2] linger[5] 
+Implementors : 9 8 
+References : 1 5 
+Dependencies : none 
+Service State : Available 
+Ping Active : true 
+Autostart : false 
+Manual Stop : false 
+Queue Statistics: 
+Consum Prod Qsize minNQ maxNQ expCnt inFlgt DQ NQ Disp 
+52 44 0 0 3 0 0 402 402 402 
+
+Service: UIMA-AS:FixedSleepAE_1:tcp://bobmach291:61617 
+Service Class : Submitted 
+Implementors : 1 0 
+References : 7 
+Dependencies : none 
+Service State : Available 
+Ping Active : true 
+Autostart : false 
+Manual Stop : false 
+Queue Statistics: 
+Consum Prod Qsize minNQ maxNQ expCnt inFlgt DQ NQ Disp 
+52 0 0 1 1504371 0 0 35 35 35 
+\end{verbatim}
+    \end{description}
+    \paragraph{Notes:}
+

@@ -1,0 +1,30 @@
+    \section{ducc\_monitor}
+
+    \paragraph{Description:}
+    
+    It may be desired to monitor a job's progress after it has been submitted. The monitor CLI 
+    connects to the DUCC message flow and provides job status as it progresses including state 
+    changes, error counts, and number of work items processed. 
+    
+    \paragraph{Usage:}
+    \begin{description}
+    \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-monitor.jar {\em options}
+    \item[Script wrapper] java -jar \ducchome/bin/ducc-monitor {\em options}
+    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-monitor.jar org.apache.uima.ducc.cli.DuccJobMonitor {\em options}
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+        \item[--debug ]          
+          Prints internal debugging information, intended for DUCC developers or extended problem determination.
+        \item[--id {[jobid]}]
+          The ID is the id of the job to monitor.
+        \item[--help]
+          Prints the usage text to the console. 
+        \item[--quiet] 
+          Disable CLI informational miessages;
+        \item[timestamp]
+          Enables timestamps on the monitor messages.
+     \end{description}
+        
+    \paragraph{Notes:}

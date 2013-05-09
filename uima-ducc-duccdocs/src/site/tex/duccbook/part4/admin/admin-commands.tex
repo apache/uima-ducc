@@ -1,0 +1,304 @@
+
+\section{Administrative Commands}
+
+\subsection{start-ducc}
+
+    \subsubsection{{\em Description}}
+    The command \ducchome/admin/start\_ducc is used to start DUCC processes. If run with no parameters
+    it takes the following actions:
+    \begin{itemize}
+      \item Starts the management processes Resource Manager, Orchestrator, Process Manager,      
+      Services Manager, and Web Server on the local node (where start\_ducc is executed.       
+      \item Starts an agent process on every node named in the default node list. 
+    \end{itemize}
+
+    \subsubsection{{\em Usage}}
+
+    \begin{description}
+      \item[start\_ducc {[options]}] \hfill \\ 
+        If no options are given, all DUCC processes are started, using the default node list, 
+        ducc\_runtime/resources/ducc.nodes. This is the equivalent of 
+\begin{verbatim}
+start\_ducc -n $DUCC\_HOME/resources/ducc.nodes -m 
+\end{verbatim}
+      \end{description}
+      
+      \subsubsection{{\em Options: }}
+      \begin{description}
+
+        \item[-n, --nodelist {[nodefile] }] \hfill \\
+          Start agents on the nodes in the nodefile. Multiple nodefiles may be specified: 
+\begin{verbatim}
+start\_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
+\end{verbatim}
+          
+
+        \item[-m, --management] \hfill \\
+          Start the management processes (rm, sm, pm, orchestrator) on the local node. The 
+          webserver is started on the local node, or the node configured in ducc.properties. 
+
+        \item[-c, --component {[component] }] \hfill \\
+          Start a specific DUCC component, optionally on a specific node. If the component 
+          name is qualified with a nodename, the component is started on that node. To qualify 
+          a component name with a destination node, use the notation component@nodename. 
+          Multiple components may be specified: 
+\begin{verbatim}
+start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2 
+\end{verbatim}
+          
+          Components include: 
+          \begin{description}
+            \item[rm] The Resource Manager
+            \item[or]The Orchestrator
+            \item[pm]The Process Manager
+            \item[sm]The Service Manager
+            \item[ws]The Web Server
+            \item[agent]Node Agents
+          \end{description}
+
+      \end{description}
+
+      \subsubsection{{\em Notes: }}
+      A different nodelist may be used to specify where Agents are started. As well multiple node 
+      lists may be specified, in which case Agents are started on all the nodes in the multiple node 
+      lists. 
+      
+      To start only agents, run start\_ducc specifying a nodelist explicitly. When started like this, the 
+      management daemons are not started unless explicitly requested. 
+      
+      To start only management processes, run start\_ducc with the -m or --management flags. When 
+      started like the the agents are not started unless explicitly requested. 
+      
+      To start a specific management process, run start\_ducc with the -c component parameter, 
+      specify the component that should be started. 
+  
+      \subsubsection{{\em Examples: }}
+
+      Start all DUCC processes, using custom nodelists: 
+\begin{verbatim}
+        start\_ducc -m -n foo.nodes -n bar.nodes 
+\end{verbatim}
+      
+      Start just management processes: 
+\begin{verbatim}
+        start\_ducc -m 
+\end{verbatim}
+      
+      Start just agents on a specific set of nodes: 
+\begin{verbatim}
+        start\_ducc -n foo.nodes -n bar.nodes 
+\end{verbatim}
+      
+      Start and agent on a specific node: 
+\begin{verbatim}
+        start\_ducc -c agent@a.specific.node 
+\end{verbatim}
+      
+      Start the webserver on node 'bingle': 
+\begin{verbatim}
+        start\_ducc -c ws@bingle 
+\end{verbatim}
+
+    
+\subsection{stop-ducc}
+
+    \subsubsection{{\em Description:}}
+    Stop\_ducc is used to stop DUCC processes. If run with no parameters it takes the following 
+    actions:
+    \todo Garbled by maven or docbook, update this
+
+    \subsubsection{\em Usage:}
+
+    \begin{description}
+      \item[stoph\_ducc {[options]}] \hfill \\ 
+        If no options are given, help text is presented. At least one option is required, to avoid 
+        accidental cluster shutdown. 
+      \end{description}
+    
+
+      \subsubsection{Options:}
+        \begin{description}
+
+          \item[-a --all] \hfill \\
+            Stop all the DUCC processes, including agents and management processes. This 
+            broadcasts a "shutdown" command to all DUCC processes. Shutdown is normally 
+            performed gracefully will all process including job processes given time to save state. 
+            All user processes, both jobs and services, are sent shutdown signals. Job and service 
+            processes which do not shutdown within a designated grace period are then forcibly 
+            terminated with kill -9. 
+            
+          \item[-n, --nodelist [nodefile]] \hfill \\
+            Only the DUCC agents in the designated nodelists are shutdown. The processes are sent 
+            kill -INT signals which triggers the Java shutdown hooks and enables graceful shutdown. 
+            All user processes on the indicated nodes, both jobs and services, are sent "shutdown" 
+            signals and are given a minute to shutdown gracefully. Job and service processes which do 
+            not shutdown within a designated grace period are then forcibly terminated with kill -9. 
+            
+\begin{verbatim}
+stop\_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
+\end{verbatim}
+
+          \item[-m, --management] \hfill \\
+            Stop only the management processes rm, pm, or, sm, and ws. All agents are left running; 
+            all job drivers are left running, all job processes are left running. 
+
+          \item[-c, --component [component]] \hfill \\
+            Stop a specific DUCC component. 
+
+            This may be used to stop an errant management component and subsequently restart it 
+            (with start\_ducc). 
+            
+            This may also be used to stop a specific agent and the job and services processes it is
+            managing, without the need to specify a nodelist.  
+            
+            Examples: 
+
+            Stop agents on nodes n1 and n2:
+\begin{verbatim}
+stop_ducc -c agent@n1 -c agent@n2 
+\end{verbatim}
+            
+            Stop and restart the rm: 
+\begin{verbatim}
+stop_ducc -c rm 
+start_ducc -c rmc 
+\end{verbatim}
+            
+            Components include: 
+            \begin{description}
+              \item[rm] The Resource Manager.                 
+              \item[or] The Orchestrator.                 
+              \item[pm] The Process Manager.                 
+              \item[sm] The Service Manager.                 
+              \item[ws] The Web Server.                 
+              \item[agent\@node] Node Agent on the specified node.
+              \end{description}
+              
+            \item[-k, --kill] \hfill \\
+              Use this to forcibly kill a component using kill -9. This should only be used if the -a option 
+              does not work. This normally has the same effect as check\_ducc -k, with the difference that 
+              check\_ducc indiscriminately kills all the DUCC processes it can find, whereas stop\_ducc-k 
+              can be directed to a specific instance of a component. 
+
+       \end{description}
+            
+
+          
+
+
+\subsection{check\_ducc}
+
+    \subsubsection{{\em Description:}}
+
+    Check\_ducc is used to find and report on DUCC processes. It can be used to find processes 
+    owned by ducc (management processes, agents, and job processes), or ducc jobs owned by 
+    users. 
+    
+    Check\_ducc can also be used to clean up errant DUCC processes when stop\_ducc is unable 
+    to do so. The difference is that stop\_ducc generally tries more gracefully stop processes. 
+    check\_ducc is used as a last resort, or if a fast but graceless shutdown is desired. 
+    
+    \subsubsection{\em{Usage: }}
+
+        \begin{description} 
+          \item[check\_ducc {[options]}]
+              If no options are given this is the equivalent of: 
+\begin{verbatim}
+check_ducc -n ../resources/ducc.nodes 
+\end{verbatim}
+              
+              This searches for all the processes owned by user ducc on all the nodes in ducc.nodes. User 
+              processes are not searched for. 
+        \end{description}
+            
+     \subsubsection{\em{Options:}}
+         \begin{description}
+           \item[-n --nodelist {[nodefile]}]
+             Only the nodes specified in the nodefile are searched. The option may be specified 
+             multiple times for multiple nodefiles. Note that the "local" node is always checked as well. 
+\begin{verbatim}
+check_ducc -n nlist1 -n nlist2 
+\end{verbatim}
+             
+           \item[-u --user {[userid]}]
+             The userid specifies the user whose processes check\_ducc searches for. If not specified, the 
+             user executing check\_ducc is used. If the user is specified as 'all' then all ducc processes 
+             belonging to all users are searched for. 
+\begin{verbatim}
+check_ducc -u billy 
+\end{verbatim}
+               
+           \item[-p --pids]
+               
+               Rewrite the PID file. The PID file contains the process ids of all known DUCC 
+               management and agent processes. The PID file is normally managed by start\_ducc and 
+               stop\_ducc and is stored in ducc\_runtime/state/ducc.pids. 
+               
+               Occasionally the PID file can become partially or fully corrupted; for example, if a DUCC 
+               process dies spontaneously. Use check\_ducc -p to search the cluster for processes and 
+               refresh the PID file. 
+               
+             \item[-r --reap]
+
+               Reap user processes. This uses kill -9 and ducc\_ling to forcibly terminate user processes. 
+               Only processes specified by '-u' or '--userid' are targeted. If the user "all" is specified, then 
+               all user processes are terminated. The intent of this is to easily find and terminate "rogue" 
+               user processes that do not terminate. 
+               
+               Use this option with care. It does not distinguish user processes by specific job id. Every 
+               process started by DUCC owned by the designated user is killed. 
+
+\begin{verbatim}
+check_ducc -u billy -u bobby -r 
+\end{verbatim}
+           \end{description}               
+       
+\subsection{verify\_ducc}
+
+    \subsubsection{{\em Description:}}
+    verify\_ducc performs a number of internal consistency checks to insure the DUCC installation 
+    is complete and has no obvious configuration errors. The following checks are performed: 
+    \begin{itemize}
+      \item Insure ducc\_ling is installed in the configured location and has correct permission and ownership on all nodes. 
+      \item Insure ActiveMQ is installed and configured in a way compatible with the ActiveMQ URL in ducc.properties. 
+      \item Insure all nodelists exist and are readable. 
+      \item Insure all nodes can be reached via ssh. 
+      \item Insure all nodes are running identical versions of DUCC. 
+      \item Insure java is installed in the location configured in ducc.properties on all nodes. 
+      \item Print the version of java on all nodes. 
+      \item Print the version of operating system on all nodes. 
+      \item Print the amount of RAM on all nodes. 
+      \item Insure all configured nodepools in ducc.classes exist and reference nodes are configured 
+      \end{itemize}
+      
+      \subsubsection{{\em Usage:}}
+
+         \begin{description}
+           \item{verify\_ducc {[options]}} \hfill \\
+             If no options are given, the nodes in ducc\_runtime/resources/ducc.nodes are used 
+             and the default ActiveMQ broker location of ~ducc/activemq is used. 
+         \end{description}
+           
+      \subsubsection{{\em Options:}}
+          \begin{description}
+            \item[-b {[broker\_install\_dir]}] \hfill \\
+          This specifies the name of the ActiveMQ broker configuration file that you are using. 
+\begin{verbatim}
+verify_ducc -b /home/challngr/amqbroker/amq/conf/activemq-nojournal5.xml 
+\end{verbatim}
+          
+          \item[-n {[nodelist]}] \hfill \\
+            This specifies the nodelist against which the DUCC installation is verified. This nodelist             
+            should be the same nodelist that DUCC will be started with. 
+          \end{description}
+        
+      \subsubsection{{\em Notes:}}
+
+      It may take a couple attempts to get verify\_ducc to run without error. It is important that all 
+      problems reported by verify\_ducc are handled before trying to start DUCC the first time. 
+      
+      It is recommended that verify\_ducc be run after any update to the DUCC configuration, most 
+      importantly, the addition of nodes. Verify\_ducc checks the ducc\_ling configuration on the new 
+      nodes as well as verifies network and ssh connectivity. 
+
+

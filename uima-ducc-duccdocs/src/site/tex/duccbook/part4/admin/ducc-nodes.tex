@@ -1,0 +1,53 @@
+\section{Ducc Node Definitions}
+
+    The DUCC node definitions are specified by default in the file {\em ducc.nodes}.
+
+    The DUCC node list is used to configure the nodes used to run jobs and assign reservations. A 
+    DUCC Agent is started by DUCC on every node in the node list. 
+
+    The node list can be composed of multiple node lists to assist organization of the DUCC cluster. 
+    All the administrative commands operate upon node lists. By carefully organized these lists it is 
+    possible to administer portions of a cluster independently. 
+    
+    A node list is a simple flat file where each line consists of a single node name or an import 
+    statement. Nodes may be designated by IP address or by name. The node list may be commented 
+    using the comment delimeter "\#". 
+    
+    An import statement is of the form 
+
+\begin{verbatim}
+import filename 
+\end{verbatim}
+    
+    where "filename" is the name of another node list. The imported nodelist may itself contain import 
+    statements to allow a nested organization of lists. 
+
+    When an import statement is encountered, the named file is read and its contents appended to the 
+    stream of incoming nodes. The list of nodes used by commands is composed of the nodes in the 
+    first list and all imported files. 
+
+    Examples: 
+
+\begin{verbatim}
+cat ducc.nodes 
+# First four nodes 
+ducc01.local.net 
+ducc02.local.net 
+ducc03.local.net 
+ducc04.local.net 
+import big.nodes 
+# 64 GB 
+# 64 GB 
+# 128 GB 
+# 128 GB 
+
+cat big.nodes 
+
+
+# Large memory nodes, all with 256 GB 
+ducc11.local.net 
+ducc12.local.net 
+ducc13.local.net 
+ducc14.local.net 
+\end{verbatim}
+    

@@ -1,0 +1,35 @@
+    \section{ducc\_cancel}
+
+    \paragraph{Description:}
+    The cancel CLI is used to cancel a job that has previously been submitted but which has not yet 
+    completed. 
+
+    \paragraph{Usage:}
+    \begin{description}
+    \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-cancel.jar {\em options}
+    \item[Script wrapper] java -jar \ducchome/bin/ducc-cancel {\em options}
+    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cancel.jar org.apache.uima.ducc.cli.DuccJobCancel {\em options}
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+        \item[--debug ]          
+          Prints internal debugging information, intended for DUCC developers or extended problem determination.                    
+        \item[--id {[jobid]}]
+          The ID is the id of the job to cancel.
+        \item[--reason]
+          Optional. This specifies the reason the job is canceled, for display in the web server.
+        \item[-dpid {[pid]}]
+          If specified only this DUCC process will be canceled.  If not
+          specified, then entire job will be canceled.  The {\em pid} is the process ID of the
+          process to cancel.
+        \item[--help]
+          Prints the usage text to the console. 
+        \item[--role\_administrator] The command is being issued in the role of a DUCC administrator.
+          If the user is not also a registered administrator this flag is ignored.  (This helps to
+          protect administrators from inadvertantly canceling jobs they do not own.)
+     \end{description}
+        
+    \paragraph{Notes:}
+    None.
+

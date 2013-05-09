@@ -1,0 +1,50 @@
+\documentclass[letterpaper]{book}
+
+% space between paragraphs
+\usepackage{parskip}
+
+% import graphics
+%\usepackage[pdftex]{graphicx}
+\usepackage{graphicx}
+
+\usepackage{float}
+
+
+% Margins
+\usepackage[top=1in, bottom=.75in, left=.75in, right=.75in ]{geometry}
+
+\title{\Huge \textbf{Distributed UIMA Cluster Computing}}
+
+\author{The DUCC Team}
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+%% \setcounter{tocdepth}{4}
+\tableofcontents
+\listoffigures
+% \listoftables
+
+\mainmatter
+
+\newcommand{\ducchome}{\$DUCC\_HOME}
+\newcommand{\todo}{{\sc \Large TODO:}  }
+\newcommand{\note}{{\em Note:}  }
+
+\part{DUCC Concepts}
+\input{part1/overview.tex}
+\input{part1/quickstart.tex}
+\input{part1/terminology.tex}
+
+\part{Ducc Users Guide}
+\input{part2/ducc-uguide.tex}
+
+\part{Programming Model And Applications}
+\input{part3/ducc-applications.tex}
+
+\part{Ducc Administrators Guide}
+y\input{part4/ducc-aguide.tex}
+
+\end{document}

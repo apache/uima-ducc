@@ -1,0 +1,51 @@
+\chapter{Command Line Interface}
+
+    The Command Line Interface is provided in several forms:
+
+    \begin{enumerate}
+      \item A Java executable jar.
+      \item A script.
+      \item Direct invocation of each commands's {\tt main}.
+    \end{enumerate}
+
+    When using the executable jars and scripts the full execution environment is estableshed
+    silently.  When directly invoking a command's {\tt main} one must set the java {\tt CLASSPATH} to
+    specify the appropriate jar for the command, as described in subsequent sections.
+
+    The following commands are provided:
+    \begin{description}
+    \item[ducc\_submit] Submit a job for ececution.
+    \item[ducc\_cancel] Cancel a job in progress.
+    \item[ducc\_reserve] Request a reservation of full or partial machines.
+    \item[ducc\_unreserve] Cancel a reservation.
+    \item[ducc\_monitor] Monitor the progress of a job that is already submitted.
+    \item[ducc\_process\_submit] Submit an arbitrary process (managed reservation) for execution.
+    \item[ducc\_process\_cancel] Cancel an arbitrary process.
+    \item[ducc\_service\_submit] Submit a (non-registered) service instance for execution.
+    \item[ducc\_service\_cancel] Cancel a (non-registered) service instance.
+    \item[ducc\_services] Register, unregister, start, stop, modify, and query a service.
+    \end{description}
+    
+    The next section describes these commands in detail.
+
+    %% These all input sections
+    \input{part2/cli/ducc-submit.tex}
+    \input{part2/cli/ducc-cancel.tex}
+    \input{part2/cli/ducc-monitor.tex}
+    \input{part2/cli/ducc-reserve.tex}
+    \input{part2/cli/ducc-unreserve.tex}
+    \input{part2/cli/ducc-service-submit.tex}
+    \input{part2/cli/ducc-service-cancel.tex}
+    \input{part2/cli/ducc-process-submit.tex}
+    \input{part2/cli/ducc-process-cancel.tex}
+    \input{part2/cli/ducc-services.tex}
+
+
+
+\chapter{Application Programming  Interface}
+
+%% this inputs a chapter
+\input{part2/job-logs.tex}
+
+%% this inputs a chapter
+\input {part2/webserver.tex}

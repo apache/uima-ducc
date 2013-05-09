@@ -1,0 +1,1183 @@
+\section{ducc.properties}
+
+    The primary configuration file is called ducc.properties and always resides in the directory
+    ducc\_runtime/resources.
+
+    Some of the properties in ducc.properties are intended as the "glue" that brings the various 
+    DUCC components together and lets then run as a coherent whole. These types of properties should 
+    be modified only by developers of DUCC itself. In the description below these properties are 
+    classified as "Private". 
+
+    Some of the properties are tuning parameters: timeouts, heartbeat intervals, and so on. These
+    may be modified by DUCC administrators, but only after experience is gained with DUCC, and only
+    to solve specific performance problems. The default tuning parameters have been chosen by the
+    DUCC system developers to provide "best" operation under most reasonable situations. Changing
+    these parameters may create imbalances in the system and result in performance problems or even
+    prevent DUCC from operating at all. In the description below these properties are classified as
+    "Tuning".
+
+    Some of the properties are standard configuration properties: the location of the ActiveMQ
+    broker, the location of the Java JRE, port numbers, etc. These should be modified by the DUCC
+    administrators to configure DUCC to each individual installation. In the description below these
+    properties are classified as "Local".
+
+\subsection{General DUCC Properties}
+    \begin{description}
+       \item[ducc.jms.provider] \hfill \\
+         Declare the type of middleware providing the JMS service used by DUCC.
+         \begin{description}
+           \item[Default] activemq 
+           \item[Type]Private 
+         \end{description}
+           
+       \item[ducc.broker.protocol] \hfill \\
+         Declare the wire protocol used to communicate with ActiveMQ. 
+         \begin{description}
+           \item[Default] tcp 
+           \item[Type] Private 
+         \end{description}
+
+       \item[ducc.broker.hostname] \hfill \\
+         This declares the node name where the ActiveMQ broker resides. It MUST be updated to 
+         the actual node where the broker is running as part of DUCC installation. The default value 
+         will not work.          
+         \begin{description}               
+           \item[Default]localhost 
+           \item[Type] Local 
+         \end{description}
+
+       \item[ducc.broker.port] \hfill \\
+         This declares the port on which the ActiveMQ broker is listening for
+         messages. It MAY be updated as part of DUCC installation. ActiveMQ ships with port
+         61616 as the default port, and DUCC uses that default.         
+         \begin{description}
+           \item[Default] 61616              
+           \item[Type] Local 
+         \end{description}
+           
+       \item[ducc.broker.decoration] \hfill \\
+         From the ActiveMQ documentation: "The maximum inactivity duration
+         (before which the socket is considered dead) in milliseconds. On some platforms it
+         can take a long time for a socket to appear to die, so we allow the broker to kill
+         connections if they are inactive for a period of time. Use by some transports to
+         enable a keep alive heart beat feature. Set to a value less-than-or-equal0 to
+         disable inactivity monitoring. Declare the wire protocol used to communicate with
+         ActiveMQ."
+         
+         This decoration is used to keep the broker connection alive while a JVM is in a
+         long garbage collection. The applications that DUCC is designed to support can
+         spend significant time in garbage collection, which can cause spurious timeouts. By
+         default the DUCC configuration disables the timeout by setting it to 0.
+       
+         \begin{description}
+           \item[Default] wireFormat.maxInactivityDuration=0 
+           \item[Type] Local 
+         \end{description}
+             
+       \item[ucc.broker.name] \hfill \\
+         This is the internal name of the broker, used to locate Broker's MBean in JMX Registry. 
+         It is NOT related to any node name. When using the ActiveMQ distribution supplied with 
+         DUCC it should always be set to "localhost". When using another broker, this name must 
+         match the "brokerName" parameter in the local ActiveMQ configuration.          
+         \begin{description}
+           \item[Default] localhost 
+           \item[Type] Local              
+         \end{description}
+
+
+       \item[ducc.broker.jmx.port] \hfill \\
+         This is the port used to make JMX connections to the broker. When using the ActiveMQ 
+         broker supplied with DUCC this should normally not be changed. If using another 
+         ActiveMQ broker this must match the configured JMX port. 
+         
+         \begin{description}         
+           \item[Default] 1099                       
+           \item[Type] Local 
+         \end{description}
+           
+
+       \item[ducc.cluster.name] \hfill \\
+         This is a string used in the Web Server banner to identify the local cluster. It may be set to 
+         anything desired. 
+         \begin{description}
+           \item[Default] Welcome To DUCC! 
+           \item[Type] Local 
+         \end{description}
+           
+       \item[ducc.runmode] \hfill \\
+         When set to "Test" this property bypasses userid and authentication checks. It is intended 
+         for use ONLY by DUCC developers. It allows developers of DUCC to simulate a multiuser 
+         environment without the need for root privileges. 
+         
+         Note: WARNING! Enabling this feature in a production DUCC system is a 
+         serious security breach. It should only be set by DUCC developers running with 
+         an un-privileged ducc\_ling. 
+         \begin{description}
+           \item[Default] unconfigured. 
+           \item[Type] Local 
+         \end{description}
+
+       \item[ducc.locale.language] \hfill \\
+         Establish the language for national language support of messages. Currently only "en" is 
+         supported. 
+         \begin{description}
+           \item[Default] en 
+           \item[Type] Private 
+         \end{description}
+           
+
+       \item[ducc.locale.country] \hfill \\
+         Establish the country for National Language Support of messages. Currently only "us" is 
+         supported. 
+
+         \begin{description}
+           \item[Default] us 
+           \item[Type] Private 
+         \end{description}
+
+       \item[ducc.jvm] \hfill \\
+         Specifies the full path to the JVM to be used by the DUCC processes. If not specified, 
+         "java" must be in the default path for user "ducc". 
+         \begin{description}
+           \item[Default] java 
+           \item[Type] Local 
+         \end{description}
+
+       \item[ducc.jmx.port] \hfill \\
+         Every process started by DUCC has JMX enabled by default. When more than one process 
+         runs on the same machine this can cause port conflicts. The property "ducc.jmx.port" is 
+         used as the base port for JMX. If the port is busy, it is incremented internally until a free 
+         port is found. 
+         
+         The web server's "System -> Daemons" tab is used to find the JMX URL that gets assigned 
+         to each of the DUCC management processes. The web server's job details page for each 
+         job is used to find the JMX URL that is assigned to each JP. 
+         
+         \begin{description}
+           \item[Default] 2099 
+           \item[Type] Private 
+         \end{description}
+
+       \item[ducc.agent.jvm.args] \hfill \\
+         This specifies the list of arguments passed to the JVM when spawing the Agent. 
+         \begin{description}           
+           \item[Default] Xmx100M 
+           \item[Type] Tuning 
+         \end{description}
+
+       \item[ducc.orchestrator.jvm.args] \hfill \\
+         This specifies the list of arguments passed to the JVM when spawing the Orchestrator. 
+         \begin{description}
+           \item[Default] Xmx1G 
+           \item[Type] Tuning 
+         \end{description}
+
+       \item[ducc.rm.jvm.args] \hfill \\
+         This specifies the list of arguments passed to the JVM when spawing the Resource 
+         Manager. 
+         \begin{description}           
+           \item[Default] Xmx1G 
+           \item[Type] Tuning 
+         \end{description}
+
+       \item[ducc.agent.jvm.args] \hfill \\
+         This specifies the list of arguments passed to the JVM when spawing the Process Manager. 
+         \begin{description}
+           \item[Default] Xmx1G 
+           \item[Type] Tuning 
+         \end{description}
+
+       \item[ducc.sm.jvm.args] \hfill \\
+         This specifies the list of arguments passed to the JVM when spawing the Service Manager. 
+         \begin{description}
+           \item[Default] Xmx1G 
+           \item[Type] Tuning 
+         \end{description}
+
+       \item[ducc.ws.jvm.args] \hfill \\
+         specifies the list of arguments passed to the JVM when spawing the Webserver. 
+         \begin{description}
+           \item[Default] Xmx8G 
+           \item[Type] Tuning 
+         \end{description}
+
+       \item[ducc.admin.endpoint] \hfill \\
+         This is the JMS endpoint name used for DUCC administration messages. 
+         \begin{description}
+           \item[Default] ducc.admin.channel 
+           \item[Type] Private 
+         \end{description}
+
+       \item[ducc.admin.endpoint.type] \hfill \\
+         This is the JMS message type used for DUCC administration requests. If changed DUCC 
+         admin may not work. 
+         \begin{description}
+           \item[Default] topic 
+           \item[Type] Private
+         \end{description} 
+
+       \item[ducc.submit.threads.limit] \hfill \\
+         This enforces a maximum number of threads per job, amortized over all the processes. No 
+         job will have more threads than this dispatched. This limit is disabled by default. 
+         
+         \begin{description}
+           \item[Default] (unconfigured) 
+           \item[Type] Local 
+         \end{description}
+                 
+
+       \item[ducc.driver.jvm.args] \hfill \\
+         If enabled, the arguments here are automatically added to the JVM arguments specified for 
+         the Job Driver process. 
+         \begin{description}
+           \item[Default] (unconfigured) 
+           \item[Type] Local 
+         \end{description}
+
+       \item[ducc.process.jvm.args] \hfill \\
+         If enabled, the arguments here are added by DUCC to the JVM arguments in the user's job 
+         processes. 
+         \begin{description}
+           \item[Default] (unconfigured) 
+           \item[Type] Private 
+         \end{description}
+                   
+
+       \item[ducc.cli.httpclient.sotimeout] \hfill \\
+         This is the timeout used by the CLI to communicate with DUCC, in millisseconds. If no 
+         response is heard within this time, the request times out and is aborted. When set to 0 (the 
+         default), the request never times out. 
+         \begin{description}
+           \item[Default] 0 
+           \item[Type] Tuning 
+          \end{description}
+                   
+        \item[ducc.signature.required] \hfill \\
+          When set, the CLI signs each request so the Orchestrator can be sure the requestor is 
+          actually who he claims to be. 
+          \begin{description}            
+            \item[Default] on             
+            \item[Type] Tuning 
+          \end{description}
+      \end{description}  
+        
+
+\subsection{Web Server Properties}
+
+    \begin{description}
+        \item[ducc.ws.configuration.class] \hfill \\
+          The name of the pluggable java class used to implement the Web Server. 
+          \begin{description}
+            \item[Default Value] org.apache.uima.ducc.ws.config.WebServerConfiguration 
+            \item[Type] Private 
+          \end{description}
+        
+        \item[ducc.ws.node] \hfill \\
+          This is the name of the node the web server is started on. If not specified, the web server is 
+          started on the node where start\_ducc is run. 
+          \begin{description}
+            \item[Default Value] (unconfigured) 
+            \item[Type] Local 
+          \end{description}
+            
+
+        \item[ducc.ws.ipaddress] \hfill \\
+          In multi-homed systems it may be necessary to specify to which of the multiple addresses 
+          the Web Server listens for requests. This property is an IP address that specifies to which 
+          address the Web Server listens. 
+          \begin{description}
+            \item[Default Value] (unconfigured) 
+            \item[Type] Local 
+          \end{description}
+              
+        \item[ducc.ws.port] \hfill \\
+          This is the port on which the DUCC Web Server listens for requests. 
+          \begin{description}
+            \item[Default Value] 42133 
+            \item[Type] Local 
+          \end{description}
+
+        \item[ducc.ws.port.ssl] \hfill \\
+          This is the port that the Web Server uses for SSL requests (such as authentication). 
+          \begin{description}
+            \item[Default Value] 42155 
+            \item[Type] Local 
+          \end{description}
+
+        \item[ducc.ws.port.ssl.pw] \hfill \\
+          This is the SSL password used for SSL requests. 
+          \begin{description}
+            \item[Default Value] quackquack 
+            \item[Type] Local
+          \end{description}
+                    
+        \item[ducc.ws.session.minutes] \hfill \\
+          Once authenticated, this property determines the lifetime of the authenticated session to the 
+          Web Server. 
+          \begin{description}
+            \item[Default Value] 60 
+            \item[Type] Local 
+          \end{description}
+
+        \item[ducc.ws.max.history.entries] \hfill \\
+          The Web Server maintains a history of jobs over time. To avoid overloading the system 
+          with data about old and obsolete jobs it prunes the history. This property determines the 
+          size of the history that is kept. 
+          \begin{description}
+            \item[Default Value] 200 
+            \item[Type] Local 
+          \end{description}
+      \end{description}  
+            
+    
+\subsection{Job Driver Properties}
+    \begin{description}
+        \item[ducc.jd.configuration.class] \hfill \\
+          The name of the pluggable java class used to implement the Job Driver. 
+          \begin{description}
+            \item[Default Value] org.apache.uima.ducc.jd.config.JobDriverConfiguration 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.jd.state.update.endpoint] \hfill \\
+          This is the JMS endpoint name by the Job Driver to send state to the Orchestrator. 
+          \begin{description}
+            \item[Default Value] ducc.jd.state               
+            \item[Type] Private 
+          \end{description}
+            
+
+        \item[ducc.jd.state.update.endpoint.type] \hfill \\
+          This is the JMS message type used to send state to the Orchestrator. 
+          \begin{description}            
+            \item[Default Value] topic 
+            \item[Type] Private 
+          \end{description}
+          
+
+        \item[ducc.jd.state.publish.rate] \hfill \\
+          The frequency in milliseconds that JD publishes its state to the Orchestrator. A higher rate 
+          may slightly increase system response but will increase network load. A lower rate will 
+          somewhat decrease system response and lower network load. 
+          \begin{description}
+            \item[Default Value] 15000 
+            \item[Type] Tuning 
+          \end{description}
+
+        \item[ducc.jd.queue.prefix] \hfill \\
+          This is a human-readable string used to form queue names for the JMS queues used to pass 
+          CASs from the Job Driver to the Job Processes. 
+          \begin{description}
+            \item[Default Value] ducc.jd.queue. 
+          \i  tem[Type] Private 
+          \end{description}
+          
+        \item[ducc.jd.host.class] \hfill \\
+          This is the scheduling class used to request a reservation from the Resource Manager for 
+          the machine that will be used to run the Job Driver processes. This class must also be 
+          configured in ducc.classes with scheduling policy RESERVE. 
+          \begin{description}
+            \item[Default Value] JobDriver 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.jd.host.description] \hfill \\
+          This is a name to be associated with the reservation that is made for the Job Driver Node. 
+          It can be any string and is displayed in the Reservations page on the Web Server. 
+          \begin{description}
+            \item[Default Value] Job Driver 
+            \item[Type] Tuning 
+          \end{description}
+
+        \item[ducc.jd.memory.size] \hfill \\
+          This is the amount of memory that is requested in the Job Driver reservation. It is used 
+          in conjunction with the configuration of the class specified for the job driver (by default, 
+          JobDriver) to schedule a node. The default configuration for this class uses a node pool 
+          instead of memory to allocate the Job Driver node so by default, this parameter is ignored. 
+          \begin{description}
+            \item[Default Value] 8GB 
+            \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.jd.number.of.machines] \hfill \\
+          This is the number of machines to request for Job Driver nodes. This may be increased if 
+          there are many jobs in the system and the load on the JD node is high enough to slow the 
+          JD processes. 
+          \begin{description}
+            \item[Default Value] 1 
+            \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.jd.host.user] \hfill \\
+          This is the userid that is associated with the Job Driver reservation. It does not need to be 
+          a "real" userid as the actual owner of the reservation is user "ducc". It is primarily used as 
+          annotation of the reservation in the Web Server and logs. 
+          \begin{description}
+            \item[Default Value] System 
+            \item[Type] Tuning 
+          \end{description}
+      \end{description}
+      
+  
+
+
+
+\subsection{Service Manager Properties}
+    \begin{description}
+
+      \item[ducc.sm.configuration.class] \hfill \\
+        This is the name of the pluggable java class used to implement the Service Manager. 
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.sm.config.JobDriverConfiguration 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.sm.state.update.endpoint] \hfill \\
+        This is the JMS endpoint name used for state messages sent by the Service Manager. 
+        \begin{description}
+          \item[Default Value] ducc.sm.state 
+          \item[Type] Private
+        \end{description}
+        
+      \item[ducc.sm.state.update.endpoint.type] \hfill \\
+        This is the JMS message type used for state messages sent by the Service Manager. 
+        \begin{description}
+          \item[Default Value] topic 
+          \item[Type] Private 
+        \end{description}          
+        
+      \item[ducc.sm.meta.ping.rate] \hfill \\
+        This is the time, in milliseconds, between pings by the Servic Manager to each known, 
+        running service. 
+        \begin{description}          
+          \item[Default Value] 60000 
+          \item[Typ] Tuning
+        \end{description} 
+        
+      \item[ducc.sm.meta.ping.stability] \hfill \\
+        This is the number consecutive pings that may be missed before a service is considered 
+        unavailable. 
+        \begin{description}
+          \item[Default Value] 10 
+          \item[Type] Tuning 
+        \end{description}
+
+      \item[ducc.sm.meta.ping.timeout] \hfill \\
+        This is the time in milliseconds the SM waits for a response to a ping. If the service does 
+        not respond within this time the ping is accounted for as a "missed" ping. 
+        \begin{description}
+          \item[Default Value] 5000 
+          \item[Type] Tuning 
+        \end{description}
+        
+      \item[ducc.sm.http.port] \hfill \\
+        This is the HTTP port used by the SM to field requests from the CLI / API. 
+        \begin{description}          
+          \item[Default Value] 19989 
+          \item[Type] Local 
+        \end{description}
+        
+      \item[ducc.sm.http.node] \hfill \\
+        This is the node where the service manager runs. It MUST be configured as part of DUCC 
+        setup. 
+        \begin{description}
+          \item[Default Value] localhost 
+          \item[Type] Local 
+        \end{description}
+        
+      \item[ducc.sm.default.linger] \hfill \\
+        This is the length of time, in seconds, that the SM allows a service to remain alive after 
+        all referenceing jobs have exited. If no new job enters the system by the time this time has 
+        expired, the SM stops the service. 
+        \begin{description}
+          \item[Default Value] 300           
+          \item[Type] Tuning 
+        \end{description}
+        
+      \end{description}
+      
+
+\subsection{Orchestrator Properties}
+    \begin{description}
+      \item[ducc.orchestrator. configuration.class] \hfill \\
+        This is the name of the pluggable java class used to implement the DUCC Orchestrator. 
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.orchestrator.config.OrchestratorConfiguration 
+          \item[Type] Private
+        \end{description} 
+        
+      \item[ducc.orchestrator.checkpoint] \hfill \\
+        This controls Orchestrator state checkpointing. If set off, no state is saved across restarts of 
+        the Orchestrator except for the current job numbering. This should generally be left on. 
+        \begin{description}          
+          \item[Default Value] on 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.orchestrator.start.type] \hfill \\
+        This indicates the level of recovery to be taken on restarting a system. In general, if DUCC 
+        is fully shutdown, only cold and warm starts make sense because the Job Processes and 
+        Job Drivers are terminated during the shutdown. However if a management process died 
+        or was terminated by the administrators, most work can be recovered without interruption, 
+        allowing for a hot start. There are three level of startup: 
+        \begin{description}
+            \item[cold] All reservations are canceled, all currently running jobs (if any) are
+              terminated. All services are terminated. The system starts with no jobs, reservations, or
+              services active.
+
+            \item[warm] All reservations are restored. All currently running jobs (if any) are 
+              terminated. All services are started or restarted as indicated by their state when 
+              the system went down. The system starts with no jobs active, but reservations and 
+              services are preserved. 
+
+            \item[hot] All reservations are restored. The system attempts to reattach to all jobs that are 
+              still running. The system attempts to reattach to any services that are still running. 
+              Any services that need to be restarted are restarted.
+            \end{description}
+
+          \begin{description}
+          \item[Default Value] warm 
+          \item[Type] Tuning 
+        \end{description}
+        
+
+      \item[ducc.orchestrator.state.endpoint] \hfill \\
+        This is the name of the JMS endpoint through which the Orchestrator broadcasts its full 
+        state messages. These messages include full job information and can be large. This state is 
+        used by the Process Manager and the Webserver. 
+        \begin{description}
+          \item[Default Value] ducc.orchestrator.state 
+          \item[Type] Private 
+        \end{description}
+
+      \item[ducc.orchestrator.state.update.endpoint.type] \hfill \\
+        This is the JMS endpoint type used for the "full" state messages sent by the Orchestrator. 
+        \begin{description}
+          \item[Default Value] topic 
+          \item[Type] Private
+        \end{description} 
+        
+      \item[ducc.orchestrator.state.publish.rate] \hfill \\
+        This is the frequency in milliseconds that the Orchestrator publishes its non-abbreviated 
+        state. 
+        \begin{description}
+          \item[Default Value] 15000 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.orchestrator.abbreviated.state.endpoint] \hfill \\
+        This is the name of the JMS endpoint through which the Orchestrator broadcasts its 
+        abbreviated state. This state state is used by the Resource Manager and Service Manager. 
+        \begin{description}
+          \item[Default Value] ducc.orchestrator.abbreviated.state 
+          \item[Type] Private
+        \end{description} 
+        
+      \item[ducc.orchestrator.abbreviated.state.update.endpoint.type] \hfill \\
+        This is the JMS endpoint type used for the "abbreviated" state messages sent by the 
+        Orchestrator. 
+        \begin{description}
+          \item[Default Value] topic 
+          \item[Type] Private
+        \end{description} 
+        
+      \item[ducc.orchestrator.abbreviated.state.publish.rate] \hfill \\
+        This is the frequency in milliseconds that the Orchestrator publishes its abbreviated state. 
+        \begin{description}
+          \item[Default Valu] 15000 
+          \item[Type] Private
+        \end{description} 
+
+      \item[ducc.orchestrator.maintenance.rate] \hfill \\
+        This is the frequency in milliseconds that the Orchestrator checks and updates history and 
+        state. 
+        \begin{description}
+          \item[Default Value] 60000 
+          \item[Type] Tuning 
+        \end{description}
+        
+      \item[ducc.orchestrator.job.factory.classpath.order] \hfill \\
+        When the DUCC Agent spawns a process it must set the process's Java CLASSPATH. 
+        This CLASSPATH must contain a minimum set of entries, which are supplied by the 
+        Agent. However, users may want their own CLASSPATH to take precedence; for 
+        example, they may have a different version of some .jar file. In this case the user's 
+        CLASSPATH should be set before DUCC's. To control this, set this tuning parameter to 
+        one of two values: 
+        \begin{itemize}
+          \item[] user-before-ducc 
+          \item[]ducc-before-user
+        \end{itemize}
+ 
+        \begin{description}
+          \item[Default Value] user-before-ducc 
+          \item[Type] Tuning 
+        \end{description}
+
+      
+      \end{description}
+
+    
+\subsection{Resource Manager Properties}
+
+    \begin{description}
+        \item[ducc.rm.configuration.class] \hfill \\
+          This is the name of the pluggable java class used to implement the DUCC Resource 
+          Manager. 
+          \begin{description}
+            \item[Default Value] org.apache.uima.ducc.rm.config.ResourceManagerConfiguration 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.rm.state.update.endpoint] \hfill \\
+          This is the name of the JMS endpoint through which the Resource Manager broadcasts its 
+          abbreviated state. 
+          \begin{description}
+            \item[Default Value] ducc.rm.state              
+            \item[Type] Private
+          \end{description} 
+
+        \item[ducc.rm.state.update.endpoint.type] \hfill \\
+          This is the JMS endpoint type used for state messages sent by the Resource Manager.
+          \begin{description}            
+            \item[Default Value] topic 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.rm.state.publish.rate] \hfill \\
+          This is the rate, in milliseconds, at which the Resource Manager publishes its state to the 
+          Orchestrator. 
+          \begin{description}
+            \item[Default Value] 60000 
+            \item[Type] Tuning
+          \end{description} 
+          
+        \item[ducc.rm.share.quantum] \hfill \\
+          The share quantum is the smallest amount of RAM that is schedulable for jobs, in GB. 
+          Jobs are scheduled based entirely on their memory requirements. Memory is allocated in 
+          multiples of the share quantum. 
+
+          The job's declared process\_memory\_size is used to determine the overall memory 
+          requirements in terms of share quanta according to the formula: physical\_requirement = 
+          ciel(process\_memory\_size / share\_quantum) * share\_quantum. 
+          
+          For example suppose a process declares it's memory requirement to be 20GB. Then 
+          physical\_requirement = ciel(20 / 15) * 15 = 2 * 15 = 30 GB. The processes for this job 
+          are scheduled only on machines with at least 30 GB of reported RAM, and the Resource 
+          Manager insures that no other processes are scheduled on the machine that might encroach 
+          on this 30 GB. 
+          
+          The share quantum is also used to determine each user's fair share of the resources. The 
+          scheduler's goal is to ensure that all user's are allocated the same number of quantum 
+          shares. Conceptually, the total memory in the system is divided by the share quantum and 
+          then allocated in equal portions to all users in the system. 
+          
+          Thus, jobs that require less memory will generally have more processes scheduled than 
+          jobs that require more memory, but the total memory scheduled is approximately the same 
+          for all jobs. 
+          
+          \begin{description}
+            \item[Default Value] 15 
+            \item[Type] Tuning 
+          \end{description}
+
+        \item[ducc.rm.scheduler] \hfill \\
+          The component that implements the scheduling algorithm is pluggable. This specifies the 
+          name of that class. 
+          \begin{description}
+            \item[Default Value] org.apache.uima.ducc.rm.scheduler.NodepoolScheduler 
+            \item[Type] Private
+          \end{description} 
+          
+        \item[ducc.rm.class.definitions] \hfill \\
+          This specifies the name of the file that contains the site's class definitions. This file is 
+          described in detail the section on ducc.properties [77]. 
+          \begin{description}
+            \item[Default Value] ducc.classes 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.rm.default.tasks] \hfill \\
+          In order to calculate the number of processes to allocate to a job, the scheduler must know 
+          how many tasks or work items the job will execute. If the job does not declare that number, 
+          default.tasks is used. 
+          \begin{description}
+            \item[Default Value] 10 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.rm.default.memory] \hfill \\
+          If a job does not declare the amount of memory each process requires, the scheduler uses 
+          default.memory for scheduling. The unit is GB. 
+
+          Note that the Agents enforce the declared memory, so if a process understates its 
+          requirements it will generally be killed. 
+          \begin{description}
+            \item[Default Value] 15 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.rm.default.threads] \hfill \\
+          Each job process will be dispatched with some number of threads such that DUCC will 
+          dispatch work items to these threads. The scheduler uses this number to calculate the 
+          number of processes that must be allocated. 
+
+          The maximum number of processes a job requites is determined by the formula:           
+          $num\_processes = ciel(num\_work\_items / num\_threads)$ 
+          
+          Thus, a job that declares 100 work items and 4 threads is assigned a maximum of          
+          $ciel(100/4) = 25 processes$
+          
+          \begin{description}
+            \item[Default Value] 4 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.rm.node.stability] \hfill \\
+          The RM receives regular "heartbeats" from the DUCC agents in order to know what 
+          nodes are available for scheduling. The node.stability property configures the number of 
+          consecutive heartbeats that may be missed before the Resource Manager considers the 
+          node to be inoperative. 
+
+          If a node becomes inoperative, the Resource Manager deallocates all processes on that 
+          node and attempts to reallocate them on other nodes. The node is marked offline and is 
+          unusable until its heartbeats start up again. 
+          
+          The default configuration declares the agent heartbeats to occur at 1 minute intervals. 
+          Therefore heartbeats must be missed for five minutes before the Resource Manager takes 
+          corrective action. 
+          \begin{description}
+            \item[Default Value] 5 
+            \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.rm.init.stability] \hfill \\
+          During DUCC initialization the Resource Manager must wait some period of time for 
+          all the nodes in the cluster to check-in via their "heartbeats". If the RM were to start 
+          scheduling too soon there would be a period of significant "churn" as the perceived cluster 
+          configurations changes rapidly. As well, it would be impossible to recover work in a warm 
+          or hot start if the affected nodes had not yet checked in. 
+          
+          The init.stability property indicates how many heartbeat intervals the RM must wait before 
+          it starts scheduling after initialization. 
+          \begin{description}            
+            \item[Default Value] 3 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.rm.eviction.policy] \hfill \\
+          The alternative value is SHRINK\_BY\_MACHINE. 
+
+          The eviction.policy is a heuristic to choose which processes of a job to preempt because of 
+          competition from other jobs. 
+          
+          The SHRINK\_BY\_INVESTMENT policy attempts to preempt processes such that the 
+          
+          least amount of work is lost. It chooses candidates for eviction in order of: 
+          \begin{enumerate}
+            \item Processes still initializing, with the smallest time spent in the initializing step. 
+            \item Processes whose currently active work items have been executing for the shortest 
+              time.
+            \end{enumerate}
+            The SHRINK\_BY\_MACHINE policy attempts to preempt processes so as to minimize 
+            fragmentation on machines with large memories that can contain multiple job processes. 
+            No consideration of execution time or initialization time is made.             
+          \begin{description}
+            \item[Default Value] SHRINK\_BY\_INVESTMENT 
+            \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.rm.initialization.cap] \hfill \\
+          The type of jobs supported by DUCC generally have very long and often fragile 
+          initialization periods. Errors in the applications and other problems such is missing or 
+          errant services can cause processes to fail during this phase. 
+          
+          To avoid preempting running jobs and allocating a large number of resources to jobs only 
+          to fail during initialization, the Resource Manager schedules a small number of processes 
+          until it is determined that the initialization phase will succeed. 
+          
+          The initialization.cap determines the maximum number of processes allocated to a job 
+          until at least one process successfully initializes. Once any process initializes the Resource 
+          Manager will proceed to allocate the job its full fair share of processes. 
+          
+          The initialization cap can be overridden on a class basis by configuration via           
+          ducc.classes [105]. 
+          \begin{description}
+            \item[Default Value] 2             
+            \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.rm.expand.by.doubling] \hfill \\
+          When a job expands because its fair share has increased, or it has completed initialization, 
+          it may be desired to govern the rate of expansion. If expand.by.doubling is set to "true", 
+          rather than allocate the full fair share of processes, the number of processes is doubled 
+          each scheduling cycle, up to the maximum allowed. 
+
+          Expand.by.doubling can be overridden on a class basis by configuration via 
+          ducc.classes [105]. 
+
+          \begin{description}
+            \item[Default Value] true 
+            \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.rm.prediction] \hfill \\
+          Because initialization time may be very long, it may be the case that a job that might be 
+          eligible for expansion will be able to complete in the currently assigned shares before any 
+          new processes are able to complete their initialization. In this case expansion results in 
+          waste of resources and potential eviction of processes that need not be evicted. 
+          
+          The Resource Manager monitors the rate of task completion and attempts to predict the 
+          maximum number of processes that will be needed at a time in the future based on the 
+          known process initialization time. If it is determined that expansion is unnecessary then it 
+          is not done for the job. 
+          
+          Prediction can be overridden on a class basis by configuration via ducc.classes [105].           
+          \begin{description}
+            \item[Default Value] true 
+            \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.rm.prediction.fudge] \hfill \\
+          When ducc.rm.prediction is enabled, the known initialization time of a job's processes plus 
+          some "fudge" factor is used to predict the number of future resources needed. The "fudge" 
+          is specified in milliseconds. 
+          
+          The default "fudge" is very conservative. Experience and site policy should be used to set a 
+          more practical number. 
+
+          Prediction.fudge can be overridden on a class basis by configuration via 
+          ducc.classes [105]. 
+
+          \begin{description}
+          \item[Default Value] 10000 
+          \item[Type] Tuning 
+          \end{description}
+          
+
+        \end{description}
+      
+
+
+\subsection{Agent Properties}
+
+    \begin{description}
+
+
+        \item[ducc.agent.configuration.class] \hfill \\
+          This is the name of the pluggable java class used to implement the DUCC Agents. 
+          \begin{description}
+            \item[Default Value] org.apache.uima.ducc.nodeagent.config.AgentConfiguration 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.request.endpoint] \hfill \\
+          This is the JMS endpoint through which agents receive state from the Process Manager. 
+          \begin{description}
+            \item[Default Value] ducc.agent 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.request.endpoint.type] \hfill \\
+          This is the JMS endpoint type used for state messages sent by the Process Manager. 
+          \begin{description}
+            \item[Default Value] topic 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.managed.process.state.update.endpoint] \hfill \\
+          This is the JMS endpoint used to communicate from the managed process to the Agent 
+          (Job Process). 
+          \begin{description}
+            \item[Default Value] ducc.managed.process. state.update 
+            \item[Type] Private
+          \end{description} 
+          
+        \item[ducc.agent.managed.process.state.update.endpoint.type] \hfill \\
+          This is the JMS endpoint type used to communicate from the managed process (Job 
+          Process) to the Agent. 
+          \begin{description}
+            \item[Default Value] socket 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.managed.process. state.update.endpoint.params] \hfill \\
+          These are configuration parameters for the Agent-to-JP communication socket. These 
+          should only be modified by DUCC developers. 
+          \begin{description}
+            \item[Default Value] transferExchange=true\&sync=false 
+            \item[Type] Private
+          \end{description} 
+          
+        \item[ducc.agent.node.metrics.endpoint] \hfill \\
+          This is the JMS endpoint used to send node metrics updates to listeners. Listeners 
+          are usually the Resource Manager and Web Server. These messages serve as node 
+          "heartbeats". As well, the node metrics heartbeats contain the amount of RAM on the node 
+          and the number of processors. 
+          \begin{description}
+            \item[Default Value] ducc.node.metrics 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.node.metrics.endpoint.type] \hfill \\
+          This is the JMS endpoint type used to send node metrics updates from the agents. 
+          \begin{description}
+            \item[Default Value] topic 
+            \item[Type] Private 
+          \end{description}
+         
+        \item[ducc.agent.node.metrics.publish.rate] \hfill \\
+          This is the rate at which node metrics updates are published in milliseconds. 
+          \begin{description}
+            \item[Default Value] 60000 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.agent.node.inventory.endpoint] \hfill \\
+          This is the JMS endpoint used to send node inventory messages to listeners. Listeners are 
+          usually the Orchestrator and Web Server. Information in these messages include a map of 
+          processes being managed on the node. 
+          \begin{description}
+            \item[Default Value] ducc.node.inventory 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.node.inventory.endpoint.type] \hfill \\
+          This is the JMS endpoint type used to send node inventory updates from the agents. 
+          \begin{description}
+            \item[Default Value] topic 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.node.inventory.publish.rate] \hfill \\
+          This is the rate at which node inventory updates are published in milliseconds. 
+
+          If the inventory has not changed since the last update the agent bypasses sending the 
+          update, up to a maximum of ducc.agent.node.inventory.publish.rate.skip times. 
+          \begin{description}
+            \item[Default Value] 10000 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.agent.node.inventory.publish.rate.skip] \hfill \\
+          This is the number of times the agent will bypass publishing its node inventory if the 
+          inventory has not changed. 
+          \begin{description}
+            \item[Default Value] 30 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.agent.launcher.thread.pool.size] \hfill \\
+          This is establishes the size of the agent's threadpool used to manage spawned processes. 
+          \begin{description}
+            \item[Default Value] 10 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.agent.launcher.use.ducc.spawn] \hfill \\
+          This specifies whether to launch job processes via ducc\_ling. When set to false the process 
+          is launched directly as a child of the agent. Log indirection is not performed, the working 
+          directory is not set, and the the process does not change its identity to that of the submitter. 
+          This property is intended for the use of DUCC developers. 
+          \begin{description}
+            \item[Default Value] true 
+            \item[Type] Private 
+          \end{description}
+          
+        \item[ducc.agent.launcher.ducc\_spawn\_path] \hfill \\
+          This property specifies the full path to the ducc\_ling utility. During installation ducc\_ling 
+          is normally moved to local disk and given setuid-root privileges. Use this property to tell 
+          the DUCC agents the location of the installed ducc\_ling. 
+          \begin{description}
+            \item[Default Value] \ducchome/admin/ducc\_ling 
+            \item[Type] Tuning             
+          \end{description}
+          
+        \item[ducc.agent.launcher.process.stop.timeout] \hfill \\
+          This property specifies the time, in milliseconds, the agent should wait before forcibly 
+          terminating a job process (JP) after an attempted graceful shutdown. If the child process 
+          does not terminate in the specified time, it is forcibly terminated with kill -9. 
+
+          This type of stop can occur because of preemption or system shutdown. 
+          \begin{description}
+            \item[Default Value] 60000 
+            \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.agent.launcher.process.init.timeout] \hfill \\
+          This property specifies the time, in milliseconds, that the agent should wait for a job 
+          process (JP) to complete initialization. If initialization is not completed in this time the 
+          process is terminated and and InitializationTimout status is send to the job driver (JD) 
+          which decides whether to retry the process or terminate the job. 
+
+          Note that it is normal for the types of processes that DUCC is designed for to have very 
+          long initialization times. 
+          \begin{description}
+          \item[Default Value] 7200000 
+          \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.agent.launcher.share.size.fudge.factor] \hfill \\
+          The DUCC agent monitors the size of the resident memory of its spawned processes. If a 
+          process exceeds its declared memory size by any significant amount it is terminated and 
+          a ShareSizeExceeded message is sent. The Job Driver counts this towards the maximum 
+          errors for the job and will eventually terminate the job if excessive such errors occur. 
+
+          This property defines the percentage over the declared memory size that a process is 
+          allowed to grow to before being terminated. 
+
+          To disable this feature, set the value to -1. 
+          \begin{description}
+            \item[Default Value] 5 
+            \item[Type] Tuning 
+          \end{description}
+          
+          \item[ducc.agent.rogue.process.user.exclusion.filter] \hfill \\
+            The DUCC Agents scan nodes for processes that should not be running; for example, 
+            a job may have left a 'rogue' process alive when it exits, or a user may log in to a node 
+            unexpectedly. These processes are reported to the administrators via the webserver for 
+            possible action. 
+
+            This configuration parameter enumerates userids which are ignored by the rogue-process 
+            scan. 
+            \begin{description}
+            \item[Default Value] root,posstfix,ntp,nobody,daemon,100 
+            \item[Type] Tuning 
+            \end{description}
+            
+          \item[ducc.agent.rogue.process.exclusion.filter] \hfill \\
+            The DUCC Agents scan nodes for processes that should not be running; for example, 
+            a job may have left a 'rogue' process alive when it exits, or a user may log in to a node 
+            unexpectedly. These processes are reported to the administrators via the webserver for 
+            possible action. 
+
+            This configuration parameter enumerates processes by name which are ignored by the 
+            rogue process detector. 
+
+            \begin{description}
+              \item[Default Value] sshd:,-bash,-sh,/bin/sh,/bin/bash,grep,ps 
+              \item[Type] Tuning 
+            \end{description}
+            
+          \end{description}
+      
+
+
+\subsection{Process Manager Properties}
+
+    \begin{description}
+
+      \item[ducc.pm.configuration.class] \hfill \\
+        This is the name of the pluggable java class used to implement the DUCC Process 
+        Manager. 
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.pm.config.ProcessManagerConfiguration 
+          \item[Type] Private
+        \end{description} 
+        
+      \item[ducc.pm.request.endpoint] \hfill \\
+        This is the endpoint through which process manager receive state from the Orchestrator. 
+        \begin{description}
+          \item[Default Value] ducc.pm 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.pm.request.endpoint.type] \hfill \\
+        This is the JMS endpoint type used for state messages sent by the Orchestrator. 
+        \begin{description}
+          \item[Default Value] queue 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.pm.state.update.endpoint] \hfill \\
+        This is the endpoint through which process manager sends its heartbeat. The main receiver 
+        is the Web Server for it's daemon status page. 
+        \begin{description}
+          \item[Default Value] ducc.pm.state 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.pm.state.update.endpoint.type] \hfill \\
+        This is the JMS endpoint type used for process manager heartbeats. The primary receiver 
+        is the Web Server for its daemon status page. 
+        \begin{description}
+          \item[Default Value] topic 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.pm.state.publish.rate] \hfill \\
+        This is the rate at which the process manager publishes its heartbeat, in milliseconds. 
+        \begin{description}
+        \item[Default Value] 25000 
+        \item[Type] Private 
+        \end{description}
+        
+
+      \end{description}
+      
+
+\subsection{Job Process Properties}
+
+    \begin{description}
+
+      \item[ducc.uima-as.configuration.class] \hfill \\
+        This is the name of the pluggable java class that implements the the UIMA-AS service 
+        shell for job processes (JPs). 
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.agent.deploy.uima.UimaAsServiceConfiguration 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.uima-as.endpoint] \hfill \\
+        This is the endpoint through which job processes (JPs) receive messages from the Agents. 
+        \begin{description}
+          \item[Default Value] ducc.job.managed.service 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.uima-as.endpoint.type] \hfill \\
+        This is the JMS endpoint type used for messages sent to the JPs from the Agents. 
+        \begin{description}
+          \item[Default Value] socket 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.uima-as.endpoint.params] \hfill \\
+        This configures the JP-to-Agent communication socket. It should be changed only by 
+        DUCC developers. 
+        \begin{description}
+          \item[Default Value] transferExchange=true\&sync=false 
+          \item[Type] Private
+        \end{description} 
+        
+      \item[ducc.uima-as.saxon.jar.path] \hfill \\
+        This configures the path the required Saxon jar. 
+        \begin{description}
+          \item[Default Value] file:\ducchome/lib/saxon8/saxon8.jar 
+          \item[Type] Private 
+        \end{description}
+        
+
+      \item[ducc.uima-as.dd2spring.xsl.path] \hfill \\
+        This configures the path the required dd2spring xsl definitions. 
+        \begin{description}
+          \item[Default Value] \ducchome/admin/dd2spring.xsl 
+          \item[Type] Private 
+        \end{description}
+        
+      \item[ducc.uima-as.flow\_controller.specifier] \hfill \\
+        This configures the pluggable class that implements the default flow controller used in the 
+        DUCC job processes (JPs). 
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.uima.DuccJobProcessFC 
+          \item[Type] Private 
+        \end{description}
+      \end{description}
+      

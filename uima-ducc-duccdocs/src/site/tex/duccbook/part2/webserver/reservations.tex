@@ -1,0 +1,54 @@
+
+    \section{Reservation Details Page}
+
+        This page shows details of all reservations. The Reservations page contains the following columns: 
+        \begin{description}
+
+            \item[Id] \hfill \\
+              This is the DUCC process id of the reservation as provided when the reservation is
+              made.
+
+            \item[Start] \hfill \\
+              This is the time the reservation was mde.
+              
+            \item[End] \hfill \\
+              This is the time the reservation was canceled.
+              
+            \item[User] \hfill \\
+              This is the userid if the person who made the reservation.
+              
+            \item[Class] \hfill \\
+              This is the resource class used to schedule the reservation.
+              
+            \item[Status] \hfill \\
+              This is the status of the reservation. Values include: Received - Reservation
+              has been vetted, persisted, and assigned unique Id.
+              \begin{description}
+                  \item[WaitingForResources] - The reservation is waitng for the Resource Manager to find and 
+                  \item[schedule] resources. 
+                  \item[Assigned] - The reservation is active. 
+                  \item[Completed] - The reservation has been canceled.                     
+              \end{description}
+
+            \item[Reason] \hfill \\
+              If a reservation is not active, the reason. Reasons include:
+                \begin{description}
+                    \item[ResourcesUnavailable] - The Resource Manager was unable to find free or freeable resources 
+                    \item[to] match the resource request. 
+                    \item[CanceledBySystem] - The job was canceled because DUCC was shutdown. 
+                    \item[CanceledByUser] - The owner or administrator released the reservation. 
+                \end{description}
+
+            \item[Allocation] \hfill \\
+              The number of resources (shares for FIXED policy reservartions, processes for
+              RESERVE policy reservations) that are allocated.
+
+            \item[Size] \hfill \\
+              The memory size in GB of the each allocated unit.
+              
+            \item[List] \hfill \\
+              The node names of the machines where the resource is allocated.
+              
+            \item[Description] \hfill \\
+              This is the descriptin string from the --description string from submit.
+        \end{description}

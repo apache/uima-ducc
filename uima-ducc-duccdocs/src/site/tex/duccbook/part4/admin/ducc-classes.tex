@@ -1,0 +1,185 @@
+\section{DUCC Class Definitions}
+
+
+    The class configuration file is used by the Resource Manager configure the rules used for job 
+    scheduling. See the Resource Manager chapter for a detailed description of the DUCC schedueler. 
+
+    The name of class configuration file is specified in ducc.properties. The default name is 
+    ducc.classes [105] and is specified by the property ducc.rm.class.definitions property. 
+
+    This file configures the classes and the associate scheduling rules of each class. It contains 
+    properties to declare the following: 
+    \begin{enumerate}
+      \item The names of each class. 
+      \item The default class to use if none is specified with the job. 
+      \item The names of all the nodepools. 
+      \item For each nodepool, the name of the file containing member nodes. 
+      \item A set of properties for each class, declaring the rules enforced by that class. 
+    \end{enumerate}
+
+    The general properties are as follows. The default values are the defaults in the system as initially 
+    installed. 
+
+    \begin{description}
+
+      \item[scheduling.class.set] \hfill \\
+        This defines the set of class names for the installation.  The names themselves are arbitrary
+        and correspond to the rules defined in subsequent properties.
+
+        \begin{description}
+          \item[Default Value] background low normal high urgent weekly fixed reserve JobDriver 
+        \end{description}
+          
+      \item[scheduling.default.name] \hfill \\
+        This is the default class that jobs are assigned to, when not otherwise designated in their 
+        submission properties. 
+        \begin{description}
+          \item[Default Value] normal 
+        \end{description}
+    \end{description}        
+    
+    Nodepools are declared with a set of properties to name each nodepool and to name a file for 
+    each pool that declares membership in the nodepool. For each nodepool a property of the form 
+    scheduling.nodepool.NODEPOOLNAME is declared, where NODEPOOLNAME is one of the 
+    declared nodepools. 
+
+    The property to declare nodepool names is as follows: 
+
+    \begin{description}
+      \item[scheduling.nodepool] \hfill \\
+      This is the list of nodepool names. For example: 
+\begin{verbatim}
+      scheduling.nodepool = res res1 res2 
+\end{verbatim}
+      \begin{description}
+        \item[Default Value] reserve 
+      \end{description}
+    \end{description}
+        
+    This is an example of a declaration of three nodepools. 
+
+\begin{verbatim}
+scheduling.nodepool = res res1 res1 
+scheduling.nodepool.res = res.nodes 
+scheduling.nodepool.res1 = res1.nodes 
+scheduling.nodepool.res2 = res2.nodes 
+\end{verbatim}
+    
+    There is no way to enforce priority assignment to any given nodepool. It is possible to declare a 
+    "preference", such that the resources in a given nodepool are considered first when searching for 
+    nodes. To configure a preference, use the order decorattion on a nodepool specificaion. 
+
+    To declare nodepool order, specify the property {\tt scheduling.nodepool.[poolname].order}. The
+    nodepools are sorted numerically according to their order, and pools with lower order are
+    searched before pools with higher order. The global nodepool always order "0" so it is usally
+    searched first. For example, the pool configuration below establishes a search order of
+
+    \begin{enumerate}
+      \item global 
+      \item res2 
+      \item res 
+      \item res1 
+    \end{enumerate}
+    
+    This is an example of a declaration of three nodepools. 
+
+\begin{verbatim}
+scheduling.nodepool = res res1 res1 
+scheduling.nodepool.res = res.nodes 
+scheduling.nodepool.res.order = 4 
+scheduling.nodepool.res1 = res1.nodes 
+scheduling.nodepool.res1.order = 7 
+scheduling.nodepool.res2 = res2.nodes 
+scheduling.nodepool.res2.order = 2 
+\end{verbatim}
+    
+    For each class named in scheduling.class.set a set of properties is specified, defining the rules 
+    implemented by that class. Each such property is of the form 
+
+\begin{verbatim}
+scheduling.class.CLASSNAME.RULE = VALUE 
+\end{verbatim}
+    
+    where 
+    \begin{description}
+      \item[CLASSNAME] specifies is the name of the class. 
+      \item[RULE] specifies rule. Rules are described below. 
+      \item[VALUE] specifies the value of the rule, as described below. 
+      \end{description}
+      
+      The rules are: 
+      \begin{description}
+
+        \item[policy] \hfill \\
+          This is the scheduling policy, required, and must be one of: 
+          \begin{itemize}
+            \item[] FAIR\_SHARE 
+            \item[] FIXED\_SHARE 
+            \item[] RESERVE 
+          \end{itemize}
+            
+        \item[share\_weight] \hfill \\
+          This is any integer. This is the weighted-fair-share weight for the class as discussed above. It is 
+          only used when policy = FAIR\_SHARE. 
+
+        \item[priority] \hfill \\
+          This is the evaluation priority for the class as discussed above. This is used for all scheduling 
+          policies. 
+
+        \item[cap] \hfill \\
+          This is an integer, or an integer with "\%" appended to denote a percentage. It is used for all 
+          scheduling classes. 
+
+          This is the class cap as discussed above. It may be an absolute value, in processes (which may 
+          comprise more than one share quanta), or it may be specified as a percentage by appending 
+          "\%" to the end. When specified as a percentage, it caps the shares allocated to this class as 
+          that percentage of the total shares remaining when the class is evaluated.. It does not consider 
+          shares that may have been available and assigned to higher-priority classes. 
+
+        \item[nodepool] \hfill \\
+          This is the name of the nodepool associated with this class. It must be one of the names 
+          declared in the property scheduling.nodepool. 
+
+        \item[prediction] \hfill \\
+          Acceptable values are true and false. When set to true the scheduler uses prediction when 
+          allocating shares. It is only used when policy = FAIR\_SHARE. 
+
+        \item[prediction.fudge] \hfill \\
+          Acceptable values are any integer, denoting milliseconds. This is the prediction fudge as 
+          discussed above. It is only used when policy = FAIR\_SHARE. 
+
+        \item[expand.by.doubling] \hfill \\
+          Acceptable values are true and false. When set to true the scheduler doubles a job's shares 
+          up to it's fair-share when possible, as discussed above. It is only used when policy = 
+          FAIR\_SHARE. 
+
+        \item[expand.by.doubling] \hfill \\
+          Acceptable values are true and false. When set to true the scheduler doubles a job's shares up 
+          to it's fair-share when possible, as discussed above. When set in ducc.classes it overrides the 
+          defaults from ducc.properties. It is only used when policy = FAIR\_SHARE. 
+
+        \item[initialization.cap] \hfill \\
+          Acceptable values are any integer. This is the maximum number of processes assigned to a job 
+          until the first process has successfully completed initialization. To disable the cap, set it to zero 
+          0. It is only used when policy = FAIR\_SHARE. 
+
+        \item[max\_processes] \hfill \\
+          Acceptable values are any integer. This is the maximum number of processes assigned to a 
+          FIXED\_SHARE request. If more are requested, the request is canceled. It is only used when 
+          policy = FIXED\_SHARE. If set to 0 or not specified, there is no enforced maximum. 
+
+        \item[max\_machines] \hfill \\
+          Acceptable values are any integer. This is the maximum number of machines assigned to a 
+          RESERVE request. If more are requested, the request is canceled. It is only used when policy = 
+          RESERVE. If set to 0 or not specified, there is no enforced maximum. 
+
+        \item[enforce.memory] \hfill \\
+          Acceptable values are true and false. When set to true the scheduler requires that any machine 
+          selected for a reservation matches the reservation's declared memory. The declared memory 
+          is converted to a number of quantum shares. Only machines whose memory, when converted 
+          to share quanta are selected. When set to false, any machine in the configured nodepool is 
+          selected. It is only used when policy = RESERVE. 
+      \end{description}
+          
+
+        

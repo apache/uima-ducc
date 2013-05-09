@@ -1,0 +1,29 @@
+    \section{ducc\_process\_cancel}
+
+    \paragraph{Description:}
+
+    \paragraph{Usage:}
+    \begin{description}
+    \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-process-cancel.jar {\em options}
+    \item[Script wrapper] java -jar \ducchome/bin/ducc-process-cancel {\em options}
+    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-process-cancel.jar org.apache.uima.ducc.cli.DuccManagedReservationCancel {\em options}
+    \end{description}
+
+    \paragraph{Options:}
+    \begin{description}
+        \item[--debug ]          
+          Prints internal debugging information, intended for DUCC developers or extended problem determination.          
+        \item[--id {[jobid]}]
+          The DUCC ID is the id of the process to cancel.
+        \item[--help]
+          Prints the usage text to the console.
+        \item[--reason]
+          Optional. This specifies the reason the process is canceled, for display in the web server. 
+        \item[--role\_administrator] The command is being issued in the role of a DUCC administrator.
+          If the user is not also a registered administrator this flag is ignored.  (This helps to
+          protect administrators from inadvertantly canceling work they do not own.)
+     \end{description}
+        
+    \paragraph{Notes:}
+    None.
+

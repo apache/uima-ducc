@@ -1,0 +1,127 @@
+  
+    \section{Job Details Page}
+    This page shows details of all the processes that run in support of a job. 
+    The Jobs page contains the following columns: 
+
+    \begin{description}
+
+        \item[Id] \hfill \\
+          This is the DUCC process id (not the Operating System's processid). Process 0 is
+          alwyas the Job Driver. It is hyperlinked to jd.out.log.
+
+        \item[Log] \hfill \\
+          This is the log name for the process. It is hyperlinked to the log itself.
+
+        \item[Size] \hfill \\
+          This is the size of the log in MB. If you find you have trouble viewing the log
+          from the web server it could be because it is too big to view in the server and needs to
+          be check directly.
+
+        \item[Hostname] \hfill \\
+          This is the name of the node where the process ran.
+
+        \item[PID] \hfill \\
+          This is the Operating Systems' PID for the process.
+
+        \item[State:Scheduler] \hfill \\
+          This shows the Resesource Manager state of the job. It is one of:
+
+          \begin{description}
+              \item[Allocated] - The node is still allocated for this job by the RM 
+              \item[Deallocated] - The resource manager has deallocated the shares for the job on
+                this node.
+          \end{description}
+
+        \item[Reason:Schedule] \hfill \\
+          This shows why a process is terminated, from the system's point
+          of view.
+            \begin{description}          
+                \item[AutonomousStop] - The process terminated unexpectedly of its own accord ("crashed") for no 
+                  detectable reason.. 
+                  
+                \item[JobCanceled] - The job was canceled by the user or a system administrator. 
+                  
+                \item[JobCompleted] - The process is canceled because of DUCC restart. 
+                  
+                \item[JobFailure] - The job failure limit is exceeded, causing the job to be canceled by the JD. 
+                  
+                \item[Exception] - The process is terminated by the JD exception handler. 
+                  
+                \item[Failed] - The process is terminated by the Agent because the JP wrapper was able to detect and 
+                  communicate a fatal condition (Exception) in the pipeline.. 
+                  
+                \item[FailedInitialization] - The process is terminated because the initialization step failed. 
+                  
+                \item[Forced] - The node is preempted by RM for other work because of fair share. 
+                  
+                \item[InitializationTimeout] - The initialization phase exceeded the configured timeout. 
+                  
+                \item[Killed] - The agent terminated the process for some reason. 
+                  
+                \item[Stopped] - The job is winding down, there's no more work for this node, so it stops. 
+                  
+                \item[Voluntary] - The job is winding down, there's no more work for this node, so it stops. 
+                  
+                \item[Unknown] - None of the above. This is an exceptional condition. Check the JP and JD logs for 
+                  possible causes..                   
+            \end{description}
+
+          \item[State:Agent] \hfill \\
+            If there's an error detected only by the agent, this shows the Agent's reason for
+            a process's death.
+
+          \item[Reason:Agent]I\hfill \\
+            f there's an error detected only by the agent, this shows the Agent's reason for
+            a process's death.
+            
+          \item[Time:Init] \hfill \\
+            This is the clock time this process spent in initializaiton.
+            
+          \item[Time:Run] \hfill \\
+            This is the clock time this process spent in executing, not including
+            initialization.
+            
+          \item[Time:GC] \hfill \\
+            This is amount of time spent in Java Garbage Collection for the process.
+            
+          \item[Count:GC] \hfill \\
+            This is the number of garbage collections performed by the process.
+            
+          \item[\%GC]P\hfill \\
+            rocess percentage of time spent in garbage collections, relative to total of
+            initialization + run times.
+            
+          \item[CPU] \hfill \\
+            Cumulative CPU time for the process.
+            
+          \item[\%RSS] \hfill \\
+            Resident Storage Size, as a percentage of process memory requirement in job
+            specification.
+            
+          \item[Time:Avg] \hfill \\
+            Average seconds spent per work item in the process.
+            
+          \item[Time:min] \hfill \\
+            This is the minimum time spent per work item in the process.
+            
+          \item[Time:max] \hfill \\
+            This is the minimum time spent per work item in theprocess.
+            
+          \item[Done] \hfill \\
+            This is the number of work items processed in this process.
+            
+          \item[Error] \hfill \\
+            This is the number of exceptions processing work items in this process.
+            
+          \item[Retry] \hfill \\
+            This is the number of work items that were retried for any reason, excluding
+            preemptions.
+            
+          \item[Preempt] \hfill \\
+            This is the number of work items that had to be retried because of preemption.
+            
+          \item[JConsole URL] \hfill \\
+            This is a URL that can be used to connect via JMX to the processes, e.g. via
+            jconsole.
+
+      \end{description}

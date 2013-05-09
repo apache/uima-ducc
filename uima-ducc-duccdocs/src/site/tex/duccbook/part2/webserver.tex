@@ -1,0 +1,58 @@
+\chapter{DUCC Web Server}
+
+    The DUCC Web Server default address is accessed from the URL http://wshost:42133. Each local
+    installation configures the host for "wshost" and may override the default port of 42133.
+
+    The Webserver is designed to be mostly self-documenting. The design is intentionally simple 
+    and contains a link to this document. Column headers and reason/state codes have display a short 
+    description if you hover your mouse over it. 
+
+    The columns can all be sorted by clicking on the column headers. 
+
+    \section{Common Links}
+
+        Every page contains a common header containing links and controls. The links permit navigation
+        to other content at the site. The controls provide page-wise configuration of the content at
+        that page.
+
+        The following links are available on every page of the web server: 
+
+        \begin{description}
+          \item[Authentication] \hfill \\ 
+            Authentication is in order to cancel jobs and reservations, to create a
+            reservation, and to perform administration. It is not required to simply view the pages.
+
+            \begin{itemize}
+              \item Login - Authenticate and start a session with the Web Server.             
+              \item Logout - Terminate the Web Server session 
+            \end{itemize}
+
+
+          \item[DuccBook] \hfill \\
+            This is a link to the HTML version of the documnet you are reading.
+
+          \item[Jobs] \hfill \\
+            This navigates to the Jobs page, showing all the jobs in the system.
+
+          \item[Reservations] \hfill \\
+            This navigates to the Reservations page, showing all the reservations
+            in the system and provides a button that can be used to request new reservations. 
+
+          \item[Services] \hfill \\
+            This navigates to the Services page, showing all the services in the
+            system.
+
+          \item[System] \hfill \\
+            This opens a submenu with system-related links:
+            \begin{itemize}
+              \item[] Administration - This opens a page with administrative functions. 
+              \item[] Classes - This shows all the scheduling classes defined to the system. 
+              \item[] Daemons - This shows the status of DUCC's management processes. 
+              \item[] DuccBook - This manual. 
+              \item[] Machines - This shows the status of all the ducc worker nodes. 
+            \end{itemize}
+      \end{description}              
+
+      \input{part2/webserver/jobs.tex}
+      \input{part2/webserver/job-details.tex}
+      \input{part2/webserver/reservations.tex}
