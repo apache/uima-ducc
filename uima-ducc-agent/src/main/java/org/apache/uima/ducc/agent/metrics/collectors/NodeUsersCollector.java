@@ -285,7 +285,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
               if ( !found && !agent.isManagedProcess(processList, pi)) {
                 // code keeps count of java and non-java processes separately, so pass the type of process (java or not) 
                 // to allow distinct accounting 
-                nui.addPid(pid,cmd.endsWith("java"));
+                nui.addPid(pid, ppid, cmd.endsWith("java"));
               }
               continue;  // all we know that the user has a reservation and there is a process running. If there
                          // are reservations, we cant determine which user process is a rogue process
@@ -296,8 +296,9 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
             if ( agent.isRogueProcess(user, processList, pi) ) {
               if ( nui.getRogueProcesses().size() == 0 || !inRogueList(nui.getRogueProcesses(),pid) ) {
                 pi.setRogue(true);
-                agent.getRogueProcessReaper().submitRogueProcessForKill(user, pid,cmd.endsWith("java"));
+//                agent.getRogueProcessReaper().submitRogueProcessForKill(user, pid, ppid, cmd.endsWith("java"));
               }
+              agent.getRogueProcessReaper().submitRogueProcessForKill(user, pid, ppid, cmd.endsWith("java"));
             }
           }
         }

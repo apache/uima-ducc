@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.Utils;
+
 
 
 /**
@@ -42,7 +42,7 @@ public class RogueProcessReaper {
 
   private Map<String, RogueProcessEntry> userRogueProcessMap = new TreeMap<String, RogueProcessEntry>();
 
-  private int counterValue = 5;
+  private int counterValue = 360;  
 
   private int cleanupCounterValue = 5;
 
@@ -54,13 +54,17 @@ public class RogueProcessReaper {
   
   boolean doKillRogueProcess = false;  
   
+  private String reaperScript;
+  
   public RogueProcessReaper(DuccLogger logger, int counterValue, int cleanupCounterValue) {
-    this.counterValue = counterValue;
+   // this.counterValue = counterValue;
     if (cleanupCounterValue > 0) {
       this.cleanupCounterValue = cleanupCounterValue;
     } else {
       this.cleanupCounterValue = counterValue + 5;
     }
+    reaperScript = System.getProperty("ducc.agent.rogue.process.reaper.script");
+
     // check if purge delay is defined in ducc.properties. 
     if (System.getProperty("ducc.agent.rogue.process.purge.delay") != null) {
       try {
@@ -76,9 +80,9 @@ public class RogueProcessReaper {
       }
     }
     this.logger = logger;
-    final String kill = System.getProperty("ducc.agent.rogue.process.kill");
+//    final String kill = System.getProperty("ducc.agent.rogue.process.kill");
   
-    if (kill != null && Boolean.getBoolean(kill) == true) {
+    if (Boolean.getBoolean("ducc.agent.rogue.process.kill") == true) {
       doKillRogueProcess = true;
     }    
     if ( logger == null ) {
@@ -93,7 +97,7 @@ public class RogueProcessReaper {
     
   }
 
-  public void submitRogueProcessForKill(String user, String pid, boolean isJava) {
+  public void submitRogueProcessForKill(String user, String pid, String ppid, boolean isJava) {
     final String methodName = "RogueProcessReaper.submitRogueProcessForKill";
     RogueProcessEntry entry = null;
     if (userRogueProcessMap.containsKey(pid)) {
@@ -103,7 +107,7 @@ public class RogueProcessReaper {
         cleanupCounterValue += counterValue;
       }
       entry = new RogueProcessEntry(counterValue, cleanupCounterValue, user,
-              maxSecondsBeforeEntryExpires, isJava);
+              maxSecondsBeforeEntryExpires, isJava, ppid);
       userRogueProcessMap.put(pid, entry);
     }
     entry.markAsRogue(3);
@@ -119,11 +123,14 @@ public class RogueProcessReaper {
       }
       return;
     }
-    if ( doKillRogueProcess ) {
+    if ( reaperScript != null ) {
       try {
         // Dont kill the process immediately. Kill if this method is called "counterValue"
         // number of times.
         long counter;
+        if ( logger != null ) {
+          logger.info(methodName, null, "Decrementing Counter - Current Value:"+entry.counter.getCount());
+        } 
         if ((counter = entry.countDown()) == 0 && !entry.isKilled()) {
           if ( logger == null ) {
             System.out.println(
@@ -135,19 +142,24 @@ public class RogueProcessReaper {
                     + " ");
             
           }
+          entry.resetCounter(counterValue);
           kill(user, pid);
           entry.killed();
         } else {
-          if ( logger == null ) {
-            System.out.println(
-                    "Process ***NOT*** Scheduled for Kill PID:" + pid + " Owner:"
-                            + user + " Call:" + (counterValue - counter) + " of " + counterValue);
+          
+          if ( (counterValue - counter) % 300 == 0) {  // log every 5 minutes (300 secs)
+            if ( logger == null ) {
+              System.out.println(
+                      "Process ***NOT*** Scheduled for Kill PID:" + pid + " Owner:"
+                              + user + " Call:" + (counterValue - counter) + " of " + counterValue);
 
-          } else {
-            logger.info(methodName, null, "Process ***NOT*** Scheduled for Kill PID:" + pid + " Owner:"
-                    + user + " Call:" + (counterValue - counter) + " of " + counterValue);
-            
+            } else {
+              logger.info(methodName, null, "Process ***NOT*** Scheduled for Kill PID:" + pid + " Owner:"
+                      + user + " Call:" + (counterValue - counter) + " of " + counterValue);
+              
+            }
           }
+          
         }
 
         if (entry.isKilled() && entry.countDownCleanupCounter() == 0) {
@@ -231,7 +243,7 @@ public class RogueProcessReaper {
         nui = new NodeUsersInfo(entry.getValue().getUser());
         map.put(entry.getValue().getUser(), nui);
       }
-      nui.addRogueProcess(entry.getKey(), entry.getValue().isJava());
+      nui.addRogueProcess(entry.getKey(), entry.getValue().getPpid(), entry.getValue().isJava());
     }
     for (String entryToRemove : entryCleanupList) {
       if ( logger == null ) {
@@ -258,6 +270,42 @@ public class RogueProcessReaper {
   public void kill(final String user, final String pid) throws Exception {
     final String methodName = "RogueProcessReaper.kill.run()";
   
+    new Thread(new Runnable() {
+        public void run() {
+          try {
+        	  String[] repearScriptCommand = new String[] {reaperScript,pid};
+        	  ProcessBuilder pb = new ProcessBuilder(repearScriptCommand);
+              pb.redirectErrorStream(true);
+              Process killedProcess = pb.start();
+              InputStream is = killedProcess.getInputStream();
+              BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+              
+              // read the next line from stdout and stderr
+              while (reader.readLine() != null) {
+                // dont care about the output, just drain the buffers
+              }
+              is.close();
+              StringBuffer sb = new StringBuffer();
+              for (String part : repearScriptCommand) {
+                sb.append(part).append(" ");
+              }
+              if ( logger == null ) {
+                System.out.println(
+                        "--------- Started Rogue Process Reaper Script For Pid:" + pid + " Owned by:" + user
+                                + " Command:" + sb.toString());
+
+              } else {
+                logger.info(methodName, null, "--------- Started Rogue Process Reaper Script For Pid:" + pid + " Owned by:" + user
+                        + " Command:" + sb.toString());
+                
+              }
+        	  
+          } catch( Exception e) {
+        	  
+          }
+        }
+    }).start();
+/*    
       new Thread(new Runnable() {
         public void run() {
           try {
@@ -316,6 +364,7 @@ public class RogueProcessReaper {
           }
         }
       }).start();
+  */
   }
 
   private static class RogueProcessEntry {
@@ -329,16 +378,28 @@ public class RogueProcessReaper {
 
     boolean java;
     
-    AtomicInteger pendingCounter = new AtomicInteger(1);
+    String ppid; 
+    
+    
+	AtomicInteger pendingCounter = new AtomicInteger(1);
     boolean rogue;
     
     public RogueProcessEntry(int counterValue, int cleanupCounterValue, String user,
-            int maxSecondsBeforeEntryExpires, boolean isJava) {
+            int maxSecondsBeforeEntryExpires, boolean isJava, String ppid ) {
       counter = new CountDownLatch(counterValue);
       cleanupCounter = new CountDownLatch(cleanupCounterValue);
       this.user = user;
       this.java = isJava;
+      this.ppid = ppid;
     }
+
+    public String getPpid() {
+		return ppid;
+	}
+
+	public void setPpid(String ppid) {
+		this.ppid = ppid;
+	}
 
     public boolean isRogue() {
       return rogue;
@@ -359,7 +420,9 @@ public class RogueProcessReaper {
       counter.countDown();
       return counter.getCount();
     }
-
+    public void resetCounter(int counterValue) {
+      counter = new CountDownLatch(counterValue);
+    }
     public long countDownCleanupCounter() {
       cleanupCounter.countDown();
       return cleanupCounter.getCount();

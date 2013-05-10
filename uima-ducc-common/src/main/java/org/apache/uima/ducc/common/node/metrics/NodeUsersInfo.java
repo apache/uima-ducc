@@ -61,8 +61,8 @@ public class NodeUsersInfo implements Serializable {
     return rogueProcesses;
   }
 	
-  public void addPid(String pid, boolean java) {
-    reserveProcesses.add(new NodeProcess(pid,java));
+  public void addPid(String pid, String ppid, boolean java) {
+    reserveProcesses.add(new NodeProcess(pid,ppid,java));
 
   }
   public void addReservation(IDuccId reservation) {
@@ -71,8 +71,8 @@ public class NodeUsersInfo implements Serializable {
   public void addReservation(List<IDuccId> reservations) {
     this.reservations = reservations;
   }
-  public void addRogueProcess(String roguePID, boolean isJava ) {
-    rogueProcesses.add(new NodeProcess(roguePID, isJava));
+  public void addRogueProcess(String roguePID, String ppid, boolean isJava ) {
+    rogueProcesses.add(new NodeProcess(roguePID, ppid, isJava));
   }
   public String toString() {
     if ( reservations.size() == 0 && rogueProcesses.size() == 0 ) {
@@ -115,10 +115,20 @@ public class NodeUsersInfo implements Serializable {
     private static final long serialVersionUID = 1L;
     boolean java;
     String pid;
-    public NodeProcess(String pid, boolean isJava) {
+    String ppid;
+    
+
+	public NodeProcess(String pid, String ppid, boolean isJava) {
       this.pid = pid;
       java = isJava;
     }
+    public String getPpid() {
+		return ppid;
+	}
+	public void setPpid(String ppid) {
+		this.ppid = ppid;
+	}
+	
     public boolean isJava() {
       return java;
     }
