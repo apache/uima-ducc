@@ -37,6 +37,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 
 public class DuccWebMonitorJob {
 	
@@ -117,6 +118,16 @@ public class DuccWebMonitorJob {
 			if(!stateSequence.contains(state)) {
 				duccLogger.info(location, duccId, "state: "+state);
 				stateSequence.add(state);
+			}
+			
+			IRationale rationale = dwj.getCompletionRationale();
+			if(rationale != null) {
+				if(rationale.isSpecified()) {
+					String text = rationale.getText();
+					if(text != null) {
+						monitorInfo.rationale = text;
+					}
+				}
 			}
 		}
 		
