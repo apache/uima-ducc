@@ -18,8 +18,12 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
+import java.io.File;
+
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -120,6 +124,7 @@ public class StateJobAccounting {
 		}
 		if(retVal) {
 			job.setJobState(state);
+			recordUserState(job);
 			boolean advanceVal = advance(job);
 			if(!advanceVal) {
 				logger.info(methodName, job.getDuccId(),"current["+next+"] previous["+prev+"]");
@@ -291,11 +296,57 @@ public class StateJobAccounting {
 		if(retVal) {
 			job.setCompletion(completionType,completionRationale);
 			logger.info(methodName, job.getDuccId(), completionType+" "+completionRationale);
+			recordUserCompletion(job);
 		}
 		else {
 			logger.info(methodName, job.getDuccId(), completionType+" "+"ignored");
 		}
 		return retVal;
+	}
+	
+	private void recordUserState(IDuccWorkJob job) {
+		String methodName = "recordUserState";
+		DuccId jobid = null;
+		String text = "";
+		try {
+			jobid = job.getDuccId();
+			String userName = job.getStandardInfo().getUser();
+			String userLogDir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+			UserLogging userLogging = new UserLogging(userName, userLogDir);
+			JobState jobState = job.getJobState();
+			if(jobState != null) {
+				text = jobState.toString();
+				userLogging.toUserDuccLog(text);
+			}
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
+	}
+	
+	private void recordUserCompletion(IDuccWorkJob job) {
+		String methodName = "recordUserCompletion";
+		DuccId jobid = null;
+		String text = "";
+		try {
+			jobid = job.getDuccId();
+			String userName = job.getStandardInfo().getUser();
+			String userLogDir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+			UserLogging userLogging = new UserLogging(userName, userLogDir);
+			JobCompletionType jobCompletionType = job.getCompletionType();
+			if(jobCompletionType != null) {
+				text = jobCompletionType.toString();
+				userLogging.toUserDuccLog(text);
+			}
+			IRationale rationale = job.getCompletionRationale();
+			if(rationale != null) {
+				text = rationale.toString();
+				userLogging.toUserDuccLog(text);
+			}
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
 	}
 
 }
