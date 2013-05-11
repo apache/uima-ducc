@@ -116,6 +116,7 @@ public class AllInOne extends CliBase {
 			casPipeline.process(cas);
 			count++;
 		}
+		casPipeline.destroy();
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	

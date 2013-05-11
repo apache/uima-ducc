@@ -138,6 +138,9 @@ public class CasPipeline {
 		else if(descriptors.size() == 1) {
 			aed = UimaUtils.createAggregateDescription(false, overrides, descriptors.get(0));
 		}
+		System.out.println("Created descriptor:");
+		aed.toXML(System.out);
+		System.out.println("");
 		aed.toXML(baos);
 		ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
 		File file = null;
@@ -163,6 +166,10 @@ public class CasPipeline {
 	public CAS process(CAS cas) throws AnalysisEngineProcessException {
 		ae.process(cas);
 		return cas;
+	}
+	
+	public void destroy() {
+	    ae.destroy();
 	}
 	
 	public void dumpStatistics(PrintStream out) {

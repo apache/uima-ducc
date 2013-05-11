@@ -35,6 +35,7 @@ import org.apache.uima.analysis_engine.metadata.FixedFlow;
 import org.apache.uima.analysis_engine.metadata.FlowControllerDeclaration;
 import org.apache.uima.analysis_engine.metadata.impl.FixedFlow_impl;
 import org.apache.uima.analysis_engine.metadata.impl.FlowControllerDeclaration_impl;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.resource.RelativePathResolver;
 import org.apache.uima.resource.ResourceConfigurationException;
@@ -345,7 +346,7 @@ public class UimaUtils {
 
 		}
 		String fcsn;
-		if ( (fcsn = System.getProperty(FlowControllerResourceSpecifier)) != null ) {
+		if ( (fcsn = DuccPropertiesResolver.getInstance().getProperty(FlowControllerResourceSpecifier)) != null ) {
 			FlowControllerDeclaration fcd = new FlowControllerDeclaration_impl();
 			desc.setFlowControllerDeclaration(fcd);
 			fcd.setImport(new Import_impl());		
