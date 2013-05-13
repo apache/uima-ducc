@@ -39,6 +39,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 
 #define VERSION "0.8.2"
 
@@ -409,7 +410,7 @@ void redirect_to_socket(char *sockloc)
     fprintf(stdout, "1706 Connected\n");
 
     struct sockaddr sockname;
-    int    namelen;
+    socklen_t namelen;
     if ( getsockname(sock, &sockname,  &namelen ) == 0 ) {
         struct sockaddr_in *sin = (struct sockaddr_in *) &sockname;
         fprintf(stdout, "1708 Local port is %d\n", sin -> sin_port);
