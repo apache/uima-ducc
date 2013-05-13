@@ -518,7 +518,7 @@
         <module>uima-ducc-common</module>
         <module>uima-ducc-transport</module>
         <module>uima-ducc-agent</module>
-        <module>uima-ducc-ducbook</module>
+        <module>uima-ducc-duccdocs</module>
         <module>uima-ducc-web</module>		
         <module>uima-ducc-examples</module>		
 	</modules>
