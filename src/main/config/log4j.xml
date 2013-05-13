@@ -117,23 +117,28 @@
     </layout> 
   </appender> 
 
+   <category name="org.apache.uima.ducc.rm.config" additivity="true">
+     <priority value="debug"/>
+     <appender-ref ref="rmlog" /> 
+   </category>
+
    <category name="org.apache.uima.ducc.rm.scheduler" additivity="true">
-     <priority value="info"/>
+     <priority value="debug"/>
+     <appender-ref ref="rmlog" /> 
+   </category>
+
+   <category name="org.apache.uima.ducc.rm.scheduler.Nodepool" additivity="true">
+     <priority value="debug"/>
      <appender-ref ref="rmlog" /> 
    </category>
 
    <category name="org.apache.uima.ducc.rm.JobManagerConverter" additivity="true">
-     <priority value="trace"/>
+     <priority value="info"/>
      <appender-ref ref="rmlog" /> 
    </category>
 
    <category name="org.apache.uima.ducc.rm.NodeStability" additivity="true">
      <priority value="debug"/>
-     <appender-ref ref="rmlog" /> 
-   </category>
-
-   <category name="org.apache.uima.ducc.rm.ResourceManagerComponent" additivity="true">
-     <priority value="info"/>
      <appender-ref ref="rmlog" /> 
    </category>
 
