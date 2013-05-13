@@ -63,9 +63,9 @@ class StopDucc(DuccUtil):
 
         #
         # If despite all that we can't find the pid, we need to run check_ducc
-        #
+        #        
         if ( not self.pids.has_key(component) ):
-            print("Cannot find PID for component", component, ". Run check_ducc to refresh PIDS and then rerun stop_ducc.")
+            print "Cannot find PID for component", component, ". Run check_ducc to refresh PIDS and then rerun stop_ducc."
             return
 
         pid = self.pids.get(component)
@@ -103,11 +103,8 @@ class StopDucc(DuccUtil):
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
         self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccAdmin', '--quiesceAgents', qparm)
-
-        for n in allnodes:
-            k = 'agent@' + n
-            self.pids.delete(k)
-
+        
+        # NOTE: quiesce does not actually cause agents to terminate so we don't update the PIDs file
         return
 
     def stop_agents(self, node, force):
@@ -257,7 +254,7 @@ class StopDucc(DuccUtil):
 
         self.pids = DuccProperties()
         try:
-            #self.pids.load(self.pid_file)
+            self.pids.load(self.pid_file)
             pass
         except DuccPropertiesException, (inst):
             print inst.msg
