@@ -48,6 +48,10 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
   // private RandomAccessFile nodeStatFile;
   private RandomAccessFile processStatFile;
 
+  private long initTimeinSeconds = 0;
+  
+  private boolean initializing = true;
+  
   private final ExecutorService pool;
 
   private IDuccProcess process;
@@ -127,17 +131,31 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                 process.getPID(), managedProcess.getOwner(), DUCC_HOME
                         + "/admin/ducc_get_process_swap_usage.sh", logger);
 
-        // Publish cumulative CPU usage
-        if (agent.cpuClockRate > 0) {
-          logger.info("process", null, "----------- PID:" + process.getPID()
-                  + " CPU Time (seconds):" + processCpuUsage.get().getTotalJiffies()
-                  / agent.cpuClockRate);
-          process.setCpuTime(processCpuUsage.get().getTotalJiffies() / agent.cpuClockRate);
+        // report cpu utilization while the process is running
+        if ( managedProcess.getDuccProcess().getProcessState().equals(ProcessState.Running)) {
+          if (agent.cpuClockRate > 0) {
+            if ( initializing ) {
+              initializing = false;
+              // cache how much cpu was used up during initialization of the process
+              initTimeinSeconds = processCpuUsage.get().getTotalJiffies() / agent.cpuClockRate;
+            }
+            //  normalize cpu usage to report in seconds. Also subtract how much cpu was
+            //  used during initialization
+            long cpu = ( processCpuUsage.get().getTotalJiffies()/agent.cpuClockRate)-initTimeinSeconds;
+            logger.info("process", null, "----------- PID:" + process.getPID()
+                    + " CPU Time (seconds):" + cpu);
+            // Publish cumulative CPU usage
+            process.setCpuTime(cpu);
+          } else {
+            process.setCpuTime(0);
+            logger.info("process", null,
+                    "Agent is unable to determine Node's clock rate. Defaulting CPU Time to 0 For Process with PID:"
+                            + process.getPID());
+          }
+          
         } else {
+          //   report 0 for CPU while the process is initializing
           process.setCpuTime(0);
-          logger.info("process", null,
-                  "Agent is unable to determine Node's clock rate. Defaulting CPU Time to 0 For Process with PID:"
-                          + process.getPID());
         }
         long majorFaults = processMajorFaultUsage.get().getMajorFaults();
         // collects process Major faults (swap in memory)
