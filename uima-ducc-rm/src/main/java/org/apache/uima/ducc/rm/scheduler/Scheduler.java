@@ -223,6 +223,7 @@ public class Scheduler
         logger.info(methodName, null, "                       JVM Path                : ", System.getProperty("ducc.jvm"));
         logger.info(methodName, null, "                       JMX URL                 : ", System.getProperty("ducc.jmx.url"));
         logger.info(methodName, null, "                       OS Architecture         : ", System.getProperty("os.arch"));
+        logger.info(methodName, null, "                       OS Name                 : ", System.getProperty("os.name"));
         logger.info(methodName, null, "                       DUCC Version            : ", Version.version());
         logger.info(methodName, null, "                       RM Version              : ", ""+ rmversion_major   + "." 
                                                                                              + rmversion_minor   + "." 
