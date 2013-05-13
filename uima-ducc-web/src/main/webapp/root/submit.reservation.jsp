@@ -63,7 +63,7 @@ under the License.
       </h5>
     </span>
     <span>
-      <img src="opensources/images/chick-1.7x1.3.jpg" style="border:3px solid #ffff7a" alt="logo">
+      <img src="opensources/images/2x1.33in-Bariken_kid.JPG" style="border:3px solid #ffff7a" alt="logo">
     </span>
     <br>
     
