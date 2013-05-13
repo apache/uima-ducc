@@ -86,6 +86,30 @@ class StopDucc(DuccUtil):
         self.pids.delete(com)
         self.pids.delete(component)
 
+    def quiesce_agents(self, components, nodes):
+        allnodes = []
+        for ( nf, nl ) in nodes.items():
+            allnodes = allnodes + nl
+
+        for c in components:
+            if ( c.find('@') >= 0 ):            
+                com, target_node = c.split('@')
+                allnodes.append(target_node)
+            else:
+                self.invalid("Must specify hostname when stopping", component)
+
+        qparm = ','.join(allnodes)
+        print 'Quiescing', qparm
+        DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
+        DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
+        self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccAdmin', '--quiesceAgents', qparm)
+
+        for n in allnodes:
+            k = 'agent@' + n
+            self.pids.delete(k)
+
+        return
+
     def stop_agents(self, node, force):
         self.stop_component('agent@' + node.strip(), force)
     
@@ -104,6 +128,9 @@ class StopDucc(DuccUtil):
         print '        Stop agents on the nodes in the nodefile.  Multiple nodefiles may be specified:'
         print ''
         print '        stop_ducc -n foo.nodes -n bar.nodes -n baz.nodes'
+        print ''
+        print '   -q --quiesce nodefile'
+        print '        Queesce the nodes in the nodefile.'
         print ''
         print '   -m --management'
         print '        Stop the management processes (rm, pm, sm, or, and ws).'
@@ -150,10 +177,11 @@ class StopDucc(DuccUtil):
         do_agents = False
         do_components = False
         force = False
+        quiesce = False
         all = False
 
         try:
-            opts, args = getopt.getopt(argv, 'ac:n:kmmn:h?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'management', 'kill'])
+            opts, args = getopt.getopt(argv, 'ac:n:kmmn:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'management', 'kill', 'quiesce'])
         except:
             self.invalid('Invalid arguments ' + ' '.join(argv))
         
@@ -172,6 +200,8 @@ class StopDucc(DuccUtil):
                 do_agents = True
             elif o in ( '-k', '--kill' ):
                 force = True
+            elif o in ( '-q', '--quiesce' ):
+                quiesce = True
             elif ( o == '-v' ) :
                 print self.version()
                 sys.exit(0)
@@ -182,6 +212,18 @@ class StopDucc(DuccUtil):
             else:
                 print 'badarg', a
                 self.invalid('bad arg: ' + a)
+
+        if ( quiesce ):
+            if ( management ):
+                self.invalid("May not quiesce management nodes.")
+            if ( all ):
+                self.invalid("May not quiesce 'all'.");
+            if ( force ):
+                self.invalid("May not both quiesce and force.");
+            for c in components:
+                if ( not c.startswith('agent') ):
+                    self.invalid("Only agents may be quiesced.")
+
 
         # 'management' means stop all the management daemons - if specific components are also specified
         # there is at least a redundancy and maybe also a conflict.
@@ -215,7 +257,8 @@ class StopDucc(DuccUtil):
 
         self.pids = DuccProperties()
         try:
-            self.pids.load(self.pid_file)
+            #self.pids.load(self.pid_file)
+            pass
         except DuccPropertiesException, (inst):
             print inst.msg
             print ''
@@ -242,12 +285,15 @@ class StopDucc(DuccUtil):
         if ( not ok ):
             sys.exit(1)
 
-        for c in components:
-            self.stop_component(c, force)
-
-        for (nf, nl) in nodes.items():
-            for n in nl:
-                self.stop_agents(n, force)            
+        if ( quiesce ):
+            self.quiesce_agents(components, nodes)
+        else:
+            for c in components:
+                self.stop_component(c, force)
+    
+            for (nf, nl) in nodes.items():
+                for n in nl:
+                    self.stop_agents(n, force)            
 
         if ( len(self.pids) > 0 ):
             self.pids.write(self.pid_file)
