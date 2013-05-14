@@ -1,0 +1,134 @@
+<project name="uima-ducc-web" default="jconsole" basedir=".">
+    
+    <property environment="env" />         <!-- import env -->
+    <property name="java-home"             value="${env.JAVA_HOME}" />
+    <property name="ducc-home"             value="${env.DUCC_HOME}" />
+	
+	<!-- 
+	     This script builds a signed JConsole jar file for use with browser links from DUCC
+	     WS via java webstart (for example, JConsole links found on System.Daemons page).
+	 
+	     The 'build 'task takes an existing (unsigned) jconsole.jar file, adds the 
+	     JConsoleWrapper.class found in the DUCC build, and creates a new signed jar file.
+	     
+	     The 'install' task places the newly build signed jar file into webserver's webstart
+	     directory for use at runtime.
+	     
+	     The 'browser' task gives hints on how to use java webstart.
+
+	     Expectations:
+	     
+	     1. environemnt variable JAVA_HOME comprises location of java runtime (e.g. JAVA_HOME=/share/ibm-jdk1.6)
+	     2. environemnt variable DUCC_HOME comprises location of ducc runtime (e.g. DUCC_HOME=/home/ducc/ducc_runtime)
+	-->
+	
+    <property name="ducc.lib"              value="${ducc-home}/lib" />
+	<property name="uima.web.jar"          value="uima-ducc-web.jar" />
+    
+    <property name="webstart.dir"          value="${ducc-home}/webserver/root/lib/webstart" />
+    
+    <property name="tmp"                   value="${ducc-home}/tmp" />
+    <property name="tmp.src"               value="${ducc-home}/tmp/src" />
+    <property name="tmp.dst"               value="${ducc-home}/tmp/dst" />
+    <property name="tmp.key"               value="${ducc-home}/tmp/key" />
+    
+    <property name="JConsoleWrapper.class" value="JConsoleWrapper.class" />
+    
+    <property name="unsigned.jar"          value="jconsole.jar" />
+    <property name="src.jar"               value="${java-home}/lib/${unsigned.jar}" />
+    
+    <property name="wrapper.jar"           value="jconsole-wrapper.jar" />
+    <property name="wrapper.signed.jar"    value="jconsole-wrapper-signed.jar" />
+    
+    <property name="dst.jar"               value="${tmp.dst}/${wrapper.jar}" />
+    <property name="dst.signed.jar"        value="${tmp.dst}/${wrapper.signed.jar}" />
+       
+    <property name="key.alias"             value="ducc" />
+    <property name="key.storepass"         value="uima.ducc.org" />
+    <property name="key.store"             value="${tmp.key}/.keystore" />
+    <property name="key.pass"              value="uima.ducc.org" />
+       
+    <target name="jconsole" depends="build, install, cleanup, browser" />
+        
+    <target name="build" depends="java-home, ducc-home, prepare, setup, unjar, rejar, gen-key, sign, proclaim" />
+    
+    <target name="java-home">
+        <echo message="${java-home}"/>
+    </target>
+    
+    <target name="ducc-home">
+        <echo message="${ducc-home}"/>
+    </target>
+    
+    <target name="prepare">
+        <delete dir="${tmp}" />
+    </target>
+    
+    <target name="cleanup">
+        <delete dir="${tmp}" />
+    </target>
+	
+    <target name="setup">
+        <mkdir dir="${tmp}" />
+        <mkdir dir="${tmp.src}" />
+        <mkdir dir="${tmp.dst}" />
+        <mkdir dir="${tmp.key}" />
+    </target>
+    
+    
+    <target name="unjar" depends="unzip-jconsole, unjar-wrapper" />
+       
+    <target name="unzip-jconsole">
+        <unzip src="${src.jar}" dest="${tmp.src}"/>
+    </target>
+           
+    <target name="unjar-wrapper">
+        <unjar dest="${tmp.src}">
+          <patternset>
+            <include name="**/JConsoleWrapper.class" />
+          </patternset>
+          <fileset dir="${ducc.lib}" includes="${uima.web.jar}" />
+        </unjar>
+    </target>
+       
+    <target name="rejar">
+        <jar destfile="${dst.jar}" basedir="${tmp.src}"/>
+    </target>
+       
+    <target name="gen-key">
+        <genkey alias="${key.alias}" verbose="true" storepass="${key.storepass}" keypass="${key.pass}" validity="3650" keystore="${key.store}">
+            <dname>
+                <param name="CN" value="ducc.org Group"/>
+                <param name="OU" value="ducc"/>
+                <param name="O"  value="ducc.org"/>
+                <param name="C"  value="US"/>
+            </dname>
+        </genkey>
+    </target>
+       
+    <target name="sign">
+        <signjar jar="${dst.jar}"
+          signedjar="${dst.signed.jar}"
+          alias="${key.alias}"
+          storepass="${key.storepass}"
+          keystore="${key.store}"
+          keypass="${key.pass}"/>
+    </target>
+    
+    <target name="proclaim">
+        <echo message="${dst.signed.jar}"/>
+    </target>
+    
+    <target name="install">
+        <copy file="${dst.signed.jar}" todir="${webstart.dir}"  overwrite="true" />
+    </target>
+       
+    <target name="browser">
+        <echo message="To launch webstart application (JConsole links) from browser:"/>
+        <echo message="1. Select Open With and choose another"/>
+        <echo message="2. Navigate to JAVA_HOME/bin and select javaws"/>
+        <echo message="3. Select Do this automatically for files like this from now on"/>
+        <echo message="4. Click OK"/>
+    </target>
+    
+</project>
