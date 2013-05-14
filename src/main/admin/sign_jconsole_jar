@@ -34,8 +34,6 @@ from ducc_boot import *
 set_ducc_home()
 
 from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc import Ducc
 
 class SignJconsole(DuccUtil):
     def main(self, args):
