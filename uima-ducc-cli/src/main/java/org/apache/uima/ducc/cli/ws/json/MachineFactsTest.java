@@ -122,13 +122,14 @@ public class MachineFactsTest {
 		String status = createStatus();
 		String ip = createIP();
 		String name = createName();
+		String reserve = createMemory();
 		String memory = createMemory();
 		String swap = createSwap();
 		List<String> aliens = createAliens();
 		String sharesTotal = createSharesTotal(memory);
 		String sharesInuse = createSharesInuse(sharesTotal);
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,ip,name, memory, swap, aliens, sharesTotal, sharesInuse, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, aliens, sharesTotal, sharesInuse, heartbeat);
 		return machineFacts;
 	}
 	

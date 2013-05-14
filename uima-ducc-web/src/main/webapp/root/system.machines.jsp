@@ -44,6 +44,7 @@ under the License.
                             $('td:eq(6)' , nRow).css( "text-align", "right" );
                             $('td:eq(7)' , nRow).css( "text-align", "right" );
                             $('td:eq(8)' , nRow).css( "text-align", "right" );
+                            $('td:eq(9)' , nRow).css( "text-align", "right" );                            
                             if ( aData[0] == "up" ) {
                     			jQuery('td:eq(0)', nRow).addClass('health_green');
                 			}
@@ -113,9 +114,10 @@ if (table_style.equals("scroll")) {
 	<th align="left" title="The current status">Status</th>
 	<th align="left" title="The host IP">IP</th>
 	<th align="left" title="The host name">Name</th>
-	<th align="left" title="The host memory size, in GB" >Mem(GB):total</th>
+	<th align="left" title="The host reservation size (hint: specify this size to reserve entire machine), in GB" >Reserve(GB):size</th>
+	<th align="left" title="The host memory size, in GB" >Memory(GB):total</th>
 	<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
-	<th align="left" title="The number of alien PIDs (those processes not assiciated with a user running jobs or having a reservation)" >Alien PIDs</th>
+	<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
 	<th align="left" title="The number of system shares" >Shares:total</th>
 	<th align="left" title="The number of system shares inuse" >Shares:inuse</th>
 	<th align="left" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>
@@ -140,9 +142,10 @@ if (table_style.equals("classic")) {
 		<th align="left" title="The current status">Status</th>
 		<th align="left" title="The host IP">IP</th>
 		<th align="left" title="The host name">Name</th>
-		<th align="left" title="The host memory size, in GB" >Mem(GB):total</th>
+		<th align="left" title="The host reservation size (hint: specify this size to reserve entire machine), in GB" >Reserve(GB):size</th>
+        <th align="left" title="The host memory size, in GB" >Memory(GB):total</th>	
 		<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
-		<th align="left" title="The number of alien PIDs (those processes not assiciated with a user running jobs or having a reservation)" >Alien PIDs</th>
+		<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
 		<th align="left" title="The number of system shares" >Shares:total</th>
 		<th align="left" title="The number of system shares inuse" >Shares:inuse</th>
 		<th align="left" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>

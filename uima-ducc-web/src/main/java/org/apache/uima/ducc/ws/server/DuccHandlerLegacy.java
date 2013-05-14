@@ -24,6 +24,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -34,6 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.uima.ducc.cli.ws.json.MachineFacts;
+import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -45,7 +48,6 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.ProcessInfo;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
@@ -1322,162 +1324,219 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	{
 		String methodName = "handleServletLegacySystemMachines";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		StringBuffer sb = new StringBuffer();
+		
+		int counter = 0;
+		
+		int sumReserve = 0;
+		int sumMemory = 0;
+		int sumSwap = 0;
+		int sumAliens = 0;
+		int sumSharesTotal = 0;
+		int sumSharesInuse = 0;
+		
+		ListIterator<MachineFacts> listIterator;
+		StringBuffer row;
+		StringBuffer data = new StringBuffer();
 		
 		DuccMachinesData instance = DuccMachinesData.getInstance();
-		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = instance.getSortedMachines();
-		Iterator<MachineInfo> iterator;
 		
-		// pass 1
-		iterator = sortedMachines.keySet().iterator();
-		long memTotal = 0;
-		long memSwap = 0;
-		long alienPids = 0;
-		long sharesTotal = 0;
-		long sharesInuse = 0;
-		while(iterator.hasNext()) {
-			MachineInfo machineInfo = iterator.next();
-			try {
-				memTotal += Long.parseLong(machineInfo.getMemTotal());
-			}
-			catch(Exception e) {};
-			try {
-				memSwap += Long.parseLong(machineInfo.getMemSwap());
-			}
-			catch(Exception e) {};
-			try {
-				List<ProcessInfo> alienPidsList = machineInfo.getAlienPids();
-				if(alienPidsList != null) {
-					alienPids += alienPidsList.size();
+		MachineFactsList factsList = instance.getMachineFactsList();
+		if(factsList.size() > 0) {
+			// Total
+			listIterator = factsList.listIterator();
+			while(listIterator.hasNext()) {
+				MachineFacts facts = listIterator.next();
+				try {
+					sumReserve += Integer.parseInt(facts.reserve);
+					sumMemory += Integer.parseInt(facts.memory);
+					sumSwap += Integer.parseInt(facts.swap);
+					sumAliens += facts.aliens.size();
+					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
+					sumSharesInuse += Integer.parseInt(facts.sharesInuse);
+				}
+				catch(Exception e) {
+					duccLogger.error(methodName, jobid, e);
 				}
 			}
-			catch(Exception e) {};
-			try {
-				sharesTotal += Long.parseLong(machineInfo.getSharesTotal());
-			}
-			catch(Exception e) {};
-			try {
-				sharesInuse += Long.parseLong(machineInfo.getSharesInuse());
-			}
-			catch(Exception e) {};
-		}
-		
-		// Total
-		sb.append("<tr>");
-		// Status
-		sb.append("<td>");
-		sb.append(""+"Total");
-		sb.append("</td>");
-		// IP
-		sb.append("<td>");
-		sb.append("");
-		sb.append("</td>");
-		// Name
-		sb.append("<td>");
-		sb.append("");
-		sb.append("</td>");
-		// Mem(GB):total
-		sb.append("<td align=\"right\">");
-		sb.append(""+memTotal);
-		sb.append("</td>");
-		// Swap(GB):inuse
-		sb.append("<td align=\"right\">");
-		sb.append(""+memSwap);
-		sb.append("</td>");
-		// Alien PIDs
-		sb.append("<td align=\"right\">");
-		sb.append(""+alienPids);
-		sb.append("</td>");
-		// Shares:total
-		sb.append("<td align=\"right\">");
-		sb.append(""+sharesTotal);
-		sb.append("</td>");
-		// Shares:inuse
-		sb.append("<td align=\"right\">");
-		sb.append(""+sharesInuse);
-		sb.append("</td>");
-		// Heartbeat (last)
-		sb.append("<td align=\"right\">");
-		sb.append("");
-		sb.append("</td>");
-	
-		// pass 2
-		int counter = 0;
-		iterator = sortedMachines.keySet().iterator();
-		while(iterator.hasNext()) {
-			MachineInfo machineInfo = iterator.next();
-			sb.append(trGet(counter));
+			row = new StringBuffer();
+			row.append("<tr>");
 			// Status
-			sb.append("<td>");
-			String status = machineInfo.getStatus();
-			if(status.equals("down")) {
-				sb.append("<span class=\"health_red\""+">");
-				sb.append(status);
-				sb.append("</span>");
-			}
-			else if(status.equals("up")) {
-				sb.append("<span class=\"health_green\""+">");
-				sb.append(status);
-				sb.append("</span>");
-			}
-			else {
-				sb.append("<span title=\""+"File:"+machineInfo.getFileDef()+"\""+">");
-				sb.append(status);
-			}
-			sb.append("</td>");
+			row.append("<td>");
+			row.append(""+"Total");
+			row.append("</td>");
 			// IP
-			sb.append("<td>");
-			sb.append(""+machineInfo.getIp());
-			sb.append("</td>");
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
 			// Name
-			sb.append("<td>");
-			sb.append(""+machineInfo.getName());
-			sb.append("</td>");
-			// Mem(GB):total
-			sb.append("<td align=\"right\">");
-			sb.append(""+machineInfo.getMemTotal());
-			sb.append("</td>");
-			// Swap(GB):inuse
-			sb.append("<td align=\"right\">");
-			String swapping = machineInfo.getMemSwap();
-			if(swapping.equals("0")) {
-				sb.append(swapping);
-			}
-			else {
-				sb.append("<span class=\"health_red\">");
-				sb.append(swapping);
-				sb.append("</span>");
-			}
-			sb.append("</td>");
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Reserve: total
+			row.append("<td align=\"right\">");
+			row.append(""+sumReserve);
+			row.append("</td>");
+			// Memory: total
+			row.append("<td align=\"right\">");
+			row.append(""+sumMemory);
+			row.append("</td>");
+			// Swap: inuse
+			row.append("<td align=\"right\">");
+			row.append(""+sumSwap);
+			row.append("</td>");
 			// Alien PIDs
-			sb.append("<td align=\"right\">");
-			long aliens = machineInfo.getAlienPidsCount();
-			if(aliens == 0) {
-				sb.append(aliens);
-			}
-			else {
-				sb.append("<span class=\"health_red\">");
-				sb.append(aliens);
-				sb.append("</span>");
-			}
-			sb.append("</td>");
-			// Shares:total
-			sb.append("<td align=\"right\">");
-			sb.append(""+machineInfo.getSharesTotal());
-			sb.append("</td>");
+			row.append("<td align=\"right\">");
+			row.append(""+sumAliens);
+			row.append("</td>");
+			// Shares: total
+			row.append("<td align=\"right\">");
+			row.append(""+sumSharesTotal);
+			row.append("</td>");
 			// Shares:inuse
-			sb.append("<td align=\"right\">");
-			sb.append(""+machineInfo.getSharesInuse());
-			sb.append("</td>");
-			// Heartbeat (last)
-			sb.append("<td align=\"right\">");
-			sb.append(""+machineInfo.getElapsed());
-			sb.append("</td>");
-			counter++;
+			row.append("<td align=\"right\">");
+			row.append(""+sumSharesInuse);
+			row.append("</td>");
+			// Heartbeat: last
+			row.append("<td align=\"right\">");
+			row.append("");
+			row.append("</td>");
+			row.append("</tr>");
+			data.append(row);
+			// Individual Machines
+			listIterator = factsList.listIterator();
+			while(listIterator.hasNext()) {
+				MachineFacts facts = listIterator.next();
+				row = new StringBuffer();
+				row.append((trGet(counter)));
+				// Status
+				StringBuffer sb = new StringBuffer();
+				String status = facts.status;
+				if(status.equals("down")) {
+					sb.append("<span class=\"health_red\""+">");
+					sb.append(status);
+					sb.append("</span>");
+				}
+				else if(status.equals("up")) {
+					sb.append("<span class=\"health_green\""+">");
+					sb.append(status);
+					sb.append("</span>");
+				}
+				else {
+					sb.append(status);
+				}
+				row.append("<td>");
+				row.append(sb);
+				row.append("</td>");
+				// IP
+				row.append("<td>");
+				row.append(facts.ip);
+				row.append("</td>");
+				// Name
+				row.append("<td>");
+				row.append(facts.name);
+				row.append("</td>");
+				// Reserve
+				row.append("<td align=\"right\">");
+				row.append(facts.reserve);
+				row.append("</td>");
+				// Memory: total
+				row.append("<td align=\"right\">");
+				row.append(facts.memory);
+				row.append("</td>");
+				// Swap: inuse
+				sb = new StringBuffer();
+				String swapping = facts.swap;
+				if(swapping.equals("0")) {
+					sb.append(swapping);
+				}
+				else {
+					sb.append("<span class=\"health_red\">");
+					sb.append(swapping);
+					sb.append("</span>");
+				}
+				row.append("<td align=\"right\">");
+				row.append(sb);
+				row.append("</td>");
+				// Alien PIDs
+				sb = new StringBuffer();
+				long aliens = facts.aliens.size();
+				if(aliens == 0) {
+					sb.append(aliens);
+				}
+				else {
+					sb.append("<span class=\"health_red\">");
+					sb.append(aliens);
+					sb.append("</span>");
+				}
+				row.append("<td align=\"right\">");
+				row.append(sb);
+				row.append("</td>");
+				// Shares: total
+				row.append("<td align=\"right\">");
+				row.append(facts.sharesTotal);
+				row.append("</td>");
+				// Shares:inuse
+				row.append("<td align=\"right\">");
+				row.append(facts.sharesInuse);
+				row.append("</td>");
+				// Heartbeat: last
+				row.append("<td align=\"right\">");
+				row.append(facts.heartbeat);
+				row.append("</td>");
+				row.append("</tr>");
+				data.append(row);
+				counter++;
+			}
+		}
+		else {
+			row = new StringBuffer();
+			row.append((trGet(counter)));
+			// Status
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// IP
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Name
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Reserve
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Memory: total
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Swap: inuse
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Alien PIDs
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Shares: total
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Shares:inuse
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			// Heartbeat: last
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
+			row.append("</tr>");
+			data.append(row);
 		}
 		
-		duccLogger.debug(methodName, jobid, sb);
-		response.getWriter().println(sb);
+		duccLogger.debug(methodName, jobid, data);
+		response.getWriter().println(data);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	

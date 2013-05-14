@@ -1099,29 +1099,6 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
-
-	private MachineFactsList getMachineFactsList() {
-		MachineFactsList factsList = new MachineFactsList();
-		DuccMachinesData instance = DuccMachinesData.getInstance();
-		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = instance.getSortedMachines();
-		Iterator<MachineInfo> iterator;
-		iterator = sortedMachines.keySet().iterator();
-		while(iterator.hasNext()) {
-			MachineInfo machineInfo = iterator.next();
-			String status = machineInfo.getStatus();
-			String ip = machineInfo.getIp();
-			String name = machineInfo.getName();
-			String memory = machineInfo.getMemTotal();
-			String swap = machineInfo.getMemSwap();
-			List<String> aliens = machineInfo.getAliensPidsOnly();
-			String sharesTotal = machineInfo.getSharesTotal();
-			String sharesInuse = machineInfo.getSharesInuse();
-			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,memory,swap,aliens,sharesTotal,sharesInuse,heartbeat);
-			factsList.add(facts);
-		}
-		return factsList;
-	}
 	
 	private void handleServletJsonFormatMachinesAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
@@ -1131,8 +1108,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
-
-		int sumMem = 0;
+		
+		int sumReserve = 0;
+		int sumMemory = 0;
 		int sumSwap = 0;
 		int sumAliens = 0;
 		int sumSharesTotal = 0;
@@ -1142,14 +1120,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonArray row;
 		StringBuffer sb;
 		
-		MachineFactsList factsList = getMachineFactsList();
+		DuccMachinesData instance = DuccMachinesData.getInstance();
+		
+		MachineFactsList factsList = instance.getMachineFactsList();
 		if(factsList.size() > 0) {
 			// Total
 			listIterator = factsList.listIterator();
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				try {
-					sumMem += Integer.parseInt(facts.memory);
+					sumReserve += Integer.parseInt(facts.reserve);
+					sumMemory += Integer.parseInt(facts.memory);
 					sumSwap += Integer.parseInt(facts.swap);
 					sumAliens += facts.aliens.size();
 					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
@@ -1166,8 +1147,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Name
 			row.add(new JsonPrimitive(""));
-			// Mem: total
-			row.add(new JsonPrimitive(sumMem));
+			// Reserve: total
+			row.add(new JsonPrimitive(sumReserve));
+			// Memory: total
+			row.add(new JsonPrimitive(sumMemory));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwap));
 			// Alien PIDs
@@ -1205,7 +1188,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(facts.ip));
 				// Name
 				row.add(new JsonPrimitive(facts.name));
-				// Mem: total
+				// Reserve
+				row.add(new JsonPrimitive(facts.reserve));
+				// Memory: total
 				row.add(new JsonPrimitive(facts.memory));
 				// Swap: inuse
 				sb = new StringBuffer();
@@ -1248,7 +1233,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Name
 			row.add(new JsonPrimitive(""));
-			// Mem: total
+			// Reserve
+			row.add(new JsonPrimitive(""));
+			// Memory: total
 			row.add(new JsonPrimitive(""));
 			// Swap: inuse
 			row.add(new JsonPrimitive(""));
@@ -1603,7 +1590,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		MachineFactsList factsList = getMachineFactsList();
+		DuccMachinesData instance = DuccMachinesData.getInstance();
+		
+		MachineFactsList factsList = instance.getMachineFactsList();
 		
 		Gson gson = new Gson();
 		String jSon = gson.toJson(factsList);

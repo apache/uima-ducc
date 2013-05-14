@@ -28,6 +28,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.uima.ducc.cli.ws.json.MachineFacts;
+import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.cli.ws.json.NodePidList;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -35,6 +37,7 @@ import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
@@ -507,5 +510,46 @@ public class DuccMachinesData {
 		properties = getShareMapReservations(properties, shareSize);
 		return properties;
 	}
+
+	private String getReserveSize(MachineInfo machineInfo) {
+		long size = 0;
+		String reserveSize = "-";
+		try {
+			long sharesTotal = Long.parseLong(machineInfo.getSharesTotal());
+			String ducc_rm_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_rm_share_quantum);
+			if(ducc_rm_share_quantum != null) {
+				ducc_rm_share_quantum = ducc_rm_share_quantum.trim();
+				if(ducc_rm_share_quantum.length() > 0) {
+					size = Long.parseLong(ducc_rm_share_quantum) * sharesTotal;
+					reserveSize = ""+size;
+				}
+			}
+		}
+		catch(Exception e) {
+		}
+		return reserveSize;
+	}
 	
+	public MachineFactsList getMachineFactsList() {
+		MachineFactsList factsList = new MachineFactsList();
+		ConcurrentSkipListMap<MachineInfo,String> sortedMachines = getSortedMachines();
+		Iterator<MachineInfo> iterator;
+		iterator = sortedMachines.keySet().iterator();
+		while(iterator.hasNext()) {
+			MachineInfo machineInfo = iterator.next();
+			String status = machineInfo.getStatus();
+			String ip = machineInfo.getIp();
+			String name = machineInfo.getName();
+			String reserve = getReserveSize(machineInfo);
+			String memory = machineInfo.getMemTotal();
+			String swap = machineInfo.getMemSwap();
+			List<String> aliens = machineInfo.getAliensPidsOnly();
+			String sharesTotal = machineInfo.getSharesTotal();
+			String sharesInuse = machineInfo.getSharesInuse();
+			String heartbeat = ""+machineInfo.getElapsed();
+			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swap,aliens,sharesTotal,sharesInuse,heartbeat);
+			factsList.add(facts);
+		}
+		return factsList;
+	}
 }

@@ -28,6 +28,7 @@ public class MachineFacts implements Serializable {
 	public String status;
 	public String ip;
 	public String name;
+	public String reserve;
 	public String memory;
 	public String swap;
 	public List<String> aliens;
@@ -38,6 +39,7 @@ public class MachineFacts implements Serializable {
 	public MachineFacts(String status, 
 				   String ip,
 				   String name,
+				   String reserve,
 				   String memory,
 				   String swap,
 				   List<String> aliens,
@@ -49,6 +51,7 @@ public class MachineFacts implements Serializable {
 		this.status = status;
 		this.ip = ip;
 		this.name = name;
+		this.reserve = reserve;
 		this.memory = memory;
 		this.swap = swap;
 		this.aliens = aliens;

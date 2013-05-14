@@ -49,6 +49,7 @@ public class DuccWebQueryMachines extends DuccWebQuery {
 				System.out.println("  "+"status: "+f.status);
 				System.out.println("  "+"aliens: "+ stringify(f.aliens));
 				System.out.println("  "+"swap: "+ f.swap);
+				System.out.println("  "+"reserve: "+ f.reserve);
 				System.out.println("  "+"memory: "+ f.memory);
 				System.out.println("  "+"sharesTotal: "+ f.sharesTotal);
 				System.out.println("  "+"sharesInuse: "+ f.sharesInuse);
