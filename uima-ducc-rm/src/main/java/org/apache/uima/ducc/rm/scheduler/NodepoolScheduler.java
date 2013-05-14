@@ -1074,7 +1074,10 @@ public class NodepoolScheduler
 
                 // Don't schedule non-preemptable shares over subpools
                 if ( np.countLocalShares() < n_instances ) {
-                    schedulingUpdate.refuse(j, "Cannot accept Fixed Share job, nodepool " + np.getId() + " is too small. Available[" + np.countLocalShares() + "] requested[" + n_instances + "]");
+                    schedulingUpdate.refuse(j, "Cannot accept Fixed Share job, nodepool " + np.getId() 
+                                            + " has insufficient nodes left. Available[" 
+                                            + np.countLocalShares() 
+                                            + "] requested[" + n_instances + "]");
                     continue;
                 }
              
@@ -1235,7 +1238,7 @@ public class NodepoolScheduler
                 }
 
                 if ( rc.getMaxMachines() < nrequested ) {               // Does it blow the configured limit for this class?
-                    schedulingUpdate.refuse(j, "Cannot accept reservation, requested machines exceeds class max of " + rc.getMaxMachines() + ".");
+                    schedulingUpdate.refuse(j, "Cannot accept reservation, requested machines exceeds configured class max of " + rc.getMaxMachines() + ".");
                     continue;
                 }
 
@@ -1247,7 +1250,9 @@ public class NodepoolScheduler
                 if ( (machines_given_out + nrequested) > classcap ) {
                     schedulingUpdate.refuse(j, "Job asks for " 
                                             + nrequested 
-                                            + " reserved machines but there are insufficient machines available for class \"" + rc.getName());
+                                            + " reserved machines but total machines for class '" + rc.getName()
+                                            + "' exceeds class cap of "
+                                            + classcap);
                                             
                     continue;
                 }               
@@ -1267,9 +1272,19 @@ public class NodepoolScheduler
                 }           
 
                 if ( given == 0 ) {
-                    schedulingUpdate.refuse(j, "Job asks for " 
-                                            + nrequested 
-                                            + " reserved machines but reservable resources are unavailable or exhausted.");
+                    if ( rc.enforceMemory() ) {
+                        schedulingUpdate.refuse(j, "Job asks for " 
+                                                + nrequested 
+                                                + " reserved machines with exactly "
+                                                + j.getShareOrder()  
+                                                + " shares but there are insufficient freeable machines.");
+                    } else {
+                        schedulingUpdate.refuse(j, "Job asks for " 
+                                                + nrequested 
+                                                + " reserved machines with at least "
+                                                + j.getShareOrder()  
+                                                + " shares but there are insufficient freeable machines.");
+                    }
                     continue;
                 }
             }

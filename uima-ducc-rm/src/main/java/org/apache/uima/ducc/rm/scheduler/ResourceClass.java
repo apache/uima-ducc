@@ -168,10 +168,10 @@ public class ResourceClass
             if (absolute_cap == 0) absolute_cap = Integer.MAX_VALUE;
         }
 
-        nodepoolName = props.getProperty(k + "nodepool");                               // optional nodepool
+        nodepoolName = props.getStringProperty(k + "nodepool", null);                               // optional nodepool
         if (nodepoolName == null) {
             nodepoolName = NodePool.globalName;
-        }
+        } 
     }
 
     public long getTimestamp()

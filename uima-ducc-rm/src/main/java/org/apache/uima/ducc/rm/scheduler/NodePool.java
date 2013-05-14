@@ -804,11 +804,10 @@ class NodePool
         	} else {
         		return 0;
         	}
-            // TODO sort by something smart
         } else {
             machs.addAll(allMachines.values());
-            // TODO sort by smallest machine, secondarily by something smart
         }
+        Collections.sort(machs, new MachineByAscendingOrderSorter());
 
         int given = 0;           // total to give, free or freeable
         Iterator<Machine> iter = machs.iterator();
@@ -818,6 +817,11 @@ class NodePool
             if ( preemptables.containsKey(m.key()) ) {         // already counted, don't count twice
                 continue;
             }
+
+            if ( m.getShareOrder() < order ) {
+                continue;
+            }
+
             if ( m.isFree() ) {
                 given++;
                 continue;
@@ -1484,6 +1488,15 @@ class NodePool
     	public int compare(Machine m1, Machine m2)
         {
             return m2.getShareOrder() - m1.getShareOrder();
+        }
+    }
+
+    class MachineByAscendingOrderSorter
+    	implements Comparator<Machine>
+    {	
+    	public int compare(Machine m1, Machine m2)
+        {
+            return m1.getShareOrder() - m2.getShareOrder();
         }
     }
 
