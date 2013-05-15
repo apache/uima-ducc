@@ -1,1 +1,363 @@
-\chapter{Installation, Configuration, and Verification}
+\section{Overview}
+
+DUCC is a multi-user, multi-system distributed application.  First-time installation is performed in
+two stages:
+
+\begin{itemize}
+    \item Single-user installation: This provides single-user, single-system installation for testing,
+      and verification. Simple development of small applications on small systems such as laptops or
+      office workstations is possible after Single-user Installation.
+      
+    \item Multi-user installation: This provides secure multi-user capabilities and configuration
+      for multi-system clusters.
+\end{itemize}
+
+First-time users must perform single-user installation and verification on a single system.  Once
+this configuration is working and verified, it is straightforward to upgrade to a multi-user
+configuration.
+
+DUCC is distributed as a compressed tar file.  The instructions below assume installation from one
+of this distribution media.  If building from source, the build creates this file in your svn
+trunk/target directory. The distribution file is in the form
+\begin{verbatim}
+   apache-uima-ducc-[version]
+\end{verbatim}
+where [version] is the DUCC version.  For example, \distro.  This document will refer to the distribution
+file as the ``<distribution.file>''.
+
+\subsection{Software Prerequisites}
+Both single and multi-user configurations have the following software pre-requisites:
+
+\begin{itemize}
+  \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
+  \item Reasonably current Linux.  DUCC has been tested on SUSE Linux distributions.
+  \item IBM or Oracle Java JRE 1.6 or greater.
+  \item Python 2.x, where 'x' is 4 or greater.  DUCC has not been tested on Python 3.x.
+\end{itemize}
+  
+Multi-user installation has additional requirements:
+
+\begin{itemize}
+  \item All systems must have a shared filesystem and common user space 
+  \item Passwordless ssh must be installed for user {\em ducc} on all systems.
+  \item Root access is required to install a small setuid-root program on each system.
+\end{itemize}
+  
+In order to build DUCC from source the following software is also required:
+\begin{itemize}
+    \item A Subversion client, from \url{http://subversion.apache.org/packages.html}
+    \item Apache Maven, from \url{http://maven.apache.org/index.html}
+\end{itemize}
+
+The DUCC web server optionally supports direct ``jconsole'' attach to DUCC job processes.  To install
+this, the following is required:
+\begin{itemize}
+    \item Apache Ant, any reasonably current version.
+\end{itemize}
+    
+More detailed one-time setup instructions for source-level builds via subversion can be found here:
+\url{http://uima.apache.org/one-time-setup.html\#svn-setup}
+
+\subsection{Documentation}
+After single-user installation, the DUCC documentation is found (in both PDF and HTML format) in the directory 
+ducc\_runtime/docs.
+
+\subsection{Building DUCC}
+If you are installing from a binary distribution, continue to Initial  Installation and Verification.
+
+Installation from source involves extracting the code from Subversion and running a Maven build.
+\begin{enumerate}
+  \item svn checkout \url{https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk}
+  \item cd trunk
+  \item mvn install
+\end{enumerate}
+  
+When the Maven install is complete, a binary distribution file will be placed into your source tree
+in the subdirectory trunk/target.
+
+\subsection{Single-user  Installation and Verification}
+
+Single-user installation sets up an initial, working configuration on a single system.  No security
+is established, and all jobs run as user ducc.  Note that all installation must be done as user ducc.
+
+Verification submits a very simple UIMA pipeline for execution under DUCC.  Once this is shown to be
+working, one may proceed to upgrade to full installation.
+
+
+\subsection{Minimal Hardware Requirements for single-user Installation}
+\begin{itemize}
+    \item One Intel-based or IBM Power-based system.  (More systems may be added during multi-user
+      installation, described below.)
+    \item 8GB of memory.  16GB or more is preferable for developing and testing applications beyond
+      the non-trivial.  
+    \item 1GB disk space to hold the DUCC runtime, system logs, and job logs.  More is
+      usually needed for larger installations.  
+    \end{itemize}
+
+\subsection{Single-user System Installation}
+    \begin{enumerate}
+      \item Expand the distribution file:
+\begin{verbatim}
+tar -zxf <distribution.file>
+\end{verbatim}
+
+        This creates a directory with the same name as ``<distribution.file'', without the trailing ``.tgz''.
+  
+        This directory contains the full DUCC runtime in a subdirectory called \duccruntime.  (Note:
+        the version may be different according the the actual version of DUCC being installed.)
+
+      \item You may use the \duccruntime ``in place'' but it is highly recommended that you move it
+        into a standard location; for example, ducc's HOME directory:
+\begin{verbatim}
+mv apache-uima-ducc-0.7.3-SNAPSHOT/\duccruntime \$HOME
+\end{verbatim}
+
+        We refer to this directory, regardless of its location, as \duccruntime. For simplicity,
+        this document assumes it is moved to ducc's \$HOME/\duccruntime.
+
+      \item Change directories into the admin subdirectory of  \duccruntime: 
+\begin{verbatim}
+cd \$HOME/\duccruntime/admin
+\end{verbatim}
+
+        \item Run the post-installation script: 
+\begin{verbatim}
+./ducc\_post\_install
+\end{verbatim}
+          
+\end{enumerate}
+
+That's it, DUCC is installed and ready to run. (If errors were displayed during ducc\_post\_install
+they must be corrected before continuing.)
+
+The post-installation script performs these tasks:
+\begin{enumerate}
+    \item Verifies that the correct level of Java and Python are installed and available.
+    \item Creates a default nodelist, \duccruntime/resources/ducc.nodes, containing the name of the node you are installing on.
+    \item Establishes a nodepool for the DUCC Job Driver (JD) as the node you are installing from.
+    \item Defines the “ducc head node” to be to node you are installing from.
+    \item Sets up the default https keystore for the webserver.
+    \item Installs the DUCC documentation “ducc book” into the DUCC webserver root.
+    \item Builds and installs the C program, “ducc\_ling”, into the default location.
+    \item Insures that the (supplied) ActiveMQ broker is runnable.
+\end{enumerate}
+
+
+\subsection{Initial System Verification}
+
+Here we start the basic installation, submit a simple UIMA-AS job, verify that it ran, and stop
+DUCC.  Once this is confirmed working DUCC is ready to use in an unsecured, single-user mode on a
+single system.
+
+To run the verification, issue these commands.
+\begin{enumerate}
+  \item cd \duccruntime/admin 
+  \item ./check\_ducc
+  
+    Examine the output of check\_ducc.  If any errors are shown, correct the errors and rerun
+    check\_ducc until there are no errors.  
+  \item Finally, start ducc: ./start\_ducc
+  \end{enumerate}
+  
+  Start\_ducc will perform a number of consistency checks and print the versions of the components.
+  It then starts the ActiveMQ broker, the DUCC control processes, and a single DUCC agent on the
+  local node. You will see some startup messages similar to the following:
+
+\begin{verbatim}
+ENV: Java is configured as: /share/jdk1.6/bin/java
+ENV: java full version "1.6.0_14-b08"
+MEM: memory is 15 gB
+ENV: system is Linux version 2.6.32-220.el6.x86_64 (mockbuild@x86-004.build.bos.redhat.com) (gcc version 4.4.5 20110214 (Red Hat 4.4.5-6) (GCC) ) #1 SMP Wed Nov 9 08:03:13 EST 2011
+ENV:         uima-ducc-rm.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV:         uima-ducc-pm.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV: uima-ducc-orchestrator.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV:         uima-ducc-sm.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV:        uima-ducc-web.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV:        uima-ducc-cli.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV:      uima-ducc-agent.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV:     uima-ducc-common.jar:     0.7.3-SNAPSHOT  compiled at None
+ENV:         uima-ducc-jd.jar:     0.7.3-SNAPSHOT  compiled at None
+broker host ducchead.biz.org
+[] INFO: Loading '/home/challngr/.activemqrc'
+[] INFO: Using java '/share/jdk1.6/bin/java'
+[] INFO: Starting - inspect logfiles specified in logging.properties and log4j.properties to get details
+[] INFO: pidfile created : '/home/challngr/\duccruntime/activemq/data/activemq-ducchead.biz.org.pid' (pid '14138')
+[] Started AMQ broker
+Waiting for broker 0
+Waiting for broker 1
+ActiveMQ is found on configured host and port: ducchead.biz.org:61616
+Starting warm
+local Starting rm
+ducchead.biz.org PID 14198
+local Starting pm
+ducchead.biz.org PID 14223
+local Starting sm
+ducchead.biz.org PID 14248
+local Starting or
+ducchead.biz.org PID 14275
+ducchead.biz.org Starting ws
+ducchead.biz.org PID 14300
+********** Starting agents from file /home/challngr/\duccruntime/resources/ducc.nodes
+ducchead.biz.org
+    ducc_ling OK
+    DUCC Agent started PID 14325
+bash-4.1$
+\end{verbatim}
+
+  Now open a browser and go to the DUCC webserver’s url, http://<hostname>:42133 where <hostname> is
+  the name of the host where DUCC is started.  Navigate to the “Reservations” page via the links in
+  the upper-left corner.  You should see the DUCC JobDriver reservation in state
+  WaitingForResources.  In a few minutes this should change to Assigned.  (This usually takes 3-4
+  minutes in the default configuration.) Now jobs can be submitted.
+
+  To submit a job,
+  \begin{enumerate}
+    \item cd \duccruntime/examples/simple
+    \item \duccruntime/bin/ducc\_submit –specification 1.job
+    \end{enumerate}
+    
+    Open the browser in the DUCC jobs page.  You should see the job progress through a series of
+    transitions: Waiting For Driver, Waiting For Services, Waiting For Resources, Initializing, and
+    finally, Running.  You’ll see the number of work items submitted (15) and the number of work
+    items completed grow from 0 to 15.  Finally, the job will move into Completing and then
+    Completed..
+
+    DUCC creates a log directory in your HOME directory under 
+\begin{verbatim}
+\$HOME/ducc/logs/job-id
+\end{verbatim}
+
+    In this directory, you will find a log for the sample job’s JobDriver (JD), JobProcess (JP), and
+    a number of other files relating to the job.
+
+    This is a good time to explore the DUCC web pages.  Notice that the job id is a link to a set of
+    pages with details about the execution of the job.
+
+    Notice also, in the upper-right corner is a link to the full DUCC documentation, the “DuccBook”.
+
+    Finally, stop DUCC:
+    \begin{enumerate}
+      \item cd \duccruntime/admin
+      \item./stop\_ducc -a
+      \end{enumerate}
+      
+      Once the system is verified and the sample job completes correctly, proceed to Multi-User
+      Installation and Verification to set up multiple-user support and optionally, multi-node
+      operation.
+
+\subsection{Logs}
+    The DUCC system logs are written to the directory
+\begin{verbatim}
+	\duccruntime/logs
+\end{verbatim}
+
+    In that directory are found logs for each of the DUCC components plus one for each node DUCC is
+    installed on.
+
+    DUCC job/user logs are written by default to the user’s HOME directory under
+\begin{verbatim}
+$HOME/ducc/logs/<jobid>
+\end{verbatim}
+
+\subsection{Multi-User Installation and Verification}
+  
+    Multi-user installation consists of two steps over and above single-user installation:
+    \begin{enumerate}
+        \item Install and configure the setuid-root program, ducc-ling.  This small program allows DUCC
+          jobs to be run as the submitting user rather than user ducc.
+
+        \item Optionally update the configuration to include additional nodes.
+     \end{enumerate}
+
+     Multi-user installation has these pre-requisites (DUCC will not work on multiple nodes
+     unless these steps are taken):
+     \begin{itemize}
+
+         \item All systems in the DUCC cluster must have a shared filesystem and shared user space (user
+           directories are shared over NFS or an equivalent networked file system, across the systems, a
+           user's id is the same).
+
+         \item Passwordless ssh must be installed for user ducc on all systems.
+           
+         \item Root access is (briefly) required to install a small setuid-root program on each system.
+      \end{itemize}
+
+\subsection{Ducc\_ling Installation}
+    ducc\_ling is a setuid-root program whose function is to execute user tasks under the identity of
+    the user.  This must be installed correctly; incorrect installation can prevent jobs from running as
+    their submitters, and in the worse case, can introduce security problems into the system.
+
+    ducc\_ling must be installed on LOCAL disk on every system in the DUCC cluster, to avoid
+    shared-filesystem access to it.  The path to ducc\_ling must be the same on each system.  For
+    example, one could install it to /local/ducc/bin on local disk on every system.
+
+    To install ducc\_ling (these instructions assume it is installed into /local/ducc/bin):
+    As ducc, insure ducc\_ling is built correctly for your architecture:
+    \begin{enumerate}
+        \item cd \duccruntime/duccling/src
+        \item make clean all
+     \end{enumerate}
+        
+     Now, as root, move ducc\_ling to a secure location and grant authorization to run tasks under
+     different users’ identities:
+     \begin{enumerate}
+        \setcounter{enumi}{2}
+         \item mkdir /local/ducc
+         \item mkdir /local/ducc/bin
+         \item chown ducc.ducc /local/ducc
+         \item chown ducc.ducc /local/ducc/bin
+         \item chmod 700 /local/ducc
+         \item chmod 700 /local/ducc/bin
+         \item cp \duccruntime/duccling/src/ducc\_ling /local/ducc/bin
+         \item chown root.ducc /local/ducc/bin/ducc\_ling
+         \item chmod 4750 /local/ducc/bin/ducc\_ling
+      \end{enumerate}
+         
+      Finally, update the configuration to use this ducc\_ling instead of the default ducc\_ling:
+      \begin{enumerate}
+        \setcounter{enumi}{11}
+        \item Edit \duccruntime/resources/ducc.properties and change this line:         
+\begin{verbatim}
+ ducc.agent.launcher.ducc\_spawn\_path=\ducchome/admin/ducc\_ling
+\end{verbatim}
+          to this line (Using the actual location of the updated ducc\_ling, if different from /local/ducc/bin):
+\begin{verbatim}
+ducc.agent.launcher.ducc\_spawn\_path=/local/ducc/bin/ducc\_ling
+\end{verbatim}
+        \end{enumerate}
+
+
+        What these steps do:
+      \begin{enumerate}
+          \item Steps 1 and 2 compile ducc\_ling for your current machine architecture and operating system level.
+          \item Steps 3and 4: Create directory /local/ducc/bin
+          \item Steps 5 and 6: Set ownership of /local/ducc and /local/ducc/bin to user ducc,
+            group ducc
+          \item Steps 7 and 8: Set permissions for /local/ducc and /local/ducc/bin so only user
+            ducc may access the contents of these directories
+          \item Step 9: Copy the ducc\_ling program created in initial installation into /local/ducc/bin
+          \item Step 10: set ownership of /local/ducc/bin/ducc\_ling to root, and group ownership to ducc
+          \item Step 11: Establish the “setuid” bit, which allows user ducc to execute ducc\_ling with root priveleges.
+          \item Step 12: Update the ducc configuration file, ducc.properties to point to the secured ducc\_ling.
+       \end{enumerate}
+          
+       When invoked by the DUCC agents, ducc\_ling redirects process stdout and stderr to the user’s DUCC log directory with the user’s ownership, switches it’s identity to the user, and “exec”s itself into the user’s process, in a safe and secure manner.
+
+
+\subsection{Set up the full nodelists (optional)}
+To add additional nodes to the ducc cluster, DUCC needs to know what nodes to start its Agent
+processes on.  These nodes are listed in the file
+\begin{verbatim}
+ducc_runtime/resources/ducc.nodes.  
+\end{verbatim}
+
+During initial installation, this file was initialized with the node DUCC is installed on.
+Additional nodes may be added to the file using a text editor to increase the size of the DUCC
+cluster.
+
+\subsection{Full DUCC Verification}
+
+This is identical to initial verification, with the one difference that the job “1.job” should be
+submitted as any user other than ducc.  Watch the webserver and insure that you see the job execute
+under the correct identity.  Once this completes, DUCC is installed and verified.
+

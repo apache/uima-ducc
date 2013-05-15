@@ -9,6 +9,8 @@
 
 \usepackage{float}
 
+% hyperlinks
+\usepackage{hyperref}
 
 % Margins
 \usepackage[top=1in, bottom=.75in, left=.75in, right=.75in ]{geometry}
@@ -29,9 +31,7 @@
 
 \mainmatter
 
-\newcommand{\ducchome}{\$DUCC\_HOME}
-\newcommand{\todo}{{\sc \Large TODO:}  }
-\newcommand{\note}{{\em Note:}  }
+\input{common.tex}
 
 \part{DUCC Concepts}
 \input{part1/overview.tex}
@@ -45,6 +45,6 @@
 \input{part3/ducc-applications.tex}
 
 \part{Ducc Administrators Guide}
-y\input{part4/ducc-aguide.tex}
+\input{part4/ducc-aguide.tex}
 
 \end{document}
