@@ -175,7 +175,7 @@ public class AllInOneLauncher extends CliBase {
         String pname = UiOption.ProcessDebug.pname();
         if (jobRequestProperties.containsKey(pname)) {
             int port = Integer.parseInt(jobRequestProperties.getProperty(pname));
-            debug_jvm_args = " -Xdebug -Xrunjdwp:transport=dt_socket,address=" + host_address + ":" + port;         
+            debug_jvm_args = "-Xdebug -Xrunjdwp:transport=dt_socket,address=" + host_address + ":" + port;         
             mh.frameworkDebug(cid, mid, debug_jvm_args);
             used(pname);
         }
@@ -309,7 +309,7 @@ public class AllInOneLauncher extends CliBase {
         if(jobRequestProperties.containsKey(pname)) {
             process_jvm_args = jobRequestProperties.getProperty(pname);
             if (debug_jvm_args != null) {
-                process_jvm_args += debug_jvm_args;
+                process_jvm_args += " "+debug_jvm_args;
             }
             String message = process_jvm_args;
             mh.frameworkDebug(cid, mid, message);
