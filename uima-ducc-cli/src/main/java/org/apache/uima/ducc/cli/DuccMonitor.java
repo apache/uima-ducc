@@ -383,7 +383,8 @@ public abstract class DuccMonitor {
 					lastMessage = thisMessage;
 				}
 				if (state.equals(StateCompleted)) {
-					if (monitorInfo.procs.equals("0")) {
+					// See Jira 2911
+					//if (monitorInfo.procs.equals("0")) {
 						if (monitorInfo.total.equals(monitorInfo.done)) {
 							if (!monitorInfo.rationale.equals("")) {
 								message = new StringBuffer();
@@ -429,7 +430,7 @@ public abstract class DuccMonitor {
 							info(thisMessage);
 							return RC_FAILURE;
 						}
-					}
+					//}
 				}
 			} else {
 				error("error: accessing " + urlString);
