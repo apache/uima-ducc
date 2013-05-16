@@ -271,10 +271,13 @@ public class DuccJobSubmit
     
     private void set_debug_parms(Properties props, String key, int port)
     {
-        String debug_address = host_address + ":" + port;
+        String debug_jvmargs = "-Xdebug -Xrunjdwp:transport=dt_socket,address=" + host_address + ":" + port;
         String jvmargs = props.getProperty(key);
-        jvmargs = jvmargs + " -Xdebug";
-        jvmargs = jvmargs + " -Xrunjdwp:transport=dt_socket,address=" + debug_address;            
+        if (jvmargs == null) {
+            jvmargs = debug_jvmargs;
+        } else {
+            jvmargs += " " + debug_jvmargs;
+        }
         props.put(key, jvmargs);
     }
     
