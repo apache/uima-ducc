@@ -827,30 +827,23 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			sb.append("</td>");
 			sb.append("</tr>");
-			if(fileExists(logsjobdir+errfile)) {
-				String href2 = null;
-				if(type == "JD") {
-					href2 = buildErrorLink(job,errfile);
-					if(href2.equals("0")) {
-						href2 = null;
-					}
-				}
-				if(href2 != null) {
-					sb.append(tr);
-					// Id
-					sb.append("<td>");
-					sb.append("</td>");
-					// Err Log
-					sb.append("<td>");
-					sb.append(href2);
-					sb.append("</td>");
-					// Err Log Size (in MB)
-					sb.append("<td align=\"right\">");
-					sb.append(getFileSize(logsjobdir+errfile));
-					sb.append("</td>");
-					sb.append("</tr>");
-				}
-			}
+		}
+		// jd.err.log
+		if(fileExists(logsjobdir+errfile)) {
+			String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
+			sb.append(tr);
+			// Id
+			sb.append("<td>");
+			sb.append("</td>");
+			// Err Log
+			sb.append("<td>");
+			sb.append(href2);
+			sb.append("</td>");
+			// Err Log Size (in MB)
+			sb.append("<td align=\"right\">");
+			sb.append(getFileSize(logsjobdir+errfile));
+			sb.append("</td>");
+			sb.append("</tr>");
 		}
 	}
 	
