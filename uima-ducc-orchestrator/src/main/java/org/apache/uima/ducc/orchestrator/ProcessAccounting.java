@@ -174,6 +174,34 @@ public class ProcessAccounting {
 		return retVal;
 	}
 	
+	public void copyInventoryPID(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
+		String methodName = "copyInventoryPID";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		String newValue = inventoryProcess.getPID();
+		String oldValue = process.getPID();
+		logger.debug(methodName, dw.getDuccId(), inventoryProcess.getDuccId(), ""+newValue);
+		if(newValue == null) {
+			if(oldValue != null) {
+				logger.warn(methodName, dw.getDuccId(), inventoryProcess.getDuccId(), "PID"+" "+"old:"+oldValue+" "+"new:"+newValue+" "+"keeping old");
+			}
+		}
+		else {
+			if(oldValue == null) {
+				process.setPID(newValue);
+			}
+			else {
+				if(oldValue.equals(newValue)) {
+					//OK
+				}
+				else {
+					logger.warn(methodName, dw.getDuccId(), inventoryProcess.getDuccId(), "PID"+" "+"old:"+oldValue+" "+"new:"+newValue+" "+"keeping old");
+				}
+			}
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+		return;
+	}
+	
 	public void copyInventorySwapUsage(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventorySwapUsage";
 		logger.trace(methodName, null, messages.fetch("enter"));
@@ -467,12 +495,7 @@ public class ProcessAccounting {
 						}
 						if(process != null) {
 							// PID
-							String iPID = inventoryProcess.getPID();
-							String pPID = process.getPID();
-							if(!compare(iPID, pPID)) {
-								process.setPID(iPID);
-								logger.info(methodName, jobId, processId, messages.fetchLabel("pPID")+pPID+" "+messages.fetchLabel("iPID")+iPID);
-							}
+							copyInventoryPID(job, inventoryProcess, process);
 							// Scheduler State
 							setResourceStateAndReason(job, inventoryProcess, process);
 							// Process State
