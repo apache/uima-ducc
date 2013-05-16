@@ -28,9 +28,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
-
 
 public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuccProcessMap {
 	
@@ -224,74 +222,64 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		}
 	}
 
-
+	private boolean isFailedProcess(IDuccProcess process) {
+		boolean retVal = false;
+		ProcessState processState = process.getProcessState();
+		String reason = process.getReasonForStoppingProcess();
+		switch(processState) {
+		case Failed:
+		case Stopped:
+		case Killed:
+			if(reason != null) {
+				if(reason.equals("")) {
+					// Nevermind
+				}
+				else {
+					retVal = true;
+				}
+			}
+		}
+		return retVal;
+	}
 	
 	public ArrayList<DuccId> getFailedInitialization() {
 		ArrayList<DuccId> list = new ArrayList<DuccId>();
-		String failedInitialization = ReasonForStoppingProcess.FailedInitialization.toString().trim();
-		String initializationTimeout = ReasonForStoppingProcess.InitializationTimeout.toString().trim();
 		synchronized(this) {
 			Iterator<IDuccProcess> iterator = this.values().iterator();
 			while(iterator.hasNext()) {
 				IDuccProcess process = iterator.next();
-				ProcessState processState = process.getProcessState();
-				String reason = process.getReasonForStoppingProcess();
-				switch(processState) {
-				case Failed:
-				case Killed:
-				case Stopped:
-					if(reason != null) {
-						reason = reason.trim();
-						if(reason.equals(failedInitialization)) {
-							list.add(process.getDuccId());
-						}
-						else if(reason.equals(initializationTimeout)) {
-							list.add(process.getDuccId());
-						}
-					}
-					break;
+				if(process.isInitialized()) {
+					// Nevermind
 				}
-			}
-		}
-		return list;
-	}
-
-	
-	public ArrayList<DuccId> getFailedNotInitialization() {
-		ArrayList<DuccId> list = new ArrayList<DuccId>();
-		String failedInitialization = ReasonForStoppingProcess.FailedInitialization.toString().trim();
-		String initializationTimeout = ReasonForStoppingProcess.InitializationTimeout.toString().trim();
-		synchronized(this) {
-			Iterator<IDuccProcess> iterator = this.values().iterator();
-			while(iterator.hasNext()) {
-				IDuccProcess process = iterator.next();
-				ProcessState processState = process.getProcessState();
-				String reason = process.getReasonForStoppingProcess();
-				switch(processState) {
-				case Failed:
-				case Stopped:
-				case Killed:
-					if(reason != null) {
-						reason = reason.trim();
-						if(reason.equals("")) {
-							continue;
-						}
-						if(reason.equals(failedInitialization)) {
-							continue;
-						}
-						else if(reason.equals(initializationTimeout)) {
-							continue;
-						}
+				else {
+					if(isFailedProcess(process)) {
 						list.add(process.getDuccId());
 					}
-					break;
 				}
 			}
 		}
 		return list;
 	}
 
-	
+	public ArrayList<DuccId> getFailedNotInitialization() {
+		ArrayList<DuccId> list = new ArrayList<DuccId>();
+		synchronized(this) {
+			Iterator<IDuccProcess> iterator = this.values().iterator();
+			while(iterator.hasNext()) {
+				IDuccProcess process = iterator.next();
+				if(process.isInitialized()) {
+					if(isFailedProcess(process)) {
+						list.add(process.getDuccId());
+					}
+				}
+				else {
+					// Nevermind
+				}
+			}
+		}
+		return list;
+	}
+
 	public int getFailedInitializationCount() {
 		ArrayList<DuccId> list = getFailedInitialization();
 		return list.size();
