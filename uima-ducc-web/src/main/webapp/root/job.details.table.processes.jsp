@@ -35,8 +35,12 @@ under the License.
 	<th title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
 	<th title="Process agent state">State<br>Agent</th>
 	<th title="Process agent reason (for agent state)">Reason<br>Agent</th>
+	<!-- Jira 2914
 	<th title="Process initialization time, hh:mm:ss, as reported by the agent managing the process. The agent reports initialization start and end times. The time reported here is the difference between them, unless initialization is ongoing then the end time is estimated as now.">Time<br>Init</th>
 	<th title="Process run time (not including process initialization time), hh:mm:ss, as reported by the agent managing the process. The agent reports run start and end times. The time reported here is the difference between them, unless the process is still running then the end time is estimated as now.">Time<br>Run</th>
+	-->
+	<th title="Process initialization time, hh:mm:ss">Time<br>Init</th>
+    <th title="Process run time (not including process initialization time), hh:mm:ss">Time<br>Run</th>
 	<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
 	<!--
 	<th title="Process total number of garbage collections that have occurred">Count<br>GC</th>
