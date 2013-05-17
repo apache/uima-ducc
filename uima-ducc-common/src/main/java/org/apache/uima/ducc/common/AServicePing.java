@@ -35,6 +35,8 @@ public abstract class AServicePing
 
     /**
      * Returns the object with application-derived health and statistics.
+     * @return {@link ServiceStatistcs} This object contains the informaton the service manager and web server require
+     *     for correct management and display of the service.
      */
     public abstract ServiceStatistics getStatistics();
     
