@@ -77,11 +77,10 @@ public class UimaAsServiceMonitor
             qstats.setAlive(true);        // if we don't croak gathering stuff, we're not dead
             qstats.setHealthy(true);
             qstats.setInfo(format());
-            qstats.setErrorString(null);
         } catch ( Throwable t ) {
             qstats.setAlive(false);        // if we don't croak gathering stuff, we're not dead
             qstats.setHealthy(false);
-            qstats.setErrorString(t.getMessage());
+            qstats.setInfo(t.getMessage());
         }
     	return qstats;
     }
