@@ -948,7 +948,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging);
 				row.add(new JsonPrimitive(decoratedPinging));
 				// Health
-				String health = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.service_healthy);
+				String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
 				String statistics = null;
 				if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
 					statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);

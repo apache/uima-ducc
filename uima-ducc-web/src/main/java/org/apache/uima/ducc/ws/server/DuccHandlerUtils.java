@@ -30,6 +30,9 @@ public class DuccHandlerUtils {
 	private static String valueUp = "Up";
 	private static String valueDown = "Down";
 	
+	private static String valueGood = "Good";
+	private static String valuePoor = "Poor";
+	
 	//private static String health_neutral = "health_neutral";
 	private static String health_green = "health_green";
 	private static String health_red = "health_red";
@@ -49,17 +52,17 @@ public class DuccHandlerUtils {
 		return retVal;
 	}
 	
-	public static String getInterpretedUpDown(String state, Properties propertiesMeta, String key) {
+	public static String getInterpreted(String state, Properties propertiesMeta, String key, String xform4True, String xform4False) {
 		String retVal = "";
 		if(state != null) {
 			if(state.equals(stateAvailable)) {
 				String value = getUninterpreted(propertiesMeta, key);
 				value = value.trim();
 				if(value.equalsIgnoreCase(valueTrue)) {
-					retVal = valueUp;
+					retVal = xform4True;
 				}
 				else if(value.equalsIgnoreCase(valueFalse)) {
-					retVal = valueDown;
+					retVal = xform4False;
 				}
 				else {
 					retVal = value;
@@ -67,6 +70,14 @@ public class DuccHandlerUtils {
 			}
 		}
 		return retVal;
+	}
+	
+	public static String getInterpretedUpDown(String state, Properties propertiesMeta, String key) {
+		return getInterpreted(state, propertiesMeta, key, valueUp, valueDown);
+	}
+	
+	public static String getInterpretedGoodPoor(String state, Properties propertiesMeta, String key) {
+		return getInterpreted(state, propertiesMeta, key, valueGood, valuePoor);
 	}
 	
 	private static String openSpan(String spanClass, String spanTitle) {
@@ -111,6 +122,20 @@ public class DuccHandlerUtils {
 				retVal = sb.toString();
 			}
 			else if(tValue.equalsIgnoreCase(valueUp)) {
+				StringBuffer sb = new StringBuffer();
+				sb.append(openSpan(health_green, popup));
+				sb.append(tValue);
+				sb.append(closeSpan());
+				retVal = sb.toString();
+			}
+			else if(tValue.equalsIgnoreCase(valuePoor)) {
+				StringBuffer sb = new StringBuffer();
+				sb.append(openSpan(health_red, popup));
+				sb.append(tValue);
+				sb.append(closeSpan());
+				retVal = sb.toString();
+			}
+			else if(tValue.equalsIgnoreCase(valueGood)) {
 				StringBuffer sb = new StringBuffer();
 				sb.append(openSpan(health_green, popup));
 				sb.append(tValue);
