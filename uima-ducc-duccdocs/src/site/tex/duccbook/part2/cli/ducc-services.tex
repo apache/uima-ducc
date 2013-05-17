@@ -1,5 +1,6 @@
     \section{ducc\_services}
-    \label{DUCC-SERVICES-CLI}
+    \label{sec:cli.ducc-services}
+
     \paragraph{Description:}
 
         The ducc\_services CLI is used to manage service registration. It has a number of functions 
@@ -162,9 +163,11 @@ scheduling_class = fixed
              and calls the implemented interfaces periodically to insure the custom service is
              functioning, and to gather performance statistics. 
              
-           \item[--service\_dependency {[list}]] This specifies a comma-delimeted list of services the
-             job processes are dependent upon (``independent'' services), if any.  For each independent
-             service, the endpoint must be of the form UIMA-AS:queuename:broker-url or CUSTOM:string.
+           \item[{--service\_dependency[list]}]
+             This specifies a             
+             comma-delimeted list of services the job processes are dependent upon (``independent''
+             services), if any.  For each independent service, the endpoint must be of the form
+             UIMA-AS:queuename:broker-url or CUSTOM:string.
              
              In the example are two dependencies, a UIMA-AS service with endpoint RandomSleepAE and broker
              tcp:BobsGreatQueue:host1:61616, and the other with CUSTOM endpoint

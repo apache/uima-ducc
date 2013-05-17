@@ -13,11 +13,11 @@ d: ALWAYS
 	open skel.pdf
 
 dejunk:
-	@-rm -rf *.dvi *.log *.4ct *.4tc *.aux *.lg *.log *.tmp *.xref *.idv *.lof *.toc
+	@-rm -rf *.dvi *.log *.4ct *.4tc *.aux *.lg *.log *.tmp *.xref *.idv *.lof *.toc 
 
 
 clean: ALWAYS
-	rm -rf *.css *.html *.pdf *.dvi *~ *.png
+	rm -rf *.css *.html *.pdf *.dvi *~ *.png *.out
 	$(MAKE) dejunk
 	$(MAKE) -C part2/webserver clean
 
