@@ -922,7 +922,7 @@ public class AllInOneLauncher extends CliBase {
         }
         
         if(process_jvm_args != null) {
-            String[] jvmargs = process_jvm_args.split(" ");
+            String[] jvmargs = process_jvm_args.split("\\s+");  // Must split on white-space, not a single blank
             for(String jvmarg : jvmargs) {
                 message = "jvmarg: "+jvmarg;
                 mh.frameworkDebug(cid, mid, message);
@@ -931,13 +931,11 @@ public class AllInOneLauncher extends CliBase {
         }
 
         commandArray.add(AllInOne.class.getCanonicalName());
-        
         for(String arg : args) {
             commandArray.add(arg);
         }
-        
+
         String[] command = commandArray.toArray(new String[0]);
-        
         ProcessBuilder pb = new ProcessBuilder( command );
         if(working_directory != null) {
             message = "working directory: "+working_directory;
@@ -946,10 +944,14 @@ public class AllInOneLauncher extends CliBase {
             pb.directory(wd);
         }
         
+        /*
+         * Note: env values must not contain blanks, e.g this will fail
+         *    environment = foo="a b" bar=abc
+         */
         if(environment != null) {
             Map<String,String> env = pb.environment();
             env.clear();
-            String[]envVars = environment.split(" ");
+            String[]envVars = environment.split("\\s+");
             for(String envVar : envVars) {
                 String[] nvp = envVar.trim().split("=");
                 if(nvp.length != 2) {
@@ -972,8 +974,9 @@ public class AllInOneLauncher extends CliBase {
         InputStream is = process.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
         BufferedReader ibr = new BufferedReader(isr);
+        // Pass all process output through the console callback
         while ((line = ibr.readLine()) != null) {
-            consoleCb.status(line);
+            consoleCb.console(1, line);
         }
         ibr.close();
         try {
