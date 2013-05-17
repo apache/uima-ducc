@@ -1,4 +1,5 @@
 \chapter{Command Line Interface}
+\label[DUCC-CLI]
 
     \paragraph{The DUCC Job Descriptor}
     The DUCC Job Descriptor includes properties to enable automated management and scale-out 
@@ -55,8 +56,12 @@
     \input{part2/cli/ducc-services.tex}
 
 
-
 \chapter{Application Programming  Interface}
+\label[DUCC-API]
+
+\chapter{Service Management}
+\label[DUCC-SERVICES]
+\input{part2/services.tex}
 
 %% this inputs a chapter
 \input{part2/job-logs.tex}
@@ -64,179 +69,3 @@
 %% this inputs a chapter
 \input {part2/webserver.tex}
 
-
-%% TODO TODO This needs breakout into its own file
-
-      \section{Service Management}
-          TODO TODO TODO BREAK OUT INTO SEPARATE SECTION
-          THIS IS A TEMPORARY HOLDING SPOT 
-
-      \paragraph{Overview.} 
-      Services, in the context of DUCC, are long-running processes that await requests from
-      UIMA pipeline components and return something in response. Services can be any arbitrary process
-      using any arbitrary communication protocol but in the current version of DUCC only UIMA-AS
-      services are fully supported.
-
-      The DUCC service manager implements several high-level functions:
-      
-      Insure services are available for jobs before allowing the jobs to start. This fail-fast
-      prevents unncessary allocation of resources (with potential eviction of healthy processes) for
-      jobs that can't run, as well as quick feedback to users that something is amis.
-      
-      Automate the startup, care, and management of services.
-      
-      Report on the state of services: processes, queue depths, comsumers, and so on.  
-
-      \paragraph{Service Types.}
-      DUCC supports two types of services: UIMA-AS and CUSTOM:
-      
-      \begin{description}
-          \item[UIMA-AS] This is a "normal" UIMA-AS service. DUCC fully supports all aspects of UIMA-AS
-            services.
-            
-          \item[CUSTOM] This is any arbitrary service. DUCC supports monitoring of CUSTOM services
-            and performs job dependency checks, but (in the current version) does not support start
-            and stop of CUSTOM services.
-      \end{description}
-
-      \paragraph{Service Endpoints.} Services are referenced by a specifier called a service
-      endpoint.. The service endpoint is a formatted string indicating:
-
-      \begin{itemize}
-         \item The service type: UIMA-AS or CUSTOM.
-
-         \item The service name. For UIMA-AS services, this is the name of the queue in the ActiveMq
-           Broker used for communication with the service. For CUSTOM services this is any arbitrary
-           string as dictated by the service. Service names must be unique within the system.
-
-         \item For UIMA-AS services only, the URL of the ActiveMq broker.  
-      \end{itemize}
-
-      \paragraph{Dependent and Pre-Requisite Services and Jobs.} A {\em dependent service} is a
-      service which is dependent on at least one other service to perform it's function. A {\em
-        dependent job} is a job which is dependent on at least one service to perform it's function.
-
-      An {\em independent service} service is a service which is required by another job or
-      service. (Note that there are no independent jobs.)
-
-      \paragraph{Service Classes.} Services may be started externally to DUCC, explicitly through
-      DUCC as a job, or as registered services. These form three natural classes of services with
-      slightly different management characteristics.
-
-      \paragraph{Implicit Services.} An implicit service is started externally to DUCC and discovered by DUCC only
-      when it is referenced by a job's service-dependency parameter. On submission of a job with a
-      dependency on an implicit service, the SM sets up a "ping" thread that check if the service
-      exists at the endpoint. If so, the SM adds the service to its list of known services and marks
-      the job "ready to schedule". If the service is a UIMA-AS service the SM establishes a monitor
-      thread on the queue for reporting purposes. The service is monitored throughout the lifetime of
-      the job. If the service should stop responding, its state is updated as "not-responding" but the
-      job is allowed to continue as DUCC cannot tell if the job is still using it or not, or if the
-      outage is temporary. If the job is a CUSTOM service, the service owner may specifiy custom code
-      to run in the ping thread; for CUSTOM services, this same code is used to run both ping and
-      monitor functions.
-      
-      When the job exits, a timer is set and DUCC continues to monitor the service against the
-      possibility that subsequent jobs will need it. Once the last job using the service has exited
-      and the service timer expired, the SM stops the monitors and purges the service from its
-      records.
-      
-      \paragraph{Submitted Services.} A submitted service is a service that is submitted to DUCC as a job. A
-      submitted service is essentially a normal DD-style job (a job in which the user supplies the
-      full UIMA-AS DD), but without a Collection Reader. Because DUCC is managing this service it can
-      provide more support than for implicit services.
-      
-      Submitted services can be dependent upon other services. When such a service enters the system,
-      DUCC verifies it's pre-requisite services. When (or if) all pre-requisite services are availble
-      DUCC marks the new service "ready to schedule". The lifecycle of the service is monitored so
-      that dependent services and jobs are marked "ready to schedule" only after the submitted service
-      has completed its initialization phase. A ping thread and queue monitor are also started against
-      the newly submitted service. If the submitted service is unable to successfully initialize,
-      services and jobs that are dependent on it are marked "not runnable" and the DUCC Orchestrator
-      cancels them.
-      
-      DUCC manages the lifecycle of submitted services, but because they are submitted by entities
-      other than DUCC, the SM performs no additional management for them. When a submitted service is
-      canceled by its owner, DUCC stops the ping and queue monitors. Any jobs or services dependent on
-      it are allowed to continue until they complete or fail due to unavailability of the service.
-      
-      \paragraph{Registered Services.} Registered services are fully managed by DUCC. A service is
-      registered with DUCC using the CLI to provide the full job specification of the service, the
-      initial number of instances of the service, and whether the service should be automatically
-      started when DUCC itself is started. Registered services started when DUCC is started are
-      called automatic services.  Registered services that are started only when referenced by other
-      dependent jobs or services are called on-demand services. The service is registered with the
-      submitter's credentials and is run with that user's credentials when it is started.
-
-      \todo Fix and properly place this paragraph.
-          Ping and monitor threads are started. Jobs and other services may use these services in the same
-          manner as submitted services. If an automatic service instance should die or be canceled out of
-          the scope of the SM, the SM will restart the instance, maintaining the registered number of
-          instances at all time. Automatic services are not terminated when their dependent jobs/services
-          exit; they're termanted only when DUCC itself is terminated, or by use of the service stop
-          command.
-
-      There are several subclasses of Registered Services:
-      \begin{description}
-
-        \item[Automatic Services] An automatic service is a registered service that is flagged to be
-          automatically started when the DUCC system is started. When DUCC is started, the SM checks the
-          service registry for all service that are marked for automatic startup. The SM submits the
-          registered service specification on behalf of its owner. Each such submission is for a single
-          service instance.  If found, the SM repeatedly submits the specification until the registered
-          number of instances is reached.
-          
-        \item[On-Demand Services] An on-demand service is a registered service that is started only when
-          referenced by the service-dependency of another job or service. f the service is already
-          started, the dependent job/service is marked ready to schedule as indicated above. If not, the
-          service registry is checked and if a start-on-demand service with an endpoint matching the
-          service-dependency is found, DUCC submits the service on behalf of the service owner (in the
-          same manner as for automatic servic establishing the registered number of service instances, a
-          ping thread, and a monitor). When the service has completed initialization the dependent
-          job/service is marked ready to schedule. If the on-demand service cannot be found in the
-          registery, the referring entity is marked not-startable and the DUCC Orchestrator cancels it.
-          
-          Subsequent jobs and services that reference the on-demand service will use the started
-          instances.  When the last job/service that references the on-demand service exits, a
-          (configurable) timer is established to keep the service alive for a while (in anticipation that
-          it will be needed again soon.)  When the keep-alive timer exipires, and there are no more
-          dependent jobs/services, the on-demand service is automatically stopped to free up its resources
-          for other work.
-
-          \item[External Services] External services consist of only a ping thread.  The service
-            itself is not managed in any way by DUCC.  This is useful for managing dependencies
-            on services that are not under DUCC control: DUCC can detect and report on the health
-            of these services and take appropriate actions on dependent jobs if the services
-            are not responsive.
-      \end{description}
-          
-    \paragraph{Registered Service Management.} The CLI for registered services provides several functions:
-
-    \begin{description}
-        \item[Register] Register files a service specification with the SM. The service may optionally
-          be started as part of registration. The service definition and state is persisted over system
-          restarts and is deleted only with the Unregister function.
-          
-        \item[Unregister] Unregister removes the service specification. The service is stopped if it is
-          started and not busy. (Note that if the service is busy, jobs and services that are dependent
-          on it may subsequently fail.)
-          
-        \item[Modify] Modify allows dynamic update of some parameters of registered services:
-            \begin{itemize}
-              \item Automatic and On-Demand state.
-              \item The minimum number of service instances to start when the service is started.  
-            \end{itemize}
-
-        \item[Start] Start submits the service specification to the DUCC Orchestrator (repeatedly,
-          until the correct number of instances are started). If the service is explicitly started
-          with the start CLI, the service continues to run even after the last reference is gone,
-          regardless of whether it is automatic or on-demand. Start is also used to increase the
-          number of running instances of a service. The registry may be optionally updated to
-          reflect the new number of started instances.
-          
-        \item[Stop] Stop stops the instances for a registered service. The registry may be
-          optionally updated to reflect the new number of instances that are still running.
-
-        \item[Query] A CLI-based query is supplied to report on all services known to DUCC, their
-          states, their instances, their dependent jobs, and performance statistics for the service.
-    \end{description}
-        
