@@ -770,8 +770,8 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 					if(propertiesMeta.containsKey(IServicesRegistry.ping_only)) {
 						ping_only = true;
 					}
-					if(propertiesMeta.containsKey(IServicesRegistry.is_started)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.is_started);
+					if(propertiesMeta.containsKey(IServicesRegistry.ping_active)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.ping_active);
 						if(value != null) {
 							is_started = Boolean.valueOf(value.trim());
 						}

@@ -30,7 +30,6 @@ public class IServicesRegistry {
 	public static final String endpoint = IStateServices.endpoint;
 	public static final String implementors = IStateServices.implementors;
 	public static final String instances = IStateServices.instances;
-	public static final String is_started = IStateServices.is_started;
 	public static final String numeric_id = IStateServices.numeric_id;
 	public static final String ping_active = IStateServices.ping_active;
 	public static final String ping_only = IStateServices.ping_only;
