@@ -283,7 +283,7 @@ public class ServiceSet
         } else {
             meta_props.put("ping-only", "false");
         }
-        saveMetaProperties();
+        // caller will save the meta props, **if** the rest of registration is ok.
 
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
