@@ -27,5 +27,4 @@ interface IServiceMeta
     ServiceStatistics getServiceStatistics();
     public void run();
     public void stop();
-    public void reference();
 }

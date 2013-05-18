@@ -49,7 +49,7 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
  */
 
 class PingDriver
-    implements IServiceMeta,
+    implements IServiceMeta,          // (extends runnable )
                SmConstants
 {
     /**
@@ -78,14 +78,13 @@ class PingDriver
     StdioListener ser_listener = null;
     PingThread pinger = null;
 
-    int META_PING_MAX = 32*60*1000;   // 32 minutes ( a shade over 30 ...)
-    int meta_ping_rate;
-    Object ping_rate_sync = new Object();
+    int meta_ping_rate;              // ducc.properties configured ping rate
+    int meta_ping_stability;         // ducc.properties number of missed pings before setting service unresponive
+    String meta_ping_timeout;        // job.properties configured time to wait for ping to return in ms
+    Thread ping_thread;              // thread to manage external process pingers
+    boolean internal_ping = true;    // if true, use default UIMA-AS pinger in thread inside SM propert
+    AServicePing internal_pinger = null; // pinger used if internal_ping is true
 
-    int meta_ping_stability;
-    String meta_ping_timeout;
-    Thread ping_thread;
-    boolean internal_ping = true;
     ServiceStatistics service_statistics = null;
 
     String user;
@@ -95,7 +94,6 @@ class PingDriver
 
     boolean shutdown = false;
     
-    AServicePing internal_pinger = null;
     
     PingDriver(ServiceSet sset)
     {        
@@ -107,9 +105,7 @@ class PingDriver
         this.user              = meta_props.getStringProperty("user");
         String jvm_args_str    = job_props.getStringProperty("service_ping_jvm_args", "");
         this.ping_class        = job_props.getStringProperty("service_ping_class", null);
-
         
-
         if ( (ping_class == null) || ping_class.equals(UimaAsPing.class.getName()) ) {
             internal_ping = true;
         } else {
@@ -153,18 +149,6 @@ class PingDriver
     public ServiceStatistics getServiceStatistics()
     {
         return service_statistics;
-    }
-
-    public void reference()
-    {
-        if ( internal_ping ) return;   // internal ping, doesn't need this kludge
-
-        synchronized(ping_rate_sync) {
-            meta_ping_rate = 500;
-        }
-        if ( ping_thread != null ) {
-            ping_thread.interrupt();
-        }
     }
         
     synchronized int getMetaPingRate()
@@ -422,22 +406,10 @@ class PingDriver
                     // Try to read the response
                     handleStatistics((ServiceStatistics) ois.readObject());
 
-                    // This kliudge is required because we have to insure that pings aren't too frequent or ActiveMQ will get OutOfMemory errors.
-                    // So we do exponential backoff.  If a new job references the service we set the ping rate to something frequent for a while
-                    // to insure waiting jobs don't have to wait too long ( done in PingDriver object ).
-                    int my_ping_rate;
-                    synchronized(ping_rate_sync) {
-                        my_ping_rate = meta_ping_rate;
-                        if ( (meta_ping_rate < META_PING_MAX) && ( missed_pings == 0) ) {
-                            // double, if not at max rate, and pinging is working 
-                            meta_ping_rate = Math.min(META_PING_MAX, meta_ping_rate * 2);
-                        }
-                    }
-
                     // Wait a bit for the next one
                     try {
                         // logger.info(methodName, sset.getId(), "SLEEPING", my_ping_rate, "ms", sset.toString());
-                        Thread.sleep(my_ping_rate);
+                        Thread.sleep(meta_ping_rate);
                         // logger.info(methodName, sset.getId(), "SLEEP returns", sset.toString());
                     } catch (InterruptedException e) {
                         // nothing

@@ -174,6 +174,8 @@ public class ServiceSet
         meta_props.put("service-alive",      "false");
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
+        meta_props.put("ping-only", "true");
+
         meta_filename = state_dir + "/services/" + id.toString() + ".meta";
         saveMetaProperties();
     }
@@ -216,6 +218,8 @@ public class ServiceSet
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
         meta_props.put("implementors", ""+id.getFriendly());
+        meta_props.put("ping-only", "false");
+
         meta_filename = state_dir + "/services/" + id.toString() + ".meta";
         saveMetaProperties();
     }
@@ -273,7 +277,14 @@ public class ServiceSet
         meta_props.put("service-alive",      "false");
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
-        
+
+        if ( isStartable() ) {
+            meta_props.put("ping-only", "true");
+        } else {
+            meta_props.put("ping-only", "false");
+        }
+        saveMetaProperties();
+
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
         // there are a couple junky messages that slip by the above configurations.  turn the whole danged thing off.
@@ -463,6 +474,11 @@ public class ServiceSet
         if ( ! autostart ) return;                   // not doing auto, nothing to do
         if ( stopped     ) return;                   // doing auto, but we've been manually stopped
         if ( failure_run >= failure_max ) return;    // too  many failures, no more enforcement
+
+        if ( (!isStartable()) && (serviceMeta == null) ) {    // ping-only and pinger not alive
+            start();                                          // ... then it needs to be started
+            return;
+        }
 
         // could have more implementors than instances if some were started dynamically but the count not persisted
         int needed = Math.max(0, instances - countImplementors());
@@ -758,6 +774,7 @@ public class ServiceSet
                      "ping_class", job_props.getStringProperty("service_ping_class", UimaAsPing.class.getName())
                      );
 
+        // This block is to clear the service queue from ActiveMq if it's no longer being used.
         if ( implementors.size() == 0 ) {     // Went to 0 and there was a pinger?
             if ( ( (service_class == ServiceClass.Registered) && isStartable()) || isSubmitted() ) {   // Is one of our happy cases (not ping-only, we don't know much about it.)
                 if ( service_type == ServiceType.UimaAs ) {
@@ -803,9 +820,7 @@ public class ServiceSet
             linger = null;
         }
         references.put(id, id);
-        if ( serviceMeta != null ) {
-            serviceMeta.reference();
-        }
+
         persistReferences();
         return references.size();
     }
