@@ -884,6 +884,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String deployments = getDeployments(servicesRegistry,propertiesMeta);
 				JsonArray row = new JsonArray();
 				
+				boolean ping_only = false;
+				boolean is_started = false;
+				
 				String typeRegistered = "Registered";
 				
 				String type = "";
@@ -894,6 +897,15 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 							type = value.trim();
 						}
 					}
+					if(propertiesMeta.containsKey(IServicesRegistry.ping_only)) {
+						ping_only = true;
+					}
+					if(propertiesMeta.containsKey(IServicesRegistry.is_started)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.is_started);
+						if(value != null) {
+							is_started = Boolean.valueOf(value.trim());
+						}
+					}
 				}
 				
 				StringBuffer col;
@@ -902,8 +914,15 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				if(type.equals(typeRegistered)) {
 					col.append("<span class=\"ducc-col-start\">");
 					if(buttonsEnabled) {
-						if(!deployments.equals(instances)) {
-							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+						if(ping_only) {
+							if(!is_started) {
+								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+							}
+						}
+						else {
+							if(!deployments.equals(instances)) {
+								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+							}
 						}
 					}
 					col.append("</span>");
@@ -914,8 +933,15 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				if(type.equals(typeRegistered)) {
 					col.append("<span class=\"ducc-col-stop\">");
 					if(buttonsEnabled) {
-						if(!deployments.equals("0")) {
-							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+						if(ping_only) {
+							if(is_started) {
+								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+							}
+						}
+						else {
+							if(!deployments.equals("0")) {
+								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+							}
 						}
 					}
 					col.append("</span>");
@@ -959,15 +985,35 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String decoratedHealth = DuccHandlerUtils.getDecorated(health,statistics);
 				row.add(new JsonPrimitive(decoratedHealth));
 				// Instances
-				row.add(new JsonPrimitive(instances));
+				if(ping_only) {
+					row.add(new JsonPrimitive(""));
+				}
+				else {
+					row.add(new JsonPrimitive(instances));
+				}
 				// Deployments
-				row.add(new JsonPrimitive(deployments));
+				if(ping_only) {
+					row.add(new JsonPrimitive(""));
+				}
+				else {
+					row.add(new JsonPrimitive(deployments));
+				}
 				// User
 				row.add(new JsonPrimitive(getValue(propertiesMeta,IStateServices.user,"")));
 				// Class
-				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.scheduling_class,"")));
+				if(ping_only) {
+					row.add(new JsonPrimitive("["+IServicesRegistry.ping_only+"]"));
+				}
+				else {
+					row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.scheduling_class,"")));
+				}
 				// Size
-				row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.process_memory_size,"")));
+				if(ping_only) {
+					row.add(new JsonPrimitive(""));
+				}
+				else {
+					row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.process_memory_size,"")));
+				}
 				// Jobs			
 				String jobs = "0";
 				if(serviceToJobsMap.containsKey(name)) {

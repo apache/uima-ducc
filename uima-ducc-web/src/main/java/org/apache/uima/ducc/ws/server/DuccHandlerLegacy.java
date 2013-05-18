@@ -754,6 +754,9 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				String deployments = getDeployments(servicesRegistry,propertiesMeta);
 				sb.append(trGet(++counter));
 				
+				boolean ping_only = false;
+				boolean is_started = false;
+				
 				String typeRegistered = "Registered";
 				
 				String type = "";
@@ -764,14 +767,30 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 							type = value.trim();
 						}
 					}
+					if(propertiesMeta.containsKey(IServicesRegistry.ping_only)) {
+						ping_only = true;
+					}
+					if(propertiesMeta.containsKey(IServicesRegistry.is_started)) {
+						String value = propertiesMeta.getProperty(IServicesRegistry.is_started);
+						if(value != null) {
+							is_started = Boolean.valueOf(value.trim());
+						}
+					}
 				}
 				
 				// Start
 				sb.append("<td valign=\"bottom\" class=\"ducc-col-start\">");
 				if(type.equals(typeRegistered)) {
 					if(buttonsEnabled) {
-						if(!deployments.equals(instances)) {
-							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+						if(ping_only) {
+							if(!is_started) {
+								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+							}
+						}
+						else {
+							if(!deployments.equals(instances)) {
+								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+							}
 						}
 					}
 				}
@@ -780,8 +799,15 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("<td valign=\"bottom\" class=\"ducc-col-stop\">");
 				if(type.equals(typeRegistered)) {
 					if(buttonsEnabled) {
-						if(!deployments.equals("0")) {
-							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+						if(ping_only) {
+							if(is_started) {
+								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+							}
+						}
+						else {
+							if(!deployments.equals("0")) {
+								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
+							}
 						}
 					}
 				}
@@ -825,11 +851,19 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");
 				// No. of Instances
 				sb.append("<td align=\"right\">");
-				sb.append(instances);
+				if(ping_only) {
+				}
+				else {
+					sb.append(instances);
+				}
 				sb.append("</td>");
 				// No. of Deployments
 				sb.append("<td align=\"right\">");
-				sb.append(deployments);
+				if(ping_only) {
+				}
+				else {
+					sb.append(deployments);
+				}
 				sb.append("</td>");
 				// Owning User
 				sb.append("<td>");
@@ -837,11 +871,20 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");
 				// Scheduling Class
 				sb.append("<td>");
-				sb.append(getValue(propertiesSvc,IServicesRegistry.scheduling_class,""));
+				if(ping_only) {
+					sb.append("["+IServicesRegistry.ping_only+"]");
+				}
+				else {
+					sb.append(getValue(propertiesSvc,IServicesRegistry.scheduling_class,""));
+				}
 				sb.append("</td>");
 				// Process Memory Size
 				sb.append("<td align=\"right\">");
-				sb.append(getValue(propertiesSvc,IServicesRegistry.process_memory_size,""));
+				if(ping_only) {
+				}
+				else {
+					sb.append(getValue(propertiesSvc,IServicesRegistry.process_memory_size,""));
+				}
 				sb.append("</td>");
 				// Jobs			
 				sb.append("<td align=\"right\">");
