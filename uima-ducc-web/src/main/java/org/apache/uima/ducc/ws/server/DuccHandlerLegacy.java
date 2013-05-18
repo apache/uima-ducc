@@ -755,7 +755,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append(trGet(++counter));
 				
 				boolean ping_only = false;
-				boolean is_started = false;
+				boolean ping_active = false;
 				
 				String typeRegistered = "Registered";
 				
@@ -768,12 +768,15 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 						}
 					}
 					if(propertiesMeta.containsKey(IServicesRegistry.ping_only)) {
-						ping_only = true;
+						String value = propertiesMeta.getProperty(IServicesRegistry.ping_only);
+						if(value != null) {
+							ping_only = Boolean.valueOf(value.trim());
+						}
 					}
 					if(propertiesMeta.containsKey(IServicesRegistry.ping_active)) {
 						String value = propertiesMeta.getProperty(IServicesRegistry.ping_active);
 						if(value != null) {
-							is_started = Boolean.valueOf(value.trim());
+							ping_active = Boolean.valueOf(value.trim());
 						}
 					}
 				}
@@ -783,7 +786,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				if(type.equals(typeRegistered)) {
 					if(buttonsEnabled) {
 						if(ping_only) {
-							if(!is_started) {
+							if(!ping_active) {
 								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
 							}
 						}
@@ -800,7 +803,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				if(type.equals(typeRegistered)) {
 					if(buttonsEnabled) {
 						if(ping_only) {
-							if(is_started) {
+							if(ping_active) {
 								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
 							}
 						}
