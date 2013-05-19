@@ -458,99 +458,80 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(process.getReasonForStoppingProcess());
 		}
 		sb.append("</td>");
-		String initTime = "?";
-		// Time:initializationTimeWindow t;
-		long timeInitMillis = 0;
+		// Time:init
 		if(type.equals("MR")) {
 			// 
 		}
 		else {
-			sb.append("<td align=\"right\">");
-			List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
-			TimeWindow t;
-			t = (TimeWindow) process.getTimeWindowInit();
+			StringBuffer loadme = new StringBuffer();
+			String initTime = "00";
+			String itd0 = "<td align=\"right\">";
+			String itd1 = "</td>";
+			String isp0 = "<span>";
+			String isp1 = "</span>";
 			try {
-				timeInitMillis = t.getElapsedMillis();
-				duccLogger.debug(location, jobid, "init millis = "+timeInitMillis);
+				TimeWindow t = (TimeWindow) process.getTimeWindowInit();
+				if(t != null) {
+					long now = System.currentTimeMillis();
+					String tS = t.getStart(""+now);
+					String tE = t.getEnd(""+now);
+					initTime = getDuration(jobid,tE,tS);
+					if(t.isEstimated()) {
+						isp0 = "<span title=\"estimated\" class=\"health_green\">";
+					}
+					else {
+						isp0 = "<span class=\"health_black\">";
+					}
+				}
+				List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
+				if(upcList != null) {
+					if(!upcList.isEmpty()) {
+						String id = ""+process.getDuccId().getFriendly();
+						initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
+						loadme.append("<div id=\"loadme"+id+"\">");
+						loadme.append("<table>");
+						loadme.append("<tr>");
+						String ch1 = "Name";
+						String ch2 = "State";
+						String ch3 = "Time";
+						loadme.append("<td>"+"<b>"+ch1+"</b>");
+						loadme.append("<td>"+"<b>"+ch2+"</b>");
+						loadme.append("<td>"+"<b>"+ch3+"</b>");
+						Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
+						while(upcIterator.hasNext()) {
+							IUimaPipelineAEComponent upc = upcIterator.next();
+							String iName = upc.getAeName();
+							String iState = upc.getAeState().toString();
+							String iTime = FormatHelper.duration(upc.getInitializationTime());
+							loadme.append("<tr>");
+							loadme.append("<td>"+iName);
+							loadme.append("<td>"+iState);
+							loadme.append("<td>"+iTime);
+						}
+						loadme.append("</table>");
+						loadme.append("</div>");
+					}
+				}
 			}
 			catch(Exception e) {
+				duccLogger.trace(location, jobid, "no worries", e);
 			}
-			if(t != null) {
-				initTime = t.getElapsed(job);
+			catch(Throwable t) {
+				duccLogger.trace(location, jobid, "no worries", t);
 			}
-			if((t != null) && (t.isEstimated())) {
-				sb.append("<span title=\"estimated\" class=\"health_green\">");
-			}
-			else {
-				sb.append("<span class=\"health_black\">");
-			}
-			if(initTime == null) {
-				initTime = "0";
-			}
-			if(!job.isOperational()) {
-				if(upcList == null) {
-					initTime = "";
-				}
-				else {
-					if(upcList.isEmpty()) {
-						initTime = "";
-					}
-				}
-			}
-			initTime = chomp("00:", initTime);
-			if(upcList != null) {
-				if(!upcList.isEmpty()) {
-					String id = ""+process.getDuccId().getFriendly();
-					initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
-					StringBuffer loadme = new StringBuffer();
-					loadme.append("<div id=\"loadme"+id+"\">");
-					loadme.append("<table>");
-					loadme.append("<tr>");
-					String ch1 = "Name";
-					String ch2 = "State";
-					String ch3 = "Time";
-					loadme.append("<td>"+"<b>"+ch1+"</b>");
-					loadme.append("<td>"+"<b>"+ch2+"</b>");
-					loadme.append("<td>"+"<b>"+ch3+"</b>");
-					Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
-					while(upcIterator.hasNext()) {
-						IUimaPipelineAEComponent upc = upcIterator.next();
-						String iName = upc.getAeName();
-						String iState = upc.getAeState().toString();
-						String iTime = FormatHelper.duration(upc.getInitializationTime());
-						loadme.append("<tr>");
-						loadme.append("<td>"+iName);
-						loadme.append("<td>"+iState);
-						loadme.append("<td>"+iTime);
-					}
-					loadme.append("</table>");
-					loadme.append("</div>");
-					sb.append(loadme);
-				}
-			}
+			sb.append(itd0);
+			sb.append(isp0);
+			sb.append(loadme);
 			sb.append(initTime);
-			sb.append("</span>");
-			sb.append("</td>");
+			sb.append(isp1);
+			sb.append(itd1);
 		}
-		/*
-		try {
-			long diff = 0;
-			long t0 = 0;
-			long t1 = 0;
-			t0 = Long.parseLong(t.getStart());
-			t1 = Long.parseLong(t.getEnd());
-			diff = t1-t0;
-			System.out.println("init: "+diff+" "+t1+" "+t0);
-		}
-		catch(Exception e) {
-		}
-		*/
 		// Time:run
 		String runTime = "00";
-		String td0 = "<td align=\"right\">";
-		String td1 = "</td>";
-		String sp0 = "<span>";
-		String sp1 = "</span>";
+		String rtd0 = "<td align=\"right\">";
+		String rtd1 = "</td>";
+		String rsp0 = "<span>";
+		String rsp1 = "</span>";
 		try {
 			TimeWindow t = (TimeWindow) process.getTimeWindowRun();
 			if(t != null) {
@@ -559,10 +540,10 @@ public class DuccHandler extends DuccAbstractHandler {
 				String tE = t.getEnd(""+now);
 				runTime = getDuration(jobid,tE,tS);
 				if(t.isEstimated()) {
-					sp0 = "<span title=\"estimated\" class=\"health_green\">";
+					rsp0 = "<span title=\"estimated\" class=\"health_green\">";
 				}
 				else {
-					sp0 = "<span class=\"health_black\">";
+					rsp0 = "<span class=\"health_black\">";
 				}
 			}
 		}
@@ -572,11 +553,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		catch(Throwable t) {
 			duccLogger.trace(location, jobid, "no worries", t);
 		}
-		sb.append(td0);
-		sb.append(sp0);
+		sb.append(rtd0);
+		sb.append(rsp0);
 		sb.append(runTime);
-		sb.append(sp1);
-		sb.append(td1);
+		sb.append(rsp1);
+		sb.append(rtd1);
 		// Time GC, PgIn, Swap...
 		DecimalFormat formatter = new DecimalFormat("##0.0");
 		if(type.equals("MR")) {
