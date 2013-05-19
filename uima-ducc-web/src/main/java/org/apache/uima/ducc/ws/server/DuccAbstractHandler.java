@@ -193,7 +193,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return sb.toString();
 	}
 	
-	public String getDuration(HttpServletRequest request, DuccId jobId, String millisV2, String millisV1) {
+	public String getDuration(DuccId jobId, String millisV2, String millisV1) {
 		String methodName = "getDuration";
 		String retVal = "";
 		try {
@@ -701,7 +701,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			String v2 = dw.getStandardInfo().getDateOfCompletion();
 			String v1 = dw.getStandardInfo().getDateOfSubmission();
 			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
-			retVal = getDuration(request,dw.getDuccId(),v2,v1);
+			retVal = getDuration(dw.getDuccId(),v2,v1);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, null, "no worries", e);
@@ -719,7 +719,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			String v2 = ""+now;
 			String v1 = dw.getStandardInfo().getDateOfSubmission();
 			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
-			retVal = getDuration(request,dw.getDuccId(),v2,v1);
+			retVal = getDuration(dw.getDuccId(),v2,v1);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, null, "no worries", e);

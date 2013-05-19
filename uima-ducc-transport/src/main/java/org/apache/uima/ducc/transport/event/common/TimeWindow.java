@@ -39,7 +39,16 @@ public class TimeWindow implements ITimeWindow {
 	public String getStart() {
 		return timeStart;
 	}
-
+	
+	
+	public String getStart(String time) {
+		String retVal = timeStart;
+		if(retVal == null) {
+			retVal = time;
+		}
+		return retVal;
+	}
+	
 	
 	public void setStart(String time) {
 		this.timeStart = time;
@@ -65,7 +74,16 @@ public class TimeWindow implements ITimeWindow {
 	public String getEnd() {
 		return timeEnd;
 	}
-
+	
+	
+	public String getEnd(String time) {
+		String retVal = timeEnd;
+		if(retVal == null) {
+			retVal = time;
+		}
+		return retVal;
+	}
+	
 	
 	public void setEnd(String time) {
 		this.timeEnd = time;

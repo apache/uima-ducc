@@ -27,19 +27,16 @@ under the License.
 	<th title="The log file name associated with this process">Log</th>
 	<th title="The log file size, in MB">Size</th>
 	<th title="The host for this process">Host<br>Name</th>
-	<!--
-	<th title="The host IP for this process">Host<br>ip</th>
-	-->
 	<th title="The OS assigned PID for this process"class="sorttable_numeric">PID</th>
 	<th title="Process scheduling state">State<br>Scheduler</th>
 	<th title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
 	<th title="Process agent state">State<br>Agent</th>
 	<th title="Process agent reason (for agent state)">Reason<br>Agent</th>
-	<th title="Process initialization time, hh:mm:ss, as reported by the agent managing the process. The agent reports initialization start and end times. The time reported here is the difference between them, unless initialization is ongoing then the end time is estimated as now.">Time<br>Init</th>
-	<th title="Process run time (not including process initialization time), hh:mm:ss, as reported by the agent managing the process. The agent reports run start and end times. The time reported here is the difference between them, unless the process is still running then the end time is estimated as now.">Time<br>Run</th>
+	<th title="Process initialization time, hh:mm:ss">Time<br>Init</th>
+    <th title="Process run time (not including process initialization time), ddd:hh:mm:ss">Time<br>Run</th>
 	<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
-	<th title="Process total number of garbage collections that have occurred">Count<br>GC</th>
-	<th title="Process percentage of time spent in garbage collections, relative to total of initialization + run times">%GC</th>
+	<th title="Process count of major faults which required loading a memory page from disk">PgIn</th>
+	<th title="Process GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
 	<th title="%CPU time, as percentage of process lifetime">%CPU</th>
 	<th title="Resident Storage Size in GB, current if state=running or maximum if state=completed">RSS</th>
 	<!--

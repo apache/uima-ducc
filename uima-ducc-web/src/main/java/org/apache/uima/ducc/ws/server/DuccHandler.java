@@ -546,46 +546,38 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		*/
 		// Time:run
-		TimeWindow t;
-		t = (TimeWindow) process.getTimeWindowRun();
-		long timeRunMillis = 0;
+		String runTime = "00";
+		String td0 = "<td align=\"right\">";
+		String td1 = "</td>";
+		String sp0 = "<span>";
+		String sp1 = "</span>";
 		try {
-			timeRunMillis = t.getElapsedMillis();
-			duccLogger.debug(location, jobid, "run millis = "+timeRunMillis);
+			TimeWindow t = (TimeWindow) process.getTimeWindowRun();
+			if(t != null) {
+				long now = System.currentTimeMillis();
+				String tS = t.getStart(""+now);
+				String tE = t.getEnd(""+now);
+				runTime = getDuration(jobid,tE,tS);
+				if(t.isEstimated()) {
+					sp0 = "<span title=\"estimated\" class=\"health_green\">";
+				}
+				else {
+					sp0 = "<span class=\"health_black\">";
+				}
+			}
 		}
 		catch(Exception e) {
+			duccLogger.trace(location, jobid, "no worries", e);
 		}
-		String runTime = "?";
-		if(t != null) {
-			runTime = t.getElapsed(job);
+		catch(Throwable t) {
+			duccLogger.trace(location, jobid, "no worries", t);
 		}
-		sb.append("<td align=\"right\">");
-		if((t != null) && (t.isEstimated())) {
-			sb.append("<span title=\"estimated\" class=\"health_green\">");
-		}
-		else {
-			sb.append("<span class=\"health_black\">");
-		}
-		if(runTime == null) {
-			runTime = "0";
-		}
-		runTime = chomp("00:", runTime);
+		sb.append(td0);
+		sb.append(sp0);
 		sb.append(runTime);
-		sb.append("</span>");
-		sb.append("</td>");
-		/*
-		try {
-			long diff = 0;
-			long t0 = 0;
-			long t1 = 0;
-			t0 = Long.parseLong(t.getStart());
-			t1 = Long.parseLong(t.getEnd());
-			diff = t1-t0;
-			System.out.println("run: "+diff+" "+t1+" "+t0);
-		}
-		catch(Exception e) {
-		}
-		*/
+		sb.append(sp1);
+		sb.append(td1);
+		// Time GC, PgIn, Swap...
 		DecimalFormat formatter = new DecimalFormat("##0.0");
 		if(type.equals("MR")) {
 			// 
