@@ -22,7 +22,7 @@
   
   <properties>
     <DUCC_CP>
-uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.jar slf4j/slf4j-api.jar slf4j/slf4j-log4j12.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar  apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uimaj-core-${org.apache.uima.version}.jar uima/uimaj-as-core-${org.apache.uima.as.version}.jar
+uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.jar slf4j/slf4j-api.jar slf4j/slf4j-log4j12.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar  apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uima-core-${org.apache.uima.version}.jar uima/uimaj-as-core-${org.apache.uima.as.version}.jar
     </DUCC_CP>
   </properties>
 

@@ -21,7 +21,7 @@ def main():
         "google-gson/gson-${google.gson.version}.jar ",
         "apache-log4j/log4j-${log4j.version}.jar",
         "apache-commons-cli/commons-cli-${commons.cli.version}.jar",
-        "uima/uimaj-core-${org.apache.uima.version}.jar",
+        "uima/uima-core-${org.apache.uima.version}.jar",
         "uima/uimaj-as-core-${org.apache.uima.as.version}.jar",
         ]
 
