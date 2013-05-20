@@ -279,9 +279,9 @@ public class ServiceSet
         meta_props.put("service-statistics", "N/A");
 
         if ( isStartable() ) {
-            meta_props.put("ping-only", "true");
-        } else {
             meta_props.put("ping-only", "false");
+        } else {
+            meta_props.put("ping-only", "true");
         }
         // caller will save the meta props, **if** the rest of registration is ok.
 
