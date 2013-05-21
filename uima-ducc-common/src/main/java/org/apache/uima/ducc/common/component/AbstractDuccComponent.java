@@ -79,6 +79,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   public AbstractDuccComponent(String componentName, CamelContext context) {
     this.componentName = componentName;
     setContext(context);
+    logger = getLogger();
   }
 
   /**
@@ -102,9 +103,8 @@ public abstract class AbstractDuccComponent implements DuccComponent,
                 .process(new AdminEventProcessor(delegate));
       }
     });
-    DuccLogger dl = getLogger();
-    if (dl != null) {
-      logger = dl;
+    
+    if (logger != null) {
       logger.info("startAdminChannel", null, "Admin Channel Activated on endpoint:" + endpoint);
     }
   }
@@ -119,9 +119,8 @@ public abstract class AbstractDuccComponent implements DuccComponent,
       // the caused by exception is stored in a property on the exchange
       Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
       caused.printStackTrace();
-      DuccLogger dl = getLogger();
-      if (dl != null) {
-        dl.error("ErrorProcessor.process()", null, caused);
+      if (logger != null) {
+        logger.error("ErrorProcessor.process()", null, caused);
 
       }
     }
@@ -205,8 +204,10 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     if (duccBrokerUrlDecoration != null && duccBrokerUrlDecoration.trim().length() > 0) {
       burl.append("?").append(duccBrokerUrlDecoration);
     }
+    if (logger != null) {
+      logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
+    }
     System.setProperty("ducc.broker.url", burl.toString());
-    System.out.println("Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
   }
 
   private void adjustEndpointsForSelectedTransport() throws Exception {
@@ -250,8 +251,10 @@ public abstract class AbstractDuccComponent implements DuccComponent,
    *          - admin event
    */
   public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception {
-    System.out.println("\n\tDucc Process:" + componentName
-            + " Received Kill Event - Cleaning Up and Stopping\n");
+    if (logger != null) {
+      logger.info("onDuccAdminKillEvent", null,"\n\tDucc Process:" + componentName
+              + " Received Kill Event - Cleaning Up and Stopping\n");
+    }
     stop();
     System.exit(2);
   }
@@ -266,13 +269,19 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     if (System.getProperty("ducc.deploy.components") != null
             && !System.getProperty("ducc.deploy.components").equals("uima-as")
             && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
-      System.out.println(".....Starting Admin Channel on endpoint:" + endpoint);
-      startAdminChannel(endpoint, this);
+      if (logger != null) {
+        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
+        startAdminChannel(endpoint, this);
+      }
     }
-    System.out.println(".....Starting Camel Context");
+    if (logger != null) {
+      logger.info("start",null, ".....Starting Camel Context");
+    }
     // Start Camel
     context.start();
-    System.out.println("..... Camel Initialized and Started");
+    if (logger != null) {
+      logger.info("start",null, "..... Camel Initialized and Started");
+    }
     // Instrument this process with JMX Agent. The Agent will
     // find an open port and start JMX Connector allowing
     // jmx clients to connect to this jvm using standard
@@ -280,13 +289,13 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     // -D<jmx params> properties. Currently the JMX does not
     // use security allowing all clients to connect.
     processJmxUrl = startJmxAgent();
-    System.out.println("\tDucc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
     System.getProperties().setProperty("ducc.jmx.url", processJmxUrl);
-    System.out.println("Connect jConsole to this process using JMX URL:" + processJmxUrl);
-    ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this);
+    if (logger != null) {
+      logger.info("start",null, "Connect jConsole to this process using JMX URL:" + processJmxUrl);
+    }
+    ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this, logger);
     // serviceDeployer);
     Runtime.getRuntime().addShutdownHook(shutdownHook);
-    System.out.println("DUCC Process Registered Shutdown Hook");
     // Register Ducc Component MBean with JMX.
     MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
@@ -326,21 +335,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
           List<Route> routes = context.getRoutes();
           for (Route route : routes) {
-            System.out.println("--- Stopping Route:" + route.getId());
             route.getConsumer().stop();
-            // List<Service> services = route.getServices();
-            // for (Service service : services) {
-            // System.out.println("Stopping Route:"+route.getId());
-            // service.stop();
-            // }
-            System.out.println("--- Stopping Endpoint Route:" + route.getId());
             route.getEndpoint().stop();
           }
 
-          System.out.println("--- Stopping AMQC");
           ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
           amqc.stop();
-          System.out.println("Stopping AMQC - shutdown");
           amqc.shutdown();
 
           if (logger == null) {
@@ -448,7 +448,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
 
     public void process(final Exchange exchange) throws Exception {
-      logger = getLogger();
       if (logger != null) {
 
         logger.info("AdminEventProcessor.process()", null, "Received Admin Message of Type:"
@@ -482,19 +481,21 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
   static class ServiceShutdownHook extends Thread {
     private AbstractDuccComponent duccProcess;
-
-    public ServiceShutdownHook(AbstractDuccComponent service) {
+    private DuccLogger logger;
+    
+    public ServiceShutdownHook(AbstractDuccComponent service, DuccLogger logger ) {
       this.duccProcess = service;
+      this.logger = logger;
     }
 
     public void run() {
       try {
-        System.out
-                .println("DUCC Service Caught Kill Signal - Registering Killer Task and Stopping ...");
-
+        if (logger != null) {
+          logger.info("start",null, "DUCC Service Caught Kill Signal - Registering Killer Task and Stopping ...");
+        }
         // schedule a kill task which will kill this process after 1 minute
         Timer killTimer = new Timer();
-        killTimer.schedule(new KillerThreadTask(), 60 * 1000);
+        killTimer.schedule(new KillerThreadTask(logger), 60 * 1000);
 
         // try to stop the process cleanly
         duccProcess.stop();
@@ -506,20 +507,20 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
   // This task will run if stop() fails to stop the process within 1 minute
   static class KillerThreadTask extends TimerTask {
+    DuccLogger logger;
+    public KillerThreadTask(DuccLogger logger) {
+      this.logger = logger;
+    }
     public void run() {
       try {
-        System.out.println("Process is about to kill itself via Runtime.getRuntime().halt()");
+        if (logger != null) {
+          logger.info("start",null,"Process is about to kill itself via Runtime.getRuntime().halt()");
+        }
         // Take the jvm down hard. This call will not
         // invoke registered ShutdownHooks and just
         // terminates the jvm.
         Runtime.getRuntime().halt(-1);
-        /*
-         * String[] killcmd = new String[3]; if ( Utils.isWindows() ) { killcmd[0] = "taskkill";
-         * killcmd[1] = "/PID"; } else { killcmd[0] = "/bin/kill"; killcmd[1] = "-9"; } // get this
-         * process PID killcmd[2] = Utils.getPID(); ProcessBuilder pb = new ProcessBuilder(killcmd);
-         * pb.redirectErrorStream(true); // kill itself via hard OS specific kill cmd pb.start(); //
-         * should be the last thing this process does
-         */
+        
       } catch (Exception e) {
         e.printStackTrace();
       }
