@@ -25,7 +25,6 @@ import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 
 
@@ -36,14 +35,14 @@ import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 public class DuccServiceSubmit 
     extends CliBase
 {
-	
+    
     //private String jvmarg_string = null;
     //private Properties jvmargs = null;
     ServiceRequestProperties requestProperties = new ServiceRequestProperties();
     static String or_port = "ducc.orchestrator.http.port";
     static String or_host = "ducc.orchestrator.node";
-	
-    UiOption[] opts_release = new UiOption[] {
+    
+    UiOption[] opts_release = {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
@@ -56,6 +55,8 @@ public class DuccServiceSubmit
         UiOption.Environment,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
+        UiOption.ProcessExecutable,
+        UiOption.ProcessExecutableArgs,
         UiOption.ProcessFailuresLimit,
         UiOption.ClasspathOrder,
         UiOption.Specification,
@@ -68,8 +69,8 @@ public class DuccServiceSubmit
         UiOption.ServicePingTimeout,
         UiOption.ServicePingDoLog,
     };
-	
-    UiOption[] opts_beta = new UiOption[] {
+    
+    UiOption[] opts_beta = {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
@@ -85,6 +86,8 @@ public class DuccServiceSubmit
         UiOption.ProcessEnvironment,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
+        UiOption.ProcessExecutable,
+        UiOption.ProcessExecutableArgs,
         UiOption.ProcessFailuresLimit,
         UiOption.ClasspathOrder,
         UiOption.Specification,
@@ -100,28 +103,23 @@ public class DuccServiceSubmit
     
     UiOption[] opts = opts_release;
     
-	public DuccServiceSubmit(ArrayList<String> args)
+    public DuccServiceSubmit(ArrayList<String> args)
         throws Exception
     {
-        String[] arg_array = args.toArray(new String[args.size()]);
-        init();
-        if(DuccUiUtilities.isSupportedBeta()) {
-        	opts = opts_beta;
-        }
-        init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or", null, null);
+        this(args.toArray(new String[args.size()]));
     }
 
-	public DuccServiceSubmit(String[] args)
+    public DuccServiceSubmit(String[] args)
         throws Exception
     {
-		init();
+        init();
         if(DuccUiUtilities.isSupportedBeta()) {
-        	opts = opts_beta;
+            opts = opts_beta;
         }
         init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or", null, null);
     }
 
-	public DuccServiceSubmit(Properties props)
+    public DuccServiceSubmit(Properties props)
         throws Exception
     {
         for ( Object k : props.keySet() ) {      
@@ -130,124 +128,91 @@ public class DuccServiceSubmit
         }
         init();
         if(DuccUiUtilities.isSupportedBeta()) {
-        	opts = opts_beta;
+            opts = opts_beta;
         }
         init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or", null, null);
     }
-	
-    // TODO: if uima-as, then DD is required
-		
-    private ServiceDeploymentType getServiceType(ServiceRequestProperties requestProperties)
-    {
-        // if the service type is NOT set, then it has to be some kind of service, see if there's an  endpoint
-        String service_endpoint = requestProperties.getProperty(RegistrationOption.ServiceRequestEndpoint.decode());
-
-        // No end point, it HAS to be UIMA-AS and therefore requires a DD to be valid
-        if (service_endpoint == null) {            
-            String dd = (String) requestProperties.get(UiOption.ProcessDD.pname());
-            if ( dd != null ) {
-                return ServiceDeploymentType.uima;
-            } else {
-                throw new IllegalArgumentException("Missing service endpoint and DD, cannot identify service type.");
-            }
-        }
-
-        if ( service_endpoint.startsWith(ServiceType.Custom.decode()) ) {
-            return ServiceDeploymentType.custom;
-        }
-
-        if ( service_endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
-            return ServiceDeploymentType.uima;
-        }
-
-
-        throw new IllegalArgumentException("Invalid service type in endpoint, must be " + ServiceType.UimaAs.decode() + " or " + ServiceType.Custom.decode() + ".");
-    }
-
-
-	
-	@SuppressWarnings("unused")
-	public boolean execute() 
+    
+    public boolean execute() 
         throws Exception 
     {
-		String key_ja = UiOption.ProcessJvmArgs.pname();
-	    if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
-	      	key_ja = UiOption.JvmArgs.pname();
-	    }
-		String jvmarg_string = (String) requestProperties.get(key_ja);
+        String key_ja = UiOption.ProcessJvmArgs.pname();
+        if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
+            key_ja = UiOption.JvmArgs.pname();
+        }
+        String jvmarg_string = (String) requestProperties.get(key_ja);
         Properties jvmargs = DuccUiUtilities.jvmArgsToProperties(jvmarg_string);
 
-        ServiceDeploymentType deploymentType = null;
-        try {
-            deploymentType = getServiceType(requestProperties);
-        } catch ( Throwable t ) {
-            message(t.toString());
+        //
+        // Need to check if the mutually exclusive UIMA-AS DD and the Custom executable are specified
+        //
+        String uimaDD = cli_props.getStringProperty(UiOption.ProcessDD.pname(), null);
+        String customCmd = cli_props.getStringProperty(UiOption.ProcessExecutable.pname(), null);
+        
+        String endpoint = requestProperties.getProperty(RegistrationOption.ServiceRequestEndpoint.decode());
+        
+        if (endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode())) {
+            requestProperties.put(UiOption.ServiceTypeUima.pname(), "");
+            if (uimaDD == null) {
+                message("ERROR: Must specify --process_DD for UIMA-AS services");
+                return false;
+            }
+            if (customCmd != null) {
+                message("WARN: --process_executable is ignored for UIMA-AS services");
+            }
+            //
+            // Always extract the endpoint from the DD since when it is explicitly specified it must match.
+            //
+            try {
+                String dd = (String) requestProperties.get(UiOption.ProcessDD.pname());
+                String wd = (String) requestProperties.get(UiOption.WorkingDirectory.pname());
+                String inferred_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmargs);
+                if (endpoint == null) {
+                    endpoint = inferred_endpoint;
+                    requestProperties.put(UiOption.ServiceRequestEndpoint.pname(), endpoint);
+                } else if (!inferred_endpoint.equals(endpoint)) {
+                    message("ERROR: Endpoint from --service_request_endpoint does not match endpoint ectracted from UIMA DD"
+                                    + "\n--service_request_endpoint: "
+                                    + endpoint
+                                    + "\nextracted:                : " + inferred_endpoint);
+                    return false;
+                }
+                if (debug) {
+                    System.out.println("service_endpoint: " + endpoint);
+                }
+            } catch (IllegalArgumentException e) {
+                message("ERROR: Cannot read/process DD descriptor for endpoint:", e.getMessage());
+                return false;
+            }
+
+        } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
+            if (uimaDD != null) {
+                message("WARN: --process_DD is ignored for CUSTOM endpoints");
+            }
+            requestProperties.put(UiOption.ServiceTypeCustom.pname(), "");
+
+        } else {
             return false;
         }
 
-        String service_endpoint = null;
-		switch ( deploymentType ) 
-        {
-            case uima:
-                requestProperties.put(UiOption.ServiceTypeUima.pname(), "");
-                if(service_endpoint == null) {
-                    // A null endpoint means it MUST be UimaAs and we are going to derive it.  Otherwise it's the user's responsibility to
-                    // have it set correctly, because really can't tell.                    
-                    //
-                    // The service endpoint is extracted from the DD. It is for internal use only, not publicly settable or documented.
-                    //
-                    try {
-                        String dd = (String) requestProperties.get(UiOption.ProcessDD.pname());
-                        String wd = (String) requestProperties.get(UiOption.WorkingDirectory.pname());
-                        //System.err.println("DD: " + dd);
-                        //System.err.println("WD: " + wd);
-                        //System.err.println("jvmargs: " + jvmarg_string);
-                        service_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmargs);
-                        requestProperties.put(UiOption.ServiceRequestEndpoint.pname(), service_endpoint);
-                        if( debug ) {
-                            System.out.println("service_endpoint:"+" "+service_endpoint);
-                        }
-                    } catch ( IllegalArgumentException e ) {
-                        message("ERROR: Cannot read/process DD descriptor for endpoint:", e.getMessage());
-                        return false;
-                    }
-                } else {
-                    requestProperties.put(UiOption.ServiceRequestEndpoint.pname(), service_endpoint);
-                }
-                break;
-
-            case custom:
-                requestProperties.put(UiOption.ServiceTypeCustom.pname(), "");
-                if ( service_endpoint == null ) {
-                    message("ERROR: Missing endpoint for CUSTOM service.");
-                    return false;
-                } else {
-                    requestProperties.put(UiOption.ServiceRequestEndpoint.pname(), service_endpoint);
-                }
-                break;
-            
-            case unspecified:
-                return false;
-        } 
-
-        if ( ! resolve_service_dependencies(service_endpoint) ) {            
+        if ( ! resolve_service_dependencies(endpoint) ) {            
             return false;
         }
         
-		if ( debug ) {
-			requestProperties.dump();
-		}
-	
+        if ( debug ) {
+            requestProperties.dump();
+        }
+    
         /*
-		 * set DUCC_LD_LIBRARY_PATH in process environment
-		 */
-		String key_ev = UiOption.ProcessEnvironment.pname();
-	    if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
-	     	key_ev = UiOption.Environment.pname();
-	    }
-		if (!DuccUiUtilities.ducc_environment(this, requestProperties, key_ev)) {
+         * set DUCC_LD_LIBRARY_PATH in process environment
+         */
+        String key_ev = UiOption.ProcessEnvironment.pname();
+        if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
+            key_ev = UiOption.Environment.pname();
+        }
+        if (!DuccUiUtilities.ducc_environment(this, requestProperties, key_ev)) {
             return false;
-		}
+        }
         requestProperties.put(UiOption.ProcessThreadCount.pname(), "1");         // enforce this - OR will complain if it's missing
 
         SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties);
@@ -271,10 +236,10 @@ public class DuccServiceSubmit
             saveSpec(DuccUiConstants.service_specification_properties, requestProperties);
         }
 
-		return rc;
+        return rc;
     }
-		
-	public static void main(String[] args) {
+        
+    public static void main(String[] args) {
         try {
             // Instantiate the object with args similar to the CLI, or a pre-built properties file
             DuccServiceSubmit ds = new DuccServiceSubmit(args);            
@@ -287,8 +252,8 @@ public class DuccServiceSubmit
             if ( rc ) {
                 
                 // Fetch the Ducc ID
-            	System.out.println("Service " + ds.getDuccId() + " submitted");
-            	System.exit(0);
+                System.out.println("Service " + ds.getDuccId() + " submitted");
+                System.exit(0);
             } else {
                 System.out.println("Could not submit Service");
                 System.exit(1);
@@ -298,6 +263,6 @@ public class DuccServiceSubmit
             System.exit(1);
         }
 
-	}
-	
+    }
+    
 }

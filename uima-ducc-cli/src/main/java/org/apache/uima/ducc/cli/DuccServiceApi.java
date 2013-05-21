@@ -63,6 +63,8 @@ public class DuccServiceApi
         UiOption.Environment,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
+        UiOption.ProcessExecutable,
+        UiOption.ProcessExecutableArgs,
         UiOption.ProcessFailuresLimit,
         UiOption.ClasspathOrder,
         // UiOption.Specification          // not used for registration
@@ -96,6 +98,8 @@ public class DuccServiceApi
         UiOption.ProcessEnvironment,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
+        UiOption.ProcessExecutable,
+        UiOption.ProcessExecutableArgs,
         UiOption.ProcessFailuresLimit,
         UiOption.ClasspathOrder,
         // UiOption.Specification          // not used for registration
@@ -240,7 +244,7 @@ public class DuccServiceApi
 
     String extractEndpoint(Properties jvmargs)
     {
-        // If claspath is not specified, pick it up from the submitter's environment
+        // If classpath is not specified, pick it up from the submitter's environment
     	String key_cp = UiOption.ProcessClasspath.pname();
         if ( cli_props.containsKey(UiOption.Classpath.pname()) ) {
         	key_cp = UiOption.Classpath.pname();
@@ -272,6 +276,8 @@ public class DuccServiceApi
         }
         init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", callback, null);
 
+        // Note: dp & cli_props are identical ... use only the class variable here for consistency
+        
         //
         // Now: get jvm args and resolve placeholders, in particular, the broker url
         //
@@ -281,30 +287,29 @@ public class DuccServiceApi
         }
         String jvmarg_string = cli_props.getProperty(key_ja);
         Properties jvmargs = DuccUiUtilities.jvmArgsToProperties(jvmarg_string);
+        // Presumably only the endpoint and service dependencies can have place holders
         DuccUiUtilities.resolvePropertiesPlaceholders(cli_props, jvmargs);
 
         setLinger();
 
         //
+        // Check if the mutually exclusive UIMA-AS DD and the Custom executable are specified
+        //
+        String uimaDD = cli_props.getStringProperty(UiOption.ProcessDD.pname(), null);
+        String customCmd = cli_props.getStringProperty(UiOption.ProcessExecutable.pname(), null);
+        
+        //
         // Establish my endpoint
         //
         String  endpoint = cli_props.getStringProperty(UiOption.ServiceRequestEndpoint.pname(), null);
-        if ( endpoint == null ) {               // not custom ... must be uima-as (or fail)
+        if ( endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
 
-            endpoint = extractEndpoint(jvmargs);
-
-        } else if ( endpoint.startsWith(ServiceType.Custom.decode()) ) {
-
-            // must have a pinger specified
-            if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
-                throw new IllegalArgumentException("Custom service is missing ping class name.");
+            if (uimaDD == null) {
+                throw new IllegalArgumentException("Must specify --process_DD for UIMA-AS services");
             }
- 
-            String classpath = cli_props.getStringProperty(UiOption.ServicePingClasspath.pname(), System.getProperty("java.class.path"));            
-            cli_props.setProperty(UiOption.ServicePingClasspath.pname(), classpath);
-
-        } else if ( endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
-
+            if (customCmd != null) {
+                message("WARN", "--process_executable is ignored for UIMA-AS services");
+            }
             // Infer the classpath (DuccProperties will return the default if the value isn't found.)
         	String key_cp = UiOption.ProcessClasspath.pname();
             if ( cli_props.containsKey(UiOption.Classpath.pname()) ) {
@@ -316,28 +321,47 @@ public class DuccServiceApi
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
             // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one
             // we extract from the DD - the job will fail otherwise, so we catch this early.
-            String verify_endpoint = extractEndpoint(jvmargs);
-            if ( !verify_endpoint.equals(endpoint) ) {
+            String inferred_endpoint = extractEndpoint(jvmargs);
+            if (endpoint == null) {
+                endpoint = inferred_endpoint;
+            } else if ( !inferred_endpoint.equals(endpoint) ) {
                 throw new IllegalArgumentException("Endpoint from --service_request_endpoint does not match endpoint ectracted from UIMA DD" 
                                                    + "\n--service_request_endpoint: " + endpoint 
-                                                   + "\nextracted:                : " + verify_endpoint );
+                                                   + "\nextracted:                : " + inferred_endpoint );
             }
+            
+        } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
+
+            if (uimaDD != null) {
+                message("WARN", "--process_DD is ignored for CUSTOM endpoints");
+            }
+            // Custom services must have a pinger, but the process_executable (& args) 
+            // options may be omitted for a ping-only service.
+            // When omitted other options such as autostart are irrelevant.
+            if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
+                throw new IllegalArgumentException("Custom service is missing ping class name.");
+            }
+            String classpath = cli_props.getStringProperty(UiOption.ServicePingClasspath.pname(), System.getProperty("java.class.path"));            
+            cli_props.setProperty(UiOption.ServicePingClasspath.pname(), classpath);
+        
         } else {
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);
         }
 
-        // work out stuff I'm dependendent upon
-        resolve_service_dependencies(endpoint);
+        // work out stuff I'm dependent upon
+        if ( !resolve_service_dependencies(endpoint) ) {
+            throw new IllegalArgumentException("Invalid service dependencies");
+        }
         int instances = cli_props.getIntProperty(UiOption.Instances.pname(), 1);
         Trinary autostart = getAutostart();
-        String user = (String) dp.remove(UiOption.User.pname());
-        byte[] auth_block = (byte[]) dp.remove(UiOption.Signature.pname());
+        String user = (String) cli_props.remove(UiOption.User.pname());
+        byte[] auth_block = (byte[]) cli_props.remove(UiOption.Signature.pname());
         
         // A few spurious properties are set as an artifact of parsing the overly-complex command line, and need removal
-        dp.remove(UiOption.SubmitPid.pname());
-        dp.remove(UiOption.Register.pname());
-        dp.remove(UiOption.Instances.pname());
-        dp.remove(UiOption.Autostart.pname());
+        cli_props.remove(UiOption.SubmitPid.pname());
+        cli_props.remove(UiOption.Register.pname());
+        cli_props.remove(UiOption.Instances.pname());
+        cli_props.remove(UiOption.Autostart.pname());
 
         ServiceRegisterEvent ev = new ServiceRegisterEvent(user, instances, autostart, endpoint, cli_props, auth_block);
 
