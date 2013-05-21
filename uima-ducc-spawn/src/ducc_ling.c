@@ -41,7 +41,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "0.8.2"
+#define VERSION "0.8.3"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -59,6 +59,7 @@
  * 2013-03-08 0.8.1 set hard as well as soft ulimits, and make sure they are shown
  *                  in both user and agent logs. jrc
  * 2013-05-07 0.8.2 Implement append (-a) option. jrc
+ * 2013-05-07 0.8.3 Implement version (-v) option. jrc
  */
 
 /**
@@ -115,7 +116,7 @@ void version()
 void usage()
 {
     fprintf(stderr, "999 Usage:\n");
-    fprintf(stderr, "999   ducc_ling <-u user> [-a] [-w workingdir] [-f filepath] -- program_name [program args]\n");
+    fprintf(stderr, "999   ducc_ling <-v> <-u user> [-a] [-w workingdir] [-f filepath] -- program_name [program args]\n");
     exit(1);
 }
 
@@ -467,6 +468,7 @@ int do_append(char *filepath, int argc, char **argv)
  *                          to the **exact** file path specified in -f.  This 
  *                          provides an efficient way for DUCC to update some logs
  *                          in use space.
+ *       -v                 print version and exit
  *
  *     If -f is missing, no redirection is performed and no files are created.
  */
@@ -492,7 +494,7 @@ int main(int argc, char **argv, char **envp)
     	exit(1);
     }
 
-    while ( (opt = getopt(argc, argv, "af:w:u:h?") ) != -1) {
+    while ( (opt = getopt(argc, argv, "af:w:u:vh?") ) != -1) {
         switch (opt) {
         case 'a':
             append = 1;
@@ -505,6 +507,9 @@ int main(int argc, char **argv, char **envp)
             break;
         case 'w':
             workingdir = optarg;
+            break;
+        case 'v':
+            exit(0);      // version is already printed
             break;
         case 'h':
         case '?':
