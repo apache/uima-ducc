@@ -348,11 +348,7 @@ under the License.
       <directoryMode>750</directoryMode>
       <!--  exclude DuccHello.java. It will be copied separately
             and given different permissions. Look below at <files>...</files>
-       -->
-      <excludes>
-      	<exclude>DuccHello.java</exclude>
-      </excludes>
-      
+       -->      
     </fileSet>
 
     <!--  The following creates an empty dir. Not sure if this is the
@@ -519,12 +515,6 @@ under the License.
       <destName>Messages.properties</destName>
     </file>
     
-    <file>
-      <source>src/main/admin/DuccHello.java</source>
-      <outputDirectory>ducc_runtime/admin</outputDirectory>
-      <fileMode>644</fileMode>
-    </file>
-
     <file>
       <source>src/main/config/activemq-nojournal5.xml</source>
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
