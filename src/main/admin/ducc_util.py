@@ -458,6 +458,48 @@ class DuccUtil:
         CLASSPATH = LIB + '/ducc-submit.jar'
         os.environ['CLASSPATH'] = CLASSPATH
 
+    def check_clock_skew(self, localdate):
+        user = os.environ['LOGNAME']
+        bypass = (user != 'ducc')
+        
+        if bypass:
+            tag = 'NOTE'
+        else:
+            tag = 'NOTOK'
+
+        # Check clock skew
+        ok = True
+        acceptable_skew = 300
+        skew = abs(long(localdate) - long(time.time()))
+        if ( skew > (acceptable_skew) ):
+            ok = False
+            print tag, 'Clock skew[', skew, '] on', os.uname()[1], ". Remote time is", time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime())
+        return ok or bypass
+
+    def check_orchestrator_lock(self):
+        lock = self.DUCC_HOME + '/state/orchestrator.lock'
+        if ( os.path.exists(lock) ):
+            print 'NOTOK WARNING The Orchestrator lock file', lock, 'exists. WARNING NOTOK'
+            print 'NOTOK WARNING Insure the Orchestrator is not running and clear this lock.                             WARNING NOTOK'
+            print 'NOTOK WARNING When the lock is clear try restarting the Orchestrator coponent.                        WARNING NOTOK'
+            time.sleep(5)
+
+            return False
+        return True
+
+    def get_duccling_version(self):
+        CMD = self.duccling + ' -v >' + self.DUCC_HOME + '/state/duccling.version'
+        os.system(CMD)
+
+    def verify_jvm(self):
+        jvm = self.java()
+        CMD = jvm + ' -fullversion > /dev/null'
+        rc = os.system(CMD)
+        if ( rc != 0 ):
+            print 'NOTOK', CMD, 'returns', rc, '.  Must return rc 0.  Startup cannot continue.'
+            return False
+        return True
+
     def verify_duccling(self):
         
         check_permission = True                        # if we're not ducc we don't care about permissions
@@ -510,6 +552,25 @@ class DuccUtil:
                 print "Missing ducc_ling"
                 return False
              
+        # now make sure the version matches that on the master node
+        lines = self.popen(self.duccling + ' -v')
+        version_from_head = lines.readline().strip();
+
+        version_file = self.DUCC_HOME + '/state/duccling.version';
+        if ( os.path.exists(version_file) ):
+            verfile = open(version_file)
+            for line in verfile:
+                line = line.strip();
+                if ( line != version_from_head ):
+                    print "Mismatched ducc_ling versions:"
+                    print "MASTER version:", version_from_head
+                    print "LOCAL  version:", line
+                    return False
+            verfile.close()
+        else:
+            print "ducc_ling version file missing, cannot verify version."
+            return Ffalse;
+
         print 'ducc_ling OK'
         return True
 

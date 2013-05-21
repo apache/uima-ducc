@@ -23,6 +23,7 @@ import os
 import os.path
 import sys
 import getopt
+import time
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
@@ -76,6 +77,12 @@ class Ducc(DuccUtil):
                     print "Must start agents separately"
                     sys.exit(1)
                     
+                if ( not self.verify_jvm() ):
+                    return
+
+                if ( not self.check_clock_skew(localdate) ):
+                    return
+
                 dok = self.verify_duccling()
                 if ( not dok ):
                     print 'NOTOK ducc_ling is not set up correctly on node', self.localhost
@@ -86,6 +93,8 @@ class Ducc(DuccUtil):
                     # we assume that verify_local_node is spewing a line of the form
                     #    NOTOK error message
                     # if all is not fine
+                    print '0 ONE RETURNS'
+
                     return
 
                 jvm_opts.append('-Djava.library.path=' + self.DUCC_HOME) 
@@ -172,7 +181,7 @@ class Ducc(DuccUtil):
         if ( args != None ):
             cmd.append(args)
 
-        #print 'CMD', cmd
+            #print 'CMD', cmd
         if ( pid == None ):
             if ( background ):
                 pid = self.nohup(cmd)

@@ -91,7 +91,7 @@ class StartDucc(DuccUtil):
             line = lines.readline().strip()
             if ( not line ):
                 break
-            # print '[] ' + line
+            #print '[] ' + line
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 print node, 'PID', toks[1]
@@ -115,7 +115,7 @@ class StartDucc(DuccUtil):
             lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '-d', str(time.time()), '--nodup', "'")
             while 1:
                 line = lines.readline().strip()
-                #print '[]' + line
+                #print '[l]' + line
                 if ( line.startswith('PID') ):
                     toks = line.split(' ')
                     pid = toks[1]
@@ -210,6 +210,11 @@ class StartDucc(DuccUtil):
         for e in environ:
             print e
 
+        if ( not self.verify_jvm() ):
+            sys.exit(1);
+
+        self.get_duccling_version();
+
         nodefiles = []
         components = []
         management = False
@@ -256,6 +261,9 @@ class StartDucc(DuccUtil):
         if ( management ):
             components = self.default_components
 
+        if ( 'or' in components ):
+            self.check_orchestrator_lock()
+
         if ( not verify_master_node(self.ducc_properties) ):
             print 'FAIL: Cannot run javac to run java verification'
             return
@@ -276,7 +284,7 @@ class StartDucc(DuccUtil):
 
         if ( not ok ):
             sys.exit(1)
-
+                
         # activeMQ needs to be started externally before starting any DUCC processes
         if ( self.automanage and ('broker' in components) ):
             if ( self.is_amq_active() ):
@@ -297,6 +305,7 @@ class StartDucc(DuccUtil):
         # if we are asked to start any of the managemnt processes, do this first
         if ( len(components) != 0 ):
             print 'Starting', or_parms
+
             for com in components:
                 if ( com == 'broker' ):
                     pass     # already started

@@ -39,6 +39,7 @@ class CheckDucc(DuccUtil):
 
     def validate(self, checkdate):
         verify_slave_node(checkdate, self.ducc_properties)
+        self.check_clock_skew(checkdate)
 
     def verify_activemq(self):
         if ( self.is_amq_active() ):
