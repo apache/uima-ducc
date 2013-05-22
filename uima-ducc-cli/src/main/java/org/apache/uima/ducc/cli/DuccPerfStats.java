@@ -451,15 +451,15 @@ public class DuccPerfStats
             System.out.println(""+size + "," + cascount);
         } else {
             System.out.println("Size: " + size + " CASCount: " + cascount);
-            fmt = "%16s %16s %16s %16s %" + maxl + "s";
+            fmt = "%16s %16s %16s %16s %-" + maxl + "s";
             System.out.println(String.format(fmt, "Total Time", "Max Time", "Min Time", "Items Processed", "Name"));
             System.out.println(String.format(fmt, "----------", "--------", "--------", "---------------", dup("-", maxl)));
-            fmt = "%16d %16d %16d %16d %" + maxl + "s";
+            fmt = "%16d %16d %16d %16d %-" + maxl + "s";
         }
         
         for ( int i = 0; i < items.size(); i++ ) {
             PerformanceMetricsSummaryItem pmi = items.get(i);            
-            System.out.println(String.format(fmt, pmi.getAnalysisTime(), pmi.getAnalysisTimeMax(), pmi.getAnalysisTimeMin(), pmi.getNumProcessed(), pmi.getName()));
+            System.out.println(String.format(fmt, pmi.getAnalysisTime(), pmi.getAnalysisTimeMax(), pmi.getAnalysisTimeMin(), pmi.getNumProcessed(), pmi.getUniqueName()));
         }
     }
 
