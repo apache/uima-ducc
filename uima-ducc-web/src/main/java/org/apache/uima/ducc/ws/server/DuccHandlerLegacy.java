@@ -1406,6 +1406,11 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			}
 			row = new StringBuffer();
 			row.append("<tr>");
+			// Release ALL Stuck JPs
+			row.append("<td>");
+			String releaseAll = buildReleaseAll(request, factsList);
+			row.append(releaseAll);
+			row.append("</td>");
 			// Status
 			row.append("<td>");
 			row.append(""+"Total");
@@ -1454,6 +1459,11 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				MachineFacts facts = listIterator.next();
 				row = new StringBuffer();
 				row.append((trGet(counter)));
+				// Release Machine Stuck JPs
+				row.append("<td>");
+				String releaseMachine = buildReleaseMachine(request, facts);
+				row.append(releaseMachine);
+				row.append("</td>");
 				// Status
 				StringBuffer sb = new StringBuffer();
 				String status = facts.status;
@@ -1537,6 +1547,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		else {
 			row = new StringBuffer();
 			row.append((trGet(counter)));
+			// Release
+			row.append("<td>");
+			row.append("");
+			row.append("</td>");
 			// Status
 			row.append("<td>");
 			row.append("");

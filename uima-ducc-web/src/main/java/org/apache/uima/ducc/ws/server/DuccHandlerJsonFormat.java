@@ -1190,6 +1190,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				}
 			}
 			row = new JsonArray();
+			// Release ALL Stuck JPs
+			String releaseAll = buildReleaseAll(request, factsList);
+			row.add(new JsonPrimitive(releaseAll));
 			// Status
 			row.add(new JsonPrimitive("Total"));
 			// IP
@@ -1216,6 +1219,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				row = new JsonArray();
+				// Release Machine Stuck JPs
+				String releaseMachine = buildReleaseMachine(request, facts);
+				row.add(new JsonPrimitive(releaseMachine));
 				// Status
 				sb = new StringBuffer();
 				String status = facts.status;
@@ -1276,6 +1282,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 		else {
 			row = new JsonArray();
+			// Release
+			row.add(new JsonPrimitive(""));
 			// Status
 			row.add(new JsonPrimitive(""));
 			// IP
