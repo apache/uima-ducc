@@ -38,13 +38,13 @@ under the License.
 			"sAjaxSource": "ducc-servlet/json-format-aaData-machines",
 			aaSorting: [],
 			"fnRowCallback" : function(nRow,aData,iDisplayIndex) {
-                            $('td:eq(3)' , nRow).css( "text-align", "right" );
                             $('td:eq(4)' , nRow).css( "text-align", "right" );
                             $('td:eq(5)' , nRow).css( "text-align", "right" );
                             $('td:eq(6)' , nRow).css( "text-align", "right" );
                             $('td:eq(7)' , nRow).css( "text-align", "right" );
                             $('td:eq(8)' , nRow).css( "text-align", "right" );
-                            $('td:eq(9)' , nRow).css( "text-align", "right" );                            
+                            $('td:eq(9)' , nRow).css( "text-align", "right" );
+                            $('td:eq(10)' , nRow).css( "text-align", "right" );                            
                             if ( aData[0] == "up" ) {
                     			jQuery('td:eq(0)', nRow).addClass('health_green');
                 			}
@@ -111,6 +111,7 @@ if (table_style.equals("scroll")) {
 	<caption><b>Machines List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
 	<tr class="ducc-header">
+	<th class="ducc-col-terminate"></th>
 	<th align="left" title="The current status">Status</th>
 	<th align="left" title="The host IP">IP</th>
 	<th align="left" title="The host name">Name</th>
@@ -139,6 +140,7 @@ if (table_style.equals("classic")) {
       <table class="sortable">
 		<thead>
 		<tr class="ducc-head">
+		<th class="ducc-col-terminate"></th>
 		<th align="left" title="The current status">Status</th>
 		<th align="left" title="The host IP">IP</th>
 		<th align="left" title="The host name">Name</th>
