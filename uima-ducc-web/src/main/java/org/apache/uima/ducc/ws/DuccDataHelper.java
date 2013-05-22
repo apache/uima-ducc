@@ -19,12 +19,16 @@
 package org.apache.uima.ducc.ws;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
@@ -156,4 +160,51 @@ public class DuccDataHelper {
 		return map;
 	}
 
+	public ArrayList<JobProcessInfo> getJobProcessInfoList(String nodeName) {
+		ArrayList<JobProcessInfo> list = new ArrayList<JobProcessInfo>();
+		if(nodeName != null) {
+			DuccData duccData = DuccData.getInstance();
+			ConcurrentSkipListMap<JobInfo, JobInfo> jobs = duccData.getSortedJobs();
+			for(JobInfo jobInfo : jobs.descendingKeySet()) {
+				DuccWorkJob job = jobInfo.getJob();
+				if(job.isOperational()) {
+					DuccId jobid = job.getDuccId();
+					IDuccProcessMap map = job.getProcessMap();
+					Iterator<DuccId> procids = map.keySet().iterator();
+					while(procids.hasNext()) {
+						DuccId procid = procids.next();
+						IDuccProcess proc = map.get(procid);
+						if(!proc.isComplete()) {
+							NodeIdentity nodeIdentity = proc.getNodeIdentity();
+							String procNodeName = nodeIdentity.getName();
+							if(procNodeName != null) {
+								if(nodeName.equals(procNodeName)) {
+									JobProcessInfo jpi = new JobProcessInfo();
+									jpi.jobId = jobid;
+									jpi.procid = procid;
+									list.add(jpi);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return list;
+	}
+
+	public ArrayList<JobProcessInfo> getJobProcessIds(ArrayList<String> nodes) {
+		ArrayList<JobProcessInfo> list = new ArrayList<JobProcessInfo>();
+		if(nodes != null) {
+			Iterator<String> iterator = nodes.iterator();
+			while(iterator.hasNext()) {
+				String node = iterator.next();
+				ArrayList<JobProcessInfo> listForNode = getJobProcessInfoList(node);
+				for(JobProcessInfo jpi : listForNode) {
+					list.add(jpi);
+				}
+			}
+		}
+		return list;
+	}
 }
