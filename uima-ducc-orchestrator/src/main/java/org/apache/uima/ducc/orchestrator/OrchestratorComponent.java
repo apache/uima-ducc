@@ -84,6 +84,7 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
@@ -738,6 +739,24 @@ implements Orchestrator {
 							idp.setProcessState(ProcessState.Abandoned);
 							idp.setProcessDeallocationType(ProcessDeallocationType.Canceled);
 							idp.setReasonForStoppingProcess(ReasonForStoppingProcess.UserInitiated.toString());
+							if(reqRole != null) {
+								if(reqRole.equalsIgnoreCase(SpecificationProperties.key_role_administrator)) {
+									idp.setReasonForStoppingProcess(ReasonForStoppingProcess.AdministratorInitiated.toString());
+								}
+							}
+							long now = System.currentTimeMillis();
+							ITimeWindow twi = idp.getTimeWindowInit();
+							if(twi != null) {
+								if(twi.getStartLong() > 0) {
+									twi.setEndLong(now);
+								}
+							}
+							ITimeWindow twr = idp.getTimeWindowRun();
+							if(twr != null) {
+								if(twr.getStartLong() > 0) {
+									twr.setEndLong(now);
+								}
+							}
 							// prepare process not active 
 							properties.put(JobReplyProperties.key_message, JobReplyProperties.msg_process_canceled);
 							duccEvent.setProperties(properties);
