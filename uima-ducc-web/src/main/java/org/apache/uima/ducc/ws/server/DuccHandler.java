@@ -43,6 +43,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.uima.ducc.cli.ws.json.MachineFacts;
+import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.authentication.AuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -83,7 +85,9 @@ import org.apache.uima.ducc.transport.event.jd.PerformanceSummary;
 import org.apache.uima.ducc.transport.event.jd.UimaStatistic;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
+import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
+import org.apache.uima.ducc.ws.JobProcessInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
@@ -140,6 +144,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccServiceStop   				= duccContext+"/service-stop-request";
 	
 	private String duccServiceUpdate   				= duccContext+"/service-update-request";
+	
+	private String duccReleaseShares   				= duccContext+"/release-shares-request";
 	
 	private String jsonMachinesData 				= duccContext+"/json-machines-data";
 	private String jsonSystemClassesData 			= duccContext+"/json-system-classes-data";
@@ -3104,6 +3110,109 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}		
 	
+	private void handleDuccServletReleaseShares(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletReleaseShares";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		
+		String result = "";
+		
+		if(!isAuthenticated(request,response)) {
+			result = "error: not authenticated";
+			response.getWriter().println(result);
+			duccLogger.debug(methodName, null, result);
+		}
+		else if(!isAdministrator(request,response)) {
+			result = "error: not administrator";
+			response.getWriter().println(result);
+			duccLogger.debug(methodName, null, result);
+		}
+		else {
+			String node = request.getParameter("node");
+			String type = request.getParameter("type");
+			duccLogger.info(methodName, null, "node:"+node+" "+"type:"+type);
+			
+			if(node != null) {
+				node = node.trim();
+			}
+			else {
+				node = "";
+			}
+			
+			if(type != null) {
+				type = type.trim();
+			}
+			else {
+				type = "";
+			}
+			
+			if(node.length() < 1) {
+				result = "error: node missing";
+				response.getWriter().println(result);
+			}
+			else if(type.length() < 1) {
+				result = "error: type missing";
+				response.getWriter().println(result);
+			}
+			else {
+				if(type.equalsIgnoreCase("jobs")) {
+					ArrayList<String> nodeList = new ArrayList<String>();
+					MachineFactsList mfl = DuccMachinesData.getInstance().getMachineFactsList();
+					Iterator<MachineFacts> mfIterator = mfl.iterator();
+					while(mfIterator.hasNext()) {
+						MachineFacts mf = mfIterator.next();
+						if(mf.status != null) {
+							if(mf.status != "up") {
+								if(mf.name != null) {
+									if(node.equals("*")) {
+										nodeList.add(mf.name);
+									}
+									else if(node.equals(mf.name)) {
+										nodeList.add(mf.name);
+									}
+								}
+								
+							}
+						}
+					}
+					ArrayList<JobProcessInfo> list = DuccDataHelper.getInstance().getJobProcessIds(nodeList);
+					if(list.isEmpty()) {
+						result = "info: no job processes found on node";
+						response.getWriter().println(result);
+					}
+					else {
+						Iterator<JobProcessInfo> iterator = list.iterator();
+						String userId = duccWebSessionManager.getUserId(request);
+						String cp = System.getProperty("java.class.path");
+						String java = "/bin/java";
+						String jclass = "org.apache.uima.ducc.cli.DuccJobCancel";
+						String jhome = System.getProperty("java.home");
+						while(iterator.hasNext()) {
+							JobProcessInfo jpi = iterator.next();
+							String arg1 = "--id";
+							String arg2 = ""+jpi.jobId.getFriendly();
+							String arg3 = "--dpid";
+							String arg4 = ""+jpi.procid.getFriendly();
+							String arg5 = "--"+SpecificationProperties.key_role_administrator;
+							String arg6 = "--"+SpecificationProperties.key_reason;
+							String arg7 = "\"administrator "+userId+" released shares for this machine\"";
+							String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5, arg6, arg7 };
+							result = DuccAsUser.duckling(userId, arglistAdministrator);
+							response.getWriter().println(result);
+						}
+					}
+				}
+				else {
+					result = "error: type invalid";
+					response.getWriter().println(result);
+				}
+			}
+		}
+		
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}		
+	
 	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3262,6 +3371,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			else if(reqURI.startsWith(duccServiceUpdate)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletServiceUpdate(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccReleaseShares)) {
+				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
+				handleDuccServletReleaseShares(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccReservationSchedulingClasses)) {
