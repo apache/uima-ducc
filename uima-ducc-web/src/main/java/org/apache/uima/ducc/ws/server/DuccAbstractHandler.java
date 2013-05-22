@@ -22,12 +22,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.uima.ducc.cli.ws.json.MachineFacts;
+import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -48,7 +51,9 @@ import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
+import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
+import org.apache.uima.ducc.ws.JobProcessInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
@@ -372,6 +377,27 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 		return authenticated;
+	}
+	
+	protected boolean isAdministrator(HttpServletRequest request, HttpServletResponse response) {
+		String methodName = "isAdministrator";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		boolean administrator = false;
+		try {
+			DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
+			switch(requestRole) {
+			case Administrator:
+				administrator = true;
+				break;
+			default:
+				break;
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, null, e);
+		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+		return administrator;
 	}
 	
 	public boolean isIncludeUser(List<String> users, String user) {
@@ -833,6 +859,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			hover = " title=\""+DuccConstants.hintPreferencesRoleAdministrator+"\"";
 			break;
 		case LoggedInNotAdministrator:
+			hover = " title=\""+DuccConstants.hintPreferencesNotAdministrator+"\"";
 			break;
 		case NotLoggedIn:
 			hover = " title=\""+DuccConstants.hintLogin+"\"";
@@ -1120,5 +1147,56 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			sb.append(e.getMessage());
 		}
 		return sb;
+	}
+	
+	private boolean isAtLeastOneJobProcessStuck(MachineFactsList factsList) {
+		boolean retVal = false;
+		if(factsList.size() > 0) {
+			ListIterator<MachineFacts> listIterator = factsList.listIterator();
+			while(listIterator.hasNext()) {
+				MachineFacts facts = listIterator.next();
+				String nodeStatus = facts.status;
+				if(!nodeStatus.equals("up")) {
+					ArrayList<JobProcessInfo> list = DuccDataHelper.getInstance().getJobProcessInfoList(facts.name);
+					if(!list.isEmpty()) {
+						retVal = true;
+						break;
+					}
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	public String buildReleaseAll(HttpServletRequest request, MachineFactsList factsList) {
+		String retVal = "";
+		if(isAtLeastOneJobProcessStuck(factsList)) {
+			String hover = getDisabledWithHover(request,"");
+			String node = "'"+"*"+"'";
+			String type = "'"+"jobs"+"'";
+			if(node != null) {
+				retVal = "<input type=\"button\" onclick=\"ducc_confirm_release_shares("+node+","+type+")\" value=\"Release *ALL* Stuck Job Shares\" "+hover+"/>";
+			}
+		}
+		return retVal;
+	}
+	
+	public String buildReleaseMachine(HttpServletRequest request, MachineFacts facts) {
+		String retVal = "";
+		String nodeStatus = facts.status;
+		if(!nodeStatus.equals("up")) {
+			ArrayList<JobProcessInfo> list = DuccDataHelper.getInstance().getJobProcessInfoList(facts.name);
+			if(terminateEnabled) {
+				if(!list.isEmpty()) {
+					String hover = getDisabledWithHover(request,"");
+					String node = "'"+facts.name+"'";
+					String type = "'"+"jobs"+"'";
+					if(node != null) {
+						retVal = "<input type=\"button\" onclick=\"ducc_confirm_release_shares("+node+","+type+")\" value=\"Release Machine Stuck Job Shares\" "+hover+"/>";
+					}
+				}
+			}
+		}
+		return retVal;
 	}
 }
