@@ -2024,6 +2024,45 @@ function ducc_block_jobs(id)
 	return false;
 }
 
+function ducc_release_shares(node, type)
+{   
+    try {
+        $.jGrowl(" Pending release...");
+        $.ajax(
+        {
+            type: 'POST',
+            url : "/ducc-servlet/release-shares-request"+"?node="+node+"&"+"type="+type,
+            success : function (data) 
+            {
+            $.jGrowl(data, { life: 6000 });
+            setTimeout(function(){window.close();}, 5000);
+            }
+        });
+        setTimeout(function(){window.close();}, 5000);
+    }
+    catch(err) {
+        ducc_error("ducc_release_shares",err);
+    }   
+    return false;
+}
+
+function ducc_confirm_release_shares(node, type)
+{
+    try {
+        var machine = node;
+        if(machine == "*") {
+            machine = "ALL machines"
+        }
+        var result=confirm("Release "+type+" shares on "+machine+"?");
+        if (result==true) {
+            ducc_release_shares(node, type);
+        }
+    }
+    catch(err) {
+        ducc_error("ducc_confirm_release_shares",err);
+    }
+}
+
 function ducc_confirm_terminate_job(id)
 {
 	try {
