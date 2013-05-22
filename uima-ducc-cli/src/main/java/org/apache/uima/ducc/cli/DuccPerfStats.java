@@ -403,13 +403,10 @@ public class DuccPerfStats
                     wiPreempt  = idpw.getCountPreempt();
                 }
 
-                if ( csv ) {
-                } else {
-                    System.out.println(String.format(dataFmt, node, pid, init_time,
-                                                     mem, memmax, major_faults, swap_usage, max_swap_usage, cpu_time, gcCollectionCount, gcCollectionTime,
-                                                     wiDispatch, wiDone, wiError, wiRetry, wiPreempt,
-                                                     (exit_reason==null?"Completion":exit_reason)));
-                }
+                System.out.println(String.format(dataFmt, node, pid, init_time,
+                                                 mem, memmax, major_faults, swap_usage, max_swap_usage, cpu_time, gcCollectionCount, gcCollectionTime,
+                                                 wiDispatch, wiDone, wiError, wiRetry, wiPreempt,
+                                                 (exit_reason==null?"Completion":exit_reason)));
 			}
 		} catch (Exception e1) {
 			e1.printStackTrace();
