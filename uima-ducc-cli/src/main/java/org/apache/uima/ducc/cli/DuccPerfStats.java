@@ -355,7 +355,7 @@ public class DuccPerfStats
             String dataFmt = null;
 
             if ( csv ) {
-                dataFmt   = "%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%s"; 
+                dataFmt   = "%s\t%s\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%s"; 
             } else {
                 dataFmt   = "%25.25s %8s %12d %12d %12d %12d %12d %12d %10d %8d %8d %8d %8d %8d %8d %8d %s"; 
                 System.out.println(String.format(headerFmt, "Node", "Pid", "Init Time",
@@ -430,7 +430,7 @@ public class DuccPerfStats
         int maxl = 0;
         for ( Entry<String, PerformanceMetricsSummaryItem> e : set ) {
             PerformanceMetricsSummaryItem pmi = e.getValue();
-            String k = pmi.getName();
+            String k = pmi.getUniqueName();
             maxl = Math.max(maxl, k.length());
             items.add(pmi);
         }
@@ -447,19 +447,19 @@ public class DuccPerfStats
         Collections.sort(items, sorter);
         String fmt;
         if ( csv ) {
-            fmt = "%s,%d,%d,%d,%d";
+            fmt = "%d\t%d\t%d\t%d\t%s";
             System.out.println(""+size + "," + cascount);
         } else {
             System.out.println("Size: " + size + " CASCount: " + cascount);
-            fmt = "%" + maxl + "s %16s %16s %16s %16s";
-            System.out.println(String.format(fmt, "Name", "Total Time", "Max Time", "Min Time", "Items Processed"));
-            System.out.println(String.format(fmt, dup("-", maxl), "----------", "--------", "--------", "---------------"));
-            fmt = "%" + maxl + "s %16d %16d %16d %16d";
+            fmt = "%16s %16s %16s %16s %" + maxl + "s";
+            System.out.println(String.format(fmt, "Total Time", "Max Time", "Min Time", "Items Processed", "Name"));
+            System.out.println(String.format(fmt, "----------", "--------", "--------", "---------------", dup("-", maxl)));
+            fmt = "%16d %16d %16d %16d %" + maxl + "s";
         }
         
         for ( int i = 0; i < items.size(); i++ ) {
             PerformanceMetricsSummaryItem pmi = items.get(i);            
-            System.out.println(String.format(fmt, pmi.getName(), pmi.getAnalysisTime(), pmi.getAnalysisTimeMax(), pmi.getAnalysisTimeMin(), pmi.getNumProcessed()));
+            System.out.println(String.format(fmt, pmi.getAnalysisTime(), pmi.getAnalysisTimeMax(), pmi.getAnalysisTimeMin(), pmi.getNumProcessed(), pmi.getName()));
         }
     }
 
@@ -491,7 +491,7 @@ public class DuccPerfStats
         String fmt;
         if ( csv ) {
             // seq,id,state,overhead,proc,node,pid
-            fmt = "%s,%s,%s,%s,%s,%s,%s";
+            fmt = "%s\t%s\t%s\t%s\t%s\t%s\t%s";
         } else {
             fmt = "%5s %" + namemax + "s %10s %16s %16s %" + nodemax + "s %5s";
             System.out.println(String.format(fmt, "Seq", "Id", "State", "QTime", "ProcTime", "Node", "PID"));
