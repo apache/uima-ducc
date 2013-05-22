@@ -302,8 +302,12 @@ public class DuccHandler extends DuccAbstractHandler {
 			String fType = "POP";
 			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
 		}
-		else if(type == "SP") {
+		else if(type == "SPU") {
 			String fType = "UIMA";
+			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+		}
+		else if(type == "SPC") {
+			String fType = "POP";
 			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
 		}
 		else if(type == "JD") {
@@ -374,7 +378,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		long id = process.getDuccId().getFriendly();
 		System.out.println(id);
 		 */
-		if(type.equals("SP")) {
+		if(type.equals("SPC")) {
+			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
+		}
+		else if(type.equals("SPU")) {
 			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
 		}
 		else if(type.equals("MR")) {
@@ -737,7 +744,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(displayRss);
 			sb.append("</td>");
 		}
-		if(type.equals("SP")) {
+		if(type.equals("SPC")) {
+			// 
+		}
+		else if(type.equals("SPU")) {
 			// 
 		}
 		else if(type.equals("MR")) {
@@ -1605,7 +1615,13 @@ public class DuccHandler extends DuccAbstractHandler {
 			Iterator<DuccId> iterator = null;
 			iterator = duccWorkMap.getServiceKeySet().iterator();
 			int counter = 0;
-			String type = "SP";
+			String type = "SPU";
+			String service_type = properties.getProperty(IServicesRegistry.service_type);
+			if(service_type != null) {
+				if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
+					type = "SPC";
+				}
+			}
 			while(iterator.hasNext()) {
 				DuccId serviceId = iterator.next();
 				String fid = ""+serviceId.getFriendly();

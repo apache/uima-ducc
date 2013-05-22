@@ -37,7 +37,10 @@ public class IServicesRegistry {
 	public static final String service_healthy = IStateServices.service_healthy;
 	public static final String service_state = IStateServices.service_state;
 	public static final String service_statistics = IStateServices.service_statistics;
+	public static final String service_type = IStateServices.service_type;
 	public static final String user = IStateServices.user;
+	
+	public static final String service_type_CUSTOM = "CUSTOM";
 	
 	public static final String constant_Available = "Available";
 	public static final String constant_true = "true";
