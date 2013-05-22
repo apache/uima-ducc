@@ -54,11 +54,16 @@
     \input{part2/cli/ducc-process-submit.tex}
     \input{part2/cli/ducc-process-cancel.tex}
     \input{part2/cli/ducc-services.tex}
+    \input{part2/cli/ducc-perf-stats.tex}
 
 
 \chapter{Application Programming  Interface}
 \label{chap:api}
-
+   \ifpdf
+      The DUCC API is documented via Javadoc in \ducchome/doc/javadoc/index.html.
+   \else
+      See \href{javadoc/index.html}{DUCC Public API}
+   \fi
 \chapter{Service Management}
 \label{chap:services}
 \input{part2/services.tex}
