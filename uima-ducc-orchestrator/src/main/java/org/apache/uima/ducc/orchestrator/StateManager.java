@@ -907,13 +907,19 @@ public class StateManager {
 					+" "+messages.fetchLabel("ip")+nodeId.getIp());
 				if(processMap.containsKey(duccId)) {
 					IDuccProcess process = processMap.get(duccId);
-					process.setResourceState(ResourceState.Deallocated);
-					process.setProcessDeallocationType(ProcessDeallocationType.Forced);
-					logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource deallocated")
-						+" "+messages.fetchLabel("process")+duccId.getFriendly()
-						+" "+messages.fetchLabel("unique")+duccId.getUnique()
-						+" "+messages.fetchLabel("name")+nodeId.getName()
-						+" "+messages.fetchLabel("ip")+nodeId.getIp());
+					switch(process.getResourceState()) {
+					case Deallocated:
+						break;
+					default:
+						process.setResourceState(ResourceState.Deallocated);
+						process.setProcessDeallocationType(ProcessDeallocationType.Forced);
+						logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource deallocated")
+							+" "+messages.fetchLabel("process")+duccId.getFriendly()
+							+" "+messages.fetchLabel("unique")+duccId.getUnique()
+							+" "+messages.fetchLabel("name")+nodeId.getName()
+							+" "+messages.fetchLabel("ip")+nodeId.getIp());
+						break;
+					}
 					/*
 					if(process.isDefunct()) {
 						orchestratorCommonArea.getProcessAccounting().removeProcess(duccId);
