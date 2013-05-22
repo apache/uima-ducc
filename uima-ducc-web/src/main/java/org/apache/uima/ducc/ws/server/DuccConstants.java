@@ -27,6 +27,7 @@ public class DuccConstants {
 	
 	public static final String hintPreferencesDescriptionStyleShort = "Hint: use Preferences -> Description Style [Short] to hide everything left of last /";
 	public static final String hintPreferencesRoleAdministrator = "Hint: use Preferences -> Role [Administrator] to enable";
+	public static final String hintPreferencesNotAdministrator = "Hint: Login user is not an Administrator";
 	public static final String hintPreferencesDateStyle = "Hint: use Preferences -> Date Style to alter format";
 	public static final String hintLogin = "Hint: use Login to enable";
 	public static final String hintLoginAndManual = "Hint: use Login to enable and switch to Refresh = Manual";
