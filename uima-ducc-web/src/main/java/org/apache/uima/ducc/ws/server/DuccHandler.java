@@ -359,6 +359,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		String tr = trGet(counter);
 		sb.append(tr);
 		String pid = process.getPID();
+		if(pid == null) {
+			return;
+		}
 		// Id
 		sb.append("<td align=\"right\">");
 		/*
@@ -397,12 +400,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		*/
 		// PID
 		sb.append("<td align=\"right\">");
-		if(pid != null) {
-			sb.append(pid);
-		}
-		else {
-			sb.append("?");
-		}
+		sb.append(pid);
 		sb.append("</td>");
 		// State:scheduler
 		sb.append("<td>");
