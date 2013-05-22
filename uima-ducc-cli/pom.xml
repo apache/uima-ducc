@@ -308,31 +308,7 @@ y			  <class-path>${DUCC_CP}</class-path>
                </excludes>
             </configuration>
           </execution>          
-          
-         <execution>
-            <id>UimaAsServiceMonitor</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-qmon</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.UimaAsServiceMonitor</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>          
-               
+                         
          <execution>
             <id>DuccPerfStats</id>
             <goals><goal>jar</goal></goals>
