@@ -108,6 +108,7 @@ public interface IDuccProcess extends Serializable {
 		InitializationTimeout,
 		JPHasNoActiveJob, 
 		LowSwapSpace,
+		AdministratorInitiated,
 		UserInitiated
 	}
 	
