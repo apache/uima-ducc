@@ -147,17 +147,24 @@
 									<packages>*</packages>
 								</group>
 							</groups>
+                            <stylesheet>
+                              maven
+                            </stylesheet>
+
 							<!--verbose>true</verbose -->
 							<sourcepath>
 								uima-ducc-common/src/main/java:uima-ducc-cli/src/main/java
 							</sourcepath>
+
 							<subpackages>org.apache.uima</subpackages>
-							<!-- excludePackageNames></excludePackageNames -->
+
+							<excludePackageNames>
+                              org.apache.uima.ducc.cli.*:org.apache.uima.ducc.common.*
+                            </excludePackageNames>
+
 							<!-- add a few classes in impl packages that are directly used by 
 								user code -->
 							<additionalparam>
-
-
 
 								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/AServicePing.java
 								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/ServiceStatistics.java
@@ -180,11 +187,8 @@
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IServiceApi.java
 
-
-
-
-
 							</additionalparam>
+
 							<!-- Link these to the uimaj javadocs on apache.org -->
 							<!-- links>
 								<link>http://uima.apache.org/d/uimaj-${uimajDependencyVersion}/apidocs</link>

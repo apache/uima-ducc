@@ -126,6 +126,9 @@ public class DuccServiceApi
     }; 
 
 
+    /**
+     * Service start arguments.
+     */
     UiOption[] start_options = {
         UiOption.Help,
         UiOption.Debug,
@@ -263,8 +266,8 @@ public class DuccServiceApi
     }
 
     /**
-     * @param props Name of file in standard Java properies format with the service specification.
-     * @return 
+     * @param args Name of file in standard Java properies format with the service specification.
+     * @return Reply object with the registration numeric id and errors, if any.
      */
     public IServiceReply register(String[] args)
         throws Exception
@@ -373,8 +376,8 @@ public class DuccServiceApi
 	}
 
     /**
-     * @param id The full service id as returned by register
-     * @return 
+     * @param args The full service id as returned by register
+     * @return Reply object with unregister status.
      */
     public IServiceReply unregister(String[] args)
         throws Exception
@@ -397,8 +400,8 @@ public class DuccServiceApi
 	}
 
     /**
-     * @param props Name of file in standard Java properies format with the service specification.
-     * @return 
+     * @param args Service start arguments.
+     * @return Reply object with start status.
      */
     public IServiceReply start(String[] args)
         throws Exception
@@ -427,8 +430,8 @@ public class DuccServiceApi
 
 
     /**
-     * @param props Name of file in standard Java properies format with the service specification.
-     * @return 
+     * @param args Stop arguments.
+     * @return Reply object with stop status.
      */
     public IServiceReply stop(String[] args)
         throws Exception
@@ -456,7 +459,8 @@ public class DuccServiceApi
     }
 
     /**
-     * @return 
+     * @param args Modify arguments.
+     * @return Reply object with modify status.
      */
     public IServiceReply modify(String[] args)
         throws Exception
@@ -485,8 +489,8 @@ public class DuccServiceApi
     }
 
     /**
-     * @param props Name of file in standard Java properies format with the service specification.
-     * @return 
+     * @param args Query arguments.
+     * @return Reply object with the query results.
      */
     public IServiceReply query(String[] args)
         throws Exception

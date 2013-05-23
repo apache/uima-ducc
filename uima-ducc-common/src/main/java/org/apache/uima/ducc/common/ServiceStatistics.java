@@ -65,7 +65,7 @@ public class  ServiceStatistics
  
     /**
      * Set the "health" of the service.  This is called by each pinger for each service.
-     * @param alive Set to "true" if the service is healthy, "false" otherwise.
+     * @param healthy Set to "true" if the service is healthy, "false" otherwise.
      */
    public void setHealthy(boolean healthy)
     {

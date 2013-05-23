@@ -490,6 +490,14 @@ under the License.
         <include>*.jpg</include>
       </includes>
     </fileSet>
+  
+  <fileSet>
+      <!-- add javadocs to the webserver directory -->
+      <directory>target/site</directory>
+      <outputDirectory>ducc_runtime/webserver/root/doc</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
   </fileSets>
   
   <files>
