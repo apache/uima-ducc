@@ -1,8 +1,8 @@
 
 
 all: ALWAYS
-	htlatex duccbook.tex
 	pdflatex duccbook.tex
+	htlatex duccbook.tex
 	$(MAKE) dejunk
 
 	$(MAKE) -C part2/webserver
