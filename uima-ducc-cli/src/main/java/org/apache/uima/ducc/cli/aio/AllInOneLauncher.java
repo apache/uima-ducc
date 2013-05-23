@@ -20,6 +20,7 @@ package org.apache.uima.ducc.cli.aio;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -893,14 +894,16 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, "exit");
     }
     
+    // Get the classpath saved when DUCC is started
     private String getDuccClasspath() throws IOException {
-        StringBuilder sb = new StringBuilder();
-        File uimalib = new File(ducc_home + "/lib/uima");
-        for (File f : uimalib.listFiles()) {
-            sb.append(File.pathSeparator);
-            sb.append(f.getCanonicalPath());
+        BufferedReader in = new BufferedReader(new FileReader(ducc_home + "/state/ducc.classpath"));
+        String path = in.readLine();
+        in.close();
+        if (path.charAt(0) == ':') {
+            return path.substring(1);
+        } else {
+            return path;
         }
-        return sb.substring(2);
     }
     
     private void launch_local() throws IOException {
