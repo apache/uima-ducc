@@ -419,16 +419,6 @@ under the License.
     </fileSet>
 
     <fileSet>
-      <directory>uima-ducc-ducbook/target/site/d</directory>
-      <outputDirectory>ducc_runtime/docs</outputDirectory>
-      <excludes>
-        <exclude>css/*</exclude>
-      </excludes>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet> 
-
-    <fileSet>
       <!-- build up the verification test jobs -->
       <directory>uima-ducc-examples/src/main/resources/sleepjobs</directory>
       <outputDirectory>ducc_runtime/examples/simple</outputDirectory>
@@ -478,15 +468,51 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
 
-  </fileSets> 
+    <fileSet>
+      <!-- build up the webserver directory -->
+      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage/duccbook</directory>
+      <outputDirectory>ducc_runtime/webserver/root/doc</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+      <includes>
+        <include>*.css</include>
+        <include>*.html</include>
+      </includes>
+    </fileSet>
+
+  <fileSet>
+      <!-- build up the webserver directory -->
+      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage/duccbook</directory>
+      <outputDirectory>ducc_runtime/webserver/root/doc/images</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+      <includes>
+        <include>*.jpg</include>
+      </includes>
+    </fileSet>
+  </fileSets>
   
   <files>
   
   <file>
-      <source>uima-ducc-ducbook/target/site/d/book.html</source>
-      <outputDirectory>ducc_runtime/webserver/root</outputDirectory>
-      <destName>system.duccbook.html</destName>
+      <source>uima-ducc-duccdocs/target/site/duccbook/duccbook.pdf</source>
+      <outputDirectory>ducc_runtime/doc</outputDirectory>
+      <destName>duccbook.pdf</destName>
       <fileMode>644</fileMode>
+    </file>
+
+  <file>
+      <source>uima-ducc-duccdocs/target/site/duccbook/install-so.pdf</source>
+      <outputDirectory>ducc_runtime/doc</outputDirectory>
+      <destName>install.pdf</destName>
+      <fileMode>644</fileMode>
+    </file>
+
+  <file>
+      <source>src/main/scripts/dd2spring.xsl</source>
+      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <destName>dd2spring.xsl</destName>
+      <fileMode>755</fileMode>
     </file>
 
   <file>
