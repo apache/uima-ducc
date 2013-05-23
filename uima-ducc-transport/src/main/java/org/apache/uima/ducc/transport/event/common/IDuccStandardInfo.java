@@ -64,4 +64,7 @@ public interface IDuccStandardInfo extends Serializable {
 	public String[] getNotifications();
 	public void setNotifications(String[] notifications);
 	
+	// JP (or SP) maximum initialization time, in milliseconds
+	public long getProcessInitializationTimeMax();
+	public void setProcessInitializationTimeMax(long value);
 }

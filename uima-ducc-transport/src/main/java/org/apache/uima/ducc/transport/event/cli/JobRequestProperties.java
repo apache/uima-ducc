@@ -80,7 +80,10 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 			key_process_initialization_failures_cap,
 			key_process_failures_limit,
 			key_process_thread_count,
+			/*
 			key_process_get_meta_time_max,
+			*/
+			key_process_initialization_time_max,
 			key_process_per_item_time_max,
 	        key_service_dependency
 	        );

@@ -39,7 +39,7 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	private String logDirectory = null;
 	private String workingDirectory = null;
 	private String[] notifications = null;
-	
+	private long processInitializationTimeMax = 0;
 	
 	public String getUser() {
 		return user;
@@ -198,6 +198,16 @@ public class DuccStandardInfo implements IDuccStandardInfo {
 	
 	public void setNotifications(String[] notifications) {
 		this.notifications = notifications;
+	}
+	
+	
+	public long getProcessInitializationTimeMax() {
+		return processInitializationTimeMax;
+	}
+
+
+	public void setProcessInitializationTimeMax(long value) {
+		processInitializationTimeMax = value;
 	}
 
 	
