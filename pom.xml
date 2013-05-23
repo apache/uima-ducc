@@ -32,27 +32,31 @@
 	<url>${uimaWebsiteUrl}</url>
 
 
-<!-- Special inheritance note
-       even though the <scm> element that follows is exactly the
-       same as those in super poms, it cannot be inherited because
-       there is some special code that computes the connection elements
-       from the chain of parent poms, if this is omitted.
-
-       Keeping this a bit factored allows cutting/pasting the <scm>
-       element, and just changing the following two properties -->
-  <scm>
-    <connection>
+	<!-- Special inheritance note even though the <scm> element that follows 
+		is exactly the same as those in super poms, it cannot be inherited because 
+		there is some special code that computes the connection elements from the 
+		chain of parent poms, if this is omitted. Keeping this a bit factored allows 
+		cutting/pasting the <scm> element, and just changing the following two properties -->
+	<scm>
+		<connection>
       scm:svn:http://svn.apache.org/repos/asf/uima/uima-ducc/trunk
     </connection>
-    <developerConnection>
+		<developerConnection>
       scm:svn:https://svn.apache.org/repos/asf/uima/uima-ducc/trunk
     </developerConnection>
-    <url>
+		<url>
       http://svn.apache.org/viewvc/uima/uima-ducc/trunk
     </url>
-  </scm>
+	</scm>
 
-    <!--  name the artifacts (zip,tar) -->
+	<!-- override pom setting in the build project. JIRA 5.1 needs different 
+		URL -->
+	<issueManagement>
+		<system>Jira</system>
+		<url>https://issues.apache.org/jira/browse/UIMA</url>
+	</issueManagement>
+
+	<!-- name the artifacts (zip,tar) -->
 	<properties>
 		<assemblyFinalName>uima-ducc-${project.version}</assemblyFinalName>
 	</properties>
@@ -119,206 +123,163 @@
 	<build>
 		<resources />
 
-		
-		
+
+
 		<plugins>
-      
-      <!-- plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.6</version>
-        <executions>
-          
-          <execution>
-            <id>download-jquery-ui</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                 <get src="http://jquery-ui.googlecode.com/files/jquery-ui-1.8.4.zip" 
-                     dest="${project.build.directory}/jquery-ui-1.8.4.zip" /> 
-                 <unzip src="${project.build.directory}/jquery-ui-1.8.4.zip" dest="${project.build.directory}/jquery-ui-1.8.4"/>
-               
-              </target>
-              
-            </configuration>
-          </execution>
+			<!-- This java doc config is for building the ones distributed with the 
+				bin packaging, and also posted on our website. -->
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>javadocs-distr</id>
+						<phase>prepare-package</phase> <!-- must be before assembly -->
+						<!--phase>deploy</phase -->   <!-- comment above and uncomment to disable javadocs, for testing/experimentation, 
+							with assembly:assembly -->
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+						<configuration>
+							<quiet>true</quiet>
+							<groups>
+								<group>
+									<title>Packages</title>
+									<packages>*</packages>
+								</group>
+							</groups>
+							<!--verbose>true</verbose -->
+							<sourcepath>
+								uima-ducc-common/src/main/java:uima-ducc-cli/src/main/java
+							</sourcepath>
+							<subpackages>org.apache.uima</subpackages>
+							<!-- excludePackageNames></excludePackageNames -->
+							<!-- add a few classes in impl packages that are directly used by 
+								user code -->
+							<additionalparam>
 
 
-     
-          <execution>
-            <id>download-DataTables</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                 <get src="http://datatables.net/releases/DataTables-1.9.1.zip" 
-                     dest="${project.build.directory}/DataTables-1.9.1.zip" /> 
-                 <unzip src="${project.build.directory}/DataTables-1.9.1.zip" dest="${project.build.directory}/DataTables-1.9.1"/>
 
-                 <get src="https://github.com/DataTables/Plugins/blob/master/api/fnReloadAjax.js" 
-                     dest="${project.build.directory}/fnReloadAjax.js" /> 
-                 
+								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/AServicePing.java
+								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/ServiceStatistics.java
 
-
-              </target>
-              
-            </configuration>
-          </execution>
-          
-          
-            <execution>
-            <id>download-cluetip</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                 <get src="https://github.com/kswedberg/jquery-cluetip/blob/master/jquery.cluetip.css" 
-                     dest="${project.build.directory}/jquery.cluetip.css" /> 
-                 <get src="https://github.com/kswedberg/jquery-cluetip/blob/master/jquery.cluetip.js" 
-                     dest="${project.build.directory}/jquery.cluetip.js" /> 
-                 
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobMonitor.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationMonitor.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccMonitor.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccPerfStats.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccProcessCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceApi.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccCallback.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IServiceApi.java
 
 
-              </target>
-              
-            </configuration>
-          </execution>
-          
-          
-          <execution>
-            <id>download-jgrowl</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                 <get src="https://github.com/stanlemon/jGrowl/blob/1.2.7/jquery.jgrowl.css" 
-                     dest="${project.build.directory}/jquery.jgrowl.css" /> 
-                 <get src="https://github.com/stanlemon/jGrowl/blob/1.2.7/jquery.jgrowl.js" 
-                     dest="${project.build.directory}/jquery.jgrowl.js" /> 
-                 
 
 
-              </target>
-              
-            </configuration>
-          </execution>
-          
-          <execution>
-            <id>download-jquery</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                 <get src="http://code.jquery.com/jquery-1.9.1.js" 
-                     dest="${project.build.directory}/jquery-1.9.1.js" /> 
-              </target>
-              
-            </configuration>
-          </execution>
-          <execution>
-            <id>download-sorttable</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                 <get src="http://kryogenix.org/code/browser/sorttable/sorttable.js" 
-                     dest="${project.build.directory}/sorttable.js" /> 
-              </target>
-              
-            </configuration>
-          </execution>         
-        </executions>
-      </plugin -->
-      
-      
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>generate checksums for binary artifacts</id>
-            <goals><goal>run</goal></goals>
-            <phase>verify</phase>
-            <configuration>
-              <target>
-                <checksum algorithm="sha1" format="MD5SUM">
-                  <fileset dir="${project.build.directory}">
-                    <include name="*.zip" />
-                    <include name="*.gz" />
-                  </fileset>
-                </checksum>
-                <checksum algorithm="md5" format="MD5SUM">
-                  <fileset dir="${project.build.directory}">
-                    <include name="*.zip" />
-                    <include name="*.gz" />
-                  </fileset>
-                </checksum>
-              </target>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <!-- use the dependency:unpack goal to unpack the AMQ binary release --> 
-            <id>unpack-activemq-distro</id>
-            <phase>prepare-package</phase>
-            <goals><goal>unpack</goal></goals>
-            <configuration>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.apache.activemq</groupId>
-                  <artifactId>apache-activemq</artifactId>
-                  <version>${org.apache.activemq.version}</version>
-                  <type>zip</type>
-                  <classifier>bin</classifier>
-                  <outputDirectory>${project.build.directory}/apache-activemq</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-          
-          
-          <execution>
-            <!-- use the dependency:unpack goal to unpack the Jetty release --> 
-            <id>unpack-jetty-distro</id>
-            <phase>prepare-package</phase>
-            <goals><goal>unpack</goal></goals>
-            <configuration>
-              <overWriteIfNewer>true</overWriteIfNewer>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.eclipse.jetty</groupId>
-                  <artifactId>jetty-distribution</artifactId>
-                  <version>${jetty.version}</version>
-                  <type>zip</type>
-                  <outputDirectory>${project.build.directory}/jetty</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-          
-          
-        </executions>        
-      </plugin>
-      
+
+							</additionalparam>
+							<!-- Link these to the uimaj javadocs on apache.org -->
+							<!-- links>
+								<link>http://uima.apache.org/d/uimaj-${uimajDependencyVersion}/apidocs</link>
+							</links -->
+							<doctitle>Apache UIMA DUCC Java SDK ${project.version} User-Level
+								API Documentation</doctitle>
+							<windowtitle>Apache UIMA DUCC Java SDK ${project.version}
+								User-Level API Documentation</windowtitle>
+						</configuration>
+					</execution>
+				</executions>
+
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>generate checksums for binary artifacts</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<phase>verify</phase>
+						<configuration>
+							<target>
+								<checksum algorithm="sha1" format="MD5SUM">
+									<fileset dir="${project.build.directory}">
+										<include name="*.zip" />
+										<include name="*.gz" />
+									</fileset>
+								</checksum>
+								<checksum algorithm="md5" format="MD5SUM">
+									<fileset dir="${project.build.directory}">
+										<include name="*.zip" />
+										<include name="*.gz" />
+									</fileset>
+								</checksum>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<!-- use the dependency:unpack goal to unpack the AMQ binary release -->
+						<id>unpack-activemq-distro</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.apache.activemq</groupId>
+									<artifactId>apache-activemq</artifactId>
+									<version>${org.apache.activemq.version}</version>
+									<type>zip</type>
+									<classifier>bin</classifier>
+									<outputDirectory>${project.build.directory}/apache-activemq</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+
+
+					<execution>
+						<!-- use the dependency:unpack goal to unpack the Jetty release -->
+						<id>unpack-jetty-distro</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.eclipse.jetty</groupId>
+									<artifactId>jetty-distribution</artifactId>
+									<version>${jetty.version}</version>
+									<type>zip</type>
+									<outputDirectory>${project.build.directory}/jetty</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+
+
+				</executions>
+			</plugin>
+
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.5</version>
@@ -339,8 +300,8 @@
 										<include>LICENSE</include>
 										<include>NOTICE</include>
 									</includes>
-									
-									
+
+
 								</resource>
 							</resources>
 						</configuration>
@@ -348,165 +309,114 @@
 				</executions>
 			</plugin>
 
-         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-changes-plugin</artifactId>
-          <version>2.8</version>
-          <executions>
-            <execution>
-              <id>ducc-jira-report</id>
-              <goals><goal>jira-report</goal></goals>
-              
-              <phase>generate-resources</phase>        
-              <configuration>
-                <useJql>true</useJql>
-                <fixVersionIds>${jira.version}</fixVersionIds>
-                <component>DUCC</component>
-                <columnNames>Type,Key,Status,Summary</columnNames>
-                <resolution>Fixed</resolution>
-                <status>Closed,Resolved</status>
-                <sortColumnNames>Type, Status, Key</sortColumnNames>
-                <outputDirectory>${basedir}/issuesFixed/</outputDirectory>
-                <maxEntries>1000</maxEntries> 
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <!-- run Release Audit Tool (RAT) on src and bin distrs -->
-      	<!-- plugin>
-	               
-        	<groupId>org.apache.rat</groupId>
-        	<artifactId>apache-rat-plugin</artifactId>
-        	<executions>
-          		<execution>
-            		<id>ducc-rat</id>
-            		<configuration>
-              			<excludes>
-                            <exclude>uima-ducc/target/**</exclude>
-                            <exclude>uima-ducc/src/main/**</exclude>
-                            
-              			    <exclude>uima-ducc-ducbooks/target/**</exclude>
-              			    <exclude>uima-ducc-ducbooks/.project</exclude>
-              			    <exclude>uima-ducc-ducbooks/.settings/**</exclude>
-              			    <exclude>uima-ducc/target/**</exclude>
-              			    <exclude>uima-ducc/.classpath</exclude>
-              			    <exclude>uima-ducc/.project</exclude>
-              			    <exclude>uima-ducc/.settings/**</exclude>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-changes-plugin</artifactId>
+				<version>2.9</version>
+				<executions>
+					<execution>
+						<id>ducc-jira-report</id>
+						<goals>
+							<goal>jira-report</goal>
+						</goals>
 
-              			    <exclude>uima-ducc-agent/.classpath</exclude>
-              			    <exclude>uima-ducc-agent/.project</exclude>
-              			    <exclude>uima-ducc-agent/.settings/**</exclude>
-              			    <exclude>uima-ducc-agent/target/**</exclude>
+						<phase>generate-resources</phase>
+						<configuration>
+							<useJql>true</useJql>
+							<fixVersionIds>${jira.version}</fixVersionIds>
+							<component>DUCC</component>
+							<columnNames>Type,Key,Status,Summary</columnNames>
+							<resolution>Fixed</resolution>
+							<status>Closed,Resolved</status>
+							<sortColumnNames>Type, Status, Key</sortColumnNames>
+							<outputDirectory>${basedir}/issuesFixed/</outputDirectory>
+							<maxEntries>1000</maxEntries>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
+			<!-- plugin> <groupId>org.apache.rat</groupId> <artifactId>apache-rat-plugin</artifactId> 
+				<executions> <execution> <id>ducc-rat</id> <configuration> <excludes> <exclude>uima-ducc/target/**</exclude> 
+				<exclude>uima-ducc/src/main/**</exclude> <exclude>uima-ducc-ducbooks/target/**</exclude> 
+				<exclude>uima-ducc-ducbooks/.project</exclude> <exclude>uima-ducc-ducbooks/.settings/**</exclude> 
+				<exclude>uima-ducc/target/**</exclude> <exclude>uima-ducc/.classpath</exclude> 
+				<exclude>uima-ducc/.project</exclude> <exclude>uima-ducc/.settings/**</exclude> 
+				<exclude>uima-ducc-agent/.classpath</exclude> <exclude>uima-ducc-agent/.project</exclude> 
+				<exclude>uima-ducc-agent/.settings/**</exclude> <exclude>uima-ducc-agent/target/**</exclude> 
+				<exclude>uima-ducc-cli/.classpath</exclude> <exclude>uima-ducc-cli/.project</exclude> 
+				<exclude>uima-ducc-cli/.settings/**</exclude> <exclude>uima-ducc-cli/target/**</exclude> 
+				<exclude>uima-ducc-common/.classpath</exclude> <exclude>uima-ducc-common/.project</exclude> 
+				<exclude>uima-ducc-common/.settings/**</exclude> <exclude>uima-ducc-common/target/**</exclude> 
+				<exclude>uima-ducc-jd/.classpath</exclude> <exclude>uima-ducc-jd/.project</exclude> 
+				<exclude>uima-ducc-jd/.settings/**</exclude> <exclude>uima-ducc-jd/target/**</exclude> 
+				<exclude>uima-ducc-orchestrator/.classpath</exclude> <exclude>uima-ducc-orchestrator/.project</exclude> 
+				<exclude>uima-ducc-orchestrator/.settings/**</exclude> <exclude>uima-ducc-orchestrator/target/**</exclude> 
+				<exclude>uima-ducc-parent/target/**</exclude> <exclude>uima-ducc-pm/.classpath</exclude> 
+				<exclude>uima-ducc-pm/.project</exclude> <exclude>uima-ducc-pm/.settings/**</exclude> 
+				<exclude>uima-ducc-pm/target/**</exclude> <exclude>uima-ducc-rm/.classpath</exclude> 
+				<exclude>uima-ducc-rm/.project</exclude> <exclude>uima-ducc-rm/.settings/**</exclude> 
+				<exclude>uima-ducc-rm/target/**</exclude> <exclude>uima-ducc-sm/.classpath</exclude> 
+				<exclude>uima-ducc-sm/.project</exclude> <exclude>uima-ducc-sm/.settings/**</exclude> 
+				<exclude>uima-ducc-sm/target/**</exclude> <exclude>uima-ducc-transport/.classpath</exclude> 
+				<exclude>uima-ducc-transport/.project</exclude> <exclude>uima-ducc-transport/.settings/**</exclude> 
+				<exclude>uima-ducc-transport/target/**</exclude> <exclude>README*</exclude> 
+				<exclude>RELEASE_NOTES*</exclude> </excludes> </configuration> </execution> 
+				</executions> </plugin -->
 
-              			    <exclude>uima-ducc-cli/.classpath</exclude>
-              			    <exclude>uima-ducc-cli/.project</exclude>
-              			    <exclude>uima-ducc-cli/.settings/**</exclude>
-              			    <exclude>uima-ducc-cli/target/**</exclude>
 
-
-              			    <exclude>uima-ducc-common/.classpath</exclude>
-              			    <exclude>uima-ducc-common/.project</exclude>
-              			    <exclude>uima-ducc-common/.settings/**</exclude>
-              			    <exclude>uima-ducc-common/target/**</exclude>
-
-              			    <exclude>uima-ducc-jd/.classpath</exclude>
-              			    <exclude>uima-ducc-jd/.project</exclude>
-              			    <exclude>uima-ducc-jd/.settings/**</exclude>
-              			    <exclude>uima-ducc-jd/target/**</exclude>
-
-              			    <exclude>uima-ducc-orchestrator/.classpath</exclude>
-              			    <exclude>uima-ducc-orchestrator/.project</exclude>
-              			    <exclude>uima-ducc-orchestrator/.settings/**</exclude>
-              			    <exclude>uima-ducc-orchestrator/target/**</exclude>
-
-              			    <exclude>uima-ducc-parent/target/**</exclude>
-
-              			    <exclude>uima-ducc-pm/.classpath</exclude>
-              			    <exclude>uima-ducc-pm/.project</exclude>
-              			    <exclude>uima-ducc-pm/.settings/**</exclude>
-              			    <exclude>uima-ducc-pm/target/**</exclude>
-
-              			    <exclude>uima-ducc-rm/.classpath</exclude>
-              			    <exclude>uima-ducc-rm/.project</exclude>
-              			    <exclude>uima-ducc-rm/.settings/**</exclude>
-              			    <exclude>uima-ducc-rm/target/**</exclude>
-              			    
-              			    <exclude>uima-ducc-sm/.classpath</exclude>
-              			    <exclude>uima-ducc-sm/.project</exclude>
-              			    <exclude>uima-ducc-sm/.settings/**</exclude>
-              			    <exclude>uima-ducc-sm/target/**</exclude>
-
-              			    <exclude>uima-ducc-transport/.classpath</exclude>
-              			    <exclude>uima-ducc-transport/.project</exclude>
-              			    <exclude>uima-ducc-transport/.settings/**</exclude>
-              			    <exclude>uima-ducc-transport/target/**</exclude>
-
-                			<exclude>README*</exclude>
-                			<exclude>RELEASE_NOTES*</exclude>
-              			</excludes>
-            		</configuration>
-          		</execution>
-        	</executions>
-      	</plugin -->
-
-	
 		</plugins>
 		<!-- /pluginManagement -->
 	</build>
 
-<profiles>
-    <profile>
-      <id>apache-release</id>
-      <build>
-        <plugins>
-          <!-- https://issues.apache.org/jira/browse/UIMA-2008 -->
-          <!-- no maven deployment, do manual checksums -->
-          <!-- source-release artifact deployed from apache mirrors -->
-          <plugin>
-            <artifactId>maven-deploy-plugin</artifactId>      
-            <configuration>
-              <skip>true</skip>
-            </configuration>
-          </plugin>
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>generate checksums for source-release</id>
-                <goals><goal>run</goal></goals>
-                <phase>verify</phase>
-                <configuration>
-                  <target>
-                    <checksum algorithm="sha1" format="MD5SUM" file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
-                    <checksum algorithm="md5" format="MD5SUM" file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
-                  </target>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        <!-- Run jira report -->
-        <!-- depends on having -DjiraVersion set -->
-          <plugin>
-            <artifactId>maven-changes-plugin</artifactId>
-            <version>2.8</version>
-            <executions>
-              <execution>
-                <id>default-cli</id>
-                <configuration>
-                  <fixVersionIds>${jiraVersion}</fixVersionIds>
-                  <sortColumnNames>Type, Status, Key</sortColumnNames>
-                </configuration>
-              </execution>
-            </executions>  
-          </plugin>
-        
-        </plugins>
-      </build>
-    </profile>
-    
-  </profiles>
+	<profiles>
+		<profile>
+			<id>apache-release</id>
+			<build>
+				<plugins>
+					<!-- https://issues.apache.org/jira/browse/UIMA-2008 -->
+					<!-- no maven deployment, do manual checksums -->
+					<!-- source-release artifact deployed from apache mirrors -->
+					<plugin>
+						<artifactId>maven-deploy-plugin</artifactId>
+						<configuration>
+							<skip>true</skip>
+						</configuration>
+					</plugin>
+					<plugin>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>generate checksums for source-release</id>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<phase>verify</phase>
+								<configuration>
+									<target>
+										<checksum algorithm="sha1" format="MD5SUM"
+											file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
+										<checksum algorithm="md5" format="MD5SUM"
+											file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Run jira report -->
+					<!-- depends on having -DjiraVersion set -->
+					<!-- plugin> <artifactId>maven-changes-plugin</artifactId> <version>2.8</version> 
+						<executions> <execution> <id>default-cli</id> <configuration> <fixVersionIds>${jiraVersion}</fixVersionIds> 
+						<sortColumnNames>Type, Status, Key</sortColumnNames> </configuration> </execution> 
+						</executions> </plugin -->
 
-    <!-- Include all ducc modules  -->
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
+
+	<!-- Include all ducc modules -->
 	<modules>
         <module>uima-ducc-parent</module>
         <module>uima-ducc-cli</module>
