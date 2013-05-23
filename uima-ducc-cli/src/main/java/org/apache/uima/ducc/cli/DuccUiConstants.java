@@ -377,12 +377,21 @@ public class DuccUiConstants {
 	public static final String exmp_process_thread_count = "4";
 	public static final String dval_process_thread_count = "4";
 	
+	/*
 	public static final String name_process_get_meta_time_max = JobSpecificationProperties.key_process_get_meta_time_max;
 	public static final String parm_process_get_meta_time_max = "integer";
 	public static final String desc_process_get_meta_time_max = "Maximum elapsed time (in minutes) for processing getMeta.";
 	public static final String labl_process_get_meta_time_max = "Time Max: initalize";
 	public static final String exmp_process_get_meta_time_max = "2";
 	public static final String dval_process_get_meta_time_max = "2";
+	*/
+	
+	public static final String name_process_initialization_time_max = JobSpecificationProperties.key_process_initialization_time_max;
+	public static final String parm_process_initialization_time_max = "integer";
+	public static final String desc_process_initialization_time_max = "Maximum elapsed time (in minutes) for processing initialization.";
+	public static final String labl_process_initialization_time_max = "Time Max: initalize";
+	public static final String exmp_process_initialization_time_max = "2";
+	public static final String dval_process_initialization_time_max = "2";
 	
 	public static final String name_process_per_item_time_max = JobSpecificationProperties.key_process_per_item_time_max;
 	public static final String parm_process_per_item_time_max = "integer";

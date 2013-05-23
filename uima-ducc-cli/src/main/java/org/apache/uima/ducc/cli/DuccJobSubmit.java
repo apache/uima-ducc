@@ -88,7 +88,8 @@ public class DuccJobSubmit
         UiOption.ProcessFailuresLimit,
         UiOption.ProcessThreadCount,
         UiOption.ProcessPerItemTimeMax,
-        UiOption.ProcessGetMetaTimeMax,
+        //UiOption.ProcessGetMetaTimeMax,
+        UiOption.ProcessInitializationTimeMax,
 
         UiOption.Specification,
         UiOption.WaitForCompletion,
@@ -144,7 +145,8 @@ public class DuccJobSubmit
         UiOption.ProcessFailuresLimit,
         UiOption.ProcessThreadCount,
         UiOption.ProcessPerItemTimeMax,
-        UiOption.ProcessGetMetaTimeMax,
+        //UiOption.ProcessGetMetaTimeMax,
+        UiOption.ProcessInitializationTimeMax,
 
         UiOption.Specification,
         UiOption.WaitForCompletion,

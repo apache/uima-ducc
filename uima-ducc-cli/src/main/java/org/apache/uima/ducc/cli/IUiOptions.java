@@ -674,7 +674,8 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-        ProcessGetMetaTimeMax { 
+        /*
+        ProcessGetMetaTimeMax {
             public String pname()       { return JobSpecificationProperties.key_process_get_meta_time_max; }
             public String description() { return "Maximum elapsed time (in minutes) for processing getMeta."; }
             public String argname()     { return "integer"; }
@@ -684,7 +685,19 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-
+		*/
+		
+        ProcessInitializationTimeMax { 
+            public String pname()       { return JobSpecificationProperties.key_process_initialization_time_max; }
+            public String description() { return DuccUiConstants.desc_process_initialization_time_max; }
+            public String argname()     { return "integer"; }
+            public String example()     { return null; }
+            public String deflt()       { return null; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },     
+		
         ProcessInitializationFailuresCap { 
             public String pname()       { return JobSpecificationProperties.key_process_initialization_failures_cap; }
             public String description() { return "Number of unexpected job process initialization failures (i.e. System.exit(), kill-15...) before the number of Job Processes is capped at the number in state Running currently.  Default is " + deflt() + "."; }
