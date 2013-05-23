@@ -537,13 +537,17 @@ public class ManagedProcess implements Process {
 			}
 		}
 	}
-	public void startInitializationTimer() {
+	public void startInitializationTimer(long timeout) {
 		initTimer = new Timer();
-		long timeout = 7200*1000;  // default timeout after 2 hours of initialization
+		//long timeout = 7200*1000;  // default timeout after 2 hours of initialization
 		try {
-			String str_timeout;
-			if ( (str_timeout = System.getProperty("ducc.agent.launcher.process.init.timeout")) != null ) {
-				timeout = Long.parseLong(str_timeout);
+			if ( timeout == 0 ) {
+				String str_timeout;
+				if ( (str_timeout = System.getProperty("ducc.agent.launcher.process.init.timeout")) != null ) {
+					timeout = Long.parseLong(str_timeout);
+				} else {
+					timeout = 3600 * 4 * 1000;  // max init timeout default=4hours
+				}
 			}
 		} catch( NumberFormatException e) {
 			
