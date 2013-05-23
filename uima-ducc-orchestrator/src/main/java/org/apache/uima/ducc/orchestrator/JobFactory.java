@@ -287,10 +287,8 @@ public class JobFactory {
 		String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
 		String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
 		// getMeta
-		String meta_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_get_meta_time_max);
-		if(meta_time == null) {
-			meta_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
-		}
+		String meta_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
+		// process_per_item_time_max
 		String wi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_per_item_time_max);
 		if(wi_time == null) {
 			wi_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
@@ -454,6 +452,18 @@ public class JobFactory {
 		schedulingInfo.setThreadsPerShare(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
 		schedulingInfo.setShareMemorySize(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
 		schedulingInfo.setShareMemoryUnits(MemoryUnits.GB);
+		// process_initialization_time_max
+		String pi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_initialization_time_max);
+		if(pi_time == null) {
+			pi_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_agent_launcher_process_init_timeout);
+		}
+		try {
+			long value = Long.parseLong(pi_time)*60*1000;
+			standardInfo.setProcessInitializationTimeMax(value);
+		}
+		catch(Exception e) {
+			logger.error(methodName, job.getDuccId(), e);
+		}
 		// jp
 		ServiceDeploymentType serviceDeploymentType = job.getServiceDeploymentType();
 		if(isJpUima(duccType, serviceDeploymentType)) {
