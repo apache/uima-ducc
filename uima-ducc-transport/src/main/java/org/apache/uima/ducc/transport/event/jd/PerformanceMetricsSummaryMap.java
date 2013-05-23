@@ -44,8 +44,11 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 		String key = "?";
 		try {
 			String uniqueName = item.getUniqueName();
+			key = uniqueName;
+			/*
 			String delim = "Components,";
 			key = delim+uniqueName.split(delim,2)[1];
+			*/
 		}
 		catch(Throwable t) {
 		}
