@@ -29,7 +29,7 @@ under the License.
 <li><a href="system.administration.html">Administration</a></li>
 <li><a href="system.classes.html">Classes</a></li>
 <li><a href="system.daemons.html">Daemons</a></li>
-<li><a href="system.duccbook.html" target="_duccbook">DuccBook</a></li>
+<li><a href="doc/duccbook.html" target="_duccbook">DuccBook</a></li>
 <li><a href="system.machines.html">Machines</a></li>
 </ul>
 <%@ include file="../site.jsp" %>
