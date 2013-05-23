@@ -42,6 +42,7 @@ import org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandler;
 import org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandlerLoader;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.jd.client.CasDispatchMap;
@@ -348,10 +349,10 @@ public class JobDriver extends Thread implements IJobDriver {
 			Map<String,Object> appCtx = new HashMap<String,Object>();
 			try {
 				metaTimeout = Integer.parseInt(getJob().getDriver().getMetaTimeout());
-				duccOut.info(location, jobid, JobRequestProperties.key_process_get_meta_time_max+":"+metaTimeout);
+				duccOut.info(location, jobid, DuccPropertiesResolver.default_process_get_meta_time_max+":"+metaTimeout);
 			}
 			catch(Exception e) {
-				duccOut.warn(location, jobid, JobRequestProperties.key_process_get_meta_time_max+":"+metaTimeout);
+				duccOut.warn(location, jobid, DuccPropertiesResolver.default_process_get_meta_time_max+":"+metaTimeout);
 			}
 			try {
 				wiTimeout = Integer.parseInt(getJob().getDriver().getWiTimeout());
