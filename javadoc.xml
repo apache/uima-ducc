@@ -55,7 +55,10 @@
           </fileset>
 
           <fileset dir="uima-ducc-cli/src/main/java">
+            <include name="**/DuccJobSubmit.java" />
             <include name="**/DuccServiceApi.java" />
+            <include name="**/IDuccCallback.java" />
+            <include name="**/CliBase.java" />
           </fileset>
         </javadoc>
 

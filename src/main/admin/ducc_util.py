@@ -569,7 +569,7 @@ class DuccUtil:
             verfile.close()
         else:
             print "ducc_ling version file missing, cannot verify version."
-            return Ffalse;
+            return False;
 
         print 'ducc_ling OK'
         return True

@@ -258,7 +258,6 @@ class DuccProcess(Thread):
         CMD = CMD + ' --scheduling_class '                    + pclass
         
         CMD = CMD + ' --process_per_item_time_max '           + self.runner.process_timeout  # in minutes
-        CMD = CMD + ' --process_get_meta_time_max '           + self.runner.meta_timeout     # in seconds
         CMD = CMD + ' --process_initialization_failures_cap ' + self.runner.init_fail_cap 
         
         CMD = CMD + ' --process_environment ' \
@@ -680,9 +679,6 @@ class RunDucc(DuccUtil):
         print '   -s  --sourcetree'
         print '       Run application from the DUCC source tree, not from the ducc_build pathing.'
         print ''
-        print '   -t, --timeout sec'
-        print '       Meta_timeout in seconds. Defualt:', self.meta_timeout
-        print ''
         print '   --jd_uima_log log-properties'
         print '       If specified, use the indicated properties file for JD UIMA/UIMA-AS logging. Default:', self.jd_uima_log
         print ''
@@ -728,7 +724,6 @@ class RunDucc(DuccUtil):
         self.memory_override = None
         self.init_time = 10000
         self.init_range = 1000
-        self.meta_timeout = '5'
         self.process_timeout = str(60*24)  # 24 hour default - nothing in current megas will fail on this
         self.style = 'AE'
         self.service_pid = None
@@ -743,7 +738,7 @@ class RunDucc(DuccUtil):
         self.use_ibm_package = False
         self.submit_package = 'org.apache.uima.ducc'
 
-        opts, args  = getopt.getopt(argv, 'b:d:i:r:m:p:st:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
+        opts, args  = getopt.getopt(argv, 'b:d:i:r:m:p:swx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                      'init_fail_cap=', 'range=', 'memory_override=', 'process_timeout=',
                                                                      'sourcetree', 'timeout=', 'watch',
                                                                      'jd_uima_log=', 'jp_uima_log=', 
@@ -766,8 +761,6 @@ class RunDucc(DuccUtil):
                 self.memory_override = a
             elif o in ('-p', '--process_timeout'):
                 self.process_timeout = a
-            elif o in ('-t', '--meta_timeout'):
-                self.meta_timeout = a
             elif o in ('-s', '--sourcetree'):
                 self.use_sourcetree = True
             elif o in ('-w', '--watch' ):
@@ -816,7 +809,6 @@ class RunDucc(DuccUtil):
         print '    watch              :', self.watch           
         print '    error_rate         :', self.error_rate
         print '    init_error         :', self.init_error
-        print '    meta_timeout       :', self.meta_timeout
         print '    process_timeout    :', self.process_timeout
         print '    memory_override    :', self.memory_override
         print '    jd_uima_log        :', self.jd_uima_log

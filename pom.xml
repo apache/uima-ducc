@@ -187,7 +187,8 @@
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceSubmit.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccCallback.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IServiceApi.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/CliBase.java
 
 							</additionalparam>
 

@@ -27,7 +27,7 @@ import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperti
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 
-/**
+/*
  * These are the constants supported by the 'not-using-a-props-file' form of registration in DuccServiceApi.
  * 
  * There are here so that hopefully we can avoid touching anything in common or transport when updating
@@ -43,9 +43,9 @@ public interface IUiOptions
     // argname()     is a name for the argument for the usage() part of cli parser
     //
 
-    public static final int help_width = 120;
+    static final int help_width = 120;
 
-    public enum UiOption
+    enum UiOption
     {
         Activate   { 
             public String pname()       { return "activate"; } 

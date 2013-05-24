@@ -46,7 +46,7 @@ public class DuccJobSubmit
 //         this.duccMessageProcessor = duccMessageProcessor;
 //     }
     
-    public static UiOption[] opts_release = new UiOption[] {
+    static UiOption[] opts_release = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Timestamp,
@@ -98,7 +98,7 @@ public class DuccJobSubmit
         UiOption.ClasspathOrder,
     };
 
-    public static UiOption[] opts_beta = new UiOption[] {
+    static UiOption[] opts_beta = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Timestamp,
@@ -160,30 +160,60 @@ public class DuccJobSubmit
     
     private AllInOneLauncher allInOneLauncher = null;
     
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     */
     public DuccJobSubmit(ArrayList<String> args)
         throws Exception
     {
         this(args, null);
     }
 
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     */
     public DuccJobSubmit(String[] args)
         throws Exception
     {
         this(args, null);
     }
 
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     */
     public DuccJobSubmit(Properties props)
         throws Exception
     {
         this(props, null);
     }
 
+    /**
+     * This form of the constructor allows the API user to capture
+     * messages, rather than directing them to stdout. 
+     *
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     * @param consoleCb If provided, messages are directed to it instead of
+     *        stdout.
+     */
     public DuccJobSubmit(ArrayList<String> args, IDuccCallback consoleCb)
         throws Exception
     {
         this(args.toArray(new String[args.size()]), consoleCb);
     }
 
+    /**
+     * This form of the constructor allows the API user to capture
+     * messages, rather than directing them to stdout. 
+     *
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     * @param consoleCb If provided, messages are directed to it instead of
+     *        stdout.
+     */
     public DuccJobSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
     {
@@ -198,6 +228,15 @@ public class DuccJobSubmit
         }
     }
 
+    /**
+     * This form of the constructor allows the API user to capture
+     * messages, rather than directing them to stdout. 
+     *
+     * @param props Properties file contianing string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     * @param consoleCb If provided, messages are directed to it instead of
+     *        stdout.
+     */
     public DuccJobSubmit(Properties props, IDuccCallback consoleCb)
         throws Exception
     {
@@ -419,6 +458,12 @@ public class DuccJobSubmit
 
     //**********        
     
+    /**
+     * Execute collects the job parameters, does basic error and correctness checking, and sends
+     * the job properties to the DUCC orchestrator for execution.
+     *
+     * @return True if the orchestrator accepts the job; false otherwise.
+     */
     public boolean execute() throws Exception {
         if(allInOneLauncher != null) {
             return allInOneLauncher.execute();
@@ -580,8 +625,9 @@ public class DuccJobSubmit
         return rc;
     }
     
-    /*
-     * Return appropriate rc when job has completed
+    /**
+     * Return appropriate rc when job has completed.
+     * @return The exit code from the job.
      */
     public int getReturnCode() {
       if (allInOneLauncher != null) {
@@ -594,8 +640,9 @@ public class DuccJobSubmit
         return jobRequestProperties.containsKey(UiOption.AllInOne.pname());
     }
 
-    /*
-     * Main methid
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_JOB">DUCC CLI reference.</a>
      */
     public static void main(String[] args) {
         try {

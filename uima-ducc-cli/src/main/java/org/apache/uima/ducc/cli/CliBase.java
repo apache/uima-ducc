@@ -45,6 +45,9 @@ import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.AbstractDuccOrchestratorEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
+/**
+ * Define common methods and data used by all the DUCC API and CLI.
+ */
 public abstract class CliBase
     implements IUiOptions
 {
@@ -52,8 +55,8 @@ public abstract class CliBase
     private String myClassName = "N/A";
     private boolean init_done = false;
     protected String ducc_home;
-    protected DuccProperties ducc_properties;
-    protected DuccEventHttpDispatcher dispatcher;
+    DuccProperties ducc_properties;
+    DuccEventHttpDispatcher dispatcher;
 
     protected Options options;
     protected CommandLineParser parser;
@@ -69,8 +72,6 @@ public abstract class CliBase
 
     protected boolean debug = false;
 
-    protected abstract boolean execute() throws Exception;
-
     protected ConsoleListener  console_listener = null;
     protected String host_address = "N/A";
     protected boolean console_attach = false;
@@ -79,6 +80,15 @@ public abstract class CliBase
     protected MonitorListener monitor_listener = null;
 
     CountDownLatch waiter = null;
+
+    /**
+     * All extenders must implement execute - this method does whatever processing on the input
+     * is needed and passes the CLI request to the internal DUCC processes.
+     *
+     * @return Return true if execution works, and false otherwise.
+     * @throws java.lang.Exception The specific exception is a function of the implementor.
+     */
+    public abstract boolean execute() throws Exception;
 
     String getLogDirectory(String extension)
     {
@@ -195,10 +205,6 @@ public abstract class CliBase
         }
     }
 
-    /**
-     * @param args - array of arguments to the cli parser
-     * @param boolean - if true, then add tick to insure required args are present
-     */
     protected Options makeOptions(UiOption[] optlist, boolean strict)
     {
         Options opts = new Options();
@@ -506,13 +512,13 @@ public abstract class CliBase
     }
 
     /**
-     * Set a property via the API. 
+     * Set a property via the API. This method allows the API user to
+     * build up or override properties after the initial API object is constructed.
      *
      * @param key This is the property name.
      * @param value This is the value of the property.
-     * @param props This is the Properties objct to update.
      *
-     * @returns true if the property is set.  Returns false if the property is not legal for this API.
+     * @return true if the property is set.  Returns false if the property is not legal for this API.
      */
     public boolean setProperty(String key, String value)
     {
@@ -528,20 +534,29 @@ public abstract class CliBase
         return true;
     }
 
+    /**
+     * Return internal API debug status.
+     * @return True if the API debugging flag is set; false otherwise.
+     */
     public boolean isDebug()
     {
         return debug;
     }
 
+    /**
+     * Set the internal API debug flag.
+     * @param val Set to true to enable debugging, and false to disable it.
+     */
     public void setDebug(boolean val)
     {
         this.debug = val;
     }
 
-    public String getHostAddress()
-    {
-        return host_address;
-    }
+    // nobody seems to use this
+//     public String getHostAddress()
+//     {
+//         return host_address;
+//     }
 
     public boolean hasProperty(String key)
     {
@@ -578,8 +593,11 @@ public abstract class CliBase
         }
     }
 
-    /*
-     * Return code is only available when the monitor wait completes ... if not waiting then assume success
+    /**
+     * This returns the return code from the execution of the requested work.  Return code is only
+     * available when the monitor wait completes ... if not waiting then assume success.
+     *
+     * @return The exit code of the job, process, etc.
      */
     public int getReturnCode()
     {
@@ -587,6 +605,11 @@ public abstract class CliBase
         return returnCode;
     }
 
+    /**
+     * This returns the unique numeric id for the requested work.  For submissions (job, reservation, etc)
+     * this is the newly assigned id.
+     * @return The unique numeric id of the job, reservation, etc.
+     */
     synchronized public long getDuccId()
     {
         return friendlyId;
@@ -732,14 +755,20 @@ public abstract class CliBase
         }
     }
 
+    /**
+     * This is used to find if the remote console is redirected to the local process, and if so, is it still
+     * active.
+     * @return True if the console is still attached to the remote process, false otherwise.
+     */
     public boolean isConsoleAttached()
     {
         return ( (console_listener != null ) && ( !console_listener.isShutdown()));
     }
 
     /**
-     * Wait for the listeners - maybe a console listener, maybe a job listener.
-     * @returns true if a monitor wait was done, false otherwise.  A monitor wait
+     * Wait for the listeners - maybe a console listener, maybe a job listener, maybe both.
+     *
+     * @return true if a monitor wait was done, false otherwise.  A monitor wait
      *          results in a return code from the process.  In all other cases
      *          the return code is spurious.
      */

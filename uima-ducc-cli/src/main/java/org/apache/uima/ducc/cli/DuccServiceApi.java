@@ -38,7 +38,7 @@ import org.apache.uima.ducc.transport.event.sm.IServiceReply;
 
 
 /**
- * This implements the DUCC service API.  This class is also the implementation of the
+ * Handle registered services. This class is also the implementation of the
  * DUCC service CLI which internally uses its API to implement itself.  Details on the
  * DUCC service CLI are found in the<a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
  */
@@ -567,7 +567,7 @@ public class DuccServiceApi
         System.exit(1);
     }
 
-    protected boolean execute() { return false; }
+    public boolean execute() { return false; }
 
     static boolean format_reply(UiOption verb, IServiceReply reply)
     {
