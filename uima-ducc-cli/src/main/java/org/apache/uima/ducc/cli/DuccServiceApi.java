@@ -459,7 +459,10 @@ public class DuccServiceApi
     }
 
     /**
-     * @param args Modify arguments.
+     * The service 'modify' command is used to change various aspects of a registered service
+     * without the need to reregister it.
+     *
+     * @param args This is an array of string arguments, as described in the DUCC CLI reference.
      * @return Reply object with modify status.
      */
     public IServiceReply modify(String[] args)
@@ -671,7 +674,7 @@ public class DuccServiceApi
     }
 
 
-    /**
+    /*
      * DuccServiceApi <options>
      * Where options:
      *    -r --register <properties>
@@ -691,6 +694,14 @@ public class DuccServiceApi
      *  Service is identified as:
      *  type:endpoint:broker
      *  e.g.  UIMA-AS@FixedSleepAE@tcp://bluej02
+     */
+
+    /**
+     * This is the main entrypoint, used by the executable jars and callable directly from java.
+     * If the invocation is successful, the process exits with return code 0.  Otherwise, it exits
+     * with return code 1.
+     *
+     * @param args arguments as described in the DUCC CLI reference.
      */
 	public static void main(String[] args) 
     {        

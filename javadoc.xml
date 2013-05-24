@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="javadoc">
+
+
+    <path id="src.path">
+      <pathelement location="uima-ducc-cli/src/main/java/org/apache/uima/ducc/common/AServicePing.java"  />
+      <pathelement location="uima-ducc-cli/src/main/java/org/apache/uima/ducc/common/ServiceStatistics.java"  />
+    </path>
+
+    <path id="commons.cli.class.path">
+        <fileset dir="/Users/challngr/ducc_runtime/lib/apache-commons-cli">
+			<include name="**/*.jar" />
+		</fileset>
+    </path>
+
+    <path id="ducc.class.path">
+        <fileset dir="/Users/challngr/ducc_runtime/lib">
+			<include name="**/*.jar" />
+		</fileset>
+    </path>
+
+    <path id="compile.class.path">
+        <path refid="commons.cli.class.path" />
+    </path>
+
+    <target name="javadoc">
+        <javadoc access="public" 
+                 author="true" 
+                 destdir="doc" 
+                 nodeprecated="false" 
+                 nodeprecatedlist="false" 
+                 noindex="false" 
+                 nonavbar="false" 
+                 notree="false" 
+                 source="1.6" 
+                 splitindex="true" 
+                 use="true" 
+                 version="true">
+
+          <classpath>
+            <path refid="compile.class.path" />
+            <path refid="ducc.class.path"/>
+          </classpath>
+
+          <fileset dir="uima-ducc-transport/src/main/java">
+            <include name="**/IServiceReply.java" />
+            <include name="**/IServiceDescription.java" />
+          </fileset>
+
+          <fileset dir="uima-ducc-common/src/main/java">
+            <include name="**/AServicePing.java" />
+            <include name="**/ServiceStatistics.java" />
+            <include name="**/ADuccId.java" />
+            <include name="**/IDuccId.java" />
+          </fileset>
+
+          <fileset dir="uima-ducc-cli/src/main/java">
+            <include name="**/DuccServiceApi.java" />
+          </fileset>
+        </javadoc>
+
+    </target>
+</project>

@@ -43,6 +43,7 @@ import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
@@ -1528,13 +1529,13 @@ public class ServiceSet
     {
         IServiceDescription sd = new ServiceDescription();
         
-        ArrayList<DuccId> imp = new ArrayList<DuccId>();
+        ArrayList<ADuccId> imp = new ArrayList<ADuccId>();
         for ( DuccId id : implementors.keySet() ) {
             imp.add(id);
         }
         sd.setImplementors(imp);
 
-        ArrayList<DuccId> ref = new ArrayList<DuccId>();
+        ArrayList<ADuccId> ref = new ArrayList<ADuccId>();
         ref.clear();
         for ( DuccId id : references.keySet() ) {
             ref.add(id);

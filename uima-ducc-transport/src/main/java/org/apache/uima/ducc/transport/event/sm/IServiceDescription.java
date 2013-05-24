@@ -22,63 +22,132 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.ServiceStatistics;
-import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+
+/**
+ * This interface defines the information returned in response to service query events.
+ *
+ * All the 'set' methods are used only by the ServiceManager; they have useful no effect if
+ * invoked in any other context.
+ *
+ */
 
 public interface IServiceDescription
     extends IService
 {
 
-	public DuccId getId();
-	public void setId(DuccId id);
+    /**
+     * This returns the Unique ID of the service as assigned by DUCC.
+     */
+	public ADuccId getId();
+    /**
+     * Internal to DUCC.
+     */
+	public void setId(ADuccId id);
 
-	public ArrayList<DuccId> getImplementors();
-	public void setImplementors(ArrayList<DuccId> implementors);
+    /**
+     * This returns the set of DUCC Ids for all the service instances which 
+     * implement this service.  If the list is empty, no known implementors of the service
+     * are being managed by DUCC.
+     *
+     * @return List of DUCC Ids of service implementors.
+     */
+	public ArrayList<ADuccId> getImplementors();
+    /**
+     * Internal to DUCC.
+     */
+	public void setImplementors(ArrayList<ADuccId> implementors);
 
-	public ArrayList<DuccId> getReferences();
-	public void setReferences(ArrayList<DuccId> references);
+	public ArrayList<ADuccId> getReferences();
+    /**
+     * Internal to DUCC.
+     */
+	public void setReferences(ArrayList<ADuccId> references);
 
 	public ServiceType getType();
+    /**
+     * Internal to DUCC.
+     */
 	public void setType(ServiceType type);
 
 	public ServiceClass getSubclass();
+    /**
+     * Internal to DUCC.
+     */
 	public void setSubclass(ServiceClass subclass);
 
 	public String getEndpoint();
+    /**
+     * Internal to DUCC.
+     */
 	public void setEndpoint(String endpoint);
 
 	public String getBroker();
+    /**
+     * Internal to DUCC.
+     */
 	public void setBroker(String broker);
 
 	public ServiceState getServiceState();
+    /**
+     * Internal to DUCC.
+     */
 	public void setServiceState(ServiceState serviceState);
 
 	public JobState getJobState();
+    /**
+     * Internal to DUCC.
+     */
 	public void setJobState(JobState jobState);
 
 	public boolean isActive();
+    /**
+     * Internal to DUCC.
+     */
 	public void setActive(boolean active);
 
 	public void setDeregistered(boolean d);	
+    /**
+     * Internal to DUCC.
+     */
     public void setQueueStatistics(ServiceStatistics qstats);    
 
     public ServiceStatistics getQueueStatistics();
+    /**
+     * Internal to DUCC.
+     */
     public void setAutostart(boolean autostart);
 
 	public boolean isStopped();
+    /**
+     * Internal to DUCC.
+     */
 	public void setStopped(boolean stopped);
 
 	public ServiceStatistics getQstats();
+    /**
+     * Internal to DUCC.
+     */
 	public void setQstats(ServiceStatistics qstats);
 
 	public boolean isDeregistered();
 
 	public void setInstances(int instances);
+    /**
+     * Internal to DUCC.
+     */
     public int getInstances();
 
     public void setLinger(long linger);    
+    /**
+     * Internal to DUCC.
+     */
     public long getLinger();    
 
+    /**
+     * Internal to DUCC.
+     */
     public void addDependency(String endpoint, String msg);
     public Map<String, String> getDependencies();
 

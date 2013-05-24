@@ -20,28 +20,55 @@ package org.apache.uima.ducc.common.utils.id;
 
 import java.util.UUID;
 
+/**
+ * This class provudes a unique identifier to various DUCC objects.  It is used to uniquely identify
+ * DUCC Jobs, Reservations, Registered Services, Service Instances, Arbitrary Processes, resource
+ * shares, and so on.
+ *
+ * A DuccId consists of two fields, A UUID which is usually hidden, and which is used internally,
+ * and a "friendly", numeric id, intended for better consumption by human beings.
+ *
+ * The DuccId implements its own compareTo(), hashCode() and equals() methods and should be used as
+ * a primitive object by all internal DUCC components.  When exposing a DuccId to the world, use the
+ * "friendly" id.
+ */
+
 public class ADuccId
     implements IDuccId
 {
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 1025988737223302306L;
 	
 	private UUID unique;
     private long myFriendly = 0;
 
+    /**
+     * Constructor - create a UNIQUE id, presenting a specific "frienly" id as needed.  The
+     * DuccId it produces is unique for all intents and purposes, even if the "friendly" isn't.
+     *
+     * @param given This is the "friendly" id which may not be unique.
+     */
     public ADuccId(long given)
     {
         this.unique = UUID.randomUUID();
         myFriendly = given;
     }
 
+    /**
+     * Create a DuccId from a given UUID. This is used internally to restore a DuccId from some
+     * serialized resource.
+     *
+     * @param unique This is a unique ID which overrides the generated UUID from the constructor.  
+     *        Use with care.
+     */
     public void setUUID(UUID unique)
     {
     	this.unique = unique;
     }
     
+    /* (non-Javadoc)
+	 * @see java.lang.compareTo()
+	 */
+	@Override
     public int compareTo(Object id)
     { 
         if ( id instanceof ADuccId ) {
@@ -62,11 +89,19 @@ public class ADuccId
 		return result;
 	}
  
+    /**
+     * Return the (not unique) "friendly" id.
+     * @return THe non-unique friendly id.
+     */
     public long getFriendly()
     {
         return myFriendly;
     }
 
+    /**
+     * Set a friendly id.  
+     * @param myFriendly The "friendly" id to associate with the UUID.
+     */
     public void setFriendly(long myFriendly)
     {
         this.myFriendly = myFriendly;

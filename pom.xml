@@ -147,9 +147,6 @@
 									<packages>*</packages>
 								</group>
 							</groups>
-                            <stylesheet>
-                              maven
-                            </stylesheet>
 
 							<!--verbose>true</verbose -->
 							<sourcepath>
@@ -159,7 +156,7 @@
 							<subpackages>org.apache.uima</subpackages>
 
 							<excludePackageNames>
-                              org.apache.uima.ducc.cli.*:org.apache.uima.ducc.common.*
+                              org.apache.uima.ducc.cli.*:org.apache.uima.ducc.common.*:org.apache.uima.ducc.transport.*
                             </excludePackageNames>
 
 							<!-- add a few classes in impl packages that are directly used by 

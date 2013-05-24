@@ -47,10 +47,11 @@ Define DUCC Release 1
           1. Run and debug a DUCC Job in a local eclipse session, using the same interface that is
           used to submit jobs to DUCC.
 
-          2. Alternate flag switch to ducc_submit to run as an Arbitrary Process, so that DUCC 
-	  will run the process in a remote DUCC machine.  This uses console redirection and
-	  Eclipse remote debugging.
+          2. Alternate flag switch to ducc_submit to run as an Arbitrary Process, so that DUCC will
+          run the process in a remote DUCC machine.  This uses console redirection and Eclipse
+          remote debugging.
   
+       Status 2013-04-01 In Progress
 
    2.  Finish support for Arbitrary Processes.
 
@@ -71,18 +72,21 @@ Define DUCC Release 1
              user's X11 session.
           f) Web server support for APs
 
-   3. CGroups
+       Status 2013-04-01 Complete
 
-      From Wikipedia (http://en.wikipedia.org/wiki/Cgroups): cgroups (control groups) is a Linux
-      kernel feature to limit, account and isolate resource usage (CPU, memory, disk I/O, etc.) of
-      process groups.
+   3.  CGroups
 
-      DUCC support for CGroups will be used to enforce resource boundaries for multiple users
-      on large-memory multi-core machines.
+       From Wikipedia (http://en.wikipedia.org/wiki/Cgroups): cgroups (control groups) is a Linux
+       kernel feature to limit, account and isolate resource usage (CPU, memory, disk I/O, etc.) of
+       process groups.
 
-      a) Basic implementation in the DUCC Agents.
-      b) Presentation in the DUCC Web server.
+       DUCC support for CGroups will be used to enforce resource boundaries for multiple users
+       on large-memory multi-core machines.
 
+       a) Basic implementation in the DUCC Agents.
+       b) Presentation in the DUCC Web server.
+
+       Status 2013-04-01 In Progress
    
    4.  Sample applications using Apache UIMA text analytics.
 
@@ -93,6 +97,8 @@ Define DUCC Release 1
        a) A source ingestion-like / text-processing application
        b) A CAS-in CAS-out application
        c) Document this in the Duccbook
+
+       Status 2013-04-01 Not Started
 
    5.  System-verification test suite:
           
@@ -112,6 +118,8 @@ Define DUCC Release 1
              large heterogeneous clusters.
           e) documentation
 
+       Status 2013-04-01 In Progress
+
     6.  Web Server support for DUCC Services
         Current DUCC web server support for services is minimal.  Most service interaction
         including query is entirely command-line driven.
@@ -126,12 +134,16 @@ Define DUCC Release 1
            Logging and performance information
 
 
+       Status 2013-04-01 Complete
+
    7. Services Manager CLI/API needs authentication
       a) Insure registering user is who he says she is
       b) Insure only the "owning" user can take actions on their services - modify,
          unregister, etc.
 
-      Most of this code can be copied from the DuccSubmit CLI/API
+       Most of this code can be copied from the DuccSubmit CLI/API
+
+       Status 2013-04-01 Complete
 
    8. Resource Manager Hot Start
 
@@ -139,14 +151,29 @@ Define DUCC Release 1
       conjunction with Agent publications, so it can be stopped and started "hot" (without affecting
       state of running work).
 
+       Status 2013-04-01 Complete
+
    9. Services Manager Restart Policy
 
       Implement policy for restarting failed services, and halting restart if the service continues
       to fail.
 
-  10. Build formal API
+       Status 2013-04-01 Complete
+
+  10. Ulimit suppprt
+   
+      Ducc-ling must support user-specified soft limits for all supported limits.  UIMA-AS to
+      echo ulimit -a into logs.
+
+       Status 2013-04-01 Complete
+
+  11. Build formal API
 
       Implement a proper API for submit, and cancel, reserve, and unreserve. Coordinate with the
       service manager API so they're consistent.
 
-  11. Complete, correct, and clean-up formal documentation (the "duccbook").
+       Status 2013-04-01 Complete
+
+  12. Complete, correct, and clean-up formal documentation (the "duccbook").
+
+       Status 2013-04-01 Not started

@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.ServiceStatistics;
-import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
 
@@ -37,10 +37,10 @@ public class ServiceDescription
 	private static final long serialVersionUID = 1L;
 
 	// For submitted and registered services
-    private ArrayList<DuccId> implementors;
+    private ArrayList<ADuccId> implementors;
 
     // key is job/service id, value is same.  it's a map for fast existence check
-    private ArrayList<DuccId> references;
+    private ArrayList<ADuccId> references;
 
     // UIMA-AS or CUSTOM
     private ServiceType type;
@@ -68,7 +68,7 @@ public class ServiceDescription
     private boolean stopped = false;
 
     // for submitted service, the registered service id
-    private DuccId id;
+    private ADuccId id;
     private boolean deregistered;         // still known but trying to shutdown
 
     // number of registered instances
@@ -79,27 +79,27 @@ public class ServiceDescription
 
     private ServiceStatistics qstats;
 
-	public DuccId getId() {
+	public ADuccId getId() {
 		return id;
 	}
 
-	public void setId(DuccId id) {
+	public void setId(ADuccId id) {
 		this.id = id;
 	}
 
-	public ArrayList<DuccId> getImplementors() {
+	public ArrayList<ADuccId> getImplementors() {
 		return implementors;
 	}
 
-	public void setImplementors(ArrayList<DuccId> implementors) {
+	public void setImplementors(ArrayList<ADuccId> implementors) {
 		this.implementors = implementors;
 	}
 
-	public ArrayList<DuccId> getReferences() {
+	public ArrayList<ADuccId> getReferences() {
 		return references;
 	}
 
-	public void setReferences(ArrayList<DuccId> references) {
+	public void setReferences(ArrayList<ADuccId> references) {
 		this.references = references;
 	}
 
@@ -270,7 +270,7 @@ public class ServiceDescription
 
         sb.append("   Implementors    : ");
         if ( implementors.size() > 0 ) {
-            for (DuccId id : implementors) {
+            for (ADuccId id : implementors) {
                 sb.append(id);
                 sb.append(" ");
             }
@@ -281,7 +281,7 @@ public class ServiceDescription
 
         sb.append("   References      : ");
         if ( references.size() > 0 ) {
-            for ( DuccId id : references ) {
+            for ( ADuccId id : references ) {
                 sb.append(id);
                 sb.append(" ");
             }

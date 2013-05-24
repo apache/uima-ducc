@@ -20,7 +20,17 @@ package org.apache.uima.ducc.common.utils.id;
 
 import java.io.Serializable;
 
+/**
+ * This interface represents a unique ID within DUCC.  Implementors must
+ * insure that every DuccId is unique over tiem and space.
+ */
 @SuppressWarnings("rawtypes")
 public interface IDuccId extends Comparable, Serializable {
+    /**
+     * This returns a (possibly) non-unique represnetion of the DuccId, suitable for
+     * presentation to human beings.
+     *
+     * @return A number representing the DuccId.
+     */
 	public long getFriendly();
 }
