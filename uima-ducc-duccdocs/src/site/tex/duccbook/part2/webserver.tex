@@ -1,3 +1,8 @@
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_WEBSERVER'></a>}
+\fi
 \chapter{DUCC Web Server}
 
     The DUCC Web Server default address is accessed from the URL http://wshost:42133. Each local
@@ -9,6 +14,11 @@
 
     The columns can all be sorted by clicking on the column headers. 
 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_WS_COMMON'></a>}
+\fi
     \section{Common Links}
 
         Every page contains a common header containing links and controls. The links permit navigation
@@ -53,6 +63,23 @@
             \end{itemize}
       \end{description}              
 
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_JOBS'></a>}
+      \fi
       \input{part2/webserver/jobs.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_JOB_DETAILS'></a>}
+      \fi
       \input{part2/webserver/job-details.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_RESERVATIONS'></a>}
+      \fi
       \input{part2/webserver/reservations.tex}

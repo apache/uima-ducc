@@ -38,9 +38,10 @@ import org.apache.uima.ducc.transport.event.sm.IServiceReply;
 
 
 /**
- * DUCC service API
+ * This implements the DUCC service API.  This class is also the implementation of the
+ * DUCC service CLI which internally uses its API to implement itself.  Details on the
+ * DUCC service CLI are found in the<a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
  */
-
 public class DuccServiceApi 
     extends CliBase
 {
@@ -266,8 +267,10 @@ public class DuccServiceApi
     }
 
     /**
-     * @param args Name of file in standard Java properies format with the service specification.
-     * @return Reply object with the registration numeric id and errors, if any.
+     * The register API is used to register a service with the service manager.
+     *
+     * @param args String rray of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @return {@link IServiceReply IServiceReply} object with register status.
      */
     public IServiceReply register(String[] args)
         throws Exception
@@ -376,8 +379,11 @@ public class DuccServiceApi
 	}
 
     /**
-     * @param args The full service id as returned by register
-     * @return Reply object with unregister status.
+     * The unregister API is used to unregister a service.  The service manager will stop all instances and 
+     * remove the service registration.
+     *
+     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @return {@link IServiceReply IServiceReply} object with unregister reply status.
      */
     public IServiceReply unregister(String[] args)
         throws Exception
@@ -400,8 +406,10 @@ public class DuccServiceApi
 	}
 
     /**
-     * @param args Service start arguments.
-     * @return Reply object with start status.
+     * The start API is used to start one or more instances of a registered service.
+     * 
+     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @return {@link IServiceReply IServiceReply} object with start reply status.
      */
     public IServiceReply start(String[] args)
         throws Exception
@@ -430,8 +438,10 @@ public class DuccServiceApi
 
 
     /**
-     * @param args Stop arguments.
-     * @return Reply object with stop status.
+     * The stop API is used to stop one or more service instances.
+     *
+     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @return {@link IServiceReply IServiceReply} object with stop status.
      */
     public IServiceReply stop(String[] args)
         throws Exception
@@ -462,8 +472,8 @@ public class DuccServiceApi
      * The service 'modify' command is used to change various aspects of a registered service
      * without the need to reregister it.
      *
-     * @param args This is an array of string arguments, as described in the DUCC CLI reference.
-     * @return Reply object with modify status.
+     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @return {@link IServiceReply IServiceReply} object with modify status.
      */
     public IServiceReply modify(String[] args)
         throws Exception
@@ -492,8 +502,10 @@ public class DuccServiceApi
     }
 
     /**
-     * @param args Query arguments.
-     * @return Reply object with the query results.
+     * The query API is used to query the status of services known to the service manager.
+     *
+     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @return {@link IServiceReply IServiceReply} object with query results status.
      */
     public IServiceReply query(String[] args)
         throws Exception
@@ -697,11 +709,12 @@ public class DuccServiceApi
      */
 
     /**
-     * This is the main entrypoint, used by the executable jars and callable directly from java.
-     * If the invocation is successful, the process exits with return code 0.  Otherwise, it exits
+     * This is the main entrypoint, used by the executable jars and callable directly from the command line.
+     *
+     * If the invocation is successful, the process exits with return code 0.  Otherwise, it exit
      * with return code 1.
      *
-     * @param args arguments as described in the DUCC CLI reference.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
      */
 	public static void main(String[] args) 
     {        

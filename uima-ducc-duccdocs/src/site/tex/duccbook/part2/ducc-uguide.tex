@@ -1,3 +1,9 @@
+% Force internal link target to this chapter
+% Reference page from javadoc via <a href="/doc/duccbook.html#DUCC_CLI">whatever text</a>
+\ifpdf
+\else
+\HCode{<a name='DUCC_CLI'></a>}
+\fi
 \chapter{Command Line Interface}
 \label{chap:cli}
 
@@ -57,6 +63,11 @@
     \input{part2/cli/ducc-perf-stats.tex}
 
 
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_API'></a>}
+\fi
 \chapter{The DUCC Public API}
 
 \label{chap:api}
@@ -65,11 +76,18 @@
    \else
       See the \href{apidocs/index.html}{JavaDoc} for the DUCC Public API.
    \fi
+
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_SERVICES'></a>}
+\fi
 \chapter{Service Management}
 \label{chap:services}
 \input{part2/services.tex}
 
 %% this inputs a chapter
+
 \input{part2/job-logs.tex}
 
 %% this inputs a chapter
