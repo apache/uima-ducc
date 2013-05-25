@@ -143,7 +143,7 @@ public class AllInOne extends CliBase {
 	}
 
 	@Override
-	protected boolean execute() throws Exception {
+	public boolean execute() throws Exception {
 		return false;
 	}
 
