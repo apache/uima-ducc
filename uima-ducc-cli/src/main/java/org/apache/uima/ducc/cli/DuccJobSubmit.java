@@ -161,6 +161,16 @@ public class DuccJobSubmit
     private AllInOneLauncher allInOneLauncher = null;
     
     /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
+     */
+    public DuccJobSubmit(String[] args)
+        throws Exception
+    {
+        this(args, null);
+    }
+
+    /**
      * @param args List of string arguments as described in the 
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      */
@@ -170,15 +180,6 @@ public class DuccJobSubmit
         this(args, null);
     }
 
-    /**
-     * @param args Array of string arguments as described in the 
-     *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
-     */
-    public DuccJobSubmit(String[] args)
-        throws Exception
-    {
-        this(args, null);
-    }
 
     /**
      * @param props Properties file of arguments, as described in the
@@ -642,7 +643,7 @@ public class DuccJobSubmit
 
     /**
      * Main method, as used by the executable jar or direct java invocation.
-     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_JOB">DUCC CLI reference.</a>
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      */
     public static void main(String[] args) {
         try {

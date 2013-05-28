@@ -27,7 +27,7 @@ import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
 /**
- * Cancel a DUCC service instance
+ * Cancel a DUCC service instance.
  */
 
 public class DuccServiceCancel 
@@ -51,12 +51,20 @@ public class DuccServiceCancel
     };
 
 	
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccServiceCancel(String [] args) 
         throws Exception
     {
         init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccServiceCancel(List<String> args) 
         throws Exception
     {
@@ -64,6 +72,10 @@ public class DuccServiceCancel
         init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccServiceCancel(Properties props) 
         throws Exception
     {
@@ -74,20 +86,27 @@ public class DuccServiceCancel
         init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * Return the DUCC Orchestrator message, if any, pertaining to the cancelation.
+     *
+     * @return Return any message associated with the cancelation.
+     */
 	public String getResponseMessage()
 	{
 		return responseMessage;
 	}
 
-    /**
-     * Services and processes share 99% of their code.  This particular module (ServiceCancel) is identical with
-     * DuccProcessCancel but CLI and API uses of it may want to know which context it was executed in.  This tells you ...
-     */
-    public boolean isService()
-    {
-        return true;
-    }
+    // public boolean isService()
+//     {
+//         return true;
+//     }
 
+    /**
+     * Execute collects the parameters for job cancelation and sends them to the DUCC Orchestrator
+     * to effect the cancelation.
+     *
+     * @return True if the orchestrator accepts the job cancelation.
+     */
 	public boolean execute() 
         throws Exception 
     {
@@ -116,6 +135,10 @@ public class DuccServiceCancel
 		return rc;
 	}
 	
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_CANCEL">DUCC CLI reference.</a>
+     */
 	public static void main(String[] args) {
 		try {
 			DuccServiceCancel dsc = new DuccServiceCancel(args);
@@ -123,8 +146,7 @@ public class DuccServiceCancel
 
             long id = dsc.getDuccId();
             String msg = dsc.getResponseMessage();
-            String dtype = dsc.isService() ? "Service " : "Process ";
-            System.out.println(dtype + id + " " + msg);
+            System.out.println("Process " + id + " " + msg);
             System.exit(rc ? 0 : 1);
 
 		} catch (Exception e) {

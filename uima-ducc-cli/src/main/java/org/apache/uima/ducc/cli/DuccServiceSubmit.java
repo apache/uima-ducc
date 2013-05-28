@@ -29,7 +29,9 @@ import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 
 
 /**
- * Submit a DUCC service
+ * Submit a DUCC service.  This is usually called by the DUCC Service Manager but is
+ * made public to enable developer-driven management and testing of services without
+ * formal service registration.
  */
 
 public class DuccServiceSubmit 
@@ -102,13 +104,11 @@ public class DuccServiceSubmit
     };
     
     UiOption[] opts = opts_release;
-    
-    public DuccServiceSubmit(ArrayList<String> args)
-        throws Exception
-    {
-        this(args.toArray(new String[args.size()]));
-    }
 
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
+     */
     public DuccServiceSubmit(String[] args)
         throws Exception
     {
@@ -118,7 +118,21 @@ public class DuccServiceSubmit
         }
         init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or", null, null);
     }
+    
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
+     */
+    public DuccServiceSubmit(ArrayList<String> args)
+        throws Exception
+    {
+        this(args.toArray(new String[args.size()]));
+    }
 
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
+     */
     public DuccServiceSubmit(Properties props)
         throws Exception
     {
@@ -133,6 +147,12 @@ public class DuccServiceSubmit
         init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or", null, null);
     }
     
+    /**
+     * Execute collects the service parameters, does basic error and correctness checking, and sends
+     * the job properties to the DUCC orchestrator for execution.
+     *
+     * @return True if the orchestrator accepts the service; false otherwise.
+     */
     public boolean execute() 
         throws Exception 
     {
@@ -239,6 +259,10 @@ public class DuccServiceSubmit
         return rc;
     }
         
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
+     */
     public static void main(String[] args) {
         try {
             // Instantiate the object with args similar to the CLI, or a pre-built properties file

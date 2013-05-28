@@ -28,7 +28,8 @@ import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 
 
 /**
- * Submit a DUCC Managed Reservation
+ * Submit a DUCC Managed Reservation.  A Managed Reservation is a single arbitray process running
+ * in a non-preemptable share.
  */
 
 public class DuccManagedReservationSubmit 
@@ -81,24 +82,45 @@ public class DuccManagedReservationSubmit
     
     private UiOption[] opts = opts_release;
 
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     */
     public DuccManagedReservationSubmit(String[] args)
         throws Exception
     {
         this(args, null);
     }
         
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     */
     public DuccManagedReservationSubmit(ArrayList<String> args)
         throws Exception
     {
         this(args, null);
     }
         
-    public DuccManagedReservationSubmit(Properties props)
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     */ 
+   public DuccManagedReservationSubmit(Properties props)
         throws Exception
     {
         this(props, null);
     }
 
+    /**
+     * This form of the constructor allows the API user to capture
+     * messages, rather than directing them to stdout. 
+     *
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     * @param consoleCb If provided, messages are directed to it instead of
+     *        stdout.
+     */
     public DuccManagedReservationSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
     {
@@ -110,6 +132,15 @@ public class DuccManagedReservationSubmit
         init(this.getClass().getName(), opts, args, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
+    /**
+     * This form of the constructor allows the API user to capture
+     * messages, rather than directing them to stdout. 
+     *
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     * @param consoleCb If provided, messages are directed to it instead of
+     *        stdout.
+     */
     public DuccManagedReservationSubmit(ArrayList<String> args, IDuccCallback consoleCb)
         throws Exception
     {
@@ -122,6 +153,15 @@ public class DuccManagedReservationSubmit
         init(this.getClass().getName(), opts, arg_array, serviceRequestProperties, or_host, or_port, "or", consoleCb);
     }
         
+    /**
+     * This form of the constructor allows the API user to capture
+     * messages, rather than directing them to stdout. 
+     *
+     * @param props Properties file contianing string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     * @param consoleCb If provided, messages are directed to it instead of
+     *        stdout.
+     */
     public DuccManagedReservationSubmit(Properties props, IDuccCallback consoleCb) 
         throws Exception
     {
@@ -140,6 +180,12 @@ public class DuccManagedReservationSubmit
     }
 
                         
+    /**
+     * Execute collects the job parameters, does basic error and correctness checking, and sends
+     * the job properties to the DUCC orchestrator for execution.
+     *
+     * @return True if the orchestrator accepts the job; false otherwise.
+     */
     public boolean execute() throws Exception 
     {
 
@@ -223,6 +269,10 @@ public class DuccManagedReservationSubmit
         return retval;
     }
         
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_SUBMIT">DUCC CLI reference.</a>
+     */
     public static void main(String[] args) 
     {
         int code = 1; // Assume the worst

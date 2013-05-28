@@ -26,6 +26,9 @@ import org.apache.uima.ducc.transport.event.CancelServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
+/**
+ * Cancel a DUCC Managed Reservation.
+ */
 public class DuccManagedReservationCancel extends CliBase {
 
     JobRequestProperties requestProperties = new JobRequestProperties();
@@ -45,12 +48,20 @@ public class DuccManagedReservationCancel extends CliBase {
         UiOption.RoleAdministrator,
     };
 
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccManagedReservationCancel(String [] args) 
         throws Exception
     {
         init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccManagedReservationCancel(List<String> args) 
         throws Exception
     {
@@ -58,6 +69,10 @@ public class DuccManagedReservationCancel extends CliBase {
         init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccManagedReservationCancel(Properties props) 
         throws Exception
     {
@@ -68,11 +83,22 @@ public class DuccManagedReservationCancel extends CliBase {
         init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * Return the DUCC Orchestrator message, if any, pertaining to the cancelation.
+     *
+     * @return Return any message associated with the cancelation.
+     */
 	public String getResponseMessage()
 	{
 		return responseMessage;
 	}
 
+    /**
+     * Execute collects the parameters for job cancelation and sends them to the DUCC Orchestrator
+     * to effect the cancelation.
+     *
+     * @return True if the orchestrator accepts the job cancelation.
+     */
 	public boolean execute() 
         throws Exception 
     {
@@ -96,6 +122,10 @@ public class DuccManagedReservationCancel extends CliBase {
 		return rc;
 	}
 	
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_PROCESS_CANCEL">DUCC CLI reference.</a>
+     */
 	public static void main(String[] args) {
 		try {
 			DuccManagedReservationCancel dsc = new DuccManagedReservationCancel(args);

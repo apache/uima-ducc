@@ -153,6 +153,10 @@
 								uima-ducc-common/src/main/java:uima-ducc-cli/src/main/java
 							</sourcepath>
 
+                            <show>
+                              public
+                            </show>
+
 							<subpackages>org.apache.uima</subpackages>
 
 							<excludePackageNames>
@@ -172,21 +176,15 @@
 								${basedir}/uima-ducc-transport/src/main/java/org/apache/uima/ducc/transport/event/sm/IServiceDescription.java
 
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobCancel.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobMonitor.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobSubmit.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationCancel.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationMonitor.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationSubmit.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccMonitor.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccPerfStats.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccProcessCancel.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationCancel.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationSubmit.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceApi.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceCancel.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceSubmit.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccCallback.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
 								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/CliBase.java
 

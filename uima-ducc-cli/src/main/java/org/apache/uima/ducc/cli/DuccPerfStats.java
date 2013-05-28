@@ -50,7 +50,11 @@ import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryReader;
 
 
-
+/**
+ * Format performance statistics to the console in human-readable form and CSV for post-analysis.
+ * The CSV format uses TABS, not commas, because the AE names may have commas, making parsing
+ * difficult.
+ */
 public class DuccPerfStats 
 {     
     boolean csv = false;
@@ -65,7 +69,7 @@ public class DuccPerfStats
     SummarySort  summarySort = SummarySort.TotalTime;
     WorkItemSort workItemSort = WorkItemSort.Seq;
 
-    public enum ClOptions
+    enum ClOptions
     {
         //
         // I want to expose these things to the API with the ugly upper-case notation but don't
@@ -126,7 +130,7 @@ public class DuccPerfStats
     }
     ;
 
-    public enum SummarySort
+    enum SummarySort
     {
         Name    { 
             public String decode()      { return "name"; } 
@@ -169,7 +173,7 @@ public class DuccPerfStats
     }
     ;
 
-    public enum WorkItemSort
+    enum WorkItemSort
     {
         //
         // I want to expose these things to the API with the ugly upper-case notation but don't
@@ -226,6 +230,9 @@ public class DuccPerfStats
         }
     };
 
+    /**
+     * Constructor - initialize a DuccPerfStats object.
+     */
     public DuccPerfStats()
     {
 //         if ( csvstr.equals("csv") ) csv = true;
@@ -521,7 +528,7 @@ public class DuccPerfStats
         }
     }
 
-    public void run(String[] args)
+    void run(String[] args)
     {
         Options options = new Options();
         addOptions(options);
@@ -602,11 +609,9 @@ public class DuccPerfStats
         }
     }
 
-    /** 
-     * Options:
-     *   -csv
-     *      Print as CSV
-     */  
+    /**
+     * Main - see the CLI reference or Help screen for details.
+     */
     public static void main(String[] args)
     {
         // args - we assume a script front-end will parse args and pass them in in the following format

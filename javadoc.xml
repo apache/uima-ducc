@@ -59,7 +59,11 @@
             <include name="**/DuccJobCancel.java" />
             <include name="**/DuccReservationCancel.java" />
             <include name="**/DuccReservationSubmit.java" />
+            <include name="**/DuccManagedReservationCancel.java" />
+            <include name="**/DuccManagedReservationSubmit.java" />
             <include name="**/DuccServiceApi.java" />
+            <include name="**/DuccServiceSubmit.java" />
+            <include name="**/DuccServiceCancel.java" />
             <include name="**/IDuccCallback.java" />
             <include name="**/CliBase.java" />
           </fileset>
