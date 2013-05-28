@@ -49,13 +49,20 @@ public class DuccReservationCancel
         UiOption.RoleAdministrator,
     };
 
-	
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_UNRESERVE">DUCC CLI reference.</a>
+     */	
 	public DuccReservationCancel(String [] args) 
         throws Exception
     {
         init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_UNRESERVE">DUCC CLI reference.</a>
+     */
 	public DuccReservationCancel(List<String> args) 
         throws Exception
     {
@@ -63,6 +70,10 @@ public class DuccReservationCancel
         init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_UNRESERVE">DUCC CLI reference.</a>
+     */
 	public DuccReservationCancel(Properties props) 
         throws Exception
     {
@@ -73,11 +84,22 @@ public class DuccReservationCancel
         init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or");
 	}
 
+    /**
+     * Return the DUCC Orchestrator message, if any, pertaining to the cancelation.
+     *
+     * @return Return any message associated with the cancelation.
+     */
 	public String getResponseMessage()
 	{
 		return responseMessage;
 	}
 
+    /**
+     * Execute collects the parameters for reservation cancelation and sends them to the DUCC Orchestrator
+     * to effect the cancelation.
+     *
+     * @return True if the orchestrator accepts the reservation cancelation.
+     */
 	public boolean execute() 
         throws Exception 
     {
@@ -101,6 +123,10 @@ public class DuccReservationCancel
 		return rc;
 	}
 	
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_UNRESERVE">DUCC CLI reference.</a>
+     */
 	public static void main(String[] args) {
 		try {
 			DuccReservationCancel dsc = new DuccReservationCancel(args);

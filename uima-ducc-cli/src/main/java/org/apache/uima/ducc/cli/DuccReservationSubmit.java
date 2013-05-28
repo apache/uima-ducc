@@ -40,6 +40,20 @@ public class DuccReservationSubmit
 	
 	private String nodeList = "";
 	
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
+     */
+	public DuccReservationSubmit(String[] args)
+        throws Exception
+    {
+        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
+    }
+
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
+     */
 	public DuccReservationSubmit(ArrayList<String> args)
         throws Exception
     {
@@ -47,12 +61,10 @@ public class DuccReservationSubmit
         init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
     }
 
-	public DuccReservationSubmit(String[] args)
-        throws Exception
-    {
-        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
-    }
-
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
+     */
 	public DuccReservationSubmit(Properties props)
         throws Exception
     {
@@ -101,6 +113,15 @@ public class DuccReservationSubmit
 // 				.withLongOpt(DuccUiConstants.name_specification).create());
 // 	}
 	
+
+    /**
+     * Execute collects the parameters for the reservation and sends them to the DUCC Orchestrator
+     * to schedule the reservation.  This method blocks until either the reservation is 
+     * granted, or it fails.  Failure is always do to lack of resources, in some form or another.
+     * Reservations are granted all-or-nothing: you get everything you ask for, or you get nothing.
+     *
+     * @return True if the DUCC grants the reservation. 
+     */
 	public boolean execute()
     {		
         if ( ! requestProperties.containsKey(UiOption.NumberOfInstances.pname()) ) {
@@ -131,17 +152,29 @@ public class DuccReservationSubmit
         return rc;
     }
 
-	
+	/**
+     * If the reservation is granted, this method returns the set of hosts containing the reservation.
+     * @return String array of hosts where the reservation is granted.
+     */
 	public String[] getHosts() 
     {
 		  return this.nodeList.split("\\s");
 	}
 	
+    /**
+     * If the reservation is granted, this method returns the set of hosts containing the reservation as
+     * a single blank-delimeted string.
+     * @return Blank-delimeted string of hosts where the reservation is granted.
+     */
     public String getHostsAsString()
     {
         return nodeList;
     }
 
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_RESERVE">DUCC CLI reference.</a>
+     */
 	public static void main(String[] args) {
         try {
             // Instantiate the object with args similar to the CLI, or a pre-built properties file

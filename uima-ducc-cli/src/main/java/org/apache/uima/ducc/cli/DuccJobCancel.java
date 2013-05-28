@@ -52,12 +52,20 @@ public class DuccJobCancel
     };
 
 	
+    /**
+     * @param args Array of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccJobCancel(String [] args) 
         throws Exception
     {
         init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", null);
 	}
 
+    /**
+     * @param args List of string arguments as described in the 
+     *      <a href="/doc/duccbook.html#DUCC_CLI_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccJobCancel(List<String> args) 
         throws Exception
     {
@@ -65,6 +73,10 @@ public class DuccJobCancel
         init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", null);
 	}
 
+    /**
+     * @param props Properties file of arguments, as described in the
+     *      <a href="/doc/duccbook.html#DUCC_CLI_CANCEL">DUCC CLI reference.</a>
+     */
 	public DuccJobCancel(Properties props) 
         throws Exception
     {
@@ -75,15 +87,33 @@ public class DuccJobCancel
         init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", null, null);
 	}
 
+    /**
+     * If a specific process, rather than the entire job, is canceled. this returns the canceled
+     * DUCC id of the process, as confirmation.
+     *
+     * @return The DUCC numeric id of the canceled process.
+     */
 	public long getCanceledPid()
 	{
 		return canceledPid;
 	}
+    
+    /**
+     * Return the DUCC Orchestrator message, if any, pertaining to the cancelation.
+     *
+     * @return Return any message associated with the cancelation.
+     */
 	public String getResponseMessage()
 	{
 		return responseMessage;
 	}
 		
+    /**
+     * Execute collects the parameters for job cancelation and sends them to the DUCC Orchestrator
+     * to effect the cancelation.
+     *
+     * @return True if the orchestrator accepts the job cancelation.
+     */
 	public boolean execute() 
         throws Exception 
     {
@@ -118,6 +148,10 @@ public class DuccJobCancel
 		return rc;
 	}
 	
+    /**
+     * Main method, as used by the executable jar or direct java invocation.
+     * @param args arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_CANCEL">DUCC CLI reference.</a>
+     */
 	public static void main(String[] args) {
 		try {
 			DuccJobCancel djc = new DuccJobCancel(args);
