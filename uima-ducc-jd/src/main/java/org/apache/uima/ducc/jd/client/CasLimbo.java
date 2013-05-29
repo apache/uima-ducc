@@ -195,4 +195,24 @@ public class CasLimbo {
 			}
 		}
 	}
+	
+	public void rectifyStatus() {
+		String location = "rectifyStatus";
+		Iterator<CasTuple> iterator = tupleQueue.iterator();
+		if(!iterator.hasNext()) {
+			duccOut.trace(location, getJobId(), "empty");
+		}
+		else {
+			while(iterator.hasNext()) {
+				CasTuple casTuple = iterator.next();
+				if(isAvailable(casTuple)) {
+					jd.getDriverStatusReportLive().limboRemove(casTuple.getSeqno(),casTuple.getDuccId());
+					duccOut.debug(location, getJobId(), casTuple.getDuccId(), "available"+" "+"seqNo:"+casTuple.getSeqno()+" "+"wiId:"+casTuple.getCasDocumentText());
+				}
+				else {
+					duccOut.trace(location, getJobId(), casTuple.getDuccId(), "not available"+" "+"seqNo:"+casTuple.getSeqno()+" "+"wiId:"+casTuple.getCasDocumentText());
+				}
+			}
+		}
+	}
 }

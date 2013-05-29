@@ -294,4 +294,10 @@ public class CasSource {
 	public int getSeqNo() {
 		return seqNo.get();
 	}
+	
+	public void rectifyStatus() {
+		if(casLimbo != null) {
+			casLimbo.rectifyStatus();
+		}
+	}
 }

@@ -261,6 +261,7 @@ implements IJobDriverComponent {
 			duccOut.debug(methodName, null, duccMsg.fetch("publishing state"));
 			jdStateDuccEvent = new JdStateDuccEvent();
 			if(thread != null) {
+				thread.rectifyStatus();
 				DriverStatusReport dsr = thread.getDriverStatusReportCopy();
 				if(dsr == null) {
 					duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));

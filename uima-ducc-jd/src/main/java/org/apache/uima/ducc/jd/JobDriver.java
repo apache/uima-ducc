@@ -1360,5 +1360,11 @@ public class JobDriver extends Thread implements IJobDriver {
 			duccErr.error(location, djid, dpid, exception);
 		}
 	}
+
+	public void rectifyStatus() {
+		if(casSource != null) {
+			casSource.rectifyStatus();
+		}
+	}
 	
 }
