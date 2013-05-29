@@ -674,9 +674,9 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-        /*
         ProcessGetMetaTimeMax {
-            public String pname()       { return JobSpecificationProperties.key_process_get_meta_time_max; }
+            //public String pname()       { return JobSpecificationProperties.key_process_get_meta_time_max; }
+            public String pname()       { return "process_get_meta_time_max"; }
             public String description() { return "Maximum elapsed time (in minutes) for processing getMeta."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
@@ -685,7 +685,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
-		*/
 		
         ProcessInitializationTimeMax { 
             public String pname()       { return JobSpecificationProperties.key_process_initialization_time_max; }
