@@ -1219,6 +1219,8 @@ class NodePool
         int order = j.getShareOrder();
         int given = 0;        
 
+        logger.debug(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
+
         if ( needed > 0 ) {
             whatof: {
                 for ( int i = order; i < getArraySize(); i++ ) {

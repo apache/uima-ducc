@@ -1,6 +1,11 @@
 # These jobs represent approximately 144 hours real time; adjust compression accordingly
 # Compresion of 12 produces an approximately 12 hour test on a system with 136 15G shares
 
+random.seed                   = 0         # a number, for determinate randoms
+                                          # or TOD, and the seed will use
+                                          # current time of day
+
+
 src.dir                     = jobs.in   # where the jobs are
 dest.dir                    = jobs      # where to put prepared jobs
 

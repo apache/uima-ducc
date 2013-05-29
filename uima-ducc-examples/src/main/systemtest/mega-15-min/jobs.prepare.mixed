@@ -3,6 +3,11 @@
 # Compression of 96 and spread 900 gives a good 15-20 minute test on test system with
 # 136 15-G shares
 
+random.seed                   = 0         # a number, for determinate randoms
+                                          # or TOD, and the seed will use
+                                          # current time of day
+
+
 src.dir                       = jobs.in   # where the jobs are
 dest.dir                      = jobs      # where to put prepared jobs
 

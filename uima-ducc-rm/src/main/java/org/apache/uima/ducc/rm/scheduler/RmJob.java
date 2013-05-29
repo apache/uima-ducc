@@ -980,9 +980,9 @@ public class RmJob
             c++;
         }
 
-        c = Math.max(c, assignedShares.size());        // if job is ending we could be fragmented and have to be
-                                                       // careful not to underestimate, or we end up possibly
-                                                       // evicting something that should be left alone.
+        c = Math.max(c, assignedShares.size() - pendingRemoves.size());  // if job is ending we could be fragmented and have to be
+                                                                         // careful not to underestimate, or we end up possibly
+                                                                         // evicting something that should be left alone.
 
         // 
         // If waiting for initialization, we have to cap as well on the maximum number of shares
