@@ -980,9 +980,10 @@ public class RmJob
             c++;
         }
 
-        c = Math.max(c, assignedShares.size() - pendingRemoves.size());  // if job is ending we could be fragmented and have to be
-                                                                         // careful not to underestimate, or we end up possibly
-                                                                         // evicting something that should be left alone.
+        int currentResources = assignedShares.size() - pendingRemoves.size();
+        c = Math.max(c, currentResources);  // if job is ending we could be fragmented and have to be
+                                            // careful not to underestimate, or we end up possibly
+                                            // evicting something that should be left alone.
 
         // 
         // If waiting for initialization, we have to cap as well on the maximum number of shares
@@ -1003,7 +1004,7 @@ public class RmJob
         
         if ( resource_class.isUsePrediction() ) {
             if (projected_cap < base_cap ) {                     // If we project less need, revise the estimate down
-                potential_cap = Math.max(projected_cap, assignedShares.size());
+                potential_cap = Math.max(projected_cap, currentResources);
             } 
         }
             
@@ -1014,11 +1015,11 @@ public class RmJob
             if ( init_wait ) {                                 // ugly, but true, if not using initialization caps
                 actual_cap =  potential_cap;
             } else  if ( resource_class.isExpandByDoubling() ) {
-                if ( (assignedShares.size() == 0) ) {
+                if ( currentResources == 0 ) {
                     actual_cap = Math.max(1, resource_class.getInitializationCap());   // if we shrink to 0, need to restart from the init cap
                     actual_cap = Math.min(base_cap, actual_cap);                       // must re-min this in case we have a base cap < class init cap
                 } else {
-                    actual_cap = Math.min(potential_cap, assignedShares.size() * 2);
+                    actual_cap = Math.min(potential_cap, currentResources * 2);
                 }
             } else {
                 actual_cap = potential_cap;
