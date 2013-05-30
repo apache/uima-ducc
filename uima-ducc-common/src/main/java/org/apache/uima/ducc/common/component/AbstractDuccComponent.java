@@ -271,8 +271,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
       if (logger != null) {
         logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
-        startAdminChannel(endpoint, this);
       }
+      startAdminChannel(endpoint, this);
+      System.out.println(".....Starting Admin Channel on endpoint:" + endpoint);
     }
     if (logger != null) {
       logger.info("start",null, ".....Starting Camel Context");
@@ -448,7 +449,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
 
     public void process(final Exchange exchange) throws Exception {
-      if (logger != null) {
+    	System.out.println("Component: Received Admin Message of type:"+exchange.getIn().getBody().getClass().getName());
+
+    	if (logger != null) {
 
         logger.info("AdminEventProcessor.process()", null, "Received Admin Message of Type:"
                 + exchange.getIn().getBody().getClass().getName());
