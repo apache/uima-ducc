@@ -17,7 +17,7 @@
 	<parent>
 		<groupId>org.apache.uima</groupId>
 		<artifactId>parent-pom</artifactId>
-		<version>4</version>
+		<version>5-SNAPSHOT</version>
 		<relativePath />
 	</parent>
 
@@ -25,6 +25,84 @@
 	<artifactId>uima-ducc-parent</artifactId>
 	<version>0.8.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
+
+ <!-- The repositories section is duplicated from
+       the parent pom one, and adds the Apache Snapshot Nexus repository
+       where UIMA snapshots are deployed.  This is needed if for instance,
+       a project depends on some new SNAPSHOT level of a build tool,
+       where the users hasn't checked out the build tooling.
+
+       This allows maven to find the snapshots when looking for the parent of
+       this pom -->
+  <repositories>
+    <repository>
+      <id>eclipsePlugins</id>
+      <name>Eclipse components</name>
+      <layout>default</layout>
+      <url>http://repo1.maven.org/eclipse</url>
+
+      <releases>
+        <updatePolicy>never</updatePolicy>
+        <checksumPolicy>fail</checksumPolicy>
+      </releases>
+
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <!-- modify central repository access:
+         Turn on checksum checking-->
+    <repository>
+      <id>central</id>
+      <name>Maven Repository Switchboard</name>
+      <layout>default</layout>
+      <url>http://repo1.maven.org/maven2</url>
+
+      <releases>
+        <enabled>true</enabled>
+        <checksumPolicy>fail</checksumPolicy>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+
+    </repository>
+    
+    <!-- this is needed if this pom refers to a snapshot of the parent -->
+    <repository>
+      <id>apache.snapshots</id>
+      <name>Apache Snapshot Repository</name>
+      <url>http://repository.apache.org/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </repository>  
+    
+
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>apache.snapshots.plugins</id>
+      <name>Apache Snapshot Repository - Maven plugins</name>
+      <url>http://repository.apache.org/snapshots</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <checksumPolicy>fail</checksumPolicy>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </pluginRepository>
+    
+  </pluginRepositories>
+
 
 	<!-- Declare version numbers for all dependencies -->
 	<properties>
