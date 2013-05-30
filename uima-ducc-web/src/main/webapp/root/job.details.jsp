@@ -92,37 +92,13 @@ under the License.
 			    <%@ include file="job.details.table.processes.jsp" %>
 			</div>
 			<div id="tabs-2">
-				<table>
-   	    			<caption><b>Work Items List</b><br><i><small>click column heading to sort</small></i></caption>
-   	    			<tr>
-        			<td>
-      	  			<table class="sortable">
-						<thead>
-						<tr class="ducc-head">
-						<th title="The system assigned work item sequence number" class="sorttable_numeric">SeqNo</th>
-						<th title="The user assigned work item identity">Id</th>
-						<th title="The work item status, normally operating or ended">Status</th>
-						<th title="The approx. number of seconds elapsed between work item (a) queued for processing and (b) dequeued for start of processing" class="sorttable_numeric">Queuing Time (sec)</th>
-						<th title="The approx. number of seconds elapsed between work item (a) dequeued for start of processing and (b) end of processing" class="sorttable_numeric">Processing Time (sec)</th>
-						<th title="The node for the work item, by address">Node (IP)</th>
-						<th title="The node for the work item, by name">Node (Name)</th>
-						<th title="The PID for the work item" class="sorttable_numeric">PID</th>
-						</tr>
-						</thead>
-						<tbody id="workitems_data_area">
-   	  					</tbody>
-			  			</table>
-   	    		</table>
+				<%@ include file="job.details.table.workitems.jsp" %>
 			</div>
 			<div id="tabs-3">
-				<div class="performance_data_div">
-   					<span id="performance_data_area"></span>
-   				</div>
+				<%@ include file="job.details.table.performance.jsp" %>
 			</div>
 			<div id="tabs-4">
-   				<div class="specification_data_div">
-   					<span id="specification_data_area"></span>
-   				</div>
+   				<%@ include file="job.details.table.specification.jsp" %>
 			</div>
 		</div>
 </td>

@@ -448,18 +448,25 @@ function ducc_init_job_workitems_data()
 function ducc_load_job_workitems_data()
 {
 	try {
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+		$("#loading_workitems_area").html(data);
 		server_url= "/ducc-servlet/job-workitems-data"+location.search;
 		$.ajax(
 		{
 			url : server_url,
+			async: true,
 			success : function (data) 
 			{
 				$("#workitems_data_area").html(data);
 				hide_show();
+				data = "";
+				$("#loading_workitems_area").html(data);
 			}
 		});
 	}
 	catch(err) {
+		data = "";
+		$("#loading_workitems_area").html(data);
 		ducc_error("ducc_load_job_workitems_data",err);
 	}	
 }
@@ -478,20 +485,27 @@ function ducc_init_job_performance_data()
 function ducc_load_job_performance_data()
 {
 	try {
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+		$("#loading_performance_area").html(data);
 		server_url= "/ducc-servlet/job-performance-data"+location.search;
 		$.ajax(
 		{
 			url : server_url,
+			async:true,
 			success : function (data) 
 			{
 				$("#performance_data_area").html(data);
 				hide_show();
+				data = "";
+				$("#loading_performance_area").html(data);
 			}
 		});
 	}
 	catch(err) {
+		data = "";
+		$("#loading_performance_area").html(data);
 		ducc_error("ducc_load_job_performance_data",err);
-	}	
+	}
 }
 
 function ducc_init_job_specification_data()
@@ -508,18 +522,25 @@ function ducc_init_job_specification_data()
 function ducc_load_job_specification_data()
 {
 	try {
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+		$("#loading_specification_area").html(data);
 		server_url= "/ducc-servlet/job-specification-data"+location.search;
 		$.ajax(
 		{
 			url : server_url,
+			async: true,
 			success : function (data) 
 			{
 				$("#specification_data_area").html(data);
 				hide_show();
+				data = "";
+				$("#loading_specification_area").html(data);
 			}
 		});
 	}
 	catch(err) {
+		data = "";
+		$("#loading_specification_area").html(data);
 		ducc_error("ducc_load_job_specification_data",err);
 	}	
 }
@@ -678,6 +699,8 @@ function hide_show() {
 function ducc_load_job_processes_data()
 {
 	try {
+		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+		$("#loading_processes_area").html(data);
 		server_url= "/ducc-servlet/job-processes-data"+location.search;
 		$.ajax(
 		{
@@ -687,6 +710,8 @@ function ducc_load_job_processes_data()
 				$("#processes_list_area").html(data);
 				ducc_cluetips();
 				hide_show();
+				data = "";
+				$("#loading_processes_area").html(data);
      			ducc_timestamp();
 				ducc_authentication();
 				ducc_utilization();
@@ -694,6 +719,8 @@ function ducc_load_job_processes_data()
 		});
 	}
 	catch(err) {
+		data = "";
+		$("#loading_processes_area").html(data);
 		ducc_error("ducc_load_job_processes_data",err);
 	}
 }
