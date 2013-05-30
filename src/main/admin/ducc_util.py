@@ -555,16 +555,20 @@ class DuccUtil:
         # now make sure the version matches that on the master node
         lines = self.popen(self.duccling + ' -v')
         version_from_head = lines.readline().strip();
+        toks = version_from_head.split()
+        version_from_head = ' '.join(toks[0:4])
 
         version_file = self.DUCC_HOME + '/state/duccling.version';
         if ( os.path.exists(version_file) ):
             verfile = open(version_file)
             for line in verfile:
                 line = line.strip();
+                toks = line.split();
+                line = ' '.join(toks[0:4])
                 if ( line != version_from_head ):
                     print "Mismatched ducc_ling versions:"
-                    print "MASTER version:", version_from_head
-                    print "LOCAL  version:", line
+                    print "ALERT: Master version:", version_from_head
+                    print "ALERT: Local version:", line
                     return False
             verfile.close()
         else:

@@ -41,6 +41,7 @@ class CheckDucc(DuccUtil):
         verify_slave_node(checkdate, self.ducc_properties)
         self.check_clock_skew(checkdate)
         self.verify_jvm()
+        self.verify_duccling()
         return
 
 
