@@ -23,6 +23,8 @@
 var oTable;
 var display_table_style;
 
+var ms_reload_min = 5000;
+
 function ducc_cluetips() {
 	try {
 		$('a.logfileLink').cluetip('destroy');
@@ -235,8 +237,15 @@ function ducc_load_common()
 	}
 }
 
+var ms_load_jobs_data = +new Date() - ms_reload_min;
+
 function ducc_load_jobs_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_jobs_data + ms_reload_min) {
+		return;
+	}
+	ms_load_jobs_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
 	if(table_style == "classic") {
 		ducc_load_classic_jobs_data()
@@ -305,8 +314,15 @@ function ducc_init_jobs_data()
 	}	
 }
 
+var ms_load_services_data = +new Date() - ms_reload_min;
+
 function ducc_load_services_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_services_data + ms_reload_min) {
+		return;
+	}
+	ms_load_services_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
 	if(table_style == "classic") {
 		ducc_load_classic_services_data()
@@ -445,8 +461,15 @@ function ducc_init_job_workitems_data()
 	}
 }
 
+var ms_load_job_workitems_data = +new Date() - ms_reload_min;
+
 function ducc_load_job_workitems_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_job_workitems_data + ms_reload_min) {
+		return;
+	}
+	ms_load_job_workitems_data = ms_now;
 	try {
 		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
 		$("#loading_workitems_area").html(data);
@@ -482,8 +505,15 @@ function ducc_init_job_performance_data()
 	}
 }
 
+var ms_load_job_performance_data = +new Date() - ms_reload_min;
+
 function ducc_load_job_performance_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_job_performance_data + ms_reload_min) {
+		return;
+	}
+	ms_load_job_performance_data = ms_now;
 	try {
 		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
 		$("#loading_performance_area").html(data);
@@ -519,8 +549,15 @@ function ducc_init_job_specification_data()
 	}
 }
 
+var ms_load_job_specification_data = +new Date() - ms_reload_min;
+
 function ducc_load_job_specification_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_job_specification_data + ms_reload_min) {
+		return;
+	}
+	ms_load_job_specification_data = ms_now;
 	try {
 		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
 		$("#loading_specification_area").html(data);
@@ -556,8 +593,15 @@ function ducc_init_reservation_specification_data()
 	}
 }
 
+var ms_load_reservation_specification_data = +new Date() - ms_reload_min;
+
 function ducc_load_reservation_specification_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_reservation_specification_data + ms_reload_min) {
+		return;
+	}
+	ms_load_reservation_specification_data = ms_now;	
 	try {
 		server_url= "/ducc-servlet/reservation-specification-data"+location.search;
 		$.ajax(
@@ -586,8 +630,15 @@ function ducc_init_service_registry_data()
 	}
 }
 
+var ms_load_service_registry_data = +new Date() - ms_reload_min;
+
 function ducc_load_service_registry_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_service_registry_data + ms_reload_min) {
+		return;
+	}
+	ms_load_service_registry_data = ms_now;
 	try {
 		server_url= "/ducc-servlet/service-registry-data"+location.search;
 		$.ajax(
@@ -622,8 +673,15 @@ function ducc_service_update_form_button()
 	}
 }
 
+var ms_load_service_deployments_data = +new Date() - ms_reload_min;
+
 function ducc_load_service_deployments_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_service_deployments_data + ms_reload_min) {
+		return;
+	}
+	ms_load_service_deployments_data = ms_now;
 	try {
 		server_url= "/ducc-servlet/service-deployments-data"+location.search;
 		$.ajax(
@@ -696,8 +754,15 @@ function hide_show() {
 	});
 }
 
+var ms_load_job_processes_data = +new Date() - ms_reload_min;
+
 function ducc_load_job_processes_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_job_processes_data + ms_reload_min) {
+		return;
+	}
+	ms_load_job_processes_data = ms_now;
 	try {
 		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
 		$("#loading_processes_area").html(data);
@@ -740,8 +805,15 @@ function ducc_init_job_processes_data()
 	}
 }
 
+var ms_load_reservation_processes_data = +new Date() - ms_reload_min;
+
 function ducc_load_reservation_processes_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_reservation_processes_data + ms_reload_min) {
+		return;
+	}
+	ms_load_reservation_processes_data = ms_now;
 	try {
 		server_url= "/ducc-servlet/reservation-processes-data"+location.search;
 		$.ajax(
@@ -778,8 +850,15 @@ function ducc_init_reservation_processes_data()
 	}
 }
 
+var ms_load_system_machines_data = +new Date() - ms_reload_min;
+
 function ducc_load_machines_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_system_machines_data + ms_reload_min) {
+		return;
+	}
+	ms_load_system_machines_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
 	if(table_style == "classic") {
 		ducc_load_classic_machines_data()
@@ -864,8 +943,15 @@ function ducc_reservation_form_button()
 	}
 }
 
+var ms_load_reservations_data = +new Date() - ms_reload_min;
+
 function ducc_load_reservations_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_reservations_data + ms_reload_min) {
+		return;
+	}
+	ms_load_reservations_data = ms_now;
 	ducc_reservation_form_button();
 	var table_style = ducc_preferences_get("table_style");
 	if(table_style == "classic") {
@@ -935,8 +1021,15 @@ function ducc_init_reservations_data()
 	}
 }
 
+var ms_load_reservation_scheduling_classes_data = +new Date() - ms_reload_min;
+
 function ducc_load_reservation_scheduling_classes()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_reservation_scheduling_classes_data + ms_reload_min) {
+		return;
+	}
+	ms_load_reservation_scheduling_classes_data = ms_now;
 	try {
 		$.ajax(
 		{
@@ -1272,8 +1365,15 @@ function ducc_default_agents()
 	}
 }
 
+var ms_load_system_daemons_data = +new Date() - ms_reload_min;
+
 function ducc_load_system_daemons_data()
 {
+	var ms_now = +new Date();
+	if(ms_now < ms_load_system_daemons_data + ms_reload_min) {
+		return;
+	}
+	ms_load_system_daemons_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
 	if(table_style == "classic") {
 		ducc_load_classic_system_daemons_data()
