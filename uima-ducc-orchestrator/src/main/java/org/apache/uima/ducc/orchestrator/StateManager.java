@@ -356,6 +356,52 @@ public class StateManager {
 		}
 	}
 	
+	private void setCompletionIfNotAlreadySet(DuccWorkJob duccWorkJob, DriverStatusReport jdStatusReport) {
+		String methodName = "setCompletionIfNotAlreadySet";
+		DuccId jobid = null;
+		try {
+			jobid = duccWorkJob.getDuccId();
+			setCompletionIfNotAlreadySet(jobid, duccWorkJob, jdStatusReport.getJobCompletionType(), jdStatusReport.getJobCompletionRationale());
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
+	}
+	
+	private void setCompletionIfNotAlreadySet(DuccWorkJob duccWorkJob, JobCompletionType jobCompletionType, IRationale rationale) {
+		String methodName = "setCompletionIfNotAlreadySet";
+		DuccId jobid = null;
+		try {
+			jobid = duccWorkJob.getDuccId();
+			setCompletionIfNotAlreadySet(jobid, duccWorkJob, jobCompletionType,rationale);
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
+	}
+	
+	private void setCompletionIfNotAlreadySet(DuccId jobid, DuccWorkJob duccWorkJob, JobCompletionType reqJobCompletionType, IRationale reqRationale) {
+		String methodName = "setCompletionIfNotAlreadySet";
+		logger.trace(methodName, null, messages.fetch("enter"));
+		try {
+			JobCompletionType curJobCompletionType = duccWorkJob.getCompletionType();
+			switch(curJobCompletionType) {
+			case Undefined:
+				duccWorkJob.setCompletion(reqJobCompletionType, reqRationale);
+				logger.debug(methodName, jobid, "changed: "+curJobCompletionType+" to "+reqJobCompletionType);
+				break;
+			default:
+				logger.debug(methodName, jobid, "unchanged: "+curJobCompletionType+" to "+reqJobCompletionType);
+				break;
+			}
+			
+		}
+		catch(Exception e) {
+			logger.error(methodName, jobid, e);
+		}
+		logger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
 	/**
 	 * JD reconciliation
 	 */
@@ -458,18 +504,24 @@ public class StateManager {
 							duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 							switch(jdStatusReport.getJobCompletionType()) {
 							case EndOfJob:
-								duccWorkJob.setCompletion(JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
 								try {
 									int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
 									if(errors > 0) {
-										duccWorkJob.setCompletion(JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
+										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
+									}
+									else {
+										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
 									}
 								}
 								catch(Exception e) {
+									logger.error(methodName, duccId, e);
+								}
+								finally {
+									setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
 								}
 								break;
 							default:
-								duccWorkJob.setCompletion(jdStatusReport.getJobCompletionType(),jdStatusReport.getJobCompletionRationale());
+								setCompletionIfNotAlreadySet(duccWorkJob, jdStatusReport);
 								break;
 							}
 						}
