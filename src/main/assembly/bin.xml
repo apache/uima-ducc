@@ -109,7 +109,7 @@ under the License.
       <includes>
         <include>org.apache.uima:uimaj-core</include>
       </includes>      
-      <outputFileNameMapping>${artifact.artifactId}-${org.apache.uima.version}.jar</outputFileNameMapping>
+      <outputFileNameMapping>uima-${org.apache.uima.version}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
