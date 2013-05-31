@@ -21,7 +21,7 @@
 		<relativePath>../uima-ducc-parent/pom.xml</relativePath>
 	</parent>
 
-    <artifactId>uima-ducc-duccbook</artifactId>
+    <artifactId>uima-ducc-duccdocs</artifactId>
     <packaging>pom</packaging>
 
     <pluginRepositories>
