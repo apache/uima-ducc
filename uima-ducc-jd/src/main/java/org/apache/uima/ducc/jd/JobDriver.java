@@ -43,6 +43,7 @@ import org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandlerLoader;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.ExceptionHelper;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.jd.client.CasDispatchMap;
@@ -170,7 +171,7 @@ public class JobDriver extends Thread implements IJobDriver {
 				catch (Exception e) {
 					duccOut.error(location, jobid, e);
 					duccErr.error(location, jobid, e);
-					driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+e.getMessage()));
+					driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+summarize(e)));
 					terminate();
 					throw new JobDriverTerminateException("initialize failed", e);
 				}
@@ -185,12 +186,15 @@ public class JobDriver extends Thread implements IJobDriver {
 		catch(Exception e) {
 			duccOut.error(location, jobid, e);
 			duccErr.error(location, jobid, e);
-			driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+e.getMessage()));
+			driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+summarize(e)));
 			terminate();
 			throw new JobDriverTerminateException("initialize failed", e);
 		}
 	}
 	
+	public String summarize(Exception e) {
+		return ExceptionHelper.summarize(e);
+	}
 	
 	public void run() {
 		try {
@@ -379,7 +383,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		catch(Exception e) {
 			duccOut.error(location, jobid, e);
 			duccErr.error(location, jobid, e);
-			driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+e.getMessage()));
+			driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+summarize(e)));
 			terminate();
 			throw new JobDriverTerminateException("initialize failed", e);
 		}
@@ -422,7 +426,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			}
 		}
 		catch(Exception e) {
-			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale("job driver exception occurred: "+e.getMessage()));
+			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale("job driver exception occurred: "+summarize(e)));
 			driverStatusReport.countWorkItemsProcessingError();
 			duccOut.error(location, jobid, "error fetching next CAS from CR",e);
 			duccErr.error(location, jobid, "error fetching next CAS from CR",e);

@@ -31,6 +31,7 @@ import org.apache.uima.ducc.common.jd.JdConstants;
 import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.ExceptionHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
@@ -150,6 +151,10 @@ implements IJobDriverComponent {
 	
 	private boolean dumpProcessMapEnabled = false;
 	
+	public String summarize(Exception e) {
+		return ExceptionHelper.summarize(e);
+	}
+	
 	protected void process(OrchestratorAbbreviatedStateDuccEvent duccEvent) {
 		String methodName = "process";
 		duccOut.trace(methodName, null, duccMsg.fetch("enter"));
@@ -177,7 +182,7 @@ implements IJobDriverComponent {
 						jpc = new JobProcessCollection(job);
 					}
 					catch(Exception e) {
-						duccOut.error(methodName, job.getDuccId(), e.getMessage(), e);
+						duccOut.error(methodName, job.getDuccId(), summarize(e), e);
 					}
 				}
 				try {
@@ -185,7 +190,7 @@ implements IJobDriverComponent {
 					jpc.exportData(map);
 				}
 				catch(Exception e) {
-					duccOut.error(methodName, job.getDuccId(), e.getMessage(), e);
+					duccOut.error(methodName, job.getDuccId(), summarize(e), e);
 				}
 			}
 			/*
