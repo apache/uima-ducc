@@ -25,7 +25,12 @@ var display_table_style;
 
 var ms_reload_min = 5000;
 
+var cluetips_disabled = true;
+
 function ducc_cluetips() {
+	if(cluetips_disabled) {
+		return;
+	}
 	try {
 		$('a.logfileLink').cluetip('destroy');
 		$('a.logfileLink').cluetip({
@@ -1474,10 +1479,10 @@ function ducc_init(type)
 			ducc_init_job_performance_data();
 			ducc_init_job_specification_data();
 			ducc_load_job_workitems_count_data();
-			ducc_load_job_specification_data();
+			ducc_load_job_processes_data();
 			ducc_load_job_workitems_data();
 			ducc_load_job_performance_data();
-			ducc_load_job_processes_data();
+			ducc_load_job_specification_data();
 		}
 		if(type == "reservation-details") {
 			ducc_init_reservation_processes_data();
@@ -1906,11 +1911,11 @@ function ducc_update_page(type)
 				ducc_load_reservations_data();
 			}
 			if(type == "job-details") {
-				//ducc_load_job_specification_data();
-				ducc_load_job_performance_data();
-				ducc_load_job_workitems_data();
-				ducc_load_job_processes_data();
 				ducc_load_job_workitems_count_data();
+				ducc_load_job_processes_data();
+				ducc_load_job_workitems_data();
+				ducc_load_job_performance_data();
+				//ducc_load_job_specification_data();
 			}
 			if(type == "reservation-details") {
 				//ducc_load_reservation_specification_data();

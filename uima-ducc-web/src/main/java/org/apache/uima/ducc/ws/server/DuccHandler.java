@@ -494,33 +494,39 @@ public class DuccHandler extends DuccAbstractHandler {
 						isp0 = "<span class=\"health_black\">";
 					}
 				}
-				List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
-				if(upcList != null) {
-					if(!upcList.isEmpty()) {
-						String id = ""+process.getDuccId().getFriendly();
-						initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
-						loadme.append("<div id=\"loadme"+id+"\">");
-						loadme.append("<table>");
-						loadme.append("<tr>");
-						String ch1 = "Name";
-						String ch2 = "State";
-						String ch3 = "Time";
-						loadme.append("<td>"+"<b>"+ch1+"</b>");
-						loadme.append("<td>"+"<b>"+ch2+"</b>");
-						loadme.append("<td>"+"<b>"+ch3+"</b>");
-						Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
-						while(upcIterator.hasNext()) {
-							IUimaPipelineAEComponent upc = upcIterator.next();
-							String iName = upc.getAeName();
-							String iState = upc.getAeState().toString();
-							String iTime = FormatHelper.duration(upc.getInitializationTime());
+				boolean cluetips_disabled = true;
+				if(cluetips_disabled) {
+					loadme.append(initTime);
+				}
+				else {
+					List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
+					if(upcList != null) {
+						if(!upcList.isEmpty()) {
+							String id = ""+process.getDuccId().getFriendly();
+							initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
+							loadme.append("<div id=\"loadme"+id+"\">");
+							loadme.append("<table>");
 							loadme.append("<tr>");
-							loadme.append("<td>"+iName);
-							loadme.append("<td>"+iState);
-							loadme.append("<td>"+iTime);
+							String ch1 = "Name";
+							String ch2 = "State";
+							String ch3 = "Time";
+							loadme.append("<td>"+"<b>"+ch1+"</b>");
+							loadme.append("<td>"+"<b>"+ch2+"</b>");
+							loadme.append("<td>"+"<b>"+ch3+"</b>");
+							Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
+							while(upcIterator.hasNext()) {
+								IUimaPipelineAEComponent upc = upcIterator.next();
+								String iName = upc.getAeName();
+								String iState = upc.getAeState().toString();
+								String iTime = FormatHelper.duration(upc.getInitializationTime());
+								loadme.append("<tr>");
+								loadme.append("<td>"+iName);
+								loadme.append("<td>"+iState);
+								loadme.append("<td>"+iTime);
+							}
+							loadme.append("</table>");
+							loadme.append("</div>");
 						}
-						loadme.append("</table>");
-						loadme.append("</div>");
 					}
 				}
 			}
@@ -816,21 +822,23 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</tr>");
 		}
 		// jd.err.log
-		if(fileExists(logsjobdir+errfile)) {
-			String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
-			sb.append(tr);
-			// Id
-			sb.append("<td>");
-			sb.append("</td>");
-			// Err Log
-			sb.append("<td>");
-			sb.append(href2);
-			sb.append("</td>");
-			// Err Log Size (in MB)
-			sb.append("<td align=\"right\">");
-			sb.append(getFileSize(logsjobdir+errfile));
-			sb.append("</td>");
-			sb.append("</tr>");
+		if(type.equals("JD")) {
+			if(fileExists(logsjobdir+errfile)) {
+				String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
+				sb.append(tr);
+				// Id
+				sb.append("<td>");
+				sb.append("</td>");
+				// Err Log
+				sb.append("<td>");
+				sb.append(href2);
+				sb.append("</td>");
+				// Err Log Size (in MB)
+				sb.append("<td align=\"right\">");
+				sb.append(getFileSize(logsjobdir+errfile));
+				sb.append("</td>");
+				sb.append("</tr>");
+			}
 		}
 	}
 	
