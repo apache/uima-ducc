@@ -242,6 +242,12 @@ function ducc_load_common()
 	}
 }
 
+function ducc_load_jobs_head()
+{
+	ducc_jobs_max_records();
+	ducc_jobs_users();
+}
+
 var ms_load_jobs_data = +new Date() - ms_reload_min;
 
 function ducc_load_jobs_data()
@@ -317,6 +323,12 @@ function ducc_init_jobs_data()
 	catch(err) {
 		ducc_error("ducc_init_jobs_data",err);
 	}	
+}
+
+function ducc_load_services_head()
+{
+	ducc_services_max_records();
+	ducc_services_users();
 }
 
 var ms_load_services_data = +new Date() - ms_reload_min;
@@ -948,6 +960,12 @@ function ducc_reservation_form_button()
 	}
 }
 
+function ducc_load_reservations_head() 
+{
+	ducc_reservations_max_records();
+	ducc_reservations_users();
+}
+
 var ms_load_reservations_data = +new Date() - ms_reload_min;
 
 function ducc_load_reservations_data()
@@ -1457,19 +1475,23 @@ function ducc_init(type)
 		if(type == "jobs") {
 			$(document).keypress(function(e) {
   			if(e.which == 13) {
-    			ducc_jobs_page();
+  				ducc_load_jobs_head();
+  				ducc_load_jobs_data();
   			}
 			});
 			ducc_init_jobs_data();
+			ducc_load_jobs_head();
 			ducc_load_jobs_data();
 		}
 		if(type == "services") {
 			$(document).keypress(function(e) {
   			if(e.which == 13) {
-    			ducc_services_page();
+  				ducc_load_services_head();
+  				ducc_load_services_data();
   			}
 			});
 			ducc_init_services_data();
+			ducc_load_services_head();
 			ducc_load_services_data();
 		}
 		if(type == "job-details") {
@@ -1506,10 +1528,12 @@ function ducc_init(type)
 		if(type == "reservations") {
 			$(document).keypress(function(e) {
   			if(e.which == 13) {
-    			ducc_reservations_page();
+  				ducc_load_reservations_head();
+  				ducc_load_reservations_data();
   			}
 			});
 			ducc_init_reservations_data();
+			ducc_load_reservations_head();
 			ducc_load_reservations_data();
 		}
 		if(type == "submit-reservation") {
@@ -1679,13 +1703,6 @@ function ducc_jobs_users()
 	}	
 }
 
-function ducc_jobs_page() 
-{
-	ducc_jobs_max_records();
-	ducc_jobs_users();
-	ducc_load_jobs_data();
-}
-
 function ducc_services_max_records() 
 {
 	try {
@@ -1772,13 +1789,6 @@ function ducc_services_users()
 		throw err;
 		//ducc_error("ducc_services_users",err);
 	}	
-}
-
-function ducc_services_page() 
-{
-	ducc_services_max_records();
-	ducc_services_users();
-	ducc_load_services_data();
 }
 
 function ducc_reservations_max_records() 
@@ -1869,13 +1879,6 @@ function ducc_reservations_users()
 	}	
 }
 
-function ducc_reservations_page() 
-{
-	ducc_reservations_max_records();
-	ducc_reservations_users();
-	ducc_load_reservations_data();
-}
-
 function ducc_refresh_page(type)
 {
 	var table_style = ducc_preferences_get("table_style");
@@ -1892,13 +1895,16 @@ function ducc_update_page(type)
 {
 	try {
 		if(type == "jobs") {
-			ducc_jobs_page();
+			ducc_load_jobs_head();
+			ducc_load_jobs_data();
 		}
 		if(type == "services") {
-			ducc_services_page();
+			ducc_load_services_head();
+			ducc_load_services_data();
 		}
 		if(type == "reservations") {
-			ducc_reservations_page();
+			ducc_load_reservations_head();
+			ducc_load_reservations_data();
 		}
 		for (var i=0; i < document.duccform.refresh.length; i++) {
 			if(type == "jobs") {
