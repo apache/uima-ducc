@@ -1,0 +1,78 @@
+\section{Overview Of The DUCC API}
+
+   The DUCC API provides a simple programatic interface to DUCC for submission and
+   cancelation of work.  The DUCC CLI is implemented using the API and provides a
+   model for how to use the API.
+
+   All the API objects are instantiated using the same arguments as the CLI.  The API
+   provides three variants for supplying arguments:
+   \begin{enumerate}
+     \item An array of Java Strings, for example {\tt DuccJobSubmit(String[] args)}.
+     \item A list of Java Strings,   for example {\tt DuccJobSubmit(List<String> args)}.
+     \item A Java Properties file for example {\tt DuccJobSubmit(Properties args)}.
+   \end{enumerate}
+
+   Upon instantiation of an API object, the {\tt boolean execute()} method is called.  This
+   method transmits the arguments to DUCC.  If DUCC receives and accepts the args, the method
+   return ``true'', otherwise it returns ``false.  In the case of submission of work, methods
+   are provided to fetch the unique Id assigned by DUCC.  In the case of any failure, methods
+   are provided to retrive messages from DUCC.
+
+   In the case of jobs and managed reservations, if the specification requested debug,
+   console attachment, or ``wait for completion'', the API provides methods to block
+   waiting for completion.
+
+   In the case of jobs and managed reservations, a callback object may also be passed to
+   the constructor.  The callback object provides a means to direct messages to the
+   API user.  If the callback is not provided, messages are written to standard output.
+
+   The API is thread-safe, so developers may manage multiple, simulataneous requests to
+   DUCC.
+
+   Below is the ``main()'' method of DuccJobSubmit, demonstating the use of the API:
+\begin{verbatim}   
+       public static void main(String[] args) {
+        try {
+            DuccJobSubmit ds = new DuccJobSubmit(args, null);
+            boolean rc = ds.execute();
+            // If the return is 'true' then as best the API can tell, the submit worked
+            if ( rc ) {                
+                System.out.println("Job " + ds.getDuccId() + " submitted");
+                int exit_code = ds.getReturnCode();       // after waiting if requested
+                System.exit(exit_code);
+            } else {
+                System.out.println("Could not submit job");
+                System.exit(1);
+            }
+        }
+        catch(Exception e) {
+            System.out.println("Cannot initialize: " + e);
+            System.exit(1);
+        }
+    }
+\end{verbatim}
+
+\section{Compiling and Running With the DUCC API}
+
+   Three jar files are required in the CLASSPATH to compile programs using the DUCC API.  These
+   jars are reside in \ducchome/lib:
+   \begin{enumerate}
+     \item uima-ducc-cli.jar
+     \item uima-ducc-common.jar
+     \item uima-ducc-transport.jar
+   \end{enumerate}
+   
+   The jar file {\tt uima-ducc-cli.jar} contains a manifest with the full runtime CLASSPATH
+   needed for the API.  Therefore it is the only jar file needed for execution.  For
+   example:
+\begin{verbatim}
+   export CLASSPATH=${DUCC_HOME}/lib/uima-ducc-cli.jar:${CLASSPATH}
+   java <my ducc code>
+\end{verbatim}
+
+\section{Java API}
+\ifpdf
+   The DUCC API is documented via Javadoc in \ducchome/webserver/root/doc/apidocs/index.html.
+\else
+   See the \href{apidocs/index.html}{JavaDoc} for the DUCC Public API.
+\fi
