@@ -496,7 +496,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 				boolean cluetips_disabled = true;
 				if(cluetips_disabled) {
-					loadme.append(initTime);
+					loadme.append("");
 				}
 				else {
 					List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
