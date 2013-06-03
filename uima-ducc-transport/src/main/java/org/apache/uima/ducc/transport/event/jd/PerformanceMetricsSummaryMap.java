@@ -40,25 +40,37 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 
 	private AtomicInteger casCount = new AtomicInteger(0);
 	
+	public String delim_old = "Components,";
+	public String delim_new = " Components ";
+	public String delim     = delim_new;
+	
 	private String getKey(AnalysisEnginePerformanceMetrics item) {
 		String key = "?";
 		try {
 			String uniqueName = item.getUniqueName();
-			key = uniqueName;
-			/*
-			String delim = "Components,";
-			key = delim+uniqueName.split(delim,2)[1];
-			*/
+			if(uniqueName.contains(delim_old)) {
+				key = uniqueName.split(delim_old,2)[1];
+			}
+			else if(uniqueName.contains(delim_new)) {
+				key = uniqueName.split(delim_new,2)[1];
+			}
+			else {
+				key = uniqueName;
+			}
 		}
 		catch(Throwable t) {
 		}
 		return key;
 	}
 	
-	private void addEntry(String key, String name) {
+	private String getDisplayName(AnalysisEnginePerformanceMetrics item) {
+		return getKey(item);
+	}
+	
+	private void addEntry(String key, String displayName) {
 		synchronized(map) {
 			if(!map.containsKey(key)) {
-				PerformanceMetricsSummaryItem summaryItem = new PerformanceMetricsSummaryItem(name,key);
+				PerformanceMetricsSummaryItem summaryItem = new PerformanceMetricsSummaryItem(displayName,key);
 				map.put(key, summaryItem);
 			}
 		}
@@ -78,8 +90,8 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 		int  count = casCount.addAndGet(1);
 		for(AnalysisEnginePerformanceMetrics item : list ) {
 			String key = getKey(item);
-			String name = item.getName();
-			addEntry(key,name);
+			String displayName = getDisplayName(item);
+			addEntry(key,displayName);
 			PerformanceMetricsSummaryItem summaryItem = map.get(key);
 			synchronized(map) {
 				long timeBefore = summaryItem.getAnalysisTime();
