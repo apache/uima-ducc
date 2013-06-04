@@ -64,9 +64,9 @@
       is the ActiveMQ broker URL.
 
       Jobs or other services may register dependencies on specific services by listing one or more
-      service endpoints int their specifications. See the {\em service\_dependency} option in
-      \prettyref{sec:cli.ducc-submit} for job dependencies and and  \prettyref{sec:cli.ducc-services} for
-      service dependencies.
+      service endpoints int their specifications. See the 
+      \hyperref[sec:cli.ducc-submit]{\em job } and 
+      \hyperref[sec:cli.ducc-services]{\em services } CLIs for details.
       
       
       \section{Service Classes.} 
@@ -89,32 +89,32 @@
       service from its records.
 
       \subsubsection{External UIMA-AS services}
-      If a job references UIMA-AS service that is not known to the DUCC Service Manager, (see
-      \prettyref{sec:service.endpoints}), the Service Manager will start its default internal pinger to
-      monitoring the ActiveMq queue and service response.  The service is monitored throughout the
-      lifetime of the job. If the service should stop responding, its state is updated to
-      "not-responding" but the job is allowed to continue as DUCC cannot tell if the job is using
-      the service.
+      If a job \hyperref[sec:service.endpoints]{references} a UIMA-AS service that is not known to the
+      DUCC Service Manager, the Service Manager will start
+      its default internal pinger to monitoring the ActiveMq queue and service response.  The
+      service is monitored throughout the lifetime of the job. If the service should stop
+      responding, its state is updated to "not-responding" but the job is allowed to continue as
+      DUCC cannot tell if the job is using the service.
 
       \subsubsection{External CUSTOM services, or ``ping-only'' Service} 
-      If a job references CUSTOM service (see \prettyref{sec:service.endpoints}, the service must be
-      registered and have a CUSTOM pinger associated with it (see \prettyref{sec:service.pingers}).
-      DUCC.  Such a service is refered to as a ``ping-only'' service.  DUCC will start the
-      pinger and monitor the service as expected.
+      If a job \hyperref[sec:service.endpoints]{references} a CUSTOM service, the service must be
+      registered and have a CUSTOM \hyperref[sec:service.pingers]{pinger} associated with it. Such a
+      service is refered to as a ``ping-only'' service.  DUCC will start the pinger and monitor the
+      service as expected.
       
       
-      \subsection{Submitted Services.} A submitted service is a service that is submitted to DUCC as a 
-      with the service submission CLI (see \prettyref{sec:cli.service-submit}). Both UIMA-AS and CUSTOM
-      services may be submitted for execution by DUCC. Because DUCC is managing this service it can
-      provide more support than for external services.  However, DUCC does not persist the
-      service definition, and when the service exits, it is not restarted.  
+      \subsection{Submitted Services.} A \hyperref[sec:cli.service-submit]{submitted service} is a
+      service that is submitted to DUCC as a with the service submission CLI.  Both UIMA-AS and
+      CUSTOM services may be submitted for execution by DUCC. Because DUCC is managing this service
+      it can provide more support than for external services.  However, DUCC does not persist the
+      service definition, and when the service exits, it is not restarted.
 
       A submitted service is intended for short-term services, and for easy debugging of services.
       To persist a service over system restarts and other failures, services should be registered.
       
-      \subsection{Registered Services.} Registered services are fully managed by DUCC. A service is
-      registered with DUCC using the DUCC services CLI (see \prettyref{sec:cli.ducc-services}). Service
-      registrations are persisted by DUCC and last over DUCC or system restarts.  
+      \subsection{Registered Services.} \hyperref[sec:cli.ducc-services]{Registered services} are
+      fully managed by DUCC. A service is registered with DUCC using the DUCC services CLI. Service
+      registrations are persisted by DUCC and last over DUCC or system restarts.
 
       There are several variants on Registered Services:
       \begin{description}
@@ -140,11 +140,11 @@
           jobs/services, the on-demand service is automatically stopped to free up its resources for
           other work.
 
-          \item[External Services] External services consist of only a ping thread.  The service
-            itself is not managed in any way by DUCC.  This is useful for managing dependencies
-            on services that are not under DUCC control: DUCC can detect and report on the health
-            of these services and take appropriate actions on dependent jobs if the services
-            are not responsive. (See \prettyref{sec:services.external}).
+        \item[External Services] \hyperref[sec:services.external]{External services} consist of only
+          a ping thread.  The service itself is not managed in any way by DUCC.  This is useful for
+          managing dependencies on services that are not under DUCC control: DUCC can detect and
+          report on the health of these services and take appropriate actions on dependent jobs if
+          the services are not responsive.
       \end{description}
           
       \section{Service Pingers}
@@ -167,12 +167,13 @@
 
       If your service is a UIMA-AS service, there is no need to create or declare a pinger.  DUCC
       provides a default pinger.  If a CUSTOM pinger is required, it must be declared in the service
-      descriptor, and the service must be registered.  See \prettyref{sec:cli.ducc-services} for
-      details on service registration and the ping directives.      
+      descriptor, and the service must be registered.  See
+      \hyperref[sec:cli.ducc-services]{ducc\_services} for details on service registration spcifying
+      ping directives.
 
       \subsection{Implementing a Pinger}
       Pingers must implement the class {\tt org.apache.uima.ducc.common.AServicePing}.  The class
-      is shown below in \prettyref{fig:service.abstract.pinger}.
+      is shown below.
       \begin{figure}[H]
 \begin{verbatim}
 package org.apache.uima.ducc.common;
@@ -230,7 +231,7 @@ public abstract class AServicePing
           \item[void setInfo(String info)] update the service information string.
       \end{description}
 
-      A sample CUSTOM pinger is shown in \prettyref{fig:service.custom.pinger} below. The pinger assumes a simple
+      A sample CUSTOM pinger is shown below. The pinger assumes a simple
       service port that, on connection, returns an integer.  If the connect and read of the integer succeds,
       the ping is marked successful. 
 

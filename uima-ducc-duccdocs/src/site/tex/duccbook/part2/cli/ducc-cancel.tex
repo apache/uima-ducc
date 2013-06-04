@@ -4,6 +4,7 @@
 \HCode{<a name='DUCC_CLI_CANCEL'></a>}
 \fi
     \section{ducc\_cancel}
+    \label{sec:cli.ducc-cancel}
 
     \paragraph{Description:}
     The cancel CLI is used to cancel a job that has previously been submitted but which has not yet 
@@ -22,12 +23,17 @@
           Prints internal debugging information, intended for DUCC developers or extended problem determination.                    
         \item[--id {[jobid]}]
           The ID is the id of the job to cancel.
-        \item[--reason]
-          Optional. This specifies the reason the job is canceled, for display in the web server.
+        \item[--reason {[quoted string]}]
+          Optional. This specifies the reason the job is canceled, for display in the web server. Note that
+          the shell requires a quoted string.  Example:
+\begin{verbatim}
+ducc_cancel --id 12 --reason "This is a pretty good reason."
+\end{verbatim}
         \item[-dpid {[pid]}]
           If specified only this DUCC process will be canceled.  If not
-          specified, then entire job will be canceled.  The {\em pid} is the process ID of the
-          process to cancel.
+          specified, then entire job will be canceled.  The {\em pid} is the DUCC-assigned process ID of the
+          process to cancel.  This is the ID in the first column of the Web Server's job details page, under
+          the column labeled ``Id''.
         \item[--help]
           Prints the usage text to the console. 
         \item[--role\_administrator] The command is being issued in the role of a DUCC administrator.

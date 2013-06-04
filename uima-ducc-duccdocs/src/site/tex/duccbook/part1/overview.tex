@@ -83,7 +83,7 @@
     \paragraph{UIMA Pipelines}
     A normal UIMA pipeline
     contains a Collection Reader, one or more Analysis Engines connected in a pipeline, and a CAS
-    Consumer as shown in \prettyref{fig:UIMA-pipeline}
+    Consumer as shown in \hyperref[fig:UIMA-pipeline]{Figure ~\ref{fig:UIMA-pipeline}}.
 
     \begin{figure}[H]
       \centering
@@ -95,7 +95,7 @@
     \paragraph{UIMA-AS  Scaled Pipeline}
     With UIMA-AS the CR is separated into a discrete process and a CAS Multiplier is introduced 
     into the analytic pipeline as an interface between the CR and the pipeline, as shown in
-    \prettyref{fig:UIMA-AS-pipeline} below.
+    \hyperref[fig:UIMA-AS-pipeline]{Figure ~\ref{fig:UIMA-AS-pipeline}} below.
     Multiple analytic pipelines are serviced by the 
     CR and are scaled-out over a computing cluster.  The difficulty with this model is that each
     user is individually responsible for finding and scheduling computing nodes, installing
@@ -123,20 +123,19 @@
     analytic pipelines are executed in one or more processes called Job Processes (or JPs). The JD 
     process provides a thin wrapper over the CR to enable communication with DUCC.  The JD uses the
     CR to implement a UIMA-AS client delivering CASs to the multiple (scaled-out) pipelines, 
-    shown in \prettyref{fig:UIMA-AS-pipeline-DUCC} below.
+    shown in \hyperref[fig:UIMA-AS-pipeline-DUCC]{Figure ~\ref{fig:UIMA-AS-pipeline-DUCC}} below.
 
     \begin{figure}[H]
       \centering
       \includegraphics[bb=0 0 571 311, width=5.5in]{images/ducc-sequential.jpg}
-      \caption{UIMA Pipeline As Automatically Scaled Out By DUCC}
-      \label{fig:UIMA-AS-pipeline-DUCC}
+      \caption{UIMA Pipeline As Automatically Scaled Out By DUCC\label{fig:UIMA-AS-pipeline-DUCC}}
     \end{figure}
 
     \paragraph{UIMA-AS Pipeline with User-Supplied DD Scaled By DUCC}
 
     Application programmers may supply their own Deployment Descriptors to control intra-process
     threading and scale-out.  If a DD is supplied in the job parameters, DUCC will use this instead
-    of generating one as depicted in \prettyref{fig:UIMA-AS-pipeline-DUCC-DD}
+    of generating one as depicted in \hyperref[fig:UIMA-AS-pipeline-DUCC-DD]{Figure ~\ref{fig:UIMA-AS-pipeline-DUCC-DD}} below.
 
     \begin{figure}[H]
       \centering

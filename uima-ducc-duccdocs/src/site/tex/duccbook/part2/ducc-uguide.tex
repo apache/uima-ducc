@@ -7,6 +7,45 @@
 \chapter{Command Line Interface}
 \label{chap:cli}
 
+    \paragraph{Overview}
+    The DUCC CLI is the primary means of communication with DUCC.  Work is submitted, work is
+    canceled, work is monitored, and work is queried with this interface.
+
+    All parameters may be passed to all the CLI commands in the form of Unix-like ``long-form''
+    (key, value) pairs, in which the key is proceeded by the characters ``--''.  As well, the
+    parameters may be saved in a standard Java Properties file, without the leading ``--''
+    characters.  Both a properties file and command-line parameters may be passed to each CLI.  When
+    both are present, the parameters on the command line take precedence.  Take, for example
+    the following simple job properties file, call it {\tt 1.job}.
+\begin{verbatim}
+description                    Test job 1
+
+driver_classpath               ../lib/uima-ducc-examples.jar
+driver_descriptor_CR           org.apache.uima.ducc.test.randomsleep.FixedSleepCR
+driver_descriptor_CR_overrides jobfile:1.inputs,compression:10,error_rate:0.0
+driver_jvm_args                -Xmx500M
+driver_environment             LD_LIBRARY_PATH=/a/nother/bogus/path
+
+process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepAE
+process_memory_size            4
+process_classpath              ../lib/uima-ducc-examples.jar
+process_jvm_args               -Xmx100M 
+process_thread_count           2
+process_per_item_time_max      5
+process_get_meta_time_max      5
+process_environment            AE_INIT_TIME=5 AE_INIT_RANGE=5 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
+process_deployments_max        999
+
+scheduling_class               normal
+\end{verbatim}
+
+    This can be submitted, overriding the scheduling class and memory thus:
+\begin{verbatim}
+ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_class high
+\end{verbatim}    
+
+    The DUCC CLI parameters are now described in detail.
+
     \paragraph{The DUCC Job Descriptor}
     The DUCC Job Descriptor includes properties to enable automated management and scale-out 
     over large computing clusters.  The job descriptor includes
@@ -21,18 +60,20 @@
     \end{itemize}
   
 
+    \paragraph{Command  Line Forms}
     The Command Line Interface is provided in several forms:
 
     \begin{enumerate}
       \item A Java executable jar.
-      \item A script.
-      \item Direct invocation of each commands's {\tt main}.
+      \item A wrapper script around the executable jar.
+      \item Direct invocation of each commands's {\tt main} with the {\tt java} command.
     \end{enumerate}
 
     When using the executable jars and scripts the full execution environment is estableshed
     silently.  When directly invoking a command's {\tt main} one must set the java {\tt CLASSPATH} to
     specify the appropriate jar for the command, as described in subsequent sections.
 
+    \paragraph{Provided Commands}
     The following commands are provided:
     \begin{description}
     \item[ducc\_submit] Submit a job for ececution.
@@ -45,6 +86,8 @@
     \item[ducc\_service\_submit] Submit a (non-registered) service instance for execution.
     \item[ducc\_service\_cancel] Cancel a (non-registered) service instance.
     \item[ducc\_services] Register, unregister, start, stop, modify, and query a service.
+    \item[ducc\_view\_perf]y Fetch performance data from the log and history files for analysis
+      by spreadsheets, etc.
     \end{description}
     
     The next section describes these commands in detail.
