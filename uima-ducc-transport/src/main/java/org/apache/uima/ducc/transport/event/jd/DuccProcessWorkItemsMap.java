@@ -45,27 +45,37 @@ public class DuccProcessWorkItemsMap extends ConcurrentHashMap<DuccId, IDuccProc
 	}
 	
 	public void done(DuccId processId, long time) {
-		get(processId).done(time);
 		getTotals().done(time);
+		if(processId != null) {
+			get(processId).done(time);
+		}
 	}
 
 	public void dispatch(DuccId processId) {
-		get(processId).dispatch();
 		getTotals().dispatch();
+		if(processId != null) {
+			get(processId).dispatch();
+		}
 	}
 	
 	public void error(DuccId processId) {
-		get(processId).error();
 		getTotals().error();
+		if(processId != null) {
+			get(processId).error();
+		}
 	}
 	
 	public void retry(DuccId processId) {
-		get(processId).retry();
 		getTotals().retry();
+		if(processId != null) {
+			get(processId).retry();
+		}
 	}
 	
 	public void preempt(DuccId processId) {
-		get(processId).preempt();
 		getTotals().preempt();
+		if(processId != null) {
+			get(processId).preempt();
+		}
 	}
 }

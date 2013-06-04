@@ -1214,6 +1214,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		switch(directive) {
 		case ProcessContinue_CasNoRetry:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
+			workItemStateManager.error(workItem.getSeqNo());
 			workItemError(workItem, e, directive);
 			remove(workItem);
 			casSource.recycle(workItem.getCAS());
@@ -1230,6 +1231,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			break;
 		case ProcessStop_CasNoRetry:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
+			workItemStateManager.error(workItem.getSeqNo());
 			workItemError(workItem, e, directive);
 			remove(workItem);
 			casSource.recycle(workItem.getCAS());
