@@ -1228,22 +1228,12 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append("Max<br><small>hh:mm:ss/workitem</small>");
 					sb.append("</th>");
 					sb.append("</tr>");
-			    	
-					String prefix = "name=";
-					
 					ArrayList <UimaStatistic> uimaStats = new ArrayList<UimaStatistic>();
 				    uimaStats.clear();
 				    //long analysisTime = 0;
 				    for (Entry<String, PerformanceMetricsSummaryItem> entry : performanceMetricsSummaryMap.entrySet()) {
 				    	PerformanceMetricsSummaryItem item = entry.getValue();
-				    	String shortname = item.getName();
-				    	if(shortname != null) {
-				    		shortname = shortname.trim();
-				    		if(shortname.startsWith(prefix)) {
-				    			String[] divided = shortname.split(prefix,2);
-				    			shortname = divided[1];
-				    		}
-				    	}
+				    	String shortname = item.getDisplayName();
 				    	long anTime = item.getAnalysisTime();
 				    	long anMinTime = item.getAnalysisTimeMin();
 				    	long anMaxTime = item.getAnalysisTimeMax();

@@ -40,9 +40,9 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 
 	private AtomicInteger casCount = new AtomicInteger(0);
 	
-	public String delim_old = "Components,";
-	public String delim_new = " Components ";
-	public String delim     = delim_new;
+	public static String delim_old = "Components,";
+	public static String delim_new = " Components ";
+	public static String delim     = delim_new;
 	
 	private String getKey(AnalysisEnginePerformanceMetrics item) {
 		String key = "?";

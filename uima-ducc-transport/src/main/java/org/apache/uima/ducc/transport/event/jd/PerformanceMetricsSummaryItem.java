@@ -61,6 +61,28 @@ public class PerformanceMetricsSummaryItem implements Serializable {
 		return name;
 	}
 	
+	public static String delim_old = PerformanceMetricsSummaryMap.delim_old;
+	public static String delim_new = PerformanceMetricsSummaryMap.delim_new;
+	
+	public String getDisplayName() {
+		String itemName = getName();
+		String displayName = itemName;
+		try {
+			if(itemName.contains(delim_old)) {
+				displayName = itemName.split(delim_old,2)[1];
+			}
+			else if(itemName.contains(delim_new)) {
+				displayName = itemName.split(delim_new,2)[1];
+			}
+			else {
+				displayName = itemName;
+			}
+		}
+		catch(Throwable t) {
+		}
+		return displayName;
+	}
+	
 	public String getUniqueName() {
 		return uniqueName;
 	}
