@@ -64,7 +64,22 @@ public class PerformanceMetricsSummaryMap implements Serializable {
 	}
 	
 	private String getDisplayName(AnalysisEnginePerformanceMetrics item) {
-		return getKey(item);
+		String key = "?";
+		try {
+			String name = item.getName();
+			if(name.contains(delim_old)) {
+				key = name.split(delim_old,2)[1];
+			}
+			else if(name.contains(delim_new)) {
+				key = name.split(delim_new,2)[1];
+			}
+			else {
+				key = name;
+			}
+		}
+		catch(Throwable t) {
+		}
+		return key;
 	}
 	
 	private void addEntry(String key, String displayName) {
