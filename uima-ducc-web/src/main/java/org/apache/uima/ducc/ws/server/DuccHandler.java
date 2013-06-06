@@ -360,6 +360,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 	
+	String pname_idJob = "idJob";
+	String pname_idPro = "idPro";
+	
 	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
 		String location = "buildJobProcessListEntry";
 		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
@@ -496,6 +499,9 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 				boolean cluetips_disabled = true;
 				if(cluetips_disabled) {
+					String p_idJob = pname_idJob+"="+job.getDuccId().getFriendly();
+					String p_idPro = pname_idPro+"="+process.getDuccId().getFriendly();
+					initTime = "<a href=\""+duccUimaInitializationReport+"?"+p_idJob+"&"+p_idPro+"\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">"+initTime+"</a>";
 					loadme.append("");
 				}
 				else {
@@ -2671,6 +2677,84 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
 	
+	private void handleDuccServletJpInitSummary(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletJpInitSummary";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		String idJob = request.getParameter(pname_idJob);
+		String idPro = request.getParameter(pname_idPro);
+		StringBuffer sb = new StringBuffer();
+		
+		sb.append("<b>");
+		sb.append("Id[job]:");
+		sb.append(" ");
+		sb.append(idJob);
+		sb.append(" ");
+		sb.append("Id[process]:");
+		sb.append(" ");
+		sb.append(idPro);
+		sb.append("</b>");
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
+	private void handleDuccServletJpInitData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletJpInitData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		String idJob = request.getParameter(pname_idJob);
+		String idPro = request.getParameter(pname_idPro);
+		StringBuffer sb = new StringBuffer();
+		
+		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		DuccWorkJob job = null;
+		if(duccWorkMap.getJobKeySet().size()> 0) {
+			Iterator<DuccId> iterator = null;
+			iterator = duccWorkMap.getJobKeySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId jobId = iterator.next();
+				String fid = ""+jobId.getFriendly();
+				if(idJob.equals(fid)) {
+					job = (DuccWorkJob) duccWorkMap.findDuccWork(jobId);
+					break;
+				}
+			}
+		}
+		if(job != null) {
+			IDuccProcess process = job.getProcess(idPro);
+			if(process != null) {
+				List<IUimaPipelineAEComponent> upcList = process.getUimaPipelineComponents();
+				if(upcList != null) {
+					if(!upcList.isEmpty()) {
+						Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
+						while(upcIterator.hasNext()) {
+							IUimaPipelineAEComponent upc = upcIterator.next();
+							String iName = upc.getAeName();
+							String iState = upc.getAeState().toString();
+							String iTime = FormatHelper.duration(upc.getInitializationTime());
+							sb.append("<tr>");
+							sb.append("<td>"+iName);
+							sb.append("<td>"+iState);
+							sb.append("<td align=\"right\">"+iTime);
+						}
+					}
+				}
+			}
+		}
+		if(sb.length() == 0) {
+			sb.append("<tr>");
+			sb.append("<td>"+"no data");
+			sb.append("<td>");
+			sb.append("<td>");
+		}
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
 	private void handleDuccServletjConsoleLink(
 			String target,
 			Request baseRequest,
@@ -3438,6 +3522,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			*/
 			else if(reqURI.startsWith(duccLogData)) {
 				handleDuccServletLogData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccJpInitSummary)) {
+				handleDuccServletJpInitSummary(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccJpInitData)) {
+				handleDuccServletJpInitData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccjConsoleLink)) {

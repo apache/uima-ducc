@@ -70,9 +70,14 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public static DuccWebAdministrators duccWebAdministrators = DuccWebAdministrators.getInstance();
 	public static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
 	
+	public final String duccUimaInitializationReport		  = "uima-initialization-report.html";
+	
 	public final String duccContext = "/ducc-servlet";
 	
 	public final String duccLogData			  = duccContext+"/log-data";
+	
+	public final String duccJpInitSummary	  = duccContext+"/uima-initialization-report-summary";
+	public final String duccJpInitData		  = duccContext+"/uima-initialization-report-data";
 	
 	public final String duccContextJsonFormat = duccContext+"/json-format";
 	public final String duccContextUser       = duccContext+"/user";

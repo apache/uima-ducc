@@ -1506,6 +1506,9 @@ function ducc_init(type)
 			ducc_load_job_performance_data();
 			ducc_load_job_specification_data();
 		}
+		if(type == "uima-initialization-report") {
+		    uima_initialization_report();
+		}
 		if(type == "reservation-details") {
 			ducc_init_reservation_processes_data();
 			ducc_init_reservation_specification_data();
@@ -1602,6 +1605,51 @@ function ducc_cookies()
 	catch(err) {
 		ducc_error("ducc_cookies",err);
 	}		
+}
+
+function uima_initialization_report_summary()
+{
+    try {
+        $.ajax(
+        {
+            url : "/ducc-servlet/uima-initialization-report-summary"+location.search,
+            success : function (data) 
+            {
+                $("#uima_initialization_report_summary").html(data);
+            }
+        });
+    }
+    catch(err) {
+        ducc_error("uima_initialization_report_summary",err);location
+    }
+}
+
+function uima_initialization_report_data()
+{
+    try {
+        $.ajax(
+        {
+            url : "/ducc-servlet/uima-initialization-report-data"+location.search,
+            success : function (data) 
+            {
+                $("#uima_initialization_report_data").html(data);
+            }
+        });
+    }
+    catch(err) {
+        ducc_error("uima_initialization_report_data",err);
+    }
+}
+
+function uima_initialization_report(name)
+{
+	try {
+		uima_initialization_report_summary();
+		uima_initialization_report_data();
+	}
+	catch(err) {
+		ducc_error("uima_initialization_report",err);
+	}	
 }
 
 function ducc_appl(name)
