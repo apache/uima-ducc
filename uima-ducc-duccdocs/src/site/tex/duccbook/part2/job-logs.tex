@@ -6,27 +6,25 @@
 \chapter{Job Logs}
 \label{chap:job-logs}
 
-The DUCC logs are managed by log4j and are configured using ducc\_runtime/log4j.xml. It 
-is not in the scope of this document to describe log4j or its configuration mechanism. Details on 
-log4j can be found at http://logging.apache.org/log4j/1.2/. 
+The DUCC logs are managed by Apache log4j.  The DUCC log4j configuration file is
+\duccruntime/log4j.xml. It is not in the scope of this document to describe log4j or its
+configuration mechanism. Details on log4j can be found at \url{http://logging.apache.org/log4j}.
 
 The "user logs" are the Job Driver (JD) and Job Process (JP) logs. There is one log for each process 
 of a job. The JD log is divided between two physical files: 
 
 \begin{enumerate}
-  \item The logs and stdout written by the UIMA collection reader. The collection reader uses the 
-    UIMA logger which is by default directed to stdout. 
-
-    \item The diagnostic logs written the the DUCC JD wrapper around the job's collection reader. 
-      This log is written using log4j. 
+   \item Stdout and default UIMA logging output written by the UIMA collection reader. 
+     
+   \item The diagnostic logs written the the DUCC JD wrapper around the job's collection reader. 
 \end{enumerate}
 
-A number of other usefiles are written to the log directory: 
+A number of other useful files are written to the log directory: 
 \begin{enumerate}
 
   \item A properties file containing the full job specification for the job. This includes all the 
-    parameters specified by the user as well as the default parameters. This file is written to 
-    job-specification.properties. 
+    parameters specified by the user as well as the default parameters. This file is called
+    {\tt job-specification.properties.}
 
 
   \item The UIMA pipeline descriptor constructed by DUCC that describes the process that is 
@@ -55,69 +53,62 @@ A number of other usefiles are written to the log directory:
             \item[PROCESS] This is the process id of the Job Driver (JD) process.
         \end{description}
 
-      \item A Java serialized object containing the performance breakdown for the job. This is used 
-        by the Web Server to display the breakdown. This file is written to job-performancesummary.ser. 
+      \item A colllection of gzipped ``json'' files containing the performance breakdown of the job.
+        These can be read and formatted using \hyperref[sec:cli.ducc-perf-stats]{ducc\_perf\_stats.}
  \end{enumerate}
 
- The JP logs are written by default to HOME/ducc/logs, where HOME is the submitting user's 
- home directory. In this directory, a subdirectory whose name is the numerical id of the job is 
- created by DUCC, where all logs for the job are written. 
- 
- The collection reader's log is written to the file HOME/ducc/logs/JOBID/jd.out.logvia log4j. 
- It is written in multiple generations, and its size is governed by the same log4j configuration file 
- used for the DUCC Daemon processes. The size of each generation and the number of generations 
- is configured in the jdout appender stanza. 
-
- Each JP log and the diagnostic JD log is of the following form:
-
+The Job Process logs are written to the configured log directory and are of the following form:
 \begin{verbatim}
          JOBID-TYPE-NODE-PROCESS.log 
 \end{verbatim}
- 
- where 
-
+where 
 \begin{description}
     \item[JOBID] This is the numerical id of the job as assigned by DUCC.
     \item[TYPE] This is either the string "UIMA" for JP logs, or "JD" for JD logs.
-    \item[NODE] This is the name of the machine where the process runs.
-    \item[PROCESS] This is the process id of the process on the indicated node.
+    \item[NODE] This is the name of the machine where the process ran.
+    \item[PROCESS] This is the Unix process id of the process on the indicated node.
 \end{description}
 
 This shows the contents a sample log directory for a small job that consisted of two processes.
 
 \begin{verbatim}
-         100-JD-bluej290-1-29383.log 
-         100-uima-ae-descriptor-29383.xml 
-         100-uima-as-dd-29383.xml 
-         100-UIMA-bluej290-2-32766.log 
-         100-UIMA-bluej291-63-13594.log 
-         jd.out.log 
-         job-performance-summary.ser 
-         job-specification.properties 
+    100-JD-bluej290-1-29383.log 
+    100-uima-ae-descriptor-29383.xml 
+    100-uima-as-dd-29383.xml 
+    100-UIMA-bluej290-2-32766.log 
+    100-UIMA-bluej291-63-13594.log 
+    jd.out.log 
+    job-performance-summary.ser 
+    job-specification.properties 
 \end{verbatim}
 
 In this example, 
 
 \begin{itemize}
-     \item[] The file 100-JD-bluej290-1-29383.log is the diagnostic JD log, where the JD executed on node
+     \item[] The file {\tt 100-JD-bluej290-1-29383.log} is the diagnostic JD log, where the JD executed on node
        bluej290-1 in process 29383.
 
-     \item[] The file 100-uima-ae-descriptor-29383.xml is the UIMA pipeline descriptor describing the
+     \item[] The file {\tt 100-uima-ae-descriptor-29383.xml} is the UIMA pipeline descriptor describing the
        service process that is launched in each JP, where the JD process is 29383.
 
-     \item[] The file 100-uima-as-dd-29383.xml is the UIMA-AS service descriptor where the client is
+     \item[] The file {\tt 100-uima-as-dd-29383.xml} is the UIMA-AS service descriptor where the client is
        the JD process running in process 29383.
 
-     \item[] The file 100-UIMA-bluej290-2-32766.log is a JP log for job 100, that ran on node
+     \item[] The file {\tt 100-UIMA-bluej290-2-32766.log} is a JP log for job 100, that ran on node
        bluej290-2, in process 32766.
 
-     \item[] The file 100-UIMA-bluej291-63-13594.log is a JP log for job 100, that ran on node
+     \item[] The file {\tt 100-UIMA-bluej291-63-13594.log} is a JP log for job 100, that ran on node
        bluej291-63, in process 13594
 
-     \item[] The file jd.out.log is the user's JD log, containing the user's collection reader output.
+     \item[] The file {\tt jd.out.log} is the user's JD log, containing the user's collection reader output.
 
-     \item[] The file job-performance-summary.ser is the serialized performance breakdown that is
-       displayed in the Web Server The file job-specification.propeties is the properties file
-       describing the job.
+       \item[] These files are the performance summary files:
+\begin{verbatim}
+job-performance-summary.json.gz
+job-processes-data.json.gz
+job-specification.properties
+work-item-status.json.gz
+\end{verbatim}
+
 \end{itemize}
      

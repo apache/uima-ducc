@@ -15,7 +15,7 @@
        \paragraph{Usage:}
            \begin{description}
              \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-submit.jar {\em options}
-             \item[Script wrapper] java -jar \ducchome/bin/ducc-submit {\em options}
+             \item[Script wrapper] \ducchome/bin/ducc\_submit {\em options}
              \item[Java Main]      java -cp \ducchome/lib/uima-ducc-submit.jar org.apache.uima.ducc.cli.DuccJobSubmit {\em options}
            \end{description}
 
@@ -122,7 +122,7 @@
              LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
              example: 
              \begin{verbatim}
-"--process\_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/path
+-environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/path
             \end{verbatim}
 
            \item[--help ]
@@ -252,7 +252,7 @@
              lsit of name-value pairs. For example: 
              \begin{verbatim}
 
-"--process\_environment TERM=xterm DISPLAY=:1.0" 
+--process\_environment TERM=xterm DISPLAY=:1.0
              \end{verbatim}
   
              Note: On Secure Linux systems, the environemnt variable 
@@ -263,7 +263,7 @@
              example: 
 
              \begin{verbatim}
-"--process\_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/
+--process\_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/
              \end{verbatim}
 
            \item[--process\_failures\_limit {[integer]} ]
@@ -272,7 +272,7 @@
              tolerated before killing the job. The default is 15. If this limit is exceeded over the lifetime 
              of a job DUCC terminates the entire job. 
              \begin{verbatim}
-"--process\_failures\_limit 23" 
+--process\_failures\_limit 23
 \end{verbatim}
                           
            \item[--process\_initialization\_failures\_cap {[integer]} ] This specifies the maximum
@@ -325,23 +325,14 @@
              \begin{verbatim}
 --schedling\_class normal 
              \end{verbatim}
-             
-           \item[{-service\_dependency[list]}  ]
+          
 
-             This specifies a comma-delimeted list of services the job processes are dependent upon. 
-             Each endpoint must be of the form UIMA-AS:endpoint:broker\_url where endpoint is the 
-             UIMA-AS service endpoint and broker\_url is the ActiveMQ broker URL. 
-             
-             In the example are two dependencies, one with endpoint RandomSleepAE and 
-             broker tcp:bluej682:61616, and the other with endpoint OtherEp and broker URL 
-             tcp:bluej123:123. Example:
-             \begin{verbatim}
- --service\_dependency UIMA-AS:RandomSleepAE:tcp:bluej682:61616, \ 
-UIMA-AS:OtherEp:tcp:bluej123:123 
-             \end{verbatim}
-
-             See \hyperref[chap:services]{Service Management} for a more detailed discussion
-             of service dependencies.
+           \item[--service\_dependency{[list]}] This specifies a comma-delimeted list of services the job
+             processes are dependent upon. Service dependencies are discussed in detail
+             \hyperref[sec:service.endpoints]{here}. Example:
+\begin{verbatim}
+--service_dependency UIMA-AS:RandomSleepAE:tcp:bluej682:61616 UIMA-AS:OtherEp:tcp:bluej123:123 
+\end{verbatim}
 
            \item[--specifiecaiton {[file]}  ]
 

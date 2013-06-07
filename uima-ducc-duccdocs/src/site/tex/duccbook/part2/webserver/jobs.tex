@@ -8,15 +8,18 @@
         \begin{description}
 
             \item[Id] \hfill \\
-              This is the ID as assigned by DUCC. This field is hyperlinked to a "Job Details" page
-              that shows the breakdown of all the processes assigned to the job and their state.
+              This is the ID as assigned by DUCC. This field is hyperlinked to a
+              \hyperref[sec:ws-job-details]{Job Details} page for that job that shows the breakdown of
+              all the processes assigned to the job and their state.
               
             \item[Start] \hfill \\
               This is the time the Job is accepted into DUCC.
               
-            \item[End] \hfill \\
-              This is the time the Job completes.
-              
+            \item[Duration] \hfill \\
+              This shows two times.  In green the length of time the job has been running.  In black is
+              the estimated time of completion, based on current resources and remaining work.  When
+              the job completes, the time shown is the total elapsed time of the job.
+                            
             \item[User] \hfill \\
               This is the userid of the job owner.
               
@@ -26,7 +29,7 @@
             \item[State] \hfill \\
               This shows the state of the job. States include:
               \begin{description}
-                  \item[Received] - The jobhas ben vetted, persisted, and assigned a unique ID. 
+                  \item[Received] - The job has ben vetted, persisted, and assigned a unique ID. 
                   \item[WaitingForDriver] - The job is waiting for the Job Driver to initialize. 
                   \item[WaitingForServices] - The job is waiting to verify that any declared services are available. 
                   \item[WaitingForResources] - The job is waiting to be scheduled. 
@@ -49,6 +52,8 @@
                     the field with your mouse for details (if any are available), and check your JD log. 
                   \item[DriverProcessFailed] - The Job Driver (JD) process failed for some reason. Hover over the 
                     field with your mouse for details (if any), and check your JD log. 
+                  \item[MonitorActive] The job has a console monitor active.  This is enabled with the
+                    job's ``wait\_for\_completion'' parameter on job submission.
                   \item[ServicesUnavailable] - The job declared a dependency on one or more services, and the 
                     Service Manager (SM) cannot find or start the required service. 
                   \item[Premature] - The job was terminated for some unknown reason before all work items were 
@@ -62,18 +67,26 @@
                     it. For all jobs, it could be because the job class is invalid. 
               \end{description}
 
+            \item[Services] \hfill \\
+              This is the number of services the job has declared dependencies on.  There is a ``hover'' that
+              shows the ids of the services, if any.
 
             \item[Processes] \hfill \\
               This is the number of processes currently assigned to the job.
 
-            \item[Init Fails]T\hfill \\
-              his is the total number of initialization failures experienced by the job. This
+            \item[Init Fails] \hfill \\
+              This is the total number of initialization failures experienced by the job. This
               field is hyperlinked to pages showing the specific failures.
               
-            \item[Run Fails]T\hfill \\
-              his is the total number of process failures experienced by the job. This field is
+            \item[Run Fails] \hfill \\
+              This is the total number of process failures experienced by the job. This field is
               hyperlinked to a page showing the specific failures.
               
+            \item[Pgin] This is the number of page-in events, over all processes, on the machines
+              running the job.
+
+            \item[Swap] This is the total swap space, over all the processes, being used by the job.
+
             \item[Size] \hfill \\
               This is the declared memory size of the job
               
@@ -83,19 +96,19 @@
             \item[Done] \hfill \\
               This is the total number of work items successfuly completed for the job.
               
-            \item[Error]T\hfill \\
-              his is the total number of exceptions thrown or other errors experienced by work
+            \item[Error] \hfill \\
+              This is the total number of exceptions thrown or other errors experienced by work
               items. This field is hyperlinked to a page showing the specific failures.
               
-            \item[Dispatch]T\hfill \\
-              his is the total number CASs that are currently dispatched. This is usally
+            \item[Dispatch] \hfill \\
+              This is the total number CASs that are currently dispatched. This is usally
               min(Processes * Threads, incomplete\_work\_items - errors)
               
             \item[Retry] \hfill \\
               This is the number of CASs that were retried for any reason (such as timeout).
               
-            \item[Preempt]T\hfill \\
-              his is the total number of processes that have been preempted to make room for
+            \item[Preempt] \hfill \\
+              This is the total number of processes that have been preempted to make room for
               other work due to Fair Share.
               
             \item[Description] \hfill \\

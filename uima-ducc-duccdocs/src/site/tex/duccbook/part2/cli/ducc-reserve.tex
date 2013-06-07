@@ -12,10 +12,14 @@
     performeed on an "all-or-nothing" basis: either the entire set of requested resources is reserved, 
     or the reservation request fails. 
 
+    All forms of the ducc\_reserve block until the reservation is complete at which point the DUCC
+    ID of the reservation and the names of the reserved nodes are printed to the console and the
+    command returns.
+
     \paragraph{Usage:}
         \begin{description}
         \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-reserve.jar {\em options}
-        \item[Script wrapper] java -jar \ducchome/bin/ducc-reserve {\em options}
+        \item[Script wrapper] \ducchome/bin/ducc\_reserve {\em options}
         \item[Java Main]      java -cp \ducchome/lib/uima-ducc-reserve.jar org.apache.uima.ducc.cli.DuccReservationSubmit {\em options}
         \end{description}
 
@@ -31,24 +35,21 @@
               
             \item[--help ]             
               Prints the usage text to the console. 
-              
-            \item[--debug ]              
-              Prints internal debugging information, intended for DUCC developers or extended problem determination.
-              
-            \item[--number-of-instances {[integer]}]               
-              This specifies the number of full or partial machine reservations to schedule. 
-              
-            \item[--instance-memory-size {[KB|MB|GB|TB]}]]               
+                            
+            \item[--instance\_memory\_size {[KB|MB|GB|TB]}]]               
               This specifies the amount of memory the reserved machine must supoprt. For full machine 
               reservations, this is the total memory on the machine. For partial reservations, the machine 
               may have more memory, but not less than is specified. 
-              
+
+            \item[--number\_of\_instances {[integer]}]               
+              This specifies the number of full or partial machine reservations to schedule. 
+                            
             \item[--scheduling\_class {[classname]}]               
               This specifies the name of the scheuling class the RM will use to determine the resource 
               allocation for each process. The default DUCC distribution provides class "reserve" for full 
               machine reservations, and "fixed" for partial machine reservations. 
               
-            \item[--specifiecaiton {[file]}]               
+            \item[-f, --specifiecaiton {[file]}]               
               All the parameters used to request a reservation may be placed in a standard Java 
               properties file. This file may then be used to submit the request (rather than providing all 
               the parameters directory to submit). 
@@ -56,11 +57,11 @@
         \end{description}
             
     \paragraph{Notes:}
-    Reservations may be for full machines, or partial machines based on memory. The mechanism 
-    for distinguishing which type of reservation the job class. A job class implementing the 
-    RESERVE scheduling policy results in a full machine being reserved. A job clas simplementing 
-    the FIXED scheduling policy results in a partial machine being reserved. The default DUCC 
-    distribution configures class reserve for full machine reservations, and class fixed for partial 
-    reservations. 
+    Reservations may be for full machines, or partial machines based on memory. The mechanism for
+    distinguishing which type of reservation the job class. A job class implementing the RESERVE
+    scheduling policy results in a full machine being reserved. A job clas simplementing the FIXED
+    scheduling policy results in a partial machine being reserved. The default DUCC distribution
+    configures class {\em reserve} for full machine reservations, and class {\em fixed} for partial
+    machine reservations.
 
 

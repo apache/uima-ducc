@@ -37,9 +37,11 @@
               \item Logout - Terminate the Web Server session 
             \end{itemize}
 
-
+          \item[Preferences]
+            Set preferences for table style, date style, filters, etc.
+            
           \item[DuccBook] \hfill \\
-            This is a link to the HTML version of the documnet you are reading.
+            This is a link to the HTML version of the document you are reading.
 
           \item[Jobs] \hfill \\
             This navigates to the Jobs page, showing all the jobs in the system.
@@ -83,3 +85,17 @@
       \HCode{<a name='DUCC_WS_RESERVATIONS'></a>}
       \fi
       \input{part2/webserver/reservations.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_SERVICES'></a>}
+      \fi
+      \input{part2/webserver/services.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_SYSTEM></a>}
+      \fi
+      \input{part2/webserver/system.tex}
