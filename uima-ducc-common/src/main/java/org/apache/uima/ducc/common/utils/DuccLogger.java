@@ -235,10 +235,18 @@ public class DuccLogger
         return s.toString();
     }
 
+    public void setDefaultDuccId(String defaultDuccId) {
+    	if(defaultDuccId != null) {
+    		defaultId = defaultDuccId;
+    	}
+    }
+    
+    private String defaultId = "N/A";
+    
     private String format(DuccId duccId) {
     	String id;
         if ( duccId == null ) {
-            id = "N/A";
+            id = defaultId;
         } else {
             id = duccId.toString();
         }
