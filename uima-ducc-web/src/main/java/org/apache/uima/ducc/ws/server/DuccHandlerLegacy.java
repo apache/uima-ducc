@@ -37,11 +37,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
+import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.JdConstants;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -1163,6 +1165,14 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				break;
 			default:
 				status = DuccHandlerUtils.unknown();
+				if(daemonName.equals(DaemonName.Orchestrator)) {
+					if(ComponentHelper.isLocked(IDuccEnv.DUCC_STATE_DIR,"orchestrator")) {
+						String filename = ComponentHelper.getLockFileName(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
+						String hover = "title=\""+ComponentHelper.getLockFileNameWithPath(IDuccEnv.DUCC_STATE_DIR,"orchestrator")+"\"";
+						String fileNameWithHover = "<span "+hover+" >"+filename+"</span>";
+						status += ", "+DuccHandlerUtils.warn("warning: ")+fileNameWithHover+" found.";
+					}
+				}
 				heartbeat = DuccDaemonsData.getInstance().getHeartbeat(daemonName);
 				long timeout = getMillisMIA(daemonName)/1000;
 				if(timeout > 0) {
@@ -1170,6 +1180,14 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 						long overtime = timeout - Long.parseLong(heartbeat);
 						if(overtime < 0) {
 							status = DuccHandlerUtils.down();
+							if(daemonName.equals(DaemonName.Orchestrator)) {
+								if(ComponentHelper.isLocked(IDuccEnv.DUCC_STATE_DIR,"orchestrator")) {
+									String filename = ComponentHelper.getLockFileName(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
+									String hover = "title=\""+ComponentHelper.getLockFileNameWithPath(IDuccEnv.DUCC_STATE_DIR,"orchestrator")+"\"";
+									String fileNameWithHover = "<span "+hover+" >"+filename+"</span>";
+									status += ", "+DuccHandlerUtils.warn("warning: ")+fileNameWithHover+" found.";
+								}
+							}
 						}
 						else {
 							status = DuccHandlerUtils.up();

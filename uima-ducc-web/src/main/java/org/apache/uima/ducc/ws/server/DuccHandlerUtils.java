@@ -149,6 +149,14 @@ public class DuccHandlerUtils {
 		return retVal;
 	}
 	
+	public static String warn(String text) {
+		StringBuffer sb = new StringBuffer();
+		sb.append("<span class=\"health_red\""+">");
+		sb.append(text);
+		sb.append("</span>");
+		return sb.toString();
+	}
+	
 	public static String down() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("<span class=\"health_red\""+">");
