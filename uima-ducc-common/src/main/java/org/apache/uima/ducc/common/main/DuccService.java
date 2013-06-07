@@ -225,16 +225,19 @@ public class DuccService extends AbstractDuccComponent {
 			
 		}
 	}
+
 	public void setLogLevel(String clz, String level) {
 		@SuppressWarnings("unchecked")
-		Enumeration<Logger> loggers = LogManager.getCurrentLoggers();
+        Enumeration<Logger> loggers = LogManager.getCurrentLoggers();
         while (loggers.hasMoreElements()) {
             Logger logger = (Logger) loggers.nextElement();
-            if ( logger.getName().equals(clz)) 
+            if ( logger.getName().equals(clz)) {
                 logger.setLevel(Level.toLevel(level));
-            	System.out.println("---------Set New Log Level:"+level+" For Logger:"+clz);
+                System.out.println("---------Set New Log Level:"+level+" For Logger:"+clz);
             }
         }
+    }
+    
 	public String getLogLevel(String clz) {
 		@SuppressWarnings("unchecked")
 		Enumeration<Logger> loggers = LogManager.getCurrentLoggers();
