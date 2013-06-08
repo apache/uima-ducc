@@ -37,6 +37,9 @@ public class DuccUiConstants {
 	public static final String service_specification_properties = "service-specification.properties";
 	public static final String managed_reservation_properties = "managed-reservation.properties";
 	
+	public static final String user_specified_properties = "specified-by-user.properties";
+	public static final String file_specified_properties = "specified-by-file.properties";
+	
 	/*
 	 * common
 	 */

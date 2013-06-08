@@ -81,6 +81,9 @@ public abstract class CliBase
 
     CountDownLatch waiter = null;
 
+    protected Properties userSpecifiedProperties = new Properties();
+    protected Properties fileSpecifiedProperties = new Properties();
+    
     /**
      * All extenders must implement execute - this method does whatever processing on the input
      * is needed and passes the CLI request to the internal DUCC processes.
@@ -331,6 +334,13 @@ public abstract class CliBase
         options = makeOptions(opts, false);
         commandLine = parser.parse(options, args);
 
+        Option[] optionArray = commandLine.getOptions();
+        for(Option option : optionArray) {
+        	String key = option.getLongOpt().trim();
+        	String value = option.getValue("").trim();
+        	userSpecifiedProperties.setProperty(key, value);
+        }
+        
         if (commandLine.hasOption(UiOption.Help.pname())) {
             usage(null);
         }
@@ -357,6 +367,12 @@ public abstract class CliBase
             FileInputStream fis = new FileInputStream(file);
             cli_props.load(fis);
 
+            String[] keyArray = cli_props.keySet().toArray(new String[0]);
+            for(String key : keyArray) {
+            	String value = cli_props.getProperty(key);
+            	fileSpecifiedProperties.setProperty(key, value);
+            }
+            
             // Loop through options and enhance / override things from cl options
             enhanceProperties(commandLine, true);
 
@@ -431,6 +447,24 @@ public abstract class CliBase
             props.store(out, comments);
         }
 
+        out.close();
+        fos.close();
+        
+        /////
+        
+        fileName = directory + File.separator + DuccUiConstants.user_specified_properties;
+        fos = new FileOutputStream(fileName);
+        out = new OutputStreamWriter(fos);
+        userSpecifiedProperties.store(out, comments);
+        out.close();
+        fos.close();
+        
+        /////
+        
+        fileName = directory + File.separator + DuccUiConstants.file_specified_properties;
+        fos = new FileOutputStream(fileName);
+        out = new OutputStreamWriter(fos);
+        fileSpecifiedProperties.store(out, comments);
         out.close();
         fos.close();
     }
