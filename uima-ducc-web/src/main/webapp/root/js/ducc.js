@@ -589,6 +589,7 @@ function ducc_load_job_specification_data()
 				hide_show();
 				data = "";
 				$("#loading_specification_area").html(data);
+				sorttable.makeSortable(document.getElementById('specification_table'));
 			}
 		});
 	}
@@ -628,6 +629,7 @@ function ducc_load_reservation_specification_data()
 			{
 				$("#specification_data_area").html(data);
 				hide_show();
+				sorttable.makeSortable(document.getElementById('specification_table'));
 			}
 		});
 	}

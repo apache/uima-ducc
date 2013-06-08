@@ -163,6 +163,13 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccReservationInstanceMemoryUnits   = duccContext+"/reservation-instance-memory-units";
 	private String duccReservationNumberOfInstances	    = duccContext+"/reservation-number-of-instances";
 	
+	protected String headProvider = "Provider";
+	
+	protected String providerUser = "user";
+	protected String providerFile = "file";
+	protected String providerSystem = "";
+	protected String providerUnknown = null;
+	
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
 		initializeAuthenticator();
@@ -1335,8 +1342,16 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	
 	private void putJobSpecEntry(Properties properties, String key, String value, StringBuffer sb, int counter) {
+		putJobSpecEntry(properties, providerUnknown, key, value, sb, counter);
+	}
+	
+	private void putJobSpecEntry(Properties properties, String provider, String key, String value, StringBuffer sb, int counter) {
 		if(value != null) {
 			sb.append(trGet(counter));
+			if(provider != null) {
+				sb.append("<td>");
+				sb.append(provider);
+			}
 			sb.append("<td>");
 			sb.append(key);
 			sb.append("</td>");
@@ -1344,6 +1359,35 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(value);
 			sb.append("</td>");
 			sb.append("</tr>");
+		}
+	}
+	
+	private boolean isProvided(Properties usProperties, Properties fsProperties) {
+		if(usProperties != null) {
+			return true;
+		}
+		if(fsProperties != null) {
+			return true;
+		}
+		return false;	
+	}
+	
+	private String getProvider(String key, Properties usProperties, Properties fsProperties) {
+		if(isProvided(usProperties, fsProperties)) {
+			if(usProperties != null) {
+				if(usProperties.containsKey(key)) {
+					return providerUser;
+				}
+			}
+			if(fsProperties != null) {
+				if(fsProperties.containsKey(key)) {
+					return providerFile;
+				}
+			}
+			return providerSystem;
+		}
+		else {
+			return providerUnknown;
 		}
 	}
 	
@@ -1357,6 +1401,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
+				Properties usProperties = DuccFile.getUserSpecifiedProperties(job);
+				Properties fsProperties = DuccFile.getFileSpecifiedProperties(job);
 				Properties properties = DuccFile.getJobProperties(job);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
@@ -1365,8 +1411,12 @@ public class DuccHandler extends DuccAbstractHandler {
 					map.put(key, key);
 				}
 				Iterator<String> iterator = map.keySet().iterator();
-				sb.append("<table>");
+				sb.append("<table id=\"specification_table\" class=\"sortable\">");
 				sb.append("<tr class=\"ducc-head\">");
+				if(isProvided(usProperties, fsProperties)) {
+					sb.append("<th title=\"system provided if blank\">");
+					sb.append(headProvider);
+				}
 				sb.append("<th>");
 				sb.append("Key");
 				sb.append("</th>");
@@ -1379,6 +1429,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				while(iterator.hasNext()) {
 					String key = iterator.next();
 					String value = properties.getProperty(key);
+					String provider = getProvider(key, usProperties, fsProperties);
 					if(key.endsWith("classpath")) {
 						value = formatClasspath(value);
 						String show = "<div class=\"hidedata\"><input type=\"submit\" name=\"showcp\" value=\"Show\" id=\"showbutton"+i+"\"/></div>";
@@ -1386,7 +1437,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						value = show+hide;
 						i++;
 					}
-					putJobSpecEntry(properties, key, value, sb, counter++);
+					putJobSpecEntry(properties, provider, key, value, sb, counter++);
 				}
 				sb.append("</table>");
 				sb.append("<br>");
@@ -1558,6 +1609,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob managedReservation = getManagedReservation(reservationNo);
 		if(managedReservation != null) {
 			try {
+				Properties usProperties = DuccFile.getUserSpecifiedProperties(managedReservation);
+				Properties fsProperties = DuccFile.getFileSpecifiedProperties(managedReservation);
 				Properties properties = DuccFile.getManagedReservationProperties(managedReservation);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
@@ -1566,8 +1619,12 @@ public class DuccHandler extends DuccAbstractHandler {
 					map.put(key, key);
 				}
 				Iterator<String> iterator = map.keySet().iterator();
-				sb.append("<table>");
+				sb.append("<table id=\"specification_table\" class=\"sortable\">");
 				sb.append("<tr class=\"ducc-head\">");
+				if(isProvided(usProperties, fsProperties)) {
+					sb.append("<th title=\"system provided if blank\">");
+					sb.append(headProvider);
+				}
 				sb.append("<th>");
 				sb.append("Key");
 				sb.append("</th>");
@@ -1587,7 +1644,8 @@ public class DuccHandler extends DuccAbstractHandler {
 						value = show+hide;
 						i++;
 					}
-					putJobSpecEntry(properties, key, value, sb, counter++);
+					String provider = getProvider(key, usProperties, fsProperties);
+					putJobSpecEntry(properties, provider, key, value, sb, counter++);
 				}
 				sb.append("</table>");
 				sb.append("<br>");

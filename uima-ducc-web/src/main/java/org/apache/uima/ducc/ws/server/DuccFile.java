@@ -29,6 +29,32 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 
 public class DuccFile {
 	
+	public static Properties getUserSpecifiedProperties(IDuccWorkJob job) throws IOException {
+		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+		String name = DuccUiConstants.user_specified_properties;
+		Properties properties = null;
+		try {
+			properties = DuccFile.getProperties(directory, name);
+		}
+		catch(Exception e) {
+			// no worries
+		}
+		return properties;
+	}
+	
+	public static Properties getFileSpecifiedProperties(IDuccWorkJob job) throws IOException {
+		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+		String name = DuccUiConstants.file_specified_properties;
+		Properties properties = null;
+		try {
+			properties = DuccFile.getProperties(directory, name);
+		}
+		catch(Exception e) {
+			// no worries
+		}
+		return properties;
+	}
+	
 	public static Properties getJobProperties(IDuccWorkJob job) throws IOException {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String name = DuccUiConstants.job_specification_properties;
