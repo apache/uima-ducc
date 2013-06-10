@@ -1,54 +1,103 @@
 
-    \section{Services Details Page}
+    \section{Services Page}
 
-        This page shows details of all reservations. The Reservations page contains the following columns: 
+        This page shows details of all services.           
+
+        The Services page contains the following columns: 
         \begin{description}
 
             \item[Id] \hfill \\
-              This is the DUCC process id of the reservation as provided when the reservation is
-              made.
+              This is the unique numeric DUCC id of the service.  This ID is hyperlinked to a
+              \hyperref[sec:ws-service-details]{Servic Details} page with extended
+              details on the service.  Note that for some types of services, DUCC may not
+              know more about the service than is shown on the main page.
 
-            \item[Start] \hfill \\
-              This is the time the reservation was mde.
+            \item[Name] \hfill \\
+              This is the unique service endpoint of the service.  
               
-            \item[End] \hfill \\
-              This is the time the reservation was canceled.
+            \item[Type] \hfill \\
+              This is the service type.
               
-            \item[User] \hfill \\
-              This is the userid if the person who made the reservation.
+              There are a number of variants on service types, as discussed in the
+              \hyperref[sec:services.types]{services} section of this book.  The webserver
+              simplifies these into the following three values:
+              \begin{itemize}
+                \item Registered
+                \item Submitted
+                \item Implicit
+              \end{itemize}
               
-            \item[Class] \hfill \\
-              This is the resource class used to schedule the reservation.
-              
-            \item[Status] \hfill \\
-              This is the status of the reservation. Values include: Received - Reservation
-              has been vetted, persisted, and assigned unique Id.
+            \item[State] \hfill \\
+              This is the state of the service with respect to the service manager.  It is a
+              consolidated state over all the service instances.  Valid states are
               \begin{description}
-                  \item[WaitingForResources] - The reservation is waitng for the Resource Manager to find and 
-                  \item[schedule] resources. 
-                  \item[Assigned] - The reservation is active. 
-                  \item[Completed] - The reservation has been canceled.                     
+                \item[Available] At least one service instance is responding to the service
+                  pinger, indicating it is functional.
+                \item[Initializing] No service instances are running but at least one instance
+                  is in its UIMA-AS {\em initializing} phase.
+                \item[Waiting] At least one service instance is in Running state, and the Service
+                  Manager is waiting for a response from the service pinger.
+                \item[NotAvailable] No service instance is running. 
+                \item[Stopping] The service has been stopped for some reason, but not all 
+                  instances have terminated.
               \end{description}
 
-            \item[Reason] \hfill \\
-              If a reservation is not active, the reason. Reasons include:
-                \begin{description}
-                    \item[ResourcesUnavailable] - The Resource Manager was unable to find free or freeable resources 
-                    \item[to] match the resource request. 
-                    \item[CanceledBySystem] - The job was canceled because DUCC was shutdown. 
-                    \item[CanceledByUser] - The owner or administrator released the reservation. 
-                \end{description}
+              DUCC will start dependent jobs ONLY if it's services are in state Available.  Otherwise
+              DUCC attempts to start the service, and if successful, allows the job to start.  
 
-            \item[Allocation] \hfill \\
-              The number of resources (shares for FIXED policy reservartions, processes for
-              RESERVE policy reservations) that are allocated.
-
-            \item[Size] \hfill \\
-              The memory size in GB of the each allocated unit.
+              If a job is already running and a service becomes other than Available, the
+              \hyperref[sec:ws.jobs-page]{jobs page} indicates the service is not available but the job is 
+              allowed to continue.
               
-            \item[List] \hfill \\
-              The node names of the machines where the resource is allocated.
+            \item[Pinger] \hfill \\
+              This indicates whether the Service Manager is running a pinger for the service.
+              
+            \item[Health] \hfill \\
+              {\em Health} is a status returned by each pinger and is the result of that pinger's
+              evaluation of the state of the service.  It is shown as on of
+              \begin{itemize}
+                \item {\em Good}
+                \item {\em Bad}
+              \end{itemize}
+              Both terms are highly subjective.  Pingers may return a summary of the underlying
+              data used to label a service as good or bad.  That status is shown as a hover over
+              this field.
+              
+            \item[Instances] \hfill \\
+              This is the number of instances (processes) currently registered for the service.  
+
+            \item[Deployments] \hfill \\
+              This is the number of actual instances deployed for the service.  Note that this may
+              be greater, or less, than the number of registered instances, if the service owner
+              decides to temporarily start or stop additional instances.
+
+            \item[User] \hfill \\
+              This is the userid of the service owner.
+              
+            \item[Class] \hfill \\
+              This is the scheduling class the service is running in. 
+              
+              If a service is registered as ``ping-only'', no resources are allocated for it.  This
+              is shown as a class of {\tt ping-only}.
+              
+            \item[Size] \hfill \\
+              This is the memory size, in GB, of each service instance
+
+            \item[Jobs] \hfill \\
+              This is the number of jobs currently using the service.  The IDs of the jobs are
+              shown as hovers over this field.
+
+            \item[Services] \hfill \\
+              Services may themselves depend on other services.  This field shows the number of
+              services dependent on this service.  The dependent service IDs are shown with a 
+              hover over the field.
+
+            \item[Reservations] \hfill \\
+              This field shows the number of
+              managed reservations dependent on this service. The IDs of the managed reservations
+              rea shown as a hover over the field.
+
               
             \item[Description] \hfill \\
-              This is the descriptin string from the --description string from submit.
+              This is the description string from the --description string from submit.
         \end{description}

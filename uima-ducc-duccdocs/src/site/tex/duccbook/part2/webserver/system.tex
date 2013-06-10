@@ -1,54 +1,181 @@
 
-    \section{System  Details Page}
+\section{System  Details Page}
+\label{sec:system-details}
 
-        This page shows details of all reservations. The Reservations page contains the following columns: 
+This page shows information relating to the DUCC System itself:
+\begin{description}
+  \item[Admistration]This displays system adminstrators and implements
+    the interface to various administrative controls.
+  \item[Classes] This shows the curent system's scheduling class definitions.
+  \item[Daemons] This shows the status of all DUCC processes.
+  \item[DuccBook] This is a link to the book you are reading.
+  \item[Machines] This shows details of all the machines in the DUCC cluster.
+\end{description}
+
+\subsection{Administration}
+
+   This page has two tabs:
+   \begin{description}   
+     \item[Administrators] This shows the userids that are authorized to administer
+       DUCC.  In addition to executing the ``Control'' functions described below,
+       administrators may cancel any job, reservation, or service, and may modify
+       services they do not own.  
+
+       In order to perform administrative funcrtions, the following must be satisfied:
+       \begin{enumerate}
+         \item The user is logged-in to the webserver.
+         \item The user is a registered administrator.
+         \item The user has set the role as ``administrator'' in the DUCC Preferences
+           page.  This is a safeguard so that adminimstrators who are also users
+           are less likely to inadvertantlly affect other people's jobs.
+       \end{enumerate}
+     \item[Control] Currently DUCC supports a single administrative control function
+       via the webserver: Stop new job submissions and reenable them.  If submissions
+       are blocked, all existing work runs normally, but no new work is accepted.
+     \end{description}
+
+
+\subsection{Classes}
+This page shows the definitions of the DUCC scheduling classes.  The scheduling classes are
+discussed in more detail in the \hyperref[sec:rm.job-classes]{Resource Manager} section.
+
+\subsection{Daemons}
+
+This page shows the current state of all DUCC processes.  By default, only the administrative
+processes, Orchestrator, ProcessManager, ResourceManager, ServiceManager, and Webserver are
+shown.  A button in the upper left of the page titled ``Show Agents'' enables display of
+the status of all the DUCC agents as well. (Agents are suppressed by default because the
+page is expensive to render for large systems.)
+
+The coloumns shown on this page include
+
+   \begin{description}
+      \item[Status] \hfill \\
+        This indicats whether the daemon is running and broadcasting state {\em up},
+        or not {\em down}.  
+        
+        All DUCC daemons broadcast a heartbeat containing process state.  If the Status
+        is {\em down}, either the daemon is not functioning, or something is preventing
+        state from reaching the webserver via DUCC's ActiveMq instance.
+
+      \item[Daemon Name] \hfill \\
+        This is the name of the process.
+
+      \item[Boot Time] \hfill \\ 
+        This shows the date and time of the latest boot of the specific process.
+          
+      \item[Host IP] \hfill \\ 
+        This is the IP address of the processor where the process is running.
+
+      \item[Host Name] \hfill \\ 
+        This shows the hostname of the processor where the process is running.
+
+      \item[PID] \hfill \\ 
+        This is the Unix processid of the DUCC process.
+
+
+      \item[Publication Size (last)] \hfill \\ 
+        This shows the size of the most recent state publication of the process, in bytes.
+
+      \item[Publication Size (max)] \hfill \\ 
+        This shows the size of the largest state publication of the process, in bytes.
+
+      \item[Heartbeat (last)] \hfill \\ 
+        This shows the number of seconds since the last state publication for the process. 
+         Large numbers here indicate potential cluster or DUCC problems.
+
+      \item[Heartbeat (max)] \hfill \\ 
+        This shows the longest delay since a state publication for the process was received
+        at the webserver.  Large numbers here indicate potential cluster or DUCC problems.
+
+      \item[Heartbeat (max) TOD] \hfill \\ 
+        This shows the time the longest delay of a state publicatin occurred.
+
+      \item[JConsole URL] \hfill \\ 
+        This is the jconsole URL for the process.
+
+   \end{description}
+      
+\subsection{Machines}
+
+This page shows the states of all the machines in the DUCC cluster.
+
+The coloumns shown on this page include
+
+   \begin{description}
+      \item[Status] \hfill \\
+        This shows the current state of a machine.  Values include:
         \begin{description}
+          \item[defined] The node is in the DUCC
+            \hyperref[sec:admin-ducc.nodes]{nodes file}, but no DUCC process has been
+            started there, or else there is a communication problem and
+            the state messages are not being delivered.
+            \item[up] The node has a DUCC Agent process running on it and the
+              webserver is receiving regular heartbeat packets from it.
+            \item[down] The node had a healthy DUCC Agent on it at some point
+              in the past (since the last DUCC boot), but the webserver has stopped
+              receiving heartbeats from it. 
 
-            \item[Id] \hfill \\
-              This is the DUCC process id of the reservation as provided when the reservation is
-              made.
+              The agent may have been manuallly shut down, may have crashed, or there
+              may be a communication problem.
 
-            \item[Start] \hfill \\
-              This is the time the reservation was mde.
-              
-            \item[End] \hfill \\
-              This is the time the reservation was canceled.
-              
-            \item[User] \hfill \\
-              This is the userid if the person who made the reservation.
-              
-            \item[Class] \hfill \\
-              This is the resource class used to schedule the reservation.
-              
-            \item[Status] \hfill \\
-              This is the status of the reservation. Values include: Received - Reservation
-              has been vetted, persisted, and assigned unique Id.
-              \begin{description}
-                  \item[WaitingForResources] - The reservation is waitng for the Resource Manager to find and 
-                  \item[schedule] resources. 
-                  \item[Assigned] - The reservation is active. 
-                  \item[Completed] - The reservation has been canceled.                     
-              \end{description}
-
-            \item[Reason] \hfill \\
-              If a reservation is not active, the reason. Reasons include:
-                \begin{description}
-                    \item[ResourcesUnavailable] - The Resource Manager was unable to find free or freeable resources 
-                    \item[to] match the resource request. 
-                    \item[CanceledBySystem] - The job was canceled because DUCC was shutdown. 
-                    \item[CanceledByUser] - The owner or administrator released the reservation. 
-                \end{description}
-
-            \item[Allocation] \hfill \\
-              The number of resources (shares for FIXED policy reservartions, processes for
-              RESERVE policy reservations) that are allocated.
-
-            \item[Size] \hfill \\
-              The memory size in GB of the each allocated unit.
-              
-            \item[List] \hfill \\
-              The node names of the machines where the resource is allocated.
-              
-            \item[Description] \hfill \\
-              This is the descriptin string from the --description string from submit.
+              Additionally, very heavy loads from jobs running the the node can cause
+              the DUCC Agents heartbeats to be delayed.
         \end{description}
+
+
+      \item[IP] \hfill \\
+        This is the IP address of the node.
+
+      \item[Name] \hfill \\
+        This is the hostname of the node.
+
+      \item[Reserve(GB) size] \hfill \\
+        This is the largest reservation that can be made on this node.
+
+        This is usually somewhat less than the physical memory size because it is 
+        rounded down to the nearest \hyperref[chap:rm]{share quantum}.  The purpose of this
+        column is to assist users in requesting the right size for full machine 
+        reservations.
+
+      \item[Memory(GB) total] \hfill \\
+        This is the amount of memory, in GB, as reported by each machine.
+        
+        Usually the amount will be slightly less than the installed memory.  This is because
+        a small bit of memory is usually reserved by the hardware for its own purposes.  For 
+        example, a machine with 48GB of installed memory may report only 47GB available.
+
+      \item[Swap(GB) in use] \hfill \\
+        This is the total size in-use swap data.  DUCC shows any value greater than 0 in
+        red as swapping can very significantly slow applications.  However, swap use does
+        not always mean there is a performance problem.  This is flagged by DUCC simply
+        as an alert of a potential problem
+
+      \item[Alien PIDs] \hfill \\
+        This shows the number of processes not owned by DUCC, the opertating system, or
+        jobs sheduled on each node.  The Unix Process IDS of these processes is displayed
+        in a hover.
+
+        DUCC preconfigures many of the standard operating 
+        \hyperref[itm:props-rogue.process]{system process} and 
+        \hyperref[itm:props-rogue.user]{userids}.  This list may be updated by each
+        installation.
+
+        A common cause of alien PIDs is errant processe run in unmanaged reservations.  A
+        user may reserve a machine for use as a sandbox.  If the reservation is released
+        without properly terminating all the processes, they may linger.  When ducc 
+        schedules the node for other purposes, significant performance penalties may be
+        paid due to competition between the legitimately scheduled work and the leftover
+        ``alien'' processes.  The purpose of this column is to bring attention to this situation.
+
+      \item[Shares (total)] \hfill \\
+        This shows the total number of scheduling share supported on this node.
+
+      \item[Shares(inuse)] \hfill \\
+        This shows the total number of scheduling share in use on the node.
+
+      \item[Heartbeat(last)] \hfill \\
+        This shows the number of seconds since the last agent heartbeat from this machine.
+
+      \end{description}
+      

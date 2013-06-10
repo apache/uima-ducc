@@ -1,0 +1,113 @@
+\section{Service Details Page}
+\label{sec:ws-service-details}
+
+This page shows details of the processes which implement.  Note that in the case of
+\hyperref[sec:services.implicit]{implicit} and \hyperref[subsub:services.ping-only]{ping-only}
+services there will be no processes to show.
+
+The information is divided between two tabs:
+
+   \begin{description}
+       \item[Processes] This tab contains details on all the proceses implementing
+         the service, if any.
+       \item[Specification] This tab shows the specification for the service.  In the
+         case of \hyperref[sec:services.implicit]{implicit} services, this shows the generated Service Manager
+         state for the service.
+   \end{description}  
+
+   \subsection{Processes}
+   \label{sec:ws-services-processes}
+
+   The processes page contains the following columns:
+   \begin{description}
+      \item[ID] \hfill \\
+        This is the DUCC-assigned numeric id of the process.  This format of this
+        id is two numbers:
+\begin{verbatim}
+    RESID.SHAREID
+\end{verbatim}
+        Here, the {\em RESID} is the reservation ID.  The {\em SHAREID} is the 
+        share ID assigned by the Resource Manager.  Together these form a unique
+        ID for each process that runs in the reservation.
+                
+      \item[Log] \hfill \\
+        This is the log name for the process. It is hyperlinked to the log itself.
+        
+      \item[Size] \hfill \\
+        This is the size of the log in MB. If you find you have trouble viewing the log
+        from the web server it could be because it is too big to view in the browser.
+        
+      \item[Hostname] \hfill \\
+        This is the name of the node where the process is running (or ran).
+        
+      \item[PID] \hfill \\
+        This is the Unix process ID (PID) of the process.
+        
+      \item[State Scheduler] \hfill \\
+        This shows the Resesource Manager state of the job. It is one of:
+        
+        \begin{description}
+            \item[Allocated] - The node is still allocated for this job by the RM.
+            \item[Deallocated] - The resource manager has deallocated the shares for the job on
+              this node.
+        \end{description}
+        
+      \item[Reason Scheduler or Extraordinary Status] \hfill \\
+        These are the same as for the \hyperref[itm:job-details-sched]{job details.}
+
+      \item[State Agent] \hfill \\
+        These are the same as for the \hyperref[itm:job-details-state]{job details.}
+
+      \item[Reason Agent] \hfill \\
+        These are the same as for the \hyperref[itm:job-details-agent]{job details.}
+
+
+      \item[Time Init] \hfill \\
+        Most services are UIMA-AS services and therefore have an {\em initialization} phase
+        to their lifetimes.  This field shows the time spent in that phase.
+
+      \item[Time Run] \hfill \\
+        The current duration of the reservation, or total duration if it has 
+        terminated.
+        
+      \item[Time GC] \hfill \\
+        This is amount of time spent in Java Garbage Collection for the process.
+
+      \item[Pgin] \hfill \\
+        This is the number of page-in events on behalf of the process.
+        
+      \item[Swap] \hfill \\
+        This is the amount of swap space on the machine being consumed by the process.
+        
+      \item[\%CPU] \hfill \\
+        Currnt CPU percent consumed by the process.  This will be $>$ 100\% on 
+        multi-core systems if more than one core is being used.  Each core contributes
+        up to 100\% CPU, so, for example, on a 16-core machine, this can be as high
+        as 1600\%.
+
+      \item[RSS] \hfill \\
+        The amount of real memory being consumed by the process (Resident Storage Size)
+
+      \item[JConsole URL] \hfill \\
+        This is a URL that can be used to connect via JMX to the processes, e.g. via
+        jconsole.
+
+   \end{description}
+
+   \subsection{Specification}
+   \label{sec:ws-managed-reservation-specification}
+   This tab shows the full job specification in the form of a Java Properties
+   file.  This will include all the parameters specified by the user, plus those
+   filled in by DUCC.
+        
+   The specification for a Service contains two types of entries:
+   \begin{enumerate}
+     \item Service specification properties, prefixed with ``svc''. These comprise
+       the service specification that the Service Manager submits on behalf of
+       a user in order to start registered services.
+     \item Meta properties, prefixed with ``meta''.  This is the Service Manager's state
+       record for the sesrvice as it is running.  In addition to state it contains
+       properties required for service registration that are not used for
+       service submission.
+   \end{enumerate}
+   

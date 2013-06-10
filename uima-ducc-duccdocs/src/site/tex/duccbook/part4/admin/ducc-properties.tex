@@ -1025,6 +1025,7 @@
           
 
         \item[ducc.agent.launcher.share.size.fudge.factor] \hfill \\
+
           The DUCC agent monitors the size of the resident memory of its spawned processes. If a 
           process exceeds its declared memory size by any significant amount it is terminated and 
           a ShareSizeExceeded message is sent. The Job Driver counts this towards the maximum 
@@ -1040,6 +1041,8 @@
           \end{description}
           
           \item[ducc.agent.rogue.process.user.exclusion.filter] \hfill \\
+          \phantomsection\label{itm:props-rogue.user}
+
             The DUCC Agents scan nodes for processes that should not be running; for example, 
             a job may have left a 'rogue' process alive when it exits, or a user may log in to a node 
             unexpectedly. These processes are reported to the administrators via the webserver for 
@@ -1053,6 +1056,7 @@
             \end{description}
             
           \item[ducc.agent.rogue.process.exclusion.filter] \hfill \\
+          \phantomsection\label{itm:props-rogue.process}
             The DUCC Agents scan nodes for processes that should not be running; for example, 
             a job may have left a 'rogue' process alive when it exits, or a user may log in to a node 
             unexpectedly. These processes are reported to the administrators via the webserver for 

@@ -21,7 +21,7 @@
 
         \item[Id] \hfill \\
           This is the DUCC-assigned numeric id of the process (not the Operating System's
-          processid). Process 0 is alwyas the Job Driver. 
+          processid). Process 0 is alwyas the Job Driver.          
 
         \item[Log] \hfill \\
           This is the log name for the process. It is hyperlinked to the log itself.
@@ -47,6 +47,8 @@
           \end{description}
 
         \item[Reason Scheduler or extraordinary status] \hfill \\
+          \phantomsection\label{itm:job-details-sched}
+
           This shows why a process was terminated.  These all have ``hovers'' that provide more information
           if it is available.
             \begin{description}          
@@ -81,6 +83,8 @@
             \end{description}
 
           \item[State Agent] \hfill \\
+          \phantomsection\label{itm:job-details-state}
+
             If there's an error detected only by the DUCC Agent, this shows the Agent's reason for
             a process's death.
             \begin{description}
@@ -108,6 +112,8 @@
             \end{description}
             
           \item[Reason Agent] \hfill \\
+          \phantomsection\label{itm:job-details-agent}
+
             If there's an error detected only by the agent, this shows the Agent's reason for
             a process's death.
             \begin{description}
@@ -164,7 +170,7 @@
             up to 100\% CPU, so, for example, on a 16-core machine, this can be as high
             as 1600\%.
             
-          \item[\%RSS] \hfill \\
+          \item[RSS] \hfill \\
             The amount of real memory being consumed by the process (Resident Storage Size)
             
           \item[Time Avg] \hfill \\

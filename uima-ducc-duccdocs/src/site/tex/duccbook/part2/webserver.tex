@@ -89,9 +89,23 @@
       % Create well-known link to this spot for HTML version
       \ifpdf
       \else
+      \HCode{<a name='DUCC_WS_RESERVATIONS_DETAILS'></a>}
+      \fi
+      \input{part2/webserver/managed-reservations.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
       \HCode{<a name='DUCC_WS_SERVICES'></a>}
       \fi
       \input{part2/webserver/services.tex}
+
+      % Create well-known link to this spot for HTML version
+      \ifpdf
+      \else
+      \HCode{<a name='DUCC_WS_SERVICE_DETAILS'></a>}
+      \fi
+      \input{part2/webserver/service-details.tex}
 
       % Create well-known link to this spot for HTML version
       \ifpdf
