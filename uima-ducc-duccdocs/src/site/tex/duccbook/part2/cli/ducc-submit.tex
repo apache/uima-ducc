@@ -260,11 +260,11 @@
            \item[$--$process\_jvm\_args {[list]} ] This specifies additional arguments to be passed to
              the Job Process JVM as a blank-delimited list of strings. Example:
              \begin{verbatim}
---process_jvm_args -Xmx400M -Xms100M 
+--process_jvm_args '-Xmx400M -Xms100M' 
              \end{verbatim}
 
-             Note: When used as a CLI option, the environment string must usually be
-             quoted to protect it from the shell.
+             Note: When used as a CLI option, the arguments must usually be
+             quoted to protect them from the shell.
                           
            \item[$--$process\_memory\_size {[size]} ] This specifies the maximum amount of RAM in GB
              to be allocated to each Job Process.  This value is used by the Resource Manager to

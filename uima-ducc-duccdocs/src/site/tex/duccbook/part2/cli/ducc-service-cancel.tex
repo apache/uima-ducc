@@ -7,6 +7,12 @@
     \label{sec:cli.service-cancel}
     \paragraph{Description:}
 
+    The ducc\_service\_cancel CLI is used to terminate a service instance.
+
+    Note: This command will for for {\em registered} services, but if the service is registered for
+    {\em autostart}, the Service Manager will restart the process.  This can be used to advantage, to
+    recycle specific registered services instances when needed.
+
     \paragraph{Usage:}
     \begin{description}
     \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-service-cancel.jar {\em options}
@@ -24,7 +30,7 @@
           Prints the usage text to the console. 
         \item[--role\_administrator] The command is being issued in the role of a DUCC administrator.
           If the user is not also a registered administrator this flag is ignored.  (This helps to
-          protect administrators from inadvertantly canceling work they do not own.)
+          protect administrators from inadvertently canceling work they do not own.)
      \end{description}
         
     \paragraph{Notes:}
