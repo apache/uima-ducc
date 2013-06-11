@@ -29,7 +29,7 @@
     order to achieve good scale-out these components must be constructed in a specific way.
 
     The Collection Reader builds input CASs and forwards them to the UIMA pipelines.  In the DUCC
-    model, the CR is run in a process separate from the rest of the pipeline. In face, in all but the
+    model, the CR is run in a process separate from the rest of the pipeline. In fact, in all but the
     smallest clusters it is run on a different physical machine than the rest of the pipeline.  To
     achieve scalability, the CR must create very small CASs that do not contain application data,
     but which contain references to data; for instance, file names.  Ideally, the CR should be
@@ -43,9 +43,8 @@
     cluster.
 
     DUCC does not provide any mechanism for receiving output CASs.  Each application must
-    supply its own CAS Consumer which serializes the output of the Analytic Engines for 
-    consumption by other entities (as serialized CASs, perhaps, or as some other form of
-    data, depending on what the other entities are.).
+    supply its own CAS Consumer which serializes the output of the pipelines for 
+    consumption by other entities (as serialized CASs, for example).
 
     A DUCC job therefore consists of a small specification containing the following items:
     
@@ -94,9 +93,9 @@
 
     \paragraph{UIMA-AS  Scaled Pipeline}
     With UIMA-AS the CR is separated into a discrete process and a CAS Multiplier is introduced 
-    into the analytic pipeline as an interface between the CR and the pipeline, as shown in
+    into the pipeline as an interface between the CR and the pipeline, as shown in
     \hyperref[fig:UIMA-AS-pipeline]{Figure ~\ref{fig:UIMA-AS-pipeline}} below.
-    Multiple analytic pipelines are serviced by the 
+    Multiple pipelines are serviced by the 
     CR and are scaled-out over a computing cluster.  The difficulty with this model is that each
     user is individually responsible for finding and scheduling computing nodes, installing
     communication software such as ActiveMQ, and generally managing the distributed job and
@@ -120,7 +119,7 @@
     threads per process (as indicated in the DUCC job parameters), and generates job-unique queues.
 
     Under DUCC, the Collection Reader is executed in a process called the Job Driver (or JD). The 
-    analytic pipelines are executed in one or more processes called Job Processes (or JPs). The JD 
+    pipelines are executed in one or more processes called Job Processes (or JPs). The JD 
     process provides a thin wrapper over the CR to enable communication with DUCC.  The JD uses the
     CR to implement a UIMA-AS client delivering CASs to the multiple (scaled-out) pipelines, 
     shown in \hyperref[fig:UIMA-AS-pipeline-DUCC]{Figure ~\ref{fig:UIMA-AS-pipeline-DUCC}} below.
@@ -152,33 +151,36 @@
       \item DUCC uses the UIMA-AS error-handling facilities to reflect errors from the Job Processes
         to the Job Drivers. The JD wrappers implement logic to enforce error thresholds, to identify
         and log errors, and to reflect job problems in the DUCC Web Server.  All error thresholds are
-        configurable globally, and on a per-job basis.
+        configurable both globally and on a per-job basis.
 
       \item Error and timeout thresholds are implemented for both the initialization phase of a pipeline
         and the execution phase.
     
       \item Retry-after-error is supported: if a process has a failure on some CAS after
-        initialization is successful, the process is terminated and the CAS retried, up to some
+        initialization is successful, the process is terminated and all affected CASs are retried, up to some
         configurable threshold.
 
       \item DUCC insures that processes can successfully initialize before fully scaling out a job,
         to insure a cluster is not overwhelmed with errant processes.
+
+      \item Various error conditions encountered  while a job is running will prevent the errant job
+        from continuing scale out, and can result in termination of the job.
       \end{itemize}
       
     \section{Cluster and Job Management}
-    DUCC provides significant support for managing multiple jobs and multiple users in a distributed cluster:
+    DUCC supports  management of multiple jobs and multiple users in a distributed cluster:
 
     \begin{description}
-        \item[Multiple User Support] DUCC runs all work under the identity of the submitting user to
-          provide security and privacy for each user and job. Logs are written with the
-          user's credentials into the user's file space designated at job submission.
+        \item[Multiple User Support] DUCC runs all work under the identity of the submitting user. Logs
+          are written with the user's credentials into the user's file space designated at job
+          submission.
 
         \item[Fair-Share Scheduling] DUCC provides a Fair-Share scheduler to equitably share
           resources among multiple users.  The scheduler also supports semi-permanent reservation of
           full or partial machines.
 
         \item[Service Management] DUCC provides a Service Manager capable of automatically starting, stopping, and
-          otherwise managing and querying services in support of jobs.
+          otherwise managing and querying both UIMA-AS and non-UIMA-AS services in support of jobs.
 
         \item[Job Lifetime Management and Orchestration] DUCC includes an Orchestrator to manage the
           lifetimes of all entities in the system.
@@ -188,7 +190,7 @@
           \begin{itemize}
             \item Monitors and reports node capabilities (memory, etc) and performance data (CPU busy,
               swap, etc).
-            \item Starts and stops all processes on behalf of users.
+            \item Starts, stops, and monitors all processes on behalf of users.
             \item Patrols the node for ``foreign'' (non-DUCC) processes, reporting them to the
               Web Server, and optionally reaping them.
             \item Insures job processes to not exceed their declared memory requirements
@@ -213,7 +215,7 @@
           \end{itemize}
 
 
-        \item[Cluster Management Support] DUCC provides rich scripting support to:
+        \item[Cluster Management Support] DUCC provides system management support to:
           \begin{itemize}
               \item Start, stop, and query full DUCC systems.
  

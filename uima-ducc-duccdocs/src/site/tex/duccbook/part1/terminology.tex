@@ -6,7 +6,7 @@
 \chapter{Glossary}
 
 \begin{description}
-\item[Autostart Service] An autostart service is a registered service that is started automatically
+\item[Autostarted Service] An autostarted service is a registered service that is started automatically
   by DUCC when the DUCC system is booted.
 
 \item[Dependent service or job] A dependent service or job is a service or job that specifies one
@@ -15,7 +15,7 @@
 
 \item[DUCC] Distributed UIMA Cluster Computing.
 
-\item[External service] An external service is a service that is started externally to DUCC but
+\item[Implicit service] An implicit service is a service that is started externally to DUCC but
   referenced by some dependent service or job.  DUCC will attempt to contact the service using
   the dependency string.  If contact is successful the job is started, otherwise it is 
   terminated before resources are allocated to it.
@@ -24,34 +24,27 @@
   saves the service specification and fully manages the service, insuring it is running when needed,
   and shutdown when not.
 
-\item[Start-by-Reference Service] An on-demand service is a registered service that is not started when DUCC
-  is started. Instead, the service is started when referenced in some job or services service
-  dependency, and stopped when the referencing entity exits.
-
 \item[Service Instance] A service instance is one physical process which runs a CUSTOM or UIMA-AS
-  service.  Note that UIMA-AS services may be scaled-out to comprise more than one service instance.
+  service.  UIMA-AS services are usually scaled-out with multiple instances implementing the
+  same underlying service logic.
 
-\item[Orchestrator (OR)] The Orchestrator manages the lifecycle of all entities within DUCC.
+\item[Orchestrator (OR)] The Orchestrator manages the life cycle of all entities within DUCC.
 
 \item[Process Manager (PM) ] The Process Manager coordinates distribution of work among the Agents.
 
 \item[Resource Manager (RM) ] The Resource Manager schedules physical resources for DUCC work.
 
-\item[Service Endpoint] In DUCC, the service endpoint provides a unique identifier for a service
-  and in the case of UIMA-AS services, a well-known address for contacting the service. For CUSTOM
-  services, the endpoint is of the form CUSTOM:string where string is any alphanumeric string
-  provided by the service owner. For UIMA-AS services, the endpoint is of the form UIMA-AS:queue
-  name:ActiveMQ-broker-URL.
+\item[Service Endpoint] In DUCC, the service endpoint provides a unique identifier for a service. In
+  the case of UIMA-AS services, the endpoint also serves as a well-known address for contacting the
+  service. 
 
 \item[Service Manager (SM)] The Service Manager manages the life-cycles of UIMA-AS and CUSTOM
   services. It coordinates registration of services, starting and stopping of services, and ensures
-  that services are available and remain available for the lifetime of the jobs.  Note that the
-  Orchestrator manages the individual service instances; the Service Manager manages the collection
-  of instances which comprise a service.
+  that services are available and remain available for the lifetime of the jobs.
 
 \item[Agent] DUCC Agent processes run on every node in the system. The Agent receives orders to
   start and stop processes on each node. Agents monitors nodes, sending heartbeat packets with node
-  statistics to interested components (such as the RM and web-server). If CGroups are intstalled in
+  statistics to interested components (such as the RM and web-server). If CGroups are installed in
   the cluster, the Agent is responsible for managing the CGroups for each job process. All processes
   other than the DUCC management processes are are managed as children of the agents.
 
@@ -65,15 +58,15 @@
 
 \item[Job specification] The Job Specification is a collection of properties that describe work to be
   scheduled and deployed by DUCC. It
-  identifies the UIMA components (CR, AE, etc) that comprise the job and the ystem-wide
-  properties of the job (classpaths, RAM requirements, etc). 
+  identifies the UIMA components (CR, AE, etc) that comprise the job and the system-wide
+  properties of the job (CLASSPATHs, RAM requirements, etc). 
 
 \item[Job] A DUCC job consists of the components required to deploy and execute a UIMA pipeline over
   a computing cluster. It consist of a JD to run the Collection Reader, a set of JPs to run the UIMA
   AEs, and a Job Specification to describe how the parts fit together.
 
 \item[Share Quantum] The DUCC scheduler abstracts the nodes in the cluster as a single large
-  congomerate of resources: memory, processor cores, etc.  The scheduler logically decomposes 
+  conglomerate of resources: memory, processor cores, etc.  The scheduler logically decomposes 
   the collection of resources into some number of equal-sized atomic units.  Each unit of work requiring
   resources is apportioned one or more of these atomic units.  The smallest possible atomic 
   unit is called the {\em share quantum}, or simply, {\em share}.
@@ -85,13 +78,13 @@
 \item[Weighted Fair Share] A weighted fair share calculation is used to apportion resources
   equitably to the outstanding work in the system.  In a non-weighted fair-share system, all
   work requests are given equal consideration to all resources.  To provide some (``more important'')
-  work more than equal resources, weights are used to give larger proportions of the resources to
+  work more than equal resources, weights are used to bias the allotment of shares in favor of
   some classes of work.
 
-\item[Work Items] A DUCC work item is one unit of work to be completed in a single DUCC process. It is
-  usually initiated by the submission of a single CAS from the CR to a UIMA service. It could be
-  thought of as a single "question" to be answered by a UIMA analytic. Usually each DUCC JP executes
-  many work items per job.
+\item[Work Items] A DUCC work item is one unit of work to be completed in a single DUCC process. It
+  is usually initiated by the submission of a single CAS from the CR to a UIMA service. It could be
+  thought of as a single ``question'' to be answered by a UIMA analytic, or a single ``task'' to
+  complete. Usually each DUCC JP executes many work items per job.
 \end{description}
 
 

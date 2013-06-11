@@ -12,8 +12,8 @@
     canceled, work is monitored, and work is queried with this interface.
 
     All parameters may be passed to all the CLI commands in the form of Unix-like ``long-form''
-    (key, value) pairs, in which the key is proceeded by the characters ``--''.  As well, the
-    parameters may be saved in a standard Java Properties file, without the leading ``--''
+    (key, value) pairs, in which the key is proceeded by the characters ``$--$".  As well, the
+    parameters may be saved in a standard Java Properties file, without the leading ``$--$''
     characters.  Both a properties file and command-line parameters may be passed to each CLI.  When
     both are present, the parameters on the command line take precedence.  Take, for example
     the following simple job properties file, call it {\tt 1.job}.
@@ -33,13 +33,13 @@ process_jvm_args               -Xmx100M
 process_thread_count           2
 process_per_item_time_max      5
 process_get_meta_time_max      5
-process_environment            AE_INIT_TIME=5 AE_INIT_RANGE=5 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
+process_environment            AE_INIT_TIME=5 AE_INIT_RANGE=5 LD_LIBRARY_PATH=/a/nother/path
 process_deployments_max        999
 
 scheduling_class               normal
 \end{verbatim}
 
-    This can be submitted, overriding the scheduling class and memory thus:
+    This can be submitted, overriding the scheduling class and memory, thus:
 \begin{verbatim}
 ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_class high
 \end{verbatim}    
@@ -52,8 +52,8 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     \begin{itemize}
       \item References to the various UIMA components required by the job (CR, CM, AE, CC, and maybe DD)
       \item Scale-out requirements: number of processes, number of threads per process, etc
-      \item Environment requirments: log directory, working directory, environment variables, etc,
-      \item JVM paramenters
+      \item Environment requirements: log directory, working directory, environment variables, etc,
+      \item JVM parameters
       \item Scheduling class
       \item Error-handling preferences: acceptable failure counts, timeouts, etc
       \item Debugging and monitoring requirements and preferences
@@ -66,17 +66,17 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     \begin{enumerate}
       \item A Java executable jar.
       \item A wrapper script around the executable jar.
-      \item Direct invocation of each commands's {\tt main} with the {\tt java} command.
+      \item Direct invocation of each command's {\tt main} with the {\tt java} command.
     \end{enumerate}
 
-    When using the executable jars and scripts the full execution environment is estableshed
+    When using the executable jars and scripts the full execution environment is established
     silently.  When directly invoking a command's {\tt main} one must set the java {\tt CLASSPATH} to
     specify the appropriate jar for the command, as described in subsequent sections.
 
     \paragraph{Provided Commands}
     The following commands are provided:
     \begin{description}
-    \item[ducc\_submit] Submit a job for ececution.
+    \item[ducc\_submit] Submit a job for execution.
     \item[ducc\_cancel] Cancel a job in progress.
     \item[ducc\_reserve] Request a reservation of full or partial machines.
     \item[ducc\_unreserve] Cancel a reservation.
@@ -86,7 +86,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     \item[ducc\_service\_submit] Submit a (non-registered) service instance for execution.
     \item[ducc\_service\_cancel] Cancel a (non-registered) service instance.
     \item[ducc\_services] Register, unregister, start, stop, modify, and query a service.
-    \item[ducc\_view\_perf]y Fetch performance data from the log and history files for analysis
+    \item[ducc\_view\_perf] Fetch performance data from the log and history files for analysis
       by spreadsheets, etc.
     \end{description}
     
@@ -95,7 +95,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     %% These all input sections
     \input{part2/cli/ducc-submit.tex}
     \input{part2/cli/ducc-cancel.tex}
-    \input{part2/cli/ducc-monitor.tex}
+    % \input{part2/cli/ducc-monitor.tex}
     \input{part2/cli/ducc-reserve.tex}
     \input{part2/cli/ducc-unreserve.tex}
     \input{part2/cli/ducc-service-submit.tex}
