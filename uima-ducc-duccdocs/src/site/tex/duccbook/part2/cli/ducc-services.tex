@@ -29,17 +29,17 @@
               unregistered DUCC optionally stops the service instance, if any, and discard the
               saved specification.
               
-            \item[Start] The start function instructs DUCC to alllocate resources for a service and to
-              start it in those resources. The service remains running until explictly stopped. DUCC
+            \item[Start] The start function instructs DUCC to allocate resources for a service and to
+              start it in those resources. The service remains running until explicitly stopped. DUCC
               will attempt to keep the service instances running if they should fail. The start function
               is also used to increase the number of running service instances if desired.
               
             \item[Stop] The stop function stops some or all service instances.
               
             \item[Query] The query function returns detailed information about all known services, both
-              registerd and otherwise.
+              registered and otherwise.
               
-            \item[Modify] The modify function allows some aspectes of a registered service to be updated
+            \item[Modify] The modify function allows some aspects of a registered service to be updated
               without reregistereing the service. It optionally alters the running service instances to
               conform with the updates.    
         \end{description}
@@ -76,7 +76,7 @@
            \item[$--$register {[specification file] [options]}] The specification file is optional.  If
              specified, it has the same contents as described for the \hyperref[sec:cli.service-submit]{{\em
                  ducc\_service\_submit}} command.  As with {\em ducc\_service\_submit}, any of the
-             keywords in the specification may be overriden on the command line.
+             keywords in the specification may be overridden on the command line.
 
            \item[$--$autostart {[true or false]}] This indicates whether to register the service as
              an autostarted service.  If not specified, the default is {\em false}.
@@ -91,8 +91,8 @@
 
     \subsection{ducc\_services $--$start Options}
 
-    The start function instructs DUCC to alllocate resources for a service and to start it in those
-    resources. The service remains running until explictly stopped. DUCC will attempt to keep the
+    The start function instructs DUCC to allocate resources for a service and to start it in those
+    resources. The service remains running until explicitly stopped. DUCC will attempt to keep the
     service instances running if they should fail. The start function is also used to increase the
     number of running service instances if desired.
     
@@ -114,7 +114,7 @@ ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345
 \begin{verbatim}
          ducc_services --start 33 --instances 5
 \end{verbatim}
-         is issued, five more service instances are started for service 33 for a totoal of ten,
+         is issued, five more service instances are started for service 33 for a total of ten,
          regardless of the number specified in the registration. The registry is updated if the
          {\em --update} option is also specified. Examples:
 \begin{verbatim}
@@ -237,12 +237,12 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
       Below is a query against a system with three services. 
 
       The service with endpoint {\tt UIMA-AS:FixedSleepAE\_6:tcp://bobmach291:61617} is a service
-      submitted outside of DUCC so it is marked as Implicit and has no implementing processes tha
+      submitted outside of DUCC so it is marked as Implicit and has no implementing processes that
       are known to DUCC. It is used by job 0 (``References'') and is active, available, and being
       actively pinged. The ActiveMq queue statistics are shown.
 
       The service with endpoint {\tt UIMA-AS:FixedSleepAE\_5:tcp://bobmach:61617} is a 
-      registered service, whose registered numeric id is 2. It is registered for two instnaces and 
+      registered service, whose registered numeric id is 2. It is registered for two instances and 
       no autostart. Since it is not autostarted, it will be terminated when it is no longer used. It 
       will linger for 5 seconds after the last referencing job completes, in case a subsequent job 
       that uses it enters the system (not a realistic linger time!). It has two active
@@ -250,7 +250,7 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
       by DUCC jobs 1 and 5. 
 
       The service with endpoint {\tt UIMA-AS:FixedSleepAE\_1:tcp://bobmach:61617} is a 
-      submitted service. It was submitted twice, and so has two implementors, DUCC service 
+      submitted service. It was submitted twice, and so has two implementers, DUCC service 
       jobs 0 and 1. It is referenced by job 7. It will continue to run until somebody cancels it, 
       even if it is not used. 
 
