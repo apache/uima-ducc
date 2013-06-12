@@ -6,6 +6,8 @@
     \section{ducc\_process\_cancel}
 
     \paragraph{Description:}
+    The cancel CLI is used to cancel a process that has previously been submitted but which has not yet 
+    completed. 
 
     \paragraph{Usage:}
     \begin{description}
@@ -16,15 +18,15 @@
 
     \paragraph{Options:}
     \begin{description}
-        \item[--debug ]          
+        \item[$--$debug ]          
           Prints internal debugging information, intended for DUCC developers or extended problem determination.          
-        \item[--id {[jobid]}]
+        \item[$--$id {[jobid]}]
           The DUCC ID is the id of the process to cancel.
-        \item[--help]
+        \item[$--$help]
           Prints the usage text to the console.
-        \item[--reason]
+        \item[$--$reason]
           Optional. This specifies the reason the process is canceled, for display in the web server. 
-        \item[--role\_administrator] The command is being issued in the role of a DUCC administrator.
+        \item[$--$role\_administrator] The command is being issued in the role of a DUCC administrator.
           If the user is not also a registered administrator this flag is ignored.  (This helps to
           protect administrators from inadvertantly canceling work they do not own.)
      \end{description}

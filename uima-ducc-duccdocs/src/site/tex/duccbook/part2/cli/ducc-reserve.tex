@@ -27,29 +27,29 @@
     
         \begin{description}
 
-            \item[--debug ]          
+            \item[$--$debug ]          
               Prints internal debugging information, intended for DUCC developers or extended problem determination.
               
-            \item[--description {[text]}]               
+            \item[$--$description {[text]}]               
               The text is any string used to describe the reservation. It is displayed in the Web Server. 
               
-            \item[--help ]             
+            \item[$--$help ]             
               Prints the usage text to the console. 
                             
-            \item[--instance\_memory\_size {[KB|MB|GB|TB]}]]               
+            \item[$--$instance\_memory\_size {[KB|MB|GB|TB]}]]               
               This specifies the amount of memory the reserved machine must supoprt. For full machine 
               reservations, this is the total memory on the machine. For partial reservations, the machine 
               may have more memory, but not less than is specified. 
 
-            \item[--number\_of\_instances {[integer]}]               
+            \item[$--$number\_of\_instances {[integer]}]               
               This specifies the number of full or partial machine reservations to schedule. 
                             
-            \item[--scheduling\_class {[classname]}]               
+            \item[$--$scheduling\_class {[classname]}]               
               This specifies the name of the scheuling class the RM will use to determine the resource 
               allocation for each process. The default DUCC distribution provides class "reserve" for full 
               machine reservations, and "fixed" for partial machine reservations. 
               
-            \item[-f, --specifiecaiton {[file]}]               
+            \item[$-$f, $--$specifiecaiton {[file]}]               
               All the parameters used to request a reservation may be placed in a standard Java 
               properties file. This file may then be used to submit the request (rather than providing all 
               the parameters directory to submit). 
