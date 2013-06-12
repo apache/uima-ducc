@@ -66,7 +66,7 @@
              Prints the usage text to the console. 
         \end{description}
         
-    \subsection{ducc\_services $--$register Options}
+    \subsection{ducc\_services --register Options}
     \label{subsec:cli.ducc-services.register}
        The {\em register} function submits a service specification to DUCC.  DUCC stores this 
        information until it is {\em unregistered}.  Once registered, a service may be
@@ -89,7 +89,7 @@
        \end{description}
 
 
-    \subsection{ducc\_services $--$start Options}
+    \subsection{ducc\_services --start Options}
 
     The start function instructs DUCC to allocate resources for a service and to start it in those
     resources. The service remains running until explicitly stopped. DUCC will attempt to keep the
@@ -129,7 +129,7 @@ ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --upda
 \end{verbatim}
        \end{description}
 
-    \subsection{ducc\_services $--$stop Options}
+    \subsection{ducc\_services --stop Options}
     The stop function instructs DUCC to stop some number of service instances. If no specific number
     is specified, all instances are stopped. This is used only for registered services. Use
     \hyperref[sec:cli.service-cancel]{{\em ducc\_service\_cancel}} command to stop submitted services.
@@ -170,7 +170,7 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --updat
 
     \end{description}
 
-    \subsection{ducc\_services $--$modify Options}
+    \subsection{ducc\_services --modify Options}
     The modify function dynamically updates some of the attributes of a registered service. 
     
     \begin{description}
@@ -217,7 +217,7 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
 \end{verbatim}
         \end{description}
 
-    \subsection{ducc\_services $--$query Options}
+    \subsection{ducc\_services --query Options}
     The query function returns details about all known services of all types and classes, including 
     the DUCC ids of the service instances (for submitted and registered services), the DUCC ids of 
     the jobs using each service, and a summary of each service's queue and performance statistics, 
@@ -225,7 +225,7 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
     
     All information returned by {\em ducc\_services $--$query} is also available via the
     \hyperref[ws:services-page]{Services Page} of the Web Server as well as the DUCC Service API (see 
-    the \href{apidocs/index.html}{JavaDoc}).
+    the JavaDoc).
 
     \begin{description}
     \item[$--$query {[service-id or endpoint]}] This indicates that a service is to be stopped. The
