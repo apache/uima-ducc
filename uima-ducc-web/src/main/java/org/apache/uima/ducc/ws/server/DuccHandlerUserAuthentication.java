@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +48,26 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 	private static IAuthenticationManager iAuthenticationManager = AuthenticationManager.getInstance();
 	
 	private static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
+	
+	public DuccHandlerUserAuthentication() {
+		initializeAuthenticator();
+	}
+	
+	private void initializeAuthenticator() {
+		String methodName = "initializeAuthenticator";
+		try {
+			Properties properties = DuccWebProperties.get();
+			String key = "ducc.authentication.implementer";
+			if(properties.containsKey(key)) {
+				String value = properties.getProperty(key);
+				Class<?> authenticationImplementer = Class.forName(value);
+				iAuthenticationManager = (IAuthenticationManager)authenticationImplementer.newInstance();
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+	}
 	
 	protected boolean isAuthenticated(HttpServletRequest request,HttpServletResponse response) {
 		String methodName = "isAuthenticated";
