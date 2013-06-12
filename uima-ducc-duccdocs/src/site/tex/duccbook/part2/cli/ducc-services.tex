@@ -16,6 +16,14 @@
             \item[Register] This registers a service with the Service Manager by saving a service
               specification in the Service Manager's registration area. The specification is
               retained by DUCC until it is unregistered.
+
+              The registration consists primarily of a service specification identical to that used
+              with \hyperref[sec:cli.service-submit]{ducc\_submit\_service}.  This specification is
+              used when the Service Manager needs to start a service instance.  A second properties
+              file, the {\em meta properties} for the service, contains additional state and
+              management properties.  The registered properties for a service are made available for
+              viewing from the DUCC Web Server's \hyperref[sec:ws-service-details]{service details}
+              page.
               
             \item[Unregister] This unregisters a service with the Service Manager. When a service is
               unregistered DUCC optionally stops the service instance, if any, and discard the
@@ -52,28 +60,28 @@
     \subsection{Common Options}
         These options are common to all of the service verbs:
         \begin{description}
-           \item[--debug ]          
+           \item[$--$debug ]          
              Prints internal debugging information, intended for DUCC developers or extended problem determination.                    
-           \item[--help]
+           \item[$--$help]
              Prints the usage text to the console. 
         \end{description}
         
-    \subsection{ducc\_services --register Options}
+    \subsection{ducc\_services $--$register Options}
     \label{subsec:cli.ducc-services.register}
        The {\em register} function submits a service specification to DUCC.  DUCC stores this 
        information until it is {\em unregistered}.  Once registered, a service may be
        started, stopped, etc.
 
        \begin{description}
-           \item[--register {[specification file] [options]}] The specification file is optional.  If
+           \item[$--$register {[specification file] [options]}] The specification file is optional.  If
              specified, it has the same contents as described for the \hyperref[sec:cli.service-submit]{{\em
                  ducc\_service\_submit}} command.  As with {\em ducc\_service\_submit}, any of the
              keywords in the specification may be overriden on the command line.
 
-           \item[--autostart {[true or false]}] This indicates whether to register the service as
+           \item[$--$autostart {[true or false]}] This indicates whether to register the service as
              an autostarted service.  If not specified, the default is {\em false}.
              
-           \item[--instances {[n]}] This specifies the number of instances to start when the service
+           \item[$--$instances {[n]}] This specifies the number of instances to start when the service
              is started.  If not specified, the default is 1.
              
            \item[Other keywords] These are the same as described for \hyperref[sec:cli.service-submit]{{\em
@@ -81,7 +89,7 @@
        \end{description}
 
 
-    \subsection{ducc\_services --start Options}
+    \subsection{ducc\_services $--$start Options}
 
     The start function instructs DUCC to alllocate resources for a service and to start it in those
     resources. The service remains running until explictly stopped. DUCC will attempt to keep the
@@ -89,7 +97,7 @@
     number of running service instances if desired.
     
        \begin{description}
-       \item[--start {[service-id or endpoint]}] This indicates that a service is to be started. The service id
+       \item[$--$start {[service-id or endpoint]}] This indicates that a service is to be started. The service id
          is either the numeric ID assigned by DUCC when the service is registered, or the service
          endpoint string.  Example:
 \begin{verbatim}
@@ -97,38 +105,38 @@ ducc_services --start 23
 ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 
 \end{verbatim}
          
-       \item[--instances {[integer]}] This is the number of instances to start. If omitted, sufficient
+       \item[$--$instances {[integer]}] This is the number of instances to start. If omitted, sufficient
          instances to match the registered number are started. If more than the registered number of
          instances is running this command has no effect.
 
-         If the number is specified, the number is added
+         If the number of instances is specified, the number is added
          to the currently number of running instances. Thus if five instances are running and
 \begin{verbatim}
-         ducc\_services --start 33 --instances 5\
+         ducc_services --start 33 --instances 5
 \end{verbatim}
          is issued, five more service instances are started for service 33 for a totoal of ten,
-         regardless of the number specified in the registration. The registry is updatedo if the
+         regardless of the number specified in the registration. The registry is updated if the
          {\em --update} option is also specified. Examples:
 \begin{verbatim}
 ducc_services --start 23 --intances 5 
 ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --update 
 \end{verbatim}
 
-       \item[--update]If specified, the registry is updated to the total number of started
+       \item[$--$update]If specified, the registry is updated to the total number of started
          instances.  Example:
 \begin{verbatim}
 ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --update 
 \end{verbatim}
        \end{description}
 
-    \subsection{ducc\_services --stop Options}
+    \subsection{ducc\_services $--$stop Options}
     The stop function instructs DUCC to stop some number of service instances. If no specific number
     is specified, all instances are stopped. This is used only for registered services. Use
     \hyperref[sec:cli.service-cancel]{{\em ducc\_service\_cancel}} command to stop submitted services.
 
     \begin{description}
 
-  \item[--stop {[service-id or endpoint]}] This specifies the service to be stopped. The service id
+  \item[$--$stop {[service-id or endpoint]}] This specifies the service to be stopped. The service id
          is either the numeric ID assigned by DUCC when the service is registered, or the service
          endpoint string. Example:
 \begin{verbatim}
@@ -136,17 +144,17 @@ ducc_services --stop 23
 ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 
 \end{verbatim}
          
-       \item[--instances {[integer]}] This is the number of instances to stop. If omitted, all
-         instances for the service are stopped.  If a number is specified, then only the specified
-         number of instances are stopped. Thus if ten instances are running for a service
-         with numeric id {\em 33} and 
+       \item[$--$instances {[integer]}] This is the number of instances to stop. If omitted, all
+         instances for the service are stopped.  If the number of instances is specified, then only
+         the specified number of instances are stopped. Thus if ten instances are running for a
+         service with numeric id 33 and
 \begin{verbatim}
 ducc_services --stop 33 --instances 5
 \end{verbatim}
          is issued, five (randomly selected) service instances are stopped for
          service 33, leaving five running.  The registry is updated if the {\em --update} option is
-         specified. The registered number of instances is never reduced to 0 even if the number of
-         running instances is reduced to 0.
+         specified. The registered number of instances is never reduced to zero even if the number of
+         running instances is reduced to zero.
 
          Example: 
 \begin{verbatim}
@@ -154,19 +162,19 @@ ducc_services --stop 23 --intances 5
 ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3  
 \end{verbatim}
 
-       \item[--update] If specified, the registry is updated to the total number of instances
-         remaining, but is never reduced below 1. Example: 
+       \item[$--$update] If specified, the registry is updated to the total number of instances
+         remaining, but is never reduced below one (1). Example: 
 \begin{verbatim}
 ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --update
 \end{verbatim}
 
     \end{description}
 
-    \subsection{ducc\_services --modify Options}
+    \subsection{ducc\_services $--$modify Options}
     The modify function dynamically updates some of the attributes of a registered service. 
     
     \begin{description}
-        \item[--modify {[service-id or endpoint]}]  This identifies the service to modify. The service id is either
+        \item[$--$modify {[service-id or endpoint]}]  This identifies the service to modify. The service id is either
           the numeric ID assigned by DUCC when the service is registered, or the service endpoint
           string.  Example:
 \begin{verbatim}
@@ -175,7 +183,7 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --intances 2
 \end{verbatim}
 
         \item[ --instances {[integer]}] This updates the number of services instances that are
-          started when the service is started.  Only the registration is updated. If the {\em --activate}
+          started when the service is started.  Only the registration is updated. If the {\em $--$activate}
           option is also specified, running instances are stopped or started as needed to match the
           new number.
 
@@ -196,23 +204,31 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --act
 
         \item[ --autostart {["true" or "false"]}] This changes the autostart property for the
           registered services. When set to "true", the service is started automatically when the
-          DUCC system is started.
+          DUCC system is started.  If the service is not currently started, it will now start
+          with the registered number of instances.  If the service is running, the instances
+          remain running.
 
+          One way to think of this is: if {\em autostart} is true, DUCC will attempt to keep
+          the registered number of instances running at all times.  If {\em autostart} is
+          false, all instance start and stop is manual.
           Example: 
 \begin{verbatim}
 ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false 
 \end{verbatim}
         \end{description}
 
-    \subsection{ducc\_services -query Options}
+    \subsection{ducc\_services $--$query Options}
     The query function returns details about all known services of all types and classes, including 
     the DUCC ids of the service instances (for submitted and registered services), the DUCC ids of 
     the jobs using each service, and a summary of each service's queue and performance statistics, 
     when available. 
     
+    All information returned by {\em ducc\_services $--$query} is also available via the
+    \hyperref[ws:services-page]{Services Page} of the Web Server as well as the DUCC Service API (see 
+    the \href{apidocs/index.html}{JavaDoc}).
 
     \begin{description}
-    \item[--query {[service-id or endpoint]}] This indicates that a service is to be stopped. The
+    \item[$--$query {[service-id or endpoint]}] This indicates that a service is to be stopped. The
       service id is either the numeric ID assigned by DUCC when the service is registered, or the
       service endpoint string.
 
@@ -220,16 +236,17 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
 
       Below is a query against a system with three services. 
 
-      The service with endpoint {\tt UIMA-AS:FixedSleepAE\_6:tcp://bobmach291:61617} is a service 
-      submitted outside of DUCC so it is marked as Implicit and has no implementing processes 
-      tha are known to DUCC. It is used by job 0 and is active, available, and being actively 
-      pinged. The ActiveMq queue statistics are shown. 
+      The service with endpoint {\tt UIMA-AS:FixedSleepAE\_6:tcp://bobmach291:61617} is a service
+      submitted outside of DUCC so it is marked as Implicit and has no implementing processes tha
+      are known to DUCC. It is used by job 0 (``References'') and is active, available, and being
+      actively pinged. The ActiveMq queue statistics are shown.
 
       The service with endpoint {\tt UIMA-AS:FixedSleepAE\_5:tcp://bobmach:61617} is a 
       registered service, whose registered numeric id is 2. It is registered for two instnaces and 
       no autostart. Since it is not autostarted, it will be terminated when it is no longer used. It 
       will linger for 5 seconds after the last referencing job completes, in case a subsequent job 
-      that uses it enters the system (not a realistic linger time!). It is currently used (referenced) 
+      that uses it enters the system (not a realistic linger time!). It has two active
+      instances whose DUCC Ids are 9 and 5. It is currently used (referenced) 
       by DUCC jobs 1 and 5. 
 
       The service with endpoint {\tt UIMA-AS:FixedSleepAE\_1:tcp://bobmach:61617} is a 

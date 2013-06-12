@@ -1,3 +1,8 @@
+%%
+%% ducc_monitor is currently unsupported. Perhaps it will come back after
+%% release 1.  So the doc skeleton is preserved.
+%%
+
 % Create well-known link to this spot for HTML version
 \ifpdf
 \else
@@ -14,21 +19,21 @@
     \paragraph{Usage:}
     \begin{description}
     \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-monitor.jar {\em options}
-    \item[Script wrapper] java -jar \ducchome/bin/ducc-monitor {\em options}
+    \item[Script wrapper] \ducchome/bin/ducc-monitor {\em options}
     \item[Java Main]      java -cp \ducchome/lib/uima-ducc-monitor.jar org.apache.uima.ducc.cli.DuccJobMonitor {\em options}
     \end{description}
 
     \paragraph{Options:}
     \begin{description}
-        \item[--debug ]          
+        \item[$--$debug ]          
           Prints internal debugging information, intended for DUCC developers or extended problem determination.
-        \item[--id {[jobid]}]
+        \item[$--$id {[jobid]}]
           The ID is the id of the job to monitor.
-        \item[--help]
+        \item[$--$help]
           Prints the usage text to the console. 
-        \item[--quiet] 
+        \item[$--$quiet] 
           Disable CLI informational miessages;
-        \item[timestamp]
+        \item[--timestamp]
           Enables timestamps on the monitor messages.
      \end{description}
         
