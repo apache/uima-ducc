@@ -2,9 +2,6 @@ scheduling.class_set    = background low normal high urgent weekly fixed reserve
 scheduling.default.name = normal
 scheduling.default.name.reserve = fixed
 
-scheduling.nodepool           = jobdriver
-scheduling.nodepool.jobdriver = jobdriver.nodes
-
 #
 # class to use when debug or all-in-one is specified
 # and .debug is absent from fair_share class
