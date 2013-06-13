@@ -57,7 +57,8 @@ this, the following is required:
     
 To build the documentation, the following is required:
 \begin{itemize}
-  \item Latex, including the \emph{pdflatex} and \emph{htlatex} packages.
+  \item Latex, including the \emph{pdflatex} and \emph{htlatex} packages.  A good place
+    to start if you need to install it is \url{http://latex-project.org/ftp.html}
 \end{itemize}
 
 More detailed one-time setup instructions for source-level builds via subversion can be found here:
@@ -66,7 +67,15 @@ More detailed one-time setup instructions for source-level builds via subversion
 \subsection{Documentation}
 After single-user installation, the DUCC documentation is found (in both PDF and HTML format) in the directory 
 ducc\_runtime/docs.  As well, the DUCC web server contains a link to the full documentation on each major page.
+The API is documented only via JavaDoc, distributed in the web server's root directory 
+{\tt \duccruntime/webserver/root/doc/apidocs.}  
 
+If building from source, Maven places the documentation in
+\begin{itemize}
+    \item {\tt trunk/uima-ducc-duccdocs/target/site} (main documentation), and 
+    \item {\tt trunk/site/apidocs} (API Javadoc)
+\end{itemize}
+    
 \subsection{Single-user  Installation and Verification}
 
 Single-user installation sets up an initial, working configuration on a single system.  No security
@@ -80,11 +89,18 @@ working, one may proceed to upgrade to full installation.
 \begin{itemize}
     \item One Intel-based or IBM Power-based system.  (More systems may be added during multi-user
       installation, described below.)
+
     \item 8GB of memory.  16GB or more is preferable for developing and testing applications beyond
       the non-trivial.  
+
     \item 1GB disk space to hold the DUCC runtime, system logs, and job logs.  More is
       usually needed for larger installations.  
-    \end{itemize}
+\end{itemize}
+
+Please note: DUCC is intended for scaling out memory-intensive UIMA applications over computing
+clusters consisting of multiple nodes with large (16GB-256GB or more) memory.  The minimal
+requirements are for initial test and evaluation purposes, but will not be sufficient to run actual
+workloads.
 
 \subsection{Single-user System Installation}
     \begin{enumerate}
@@ -95,7 +111,7 @@ tar -zxf <distribution.file>
 
         This creates a directory with the same name as ``$<$distribution.file$>$'', without the trailing ``.tgz''.
   
-        This directory contains the full DUCC runtime in a subdirectory called \duccruntime.  (Note:
+        This directory contains the full DUCC runtime in a sub-directory called \duccruntime.  (Note:
         the version may be different according the the actual version of DUCC being installed.)
 
       \item You may use the \duccruntime ``in place'' but it is highly recommended that you move it
@@ -107,7 +123,7 @@ mv apache-uima-ducc-0.8.0-SNAPSHOT/ducc_runtime $HOME
         We refer to this directory, regardless of its location, as \duccruntime. For simplicity,
         this document assumes it is moved to ducc's \$HOME/\duccruntime.
 
-      \item Change directories into the admin subdirectory of  \duccruntime: 
+      \item Change directories into the admin sub-directory of  \duccruntime: 
 \begin{verbatim}
 cd $HOME/ducc_runtime/admin
 \end{verbatim}
@@ -134,14 +150,12 @@ The post-installation script performs these tasks:
 \begin{enumerate}
     \item Verifies that the correct level of Java and Python are installed and available.
     \item Creates a default nodelist, \duccruntime/resources/ducc.nodes, containing the name of the node you are installing on.
-    \item Establishes a nodepool for the DUCC Job Driver (JD) as the node you are installing from.
-    \item Defines the “ducc head node” to be to node you are installing from.
+    \item Defines the ``ducc head'' node to be to node you are installing from.
     \item Sets up the default https keystore for the webserver.
-    \item Installs the DUCC documentation “ducc book” into the DUCC webserver root.
-    \item Builds and installs the C program, “ducc\_ling”, into the default location.
+    \item Installs the DUCC documentation ``ducc book'' into the DUCC webserver root.
+    \item Builds and installs the C program, ``ducc\_ling'', into the default location.
     \item Insures that the (supplied) ActiveMQ broker is runnable.
 \end{enumerate}
-
 
 \subsection{Initial System Verification}
 
@@ -204,7 +218,7 @@ ducchead.biz.org
 bash-4.1$
 \end{verbatim}
 
-  Now open a browser and go to the DUCC webserver’s url, http://$<$hostname$>$:42133 where $<$hostname$>$ is
+  Now open a browser and go to the DUCC webserver's url, http://$<$hostname$>$:42133 where $<$hostname$>$ is
   the name of the host where DUCC is started.  Navigate to the Reservations page via the links in
   the upper-left corner.  You should see the DUCC JobDriver reservation in state
   WaitingForResources.  In a few minutes this should change to Assigned.  (This usually takes 3-4
@@ -218,7 +232,7 @@ bash-4.1$
     
     Open the browser in the DUCC jobs page.  You should see the job progress through a series of
     transitions: Waiting For Driver, Waiting For Services, Waiting For Resources, Initializing, and
-    finally, Running.  You’ll see the number of work items submitted (15) and the number of work
+    finally, Running.  You'll see the number of work items submitted (15) and the number of work
     items completed grow from 0 to 15.  Finally, the job will move into Completing and then
     Completed..
 
@@ -227,13 +241,13 @@ bash-4.1$
 $HOME/ducc/logs/job-id
 \end{verbatim}
 
-    In this directory, you will find a log for the sample job’s JobDriver (JD), JobProcess (JP), and
+    In this directory, you will find a log for the sample job's JobDriver (JD), JobProcess (JP), and
     a number of other files relating to the job.
 
     This is a good time to explore the DUCC web pages.  Notice that the job id is a link to a set of
     pages with details about the execution of the job.
 
-    Notice also, in the upper-right corner is a link to the full DUCC documentation, the “DuccBook”.
+    Notice also, in the upper-right corner is a link to the full DUCC documentation, the ``DuccBook''.
 
     Finally, stop DUCC:
     \begin{enumerate}
@@ -254,7 +268,7 @@ $HOME/ducc/logs/job-id
     In that directory are found logs for each of the DUCC components plus one for each node DUCC is
     installed on.
 
-    DUCC job/user logs are written by default to the user’s HOME directory under
+    DUCC job/user logs are written by default to the user's HOME directory under
 \begin{verbatim}
     $HOME/ducc/logs/<jobid>
 \end{verbatim}
@@ -284,6 +298,15 @@ $HOME/ducc/logs/job-id
       \end{itemize}
 
 \subsection{Ducc\_ling Installation}
+    Before proceeding with this step, please note: 
+    \begin{itemize}
+        \item This step is required ONLY to install multi-user capabilities.
+        \item The sequence operations consisting of {\em chown} and {\em chmod} MUST be performed
+          in the exact order given below.  If the {\em chmod} operation is performed before
+          the {\em chown} operation, Linux will regress the permissions granted by {\em chmod} 
+          and ducc\_ling will be incorrectly installed.
+    \end{itemize}
+
     ducc\_ling is a setuid-root program whose function is to execute user tasks under the identity of
     the user.  This must be installed correctly; incorrect installation can prevent jobs from running as
     their submitters, and in the worse case, can introduce security problems into the system.
@@ -300,7 +323,7 @@ $HOME/ducc/logs/job-id
      \end{enumerate}
         
      Now, as root, move ducc\_ling to a secure location and grant authorization to run tasks under
-     different users’ identities:
+     different users' identities:
      \begin{enumerate}
          \item mkdir /local/ducc
          \item mkdir /local/ducc/bin
@@ -339,13 +362,13 @@ ducc.agent.launcher.ducc\_spawn\_path=/local/ducc/bin/ducc\_ling
           \item The next step (chown) sets ownership of /local/ducc/bin/ducc\_ling to root, and
             group ownership to ducc.
           \item The next step (chmod) stablishes the {\em setuid} bit, which allows user ducc to execute ducc\_ling
-            with root priveleges.
-          \item Finally, ducc.properties is updated to point to the new, priveleged ducc\_ling.
+            with root privileges.
+          \item Finally, ducc.properties is updated to point to the new, privileged ducc\_ling.
        \end{enumerate}
           
        If these steps are correctly performed, ONLY user {\em ducc} may use the ducc\_ling program in
-       a priveleged way. Ducc\_ling contains checks to prevent even user {\em root} from using it for
-       priveleged operations.
+       a privileged way. Ducc\_ling contains checks to prevent even user {\em root} from using it for
+       privileged operations.
 
        Ducc\_ling contains the following functions, which the security-conscious may verify by examining
        the source in \duccruntime/duccling.  All sensitive operations are performed only AFTER switching
@@ -365,7 +388,7 @@ ducc.agent.launcher.ducc\_spawn\_path=/local/ducc/bin/ducc\_ling
            done AFTER changing userids).
        \end{itemize}
        
-\subsection{Set up the full nodelists (optional)}
+\subsection{Set up the full nodelists}
 To add additional nodes to the ducc cluster, DUCC needs to know what nodes to start its Agent
 processes on.  These nodes are listed in the file
 \begin{verbatim}
@@ -378,7 +401,7 @@ cluster.
 
 \subsection{Full DUCC Verification}
 
-This is identical to initial verification, with the one difference that the job “1.job” should be
+This is identical to initial verification, with the one difference that the job ``1.job'' should be
 submitted as any user other than ducc.  Watch the webserver and insure that you see the job execute
 under the correct identity.  Once this completes, DUCC is installed and verified.
 
