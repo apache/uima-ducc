@@ -8,7 +8,7 @@ and {\em unmanaged.}.
 A {\em managed reservation} is a reservation whose process is fully managed by DUCC.  This process
 is any arbitrary process and is submitted with the
 \hyperref[sec:cli.ducc-process-submit]{ducc\_process\_submit} CLI.  The lifetime of the reservation
-starts at the time DUCC assignes a unique ID, and ends when the process terminates for any reason.
+starts at the time DUCC assigns a unique ID, and ends when the process terminates for any reason.
 
 An {\em unmanaged reservation} is essentially a sandbox for the user.  DUCC starts no processes
 in the reservation and manages none of the processes which run on that node.  The lifetime of the
@@ -26,7 +26,7 @@ The Reservations page contains the following columns:
   details on the process running in the reservation.
 
 \item[Start] \hfill \\
-  This is the time the reservation was mde.
+  This is the time the reservation was mode.
   
 \item[End] \hfill \\
   This is the time the reservation was canceled or otherwise ended.
@@ -42,20 +42,31 @@ The Reservations page contains the following columns:
   \hyperref[sec:ws-reservations]{above}.
 
 \item[State] \hfill \\
+  % 1. org.apache.uima.ducc.transport.event.common.IDuccState
   This is the status of the reservation. Values include: Received - Reservation
   has been vetted, persisted, and assigned unique Id.
   \begin{description}
-  \item[WaitingForResources] - The reservation is waitng for the Resource Manager to find and 
-    schedule esources. 
   \item[Assigned] - The reservation is active. 
   \item[Completed] - The reservation has been terminated.
+  \item[Received] - The Reservation has been vetted, persisted, and assigned a unique ID.
+  \item[WaitingForResources] - The reservation is waiting for the Resource Manager to find and 
+    schedule resources. 
   \end{description}
 
 \item[Reason] \hfill \\
-  If a reservation is not active, the reason. Reasons include:
+
+  % 2. org.apache.uima.ducc.transport.event.common.IDuccCompletionType
+
+  If a reservation is not active, this shows the reason.  Note that for
+  {\em unmanaged reservations}, even if the user has processes running in the
+  reservation, DUCC does NOT attempt to terminate those processes (hence, ``unmanaged''.)
+
+  For {\em managed reservations}, DUCC does terminate the associated process.
+
   \begin{description}
   \item[CanceledBySystem] - The job was canceled because DUCC was shutdown. 
-  \item[CanceledByUser] - The owner or administrator released the reservation. 
+  \item[CanceledByAdmin] - The DUCC administrator released the reservation. 
+  \item[CanceledByUser] - The reservation owner released the reservation. 
   \item[ResourcesUnavailable] - The Resource Manager was unable to find free or freeable resources 
     match the resource request. 
   \item[ProgramExit] - The reservation is a {\em managed} reservation and the associated
@@ -63,7 +74,7 @@ The Reservations page contains the following columns:
   \end{description}
 
 \item[Allocation] \hfill \\
-  This is the number of resources (shares for FIXED policy reservartions, processes for
+  This is the number of resources (shares for FIXED policy reservations, processes for
   RESERVE policy reservations) that are allocated.
 
 \item[UserProcesses] This is the number of processes owned by the user running in all
@@ -71,7 +82,7 @@ The Reservations page contains the following columns:
   
   Note that even for {\em unmanaged} reservations, the DUCC agent tracks processes owned
   by the user and reports on them.  This allows better identification and management of
-  abandonded reservations.
+  abandoned reservations.
 
 \item[Size] \hfill \\
   The memory size in GB of the each allocated unit.  This is the amount of memory that
@@ -82,6 +93,6 @@ The Reservations page contains the following columns:
   The node names of the machines where the resources are allocated.
   
 \item[Description] \hfill \\
-  This is the descriptin string from the --description string from submit.
+  This is the description string from the --description string from submit.
 \end{description}
 

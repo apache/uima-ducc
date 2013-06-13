@@ -5,7 +5,7 @@
     This page shows details of all the processes that run in support of a job. 
     The information is divided among four tabs:
     \begin{description}
-      \item[Processes] This tab conains details on all the processes for the job, both
+      \item[Processes] This tab contains details on all the processes for the job, both
         active, and defunct.
       \item[Work Items] This tab shows details for each individual work-item in the job.
       \item[Performance] This tab shows a performance break-down of all the UIMA analytics
@@ -21,15 +21,16 @@
 
         \item[Id] \hfill \\
           This is the DUCC-assigned numeric id of the process (not the Operating System's
-          processid). Process 0 is alwyas the Job Driver.          
+          processid). Process 0 is always the Job Driver.          
 
         \item[Log] \hfill \\
           This is the log name for the process. It is hyperlinked to the log itself.
 
         \item[Size] \hfill \\
           This is the size of the log in MB. If you find you have trouble viewing the log
-          from the web server it could be because it is too big to view in the server and needs to
-          be check directly.
+          from the Web Server it could be because it is too big to view in the server and needs to
+          be read by some other means than the Web Server.  (It is not currently paged in by 
+          the Web Server, it is read in full.)
 
         \item[Hostname] \hfill \\
           This is the name of the node where the process ran.
@@ -38,10 +39,12 @@
           This is the Unix process ID (PID) of the process.
 
         \item[State Scheduler] \hfill \\
-          This shows the Resesource Manager state of the job. It is one of:
+          % The information comes from here:
+          % State Scheduler: org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState
 
+          This shows the Resource Manager state of the job. It is one of:
           \begin{description}
-              \item[Allocated] - The node is still allocated for this job by the RM.
+              \item[Allocated] - The node is currently allocated for this job by the RM.
               \item[Deallocated] - The resource manager has deallocated the shares for the job on
                 this node.
           \end{description}
@@ -49,8 +52,13 @@
         \item[Reason Scheduler or extraordinary status] \hfill \\
           \phantomsection\label{itm:job-details-sched}
 
-          This shows why a process was terminated.  These all have ``hovers'' that provide more information
+
+          % The information comes from here:
+          % Reason Scheduler: org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType
+          This column provides a reason for the scheduler state, when the scheduler state is other than ``Allocated''. 
+          These all have ``hovers'' that provide more information
           if it is available.
+
             \begin{description}          
                 \item[AutonomousStop] - The process terminated unexpectedly of its own accord ("crashed", or
                   simply exited.) 
@@ -60,7 +68,7 @@
                 \item[Failed] - The process is terminated by the Agent because the JP wrapper was able to detect and 
                   communicate a fatal condition (Exception) in the pipeline.. 
                   
-                \item[FailedInitialization] - The process is terminated because the initialization step failed. 
+                \item[FailedInitialization] - The process is terminated because the UIMA initialization step failed. 
                   
                 \item[Forced] - The node is preempted by RM for other work because of fair share. 
                   
@@ -70,23 +78,27 @@
                   
                 \item[JobFailure] - The job failure limit is exceeded, causing the job to be canceled by the JD.                    
                   
-                \item[InitializationTimeout] - The initialization phase exceeded the configured timeout. 
+                \item[InitializationTimeout] - The UIMA initialization phase exceeded the configured timeout. 
                   
-                \item[Killed] - The agent terminated the process for some reason. 
-                  
-                \item[Stopped] - The job is winding down, there's no more work for this node, so it stops. 
-                  
+                \item[Killed] - The agent terminated the process for some reason. The ``Reason Agent'' field
+                  should have more details in this case.
+          
+                \item[Stopped]	- The process terminated normally. HELP HELP how is this different from Voluntary?
+                          
                 \item[Voluntary] - The job is winding down, there's no more work for this node, so it stops. 
+                  HELP HELP How is this different from Stopped.  Also State Agent has Stopped - does this
+                  RELATE TO THAT? HELP HELP
                   
-                \item[Unknown] - None of the above. This is an exceptional condition. Check the JP and JD logs for 
-                  possible causes..                   
+                \item[Unknown] - None of the above. This is an exceptional condition, sometimes an
+                  internal DUCC error. Check the JP and JD logs for possible causes..
             \end{description}
 
           \item[State Agent] \hfill \\
           \phantomsection\label{itm:job-details-state}
 
-            If there's an error detected only by the DUCC Agent, this shows the Agent's reason for
-            a process's death.
+          % This state comes from here:
+          % State Agent: org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState
+            This shows the DUCC Agent's view of the state of the process.
             \begin{description}
                \item[Starting] The DUCC process manager as issued a request to the assigned to
                  start the process.
@@ -98,30 +110,31 @@
               \item[Failed] The DUCC Agent reports the process failed with errors.  This usually
                 means that UIMA-AS has detected exceptions in the pipeline and reported them
                 to the Job Driver for logging.
-              \item[FailedInitialization] The process died during the UIMA initializaiton phase.
+              \item[FailedInitialization] The process died during the UIMA initialization phase.
               \item[InitializationTimeout] The process exceeded the site's limit for time spent
                 in UIMA initialization.
               \item[Killed] The DUCC Agent killed the process for some reason.  There are
-                three resons for this:
+                three rosins for this:
                 \begin{enumerate}
                   \item The Job Processes failed to initialize,
-                  \item The Job Process times out during initialization,
-                  \item The process exceedes its allowed swap.
+                  \item The Job Process timed out during initialization,
+                  \item The process Exocet's its allowed swap.
                 \end{enumerate}
-              \item[Abandonded] 
+              \item[Abandoned] WHAT IS THIS? 
             \end{description}
             
           \item[Reason Agent] \hfill \\
           \phantomsection\label{itm:job-details-agent}
 
-            If there's an error detected only by the agent, this shows the Agent's reason for
-            a process's death.
+          This shows extended reason information if a process exited other than having run out
+          of work to do.
+
             \begin{description}
               \item[AgentTimedOutWatingForORState] The DUCC Agent is expecting a state update
                 from the DUCC Orchestrator.  Timer on this wait has expired.  This usually 
                 indicates an infrastructure or communication problem.
               \item[Croaked] The process exited for no good or clear reason, it simply vanished.
-              \item[Deallocated] 
+              \item[Deallocated] WHAT IS THIS?
               \item[ExceededShareSize] The process exceeded it's declared memory size.
               \item[ExceededSwapThreshold] The process exceeded the configured swap threshold.
               \item[FailedInitialization] The process was terminated because the UIMA 
@@ -137,12 +150,12 @@
                 out of swap space.  This is a preemptive measure taken by DUCC to avoid exhaustion
                 of swap, to effect orderly eviction of the job before the operating system starts
                 its own reaping procedures.
-              \item[AdministratorInitiated] The process was canceled by an adminstrator.
+              \item[AdministratorInitiated] The process was canceled by an administrator.
               \item[UserInitated] The process was canceled by the owning user.
             \end{description}
             
           \item[Time Init] \hfill \\
-            This is the clock time this process spent in initializaiton.
+            This is the clock time this process spent in initialization.
             
           \item[Time Run] \hfill \\
             This is the clock time this process spent in executing, not including
@@ -165,7 +178,7 @@
             initialization + run times.
             
           \item[\%CPU] \hfill \\
-            Currnt CPU percent consumed by the process.  This will be $>$ 100\% on 
+            Currant CPU percent consumed by the process.  This will be $>$ 100\% on 
             multi-core systems if more than one core is being used.  Each core contributes
             up to 100\% CPU, so, for example, on a 16-core machine, this can be as high
             as 1600\%.
@@ -177,7 +190,7 @@
             This is the average time in seconds spent per work item in the process.
             
           \item[Time max] \hfill \\
-            This is the minimum time in seconds spent per work item in theprocess.
+            This is the minimum time in seconds spent per work item in the process.
             
           \item[Time min] \hfill \\
             This is the minimum time in seconds spent per work item in the process.
@@ -190,7 +203,7 @@
             
           \item[Retry] \hfill \\
             This is the number of work items that were retried in this process for any reason, excluding
-            preemptions.
+            preemption.
             
           \item[Preempt] \hfill \\
             This is the number of work items that were preempted from this process, if
@@ -205,12 +218,16 @@
    \subsection{Work Items}
    \label{sec:ws-work-items}
    This tab provides details for each individual work item.  Columns include:
-   
+
+   % The data comes from here: org.apache.uima.ducc.common.jd.files.IWorkItemState.State    
    \begin{description}
-     \item[SeqNo] This is the sequence work items are fetched from the Collection Reader's
+     \item[SeqNo]  \hfill \\
+       This is the sequence work items are fetched from the Collection Reader's
        getNext() method by the DUCC Job Driver.
-     \item[Id] This is the name of the work item.
-     \item[Status] The is the current state of the work item.  
+     \item[Id]  \hfill \\
+       This is the name of the work item.
+     \item[Status]  \hfill \\
+       The is the current state of the work item.  
        States include:
        \begin{description}
          \item[ended] The work item is complete.
@@ -224,12 +241,17 @@
        \end{description}
        If a work item has not yet been retrieved from the Collect Reader it does not show
        on this page.
-     \item[Queuing Time (sec)]  The time spent in ActiveMQ after being queued, and before
+     \item[Queuing Time (sec)]  \hfill \\
+       The time spent in ActiveMQ after being queued, and before
        being picked up by a Job Process.
-     \item[Processing Time (sec)] The time spent processing the work item.
-     \item[Node (IP)] The node IP where the work item was processed.
-     \item[Node (Name] The node name where the work item was processed.
-     \item[PID] The Unix Process Id that the work item was processed in.
+     \item[Processing Time (sec)]  \hfill \\
+       The time spent processing the work item.
+     \item[Node (IP)]  \hfill \\
+       The node IP where the work item was processed.
+     \item[Node (Name]  \hfill \\
+       The node name where the work item was processed.
+     \item[PID]  \hfill \\
+       The Unix Process Id that the work item was processed in.
    \end{description}
    
 
@@ -239,14 +261,20 @@
    are aggregated over all instances of each component in each process of the job.
    
    \begin{description}
-     \item[Name] The short name of the analytic.  The full name is shown in the command-line
+     \item[Name]  \hfill \\
+       The short name of the analytic.  The full name is shown in the command-line
        tool \hyperref[sec:cli.ducc-perf-stats]{ducc\_perf\_stats}
-     \item[Total] This is the total time in days, hours, minutes, and seconds taken by each
+     \item[Total]  \hfill \\
+       This is the total time in days, hours, minutes, and seconds taken by each
        component of the pipeline.
-     \item[\% of Total] This is the percent of the total usage consumed by this analytic.
-     \item[Avg] This is the average time spent by all the instances of the analytic.
-     \item[Min] This is the minimum time spent by any instance of the analytic.
-     \item[Max] This is the maximum time spent by any instance of the analytic.
+     \item[\% of Total]  \hfill \\
+       This is the percent of the total usage consumed by this analytic.
+     \item[Avg]  \hfill \\
+       This is the average time spent by all the instances of the analytic.
+     \item[Min]  \hfill \\
+       This is the minimum time spent by any instance of the analytic.
+     \item[Max]  \hfill \\
+       This is the maximum time spent by any instance of the analytic.
    \end{description}
    
    \subsection{Specification}

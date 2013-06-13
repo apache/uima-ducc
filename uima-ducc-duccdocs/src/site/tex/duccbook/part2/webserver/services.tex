@@ -8,7 +8,7 @@
 
             \item[Id] \hfill \\
               This is the unique numeric DUCC id of the service.  This ID is hyperlinked to a
-              \hyperref[sec:ws-service-details]{Servic Details} page with extended
+              \hyperref[sec:ws-service-details]{Service Details} page with extended
               details on the service.  Note that for some types of services, DUCC may not
               know more about the service than is shown on the main page.
 
@@ -19,7 +19,7 @@
               This is the service type.
               
               There are a number of variants on service types, as discussed in the
-              \hyperref[sec:services.types]{services} section of this book.  The webserver
+              \hyperref[sec:services.types]{services} section of this book.  The web server
               simplifies these into the following three values:
               \begin{itemize}
                 \item Registered
@@ -33,13 +33,17 @@
               \begin{description}
                 \item[Available] At least one service instance is responding to the service
                   pinger, indicating it is functional.
-                \item[Initializing] No service instances are running but at least one instance
-                  is in its UIMA-AS {\em initializing} phase.
-                \item[Waiting] At least one service instance is in Running state, and the Service
-                  Manager is waiting for a response from the service pinger.
-                \item[NotAvailable] No service instance is running. 
+                \item[Initializing] No service instances are available for use yet but at least one instance
+                  is in its UIMA {\em initializing} phase.
+                \item[Waiting] At least one service instance is in Running state, potentially available for use,
+                  but no response has been received from the service pinger.  This usually occurs during the
+                  start-up of a service.  If a service stops responding to its pinger after becoming
+                  available, the state can regress to Waiting.
+                \item[NotAvailable] No service instance is running or initializing. 
                 \item[Stopping] The service has been stopped for some reason, but not all 
-                  instances have terminated.
+                  instances have terminated.  This is an intermediate state between Available and
+                  NotAvailable to signify that the service is no longer available but not all its
+                  resources have been returned yet.
               \end{description}
 
               DUCC will start dependent jobs ONLY if it's services are in state Available.  Otherwise
@@ -50,14 +54,15 @@
               allowed to continue.
               
             \item[Pinger] \hfill \\
-              This indicates whether the Service Manager is running a pinger for the service.
+              This indicates whether the Service Manager is running a pinger for the service.  This column
+              does not imply the ping is successful; see the ``health'' column for ping status.
               
             \item[Health] \hfill \\
               {\em Health} is a status returned by each pinger and is the result of that pinger's
               evaluation of the state of the service.  It is shown as on of
               \begin{itemize}
                 \item {\em Good}
-                \item {\em Bad}
+                \item {\em Poor}
               \end{itemize}
               Both terms are highly subjective.  Pingers may return a summary of the underlying
               data used to label a service as good or bad.  That status is shown as a hover over
@@ -95,7 +100,7 @@
             \item[Reservations] \hfill \\
               This field shows the number of
               managed reservations dependent on this service. The IDs of the managed reservations
-              rea shown as a hover over the field.
+              are shown as a hover over the field.
 
               
             \item[Description] \hfill \\

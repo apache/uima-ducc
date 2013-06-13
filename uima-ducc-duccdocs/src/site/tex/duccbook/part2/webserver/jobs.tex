@@ -28,27 +28,50 @@
               This is the resource class the job is submitted to.
               
             \item[State] \hfill \\
-              This shows the state of the job. States include:
+              This shows the state of the job.  The normal job progression is shown below, with an
+              explanation of what each state means.
               \begin{description}
-                  \item[Received] - The job has ben vetted, persisted, and assigned a unique ID. 
+                  \item[Received] - The job has been vetted, persisted, and assigned a unique ID. 
                   \item[WaitingForDriver] - The job is waiting for the Job Driver to initialize. 
-                  \item[WaitingForServices] - The job is waiting to verify that any declared services are available. 
-                  \item[WaitingForResources] - The job is waiting to be scheduled. 
-                  \item[Initializing] - The job is in its initializaiton phase. 
+                  \item[WaitingForServices] - The job is waiting for verification from the
+                    Service Manager that required services are started and responding.  This may
+                    cause DUCC to start services if necessary.  In that even this state will
+                    persist until all pre-requisite services are ready.
+                  \item[WaitingForResources] - The job is waiting to be scheduled. In busy
+                    systems this may require preemption of existing work.  In that case this
+                    state will persist until preemption is complete.
+                  \item[Initializing] - The job initializing. Usually this
+                    is the UIMA-AS initialization phase.  In the default configuration, only
+                    two (2) processes are allocated by the Resource Manager.  No additional
+                    resources are allocated until at least one of the new processes successfully
+                    completes initialization.  Once initialization is complete the Resource Manager
+                    will double the number of allocated processes until the user's fair share of
+                    the resources is attained.
                   \item[Running] - At least one process is now initialized and running. 
-                  \item[Completing] - The last process has finished and the job is cleaning up. 
+                  \item[Completing] - The last work item has completed and DUCC is freeing resources.
+                    If the job had many resources allocated at the time the job exited this state
+                    will persist until all allocated resources are freed.
                   \item[Completed] - The job is complete. 
               \end{description}
                   
-            \item[Reason] \hfill \\
-              This is information relating to completion state.          
+            \item[Reason or Extraordinary Status] \hfill \\
+
+              % See this structure:
+              % org.apache.uima.ducc.transport.event.common.IDuccCompletionType
+              
+              This field contains miscellaneous information pertaining to the job.  If the job exits
+              the system for any reason, that reason is shown here.  If the job's pre-requisite
+              services are unavailable (or ailing) that fact is displayed here.  If there is a
+              job monitor running, that fact is shown here.  Most of the values for this field
+              support ``hovers'' containing additional information about the reason.
+         
               \begin{description}
-                  \item[EndOfJob] - The job ran with no errors. 
+                  \item[EndOfJob] - The job and completed ran with no errors. 
                   \item[Error] - All work items are processes but at least one had an error. 
-                  \item[CanceledByDriver] - The Job Driver (JD) terminated the job. The reason for termination is 
-                    seen by hovering over the text with your mouse. 
+                  \item[CanceledByDriver] - The Job Driver (JD) terminated the job. The reason for
+                    termination is seen by hovering over the text with your mouse.
                   \item[CanceledBySystem] - The job was canceled because DUCC was shutdown. 
-                  \item[CanceledBySser] - The job owner or DUCC administator canceled the job. 
+                  \item[CanceledBySser] - The job owner or DUCC administrator canceled the job. 
                   \item[DriverInitializationFailure] - The Job Deiver (JD) process is unable to initialize. Hover over 
                     the field with your mouse for details (if any are available), and check your JD log. 
                   \item[DriverProcessFailed] - The Job Driver (JD) process failed for some reason. Hover over the 
@@ -59,13 +82,18 @@
                     Service Manager (SM) cannot find or start the required service. 
                   \item[Premature] - The job was terminated for some unknown reason before all work items were 
                     processed. Check the JP logs for details. 
-                  \item[ProcessInitializationFailure] - Too many processes failed during initialization. Check the JP 
-                    logs for the reason. 
-                  \item[ProcessFailure] - Too many processes failed while running. Check the JP logs for the reason. 
+                  \item[ProcessInitializationFailure] - Too many processes failed during
+                    initialization and the job was canceled by DUCC.  Check the JP logs for the
+                    reason.
+                  \item[ProcessFailure] - Too many processes failed while running and DUCC canceled
+                    the job.  Check the JP logs for the reason.
                   \item[ResourcesUnavailable] - The Resource Manager (RM) is unable to allocate resources for 
-                    the job. For non-preemptable jobs this could be because the limit on that type of allocaiton is 
+                    the job. For non-preemptable jobs this could be because the limit on that type of allocation is 
                     reached, or all the nodes are already allocated and work cannot be preempted to make space for 
                     it. For all jobs, it could be because the job class is invalid. 
+                    \item[{\em service_name}] If there is a service name in this field it indicates the job is
+                      dependent on the service but the service is not responding to the Ducc Service Monitor's
+                      pinger.
               \end{description}
 
             \item[Services] \hfill \\
@@ -77,11 +105,11 @@
 
             \item[Init Fails] \hfill \\
               This is the total number of initialization failures experienced by the job. This
-              field is hyperlinked to pages showing the specific failures.
+              field is hyperlinked to pages with log excerpts highlighting the specific failures.
               
             \item[Run Fails] \hfill \\
               This is the total number of process failures experienced by the job. This field is
-              hyperlinked to a page showing the specific failures.
+              hyperlinked to pages with log excerpts highlighting the specific failures.
               
             \item[Pgin] This is the number of page-in events, over all processes, on the machines
               running the job.
@@ -95,23 +123,39 @@
               This is the total number of work items declared by the job.
               
             \item[Done] \hfill \\
-              This is the total number of work items successfuly completed for the job.
+              This is the total number of work items successfully completed for the job.
               
             \item[Error] \hfill \\
               This is the total number of exceptions thrown or other errors experienced by work
-              items. This field is hyperlinked to a page showing the specific failures.
+              items. This field is hyperlinked to pages containing log excerpts highlighting
+              the failures.
               
             \item[Dispatch] \hfill \\
-              This is the total number CASs that are currently dispatched. This is usally
-              min(Processes * Threads, incomplete\_work\_items - errors)
+              This is the total number CASs that are currently dispatched. 
+
+              This usually represents the quantity derived from the following formula:
+\begin{verbatim}              
+     min( (initialized.processes * threads.per.process), (incomplete.work.items - errors) )
+\end{verbatim}
+
+              The actual number is a measured number, not a calculated number, and may differ
+              slightly from the formula if the measurement is taken immediately after process
+              start-up, or in the time between a work item completing and a new one being
+              dispatched.
               
             \item[Retry] \hfill \\
-              This is the number of CASs that were retried for any reason (such as timeout).
+              This is the number of CASs that were retried for any reason.  Reasons for retry
+              include preemption for fair-share, work-item timeout, or error conditions.
+
+              Note: If a work item in any process fails, the entire process is considered
+              suspect, and all work-items in the process are terminated.  Work items in the
+              process which did not have errors are re-dispatched (retried) to a different
+              process.
               
             \item[Preempt] \hfill \\
               This is the total number of processes that have been preempted to make room for
               other work due to Fair Share.
               
             \item[Description] \hfill \\
-              This is the descriptin string from the --description string from submit.
+              This is the description string from the $--$description string from submit.
             \end{description}

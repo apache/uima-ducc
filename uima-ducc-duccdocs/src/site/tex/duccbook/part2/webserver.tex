@@ -5,14 +5,42 @@
 \fi
 \chapter{DUCC Web Server}
 
-    The DUCC Web Server default address is accessed from the URL http://wshost:42133. Each local
-    installation configures the host for "wshost" and may override the default port of 42133.
+    The DUCC Web Server default address is accessed from the URL http://[DUCC-HOST]:42133.  The
+    {\em[DUCC-HOST]} is the hostname where the local installation has installed the DUCC
+    Web Server. 
 
     The Webserver is designed to be mostly self-documenting. The design is intentionally simple 
-    and contains a link to this document. Column headers and reason/state codes have display a short 
-    description if you hover your mouse over it. 
+    and contains a link to this document.  Most of the interesting fields and column headers
+    have ``mouse hovers'' which display a short 
+    description if you hover your mouse pointer over it for a moment.
 
-    The columns can all be sorted by clicking on the column headers. 
+    Normally, the Web Server automatically fetches new data from DUCC and updates the display.
+    This is controlled by setting one of the two refresh modes:
+    \begin{itemize}
+      \item Manual refresh.  In this mode, the browser windows are updated only by using the
+        browser's refresh button, or the DUCC refresh button (to the left in the header of
+        each page.
+      \item Automatic refresh. In this mode, the browser automatically fetches and displays
+        new data.  The rate of refresh is currently fixed and cannot be configured.
+    \end{itemize}
+    
+    Two different display modes are supported:
+    \begin{itemize}
+      \item Scroll Mode, and
+      \item Classic Mode.
+    \end{itemize}
+    Modes are switched using the {\em Preferences} link.
+
+    \paragraph{Scroll Mode}  When in {\em scroll mode}, a scroll bar is shown to the right, within
+    the main window.  The scroll bar allows scrolling to be restricted to the data
+    display, leaving column and DUCC headers in place.  In this mode any column may be sorted
+    simply by clicking on it.
+
+    \paragraph{Classic Mode}  When in {\em classic mode}, the main data may extend below the 
+    bottom of the page and it will be necessary to use the browser's scroller on the right
+    to access it.  The column headers and DUCC header scrolls off when doing this.  Columns
+    may be sorted in this mode but it is necessary to first switch to ``Manual'' refresh mode to
+    prevent browser refreshes during sorting and display of data. 
 
 % Create well-known link to this spot for HTML version
 \ifpdf
@@ -38,7 +66,20 @@
             \end{itemize}
 
           \item[Preferences]
-            Set preferences for table style, date style, filters, etc.
+            The following preferences may be set:
+            \begin{description}
+              \item[Table Style] This selects ``scroll'' or ``classic'' display mode, as
+                described above.
+              \item[Date Style] This selects long, medium, or long formats for dates.
+              \item[Description Style] This selects long or short formats for the various
+                description fields.
+              \item[Filter Users] This controls the ``filter'' box near the middle of
+                the header on each page.  It allows various levels of inclusion and
+                exclusion of active or completed work for the filtered users.
+              \item[Role] This allows selection of ``User'' or ``Administrator'' roles.
+                This protects registered DUCC administrators from accidentally affecting
+                other people's work.
+            \end{description}
             
           \item[DuccBook] \hfill \\
             This is a link to the HTML version of the document you are reading.
@@ -55,13 +96,13 @@
             system.
 
           \item[System] \hfill \\
-            This opens a submenu with system-related links:
+            This opens a sub-menu with system-related links:
             \begin{itemize}
-              \item[] Administration - This opens a page with administrative functions. 
-              \item[] Classes - This shows all the scheduling classes defined to the system. 
-              \item[] Daemons - This shows the status of DUCC's management processes. 
-              \item[] DuccBook - This manual. 
-              \item[] Machines - This shows the status of all the ducc worker nodes. 
+              \item Administration - This opens a page with administrative functions. 
+              \item Classes - This shows all the scheduling classes defined to the system. 
+              \item Daemons - This shows the status of DUCC's management processes. 
+              \item DuccBook - This manual. 
+              \item Machines - This shows the status of all the ducc worker nodes. 
             \end{itemize}
       \end{description}              
 

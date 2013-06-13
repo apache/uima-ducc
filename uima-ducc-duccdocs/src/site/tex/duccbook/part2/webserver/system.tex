@@ -4,9 +4,9 @@
 
 This page shows information relating to the DUCC System itself:
 \begin{description}
-  \item[Admistration]This displays system adminstrators and implements
+  \item[Administration]This displays system administrators and implements
     the interface to various administrative controls.
-  \item[Classes] This shows the curent system's scheduling class definitions.
+  \item[Classes] This shows the current system's scheduling class definitions.
   \item[Daemons] This shows the status of all DUCC processes.
   \item[DuccBook] This is a link to the book you are reading.
   \item[Machines] This shows details of all the machines in the DUCC cluster.
@@ -16,21 +16,21 @@ This page shows information relating to the DUCC System itself:
 
    This page has two tabs:
    \begin{description}   
-     \item[Administrators] This shows the userids that are authorized to administer
+     \item[Administrators] This shows the user-ids that are authorized to administer
        DUCC.  In addition to executing the ``Control'' functions described below,
        administrators may cancel any job, reservation, or service, and may modify
        services they do not own.  
 
-       In order to perform administrative funcrtions, the following must be satisfied:
+       In order to perform administrative functions, the following must be satisfied:
        \begin{enumerate}
-         \item The user is logged-in to the webserver.
+         \item The user is logged-in to the web server.
          \item The user is a registered administrator.
          \item The user has set the role as ``administrator'' in the DUCC Preferences
-           page.  This is a safeguard so that adminimstrators who are also users
-           are less likely to inadvertantlly affect other people's jobs.
+           page.  This is a safeguard so that administrators who are also users
+           are less likely to inadvertently affect other people's jobs.
        \end{enumerate}
      \item[Control] Currently DUCC supports a single administrative control function
-       via the webserver: Stop new job submissions and reenable them.  If submissions
+       via the web server: Stop new job submissions and re-enable them.  If submissions
        are blocked, all existing work runs normally, but no new work is accepted.
      \end{description}
 
@@ -47,16 +47,16 @@ shown.  A button in the upper left of the page titled ``Show Agents'' enables di
 the status of all the DUCC agents as well. (Agents are suppressed by default because the
 page is expensive to render for large systems.)
 
-The coloumns shown on this page include
+The columns shown on this page include
 
    \begin{description}
       \item[Status] \hfill \\
-        This indicats whether the daemon is running and broadcasting state {\em up},
+        This indicates whether the daemon is running and broadcasting state {\em up},
         or not {\em down}.  
         
         All DUCC daemons broadcast a heartbeat containing process state.  If the Status
         is {\em down}, either the daemon is not functioning, or something is preventing
-        state from reaching the webserver via DUCC's ActiveMq instance.
+        state from reaching the web server via DUCC's ActiveMq instance.
 
       \item[Daemon Name] \hfill \\
         This is the name of the process.
@@ -86,10 +86,10 @@ The coloumns shown on this page include
 
       \item[Heartbeat (max)] \hfill \\ 
         This shows the longest delay since a state publication for the process was received
-        at the webserver.  Large numbers here indicate potential cluster or DUCC problems.
+        at the web server.  Large numbers here indicate potential cluster or DUCC problems.
 
       \item[Heartbeat (max) TOD] \hfill \\ 
-        This shows the time the longest delay of a state publicatin occurred.
+        This shows the time the longest delay of a state publication occurred.
 
       \item[JConsole URL] \hfill \\ 
         This is the jconsole URL for the process.
@@ -100,7 +100,7 @@ The coloumns shown on this page include
 
 This page shows the states of all the machines in the DUCC cluster.
 
-The coloumns shown on this page include
+The columns shown on this page include
 
    \begin{description}
       \item[Status] \hfill \\
@@ -111,12 +111,12 @@ The coloumns shown on this page include
             started there, or else there is a communication problem and
             the state messages are not being delivered.
             \item[up] The node has a DUCC Agent process running on it and the
-              webserver is receiving regular heartbeat packets from it.
+              web server is receiving regular heartbeat packets from it.
             \item[down] The node had a healthy DUCC Agent on it at some point
-              in the past (since the last DUCC boot), but the webserver has stopped
+              in the past (since the last DUCC boot), but the web server has stopped
               receiving heartbeats from it. 
 
-              The agent may have been manuallly shut down, may have crashed, or there
+              The agent may have been manually shut down, may have crashed, or there
               may be a communication problem.
 
               Additionally, very heavy loads from jobs running the the node can cause
@@ -152,8 +152,8 @@ The coloumns shown on this page include
         as an alert of a potential problem
 
       \item[Alien PIDs] \hfill \\
-        This shows the number of processes not owned by DUCC, the opertating system, or
-        jobs sheduled on each node.  The Unix Process IDS of these processes is displayed
+        This shows the number of processes not owned by DUCC, the operating system, or
+        jobs scheduled on each node.  The Unix Process IDS of these processes is displayed
         in a hover.
 
         DUCC preconfigures many of the standard operating 
@@ -161,7 +161,7 @@ The coloumns shown on this page include
         \hyperref[itm:props-rogue.user]{userids}.  This list may be updated by each
         installation.
 
-        A common cause of alien PIDs is errant processe run in unmanaged reservations.  A
+        A common cause of alien PIDs is errant process run in unmanaged reservations.  A
         user may reserve a machine for use as a sandbox.  If the reservation is released
         without properly terminating all the processes, they may linger.  When ducc 
         schedules the node for other purposes, significant performance penalties may be
@@ -171,7 +171,7 @@ The coloumns shown on this page include
       \item[Shares (total)] \hfill \\
         This shows the total number of scheduling share supported on this node.
 
-      \item[Shares(inuse)] \hfill \\
+      \item[Shares(in use)] \hfill \\
         This shows the total number of scheduling share in use on the node.
 
       \item[Heartbeat(last)] \hfill \\
