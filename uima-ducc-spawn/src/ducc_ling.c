@@ -41,7 +41,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "0.8.3"
+#define VERSION "0.8.4"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -60,6 +60,7 @@
  *                  in both user and agent logs. jrc
  * 2013-05-07 0.8.2 Implement append (-a) option. jrc
  * 2013-05-07 0.8.3 Implement version (-v) option. jrc
+ * 2013-06-14 0.8.4 Don't create log heirarchy before switching ids! jrc
  */
 
 /**
@@ -535,12 +536,6 @@ int main(int argc, char **argv, char **envp)
         fprintf(stdout, "301 Redirecting console into file %s.\n", filepath);
         redirect = 1;
     }
-
-    if ( redirect && ( filepath != NULL) ) {
-        logfile = mklogfile(filepath);
-    } else {
-        fprintf(stdout, "300 Bypassing redirect of log.\n");
-    } 
         
     // do this here before redirection stdout / stderr
     fprintf(stdout, "0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
@@ -603,6 +598,12 @@ int main(int argc, char **argv, char **envp)
             fprintf(stdout, "840 Switched to user %d.\n", pwd-> pw_uid);
         }
     }
+
+    if ( redirect && ( filepath != NULL) ) {
+        logfile = mklogfile(filepath);
+    } else {
+        fprintf(stdout, "300 Bypassing redirect of log.\n");
+    } 
 
     if ( append ) {
         return do_append(filepath, argc, argv);
