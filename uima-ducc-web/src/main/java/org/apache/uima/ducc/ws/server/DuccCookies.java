@@ -68,12 +68,14 @@ public class DuccCookies {
 	private static final String table_style = "table_style";
 	private static final String date_style = "date_style";
 	private static final String description_style = "description_style";
+	private static final String display_style = "display_style";
 	private static final String filter_users_style = "filter_users_style";
 	private static final String role = "role";
 	
 	public static final String cookieStyleTable = application+join+table_style;
 	public static final String cookieStyleDate = application+join+date_style;
 	public static final String cookieStyleDescription = application+join+description_style;
+	public static final String cookieStyleDisplay = application+join+display_style;
 	public static final String cookieStyleFilterUsers = application+join+filter_users_style;
 	public static final String cookieRole = application+join+role;
 	
@@ -85,6 +87,10 @@ public class DuccCookies {
 	public static final String valueStyleDescriptionLong = "long";
 	public static final String valueStyleDescriptionShort = "short";
 	public static final String valueStyleDescriptionDefault = valueStyleDescriptionLong;
+	
+	public static final String valueStyleDisplayTextual = "textual";
+	public static final String valueStyleDisplayVisual = "visual";
+	public static final String valueStyleDisplayDefault = valueStyleDisplayTextual;
 	
 	public static final String valueStyleFilterUsersInclude = "include";
 	public static final String valueStyleFilterUsersIncludePlusActive = "include+active";
@@ -199,6 +205,24 @@ public class DuccCookies {
 		catch(Exception e) {
 		}
 		return descriptionStyle;
+	}
+	
+	public static enum DisplayStyle { Textual, Visual };
+	
+	public static DisplayStyle getDisplayStyle(HttpServletRequest request) {
+		DisplayStyle displayStyle = DisplayStyle.Textual;
+		try {
+			String cookie = getCookie(request,cookieStyleDisplay);
+			if(cookie.equals(valueStyleDisplayTextual)) {
+				displayStyle = DisplayStyle.Textual;
+			}
+			else if(cookie.equals(valueStyleDisplayVisual)) {
+				displayStyle = DisplayStyle.Visual;
+			}
+		}
+		catch(Exception e) {
+		}
+		return displayStyle;
 	}
 	
 	public static enum FilterUsersStyle { Include, IncludePlusActive, Exclude, ExcludePlusActive };

@@ -20,6 +20,7 @@ under the License.
 <%
 boolean dateStyle = true;
 boolean descriptionStyle = true;
+boolean displayStyle = true;
 boolean role = true;
 %>
 <html>
@@ -148,6 +149,19 @@ if (descriptionStyle) {
 		<td><input type="radio"  name="description_style" value="long" checked onclick="ducc_preferences_set('description_style','long')" /> Long
 		<td>&nbsp
 		<td><input type="radio"  name="description_style" value="short"        onclick="ducc_preferences_set('description_style','short')" /> Short
+<%
+}
+%>
+<%
+if (displayStyle) {
+%>
+        <tr>
+        <tr>
+        <td><i><b>Display Style</b></i>
+        <td>&nbsp
+        <td><input type="radio"  name="display_style" value="textual" checked onclick="ducc_preferences_set('display_style','textual')" /> Textual
+        <td>&nbsp
+        <td><input type="radio"  name="display_style" value="visual"          onclick="ducc_preferences_set('display_style','visual')" /> Visual
 <%
 }
 %>

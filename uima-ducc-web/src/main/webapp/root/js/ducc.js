@@ -2560,6 +2560,10 @@ function ducc_preferences_reset()
 		var value = "long";
 		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
 		ducc_put_cookie(key,value);
+		var key = ducc_appl("display_style");
+        var value = "textual";
+        //alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
+        ducc_put_cookie(key,value);
 		var key = ducc_appl("filter_users_style");
 		var value = "include";
 		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
@@ -2686,6 +2690,31 @@ function ducc_preferences_description_style() {
 	}
 }
 
+function ducc_preferences_display_style() {
+    try {
+        var key = ducc_appl("display_style");
+        var value = ducc_get_cookie(key);
+        //alert("ducc_preferences"+" "+"key:"+key+" "+"value:"+value);
+        if(value == "textual") {
+            document.form_preferences.display_style[0].checked = true;
+            document.form_preferences.display_style[1].checked = false;
+        }
+        else if(value == "visual") {
+            document.form_preferences.display_style[0].checked = false;
+            document.form_preferences.display_style[1].checked = true;
+        }
+        else {
+            value = "textual";
+            ducc_put_cookie(key, value);
+            document.form_preferences.display_style[0].checked = true;
+            document.form_preferences.display_style[1].checked = false;
+        }
+    }
+    catch(err) {
+        ducc_error("ducc_preferences_display_style",err);
+    }
+}
+
 function ducc_preferences_filter_users_style() {
 	try {
 		var key = ducc_appl("filter_users_style");
@@ -2760,6 +2789,7 @@ function ducc_preferences()
 		ducc_preferences_table_style();
 		ducc_preferences_date_style();
 		ducc_preferences_description_style();
+		ducc_preferences_display_style();
 		ducc_preferences_filter_users_style();
 		ducc_preferences_role();
 	}

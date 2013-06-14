@@ -179,7 +179,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Reason
 		String reason = getReason(job, DuccType.Job).toString();
-		sb.append("<td>");
+		sb.append("<td valign=\"bottom\" align=\"right\">");
 		sb.append(reason);
 		sb.append("</td>");
 		// Services
@@ -195,17 +195,32 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			sb.append("0");
 		}
 		sb.append("</td>");
-		// Initialize Failures
+		// Initialize Failures	
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		sb.append(buildInitializeFailuresLink(job));
 		if(job.getSchedulingInfo().getLongSharesMax() < 0) {
-			sb.append("<sup>");
-			sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
-			sb.append("^");
-			sb.append("</span>");
-			sb.append("</sup>");
+			switch(DuccCookies.getDisplayStyle(request)) {
+			case Textual:
+			default:
+				sb.append(buildInitializeFailuresLink(job));
+				sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+				sb.append("<sup>");
+				sb.append("<small>");
+				sb.append("capped");
+				sb.append("</small>");
+				sb.append("<sup>");
+				sb.append("</span>");
+				sb.append("<br>");
+				break;
+			case Visual:
+				sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+				sb.append("<img src=\"./opensources/images/propeller_hat_small.svg.png\">");
+				sb.append("</span>");
+				sb.append("<br>");
+				sb.append(buildInitializeFailuresLink(job));
+				break;
+			}
 		}
-		sb.append("</td>");
+		sb.append("</td>");		
 		// Runtime Failures
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		sb.append(buildRuntimeFailuresLink(job));

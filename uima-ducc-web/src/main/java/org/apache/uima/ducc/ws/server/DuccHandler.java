@@ -1472,6 +1472,21 @@ public class DuccHandler extends DuccAbstractHandler {
 					data = new StringBuffer();
 					data.append("<table>");
 					Iterator<DuccId> processIterator = list.iterator();
+					switch(DuccCookies.getDisplayStyle(request)) {
+					case Textual:
+						break;
+					case Visual:
+						if(job.getSchedulingInfo().getLongSharesMax() < 0) {
+							data.append("<tr>");
+							data.append("<td>");
+							sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+							sb.append("<img src=\"/opensources/images/propeller_hat_large.svg.png\">");
+							sb.append("</span>");
+						}
+						break;
+					default:
+						break;
+					}
 					while(processIterator.hasNext()) {
 						data.append("<tr>");
 						data.append("<td>");

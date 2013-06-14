@@ -216,16 +216,29 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Init Fails
 		sb = new StringBuffer();
-		sb.append("<span>");
-		sb.append(buildInitializeFailuresLink(job));
 		if(job.getSchedulingInfo().getLongSharesMax() < 0) {
-			sb.append("<sup>");
-			sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
-			sb.append("^");
-			sb.append("</span>");
-			sb.append("</sup>");
+			switch(DuccCookies.getDisplayStyle(request)) {
+			case Textual:
+			default:
+				sb.append(buildInitializeFailuresLink(job));
+				sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+				sb.append("<sup>");
+				sb.append("<small>");
+				sb.append("capped");
+				sb.append("</small>");
+				sb.append("<sup>");
+				sb.append("</span>");
+				sb.append("<br>");
+				break;
+			case Visual:
+				sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+				sb.append("<img src=\"./opensources/images/propeller_hat_small.svg.png\">");
+				sb.append("</span>");
+				sb.append("<br>");
+				sb.append(buildInitializeFailuresLink(job));
+				break;
+			}
 		}
-		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Run Fails
 		sb = new StringBuffer();
