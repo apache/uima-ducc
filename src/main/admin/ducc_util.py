@@ -822,7 +822,7 @@ class DuccUtil:
         for p in os.environ["PATH"].split(":"):
             if os.path.exists(p + "/" + file):
                 return p + "/" + file            
-            return None
+        return None
 
     def mkargs(self, args):
         '''
