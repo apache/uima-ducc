@@ -7,12 +7,11 @@ driver_jvm_args                -Xmx500M
 driver_environment             LD_LIBRARY_PATH=/a/nother/bogus/path
 
 process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepAE
-process_memory_size            4
+process_memory_size            2
 process_classpath              ../lib/uima-ducc-examples.jar
 process_jvm_args               -Xmx16G
 process_thread_count           2
 process_per_item_time_max      5
-process_get_meta_time_max      5
 process_environment            AE_INIT_TIME=5 AE_INIT_RANGE=5 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path PROCESS_BLOAT=10
 process_deployments_max        999
 

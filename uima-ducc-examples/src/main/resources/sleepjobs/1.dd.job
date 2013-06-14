@@ -13,5 +13,5 @@ process_jvm_args          -Xmx100M
 
 scheduling_class          normal
 
-process_memory_size       4
+process_memory_size       2
 
