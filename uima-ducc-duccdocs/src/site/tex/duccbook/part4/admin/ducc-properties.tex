@@ -11,40 +11,127 @@
     Some of the properties are tuning parameters: timeouts, heartbeat intervals, and so on. These
     may be modified by DUCC administrators, but only after experience is gained with DUCC, and only
     to solve specific performance problems. The default tuning parameters have been chosen by the
-    DUCC system developers to provide "best" operation under most reasonable situations. Changing
-    these parameters may create imbalances in the system and result in performance problems or even
-    prevent DUCC from operating at all. In the description below these properties are classified as
-    "Tuning".
+    DUCC system developers to provide "best" operation under most reasonable situations. In the
+    description below these properties are classified as "Tuning".
 
-    Some of the properties are standard configuration properties: the location of the ActiveMQ
+    Some of the properties describe the local cluster configuration: the location of the ActiveMQ
     broker, the location of the Java JRE, port numbers, etc. These should be modified by the DUCC
     administrators to configure DUCC to each individual installation. In the description below these
     properties are classified as "Local".
-
+    
 \subsection{General DUCC Properties}
     \begin{description}
-       \item[ducc.jms.provider] \hfill \\
-         Declare the type of middleware providing the JMS service used by DUCC.
+
+       \item[ducc.authentication.implementor] \hfill \\
+         This specifies the class used for WebServer session authentication.  If unconfigured,
+         the Web Server enforces no authentication.
          \begin{description}
-           \item[Default] activemq 
-           \item[Type]Private 
+           \item[Default] (unconfigured)
+           \item[Type] Local
          \end{description}
-           
-       \item[ducc.broker.protocol] \hfill \\
-         Declare the wire protocol used to communicate with ActiveMQ. 
+
+       \item[ducc.admin.endpoint] \hfill \\
+         This is the JMS endpoint name used for DUCC administration messages. 
          \begin{description}
-           \item[Default] tcp 
+           \item[Default] ducc.admin.channel 
            \item[Type] Private 
          \end{description}
 
+       \item[ducc.admin.endpoint.type] \hfill \\
+         This is the JMS message type used for DUCC administration requests. If changed DUCC 
+         admin may not work. 
+         \begin{description}
+           \item[Default] topic 
+           \item[Type] Private
+         \end{description} 
+           
+       \item[ducc.broker.automanage] \hfill \\
+         If set to ``true'', DUCC will start and stop the ActiveMq broker as part of its normal start/stop
+         scripting.  
+         \begin{description}
+           \item[Default] true
+           \item[Type] Tuning
+         \end{description} 
+
+       \item[ducc.broker.home] \hfill \\
+         For DUCC auto-managed brokers only, this names the location where ActiveMq is installed
+         installed.  
+
+         Note that the DUCC installation includes a default ActiveMq.
+         \begin{description}
+           \item[Default] \duccruntime/activemq 
+           \item[Type] Tuning
+         \end{description} 
+           
+       \item[ducc.broker.memory.options] \hfill \\
+         For DUCC auto-managed brokers only, this names the ActiveMq configuration file.  The configuration
+         file is assumed to reside in the directory specified by {\em ducc.broker.home}, so the path must be relative
+         to that location.
+         \begin{description}
+           \item[Default] conf/activemq-nojournal5.xml
+           \item[Type] Tuning
+         \end{description} 
+           
+           
+       \item[ducc.broker.decoration] \hfill \\
+         The property is used by the DUCC Job Driver processes to modify the ActiveMq broker URL
+         when connecting to the Job Processes.
+
+         The supplied default is used to disable broker connection timeouts.  From the ActiveMQ
+         documentation: "The maximum inactivity duration (before which the socket is considered
+         dead) in milliseconds. On some platforms it can take a long time for a socket to appear to
+         die, so we allow the broker to kill connections if they are inactive for a period of
+         time. Use by some transports to enable a keep alive heart beat feature. Set to a value
+         less-than-or-equal0 to disable inactivity monitoring. Declare the wire protocol used to
+         communicate with ActiveMQ."
+         
+         This decoration is used to keep the broker connection alive while a JVM is in a
+         long garbage collection. The applications that DUCC is designed to support can
+         spend significant time in garbage collection, which can cause spurious timeouts. By
+         default the DUCC configuration disables the timeout by setting it to 0.       
+
+         \begin{description}
+           \item[Default] wireFormat.maxInactivityDuration=0 
+           \item[Type] Local 
+         \end{description}
+
        \item[ducc.broker.hostname] \hfill \\
-         This declares the node name where the ActiveMQ broker resides. It MUST be updated to 
+         This declares the node where the ActiveMQ broker resides. It MUST be updated to 
          the actual node where the broker is running as part of DUCC installation. The default value 
          will not work.          
          \begin{description}               
-           \item[Default]localhost 
+           \item[Default] \$\{ducc.head\}.  The default is defined in the ducc property, {\em ducc.head}.
+             If you want to run the ActiveMq broker on the ``ducc head'', this parameter need not
+             be changed.
            \item[Type] Local 
          \end{description}
+
+       \item[ducc.broker.jmx.port] \hfill \\
+         This is the port used to make JMX connections to the broker.  This should only
+         be changed by administrators familiar with ActiveMq configuration.         
+         \begin{description}         
+           \item[Default] 1099                       
+           \item[Type] Local 
+         \end{description}
+
+       \item[ducc.broker.memory.options] \hfill \\
+         For DUCC auto-managed brokers only, this sets the {\tt -Xmx} heap size for the broker.
+         \begin{description}
+           \item[Default] -Xmx2G
+           \item[Type] Tuning
+         \end{description} 
+           
+
+       \item[ucc.broker.name] \hfill \\
+         This is the internal name of the broker, used to locate Broker's MBean in JMX Registry. 
+         It is NOT related to any node name. When using the ActiveMQ distribution supplied with 
+         DUCC it should always be set to "localhost".  The default should be changed only by
+         administrators familiar with ActiveMq configuration.
+         \begin{description}
+           \item[Default] localhost 
+           \item[Type] Local              
+         \end{description}
+
 
        \item[ducc.broker.port] \hfill \\
          This declares the port on which the ActiveMQ broker is listening for
@@ -54,93 +141,57 @@
            \item[Default] 61616              
            \item[Type] Local 
          \end{description}
-           
-       \item[ducc.broker.decoration] \hfill \\
-         From the ActiveMQ documentation: "The maximum inactivity duration
-         (before which the socket is considered dead) in milliseconds. On some platforms it
-         can take a long time for a socket to appear to die, so we allow the broker to kill
-         connections if they are inactive for a period of time. Use by some transports to
-         enable a keep alive heart beat feature. Set to a value less-than-or-equal0 to
-         disable inactivity monitoring. Declare the wire protocol used to communicate with
-         ActiveMQ."
-         
-         This decoration is used to keep the broker connection alive while a JVM is in a
-         long garbage collection. The applications that DUCC is designed to support can
-         spend significant time in garbage collection, which can cause spurious timeouts. By
-         default the DUCC configuration disables the timeout by setting it to 0.
-       
-         \begin{description}
-           \item[Default] wireFormat.maxInactivityDuration=0 
-           \item[Type] Local 
-         \end{description}
              
-       \item[ucc.broker.name] \hfill \\
-         This is the internal name of the broker, used to locate Broker's MBean in JMX Registry. 
-         It is NOT related to any node name. When using the ActiveMQ distribution supplied with 
-         DUCC it should always be set to "localhost". When using another broker, this name must 
-         match the "brokerName" parameter in the local ActiveMQ configuration.          
+
+       \item[ducc.broker.protocol] \hfill \\
+         Declare the wire protocol used to communicate with ActiveMQ. 
          \begin{description}
-           \item[Default] localhost 
-           \item[Type] Local              
+           \item[Default] tcp 
+           \item[Type] Private 
          \end{description}
 
 
-       \item[ducc.broker.jmx.port] \hfill \\
-         This is the port used to make JMX connections to the broker. When using the ActiveMQ 
-         broker supplied with DUCC this should normally not be changed. If using another 
-         ActiveMQ broker this must match the configured JMX port. 
+       \item[ducc.broker.server.url.decoration] \hfill \\
+         For DUCC auto-managed brokers only, this configures ActiveMq Server url decoration.
          
-         \begin{description}         
-           \item[Default] 1099                       
-           \item[Type] Local 
-         \end{description}
-           
+         \begin{description}
+           \item[Default] transport.soWriteTimeout=45000
+           \item[Type] Tuning
+         \end{description} 
+
+       \item[ducc.cli.httpclient.sotimeout] \hfill \\
+         This is the timeout used by the CLI to communicate with DUCC, in millisseconds. If no 
+         response is heard within this time, the request times out and is aborted. When set to 0 (the 
+         default), the request never times out. 
+         \begin{description}
+           \item[Default] 0 
+           \item[Type] Tuning 
+          \end{description}
 
        \item[ducc.cluster.name] \hfill \\
-         This is a string used in the Web Server banner to identify the local cluster. It may be set to 
-         anything desired. 
+         This is a string used in the Web Server banner to identify the local cluster. It is used
+         for informational purposes only and may be set to anything desired.
          \begin{description}
-           \item[Default] Welcome To DUCC! 
+           \item[Default] Apache UIMA-DUCC
            \item[Type] Local 
          \end{description}
-           
-       \item[ducc.runmode] \hfill \\
-         When set to "Test" this property bypasses userid and authentication checks. It is intended 
-         for use ONLY by DUCC developers. It allows developers of DUCC to simulate a multiuser 
-         environment without the need for root privileges. 
-         
-         Note: WARNING! Enabling this feature in a production DUCC system is a 
-         serious security breach. It should only be set by DUCC developers running with 
-         an un-privileged ducc\_ling. 
+          
+       \item[ducc.head] \hfill \\
+         This property declares the node where the DUCC adminstrative processes run (Orchestrator,
+         Resource Manager, Process Manager, Service Manager).  This property is required and MUST be
+         configured in new installation.  The installation script
+         \hyperref[subsec:install.single-user]{ducc\_post\_install} initializes this property to the
+         node the script is executed on.
          \begin{description}
-           \item[Default] unconfigured. 
+           \item[Default] There is no default, this must be configured during system installation.
            \item[Type] Local 
          \end{description}
 
-       \item[ducc.locale.language] \hfill \\
-         Establish the language for national language support of messages. Currently only "en" is 
-         supported. 
+       \item[ducc.jms.provider] \hfill \\
+         Declare the type of middleware providing the JMS service used by DUCC.
          \begin{description}
-           \item[Default] en 
-           \item[Type] Private 
-         \end{description}
-           
-
-       \item[ducc.locale.country] \hfill \\
-         Establish the country for National Language Support of messages. Currently only "us" is 
-         supported. 
-
-         \begin{description}
-           \item[Default] us 
-           \item[Type] Private 
-         \end{description}
-
-       \item[ducc.jvm] \hfill \\
-         Specifies the full path to the JVM to be used by the DUCC processes. If not specified, 
-         "java" must be in the default path for user "ducc". 
-         \begin{description}
-           \item[Default] java 
-           \item[Type] Local 
+           \item[Default] activemq 
+           \item[Type]Private 
          \end{description}
 
        \item[ducc.jmx.port] \hfill \\
@@ -149,20 +200,55 @@
          used as the base port for JMX. If the port is busy, it is incremented internally until a free 
          port is found. 
          
-         The web server's "System -> Daemons" tab is used to find the JMX URL that gets assigned 
-         to each of the DUCC management processes. The web server's job details page for each 
-         job is used to find the JMX URL that is assigned to each JP. 
+         The web server's \hyperref[sec:system-details.daemons]{"System $->$ Daemons"} tab is used
+         to find the JMX URL that gets assigned to each of the DUCC management processes. The web
+         server's \hyperref[sec:ws-job-details]{Job details} page for each job is used to find the
+         JMX URL that is assigned to each JP.
          
          \begin{description}
            \item[Default] 2099 
            \item[Type] Private 
          \end{description}
 
+       \item[ducc.jvm] \hfill \\
+         This specifies the full path to the JVM to be used by the DUCC processes. This MUST be
+         configured.  The installation script
+         \hyperref[subsec:install.single-user]{ducc\_post\_install} initializes this property to 
+         full path to ``java'' in the installer's environment.  (If the ``java'' command cannot
+         be found, ducc\_post\_install exits with error.)
+         \begin{description}
+           \item[Default] None.  Must be configured during installation.
+           \item[Type] Local 
+         \end{description}
+
+       \item[ducc.node.min.swap.threshold] \hfill \\
+         Specify a minimum amount of free swap space available on a node.
+         If an agent detects free swap space dipping below the value defined
+         below, it will find the fattest (in terms of memory) process in its
+         inventory and kill it. The value of the parameter below is expressed
+         in Megabytes.
+
+         If set to 0, the threshold is disabled.
+         \begin{description}
+           \item[Default] 0
+           \item[Type] Tuning
+         \end{description}
+
+
        \item[ducc.agent.jvm.args] \hfill \\
          This specifies the list of arguments passed to the JVM when spawing the Agent. 
          \begin{description}           
            \item[Default] Xmx100M 
            \item[Type] Tuning 
+         \end{description}
+
+
+       \item[ducc.driver.jvm.args] \hfill \\
+         If enabled, the arguments here are automatically added to the JVM arguments specified for 
+         the Job Driver process. 
+         \begin{description}
+           \item[Default] (unconfigured) 
+           \item[Type] Local 
          \end{description}
 
        \item[ducc.orchestrator.jvm.args] \hfill \\
@@ -172,17 +258,26 @@
            \item[Type] Tuning 
          \end{description}
 
-       \item[ducc.rm.jvm.args] \hfill \\
-         This specifies the list of arguments passed to the JVM when spawing the Resource 
-         Manager. 
-         \begin{description}           
+
+       \item[ducc.pm.jvm.args] \hfill \\
+         This specifies the list of arguments passed to the JVM when spawing the Process Manager. 
+         \begin{description}
            \item[Default] Xmx1G 
            \item[Type] Tuning 
          \end{description}
 
-       \item[ducc.agent.jvm.args] \hfill \\
-         This specifies the list of arguments passed to the JVM when spawing the Process Manager. 
+       \item[ducc.process.jvm.args] \hfill \\
+         If enabled, the arguments here are added by DUCC to the JVM arguments in the user's job 
+         processes. 
          \begin{description}
+           \item[Default] (unconfigured) 
+           \item[Type] Private 
+         \end{description}
+                   
+       \item[ducc.rm.jvm.args] \hfill \\
+         This specifies the list of arguments passed to the JVM when spawing the Resource 
+         Manager. 
+         \begin{description}           
            \item[Default] Xmx1G 
            \item[Type] Tuning 
          \end{description}
@@ -201,57 +296,37 @@
            \item[Type] Tuning 
          \end{description}
 
-       \item[ducc.admin.endpoint] \hfill \\
-         This is the JMS endpoint name used for DUCC administration messages. 
+       \item[ducc.locale.language] \hfill \\
+         Establish the language for national language support of messages. Currently only "en" is 
+         supported. 
          \begin{description}
-           \item[Default] ducc.admin.channel 
+           \item[Default] en 
+           \item[Type] Private 
+         \end{description}
+           
+       \item[ducc.locale.country] \hfill \\
+         Establish the country for National Language Support of messages. Currently only "us" is 
+         supported. 
+         \begin{description}
+           \item[Default] us 
            \item[Type] Private 
          \end{description}
 
-       \item[ducc.admin.endpoint.type] \hfill \\
-         This is the JMS message type used for DUCC administration requests. If changed DUCC 
-         admin may not work. 
-         \begin{description}
-           \item[Default] topic 
-           \item[Type] Private
-         \end{description} 
 
-       \item[ducc.submit.threads.limit] \hfill \\
-         This enforces a maximum number of threads per job, amortized over all the processes. No 
-         job will have more threads than this dispatched. This limit is disabled by default. 
+       \item[ducc.runmode] \hfill \\
+         When set to "Test" this property bypasses userid and authentication checks. It is intended 
+         for use ONLY by DUCC developers. It allows developers of DUCC to simulate a multiuser 
+         environment without the need for root privileges. 
          
+         Note: WARNING! Enabling this feature in a production DUCC system is a potentially serious
+         security breach. It should only be set by DUCC developers running with an un-privileged
+         ducc\_ling.
          \begin{description}
-           \item[Default] (unconfigured) 
-           \item[Type] Local 
-         \end{description}
-                 
-
-       \item[ducc.driver.jvm.args] \hfill \\
-         If enabled, the arguments here are automatically added to the JVM arguments specified for 
-         the Job Driver process. 
-         \begin{description}
-           \item[Default] (unconfigured) 
+           \item[Default] Unconfigured. When unconfigured, test mode is DISABLED.
            \item[Type] Local 
          \end{description}
 
-       \item[ducc.process.jvm.args] \hfill \\
-         If enabled, the arguments here are added by DUCC to the JVM arguments in the user's job 
-         processes. 
-         \begin{description}
-           \item[Default] (unconfigured) 
-           \item[Type] Private 
-         \end{description}
-                   
 
-       \item[ducc.cli.httpclient.sotimeout] \hfill \\
-         This is the timeout used by the CLI to communicate with DUCC, in millisseconds. If no 
-         response is heard within this time, the request times out and is aborted. When set to 0 (the 
-         default), the request never times out. 
-         \begin{description}
-           \item[Default] 0 
-           \item[Type] Tuning 
-          \end{description}
-                   
         \item[ducc.signature.required] \hfill \\
           When set, the CLI signs each request so the Orchestrator can be sure the requestor is 
           actually who he claims to be. 
@@ -259,6 +334,21 @@
             \item[Default] on             
             \item[Type] Tuning 
           \end{description}
+
+
+       \item[ducc.submit.threads.limit] \hfill \\
+         This enforces a maximum number of threads per job, amortized over all the processes. No 
+         job will have more threads than this dispatched. This limit is disabled by default. 
+
+         The value represents the size of the underlying CAS pool in the Job Driver and therefore
+         is related to the size of the Job Driver heap and the real memory consumed by JD.  If
+         the JD is consuming too much memory, try setting or reducing this value.
+         
+         \begin{description}
+           \item[Default] (unconfigured) 
+           \item[Type] Local 
+         \end{description}
+                                                                        
       \end{description}  
         
 
@@ -274,7 +364,7 @@
         
         \item[ducc.ws.node] \hfill \\
           This is the name of the node the web server is started on. If not specified, the web server is 
-          started on the node where start\_ducc is run. 
+          started on {\tt \$\{ducc\.head\}}.
           \begin{description}
             \item[Default Value] (unconfigured) 
             \item[Type] Local 
@@ -316,17 +406,55 @@
           Web Server. 
           \begin{description}
             \item[Default Value] 60 
-            \item[Type] Local 
+            \item[Type] Tuning
           \end{description}
 
         \item[ducc.ws.max.history.entries] \hfill \\
-          The Web Server maintains a history of jobs over time. To avoid overloading the system 
-          with data about old and obsolete jobs it prunes the history. This property determines the 
-          size of the history that is kept. 
+          DUCC maintains a history of all jobs.  The state of jobs, both old and current are shown
+          in the \hyperref[]{Webserver's Jobs Page}.  To avoid overloading this page and the Web Server, the maximum
+          number of entries that can be shown is regulated by this parameter.
           \begin{description}
-            \item[Default Value] 200 
-            \item[Type] Local 
+            \item[Default Value] 4096
+            \item[Type] Tuning
           \end{description}
+
+        \item[ducc.ws.authentication.pw] \hfill \\
+          If Web Server authentication is not locally enabled (see {\em ducc.authentication.implementer}),
+          this property sets a default login password for Web Server sessions.
+
+          If not configured, no password is required for Web Server authentication.
+          \begin{description}
+            \item[Default Value] (not configured)
+            \item[Type] Local
+          \end{description}
+
+        \item[ducc.ws.automatic.cancel.minutes] \hfill \ Optionally configure the webserver job
+          automatic cancel timeout. To disable this feature specify 0.  This is employed when a user
+          specifies {\em$--$wait\_for\_completion} flag on job submission, in which case the job
+          monitor program must visit 
+\begin{verbatim}
+   http://<host>:<port>/ducc-servlet/proxy-job-status?id=<job-id>
+\end{verbatim}
+          within this expiry time.  Otherwise the job will be automatically canceled.
+
+          This provides a safeguard against runaway jobs or managed reservations, if the
+          submitter gets disconnected from DUCC in some way.
+
+          If the feature is disabled by specifing ``0'', no work is canceled even if the
+          monitor itself disappears.
+
+          \begin{description}
+            \item[Default Value] 10
+            \item[Type] Tuning
+          \end{description}
+
+        \item[ducc.ws.jsp.compilation.directory] \hfill \\
+          This specifies the temporary used by the Web Server's JSP engine to compile its JSPs.
+          \begin{description}
+            \item[Default Value] /tmp/ducc/jsp
+            \item[Type] Tuning
+          \end{description}
+
       \end{description}  
             
     
@@ -418,6 +546,18 @@
             \item[Default Value] System 
             \item[Type] Tuning 
           \end{description}
+
+
+        \item[ducc.jd.share.quantum] \hfill \\
+          When CGroups are enabled, this is the RSS, in MB, that is reserved for each JD process, and enforced
+          by the CGroup support.  Larger JDs are permitted, but the CGroup support will force the excess
+          RSS onto swap.  This potentially slows the performance of that JD, but preserves the resources
+          for other, better-behaved, JDs.
+          \begin{description}
+            \item[Default Value] 400
+            \item[Type] Tuning 
+          \end{description}
+
       \end{description}
       
   
@@ -473,26 +613,37 @@
         \end{description}
         
       \item[ducc.sm.http.port] \hfill \\
-        This is the HTTP port used by the SM to field requests from the CLI / API. 
+        This is the HTTP port used by the Service Manager to field requests from the CLI / API. 
         \begin{description}          
           \item[Default Value] 19989 
           \item[Type] Local 
         \end{description}
         
       \item[ducc.sm.http.node] \hfill \\
-        This is the node where the service manager runs. It MUST be configured as part of DUCC 
-        setup. 
+        This is the node where the Service Manager runs. It MUST be configured as part of DUCC 
+        setup. The {\em ducc\_post\_install} procedures initialize this to {\em \$\{ducc.head\}}.
         \begin{description}
-          \item[Default Value] localhost 
+          \item[Default Value] \$\{ducc.head\}
           \item[Type] Local 
         \end{description}
         
       \item[ducc.sm.default.linger] \hfill \\
-        This is the length of time, in seconds, that the SM allows a service to remain alive after 
+        This is the length of time, in milliseconds, that the SM allows a service to remain alive after 
         all referenceing jobs have exited. If no new job enters the system by the time this time has 
         expired, the SM stops the service. 
         \begin{description}
-          \item[Default Value] 300           
+          \item[Default Value] 30000
+          \item[Type] Tuning 
+        \end{description}
+        
+      \item[ducc.sm.instance.failure.max] \hfill \\
+        This is the maximum number of consecutive failures of a service instance permitted before DUCC
+        stops creating new instances.  In the case of submitted services, the instance is no longer
+        restarted and is cleaned up.  In the case of registered services, no more instances are started
+        and the {\em autostart} flag is turned off.  The next manual {\em start} command resets the
+        count to 0.
+        \begin{description}
+          \item[Default Value] 5
           \item[Type] Tuning 
         \end{description}
         
@@ -548,7 +699,7 @@
         state messages. These messages include full job information and can be large. This state is 
         used by the Process Manager and the Webserver. 
         \begin{description}
-          \item[Default Value] ducc.orchestrator.state 
+          \item[Default Value] ducc.orchestrator.request?requestTimeout=180000
           \item[Type] Private 
         \end{description}
 
@@ -615,6 +766,22 @@
           \item[Type] Tuning 
         \end{description}
 
+
+      \item[ducc.orchestrator.http.port] \hfill \\
+        This is the HTTP port used by the Orchestrator to field requests from the CLI / API. 
+        \begin{description}          
+          \item[Default Value] 19988
+          \item[Type] Local 
+        \end{description}
+        
+      \item[ducc.orchestrator.http.node] \hfill \\
+        This is the node where the Orchestrator runs. It MUST be configured as part of DUCC 
+        setup. The {\em ducc\_post\_install} procedures initialize this to {\em \$\{ducc.head\}}.
+        \begin{description}
+          \item[Default Value] \$\{ducc.head\}
+          \item[Type] Local 
+        \end{description}
+        
       
       \end{description}
 
@@ -653,32 +820,23 @@
             \item[Type] Tuning
           \end{description} 
           
+        \item[ducc.rm.fast.recovery] \hfill \\
+          If enabled, RM tries to start as soon as it recoveres state from an OR publication,
+          instread of waiting for {\em init.stability} for nodes to check in. 
+
+          \begin{description}
+            \item[Default Value] false
+            \item[Type] Tuning
+          \end{description} 
+          
         \item[ducc.rm.share.quantum] \hfill \\
           The share quantum is the smallest amount of RAM that is schedulable for jobs, in GB. 
           Jobs are scheduled based entirely on their memory requirements. Memory is allocated in 
           multiples of the share quantum. 
 
-          The job's declared process\_memory\_size is used to determine the overall memory 
-          requirements in terms of share quanta according to the formula: physical\_requirement = 
-          ciel(process\_memory\_size / share\_quantum) * share\_quantum. 
-          
-          For example suppose a process declares it's memory requirement to be 20GB. Then 
-          physical\_requirement = ciel(20 / 15) * 15 = 2 * 15 = 30 GB. The processes for this job 
-          are scheduled only on machines with at least 30 GB of reported RAM, and the Resource 
-          Manager insures that no other processes are scheduled on the machine that might encroach 
-          on this 30 GB. 
-          
-          The share quantum is also used to determine each user's fair share of the resources. The 
-          scheduler's goal is to ensure that all user's are allocated the same number of quantum 
-          shares. Conceptually, the total memory in the system is divided by the share quantum and 
-          then allocated in equal portions to all users in the system. 
-          
-          Thus, jobs that require less memory will generally have more processes scheduled than 
-          jobs that require more memory, but the total memory scheduled is approximately the same 
-          for all jobs. 
-          
+          See the \hyperref[chap:rm]{Resource Management} section for more information on the share quantum.
           \begin{description}
-            \item[Default Value] 15 
+            \item[Default Value] 1
             \item[Type] Tuning 
           \end{description}
 
@@ -763,7 +921,7 @@
           The init.stability property indicates how many heartbeat intervals the RM must wait before 
           it starts scheduling after initialization. 
           \begin{description}            
-            \item[Default Value] 3 
+            \item[Default Value] 2
             \item[Type] Tuning 
           \end{description}
           
@@ -804,7 +962,8 @@
           Manager will proceed to allocate the job its full fair share of processes. 
           
           The initialization cap can be overridden on a class basis by configuration via           
-          ducc.classes [105]. 
+          \hyperref[sec:ducc.classes]{ducc.classes}.
+
           \begin{description}
             \item[Default Value] 2             
             \item[Type] Tuning 
@@ -818,7 +977,7 @@
           each scheduling cycle, up to the maximum allowed. 
 
           Expand.by.doubling can be overridden on a class basis by configuration via 
-          ducc.classes [105]. 
+          \hyperref[sec:ducc.classes]{ducc.classes}.
 
           \begin{description}
             \item[Default Value] true 
@@ -837,7 +996,8 @@
           known process initialization time. If it is determined that expansion is unnecessary then it 
           is not done for the job. 
           
-          Prediction can be overridden on a class basis by configuration via ducc.classes [105].           
+          Prediction can be overridden on a class basis by configuration via
+          \hyperref[sec:ducc.classes]{ducc.classes}.
           \begin{description}
             \item[Default Value] true 
             \item[Type] Tuning 
@@ -853,10 +1013,44 @@
           more practical number. 
 
           Prediction.fudge can be overridden on a class basis by configuration via 
-          ducc.classes [105]. 
+          \hyperref[sec:ducc.classes]{ducc.classes}.
 
           \begin{description}
-          \item[Default Value] 10000 
+          \item[Default Value] 120000
+          \item[Type] Tuning 
+          \end{description}
+          
+        \item[ducc.rm.defragmentation] \hfill \\
+          In certain configurations and under certain loads the resource allocations can get
+          ``fragmented'' so that sufficient resources exists for new work, but only piecemeal, and
+          thus they cannot be allocated.  The Resource Manager will perform a limited defragmentation
+          by searching for ``rich'' jobs (jobs with lots of resources) and evicting one or two
+          procsses in order to make spece for new jobs.  Sufficient space is cleared only to
+          allow as much new work as possible to ``get a foot in the door'' and get an initial
+          resource allocation.
+
+          Local installations may override this behaviour and prevent defragmentation altogether
+          with this property.
+          \begin{description}
+          \item[Default Value] true
+          \item[Type] Tuning 
+          \end{description}
+          
+
+        \item[ducc.rm.defragmentation.threshold] \hfill \\
+          If {\em ducc.rm.defragmentation} is enable, limited defragmentation of resources is
+          performed by the Resource Manager to create sufficient space to schedule work 
+          that has insufficient resources (new jobs, for example.).  The term
+          {\em insufficient} is defined as ``needing more processes than the defragmentation
+          threshold, but currently having fewer processes than the defragmentation
+          threshold.''  These are called ``needy'' jobs.  Additionally, the Resource Manager
+          will never evict processes from ``needy'' jobs for the purpose of defragmentation.
+
+          This property allows installations to customize the value used to determine if a
+          job is ``needy''.  Jobs with fewer processes than this are potentially needed, and
+          jobs with more processes are never needy.
+          \begin{description}
+          \item[Default Value] 2
           \item[Type] Tuning 
           \end{description}
           
