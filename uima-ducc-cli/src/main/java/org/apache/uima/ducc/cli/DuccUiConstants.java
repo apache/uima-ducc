@@ -410,9 +410,17 @@ public class DuccUiConstants {
 	public static final String exmp_wait_for_completion = null;
 	public static final String dval_wait_for_completion = null;
 	
+	public static final String name_submit_cancel_on_interrupt = "cancel_on_interrupt";
+	public static final String parm_submit_cancel_on_interrupt = null;
+	public static final String desc_submit_cancel_on_interrupt = "Cancel on interrupt (Ctrl-C).";
+	public static final String labl_submit_cancel_on_interrupt = null;
+	public static final String exmp_submit_cancel_on_interrupt = null;
+	public static final String dval_submit_cancel_on_interrupt = null;
+	
+	//@Deprecated
 	public static final String name_submit_cancel_job_on_interrupt = "cancel_job_on_interrupt";
 	public static final String parm_submit_cancel_job_on_interrupt = null;
-	public static final String desc_submit_cancel_job_on_interrupt = "Cancel job on interrupt (Ctrl-C); only possible when --"+name_wait_for_completion+" is also specified.";
+	public static final String desc_submit_cancel_job_on_interrupt = "Cancel job on interrupt (Ctrl-C).";
 	public static final String labl_submit_cancel_job_on_interrupt = null;
 	public static final String exmp_submit_cancel_job_on_interrupt = null;
 	public static final String dval_submit_cancel_job_on_interrupt = null;
@@ -431,6 +439,13 @@ public class DuccUiConstants {
 	/* 
 	 * monitor Job
 	 */
+	
+	public static final String name_monitor_cancel_on_interrupt = name_submit_cancel_on_interrupt;
+	public static final String parm_monitor_cancel_on_interrupt = parm_submit_cancel_on_interrupt;
+	public static final String desc_monitor_cancel_on_interrupt = "Cancel on interrupt (Ctrl-C).";
+	public static final String labl_monitor_cancel_on_interrupt = labl_submit_cancel_on_interrupt;
+	public static final String exmp_monitor_cancel_on_interrupt = exmp_submit_cancel_on_interrupt;
+	public static final String dval_monitor_cancel_on_interrupt = dval_submit_cancel_on_interrupt;
 	
 	public static final String name_monitor_cancel_job_on_interrupt = name_submit_cancel_job_on_interrupt;
 	public static final String parm_monitor_cancel_job_on_interrupt = parm_submit_cancel_job_on_interrupt;

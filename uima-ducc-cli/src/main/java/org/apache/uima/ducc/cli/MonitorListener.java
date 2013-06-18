@@ -64,6 +64,10 @@ class MonitorListener
                 arrayList.add("--"+DuccUiConstants.name_timestamp);
             }
 
+            if(props.containsKey(DuccUiConstants.name_submit_cancel_on_interrupt)) {
+                arrayList.add("--"+DuccUiConstants.name_monitor_cancel_on_interrupt);
+            }
+
             if(props.containsKey(DuccUiConstants.name_submit_cancel_job_on_interrupt)) {
                 arrayList.add("--"+DuccUiConstants.name_monitor_cancel_job_on_interrupt);
             }
