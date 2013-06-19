@@ -66,7 +66,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			duccOut.debug(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId);
 		}
 		catch(Exception e) {
-			duccOut.debug(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
+			duccOut.error(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
 		}
 	}
 	
@@ -102,7 +102,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			jobDriver.getWorkItemStateManager().location(threadLocation.getSeqNo(),nodeIP, PID);
 		}
 		catch(Exception e) {
-			duccOut.debug(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
+			duccOut.error(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
 		}
 	}
 	
