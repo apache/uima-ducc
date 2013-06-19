@@ -94,8 +94,8 @@ public class AuthenticationManager implements IAuthenticationManager {
 		logt.info("test.enter");
 		testUser(logt,user,"xxxxxxxx");
 		testUser(logt,user,"foobar");
-		testUser(logt,user,"watson.ibm.com","xxxxxxxx");
-		testUser(logt,user,"watson.ibm.com","foobar");
+		testUser(logt,user,"acme.com","xxxxxxxx");
+		testUser(logt,user,"acme.com","foobar");
 		testGroup(logt,user,"",Role.User);
 		testGroup(logt,user,"",Role.Admin);
 		testGroup(logt,"foobar","",Role.User);
