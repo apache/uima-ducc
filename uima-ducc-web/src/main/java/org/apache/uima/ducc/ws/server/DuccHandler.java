@@ -296,7 +296,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("<input type=\"password\" name=\"password\"/>");
 		}
 		else {
-			sb.append("<input type=\"password\" name=\"password\" disabled=disabled title=\"Authenticator does not check password\"/>");
+			sb.append("<input name=\"password\" value=\"not used\" disabled=disabled title=\"Authenticator does not check password\"/>");
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
