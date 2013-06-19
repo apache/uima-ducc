@@ -60,8 +60,6 @@ public class DuccPropertiesResolver {
     public static final String ducc_broker_name = "ducc.broker.name";
     public static final String ducc_broker_jmx_port = "ducc.broker.jmx.port";
     public static final String ducc_jms_provider = "ducc.jms.provider";
-    public static final String ducc_orchestrator_request_endpoint_type = "ducc.orchestrator.request.endpoint.type";
-    public static final String ducc_orchestrator_request_endpoint = "ducc.orchestrator.request.endpoint";
     public static final String ducc_orchestrator_state_update_endpoint_type = "ducc.orchestrator.state.update.endpoint.type";
     public static final String ducc_orchestrator_state_update_endpoint = "ducc.orchestrator.state.update.endpoint";
     public static final String ducc_orchestrator_http_port = "ducc.orchestrator.http.port";
@@ -93,10 +91,8 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_runmode,"Production");
         defaultProperties.put(ducc_broker_url,"tcp://localhost:61616");
         defaultProperties.put(ducc_jms_provider,"activemq");
-        defaultProperties.put(ducc_orchestrator_request_endpoint_type,"queue");
         defaultProperties.put(ducc_orchestrator_state_update_endpoint,"ducc.orchestrator.state");    
         defaultProperties.put(ducc_orchestrator_state_update_endpoint_type,"topic");
-        defaultProperties.put(ducc_orchestrator_request_endpoint,"ducc.orchestrator.request");
         defaultProperties.put(default_process_get_meta_time_max,"1");
         defaultProperties.put(ducc_agent_launcher_process_init_timeout,"7200000");
         defaultProperties.put(default_process_per_item_time_max,"1");
