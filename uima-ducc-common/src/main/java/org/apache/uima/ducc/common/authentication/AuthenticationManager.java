@@ -39,7 +39,12 @@ public class AuthenticationManager implements IAuthenticationManager {
 		return version;
 	}
 	
-
+	
+	public boolean isPasswordChecked() {
+		return false;
+	}
+	
+	
 	public IAuthenticationResult isAuthenticate(String userid, String domain, String password) {
 		IAuthenticationResult authenticationResult = default_authenticationResult;
 		String ducc_pw = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_ws_authentication_pw);

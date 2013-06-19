@@ -20,6 +20,7 @@ package org.apache.uima.ducc.common.authentication;
 
 public interface IAuthenticationManager {
 	public String getVersion();
+	public boolean isPasswordChecked();
 	public IAuthenticationResult isAuthenticate(String userid, String domain, String password);
 	public IAuthenticationResult isGroupMember(String userid, String domain, Role role);
 	
