@@ -110,7 +110,10 @@ under the License.
         <tr>
         <td align="right">password
         <td align="right">
-        <td align="left" ><input type="password" name="password" />
+        <td align="left" >
+          <span id="password_checked_area">
+            <input type="password" name="password" disabled=disabled/>
+          </span>
         <tr>
         <td align="right">
         <td align="right">

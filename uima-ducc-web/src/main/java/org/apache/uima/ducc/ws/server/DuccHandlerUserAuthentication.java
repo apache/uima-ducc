@@ -125,7 +125,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 			duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
 			sb.append("failure");
 		}
-		else if((password == null) || (password.trim().length() == 0)) {
+		else if(iAuthenticationManager.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
 			duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
 			sb.append("failure");
 		}

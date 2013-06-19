@@ -110,6 +110,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccLogoutLink					= duccContext+"/logout-link";
 	private String duccAuthenticationStatus 		= duccContext+"/authentication-status";
 	private String duccAuthenticatorVersion 		= duccContext+"/authenticator-version";
+	private String duccAuthenticatorPasswordChecked	= duccContext+"/authenticator-password-checked";
 	
 	private String duccJobIdData					= duccContext+"/job-id-data";
 	private String duccJobWorkitemsCountData		= duccContext+"/job-workitems-count-data";
@@ -281,6 +282,22 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		sb.append(iAuthenticationManager.getVersion());
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
+	private void handleDuccServletduccAuthenticatorPasswordChecked(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletduccAuthenticatorPasswordChecked";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		if(iAuthenticationManager.isPasswordChecked()) {
+			sb.append("<input type=\"password\" name=\"password\"/>");
+		}
+		else {
+			sb.append("<input type=\"password\" name=\"password\" disabled=disabled title=\"Authenticator does not check password\"/>");
+		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
@@ -3412,6 +3429,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccAuthenticatorVersion)) {
 				handleDuccServletAuthenticatorVersion(target, baseRequest, request, response);
+				//DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccAuthenticatorPasswordChecked)) {
+				handleDuccServletduccAuthenticatorPasswordChecked(target, baseRequest, request, response);
 				//DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccLoginLink)) {

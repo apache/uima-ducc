@@ -120,6 +120,23 @@ function ducc_version()
 	}
 }
 
+function ducc_password_checked()
+{
+    try {
+        $.ajax(
+        {
+            url : "/ducc-servlet/authenticator-password-checked",
+            success : function (data) 
+            {
+                $("#password_checked_area").html(data);
+            }
+        });
+    }
+    catch(err) {
+        ducc_error("ducc_password_checked",err);
+    }
+}
+
 function ducc_authenticator_version()
 {
 	try {
@@ -1560,6 +1577,7 @@ function ducc_init(type)
 		if(type == "authentication-login") {
 			ducc_init_common();
 			ducc_load_common();
+			ducc_password_checked();
 			$(document).keypress(function(e) {
   			if(e.which == 13) {
     			ducc_submit_login();
