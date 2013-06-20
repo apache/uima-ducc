@@ -1,0 +1,17 @@
+<project name="uima-ducc-examples" default="build" basedir=".">
+	
+	<property name="TGT-LIB"  			    value="${basedir}/lib" />
+	<property name="TGT-SITE-AUTH-JAR"      value="${TGT-LIB}/site-authenticator.jar" />
+	
+	<target name="build" depends="clean, jar" />
+    
+	<target name="clean">
+		<delete file="${TGT-SITE-AUTH-JAR}" />
+    </target>
+	
+    <target name="jar">
+    	<mkdir dir="${TGT-LIB}" />
+    	<jar destfile="${TGT-SITE-AUTH-JAR}" basedir="${basedir}/target/classes/org/apache/uima/ducc/example/authentication/site"/>
+    </target>
+	
+</project>
