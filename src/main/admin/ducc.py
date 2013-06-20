@@ -33,6 +33,7 @@ class Ducc(DuccUtil):
 
     def run_broker(self, component):
         broker_port = self.ducc_properties.get('ducc.broker.port')
+        broker_jmx_port = self.ducc_properties.get('ducc.broker.jmx.port')
         broker_url_decoration = self.ducc_properties.get('ducc.broker.server.url.decoration')
         broker_memory_opts = self.ducc_properties.get('ducc.broker.memory.options')
         broker_config = self.ducc_properties.get('ducc.broker.configuration')
@@ -41,7 +42,7 @@ class Ducc(DuccUtil):
         if ( broker_config[0] != '/' ):     # relative to broker_home if not absolute
             broker_config = broker_home + '/' + broker_config
 
-        os.environ['ACTIVEMQ_OPTS'] = '-DDUCC_AMQ_PORT=' + broker_port + ' -DDUCC_AMQ_DECORATION=' + broker_url_decoration
+        os.environ['ACTIVEMQ_OPTS'] = '-DDUCC_AMQ_PORT=' + broker_port + ' -DDUCC_AMQ_JMX_PORT=' + broker_jmx_port + ' -DDUCC_AMQ_DECORATION=' + broker_url_decoration
         os.environ['ACTIVEMQ_OPTS_MEMORY'] = broker_memory_opts
         os.environ['ACTIVEMQ_HOME'] = broker_home
 

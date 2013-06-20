@@ -28,7 +28,7 @@
         </destinationPolicy> 
  
         <managementContext>
-            <managementContext createConnector="true" connectorPort="1099"/>
+            <managementContext createConnector="true" connectorPort="${DUCC_AMQ_JMX_PORT}"/>
         </managementContext>
              
         <systemUsage>
