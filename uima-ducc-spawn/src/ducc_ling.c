@@ -41,7 +41,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "0.8.4"
+#define VERSION "0.8.5"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -60,7 +60,8 @@
  *                  in both user and agent logs. jrc
  * 2013-05-07 0.8.2 Implement append (-a) option. jrc
  * 2013-05-07 0.8.3 Implement version (-v) option. jrc
- * 2013-06-14 0.8.4 Don't create log heirarchy before switching ids! jrc
+ * 2013-06-14 0.8.4 Don't create log heirarchy before switching ids!  jrc
+ * 2013-06-20 0.8.5 Use mode 0777 making directories so umask can control permissions. jrc
  */
 
 /**
@@ -142,7 +143,7 @@ int mksubdir(char *path)
     }
 
     fprintf(stdout, "2000 Creating directory %s\n", path);
-    if ( mkdir(path, 0750) != 0 ) {
+    if ( mkdir(path, 0777) != 0 ) {
 
         if ( errno == EEXIST ) {
             // Terribly, terribly ugly.  Parts of the directory might be made already in the
