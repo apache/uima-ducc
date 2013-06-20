@@ -60,6 +60,10 @@ public class UimaAsServiceMonitor
     boolean healthy = false;
 
 
+    public long getQueueSize()
+    {
+        return queueSize;
+    }
 
     public UimaAsServiceMonitor(String qname, String broker_host, int broker_port)
     {
@@ -70,20 +74,20 @@ public class UimaAsServiceMonitor
 
     }
 
-    public ServiceStatistics getStatistics()
-    {
-        try {
-            collect();
-            qstats.setAlive(true);        // if we don't croak gathering stuff, we're not dead
-            qstats.setHealthy(true);
-            qstats.setInfo(format());
-        } catch ( Throwable t ) {
-            qstats.setAlive(false);        // if we don't croak gathering stuff, we're not dead
-            qstats.setHealthy(false);
-            qstats.setInfo(t.getMessage());
-        }
-    	return qstats;
-    }
+//     public ServiceStatistics getStatistics()
+//     {
+//         try {
+//             collect();
+//             qstats.setAlive(true);        // if we don't croak gathering stuff, we're not dead
+//             qstats.setHealthy(true);
+//             qstats.setInfo(format());
+//         } catch ( Throwable t ) {
+//             qstats.setAlive(false);        // if we don't croak gathering stuff, we're not dead
+//             qstats.setHealthy(false);
+//             qstats.setInfo(t.getMessage());
+//         }
+//     	return qstats;
+//     }
     
     /**
      * Connect to ActiveMq and find the mbean for the queue we're trying to monitor
@@ -156,7 +160,22 @@ public class UimaAsServiceMonitor
 		}
     }
 
-    private String format()
+    public ServiceStatistics getStatistics()
+    {
+        try {
+            collect();
+            qstats.setAlive(true);        // if we don't croak gathering stuff, we're not dead
+            qstats.setHealthy(true);
+            qstats.setInfo(format());
+        } catch ( Throwable t ) {
+            qstats.setAlive(false);        // if we don't croak gathering stuff, we're not dead
+            qstats.setHealthy(false);
+            qstats.setInfo(t.getMessage());
+        }
+    	return qstats;
+    }
+
+    public String format()
     {
         return "AveNQ[" + new DecimalFormat("####.##").format(enqueueTime)
             +  "] Consum[" + consumerCount
@@ -174,7 +193,7 @@ public class UimaAsServiceMonitor
 
     }
 
-    private void collect()
+    public void collect()
         throws Throwable
     {
     	// String methodName = "collect";

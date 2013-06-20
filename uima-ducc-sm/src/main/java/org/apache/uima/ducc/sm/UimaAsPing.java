@@ -20,6 +20,8 @@ import org.apache.uima.util.Level;
 public class UimaAsPing
     extends AServicePing
 {
+    static final int QUEUE_SIZE_WINDOW = 3;
+    int queue_threshold = 0;
 
     String ep;
 
@@ -32,7 +34,10 @@ public class UimaAsPing
     boolean connected;
     UimaAsServiceMonitor monitor;
     DuccLogger logger = null;
-    
+
+    int[] queueSizeWindow = new int[QUEUE_SIZE_WINDOW];
+    int queueCursor = 0;
+
     UimaAsPing()
     {
         this.logger = null;
@@ -75,6 +80,8 @@ public class UimaAsPing
         broker_jmx_port = SystemPropertyResolver.getIntProperty("ducc.sm.meta.jmx.port", 1099);
         this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
 
+        queue_threshold = SystemPropertyResolver.getIntProperty("ducc.sm.max.queue.depth", 500);
+
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
         // there are a couple junky messages that slip by the above configurations.  turn the whole danged thing off.
@@ -96,6 +103,36 @@ public class UimaAsPing
         }
     }
 
+    void evaluatePing(UimaAsServiceMonitor mon, ServiceStatistics stats)
+    {
+    	String methodName = "evaluatePing";
+        try {
+            mon.collect();
+
+            if ( queue_threshold > 0 ) {         // only do this if a threshold is set
+                // if the last 'n' q depths are > threshold, mark the service unhealthy
+                // primitive, but maybe an OK first guess
+                queueSizeWindow[queueCursor++ % QUEUE_SIZE_WINDOW] = (int)monitor.getQueueSize();
+                int sum = 0;
+                for ( int i = 0; i < QUEUE_SIZE_WINDOW; i++ ) {
+                    sum += queueSizeWindow[i];
+                }
+                sum = sum / QUEUE_SIZE_WINDOW;
+                stats.setHealthy( sum < queue_threshold ? true : false);
+                // logger.debug(methodName, null, "EVAL: Q depth", monitor.getQueueSize(), "window", sum, "health", stats.isHealthy());
+            } else {
+                stats.setHealthy(true);
+            }
+
+            stats.setAlive(true);
+            stats.setInfo(monitor.format());
+        } catch ( Throwable t ) {
+            stats.setAlive(false);
+            stats.setHealthy(false);
+            stats.setInfo(t.getMessage());
+        }
+    }
+
     public ServiceStatistics getStatistics()
     {
         String methodName = "getStatistics";
@@ -110,12 +147,10 @@ public class UimaAsPing
 
         try {
             //	this sends GetMeta request and blocks waiting for a reply
-            statistics = monitor.getStatistics();
 
             uimaAsEngine.initialize(appCtx);
+            evaluatePing(monitor, statistics);       // if we get here, the get-meta worked well enough
             statistics.setAlive(true);
-            statistics.setHealthy(true);
-            // System.out.println("getMeta ok: " + ep);
 
         } catch( ResourceInitializationException e) {
             doLog(methodName, "Cannot issue getMeta to: " + endpoint + ":" + broker);
