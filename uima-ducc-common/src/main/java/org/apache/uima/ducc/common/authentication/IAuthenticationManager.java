@@ -19,11 +19,50 @@
 package org.apache.uima.ducc.common.authentication;
 
 public interface IAuthenticationManager {
+	
+	/**
+	 * This method is expected to return AuthenticationManager implementation version information.  
+	 * It is nominally displayed by the DUCC webserver on the Login/Logout pages.
+	 * 
+	 * Example return value: Acme Authenticator 1.0
+	 * 
+	 * @return The version of the AuthenticationManager implementation.
+	 */
 	public String getVersion();
+	
+	/**
+	 * This method is expected to return password checking information.  
+	 * It is nominally employed by the DUCC webserver to enable/disable password input area on the Login/Logout pages.
+	 * 
+	 * @return True if the AuthenticationManager implementation checks passwords; false otherwise.
+	 */
 	public boolean isPasswordChecked();
+	
+	/**
+	 * This method is expected to perform authentication.
+	 * It is nominally employed by the DUCC webserver for submitted Login pages.
+	 * 
+	 * @param userid
+	 * @param domain
+	 * @param password
+	 * @return True if authentic userid+domain+password; false otherwise.
+	 */
 	public IAuthenticationResult isAuthenticate(String userid, String domain, String password);
+	
+	/**
+	 * This method is expected to perform role validation.
+	 * It is nominally employed by the DUCC webserver for submitted Login pages.
+	 * 
+	 * @param userid
+	 * @param domain
+	 * @param role
+	 * @return True if authentic userid+domain+role; false otherwise.
+	 */
 	public IAuthenticationResult isGroupMember(String userid, String domain, Role role);
 	
+	/**
+	 * The supported Roles
+	 */
 	public enum Role {
 		User,
 		Admin
