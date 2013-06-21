@@ -40,6 +40,7 @@ import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
+import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
@@ -222,7 +223,15 @@ public class DuccCommandExecutor extends CommandExecutor {
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Initializing) ||
           ((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.FailedInitialization)) {
-				logger.info(methodName,((ManagedProcess)super.managedProcess).getDuccId(),">>>>>>>>>>>>>>> Killing Process:"+((ManagedProcess) managedProcess).getPid()+" .Process State:Initializing");
+				logger.info(methodName,((ManagedProcess)super.managedProcess).getDuccId(),">>>>>>>>>>>>>>> Killing Process:"+((ManagedProcess) managedProcess).getPid());
+				
+				if ( ((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service) ||
+					((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
+					String[] sigTermCmdLine = new String[] {"/bin/kill","-15",((ManagedProcess) managedProcess).getDuccProcess().getPID()};
+					doExec(new ProcessBuilder(sigTermCmdLine), cmd, true);
+				} else {
+					doExec(new ProcessBuilder(cmd), cmd, true);
+				}
 				doExec(new ProcessBuilder(cmd), cmd, true);
 			} else { // send stop request to quiesce the service
 				Map<String, Object> msgHeader = new HashMap<String, Object>();
