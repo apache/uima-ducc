@@ -75,7 +75,7 @@ class PostInstall(DuccUtil):
     def warn(self, *msg):
         print ''
         print 'WARNING'
-        print 'WARNing', ' '.join(msg)
+        print 'WARNING', ' '.join(msg)
         print 'WARNING'
         print ''
 
@@ -96,11 +96,11 @@ class PostInstall(DuccUtil):
 
         pw  = self.ducc_properties.get('ducc.ws.port.ssl.pw')
         if ( pw == 'quackquack' ):
-            print self.warn('The default ssl pw of ', pw, ' is configured. For security, change the property \n\tducc.ws.port.ssl.pw to a secure password in ducc.properties.')
+            print self.warn('The default ssl pw of ', pw, ' is configured. For security, change the property \n\tducc.ws.port.ssl.pw to a secure password in ducc.properties and rerun ducc_post_install.')
 
 
         #/usr/bin/keytool
-        cmd = self.keytool
+        cmd = keytool
         cmd += ' '
         cmd += '-genkey'
         cmd += ' '

@@ -545,7 +545,7 @@ class DuccUtil:
             duccgid = grpinfo.gr_gid
             #print 'UID', sstat.st_uid, 'GID', duccgid
             if ( (sstat.st_uid != 0) or (sstat.st_gid != duccgid) ):
-                 print 'ducc_ling module', dl, ': Invalid ownership. Should be ducc.ducc'
+                 print 'ducc_ling module', dl, ': Invalid ownership. Should be root.ducc'
                  return False
         else:
             if ( not os.path.exists(self.duccling) ):

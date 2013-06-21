@@ -64,7 +64,13 @@ The Reservations page contains the following columns:
   For {\em managed reservations}, DUCC does terminate the associated process.
 
   \begin{description}
-  \item[CanceledBySystem] - The job was canceled because DUCC was shutdown. 
+  \item[CanceledBySystem] - In the case of the special JobDriver reservation, this is
+    canceled by DUCC and reestablished on reboot; hence the state is a result of DUCC
+    having been restarted.
+
+    In all other cases, it is a result of DUCC being restarted {\em COLD}.  When
+    DUCC is started {\em COLD}, all previous reservations are canceled.  (When DUCC
+    is started {\em WARM}, the default, previous reservations are preserved.)
   \item[CanceledByAdmin] - The DUCC administrator released the reservation. 
   \item[CanceledByUser] - The reservation owner released the reservation. 
   \item[ResourcesUnavailable] - The Resource Manager was unable to find free or freeable resources 

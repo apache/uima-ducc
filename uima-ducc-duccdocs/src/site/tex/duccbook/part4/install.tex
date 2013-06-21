@@ -133,7 +133,11 @@ cd $HOME/ducc_runtime/admin
 \begin{verbatim}
 ./ducc_post_install
 \end{verbatim}
-          This should be run only once. Its tasks are described below.
+          If this script fails, correct any problems it identifies and run it again.
+
+          Note that {\em ducc\_post\_install} initializes various default parameters which 
+          may be changed later by the system administrator.  Therefore it usually should be
+          run only during this first installation step.
 
         \item If you wish to install jconsole support from the webserver, make sure Apache Ant
           is installed, and run

@@ -83,11 +83,10 @@
                 \item[Killed] - The agent terminated the process for some reason. The ``Reason Agent'' field
                   should have more details in this case.
           
-                \item[Stopped]	- The process terminated normally. HELP HELP how is this different from Voluntary?
+                \item[Stopped]	- The process was terminated by the Agent for some reason.  The hover should
+                  contain more information.
                           
                 \item[Voluntary] - The job is winding down, there's no more work for this node, so it stops. 
-                  HELP HELP How is this different from Stopped.  Also State Agent has Stopped - does this
-                  RELATE TO THAT? HELP HELP
                   
                 \item[Unknown] - None of the above. This is an exceptional condition, sometimes an
                   internal DUCC error. Check the JP and JD logs for possible causes..
@@ -120,7 +119,9 @@
                   \item The Job Process timed out during initialization,
                   \item The process Exocet's its allowed swap.
                 \end{enumerate}
-              \item[Abandoned] WHAT IS THIS? 
+              \item[Abandoned] It is possible to cancel a specific process of a job.  Usually
+                this is because it became ``stuck'' because of hardware failure.  It a process
+                is killed in \hyperref[sec:cli.ducc-cancel]{this way}, the state is recoreded as {\em Abandonded}.
             \end{description}
             
           \item[Reason Agent] \hfill \\
