@@ -998,15 +998,6 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, "exit");
     }
     
-    private String getProcessExecutable() {
-        String mid = "getProcessExecutable";
-        mh.frameworkTrace(cid, mid, "enter");
-        StringBuffer sb = new StringBuffer();
-        sb.append(System.getProperty("java.home")+File.separator+"bin"+File.separator+"java");
-        mh.frameworkTrace(cid, mid, "exit");
-        return sb.toString();
-    }
-    
     /*
      * Options that AllInOne needs
      */
@@ -1056,7 +1047,7 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, "enter");
         ArrayList<String> cmdLine = new ArrayList<String>();
         addArg(cmdLine, "--"+UiOption.ProcessExecutable.pname());
-        addArg(cmdLine, getProcessExecutable());
+        addArg(cmdLine, jvm);
         addArg(cmdLine, "--"+UiOption.ProcessExecutableArgs.pname());
         addArg(cmdLine, getProcessExecutableArgs());
         if(scheduling_class != null) {
