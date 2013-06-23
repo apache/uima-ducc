@@ -1064,7 +1064,6 @@
 
     \begin{description}
 
-
         \item[ducc.agent.configuration.class] \hfill \\
           This is the name of the pluggable java class used to implement the DUCC Agents. 
           \begin{description}
@@ -1128,7 +1127,11 @@
           \end{description}
          
         \item[ducc.agent.node.metrics.publish.rate] \hfill \\
-          This is the rate at which node metrics updates are published in milliseconds. 
+          This is the rate at which node metrics updates are published in milliseconds.   Every
+          agent publishes its metrics at this rate.  On large clusters, a high rate (small 
+          value for the rate) can be a burdon on the network.
+
+          Note: the Resource Manager uses the data in the node metrics for scheduling.
           \begin{description}
             \item[Default Value] 60000 
             \item[Type] Tuning 
@@ -1211,8 +1214,6 @@
           process is terminated and and InitializationTimout status is send to the job driver (JD) 
           which decides whether to retry the process or terminate the job. 
 
-          Note that it is normal for the types of processes that DUCC is designed for to have very 
-          long initialization times. 
           \begin{description}
           \item[Default Value] 7200000 
           \item[Type] Tuning 
@@ -1265,6 +1266,35 @@
               \item[Type] Tuning 
             \end{description}
             
+
+          \item[ducc.agent.launcher.cgroups.enable] \hfill \\
+            \phantomsection\label{itm:props-agent.cgroups.enable}
+            Enable or disable CGroups support.  
+
+            If CGroups are not installed on a specific machine, this is ignored. 
+            \begin{description}
+              \item[Default Value] true
+              \item[Type] Tuning 
+            \end{description}
+            
+          \item[ducc.agent.exclusion.file] \hfill \\
+            \phantomsection\label{itm:props-agent.cgroups.exclusion}
+            This specifies the exclusion file to enable node based exclusion for various
+            features.  Currently only CGroup exclusion is supported.
+
+            The exclusion file has one line per agent of the form:
+\begin{verbatim}
+<node>=cgroups
+\end{verbatim}
+            If the keyword ``cgrouops'' is found, the node is excluded from CGroup
+            support. 
+          
+            \begin{description}
+              \item[Default Value] Not configured.
+              \item[Type] Tuning 
+            \end{description}
+            
+
           \end{description}
       
 
