@@ -1220,7 +1220,7 @@
           \end{description}
           
 
-        \item[ducc.agent.launcher.share.size.fudge.factor] \hfill \\
+        \item[ducc.agent.share.size.fudge.factor] \hfill \\
 
           The DUCC agent monitors the size of the resident memory of its spawned processes. If a 
           process exceeds its declared memory size by any significant amount it is terminated and 
@@ -1297,7 +1297,6 @@
 
           \end{description}
       
-
 
 \subsection{Process Manager Properties}
 
@@ -1389,7 +1388,7 @@
       \item[ducc.uima-as.saxon.jar.path] \hfill \\
         This configures the path the required Saxon jar. 
         \begin{description}
-          \item[Default Value] file:\ducchome/lib/saxon8/saxon8.jar 
+          \item[Default Value] file:\$\{DUCC\_HOME\}/lib/saxon/saxon8.jar
           \item[Type] Private 
         \end{description}
         
@@ -1397,7 +1396,7 @@
       \item[ducc.uima-as.dd2spring.xsl.path] \hfill \\
         This configures the path the required dd2spring xsl definitions. 
         \begin{description}
-          \item[Default Value] \ducchome/admin/dd2spring.xsl 
+          \item[Default Value] \$\{DUCC\_HOME}/resources/dd2sprint.xsl
           \item[Type] Private 
         \end{description}
         
@@ -1405,7 +1404,7 @@
         This configures the pluggable class that implements the default flow controller used in the 
         DUCC job processes (JPs). 
         \begin{description}
-          \item[Default Value] org.apache.uima.ducc.uima.DuccJobProcessFC 
+          \item[Default Value] DuccJobProcessFC 
           \item[Type] Private 
         \end{description}
       \end{description}
