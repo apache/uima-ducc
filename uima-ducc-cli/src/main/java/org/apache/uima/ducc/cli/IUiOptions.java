@@ -398,6 +398,17 @@ public interface IUiOptions
             public String label()       { return name(); }
         },
 
+        ServicePingArguments { 
+            public String pname()       { return "service_ping_arguments"; }
+            public String argname()     { return "string"; }
+            public String description() { return "Any (service-dependent) ping arguments, to be passed to the pinger."; }
+            public String example()     { return "q_thresh=12,svc_thresh=.01"; }
+            public String deflt()       { return ""; }
+            public String label()       { return name(); }
+            public boolean multiargs()  { return false; }
+            public boolean required()   { return false; }
+        },            
+
         ServicePingClass { 
             public String pname()       { return "service_ping_class"; }
             public String argname()     { return "classname"; }
