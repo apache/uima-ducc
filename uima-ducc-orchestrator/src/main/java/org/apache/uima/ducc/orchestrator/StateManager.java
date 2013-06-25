@@ -558,9 +558,7 @@ public class StateManager {
 		String methodName = "isExcessCapacity";
 		boolean retVal = false;
 		if(jdStatusReport != null) {
-			IDuccProcessMap processMap = job.getProcessMap();
-			int threads_per_share = Integer.parseInt(job.getSchedulingInfo().getThreadsPerShare());
-			long capacity = processMap.getUsableProcessCount() * threads_per_share;
+			long capacity = job.getWorkItemCapacity();
 			long total = jdStatusReport.getWorkItemsTotal();
 			long done = jdStatusReport.getWorkItemsProcessingCompleted();
 			long error = jdStatusReport.getWorkItemsProcessingError();
