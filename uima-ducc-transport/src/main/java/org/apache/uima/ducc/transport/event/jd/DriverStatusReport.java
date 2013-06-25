@@ -386,6 +386,14 @@ public class DriverStatusReport implements Serializable {
 		return workItemsPreempted.get();
 	}
 	
+	public long getWorkItemsToDo() {
+		long total = getWorkItemsTotal();
+		long done = getWorkItemsProcessingCompleted();
+		long error = getWorkItemsProcessingError();
+		long todo = total - (done + error);
+		return todo;
+	}
+	
 	public int getThreadCount() {
 		return threadCount.get();
 	}
