@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common;
+package org.apache.uima.ducc.cli;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -31,9 +31,9 @@ import javax.management.remote.JMXServiceURL;
 
 import org.apache.activemq.broker.jmx.BrokerViewMBean;
 import org.apache.activemq.broker.jmx.QueueViewMBean;
+import org.apache.uima.ducc.common.IServiceStatistics;
 
 public class UimaAsServiceMonitor
-    extends AServicePing
 {
 
     private String qname;
@@ -42,7 +42,7 @@ public class UimaAsServiceMonitor
     private JMXConnector jmxc;
     BrokerViewMBean brokerMBean;
     private QueueViewMBean monitoredQueue;
-    private ServiceStatistics qstats;
+    private IServiceStatistics qstats;
 
     double enqueueTime ; 
     long consumerCount ;
@@ -160,7 +160,7 @@ public class UimaAsServiceMonitor
 		}
     }
 
-    public ServiceStatistics getStatistics()
+    public IServiceStatistics getStatistics()
     {
         try {
             collect();
@@ -243,7 +243,7 @@ public class UimaAsServiceMonitor
 
 
         while ( true ) {
-            ServiceStatistics qs = null;
+            IServiceStatistics qs = null;
             try {
                 qs = m.getStatistics();
             } catch (Throwable t) {

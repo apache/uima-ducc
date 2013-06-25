@@ -28,8 +28,9 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
-import org.apache.uima.ducc.common.AServicePing;
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.cli.UimaAsPing;
+import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 
@@ -62,6 +63,7 @@ class PingDriver
     String[] jvm_args;
     String endpoint;
     String ping_class;
+    String ping_arguments;
     String classpath;
     boolean ping_ok;
 
@@ -85,7 +87,7 @@ class PingDriver
     boolean internal_ping = true;    // if true, use default UIMA-AS pinger in thread inside SM propert
     AServicePing internal_pinger = null; // pinger used if internal_ping is true
 
-    ServiceStatistics service_statistics = null;
+    IServiceStatistics service_statistics = null;
 
     String user;
     String working_directory;
@@ -105,6 +107,7 @@ class PingDriver
         this.user              = meta_props.getStringProperty("user");
         String jvm_args_str    = job_props.getStringProperty("service_ping_jvm_args", "");
         this.ping_class        = job_props.getStringProperty("service_ping_class", null);
+        this.ping_arguments    = job_props.getStringProperty("service_ping_arguments", null);
         
         if ( (ping_class == null) || ping_class.equals(UimaAsPing.class.getName()) ) {
             internal_ping = true;
@@ -146,7 +149,7 @@ class PingDriver
         this.test_mode = true;
     }
 
-    public ServiceStatistics getServiceStatistics()
+    public IServiceStatistics getServiceStatistics()
     {
         return service_statistics;
     }
@@ -175,7 +178,7 @@ class PingDriver
 
     }
 
-    void handleStatistics(ServiceStatistics stats)
+    void handleStatistics(IServiceStatistics stats)
     {
         String methodName = "handleStatistics";
 
@@ -209,7 +212,7 @@ class PingDriver
     	String methodName = "runAsThread";
         internal_pinger = new UimaAsPing(logger);
         try {
-            internal_pinger.init(endpoint);
+            internal_pinger.init(ping_arguments, endpoint);
         } catch ( Throwable t ) {
             logger.warn(methodName, sset.getId(), t);
             sset.pingExited();
@@ -274,6 +277,11 @@ class PingDriver
         arglist.add("--endpoint");
         arglist.add(endpoint);
         arglist.add("--port");
+        if( ping_arguments != null ) {
+            arglist.add("--arguments");
+            arglist.add(ping_arguments);
+        }
+
         arglist.add(Integer.toString(port));
         
         int i = 0;
@@ -404,7 +412,7 @@ class PingDriver
                     }
                     
                     // Try to read the response
-                    handleStatistics((ServiceStatistics) ois.readObject());
+                    handleStatistics((IServiceStatistics) ois.readObject());
 
                     // Wait a bit for the next one
                     try {

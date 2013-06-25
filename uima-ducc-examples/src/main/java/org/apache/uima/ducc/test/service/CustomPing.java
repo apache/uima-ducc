@@ -4,8 +4,8 @@ import java.io.DataInputStream;
 import java.io.InputStream;
 import java.net.Socket;
 
-import org.apache.uima.ducc.common.AServicePing;
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.cli.ServiceStatistics;
 
 /**
  * This is designed for the simple sleeper "service" that does nothing other than
@@ -18,7 +18,7 @@ public class CustomPing
 {
     String host;
     String port;
-    public void init(String endpoint)
+    public void init(String arguments, String endpoint)
     	throws Exception
     {
         String[] parts = endpoint.split(":");
@@ -71,7 +71,7 @@ public class CustomPing
     {
         try {
 			CustomPing cp = new CustomPing();
-			cp.init(args[0]);
+			cp.init(null, args[0]);
 			for ( int i = 0; i < 10; i++ ) {
 			    ServiceStatistics stats = cp.getStatistics();
 			    System.out.println(stats);

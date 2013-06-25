@@ -16,16 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common;
+package org.apache.uima.ducc.cli;
+
+import org.apache.uima.ducc.common.IServiceStatistics;
+
+/**
+ * Abstraction for service pinger.
+ */
 
 public abstract class AServicePing
 {
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.
+     * @param arguments This is passed in from the service specification's
+     *                  service_ping_arguments string.
+     *
      * @param endpoint This is the name of the service endpoint, as passed in
      *                 at service registration.
      */
-    public abstract void init(String endpoint)  throws Exception;
+    public abstract void init(String arguments, String endpoint)  throws Exception;
 
     /**
      * Stop is called by the ping wrapper when it is being killed.  Implementors may optionally
@@ -38,6 +47,6 @@ public abstract class AServicePing
      * @return This object contains the informaton the service manager and web server require
      *     for correct management and display of the service.
      */
-    public abstract ServiceStatistics getStatistics();
+    public abstract IServiceStatistics getStatistics();
     
 }

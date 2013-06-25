@@ -31,8 +31,9 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-import org.apache.uima.ducc.common.AServicePing;
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.cli.ServiceStatistics;
+import org.apache.uima.ducc.common.IServiceStatistics;
 
 
 /**
@@ -90,6 +91,14 @@ public class ServicePingMain
                           .create         ()
                           );
 
+		options.addOption(OptionBuilder
+                          .withLongOpt    (ServicePing.Port.decode())
+                          .withDescription(ServicePing.Port.description())
+                          .withArgName    (ServicePing.Port.argname())
+                          .hasArg         (true)
+                          .create         ()
+                          );
+
     }
 
     static void appendStackTrace(StringBuffer s, Throwable t)
@@ -126,7 +135,7 @@ public class ServicePingMain
     //
     // resolve the customMeta string inta a class if we can
     //
-    AServicePing resolve(String cl, String ep)
+    AServicePing resolve(String cl, String args, String ep)
     {
     	print("ServicePingMain.resolve:", cl, "ep", ep);
     	AServicePing pinger = null;
@@ -134,7 +143,7 @@ public class ServicePingMain
 			@SuppressWarnings("rawtypes")
 			Class cls = Class.forName(cl);
 			pinger = (AServicePing) cls.newInstance();
-			pinger.init(ep);
+			pinger.init(args, ep);
 		} catch (Exception e) {
             //print(e);         // To the logs
             e.printStackTrace();
@@ -168,7 +177,7 @@ public class ServicePingMain
 
         CommandLineParser parser = new PosixParser();
         CommandLine commandLine = null;
-        ServiceStatistics default_statistics = new ServiceStatistics(false, false, "<N/A>");
+        IServiceStatistics default_statistics = new ServiceStatistics(false, false, "<N/A>");
 
 		try {
 			commandLine = parser.parse(options, args);
@@ -177,6 +186,7 @@ public class ServicePingMain
             return;
 		}
 
+        String arguments = commandLine.getOptionValue(ServicePing.Arguments.decode());
         String pingClass = commandLine.getOptionValue(ServicePing.Class.decode());
         String endpoint  = commandLine.getOptionValue(ServicePing.Endpoint.decode());
         String port      = commandLine.getOptionValue(ServicePing.Port.decode());
@@ -214,7 +224,7 @@ public class ServicePingMain
 			return;
 		}        
 
-        AServicePing custom = resolve(pingClass, endpoint);
+        AServicePing custom = resolve(pingClass, arguments, endpoint);
         if ( custom == null ) {
             print("bad_pinger:", pingClass, endpoint);
             return;
@@ -241,7 +251,7 @@ public class ServicePingMain
 
             try {
 				if ( cmd[0] == 'P' ) {
-                    ServiceStatistics ss = custom.getStatistics();
+                    IServiceStatistics ss = custom.getStatistics();
                     if ( ss == null ) {
                         ss = default_statistics;
                     }

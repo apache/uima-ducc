@@ -37,6 +37,12 @@ public interface SmConstants
     //
     public enum ServicePing
     {
+        Arguments { 
+            public String decode()      { return "arguments"; }
+            public String description() { return "(Optional) arg string for the pinger."; }
+            public String argname()     { return "string"; }
+        },            
+
         Class { 
             public String decode()      { return "class"; }
             public String description() { return "Class implementing AServicePing to use for the pinger."; }
@@ -68,6 +74,7 @@ public interface SmConstants
 
         public static ServicePing  encode(String value)
         {
+            if ( value.equals("arguments") )  return Arguments;
             if ( value.equals("class") )      return Class;
             if ( value.equals("endpoint") )   return Endpoint;
             if ( value.equals("port") )       return Port;

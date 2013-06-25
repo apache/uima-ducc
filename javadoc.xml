@@ -48,13 +48,13 @@
           </fileset>
 
           <fileset dir="uima-ducc-common/src/main/java">
-            <include name="**/AServicePing.java" />
-            <include name="**/ServiceStatistics.java" />
+            <include name="**/IServiceStatistics.java" />
             <include name="**/ADuccId.java" />
             <include name="**/IDuccId.java" />
           </fileset>
 
           <fileset dir="uima-ducc-cli/src/main/java">
+            <include name="**/AServicePing.java" />
             <include name="**/DuccJobSubmit.java" />
             <include name="**/DuccJobCancel.java" />
             <include name="**/DuccReservationCancel.java" />

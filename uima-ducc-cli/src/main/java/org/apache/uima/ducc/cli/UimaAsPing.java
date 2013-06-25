@@ -1,5 +1,8 @@
-package org.apache.uima.ducc.sm;
+package org.apache.uima.ducc.cli;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -8,19 +11,18 @@ import java.util.Map;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
-import org.apache.uima.ducc.common.AServicePing;
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
-import org.apache.uima.ducc.common.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
+import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
 
+// 'q_thresh=nn,window=mm,broker_jmx=1100,meta_timeout=10000'
 public class UimaAsPing
     extends AServicePing
 {
-    static final int QUEUE_SIZE_WINDOW = 3;
+    int window = 3;
     int queue_threshold = 0;
 
     String ep;
@@ -35,20 +37,20 @@ public class UimaAsPing
     UimaAsServiceMonitor monitor;
     DuccLogger logger = null;
 
-    int[] queueSizeWindow = new int[QUEUE_SIZE_WINDOW];
+    int[] queueSizeWindow;
     int queueCursor = 0;
 
-    UimaAsPing()
+    public UimaAsPing()
     {
         this.logger = null;
     }
 
-    UimaAsPing(DuccLogger logger)
+    public UimaAsPing(DuccLogger logger)
     {
         this.logger = logger;
     }
 
-    public void init(String ep)
+    public void init(String args, String ep)
         throws Exception
     {
         this.ep = ep;
@@ -72,21 +74,40 @@ public class UimaAsPing
         broker_host = url.getHost();
         // not needed here fyi broker_port = url.getPort();
 
-        
-        String to = System.getProperty("ducc.sm.meta.ping.timeout");
-        meta_timeout = Integer.parseInt(to);
-
-        
-        broker_jmx_port = SystemPropertyResolver.getIntProperty("ducc.sm.meta.jmx.port", 1099);
-        this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
-
-        queue_threshold = SystemPropertyResolver.getIntProperty("ducc.sm.max.queue.depth", 500);
-
+                
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
         // there are a couple junky messages that slip by the above configurations.  turn the whole danged thing off.
         UIMAFramework.getLogger().setLevel(Level.OFF);
 
+        if ( args == null ) {
+            meta_timeout = 5000;
+            broker_jmx_port = 1099;
+            queue_threshold = 0;
+            window = 3;
+        } else {
+            // 'q_thresh=nn,window=mm,broker_jmx_port=1100,meta_timeout=10000'
+            // turn the argument string into properties
+            String[] as = args.split(",");
+            StringWriter sw = new StringWriter();
+            for ( String s : as ) sw.write(s + "\n");
+            StringReader sr = new StringReader(sw.toString());            
+            DuccProperties props = new DuccProperties();
+            try {
+                props.load(sr);
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            meta_timeout = props.getIntProperty("meta_timeout", 5000);
+            broker_jmx_port = props.getIntProperty("broker_jmx_port", 1099);
+            queue_threshold = props.getIntProperty("queue_threshold", 0);
+            window = props.getIntProperty("window", 3);
+        }
+        queueSizeWindow = new int[window];
+        logger.debug("<ctr>", null, "INIT: meta_timeout", meta_timeout, "broker_jmx_port", broker_jmx_port, "queue_threshold", queue_threshold, "window", window);
+
+        this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
     }
 
     public void stop()
@@ -103,7 +124,7 @@ public class UimaAsPing
         }
     }
 
-    void evaluatePing(UimaAsServiceMonitor mon, ServiceStatistics stats)
+    void evaluatePing(UimaAsServiceMonitor mon, IServiceStatistics stats)
     {
     	String methodName = "evaluatePing";
         try {
@@ -112,14 +133,14 @@ public class UimaAsPing
             if ( queue_threshold > 0 ) {         // only do this if a threshold is set
                 // if the last 'n' q depths are > threshold, mark the service unhealthy
                 // primitive, but maybe an OK first guess
-                queueSizeWindow[queueCursor++ % QUEUE_SIZE_WINDOW] = (int)monitor.getQueueSize();
+                queueSizeWindow[queueCursor++ % window] = (int)monitor.getQueueSize();
                 int sum = 0;
-                for ( int i = 0; i < QUEUE_SIZE_WINDOW; i++ ) {
+                for ( int i = 0; i < window; i++ ) {
                     sum += queueSizeWindow[i];
                 }
-                sum = sum / QUEUE_SIZE_WINDOW;
+                sum = sum / window;
                 stats.setHealthy( sum < queue_threshold ? true : false);
-                // logger.debug(methodName, null, "EVAL: Q depth", monitor.getQueueSize(), "window", sum, "health", stats.isHealthy());
+                logger.debug(methodName, null, "EVAL: Q depth", monitor.getQueueSize(), "window", sum, "health", stats.isHealthy());
             } else {
                 stats.setHealthy(true);
             }
@@ -133,10 +154,10 @@ public class UimaAsPing
         }
     }
 
-    public ServiceStatistics getStatistics()
+    public IServiceStatistics getStatistics()
     {
         String methodName = "getStatistics";
-        ServiceStatistics statistics = new ServiceStatistics(false, false, "<NA>");
+        IServiceStatistics statistics = new ServiceStatistics(false, false, "<NA>");
 
         // Instantiate Uima AS Client
         BaseUIMAAsynchronousEngine_impl uimaAsEngine = new BaseUIMAAsynchronousEngine_impl();

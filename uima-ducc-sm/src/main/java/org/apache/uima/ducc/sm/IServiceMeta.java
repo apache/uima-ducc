@@ -18,13 +18,14 @@
 */
 package org.apache.uima.ducc.sm;
 
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.common.IServiceStatistics;
+
 
 
 interface IServiceMeta
     extends Runnable
 {
-    ServiceStatistics getServiceStatistics();
+    IServiceStatistics getServiceStatistics();
     public void run();
     public void stop();
 }

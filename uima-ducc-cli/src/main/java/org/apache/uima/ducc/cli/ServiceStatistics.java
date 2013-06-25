@@ -1,13 +1,15 @@
-package org.apache.uima.ducc.common;
+package org.apache.uima.ducc.cli;
 
-import java.io.Serializable;
+import org.apache.uima.ducc.common.IServiceStatistics;
+
+
 
 /**
  * The ServiceStatics class is used to return service health, availability, and monitoring statistics
  * to the Service Manager.
  */
 public class  ServiceStatistics
-    implements Serializable
+    implements IServiceStatistics
 {
 	private static final long serialVersionUID = 1L;
 	private boolean alive = false;

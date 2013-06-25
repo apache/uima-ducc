@@ -21,7 +21,7 @@ package org.apache.uima.ducc.transport.event.sm;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
@@ -111,9 +111,9 @@ public interface IServiceDescription
     /**
      * Internal to DUCC.
      */
-    public void setQueueStatistics(ServiceStatistics qstats);    
+    public void setQueueStatistics(IServiceStatistics qstats);    
 
-    public ServiceStatistics getQueueStatistics();
+    public IServiceStatistics getQueueStatistics();
     /**
      * Internal to DUCC.
      */
@@ -125,11 +125,11 @@ public interface IServiceDescription
      */
 	public void setStopped(boolean stopped);
 
-	public ServiceStatistics getQstats();
+	public IServiceStatistics getQstats();
     /**
      * Internal to DUCC.
      */
-	public void setQstats(ServiceStatistics qstats);
+	public void setQstats(IServiceStatistics qstats);
 
 	public boolean isDeregistered();
 

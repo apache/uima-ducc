@@ -27,6 +27,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.cli.UimaAsPing;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;

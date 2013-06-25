@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.id.ADuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
@@ -77,7 +77,7 @@ public class ServiceDescription
     private long linger;
     private Map<String, String> dependencies;
 
-    private ServiceStatistics qstats;
+    private IServiceStatistics qstats;
 
 	public ADuccId getId() {
 		return id;
@@ -164,12 +164,12 @@ public class ServiceDescription
 		this.deregistered = d;
 	}
 	
-    public void setQueueStatistics(ServiceStatistics qstats)
+    public void setQueueStatistics(IServiceStatistics qstats)
     {
         this.qstats = qstats;
     }
 
-    public ServiceStatistics getQueueStatistics()
+    public IServiceStatistics getQueueStatistics()
     {
         return qstats;
     }
@@ -191,11 +191,11 @@ public class ServiceDescription
 		this.stopped = stopped;
 	}
 
-	public ServiceStatistics getQstats() {
+	public IServiceStatistics getQstats() {
 		return qstats;
 	}
 
-	public void setQstats(ServiceStatistics qstats) {
+	public void setQstats(IServiceStatistics qstats) {
 		this.qstats = qstats;
 	}
 

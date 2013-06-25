@@ -34,13 +34,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.uima.UIMAFramework;
-import org.apache.uima.aae.client.UimaAsynchronousEngine;
-import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.cli.UimaAsPing;
+import org.apache.uima.ducc.cli.UimaAsServiceMonitor;
+import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
-import org.apache.uima.ducc.common.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.ADuccId;
@@ -48,7 +47,6 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceDescription;
-import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
 
 
@@ -617,7 +615,7 @@ public class ServiceSet
         meta_props.put("service-statistics", "N/A");
         
         if ( serviceMeta != null ) {
-            ServiceStatistics ss = serviceMeta.getServiceStatistics();
+            IServiceStatistics ss = serviceMeta.getServiceStatistics();
             if ( ss != null ) {
                 meta_props.put("service-alive",      "" + ss.isAlive());
                 meta_props.put("service-healthy",    "" + ss.isHealthy());
@@ -1196,32 +1194,32 @@ public class ServiceSet
         }
     }
 
-    boolean ping()
-    {
-    	//String methodName = "ping";
-        boolean answer = true;
-
-        // Instantiate Uima AS Client
-        BaseUIMAAsynchronousEngine_impl uimaAsEngine = new BaseUIMAAsynchronousEngine_impl();
-        Map<String, Object> appCtx = new HashMap<String, Object>();
-        appCtx.put(UimaAsynchronousEngine.ServerUri, broker);
-        appCtx.put(UimaAsynchronousEngine.Endpoint, endpoint);
-        appCtx.put(UimaAsynchronousEngine.GetMetaTimeout, ServiceManagerComponent.meta_ping_timeout);  // 500 ms should be enough to get GetMeta reply
-
-        try {
-            //	this sends GetMeta request and blocks waiting for a reply
-            uimaAsEngine.initialize(appCtx);
-            // logger.info(methodName, null, "Dependent Service Available:", getKey());
-        } catch( ResourceInitializationException e) {
-            //	either broker is down or service not available
-            // logger.error(methodName, null, "Remote service unavailable:", getKey());
-            answer = false;             
-        } finally {
-            uimaAsEngine.stop();
-        }
-
-        return answer;
-    }
+//    boolean ping()
+//    {
+//    	//String methodName = "ping";
+//        boolean answer = true;
+//
+//        // Instantiate Uima AS Client
+//        BaseUIMAAsynchronousEngine_impl uimaAsEngine = new BaseUIMAAsynchronousEngine_impl();
+//        Map<String, Object> appCtx = new HashMap<String, Object>();
+//        appCtx.put(UimaAsynchronousEngine.ServerUri, broker);
+//        appCtx.put(UimaAsynchronousEngine.Endpoint, endpoint);
+//        appCtx.put(UimaAsynchronousEngine.GetMetaTimeout, ServiceManagerComponent.meta_ping_timeout);  // 500 ms should be enough to get GetMeta reply
+//
+//        try {
+//            //	this sends GetMeta request and blocks waiting for a reply
+//            uimaAsEngine.initialize(appCtx);
+//            // logger.info(methodName, null, "Dependent Service Available:", getKey());
+//        } catch( ResourceInitializationException e) {
+//            //	either broker is down or service not available
+//            // logger.error(methodName, null, "Remote service unavailable:", getKey());
+//            answer = false;             
+//        } finally {
+//            uimaAsEngine.stop();
+//        }
+//
+//        return answer;
+//    }
 
     /**
      * This assumes the caller has already verified that I'm a registered service.
