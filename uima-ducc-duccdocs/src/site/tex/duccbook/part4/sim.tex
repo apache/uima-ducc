@@ -111,9 +111,9 @@
     A properties file similar to a Java properties file is used to configure
     simulated nodes.  There are three types o entries in this file:
     \begin{description}
-      \item[nodes] This single entry provides the blank-delimeted names of the physical nodes
+      \item[nodes] This single entry provides the blank-delimited names of the physical nodes
         participating in the simulated cluster.
-      \item[memory] This single line consists of a blank-delimeted set
+      \item[memory] This single line consists of a blank-delimited set
         of numbers.  Each number corresponds to some memory size, in
         GB, to be simulated.
       \item[node descriptions] There are one or more of these.  The format
@@ -179,7 +179,7 @@ agentn.79 = 6
       \begin{description}
         \item[-n, --nodelist {[nodelist]}] where the nodelist is a cluster description as
           described above.
-        \item[-c --components {[component list]}].  The component list is a blank-delimeted
+        \item[-c --components {[component list]}].  The component list is a blank-delimited
           list of components includeing {\em or, rm, sm, pm, ws, broker} to start an
           individual component, or {\em all} to start all of the components.  NOTE: It is
           usually an error to start any of these components more than once.  However 
@@ -283,7 +283,7 @@ agentn.79 = 6
        \item[tod] This specifies a virual ``time of day of submission'', starting from time 0, specified
          in units of milliseconds, when the job is to be submitted.  During job generation, this may
          be used to enforce precise timing of submission of the jobs.
-       \item[elapsed] This is a space-delimeted set of numbers.  Each number represents the elapsed time,
+       \item[elapsed] This is a space-delimited set of numbers.  Each number represents the elapsed time,
          in milliseconds, for a single work item.  There must be one time for each work item.  
          These numbers are placed into CASs by the job's Job Driver and deliverd to each Job Process.
          For example,
@@ -336,17 +336,17 @@ machines = 11
          files.
        \item[dest.dir] This is the directory that will contain the updated meta-specification
          files.
-       \item[scheduling.classes] This is a blank-delimeted list of the scheduling classes to
+       \item[scheduling.classes] This is a blank-delimited list of the scheduling classes to
          be randomly assigned to the jobs.  
        \item[scheduling.classes.{[name]}] Here, {\em name} is the name of one of the 
          scheduling classes listed above.  The value is a weight, to be used to affect
          the distribution of scheduling classes among the jobs.
-       \item[job.memory] This is a blank-delimeted list of memory sizes to be randomly
+       \item[job.memory] This is a blank-delimited list of memory sizes to be randomly
          assigned to each job.
        \item[job.memory.{[men]}]] Here, {\em mem} is one of the memory sizes specified
          above.  The value is a weight, used to affect the distribution of memory sizes
          among the jobs.
-       \item[job.services] This is a blank-delimeted list of a service id, where the id
+       \item[job.services] This is a blank-delimited list of a service id, where the id
          is one of the services specified in the {\em services.boot} conrol file.
        \item[job.services.{[id]}] Here {\em id} is one of the ids specified in the
          job.services line above.  The value is a weight, used to affect the distribution

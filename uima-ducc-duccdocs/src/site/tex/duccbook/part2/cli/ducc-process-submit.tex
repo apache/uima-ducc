@@ -38,28 +38,24 @@
         \item[$--$debug ] Prints internal debugging information, intended for DUCC developers or
           extended problem determination.
 
-        \item[$--$environment {[env vars]}] Blank-delimited list of environment variables. If
-          specified, this is used for all DUCC processes in the job. Example:
-\begin{verbatim}
-             --environment "TERM=xterm DISPLAY=me.org.net:1.0". 
-\end{verbatim}
-          
-          Note: On Secure Linux systems, the environment variable 
-          LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
-          necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
-          specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
-          LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
-          example: 
-             \begin{verbatim}
--environment TERM=xterm DISPLAY=:1.0 DUCC_LD_LIBRARY_PATH=/my/own/path
-            \end{verbatim}
+        \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
+          assignments for the process. Example:
+          \begin{verbatim}
+--environment TERM=xterm DISPLAY=:1.0
+          \end{verbatim}
+             
+          Additional entries may be copied from the user's environment based on the setting of
+          ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
+
+          Note: When used as a CLI option, the environment string must usually be
+          quoted to protect it from the shell.
 
         \item[$--$help] Prints the usage text to the console.
 
         \item[$--$log\_directory {[path-to-log directory]} ]
 
-          This specifies the path to the directory for the user logs. If not specified, the default is the 
-          user's home directory. Example: 
+          This specifies the path to the directory for the user logs. If not specified, the default
+          is \$HOME/ducc/logs. Example: 
 \begin{verbatim}
 --log_directory /home/bob 
 \end{verbatim}
@@ -103,10 +99,10 @@ ducc_process_submit --specification job.props
 ducc_process_submit -f job.props 
 \end{verbatim}
 
-          where the job.props contains: 
+          where job.props contains: 
 \begin{verbatim}
 working_directory   = /home/bob/projects
-process_environment = AE_INIT_TIME=10000 DUCC_LD_LIBRARY_PATH=/a/bogus/path 
+environment         = AE_INIT_TIME=10000 LD_LIBRARY_PATH=/a/bogus/path 
 log_directory       = /home/bob/ducc/logs/ 
 description         = Simple Process
 scheduling_class    = fixed 

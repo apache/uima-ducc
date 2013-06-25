@@ -51,27 +51,17 @@
           Note: When used as a CLI option, the description string must usually be quoted to protect
           it from the shell.
     
-        \item[$--$environment {[env vars]}]  
-          This specifies environment parameters for the Service. If present, they are added 
-          to the Job Process environment as the process is spawned. It is a blank-delimited 
-          list of name-value pairs. For example: 
-\begin{verbatim}
+        \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
+          assignments for the service. Example:
+          \begin{verbatim}
+--environment TERM=xterm DISPLAY=:1.0
+          \end{verbatim}
+             
+          Additional entries may be copied from the user's environment based on the setting of
+          ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
 
---environment 'TERM=xterm DISPLAY=:1.0'
-\end{verbatim}
-          
-          Note: On Secure Linux systems, the environemnt variable 
-          LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
-          necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
-          specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
-          LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
-          example: 
-\begin{verbatim}
---environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/path
-\end{verbatim}
-          
-             Note: When used as a CLI option, the environment string must usually be
-             quoted to protect it from the shell.
+          Note: When used as a CLI option, the environment string must usually be
+          quoted to protect it from the shell.
           
         \item[$--$help ] This prints the usage text to the console.
 
@@ -88,20 +78,19 @@
 
         \item[$--$jvm\_args {[list]} ]        
           This specifes extra JVM arguments to be provided to the server process for
-          \hyperref[sec:services.types]{UIMA-AS services}. It is a blank delimeted 
+          \hyperref[sec:services.types]{UIMA-AS services}. It is a blank delimited 
             list of strings. Example: 
 \begin{verbatim}
---jvm_args '-Xmx100M -Xms50M' 
+--jvm_args -Xmx100M -Xms50M
 \end{verbatim}
 
           Note: When used as a CLI option, the argument string must usually be quoted to protect
           it from the shell.
     
           \item[$--$log\_directory {[path-to-log directory]}] This specifies the path to the directory for
-            the individual service instance logs. If not specified, the default is the user's home
-            directory. Example:
+            the individual service instance logs. If not specified, the default is \$HOME/ducc/logs. Example:
 \begin{verbatim}
---log\_directory /home/bob 
+--log_directory /home/bob 
 \end{verbatim}
         
         Within this directory DUCC creates a subdirectory for each job, using the numerical 
@@ -137,7 +126,7 @@
         installation dependent. If not specified, the default is taken from the global DUCC
         configuration \hyperref[sec:ducc.properties]{ducc.properties.}
 
-      \item[$--$service\_dependency{[list]}] This specifies a comma-delimeted list of services the job
+      \item[$--$service\_dependency{[list]}] This specifies a comma-delimited list of services the job
         processes are dependent upon. Service dependencies are discussed in detail
         \hyperref[sec:service.endpoints]{here}. Example:
 \begin{verbatim}
@@ -171,7 +160,7 @@
         to pass to jvm when running the pinger. The arguments are specified as a blank-delimited
         list of string.  Example:
 \begin{verbatim}
---process_jvm_args '-Xmx400M -Xms100M' 
+--service_ping_jvm_args -Xmx400M -Xms100M
 \end{verbatim}
         
         Note: When used as a CLI option, the arguments must usually be
@@ -191,7 +180,7 @@
         If the service is CUSTOM, the endpoint is required, and must be of the form
         {\tt CUSTOM:string} where the contents of the string are determined by the service.
 
-      \item[$--$specifiecaiton, $-$f {[file]}] All the parameters used to submit a service may be placed in a
+      \item[$--$specification, $-$f {[file]}] All the parameters used to submit a service may be placed in a
         standard Java properties file.  This file may then be used to submit the service (rather than
         providing all the parameters directory to submit).
         For example, 
@@ -204,10 +193,10 @@ ducc_service_submit -f svc.props
         where the svc.props contains: 
 
 \begin{verbatim}
-process_environment = AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0
+environment         = AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0
 description         = Test Service 3
-process_jvm_args    = -DdefaultBrokerURL=tcp://agent86:61616
-process_classpath   = /home/bob/lib/app.jar
+jvm_args            = -DdefaultBrokerURL=tcp://agent86:61616
+classpath           = /home/bob/lib/app.jar
 process_memory_size = 15
 working_directory   = /home/bob/services
 process_DD          = /home/bob/services/service.xml

@@ -99,24 +99,17 @@
 --driver_jvm_args -Xmx100M -Xms50M 
              \end{verbatim}
 
-             Note: When used as a CLI option, the environment string must usually be
+             Note: When used as a CLI option, the list must usually be
              quoted to protect it from the shell.
              
-           \item[$--$environment {[env vars]}] Blank-delimited list of environment variables. If
-             specified, this is used for all DUCC processes in the job.Example:
-\begin{verbatim}
-             $--$environment TERM=xterm DISPLAY=me.org.net:1.0 
-\end{verbatim}
-             
-             Note: On Secure Linux systems, the environment variable 
-             LD\_LIBRARY\_PATH may not be passed to the user's program. If it is 
-             necessary to pass LD\_LIBRARY\_PATH to the JP or JD processes, it must be 
-             specified as DUCC\_LD\_LIBRARY\_PATH. Ducc (securely) passes this as 
-             LD\_LIBRARY\_PATH, after the JP or JD has assumed the user's identity. For 
-             example: 
+           \item[$--$environment {[env vars]}] Blank-delimited list of environment variable
+             assignments. If specified, this is used for all DUCC processes in the job. Example:
              \begin{verbatim}
---environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/path
-            \end{verbatim}
+--environment TERM=xterm DISPLAY=:1.0
+             \end{verbatim}
+             
+             Additional entries may be copied from the user's environment based on the setting of
+             ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
 
              Note: When used as a CLI option, the environment string must usually be
              quoted to protect it from the shell.
@@ -136,8 +129,8 @@
              
            \item[$--$log\_directory {[path-to-log-directory]} ]
 
-             This specifies the path to the directory for the user logs. If not specified, the default is the 
-             user's home directory. Example: 
+             This specifies the path to the directory for the user logs. If not specified, the default is
+             \$HOME/ducc/logs. Example: 
              \begin{verbatim}
 --log_directory /home/bob 
              \end{verbatim}
@@ -260,7 +253,7 @@
            \item[$--$process\_jvm\_args {[list]} ] This specifies additional arguments to be passed to
              the Job Process JVM as a blank-delimited list of strings. Example:
              \begin{verbatim}
---process_jvm_args '-Xmx400M -Xms100M' 
+--process_jvm_args -Xmx400M -Xms100M
              \end{verbatim}
 
              Note: When used as a CLI option, the arguments must usually be
@@ -292,7 +285,7 @@
              classes are installation dependent. If not specified, the default is taken from the
              global DUCC configuration ducc.properties.  Example:
              \begin{verbatim}
---schedling_class normal 
+--scheduling_class normal 
              \end{verbatim}
           
 
@@ -315,14 +308,12 @@ ducc_submit --specification job.props
 ducc_submit -f job.props 
 \end{verbatim}
 
-             where the job.props contains: 
+             where job.props contains: 
 \begin{verbatim}
 working_directory                   = /home/bob/projects/ducc/ducc_test/test/bin 
 process_failures_limit              = 20 
 driver_descriptor_CR                = org.apache.uima.ducc.test.randomsleep.FixedSleepCR 
-driver_environment                  = DUCC_LD_LIBRARY_PATH=/a/other/bogus/path 
-process_environment                 = AE_INIT_TIME=10000 DUCC_LD_LIBRARY_PATH=/a/bogus/path 
-driver_classpath                    = /home/bob/duccapps/ducky_driver.jar 
+environment                         = AE_INIT_TIME=10000 LD_LIBRARY_PATH=/a/bogus/path 
 log_directory                       = /home/bob/ducc/logs/ 
 process_thread_count                = 1 
 driver_descriptor_CR_overrides      = jobfile:../simple/jobs/1.job,compression:10 
@@ -330,7 +321,7 @@ process_initialization_failures_cap = 99
 process_per_item_time_max           = 60 
 driver_jvm_args                     = -Xmx500M 
 process_descriptor_AE               = org.apache.uima.ducc.test.randomsleep.FixedSleepAE 
-process_classpath                   = /home/bob/duccapps/ducky_process.jar 
+classpath                           = /home/bob/duccapps/ducky_process.jar 
 description                         = ../simple/jobs/1.job[AE] 
 process_jvm_args                    = -Xmx100M -DdefaultBrokerURL=tcp://localhost:61616 
 scheduling_class                    = normal 
