@@ -59,6 +59,8 @@ public interface IDuccWorkJob extends IDuccWorkService, IDuccWorkExecutable, Ser
 	
 	public String getLogDirectory();
 	
+	public long getWorkItemCapacity();
+	
 	public long getProcessInitFailureCap();
 	public void setProcessInitFailureCap(long cap);
 	
