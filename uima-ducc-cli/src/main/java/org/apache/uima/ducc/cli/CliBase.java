@@ -469,23 +469,6 @@ public abstract class CliBase
         fos.close();
     }
 
-    void adjustLdLibraryPath(DuccProperties requestProps, String key) 
-    {
-        String source = "LD_LIBRARY_PATH";
-        String target = "DUCC_"+source;
-        String environment_string = requestProps.getProperty(key);
-        Properties environment_properties = DuccUiUtilities.environmentMap(environment_string);
-        if (environment_properties.containsKey(source)) {
-            if (environment_properties.containsKey(target)) {
-                message("WARN", key, " environment conflict:", target, "takes precedence over", source);
-            } else {
-                target += "="+environment_properties.getProperty(source);
-                environment_string += " "+target;
-                requestProps.setProperty(key, environment_string);
-            }
-        }
-    }
-
     /**
      * Extract messages and job pid from reply.  This sets messages and errors into the appropriate
      * structures for the API, and extracts the numeric id of the [job, ducclet, reservation, service]
@@ -523,10 +506,12 @@ public abstract class CliBase
 
         String pid =  reply.getProperties().getProperty(UiOption.JobId.pname());
         if (pid == null ) {
+            message("ERROR:", "JobId not found in reply");
             rc = false;
         } else {
             friendlyId = Long.parseLong(pid);
             if ( friendlyId < 0 ) {
+                message("ERROR:", "Invalid JobId " + friendlyId);
                 rc = false;
             }
         }

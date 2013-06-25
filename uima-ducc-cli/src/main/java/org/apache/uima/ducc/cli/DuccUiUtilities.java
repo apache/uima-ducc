@@ -50,7 +50,7 @@ public class DuccUiUtilities {
 	public static boolean isSupportedBeta() {
 		boolean retVal = true;
 		String key = DuccPropertiesResolver.ducc_submit_beta;
-		String value = DuccPropertiesResolver.getInstance().getProperty(key);
+		String value = DuccPropertiesResolver.get(key);
 		if(value != null) {
 			if(value.equalsIgnoreCase("off")) {
 				retVal = false;
@@ -61,7 +61,7 @@ public class DuccUiUtilities {
 	
 	public static String getUser() {
 		String user = System.getProperty("user.name");
-		String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);
+		String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
 		if(runmode != null) {
 			if(runmode.equals("Test")) {
 				String envUser = System.getenv("USER");
@@ -73,40 +73,29 @@ public class DuccUiUtilities {
 		return user;
 	}
 	
-	public static void trimProperties(Properties properties) {
-		Enumeration<Object> keys = properties.keys();
-		while(keys.hasMoreElements()) {
-			String key = (String) keys.nextElement();
-			Object object = properties.get(key);
-			if(!(object instanceof String)) {
-				continue;
-			}
-			String value = properties.getProperty(key);
-			if(key != null) {
-				properties.remove(key);
-				key = key.trim();
-				if(value != null) {
-					value = value.trim();
-				}
-				properties.put(key,value);
-			}	
-		}
-	}
-
-	public static Properties environmentMap(String environment) {
+	/*
+	 * Create a map from the user-specified environment string
+	 * Must be a white-space delimited string of assignments, e.g. 
+	 *     TERM=xterm DISPLAY=:1.0 LD_LIBRARY_PATH=/my/own/path
+	 * Keys & values cannot contain white-space, e.g. all of these will fail:
+	 *     TERM= xterm DISPLAY =:1.0 DUCC_LD_LIBRARY_PATH="/my/o n/path"  
+	 */
+	private static Properties environmentMap(String environment) {
 		Properties properties = new Properties();
 		if(environment != null) {
-			String[] tokens = environment.split(" ");
+			String[] tokens = environment.split("\\s+");
 			for( String token : tokens) {
 				String[] nvp = token.split("=");
 				if(nvp.length > 1) {
 					String key = nvp[0];
 					String value = nvp[1];
 					properties.put(key, value);
+				} else {
+				    return null;
 				}
 			}
 		}
-		trimProperties(properties);
+		// No need to trim properties as the only white-space is between assignments
 		return properties;
 	}
 	
@@ -146,10 +135,15 @@ public class DuccUiUtilities {
 	
 	public static boolean ducc_environment(CliBase base, Properties jobRequestProperties, String key) {
 		boolean retVal = true;
+		// Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
 		String source = "LD_LIBRARY_PATH";
 		String target = "DUCC_"+source;
 		String environment_string = jobRequestProperties.getProperty(key);
 		Properties environment_properties = environmentMap(environment_string);
+		if (environment_properties == null) {
+		    base.message("ERROR:", key, "Invalid environment syntax - missing '=' ?");
+		    return false;
+		}
 		if(environment_properties.containsKey(source)) {
 			if(environment_properties.containsKey(target)) {
 				base.message("ERROR:", key, "environment conflict:", target, "takes precedence over", source);
@@ -161,16 +155,30 @@ public class DuccUiUtilities {
 				//duccMessageProcessor.out(key+": "+environment_string);
 			}
 		}
+		// Augment user-specified environment with a few useful ones, e.g. USER HOME
+        String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_environment_propagated);
+        if (envNames != null) {
+            StringBuilder sb = new StringBuilder();
+            for (String name : envNames.split("\\s+")) {
+                if (!environment_properties.containsKey(name)) {
+                    sb.append(name).append("=").append(System.getenv(name)).append(" ");
+                }
+            }
+            if (environment_string != null) {
+                sb.append(environment_string);
+            }
+            jobRequestProperties.setProperty(key, sb.toString());
+        }
 		return retVal;
 	}
 	
 	//**********
 	
 	public static String buildBrokerUrl() {
-		String ducc_broker_protocol = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_broker_protocol);
-		String ducc_broker_hostname = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_broker_hostname);
-		String ducc_broker_port = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_broker_port);
-		String ducc_broker_url_decoration = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_broker_url_decoration);
+		String ducc_broker_protocol = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_broker_protocol);
+		String ducc_broker_hostname = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_broker_hostname);
+		String ducc_broker_port = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_broker_port);
+		String ducc_broker_url_decoration = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_broker_url_decoration);
 		if(ducc_broker_protocol == null) {
 			ducc_broker_protocol = "tcp";
 		}
@@ -246,7 +254,7 @@ public class DuccUiUtilities {
         // The jvm args look like properties for the most part: k=v pairs
         // We write them into a string and turn them into properies for the resolver
         //
-        String[] args = jvmargs.split("\\s");
+        String[] args = jvmargs.split("\\s+");
         StringWriter sw = new StringWriter();
         for ( String s : args ) sw.write(s + "\n");
         StringReader sr = new StringReader(sw.toString());            
