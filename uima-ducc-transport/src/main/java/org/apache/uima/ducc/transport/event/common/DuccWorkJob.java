@@ -279,6 +279,20 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	
 	// **********
 	
+	public long getWorkItemCapacity() {
+		long capacity = 0;
+		try {
+			IDuccProcessMap processMap = getProcessMap();
+			int threads_per_share = Integer.parseInt(getSchedulingInfo().getThreadsPerShare());
+			capacity = processMap.getUsableProcessCount() * threads_per_share;
+		}
+		catch(Exception e) {
+		}
+		return capacity;
+	}
+	
+	// **********
+	
 	public IDuccProcess getProcess(String dpid) {
 		IDuccProcess idp = null;
 		try {
