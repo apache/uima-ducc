@@ -232,7 +232,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 				} else {
 					doExec(new ProcessBuilder(cmd), cmd, true);
 				}
-				doExec(new ProcessBuilder(cmd), cmd, true);
+				//doExec(new ProcessBuilder(cmd), cmd, true);
 			} else { // send stop request to quiesce the service
 				Map<String, Object> msgHeader = new HashMap<String, Object>();
 				//	Add PID to the header. Receiving process has a PID filter in its router
