@@ -309,6 +309,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 			twi.setEnd(millis);
 		}
 		Map<String, String> env = pb.environment();
+		//	Dont enherit agent's environment
+		env.clear();
 		// enrich Process environment
 		env.putAll(processEnv);
 		if( cmdLine instanceof ACommandLine ) {
