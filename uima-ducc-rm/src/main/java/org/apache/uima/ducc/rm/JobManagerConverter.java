@@ -152,7 +152,7 @@ public class JobManagerConverter
             return;
         } else {            
             int total_work     = toInt(si.getWorkItemsTotal(), scheduler.getDefaultNTasks());
-            int completed_work = toInt(si.getWorkItemsCompleted(), 0)  + toInt(si.getWorkItemsError(), 0);
+            int completed_work = toInt(si.getWorkItemsCompleted(), 0)  + toInt(si.getWorkItemsError(), 0)+ toInt(si.getWorkItemsLost(), 0);
 
             int max_shares     = toInt(si.getSharesMax(), Integer.MAX_VALUE);
             int existing_max_shares = j.getMaxShares();
