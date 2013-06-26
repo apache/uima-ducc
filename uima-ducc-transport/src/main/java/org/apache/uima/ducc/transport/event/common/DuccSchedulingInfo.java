@@ -51,6 +51,7 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 	private String workItemsDispatched = defaultWorkItemsDispatched;
 	private String workItemsError = defaultWorkItemsError;
 	private String workItemsRetry = defaultWorkItemsRetry;
+	private String workItemsLost = defaultWorkItemsLost;
 	private String workItemsPreempt= defaultWorkItemsPreempt;
 	
 	private ConcurrentHashMap<Integer,DuccId> limboMap = new  ConcurrentHashMap<Integer,DuccId>();
@@ -305,6 +306,23 @@ public class DuccSchedulingInfo implements IDuccSchedulingInfo {
 		if(number != null) {
 			this.workItemsRetry = number;
 		}
+	}
+	
+	
+	public String getWorkItemsLost() {
+		return workItemsLost;
+	}
+
+	
+	public void setWorkItemsLost(String number) {
+		if(number != null) {
+			this.workItemsLost = number;
+		}
+	}
+	
+	
+	public int getIntWorkItemsLost() {
+		return Integer.parseInt(workItemsLost);
 	}
 	
 	

@@ -24,6 +24,7 @@ public interface IDuccCompletionType extends Serializable {
 	
 	public enum JobCompletionType {
 		Premature,						// Job was terminated, but not all work items processed
+		Lost,							// Job was terminated, but with lost work items (only, no error work items)
 		EndOfJob,						// Job finished without error
 		Error,							// Job finished with error
 		CanceledByUser,					// Job was canceled by user

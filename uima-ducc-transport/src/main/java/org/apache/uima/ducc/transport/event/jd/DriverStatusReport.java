@@ -73,6 +73,7 @@ public class DriverStatusReport implements Serializable {
 	//private AtomicInteger workItemsQueued = new AtomicInteger(0);
 	//private AtomicInteger workItemsDequeued = new AtomicInteger(0);
 	
+	private AtomicInteger workItemsLost = new AtomicInteger(0);
 	private AtomicInteger workItemsRetry = new AtomicInteger(0);
 	private AtomicInteger workItemsPreempted = new AtomicInteger(0);
 	
@@ -364,6 +365,16 @@ public class DriverStatusReport implements Serializable {
 	
 	public int getWorkItemsProcessingError() {
 		return workItemsProcessingError.get();
+	}
+	
+	public void countWorkItemsLost() {
+		workItemsLost.incrementAndGet();
+		calculateState();
+		logReport();
+	}
+	
+	public int getWorkItemsLost() {
+		return workItemsLost.get();
 	}
 	
 	public void countWorkItemsRetry() {

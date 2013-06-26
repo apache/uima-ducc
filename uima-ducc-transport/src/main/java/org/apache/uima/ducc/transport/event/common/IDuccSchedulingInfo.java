@@ -49,6 +49,7 @@ public interface IDuccSchedulingInfo extends Serializable {
 	public static final String defaultWorkItemsDispatched = "0";
 	public static final String defaultWorkItemsError = "0";
 	public static final String defaultWorkItemsRetry = "0";
+	public static final String defaultWorkItemsLost = "0";
 	public static final String defaultWorkItemsPreempt = "0";
 	@Deprecated
 	public static final String defaultWorkItemsPending = "unknown";
@@ -113,6 +114,11 @@ public interface IDuccSchedulingInfo extends Serializable {
 	
 	public String getWorkItemsRetry();
 	public void setWorkItemsRetry(String number);
+	
+	public String getWorkItemsLost();
+	public void setWorkItemsLost(String number);
+	
+	public int getIntWorkItemsLost();
 	
 	public String getWorkItemsPreempt();
 	public void setWorkItemsPreempt(String number);
