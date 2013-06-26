@@ -145,6 +145,12 @@ public class WorkItemState implements IWorkItemState {
 	}
 
 	
+	public void stateLost() {
+		state = State.lost;
+		millisAtFinish = System.currentTimeMillis();
+	}
+	
+	
 	public void stateRetry() {
 		state = State.retry;
 	}

@@ -118,6 +118,12 @@ public class WorkItemStateManager {
 		wis.stateError();
 	}
 	
+	public void lost(int seqNo) {
+		Long key = new Long(seqNo);
+		IWorkItemState wis = map.get(key);
+		wis.stateLost();
+	}
+	
 	public void retry(int seqNo) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = map.get(key);

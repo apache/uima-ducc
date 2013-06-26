@@ -38,6 +38,7 @@ public interface IWorkItemState extends Serializable, Comparable<IWorkItemState>
 		ended,
 		error,
 		retry,
+		lost,
 		unknown
 	}
 	
@@ -48,6 +49,7 @@ public interface IWorkItemState extends Serializable, Comparable<IWorkItemState>
 	public void stateEnded();
 	public void stateError();
 	public void stateRetry();
+	public void stateLost();
 	
 	public long getMillisOverhead();
 	public long getMillisProcessing();
