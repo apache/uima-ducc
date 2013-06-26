@@ -580,6 +580,10 @@ public class ProcessAccounting {
 		if(!compare(jdRetryWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsRetry())) {
 			duccWorkJob.getSchedulingInfo().setWorkItemsRetry(jdRetryWorkItems);
 		}
+		String jdLostWorkItems = ""+jdStatusReport.getWorkItemsLost();
+		if(!compare(jdLostWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsLost())) {
+			duccWorkJob.getSchedulingInfo().setWorkItemsLost(jdLostWorkItems);
+		}
 		String jdPreemptWorkItems = ""+jdStatusReport.getWorkItemsPreempted();
 		if(!compare(jdPreemptWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsPreempt())) {
 			duccWorkJob.getSchedulingInfo().setWorkItemsPreempt(jdPreemptWorkItems);

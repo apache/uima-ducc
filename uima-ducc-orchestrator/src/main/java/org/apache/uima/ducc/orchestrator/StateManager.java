@@ -506,8 +506,12 @@ public class StateManager {
 							case EndOfJob:
 								try {
 									int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
+									int lost = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsLost());
 									if(errors > 0) {
 										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
+									}
+									else if(lost > 0) {
+										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Lost, new Rationale("state manager detected lost work items="+lost));
 									}
 									else {
 										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
@@ -562,7 +566,8 @@ public class StateManager {
 			long total = jdStatusReport.getWorkItemsTotal();
 			long done = jdStatusReport.getWorkItemsProcessingCompleted();
 			long error = jdStatusReport.getWorkItemsProcessingError();
-			long todo = total - (done + error);
+			long lost = jdStatusReport.getWorkItemsLost();
+			long todo = total - (done + error + lost);
 			if(capacity > 0) {
 				if(todo < capacity) {
 				retVal = true;
@@ -1190,9 +1195,13 @@ public class StateManager {
 										if(inventoryProcess.isComplete()) {
 											OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,ProcessDeallocationType.Stopped);
 											IRationale rationale = new Rationale("state manager reported as normal completion");
-											String retVal = job.getSchedulingInfo().getWorkItemsError();
-											if(!retVal.equals("0")) {
-												rationale = new Rationale("state manager reported at least one work item error");
+											int errors = job.getSchedulingInfo().getIntWorkItemsError();
+											int lost = job.getSchedulingInfo().getIntWorkItemsLost();
+											if(errors > 0) {
+												setCompletionIfNotAlreadySet(job, JobCompletionType.Error, new Rationale("state manager detected error work items="+errors));
+											}
+											else if(lost > 0) {
+												setCompletionIfNotAlreadySet(job, JobCompletionType.Lost, new Rationale("state manager detected lost work items="+lost));
 											}
 											completeJob(job, rationale);
 										}
@@ -1347,6 +1356,9 @@ public class StateManager {
 				try {
 					if(Integer.parseInt(job.getSchedulingInfo().getWorkItemsError()) > 0) {
 						job.setCompletion(JobCompletionType.Error, rationale);
+					}
+					else if(Integer.parseInt(job.getSchedulingInfo().getWorkItemsLost()) > 0) {
+						job.setCompletion(JobCompletionType.Lost, rationale);
 					}
 				}
 				catch(Exception e) {
