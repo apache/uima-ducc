@@ -101,8 +101,9 @@ public class DuccWebMonitorJob {
 			IDuccSchedulingInfo si = dw.getSchedulingInfo();
 			monitorInfo.total = si.getWorkItemsTotal();
 			monitorInfo.done  = si.getWorkItemsCompleted();
-			monitorInfo.error = si.getWorkItemsError();
+			monitorInfo.error = ""+si.getIntWorkItemsError();
 			monitorInfo.retry = si.getWorkItemsRetry();
+			monitorInfo.lost = si.getWorkItemsLost();
 			monitorInfo.procs = ""+dwj.getProcessMap().getAliveProcessCount();
 			
 			if(si.getIntWorkItemsError() > 0) {

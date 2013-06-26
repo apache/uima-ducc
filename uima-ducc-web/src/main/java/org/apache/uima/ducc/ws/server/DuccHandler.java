@@ -920,16 +920,27 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		sb.append(done);
 		sb.append("&nbsp");
-		// error
-		sb.append("<th title=\"The number of work items that failed to complete successfully\">");
-		sb.append("Error: ");
-		String error = "0";
+		// error & lost
+		int eCount = 0;
+		int lCount = 0;
 		try {
-			error = ""+job.getSchedulingInfo().getIntWorkItemsError();
+			eCount = job.getSchedulingInfo().getIntWorkItemsError();
+			lCount = job.getSchedulingInfo().getIntWorkItemsLost();
 		}
 		catch(Exception e) {
 		}
+		String error = ""+eCount;
+		sb.append("<th title=\"The number of work items that failed to complete successfully\">");
+		sb.append("Error: ");
 		sb.append(error);
+		if(lCount > 0) {
+			sb.append("&nbsp");
+			String lost = ""+lCount;
+			sb.append("<th title=\"The number of work items that were lost\">");
+			sb.append("Lost: ");
+			sb.append(lost);
+		}
+		// extended info live jobs
 		sb.append("&nbsp");
 		JobState jobState = JobState.Undefined;
 		try {
