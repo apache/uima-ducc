@@ -20,6 +20,7 @@ package org.apache.uima.ducc.jd;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -59,11 +60,11 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.common.DuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
+import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
-import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeployableConfiguration;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
@@ -220,6 +221,47 @@ public class JobDriver extends Thread implements IJobDriver {
 		return jdJmxUrl;
 	}
 	
+	private long reapTimeout = 1;
+	
+	private void missingCallbackReaper() {
+		String location = "missingCallbackReaper";
+		try {
+			if(casSource.isEmpty()) {
+				IDuccWorkJob job = getJob();
+				DriverStatusReport driverStatusReport = getDriverStatusReportLive();
+				long todo = driverStatusReport.getWorkItemsToDo();
+				long capacity = job.getWorkItemCapacity();
+				if(capacity > 0) {
+					if(todo > 0) {
+						if(capacity > todo) {
+							duccOut.debug(location, jobid, "capacity:"+capacity+" "+"todo:"+todo);
+							Enumeration<WorkItem> workItems = casWorkItemMap.elements();
+							while(workItems.hasMoreElements()) {
+								WorkItem workItem = workItems.nextElement();
+								int seqNo = workItem.getSeqNo();
+								String casId = workItem.getCasId();
+								if(workItem.getCallbackState().isPendingCallback()) {
+									long sTime = workItem.getTimeWindow().getStartLong();
+									long cTime = System.currentTimeMillis();
+									long mTime = 1000*60*reapTimeout;
+									long tdiff = cTime - sTime;
+									if(tdiff > mTime) {
+										duccOut.warn(location, null, "reaping (no callback) seqNo:"+seqNo+" "+"casId:"+casId+" "+"tdiff:"+tdiff);
+										workItem.lost();
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			duccOut.error(location, jobid, e);
+			duccErr.error(location, jobid, e);
+		}
+	}
+	
 	private void process() throws JobDriverTerminateException {
 		String location = "process";
 		try {
@@ -290,6 +332,7 @@ public class JobDriver extends Thread implements IJobDriver {
 						run = false;
 						continue;
 					}
+					missingCallbackReaper();
 					try {
 						Thread.sleep(10000);
 					} 
@@ -861,9 +904,9 @@ public class JobDriver extends Thread implements IJobDriver {
 			IDuccWorkJob job = jobDriver.getJob();
 			DuccId jobDuccId = job.getDuccId();
 			ArrayList<WorkItem> removeList = new ArrayList<WorkItem>();
-			duccOut.debug(location, jobDuccId, "pending map size:"+casLocationPendingMap.size());
+			duccOut.trace(location, jobDuccId, "pending map size:"+casLocationPendingMap.size());
 			Iterator<Entry<String, NP>> iterator = casLocationPendingMap.entrySet().iterator();
-			duccOut.debug(location, jobDuccId, iterator.hasNext());
+			duccOut.trace(location, jobDuccId, iterator.hasNext());
 			while(iterator.hasNext()) {
 				Entry<String, NP> entry = iterator.next();
 				String casId = entry.getKey();
@@ -875,13 +918,13 @@ public class JobDriver extends Thread implements IJobDriver {
 				String nodeIP = entry.getValue().getNodeIP();
 				if(nodeIP == null) {
 					DuccId processDuccId = null;
-					duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"casId:"+casId);
+					duccOut.trace(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"casId:"+casId);
 					continue;
 				}
 				String PID = entry.getValue().getPID();
 				if(PID == null) {
 					DuccId processDuccId = null;
-					duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"casId:"+casId+" "+"node:"+nodeIP);
+					duccOut.trace(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"casId:"+casId+" "+"node:"+nodeIP);
 					continue;
 				}
 				DuccId processDuccId = null;
@@ -894,7 +937,7 @@ public class JobDriver extends Thread implements IJobDriver {
 					duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+PID);
 					continue;
 				}
-				duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+PID);
+				duccOut.trace(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+PID);
 			}
 			removeLocations(removeList);
 		}
@@ -1033,6 +1076,16 @@ public class JobDriver extends Thread implements IJobDriver {
 		String location = "accountingWorkItemIsError";
 		try {
 			getPwiMap().error(processId);
+		}
+		catch(Exception e) {
+			duccOut.error(location, jobid, "accounting error?", e);
+		}
+	}
+	
+	public void accountingWorkItemIsLost(DuccId processId) {
+		String location = "accountingWorkItemIsLost";
+		try {
+			getPwiMap().lost(processId);
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, "accounting error?", e);
@@ -1247,6 +1300,24 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 	
+	public void lost(WorkItem workItem) {
+		String location = "lost";
+		try {
+			duccOut.info(location, workItem.getJobId(), "seqNo:"+workItem.getSeqNo());
+			workItemInactive();
+			driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
+			driverStatusReport.workItemOperatingEnd(workItem.getCasId());
+			workItemStateManager.lost(workItem.getSeqNo());
+			workItemLost(workItem);
+			remove(workItem);
+			casSource.recycle(workItem.getCAS());
+			accountingWorkItemIsLost(workItem.getProcessId());
+			queueCASes(1,queue,workItemFactory);
+		}
+		catch(Exception exception) {
+			duccOut.error(location, jobid, "processing error?", exception);
+		}
+	}
 	
 	public void exception(WorkItem workItem, Exception e) {
 		String location = "exception";
@@ -1323,6 +1394,13 @@ public class JobDriver extends Thread implements IJobDriver {
 		return;
 	}
 	
+	
+	private void workItemLost(WorkItem workItem) {
+		String location = "workItemLost";
+		driverStatusReport.countWorkItemsLost();
+		duccOut.error(location, workItem.getJobId(), "seqNo:"+workItem.getSeqNo());
+	}
+	
 	private void workItemError(WorkItem workItem, Exception e) {
 		workItemError(workItem, e, null);
 	}
@@ -1334,7 +1412,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	*/
 	
 	private void workItemError(WorkItem workItem, Exception e, Directive directive) {
-		String location = " workItemError";
+		String location = "workItemError";
 		driverStatusReport.countWorkItemsProcessingError();
 		String nodeId = "?";
 		String pid = "?";

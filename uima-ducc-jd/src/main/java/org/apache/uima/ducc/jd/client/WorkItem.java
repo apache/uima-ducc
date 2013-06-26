@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.jd.client;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.aae.monitor.statistics.AnalysisEnginePerformanceMetrics;
@@ -55,6 +56,10 @@ public class WorkItem implements Runnable {
 	private ITimeWindow timeWindow = new TimeWindow();
 	
 	private ArrayList<AnalysisEnginePerformanceMetrics> analysisEnginePerformanceMetricsList = new ArrayList<AnalysisEnginePerformanceMetrics>();
+	
+	private CallbackState callbackState = new CallbackState();
+	
+	public AtomicBoolean isLost = new AtomicBoolean(false);
 	
 	public WorkItem(UimaAsynchronousEngine client, CasTuple casTuple, DuccId duccId, IWorkItemMonitor workItemMonitor) {
 		init(client, casTuple, duccId, workItemMonitor);
@@ -115,6 +120,10 @@ public class WorkItem implements Runnable {
 		return analysisEnginePerformanceMetricsList;
 	}
 	
+	public CallbackState getCallbackState() {
+		return callbackState;
+	}
+	
 	public void run() {
 		String methodName = "run";
 		duccOut.debug(methodName, jobId, duccMsg.fetch("enter"));
@@ -122,10 +131,16 @@ public class WorkItem implements Runnable {
 			start();
 			CAS cas = this.casTuple.getCas();
 			duccOut.debug(methodName, jobId, duccMsg.fetchLabel("CAS.size")+cas.size());
+			callbackState.statePendingQueued();
+			duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+callbackState.getState());
 			client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
-			ended();
+			if(!isLost.get()) {
+				ended();
+			}
 		} catch(Exception e) {
-			exception(e);
+			if(!isLost.get()) {
+				exception(e);
+			}
 		}
 		duccOut.debug(methodName, jobId, duccMsg.fetch("exit"));
 	}
@@ -158,4 +173,15 @@ public class WorkItem implements Runnable {
 		}
 	}
 	
+	public void lost() {
+		String methodName = "lost";
+		try {
+			isLost.set(true);
+			duccOut.debug(methodName, getJobId(), getProcessId(), "seqNo:"+getSeqNo()+" "+"casId:"+getCAS().hashCode());
+			workItemMonitor.lost(this);
+		}
+		catch(Exception exception) {
+			duccOut.error(methodName, null, exception);
+		}
+	}
 }

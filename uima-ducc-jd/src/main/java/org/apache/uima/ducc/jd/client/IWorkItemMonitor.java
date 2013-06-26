@@ -27,4 +27,5 @@ public interface IWorkItemMonitor {
 	public void dequeued(WorkItem workitem, String node, String pid);
 	public void ended(WorkItem workitem);
 	public void exception(WorkItem workitem, Exception e);
+	public void lost(WorkItem workItem);
 }

@@ -35,6 +35,10 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	
 	private IJobDriver jobDriver;
 	
+	// <for testing only!!!>
+	boolean injectError = false;
+	// </for testing only!!!>
+	
 	public WorkItemListener(IJobDriver jobDriver) {
 		super();
 		this.jobDriver = jobDriver;
@@ -57,6 +61,18 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		ThreadLocation threadLocation = null;
 		try {
 			casId = ""+status.getCAS().hashCode();
+			// <for testing only!!!>
+			if(injectError) {
+				WorkItem wi = jobDriver.getWorkItem(casId);
+				wi.getCallbackState().statePendingAssigned();
+				duccOut.warn(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
+				int seqNo = wi.getSeqNo();
+				if(seqNo <= 1) {
+					duccOut.warn(methodName, null, "callback #1 discarded seqNo:"+seqNo+" "+"casId:"+casId);
+					return;
+				}
+			}
+			// </for testing only!!!>
 			jobDriver.queued(jobDriver.getWorkItem(casId));
 			threadLocation = jobDriver.getCasDispatchMap().get(casId);
 			DuccId jobid = jobDriver.getJob().getDuccId();
@@ -87,6 +103,20 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		ThreadLocation threadLocation = null;
 		try {
 			casId = ""+status.getCAS().hashCode();
+			WorkItem wi = jobDriver.getWorkItem(casId);
+			// <for testing only!!!>
+			if(injectError) {
+				wi.getCallbackState().statePendingAssigned();
+				duccOut.warn(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
+				int seqNo = wi.getSeqNo();
+				if(seqNo <= 3) {
+					duccOut.warn(methodName, null, "callback #2 discarded seqNo:"+seqNo+" "+"casId:"+casId);
+					return;
+				}
+			}
+			// </for testing only!!!>
+			wi.getCallbackState().stateNotPending();
+			duccOut.debug(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
 			String PID = pid.split(":")[0];
 			jobDriver.dequeued(jobDriver.getWorkItem(casId), nodeIP, PID);
 			threadLocation = jobDriver.getCasDispatchMap().get(casId);

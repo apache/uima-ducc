@@ -37,6 +37,7 @@ public interface IJobDriverAccess {
 	public void accountingWorkItemIsPreempt(DuccId processId);
 	public void accountingWorkItemIsRetry(DuccId processId);
 	public void accountingWorkItemIsError(DuccId processId);
+	public void accountingWorkItemIsLost(DuccId processId);
 	public void accountingWorkItemIsDone(DuccId processId, long time);
 	public void rectifyStatus();
 }
