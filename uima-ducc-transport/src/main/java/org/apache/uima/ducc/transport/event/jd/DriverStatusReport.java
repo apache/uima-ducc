@@ -401,7 +401,8 @@ public class DriverStatusReport implements Serializable {
 		long total = getWorkItemsTotal();
 		long done = getWorkItemsProcessingCompleted();
 		long error = getWorkItemsProcessingError();
-		long todo = total - (done + error);
+		long lost = getWorkItemsLost();
+		long todo = total - (done + error + lost);
 		return todo;
 	}
 	
@@ -539,8 +540,9 @@ public class DriverStatusReport implements Serializable {
 			int fetched = getWorkItemsFetched();
 			int completed = getWorkItemsProcessingCompleted();
 			int error = getWorkItemsProcessingError();
-			boolean retVal = fetched != (completed + error);
-			duccOut.debug(methodName, jobid, "fetched:"+fetched+" "+"completed:"+completed+" "+"error:"+error);
+			int lost = getWorkItemsLost();
+			boolean retVal = fetched != (completed + error + lost);
+			duccOut.debug(methodName, jobid, "fetched:"+fetched+" "+"completed:"+completed+" "+"error:"+error+" "+"lost:"+lost);
 			return retVal;
 		}
 	}
@@ -589,7 +591,9 @@ public class DriverStatusReport implements Serializable {
 			if(isTerminateDriver()) {
 				setDriverState(DriverState.Completed);
 				if(getWorkItemsProcessingError() == 0) {
-					setJobCompletion(JobCompletionType.EndOfJob, new Rationale("job driver status reported as normal completion"));
+					if(getWorkItemsLost() == 0) {
+						setJobCompletion(JobCompletionType.EndOfJob, new Rationale("job driver status reported as normal completion"));
+					}
 				}
 			}
 			break;
@@ -606,6 +610,7 @@ public class DriverStatusReport implements Serializable {
 									   +"started:"+getWorkItemsProcessingStarted()+" "
 									   +"completed:"+getWorkItemsProcessingCompleted()+" "
 									   +"error:"+getWorkItemsProcessingError()+" "
+									   +"lost:"+getWorkItemsLost()+" "
 									   +"queued:"+getWorkItemsQueued()+" "
 									   +"in-progress:"+casOperatingMap.size()+" "
 									   +"pending:"+isPending()+" "

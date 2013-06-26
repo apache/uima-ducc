@@ -28,6 +28,7 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 	private AtomicLong done = new AtomicLong(0);
 	private AtomicLong error = new AtomicLong(0);
 	private AtomicLong retry = new AtomicLong(0);
+	private AtomicLong lost = new AtomicLong(0);
 	private AtomicLong preempt = new AtomicLong(0);
 	private AtomicLong completedMillisTotal = new AtomicLong(0);
 	private AtomicLong completedMillisMax = new AtomicLong(0);
@@ -74,6 +75,11 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 	
 	public void retry() {
 		retry.incrementAndGet();
+		undispatch();
+	}
+	
+	public void lost() {
+		lost.incrementAndGet();
 		undispatch();
 	}
 	
@@ -128,6 +134,17 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 		long retVal = 0;
 		try {
 			retVal = retry.get();
+		}
+		catch(Throwable t) {
+		}
+		return retVal;
+	}
+	
+	
+	public long getCountLost() {
+		long retVal = 0;
+		try {
+			retVal = lost.get();
 		}
 		catch(Throwable t) {
 		}

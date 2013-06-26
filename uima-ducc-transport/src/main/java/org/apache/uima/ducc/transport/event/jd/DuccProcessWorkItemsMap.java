@@ -72,6 +72,13 @@ public class DuccProcessWorkItemsMap extends ConcurrentHashMap<DuccId, IDuccProc
 		}
 	}
 	
+	public void lost(DuccId processId) {
+		getTotals().lost();
+		if(processId != null) {
+			get(processId).lost();
+		}
+	}
+	
 	public void preempt(DuccId processId) {
 		getTotals().preempt();
 		if(processId != null) {

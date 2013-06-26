@@ -26,6 +26,7 @@ public interface IDuccProcessWorkItems extends Serializable {
 	public long getCountDone();
 	public long getCountError();
 	public long getCountRetry();
+	public long getCountLost();
 	public long getCountPreempt();
 	
 	public long getSecsAvg();
@@ -36,5 +37,6 @@ public interface IDuccProcessWorkItems extends Serializable {
 	public void done(long millis);
 	public void error();
 	public void retry();
+	public void lost();
 	public void preempt();
 }
