@@ -177,6 +177,24 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
     }
     return false;
   }
+  /**
+   * 
+   * @param pid
+   * @param list
+   * @return
+   */
+  private boolean processAncestorIsAgent(String ppid, Set<RunningProcess> list) {
+	  for( RunningProcess pi : list ) {
+		  if ( pi.getPid().equals(ppid) ) {
+			  if (  pi.getOwner().equalsIgnoreCase("ducc") ) {
+				  return true;
+			  } else {
+				  return processAncestorIsAgent(pi.getPpid(), list);
+			  }
+		  } 
+	  }
+	  return false;
+  }
   public TreeMap<String,NodeUsersInfo> call() throws Exception {
     String location = "call";
     TreeMap<String,NodeUsersInfo> map = new TreeMap<String,NodeUsersInfo>();
@@ -218,6 +236,8 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       Set<NodeUsersCollector.ProcessInfo> processList = 
               new HashSet<NodeUsersCollector.ProcessInfo>();
       
+      Set<RunningProcess> tempProcessList = 
+              new HashSet<RunningProcess>();
       // read the next line from ps output
       while ((line = reader.readLine()) != null) {
 
@@ -226,9 +246,18 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         String pid = tokens[1];
         String ppid = tokens[2];
         String cmd = tokens[3];
+
         
         if ( tokens.length > 0 ) {
-          // Detect and skip all ducc daemons except uima-as service
+        	RunningProcess p = 
+                    new RunningProcess(pid,ppid,user);
+            tempProcessList.add(p);
+            //	walk up the tree of ancestor processes to check if any is owned by ducc. If so, this
+            //  process is not rogue.
+            if ( processAncestorIsAgent(pid, tempProcessList)) {
+            	continue;  // skip as this is not a rogue process
+            }
+        	// Detect and skip all ducc daemons except uima-as service
           if ( duccDaemon(tokens)) {
             continue;
           }
@@ -379,6 +408,26 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       return childProcesses;
     }
 
+  }
+  public class RunningProcess {
+	  String pid;
+	  String ppid;
+	  public RunningProcess(String pid, String ppid, String owner) {
+		  this.pid = pid;
+		  this.ppid = ppid;
+		  this.owner = owner;
+	  }
+	  public String getPid() {
+		return pid;
+	}
+	public String getPpid() {
+		return ppid;
+	}
+	public String getOwner() {
+		return owner;
+	}
+	String owner;
+	  
   }
   /*
   private void dump(Set<NodeUsersCollector.ProcessInfo> processList) {
