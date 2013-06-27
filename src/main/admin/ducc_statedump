@@ -23,6 +23,7 @@ from ducc_boot import *
 set_ducc_home()
 
 import getopt
+import json
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
@@ -35,18 +36,27 @@ class DuccStateListener(DuccUtil):
         CMD = CMD + ' -host '  + self.host
         CMD = CMD + ' -port '  + self.port
         CMD = CMD + ' -topic ' + self.topic
-        if ( self.output != None ):
-            CMD = CMD + ' -output ' + self.output
-        if ( self.timeout != None ):
-            CMD = CMD + ' -timeout ' + self.timeout
-        CMD = CMD + ' -agent ' + self.agent
-
+        CMD = CMD + ' -output ' + self.output
+        if ( self.agent != None ):
+            CMD = CMD + ' -agent ' + self.agent
+            
         os.system(CMD)
 
+        fi = open(self.output + '.json')
+        fo = open(self.output + '.json.pretty', 'w')
+        obj = json.load(fi)
+        print "Pretty-printing ..."
+        json.dump(obj, fo, indent=3)
+        fi.close()
+        fo.close()
+        os.remove(self.output + '.json')
+        os.rename(self.output + '.json.pretty', self.output);
+
     def usage(self, msg):
-        print msg
+        if ( msg != None ):
+            print msg
         print "Usage:"
-        print "   start_sim [options]"
+        print "   ducc_statedump [options]"
         print "   If no options are given this help screen is shown."
         print ""
         print "Options:"
@@ -56,10 +66,9 @@ class DuccStateListener(DuccUtil):
         print ""
         print "   -s This is the state to dump.  One of rm sm or pm metrics inventory."
         print ""
-        print "   -t Timeout.  or_statedump will run continuously for this long in seconds.  Defaults to 300 seconds."
-        print ""
         print "   -o This is the name of a tempfile where the state is written, defaults to duccstate.out."
         print ""
+        print "   --nocp Inhibit the classpath in the OR state dumps."
         print ""
         print "Remember that you will likely have to wait a few seconds for publications to arrive after starting."
         print ""
@@ -70,10 +79,12 @@ class DuccStateListener(DuccUtil):
 
     def main(self, argv):
 
+        if ( len(argv) == 0 ):
+            self.usage(None)
+
         self.host = 'localhost'
         self.port = '61616'
         self.output = None
-        self.timeout = None
         self.state = 'or'
         self.agent = None
 
@@ -126,10 +137,15 @@ class DuccStateListener(DuccUtil):
             self.topic = 'ducc.node.metrics'
             self.agent = toks[1]
 
+        if ( self.output == None ):
+            of = self.topic 
+            if ( self.agent != None ):
+                of = of + ".agent." + self.agent
+            self.output = of
+
         print '-----------------------'
         print 'host', self.host
         print 'port', self.port
-        print 'timeout', self.timeout
         print 'output file', self.output
         print 'topic', self.topic
         if ( self.agent != 'none' ):
@@ -141,7 +157,5 @@ class DuccStateListener(DuccUtil):
 if __name__ == "__main__":
     dsl = DuccStateListener()
     CLASSPATH = os.environ['CLASSPATH'] + ':' + os.environ['DUCC_HOME'] + '/examples/lib/uima-ducc-examples.jar'
-    for c in CLASSPATH.split(':'):
-        print c
     os.environ['CLASSPATH'] = CLASSPATH
     dsl.main(sys.argv[1:])
