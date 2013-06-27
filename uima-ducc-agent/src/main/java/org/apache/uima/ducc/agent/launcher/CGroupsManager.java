@@ -66,7 +66,11 @@ public class CGroupsManager {
 		this.cgroupSubsystems = cgroupSubsystems;
 		this.agentLogger = agentLogger;
 	}
-
+	public String[] getPidsInCgroup(String cgroupName) throws Exception {
+		File f = new File(cgroupBaseDir + "/" + cgroupName + "/cgroup.procs");
+		//	collect all pids
+		return readPids(f);
+	}
 	private String[] readPids(File f) throws Exception {
 		List<String> pids = new ArrayList<String>();
 		BufferedReader br = new BufferedReader(new FileReader(f));

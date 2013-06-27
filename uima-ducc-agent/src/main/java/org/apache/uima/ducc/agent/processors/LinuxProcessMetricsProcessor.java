@@ -18,6 +18,7 @@
  */
 package org.apache.uima.ducc.agent.processors;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.concurrent.ExecutorService;
@@ -127,9 +128,23 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         String DUCC_HOME = Utils.findDuccHome();
         // executes script DUCC_HOME/admin/ducc_get_process_swap_usage.sh which sums up swap used by
         // a process
-        DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
-                process.getPID(), managedProcess.getOwner(), DUCC_HOME
-                        + "/admin/ducc_get_process_swap_usage.sh", logger);
+        long totalSwapUsage = 0;
+        if ( agent.useCgroups ) {
+            String[] cgroupPids = 
+            		agent.cgroupsManager.getPidsInCgroup(managedProcess.getDuccProcess().getCGroup().getId());
+            
+            for( String pid : cgroupPids ) {
+                DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
+                        pid, managedProcess.getOwner(), DUCC_HOME
+                                + "/admin/ducc_get_process_swap_usage.sh", logger);
+            	totalSwapUsage += processSwapSpaceUsage.getSwapUsage();
+            }
+        } else {
+          DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
+          process.getPID(), managedProcess.getOwner(), DUCC_HOME
+                   + "/admin/ducc_get_process_swap_usage.sh", logger);
+          totalSwapUsage = processSwapSpaceUsage.getSwapUsage();
+        }
 
         // report cpu utilization while the process is running
         if ( managedProcess.getDuccProcess().getProcessState().equals(ProcessState.Running)) {
@@ -162,7 +177,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         process.setMajorFaults(majorFaults);
         // Current Process Swap Usage in bytes
         long st = System.currentTimeMillis();
-        long processSwapUsage = processSwapSpaceUsage.getSwapUsage() * 1024;
+//        long processSwapUsage = processSwapSpaceUsage.getSwapUsage() * 1024;
+        long processSwapUsage = totalSwapUsage * 1024;
         // collects swap usage from /proc/<PID>/smaps file via a script
         // DUCC_HOME/admin/collect_process_swap_usage.sh
         process.setSwapUsage(processSwapUsage);
