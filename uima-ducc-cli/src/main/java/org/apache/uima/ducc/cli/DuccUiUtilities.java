@@ -24,7 +24,6 @@ import java.io.StringWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -76,25 +75,29 @@ public class DuccUiUtilities {
 	/*
 	 * Create a map from the user-specified environment string
 	 * Must be a white-space delimited string of assignments, e.g. 
-	 *     TERM=xterm DISPLAY=:1.0 LD_LIBRARY_PATH=/my/own/path
+	 *     TERM=xterm DISPLAY=:1.0 LD_LIBRARY_PATH=/my/own/path  EMPTY=
 	 * Keys & values cannot contain white-space, e.g. all of these will fail:
-	 *     TERM= xterm DISPLAY =:1.0 DUCC_LD_LIBRARY_PATH="/my/o n/path"  
+	 *     TERM = xterm   DISPLAY =:1.0   LD_LIBRARY_PATH="/my/bl nk/path"  
 	 */
-	private static Properties environmentMap(String environment) {
-		Properties properties = new Properties();
-		if(environment != null) {
-			String[] tokens = environment.split("\\s+");
-			for( String token : tokens) {
-				String[] nvp = token.split("=");
-				if(nvp.length > 1) {
-					String key = nvp[0];
-					String value = nvp[1];
-					properties.put(key, value);
-				} else {
-				    return null;
-				}
-			}
-		}
+    private static Properties environmentMap(String environment) {
+        Properties properties = new Properties();
+        if (environment.length() == 0) {
+            return properties;
+        }
+        String[] tokens = environment.split("\\s+");
+        for (String token : tokens) {
+            String[] nvp = token.split("=", 2);
+            String key = nvp[0];
+            // Reject 'foo' & '=foo' & '=' but accept 'foo='
+            if (token.indexOf('=') < 0 || key.length() == 0) {
+                return null;
+            }
+            if (nvp.length > 1) {
+                properties.setProperty(key, nvp[1]);
+            } else {
+                properties.setProperty(key, "");
+            }
+        }
 		// No need to trim properties as the only white-space is between assignments
 		return properties;
 	}
@@ -138,7 +141,7 @@ public class DuccUiUtilities {
 		// Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
 		String source = "LD_LIBRARY_PATH";
 		String target = "DUCC_"+source;
-		String environment_string = jobRequestProperties.getProperty(key);
+		String environment_string = jobRequestProperties.getProperty(key, "");
 		Properties environment_properties = environmentMap(environment_string);
 		if (environment_properties == null) {
 		    base.message("ERROR:", key, "Invalid environment syntax - missing '=' ?");
@@ -149,10 +152,14 @@ public class DuccUiUtilities {
 				base.message("ERROR:", key, "environment conflict:", target, "takes precedence over", source);
 			}
 			else {
-				target += "="+environment_properties.getProperty(source);
-				environment_string += " "+target;
+				environment_properties.setProperty(target, environment_properties.getProperty(source));
+				environment_properties.remove(source);
+		        StringBuilder sb = new StringBuilder();
+		        for (String name : environment_properties.stringPropertyNames()) {
+		            sb.append(name).append("=").append(environment_properties.getProperty(name)).append(" ");
+		        }
+				environment_string = sb.toString();
 				jobRequestProperties.setProperty(key, environment_string);
-				//duccMessageProcessor.out(key+": "+environment_string);
 			}
 		}
 		// Augment user-specified environment with a few useful ones, e.g. USER HOME
@@ -164,10 +171,10 @@ public class DuccUiUtilities {
                     sb.append(name).append("=").append(System.getenv(name)).append(" ");
                 }
             }
-            if (environment_string != null) {
+            if (sb.length() > 0) {
                 sb.append(environment_string);
+                jobRequestProperties.setProperty(key, sb.toString());
             }
-            jobRequestProperties.setProperty(key, sb.toString());
         }
 		return retVal;
 	}

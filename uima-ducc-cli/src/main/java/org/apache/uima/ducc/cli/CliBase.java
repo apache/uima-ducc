@@ -506,12 +506,12 @@ public abstract class CliBase
 
         String pid =  reply.getProperties().getProperty(UiOption.JobId.pname());
         if (pid == null ) {
-            message("ERROR:", "JobId not found in reply");
+            message("ERROR: JobId not found in reply");
             rc = false;
         } else {
             friendlyId = Long.parseLong(pid);
             if ( friendlyId < 0 ) {
-                message("ERROR:", "Invalid JobId " + friendlyId);
+                message("ERROR: Invalid JobId", pid);
                 rc = false;
             }
         }
