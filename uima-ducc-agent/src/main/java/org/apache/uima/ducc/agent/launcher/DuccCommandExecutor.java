@@ -218,17 +218,17 @@ public class DuccCommandExecutor extends CommandExecutor {
 		try {
 			//	if the process is marked for death or still initializing or it is JD, kill it
 			if (    ((ManagedProcess) managedProcess).doKill() ||
-          ((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service) ||
+                    ((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Initializing) ||
-          ((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
+                    ((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Starting) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.FailedInitialization)) {
 				logger.info(methodName,((ManagedProcess)super.managedProcess).getDuccId(),">>>>>>>>>>>>>>> Killing Process:"+((ManagedProcess) managedProcess).getPid());
 				
 				if ( ((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
 					String[] sigTermCmdLine = new String[] {"/bin/kill","-15",((ManagedProcess) managedProcess).getDuccProcess().getPID()};
-					doExec(new ProcessBuilder(sigTermCmdLine), cmd, true);
+					doExec(new ProcessBuilder(sigTermCmdLine), sigTermCmdLine, true);
 				} else {
 					doExec(new ProcessBuilder(cmd), cmd, true);
 				}
