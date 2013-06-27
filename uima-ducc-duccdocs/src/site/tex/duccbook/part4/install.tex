@@ -25,12 +25,14 @@ trunk/target directory. The distribution file is in the form
 where [version] is the DUCC version; for example, {\em \distro}.  This document will refer to the distribution
 file as the ``$<$distribution.file$>$''.
 
-\subsection{Software Prerequisites}
+\section{Software Prerequisites}
+\label{sec:install.prerequisites}
 Both single and multi-user configurations have the following software pre-requisites:
 
 \begin{itemize}
   \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
-  \item Reasonably current Linux.  DUCC has been tested on SUSE Linux distributions.
+  \item Reasonably current Linux.  DUCC has been tested on SLES 10.2, 11.1, and 11.2, and RHEL 6.3.
+  \item For CGroupt support, libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL.
   \item IBM or Oracle Java JRE 1.6 or greater.
   \item Python 2.x, where 'x' is 4 or greater.  DUCC has not been tested on Python 3.x.
 \end{itemize}
@@ -64,7 +66,7 @@ To build the documentation, the following is required:
 More detailed one-time setup instructions for source-level builds via subversion can be found here:
 \url{http://uima.apache.org/one-time-setup.html\#svn-setup}
 
-\subsection{Documentation}
+\section{Documentation}
 After single-user installation, the DUCC documentation is found (in both PDF and HTML format) in the directory 
 ducc\_runtime/docs.  As well, the DUCC web server contains a link to the full documentation on each major page.
 The API is documented only via JavaDoc, distributed in the web server's root directory 
@@ -76,7 +78,7 @@ If building from source, Maven places the documentation in
     \item {\tt trunk/site/apidocs} (API Javadoc)
 \end{itemize}
     
-\subsection{Single-user  Installation and Verification}
+\section{Single-user  Installation and Verification}
 
 Single-user installation sets up an initial, working configuration on a single system.  No security
 is established, and all jobs run as user ducc.  Note that all installation must be done as user ducc.
@@ -85,7 +87,7 @@ Verification submits a very simple UIMA pipeline for execution under DUCC.  Once
 working, one may proceed to upgrade to full installation.
 
 
-\subsection{Minimal Hardware Requirements for single-user Installation}
+\section{Minimal Hardware Requirements for single-user Installation}
 \begin{itemize}
     \item One Intel-based or IBM Power-based system.  (More systems may be added during multi-user
       installation, described below.)
@@ -102,7 +104,7 @@ clusters consisting of multiple nodes with large (16GB-256GB or more) memory.  T
 requirements are for initial test and evaluation purposes, but will not be sufficient to run actual
 workloads.
 
-\subsection{Single-user System Installation}
+\section{Single-user System Installation}
 \label{subsec:install.single-user}
     \begin{enumerate}
       \item Expand the distribution file:
@@ -162,7 +164,7 @@ The post-installation script performs these tasks:
     \item Insures that the (supplied) ActiveMQ broker is runnable.
 \end{enumerate}
 
-\subsection{Initial System Verification}
+\section{Initial System Verification}
 
 Here we start the basic installation, submit a simple UIMA-AS job, verify that it ran, and stop
 DUCC.  Once this is confirmed working DUCC is ready to use in an unsecured, single-user mode on a
@@ -264,7 +266,7 @@ $HOME/ducc/logs/job-id
       Installation and Verification to set up multiple-user support and optionally, multi-node
       operation.
 
-\subsection{Logs}
+\section{Logs}
     The DUCC system logs are written to the directory
 \begin{verbatim}
     ducc_runtime/logs
@@ -278,12 +280,14 @@ $HOME/ducc/logs/job-id
     $HOME/ducc/logs/<jobid>
 \end{verbatim}
 
-\subsection{Multi-User Installation and Verification}
+\section{Multi-User Installation and Verification}
   
-    Multi-user installation consists of two steps over and above single-user installation:
+    Multi-user installation consists of these steps over and above single-user installation:
     \begin{enumerate}
         \item Install and configure the setuid-root program, ducc\_ling.  This small program allows DUCC
           jobs to be run as the submitting user rather than user ducc.
+
+        \item Optionally install and configure CGroups.
 
         \item Optionally update the configuration to include additional nodes.
      \end{enumerate}
@@ -302,7 +306,7 @@ $HOME/ducc/logs/job-id
          \item Root access is (briefly) required to install a small setuid-root program on each system.
       \end{itemize}
 
-\subsection{Ducc\_ling Installation}
+\section{Ducc\_ling Installation}
     Before proceeding with this step, please note: 
     \begin{itemize}
         \item This step is required ONLY to install multi-user capabilities.
@@ -392,19 +396,67 @@ ducc.agent.launcher.ducc\_spawn\_path=/local/ducc/bin/ducc\_ling
            prevent the LD\_LIBRARY\_PATH from being set by a program with root authority, so this is
            done AFTER changing userids).
        \end{itemize}
-       
-\subsection{Set up the full nodelists}
-To add additional nodes to the ducc cluster, DUCC needs to know what nodes to start its Agent
-processes on.  These nodes are listed in the file
+
+\section{CGroups Installation and Configuration}
+    The steps in this task must all be done as user root.
+
+    To install and configure CGroups for DUCC:
+    \begin{enumerate}
+       \item Install the appropriate \hyperref[sec:install.prerequisites]{libcgroup package} at level 0.37
+         or above.
+
+       \item Configure /etc/cgconfig.conf as follows:
+\begin{verbatim}
+   # Mount cgroups
+   mount {
+      memory = /cgroup;
+   }
+   # Define cgroup ducc and setup permissions
+   group ducc {
+    perm {
+        task {
+           uid = ducc;
+        }
+        admin {
+           uid = ducc;
+        }
+    }
+    memory {}
+   }
+\end{verbatim}
+       \item Start the cgconfig service:
+\begin{verbatim}
+   service cgconfig start
+\end{verbatim}
+         
+       \item Verify cgconfig service is running by the existence of directory: 
+\begin{verbatim}
+   /cgroups/ducc
+\end{verbatim}
+         
+       \item Configure the cgconfig service to start on reboot:
+\begin{verbatim}
+   chkconfig cgconfig on
+\end{verbatim}
+
+       \item Update \hyperref[itm:props-agent.cgroups.enable]{ducc.properties} to enable CGroups.
+         Note that if CGroups is not installed, the DUCC Agent will detect this and not attempt to
+         use the feature.  It is completely safe to enable CGroups in {\em ducc.properties} on
+         machines where it is not installed.
+    \end{enumerate}
+
+\section{Set up the full nodelists}
+   To add additional nodes to the ducc cluster, DUCC needs to know what nodes to start its Agent
+   processes on.  These nodes are listed in the file
 \begin{verbatim}
 ducc_runtime/resources/ducc.nodes.  
 \end{verbatim}
-
-During initial installation, this file was initialized with the node DUCC is installed on.
-Additional nodes may be added to the file using a text editor to increase the size of the DUCC
-cluster.
-
-\subsection{Full DUCC Verification}
+   
+   During initial installation, this file was initialized with the node DUCC is installed on.
+   Additional nodes may be added to the file using a text editor to increase the size of the DUCC
+   cluster.
+ 
+\section{Full DUCC Verification}
 
 This is identical to initial verification, with the one difference that the job ``1.job'' should be
 submitted as any user other than ducc.  Watch the webserver and insure that you see the job execute

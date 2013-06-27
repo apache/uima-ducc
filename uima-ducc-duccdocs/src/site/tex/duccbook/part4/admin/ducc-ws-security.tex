@@ -12,7 +12,8 @@
     \begin{enumerate}
       \item Author an authentication manager Java class implementing interface
       \begin{verbatim}
-org.apache.uima.ducc.common.authentication.IAuthenticationManager\end{verbatim}
+org.apache.uima.ducc.common.authentication.IAuthenticationManager
+      \end{verbatim}
       \item Create an authentication jar file comprising the
       authentication manager Java class
       \item Install your authentication jar file and any dependency jar files
@@ -20,8 +21,8 @@ org.apache.uima.ducc.common.authentication.IAuthenticationManager\end{verbatim}
       \item Update your ducc.properties file with authentication class name
       and jar file name(s) information
       \item Create a ducc.administrators file
-    \end{enumerate}
-
+      \end{enumerate}
+      
     Note: When a user clicks on the WebServer Login link, the login dialog is
     shown. On that dialog panel is shown the \mbox{authenticator: {\em
     version}}, which is supplied by your authentication manager implementation's {\em
@@ -31,7 +32,6 @@ org.apache.uima.ducc.common.authentication.IAuthenticationManager\end{verbatim}
     disabled.
     
 \subsection{Example Implementation}
-    \begin{description}
     
     Shown below is an example implementation which can be used as a template
     for coding protection by means of interfacing with your site's security
@@ -96,10 +96,8 @@ public class AuthenticationManager implements IAuthenticationManager {
 
 }
     \end{verbatim}
-    \end{description}
         
 \subsection{IAuthenticationManager}
-    \begin{description}
        
     Shown below is the interface which must be implemented by your
     authentication manager.
@@ -158,10 +156,9 @@ public interface IAuthenticationManager {
     }
 }
     \end{verbatim}
-    \end{description}
+
 
 \subsection{IAuthenticationResult}
-    \begin{description}
     
     Shown below is the interface which must be returned by the required
     authentication methods in your authentication manager.
@@ -182,10 +179,8 @@ public interface IAuthenticationResult {
     public Exception getException();
 }
     \end{verbatim}
-    \end{description}
     
 \subsection{Example ANT script to build jar}
-    \begin{description}
     
     Shown below is an example ANT script to build a ducc-authenticator.jar file.
     The resulting jar file should be placed user DUCC's lib directory along with
@@ -210,10 +205,8 @@ public interface IAuthenticationResult {
     
 </project>
     \end{verbatim}
-    \end{description}
     
 \subsection{Example ducc.properties entries}
-    \begin{description}
     
     Shown here is a snippet of the ducc.properties file defining the class to be
     used for authentication and the administrator created folder
@@ -225,15 +218,13 @@ public interface IAuthenticationResult {
     
     \begin{verbatim}
 # The class that performs authentication (for the WebServer)
-org.apache.uima.ducc.example.authentication.module.AuthenticationManager
+ducc.authentication.implementer = org.apache.uima.ducc.example.authentication.module.AuthenticationManager
 
 # Site specific jars: include all jars in directory site-security
 ducc.local.jars = site-security/*
     \end{verbatim}
-    \end{description}   
     
 \subsection{Example ducc.administrators}
-    \begin{description}
     
     Example contents of ducc.administrators file located within DUCC's resources
     directory. Only userids listed here can assume the Administrator role when 
@@ -244,4 +235,6 @@ jdoe
 fred
 hal9000
     \end{verbatim}
-    \end{description}         
+
+
+  

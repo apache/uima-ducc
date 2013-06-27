@@ -184,7 +184,12 @@
 
         \item[Job Lifetime Management and Orchestration] DUCC includes an Orchestrator to manage the
           lifetimes of all entities in the system.
-          
+
+        \item[Node Sharing] DUCC allocates processes from one or more users on a node, each with a specified
+          amount of memory.  DUCC's preferred mechanism for constraining memory use is Linux
+          Control Groups, or CGroups.  For nodes that do not suport CGroups, DUCC agents monitor
+          RAM use and kill processes that exceed their share size by a settable fudge factor.
+
         \item[DUCC Agents] DUCC Agents manage each node's local resources and all
           processes started by DUCC. Each node in a cluster has exactly one Agent. The Agent
           \begin{itemize}

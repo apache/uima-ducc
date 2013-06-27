@@ -1278,10 +1278,17 @@
             
 
           \item[ducc.agent.launcher.cgroups.enable] \hfill \\
-            \phantomsection\label{itm:props-agent.cgroups.enable}
-            Enable or disable CGroups support.  
+            \phantomsection\label{itm:props-agent.cgroups.enable} Enable or disable CGroups support.
+            If CGroups are not installed on a specific machine, this is ignored.
 
-            If CGroups are not installed on a specific machine, this is ignored. 
+            With CGroups the RSS for a managed process (plus any children processes it may spawn) is
+            limited to the allocated share size. Additional memory use goes to swap space. DUCC
+            monitors and limits swap use to the same proportion of total swap space as allocated
+            share size is to total RAM. If a process exceeds its allowed swap space it is terminated
+            and a ShareSizeExceeded message is sent to the Job Driver.
+
+            Nodes not using CGroups fall back to the ducc.agent.share.size.fudge.factor.
+
             \begin{description}
               \item[Default Value] true
               \item[Type] Tuning 
@@ -1406,7 +1413,7 @@
       \item[ducc.uima-as.dd2spring.xsl.path] \hfill \\
         This configures the path the required dd2spring xsl definitions. 
         \begin{description}
-          \item[Default Value] \$\{DUCC\_HOME}/resources/dd2sprint.xsl
+          \item[Default Value] \$\{DUCC\_HOME\}/resources/dd2sprint.xsl
           \item[Type] Private 
         \end{description}
         
