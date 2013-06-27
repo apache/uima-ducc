@@ -227,8 +227,19 @@ public class DuccCommandExecutor extends CommandExecutor {
 				
 				if ( ((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service) ||
 					((ManagedProcess) managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
-					String[] sigTermCmdLine = new String[] {"/bin/kill","-15",((ManagedProcess) managedProcess).getDuccProcess().getPID()};
-					doExec(new ProcessBuilder(sigTermCmdLine), sigTermCmdLine, true);
+		            ICommandLine cmdL;
+	                if (Utils.isWindows()) {
+		                cmdL = new NonJavaCommandLine("taskkill");
+		                cmdL.addArgument("/PID");
+		            } else {
+		                cmdL = new NonJavaCommandLine("/bin/kill");
+		                cmdL.addArgument("-15");
+		            }
+		            cmdL.addArgument(((ManagedProcess) managedProcess).getDuccProcess().getPID());
+
+//					String[] sigTermCmdLine = new String[] {"/bin/kill","-15",((ManagedProcess) managedProcess).getDuccProcess().getPID()};
+		            String[] sigTermCmdLine = getDeployableCommandLine(cmdL, new HashMap<String, String>());
+		            doExec(new ProcessBuilder(sigTermCmdLine), sigTermCmdLine, true);
 				} else {
 					doExec(new ProcessBuilder(cmd), cmd, true);
 				}
