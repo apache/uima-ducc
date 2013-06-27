@@ -1085,6 +1085,10 @@ public class ServiceHandler
         if ( sset.countImplementors() > 0 ) {
             logger.debug(methodName, sset.getId(), "Stopping implementors:", friendly, epname);
             sset.stop();
+        } else if ( sset.isPingOnly() ) {
+            logger.debug(methodName, sset.getId(), "Unregister ping-only setvice:", friendly, epname);
+            sset.stop();
+            serviceStateHandler.removeService(epname, friendly);
         } else {
             logger.debug(methodName, sset.getId(), "Removing from map:", friendly, epname);
             serviceStateHandler.removeService(epname, friendly);

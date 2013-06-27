@@ -545,6 +545,11 @@ public class ServiceSet
         return (service_class == ServiceClass.Submitted);
     }
 
+    boolean isPingOnly()
+    {
+        return meta_props.containsKey("ping-only");
+    }
+
     boolean isRegistered()
     {
         return (service_class == ServiceClass.Registered) && (!deregistered);
