@@ -41,7 +41,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "0.8.5"
+#define VERSION "0.8.6"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -62,6 +62,7 @@
  * 2013-05-07 0.8.3 Implement version (-v) option. jrc
  * 2013-06-14 0.8.4 Don't create log heirarchy before switching ids!  jrc
  * 2013-06-20 0.8.5 Use mode 0777 making directories so umask can control permissions. jrc
+ * 2013-06-20 0.8.6 Show full environment being passed to exec-ed process. jrc
  */
 
 /**
@@ -243,7 +244,7 @@ void show_env(char **envp)
 {
     int count = -1;
     while ( envp[++count] != NULL ) {
-        fprintf(stdout, "Envoron[%d] = %s\n", count, envp[count]);
+        fprintf(stdout, "Environ[%d] = %s\n", count, envp[count]);
     }
 }
 
@@ -651,7 +652,6 @@ int main(int argc, char **argv, char **envp)
     // 
     // Translate DUCC_LD_LIBRARY_PATH into LD_LIBRARY_PATH, if it exists.
     //
-    //show_env(envp);
 
     int env_index = -1;
     char ** pathstr = NULL;
@@ -659,7 +659,7 @@ int main(int argc, char **argv, char **envp)
         char *srchstring = "DUCC_LD_LIBRARY_PATH=";
         int len = strlen(srchstring);
         if ( strncmp(envp[env_index], srchstring, len) == 0 ) {
-            fprintf(stdout, "3000 Found DUCC_LD_LIBRARY_PATH and it is %s\n", envp[env_index]);
+            // fprintf(stdout, "3000 Found DUCC_LD_LIBRARY_PATH and it is %s\n", envp[env_index]);
             pathstr = &envp[env_index];
             break;
         }
@@ -671,9 +671,10 @@ int main(int argc, char **argv, char **envp)
         // We modify the variable in place.
         //
         char *val = getenv("DUCC_LD_LIBRARY_PATH");
-        fprintf(stdout, "3002 Changing DUCC_LD_LIBRARY_PATH to LD_LIBRARY_PATH\n");
+        //fprintf(stdout, "3002 Changing DUCC_LD_LIBRARY_PATH to LD_LIBRARY_PATH\n");
         sprintf(*pathstr, "LD_LIBRARY_PATH=%s", val);
     }
+    show_env(envp);
 
     //
     // Now just transmogrify into the requested command
