@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.internationalization.Messages;
+import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -33,15 +34,15 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.ITimeWindow;
-import org.apache.uima.ducc.transport.event.common.TimeWindow;
-import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
+import org.apache.uima.ducc.transport.event.common.ITimeWindow;
+import org.apache.uima.ducc.transport.event.common.TimeWindow;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 
 
@@ -231,12 +232,62 @@ public class ProcessAccounting {
 		return;
 	}
 	
+	/*
+	private void injectError(DuccId jobid, DuccId processId, ProcessGarbageCollectionStats newGCS, ProcessGarbageCollectionStats oldGCS) {
+		String location = "injectError";
+		Random random = new Random();
+		if(random.nextBoolean()) {
+			long falseCount = oldGCS.getCollectionCount()+newGCS.getCollectionCount()+1;
+			logger.warn(location, jobid, processId, "falseCount: "+falseCount);
+			oldGCS.setCollectionCount(falseCount);
+			long falseTime = oldGCS.getCollectionTime()+newGCS.getCollectionTime()+10*1000;
+			logger.warn(location, jobid, processId, "falseTime: "+falseTime);
+			oldGCS.setCollectionTime(falseTime);
+		}
+	}
+	*/
+	
+	private boolean validateGCStats(DuccId jobid, DuccId processId, ProcessGarbageCollectionStats newGCS, ProcessGarbageCollectionStats oldGCS) {
+		String location = "validateGCStats";
+		boolean retVal = true;
+		if(oldGCS == null) {
+			//retVal = true;
+		}
+		else if(newGCS == null) {
+			logger.warn(location, jobid, processId, "ProcessGarbageCollectionStats missing?");
+			retVal = false;
+		}
+		else {
+			long newCC = newGCS.getCollectionCount();
+			long oldCC = oldGCS.getCollectionCount();
+			if(newCC < oldCC) {
+				logger.warn(location, jobid, processId, "CollectionCount "+newCC+" < "+oldCC);
+				retVal = false;
+			}
+			long newCT = newGCS.getCollectionTime();
+			long oldCT = oldGCS.getCollectionTime();
+			if(newCT < oldCT) {
+				logger.warn(location, jobid, processId, "CollectionTime "+newCT+" < "+oldCT);
+				retVal = false;
+			}
+		}
+		return retVal;
+	}
+	
 	public void copyInventoryGCStats(IDuccWork dw, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyInventoryGCStats";
 		logger.trace(methodName, null, messages.fetch("enter"));
-		if ( inventoryProcess.getGarbageCollectionStats() != null ) {
-			process.setGarbageCollectionStats(inventoryProcess.getGarbageCollectionStats());
-			logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "GC Stats Count:"+process.getGarbageCollectionStats().getCollectionCount());
+		DuccId jobId = dw.getDuccId();
+		DuccId processId = process.getDuccId();
+		ProcessGarbageCollectionStats newGCS = inventoryProcess.getGarbageCollectionStats();
+		ProcessGarbageCollectionStats oldGCS = process.getGarbageCollectionStats();
+		if(validateGCStats(jobId,processId,newGCS,oldGCS)) {
+			process.setGarbageCollectionStats(newGCS);
+			ProcessGarbageCollectionStats gcs = process.getGarbageCollectionStats();
+			if(gcs != null) {
+				logger.trace(methodName, jobId, processId, "GC Stats Count:"+gcs.getCollectionCount());
+				logger.trace(methodName, jobId, processId, "GC Stats Time:"+gcs.getCollectionTime());
+			}
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
