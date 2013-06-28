@@ -298,6 +298,17 @@ public class DuccServiceApi
         // Presumably only the endpoint and service dependencies can have place holders
         DuccUiUtilities.resolvePropertiesPlaceholders(cli_props, jvmargs);
 
+        /*
+         * Fixup the environment: rename LD_LIBRARY_PATH & add any standard ones
+         */
+        String key_ev = UiOption.ProcessEnvironment.pname();
+        if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
+            key_ev = UiOption.Environment.pname();
+        }
+        if (!DuccUiUtilities.ducc_environment(this, cli_props, key_ev)) {
+            throw new IllegalArgumentException("Invalid environment syntax: " + cli_props.getProperty(key_ev));
+        }
+        
         setLinger();
 
         //

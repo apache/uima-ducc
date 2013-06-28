@@ -225,16 +225,6 @@ public class DuccServiceSubmit
             requestProperties.dump();
         }
     
-        /*
-         * set DUCC_LD_LIBRARY_PATH in process environment
-         */
-        String key_ev = UiOption.ProcessEnvironment.pname();
-        if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
-            key_ev = UiOption.Environment.pname();
-        }
-        if (!DuccUiUtilities.ducc_environment(this, requestProperties, key_ev)) {
-            return false;
-        }
         requestProperties.put(UiOption.ProcessThreadCount.pname(), "1");         // enforce this - OR will complain if it's missing
 
         SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties);
