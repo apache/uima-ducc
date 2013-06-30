@@ -18,7 +18,7 @@
  */
 package org.apache.uima.ducc.agent.processors;
 
-import java.io.File;
+
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.concurrent.ExecutorService;
@@ -110,41 +110,81 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
             || process.getProcessState().equals(ProcessState.Running))
       try {
 
-       
-        ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(statmFile, 2,
-                0);
-        Future<ProcessResidentMemory> prm = pool.submit(collector);
-
-        ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(logger,
-                process.getPID(), processStatFile, 42, 0);
-
-        Future<ProcessCpuUsage> processCpuUsage = pool.submit(processCpuUsageCollector);
-
-        ProcessMajorFaultCollector processMajorFaultUsageCollector = new ProcessMajorFaultCollector(
-                logger, process.getPID(), processStatFile, 42, 0);
-
-        Future<ProcessMemoryPageLoadUsage> processMajorFaultUsage = pool
-                .submit(processMajorFaultUsageCollector);
         String DUCC_HOME = Utils.findDuccHome();
         // executes script DUCC_HOME/admin/ducc_get_process_swap_usage.sh which sums up swap used by
         // a process
         long totalSwapUsage = 0;
-        if ( agent.useCgroups ) {
-            String[] cgroupPids = 
-            		agent.cgroupsManager.getPidsInCgroup(managedProcess.getDuccProcess().getCGroup().getId());
+        long totalFaults = 0;
+        long totalCpuUsage = 0;
+        long totalRss = 0;
+        Future<ProcessMemoryPageLoadUsage> processMajorFaultUsage = null;
+        Future<ProcessCpuUsage> processCpuUsage = null;
+        String[] cgroupPids = new String[0];
+        try {
+          if ( agent.useCgroups ) {
+            cgroupPids = 
+                agent.cgroupsManager.getPidsInCgroup(managedProcess.getDuccProcess().getCGroup().getId());
             
             for( String pid : cgroupPids ) {
                 DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
                         pid, managedProcess.getOwner(), DUCC_HOME
                                 + "/admin/ducc_get_process_swap_usage.sh", logger);
-            	totalSwapUsage += processSwapSpaceUsage.getSwapUsage();
+                totalSwapUsage += processSwapSpaceUsage.getSwapUsage();
+
+                
+                ProcessMajorFaultCollector processMajorFaultUsageCollector = new ProcessMajorFaultCollector(
+                        logger, pid, processStatFile, 42, 0);
+
+                processMajorFaultUsage = pool
+                        .submit(processMajorFaultUsageCollector);
+                totalFaults += processMajorFaultUsage.get().getMajorFaults();
+                
+                ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(logger,
+                        pid, processStatFile, 42, 0);
+
+                processCpuUsage = pool.submit(processCpuUsageCollector);
+                totalCpuUsage += processCpuUsage.get().getTotalJiffies();
+                
+                RandomAccessFile rStatmFile =
+                        new RandomAccessFile("/proc/" + pid + "/statm", "r");
+                ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(rStatmFile, 2,
+                        0);
+                Future<ProcessResidentMemory> prm = pool.submit(collector);
+               
+                totalRss += prm.get().get();
+                
+                rStatmFile.close();
             }
-        } else {
-          DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
-          process.getPID(), managedProcess.getOwner(), DUCC_HOME
+          } else {
+             DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
+             process.getPID(), managedProcess.getOwner(), DUCC_HOME
                    + "/admin/ducc_get_process_swap_usage.sh", logger);
-          totalSwapUsage = processSwapSpaceUsage.getSwapUsage();
+             totalSwapUsage = processSwapSpaceUsage.getSwapUsage();
+
+             ProcessMajorFaultCollector processMajorFaultUsageCollector = new ProcessMajorFaultCollector(
+                     logger, process.getPID(), processStatFile, 42, 0);
+
+             processMajorFaultUsage = pool
+                     .submit(processMajorFaultUsageCollector);
+             totalFaults = processMajorFaultUsage.get().getMajorFaults();
+             
+             ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(logger,
+                     process.getPID(), processStatFile, 42, 0);
+
+             processCpuUsage = pool.submit(processCpuUsageCollector);
+             totalCpuUsage = processCpuUsage.get().getTotalJiffies();
+             
+             ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(statmFile, 2,
+                     0);
+             Future<ProcessResidentMemory> prm = pool.submit(collector);
+             
+             totalRss = prm.get().get();
+          }
+          
+        } catch( Exception exc) {
+          logger.error("LinuxNodeMetricsProcessor.process", null, exc);
         }
+          
 
         // report cpu utilization while the process is running
         if ( managedProcess.getDuccProcess().getProcessState().equals(ProcessState.Running)) {
@@ -152,11 +192,11 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
             if ( initializing ) {
               initializing = false;
               // cache how much cpu was used up during initialization of the process
-              initTimeinSeconds = processCpuUsage.get().getTotalJiffies() / agent.cpuClockRate;
+              initTimeinSeconds = totalCpuUsage / agent.cpuClockRate;
             }
             //  normalize cpu usage to report in seconds. Also subtract how much cpu was
             //  used during initialization
-            long cpu = ( processCpuUsage.get().getTotalJiffies()/agent.cpuClockRate)-initTimeinSeconds;
+            long cpu = ( totalCpuUsage/agent.cpuClockRate)-initTimeinSeconds;
             logger.info("process", null, "----------- PID:" + process.getPID()
                     + " CPU Time (seconds):" + cpu);
             // Publish cumulative CPU usage
@@ -172,9 +212,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
           //   report 0 for CPU while the process is initializing
           process.setCpuTime(0);
         }
-        long majorFaults = processMajorFaultUsage.get().getMajorFaults();
+       // long majorFaults = processMajorFaultUsage.get().getMajorFaults();
         // collects process Major faults (swap in memory)
-        process.setMajorFaults(majorFaults);
+        process.setMajorFaults(totalFaults);
         // Current Process Swap Usage in bytes
         long st = System.currentTimeMillis();
 //        long processSwapUsage = processSwapSpaceUsage.getSwapUsage() * 1024;
@@ -184,7 +224,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         process.setSwapUsage(processSwapUsage);
         // if ( (logCounter % 2 ) == 0 ) {
         logger.info("process", null, "----------- PID:" + process.getPID() + " Major Faults:"
-                + majorFaults + " Process Swap Usage:" + processSwapUsage
+                + totalFaults + " Process Swap Usage:" + processSwapUsage
                 + " Max Swap Usage Allowed:" + managedProcess.getMaxSwapThreshold()
                 + " Time to Collect Swap Usage:" + (System.currentTimeMillis() - st));
         // }
@@ -208,6 +248,18 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
             process.setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededSwapThreshold
                     .toString());
             agent.stopProcess(process);
+            
+            if ( agent.useCgroups ) {
+              for( String pid : cgroupPids ) {
+                //  skip the main process that was just killed above. Only kill
+                //  its child processes.
+                if ( pid.equals(managedProcess.getDuccProcess().getPID())) {
+                  continue;
+                }
+                killChildProcess(pid,"-15");
+              }
+            } 
+            
           } catch (Exception ee) {
             logger.error("process", null, ee);
           }
@@ -219,7 +271,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
           if (fudgeFactor > -1
                   && managedProcess.getProcessMemoryAssignment().getMaxMemoryWithFudge() > 0) {
             // RSS is in terms of pages(blocks) which size is system dependent. Default 4096 bytes
-            long rss = (prm.get().get() * (blockSize / 1024)) / 1024; // normalize RSS into MB
+            long rss = (totalRss * (blockSize / 1024)) / 1024; // normalize RSS into MB
             logger.trace("process", null, "*** Process with PID:" + managedProcess.getPid()
                     + " Assigned Memory (MB): " + managedProcess.getProcessMemoryAssignment()
                     + " MBs. Current RSS (MB):" + rss);
@@ -240,6 +292,17 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                 process.setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededShareSize
                         .toString());
                 agent.stopProcess(process);
+                
+                if ( agent.useCgroups ) {
+                  for( String pid : cgroupPids ) {
+                    //  skip the main process that was just killed above. Only kill
+                    //  its child processes.
+                    if ( pid.equals(managedProcess.getDuccProcess().getPID())) {
+                      continue;
+                    }
+                    killChildProcess(pid,"-15");
+                  }
+                } 
               } catch (Exception ee) {
                 logger.error("process", null, ee);
               }
@@ -249,7 +312,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
 
         }
         // Publish resident memory
-        process.setResidentMemory((prm.get().get() * blockSize));
+        process.setResidentMemory((totalRss * blockSize));
         ProcessGarbageCollectionStats gcStats = gcStatsCollector.collect();
         process.setGarbageCollectionStats(gcStats);
         logger.info(
@@ -265,5 +328,33 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
       }
 
   }
-
+  private void killChildProcess(final String pid, final String signal) {
+    // spawn a thread that will do kill -15, wait for 1 minute and kill the process
+    // hard if it is still alive
+    (new Thread() {
+      public void run() {
+        String c_launcher_path = 
+                Utils.resolvePlaceholderIfExists(
+                        System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+        try {
+          String[] killCmd=null;
+          String useSpawn = System.getProperty("ducc.agent.launcher.use.ducc_spawn");
+          if ( useSpawn != null && useSpawn.toLowerCase().equals("true")) {
+              killCmd = new String[] { c_launcher_path,
+                      "-u", ((ManagedProcess)managedProcess).getOwner(), "--","/bin/kill",signal,((ManagedProcess) managedProcess).getDuccProcess().getPID() };  
+          } else {
+              killCmd = new String[] { "/bin/kill","-15",((ManagedProcess) managedProcess).getDuccProcess().getPID() };  
+          }
+          ProcessBuilder pb = new ProcessBuilder(killCmd);
+          Process p = pb.start();
+          p.wait(1000 * 60);  // wait for 1 minute and whack the process if still alive
+          p.destroy();
+        } catch( Exception e) {
+          logger.error("killChildProcess", managedProcess.getWorkDuccId(), e);
+        }
+      }
+     }).start();
+     
+    
+  }
 }
