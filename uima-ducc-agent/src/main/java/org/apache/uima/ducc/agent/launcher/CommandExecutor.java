@@ -22,7 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.agent.NodeAgent;
+import org.apache.uima.ducc.agent.NodeAgent.ProcessMemoryUsageRoute;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
@@ -74,6 +76,16 @@ public abstract class CommandExecutor implements Callable<Process> {
 						((ManagedProcess) managedProcess).getDuccProcess()
 								.setProcessState(ProcessState.Running);
 					}
+					
+          try {
+            RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent, 
+                    ((ManagedProcess) managedProcess).getDuccProcess(),
+                    (ManagedProcess) managedProcess);
+            agent.getContext().addRoutes(rb);
+          
+          } catch( Exception e) {
+            logger.error("postExecStep", null, e);
+          }
 				}
 			}
 		}
