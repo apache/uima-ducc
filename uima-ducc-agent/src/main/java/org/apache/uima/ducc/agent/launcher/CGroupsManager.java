@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 
+import scala.actors.threadpool.Arrays;
+
 /**
  * Manages cgroup container on a node
  * 
@@ -154,6 +156,57 @@ public class CGroupsManager {
 			}
 		}
 	}
+
+	public boolean isPidInCGroup(String pid) throws Exception {
+	  String[] pids = getAllCGroupPids();
+	  for( String p : pids ) {
+	    if ( p.equals(pid)) {
+	      return true;
+	    }    
+	  }
+	  return false;
+	}
+	
+	/**
+	 * Returns an array of PIDs managed by cgroups.
+	 * 
+	 * @return - String array of PIDs
+	 * @throws Exception
+	 */
+	 @SuppressWarnings("unchecked")
+  public String[] getAllCGroupPids() throws Exception {
+
+	   List<String> cgroupPids = new ArrayList<String>();
+	   
+	    // Match any folder under /cgroup/ducc that has syntax
+	    // <number>.<number>.<number>
+	    // This syntax is assigned by ducc to each cgroup
+	    Pattern p = Pattern.compile("((\\d+)\\.(\\d+)\\.(\\d+))");
+
+	    File cgroupsFolder = new File(cgroupBaseDir);
+	    String[] files = cgroupsFolder.list();
+	    
+	    for (String cgroupFolder : files) {
+	      Matcher m = p.matcher(cgroupFolder);
+	      //  only look at ducc's cgroups
+	      if (m.find()) {
+	        try {
+	          // open proc file which may include PIDs if processes are 
+	          // still running
+	          File f = new File(cgroupBaseDir + "/" + cgroupFolder
+	              + "/cgroup.procs");
+	          //  collect all pids
+	          String[] pids = readPids(f);
+	          cgroupPids.addAll(Arrays.asList(pids));
+	        } catch (Exception e) {
+	          agentLogger.error("getAllCGroupPids", null, e);
+	          throw e;
+	        }
+	      }
+	    }
+	    String[] pids = new String[cgroupPids.size()];
+	    return cgroupPids.toArray(pids);
+	  }
 
 	public void kill(final String user, final String pid) {
 		final String methodName = "kill";

@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.uima.ducc.agent.Agent;
+import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -274,6 +275,10 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
             continue;   // skip this process         
           }
           if ( agent != null ) {
+            // check if this process is in any of the cgroups. If so, this process is not rogue
+            if ( ((NodeAgent)agent).useCgroups && ((NodeAgent)agent).cgroupsManager.isPidInCGroup(pid) ) {
+              continue; // not rogue, this process is in a cgroup
+            }
             NodeUsersInfo nui = null; 
             //  Check if user record is already in the map. May have been done above in
             //  copyAllUserReservations().
@@ -324,6 +329,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
               continue;  // all we know that the user has a reservation and there is a process running. If there
                          // are reservations, we cant determine which user process is a rogue process
             }
+           
             //  detect if this is a rogue process and add it to the rogue process list. First check if the current process
             //  has a parent and if so, check if the parent is rogue. Second, if parent is not rogue (or no parent)
             //  check if the process is in agent's inventory. If its not, we have a rogue process.
