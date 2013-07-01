@@ -222,39 +222,59 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
         }
         // node not in the exclusion list for cgroups
         if (!excludeNodeFromCGroups) {
-          // get the top level cgroup folder from ducc.properties. If
-          // not defined, use /cgroup/ducc as default
-          String cgroupsBaseDir = System.getProperty("ducc.agent.launcher.cgroups.basedir");
-          if (cgroupsBaseDir == null) {
-            cgroupsBaseDir = "/cgroup/ducc";
-          }
-          // get the cgroup subsystems. If not defined, default to the
-          // memory subsystem
-          String cgroupsSubsystems = System.getProperty("ducc.agent.launcher.cgroups.subsystems");
-          if (cgroupsSubsystems == null) {
-            cgroupsSubsystems = "memory";
-          }
-          cgroupsManager = new CGroupsManager(cgroupsBaseDir, cgroupsSubsystems, logger);
-          // check if cgroups base directory exists in the filesystem
-          // which means that cgroups
-          // and cgroups convenience package are installed and the
-          // daemon is up and running.
-          if (cgroupsManager.cgroupExists(cgroupsBaseDir)) {
-            useCgroups = true;
-            logger.info("nodeAgent", null, "------- Agent Running with CGroups Enabled");
-            try {
-              // remove stale CGroups
-              cgroupsManager.cleanupOnStartup();
-            } catch (Exception e) {
-              logger.error("nodeAgent", null, e);
-
+        	//	fetch a list of paths the agent will search to find cgroups utils
+        	//  like cgexec. The default location is /usr/bin
+        	String cgUtilsPath=null;
+        	String cgroupsUtilsDirs = System.getProperty("ducc.agent.launcher.cgroups.utils.dir");
+            if (cgroupsUtilsDirs == null) {
+            	cgUtilsPath = "/usr/bin";  // default
+            } else {
+            	String[] paths = cgroupsUtilsDirs.split(",");
+            	for( String path : paths ) {
+            		File file = new File(path.trim()+"/cgexec");
+            		if ( file.exists() ) {
+            			cgUtilsPath = path;
+            			break;
+            		}
+            	}
             }
+            if ( cgUtilsPath == null ) {
+            	useCgroups = false;
+                logger.info("nodeAgent", null, "------- CGroups Disabled - Unable to Find Cgroups Utils Directory. Add/Modify ducc.agent.launcher.cgroups.utils.dir property in ducc.properties");
+            } else {
+                // get the top level cgroup folder from ducc.properties. If
+                // not defined, use /cgroup/ducc as default
+                String cgroupsBaseDir = System.getProperty("ducc.agent.launcher.cgroups.basedir");
+                if (cgroupsBaseDir == null) {
+                  cgroupsBaseDir = "/cgroup/ducc";
+                }
+                // get the cgroup subsystems. If not defined, default to the
+                // memory subsystem
+                String cgroupsSubsystems = System.getProperty("ducc.agent.launcher.cgroups.subsystems");
+                if (cgroupsSubsystems == null) {
+                  cgroupsSubsystems = "memory";
+                }
+                cgroupsManager = new CGroupsManager(cgUtilsPath, cgroupsBaseDir, cgroupsSubsystems, logger);
+                // check if cgroups base directory exists in the filesystem
+                // which means that cgroups
+                // and cgroups convenience package are installed and the
+                // daemon is up and running.
+                if (cgroupsManager.cgroupExists(cgroupsBaseDir)) {
+                  useCgroups = true;
+                  logger.info("nodeAgent", null, "------- Agent Running with CGroups Enabled");
+                  try {
+                    // remove stale CGroups
+                    cgroupsManager.cleanupOnStartup();
+                  } catch (Exception e) {
+                    logger.error("nodeAgent", null, e);
 
-          } else {
-            logger.info("nodeAgent", null, "------- CGroups Not Installed on this Machine");
-          }
+                  }
+
+                } else {
+                  logger.info("nodeAgent", null, "------- CGroups Not Installed on this Machine");
+                }
+            }
         }
-
       }
     } else {
       logger.info("nodeAgent", null, "------- CGroups Not Enabled on this Machine");
@@ -940,7 +960,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                             + ". Agent Timedout Waiting For Process to Initialize");
             // kill the process
             undeployProcess(processEntry.getValue());
-          }
+          } 
+//          else if (duccEvent.getState().equals(ProcessState.Stopping)) { 
+//              deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
+//              deployedProcess.isStopping();
+//          }
           if (duccEvent.getUimaPipeline() != null) {
             StringBuffer buffer = new StringBuffer("\t\tUima Pipeline -");
             for (IUimaPipelineAEComponent uimaAeState : duccEvent.getUimaPipeline()) {
