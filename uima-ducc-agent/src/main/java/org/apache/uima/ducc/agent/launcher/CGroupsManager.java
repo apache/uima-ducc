@@ -31,6 +31,7 @@ public class CGroupsManager {
 
 	private Set<String> containerIds = new LinkedHashSet<String>();
 	private String cgroupBaseDir = "";
+	private String cgroupUtilsDir=null;
 	private String cgroupSubsystems = ""; // comma separated list of subsystems
 											// eg. memory,cpu
 
@@ -40,7 +41,7 @@ public class CGroupsManager {
 	public static void main(String[] args) {
 		try {
 
-			CGroupsManager cgMgr = new CGroupsManager("/cgroup/ducc", "memory",
+			CGroupsManager cgMgr = new CGroupsManager("/usr/bin","/cgroup/ducc", "memory",
 					null);
 			System.out.println("Cgroups Installed:"
 					+ cgMgr.cgroupExists("/cgroup/ducc"));
@@ -62,8 +63,9 @@ public class CGroupsManager {
 		}
 	}
 
-	public CGroupsManager(String cgroupBaseDir, String cgroupSubsystems,
+	public CGroupsManager(String cgroupUtilsDir, String cgroupBaseDir, String cgroupSubsystems,
 			DuccLogger agentLogger) {
+		this.cgroupUtilsDir = cgroupUtilsDir;
 		this.cgroupBaseDir = cgroupBaseDir;
 		this.cgroupSubsystems = cgroupSubsystems;
 		this.agentLogger = agentLogger;
@@ -289,7 +291,8 @@ public class CGroupsManager {
 			boolean useDuccSpawn) throws Exception {
 
 		try {
-			String[] command = new String[] { "/usr/bin/cgcreate", "-t",
+			
+			String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
 					"ducc", "-a", "ducc", "-g",
 					cgroupSubsystems + ":ducc/" + containerId };
 			int retCode = launchCommand(command, useDuccSpawn, "ducc",
@@ -332,11 +335,13 @@ public class CGroupsManager {
 	 * 
 	 * @throws Exception
 	 */
+	
 	public boolean setContainerMaxMemoryLimit(String containerId,
 			String userId, boolean useDuccSpawn, long containerMaxSize)
 			throws Exception {
 		try {
-			String[] command = new String[] { "/usr/bin/cgset", "-r",
+			///usr/bin
+			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
 					"memory.limit_in_bytes=" + containerMaxSize,
 					"ducc/" + containerId };
 			int retCode = launchCommand(command, useDuccSpawn, "ducc",
