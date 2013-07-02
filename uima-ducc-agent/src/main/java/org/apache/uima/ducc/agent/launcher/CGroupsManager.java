@@ -18,8 +18,6 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 
-import scala.actors.threadpool.Arrays;
-
 /**
  * Manages cgroup container on a node
  * 
@@ -177,7 +175,6 @@ public class CGroupsManager {
 	 * @return - String array of PIDs
 	 * @throws Exception
 	 */
-	 @SuppressWarnings("unchecked")
   public String[] getAllCGroupPids() throws Exception {
 
 	   List<String> cgroupPids = new ArrayList<String>();
