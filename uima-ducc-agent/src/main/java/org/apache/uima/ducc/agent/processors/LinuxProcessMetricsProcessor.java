@@ -41,6 +41,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class LinuxProcessMetricsProcessor extends BaseProcessor implements ProcessMetricsProcessor {
@@ -314,14 +315,17 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         }
         // Publish resident memory
         process.setResidentMemory((totalRss * blockSize));
-        ProcessGarbageCollectionStats gcStats = gcStatsCollector.collect();
-        process.setGarbageCollectionStats(gcStats);
-        logger.info(
-                "process",
-                null,
-                "PID:" + process.getPID() + " Total GC Collection Count :"
-                        + gcStats.getCollectionCount() + " Total GC Collection Time :"
-                        + gcStats.getCollectionTime());
+        //	dont collect GC metrics for POPs. May not be java or may not be a jmx enabled java process
+        if ( !process.getProcessType().equals(ProcessType.Pop)) {
+            ProcessGarbageCollectionStats gcStats = gcStatsCollector.collect();
+            process.setGarbageCollectionStats(gcStats);
+            logger.info(
+                    "process",
+                    null,
+                    "PID:" + process.getPID() + " Total GC Collection Count :"
+                            + gcStats.getCollectionCount() + " Total GC Collection Time :"
+                            + gcStats.getCollectionTime());
+        }
 
       } catch (Exception ex) {
         logger.error("process", null, e);
