@@ -122,8 +122,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         String[] cgroupPids = new String[0];
         try {
           if ( agent.useCgroups ) {
+        	String containerId = agent.cgroupsManager.getContainerId(managedProcess);
             cgroupPids = 
-                agent.cgroupsManager.getPidsInCgroup(managedProcess.getDuccProcess().getCGroup().getId());
+                agent.cgroupsManager.getPidsInCgroup(containerId);
             
             for( String pid : cgroupPids ) {
                 DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
@@ -182,7 +183,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
           }
           
         } catch( Exception exc) {
-          logger.error("LinuxNodeMetricsProcessor.process", null, exc);
+          logger.error("LinuxProcessMetricsProcessor.process", null, exc);
         }
           
 

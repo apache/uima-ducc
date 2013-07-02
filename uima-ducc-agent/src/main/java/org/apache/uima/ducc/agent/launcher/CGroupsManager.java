@@ -13,8 +13,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.uima.ducc.agent.launcher.ManagedProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 
 import scala.actors.threadpool.Arrays;
 
@@ -272,6 +274,15 @@ public class CGroupsManager {
 			agentLogger.error(methodName, null,e );
 		}
 	}
+    public String getContainerId(ManagedProcess managedProcess) {
+    	String containerId;
+		if ( managedProcess.getDuccProcess().getProcessType().equals(ProcessType.Service)) {
+			containerId = String.valueOf(managedProcess.getDuccProcess().getCGroup().getId());
+		} else {
+			containerId = managedProcess.getWorkDuccId().getFriendly()+"."+managedProcess.getDuccProcess().getCGroup().getId();
+		}
+		return containerId;
+    }
 
 	/**
 	 * Creates cgroup container with a given id and owner.
