@@ -134,8 +134,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                 totalSwapUsage += processSwapSpaceUsage.getSwapUsage();
 
                 
-                ProcessMajorFaultCollector processMajorFaultUsageCollector = new ProcessMajorFaultCollector(
-                        logger, pid, processStatFile, 42, 0);
+                ProcessMajorFaultCollector processMajorFaultUsageCollector = 
+                		new ProcessMajorFaultCollector(logger, pid);
 
                 processMajorFaultUsage = pool
                         .submit(processMajorFaultUsageCollector);
@@ -163,8 +163,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                    + "/admin/ducc_get_process_swap_usage.sh", logger);
              totalSwapUsage = processSwapSpaceUsage.getSwapUsage();
 
-             ProcessMajorFaultCollector processMajorFaultUsageCollector = new ProcessMajorFaultCollector(
-                     logger, process.getPID(), processStatFile, 42, 0);
+             ProcessMajorFaultCollector processMajorFaultUsageCollector = 
+            		 new ProcessMajorFaultCollector(logger, process.getPID());
 
              processMajorFaultUsage = pool
                      .submit(processMajorFaultUsageCollector);

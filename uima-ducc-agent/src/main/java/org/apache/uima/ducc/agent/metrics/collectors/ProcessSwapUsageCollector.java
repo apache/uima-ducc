@@ -25,19 +25,18 @@ import org.apache.uima.ducc.common.agent.metrics.swap.DuccProcessMemoryPageLoadU
 import org.apache.uima.ducc.common.agent.metrics.swap.ProcessMemoryPageLoadUsage;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 
-public class ProcessSwapUsageCollector extends AbstractMetricCollector implements
+public class ProcessSwapUsageCollector implements
 		Callable<ProcessMemoryPageLoadUsage> {
-
+	String pid;
+	
 	public ProcessSwapUsageCollector(DuccLogger logger, String pid,
 			RandomAccessFile fileHandle, int howMany, int offset) {
-		super(fileHandle, howMany, offset);
+		this.pid = pid;
 	}
 
 	public ProcessMemoryPageLoadUsage call() throws Exception {
 		try {
-			super.parseMetricFile();
-			return new DuccProcessMemoryPageLoadUsage(super.metricFileContents,
-			     super.metricFieldOffsets, super.metricFieldLengths);
+			return new DuccProcessMemoryPageLoadUsage(pid);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
