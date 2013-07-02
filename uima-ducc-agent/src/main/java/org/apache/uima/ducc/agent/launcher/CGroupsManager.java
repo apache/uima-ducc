@@ -201,7 +201,9 @@ public class CGroupsManager {
 	              + "/cgroup.procs");
 	          //  collect all pids
 	          String[] pids = readPids(f);
-	          cgroupPids.addAll(Arrays.asList(pids));
+	          for( String pid : pids ) {
+		          cgroupPids.add(pid);
+	          }
 	        } catch (Exception e) {
 	          agentLogger.error("getAllCGroupPids", null, e);
 	          throw e;
