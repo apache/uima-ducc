@@ -882,14 +882,23 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		TreeMap<String, ArrayList<DuccId>> serviceToJobsMap = duccDataHelper.getServiceToJobsUsageMap();
 		TreeMap<String, ArrayList<String>> serviceToServicesMap = duccDataHelper.getServiceToServicesUsageMap();
 		TreeMap<String, ArrayList<DuccId>> serviceToReservationsMap = duccDataHelper.getServiceToReservationsUsageMap();
+
+		int maxRecords = getServicesMax(request);
+		ArrayList<String> users = getServicesUsers(request);
 		
 		ServicesRegistry servicesRegistry = new ServicesRegistry();
 		
 		IStateServices iss = StateServices.getInstance();
 		StateServicesDirectory ssd = iss.getStateServicesDirectory();
+		int nac = 0;
 		if(ssd.getDescendingKeySet().size() > 0) {
 			for(Integer key : ssd.getDescendingKeySet()) {
 				StateServicesSet entry = ssd.get(key);
+				boolean list = DuccWebUtil.isListable(request, users, maxRecords, nac, entry);
+				if(!list) {
+					continue;
+				}
+				nac++;
 				Properties propertiesSvc = entry.get(IStateServices.svc);
 				Properties propertiesMeta = entry.get(IStateServices.meta);
 				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");

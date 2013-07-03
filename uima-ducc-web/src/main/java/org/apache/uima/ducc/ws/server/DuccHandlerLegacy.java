@@ -756,12 +756,21 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		TreeMap<String, ArrayList<String>> serviceToServicesMap = duccDataHelper.getServiceToServicesUsageMap();
 		TreeMap<String, ArrayList<DuccId>> serviceToReservationsMap = duccDataHelper.getServiceToReservationsUsageMap();
 		
+		int maxRecords = getServicesMax(request);
+		ArrayList<String> users = getServicesUsers(request);
+		
 		ServicesRegistry servicesRegistry = new ServicesRegistry();
 		ServicesRegistryMap map = servicesRegistry.getMap();
 		if(!map.isEmpty()) {
 			int counter = 0;
+			int nac = 0;
 			for(Integer key : map.getDescendingKeySet()) {
 				ServicesRegistryMapPayload entry = map.get(key);
+				boolean list = DuccWebUtil.isListable(request, users, maxRecords, nac, entry);
+				if(!list) {
+					continue;
+				}
+				nac++;
 				Properties propertiesSvc = entry.get(IServicesRegistry.svc);
 				Properties propertiesMeta = entry.get(IServicesRegistry.meta);
 				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");
