@@ -152,12 +152,14 @@ public class DuccCommandExecutor extends CommandExecutor {
 								} else {
 									logger.info(methodName, null, "Failed To Create CGroup with ID:"+containerId);
 									duccProcess.setProcessState(ProcessState.Failed);
-									duccProcess.setReasonForStoppingProcess("CGroupsPermissionDenied");
+									duccProcess.setReasonForStoppingProcess("CGroupCreationFailed");
 									failed = true;
+									agent.stop();
 								}
 							} catch( Exception e) {
 								logger.error(methodName, null, e);
-								
+								failed = true;
+								agent.stop();
 							}
 							if ( failed ) {
 								throw new RuntimeException("The Agent is Unable To Create A CGroup with Container ID: "+containerId+". Rejecting Deployment of Process with ID:"+duccProcess.getDuccId());
