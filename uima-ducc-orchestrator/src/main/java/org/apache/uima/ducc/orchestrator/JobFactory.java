@@ -92,14 +92,24 @@ public class JobFactory {
 		logger.trace(methodName, job.getDuccId(), "enter");
 		int retVal = 0;
 		if(environmentVariables != null) {
+			logger.debug(methodName, job.getDuccId(), environmentVariables);
 			String[] envVarList = environmentVariables.split("\\s+");
 			for (String envVar : envVarList) {
-				String[] kv = envVar.split("=");
-				String envKey = kv[0].trim();
-				String envValue = kv[1].trim();
-				aCommandLine.addEnvVar(envKey, envValue);
-				String message = "type:"+type+" "+"key:"+envKey+" "+"value:"+envValue;
-				logger.debug(methodName, job.getDuccId(), message);
+				logger.debug(methodName, job.getDuccId(), envVar);
+				String[] kv = {};
+				try {
+					kv = envVar.split("=");
+					String envKey = kv[0].trim();
+					String envValue = kv[1].trim();
+					aCommandLine.addEnvVar(envKey, envValue);
+					String message = "type:"+type+" "+"key:"+envKey+" "+"value:"+envValue;
+					logger.debug(methodName, job.getDuccId(), message);
+				}
+				catch(Exception e) {
+					logger.warn(methodName, job.getDuccId(), envVar);
+					logger.warn(methodName, job.getDuccId(), envVar.length());
+					logger.warn(methodName, job.getDuccId(), kv.length);
+				}
 			}
 			retVal++;
 		}
