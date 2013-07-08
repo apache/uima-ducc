@@ -98,7 +98,7 @@ public class JobFactory {
 				logger.debug(methodName, job.getDuccId(), envVar);
 				String[] kv = {};
 				try {
-					kv = envVar.split("=");
+					kv = envVar.split("=",2);
 					String envKey = kv[0].trim();
 					String envValue = kv[1].trim();
 					aCommandLine.addEnvVar(envKey, envValue);
