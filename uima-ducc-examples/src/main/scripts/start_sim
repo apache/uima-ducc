@@ -32,11 +32,9 @@ import sys
 import time
 import getopt
 
-if ( not os.environ.has_key('DUCC_HOME') ):    
-    os.environ['DUCC_HOME'] = os.path.abspath('../..')
-
-DUCC_HOME=os.environ['DUCC_HOME']
-sys.path.append(DUCC_HOME + '/admin')
+#designed to run only here, relative to ducc_runtime
+os.environ['DUCC_HOME'] = os.path.abspath(sys.argv[0] + '/../../..')
+sys.path.append(os.environ['DUCC_HOME'] + '/admin')
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
@@ -188,8 +186,7 @@ class StartSim(DuccUtil):
             print 'Starting agent on', node, 'instance', index, 'as pseudo-node', pnode, 'IP', ip, 'memory', mem,
 
             here = os.getcwd()
-            me = os.path.abspath(sys.argv[0])   
-            cmd = 'export DUCC_HOME=' + self.DUCC_HOME + ';' + me
+            cmd = os.path.abspath(sys.argv[0])   
             lines = self.ssh(node, True, "'", cmd, '--agent', '--memory', mem, '--addr', ip, '--pseudoname', pnode, "'")
             while 1:
                 line = lines.readline().strip()

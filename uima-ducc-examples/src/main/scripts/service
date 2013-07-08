@@ -35,22 +35,8 @@ import signal
 from threading import *
 import Queue
 
-if ( not os.environ.has_key('DUCC_HOME') ):    
-    me = os.path.abspath(sys.argv[0])
-
-    print "ME:", me
-    ndx = me.rindex('/')
-    ndx = me.rindex('/', 0, ndx)
-    ndx = me.rindex('/', 0, ndx)
-    ndx = me.rindex('/', 0, ndx)
-    DUCC_HOME=me[:ndx] + '/ducc_build/runtime'
-    os.environ['DUCC_HOME'] = DUCC_HOME
-    print 'Environment variable DUCC_HOME is missing, using default', DUCC_HOME
-else:
-    DUCC_HOME = os.environ['DUCC_HOME']
-
-print 'Using', os.environ['DUCC_HOME']
-sys.path.append(DUCC_HOME + '/admin')
+os.environ['DUCC_HOME'] = os.path.abspath('../..')
+sys.path.append(os.environ['DUCC_HOME'] + '/admin')
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
@@ -83,6 +69,7 @@ class DuccService(DuccUtil):
 
 	print 'broker:', self.broker_url
 
+        DUCC_HOME = os.environ['DUCC_HOME']
         CMD = ['java']
         CMD.append("-DSERVICE_ID=" + instance)
         CMD.append("-DdefaultBrokerURL='" + self.broker_url + "'")
@@ -91,7 +78,7 @@ class DuccService(DuccUtil):
         CMD.append('org.apache.uima.ducc.test.service.UIMA_Service')
         CMD.append('-saxonURL file:' + DUCC_HOME + '/lib/saxon/saxon8.jar')
         CMD.append('-xslt ' + DUCC_HOME + '/resources/dd2spring.xsl')
-        CMD.append('-dd ' + DUCC_HOME + '/examples/simple/service/Service_FixedSleep_' + instance + '.xml')
+        CMD.append('-dd ' + DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + instance + '.xml')
         #CMD.append('-b')
         os.environ['AE_INIT_TIME'] = '5'
         os.environ['AE_INIT_RANGE'] = '5'

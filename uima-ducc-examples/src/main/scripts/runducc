@@ -39,15 +39,8 @@ import signal
 from threading import *
 import Queue
 
-if ( not os.environ.has_key('DUCC_HOME') ):    
-    os.environ['DUCC_HOME'] = os.path.abspath('../..')
-    DUCC_HOME=os.environ['DUCC_HOME']
-    print 'Environment variable DUCC_HOME is missing, using default.'
-else:
-    DUCC_HOME = os.environ['DUCC_HOME']
-
-print 'Using', os.environ['DUCC_HOME']
-sys.path.append(DUCC_HOME + '/admin')
+os.environ['DUCC_HOME'] = os.path.abspath('../..')
+sys.path.append(os.environ['DUCC_HOME'] + '/admin')
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
@@ -681,15 +674,6 @@ class RunDucc(DuccUtil):
         print '   --use_jar'
         print '       Indicate whether to use the executable jars for submit.  Default:', self.use_jar
         print ''
-        print '   --use_apache_pkk true|false'
-        print '       Indicate whether to use org.apache.uima.ducc package for submit.  Implies use_jar=false. Default:', self.use_apache_package
-        print '' 
-        print '   --use_ibm_pkg true|false'
-        print '       Indicate whether to use deprecated com.ibm.ducc package for submit.  Implies use_jar=false. Default:', self.use_ibm_package
-        print '' 
-        print '   --use_jar true|false'
-        print '       Indicate whether to use the executable jars for submit.  Default:', self.use_jar
-        print ''
         print '   -w, --watch'
         print '       Specifies that we submit in keepalive mode and watch the jobs, creating a dir with outputs. Default:', self.watch
         print '       If specified, we run verification against the results.'
@@ -734,8 +718,7 @@ class RunDucc(DuccUtil):
                                                                      'init_fail_cap=', 'range=', 'memory_override=', 'process_timeout=',
                                                                       'watch',
                                                                      'jd_uima_log=', 'jp_uima_log=', 
-                                                                     'use_jar', 
-                                                                     'use_apache_package', 'use_ibm_package',
+                                                                     'use_jar'
                                                                      ])
     
         for ( o, a ) in opts:
@@ -848,7 +831,4 @@ class RunDucc(DuccUtil):
 # --------------------------------------------------------------------------------
 if __name__ == "__main__":
     runducc = RunDucc()
-    runducc.set_classpath_for_cli()
-    #for c in os.environ['CLASSPATH'].split(':'):
-    #    print c
     runducc.main(sys.argv[1:])

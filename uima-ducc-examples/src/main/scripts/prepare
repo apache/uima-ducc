@@ -46,8 +46,7 @@ import getopt
 import random
 
 os.environ['DUCC_HOME'] = os.path.abspath('../..')
-DUCC_HOME=os.environ['DUCC_HOME']
-sys.path.append(DUCC_HOME + '/admin')
+sys.path.append(os.environ['DUCC_HOME'] + '/admin')
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
@@ -210,10 +209,12 @@ class Prepare(DuccUtil):
     def main(self, argv):
 
         if ( len(argv) < 1 ):
-            self.usage("Missing properties")
+            self.usage("Missing 'prepare' properties.")
         inprops = argv[0]
 
-        print 'inprops', inprops
+        if inprops in ('-h', '-?', '--help', '-help'):
+            self.usage(None)
+
         self.testdir = os.path.dirname(inprops)
         props = DuccProperties()
         props.load(inprops)
