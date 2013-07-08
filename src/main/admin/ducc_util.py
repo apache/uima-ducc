@@ -25,168 +25,35 @@ import string
 import subprocess
 import re
 import grp
-import zipfile
 import resource
 import time
-import platform
 from  stat import *
 from local_hooks import find_other_processes
 
-class DuccPropertiesException(Exception):
-    def __init__(self, msg):
-        self.msg = msg
 
-    def __str__(self):
-        return repr(self.msg)
-
-class DuccProperties:
-    def __init__(self):
-        self.props = {}
-
-    #
-    # Expand all ${} values from env or from this properties file itself
-    # The search order is:
-    #    1 look in this properties file
-    #    2 look in the environment
-    #
-    def do_subst(self, str):
-        key = None
-        p = re.compile("\\$\\{[a-zA-Z0-9_\\.\\-]+\\}")
-        ndx = 0
-        
-        response = str
-        m = p.search(response, ndx)    
-        while ( m != None ):
-            key = m.group()[2:-1]
-            
-            val = None
-            if ( self.has_key(key) ):
-                val = self.get(key)
-            elif ( os.environ.has_key(key) ):
-                val = os.environ[key]                
-
-            if ( val != None ):    
-                response = string.replace(response, m.group() , val)
-            ndx = m.start()+1
-            m = p.search(response, ndx)
-        
-        return response
-
-    def mkitem(self, line):
-        ndx = line.find('#')   # remove comments - like the java DuccProperties
-        if ( ndx >= 0 ):
-            line = line[0:ndx]     # strip the comment
-        ndx = line.find('//')   # remove comments - like the java DuccProperties
-        if ( ndx >= 0 ):
-            line = line[0:ndx]     # strip the comment
-        line = line.strip()    # clear leading and trailing whitespace
-        if ( line == '' ):     # empty line?
-            return
-
-        mobj = re.search('[ =:]+', line)
-        if ( mobj ):
-            key = line[:mobj.start()].strip()
-            val = line[mobj.end():].strip()
-            #print 'NEXT', mobj.start(), 'END', mobj.end(), 'KEY', key, 'VAL', val
-            # val = self.do_subst(val)   # we'll do lazy subst on get instead
-            self.props[key] = val
-        else:
-            self.props[line] = None
-
-    #
-    # Load reads a properties file and adds it contents to the
-    # hash.  It may be called several times; each call updates
-    # the internal has, thus building it up.  The input file is
-    # in the form of a java-like properties file.
-    #
-    def load(self, propsfile):
-        if ( not os.path.exists(propsfile) ):
-            raise DuccPropertiesException(propsfile +  ' does not exist and cannot be loaded.')
-
-        f = open(propsfile);
-        for line in f:
-            self.mkitem(line.strip())
-        f.close()
-
-    def load_from_manifest(self, jarfile):
-        z = zipfile.ZipFile(jarfile)
-        items = z.read('META-INF/MANIFEST.MF').split('\n')
-        for item in items:
-            self.mkitem(item)
-
-    #
-    # Try to load a properties file.  Just be silent if it doesn't exist.
-    #
-    def load_if_exists(self, propsfile):
-        if ( os.path.exists(propsfile) ):
-            return self.load(propsfile)
-        
-    #
-    # Put something into the hash.
-    #
-    def put(self, key, value):
-        self.props[key] = value
-
-    #
-    # Get something from the hash.
-    #
-    def get(self, key):
-        if ( self.props.has_key(key) ):
-            return self.do_subst(self.props[key])   # we'll do lazy subst on get instead
-        return None
-
-    #
-    # Remove an item if it exists
-    #
-    def delete(self, key):
-        if ( self.props.has_key(key) ):
-            del self.props[key]
-    #
-    # Write the has as a Java-like properties file
-    #
-    def write(self, propsfile):
-        f = open(propsfile, 'w')
-        items = self.props.items()
-        for (k, v) in items:
-            #print 'WRITING', k, '=', v
-            f.write(k + ' = ' + str(v) + '\n')
-        f.close()
-
-    #
-    # return a shallow copy of the dictionary
-    #
-    def copy_dictionary(self):
-        return self.props.copy()
-
-    #
-    # return the entries in the dictionary
-    #
-    def items(self):
-        return self.props.items()
-
-    #
-    # check to see if the key exists in the dictionary
-    #
-    def has_key(self, key):
-        return self.props.has_key(key)
-
-    #
-    # Return the length of the dictionary
-    #
-    def __len__(self):
-        return len(self.props)
+# simple bootstratp to establish DUCC_HOME and to set the python path so it can
+# find the common code in DUCC_HOME/admin
+if ( os.environ.has_key('DUCC_HOME') ):
+    DUCC_HOME = os.environ['DUCC_HOME']
+else:
+    me = os.path.abspath(sys.argv[0])    
+    ndx = me.rindex('/')
+    ndx = me.rindex('/', 0, ndx)
+    DUCC_HOME = me[:ndx]          # split from 0 to ndx
+    os.environ['DUCC_HOME'] = DUCC_HOME
     
-class DuccUtil:
+sys.path.append(DUCC_HOME + '/bin')
+from ducc_base import DuccBase
+from ducc_base import DuccProperties
+
+class DuccUtil(DuccBase):
 
 
     def read_properties(self):
 
-        self.ducc_properties = DuccProperties()
-        self.ducc_properties.load(self.propsfile)
+        DuccBase.read_properties(self)
 
         self.duccling       = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
-        self.webserver_node = self.ducc_properties.get('ducc.ws.node')
-        self.jvm            = self.ducc_properties.get('ducc.jvm')
 
         # self.broker_url     = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
@@ -211,22 +78,6 @@ class DuccUtil:
         
         if ( self.webserver_node == None ):
             self.webserver_node = self.localhost
-
-    def java(self):
-        return self.jvm
-        
-    def java_home(self):
-        if ( os.environ.has_key('DUCC_POST_INSTALL') ):
-            return 'JAVA_HOME'   # avoid npe during first-time setup
-
-        if ( self.system == 'Darwin' ):
-            self.jvm_home = "/Library/Java/Home"
-        else:
-            ndx = self.jvm.rindex('/')
-            ndx = self.jvm.rindex('/', 0, ndx)
-            self.jvm_home = self.jvm[:ndx]
-
-        return self.jvm_home
         
     def find_netstat(self):
         # don't you wish people would get together on where stuff lives?
@@ -268,59 +119,9 @@ class DuccUtil:
         CMD = broker_home + '/bin/activemq'
         CMD = CMD + ' stop'
         CMD = 'JAVA_HOME=' + self.java_home() + ' ' + CMD
-        print CMD
+        print '--------------------', CMD
         self.ssh(broker_host, False, CMD)
         pass
-
-    def version(self):
-        lines = self.popen(self.jvm, ' org.apache.uima.ducc.utils.Version')
-        line = lines.readline().strip()
-        return "DUCC Version", line
-        
-    def nohup_new(self, cmd, showpid=True):
-        nfds = resource.getrlimit(resource.RLIMIT_NOFILE)[1]      # returns softlimit, hardlimit
-
-        # print 'NOHUP', cmd
-        print 'NOHUP', ' '.join(cmd)
-        print 'NOHUP', os.environ['IP']
-        print 'NOHUP', os.environ['NodeName']
-        #print 'NOHUP', os.environ['CLASSPATH']
-        try:
-            pid = os.fork()
-        except OSError, e:
-            raise Exception, "%s [%d]" % (e.strerror, e.errno)
-
-        if ( pid != 0 ):
-            return            # the parent
-        else:
-            os.setsid()
-
-            try:
-                pid = os.fork()
-            except OSError, e:
-                raise Exception, "%s [%d]" % (e.strerror, e.errno)
-
-            if ( pid != 0 ):
-                if ( showpid ):
-                    os.write(1, 'PID ' + str(pid) + '\n')
-                return
-            
-            print 'NOHUP flushing'
-            sys.stdout.flush()
-            nfds = resource.getrlimit(resource.RLIMIT_NOFILE)[1]      # returns softlimit, hardlimit
-            for i in range(3, nfds):
-                try:
-                    #os.close(i);
-                    pass
-                except:
-                    pass      # wasn't open
-
-            #devnull = os.devnull
-            #open(devnull, 'r')  # fd 0 stdin
-            #open(devnull, 'w')  #    1 stdout
-            #open(devnull, 'w')  #    2 stderr
-            os.execvp(cmd[0], cmd)
-
 
     def nohup(self, cmd, showpid=True):
         cmd = ' '.join(cmd)
@@ -332,21 +133,6 @@ class DuccUtil:
         devnw.close()
         if ( showpid ) :
             print 'PID', ducc.pid
-
-    # simply spawn-and-forget using Python preferred mechanism
-    def spawn(self, *CMD):
-        cmd = ' '.join(CMD)
-        # print '**** spawn', cmd, '****'
-        ducc = subprocess.Popen(cmd, shell=True)
-        pid = ducc.pid
-        status = os.waitpid(pid, 0)
-        return pid
-
-    def popen(self, *CMD):
-        cmd = ' '.join(CMD)
-        #print 'POPEN:', cmd
-        proc = subprocess.Popen(cmd, bufsize=0, stdout=subprocess.PIPE, shell=True, stderr=subprocess.STDOUT)
-        return proc.stdout
 
     # like popen, only it spawns via ssh
     def ssh(self, host, do_wait, *CMD):
@@ -409,54 +195,10 @@ class DuccUtil:
     
         os.environ['CLASSPATH'] = CLASSPATH
 
-
-    def set_classpath_for_cli(self):
-        # This is only needed if you use the API, not the executable jars.  The executable
-        # jars pull in everything needed.
-        ducc_home = self.DUCC_HOME
-        LIB       = ducc_home + '/lib'
-        RESOURCES = ducc_home + '/resources'
-
-        local_jars  = self.ducc_properties.get('ducc.local.jars')   #local mods
-    
-        CLASSPATH = ''
-    
-        if ( local_jars != None ):
-            extra_jars = local_jars.split()
-            for j in extra_jars:
-                CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
-            
-        CLASSPATH = CLASSPATH + ":" + LIB + '/slf4j/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/google-gson/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-log4j/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/xstream/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/uima/*'
-
-        # orchestrator http needs codecs
-        CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
-
-        # explicitly NOT ducc_test.jar
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-cli.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-common.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-transport.jar'
-
-        CLASSPATH = CLASSPATH + ':' + RESOURCES
-    
-        os.environ['CLASSPATH'] = CLASSPATH
-
-
     def format_classpath(self, cp):
         strings = cp.split(':')
         for s in strings:
             print s
-
-    def set_classpath_for_submit(self):
-        ducc_home = self.DUCC_HOME
-        LIB       = ducc_home + '/lib'
-        
-        CLASSPATH = LIB + '/ducc-submit.jar'
-        os.environ['CLASSPATH'] = CLASSPATH
 
     def check_clock_skew(self, localdate):
         user = os.environ['LOGNAME']
@@ -493,7 +235,7 @@ class DuccUtil:
 
     def verify_jvm(self):
         jvm = self.java()
-        CMD = jvm + ' -fullversion > /dev/null'
+        CMD = jvm + ' -fullversion > /dev/null 2>&1'
         rc = os.system(CMD)
         if ( rc != 0 ):
             print 'NOTOK', CMD, 'returns', rc, '.  Must return rc 0.  Startup cannot continue.'
@@ -567,8 +309,8 @@ class DuccUtil:
                 line = ' '.join(toks[0:4])
                 if ( line != version_from_head ):
                     print "Mismatched ducc_ling versions:"
-                    print "ALERT: Master version:", version_from_head
-                    print "ALERT: Local version:", line
+                    print "ALERT: Version on Ducc Head:", version_from_head
+                    print "ALERT: Version on Agent node:", line
                     return False
             verfile.close()
         else:
@@ -818,23 +560,6 @@ class DuccUtil:
             path = head + '/' + path
         return path
 
-    def which(self, file):
-        for p in os.environ["PATH"].split(":"):
-            if os.path.exists(p + "/" + file):
-                return p + "/" + file            
-        return None
-
-    def mkargs(self, args):
-        '''
-            The cli needs to insure all args are fully quoted so the shell doesn't
-            lose the proper tokenization.  This quotes everything.
-        '''
-        answer = []
-        for a in args:
-            arg = '"' + a + '"'
-            answer.append(arg)
-        return answer
-
     #
     # Read the nodefile, recursing into 'imports' if needed, returning a
     # map.  The map is keyed on filename, with each entry a list of the nodes.
@@ -866,19 +591,7 @@ class DuccUtil:
         return ret
 
     def __init__(self):
-
-        if ( os.environ.has_key('DUCC_HOME') ):
-            self.DUCC_HOME = os.environ['DUCC_HOME']
-        else:
-            me = os.path.abspath(sys.argv[0])    
-            ndx = me.rindex('/')
-            ndx = me.rindex('/', 0, ndx)
-            self.DUCC_HOME = me[:ndx]          # split from 0 to ndx
-            os.environ['DUCC_HOME'] = self.DUCC_HOME
-
-        self.system = platform.system()
-        self.jvm = None
-        self.webserver_node = 'localhost'
+        DuccBase.__init__(self)
         self.duccling = None
         self.broker_url = 'tcp://localhost:61616'
         self.broker_protocol = 'tcp'
@@ -886,16 +599,13 @@ class DuccUtil:
         self.broker_port = '61616'
         self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
-        self.propsfile = self.DUCC_HOME + '/resources/ducc.properties'
-        self.localhost = os.uname()[1]                
-        self.read_properties()       
 
-        os.environ['JAVA_HOME'] = self.java_home()
         os.environ['NodeName'] = self.localhost    # to match java code's implicit propery so script and java match
 
         self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
+        self.read_properties()
 
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
         self.automanage = False

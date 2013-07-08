@@ -22,16 +22,12 @@
 import os
 import sys
 import time
-
-from ducc_boot import *
-set_ducc_home()
-
-
 import getopt
 import glob
+
 from ducc_util  import DuccUtil
-from ducc_util  import DuccProperties
-from ducc_util  import DuccPropertiesException
+from ducc_base  import DuccProperties
+from ducc_base  import DuccPropertiesException
 from ducc       import Ducc
 
 class StopDucc(DuccUtil):
@@ -237,7 +233,7 @@ class StopDucc(DuccUtil):
             if ( not force ) :
                 self.clean_shutdown()
 
-                sleeptime = 5
+                sleeptime = 30
                 print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
                 time.sleep(sleeptime)
 

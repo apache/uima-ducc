@@ -18,16 +18,11 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-
-from ducc_boot import *
-set_ducc_home()
-
 import getopt
 import json
 
 from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc      import Ducc
+from ducc_base import DuccProperties
 
 class DuccStateListener(DuccUtil):
 

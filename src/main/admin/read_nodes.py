@@ -22,12 +22,8 @@
 import os
 import sys
 
-from ducc_boot import *
-set_ducc_home()
-
 from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc import Ducc
+from ducc_base import DuccProperties
 
 #
 # Read the ducc node list and spew to stdout - handles comments, imports, etc.

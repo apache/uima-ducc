@@ -22,16 +22,14 @@
 import os
 import sys
 import time
-
-from ducc_boot import *
-set_ducc_home()
-
 import getopt
 
-from ducc_util   import DuccUtil
-from ducc_util   import DuccProperties
-from ducc        import Ducc
+from ducc_util import DuccUtil
+from ducc_base  import DuccProperties
+from local_hooks import verify_slave_node
 from local_hooks import verify_master_node
+from local_hooks import verify_master_node
+from ducc        import Ducc
 
 class StartDucc(DuccUtil):
 

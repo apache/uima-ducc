@@ -24,7 +24,7 @@ import sys
 import getopt
 
 from ducc_util import DuccUtil
-from ducc_util import DuccProperties
+from ducc_base import DuccProperties
 from ducc import Ducc
 
 class PropsDiff(DuccUtil):

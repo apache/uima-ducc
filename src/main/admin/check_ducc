@@ -22,16 +22,10 @@
 import os
 import sys
 from time import time
-
-from ducc_boot import *
-set_ducc_home()
-
-
 import getopt
-import subprocess
 
 from ducc_util import DuccUtil
-from ducc_util  import DuccProperties
+from ducc_base  import DuccProperties
 from local_hooks import verify_slave_node
 from local_hooks import verify_master_node
 
@@ -133,6 +127,8 @@ class CheckDucc(DuccUtil):
                 print 'badarg', a
                 usage('bad arg: ' + a)               
 
+        self.get_duccling_version();
+
         if ( do_validate ):
             # if validating, ONLY validate, called via ssh usually
             self.validate(checkdate)
@@ -177,13 +173,17 @@ class CheckDucc(DuccUtil):
             nodes['local'] = localnodes
 
         # checking starts here        
+        checked = {}
         for (nodefile, nodelist) in nodes.items():
             if ( nodelist == None ):
                 # loading the nodes prints the necessary message
                 continue
             spacer = '   '            
             for node in nodelist:
+                if ( checked.has_key(node) ):
+                    continue
 
+                checked[node] = node
                 print 'Checking', node, '...',
                 response = self.find_ducc_process(node)   # a tuple, (True|False, proclist)
                 if ( not response[0] ):

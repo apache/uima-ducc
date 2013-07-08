@@ -24,11 +24,8 @@ import sys
 import shutil
 import subprocess
 
-from ducc_boot import *
-set_ducc_home()
-
 from ducc_util import DuccUtil
-from ducc_util import DuccProperties
+from ducc_base import DuccProperties
 from ducc import Ducc
 
 class PostInstall(DuccUtil):

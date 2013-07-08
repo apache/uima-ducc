@@ -26,7 +26,7 @@ import getopt
 import time
 
 from ducc_util import DuccUtil
-from ducc_util import DuccProperties
+from ducc_base import DuccProperties
 from local_hooks import verify_slave_node
 
 class Ducc(DuccUtil):
