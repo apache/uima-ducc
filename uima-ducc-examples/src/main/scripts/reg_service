@@ -94,7 +94,7 @@ class RegService(DuccUtil):
 
         plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
         props.put('description', "Test Service " + svcid)
-        props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/Service_FixedSleep_' + svcid + '.xml')
+        props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
         props.put('process_classpath', 
                   self.DUCC_HOME + '/examples/lib/uima-ducc-examples.jar:' + 
