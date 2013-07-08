@@ -19,15 +19,10 @@
 # under the License.
 # -----------------------------------------------------------------------
 
+import sys
+from ducc_base import DuccBase
 
-from ducc_boot import *
-import getopt
-
-set_ducc_home()
-
-from ducc_util import DuccUtil
-
-class DuccServices(DuccUtil):
+class DuccServices(DuccBase):
 
     def main(self, argv):        
         self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-services.jar', ' '.join(self.mkargs(argv)))

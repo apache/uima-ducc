@@ -19,12 +19,10 @@
 # -----------------------------------------------------------------------
 
 
-from ducc_boot import *
-set_ducc_home()
+import sys
+from ducc_base import DuccBase
 
-from ducc_util import DuccUtil
-
-class DuccPerfStats(DuccUtil):
+class DuccPerfStats(DuccBase):
 
     def main(self, argv):
         self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-perf-stats.jar', ' '.join(self.mkargs(argv)))

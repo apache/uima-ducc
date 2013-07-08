@@ -21,14 +21,9 @@
 
 
 import sys
-import os
+from ducc_base import DuccBase
 
-from ducc_boot import *
-set_ducc_home()
-
-from ducc_util import DuccUtil
-
-class DuccSubmit(DuccUtil):
+class DuccSubmit(DuccBase):
 
     def main(self, argv):
         self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-submit.jar', ' '.join(self.mkargs(argv)))
