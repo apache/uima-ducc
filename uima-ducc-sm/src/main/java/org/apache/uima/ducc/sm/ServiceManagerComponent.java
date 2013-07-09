@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.cli.UimaAsPing;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -641,6 +642,12 @@ public class ServiceManagerComponent
         }
         logger.debug(methodName, id, "Unique:", id.getUnique());
                     
+        String logdir = props.getProperty(UiOption.LogDirectory.pname());
+        if ( !logdir.endsWith("/") ) {
+            logdir = logdir + "/";
+        } 
+        logdir = logdir + "S-" + id.toString();
+        props.put(UiOption.LogDirectory.pname(), logdir);
 
         DuccProperties meta = new DuccProperties();
         meta.setProperty("user", user);
