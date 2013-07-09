@@ -24,8 +24,8 @@ job.services.2                = 25
 job.services.3                = 25
 job.services.4                = 25
 job.services.5                = 25
-job.services.6                = 25
-job.services.7                = 25
+job.services.6                = 12
+job.services.7                = 12
 
 # 24 hours into 2 - 12:1 compression
 submission.spread             = 920       # number of *seconds* to try to spread submission over 
