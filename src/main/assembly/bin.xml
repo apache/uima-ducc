@@ -544,12 +544,6 @@ under the License.
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
       <fileMode>644</fileMode>
     </file>
-
-    <file>
-      <source>uima-ducc-examples/src/main/scripts/reg_service</source>
-      <outputDirectory>ducc_runtime/examples/simple</outputDirectory>
-      <fileMode>755</fileMode>
-    </file>
     
     <file>
       <!-- put compiled samples into right place in bin tarball -->
