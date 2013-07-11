@@ -1294,6 +1294,21 @@
               \item[Type] Tuning 
             \end{description}
             
+          \item[ducc.agent.launcher.cgroups.utils.dir] \hfill \\
+            \phantomsection\label{itm:ducc.agent.launcher.cgroups.utils.dir}
+            Location of CGroups programs, like cgexec. If CGroups are not
+            installed on a specific machine, this is ignored.
+
+            Depending on the OS, CGroups programs may be installed in different places. 
+            Provide a comma separated list of directories the agent should search to find the programs.  
+
+            \begin{description}
+              \item[Default Value] /usr/bin
+              \item[Type] Tuning 
+            \end{description}
+
+
+
           \item[ducc.agent.exclusion.file] \hfill \\
             \phantomsection\label{itm:props-agent.cgroups.exclusion}
             This specifies the exclusion file to enable node based exclusion for various
