@@ -26,7 +26,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1226,6 +1228,76 @@ public class ServiceSet
 //        return answer;
 //    }
 
+
+    void log_text(String logdir, String text)
+    {
+    	String methodName = "log_text";
+        String[] args = {
+            System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
+            "-u",
+            user,
+            "-f",
+            logdir + "/service.err.log",
+            "-a",
+            "--",
+            text
+        };
+
+        ProcessBuilder pb = new ProcessBuilder(args);
+        try {
+            Process p = pb.start();
+            int rc = p.waitFor();
+            logger.debug(methodName, null, "Log start errors returns with rc", rc);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+    }
+
+    void log_errors(List<String> outlines, List<String> errlines)
+    {
+
+        Date date= new Date();
+        String ts = (new Timestamp(date.getTime())).toString();
+
+        String logdir = job_props.getProperty(UiOption.LogDirectory.pname());
+
+        StringBuffer buf = new StringBuffer();
+
+        // header
+        buf.append("==========");
+        buf.append(" Instance Startup Failure (stdout) ");
+        buf.append(ts);
+        buf.append(" ========================================\n");
+
+        // stdout
+        for ( String s : outlines ) {
+            buf.append(s);
+            buf.append("\n");
+        }
+        log_text(logdir, buf.toString());
+        
+        buf = new StringBuffer();
+        buf.append("----------");
+        buf.append("(stderr) ");
+        buf.append(ts);
+        buf.append(" ----------------------------------------\n");
+        for ( String s : errlines ) {
+            buf.append(s);
+            buf.append("\n");
+        }
+        buf.append("==========");
+        buf.append(" End Startup Failure ");
+        buf.append(ts);
+        buf.append(" ========================================\n");
+        log_text(logdir, buf.toString());
+    }
+
+
     /**
      * This assumes the caller has already verified that I'm a registered service.
      */
@@ -1352,6 +1424,7 @@ public class ServiceSet
             logger.warn(methodName, null, "Request to start service " + id.toString() + " failed.");
             meta_props.put("submit_error", submit_buffer.toString());
             setAutostart(false);
+            log_errors(stdout_lines, stderr_lines);
         } else {
             meta_props.remove("submit_error");
             setServiceState(ServiceState.Initializing);
