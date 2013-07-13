@@ -177,10 +177,10 @@ public class UimaAsServiceMonitor
 
     public String format()
     {
-        return "AveNQ[" + new DecimalFormat("####.##").format(enqueueTime)
+        return "QDEPTH[" + queueSize
+            +  "] AveNQ[" + new DecimalFormat("####.##").format(enqueueTime)
             +  "] Consum[" + consumerCount
             +  "] Prod[" + producerCount
-            +  "] Qsize[" + queueSize
             +  "] minNQ[" + minEnqueueTime
             +  "] maxNQ[" + maxEnqueueTime
             +  "] expCnt[" + expiredCount
