@@ -141,6 +141,13 @@ class StartDucc(DuccUtil):
                 else:
                     print spacer, line
 
+    def verify_required_directories(self):        
+        for dir in ('history', 'state', 'logs'):
+            d = self.DUCC_HOME + '/' + dir
+            if ( not os.path.exists(d) ):
+                print "Initializing", d
+                os.mkdir(d)
+
     def usage(self, *msg):
         if ( msg[0] != None ):
             print ' '.join(msg)
@@ -258,6 +265,8 @@ class StartDucc(DuccUtil):
         # this means all the non-agent processes - conflicts are already checked
         if ( management ):
             components = self.default_components
+
+        self.verify_required_directories()
 
         if ( 'or' in components ):
             self.check_orchestrator_lock()
