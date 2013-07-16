@@ -1,0 +1,722 @@
+
+% normal
+
+\newcommand{\varDUCC}{\text{DUCC}}
+\newcommand{\varLinux}{\text{Linux}}
+\newcommand{\varUIMA}{\text{UIMA}}
+\newcommand{\varUnstructuredInformationManagementArchitecture}{\text{Unstructured Information Management Architecture}}
+\newcommand{\varUIMAAS}{\text{UIMA-AS}}
+\newcommand{\varUIMACore}{\text{UIMA-Core}}
+\newcommand{\varUIMAAsynchronousScaleout}{\text{UIMA Asynchronous Scaleout}}
+
+\newcommand{\varLinuxControlGroups}{\text{Linux Control Groups}}
+
+\newcommand{\varDistributedUIMAClusterComputing}{\text{Distributed \varUIMA~Cluster Computing}}
+
+\newcommand{\varOrchestrator}{\text{Orchestrator}}
+\newcommand{\varResourceManager}{\text{Resource Manager}}
+\newcommand{\varServicesManager}{\text{Services Manager}}
+\newcommand{\varProcessManager}{\text{Process Manager}}
+\newcommand{\varAgent}{\text{Agent}}
+\newcommand{\varAgents}{\text{Agents}}
+\newcommand{\varJobDriver}{\text{JobDriver}}
+\newcommand{\varWebServer}{\text{WebServer}}
+\newcommand{\varCommandLineInterface}{\text{Command Line Interface}}
+\newcommand{\varApplicationProgramInterface}{\text{Application Program Interface}}
+
+\newcommand{\varOR}{\text{OR}}
+\newcommand{\varRM}{\text{RM}}
+\newcommand{\varSM}{\text{SM}}
+\newcommand{\varPM}{\text{PM}}
+\newcommand{\varJD}{\text{JD}}
+\newcommand{\varWS}{\text{WS}}
+\newcommand{\varCLI}{\text{CLI}}
+\newcommand{\varAPI}{\text{API}}
+
+\newcommand{\varActiveMQ}{\text{ActiveMQ}}
+\newcommand{\varCamel}{\text{Camel}}
+\newcommand{\varJetty}{\text{Jetty}}
+\newcommand{\varjQuery}{\text{jQuery}}
+\newcommand{\varLogger}{\text{Log4J}}
+
+\newcommand{\varApacheActiveMQ}{\text{Apache Active MQ}}
+\newcommand{\varIBMWebSphereMQ}{\text{IBM WebSphere MQ}}
+
+\newcommand{\varNetworkFileSystem}{\text{Network File System}}
+\newcommand{\varNFS}{\text{NFS}}
+
+\newcommand{\varHadoopDistributedFileSystem}{\text{Hadoop Distributed File System}}
+\newcommand{\varHDFS}{\text{HDFS}}
+
+\newcommand{\varNodeMachineComputer}{\text{node (machine, computer)}}
+\newcommand{\varNodesMachinesComputers}{\text{nodes (machines, computers)}}
+
+\newcommand{\varJob}{\text{Job}}
+\newcommand{\varJobs}{\text{Jobs}}
+\newcommand{\varReservation}{\text{Reservation}}
+\newcommand{\varReservations}{\text{Reservations}}
+\newcommand{\varService}{\text{Service}}
+\newcommand{\varServices}{\text{Services}}
+
+% typewriter
+
+\newcommand{\varCompleted}{\texttt{Completed}}
+\newcommand{\varReceived}{\texttt{Received}}
+
+\newcommand{\varController}{\texttt{Controller}}
+
+\newcommand{\varORmap}{\texttt{OR-map}}
+
+\newcommand{\varProcessThreadCount}{\texttt{process\_thread\_count}}
+\newcommand{\varNumberOfInstances}{\texttt{number\_of\_instances}}
+\newcommand{\varSchedulingClass}{\texttt{scheduling\_class}}
+
+\newcommand{\varDuccAdministrators}{\texttt{ducc.administrators}}
+
+\newcommand{\varPID}{\texttt{PID}}
+
+% italics
+
+\newcommand{\varNull}{\textit{null}}
+\newcommand{\varCGroups}{\textit{C-Groups}}
+
+% uima
+
+\newcommand{\varCollectionReader}{\textit{Collection Reader}}
+\newcommand{\varCR}{\text{CR}}
+\newcommand{\varAnalysisEngine}{\textit{Analysis Engine}}
+\newcommand{\varAE}{\text{AE}}
+\newcommand{\varJobProcess}{\textit{Job Process}}
+\newcommand{\varJP}{\text{JP}}
+
+% body
+
+\chapter{Platform}
+
+    The \varDistributedUIMAClusterComputing~(\varDUCC) platform comprises software 
+    designed to facilitate the scale-out of 
+    \varUnstructuredInformationManagementArchitecture~(\varUIMA) pipelines on a 
+    collection of \varNodesMachinesComputers~shared "fairly" by a group of users.
+    
+    The major components of \varDUCC~are the \varOrchestrator~(\varOR), the \varJobDriver~(\varJD), 
+    the \varResourceManager~(\varRM), the \varProcessManager~(\varPM), the \varServicesManager~(\varSM), 
+    the \varAgents, the \varCommandLineInterface~(\varCLI), the \varApplicationProgramInterface~(\varAPI), 
+    and the \varWebServer~(\varWS).
+    
+    \varDUCC~highlights:
+    \begin{itemize}
+      \item manage a cluster of machines for \varUIMA workloads
+      \item highly configurable resource allocation system
+      \item application code runs with credentials of submitting user
+      \item "virtual machine" resources for user processes allocated instantaneously via \varLinuxControlGroups
+      \item extensive Web, CLI and API interfaces
+      \item rich debugging support for user processes
+    \end{itemize} 
+    
+    \section{Architecture}
+    
+    The \varDUCC~platform employs building-block software from the open-source community
+    where possible to achieve it goals. Foremost and not surprisingly \varDUCC~employs in
+    its foundation \varUIMAAS, which in-turn relies upon \varUIMA-Core.
+    
+    Additionally, \varCamel~is used for inter-component communications.
+    \varActiveMQ~is employed to process work items amongst a distributed set of work item processors.
+    Logging is facilitated by \varLogger. \varJetty~is used for the \varWebServer~and \varjQuery~is deployed
+    to web browsers.  And various other open-source softwares are likewise employed.
+    
+    By employing reliable open-source code where possible, the amount of custom code needed
+    to develop and maintain \varDUCC~functionality is minimized. And substitution of implementation
+    for equivalent functionality is possible, for example replacing \varApacheActiveMQ~with 
+    \varIBMWebSphereMQ.
+    
+    \begin{figure}[h]
+    \centering
+    \includegraphics[width=6.5in]{images/ducc-arch.jpg}
+    \caption{\varDUCC Architecture}
+    \label{fig:\varDUCC-Architecture}
+    \end{figure}
+
+    \section{\varJobs}
+
+    The main focus of the system is running "batch" \varJobs~comprising \varUIMA~pipelines.
+    
+    Users submit \varJobs~to the system to be deployed and executed. \varJobs~have a
+    life-cycle from birth to death during which time a (normally) finite collection of
+    work items are processed by one or more \varUIMA~pipelines. \varJobs~consist of two
+    parts: a singleton work item supplier, known in \varUIMA~parlance as a
+    \varCollectionReader~(\varCR); and one or more pipelines, each known in \varUIMA~parlance
+    as an \varAnalysisEngine~(\varAE).
+        
+    \subsection{Characteristics}   
+    
+    The \varUIMA~pipelines comprising a \varJob~represent "embarrassingly parallel" 
+    deployments. Over time, a \varJob~may expand and contract with respect to the number of 
+    \varUIMA~pipelines deployed during its lifetime. This may be due to the introduction 
+    or completion of other \varJobs, the rise and fall of other resource consumers such 
+    as \varReservations~or \varServices, and the addition or removal of computer resources 
+    to the cluster.
+    
+    With respect to contraction, each \varUIMA~pipeline must be prepared to
+    process work items that may have been partially processed previously.
+       
+    \subsection{Performance}  
+    
+    For the distributed environment, \varDUCC~relies upon a \varNetworkFileSystem~(\varNFS)
+    for file access.
+    High performance is achieved through \varNFS~data sharing and (via \varActiveMQ) the passing of
+    data-handles that are utilized by the "embarrassingly parallel" pipelines.
+    
+    \section{\varReservations}
+    
+    To help support Jobs, \varDUCC~provides facilities for \varReservations~of two types: 
+    Managed and Unmanaged. \varReservations, once allocated, are preserved until 
+    canceled. 
+    
+    \varManagedReservations~(MRs) comprise "arbitrary" processes, for example Java
+    programs, c-programs, bash shells, etc.
+    
+    \varUnmanagedReservations~(URs) comprise a resource that can be utilized for any 
+    purpose, subject to the limitations of the assigned share or shares.
+            
+    \section{\varServices}
+       
+    To help support \varJobs, \varDUCC~provides facilities for \varServices~of two types: 
+    \varUIMA and \varPingOnly. \varServices can be pre-defined in a registry, and \varJobs
+    can declare dependency on one or more of them.
+    
+    \subsection{Memory Shares} 
+    
+    Memory Shares description.
+    
+    \subsection{C-Groups} 
+    
+    C-Groups description.
+    
+    \subsection{Preemption} 
+        
+    Preemption description.
+    
+\chapter{System Organization}
+
+    \section{Single System Image}
+    
+    \varDUCC runs on \varLinux. It can be run on single system in simulation-mode
+    or on a cluster (two or more machines). For clusters, \varDUCC replies upon 
+    these requirements:
+    
+    \begin{itemize}
+      \item common userids across the cluster
+      
+      Each userid must have the same definition on all machines participating
+      in the \varDUCC cluster.
+      
+      \item a shared filesystem for user and \varDUCC data across the cluster
+      
+      Each machine shares a filesystem (commonly provided by NFS) with all 
+      machines participating in the \varDUCC cluster.
+      
+    \end{itemize} 
+    
+    \section{Daemons}
+    
+    \varDUCC is implemented through a collection of configurable singleton 
+    and distributed daemons.
+    
+    \subsection{\varOrchestrator (\varOR)} 
+    
+    There is one \varOrchestrator per \varDUCC cluster.
+    
+    The duties of the \varOrchestrator are:
+    
+    \begin{description}
+      \item receive and act upon user submitted application requests;
+      \item manage and publish common state to a set of distributed components;
+      \item maintain checkpoint and historical state;
+      \item manage the lifecycle of jobs, services, and reservations.
+    \end{description}
+    
+    The \varOrchestrator receives user requests to start, stop and modify 
+    Jobs, Services and Reservations. It manages the life-cycles of these
+    entities, each deployed to a managed cluster of machines 
+    (nodes, computers).
+    
+    The \varOrchestrator both publishes and receive reports.  
+    The \varOrchestrator publication is also known as the \varORmap, which is
+    the final authority on the state of Jobs, Reservations, and Services.
+    All other \varDUCC components respect the state published by the \varOrchestrator
+    and each carries out its assigned duties accordingly.
+    
+    \subsubsection{Controller} 
+    \label{Controller}
+    
+    The \varOrchestrator Controller responsibilities entail receiving user 
+    submitted requests and processing them to completion in accordance with 
+    an instance of the appropriate state machine. 
+    
+    User submitted requests comprise:
+    
+    \begin{itemize}
+      \item Job \{ Start, Stop, Modify \}
+      \item Reservation \{ Start, Stop, Modify \}
+      \item Service \{ Start, Stop, Modify \}
+      \item Individual Process \{ Stop \}
+    \end{itemize} 
+    
+    The Controller responsibilities further entail receiving status messages
+    from other \varDUCC components and advancing the state machines of user 
+    submitted Jobs, Reservations, and Services as necessary. 
+    
+    Additionally and importantly, the Controller is the final authority
+    for the \varDUCC system state comprising active Jobs, Reservations, and 
+    Services. The Controller publishes \varDUCC system state at regular intervals
+    for consumption and use by all other \varDUCC components.
+    
+    \subsubsection{Authenticator} 
+    
+    The authenticator determines whether or not the requesting user is a
+    \varDUCC administrator. Such users have special privileges, such as:
+    
+    \begin{itemize}
+      \item the ability to control \varDUCC system functions
+      \item the ability to act on behalf of other users
+    \end{itemize}     
+    
+    The file \varDuccAdministrators comprises the list of privileged \varDUCC users.
+    
+    \subsubsection{Validation} 
+    
+    Each request to submit, cancel or modify is validated against a set of
+    criteria that define acceptableness. In the case of missing information,
+    a default value may be employed.
+    
+    Presently, the following keys are validated by the \varOrchestrator:
+    
+    \begin{itemize}
+      \item \varProcessThreadCount
+      \item \varNumberOfInstances
+      \item \varSchedulingClass
+    \end{itemize} 
+    
+    Other keys are validated by the command line interface, prior to arrival
+    at the \varOrchestrator.
+    
+    \subsubsection{Factory} 
+    
+    Once accepted, submit requests proceed through a corresponding factory
+    to have a state machine representation entered into the published
+    \varORmap with initial state of \varReceived.  The request remains 
+    active until it advances to final state \varCompleted.
+    
+    Each factory-created representation comprises appropriate information as follows:
+    
+    \begin{itemize}
+    
+      \begin{itemize}
+      \item standard information
+        \begin{itemize}
+          \item unique identifier (assigned by \varDUCC)
+          \item type {Job, Reservation, Service}
+          \item user name
+          \item submitting \varPID
+          \item date of submission
+          \item date of completion (initially \varNull)
+          \item description (text supplied by user)
+        \end{itemize} 
+      \item scheduling information
+        \begin{itemize}
+          \item scheduling class
+          \item scheduling priority
+          \item scheduling max shares
+          \item scheduling min shares
+          \item scheduling threads per share
+          \item scheduling memory size
+          \item scheduling memory units
+        \end{itemize} 
+      \item job driver information
+        \begin{itemize}
+          \item java command
+          \item java classpath
+          \item environment variables
+          \item user log directory
+          \item MQ broker
+          \item MQ queue
+          \item \varCollectionReader descriptor
+          \item \varCollectionReader overrides
+          \item getMeta timeout value
+          \item work item processing timeout value
+          \item work item processing exception handler
+          \item node identity
+          \item c-group limits
+          \item state
+        \end{itemize} 
+      \item job process information (one or more instances)
+        \begin{itemize}
+          \item java command
+          \item java classpath
+          \item environment variables
+          \item user log directory
+          \item MQ broker
+          \item MQ queue
+          \item deployment descriptor or aggregate data
+          \item initialization failure limits
+          \item node identity
+          \item c-group limits
+          \item state
+          \item service dependencies
+        \end{itemize} 
+      \item service information (one or more instances)
+        \begin{itemize}
+          \item See job process information above.
+        \end{itemize} 
+      \item managed reservation information
+        TBD      
+      \item unmanaged reservation information
+        TBD          
+    \end{itemize} 
+    
+    \subsubsection{Checkpoint Supervisor} 
+    
+    The Checkpoint Supervisor provides functions to save and restore state information
+    to/from persistent storage. State is stored whenever a significant change occurs.
+    State is restored at \varOrchestrator boot time.
+    
+    Saving and restoration of state facilitates reasonable continuity of service
+    between \varOrchestrator lifetimes.
+    
+    \subsubsection{State Supervisor} 
+
+    The State Supervisor receives and examines publications from other
+    \varDUCC components, records and distributes pertinent information obtained
+    or derived, and advances state machines appropriately.
+    
+    Publications are received from these components:
+    
+    \begin{itemize}
+    
+    \item Job Driver(s)
+    \item Resource Manager
+    \item Services Manager
+    \item Agent(s) Inventory
+      
+    \end{itemize} 
+    
+    Information from these sources is recorded in the \varORmap. 
+    Based on information derived from all sources, the \varOrchestrator
+    advances the state machines of currently active entities (Jobs,
+    Reservations, Services). Once the \varCompleted state is reached, the
+    entity is no longer active on the cluster.
+    
+    Note that \varORmap is, in-turn, published at regular intervals 
+    for use by the other \varDUCC singleton and distributed components.
+    The \varORmap the the "final authority" on the state of
+    each Job, Reservation and Service currently or formerly deployed.
+    See \ref{Controller} \varController.
+    
+    \subsubsection{State Accounting Supervisor} 
+        
+    The State Accounting Supervisor manages finite state machine for 
+    Jobs, Services, and Reservations. It provides functions to:
+    
+    \begin{description}
+    
+    \item Advance from the current state to a next valid state
+    \item Advance from the current state immediately to the \varCompleted state
+          
+    \end{description} 
+    
+    \subsubsection{C-Group Supervisor}  
+    
+    The C-Group Supervisor assigns a maximum size (in bytes) and a composite
+    unique identity to each \varDUCC share. This information is published for use
+    by Agents to enforce C-Group limitations on storage used by the corresponding
+    running entity (for example, UIMA pipeline).
+    
+    Employing C-Groups is analogous to defining virtual machines of a certain
+    size such that exceeding limits causes only the offending process to suffer
+    any performance penalties, while other co-located well-behaved processes
+    run unaffected.
+    
+    \subsubsection{Host Supervisor}
+    
+    The Host Supervisor is responsible for obtaining sufficient resource for
+    deploying the Job Drivers for all submitted Jobs. It interacts with the
+    Resource Manager to allocate and de-allocate resources for this purpose.
+    It assigns a JD-share to each active Job.
+    
+    A JD-share is a C-Group controlled share of sufficient size into which a Job
+    Driver can be deployed.  A JD-share is usually significantly smaller than
+    a normal Share.
+    
+    \subsubsection{Logging / As-User} 
+    
+    The Logging and As-User modules permit the \varOrchestrator to write logging data into
+    a file contained in "user-space", meaning a file into a directory writable 
+    by the submitting user, during processing of the submitted entity 
+    (Job, Managed Reservation,...).
+        
+    \subsubsection{Administrators} 
+    
+    The Administrators module grants users defined in the \textit{ducc.administrators}
+    file special privileges, such a being able cancel to any user's Job.
+    
+    \subsubsection{Maintenance} 
+    
+    The maintenance thread wakes-up as regular intervals to perform the following
+    tasks:
+    
+    \begin{description}
+    
+      \item Health
+      
+      The \varOrchestrator automatically caps Jobs and Services that exceed initialization
+      error thresholds, and cancels those that exceed processing error thresholds.
+      
+      \item MQ Reaper
+      
+      The \varOrchestrator cleans-up unused Job Driver AMQ permanent queues for Jobs that have completed.
+      
+      \item Publication Pruning
+      
+      The \varOrchestrator regularly publishes state for all active entities (Jobs, Reservations,
+      Services).  It also publishes state for recently completed ones. Pruning removes
+      from regular \varOrchestrator publication completed entities that have been competed past a
+      time threshold, nominally one minute.
+           
+      \item Node Accounting
+      
+      This module keeps track of each node's state, up or down.  Nodes that do 
+      not report for a time exceeding a threshold, typically a few minutes, 
+      are considered down. This information is used for Jobs whose Job Driver
+      advanced to the \varCompleted state, whereby corresponding Job Processes on 
+      nodes that are reported down are marked as stopped by the \varOrchestrator, as opposed 
+      to waiting (potentially forever) for the corresponding Agent to report.
+      This prevent Jobs from becoming unnecessarily stuck in the completing
+      state.
+      
+    \end{description} 
+    
+    \subsection{\varResourceManager (\varRM, also known as the Scheduler)}    
+        
+    There is one \varResourceManager per \varDUCC cluster.
+    
+    The duties of the \varResourceManager are:
+    
+    \begin{description}
+      \item fairly allocate constrained resources amongst valid user requests over time;
+    \end{description}
+        
+    \subsubsection{Job Manager Converter} 
+        
+    \subsubsection{Node Stability} 
+        
+    \subsubsection{Node Status} 
+        
+    \subsubsection{Resource Manager} 
+           
+    \subsubsection{Scheduler} 
+    
+    \subsection{\varServicesManager (\varSM)}    
+    
+    There is one \varServicesManager per \varDUCC cluster.
+    
+    The duties of the \varServicesManager are:
+    
+    \begin{description}
+      \item facilitate services definition and persistence;
+      \item monitor and control services as dependencies on-demand.
+    \end{description}
+        
+    \subsubsection{Ping Driver} 
+    
+    This runs the watchdog thread for custom service pingers.
+ 
+    It spawns a process, as the user, which in turn will instantiate an object which extends
+    AServiceMeta to implement the pinger.
+
+    \subsubsection{Service Handler} 
+    
+    Carries out Service Manager validated request operations.
+            
+    \subsubsection{Service Manager} 
+    
+    Receives and validates service request operations:
+    
+    \begin{itemize}
+      \item register
+      \item unregister
+      \item start
+      \item stop
+      \item query
+      \item modify
+    \end{itemize}
+  
+    \subsection{\varProcessManager (\varPM)}    
+    
+    There is one \varProcessManager per \varDUCC cluster.
+    
+    The duties of the \varProcessManager are:
+    
+    \begin{description}
+      \item monitor and control processes supporting analytic pipelines distributed over a collection of agent-managed nodes;
+    \end{description}
+    
+    \subsection{\varAgent}  
+
+    There is one \varAgent per \varNodeMachineComputer per \varDUCC cluster.
+    
+    The duties of the \varAgent are:
+    
+    \begin{description}
+      \item deploy, monitor and control one or more  processes supporting analytic pipelines on one node;
+      \item publish inventory and metrics;
+    \end{description}
+ 
+    \subsection{\varJobDriver (\varJD)}    
+
+    There is one \varJobDriver per \varJob.
+    
+    The duties of the \varJobDriver are:
+    
+    \begin{description}
+      \item fetch analytic pipeline work items in correspondence with the user specified degree of parallelness;
+      \item dispatch work items to distributed analytic pipelines;
+      \item gather and report on performance statistics and errors;
+      \item retry failed recoverable work items;
+      \item guarantee that individual work items are not mistakenly simultaneously processed by more than one analytic pipeline.
+    \end{description}
+     
+    \subsection{\varWebServer (\varWS)}    
+    
+    There is one \varWebServer per \varNodeMachineComputer per \varDUCC cluster.
+    
+    The duties of the \varWebServer are:
+    
+    \begin{description}
+      \item monitor publications and files produced by:
+      \begin{itemize}
+        \item the \varOR
+        \item the \varRM
+        \item the \varSM
+        \item the \varPM
+        \item each \varAgent
+      \end{itemize}
+      \item provide user and administrator web pages to:
+      \begin{itemize}
+        \item permit authorized users to submit, cancel and monitor distributed analytics;
+        \item login and logout
+        \item monitor and control Jobs
+        \item monitor and control Services
+        \item monitor and control Reservations
+        \item monitor and control \varDUCC Administration
+        \item monitor and control \varDUCC Classes
+        \item monitor and control \varDUCC Daemons
+        \item monitor and control \varDUCC \varNodesMachinesComputers
+        \item display help
+        \item display manuals
+        \item control preferences
+        \item perform queries and filter results
+      \end{itemize}
+    \end{description}
+    
+    \subsection{User Interface (UI)}    
+      \begin{description}
+        \item Application Program Interface (API)
+        \item Command Line Interface (CLI)
+      \end{description}      
+    
+    \section{Communications}
+    
+    Communications description.
+    
+    \section{Interfaces}
+    
+    Interfaces description.
+    
+\chapter{Runtime}
+    
+    \section{State Machines}
+    
+    \subsection{Job State Machine}    
+       
+        \begin{table}[t]
+        \caption{Job State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      & Name                      & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 7          & Job has been vetted, persisted, and assigned unique Id \\
+        2       & WaitingForDriver          &  3, 4, 7       & Process Manager is launching Job Driver \\         
+        3       & WaitingForServices        &  4, 7          & Service Manager is checking/starting service dependencies for Job \\
+        4       & WaitingForResources       &  5, 7          & Scheduler is assigning resources to Job \\
+        5       & Initializing              &  6, 7          & Process Agents are initializing pipelines \\
+        6       & Running                   &  7             & At least one Process Agent has reported process initialization complete \\
+        7       & Completing                &  8             & Job processing is completing \\
+        8       & Completed                 &                & Job processing is completed
+        \end{tabular}
+        \end{table}
+        
+    \subsection{Service State Machine}   
+    
+        \begin{table}[t]
+        \caption{Service State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      &Name                       & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 3, 6       & Service has been vetted, persisted, and assigned unique Id \\
+        2       & WaitingForServices        &  3, 6          & Service Manager is checking/starting service dependencies for Service \\
+        3       & WaitingForResources       &  4, 6          & Scheduler is assigning resources to Service \\
+        4       & Initializing              &  5, 6          & Process Agents are initializing pipelines \\
+        5       & Running                   &  6             & At least one Process Agent has reported process initialization complete \\
+        6       & Completing                &  7             & Service processing is completing \\
+        7       & Completed                 &                & Service processing is completed
+        \end{tabular}
+        \end{table}
+    
+    \subsection{Reservation State Machines}     
+    
+        
+        \begin{table}[t]
+        \caption{Unmanaged Reservation State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      &Name                       & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 3          & Reservation has been vetted, persisted, and assigned unique Id \\
+        2       & Assigned                  &  3             & Shares are assigned \\
+        3       & Completed                 &                & Shares not assigned  
+        \end{tabular}
+        \end{table}
+     
+        \begin{table}[t]
+        \caption{Managed Reservation State Machine}
+        \begin{tabular}{{l}{l}{l}{l}}
+        Id      &Name                       & Next           & Description \\
+        \hline
+        1       & Received                  &  2, 3, 5       & Reservation has been vetted, persisted, and assigned unique Id \\
+        2       & WaitingForServices        &  3, 5          & Service Manager is checking/starting service dependencies for Reservation \\
+        3       & WaitingForResources       &  4, 5          & Scheduler is assigning resources to Reservation \\
+        4       & Running                   &  5             & Process Agent has reported program launched \\
+        5       & Completing                &  6             & Reservation processing is completing \\
+        6       & Completed                 &                & Reservation processing is completed
+        \end{tabular}
+        \end{table}
+           
+    \section{Dependencies}
+    
+    \section{Scheduling}
+    
+    \section{Monitoring and Control}
+    
+    \subsection{Automatic} 
+    
+    \subsection{Manual} 
+        
+    \section{Logging}
+        
+    \subsection{System} 
+    
+    \subsection{User} 
+    
+    \section{Recovery}
+  
+    \subsection{System} 
+    
+    \subsection{User} 
