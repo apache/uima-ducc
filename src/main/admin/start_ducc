@@ -289,6 +289,12 @@ class StartDucc(DuccUtil):
                 print "Can't read nodefile", nf
                 ok = False
 
+        if ok and self.verify_class_configuration(nodes):
+            print "OK: Class configuration checked"
+        else:
+            print "NOTOK: Bad configuration, cannot start."
+            ok = False
+
         if ( not ok ):
             sys.exit(1)
                 

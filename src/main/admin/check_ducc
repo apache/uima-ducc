@@ -59,6 +59,10 @@ class CheckDucc(DuccUtil):
         print "        Check for agents on the nodes in nodefile.  This option may be specified multiple time"
         print "        for multiple nodefiles.  The 'local' node is always checked"
         print ""
+        print "    -c --configuration"
+        print "        Do basic sanity checking on the configuration only.  Note that configuration checking is always"
+        print "        performed with most options.  The [-c, --configuration] option does ONLY configuration checking."
+        print ""
         print "    -u --user userid"
         print "        Userid is the user whose processes check_ducc searches for.  If not specified,"
         print "        the user executing check_ducc is used.  If specified as 'all' then all ducc processes"
@@ -66,7 +70,15 @@ class CheckDucc(DuccUtil):
         print ""
         print "    -k --kill"
         print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
-        print "       uses kill -9 and only kills processes owned by the invoking user."
+        print "       uses kill -KILL (-9) and only kills processes owned by the invoking user."
+        print "" 
+        print "    -i --int"
+        print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
+        print "       uses kill -INT (-2) and only kills processes owned by the invoking user."
+        print "" 
+        print "    -q --quit"
+        print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
+        print "       uses kill -QUIT (-3) and only kills processes owned by the invoking user."
         print "" 
         print "    -p --pids"
         print "       Rewrite the PID file. The PID file is always rewritten if any changes to processes are made.  Sometimes"
@@ -85,43 +97,55 @@ class CheckDucc(DuccUtil):
     
     def main(self, argv):
 
-        self.show_ducc_environment()
-
         try:
-            opts, args = getopt.getopt(argv, 'kn:prs:u:h?v')
+            opts, args = getopt.getopt(argv, 'cikn:pqrs:u:h?v', ['--configuration', '--nodelist=', '--user=', '--int', '--quit', '--kill', '--pids', '--reap', '--version'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
         nodefiles = []
         user = os.environ['LOGNAME']
         victim_user = None
-        kill = False
+        kill_signal = None
         reap = False
         redo_pids = False
         process_changes = False
         do_validate = False
         checkdate = 0
-        
+        config_only = False
+
         for ( o, a ) in opts:
-            if ( o == '-n' ) :
+            if o in ('-c', '--configuration'):
+                config_only = True
+            elif o in ('-n', '--nodelist'):
                 nodefiles.append(a)
-            elif ( o == '-k' ) :
-                kill = True
-            elif ( o == '-u' ) :
+            elif o in ('-i', '--int'):
+                if ( kill_signal != None ):
+                    print 'Conflicting kill signals: -INT and', kill_signal
+                    return
+                kill_signal = '-INT'
+            elif o in ('-q', '--quit'):
+                if ( kill_signal != None ):
+                    print 'Conflicting kill signals: -QUIT and', kill_signal
+                    return
+                kill_signal = '-QUIT'
+            elif o in ('-k', '--kill'):
+                if ( kill_signal != None ):
+                    print 'Conflicting kill signals: -KILL and', kill_signal
+                    return
+                kill_signal = '-KILL'
+            elif o in ('-u', '--user'):
                 victim_user = a
-            elif ( o == '-v'):
-                ducc_util.version()
-            elif ( o == '-r'):
+            elif o in ('-r', '--reap'):
                 reap = True
-            elif ( o == '-p'):
+            elif o in ('-p', '--pids'):
                 redo_pids = True
-            elif ( o == '-s'):
+            elif o in ('-s'):
                 # intended to be called recursively from check_ducc, NOT from the command line
                 do_validate = True
                 checkdate = float(a)
-            elif ( o in ('-h', '-?') ):
+            elif o in ('-h', '-?', '--help'):
                 self.usage(None)
-            elif ( o == '-v'):
+            elif o in ('-v', '--version'):
                 self.version(None)
             else:
                 print 'badarg', a
@@ -133,6 +157,13 @@ class CheckDucc(DuccUtil):
             # if validating, ONLY validate, called via ssh usually
             self.validate(checkdate)
             return
+
+        os.system('cat ' + self.DUCC_HOME + '/state/duccling.version')
+        # not -s option, do this only on local node
+        env = self.show_ducc_environment()
+        for e in env:
+            print e
+
 
         if ( reap and (user == 'ducc') ):
             usage('Can only reap non-udcc users')
@@ -172,6 +203,13 @@ class CheckDucc(DuccUtil):
         if ( len(localnodes) > 0 ):
             nodes['local'] = localnodes
 
+        self.verify_jvm()
+        if self.verify_class_configuration(nodes):
+            print "OK: Class configuration checked"
+
+        if ( config_only ):
+            return
+
         # checking starts here        
         checked = {}
         for (nodefile, nodelist) in nodes.items():
@@ -203,14 +241,14 @@ class CheckDucc(DuccUtil):
                             continue
 
                         process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
-                        if ( kill ) :
+                        if ( kill_signal != None ) :
                             if ( user != found_user ):
                                 print spacer, "Not killing someone else's process.", process_id
                             elif ( component == 'unknown-java' ):
                                 print spacer, 'Not killing non-ducc process', process_id
                             else:
-                                print spacer, 'Killing (kill -9)', process_id
-                                self.kill_process(node, proc)
+                                print spacer, 'Killing (' +  kill_signal + ')', process_id
+                                self.kill_process(node, proc, kill_signal)
                                 pids.delete(pid)
                                 process_changes = True
                         elif ( reap ):
@@ -236,7 +274,7 @@ class CheckDucc(DuccUtil):
                 else:
                     print 'no processes found.'
 
-                if ( not (kill or reap) ):                    
+                if ( not ((kill_signal != None) or reap) ):                    
                     lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-s", str(int(time())))
                     while 1:
                         line = lines.readline()
@@ -249,7 +287,7 @@ class CheckDucc(DuccUtil):
         if ( reap ):
             return
 
-        if ( kill ):
+        if ( kill_signal != None ):
             self.stop_broker()
             self.remove_orchestrator_lock()
                 

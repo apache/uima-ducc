@@ -341,10 +341,12 @@ public class Scheduler
 
     Map<String, String> readNodepoolFile(String npfile)
     {
+        String methodName = "readNodepoolFile";
         String my_domain = getDomainName();
         String ducc_home = System.getProperty("DUCC_HOME");
         npfile = ducc_home + "/resources/" + npfile;
 
+        logger.info(methodName, null, "Domain name:", my_domain);
         Map<String, String> response = new HashMap<String, String>();
 
         try {
@@ -401,7 +403,7 @@ public class Scheduler
         // read in nodepools
         String npn = props.getProperty("scheduling.nodepool");
         if ( npn != null ) {
-            String[] npnames = npn.split(" ");
+            String[] npnames = npn.split("\\s+");
             for ( String nodepoolName : npnames ) {
                 int nporder = props.getIntProperty("scheduling.nodepool." + nodepoolName + ".order", 100);                
                 String npfile = props.getProperty("scheduling.nodepool." + nodepoolName).trim();

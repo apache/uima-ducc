@@ -235,10 +235,10 @@ class DuccUtil(DuccBase):
 
     def verify_jvm(self):
         jvm = self.java()
-        CMD = jvm + ' -fullversion > /dev/null 2>&1'
+        CMD = jvm + ' -version > /dev/null 2>&1'
         rc = os.system(CMD)
         if ( rc != 0 ):
-            print 'NOTOK', CMD, 'returns', rc, '.  Must return rc 0.  Startup cannot continue.'
+            print 'NOTOK', CMD, 'returns', int(rc), '.  Must return rc 0.  Startup cannot continue.'
             return False
         return True
 
@@ -477,8 +477,8 @@ class DuccUtil(DuccBase):
         except:
             print 'Unable to remove orchestrator lock'
 
-    def kill_process(self, node, proc):
-        self.ssh(node, False, 'kill', '-KILL', proc[1])
+    def kill_process(self, node, proc, signal):
+        self.ssh(node, False, 'kill', signal, proc[1])
                 
     def clean_shutdown(self):
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
@@ -547,7 +547,7 @@ class DuccUtil(DuccBase):
 
             manifest = DuccProperties()
             manifest.load_from_manifest(self.DUCC_HOME + '/lib/' + j)
-            response.append('ENV: %25s %18s %12s %s' % (j + ':', manifest.get('Ducc-Version'), 'compiled at', manifest.get('Ducc-Build-Date')))
+            response.append('ENV: %25s %18s %12s %s' % (j + ':', manifest.get('Ducc-Version'), 'compiled at', manifest.get('Build-Date')))
 
         return response
 
@@ -589,6 +589,147 @@ class DuccUtil(DuccBase):
 
         #print 'RETURN', nodefile, ret
         return ret
+
+    def compare_nodes(self, n1, n2):
+
+        if ( n1 == n2 ):             # exact match - covers both short and both long
+            return True
+
+        if ( n1.find('.') >= 0 ):    # shortened n1 == n2?
+            t1 = n1.split('.')
+            n1A = t1[0]
+            if ( n1A == n2 ):
+                return True
+
+        if ( n2.find('.') >= 0 ):    # n1 == shortened n2?
+            t2 = n2.split('.')
+            n2A = t2[0]
+            if ( n1 == n2A ):
+                return True
+        return False
+
+    #
+    # Make sure all the nodes in the configured nodepools are also in the startup list
+    #
+    def check_nodepools(self, classprops, allnodes):
+        #
+        # First make sure that all the nodepools that are declared have definition files
+        # and that the defined nodes are in some nodelist.
+        #
+        nodepools = classprops.get('scheduling.nodepool').split()
+        nodepools_ok = True
+        for np in nodepools:
+            npkey = 'scheduling.nodepool.' + np
+            npfilename = classprops.get(npkey)
+            if ( npfilename == None ):
+                print 'NOTOK: Missing nodepool definition file for Nodepool', np
+                nodepools_ok = False
+                continue
+
+            npfile = self.DUCC_HOME + '/resources/' + npfilename
+            if ( not os.path.exists(npfile) ):
+                print 'NOTOK: Cannot find nodepool file', npfile
+                errors = errors + 1
+                continue
+
+            npnodes = {}
+            npnodes = self.read_nodefile(npfile, npnodes)
+            found = False
+            for ( impfile, nodes ) in npnodes.items():
+                for node in nodes:
+                    for (nodefile, nodelist) in allnodes.items():
+                        for n in nodelist:                        
+                            if ( self.compare_nodes(n, node)):
+                                found = True
+                                break                        
+                if ( not found ):
+                    print 'NOTOK: Cannot find node defined in pool "' +np+'" in any nodefile:', node
+                    nodepools_ok = False
+
+        #
+        # Now make sure that all classes that reference nodepools have corresponding
+        # nodepool definitions
+        #
+
+        for ( k, v ) in classprops.items():
+            if ( k.startswith('scheduling.class.') and k.endswith('.nodepool') ):
+                if ( not ( v in nodepools ) ):
+                    toks = k.split('.')
+                    classname = toks[2]
+                    print 'NOTOK: Class', classname, 'references non-existent nodepool', v
+                    nodepools_ok = False
+
+        if ( nodepools_ok ):
+            print 'OK: All nodepools are verified'
+        else:
+            print 'NOTOK: some nodepools are not correctly defined.'
+
+        return nodepools_ok
+
+    def verify_class_configuration(self, allnodes):
+        answer = True
+        # first, find the class definition
+        classfile = self.ducc_properties.get('ducc.rm.class.definitions')
+        classfile = self.resolve(classfile, self.propsfile)    # resolve the classfile relative to ducc.properties
+
+        print 'Class definition file is', classfile
+        classprops = DuccProperties()
+        try:
+            classprops.load(classfile)
+        except:
+            print 'NOTOK: Cannot read properties file', classfile
+            return False
+
+        # Verify nodepool definitions.
+        if ( not self.check_nodepools(classprops, allnodes) ):
+            # this check will emit necessary messages
+            answer = False
+
+        nodepools = classprops.get('scheduling.nodepool').split()
+        class_set = classprops.get('scheduling.class_set').split()
+        # first, make sure every class that is defined exists, has a policy, and a priority
+        # FAIR_SHARE classes, they must also have a weight
+        # if a nodeppol is assigned, it must also be one of the defined, and now verified, nodepools
+        for cl in class_set:
+            po = classprops.get('scheduling.class.' + cl +'.policy')
+            if ( po == None ):
+                print 'NOTOK: Missing policy definition for class "' + cl + '"'
+                answer = False
+            else:
+                we = classprops.get('scheduling.class.' + cl +'.share_weight')
+                if ( po == 'FAIR_SHARE' and we == None ):
+                    print 'NOTOK: Missing "weight" definition for class: "' + cl + '"'
+                    answer = False
+                    
+            pr = classprops.get('scheduling.class.' + cl +'.priority')
+            if ( pr == None ):
+                print 'NOTOK: Missing priority definition for class: "' + cl + '"'
+                answer = False
+            
+            clnp = classprops.get('scheduling.class.' + cl +'.nodepool')
+            if ( clnp != None ):
+                if ( not clnp in nodepools ):
+                    print 'NOTOK: Nodepool "' + clnp + '" is configured for class "' + cl + '" but has no definition.'
+                    answer = False
+
+        # Dig out the jobdriver class and insure it exists.  
+        jdclass = self.ducc_properties.get('ducc.jd.host.class')
+        if ( not jdclass in class_set ):
+            print 'NOTOK: Job Driver class "' + jdclass + '" is not defined (see ducc.properties: ducc.jd.host.class).'
+            answer = False
+
+        # if a default.name and/or default.name.reserve class is defined, make sure they exist
+        default_class = classprops.get('scheduling.default.name')
+        if ( (default_class != None) and (not default_class in class_set) ):
+            print 'NOTOK: Default class "' + default_class + '" is not defined.'
+            answer = False
+
+        default_reserve_class = classprops.get('scheduling.default.name.reserve')
+        if ( (default_reserve_class != None) and (not default_reserve_class in class_set) ):
+            print 'NOTOK: Default reserve class "' + default_reserve_class + '" is not defined.'
+            answer = False
+
+        return answer
 
     def __init__(self):
         DuccBase.__init__(self)
