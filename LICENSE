@@ -200,3 +200,76 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+   
+   
+----------------
+
+Apache Uima DUCC incorporates a number of open source products with separate
+copyright notices and license terms. Each of these products is subject to 
+the terms and conditions of the relevant licenses. 
+
+For more information please check: http://www.apache.org/legal/
+
+----------------
+
+The following products are licensed: Apache License, Version 2.0
+* Apache ActiveMQ
+* Apache Camel
+* Spring Framework
+* Guava
+* Apache Commons CLI
+* Joda Time
+* HttpClient 
+* Apache Commons Codec
+* Apache Commons Pool
+* Apache Commons-Collections
+* Apache Commons Lang
+* Apache Commons Math
+* Apache log4j
+* Apache MINA
+* XmlBeans
+* Jetty
+* google-gson
+
+----------------
+The following products are licensed: MIT License
+* clueTip plugin (Dual Licensed MIT + GPL)
+* jQuery
+* jQuery UI
+* SLF4J
+* sorttable
+
+License: <ducc-install-dir>/ducc_runtime/webserver/root/opensources/jquery-ui-1.8.4/MIT-LICENSE.txt
+----------------
+
+
+The following products are licensed: GPL License
+* clueTip plugin (Dual Licensed MIT + GPL)
+License: <ducc-install-dir>/ducc_runtime/webserver/root/opensources/jquery-ui-1.8.4/GPL-LICENSE.txt
+----------------
+
+
+The following products are licensed: GPL Version 2 License
+* DataTables (Dual Licensed BSD + GPL2)
+
+License: <ducc-install-dir>/ducc_runtime/webserver/root/opensources/DataTables-1.9.1/license-gpl2.txt
+----------------
+
+
+The following products are licensed: BSD License
+* DataTables (Dual Licensed BSD + GPL2)
+* JSch
+* XStream 
+
+License: <ducc-install-dir>/ducc_runtime/webserver/root/opensources/DataTables-1.9.1/license-bsd.txt
+----------------
+
+
+The following products are licensed: 
+*jGrowl 
+
+License: <ducc-install-dir>/ducc_runtime/webserver/root/opensources/jgrowl/LICENSE.txt
+
+----------------
+
+
