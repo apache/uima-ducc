@@ -96,6 +96,8 @@ class StartDucc(DuccUtil):
                 self.pids.put(com + '@' + node, toks[1])
                 lines.close()
                 break
+            if ( line.startswith('WARN') ):
+                print '    ', line
             
         if ( com in self.default_components ):           # tracks where the management processes are
             self.pids.put(com, com + '@' + node)
@@ -289,11 +291,12 @@ class StartDucc(DuccUtil):
                 print "Can't read nodefile", nf
                 ok = False
 
-        if ok and self.verify_class_configuration(nodes):
-            print "OK: Class configuration checked"
-        else:
-            print "NOTOK: Bad configuration, cannot start."
-            ok = False
+        if ok and (len(nodefiles) > 0):
+            if self.verify_class_configuration(nodes):
+                print "OK: Class configuration checked"
+            else:
+                print "NOTOK: Bad configuration, cannot start."
+                ok = False
 
         if ( not ok ):
             sys.exit(1)

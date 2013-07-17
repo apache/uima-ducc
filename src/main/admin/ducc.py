@@ -173,7 +173,7 @@ class Ducc(DuccUtil):
                     if ( r_found_user != os.environ['LOGNAME'] ):   # don't care about other stuff
                         continue
                     if ( r_component == component ):
-                        print "WARN Component", component,'is already running in PID', r_found_user, r_pid, 'on node', self.localhost
+                        print "WARN Not starting", component + ': already running in PID', r_found_user, r_pid, 'on node', self.localhost
                         return
 
         # not already running, and the node is viable.  fire it off.

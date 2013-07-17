@@ -622,14 +622,13 @@ class DuccUtil(DuccBase):
             npkey = 'scheduling.nodepool.' + np
             npfilename = classprops.get(npkey)
             if ( npfilename == None ):
-                print 'NOTOK: Missing nodepool definition file for Nodepool', np
+                print 'NOTOK: Missing nodepool definition file for Nodepool "' + np + '"'
                 nodepools_ok = False
                 continue
 
             npfile = self.DUCC_HOME + '/resources/' + npfilename
             if ( not os.path.exists(npfile) ):
-                print 'NOTOK: Cannot find nodepool file', npfile
-                errors = errors + 1
+                print 'NOTOK: Cannot find nodepool file "' + npfile + '"'
                 continue
 
             npnodes = {}
