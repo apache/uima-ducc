@@ -913,7 +913,7 @@ public class RmJob
      */
     int getProjectedCap()
     {
-    	String methodName = "getProjectedCap";
+    	String methodName = "getPrjCap";        // want this to line up with getJobCap in logs
         if ( init_wait ) {                      // no cap if not initialized, because we don't know.  other caps will dominate.
             return Integer.MAX_VALUE;
         }
@@ -1269,6 +1269,7 @@ public class RmJob
     {	
     	public int compare(Machine m1, Machine m2)
         {
+            if (m1.equals(m2)) return 0;
             return (int) (m2.getShareOrder() - m1.getShareOrder());
         }
     }
@@ -1281,7 +1282,7 @@ public class RmJob
     {	
     	public int compare(Share s1, Share s2)
         {
-            //
+            if ( s1.equals(s2) ) return 0;
             // First divide them into two pools: 
             // not-initialized shares always sort LESS than initialized shares
             if ( ! s1.isInitialized() ) {
@@ -1333,7 +1334,7 @@ public class RmJob
     {
         public int compare(IEntity e1, IEntity e2)
         {
-            if ( e1 == e2 ) return 0;
+            if ( e1.equals(e2) ) return 0;
             return (int) (e1.getTimestamp() - e2.getTimestamp());
         }
     }

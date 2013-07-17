@@ -1150,6 +1150,8 @@ public class Scheduler
     {	
     	public int compare(Machine m1, Machine m2)
         {
+            if ( m1.equals(m2) ) return 0;
+
             if (m1.getShareOrder() == m2.getShareOrder()) {
                 return (m1.getId().compareTo(m2.getId()));
             }

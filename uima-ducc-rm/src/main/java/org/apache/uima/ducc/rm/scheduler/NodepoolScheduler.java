@@ -361,9 +361,9 @@ public class NodepoolScheduler
             // Starting at highest order, give full fair share to any entity that wants it, minus the
             // shares already given.  Remove the newly given shares and trickle down the fragments.
 
-            logger.debug(methodName, null, descr, "----------------------- Pass", (pass++), "------------------------------");
-            logger.debug(methodName, null, descr, "vshares", fmtArray(vshares));
-            logger.debug(methodName, null, descr, "nshares", fmtArray(nshares));
+            logger.trace(methodName, null, descr, "----------------------- Pass", (pass++), "------------------------------");
+            logger.trace(methodName, null, descr, "vshares", fmtArray(vshares));
+            logger.trace(methodName, null, descr, "nshares", fmtArray(nshares));
             shares_given = false;
             HashMap<IEntity, Integer> given_per_round = new HashMap<IEntity, Integer>();        // qshares
             int allweights = 0;
@@ -382,11 +382,11 @@ public class NodepoolScheduler
                 deserved.put(e, base_fs);
                 all_qshares -= base_fs;
 
-                logger.debug(methodName, null, descr, e.getName(), "Wanted  :", fmtArray(e.getWantedByOrder()));
-                logger.debug(methodName, null, descr, e.getName(), "deserved:", base_fs, d_base_fs);
+                logger.trace(methodName, null, descr, e.getName(), "Wanted  :", fmtArray(e.getWantedByOrder()));
+                logger.trace(methodName, null, descr, e.getName(), "deserved:", base_fs, d_base_fs);
             }
 
-            logger.debug(methodName, null, descr,  "Leftover after giving deserved:" + all_qshares);
+            logger.trace(methodName, null, descr,  "Leftover after giving deserved:" + all_qshares);
             if ( all_qshares > 0 ) {
                 for ( IEntity e: working ) {
                     deserved.put(e, deserved.get(e) + 1);
@@ -395,7 +395,7 @@ public class NodepoolScheduler
                 }
             }
             for ( IEntity e : working ) {
-                logger.debug(methodName, null, descr, String.format("Final deserved by %15s: int[%3d] (after bonus)", e.getName(), deserved.get(e)));
+                logger.trace(methodName, null, descr, String.format("Final deserved by %15s: int[%3d] (after bonus)", e.getName(), deserved.get(e)));
             }
 
             for ( int o = maxorder; o > 0; o--) {  
@@ -419,7 +419,7 @@ public class NodepoolScheduler
                     int    mpr = Math.max(0, des-gpr);                                               // max this round, deserved less what I aleady was given
                     int    given = Math.min(mpr, (int) Math.floor(dgiven));                          // what is calculated, capped by what I alreay have
                     int    cap = e.calculateCap(o, total_shares);                                    // get caps, if any
-                    logger.debug(methodName, null, descr, "O", o, ":", e.getName(), "Before caps, given", given, "cap", cap);
+                    logger.trace(methodName, null, descr, "O", o, ":", e.getName(), "Before caps, given", given, "cap", cap);
 
                     given = given / o;                                                               // back to NShares rounding down
 
@@ -430,7 +430,7 @@ public class NodepoolScheduler
                     int    taken = Math.min(given, wbo[o]);                                          // NShares
                     taken = Math.min(taken, nshares[o] - total_taken);                               // cappend on physical (in case rounding overcommitted)
 
-                    logger.debug(methodName, null, descr,
+                    logger.trace(methodName, null, descr,
                                  "O", o, ":", e.getName(), "After  caps,",
                                  " dgiven Q[", dgiven,
                                  "] given N[", given ,
@@ -493,16 +493,20 @@ public class NodepoolScheduler
                 }
             }
 
-            logger.debug(methodName, null, descr, "Survivors at end of pass:");
-            for ( IEntity e : working ) {
-                logger.debug(methodName, null, descr, e.toString());
+            if ( logger.isTrace() ) {
+                logger.trace(methodName, null, descr, "Survivors at end of pass:");
+                for ( IEntity e : working ) {
+                    logger.trace(methodName, null, descr, e.toString());
+                }
             }
         } while ( shares_given );
 
-        logger.debug(methodName, null, descr, "Final before bonus:");
-        for ( IEntity e : entities ) {
-            int[] gbo = e.getGivenByOrder();
-            logger.debug(methodName, null, descr, String.format("%12s %s", e.getName(), fmtArray(gbo)));
+        if ( logger.isTrace() ) {
+            logger.trace(methodName, null, descr, "Final before bonus:");
+            for ( IEntity e : entities ) {
+                int[] gbo = e.getGivenByOrder();
+                logger.trace(methodName, null, descr, String.format("%12s %s", e.getName(), fmtArray(gbo)));
+            }
         }
 
         //
@@ -989,13 +993,15 @@ public class NodepoolScheduler
         }
 
         //traverseNodepoolsForEviction(globalNodepool, eligible);
-        logger.info(methodName, null, "Machine occupancy before expansion", stophere++);
+        logger.trace(methodName, null, "Machine occupancy before expansion", stophere++);
         if ( stophere == 7 ) {
             @SuppressWarnings("unused")
 			int stophere;
             stophere = 1 ;
         }
-        globalNodepool.queryMachines();
+        if ( logger.isTrace() ) {
+            globalNodepool.queryMachines();
+        }
         expandNeedyJobs(globalNodepool, rcs);
         traverseNodepoolsForExpansion(globalNodepool, eligible);
         logger.info(methodName, null, "Machine occupancy after expansion");
@@ -2228,7 +2234,7 @@ public class NodepoolScheduler
     {
         public int compare(IRmJob j1, IRmJob j2)
         {
-            if ( j1 == j2 ) return 0;
+            if ( j1.equals(j2) ) return 0;
 
             if ( j1.getTimestamp() == j2.getTimestamp() ) {           // if tied on time (unlikely)
                 return (j2.getShareOrder() - j1.getShareOrder());       // break tie on share order, decreasing
@@ -2262,7 +2268,7 @@ public class NodepoolScheduler
     {
         public int compare(User u1, User u2)
         {
-            if ( u1 == u2 ) return 0;
+            if ( u1.equals(u2) ) return 0;
 
             int w1 = u1.getShareWealth();
             int w2 = u2.getShareWealth();
@@ -2283,7 +2289,7 @@ public class NodepoolScheduler
     {
         public int compare(IRmJob j1, IRmJob j2)
         {
-            if ( j1 == j2 ) return 0;            // same instances MUST return equal, 
+            if ( j1.equals(j2) ) return 0;       // same instances MUST return equal, 
 
             int s1 = j1.countNShares() * j1.getShareOrder();
             int s2 = j2.countNShares() * j2.getShareOrder();
@@ -2307,7 +2313,7 @@ public class NodepoolScheduler
         public int compare(IRmJob j1, IRmJob j2)
         {
 
-            if ( j1 == j2 ) return 0;
+            if ( j1.equals(j2) ) return 0;
 
             // pure fair-share
             int p1 = j1.getPureFairShare();    // qshares
@@ -2382,7 +2388,7 @@ public class NodepoolScheduler
         
         public int compare(Machine m1, Machine m2)
         {
-            if ( m1 == m2 ) return 0;       
+            if ( m1.equals(m2) ) return 0;       
 
             int m1wealth = 0;
             int m2wealth = 0;
@@ -2420,7 +2426,7 @@ public class NodepoolScheduler
         
         public int compare(Share s1, Share s2)
         {
-            if ( s1 == s2 ) return 0;       
+            if ( s1.equals(s2) ) return 0;       
 
             int s1wealth = 0;
             int s2wealth = 0;

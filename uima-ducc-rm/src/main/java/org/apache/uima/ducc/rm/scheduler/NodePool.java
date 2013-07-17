@@ -491,7 +491,7 @@ class NodePool
     public synchronized void connectShare(Share s, Machine m, IRmJob j, int order)
     {
         String methodName = "connectShare";
-        logger.debug(methodName, j.getId(), "share", s,  "order", order, "machine", m);
+        logger.trace(methodName, j.getId(), "share", s,  "order", order, "machine", m);
         j.assignShare(s);
         m.assignShare(s);
         rearrangeVirtual(m, order);
@@ -1428,6 +1428,8 @@ class NodePool
     {	
     	public int compare(Machine m1, Machine m2)
         {
+            if ( m1.equals(m2) )   return 0;
+
             if ( m1.isFree() ) {             // to the front of the list, ordered by smallest memory
                 if ( m2.isFree() ) return (m1.getShareOrder() - m2.getShareOrder());
                 return -1;                   // m2 not free, m1 to the front of the list
