@@ -58,6 +58,13 @@
 \newcommand{\varService}{\text{Service}}
 \newcommand{\varServices}{\text{Services}}
 
+\newcommand{\varManagedReservations}{\text{Managed Reservations}}
+\newcommand{\varUnmanagedReservations}{\text{Unmanaged Reservations}}
+
+\newcommand{\varPingOnly}{\text{Ping-Only}}
+
+\newcommand{\varGB}{\text{GB}}
+
 % typewriter
 
 \newcommand{\varCompleted}{\texttt{Completed}}
@@ -102,14 +109,17 @@
     the \varResourceManager~(\varRM), the \varProcessManager~(\varPM), the \varServicesManager~(\varSM), 
     the \varAgents, the \varCommandLineInterface~(\varCLI), the \varApplicationProgramInterface~(\varAPI), 
     and the \varWebServer~(\varWS).
+        
+    \section{Highlights}
     
-    \varDUCC~highlights:
+    \varDUCC~was conceived to address the following:
+    
     \begin{itemize}
-      \item manage a cluster of machines for \varUIMA workloads
-      \item highly configurable resource allocation system
+      \item manage a cluster of machines for \varUIMA~workloads
+      \item highly configurable "fair-share" resource allocation system
       \item application code runs with credentials of submitting user
       \item "virtual machine" resources for user processes allocated instantaneously via \varLinuxControlGroups
-      \item extensive Web, CLI and API interfaces
+      \item extensive Web, \varCLI~and \varAPI~interfaces
       \item rich debugging support for user processes
     \end{itemize} 
     
@@ -132,8 +142,8 @@
     \begin{figure}[h]
     \centering
     \includegraphics[width=6.5in]{images/ducc-arch.jpg}
-    \caption{\varDUCC Architecture}
-    \label{fig:\varDUCC-Architecture}
+    \caption{\varDUCC~Architecture}
+    \label{fig:\varDUCC~Architecture}
     \end{figure}
 
     \section{\varJobs}
@@ -162,7 +172,7 @@
     \subsection{Performance}  
     
     For the distributed environment, \varDUCC~relies upon a \varNetworkFileSystem~(\varNFS)
-    for file access.
+    for file access to work items.
     High performance is achieved through \varNFS~data sharing and (via \varActiveMQ) the passing of
     data-handles that are utilized by the "embarrassingly parallel" pipelines.
     
@@ -181,52 +191,99 @@
     \section{\varServices}
        
     To help support \varJobs, \varDUCC~provides facilities for \varServices~of two types: 
-    \varUIMA and \varPingOnly. \varServices can be pre-defined in a registry, and \varJobs
-    can declare dependency on one or more of them.
+    \varUIMA~and \varPingOnly. \varServices~can be predefined in a registry, and 
+    \varJobs~can declare dependency on one or more of them.
+    
+    \varServices~can be shared by my multiple \varJobs~or can be tied to just one.
+    \varServices~can be started at \varDUCC-boot time or at \varService-definition time or
+    at \varJob~launch time.
+    
+    \varServices~nominally exists for reasons of efficiency due to high start-up costs
+    or high resource consumption.  Benefits of cost amortization are realized by sharing
+    \varServices~amongst a collection of \varJobs~rather than employing a private copy 
+    for each.
+    
+    The lifecycle of each \varUIMA~\varService~is managed by \varDUCC, which is not the
+    case for \varPingOnly~\varServices.  However, each comprises a "pinger" which 
+    adheres to a standard interface and provides health and statistical information.
+    
+    \section{Management} 
+    
+    The \varDUCC~system employs several management techniques to fairly apportion
+    resources.
     
     \subsection{Memory Shares} 
     
-    Memory Shares description.
+    The \varDUCC~system partitions the entire set of available resources comprising
+    \varNodesMachinesComputers~into shares of two types: 
+    \varJobDriver~and non-\varJobDriver. 
+    Nominally, in terms of \varGB~per share, the former are small and the latter are large.
     
-    \subsection{C-Groups} 
+    As resources and demand upon them change over time, so may the apportionment of shares
+    between these different types.
+    Partitioning of the available \varNodesMachinesComputers~into shares facilitates
+    multitenancy amongst a collection of \varDUCC-managed user applications consisting 
+    of \varUIMA~pipelines.
     
-    C-Groups description.
+    Users submit \varJobs~ to the \varDUCC~system specifying a requisite memory size.
+    Each \varJob~is allocated one \varJobDriver~share and, based upon user specified
+    memory size, one or more non-\varJobDriver~shares 
+    (also known as just plain "shares"). 
+    Likewise, users submit \varReservations~and \varServices~also comprising memory size
+    information.  These are assigned non-\varJobDriver~shares only.
+    
+    New \varJobs, \varReservations~and \varServices~may only enter the system when
+    there are sufficient unallocated shares available. To make room for newly arriving
+    submissions, the \varResourceManager~may preempt use of already previously
+    assigned shares for re-assignment.
+    
+    \subsection{\varLinuxControlGroups} 
+    
+    If available, \varDUCC~employs \varLinuxControlGroups~to enforce limits on
+    deployed applications. Exceeding limits penalizes only the offender.
+    For example, if a user application exceeds its memory share size then it is forced
+    to swap while other co-resident applications remain unaffected.
     
     \subsection{Preemption} 
         
-    Preemption description.
+    Preemption is employed by \varDUCC~to re-apportion shares when new work is submitted.
+    
+    For example, presume a simple \varDUCC~system with just one preemptable scheduling class
+    and resources comprising 10 non-\varJobDriver~shares. When the Job #1 is submitted
+    it is entitled to all 10 shares.  When Job #2 arrives, each job is entitled to only 5 shares.
+    Thus, 5 shares from Job #1 are preempted and reassigned to Job #2.
     
 \chapter{System Organization}
 
     \section{Single System Image}
     
-    \varDUCC runs on \varLinux. It can be run on single system in simulation-mode
-    or on a cluster (two or more machines). For clusters, \varDUCC replies upon 
+    \varDUCC~runs on \varLinux. It can be run on single system in simulation-mode
+    or on a cluster (two or more machines). For clusters, \varDUCC~replies upon 
     these requirements:
     
     \begin{itemize}
       \item common userids across the cluster
       
       Each userid must have the same definition on all machines participating
-      in the \varDUCC cluster.
+      in the \varDUCC~cluster.
       
-      \item a shared filesystem for user and \varDUCC data across the cluster
+      \item a shared filesystem for user and \varDUCC~data across the cluster
       
       Each machine shares a filesystem (commonly provided by NFS) with all 
-      machines participating in the \varDUCC cluster.
+      machines participating in the \varDUCC~cluster.
       
     \end{itemize} 
     
     \section{Daemons}
     
-    \varDUCC is implemented through a collection of configurable singleton 
+    \varDUCC~is implemented through a collection of configurable singleton 
     and distributed daemons.
     
-    \subsection{\varOrchestrator (\varOR)} 
+    \subsection{\varOrchestrator~(\varOR)} 
     
-    There is one \varOrchestrator per \varDUCC cluster.
+    There is one \varOrchestrator~per \varDUCC~cluster.
     
-    The duties of the \varOrchestrator are:
+    The duties of the \varOrchestrator~are:
     
     \begin{description}
       \item receive and act upon user submitted application requests;
@@ -235,21 +292,21 @@
       \item manage the lifecycle of jobs, services, and reservations.
     \end{description}
     
-    The \varOrchestrator receives user requests to start, stop and modify 
+    The \varOrchestrator~receives user requests to start, stop and modify 
     Jobs, Services and Reservations. It manages the life-cycles of these
     entities, each deployed to a managed cluster of machines 
     (nodes, computers).
     
-    The \varOrchestrator both publishes and receive reports.  
-    The \varOrchestrator publication is also known as the \varORmap, which is
+    The \varOrchestrator~both publishes and receive reports.  
+    The \varOrchestrator~publication is also known as the \varORmap, which is
     the final authority on the state of Jobs, Reservations, and Services.
-    All other \varDUCC components respect the state published by the \varOrchestrator
-    and each carries out its assigned duties accordingly.
+    All other \varDUCC~components respect the state published by the 
+    \varOrchestrator~and each carries out its assigned duties accordingly.
     
     \subsubsection{Controller} 
     \label{Controller}
     
-    The \varOrchestrator Controller responsibilities entail receiving user 
+    The \varOrchestrator~Controller responsibilities entail receiving user 
     submitted requests and processing them to completion in accordance with 
     an instance of the appropriate state machine. 
     
@@ -263,25 +320,25 @@
     \end{itemize} 
     
     The Controller responsibilities further entail receiving status messages
-    from other \varDUCC components and advancing the state machines of user 
+    from other \varDUCC~components and advancing the state machines of user 
     submitted Jobs, Reservations, and Services as necessary. 
     
     Additionally and importantly, the Controller is the final authority
-    for the \varDUCC system state comprising active Jobs, Reservations, and 
-    Services. The Controller publishes \varDUCC system state at regular intervals
-    for consumption and use by all other \varDUCC components.
+    for the \varDUCC~system state comprising active Jobs, Reservations, and 
+    Services. The Controller publishes \varDUCC~system state at regular intervals
+    for consumption and use by all other \varDUCC~components.
     
     \subsubsection{Authenticator} 
     
     The authenticator determines whether or not the requesting user is a
-    \varDUCC administrator. Such users have special privileges, such as:
+    \varDUCC~administrator. Such users have special privileges, such as:
     
     \begin{itemize}
-      \item the ability to control \varDUCC system functions
+      \item the ability to control \varDUCC~system functions
       \item the ability to act on behalf of other users
     \end{itemize}     
     
-    The file \varDuccAdministrators comprises the list of privileged \varDUCC users.
+    The file \varDuccAdministrators~comprises the list of privileged \varDUCC~users.
     
     \subsubsection{Validation} 
     
@@ -297,14 +354,14 @@
       \item \varSchedulingClass
     \end{itemize} 
     
-    Other keys are validated by the command line interface, prior to arrival
+    Other keys are validated by the \varCommandLineInterface, prior to arrival
     at the \varOrchestrator.
     
     \subsubsection{Factory} 
     
     Once accepted, submit requests proceed through a corresponding factory
     to have a state machine representation entered into the published
-    \varORmap with initial state of \varReceived.  The request remains 
+    \varORmap~with initial state of \varReceived.  The request remains 
     active until it advances to final state \varCompleted.
     
     Each factory-created representation comprises appropriate information as follows:
@@ -340,8 +397,8 @@
           \item user log directory
           \item MQ broker
           \item MQ queue
-          \item \varCollectionReader descriptor
-          \item \varCollectionReader overrides
+          \item \varCollectionReader~descriptor
+          \item \varCollectionReader~overrides
           \item getMeta timeout value
           \item work item processing timeout value
           \item work item processing exception handler
@@ -378,15 +435,15 @@
     
     The Checkpoint Supervisor provides functions to save and restore state information
     to/from persistent storage. State is stored whenever a significant change occurs.
-    State is restored at \varOrchestrator boot time.
+    State is restored at \varOrchestrator~boot time.
     
     Saving and restoration of state facilitates reasonable continuity of service
-    between \varOrchestrator lifetimes.
+    between \varOrchestrator~lifetimes.
     
     \subsubsection{State Supervisor} 
 
     The State Supervisor receives and examines publications from other
-    \varDUCC components, records and distributes pertinent information obtained
+    \varDUCC~components, records and distributes pertinent information obtained
     or derived, and advances state machines appropriately.
     
     Publications are received from these components:
@@ -401,14 +458,15 @@
     \end{itemize} 
     
     Information from these sources is recorded in the \varORmap. 
-    Based on information derived from all sources, the \varOrchestrator
-    advances the state machines of currently active entities (Jobs,
-    Reservations, Services). Once the \varCompleted state is reached, the
+    Based on information derived from all sources, the 
+    \varOrchestrator~advances the state machines of currently active 
+    entities (Jobs, Reservations, Services). 
+    Once the \varCompleted~state is reached, the
     entity is no longer active on the cluster.
     
-    Note that \varORmap is, in-turn, published at regular intervals 
-    for use by the other \varDUCC singleton and distributed components.
-    The \varORmap the the "final authority" on the state of
+    Note that \varORmap~is, in-turn, published at regular intervals 
+    for use by the other \varDUCC~singleton and distributed components.
+    The \varORmap~is the "final authority" on the state of
     each Job, Reservation and Service currently or formerly deployed.
     See \ref{Controller} \varController.
     
@@ -420,16 +478,16 @@
     \begin{description}
     
     \item Advance from the current state to a next valid state
-    \item Advance from the current state immediately to the \varCompleted state
+    \item Advance from the current state immediately to the \varCompleted~state
           
     \end{description} 
     
     \subsubsection{C-Group Supervisor}  
     
     The C-Group Supervisor assigns a maximum size (in bytes) and a composite
-    unique identity to each \varDUCC share. This information is published for use
+    unique identity to each \varDUCC~share. This information is published for use
     by Agents to enforce C-Group limitations on storage used by the corresponding
-    running entity (for example, UIMA pipeline).
+    running entity (for example, \varUIMA~pipeline).
     
     Employing C-Groups is analogous to defining virtual machines of a certain
     size such that exceeding limits causes only the offending process to suffer
@@ -449,37 +507,37 @@
     
     \subsubsection{Logging / As-User} 
     
-    The Logging and As-User modules permit the \varOrchestrator to write logging data into
+    The Logging and As-User modules permit the \varOrchestrator~to write logging data into
     a file contained in "user-space", meaning a file into a directory writable 
     by the submitting user, during processing of the submitted entity 
-    (Job, Managed Reservation,...).
+    (Job, Managed Reservation...).
         
     \subsubsection{Administrators} 
     
-    The Administrators module grants users defined in the \textit{ducc.administrators}
-    file special privileges, such a being able cancel to any user's Job.
+    The Administrators module grants users defined in the \varDuccAdministrators~file
+    special privileges, such a being able cancel to any user's Job.
     
     \subsubsection{Maintenance} 
     
-    The maintenance thread wakes-up as regular intervals to perform the following
+    The maintenance thread wakes-up at regular intervals to perform the following
     tasks:
     
     \begin{description}
     
       \item Health
       
-      The \varOrchestrator automatically caps Jobs and Services that exceed initialization
+      The \varOrchestrator~automatically caps Jobs and Services that exceed initialization
       error thresholds, and cancels those that exceed processing error thresholds.
       
       \item MQ Reaper
       
-      The \varOrchestrator cleans-up unused Job Driver AMQ permanent queues for Jobs that have completed.
+      The \varOrchestrator~cleans-up unused Job Driver AMQ permanent queues for Jobs that have completed.
       
       \item Publication Pruning
       
-      The \varOrchestrator regularly publishes state for all active entities (Jobs, Reservations,
+      The \varOrchestrator~regularly publishes state for all active entities (Jobs, Reservations,
       Services).  It also publishes state for recently completed ones. Pruning removes
-      from regular \varOrchestrator publication completed entities that have been competed past a
+      from regular \varOrchestrator~publication completed entities that have been competed past a
       time threshold, nominally one minute.
            
       \item Node Accounting
@@ -487,7 +545,7 @@
       This module keeps track of each node's state, up or down.  Nodes that do 
       not report for a time exceeding a threshold, typically a few minutes, 
       are considered down. This information is used for Jobs whose Job Driver
-      advanced to the \varCompleted state, whereby corresponding Job Processes on 
+      advanced to the \varCompleted~state, whereby corresponding Job Processes on 
       nodes that are reported down are marked as stopped by the \varOrchestrator, as opposed 
       to waiting (potentially forever) for the corresponding Agent to report.
       This prevent Jobs from becoming unnecessarily stuck in the completing
@@ -495,11 +553,11 @@
       
     \end{description} 
     
-    \subsection{\varResourceManager (\varRM, also known as the Scheduler)}    
+    \subsection{\varResourceManager~(\varRM, also known as the Scheduler)}    
         
-    There is one \varResourceManager per \varDUCC cluster.
+    There is one \varResourceManager~per \varDUCC~cluster.
     
-    The duties of the \varResourceManager are:
+    The duties of the \varResourceManager~are:
     
     \begin{description}
       \item fairly allocate constrained resources amongst valid user requests over time;
@@ -515,11 +573,11 @@
            
     \subsubsection{Scheduler} 
     
-    \subsection{\varServicesManager (\varSM)}    
+    \subsection{\varServicesManager~(\varSM)}    
     
-    There is one \varServicesManager per \varDUCC cluster.
+    There is one \varServicesManager~per \varDUCC~cluster.
     
-    The duties of the \varServicesManager are:
+    The duties of the \varServicesManager~are:
     
     \begin{description}
       \item facilitate services definition and persistence;
@@ -552,7 +610,7 @@
   
     \subsection{\varProcessManager (\varPM)}    
     
-    There is one \varProcessManager per \varDUCC cluster.
+    There is one \varProcessManager per \varDUCC~cluster.
     
     The duties of the \varProcessManager are:
     
@@ -562,7 +620,7 @@
     
     \subsection{\varAgent}  
 
-    There is one \varAgent per \varNodeMachineComputer per \varDUCC cluster.
+    There is one \varAgent per \varNodeMachineComputer per \varDUCC~cluster.
     
     The duties of the \varAgent are:
     
@@ -587,7 +645,7 @@
      
     \subsection{\varWebServer (\varWS)}    
     
-    There is one \varWebServer per \varNodeMachineComputer per \varDUCC cluster.
+    There is one \varWebServer per \varNodeMachineComputer per \varDUCC~cluster.
     
     The duties of the \varWebServer are:
     
@@ -607,10 +665,10 @@
         \item monitor and control Jobs
         \item monitor and control Services
         \item monitor and control Reservations
-        \item monitor and control \varDUCC Administration
-        \item monitor and control \varDUCC Classes
-        \item monitor and control \varDUCC Daemons
-        \item monitor and control \varDUCC \varNodesMachinesComputers
+        \item monitor and control \varDUCC~Administration
+        \item monitor and control \varDUCC~Classes
+        \item monitor and control \varDUCC~Daemons
+        \item monitor and control \varDUCC~\varNodesMachinesComputers
         \item display help
         \item display manuals
         \item control preferences
