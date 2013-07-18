@@ -40,7 +40,9 @@ public class DuccGarbageStatsCollector {
 	  this.logger = logger;
 	  this.process = process;
 	  try {
-	    connection = getServerConnection();
+		  if (process != null && process.getProcessJmxUrl() != null && process.getProcessJmxUrl().trim().length() > 0 ) {
+			    connection = getServerConnection();
+		  }
 	  } catch( Exception e) {
 		  logger.error("DuccGarbageStatsCollector.ctor", null,e);
 		  logger.error("DuccGarbageStatsCollector.ctor", null, "Failed to Connect via JMX to PID:"+process.getPID()+" Reason:\n"+e);

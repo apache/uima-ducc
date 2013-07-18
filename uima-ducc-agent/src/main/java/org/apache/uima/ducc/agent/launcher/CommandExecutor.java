@@ -77,15 +77,22 @@ public abstract class CommandExecutor implements Callable<Process> {
 								.setProcessState(ProcessState.Running);
 					}
 					
-//          try {
-//            RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent, 
-//                    ((ManagedProcess) managedProcess).getDuccProcess(),
-//                    (ManagedProcess) managedProcess);
-//            agent.getContext().addRoutes(rb);
-//          
-//          } catch( Exception e) {
-//            logger.error("postExecStep", null, e);
-//          }
+          try {
+        	  synchronized(this) {
+        		  // wait for 5 seconds before starting the camel route
+        		  // responsible for collecting process related stats. Allow
+        		  // enough time for the process to start.
+        		  wait(5000); 
+        		  
+        	  }
+            RouteBuilder rb = agent.new ProcessMemoryUsageRoute(agent, 
+                    ((ManagedProcess) managedProcess).getDuccProcess(),
+                    (ManagedProcess) managedProcess);
+            agent.getContext().addRoutes(rb);
+          
+          } catch( Exception e) {
+            logger.error("postExecStep", null, e);
+          }
 				}
 			}
 		}
