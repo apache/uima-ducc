@@ -101,9 +101,9 @@ public class JobDriver extends Thread implements IJobDriver {
 	private WorkItemListener workItemListener;
 	
 	private CasSource casSource;
-	private CasDispatchMap casDispatchMap = new CasDispatchMap();
+	private CasDispatchMap casDispatchMap = null;
 	
-	private IJdProcessExceptionHandler jdProcessExceptionHandler = new JdProcessExceptionHandler();
+	private IJdProcessExceptionHandler jdProcessExceptionHandler = null;
 	
 	private String serverUri = null;
 	private String endPoint = null;
@@ -112,19 +112,23 @@ public class JobDriver extends Thread implements IJobDriver {
 	
 	private WorkItemFactory workItemFactory;
 	
-	private AtomicInteger activeWorkItems = new AtomicInteger(0);
+	private AtomicInteger activeWorkItems = null;
 	
-	private ConcurrentHashMap<String,WorkItem> casWorkItemMap = new ConcurrentHashMap<String,WorkItem>();
+	private ConcurrentHashMap<String,WorkItem> casWorkItemMap = null;
 	
 	public JobDriver() {
 		super();
 	}
-	
-	
+
 	public void initialize(IDuccWorkJob job, String jdJmxUrl) throws JobDriverTerminateException {
 		String location = "initialize";
 		duccOut.info(location, jobid, "jd.step:"+location);
 		try {
+			casDispatchMap = new CasDispatchMap();
+			jdProcessExceptionHandler = new JdProcessExceptionHandler();
+			activeWorkItems = new AtomicInteger(0);
+			casWorkItemMap = new ConcurrentHashMap<String,WorkItem>();
+			//
 			setJobid(job.getDuccId());
 			setDuccWorkJob(job);
 			setJdJmxUrl(jdJmxUrl);

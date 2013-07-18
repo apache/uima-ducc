@@ -186,6 +186,9 @@ implements IJobDriverComponent {
 						duccOut.error(methodName, null, e);
 						duccOut.error(methodName, job.getDuccId(), summarize(e), e);
 					}
+					catch(Throwable t) {
+						duccOut.error(methodName, null, t);
+					}
 				}
 				try {
 					ConcurrentSkipListMap<Long, JobProcessData> map = jpc.transform(job);
