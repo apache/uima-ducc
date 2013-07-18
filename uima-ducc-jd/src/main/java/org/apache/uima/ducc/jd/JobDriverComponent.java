@@ -177,11 +177,13 @@ implements IJobDriverComponent {
 					duccOut.trace(methodName, job.getDuccId(), duccMsg.fetch("creating driver thread"));
 					try {
 						thread = new JobDriver();
+						duccOut.trace(methodName, job.getDuccId(), "thread:"+thread);
 						thread.initialize(job, getProcessJmxUrl());
 						thread.start();
 						jpc = new JobProcessCollection(job);
 					}
 					catch(Exception e) {
+						duccOut.error(methodName, null, e);
 						duccOut.error(methodName, job.getDuccId(), summarize(e), e);
 					}
 				}
