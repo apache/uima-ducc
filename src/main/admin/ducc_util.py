@@ -635,6 +635,8 @@ class DuccUtil(DuccBase):
             npnodes = self.read_nodefile(npfile, npnodes)
             found = False
             for ( impfile, nodes ) in npnodes.items():
+                if len(nodes) == 0:
+                    continue
                 for node in nodes:
                     for (nodefile, nodelist) in allnodes.items():
                         for n in nodelist:                        
