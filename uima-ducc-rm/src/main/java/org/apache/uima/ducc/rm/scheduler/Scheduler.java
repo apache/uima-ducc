@@ -127,7 +127,7 @@ public class Scheduler
     //
     final static int rmversion_major = 0;
     final static int rmversion_minor = 8;
-    final static int rmversion_ptf   = 0;  
+    final static int rmversion_ptf   = 7;  
     final static String rmversion_string = "beta";
 
     boolean initialized = false;           // we refuse nodeupdates until this is true
