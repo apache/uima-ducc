@@ -186,6 +186,12 @@ class CheckDucc(DuccUtil):
         # read the nodelists
         if ( len(nodefiles) == 0 ):
             nodefiles = self.default_nodefiles
+            check_nodepools = True
+        else:
+            # if using other than the fully configured set of nodes we can't reliably check nodepools
+            # because anything other than the full set of nodes may be missing something
+            check_nodepools = False
+
         nodes = {}
         for nf in nodefiles:
             nodes = self.read_nodefile(nf, nodes)
@@ -204,7 +210,7 @@ class CheckDucc(DuccUtil):
             nodes['local'] = localnodes
 
         self.verify_jvm()
-        if self.verify_class_configuration(nodes):
+        if self.verify_class_configuration(nodes, check_nodepools):
             print "OK: Class configuration checked"
 
         if ( config_only ):

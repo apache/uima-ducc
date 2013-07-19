@@ -647,19 +647,6 @@ class DuccUtil(DuccBase):
                     print 'NOTOK: Cannot find node defined in pool "' +np+'" in any nodefile:', node
                     nodepools_ok = False
 
-        #
-        # Now make sure that all classes that reference nodepools have corresponding
-        # nodepool definitions
-        #
-
-        for ( k, v ) in classprops.items():
-            if ( k.startswith('scheduling.class.') and k.endswith('.nodepool') ):
-                if ( not ( v in nodepools ) ):
-                    toks = k.split('.')
-                    classname = toks[2]
-                    print 'NOTOK: Class', classname, 'references non-existent nodepool', v
-                    nodepools_ok = False
-
         if ( nodepools_ok ):
             print 'OK: All nodepools are verified'
         else:
@@ -667,7 +654,7 @@ class DuccUtil(DuccBase):
 
         return nodepools_ok
 
-    def verify_class_configuration(self, allnodes):
+    def verify_class_configuration(self, allnodes, must_verify_nodepools):
         answer = True
         # first, find the class definition
         classfile = self.ducc_properties.get('ducc.rm.class.definitions')
@@ -682,7 +669,7 @@ class DuccUtil(DuccBase):
             return False
 
         # Verify nodepool definitions.
-        if ( not self.check_nodepools(classprops, allnodes) ):
+        if ( must_verify_nodepools and (not self.check_nodepools(classprops, allnodes)) ):
             # this check will emit necessary messages
             answer = False
 

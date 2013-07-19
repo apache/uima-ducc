@@ -262,7 +262,9 @@ class StartDucc(DuccUtil):
         if ( len(argv) == 0 ):
             nodefiles =  self.default_nodefiles
             components = self.default_components
-
+            must_verify_nodepools = True
+        else:
+            must_verify_nodepools = False
 
         # this means all the non-agent processes - conflicts are already checked
         if ( management ):
@@ -292,7 +294,7 @@ class StartDucc(DuccUtil):
                 ok = False
 
         if ok and (len(nodefiles) > 0):
-            if self.verify_class_configuration(nodes):
+            if self.verify_class_configuration(nodes, must_verify_nodepools):
                 print "OK: Class configuration checked"
             else:
                 print "NOTOK: Bad configuration, cannot start."
