@@ -115,7 +115,7 @@ class PingDriver
             internal_ping = false;
             this.meta_ping_timeout = job_props.getStringProperty("service_ping_timeout");
             this.do_log            = job_props.getBooleanProperty("service_ping_dolog", true);
-            this.classpath         = job_props.getStringProperty("service_ping_classpath");
+            this.classpath         = job_props.getStringProperty("service_ping_classpath", System.getProperty("java.class.path"));
             this.working_directory = job_props.getStringProperty("working_directory");
             this.log_directory     = job_props.getStringProperty("log_directory");
         }

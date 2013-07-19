@@ -257,17 +257,11 @@ public class ServiceSet
 
         parseIndependentServices();
 
-        if ( ! job_props.containsKey("service_ping_classpath")) {
-            job_props.put("service_ping_classpath", System.getProperty("java.class.path"));
-        }        
         if ( ! job_props.containsKey("service_ping_dolog")) {
             job_props.put("service_ping_dolog", "false");
         }        
         if ( !job_props.containsKey("service_ping_timeout") ) {
             job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
-        }
-        if ( ! job_props.containsKey("service_ping_dolog") ) {
-            job_props.put("service_ping_dolog", "true");       // unless we fill in the default pinger        
         }
 
         meta_props.put("service-class", ""+service_class.decode());
