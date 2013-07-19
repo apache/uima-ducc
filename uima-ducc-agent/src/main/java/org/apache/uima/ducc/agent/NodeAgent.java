@@ -928,6 +928,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   || duccEvent.getState().equals(ProcessState.Failed)
                   || duccEvent.getState().equals(ProcessState.Killed)) {
             super.getContext().stopRoute(duccEvent.getPid());
+            if ( deployedProcess.getMetricsProcessor() != null ) {
+            	deployedProcess.getMetricsProcessor().close();  // close open fds (stat and statm files)
+            }
             logger.info(methodName, null,
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid());

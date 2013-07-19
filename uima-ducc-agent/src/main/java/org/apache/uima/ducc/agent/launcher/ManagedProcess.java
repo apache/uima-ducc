@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
 import org.apache.uima.ducc.agent.launcher.ManagedServiceInfo.ServiceState;
+import org.apache.uima.ducc.agent.processors.LinuxProcessMetricsProcessor;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
@@ -146,6 +147,9 @@ public class ManagedProcess implements Process {
 
 	private ProcessMemoryAssignment processMemoryAssignment;
 	
+	private LinuxProcessMetricsProcessor metricsProcessor;
+	
+	
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine) {
 		this(process, commandLine, null, null, new ProcessMemoryAssignment());
 	}
@@ -161,6 +165,12 @@ public class ManagedProcess implements Process {
 		this.observer = observer;
 		this.logger = logger;
 		this.processMemoryAssignment = processMemoryAssignment;
+	}
+	public void setMetricsProcessor(LinuxProcessMetricsProcessor processor) {
+		metricsProcessor = processor;
+	}
+	public LinuxProcessMetricsProcessor getMetricsProcessor() {
+		return metricsProcessor;
 	}
 	public ManagedProcess( java.lang.Process process, boolean agentProcess, String correlationId ) {
 		this.process = process;
@@ -310,6 +320,9 @@ public class ManagedProcess implements Process {
 		while (!finished) {
 			try {
 				process.waitFor();
+				if ( getMetricsProcessor() != null ) {
+	                getMetricsProcessor().close();  // close open fds (stat and statm files)
+	            }
 			} catch (InterruptedException e) {
 			}
 			try {

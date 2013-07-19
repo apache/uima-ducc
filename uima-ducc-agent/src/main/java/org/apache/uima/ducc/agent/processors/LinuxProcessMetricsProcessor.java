@@ -70,6 +70,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
 
   private int fudgeFactor = 5; // default is 5%
 
+  private volatile boolean closed = true;
+  
   // private int logCounter=0;
   public LinuxProcessMetricsProcessor(DuccLogger logger, IDuccProcess process, NodeAgent agent,
           String statmFilePath, String nodeStatFilePath, String processStatFilePath,
@@ -84,6 +86,10 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
     this.process = process;
     gcStatsCollector = new DuccGarbageStatsCollector(logger, process);
 
+    // keep a refernce to this so that we can call close() when the process terminates. We need to 
+    // close fds to stat and statm files
+    managedProcess.setMetricsProcessor(this);
+    
     blockSize = agent.getOSPageSize();
     
     if (System.getProperty("ducc.agent.share.size.fudge.factor") != null) {
@@ -93,20 +99,28 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         e.printStackTrace();
       }
     }
-
+    closed = false;
   }
 
   public void close() {
+	  closed = true;
     try {
-      if (statmFile != null) {
+      if (statmFile != null && statmFile.getFD().valid()) {
         statmFile.close();
       }
+      if ( processStatFile != null && processStatFile.getFD().valid()) {
+    	  processStatFile.close();
+      }
+     
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
   public void process(Exchange e) {
+	  if ( closed ) { // files closed 
+		  return;
+	  }
     if (process.getProcessState().equals(ProcessState.Initializing)
             || process.getProcessState().equals(ProcessState.Running))
       try {
