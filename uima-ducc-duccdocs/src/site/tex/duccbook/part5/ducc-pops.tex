@@ -9,6 +9,7 @@
 \newcommand{\varUIMACore}{\text{UIMA-Core}}
 \newcommand{\varUIMAAsynchronousScaleout}{\text{UIMA Asynchronous Scaleout}}
 
+\newcommand{\varLinuxControlGroup}{\text{Linux Control Group}}
 \newcommand{\varLinuxControlGroups}{\text{Linux Control Groups}}
 
 \newcommand{\varDistributedUIMAClusterComputing}{\text{Distributed \varUIMA~Cluster Computing}}
@@ -21,8 +22,11 @@
 \newcommand{\varAgents}{\text{Agents}}
 \newcommand{\varJobDriver}{\text{JobDriver}}
 \newcommand{\varWebServer}{\text{WebServer}}
+\newcommand{\varWebServerInterface}{\text{WebServer Interface}}
 \newcommand{\varCommandLineInterface}{\text{Command Line Interface}}
 \newcommand{\varApplicationProgramInterface}{\text{Application Program Interface}}
+
+\newcommand{\varScheduler}{\text{Scheduler}}
 
 \newcommand{\varOR}{\text{OR}}
 \newcommand{\varRM}{\text{RM}}
@@ -85,7 +89,24 @@
 % italics
 
 \newcommand{\varNull}{\textit{null}}
-\newcommand{\varCGroups}{\textit{C-Groups}}
+
+\newcommand{\varShares}{\textit{DUCC-Shares}}
+\newcommand{\varShare}{\textit{DUCC-Share}}
+
+\newcommand{\varJdShares}{\textit{JD-Shares}}
+\newcommand{\varJdShare}{\textit{JD-Share}}
+
+\newcommand{\varSendAndReceiveCAS}{\textit{UIMA-AS sendAndReceiveCAS}}
+
+\newcommand{\varCAS}{\textit{CAS}}
+\newcommand{\varCASes}{\textit{CASes}}
+
+\newcommand{\varWorkItem}{\textit{WorkItem}}
+\newcommand{\varWorkItems}{\textit{WorkItems}}
+
+\newcommand{\varPendingQueued}{\textit{PendingQueued}}
+\newcommand{\varPendingAssigned}{\textit{PendingAssigned}}
+\newcommand{\varNotPending}{\textit{NotPending}}
 
 % uima
 
@@ -159,6 +180,8 @@
         
     \subsection{Characteristics}   
     
+    \varDUCC~facilitates "fair-share" \varUIMA~pipeline scale-out.
+    
     The \varUIMA~pipelines comprising a \varJob~represent "embarrassingly parallel" 
     deployments. Over time, a \varJob~may expand and contract with respect to the number of 
     \varUIMA~pipelines deployed during its lifetime. This may be due to the introduction 
@@ -168,7 +191,11 @@
     
     With respect to contraction, each \varUIMA~pipeline must be prepared to
     process work items that may have been partially processed previously.
-       
+   
+    Pipelines themselves may comprise one or more duplicate threads, such that each
+    pipeline can simulatneously process multiple work items.
+    The number of pipelines and threads per pipeline are configurable per \varJob.
+   
     \subsection{Performance}  
     
     For the distributed environment, \varDUCC~relies upon a \varNetworkFileSystem~(\varNFS)
@@ -186,7 +213,7 @@
     programs, c-programs, bash shells, etc.
     
     \varUnmanagedReservations~(URs) comprise a resource that can be utilized for any 
-    purpose, subject to the limitations of the assigned share or shares.
+    purpose, subject to the limitations of the assigned \varShare~or \varShares.
             
     \section{\varServices}
        
@@ -197,6 +224,9 @@
     \varServices~can be shared by my multiple \varJobs~or can be tied to just one.
     \varServices~can be started at \varDUCC-boot time or at \varService-definition time or
     at \varJob~launch time.
+    
+    \varServices~can be expanded and contracted by command or on-demand.  
+    \varServices~can be stopped by command or due to absence of demand.
     
     \varServices~nominally exists for reasons of efficiency due to high start-up costs
     or high resource consumption.  Benefits of cost amortization are realized by sharing
@@ -215,43 +245,42 @@
     \subsection{Memory Shares} 
     
     The \varDUCC~system partitions the entire set of available resources comprising
-    \varNodesMachinesComputers~into shares of two types: 
-    \varJobDriver~and non-\varJobDriver. 
-    Nominally, in terms of \varGB~per share, the former are small and the latter are large.
+    \varNodesMachinesComputers~into \varShares.
     
-    As resources and demand upon them change over time, so may the apportionment of shares
-    between these different types.
-    Partitioning of the available \varNodesMachinesComputers~into shares facilitates
+    Partitioning of the available \varNodesMachinesComputers~into \varShares~facilitates
     multitenancy amongst a collection of \varDUCC-managed user applications consisting 
     of \varUIMA~pipelines.
     
-    Users submit \varJobs~ to the \varDUCC~system specifying a requisite memory size.
-    Each \varJob~is allocated one \varJobDriver~share and, based upon user specified
-    memory size, one or more non-\varJobDriver~shares 
-    (also known as just plain "shares"). 
+    One or more \varShares~are allocated and sub-partitioned into \varJdShares.
+    
+    Users submit \varJobs~to the \varDUCC~system specifying a requisite memory size.
+    Each \varJob~is allocated one \varJdShare~and, based upon user specified
+    memory size, one or more \varShares. 
     Likewise, users submit \varReservations~and \varServices~also comprising memory size
-    information.  These are assigned non-\varJobDriver~shares only.
+    information.  These are assigned \varShares~only.
     
     New \varJobs, \varReservations~and \varServices~may only enter the system when
-    there are sufficient unallocated shares available. To make room for newly arriving
+    there are sufficient unallocated \varShares~available. To make room for newly arriving
     submissions, the \varResourceManager~may preempt use of already previously
-    assigned shares for re-assignment.
+    assigned \varShares~for re-assignment.
     
     \subsection{\varLinuxControlGroups} 
     
     If available, \varDUCC~employs \varLinuxControlGroups~to enforce limits on
     deployed applications. Exceeding limits penalizes only the offender.
-    For example, if a user application exceeds its memory share size then it is forced
+    For example, if a user application exceeds its memory \varShare~size then it is forced
     to swap while other co-resident applications remain unaffected.
     
     \subsection{Preemption} 
         
-    Preemption is employed by \varDUCC~to re-apportion shares when new work is submitted.
+    Preemption is employed by \varDUCC~to re-apportion \varShares~when new work is submitted.
     
     For example, presume a simple \varDUCC~system with just one preemptable scheduling class
-    and resources comprising 10 non-\varJobDriver~shares. When the Job #1 is submitted
-    it is entitled to all 10 shares.  When Job #2 arrives, each job is entitled to only 5 shares.
-    Thus, 5 shares from Job #1 are preempted and reassigned to Job #2.
+    and resources comprising 11 \varShares. Further, suppose that 1 \varShare~is allocated 
+    for partitioning into \varJdShares.
+    When the Job #1 is submitted it is entitled to all remaining 10 shares.  
+    When Job #2 arrives, each job is entitled to only 5 shares.
+    Thus, 5 \varShares~from Job #1 are preempted and reassigned to Job #2.
     
 \chapter{System Organization}
 
@@ -403,7 +432,7 @@
           \item work item processing timeout value
           \item work item processing exception handler
           \item node identity
-          \item c-group limits
+          \item \varLinuxControlGroup~limits
           \item state
         \end{itemize} 
       \item job process information (one or more instances)
@@ -417,7 +446,7 @@
           \item deployment descriptor or aggregate data
           \item initialization failure limits
           \item node identity
-          \item c-group limits
+          \item \varLinuxControlGroup~limits
           \item state
           \item service dependencies
         \end{itemize} 
@@ -482,14 +511,14 @@
           
     \end{description} 
     
-    \subsubsection{C-Group Supervisor}  
+    \subsubsection{\varLinuxControlGroup~Supervisor}  
     
-    The C-Group Supervisor assigns a maximum size (in bytes) and a composite
+    The \varLinuxControlGroup~Supervisor assigns a maximum size (in bytes) and a composite
     unique identity to each \varDUCC~share. This information is published for use
-    by Agents to enforce C-Group limitations on storage used by the corresponding
+    by Agents to enforce \varLinuxControlGroup~limitations on storage used by the corresponding
     running entity (for example, \varUIMA~pipeline).
     
-    Employing C-Groups is analogous to defining virtual machines of a certain
+    Employing \varLinuxControlGroups~ is analogous to defining virtual machines of a certain
     size such that exceeding limits causes only the offending process to suffer
     any performance penalties, while other co-located well-behaved processes
     run unaffected.
@@ -499,11 +528,11 @@
     The Host Supervisor is responsible for obtaining sufficient resource for
     deploying the Job Drivers for all submitted Jobs. It interacts with the
     Resource Manager to allocate and de-allocate resources for this purpose.
-    It assigns a JD-share to each active Job.
+    It assigns a \varJdShare~to each active Job.
     
-    A JD-share is a C-Group controlled share of sufficient size into which a Job
-    Driver can be deployed.  A JD-share is usually significantly smaller than
-    a normal Share.
+    A \varJdShare~is a \varLinuxControlGroup~controlled \varShare~of sufficient size into which a Job
+    Driver can be deployed.  A \varJdShare~is usually significantly smaller than
+    a normal \varShare.
     
     \subsubsection{Logging / As-User} 
     
@@ -531,7 +560,7 @@
       
       \item MQ Reaper
       
-      The \varOrchestrator~cleans-up unused Job Driver AMQ permanent queues for Jobs that have completed.
+      The \varOrchestrator~cleans-up unused \varJobDriver~AMQ permanent queues for Jobs that have completed.
       
       \item Publication Pruning
       
@@ -548,12 +577,12 @@
       advanced to the \varCompleted~state, whereby corresponding Job Processes on 
       nodes that are reported down are marked as stopped by the \varOrchestrator, as opposed 
       to waiting (potentially forever) for the corresponding Agent to report.
-      This prevent Jobs from becoming unnecessarily stuck in the completing
+      This prevents Jobs from becoming unnecessarily stuck in the completing
       state.
       
     \end{description} 
     
-    \subsection{\varResourceManager~(\varRM, also known as the Scheduler)}    
+    \subsection{\varResourceManager~(\varRM, also known as the \varScheduler)}    
         
     There is one \varResourceManager~per \varDUCC~cluster.
     
@@ -562,16 +591,72 @@
     \begin{description}
       \item fairly allocate constrained resources amongst valid user requests over time;
     \end{description}
-        
+    
+    The \varResourceManager~both publishes and receive reports.  
+    The \varResourceManager~receives \varOrchestrator~publications comprising
+    Jobs, Reservations, and Services as well as 
+    \varAgent~publications comprising inventory and metrics. 
+    The \varResourceManager~publication occurs at regular intervals, each
+    representing at the time of its publication the desired allocation
+    of resources. 
+   
+    The \varResourceManager~considers various factors to make assignments, including:
+    \begin{description}
+      \item supply of available nodes;
+      \item memory size of each available node;
+      \item demand for resource in terms of memory size and class of service comprising Jobs, Reservations and Services;
+      \item the most recent previous assignments and desirability for continuity;
+    \end{description}
+    
+    The \varOrchestrator~is the primary consumer of the \varResourceManager~publication
+    which it uses to bring the cluster into compliance with the allocation assignments.
+    
     \subsubsection{Job Manager Converter} 
+    
+    The Job Manager Converter module receives \varOrchestrator~publications and
+    updates its internal state with new, changed, and removed map entries
+    comprising Jobs, Reservations and Services.
         
-    \subsubsection{Node Stability} 
-        
+    \subsubsection{Node Stability}
+    
+    The Node Status module evaluates the health of the nodes within the cluster
+    for consideration during resource scheduling.  
+      
     \subsubsection{Node Status} 
         
+    The Node Status module receives \varAgent~publications and
+    updates its internal state with new, changed, and removed node status entries.
+      
     \subsubsection{Resource Manager} 
-           
-    \subsubsection{Scheduler} 
+    
+    The \varResourceManager~performs the following:
+    
+    \begin{description}
+      \item receive resource availability reports from \varAgents;
+      \item receive resource need requests the \varOrchestrator;
+      \item employ a scheduling algorithm at discrete time intervals to:
+      \begin{description}
+        \item consider the resource supply;
+        \item consider the most recent allocation set;
+        \item consider new, changed and removed resource demands;
+        \item assign a resource to a request;
+        \item remove a resource from a request;
+        \item publish current allocation set;
+      \end{description} 
+    \end{description}     
+        
+    \subsubsection{\varScheduler} 
+    
+    The \varScheduler~runs at disctete time intervals.
+    It assembles information about available nodes in the cluster.
+    Each node, based upon its memory size is partitioned into zero or more \varShares.
+    Each request (Job, Reservation and Service) is assessed as to the number of
+    \varShares~required based upon user-specified memory size. 
+    In addition, each request is assessed with respect to the user-specified class-of-service.
+
+    The \varScheduler~considers the most recent previous allocations along with changes
+    to supply and demand them produces a new allocation set which the 
+    \varResourceManager~publishes as directions to the \varOrchestrator.
     
     \subsection{\varServicesManager~(\varSM)}    
     
@@ -642,7 +727,105 @@
       \item retry failed recoverable work items;
       \item guarantee that individual work items are not mistakenly simultaneously processed by more than one analytic pipeline.
     \end{description}
+        
+    \subsubsection{Edxception Classifier}
+         
+    \subsubsection{Job Driver}
+        
+    \subsubsection{Job Driver Component}
+        
+    \subsubsection{Job Driver Context}
+        
+    \subsubsection{Synchronized Statistics}
+        
+    \subsubsection{Callback State}
+    
+    Track \varWorkItem~queuing state.
+    Possible states are:
+    
+    \begin{itemize} 
+      \item \varPendingQueued
+      \item \varPendingAssigned
+      \item \varNotPending
+    \end{itemize}    
+    
+    \subsubsection{\varCAS~Displatch Map}
+    
+    Track \varWorkItems.
+    This module comprises a map of \varWorkItems~which includes node and \varLinux~process identity.
+    
+    \subsubsection{\varCAS~Limbo}
+    
+    Manage incomplete \varWorkItems.
+    This module insures that \varWorkItems~are not simultaneousy processed
+    by multiple \varUIMA~pipelines.
+    It does not release \varWorkItems~for retry processing elsewhere until
+    confirmation is received that the previous attempt has been terminated.
+    
+    \subsubsection{\varCAS~Source}
+    
+    Manage \varCASes. 
+    This involves employing the user provided \varCR~to fetch
+    \varCASes~as needed to keep the available \varUIMA~pipelines full
+    until all \varCASes~have been processed.
+    This also involves saving and restoring \varCASes~that were
+    pre-empted during periods of \varJP~contraction, for example.
+    
+    \subsubsection{Dynamic Thread Pool Executor}
+    
+    The purpose of this module is to maintain a pool of worker threads,
+    one for each outstanding Work Item.
+    There is a one-to-one correspondance between the number of worker threads
+    in the \varJobDriver~and the number of Work Items sent out for processing
+    via \varSendAndReceiveCAS.
+    
+    \subsubsection{Work Item}
+    
+    The Work Item represents one \varCAS~to be processed, normally by one of the
+    distributed \varUIMA pipelines.
+    
+    \begin{itemize}
+    
+      \item run
+      
+      Manage and track the lifecycle of a Work Item.
+      
+      \begin{itemize}
+        \item start
+        \item getCas
+        \item \varSendAndReceiveCAS
+        \item ended or exception
+      \end{itemize}    
+      
+    \end{itemize}    
      
+    \subsubsection{Work Item Factory}
+    
+    \begin{itemize}
+    
+      \item create
+      
+      Create a new Work Item for given CasTuple.
+      
+    \end{itemize}  
+          
+    \subsubsection{Work Item Listener}
+    
+    \begin{itemize}
+    
+      \item onBeforeMessageSend
+      
+      Process callback that indicates work item has been placed on MQ queue and
+      is awaiting grab by a \varJP.
+      
+      \item onBeforeProcessCAS
+            
+      Process callback that indicates work item has been grabbed from MQ queue and
+      is active in a \varUIMA~pipeline.
+      The associated node and \varLinux~process identity are provided.
+      
+    \end{itemize}
+    
     \subsection{\varWebServer (\varWS)}    
     
     There is one \varWebServer per \varNodeMachineComputer per \varDUCC~cluster.
@@ -738,8 +921,8 @@
         Id      &Name                       & Next           & Description \\
         \hline
         1       & Received                  &  2, 3          & Reservation has been vetted, persisted, and assigned unique Id \\
-        2       & Assigned                  &  3             & Shares are assigned \\
-        3       & Completed                 &                & Shares not assigned  
+        2       & Assigned                  &  3             & \varShares~are assigned \\
+        3       & Completed                 &                & \varShares~not assigned  
         \end{tabular}
         \end{table}
      
