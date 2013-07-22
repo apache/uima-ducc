@@ -86,6 +86,12 @@
 
 \newcommand{\varPID}{\texttt{PID}}
 
+\newcommand{\varINFO}{\texttt{INFO}}
+\newcommand{\varDEBUG}{\texttt{DEBUG}}
+\newcommand{\varTRACE}{\texttt{TRACE}}
+
+\newcommand{\varIScheduler}{\texttt{IScheduler}}
+
 % italics
 
 \newcommand{\varNull}{\textit{null}}
@@ -193,7 +199,7 @@
     process work items that may have been partially processed previously.
    
     Pipelines themselves may comprise one or more duplicate threads, such that each
-    pipeline can simulatneously process multiple work items.
+    pipeline can simultaneously process multiple work items.
     The number of pipelines and threads per pipeline are configurable per \varJob.
    
     \subsection{Performance}  
@@ -286,7 +292,7 @@
 
     \section{Single System Image}
     
-    \varDUCC~runs on \varLinux. It can be run on single system in simulation-mode
+    \varDUCC~runs on \varLinux. It can be run on a single system in simulation-mode
     or on a cluster (two or more machines). For clusters, \varDUCC~replies upon 
     these requirements:
     
@@ -313,13 +319,13 @@
     There is one \varOrchestrator~per \varDUCC~cluster.
     
     The duties of the \varOrchestrator~are:
+    \textit{
+      \input{part5/c01-OR.tex}
+    }
     
-    \begin{description}
-      \item receive and act upon user submitted application requests;
-      \item manage and publish common state to a set of distributed components;
-      \item maintain checkpoint and historical state;
-      \item manage the lifecycle of jobs, services, and reservations.
-    \end{description}
+    The \varOrchestrator~provides essential functionality for operation of the
+    \varDUCC~system.
+    It is configurable and tunable.
     
     The \varOrchestrator~receives user requests to start, stop and modify 
     Jobs, Services and Reservations. It manages the life-cycles of these
@@ -540,6 +546,10 @@
     a file contained in "user-space", meaning a file into a directory writable 
     by the submitting user, during processing of the submitted entity 
     (Job, Managed Reservation...).
+    
+    The Logging module also facilitates the recording to persistent storage of noteworthy
+    events occurring during the \varOrchestrator~lifetime. Noteworthiness is configurable
+    as various levels, such as \varINFO, \varDEBUG~and \varTRACE.
         
     \subsubsection{Administrators} 
     
@@ -587,10 +597,14 @@
     There is one \varResourceManager~per \varDUCC~cluster.
     
     The duties of the \varResourceManager~are:
+    \textit{
+      \input{part5/c01-RM.tex}
+    }
     
-    \begin{description}
-      \item fairly allocate constrained resources amongst valid user requests over time;
-    \end{description}
+    The \varResourceManager~provides essential functionality for operation of the
+    \varDUCC~system.
+    It is configurable and tunable.
+    It is also plug-replaceable.
     
     The \varResourceManager~both publishes and receive reports.  
     The \varResourceManager~receives \varOrchestrator~publications comprising
@@ -611,6 +625,10 @@
     The \varOrchestrator~is the primary consumer of the \varResourceManager~publication
     which it uses to bring the cluster into compliance with the allocation assignments.
     
+    The \varResourceManager~adheres to the \varIScheduler~interface. 
+    Algorithms adhering to this interface are eligible for replacing
+    the \varDUCC~supplied one.
+    
     \subsubsection{Job Manager Converter} 
     
     The Job Manager Converter module receives \varOrchestrator~publications and
@@ -620,13 +638,15 @@
     \subsubsection{Node Stability}
     
     The Node Status module evaluates the health of the nodes within the cluster
-    for consideration during resource scheduling.  
+    for consideration during resource scheduling.  Any node deemed unhealthy is
+    removed from the collection of available resources until such time as it
+    is once again deemed healthy.
       
     \subsubsection{Node Status} 
         
     The Node Status module receives \varAgent~publications and
     updates its internal state with new, changed, and removed node status entries.
-      
+     
     \subsubsection{Resource Manager} 
     
     The \varResourceManager~performs the following:
@@ -647,7 +667,7 @@
         
     \subsubsection{\varScheduler} 
     
-    The \varScheduler~runs at disctete time intervals.
+    The \varScheduler~runs at discrete time intervals.
     It assembles information about available nodes in the cluster.
     Each node, based upon its memory size is partitioned into zero or more \varShares.
     Each request (Job, Reservation and Service) is assessed as to the number of
@@ -655,7 +675,7 @@
     In addition, each request is assessed with respect to the user-specified class-of-service.
 
     The \varScheduler~considers the most recent previous allocations along with changes
-    to supply and demand them produces a new allocation set which the 
+    to supply and demand.  It then produces a new allocation set which the 
     \varResourceManager~publishes as directions to the \varOrchestrator.
     
     \subsection{\varServicesManager~(\varSM)}    
@@ -663,24 +683,65 @@
     There is one \varServicesManager~per \varDUCC~cluster.
     
     The duties of the \varServicesManager~are:
-    
-    \begin{description}
-      \item facilitate services definition and persistence;
-      \item monitor and control services as dependencies on-demand.
-    \end{description}
+    \textit{
+      \input{part5/c01-SM.tex}
+    }
         
+    The \varServicesManager~provides additional functionality for operation of the
+    \varDUCC~system.
+    It is configurable and tunable.
+    
+    Although not essential for the main purpose of the \varDUCC~system, in
+    practical terms for large systems the \varServicesManager~is highly 
+    desirable for improved resource utilization.
+    By using shared services, resources are more effectively employed and
+    work items processing is completed sooner.
+    
+    Some dimensions:
+    
+    \begin{itemize}
+    
+      \item long warm-up time
+      
+      When the service takes a long time to warm-up, the \varJob~in progress
+      may have to sit idle for a long time before the first work item can be
+      processed until the service upon which it depends has initialized and 
+      is ready.
+      If the service is already up and ready, this delay can be avoided
+      and the \varJob~experiences no service delay.
+      
+      \item large storage use
+      
+      When the service has a large memory footprint, it can be far more
+      efficient to have multiple \varJobs~share the service rather than
+      having separate copies for each.
+      
+      \item short processing time
+      
+      Related to large storage use, if the time to process a work item is
+      relatively short, again it can be much more efficient to share the
+      service amongst multiple \varJobs.
+      
+      \item not used
+      
+      If a service has not been used for a relatively long time, it may be 
+      better to shut it down and reclaim the resources for use elsewhere, 
+      especially on a busy cluster.
+            
+    \end{itemize}
+    
     \subsubsection{Ping Driver} 
     
     This runs the watchdog thread for custom service pingers.
  
     It spawns a process, as the user, which in turn will instantiate an object which extends
     AServiceMeta to implement the pinger.
-
+    
     \subsubsection{Service Handler} 
     
     Carries out Service Manager validated request operations.
             
-    \subsubsection{Service Manager} 
+    \subsubsection{Service Manager, API Handler} 
     
     Receives and validates service request operations:
     
@@ -692,16 +753,85 @@
       \item query
       \item modify
     \end{itemize}
-  
-    \subsection{\varProcessManager (\varPM)}    
     
-    There is one \varProcessManager per \varDUCC~cluster.
-    
-    The duties of the \varProcessManager are:
+    The \varServicesManager~maintains a registry of services.
+    The attributes of these services may include one of more of the following:
     
     \begin{description}
-      \item monitor and control processes supporting analytic pipelines distributed over a collection of agent-managed nodes;
+      \item \texttt{permanent}
+      A permanent service is one that is kept up so long as the
+      \varDUCC~system is running.
+      \item \texttt{on-demand}
+      An on-demand service is one that is kept up only during the
+      lifetime of one or more \varJobs~that declare a dependency on the 
+      service
+      \item \texttt{lingering}
+      A lingering service is one that continues for some limited time
+      beyond the lifetime of the last dependent \varJob~in anticipation
+      of another \varJob~arrival in the near future.
+      \item \texttt{dynamic}
+      A dynamic service is one that automatically expands and contracts
+      in terms of number of instances to meet demand.
+      \item \texttt{registered}
+      A registered service is one that is pre-defined, whose definition
+      is kept persistently and whose lifecycle is managed by \varDUCC.
+      \item \texttt{custom}
+      A custom (unregistered) service is one that is not pre-defined, whose definition
+      is not kept persistently and whose lifecycle is not managed by \varDUCC.
     \end{description}
+  
+    The \varServicesManager~keeps within its registry information of
+    two types: \texttt{service} and \texttt{meta}.
+    
+    Type \texttt{service} information includes the following attributes:
+    \begin{itemize}
+      \item classpath
+      \item description
+      \item environment
+      \item jvm
+      \item jvm args
+      \item log directory
+      \item deployment descriptor
+      \item failures limit
+      \item memory size
+      \item scheduling class
+      \item linger time
+      \item pinger classpath
+      \item pinger log
+      \item pinger timeout
+      \item service endpoint
+      \item working directory
+    \end{itemize}
+    
+    Type \texttt{meta} information includes the following attributes:
+    \begin{itemize}
+      \item autostart
+      \item endpoint
+      \item implementors
+      \item instances (count)
+      \item identifier (number)
+      \item ping-active
+      \item ping-only
+      \item service-active
+      \item service-class
+      \item service-health
+      \item service-state
+      \item service-statistics
+      \item service-type
+      \item stopped
+      \item user
+      \item uuid
+      \item work-instances (PID list)
+    \end{itemize}
+    
+    \subsection{\varProcessManager (\varPM)}    
+    
+    There is one \varProcessManager~per \varDUCC~cluster.
+    
+    The duties of the \varProcessManager are:
+    \textit{
+      \input{part5/c01-PM.tex}
+    }
     
     \subsection{\varAgent}  
 
@@ -728,7 +858,7 @@
       \item guarantee that individual work items are not mistakenly simultaneously processed by more than one analytic pipeline.
     \end{description}
         
-    \subsubsection{Edxception Classifier}
+    \subsubsection{Exception Classifier}
          
     \subsubsection{Job Driver}
         
@@ -749,7 +879,7 @@
       \item \varNotPending
     \end{itemize}    
     
-    \subsubsection{\varCAS~Displatch Map}
+    \subsubsection{\varCAS~Dispatch Map}
     
     Track \varWorkItems.
     This module comprises a map of \varWorkItems~which includes node and \varLinux~process identity.
@@ -757,7 +887,7 @@
     \subsubsection{\varCAS~Limbo}
     
     Manage incomplete \varWorkItems.
-    This module insures that \varWorkItems~are not simultaneousy processed
+    This module insures that \varWorkItems~are not simultaneously processed
     by multiple \varUIMA~pipelines.
     It does not release \varWorkItems~for retry processing elsewhere until
     confirmation is received that the previous attempt has been terminated.
@@ -775,7 +905,7 @@
     
     The purpose of this module is to maintain a pool of worker threads,
     one for each outstanding Work Item.
-    There is a one-to-one correspondance between the number of worker threads
+    There is a one-to-one correspondence between the number of worker threads
     in the \varJobDriver~and the number of Work Items sent out for processing
     via \varSendAndReceiveCAS.
     
