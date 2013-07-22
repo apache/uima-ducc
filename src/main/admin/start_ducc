@@ -58,7 +58,7 @@ class StartDucc(DuccUtil):
 
     def start_component(self, ducc, component, or_parms):
 
-        node = 'local'
+        node = self.ducc_properties.get('ducc.head')
         com = component
         if ( com.find('@') >= 0 ):            
             com, node = com.split('@')
@@ -92,7 +92,7 @@ class StartDucc(DuccUtil):
             #print '[] ' + line
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
-                print node, 'PID', toks[1]
+                print '     PID', toks[1]
                 self.pids.put(com + '@' + node, toks[1])
                 lines.close()
                 break
@@ -310,17 +310,18 @@ class StartDucc(DuccUtil):
             else:
                 self.start_broker()
 
-        #print 'A--------------------------------------------------------------------------------'
         if ( self.is_amq_active() ):
             print 'ActiveMQ is found on configured host and port:', self.broker_host + ':' + self.broker_port
         else:
             print 'ActiveMQ cannot be found on configured host and port:', self.broker_host + ':' + self.broker_port
             sys.exit(1)
-        #print 'B--------------------------------------------------------------------------------'
 
         ducc = Ducc()
 
-        # if we are asked to start any of the managemnt processes, do this first
+        for (nodefile, nodelist) in nodes.items():
+            print '********** Starting agents from file', nodefile
+            self.start_agents(nodelist)
+
         if ( len(components) != 0 ):
             print 'Starting', or_parms
 
@@ -331,13 +332,6 @@ class StartDucc(DuccUtil):
                     self.start_component(ducc, com, or_parms)
         else:
             print 'Not starting management components.'
-        #print 'C--------------------------------------------------------------------------------'
-
-        #print 'D--------------------------------------------------------------------------------'
-        for (nodefile, nodelist) in nodes.items():
-            print '********** Starting agents from file', nodefile
-            self.start_agents(nodelist)
-        #print 'E--------------------------------------------------------------------------------'
 
         if ( len(self.pids) > 0 ):
             self.pids.write(self.pid_file)
