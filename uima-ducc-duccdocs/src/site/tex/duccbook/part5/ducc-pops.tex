@@ -2,6 +2,8 @@
 % normal
 
 \newcommand{\varDUCC}{\text{DUCC}}
+\newcommand{\varOS}{\text{OS}}
+\newcommand{\varJava}{\text{Java}}
 \newcommand{\varLinux}{\text{Linux}}
 \newcommand{\varUIMA}{\text{UIMA}}
 \newcommand{\varUnstructuredInformationManagementArchitecture}{\text{Unstructured Information Management Architecture}}
@@ -83,6 +85,7 @@
 \newcommand{\varSchedulingClass}{\texttt{scheduling\_class}}
 
 \newcommand{\varDuccAdministrators}{\texttt{ducc.administrators}}
+\newcommand{\varDuccProperties}{\texttt{ducc.properties}}
 
 \newcommand{\varPID}{\texttt{PID}}
 
@@ -91,6 +94,10 @@
 \newcommand{\varTRACE}{\texttt{TRACE}}
 
 \newcommand{\varIScheduler}{\texttt{IScheduler}}
+
+\newcommand{\varRogue}{\texttt{Rogue}}
+
+\newcommand{\varDuccling}{\texttt{ducc\_ling}}
 
 % italics
 
@@ -308,6 +315,17 @@
       machines participating in the \varDUCC~cluster.
       
     \end{itemize} 
+    
+    \section{Communications}
+    
+    \varDUCC~comprises a collection of singleton and distributed daemons that need
+    to coordinate activities.  This coordination is accomplished via messaging.
+    
+    The system is fault tolerant with respect to lost messages, since
+    publications occur at regular intervals and each message encapsulates
+    the current and/or desired state for the target audience.
+    As such, actions may be be delayed but will be carried out as soon as the
+    next message arrives.
     
     \section{Daemons}
     
@@ -828,21 +846,200 @@
     
     There is one \varProcessManager~per \varDUCC~cluster.
     
-    The duties of the \varProcessManager are:
+    The duties of the \varProcessManager~are:
     \textit{
       \input{part5/c01-PM.tex}
     }
+      
+    The \varProcessManager~provides essential functionality for operation of the
+    \varDUCC~system.
+    
+    The \varProcessManager~both publishes and receive reports.  
+    The \varProcessManager~receives \varOrchestrator~publications comprising
+    Jobs, Reservations, and Services.
+    The \varProcessManager~distributes two publications at regular intervals.
+    One is heartbeat information to notify the \varOrchestrator~and
+    \varWebServer~that the \varProcessManager~is alive.  
+    The other is compacted \varAgent-destined information regarding
+    processes that need to be started, stopped or modified.
+    
+    The main function of the \varProcessManager~is to efficiently manage
+    the distributed \varAgents~each of which manages processes running
+    locally on its own respective \varNodeMachineComputer.
+    The \varProcessManager~interprets the \varOrchestrator~publications and 
+    redistributes only the essentials to the collection of distributed
+    \varAgents~who each independently act to bring the 
+    state of locally deployed processes into compliance.
     
     \subsection{\varAgent}  
 
-    There is one \varAgent per \varNodeMachineComputer per \varDUCC~cluster.
+    There is one \varAgent~per~\varNodeMachineComputer~per \varDUCC~cluster.
+    The \varAgents~collectively provide essential functionality for operation
+    of the \varDUCC~system.
     
-    The duties of the \varAgent are:
+    The duties of the \varAgent~are:
+    \textit{
+      \input{part5/c01-Agent.tex}
+    }
     
-    \begin{description}
-      \item deploy, monitor and control one or more  processes supporting analytic pipelines on one node;
-      \item publish inventory and metrics;
-    \end{description}
+    The Logging module facilitates the recording to persistent storage of noteworthy
+    events occurring during the \varAgent~lifetime. Noteworthiness is configurable
+    as various levels, such as \varINFO, \varDEBUG~and \varTRACE.
+        
+    \subsubsection{Core} 
+    
+    \begin{itemize}
+      \item NodeAgent;
+      
+      This is the main thread for the \varAgent.  It is responsible for starting, configuring 
+      and ending the \varDUCC~framework duties on a \varNodeMachineComputer.
+      
+      \begin{itemize}
+      \item Determine node name, IP address and JMX URL.  Record same to configured state directory,
+      utilized by \varWebServer for ease of use display to users/administrators.
+      \item Determine \varOS~page size.
+      \item Determine \varOS~clock rate.
+      \item Determine number of \varDUCC~shares.
+      \item Manage use of privileged operations via appealing to \varDuccling.
+      \item Take down processes for which \varJob~has been de-allocated or ended.
+      \item Start up processes for which \varJob~has been allocated.
+      \item Handle \varDUCC-reservations.
+      \item Handle low swap space on node events.
+      \item Employ Rogue Process Detector.
+      \end{itemize}
+          
+      \item NodeAgentInfo;
+      
+      Representation of information compiled by the \varAgent:
+      
+      \begin{itemize}
+      \item Agent State: INITIALIZING, READY, STOPPED, UNREACHABLE, FAILED
+      \item Agent Jmx port.
+      \item Node IP address.
+      \item Node Hostname.
+      \item Node CPUs.
+      \item \varOS~Name.
+      \item \varOS~Version.
+      \item \varOS~Architecture.
+      \item \varJava~Vendor.
+      \item \varJava~Version.
+      \end{itemize}
+      
+      \item NodeMetricsGenerator;
+      \item ProcessLifecycleController;
+      \item ProcessReaperTask;
+      \item RogueProcessReaper;
+      
+      This module is responsible for examining \varDuccProperties~to
+      extract various rogue processes handling configuration
+      information and applying accordingly.
+      
+      Relevant configuration information comprises:
+      \begin{itemize}
+        \item ducc.agent.rogue.process.reaper.script;
+        \item ducc.agent.rogue.process.purge.delay;
+        \item ducc.agent.rogue.process.kill;
+      \end{itemize}
+      
+    \end{itemize}
+    
+    \subsubsection{Deploy} 
+    
+    \begin{itemize}
+      \item AbstractManagedService;
+      \item ManagedService;
+      \item ServiceAdapter;
+      \item ServiceStateNotificationAdapter;
+      \item ManagedUimaService;
+      \item ProcessEventListener;
+      \item UimaAsServiceConfiguration;
+    \end{itemize}
+    
+    \subsubsection{Lifecycle} 
+    
+    The \varAgent~is responsible for receiving \varProcessManager~publications
+    and appropriately launching and terminating \varDUCC-managed processes.
+    And if enabled and available, to employ \varLinuxControlGroups~to assure
+    that user code does not exceed various limits in accordance with fair
+    sharing of the \varNodeMachineComputer.
+    
+    \begin{itemize}
+      \item CGroups Manager;
+      \item Command Executor;
+      \item \varDUCC~Command Executor;
+      \item JVM Args Parser;
+      \item Launcher;
+      \item Managed Process;
+      \item Managed Service;
+    \end{itemize}
+        
+    \subsubsection{Exceptions} 
+    
+    \begin{itemize}
+      \item NodeException;
+      \item NodeInitializationException;
+    \end{itemize}
+    
+    \subsubsection{Rogue Process Detector} 
+    
+    Optionally by configuration, the \varAgents~will detect and terminate
+    \varRogue~processes.
+    \varRogue~processes are unsanctioned processes that exist on the \varAgent-managed
+    \varNodeMachineComputer.
+    
+    Normally only known \varOS~processes, \varDUCC~framework and \varDUCC-managed
+    processes are sanctioned.
+    Exceptions to the rule can be configured.
+     
+    \subsubsection{Node Inventory} 
+    
+    Gather and publish Node Inventory at regular intervals, comprising:
+    
+    \begin{itemize}
+      \item \varDUCC~assigned process identity;
+      \item node identity;
+      \item process identity;
+      \item process state;
+      \item resource state;
+      \item allocation/de-allocation state;
+      \item process initialization time;
+      \item process run time;
+      \item process memory utilization info;
+      \item process swap utilization info;
+      \item process CPU utilization info;
+      \item process java utilization info;
+      \item process CGroup info;
+      \item process end reason;
+      \item process end code;
+      
+    \end{itemize}
+    
+    \subsubsection{Node Metrics} 
+    
+    Gather and publish Node Metrics at regular intervals, comprising:
+    
+    \begin{itemize}
+      \item users;
+      \item node identity;
+      \item CPU info;
+      \item memory info;
+    \end{itemize}
+    
+    \subsubsection{Collectors} 
+    
+    Various collectors compile Process and Node metrics:
+    
+    \begin{itemize}
+      \item node memory;
+      \item node users;
+      \item node load average;
+      \item node CPU;
+      \item node load average;
+      \item process garbage collection;
+      \item process memory and fault;
+      \item process swap;
+      \item process CPU
+    \end{itemize}
  
     \subsection{\varJobDriver (\varJD)}    
 
