@@ -214,6 +214,7 @@ public class CGroupsManager {
 	public void kill(final String user, final String pid) {
 		final String methodName = "kill";
 		InputStream is = null;
+		BufferedReader reader = null;
 		try {
 			String c_launcher_path = Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
@@ -246,7 +247,7 @@ public class CGroupsManager {
 			pb.redirectErrorStream(true);
 			java.lang.Process killedProcess = pb.start();
 			is = killedProcess.getInputStream();
-			BufferedReader reader = new BufferedReader(
+			reader = new BufferedReader(
 					new InputStreamReader(is));
 			// String line = null;
 			// read the next line from kill command
@@ -272,9 +273,9 @@ public class CGroupsManager {
 		} catch (Exception e) {
 			agentLogger.error(methodName, null,e );
 		} finally {
-			if ( is != null ) {
+			if ( reader != null ) {
 				try {
-					is.close();
+					reader.close();
 				} catch( Exception e) {}
 			}
 		}
@@ -414,6 +415,7 @@ public class CGroupsManager {
 			String userId, String containerId) throws Exception {
 		String[] commandLine = null;
 		InputStreamReader in = null;
+		BufferedReader reader = null;
 		try {
 			//
 			// Use ducc_ling (c code) as a launcher for the actual process. The
@@ -447,7 +449,7 @@ public class CGroupsManager {
 
 			in = new InputStreamReader(
 					process.getInputStream());
-			BufferedReader reader = new BufferedReader(in);
+			reader = new BufferedReader(in);
 			String line;
 			while ((line = reader.readLine()) != null) {
 				agentLogger.info("launchCommand", null, ">>>>" + line);
@@ -473,9 +475,9 @@ public class CGroupsManager {
 			}
 
 		} finally {
-			if ( in != null ) {
+			if ( reader != null ) {
 				try {
-					in.close();
+					reader.close();
 				} catch( Exception exx) {}
 			}
 		}
@@ -520,6 +522,7 @@ public class CGroupsManager {
 		String location = "getProcessesOnNode";
 		Set<NodeProcessInfo> processList = new HashSet<NodeProcessInfo>();
 		InputStream stream = null;
+		BufferedReader reader = null;
 		try {
 
 			ProcessBuilder pb = new ProcessBuilder("ps", "-Ao",
@@ -528,7 +531,7 @@ public class CGroupsManager {
 			java.lang.Process proc = pb.start();
 			// spawn ps command and scrape the output
 			stream = proc.getInputStream();
-			BufferedReader reader = new BufferedReader(new InputStreamReader(
+			reader = new BufferedReader(new InputStreamReader(
 					stream));
 			String line;
 			String regex = "\\s+";
@@ -553,8 +556,8 @@ public class CGroupsManager {
 				agentLogger.error(location, null, e);
 			}
 		} finally {
-			if ( stream != null ) {
-				stream.close();
+			if ( reader != null ) {
+				reader.close();
 			}
 		}
 		return processList;
