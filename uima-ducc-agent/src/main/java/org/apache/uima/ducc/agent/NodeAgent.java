@@ -308,6 +308,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   }
   private int runOSCommand(String[] cmd) {
     InputStreamReader in = null;
+    BufferedReader reader = null;
     int retVal = 0;
     try {
       ProcessBuilder pb = new ProcessBuilder();
@@ -315,7 +316,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       pb.redirectErrorStream(true);
       Process p = pb.start();
       in = new InputStreamReader(p.getInputStream());
-      BufferedReader reader = new BufferedReader(in);
+      reader = new BufferedReader(in);
       String line = null;
 
       while ((line = reader.readLine()) != null) {
@@ -324,9 +325,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     } catch (Exception e) {
       logger.error("runOSCommand", null, e);
     } finally {
-      if (in != null) {
+      if (reader != null) {
         try {
-          in.close();
+          reader.close();
         } catch (Exception ex) {
         }
       }
