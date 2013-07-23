@@ -213,7 +213,7 @@ public class CGroupsManager {
 
 	public void kill(final String user, final String pid) {
 		final String methodName = "kill";
-
+		InputStream is = null;
 		try {
 			String c_launcher_path = Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
@@ -245,7 +245,7 @@ public class CGroupsManager {
 			ProcessBuilder pb = new ProcessBuilder(duccling_nolog);
 			pb.redirectErrorStream(true);
 			java.lang.Process killedProcess = pb.start();
-			InputStream is = killedProcess.getInputStream();
+			is = killedProcess.getInputStream();
 			BufferedReader reader = new BufferedReader(
 					new InputStreamReader(is));
 			// String line = null;
@@ -271,6 +271,12 @@ public class CGroupsManager {
 
 		} catch (Exception e) {
 			agentLogger.error(methodName, null,e );
+		} finally {
+			if ( is != null ) {
+				try {
+					is.close();
+				} catch( Exception e) {}
+			}
 		}
 	}
     public String getContainerId(ManagedProcess managedProcess) {
@@ -407,6 +413,7 @@ public class CGroupsManager {
 	private int launchCommand(String[] command, boolean useDuccSpawn,
 			String userId, String containerId) throws Exception {
 		String[] commandLine = null;
+		InputStreamReader in = null;
 		try {
 			//
 			// Use ducc_ling (c code) as a launcher for the actual process. The
@@ -438,7 +445,7 @@ public class CGroupsManager {
 
 			java.lang.Process process = processLauncher.start();
 
-			InputStreamReader in = new InputStreamReader(
+			in = new InputStreamReader(
 					process.getInputStream());
 			BufferedReader reader = new BufferedReader(in);
 			String line;
@@ -465,6 +472,12 @@ public class CGroupsManager {
 				e.printStackTrace();
 			}
 
+		} finally {
+			if ( in != null ) {
+				try {
+					in.close();
+				} catch( Exception exx) {}
+			}
 		}
 		return -1; // failure
 	}
