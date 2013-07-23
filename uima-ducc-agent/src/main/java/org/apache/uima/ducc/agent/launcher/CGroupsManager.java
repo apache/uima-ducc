@@ -506,6 +506,7 @@ public class CGroupsManager {
 	public Set<NodeProcessInfo> getProcessesOnNode() throws Exception {
 		String location = "getProcessesOnNode";
 		Set<NodeProcessInfo> processList = new HashSet<NodeProcessInfo>();
+		InputStream stream = null;
 		try {
 
 			ProcessBuilder pb = new ProcessBuilder("ps", "-Ao",
@@ -513,7 +514,7 @@ public class CGroupsManager {
 			pb.redirectErrorStream(true);
 			java.lang.Process proc = pb.start();
 			// spawn ps command and scrape the output
-			InputStream stream = proc.getInputStream();
+			stream = proc.getInputStream();
 			BufferedReader reader = new BufferedReader(new InputStreamReader(
 					stream));
 			String line;
@@ -537,6 +538,10 @@ public class CGroupsManager {
 				e.printStackTrace();
 			} else {
 				agentLogger.error(location, null, e);
+			}
+		} finally {
+			if ( stream != null ) {
+				stream.close();
 			}
 		}
 		return processList;
