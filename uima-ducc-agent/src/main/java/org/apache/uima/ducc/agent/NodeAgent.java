@@ -1132,6 +1132,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
    */
   public void onProcessExit(IDuccProcess process) {
     String methodName = "onProcessExit";
+    if ( process == null ) {
+    	return;
+    }
     try {
       ProcessStateUpdate processStateUpdate = new ProcessStateUpdate(process.getProcessState(),
               process.getPID(), process.getDuccId().getUnique());
