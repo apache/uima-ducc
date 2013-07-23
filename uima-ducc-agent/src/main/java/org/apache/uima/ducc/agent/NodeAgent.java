@@ -899,9 +899,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     + " Was Previously Tagged for Kill While It Was Starting");
             undeployProcess(processEntry.getValue());
           } else if (deployedProcess.doKill()
-                  || deployedProcess.getDuccProcess().equals(ProcessState.Stopped)
-                  || deployedProcess.getDuccProcess().equals(ProcessState.Failed)
-                  || deployedProcess.getDuccProcess().equals(ProcessState.Killed)) {
+                  || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped)
+                  || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Failed)
+                  || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Killed)) {
             // The process has already stopped, but managed to send
             // the last update before dying. Ignore the update
             return;
@@ -1231,7 +1231,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           // Agent
           // deploy list with no PID we assume it is the one.
           String dppid = deployedProcess.getDuccProcess().getPID();
-          if (dppid == null || dppid.equals(cpi.getPid())) {
+          if (dppid == null || dppid.equals(String.valueOf(cpi.getPid()))) {
             return true;
           }
           // if (dppid != null && dppid.equals(cpi.getPid())) {
