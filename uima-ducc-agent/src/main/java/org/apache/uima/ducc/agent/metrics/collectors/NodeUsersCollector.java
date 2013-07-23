@@ -34,7 +34,6 @@ import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.IDuccId;
 
 /**
@@ -49,7 +48,6 @@ import org.apache.uima.ducc.common.utils.id.IDuccId;
 public class NodeUsersCollector implements CallableNodeUsersCollector {
   
   DuccLogger logger;
-  DuccId jobid = null;
   Agent agent;
   
   public NodeUsersCollector(Agent agent, DuccLogger logger) {
@@ -163,7 +161,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
          // System.out.println(
                //   "********** Process with PID:"+tokens[1]+ " Is a Ducc Daemon:"+token+". Skipping....");
         } else {
-          logger.trace(location, jobid, "********** Process with PID:"+tokens[1]+ " Is a Ducc Daemon:"+token+". Skipping....");
+          logger.trace(location, null, "********** Process with PID:"+tokens[1]+ " Is a Ducc Daemon:"+token+". Skipping....");
         }
         return true;
       } else if (token.startsWith("-Dactivemq.base")) {
@@ -171,7 +169,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
          // System.out.println(
            //       "********** Process with PID:"+tokens[1]+ " Is an ActiveMQ Broker:"+token+". Skipping....");
         } else {
-          logger.trace(location, jobid, "********** Process with PID:"+tokens[1]+ " Is an ActiveMQ Broker:"+token+". Skipping....");
+          logger.trace(location, null, "********** Process with PID:"+tokens[1]+ " Is an ActiveMQ Broker:"+token+". Skipping....");
         }
         return true;
       }
@@ -218,21 +216,25 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       reader = new BufferedReader(new InputStreamReader(stream));
       String line;
       String regex = "\\s+";
-      // copy all known reservations reported by the OR
-      agent.copyAllUserReservations(map);
+      if ( agent != null ) {
+         // copy all known reservations reported by the OR
+         agent.copyAllUserReservations(map);
+      }
       if ( logger == null ) {
        // System.out.println(
         //        "********** User Process Map Size After copyAllUserReservations:"+map.size());
       } else {
-        logger.info(location, jobid, "********** User Process Map Size After copyAllUserReservations:"+map.size());
+        logger.info(location, null, "********** User Process Map Size After copyAllUserReservations:"+map.size());
       }
-      // copy all known rogue processes detected previously
-      agent.getRogueProcessReaper().copyAllUserRogueProcesses(map); 
+      if ( agent != null ) {
+          // copy all known rogue processes detected previously
+          agent.getRogueProcessReaper().copyAllUserRogueProcesses(map); 
+      }
       if ( logger == null ) {
         //System.out.println(
          //       "********** User Process Map Size After copyAllUserRougeProcesses:"+map.size());
       } else {
-        logger.info(location, jobid, "********** User Process Map Size After copyAllUserRougeProcesses:"+map.size());
+        logger.info(location, null, "********** User Process Map Size After copyAllUserRougeProcesses:"+map.size());
       }
       // Add all running processes to this list. Will use this list to determine if a process has a parent
       // which is a rogue process.
@@ -267,7 +269,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
           if ( logger == null ) {
             //System.out.print(line);
           } else {
-            logger.trace(location, jobid, line);
+            logger.trace(location, null, line);
           }
           //  Check if current process is owned by a user that should be excluded
           //  from rogue process detection. A list of excluded users is in ducc.properties
@@ -294,7 +296,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
           //    System.out.println(
            //           "User:"+user+" Reservations:"+nui.getReservations().size()+" Rogue Processes:"+nui.getRogueProcesses().size());
             } else {
-              logger.info(location, jobid, "User:"+user+" Reservations:"+nui.getReservations().size()+" Rogue Processes:"+nui.getRogueProcesses().size());
+              logger.info(location, null, "User:"+user+" Reservations:"+nui.getReservations().size()+" Rogue Processes:"+nui.getRogueProcesses().size());
             }
             // add a process to a list of processes currently running on the node. The list will be used
             // to remove stale rogue processes at the end of this method
@@ -302,7 +304,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
             currentPids.add(pid);
             if ( logger == null ) {
             } else {
-              logger.trace(location, jobid,"Current Process (Before Calling aggregate() - PID:"+pid+" PPID:"+ppid+" Process List Size:"+processList.size());
+              logger.trace(location, null,"Current Process (Before Calling aggregate() - PID:"+pid+" PPID:"+ppid+" Process List Size:"+processList.size());
             }
             NodeUsersCollector.ProcessInfo pi = 
                     new NodeUsersCollector.ProcessInfo(Integer.parseInt(pid),Integer.parseInt(ppid));
@@ -350,7 +352,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       if ( logger == null ) {
         e.printStackTrace();
       } else {
-        logger.error(location, jobid, e);
+        logger.error(location, null, e);
       }
     } finally {
     	if ( reader != null ) {
@@ -376,8 +378,8 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       System.out.println(
             "***************************************************************************************");
     } else {
-      logger.info(location, jobid, sb.toString());
-      logger.info(location, jobid, "******************************************************************************");
+      logger.info(location, null, sb.toString());
+      logger.info(location, null, "******************************************************************************");
     }
     // remove any rogue processes that are not in the list of current processes just collected
     agent.getRogueProcessReaper().removeDeadRogueProcesses(currentPids);

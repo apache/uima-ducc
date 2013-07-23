@@ -898,10 +898,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     + processEntry.getValue().getDuccId()
                     + " Was Previously Tagged for Kill While It Was Starting");
             undeployProcess(processEntry.getValue());
-          } else if (deployedProcess.doKill()
+          } else if ( deployedProcess != null && ( deployedProcess.doKill()
                   || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped)
                   || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Failed)
-                  || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Killed)) {
+                  || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Killed)) ) {
             // The process has already stopped, but managed to send
             // the last update before dying. Ignore the update
             return;
@@ -1106,7 +1106,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                             + " Has Not Started Yet. PID Not Available. Tagging Process For Kill When It Reports Status");
             deployedProcess.killAfterLaunch(true);
           } else {
-            logger.info(methodName, null, ".... Process - PID:" + pid + " Has Already Stopped.");
+            logger.info(methodName, null, ".... Process Has Already Stopped.");
           }
           break;
         }

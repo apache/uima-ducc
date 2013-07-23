@@ -100,12 +100,12 @@ public class ManagedUimaService extends AbstractManagedService {
 		try {
 			if (serviceDeployer != null) {
 				serviceDeployer.getTopLevelController().quiesceAndStop();
-			}
-			AnalysisEngineController topLevelController = serviceDeployer
-					.getTopLevelController();
-			if (topLevelController != null && !topLevelController.isStopped()) {
-				serviceDeployer
-						.undeploy(SpringContainerDeployer.QUIESCE_AND_STOP);
+				AnalysisEngineController topLevelController = serviceDeployer
+						.getTopLevelController();
+				if (topLevelController != null && !topLevelController.isStopped()) {
+					serviceDeployer
+							.undeploy(SpringContainerDeployer.QUIESCE_AND_STOP);
+				}
 			}
 			stop();
 		} catch (Exception e) {
