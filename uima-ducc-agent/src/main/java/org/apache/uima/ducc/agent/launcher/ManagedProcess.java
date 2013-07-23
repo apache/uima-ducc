@@ -120,12 +120,12 @@ public class ManagedProcess implements Process {
 
 	private ICommandLine commandLine;
 	
-	private ProcessLifecycleObserver observer;
+	private transient ProcessLifecycleObserver observer;
 	
-	private Timer initTimer;
+	transient private Timer initTimer;
 	
 	// timer used to cleanup UIMA pipeline initializations stats
-  private Timer cleanupTimer;
+    transient private Timer cleanupTimer;
 
   private DuccId workDuccId;
 	
@@ -147,7 +147,7 @@ public class ManagedProcess implements Process {
 
 	private ProcessMemoryAssignment processMemoryAssignment;
 	
-	private LinuxProcessMetricsProcessor metricsProcessor;
+	private transient LinuxProcessMetricsProcessor metricsProcessor;
 	
 	
 	public ManagedProcess(IDuccProcess process, ICommandLine commandLine) {
