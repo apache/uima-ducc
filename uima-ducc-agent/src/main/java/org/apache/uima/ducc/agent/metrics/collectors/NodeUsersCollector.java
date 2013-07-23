@@ -201,6 +201,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
     TreeMap<String,NodeUsersInfo> map = new TreeMap<String,NodeUsersInfo>();
 
     List<String> currentPids = new ArrayList<String>();
+    InputStream stream = null;
     try {
 
       ProcessBuilder pb;
@@ -212,7 +213,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       pb.redirectErrorStream(true);
       Process proc = pb.start();
       //  spawn ps command and scrape the output
-      InputStream stream = proc.getInputStream();
+      stream = proc.getInputStream();
       BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
       String line;
       String regex = "\\s+";
@@ -350,6 +351,12 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       } else {
         logger.error(location, jobid, e);
       }
+    } finally {
+    	if ( stream != null ) {
+    		try {
+    			stream.close();
+    		} catch( Exception exx){}
+    	}
     }
     StringBuffer sb = new StringBuffer();
     // if no processes found, clear rogue process list and list of processes associated with a reserve
