@@ -1751,18 +1751,17 @@ public class NodepoolScheduler
                         continue;
                     }
 
-
                     int nshares = j.countNShares();
                     int qshares = nshares * j.getShareOrder();
-                    if ( (nj.getSchedulingPolicy() == Policy.FIXED_SHARE ) 
-                         || 
-                         (nshares > fragmentationThreshold )) 
-                    {   
-                        candidates.put(j, j);
-                        logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a candidate with processes[", nshares, "] qshares[", qshares, "]");
-                    } else {
+
+                    if ( nshares < fragmentationThreshold ) {
+                        // A job with only 1 process declared is not needed but it's surely not a candidate
                         logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because not enough processes[", nshares, "] qshares[", qshares, "]");
+                        continue;
                     }
+
+                    logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a candidate with processes[", nshares, "] qshares[", qshares, "]");
+                    candidates.put(j, j);
                 }
             }
 
