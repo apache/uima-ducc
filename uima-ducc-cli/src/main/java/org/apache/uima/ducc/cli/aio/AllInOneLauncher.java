@@ -45,7 +45,7 @@ public class AllInOneLauncher extends CliBase {
     private static String cid = AllInOneLauncher.class.getSimpleName();
     
     private static String or_port = "ducc.orchestrator.http.port";
-    private static String or_host = "ducc.orchestrator.node";
+    private static String or_host = "ducc.orchestrator.http.node";
     
     private static String remote = "remote";
     private static String local = "local";

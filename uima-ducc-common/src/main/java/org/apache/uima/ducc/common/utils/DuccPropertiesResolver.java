@@ -68,7 +68,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_orchestrator_state_update_endpoint_type = "ducc.orchestrator.state.update.endpoint.type";
     public static final String ducc_orchestrator_state_update_endpoint = "ducc.orchestrator.state.update.endpoint";
     public static final String ducc_orchestrator_http_port = "ducc.orchestrator.http.port";
-    public static final String ducc_orchestrator_node = "ducc.orchestrator.node";
+    public static final String ducc_orchestrator_node = "ducc.orchestrator.http.node";
     public static final String ducc_orchestrator_maintenance_rate = "ducc.orchestrator.maintenance.rate";
     public static final String ducc_orchestrator_job_factory_classpath_order = "ducc.orchestrator.job.factory.classpath.order";    
     

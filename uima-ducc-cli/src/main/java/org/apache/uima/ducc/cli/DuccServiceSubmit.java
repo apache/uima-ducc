@@ -42,7 +42,7 @@ public class DuccServiceSubmit
     //private Properties jvmargs = null;
     ServiceRequestProperties requestProperties = new ServiceRequestProperties();
     static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.node";
+    static String or_host = "ducc.orchestrator.http.node";
     
     UiOption[] opts_release = {
         UiOption.Help,

@@ -40,7 +40,7 @@ public class DuccJobSubmit
 {    
     private JobRequestProperties jobRequestProperties = new JobRequestProperties();        
     static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.node";
+    static String or_host = "ducc.orchestrator.http.node";
     
     // public DuccJobSubmit(IDuccMessageProcessor duccMessageProcessor) {
 //         this.duccMessageProcessor = duccMessageProcessor;

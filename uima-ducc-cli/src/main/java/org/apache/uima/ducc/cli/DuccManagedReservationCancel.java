@@ -33,7 +33,7 @@ public class DuccManagedReservationCancel extends CliBase {
 
     JobRequestProperties requestProperties = new JobRequestProperties();
     static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.node";
+    static String or_host = "ducc.orchestrator.http.node";
 
     long canceledPid = -1;
     String responseMessage = null;

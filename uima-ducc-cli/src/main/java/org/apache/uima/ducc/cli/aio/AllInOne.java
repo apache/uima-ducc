@@ -36,7 +36,7 @@ public class AllInOne extends CliBase {
 	private static String cid = AllInOne.class.getSimpleName();
 	
 	private static String or_port = "ducc.orchestrator.http.port";
-    private static String or_host = "ducc.orchestrator.node";
+    private static String or_host = "ducc.orchestrator.http.node";
     
 	private IMessageHandler mh = new MessageHandler();
 	

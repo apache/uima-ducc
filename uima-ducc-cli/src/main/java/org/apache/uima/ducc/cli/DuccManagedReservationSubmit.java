@@ -38,7 +38,7 @@ public class DuccManagedReservationSubmit
     private static String dt = "Managed Reservation";
     
     private static String or_port = "ducc.orchestrator.http.port";
-    private static String or_host = "ducc.orchestrator.node";
+    private static String or_host = "ducc.orchestrator.http.node";
    
     private ServiceRequestProperties serviceRequestProperties;
 
