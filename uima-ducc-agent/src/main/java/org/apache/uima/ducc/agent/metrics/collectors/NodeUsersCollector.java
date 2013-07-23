@@ -202,6 +202,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
 
     List<String> currentPids = new ArrayList<String>();
     InputStream stream = null;
+    BufferedReader reader = null;
     try {
 
       ProcessBuilder pb;
@@ -214,7 +215,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       Process proc = pb.start();
       //  spawn ps command and scrape the output
       stream = proc.getInputStream();
-      BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+      reader = new BufferedReader(new InputStreamReader(stream));
       String line;
       String regex = "\\s+";
       // copy all known reservations reported by the OR
@@ -352,9 +353,9 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         logger.error(location, jobid, e);
       }
     } finally {
-    	if ( stream != null ) {
+    	if ( reader != null ) {
     		try {
-    			stream.close();
+    			reader.close();
     		} catch( Exception exx){}
     	}
     }
