@@ -295,6 +295,8 @@ public class RogueProcessReaper {
     }
     new Thread(new Runnable() {
       public void run() {
+    	  InputStream is = null;
+    	  BufferedReader reader = null;
         try {
           String[] repearScriptCommand = new String[] { reaperScript, pid };
           ProcessBuilder pb = new ProcessBuilder(repearScriptCommand);
@@ -316,14 +318,14 @@ public class RogueProcessReaper {
                     + pid + " Owned by:" + user + " Command:" + sb.toString());
 
           }
-          InputStream is = shellProcess.getInputStream();
-          BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+          is = shellProcess.getInputStream();
+          reader = new BufferedReader(new InputStreamReader(is));
 
           // read the next line from stdout and stderr
           while (reader.readLine() != null) {
             // dont care about the output, just drain the buffers
           }
-          is.close();
+         
           sb.setLength(0);
 
           if (logger == null) {
@@ -338,10 +340,15 @@ public class RogueProcessReaper {
         } catch (Exception e) {
           logger.error(methodName, null, e);
         } finally {
+        	
           synchronized (this) {
             processMap.remove(pid);
           }
-
+          if ( reader != null ) {
+        	  try {
+            	  reader.close();
+        	  } catch( Exception exx){}
+          }
         }
       }
     }).start();
