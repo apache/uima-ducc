@@ -87,11 +87,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	 * @throws Exception
 	 */
 	public void onDuccJobsStateEvent(@Body DuccJobsStateEvent duccEvent) throws Exception {
-		//  typically lifecycleController is null and the agent assumes the role. For jUnit testing though, 
-	  //  a different lifecycleController is injected to facilitate black box testing
-	  if ( lifecycleController == null ) {
-			lifecycleController = agent;
-		}
+
 	  // Recv'd ducc state update, restart process reaper task which detects missing
 	  // OR state due to a network problem. 
 //	  try {
@@ -103,6 +99,11 @@ public class AgentEventListener implements DuccEventDelegateListener {
 		try {
 
 		  synchronized( this ) {
+				//  typically lifecycleController is null and the agent assumes the role. For jUnit testing though, 
+			  //  a different lifecycleController is injected to facilitate black box testing
+			  if ( lifecycleController == null ) {
+					lifecycleController = agent;
+			  }
 			  //  print JP report targeted for this node
 			  reportIncomingStateForThisNode(duccEvent);
 
