@@ -673,7 +673,7 @@ make clean all
           ducc.sm.http.port
           ducc.sm.http.node
           ducc.orchestrator.http.port
-          ducc.orchestrator.node
+          ducc.orchestrator.http.node
           ducc.agent.launcher.ducc_spawn.path
         </programlisting>
 
@@ -776,7 +776,7 @@ make clean all
           </varlistentry>
 
           <varlistentry>
-            <term>ducc.orchestrator.node</term>
+            <term>ducc.orchestrator.http.node</term>
             <listitem>
               <para>
                 This MUST be configured to the node where the Orchestrator is running.  The default is a placeholder,
