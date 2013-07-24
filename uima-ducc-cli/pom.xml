@@ -10,63 +10,63 @@
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
 	
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
-  
+
   <parent>
-		<groupId>org.apache.uima</groupId>
-		<artifactId>uima-ducc-parent</artifactId>
-		<version>0.8.0-SNAPSHOT</version>
-		<relativePath>../uima-ducc-parent/pom.xml</relativePath>
-  </parent>  
-  
+	<groupId>org.apache.uima</groupId>
+	<artifactId>uima-ducc-parent</artifactId>
+	<version>0.8.0-SNAPSHOT</version>
+	<relativePath>../uima-ducc-parent/pom.xml</relativePath>
+  </parent>
+
   <properties>
     <DUCC_CP>
-uima-ducc-cli.jar uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.jar slf4j/slf4j-api.jar slf4j/slf4j-log4j12.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar  apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uima-core-${org.apache.uima.version}.jar uima/uimaj-as-core-${org.apache.uima.as.version}.jar
+uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.jar slf4j/slf4j-api.jar slf4j/slf4j-log4j12.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uima-core-${org.apache.uima.version}.jar uima/uimaj-as-core-${org.apache.uima.as.version}.jar
     </DUCC_CP>
   </properties>
 
+  <!-- Inherits groupid and version from the parent pom project coordinates -->
+  <!-- Uses default packaging ie. jar                                       -->
   <artifactId>uima-ducc-cli</artifactId>
-  
+
   <dependencies>
-        <!-- Dependencies on other DUCC projects -->
-        <dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-common</artifactId>
-            <version>${ducc.version}</version>			
-		</dependency>
+	<dependency>
+	  <groupId>org.apache.uima</groupId>
+	  <artifactId>uima-ducc-common</artifactId>
+	  <version>${ducc.version}</version>
+	</dependency>
 
-        <dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-transport</artifactId>
-			<version>${ducc.version}</version>
-		</dependency>
+    <dependency>
+	  <groupId>org.apache.uima</groupId>
+	  <artifactId>uima-ducc-transport</artifactId>
+	  <version>${ducc.version}</version>
+	</dependency>
 
-	</dependencies>
+  </dependencies>
+
   <build>
-    <!-- in the maven's package phase create a runnable jar for each cli command -->
     <plugins>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
 
-
         <configuration>
-		  <archive>
-			<!-- index>true</index -->
-			<manifest>
+          <archive>
+            <!-- Only create an index if it indexes ALL classes used in all the classpath jars -->
+			<index>false</index>
+ 			<manifest>
 			  <addClasspath>false</addClasspath>
 			</manifest>
 			<manifestEntries>
-y			  <class-path>${DUCC_CP}</class-path>
-			  <Ducc-Version>${project.version}</Ducc-Version>
-			  <Ducc-OS-Id>${os.name} ${os.arch} ${os.version}</Ducc-OS-Id>
-			  <Ducc-Bassedir>${basedir}</Ducc-Bassedir>
-			  <Ducc-Java-Vendor>${java.vendor}</Ducc-Java-Vendor>
-			  <Project-Title>Apache UIMA DUCC</Project-Title>
+			  <class-path>${DUCC_CP}</class-path>
 			</manifestEntries>
-		  </archive>
-		</configuration>
+          </archive>
+        </configuration>
 
+
+		<!-- HACK - Build these manifest-only jars as are referenced in old snapshots -->
         <executions>
 
           <execution>
@@ -74,327 +74,49 @@ y			  <class-path>${DUCC_CP}</class-path>
             <goals><goal>jar</goal></goals>
             <phase>package</phase>
             <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-submit</finalName>
-               <archive>
-                  <index>false</index>                  
-                  <manifest>
-                    <addClasspath>false</addClasspath>
-                    <mainClass>org.apache.uima.ducc.cli.DuccJobSubmit</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>       
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
+              <!-- Name the jar -->
+              <finalName>uima-ducc-submit</finalName>
+			  <archive>
+ 				<manifest>
+				  <addClasspath>false</addClasspath>
+				</manifest>
+				<manifestEntries>
+				  <class-path>uima-ducc-cli.jar ${DUCC_CP}</class-path>
+				</manifestEntries>
+			  </archive>
+              <excludes>
+                <exclude>**/</exclude>
+                <exclude>META-INF/*</exclude>
+              </excludes>
             </configuration>
           </execution>
 
           <execution>
-            <id>DuccJobCancel</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-cancel</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccJobCancel</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                  
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>DuccProcessSubmit</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-process-submit</finalName>
-               <archive>
-                  <index>false</index>                  
-                  <manifest>
-                    <addClasspath>false</addClasspath>
-                    <mainClass>org.apache.uima.ducc.cli.DuccManagedReservationSubmit</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>       
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>DuccProcessCancel</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-process-cancel</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccManagedReservationCancel</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                  
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>DuccJobMonitor</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-monitor</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccJobMonitor</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>
-
-         <execution>
-            <id>DuccReservationSubmit</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-reserve</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccReservationSubmit</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>
-          
-         <execution>
-            <id>DuccReservationCancel</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-unreserve</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccReservationCancel</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>     
-          
-         <execution>
             <id>DuccServiceSubmit</id>
             <goals><goal>jar</goal></goals>
             <phase>package</phase>
             <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-service-submit</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccServiceSubmit</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
+              <!-- Name the jar -->
+              <finalName>uima-ducc-service-submit</finalName>
+			  <archive>
+ 				<manifest>
+				  <addClasspath>false</addClasspath>
+				</manifest>
+				<manifestEntries>
+				  <class-path>uima-ducc-cli.jar ${DUCC_CP}</class-path>
+				</manifestEntries>
+			  </archive>
+              <excludes>
+                <exclude>**/</exclude>
+                <exclude>META-INF/*</exclude>
+              </excludes>
             </configuration>
-          </execution>           
-
-         <execution>
-            <id>DuccServiceCancel</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-service-cancel</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccServiceCancel</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>            
-          
-         <execution>
-            <id>DuccServiceApi</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-services</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccServiceApi</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>          
-                         
-         <execution>
-            <id>DuccPerfStats</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-perf-stats</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccPerfStats</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>          
-
-         <execution>
-            <id>DuccWebQueryMachines</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-web-query-machines</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccWebQueryMachines</mainClass>
-                  </manifest>
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution> 
-          
-         <execution>
-            <id>DuccWebQueryReservations</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>uima-ducc-web-query-reservations</finalName>
-               <archive>
-                  <index>false</index>
-                  <manifest>
-                     <addClasspath>false</addClasspath>
-                     <mainClass>org.apache.uima.ducc.cli.DuccWebQueryReservations</mainClass>
-                  </manifest>
-                  <manifestEntries>
-                    <class-path>${DUCC_CP}</class-path>
-                  </manifestEntries>                                    
-               </archive>
-               <excludes>
-                 <exclude>**/</exclude>
-                 <exclude>META-INF/*</exclude>
-               </excludes>
-            </configuration>
-          </execution>          
-
-        <execution>
-            <id>${project.artifactI}</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-            <!-- Name the jar -->
-            <finalName>${project.artifactId}</finalName>
-               <archive>
-                                                      
-               </archive>
-               
-            </configuration>
-          </execution> 
-          
+          </execution>
         </executions>
+		
       </plugin>
     </plugins>
   </build>
   
 </project>
+	

@@ -32,10 +32,10 @@ class DuccWeb(DuccBase):
         args = self.mkargs(argv)
         if ( len(argv) > 0 ):
             if ( argv[0] == '--qm' or argv[0] == '--query-machines'):
-                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-web-query-machines.jar', ' '.join(args))
+                self.spawn(self.java(), '-cp', self.DUCC_HOME + '/lib/uima-ducc-cli.jar', 'org.apache.uima.ducc.cli.DuccWebQueryMachines', ' '.join(args))
                 return
             if ( argv[0] == '--qr' or argv[0] == '--query-reservations' ):
-                self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-web-query-reservations.jar', ' '.join(args))
+                self.spawn(self.java(), '-cp', self.DUCC_HOME + '/lib/uima-ducc-cli.jar', 'org.apache.uima.ducc.cli.DuccWebQueryReservations', ' '.join(args))
                 return
             self.syntax();
         else:

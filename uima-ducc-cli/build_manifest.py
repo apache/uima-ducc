@@ -8,7 +8,6 @@
 def main():
 
     cp = [ \
-        "uima-ducc-cli.jar",
         "uima-ducc-common.jar",
         "uima-ducc-transport.jar",
         "../resources/",
@@ -18,7 +17,7 @@ def main():
         "xstream/xstream.jar",
         "http-client/commons-codec-${commons.codec.version}.jar",
         "http-client/commons-httpclient-${commons.httpclient.version}.jar",
-        "google-gson/gson-${google.gson.version}.jar ",
+        "google-gson/gson-${google.gson.version}.jar",
         "apache-log4j/log4j-${log4j.version}.jar",
         "apache-commons-cli/commons-cli-${commons.cli.version}.jar",
         "uima/uima-core-${org.apache.uima.version}.jar",

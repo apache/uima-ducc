@@ -25,7 +25,7 @@ from ducc_base import DuccBase
 class DuccServices(DuccBase):
 
     def main(self, argv):        
-        self.spawn(self.java(), '-jar', self.DUCC_HOME + '/lib/uima-ducc-services.jar', ' '.join(self.mkargs(argv)))
+        self.spawn(self.java(), '-cp', self.DUCC_HOME + '/lib/uima-ducc-cli.jar', 'org.apache.uima.ducc.cli.DuccServiceApi', ' '.join(self.mkargs(argv)))
 
 if __name__ == "__main__":
     svc = DuccServices()
