@@ -616,8 +616,13 @@ class DuccUtil(DuccBase):
         # First make sure that all the nodepools that are declared have definition files
         # and that the defined nodes are in some nodelist.
         #
-        nodepools = classprops.get('scheduling.nodepool').split()
         nodepools_ok = True
+
+        nplist = classprops.get('scheduling.nodepool')
+        if ( nplist == None ):
+            return nodepools_ok
+
+        nodepools = nplist.split()
         for np in nodepools:
             npkey = 'scheduling.nodepool.' + np
             npfilename = classprops.get(npkey)
