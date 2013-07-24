@@ -20,32 +20,40 @@ package org.apache.uima.ducc.common.uima;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
+import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.analysis_engine.metadata.FixedFlow;
 import org.apache.uima.analysis_engine.metadata.FlowConstraints;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.flow.CasFlowController_ImplBase;
-import org.apache.uima.flow.CasFlow_ImplBase;
+import org.apache.uima.ducc.Workitem;
 import org.apache.uima.flow.FinalStep;
 import org.apache.uima.flow.Flow;
 import org.apache.uima.flow.FlowControllerContext;
+import org.apache.uima.flow.JCasFlowController_ImplBase;
+import org.apache.uima.flow.JCasFlow_ImplBase;
 import org.apache.uima.flow.SimpleStep;
 import org.apache.uima.flow.Step;
+import org.apache.uima.jcas.JCas;
+import org.apache.uima.jcas.cas.TOP;
 import org.apache.uima.resource.ResourceInitializationException;
+import org.apache.uima.resource.metadata.OperationalProperties;
 
 /**
  * Ducc FlowController for Job Processes assembled from user components
- * If WI-Cas is sent to initial CM, it is then dropped
- * All other parent CASes continue thru the flow
+ * If CM delegate exists then WI-Cas is first sent there
+ *    and then optionally to CC delegate if so specified by flag in WorkItem feature structure.
+ * If no CM delegate, then WI-Cas is sent to AE and CC if it exists.
  */
-public class DuccJobProcessFC extends CasFlowController_ImplBase {
+public class DuccJobProcessFC extends JCasFlowController_ImplBase {
 
-  /**
-   */
-  private String cmKey="DuccXmiZipReaderCM";
+  //private String cmKey="DuccXmiZipReaderCM";
+  
   private List<String> mSequence;
+  private Boolean mHasCasMultiplier=false;
 
   public void initialize(FlowControllerContext aContext) throws ResourceInitializationException {
     super.initialize(aContext);
@@ -59,6 +67,17 @@ public class DuccJobProcessFC extends CasFlowController_ImplBase {
       throw new ResourceInitializationException(ResourceInitializationException.FLOW_CONTROLLER_REQUIRES_FLOW_CONSTRAINTS,
               new Object[]{this.getClass().getName(), "fixedFlow", aContext.getAggregateMetadata().getSourceUrlString()});
     }
+
+    // check if first delegate is a CasMultiplier
+    Iterator aeIter = getContext().getAnalysisEngineMetaDataMap().entrySet().iterator();
+    while (aeIter.hasNext()) {
+      Map.Entry entry = (Map.Entry) aeIter.next();
+      AnalysisEngineMetaData md = (AnalysisEngineMetaData) entry.getValue();
+      OperationalProperties op = md.getOperationalProperties();
+      if (op.getOutputsNewCASes()) {
+    	mHasCasMultiplier = true;
+      }
+    }
   }
 
   /*
@@ -66,14 +85,15 @@ public class DuccJobProcessFC extends CasFlowController_ImplBase {
    * 
    * @see org.apache.uima.flow.CasFlowController_ImplBase#computeFlow(org.apache.uima.cas.CAS)
    */
-  public Flow computeFlow(CAS aCAS) throws AnalysisEngineProcessException {
+  public Flow computeFlow(JCas aCAS) throws AnalysisEngineProcessException {
     return new FixedFlowObject(0);
   }
 
-  class FixedFlowObject extends CasFlow_ImplBase {
+  class FixedFlowObject extends JCasFlow_ImplBase {
     private int currentStep;
-    private boolean hasBeenToDuccCM = false;
+    private boolean hasBeenToCM = false;
     private boolean internallyCreatedCas = false;
+    private boolean hasBeenToCC = false;
 
     /**
      * Create a new fixed flow starting at step <code>startStep</code> of the fixed sequence.
@@ -106,24 +126,40 @@ public class DuccJobProcessFC extends CasFlowController_ImplBase {
      * @see org.apache.uima.flow.Flow#next()
      */
     public Step next() throws AnalysisEngineProcessException {
-      // Drop the Work Item CAS after it has been to the Ducc CM
       if (!internallyCreatedCas) {
-        if (hasBeenToDuccCM) {
-          return new FinalStep();
+    	// this is a Work Item CAS
+        if (mHasCasMultiplier) {
+          if (!hasBeenToCM) {
+        	// will send it there this time thru
+        	hasBeenToCM = true;
+          }
+          else {
+        	// has been to CM, see if should go to CC
+        	if (!hasBeenToCC) {
+	          Iterator<TOP> fsIter = this.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
+	          if (fsIter.hasNext()) {
+	        	Workitem wi = (Workitem) fsIter.next();
+	        	if (fsIter.hasNext()) {
+	        	  throw new IllegalStateException("More than one instance of Workitem type");
+	        	}
+	        	if (wi.getSendToCC()) {
+	        	  hasBeenToCC = true;
+	        	  return new SimpleStep((String)mSequence.get(mSequence.size()-1));
+	        	}
+	        	else {
+	        	  return new FinalStep();
+	        	}
+	          }
+            }
+          }
         }
       }
 
-      if (currentStep >= mSequence.size()) {
-        return new FinalStep(); // this CAS has finished the sequence
+      if (hasBeenToCC || currentStep >= mSequence.size()) {
+        return new FinalStep(); // this CAS is cooked
       }
 
-      // Check if WI CAS is going to Ducc CM
-      if (!internallyCreatedCas && cmKey.equals(mSequence.get(currentStep))) {
-        // set flag for next time thru
-        hasBeenToDuccCM = true;
-      }
-
-      // now send the CAS to the next AE in sequence.
+      // send the CAS to the next AE in sequence.
       return new SimpleStep((String)mSequence.get(currentStep++));
     }
 
@@ -133,11 +169,8 @@ public class DuccJobProcessFC extends CasFlowController_ImplBase {
      * @see org.apache.uima.flow.CasFlow_ImplBase#newCasProduced(CAS, String)
      */
     public Flow newCasProduced(CAS newCas, String producedBy) throws AnalysisEngineProcessException {
-      // start the new output CAS from the next node after the CasMultiplier that produced it
-      int i = 0;
-      while (!mSequence.get(i).equals(producedBy))
-        i++;
-      return new FixedFlowObject(i + 1, true);
+      // since the CM will always be in position 0 ...
+      return new FixedFlowObject(1, true);
     }
   }
 }
