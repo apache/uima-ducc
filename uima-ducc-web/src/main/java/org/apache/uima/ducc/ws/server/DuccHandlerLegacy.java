@@ -197,28 +197,37 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Initialize Failures	
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		if(job.getSchedulingInfo().getLongSharesMax() < 0) {
-			switch(DuccCookies.getDisplayStyle(request)) {
-			case Textual:
-			default:
-				sb.append(buildInitializeFailuresLink(job));
-				sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
-				sb.append("<sup>");
-				sb.append("<small>");
-				sb.append("capped");
-				sb.append("</small>");
-				sb.append("<sup>");
-				sb.append("</span>");
-				sb.append("<br>");
-				break;
-			case Visual:
-				sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
-				sb.append("<img src=\"./opensources/images/propeller_hat_small.svg.png\">");
-				sb.append("</span>");
-				sb.append("<br>");
-				sb.append(buildInitializeFailuresLink(job));
-				break;
+		long initFails = job.getProcessInitFailureCount();
+		if(initFails > 0) {
+			if(job.getSchedulingInfo().getLongSharesMax() < 0) {
+				switch(DuccCookies.getDisplayStyle(request)) {
+				case Textual:
+				default:
+					sb.append(buildInitializeFailuresLink(job));
+					sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+					sb.append("<sup>");
+					sb.append("<small>");
+					sb.append("capped");
+					sb.append("</small>");
+					sb.append("<sup>");
+					sb.append("</span>");
+					sb.append("<br>");
+					break;
+				case Visual:
+					sb.append("<span title=\"capped at current number of running processes due to excessive initialization failures\">");
+					sb.append("<img src=\"./opensources/images/propeller_hat_small.svg.png\">");
+					sb.append("</span>");
+					sb.append("<br>");
+					sb.append(buildInitializeFailuresLink(job));
+					break;
+				}
 			}
+			else {
+				sb.append(buildInitializeFailuresLink(job));
+			}
+		}
+		else {
+			sb.append(""+initFails);
 		}
 		sb.append("</td>");		
 		// Runtime Failures
