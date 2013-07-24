@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -329,13 +330,10 @@ public class DuccCommandExecutor extends CommandExecutor {
 			env.putAll(((ACommandLine)cmdLine).getEnvironment());
 		}
 		if ( logger.isTrace()) {
-			// <dump>
-			Iterator<String> iterator = env.keySet().iterator();
-			while(iterator.hasNext()) {
-				String key = iterator.next();
-				String value = env.get(key);
-				String message = "key:"+key+" "+"value:"+value;
+			for( Entry<String, String> entry: env.entrySet()) {
+				String message = "key:"+entry.getKey()+" "+"value:"+entry.getValue();
 				logger.trace(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), message);
+				
 			}
 		}
 		try {
