@@ -365,7 +365,10 @@ public class AllInOneLauncher extends CliBase {
         message = value;
         mh.frameworkDebug(cid, mid, message);
 
-        String duccClasspath = getDuccClasspath();
+        // Don't need all the DUCC jars as user's classpath must have all the UIMA jars it needs.
+        // For simplicity add only the jar that has the AllInOne class --- it will pull in other 
+        // jars that have dependencies such as the flow controller.
+        String duccClasspath = ducc_home + "/lib/uima-ducc-cli.jar";
         if (classpath_user_first) {
             classpath = classpath + File.pathSeparatorChar + duccClasspath;
         } else {
@@ -892,18 +895,6 @@ public class AllInOneLauncher extends CliBase {
         ignored();
         
         mh.frameworkTrace(cid, mid, "exit");
-    }
-    
-    // Get the classpath saved when DUCC is started
-    private String getDuccClasspath() throws IOException {
-        BufferedReader in = new BufferedReader(new FileReader(ducc_home + "/state/ducc.classpath"));
-        String path = in.readLine();
-        in.close();
-        if (path.charAt(0) == ':') {
-            return path.substring(1);
-        } else {
-            return path;
-        }
     }
     
     private void launch_local() throws IOException {
