@@ -678,7 +678,12 @@ class DuccUtil(DuccBase):
             # this check will emit necessary messages
             answer = False
 
-        nodepools = classprops.get('scheduling.nodepool').split()
+        nodepools = classprops.get('scheduling.nodepool')
+        if ( nodepools == None ):
+            nodepools = []                    # avoid NPE if none
+        else:
+            nodepools = nodepools.split()
+
         class_set = classprops.get('scheduling.class_set').split()
         # first, make sure every class that is defined exists, has a policy, and a priority
         # FAIR_SHARE classes, they must also have a weight
