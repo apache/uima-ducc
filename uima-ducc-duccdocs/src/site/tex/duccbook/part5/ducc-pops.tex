@@ -74,6 +74,8 @@
 \newcommand{\varGB}{\text{GB}}
 \newcommand{\varUser}{\text{user}}
 
+\newcommand{\varPipeline}{\text{pipeline}}
+
 % typewriter
 
 \newcommand{\varCompleted}{\texttt{Completed}}
@@ -939,6 +941,21 @@
         
       \end{itemize} 
       
+      The \varAgent publishes reports at configurable intervals:
+      
+      \begin{itemize}
+        \item Node Inventory
+        
+        Node Inventory is a report on the \varAgent-managed processes
+        on this node.
+        
+        \item Node Metrics
+        
+        Node Metrics is a report on the \varAgent-observed metrics
+        on this node.
+        
+      \end{itemize} 
+      
     \end{itemize}  
             
     \subsubsection{Deploy}
@@ -957,7 +974,7 @@
     \begin{itemize}
       \item Event Listener
       
-      The module handles various publication events:
+      The module handles publication events:
       \begin{itemize}
       \item Process Start 
       
@@ -1114,25 +1131,67 @@
 
     \subsection{\varJobDriver (\varJD)}    
 
-    There is one \varJobDriver per \varJob.
+    There is one \varJobDriver~per \varJob.
     
-    The duties of the \varJobDriver are:
+    The duties of the \varJobDriver~are:
+    \textit{
+      \input{part5/c01-JD.tex}
+    }
+        
+    The \varJobDriver~comprises a container into which the user specified
+    \varCollectionReader~is deployed.
+    The \varJobDriver~interacts with the user specified
+    \varCollectionReader~to fetch \varCASes~(or \varWorkItems) for
+    processing by a corresponding \varPipeline.
     
-    \begin{description}
-      \item fetch analytic pipeline work items in correspondence with the user specified degree of parallelness;
-      \item dispatch work items to distributed analytic pipelines;
-      \item gather and report on performance statistics and errors;
-      \item retry failed recoverable work items;
-      \item guarantee that individual work items are not mistakenly simultaneously processed by more than one analytic pipeline.
-    \end{description}
+    The \varJobDriver~is deployed into a \varResourceManager~allocated
+    \varJdShare~managed by a \varDUCC~\varAgent.
+     
+    The \varJobDriver~is subdivided into several responsibility areas:
+
+    \begin{itemize}
+      \item Core
+      \item Client
+      \item Config
+      \item Event
+    \end{itemize}
         
-    \subsubsection{Exception Classifier}
-         
-    \subsubsection{Job Driver}
-        
-    \subsubsection{Job Driver Component}
-        
-    \subsubsection{Job Driver Context}
+    \subsubsection{Core}
+    
+      TODO
+    
+    \subsubsection{Client}
+    
+      TODO
+      
+    \subsubsection{Config}
+          
+      The \varJobDriver~publishes reports at configurable intervals:
+      
+      \begin{itemize}
+        \item Job Driver Status Report
+      
+        Job Driver Status Report is a report on the \varJobDriver-managed 
+        \varCollectionReader~sourced \varCASes~(or \varWorkItems).
+      
+        Information includes \varWorkItems~total-to-process, number-finished,
+        number-failed, number-retried and other status.
+           
+      \end{itemize}    
+     
+    \subsubsection{Event}
+    
+      The module handles publication events:
+      \begin{itemize}
+      \item \varORmap
+
+      The \varOrchestrator~notification comprising the \varORmap~is the
+      "final authority" on the state of each Job, Reservation and Service
+      currently or formerly deployed to the \varDUCC-managed cluster.
+    
+      \end{itemize}    
+    
+    =====
         
     \subsubsection{Synchronized Statistics}
         
