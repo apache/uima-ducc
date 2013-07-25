@@ -41,7 +41,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "0.8.6"
+#define VERSION "0.8.8"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -63,6 +63,8 @@
  * 2013-06-14 0.8.4 Don't create log heirarchy before switching ids!  jrc
  * 2013-06-20 0.8.5 Use mode 0777 making directories so umask can control permissions. jrc
  * 2013-06-20 0.8.6 Show full environment being passed to exec-ed process. jrc
+ * 2013-07-16 0.8.7 Agh.  MAX_COMPONENTS is restricting depth of directories too much and crashing!.  jrc
+ * 2013-07-25 0.8.8 Allow unlimited path elements. jrc
  */
 
 /**
@@ -75,12 +77,9 @@
 /**
  * BUFFLEN is largest size for our stack buffers.
  * STRLEN  is longest string we'll place into a stack buffer.
- * MAX_COMPONENTS Is the largest number of intermediate components on a path passed by -b flag,
- *                This is controlled by DUCC itself so it's not subject to the user's whims.
  */
 #define BUFLEN (PATH_MAX)
 #define STRLEN (BUFLEN-1)
-#define MAX_COMPONENTS (10)
 
 struct limit_set
 {
@@ -207,8 +206,7 @@ char * mklogfile(const char *filepath)
     //
     // First step, the base must exist and be writable.
     //
-    char buf[BUFLEN];
-    char *path_components[MAX_COMPONENTS];
+    char buf[BUFLEN];            // ( this is MAX_PATH, longest legal path in linux )
     char *next_tok = NULL;
     char *final_tok = NULL;
 
@@ -216,6 +214,13 @@ char * mklogfile(const char *filepath)
     char *tmp;
     char *fullpath = strdup(filepath);
     
+    int len = strlen(fullpath);
+    int nelems = 0;
+    for ( i = 0; i < len; i++ ) {
+        if ( fullpath[i] == '/') nelems++;
+    }
+    char *path_components[nelems+1];  // and one for luck since its free :)
+
     i = 0;
     printf("Dir: %s\n", fullpath);
     for ( next_tok = strtok(fullpath, "/"); next_tok; next_tok = strtok(NULL, "/") ) {
