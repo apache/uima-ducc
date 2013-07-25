@@ -240,9 +240,9 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append(""+pgin);
 		sb.append("</td>");
 		// Swap
-		DecimalFormat formatter = new DecimalFormat("##0.0");
+		DecimalFormat formatter = new DecimalFormat("###0.0");
 		sb.append("<td valign=\"bottom\" align=\"right\">");
-		double swap = job.getSwapUsageGbMax();
+		double swap = job.getSwapUsageGb();
 		if(job.isCompleted()) {
 			swap = job.getSwapUsageGbMax();
 		}

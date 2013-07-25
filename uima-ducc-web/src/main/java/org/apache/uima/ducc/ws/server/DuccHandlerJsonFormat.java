@@ -263,10 +263,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Swap
-		DecimalFormat formatter = new DecimalFormat("##0.0");
+		DecimalFormat formatter = new DecimalFormat("###0.0");
 		sb = new StringBuffer();
 		sb.append("<span>");
-		double swap = job.getSwapUsageGbMax();
+		double swap = job.getSwapUsageGb();
 		if(job.isCompleted()) {
 			swap = job.getSwapUsageGbMax();
 		}

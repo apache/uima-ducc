@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -405,29 +404,29 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		IDuccProcessMap map = getProcessMap();
 		if(map != null) {
 			double swap = map.getSwapUsageGb();
-			retVal += swap/Constants.GB;
+			retVal += swap;
 		}
 		DuccWorkPopDriver driver = getDriver();
 		if(driver != null) {
 			map = driver.getProcessMap();
 			double swap = map.getSwapUsageGb();
-			retVal += swap/Constants.GB;
+			retVal += swap;
 		}
 		return retVal;
 	}
 	
 	public double getSwapUsageGbMax() {
-		long retVal = 0;
+		double retVal = 0;
 		IDuccProcessMap map = getProcessMap();
 		if(map != null) {
 			double swap = map.getSwapUsageGbMax();
-			retVal += swap/Constants.GB;
+			retVal += swap;
 		}
 		DuccWorkPopDriver driver = getDriver();
 		if(driver != null) {
 			map = driver.getProcessMap();
 			double swap = map.getSwapUsageGbMax();
-			retVal += swap/Constants.GB;
+			retVal += swap;
 		}
 		return retVal;
 	}
