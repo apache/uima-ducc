@@ -194,11 +194,11 @@ class PingDriver
                 logger.info(methodName, sset.getId(), "Ping ok: ", endpoint, stats.toString());
                 missed_pings = 0;
             } else {
-                logger.error(methodName, sset.getId(), "Missed_pings ", missed_pings, "endpoint", endpoint);
-                if ( ++missed_pings > meta_ping_stability ) {
+                logger.error(methodName, sset.getId(), "Missed_pings ", ++missed_pings, "endpoint", endpoint);
+                if ( missed_pings > meta_ping_stability ) {
                     sset.setUnresponsive();
                     logger.info(methodName, sset.getId(), "Seting state to unresponsive, endpoint",endpoint);
-                } else {
+                } else if ( missed_pings > (meta_ping_stability / 2) ) {
                     sset.setWaiting();
                     logger.info(methodName, sset.getId(), "Seting state to waiting, endpoint,", endpoint);
                 }                

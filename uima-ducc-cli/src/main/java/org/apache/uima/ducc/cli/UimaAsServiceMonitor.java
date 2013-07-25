@@ -58,7 +58,10 @@ public class UimaAsServiceMonitor
     
     boolean alive = false;
     boolean healthy = false;
-
+    
+    String nodeId;
+    String pid;
+    boolean gmfail = false;
 
     public long getQueueSize()
     {
@@ -160,6 +163,13 @@ public class UimaAsServiceMonitor
 		}
     }
 
+    public void setSource(String nodeId, String pid, boolean gmfail)
+    {
+        this.nodeId = nodeId;
+        this.pid = pid;
+        this.gmfail = gmfail;
+    }
+
     public IServiceStatistics getStatistics()
     {
         try {
@@ -188,6 +198,9 @@ public class UimaAsServiceMonitor
             +  "] DQ[" + dequeueCount
             +  "] NQ[" + enqueueCount
             +  "] NDisp[" + dispatchCount
+            +  "] GMNode[" + nodeId
+            +  "] GMPid[" + pid
+            +  (gmfail ? "(F)" : "")
             + "]"
             ;
 

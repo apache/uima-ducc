@@ -9,8 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.uima.UIMAFramework;
+import org.apache.uima.aae.client.UimaASProcessStatus;
+import org.apache.uima.aae.client.UimaAsBaseCallbackListener;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
+import org.apache.uima.cas.CAS;
+import org.apache.uima.collection.EntityProcessStatus;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -39,6 +43,10 @@ public class UimaAsPing
 
     int[] queueSizeWindow;
     int queueCursor = 0;
+
+    String nodeIp;
+    String pid;
+    boolean gmfail = false;
 
     public UimaAsPing()
     {
@@ -78,7 +86,7 @@ public class UimaAsPing
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
         // there are a couple junky messages that slip by the above configurations.  turn the whole danged thing off.
-        UIMAFramework.getLogger().setLevel(Level.OFF);
+        UIMAFramework.getLogger().setLevel(Level.INFO);
 
         if ( args == null ) {
             meta_timeout = 5000;
@@ -145,6 +153,7 @@ public class UimaAsPing
                 stats.setHealthy(true);
             }
 
+            monitor.setSource(nodeIp, pid, gmfail);
             stats.setAlive(true);
             stats.setInfo(monitor.format());
         } catch ( Throwable t ) {
@@ -158,9 +167,13 @@ public class UimaAsPing
     {
         String methodName = "getStatistics";
         IServiceStatistics statistics = new ServiceStatistics(false, false, "<NA>");
+        nodeIp = "N/A";
+        pid = "N/A";
 
         // Instantiate Uima AS Client
         BaseUIMAAsynchronousEngine_impl uimaAsEngine = new BaseUIMAAsynchronousEngine_impl();
+        UimaCbListener listener = new UimaCbListener();
+        uimaAsEngine.addStatusCallbackListener(listener);
         Map<String, Object> appCtx = new HashMap<String, Object>();
         appCtx.put(UimaAsynchronousEngine.ServerUri, broker);
         appCtx.put(UimaAsynchronousEngine.Endpoint, endpoint);
@@ -172,8 +185,9 @@ public class UimaAsPing
             uimaAsEngine.initialize(appCtx);
             evaluatePing(monitor, statistics);       // if we get here, the get-meta worked well enough
             statistics.setAlive(true);
-
+            listener.ok();
         } catch( ResourceInitializationException e) {
+            listener.timeout();
             doLog(methodName, "Cannot issue getMeta to: " + endpoint + ":" + broker);
             statistics.setHealthy(false);
             statistics.setAlive(false);
@@ -186,6 +200,59 @@ public class UimaAsPing
         }
 
         return statistics;
+    }
+
+    class UimaCbListener extends UimaAsBaseCallbackListener 
+    {
+        public UimaCbListener()
+        {
+        }
+
+        public void ok()
+        {
+            String methodName = "UimaAsPing:get-meta";
+            logger.info(methodName, null, "Get-Meta received from ", nodeIp, "PID", pid);
+            gmfail = false;
+        }
+
+        public void timeout()
+        {
+            String methodName = "UimaAsPing:get-meta";
+            logger.info(methodName, null, "Get-Meta timeout from ", nodeIp, "PID", pid);
+            gmfail = true;
+        }
+
+        public void onBeforeMessageSend(UimaASProcessStatus status) 
+        {
+        }
+	
+//        private void onBeforeMessageSendHandler(UimaASProcessStatus status) 
+//        {
+//        }
+	
+        public void onBeforeProcessCAS(UimaASProcessStatus status, String ip, String p) 
+        {
+            String methodName = "UimaAsPing:onBeforeProcessCAS";
+            logger.info(methodName, null, "Get-Meta received from ", ip, p, "for", ep);
+            nodeIp = ip;
+            pid = p;
+        }
+	
+//        private void onBeforeProcessCASHandler(UimaASProcessStatus status, String nodeIP, String pid) 
+//        {
+//        }
+	
+        public void initializationComplete(EntityProcessStatus aStatus) 
+        {
+        }
+
+        public void entityProcessComplete(CAS aCas, EntityProcessStatus aStatus) 
+        {
+        }
+
+        public void collectionProcessComplete(EntityProcessStatus aStatus) 
+        {
+        }
     }
 
 }
