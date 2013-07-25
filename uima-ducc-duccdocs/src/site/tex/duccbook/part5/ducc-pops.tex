@@ -72,6 +72,7 @@
 \newcommand{\varPingOnly}{\text{Ping-Only}}
 
 \newcommand{\varGB}{\text{GB}}
+\newcommand{\varUser}{\text{user}}
 
 % typewriter
 
@@ -542,7 +543,7 @@
     \subsubsection{\varLinuxControlGroup~Supervisor}  
     
     The \varLinuxControlGroup~Supervisor assigns a maximum size (in bytes) and a composite
-    unique identity to each \varDUCC~share. This information is published for use
+    unique identity to each \varShare. This information is published for use
     by Agents to enforce \varLinuxControlGroup~limitations on storage used by the corresponding
     running entity (for example, \varUIMA~pipeline).
     
@@ -755,9 +756,8 @@
     \subsubsection{Ping Driver} 
     
     This runs the watchdog thread for custom service pingers.
- 
-    It spawns a process, as the user, which in turn will instantiate an object which extends
-    AServiceMeta to implement the pinger.
+    It ascertains the liveness and healthiness of each service
+    known to \varDUCC.
     
     \subsubsection{Service Handler} 
     
@@ -962,7 +962,7 @@
       \item Process Start 
       
       A notification from the \varProcessManager~to start a user submitted 
-      process constrained to a \varResourceManager~allocated number of shares.
+      process constrained to a \varResourceManager~allocated number of \varShares.
       
       \item Process Stop
       
@@ -981,8 +981,8 @@
       
       \item Job State
                         
-      A notification from the \varOrchestrator~comprising the authoritative
-      state of the entire \varDUCC-managed collection of entities: 
+      A notification from the \varProcessManager~comprising abbreviated
+      state of the \varDUCC-managed collection of entities: 
       \varJobs, \varReservations~and \varServices.
       
       \end{itemize}  
@@ -991,7 +991,7 @@
                  
     \subsubsection{Launcher}   
           
-    The modules comprising the Launcher package are are tasked with
+    The modules comprising the Launcher package are tasked with
     starting user processes on the \varAgent-managed \varNodeMachineComputer.
     The modules are:
             
@@ -999,23 +999,23 @@
       \item CGroups Manager
       
       This module provides functionality to partition the \varAgent-managed
-      \varNodeMachineComputer~in shares, each share with limits on one
+      \varNodeMachineComputer~into \varShares, each \varShare~with limits on one
       or more aspects, including but not limited to memory and swap space. 
       
       The CGroups Manager essentially starts, maintains, and stops instant
       virtual machines in correspondence with \varResourceManager~allocated
-      shares into which user submitted processes are launched.
+      \varShares~into which user submitted processes are launched.
       
       \item Command Executor
       
       This module is the base class that provides functionality to
       launch a user specified process within the 
-      \varResourceManager~allocated share. 
+      \varResourceManager~allocated \varShare. 
       
       \item \varDUCC~Command Executor
       
       This module launches a user specified process within the 
-      \varResourceManager~allocated share. 
+      \varResourceManager~allocated \varShare. 
       The process may be constrained by a \varLinuxControlGroup~and
       may be spawned as the submitting \varUser.
       
