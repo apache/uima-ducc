@@ -61,6 +61,11 @@ uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.
 			</manifest>
 			<manifestEntries>
 			  <class-path>${DUCC_CP}</class-path>
+              <Ducc-Version>${project.version}</Ducc-Version>
+              <Ducc-OS-Id>${os.name} ${os.arch} ${os.version}</Ducc-OS-Id>
+              <Ducc-Bassedir>${basedir}</Ducc-Bassedir>
+              <Ducc-Java-Vendor>${java.vendor}</Ducc-Java-Vendor>
+              <Project-Title>Apache UIMA DUCC</Project-Title>
 			</manifestEntries>
           </archive>
         </configuration>
@@ -112,6 +117,20 @@ uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.
               </excludes>
             </configuration>
           </execution>
+
+		  <!-- Build the cli jar last so it is the one installed in the repository !! -->
+          <execution>
+            <id>${project.artifactId}</id>
+            <goals><goal>jar</goal></goals>
+            <phase>package</phase>
+            <configuration>
+              <!-- Name the jar -->
+              <finalName>${project.artifactId}</finalName>
+              <archive>
+              </archive>
+            </configuration>
+          </execution> 
+
         </executions>
 		
       </plugin>
