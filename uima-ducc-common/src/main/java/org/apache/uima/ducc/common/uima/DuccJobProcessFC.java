@@ -22,13 +22,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.analysis_engine.metadata.FixedFlow;
 import org.apache.uima.analysis_engine.metadata.FlowConstraints;
-import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.Workitem;
 import org.apache.uima.flow.FinalStep;
 import org.apache.uima.flow.Flow;
@@ -62,17 +61,17 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
     mSequence = new ArrayList<String>();
     if (flowConstraints instanceof FixedFlow) {
       String[] sequence = ((FixedFlow) flowConstraints).getFixedFlow();
-		  mSequence.addAll(Arrays.asList(sequence));
+      mSequence.addAll(Arrays.asList(sequence));
     } else {
       throw new ResourceInitializationException(ResourceInitializationException.FLOW_CONTROLLER_REQUIRES_FLOW_CONSTRAINTS,
               new Object[]{this.getClass().getName(), "fixedFlow", aContext.getAggregateMetadata().getSourceUrlString()});
     }
 
     // check if first delegate is a CasMultiplier
-    Iterator aeIter = getContext().getAnalysisEngineMetaDataMap().entrySet().iterator();
+    Iterator<Entry<String, AnalysisEngineMetaData>> aeIter = getContext().getAnalysisEngineMetaDataMap().entrySet().iterator();
     while (aeIter.hasNext()) {
-      Map.Entry entry = (Map.Entry) aeIter.next();
-      AnalysisEngineMetaData md = (AnalysisEngineMetaData) entry.getValue();
+      Entry<String, AnalysisEngineMetaData> entry = aeIter.next();
+      AnalysisEngineMetaData md = entry.getValue();
       OperationalProperties op = md.getOperationalProperties();
       if (op.getOutputsNewCASes()) {
     	mHasCasMultiplier = true;
@@ -101,7 +100,7 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
      * @param startStep
      *          index of mSequence to start at
      */
-    public FixedFlowObject(int startStep) {
+    private FixedFlowObject(int startStep) {
       this(startStep, false);
     }
 
@@ -115,7 +114,7 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
      *          CasMultiplier within this aggregate.
      * 
      */
-    public FixedFlowObject(int startStep, boolean internallyCreatedCas) {
+    private FixedFlowObject(int startStep, boolean internallyCreatedCas) {
       currentStep = startStep;
       this.internallyCreatedCas = internallyCreatedCas;
     }
@@ -125,6 +124,7 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
      * 
      * @see org.apache.uima.flow.Flow#next()
      */
+    @Override
     public Step next() throws AnalysisEngineProcessException {
       if (!internallyCreatedCas) {
     	// this is a Work Item CAS
@@ -168,7 +168,8 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
      * 
      * @see org.apache.uima.flow.CasFlow_ImplBase#newCasProduced(CAS, String)
      */
-    public Flow newCasProduced(CAS newCas, String producedBy) throws AnalysisEngineProcessException {
+    @Override
+    public Flow newCasProduced(JCas newCas, String producedBy) throws AnalysisEngineProcessException {
       // since the CM will always be in position 0 ...
       return new FixedFlowObject(1, true);
     }
