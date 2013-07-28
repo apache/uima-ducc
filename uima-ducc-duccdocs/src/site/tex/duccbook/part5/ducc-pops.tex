@@ -888,6 +888,12 @@
       \input{part5/c01-Agent.tex}
     }
  
+    At the direction of the \varProcessManager, each \varAgent~is
+    instructed to manage its assigned \varShares~by means of
+    \varLinuxControlGroups, and by injecting into them local 
+    process elements comprising
+    Job Drivers, Job Processes, Service Processes, and Managed Processes.
+    
     The \varAgent~is subdivided into several responsibility areas:
 
     \begin{itemize}
@@ -1158,12 +1164,178 @@
         
     \subsubsection{Core}
     
-      TODO
+    \begin{itemize} 
+      \item{Job Driver}
+        \begin{description}
+        \item The \varJobDriver~module is the main thread.        
+        It setups and executes the \varJobDriver~runtime environment.
+        \begin{itemize} 
+          \item{initialize}
+            \begin{description}
+            The initialize method sets-up all the machinery to
+            fetch and process \varCASes.
+            \end{description}
+          \item{run}
+          \begin{description}
+            The run method manages all the machinery to
+            fetch and process \varCASes.
+          \end{description}
+          \begin{itemize} 
+            \item{wait for eligibility}
+              \begin{description}
+                Do not start queuing \varWorkItems~until at least one \varJobProcess~has initialized.
+              \end{description}
+            \item{initialize \varUIMAAS~client}
+              \begin{description}
+                Create an instance and one thread client for each corresponding \varJobProcess thread.
+              \end{description}
+            \item{queue \varWorkItems}
+              \begin{description}
+                While terminate conditions are absent, repeat the process of queuing one work item for each thread, then sleeping for an interval, then rechecking for termination and performing additional queuing.
+              \end{description}
+          \end{itemize} 
+        \end{itemize} 
+        \end{description}
+      \item{Job Driver Component}
+        \begin{description}
+        This module initializes the \varJobDriver function,
+        receives and evaluates \ORMaps with respect to
+        continuance or termination of the \varJobDriver,
+        and triggers publication of \varJobDriver status reports.
+        \end{description}
+      \item{Job Driver Terminate Exception}
+        \begin{description}
+          This module provides a means to identify the exception and
+          possible reason for same when the \varJobDriver~abnormally terminates.
+        \end{description}
+      \item{Synchronized Stats}
+        \begin{description}
+          This module provides a method for the \varJobDriver~to accumulate
+          statistics in a thread safe manner. 
+          Per \varWorkItem~statistics are maintained and produced:
+        \end{description}
+    
+        \begin{itemize} 
+            \item{number of \varWorkItems}
+            \item{minimum time to complete a \varWorkItem}
+            \item{maximum time to complete a \varWorkItem}
+            \item{average time to complete a \varWorkItem}
+            \item{standard deviation of time to complete a \varWorkItem}
+        \end{itemize}
+    
+    \end{itemize}
     
     \subsubsection{Client}
     
-      TODO
+    \begin{itemize} 
+    
+      \item{Callback State}
+        \begin{description}
+          \item This module tracks \varWorkItem~queuing state.
+          \item Possible states are:
+          \begin{itemize} 
+            \item \varPendingQueued
+            \item \varPendingAssigned
+            \item \varNotPending
+          \end{itemize}  
+        \end{description}
+        
+      \item{\varCAS~Dispatch Map}
+        \begin{description}
+        \item This module tracks \varWorkItems.
+            It comprises a map of \varWorkItems~which includes 
+            node and \varLinux~process identity.
+        \end{description}
+        
+      \item{\varCAS~Limbo}
+        \begin{description}
+        \item Manage incomplete \varWorkItems.
+          This module insures that \varWorkItems~are not simultaneously processed
+          by multiple \varUIMA~pipelines.
+          It does not release \varWorkItems~for retry processing elsewhere until
+          confirmation is received that the previous attempt has been terminated.
+        \end{description}  
+             
+      \item{\varCAS~Source}
+        \begin{description}
+        \item Manage \varCASes. 
+          Employ the user provided \varCR~to fetch
+          \varCASes~as needed to keep the available \varUIMA~pipelines full
+          until all \varCASes~have been processed.
+          Save and restore \varCASes~that were
+          pre-empted during periods of \varJP~contraction, for example.
+        \end{description}  
+                   
+      \item{\varCAS~Tuple}
+        \begin{description}
+        \item Manage \varCAS~instance with meta-data. 
+          \begin{itemize}
+            \item \varUIMA~\varCAS~object. 
+            \item \varDUCC~assigned sequence number. 
+            \item \varCAS~retry status. 
+            \item \varJob~identifier. 
+          \end{itemize}  
+        \end{description}  
+                             
+      \item{Client Thread Factory}
+        \begin{description}
+          \item Produce one \varUIMAAS client thread instance for each \varCAS~in-progress.
+        \end{description}  
+        
+      \item{Dymanic Thread Pool Executor}
+        \begin{description}
+          \item Maintain a client-size thread pool for processing \varCASes.
+          Each thread in the pool is assigned and tracks one \varCAS~sent~out
+          for processing via \varSendAndReceiveCAS.
+          Each thread in the pool is re-usable once processing for the
+          associated \varCAS~is completed. 
+          The thread pool expands and contracts in correlation with
+          the number of \varResourceManager~assigned \varShares.
+        \end{description}     
+            
+      \item{\varWorkItem}
+        \begin{description}
+        The \varWorkItem~represents one \varCAS~to be processed, normally by one of the
+        distributed \varUIMA pipelines.
+          \begin{itemize}
+            \item Manage and track the lifecycle of a \varWorkItem~steps:
+              \begin{itemize}
+                \item start
+                \item getCas
+                \item \varSendAndReceiveCAS
+                \item ended or exception
+              \end{itemize}    
+          \end{itemize}    
+        \end{description}     
       
+      \item{\varWorkItem}
+        \begin{description}
+        Create a new \varWorkItem~for given CasTuple.
+        Associate a \varWorkItem~with a \varUIMAAS~client thread.
+        \end{description}  
+      
+      \item{\varWorkItem~Listener}
+        \begin{description}
+          \begin{itemize}
+            \item onBeforeMessageSend
+              \begin{description}
+                Process callback that indicates work item has been placed on MQ queue and
+                is awaiting grab by a \varJP.
+              \end{description} 
+            \item onBeforeProcessCAS
+              \begin{description}
+                Process callback that indicates work item has been grabbed from MQ queue and
+                is active in a \varUIMA~pipeline.
+                The associated node and \varLinux~process identity are provided.
+              \end{description} 
+          \end{itemize}  
+        \end{description}  
+      
+    \end{itemize}
+        \end{description}  
+        
+    \end{itemize}  
+    
     \subsubsection{Config}
           
       The \varJobDriver~publishes reports at configurable intervals:
@@ -1181,7 +1353,7 @@
      
     \subsubsection{Event}
     
-      The module handles publication events:
+      The module receives and handles publication events:
       \begin{itemize}
       \item \varORmap
 
@@ -1195,94 +1367,7 @@
         
     \subsubsection{Synchronized Statistics}
         
-    \subsubsection{Callback State}
-    
-    Track \varWorkItem~queuing state.
-    Possible states are:
-    
-    \begin{itemize} 
-      \item \varPendingQueued
-      \item \varPendingAssigned
-      \item \varNotPending
-    \end{itemize}    
-    
-    \subsubsection{\varCAS~Dispatch Map}
-    
-    Track \varWorkItems.
-    This module comprises a map of \varWorkItems~which includes node and \varLinux~process identity.
-    
-    \subsubsection{\varCAS~Limbo}
-    
-    Manage incomplete \varWorkItems.
-    This module insures that \varWorkItems~are not simultaneously processed
-    by multiple \varUIMA~pipelines.
-    It does not release \varWorkItems~for retry processing elsewhere until
-    confirmation is received that the previous attempt has been terminated.
-    
-    \subsubsection{\varCAS~Source}
-    
-    Manage \varCASes. 
-    This involves employing the user provided \varCR~to fetch
-    \varCASes~as needed to keep the available \varUIMA~pipelines full
-    until all \varCASes~have been processed.
-    This also involves saving and restoring \varCASes~that were
-    pre-empted during periods of \varJP~contraction, for example.
-    
-    \subsubsection{Dynamic Thread Pool Executor}
-    
-    The purpose of this module is to maintain a pool of worker threads,
-    one for each outstanding Work Item.
-    There is a one-to-one correspondence between the number of worker threads
-    in the \varJobDriver~and the number of Work Items sent out for processing
-    via \varSendAndReceiveCAS.
-    
-    \subsubsection{Work Item}
-    
-    The Work Item represents one \varCAS~to be processed, normally by one of the
-    distributed \varUIMA pipelines.
-    
-    \begin{itemize}
-    
-      \item run
-      
-      Manage and track the lifecycle of a Work Item.
-      
-      \begin{itemize}
-        \item start
-        \item getCas
-        \item \varSendAndReceiveCAS
-        \item ended or exception
-      \end{itemize}    
-      
-    \end{itemize}    
-     
-    \subsubsection{Work Item Factory}
-    
-    \begin{itemize}
-    
-      \item create
-      
-      Create a new Work Item for given CasTuple.
-      
-    \end{itemize}  
-          
-    \subsubsection{Work Item Listener}
-    
-    \begin{itemize}
-    
-      \item onBeforeMessageSend
-      
-      Process callback that indicates work item has been placed on MQ queue and
-      is awaiting grab by a \varJP.
-      
-      \item onBeforeProcessCAS
-            
-      Process callback that indicates work item has been grabbed from MQ queue and
-      is active in a \varUIMA~pipeline.
-      The associated node and \varLinux~process identity are provided.
-      
-    \end{itemize}
-    
+
     \subsection{\varWebServer (\varWS)}    
     
     There is one \varWebServer per \varNodeMachineComputer per \varDUCC~cluster.
