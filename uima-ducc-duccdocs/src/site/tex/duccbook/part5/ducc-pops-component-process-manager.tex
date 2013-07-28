@@ -1,0 +1,29 @@
+    
+    \subsection{\varProcessManager (\varPM)}    
+    
+    There is one \varProcessManager~per \varDUCC~cluster.
+    
+    The duties of the \varProcessManager~are:
+    \textit{
+      \input{part5/c01-PM.tex}
+    }
+      
+    The \varProcessManager~provides essential functionality for operation of the
+    \varDUCC~system.
+    
+    The \varProcessManager~both publishes and receive reports.  
+    The \varProcessManager~receives \varOrchestrator~publications comprising
+    Jobs, Reservations, and Services.
+    The \varProcessManager~distributes two publications at regular intervals.
+    One is heartbeat information to notify the \varOrchestrator~and
+    \varWebServer~that the \varProcessManager~is alive.  
+    The other is compacted \varAgent-destined information regarding
+    processes that need to be started, stopped or modified.
+    
+    The main function of the \varProcessManager~is to efficiently manage
+    the distributed \varAgents~each of which manages processes running
+    locally on its own respective \varNodeMachineComputer.
+    The \varProcessManager~interprets the \varOrchestrator~publications and 
+    redistributes only the essentials to the collection of distributed
+    \varAgents~who each independently act to bring the 
+    state of locally deployed processes into compliance.  

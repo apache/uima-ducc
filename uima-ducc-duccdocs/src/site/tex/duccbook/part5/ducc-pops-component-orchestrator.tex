@@ -1,0 +1,279 @@
+    
+    \subsection{\varOrchestrator~(\varOR)} 
+    
+    There is one \varOrchestrator~per \varDUCC~cluster.
+    
+    The duties of the \varOrchestrator~are:
+    \textit{
+      \input{part5/c01-OR.tex}
+    }
+    
+    The \varOrchestrator~provides essential functionality for operation of the
+    \varDUCC~system.
+    It is configurable and tunable.
+    
+    The \varOrchestrator~receives user requests to start, stop and modify 
+    Jobs, Services and Reservations. It manages the life-cycles of these
+    entities, each deployed to a managed cluster of machines 
+    (nodes, computers).
+    
+    The \varOrchestrator~both publishes and receive reports.  
+    The \varOrchestrator~publication is also known as the \varORmap, which is
+    the final authority on the state of Jobs, Reservations, and Services.
+    All other \varDUCC~components respect the state published by the 
+    \varOrchestrator~and each carries out its assigned duties accordingly.
+    
+    \subsubsection{Controller} 
+    \label{Controller}
+    
+    The \varOrchestrator~Controller responsibilities entail receiving user 
+    submitted requests and processing them to completion in accordance with 
+    an instance of the appropriate state machine. 
+    
+    User submitted requests comprise:
+    
+    \begin{itemize}
+      \item Job \{ Start, Stop, Modify \}
+      \item Reservation \{ Start, Stop, Modify \}
+      \item Service \{ Start, Stop, Modify \}
+      \item Individual Process \{ Stop \}
+    \end{itemize} 
+    
+    The Controller responsibilities further entail receiving status messages
+    from other \varDUCC~components and advancing the state machines of user 
+    submitted Jobs, Reservations, and Services as necessary. 
+    
+    Additionally and importantly, the Controller is the final authority
+    for the \varDUCC~system state comprising active Jobs, Reservations, and 
+    Services. The Controller publishes \varDUCC~system state at regular intervals
+    for consumption and use by all other \varDUCC~components.
+    
+    \subsubsection{Authenticator} 
+    
+    The authenticator determines whether or not the requesting user is a
+    \varDUCC~administrator. Such users have special privileges, such as:
+    
+    \begin{itemize}
+      \item the ability to control \varDUCC~system functions
+      \item the ability to act on behalf of other users
+    \end{itemize}     
+    
+    The file \varDuccAdministrators~comprises the list of privileged \varDUCC~users.
+    
+    \subsubsection{Validation} 
+    
+    Each request to submit, cancel or modify is validated against a set of
+    criteria that define acceptableness. In the case of missing information,
+    a default value may be employed.
+    
+    Presently, the following keys are validated by the \varOrchestrator:
+    
+    \begin{itemize}
+      \item \varProcessThreadCount
+      \item \varNumberOfInstances
+      \item \varSchedulingClass
+    \end{itemize} 
+    
+    Other keys are validated by the \varCommandLineInterface, prior to arrival
+    at the \varOrchestrator.
+    
+    \subsubsection{Factory} 
+    
+    Once accepted, submit requests proceed through a corresponding factory
+    to have a state machine representation entered into the published
+    \varORmap~with initial state of \varReceived.  The request remains 
+    active until it advances to final state \varCompleted.
+    
+    Each factory-created representation comprises appropriate information as follows:
+    
+    \begin{itemize}
+    
+      \begin{itemize}
+      \item standard information
+        \begin{itemize}
+          \item unique identifier (assigned by \varDUCC)
+          \item type {Job, Reservation, Service}
+          \item user name
+          \item submitting \varPID
+          \item date of submission
+          \item date of completion (initially \varNull)
+          \item description (text supplied by user)
+        \end{itemize} 
+      \item scheduling information
+        \begin{itemize}
+          \item scheduling class
+          \item scheduling priority
+          \item scheduling max shares
+          \item scheduling min shares
+          \item scheduling threads per share
+          \item scheduling memory size
+          \item scheduling memory units
+        \end{itemize} 
+      \item job driver information
+        \begin{itemize}
+          \item java command
+          \item java classpath
+          \item environment variables
+          \item user log directory
+          \item MQ broker
+          \item MQ queue
+          \item \varCollectionReader~descriptor
+          \item \varCollectionReader~overrides
+          \item getMeta timeout value
+          \item work item processing timeout value
+          \item work item processing exception handler
+          \item node identity
+          \item \varLinuxControlGroup~limits
+          \item state
+        \end{itemize} 
+      \item job process information (one or more instances)
+        \begin{itemize}
+          \item java command
+          \item java classpath
+          \item environment variables
+          \item user log directory
+          \item MQ broker
+          \item MQ queue
+          \item deployment descriptor or aggregate data
+          \item initialization failure limits
+          \item node identity
+          \item \varLinuxControlGroup~limits
+          \item state
+          \item service dependencies
+        \end{itemize} 
+      \item service information (one or more instances)
+        \begin{itemize}
+          \item See job process information above.
+        \end{itemize} 
+      \item managed reservation information
+        TBD      
+      \item unmanaged reservation information
+        TBD          
+    \end{itemize} 
+    
+    \subsubsection{Checkpoint Supervisor} 
+    
+    The Checkpoint Supervisor provides functions to save and restore state information
+    to/from persistent storage. State is stored whenever a significant change occurs.
+    State is restored at \varOrchestrator~boot time.
+    
+    Saving and restoration of state facilitates reasonable continuity of service
+    between \varOrchestrator~lifetimes.
+    
+    \subsubsection{State Supervisor} 
+
+    The State Supervisor receives and examines publications from other
+    \varDUCC~components, records and distributes pertinent information obtained
+    or derived, and advances state machines appropriately.
+    
+    Publications are received from these components:
+    
+    \begin{itemize}
+    
+    \item Job Driver(s)
+    \item Resource Manager
+    \item Services Manager
+    \item Agent(s) Inventory
+      
+    \end{itemize} 
+    
+    Information from these sources is recorded in the \varORmap. 
+    Based on information derived from all sources, the 
+    \varOrchestrator~advances the state machines of currently active 
+    entities (Jobs, Reservations, Services). 
+    Once the \varCompleted~state is reached, the
+    entity is no longer active on the cluster.
+    
+    Note that \varORmap~is, in-turn, published at regular intervals 
+    for use by the other \varDUCC~singleton and distributed components.
+    The \varORmap~is the "final authority" on the state of
+    each Job, Reservation and Service currently or formerly deployed.
+    See \ref{Controller} \varController.
+    
+    \subsubsection{State Accounting Supervisor} 
+        
+    The State Accounting Supervisor manages finite state machine for 
+    Jobs, Services, and Reservations. It provides functions to:
+    
+    \begin{description}
+    
+    \item Advance from the current state to a next valid state
+    \item Advance from the current state immediately to the \varCompleted~state
+          
+    \end{description} 
+    
+    \subsubsection{\varLinuxControlGroup~Supervisor}  
+    
+    The \varLinuxControlGroup~Supervisor assigns a maximum size (in bytes) and a composite
+    unique identity to each \varShare. This information is published for use
+    by Agents to enforce \varLinuxControlGroup~limitations on storage used by the corresponding
+    running entity (for example, \varUIMA~pipeline).
+    
+    Employing \varLinuxControlGroups~ is analogous to defining virtual machines of a certain
+    size such that exceeding limits causes only the offending process to suffer
+    any performance penalties, while other co-located well-behaved processes
+    run unaffected.
+    
+    \subsubsection{Host Supervisor}
+    
+    The Host Supervisor is responsible for obtaining sufficient resource for
+    deploying the Job Drivers for all submitted Jobs. It interacts with the
+    Resource Manager to allocate and de-allocate resources for this purpose.
+    It assigns a \varJdShare~to each active Job.
+    
+    A \varJdShare~is a \varLinuxControlGroup~controlled \varShare~of sufficient size into which a Job
+    Driver can be deployed.  A \varJdShare~is usually significantly smaller than
+    a normal \varShare.
+    
+    \subsubsection{Logging / As-User} 
+    
+    The Logging and As-User modules permit the \varOrchestrator~to write logging data into
+    a file contained in "user-space", meaning a file into a directory writable 
+    by the submitting user, during processing of the submitted entity 
+    (Job, Managed Reservation...).
+    
+    The Logging module also facilitates the recording to persistent storage of noteworthy
+    events occurring during the \varOrchestrator~lifetime. Noteworthiness is configurable
+    as various levels, such as \varINFO, \varDEBUG~and \varTRACE.
+        
+    \subsubsection{Administrators} 
+    
+    The Administrators module grants users defined in the \varDuccAdministrators~file
+    special privileges, such a being able cancel to any user's Job.
+    
+    \subsubsection{Maintenance} 
+    
+    The maintenance thread wakes-up at regular intervals to perform the following
+    tasks:
+    
+    \begin{description}
+    
+      \item Health
+      
+      The \varOrchestrator~automatically caps Jobs and Services that exceed initialization
+      error thresholds, and cancels those that exceed processing error thresholds.
+      
+      \item MQ Reaper
+      
+      The \varOrchestrator~cleans-up unused \varJobDriver~AMQ permanent queues for Jobs that have completed.
+      
+      \item Publication Pruning
+      
+      The \varOrchestrator~regularly publishes state for all active entities (Jobs, Reservations,
+      Services).  It also publishes state for recently completed ones. Pruning removes
+      from regular \varOrchestrator~publication completed entities that have been competed past a
+      time threshold, nominally one minute.
+           
+      \item Node Accounting
+      
+      This module keeps track of each node's state, up or down.  Nodes that do 
+      not report for a time exceeding a threshold, typically a few minutes, 
+      are considered down. This information is used for Jobs whose Job Driver
+      advanced to the \varCompleted~state, whereby corresponding Job Processes on 
+      nodes that are reported down are marked as stopped by the \varOrchestrator, as opposed 
+      to waiting (potentially forever) for the corresponding Agent to report.
+      This prevents Jobs from becoming unnecessarily stuck in the completing
+      state.
+      
+    \end{description} 
+    

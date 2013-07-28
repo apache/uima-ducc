@@ -1,0 +1,146 @@
+    
+    \subsection{\varServicesManager~(\varSM)}    
+    
+    There is one \varServicesManager~per \varDUCC~cluster.
+    
+    The duties of the \varServicesManager~are:
+    \textit{
+      \input{part5/c01-SM.tex}
+    }
+        
+    The \varServicesManager~provides additional functionality for operation of the
+    \varDUCC~system.
+    It is configurable and tunable.
+    
+    Although not essential for the main purpose of the \varDUCC~system, in
+    practical terms for large systems the \varServicesManager~is highly 
+    desirable for improved resource utilization.
+    By using shared services, resources are more effectively employed and
+    work items processing is completed sooner.
+    
+    Some dimensions:
+    
+    \begin{itemize}
+    
+      \item long warm-up time
+      
+      When the service takes a long time to warm-up, the \varJob~in progress
+      may have to sit idle for a long time before the first work item can be
+      processed until the service upon which it depends has initialized and 
+      is ready.
+      If the service is already up and ready, this delay can be avoided
+      and the \varJob~experiences no service delay.
+      
+      \item large storage use
+      
+      When the service has a large memory footprint, it can be far more
+      efficient to have multiple \varJobs~share the service rather than
+      having separate copies for each.
+      
+      \item short processing time
+      
+      Related to large storage use, if the time to process a work item is
+      relatively short, again it can be much more efficient to share the
+      service amongst multiple \varJobs.
+      
+      \item not used
+      
+      If a service has not been used for a relatively long time, it may be 
+      better to shut it down and reclaim the resources for use elsewhere, 
+      especially on a busy cluster.
+            
+    \end{itemize}
+    
+    \subsubsection{Ping Driver} 
+    
+    This runs the watchdog thread for custom service pingers.
+    It ascertains the liveness and healthiness of each service
+    known to \varDUCC.
+    
+    \subsubsection{Service Handler} 
+    
+    Carries out Service Manager validated request operations.
+            
+    \subsubsection{Service Manager, API Handler} 
+    
+    Receives and validates service request operations:
+    
+    \begin{itemize}
+      \item register
+      \item unregister
+      \item start
+      \item stop
+      \item query
+      \item modify
+    \end{itemize}
+    
+    The \varServicesManager~maintains a registry of services.
+    The attributes of these services may include one of more of the following:
+    
+    \begin{description}
+      \item \texttt{permanent}
+      A permanent service is one that is kept up so long as the
+      \varDUCC~system is running.
+      \item \texttt{on-demand}
+      An on-demand service is one that is kept up only during the
+      lifetime of one or more \varJobs~that declare a dependency on the 
+      service
+      \item \texttt{lingering}
+      A lingering service is one that continues for some limited time
+      beyond the lifetime of the last dependent \varJob~in anticipation
+      of another \varJob~arrival in the near future.
+      \item \texttt{dynamic}
+      A dynamic service is one that automatically expands and contracts
+      in terms of number of instances to meet demand.
+      \item \texttt{registered}
+      A registered service is one that is pre-defined, whose definition
+      is kept persistently and whose lifecycle is managed by \varDUCC.
+      \item \texttt{custom}
+      A custom (unregistered) service is one that is not pre-defined, whose definition
+      is not kept persistently and whose lifecycle is not managed by \varDUCC.
+    \end{description}
+  
+    The \varServicesManager~keeps within its registry information of
+    two types: \texttt{service} and \texttt{meta}.
+    
+    Type \texttt{service} information includes the following attributes:
+    \begin{itemize}
+      \item classpath
+      \item description
+      \item environment
+      \item jvm
+      \item jvm args
+      \item log directory
+      \item deployment descriptor
+      \item failures limit
+      \item memory size
+      \item scheduling class
+      \item linger time
+      \item pinger classpath
+      \item pinger log
+      \item pinger timeout
+      \item service endpoint
+      \item working directory
+    \end{itemize}
+    
+    Type \texttt{meta} information includes the following attributes:
+    \begin{itemize}
+      \item autostart
+      \item endpoint
+      \item implementors
+      \item instances (count)
+      \item identifier (number)
+      \item ping-active
+      \item ping-only
+      \item service-active
+      \item service-class
+      \item service-health
+      \item service-state
+      \item service-statistics
+      \item service-type
+      \item stopped
+      \item user
+      \item uuid
+      \item work-instances (PID list)
+    \end{itemize}
+    
