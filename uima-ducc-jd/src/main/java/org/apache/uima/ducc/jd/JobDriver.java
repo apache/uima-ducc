@@ -1398,6 +1398,23 @@ public class JobDriver extends Thread implements IJobDriver {
 		return;
 	}
 	
+	public void error(WorkItem workItem, Throwable t) {
+		String location = "error";
+		try {
+			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
+			duccOut.debug(location, jobid, "action:error "+getThreadLocationInfo(workItem), t);
+			workItemStateManager.error(workItem.getSeqNo());
+			workItemError(workItem, t);
+			remove(workItem);
+			casSource.recycle(workItem.getCAS());
+			accountingWorkItemIsError(workItem.getProcessId());
+			queueCASes(1,queue,workItemFactory);
+		}
+		catch(Exception exception) {
+			duccOut.error(location, jobid, "processing error?", exception);
+		}
+		return;
+	}
 	
 	private void workItemLost(WorkItem workItem) {
 		String location = "workItemLost";
@@ -1405,8 +1422,8 @@ public class JobDriver extends Thread implements IJobDriver {
 		duccOut.error(location, workItem.getJobId(), "seqNo:"+workItem.getSeqNo());
 	}
 	
-	private void workItemError(WorkItem workItem, Exception e) {
-		workItemError(workItem, e, null);
+	private void workItemError(WorkItem workItem, Throwable t) {
+		workItemError(workItem, t, null);
 	}
 	
 	/*
@@ -1415,7 +1432,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	}
 	*/
 	
-	private void workItemError(WorkItem workItem, Exception e, Directive directive) {
+	private void workItemError(WorkItem workItem, Throwable t, Directive directive) {
 		String location = "workItemError";
 		driverStatusReport.countWorkItemsProcessingError();
 		String nodeId = "?";
@@ -1438,9 +1455,9 @@ public class JobDriver extends Thread implements IJobDriver {
 			
 			duccOut.error(location, djid, dpid, message);
 			duccErr.error(location, djid, dpid, message);
-			if(e != null) {
-				duccOut.error(location, djid, dpid, e);
-				duccErr.error(location, djid, dpid, e);
+			if(t != null) {
+				duccOut.error(location, djid, dpid, t);
+				duccErr.error(location, djid, dpid, t);
 			}
 		}
 		catch(Exception exception) {

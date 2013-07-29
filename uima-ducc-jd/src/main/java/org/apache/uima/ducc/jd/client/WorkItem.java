@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.jd.client;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
@@ -124,24 +125,43 @@ public class WorkItem implements Runnable {
 		return callbackState;
 	}
 	
+	protected void injectRandomThrowable() throws Throwable {
+		// < *** TEST ONLY!!! *** >
+		final boolean test = false;
+		if(test) {
+			Random random = new Random();
+			if(random.nextBoolean()) {
+				throw new Throwable("just testing Throwable handler");
+			}
+		}
+		// </ *** TEST ONLY!!! *** >
+	}
+	
 	public void run() {
 		String methodName = "run";
 		duccOut.debug(methodName, jobId, duccMsg.fetch("enter"));
 		try {
-			start();
-			CAS cas = this.casTuple.getCas();
-			duccOut.debug(methodName, jobId, duccMsg.fetchLabel("CAS.size")+cas.size());
-			callbackState.statePendingQueued();
-			duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+callbackState.getState());
-			client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
-			if(!isLost.get()) {
-				ended();
-			}
-		} catch(Exception e) {
-			if(!isLost.get()) {
-				exception(e);
+			try {
+				start();
+				CAS cas = this.casTuple.getCas();
+				duccOut.debug(methodName, jobId, duccMsg.fetchLabel("CAS.size")+cas.size());
+				callbackState.statePendingQueued();
+				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+callbackState.getState());
+				client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
+				//injectRandomThrowable();
+				if(!isLost.get()) {
+					ended();
+				}
+			} catch(Exception e) {
+				if(!isLost.get()) {
+					exception(e);
+				}
 			}
 		}
+		catch(Throwable t) {
+			error(t);
+		}
+		
 		duccOut.debug(methodName, jobId, duccMsg.fetch("exit"));
 	}
 	
@@ -167,6 +187,17 @@ public class WorkItem implements Runnable {
 		try {
 			duccOut.debug(methodName, getJobId(), getProcessId(), "seqNo:"+getSeqNo()+" "+"casId:"+getCAS().hashCode(), e);
 			workItemMonitor.exception(this,e);
+		}
+		catch(Exception exception) {
+			duccOut.error(methodName, null, exception);
+		}
+	}
+	
+	private void error(Throwable t) {
+		String methodName = "error";
+		try {
+			duccOut.debug(methodName, getJobId(), getProcessId(), "seqNo:"+getSeqNo()+" "+"casId:"+getCAS().hashCode(), t);
+			workItemMonitor.error(this,t);
 		}
 		catch(Exception exception) {
 			duccOut.error(methodName, null, exception);
