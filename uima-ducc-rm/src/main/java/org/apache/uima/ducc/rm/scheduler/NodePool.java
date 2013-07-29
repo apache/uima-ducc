@@ -751,10 +751,7 @@ class NodePool
                 IRmJob j = s.getJob();
                 j.shrinkByOne(s);
                 nPendingByOrder[order]++;
-                // NOTE: We are temporarily bypassing purge on node death - the shares will be 
-                //       evicted but by disabling the purge bit the OR will not acknowledge the
-                //       eviction until the affected node responds.  
-                // s.purge();
+                s.purge();          // This bet tells OR not to wait for confirmation from the agent
             }
 
             allMachines.remove(m.key());

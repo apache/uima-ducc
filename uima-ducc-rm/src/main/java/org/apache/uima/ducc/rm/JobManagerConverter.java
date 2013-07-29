@@ -566,11 +566,11 @@ public class JobManagerConverter
                     continue;
                 }
                 
-//                 if ( s.isPurged() ) {
-//                     IRmJob j = scheduler.getJob(jobid);
-//                     scheduler.signalCompletion(j, s);
-//                     logger.info(methodName, jobid, "Process", pl.getPID(), "marked complete because it is purged. State:", state);
-//                 }
+                if ( s.isPurged() ) {
+                    IRmJob j = scheduler.getJob(jobid);
+                    scheduler.signalCompletion(j, s);
+                    logger.info(methodName, jobid, "Process", pl.getPID(), "marked complete because it is purged. State:", state);
+                }
 
                 if ( ! s.update(jobid, mem, state, pl.getTimeWindowInit(), pl.getTimeWindowRun(), pid) ) {
                     // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
