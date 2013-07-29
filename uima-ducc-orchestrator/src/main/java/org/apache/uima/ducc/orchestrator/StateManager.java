@@ -1377,7 +1377,6 @@ public class StateManager {
 			stateJobAccounting.stateChange(job, JobState.Completing);
 			stateJobAccounting.complete(job, jobCompletionType, rationale);
 			OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(job,processDeallocationType);
-			job.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 		}
 	}
 	

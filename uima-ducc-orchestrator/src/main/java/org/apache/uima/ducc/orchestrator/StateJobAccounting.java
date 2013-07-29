@@ -22,6 +22,7 @@ import java.io.File;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
@@ -124,6 +125,10 @@ public class StateJobAccounting {
 		}
 		if(retVal) {
 			job.setJobState(state);
+			switch(state) {
+			case Completing:
+				job.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+			}
 			recordUserState(job);
 			boolean advanceVal = advance(job);
 			if(!advanceVal) {
