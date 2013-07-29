@@ -132,7 +132,11 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			jobDriver.getWorkItemStateManager().location(threadLocation.getSeqNo(),nodeIP, PID);
 		}
 		catch(Exception e) {
-			duccOut.error(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
+			String seqNo = null;
+			if(threadLocation != null) {
+				seqNo = threadLocation.getSeqNo();
+			}
+			duccOut.error(methodName, null, "seqNo:"+seqNo+" "+"casId:"+casId, e);
 		}
 	}
 	
