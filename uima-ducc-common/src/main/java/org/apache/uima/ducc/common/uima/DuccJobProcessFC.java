@@ -49,10 +49,8 @@ import org.apache.uima.resource.metadata.OperationalProperties;
  */
 public class DuccJobProcessFC extends JCasFlowController_ImplBase {
 
-  //private String cmKey="DuccXmiZipReaderCM";
-  
   private List<String> mSequence;
-  private Boolean mHasCasMultiplier=false;
+  private boolean mStartsWithCasMultiplier=false;
 
   public void initialize(FlowControllerContext aContext) throws ResourceInitializationException {
     super.initialize(aContext);
@@ -67,22 +65,27 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
               new Object[]{this.getClass().getName(), "fixedFlow", aContext.getAggregateMetadata().getSourceUrlString()});
     }
 
-    // check if first delegate is a CasMultiplier
+    // Check if first delegate is a CasMultiplier.
+    // Any other CMs will have no special treatment, 
+    // i.e. parent will follow children thru the rest of the pipeline
+    
     Iterator<Entry<String, AnalysisEngineMetaData>> aeIter = getContext().getAnalysisEngineMetaDataMap().entrySet().iterator();
     while (aeIter.hasNext()) {
       Entry<String, AnalysisEngineMetaData> entry = aeIter.next();
       AnalysisEngineMetaData md = entry.getValue();
       OperationalProperties op = md.getOperationalProperties();
       if (op.getOutputsNewCASes()) {
-    	mHasCasMultiplier = true;
-      }
+        if (mSequence.get(0).equals(entry.getKey())) {
+          mStartsWithCasMultiplier = true;
+        }
+      } 
     }
   }
 
   /*
    * (non-Javadoc)
    * 
-   * @see org.apache.uima.flow.CasFlowController_ImplBase#computeFlow(org.apache.uima.cas.CAS)
+   * @see org.apache.uima.flow.JCasFlowController_ImplBase#computeFlow(org.apache.uima.cas.JCas)
    */
   public Flow computeFlow(JCas aCAS) throws AnalysisEngineProcessException {
     return new FixedFlowObject(0);
@@ -90,9 +93,7 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
 
   class FixedFlowObject extends JCasFlow_ImplBase {
     private int currentStep;
-    private boolean hasBeenToCM = false;
     private boolean internallyCreatedCas = false;
-    private boolean hasBeenToCC = false;
 
     /**
      * Create a new fixed flow starting at step <code>startStep</code> of the fixed sequence.
@@ -126,52 +127,46 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
      */
     @Override
     public Step next() throws AnalysisEngineProcessException {
-      if (!internallyCreatedCas) {
-    	// this is a Work Item CAS
-        if (mHasCasMultiplier) {
-          if (!hasBeenToCM) {
-        	// will send it there this time thru
-        	hasBeenToCM = true;
-          }
-          else {
-        	// has been to CM, see if should go to CC
-        	if (!hasBeenToCC) {
-	          Iterator<TOP> fsIter = this.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
-	          if (fsIter.hasNext()) {
-	        	Workitem wi = (Workitem) fsIter.next();
-	        	if (fsIter.hasNext()) {
-	        	  throw new IllegalStateException("More than one instance of Workitem type");
-	        	}
-	        	if (wi.getSendToCC()) {
-	        	  hasBeenToCC = true;
-	        	  return new SimpleStep((String)mSequence.get(mSequence.size()-1));
-	        	}
-	        	else {
-	        	  return new FinalStep();
-	        	}
-	          }
-            }
-          }
-        }
-      }
 
-      if (hasBeenToCC || currentStep >= mSequence.size()) {
+      if (currentStep >= mSequence.size()) {
         return new FinalStep(); // this CAS is cooked
       }
 
-      // send the CAS to the next AE in sequence.
+      // If this is a work item CAS in a pipeline with an initial CM that has just been
+      // to the CM then check if it should be sent to the last step, e.g. the CC.
+      if (mStartsWithCasMultiplier && !internallyCreatedCas && currentStep == 1) {
+        // has been to CM, see if should go to CC
+        Iterator<TOP> fsIter = this.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
+        if (fsIter.hasNext()) {
+          Workitem wi = (Workitem) fsIter.next();
+          if (fsIter.hasNext()) {
+            throw new IllegalStateException("More than one instance of Workitem type");
+          }
+          if (wi.getSendToCC()) {
+            return new SimpleStep((String) mSequence.get(mSequence.size() - 1));
+          }
+        }
+        // Do not send to CC
+        return new FinalStep();
+      }
+
+      // Send to next component in pipeline
       return new SimpleStep((String)mSequence.get(currentStep++));
     }
 
     /*
      * (non-Javadoc)
      * 
-     * @see org.apache.uima.flow.CasFlow_ImplBase#newCasProduced(CAS, String)
+     * @see org.apache.uima.flow.JCasFlow_ImplBase#newCasProduced(JCas, String)
      */
     @Override
     public Flow newCasProduced(JCas newCas, String producedBy) throws AnalysisEngineProcessException {
-      // since the CM will always be in position 0 ...
-      return new FixedFlowObject(1, true);
+      // start the new output CAS from the next node after the CasMultiplier that produced it
+      // (there may be a CM in other than the first step)
+      int i = 0;
+      while (!mSequence.get(i).equals(producedBy))
+        i++;
+      return new FixedFlowObject(i + 1, true);
     }
   }
 }
