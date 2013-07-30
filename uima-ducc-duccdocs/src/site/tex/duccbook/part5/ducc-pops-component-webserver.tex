@@ -1,10 +1,17 @@
     
-    \subsection{\varWebServer (\varWS)}    
+    \subsection{\varWebServer~(\varWS)}    
     
-    There is one \varWebServer per \varNodeMachineComputer per \varDUCC~cluster.
-    
-    The duties of the \varWebServer are:
-    
+    There is one \varWebServer~per \varDUCC~cluster.
+        
+    The duties of the \varWebServer~are:
+    \textit{
+      \input{part5/c05-WS.tex}
+    }
+        
+    The \varWebServer~provides complimentary functionality for operation of the
+    \varDUCC~system.
+    It comprises:   
+
     \begin{description}
       \item monitor publications and files produced by:
       \begin{itemize}
@@ -30,5 +37,40 @@
         \item control preferences
         \item perform queries and filter results
       \end{itemize}
+    \item provide runtime functionality to:
+      \begin{itemize}
+      \item automatically cancel \varJobs, \varReservations and \varServices based upon client inactivity;
+      \item manage user authentication, sessions, and cookies
+      \item provide user customizable views
+      \item provide one-click access to deployed JVMs via jConsole
+      \end{itemize}
     \end{description}
+           
+    The \varWebServer~is subdivided into several responsibility areas:
+
+    \begin{itemize}
+      \item ws
+      \item config
+      \item event
+      \item jConsole
+      \item registry
+      \item server
+      \item types
+      \item utils
+    \end{itemize} 
     
+    \subsubsection{ws}
+         
+    \subsubsection{config}
+         
+    \subsubsection{event}
+         
+    \subsubsection{jConsole}
+         
+    \subsubsection{registry}
+         
+    \subsubsection{server}
+         
+    \subsubsection{types}
+    
+    \subsubsection{util}
