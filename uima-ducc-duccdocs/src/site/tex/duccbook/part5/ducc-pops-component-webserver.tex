@@ -57,20 +57,63 @@
       \item server
       \item types
       \item utils
+      \item root
     \end{itemize} 
     
     \subsubsection{ws}
-         
+    
+    \begin{itemize}
+      \item Boot
+      \begin{description}
+      Initialize cache of Jobs, Reservation and Services from checkpoint and historical data repositories.
+      \end{description}
+      \item Daemons Data
+      \begin{description}
+      Track DUCC daemons: status, name, boot time, host name, host ip, PID, publication size and max, heartbeat last and max, and JConsole URL.
+      \end{description}
+      \item Ducc Data
+      \begin{description}
+      Track Jobs, Reservation and Services from \varOrchestrator~publications.
+      \end{description}
+      \item Machines Data
+     \begin{description}
+      Track machines: status, machine name, machine IP, reserve size, memory size, alied PIDs, DUCC shares total and inuse, heartbeat last
+      \end{description}
+    \end{itemize} 
+    
     \subsubsection{config}
          
     \subsubsection{event}
          
     \subsubsection{jConsole}
-         
+    
+    JConsoleWrapper provides the facility to one-click on a \varDUCC~\varWebServer page
+    and be taken to the JConsole for the corresponding process.
+    
     \subsubsection{registry}
-         
+    
+    Manage user and administrator access to the Services Registry, comprising service and meta data.    
     \subsubsection{server}
+    
+    \begin{itemize}
+      \item As User
+      Employ \varSetUid~program to act on behalf of the user as the user, such as for writing
+      log files.
+      \item Cookies
+      \item Handler
+      \item Json Format
+      \item Classic Format
+      \item Web Monitor
+      \item Web Properties
+      \item Web Server
+      \item Web Sessions
+      Manage user sessions with the \varWebServer~allowing privileged actions in the
+      role of a user or an administrator.
+      Provide login and logout facilities.
+    \end{itemize} 
          
     \subsubsection{types}
     
     \subsubsection{util}
+    
+    \subsubsection{root}

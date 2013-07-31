@@ -44,12 +44,19 @@
     for equivalent functionality is possible, for example replacing \varApacheActiveMQ~with 
     \varIBMWebSphereMQ.
     
-    \begin{figure}[h]
-    \centering
-    \includegraphics[width=6.5in]{images/ducc-arch.jpg}
-    \caption{\varDUCC~Architecture}
-    \label{fig:\varDUCC~Architecture}
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=6.5in]{images/ducc-arch.jpg}
+      \label{fig:DUCC-Architecture}
     \end{figure}
+    
+%    \begin{figure}[h]
+%    \centering
+%    \includegraphics[width=6.5in]{images/ducc-arch.jpg}
+%    \caption[]{\varDUCC~Architecture}
+%    \label{fig:\varDUCC~Architecture}
+%    \end{figure}
+%    \label{fig:01}
 
     \section{\varJobs}
 
@@ -222,7 +229,7 @@
     
     \subsection{Job State Machine}    
        
-        \begin{table}[t]
+        \begin{table}[H]
         \caption{Job State Machine}
         \begin{tabular}{{l}{l}{l}{l}}
         Id      & Name                      & Next           & Description \\
@@ -237,10 +244,10 @@
         8       & Completed                 &                & Job processing is completed
         \end{tabular}
         \end{table}
-        
+    
     \subsection{Service State Machine}   
     
-        \begin{table}[t]
+        \begin{table}[H]
         \caption{Service State Machine}
         \begin{tabular}{{l}{l}{l}{l}}
         Id      &Name                       & Next           & Description \\
@@ -257,8 +264,7 @@
     
     \subsection{Reservation State Machines}     
     
-        
-        \begin{table}[t]
+        \begin{table}[H]
         \caption{Unmanaged Reservation State Machine}
         \begin{tabular}{{l}{l}{l}{l}}
         Id      &Name                       & Next           & Description \\
@@ -269,7 +275,7 @@
         \end{tabular}
         \end{table}
      
-        \begin{table}[t]
+        \begin{table}[H]
         \caption{Managed Reservation State Machine}
         \begin{tabular}{{l}{l}{l}{l}}
         Id      &Name                       & Next           & Description \\
@@ -282,7 +288,7 @@
         6       & Completed                 &                & Reservation processing is completed
         \end{tabular}
         \end{table}
-           
+         
     \section{Dependencies}
     
     \section{Scheduling}
