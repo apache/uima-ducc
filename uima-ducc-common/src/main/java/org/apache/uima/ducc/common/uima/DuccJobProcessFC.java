@@ -143,6 +143,7 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
             throw new IllegalStateException("More than one instance of Workitem type");
           }
           if (wi.getSendToCC()) {
+        	currentStep = mSequence.size();
             return new SimpleStep((String) mSequence.get(mSequence.size() - 1));
           }
         }
