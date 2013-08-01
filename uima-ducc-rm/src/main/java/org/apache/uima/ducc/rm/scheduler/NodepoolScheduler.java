@@ -999,13 +999,7 @@ public class NodepoolScheduler
 			int stophere;
             stophere = 1 ;
         }
-        if ( logger.isTrace() ) {
-            globalNodepool.queryMachines();
-        }
-        expandNeedyJobs(globalNodepool, rcs);
         traverseNodepoolsForExpansion(globalNodepool, eligible);
-        logger.info(methodName, null, "Machine occupancy after expansion");
-        globalNodepool.queryMachines();
     }
 
     // ==========================================================================================
@@ -1210,6 +1204,10 @@ public class NodepoolScheduler
 
                 int nshares = j.countNShares();         // for reservation each share is one full machine
                 if ( nshares > 0 ) {                    // if it has any, it has all of them, so take off list
+                    int[] gbo = NodePool.makeArray();   // needed to for defrag 
+                    gbo[j.getShareOrder()] = j.countInstances();
+                    j.setGivenByOrder(gbo);
+                    
                     machines_given_out += nshares;
                     jlist.remove();
                 }
@@ -1593,9 +1591,16 @@ public class NodepoolScheduler
 
         for ( Machine m : machines.values() ) {
             if ( m.getShareOrder() < orderNeeded ) {
-                // logger.debug(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded);
+                logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded);
                 continue;
             }
+
+            // if the job is a reservation the machine size has to match
+            if ( nj.isReservation() && ( m.getShareOrder() != orderNeeded )) {
+                logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": reservation requires exact match for order", orderNeeded);
+                continue;
+            }
+
             Map<Share, Share> as = m.getActiveShares();
             int g = m.getVirtualShareOrder();
             for ( Share s : as.values() ) {
@@ -1876,15 +1881,22 @@ public class NodepoolScheduler
         boolean must_defrag = false;
         for ( ResourceClass rc : resourceClasses.values() ) {
             // Next: Look at every job and work out its "need".  Collect jobs by nodepool into the jobmaps.
-            if ( rc.getPolicy() == Policy.RESERVE ) continue;
-
             Map<IRmJob, IRmJob> allJobs = rc.getAllJobs();
             String npn = rc.getNodepoolName();
             Map<IRmJob, Integer> jobmap = jobs.get(npn);
 
             for ( IRmJob j : allJobs.values() ) {
 
-                int counted = j.countNSharesGiven();           // allotment from the counter
+                int counted = 0;
+                switch ( rc.getPolicy() ) {
+                    case FAIR_SHARE:
+                        counted = j.countNSharesGiven();       // fair share allocation
+                        break;
+                    default:
+                        counted = j.countInstances();          // fixed, all, or nothing
+                        break;
+                }
+
                 int current = j.countNShares();                // currently allocated, plus pending, less those removed by earlier preemption
                 int needed = counted - current;                // could go negative if its evicting
                 int order = j.getShareOrder();
@@ -1943,27 +1955,7 @@ public class NodepoolScheduler
                         // after evictions starting 'here' and propogating up
                         logger.trace(methodName, null, "Update v after : NP[", id_j, "] v:", fmtArray(vmach_j));
                     }
-                }
-                
-//                 int o = m.getVirtualShareOrder();
-//                 Map<Share, Share> shares = m.getActiveShares();
-//                 for ( Share s : shares.values() ) {
-//                     if ( s.isEvicted() ) {
-//                         int save_o = o;
-//                         o = o + s.getShareOrder();
-                                   
-//                         logger.info(methodName, null, "Update v: share[", s.toString(), "] save_o[", save_o, "} o[", o, "]");
-//                         for ( int npj = npi; npj < allPools.length; npj++ ) {  // must propogate up because of how these tables work
-//                             String id_j = allPools[npj].getId();
-//                             int[] vmach_j = vshares.get(id_j);
-//                             logger.info(methodName, null, "Update v before: NP[", id_j, "] v:", fmtArray(vmach_j));
-//                             vmach_j[save_o]--;
-//                             vmach_j[o]++;                                     // This is the largest potential share that can be made on this machine,
-//                                                                               // after evictions starting 'here' and propogating up
-//                             logger.info(methodName, null, "Update v after : NP[", id_j, "] v:", fmtArray(vmach_j));
-//                         }
-//                     }                    
-//                 }
+                }                
             }
         }
         
@@ -1991,20 +1983,22 @@ public class NodepoolScheduler
             int[] nmach = nshares.get(id);
 
             for ( IRmJob j : jobmap.keySet() ) {
+
                 int needed = jobmap.get(j);
                 int order = j.getShareOrder();
                 int available = nmach[order];
                 int to_remove = 0;
-                if ( j.getSchedulingPolicy() == Policy.FAIR_SHARE ) {
-                    // Preference is given during expinsion in next cycle because usually, if
-                    // we Took From The Rich, we took from older jobs, which would normally
-                    // have priority for available resources.
-                    //
-                    // We don't need to include the non-preemptable jobs here, they're handled
-                    // well enough in their normal what-of code.
-                    needyJobs.put(j, j);
-                }
 
+                //if ( j.getSchedulingPolicy() == Policy.FAIR_SHARE ) {
+                   // Preference is given during expinsion in next cycle because usually, if
+                   // we Took From The Rich, we took from older jobs, which would normally
+                   // have priority for available resources.
+                   //
+                   // We don't need to include the non-preemptable jobs here, they're handled
+                   // well enough in their normal what-of code.
+                   needyJobs.put(j, j);
+                //}
+                
                 if ( available >= needed ) {
                     needed = 0;
                     to_remove = needed;
@@ -2013,6 +2007,7 @@ public class NodepoolScheduler
                     needed -= to_remove;
                 }
 
+                // TODO TODO TODO Is this loop useful, and if so, for what? Is it old code I forgot to remove?
                 if ( to_remove > 0 ) {
                     NodePool np = allPools[npi];
                     for ( NodePool npj = np; npj != null; npj = npj.getParent() ) {        // must propogate up because of how these tables work
@@ -2169,15 +2164,32 @@ public class NodepoolScheduler
         accountForNonPreemptable();
         accountForFairShare();
         
-        //
+        // ////////////////////////////////////////////////////////////////////////////////////////////////////
         // And now, find real, physical resources.
         //
+        // First pre-expansion of needy jobs, prioritized
+        // Second, normal expandion of the scheduled work.
+        //
+        if ( logger.isTrace() ) {
+            globalNodepool.queryMachines();
+        }
+
+        for ( int i = 0; i < classes.length; i++ ) {
+            @SuppressWarnings("unchecked")
+                ArrayList<ResourceClass> rcs = (ArrayList<ResourceClass>) classes[i];
+            expandNeedyJobs(globalNodepool, rcs);  
+        }
+
         for ( int i = 0; i < classes.length; i++ ) {
             @SuppressWarnings("unchecked")
                 ArrayList<ResourceClass> rcs = (ArrayList<ResourceClass>) classes[i];
             findWhatOf(rcs);
         }
-
+        logger.info(methodName, null, "Machine occupancy after expansion");
+        globalNodepool.queryMachines();
+        //
+        //
+        // ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //         //
 //         // Ethnic cleansing of shares. We look at each subpool and force eviction of non-member

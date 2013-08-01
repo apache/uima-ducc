@@ -59,7 +59,7 @@ public class RmJob
     protected int memory;                             // estimated memory usage
     protected int nquestions;                         // number of work-items in total
     protected int nquestions_remaining;               // number of uncompleted work items
-    protected double time_per_item = 0.0;             // from OR - mean time per work item
+    protected double time_per_item = Double.NaN;             // from OR - mean time per work item
 
     protected int share_order = 0;                    // How many shares per process this job requires (calculated on submission)
 
@@ -996,7 +996,10 @@ public class RmJob
         int base_cap = Math.min(getMaxShares(), c);
         if ( base_cap < 0 ) base_cap = 0;          // capped by OR
 
-        int projected_cap = getProjectedCap();       
+        int projected_cap = getProjectedCap();      
+        if ( projected_cap == 0 ) {
+        	projected_cap = base_cap;
+        }
 
         int potential_cap = base_cap;
         int actual_cap = 0;
@@ -1228,13 +1231,16 @@ public class RmJob
         return String.format("%6s %30s %10s %10s %6s %5s %13s %8s %6s %9s %11s %8s", 
                              "ID", "JobName", "User", "Class", 
                              "Shares", "Order", "QuantumShares", 
-                             "NThreads", "Memory",
+                             "NTh/nNst", "Memory",
                              "Questions", "Q Remaining", "InitWait");
     }
 
     public String toString()
     {
         int shares = assignedShares.size() + pendingShares.size();        
+        if ( getSchedulingPolicy() != Policy.FAIR_SHARE ) {
+            shares = countInstances();
+        }
 
         if ( isReservation() ) {
             return String.format("%1s%5s %30.30s %10s %10s %6d %5d %13d %8s %6d",

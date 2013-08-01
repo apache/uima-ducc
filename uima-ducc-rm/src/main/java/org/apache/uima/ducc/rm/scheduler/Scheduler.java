@@ -320,6 +320,11 @@ public class Scheduler
     {
     	String methodName = "getDomainName";
 
+        String answer = System.getProperty("SIM_RM_DOMAIN");       // for the simulation wrapper, to replay logs from other domains correctly
+        if ( answer != null ) {
+            return answer;
+        }
+
         if ( cached_domain != null ) return cached_domain;
         try {
 			NodeIdentity ni   = new NodeIdentity();

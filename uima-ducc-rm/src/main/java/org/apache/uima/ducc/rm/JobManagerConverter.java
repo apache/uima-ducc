@@ -377,6 +377,7 @@ public class JobManagerConverter
         int max_processes = 0;
        	int max_machines = 0;	
         ResourceClass rescl = scheduler.getResourceClass(className);
+        j.setResourceClass(rescl);
 
         if ( rescl == null ) {
             // ph darn, we can't continue past this point
@@ -776,6 +777,18 @@ public class JobManagerConverter
         return ret;
     }
 
+    boolean isPendingNonPreemptable(IRmJob j) 
+    {
+    	String methodName = "isPendingNonPreemptable";
+        // If fair share it definitely isn't any kind of preemptable
+        if ( j.getResourceClass().getPolicy() == Policy.FAIR_SHARE) return false;
+
+        // otherwise, if the shares it has allocated is < the number it wants, it is in fact
+        // pending but not complete.
+        logger.info(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances());
+        return ( j.countNShares() < j.countInstances());
+    }
+
     /**
      * If no state has changed, we just resend that last one.
      */
@@ -841,39 +854,43 @@ public class JobManagerConverter
                 Map<DuccId, IResource> expanded_shares = new HashMap<DuccId, IResource>();
                 Map<Share, Share> shares = null;
                 Map<Share, Share> redrive = null;
+
+                if (isPendingNonPreemptable(j) ) {                
+                    logger.info(methodName, j.getId(), "Delaying publication of expansion because it's not yet complete.");
+                } else {
+                    shares = j.getAssignedShares();
+                    if ( shares != null ) {
+                        for ( Share s : shares.values() ) {
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            all_shares.put(s.getId(), r);
+                        }
+                        redrive = sanityCheckForOrchestrator(j, shares, expanded.get(j.getId()));
+                    }
+                    
+                    shares = shrunken.get(j.getId());
+                    if ( shares != null ) {
+                        for ( Share s : shares.values() ) {
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            shrunken_shares.put(s.getId(), r);
+                        }
+                    }                                        
+                    
+                    shares = expanded.get(j.getId());
+                    if ( shares != null ) {                    
+                        for ( Share s : shares.values() ) {
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            expanded_shares.put(s.getId(), r);
+                        }
+                    }
+                    
+                    if ( redrive != null ) {
+                        for ( Share s : redrive.values() ) {
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            expanded_shares.put(s.getId(), r);
+                        }
+                    }
+                }
                 
-                shares = j.getAssignedShares();
-                if ( shares != null ) {
-                    for ( Share s : shares.values() ) {
-                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
-                        all_shares.put(s.getId(), r);
-                    }
-                    redrive = sanityCheckForOrchestrator(j, shares, expanded.get(j.getId()));
-                }
-
-                shares = shrunken.get(j.getId());
-                if ( shares != null ) {
-                    for ( Share s : shares.values() ) {
-                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
-                        shrunken_shares.put(s.getId(), r);
-                    }
-                }
-
-                shares = expanded.get(j.getId());
-                if ( shares != null ) {
-                    for ( Share s : shares.values() ) {
-                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
-                        expanded_shares.put(s.getId(), r);
-                    }
-                }
-
-                if ( redrive != null ) {
-                    for ( Share s : redrive.values() ) {
-                        Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
-                        expanded_shares.put(s.getId(), r);
-                    }
-                }
-
                 RmJobState rjs = new RmJobState(j.getId(), all_shares, shrunken_shares, expanded_shares);
                 rjs.setDuccType(j.getDuccType());
                 rmJobState.put(j.getId(), rjs);
