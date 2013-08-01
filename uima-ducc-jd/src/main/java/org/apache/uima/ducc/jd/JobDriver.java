@@ -759,7 +759,13 @@ public class JobDriver extends Thread implements IJobDriver {
 			break;
 		case JobStop:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
-			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale("job driver received JobStop from plugin error handler"));
+			StringBuffer sb = new StringBuffer();
+			sb.append("job driver received JobStop from plugin error handler");
+			if(directive.hasReason()) {
+				sb.append("with reason: ");
+				sb.append(directive.getReason());
+			}
+			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale(sb.toString()));
 			break;
 		}
 		duccOut.debug(location, workItem.getJobId(), workItem.getProcessId(), "retVal:"+retVal);
@@ -1299,7 +1305,13 @@ public class JobDriver extends Thread implements IJobDriver {
 			break;
 		case JobStop:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
-			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale("job driver received JobStop from plugin error handler"));
+			StringBuffer sb = new StringBuffer();
+			sb.append("job driver received JobStop from plugin error handler");
+			if(directive.hasReason()) {
+				sb.append("with reason: ");
+				sb.append(directive.getReason());
+			}
+			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale(sb.toString()));
 			break;
 		}
 	}
