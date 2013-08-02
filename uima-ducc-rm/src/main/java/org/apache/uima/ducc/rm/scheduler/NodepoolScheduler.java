@@ -876,7 +876,7 @@ public class NodepoolScheduler
 
         if ( needyJobs.size() == 0 ) return;
 
-        logger.debug(methodName, null, "Enter: needyJobs.size =", needyJobs.size());
+        logger.trace(methodName, null, "Enter: needyJobs.size =", needyJobs.size());
 
         List<NodePool> subpools = np.getChildrenAscending();
         for ( NodePool subpool : subpools ) {
@@ -910,9 +910,9 @@ public class NodepoolScheduler
         }
 
         Collections.sort(jobs, new JobByTimeSorter());
-        logger.debug(methodName, null, "NP[", np.getId(), "Expand needy jobs.", listJobSet(jobs));
+        logger.trace(methodName, null, "NP[", np.getId(), "Expand needy jobs.", listJobSet(jobs));
         np.doExpansion(jobs);
-        logger.debug(methodName, null, "Exit : needyJobs.size =", needyJobs.size());
+        logger.trace(methodName, null, "Exit : needyJobs.size =", needyJobs.size());
     }
 
     private static int stop_here_dx = 0;
@@ -1737,9 +1737,16 @@ public class NodepoolScheduler
 
                 HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                 for ( IRmJob j : jobs.values() ) {
-                    if ( nj.isReservation() && (nj.getSchedulingPriority() > j.getSchedulingPriority()) ) {
-                            // We could end up evictin really needy stuff - hopefully not, but these guys are Top Men so there.
-                            logger.debug(methodName, nj.getId(), "Reservation priority override on candidate selection.");
+                    int nshares = j.countNShares();
+                    int qshares = nshares * j.getShareOrder();
+
+                    if ( nj.isReservation() && (nj.getSchedulingPriority() <= j.getSchedulingPriority()) ) {
+                        if ( nshares == 0 ) {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it has no share.");
+                            continue;
+                        } 
+                        // We could end up evictin really needy stuff - hopefully not, but these guys are Top Men so there.
+                        logger.debug(methodName, nj.getId(), "Reservation priority override on candidate selection.");
                     } else {
                         if ( needy.containsKey(j) ) {                            // if needy it's not a candidate
                             logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's needy.");
@@ -1764,17 +1771,14 @@ public class NodepoolScheduler
                             logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because of incompatible nodepools.");
                             continue;
                         }
+                        
+                        if ( nshares < fragmentationThreshold ) {
+                            // If you're already below the threshold then you're safe, unless we're clearing for a reservation.
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because not enough processes[", nshares, "] qshares[", qshares, "]");
+                            continue;
+                        }
                     }
-
-                    int nshares = j.countNShares();
-                    int qshares = nshares * j.getShareOrder();
-
-                    if ( nshares < fragmentationThreshold ) {
-                        // A job with only 1 process declared is not needed but it's surely not a candidate
-                        logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because not enough processes[", nshares, "] qshares[", qshares, "]");
-                        continue;
-                    }
-
+                    
                     logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a candidate with processes[", nshares, "] qshares[", qshares, "]");
                     candidates.put(j, j);
                 }
