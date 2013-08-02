@@ -35,9 +35,6 @@ public class AllInOne extends CliBase {
     
 	private static String cid = AllInOne.class.getSimpleName();
 	
-	private static String or_port = "ducc.orchestrator.http.port";
-    private static String or_host = "ducc.orchestrator.http.node";
-    
 	private IMessageHandler mh = new MessageHandler();
 	
 	private JobRequestProperties jobRequestProperties = new JobRequestProperties(); 
@@ -49,7 +46,7 @@ public class AllInOne extends CliBase {
 	
 	public AllInOne(String[] args) throws Exception {
 		UiOption[] opts = DuccJobSubmit.opts;
-		init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+		init(this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
 	}
 	
 	private void examine_debug() {

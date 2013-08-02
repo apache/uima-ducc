@@ -25,8 +25,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -46,16 +49,22 @@ import org.w3c.dom.NodeList;
 
 public class DuccUiUtilities {
 	
-	public static boolean isSupportedBeta() {
-		boolean retVal = true;
-		String key = DuccPropertiesResolver.ducc_submit_beta;
-		String value = DuccPropertiesResolver.get(key);
-		if(value != null) {
-			if(value.equalsIgnoreCase("off")) {
-				retVal = false;
-			}
+	private static boolean betaSet = false;
+    private static boolean isBeta;
+
+    public static boolean isSupportedBeta() {
+	    if (betaSet) return isBeta;
+	    
+	    // Set DUCC_HOME stsem property (if not already set) for DuccPropertiesResolver
+	    Utils.findDuccHome();
+	    
+	    // Only if "on" allow old-style process/driver options
+		isBeta = false;
+		String value = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_beta);
+		if(value != null && value.equalsIgnoreCase("on")) {
+		    isBeta = true;
 		}
-		return retVal;
+		return isBeta;
 	}
 	
 	public static String getUser() {
@@ -71,37 +80,7 @@ public class DuccUiUtilities {
 		}
 		return user;
 	}
-	
-	/*
-	 * Create a map from the user-specified environment string
-	 * Must be a white-space delimited string of assignments, e.g. 
-	 *     TERM=xterm DISPLAY=:1.0 LD_LIBRARY_PATH=/my/own/path  EMPTY=
-	 * Keys & values cannot contain white-space, e.g. all of these will fail:
-	 *     TERM = xterm   DISPLAY =:1.0   LD_LIBRARY_PATH="/my/bl nk/path"  
-	 */
-    private static Properties environmentMap(String environment) {
-        Properties properties = new Properties();
-        if (environment.length() == 0) {
-            return properties;
-        }
-        String[] tokens = environment.split("\\s+");
-        for (String token : tokens) {
-            String[] nvp = token.split("=", 2);
-            String key = nvp[0];
-            // Reject 'foo' & '=foo' & '=' but accept 'foo='
-            if (token.indexOf('=') < 0 || key.length() == 0) {
-                return null;
-            }
-            if (nvp.length > 1) {
-                properties.setProperty(key, nvp[1]);
-            } else {
-                properties.setProperty(key, "");
-            }
-        }
-		// No need to trim properties as the only white-space is between assignments
-		return properties;
-	}
-	
+
 	public static ArrayList<String> getDuplicateOptions(CommandLine commandLine) {
 		ArrayList<String> duplicates = new ArrayList<String>();
 		HashMap<String,String> seen = new HashMap<String,String>();
@@ -136,47 +115,82 @@ public class DuccUiUtilities {
 	
 	//**********
 	
-	public static boolean ducc_environment(CliBase base, Properties jobRequestProperties, String key) {
-		boolean retVal = true;
-		// Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
-		String source = "LD_LIBRARY_PATH";
-		String target = "DUCC_"+source;
-		String environment_string = jobRequestProperties.getProperty(key, "");
-		Properties environment_properties = environmentMap(environment_string);
-		if (environment_properties == null) {
-		    base.message("ERROR:", key, "Invalid environment syntax - missing '=' ?");
-		    return false;
-		}
-		if(environment_properties.containsKey(source)) {
-			if(environment_properties.containsKey(target)) {
-				base.message("ERROR:", key, "environment conflict:", target, "takes precedence over", source);
-			}
-			else {
-				environment_properties.setProperty(target, environment_properties.getProperty(source));
-				environment_properties.remove(source);
-		        StringBuilder sb = new StringBuilder();
-		        for (String name : environment_properties.stringPropertyNames()) {
-		            sb.append(name).append("=").append(environment_properties.getProperty(name)).append(" ");
-		        }
-				environment_string = sb.toString();
-				jobRequestProperties.setProperty(key, environment_string);
-			}
-		}
-		// Augment user-specified environment with a few useful ones, e.g. USER HOME
-        String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_environment_propagated);
-        if (envNames != null) {
-            StringBuilder sb = new StringBuilder();
-            for (String name : envNames.split("\\s+")) {
-                if (!environment_properties.containsKey(name)) {
-                    sb.append(name).append("=").append(System.getenv(name)).append(" ");
-                }
-            }
-            if (sb.length() > 0) {
-                sb.append(environment_string);
-                jobRequestProperties.setProperty(key, sb.toString());
+	public static String fixupEnvironment(String environment) {
+	    // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
+	    boolean modified = false;
+        String source = "LD_LIBRARY_PATH";
+        String target = "DUCC_"+source;
+        ArrayList<String> envList = tokenizeList(environment, false); // Don't strip quotes
+        Map<String,String> envMap = parseAssignments(envList, false); // Keep all entries
+        if (envMap == null) {
+            return null;   // Syntax error
+        }
+        if (envMap.containsKey(source)) {
+            if (!envMap.containsKey(target)) {
+                envMap.put(target, envMap.get(source));
+                envMap.remove(source);
+                modified = true;
             }
         }
-		return retVal;
+        // Augment user-specified environment with a few useful ones (only if not already set), e.g. USER HOME
+        // If an augmented value contains a blank add single or double quotes 
+        String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_environment_propagated);
+        if (envNames != null) {
+            for (String name : envNames.split("\\s+")) {
+                if (!envMap.containsKey(name)) {
+                    String value = System.getenv(name);
+                    if (value != null) {
+                        if (value.indexOf(' ') >= 0) {
+                            if (value.indexOf('"') < 0) {
+                                value = "\"" + value + "\"";
+                            } else if (value.indexOf('\'') < 0) {
+                                value = "'" + value + "'";
+                            } else {
+                                System.out.println("WARNING: omitting environment variable " + name + " as has unquotable value: " + value);
+                                continue;
+                            }
+                        }
+                        envMap.put(name, value);
+                        modified = true;
+                    }
+                }
+            }
+        }
+        // If changes made rebuild the string ... note that quotes were preserved so can recreate easily
+        if (modified) {
+            StringBuilder sb = new StringBuilder();
+            for (String name : envMap.keySet()) {
+                sb.append(name).append("=").append(envMap.get(name)).append(" ");
+            }
+            return sb.toString();
+        } else {
+            return environment;
+        }
+	}
+	
+	public static boolean ducc_environment(CliBase base, Properties jobRequestProperties, String key) {
+		String environment_string = jobRequestProperties.getProperty(key, "");
+		String fixedEnv = fixupEnvironment(environment_string);
+        if (fixedEnv == null) {
+            return false;  // error
+        } 
+        // If the input string returned unmodified, no need to change the property
+        if (fixedEnv != environment_string) {
+            jobRequestProperties.setProperty(key, fixedEnv);
+        }
+        return true;
+	}
+	
+	/* 
+	 * Get URL for service handling request. Either "orchestrator" or "sm"
+	 */
+	public static String dispatchUrl(String server) {
+	    String host = DuccPropertiesResolver.get("ducc." + server + ".http.node");
+	    String port = DuccPropertiesResolver.get("ducc." + server + ".http.port");
+        if ( host == null || port == null) {
+            throw new IllegalStateException("ducc." + server + ".http.node and/or .port not set in ducc.properties");
+        }
+        return "http://" + host + ":" + port + "/" + server.substring(0, 2);
 	}
 	
 	//**********
@@ -290,9 +304,17 @@ public class DuccUiUtilities {
         return goodprops;
     }
 
-    public static String getEndpoint(String working_dir, String process_DD, Properties jvmargs)
+    /**
+     * Extract the endpoint from the deployment descriptor, resolving names and placeholders against
+     * the same environment as that of the JVM that will deploy the service 
+     * 
+     * @param working_dir
+     * @param process_DD
+     * @param jvmargs
+     * @return
+     */
+    public static String getEndpoint(String working_dir, String process_DD, String jvmargs)
     {
-
     	// convert relative path for process_DD to absolute if needed
         if ( !process_DD.startsWith("/") && process_DD.endsWith(".xml") && working_dir != null ) {
             process_DD = working_dir + "/" + process_DD;
@@ -310,16 +332,19 @@ public class DuccUiUtilities {
 		}
                 
         // locate the <inputQueue node within the xml - should only be one such node, and it MUST exist
-        // then construct an endpoint and resolve defaultBrokerURL if needed
+        // then construct an endpoint and resolve any placeholders against the process JVM args
+		// just as is done by Spring in a UIMA-AS Deployment Descriptor
         NodeList nodes = doc.getElementsByTagName("inputQueue");
         if ( nodes.getLength() > 0 ) {
             Element element = (Element) nodes.item(0);
             String endpoint = element.getAttribute("endpoint");
             String broker   = element.getAttribute("brokerURL");
             String ep = "UIMA-AS:" + endpoint + ":" + broker;
-
-            ep = Utils.resolvePlaceholders(ep, jvmargs);
-            ep = Utils.resolvePlaceholders(ep, System.getProperties());
+            if (ep.contains("${")) {
+                ArrayList<String> jvmargList = tokenizeList(jvmargs, true); // Strip quotes
+                Map<String, String> jvmargMap = parseAssignments(jvmargList, true); // only -D entries
+                ep = resolvePlaceholders(ep, jvmargMap);
+            }
             return ep;
         } else {
             throw new IllegalArgumentException("Invalid DD:" + process_DD + ". Missing required element <inputQueue ...");
@@ -327,92 +352,189 @@ public class DuccUiUtilities {
     }
 
     /**
-     * Must resolve ${defaultBrokerURL} from -DdefaultBrokerURL and if it fails, fail the job because
-     * the defaut of "tcp://localhost:61616" is never correct for a DUCC job.
+     * Check that dependencies are syntactically correct, and that a service doesn't depend on itself.
      *
-     * We also split up the string and examine each endpoint so we can fail if invalid endpoints are given.
-     *
-     * And, we do a quick check for circular dependencies.  At this point all we can check for is no duplicates
-     * in the set[endpoint, dependencies].
+     * Assumes that any placeholders have been resolved against the caller's environment
      *
      * @param endpoint This is the endpoint of the caller itself, for resolution ( to make sure it can resolve.).  For
      *                 jobs this must be null.
-     * @parem dependency_string This is the comma-delimeted string of service ids "I" am dependent upon.
-     * @param jvmargs These are the JVM arguments specified for the job, converted to a properties file.
+     * @param dependency_string This is the comma-delimited string of service ids "I" am dependent upon.
      */
-    public static String resolve_service_dependencies(String endpoint, String dependency_string, Properties jvmargs) 
+    public static void check_service_dependencies(String endpoint, String dependency_string) 
     {
-
         if ( dependency_string == null ) {         // no dependencies to worry about
-            return null;
+            return;
         }
 
-        String[] deplist = dependency_string.split("\\s");
-        Map<String, String> resolved = new HashMap<String, String>();
-        if ( endpoint != null ) {
-            resolved.put(endpoint, endpoint);
-        }
-        int ndx = 0;
+        for (String d : dependency_string.split("\\s+")) {
+            if (d.equals(endpoint)) {
+                throw new IllegalArgumentException("A service cannot depend on itself: " + d);
+            }
+            String[] parts = d.split(":", 3);
+            String type = parts[0];
+            if (!type.equals(ServiceType.UimaAs.decode()) && !type.equals(ServiceType.Custom.decode())) {
+                throw new IllegalArgumentException(
+                                "Ill-formed or unsuported service type in dependency: " + d);
+            }
 
-        for ( String d : deplist ) {
-            d = d.trim();
-            if ( d.startsWith(ServiceType.UimaAs.decode() + ":") || d.startsWith(ServiceType.Custom.decode() + ":") ) {
-                String nextdep = Utils.resolvePlaceholders(d, jvmargs);                
-                if ( resolved.containsKey(nextdep) ) {
-                    throw new IllegalArgumentException("Circular dependencies with " + nextdep);
+            if (type.equals(ServiceType.UimaAs.decode())) {
+                // MUST have 2 ":" in it, and the broker must be a valid url
+                // UIMA-AS:queuename:broker
+                if (parts.length < 3) {
+                    throw new IllegalArgumentException("Invalid UIMA-AS service id: " + d);
                 }
-        
-                if ( d.startsWith(ServiceType.UimaAs.decode()) ) {
-                    // hard to know if this is a good EP or not but se do know that it MUST have 2 ":" in it, and the broker must be a valid url
-                    // UIMA-AS : queuename : broker
-                    // This code comes from SM:ServiceSet.parseEndpoint.  How best to generalize these?
-                    ndx = d.indexOf(":");
-                    if ( ndx <= 0 ) {
-                        throw new IllegalArgumentException("Invalid UIMA-AS service id: " + d);                        
-                    }
-
-                    d = d.substring(ndx+1);
-                    ndx = d.indexOf(":");
-                    if ( ndx <= 0 ) {
-                        throw new IllegalArgumentException("Invalid UIMA-AS service id (missing or invalid broker URL): " + d);
-                    }
-                    String qname    = d.substring(0, ndx).trim();
-                    String broker   = d.substring(ndx+1).trim();
-                    
-                    @SuppressWarnings("unused")
-                    // this IS unused, it is here only to insure the string is parsed as a URL
-					URL url = null;
-                    try {                
-                        url = new URL(null, broker, new TcpStreamHandler());
-                    } catch (MalformedURLException e) {
-                        throw new IllegalArgumentException("Invalid broker URL in service ID: " + broker);
-                    }
-                    
-                    if ( qname.equals("") || broker.equals("") ) {
-                        throw new IllegalArgumentException("The endpoint cannot be parsed.  Expecting UIMA-AS:Endpoint:Broker, received " + d);
-                    }
-                    
+                String qname = parts[1];
+                String broker = parts[2];
+                if (qname.equals("") || broker.equals("")) {
+                    throw new IllegalArgumentException("Invalid syntax for UIMA-AS service id: " + d);
                 }
-                                            
-                resolved.put(nextdep, nextdep);
-            } else {
-                throw new IllegalArgumentException("Ill-formed or unsuported service type in dependency: " + d);
+                // this IS unused, it is here only to insure the string is parsed as a URL
+                @SuppressWarnings("unused")
+                URL url = null;
+                try {
+                    url = new URL(null, broker, new TcpStreamHandler());
+                } catch (MalformedURLException e) {
+                    throw new IllegalArgumentException("Invalid broker URL in service ID: " + broker);
+                }
             }
         }
-        
-        if ( endpoint != null ) {
-            resolved.remove(endpoint);                   // remember to remove "me"!
-        }
-        StringBuffer sb = new StringBuffer();
-        ndx = 0;
-        int len = resolved.size();
-        for ( String s : resolved.keySet() ) {
-            sb.append(s);
-            if ( (++ndx ) < len ) {
-                sb.append(" ");
-            }
-        }
-        return sb.toString();
     }
 
+    /*
+     * Resolve any ${..} placeholders against a map of JVM arg values
+     */
+    private static String resolvePlaceholders(String contents, Map<String,String> argMap) {
+        //  Placeholders syntax ${<placeholder>} 
+        Pattern pattern = Pattern.compile("\\$\\{(.*?)\\}");  // Stops on first '}'
+        Matcher matcher = pattern.matcher(contents); 
+
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            final String key = matcher.group(1);
+            String value = argMap.get(key);
+            if (value == null) {
+                throw new IllegalArgumentException("Undefined JVM property '" + key + "' in: " + contents);
+            }
+            matcher.appendReplacement(sb, value);        
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+    
+    /* 
+     
+     */
+    
+    /**
+     * Create an array of parameters from a whitespace-delimited list (e.g. JVM args or environment assignments.) 
+     * Values containing whitespace must be single- or double-quoted:
+     *  TERM=xterm DISPLAY=:1.0 LD_LIBRARY_PATH="/my/path/with blanks/" EMPTY= -Dxyz="a b c" -Dabc='x y z' 
+     * Quotes may be stripped or preserved.
+     * Values containing both types of quotes are NOT supported.
+     * 
+     * @param options
+     *          - string of blank-delimited options
+     * @param stripQuotes
+     *          - true if balanced quotes are to be removed
+     * @return - array of options
+     */
+    public static ArrayList<String> tokenizeList(String options, boolean stripQuotes) {
+      // Pattern matches a non-quoted region or a double-quoted region or a single-quoted region
+      // 1st part matches one or more non-whitespace characters but not " or '
+      // 2nd part matches a "quoted" region containing any character except "
+      // 3rd part matches a 'quoted' region containing any character except '
+      // See: http://stackoverflow.com/questions/3366281/tokenizing-a-string-but-ignoring-delimiters-within-quotes
+        
+      String noSpaceRegex = "[^\\s\"']+";
+      String doubleQuoteRegex = "\"([^\"]*)\"";
+      String singleQuoteRegex = "'([^']*)'";
+      final String regex = noSpaceRegex + "|" + doubleQuoteRegex + "|" + singleQuoteRegex;     
+      
+      Pattern patn = Pattern.compile(regex);
+      Matcher matcher = patn.matcher(options);
+      ArrayList<String> tokens = new ArrayList<String>();
+      StringBuilder sb = new StringBuilder();
+      
+      // If stripping quotes extract the capturing group (without the quotes)
+      // When preserving quotes extract the full region
+      // Combine the pieces of a token until the match ends with whitespace
+      if (stripQuotes) {
+        while (matcher.find()) {
+          if (matcher.group(1) != null) {
+            sb.append(matcher.group(1));
+          } else if (matcher.group(2) != null) {
+            sb.append(matcher.group(2));
+          } else {
+            sb.append(matcher.group());
+          }
+          if (matcher.end() >= options.length() || Character.isWhitespace(options.charAt(matcher.end()))) {
+            tokens.add(sb.toString());
+            sb.setLength(0);
+          }
+        }
+      } else {
+        while (matcher.find()) {
+          sb.append(matcher.group());
+          if (matcher.end() >= options.length() || Character.isWhitespace(options.charAt(matcher.end()))) {
+            tokens.add(sb.toString());
+            sb.setLength(0);
+          }
+        }
+      }
+      return tokens;
+    }
+
+    /*
+     * Create a map from an array of environment variable assignments produced by tokenizeList Quotes
+     * may have been stripped by tokenizeList The value is optional but the key is NOT, e.g. accept
+     * assignments of the form foo=abc & foo= & foo reject =foo & =
+     * 
+     * @param assignments - list of environment or JVM arg assignments
+     * @param jvmArgs - true if tokens are JVM args -- process only the -Dprop=value entries
+     *  
+     * @return - map of key/value pairs null if syntax is illegal
+     */
+    public static Map<String, String> parseAssignments(List<String> assignments, boolean jvmArgs) {
+
+      HashMap<String, String> map = new HashMap<String, String>();
+      if (assignments == null || assignments.size() == 0) {
+        return map;
+      }
+      for (String assignment : assignments) {
+        String[] parts = assignment.split("=", 2); // Split on first '='
+        String key = parts[0];
+        if (key.length() == 0) {
+          return null;
+        }
+        if (jvmArgs) {
+          if (!key.startsWith("-D")) {
+            continue;
+          }
+          key = key.substring(2);
+        }
+        map.put(key, parts.length > 1 ? parts[1] : "");
+      }
+      return map;
+    }
+
+    // ====================================================================================================
+    
+    /*
+     * Test the quote handling and optional stripping 
+     */
+    public static void main(String[] args) {
+      String list = "SINGLE_QUOTED='single quoted'\tDOUBLE_QUOTED=\"double quoted\"     SINGLE_QUOTE=\"'\" \r DOUBLE_QUOTE='\"'";
+      System.out.println("List: " + list);
+      System.out.println("\n  quotes preserved:");
+      ArrayList<String> tokens = tokenizeList(list, false);
+      for (String token : tokens) {
+        System.out.println("~" + token + "~");
+      }
+
+      System.out.println("\n  quotes stripped:");
+      tokens = tokenizeList(list, true);
+      for (String token : tokens) {
+        System.out.println("~" + token + "~");
+      }
+    }
 }

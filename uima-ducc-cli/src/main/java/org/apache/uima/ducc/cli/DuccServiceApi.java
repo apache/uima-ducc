@@ -20,12 +20,12 @@ package org.apache.uima.ducc.cli;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
@@ -46,8 +46,6 @@ public class DuccServiceApi
     extends CliBase
 {
 
-    String sm_port = "ducc.sm.http.port";
-    String sm_host = "ducc.sm.http.node";
     String endpoint = null;
     IDuccCallback callback = null;
 
@@ -238,7 +236,7 @@ public class DuccServiceApi
 
     private void setLinger()
     {
-        String default_linger = ducc_properties.getStringProperty("ducc.sm.default.linger", "5000");
+        String default_linger = DuccPropertiesResolver.get("ducc.sm.default.linger", "5000");
         String linger         = cli_props.getStringProperty(UiOption.ServiceLinger.pname(), default_linger);
         try {             
             @SuppressWarnings("unused")
@@ -248,17 +246,8 @@ public class DuccServiceApi
         }
     }
 
-    String extractEndpoint(Properties jvmargs)
+    String extractEndpoint(String jvmargs)
     {
-        // If classpath is not specified, pick it up from the submitter's environment
-    	String key_cp = UiOption.ProcessClasspath.pname();
-        if ( cli_props.containsKey(UiOption.Classpath.pname()) ) {
-        	key_cp = UiOption.Classpath.pname();
-        }
-        String classpath = cli_props.getStringProperty(key_cp, System.getProperty("java.class.path"));
-        cli_props.setProperty(key_cp, classpath);
-        
-        // No endpoint, resolve from the DD.
         String dd = cli_props.getStringProperty(UiOption.ProcessDD.pname()); // will throw if can't find the prop
         String working_dir = cli_props.getStringProperty(UiOption.WorkingDirectory.pname());
         endpoint = DuccUiUtilities.getEndpoint(working_dir, dd, jvmargs);
@@ -278,26 +267,13 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init();
         if(DuccUiUtilities.isSupportedBeta()) {
         	registration_options = registration_options_beta;
         }
-        init(this.getClass().getName(), registration_options, args, dp, sm_host, sm_port, "sm", callback, null);
+        init (this.getClass().getName(), registration_options, args, null, dp, callback, "sm");
 
         // Note: dp & cli_props are identical ... use only the class variable here for consistency
         
-        //
-        // Now: get jvm args and resolve placeholders, in particular, the broker url
-        //
-        String key_ja = UiOption.ProcessJvmArgs.pname();
-        if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
-        	key_ja = UiOption.JvmArgs.pname();
-        }
-        String jvmarg_string = cli_props.getProperty(key_ja);
-        Properties jvmargs = DuccUiUtilities.jvmArgsToProperties(jvmarg_string);
-        // Presumably only the endpoint and service dependencies can have place holders
-        DuccUiUtilities.resolvePropertiesPlaceholders(cli_props, jvmargs);
-
         /*
          * Fixup the environment: rename LD_LIBRARY_PATH & add any standard ones
          */
@@ -330,6 +306,7 @@ public class DuccServiceApi
                 message("WARN", "--process_executable is ignored for UIMA-AS services");
             }
             // Infer the classpath (DuccProperties will return the default if the value isn't found.)
+            // Note: only used for UIMA-AS services
         	String key_cp = UiOption.ProcessClasspath.pname();
             if ( cli_props.containsKey(UiOption.Classpath.pname()) ) {
             	key_cp = UiOption.Classpath.pname();
@@ -340,13 +317,20 @@ public class DuccServiceApi
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
             // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one
             // we extract from the DD - the job will fail otherwise, so we catch this early.
-            String inferred_endpoint = extractEndpoint(jvmargs);
+            //
+            String key_ja = UiOption.ProcessJvmArgs.pname();
+            if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
+                key_ja = UiOption.JvmArgs.pname();
+            }
+            String jvmarg_string = cli_props.getProperty(key_ja);
+            
+            String inferred_endpoint = extractEndpoint(jvmarg_string);
             if (endpoint == null) {
                 endpoint = inferred_endpoint;
             } else if ( !inferred_endpoint.equals(endpoint) ) {
-                throw new IllegalArgumentException("Endpoint from --service_request_endpoint does not match endpoint ectracted from UIMA DD" 
-                                                   + "\n--service_request_endpoint: " + endpoint 
-                                                   + "\nextracted:                : " + inferred_endpoint );
+                throw new IllegalArgumentException("Specified endpoint does not match endpoint extracted from UIMA DD" 
+                                                   + "\n --service_request_endpoint: " + endpoint 
+                                                   + "\n                  extracted: " + inferred_endpoint );
             }
             
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
@@ -368,7 +352,7 @@ public class DuccServiceApi
         }
 
         // work out stuff I'm dependent upon
-        if ( !resolve_service_dependencies(endpoint) ) {
+        if ( !check_service_dependencies(endpoint) ) {
             throw new IllegalArgumentException("Invalid service dependencies");
         }
         int instances = cli_props.getIntProperty(UiOption.Instances.pname(), 1);
@@ -402,7 +386,8 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), unregister_options, args, dp, sm_host, sm_port, "sm", callback, null);
+        init(this.getClass().getName(), unregister_options, args, null, dp, callback, "sm");
+        
 
         Pair<Integer, String> id = getId(UiOption.Unregister);
         String user = dp.getProperty(UiOption.User.pname());
@@ -428,7 +413,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), start_options, args, dp, sm_host, sm_port, "sm", callback, null);
+        init(this.getClass().getName(), start_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Start);
         String user = dp.getProperty(UiOption.User.pname());
@@ -460,7 +445,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), stop_options, args, dp, sm_host, sm_port, "sm", callback, null);
+        init(this.getClass().getName(), stop_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Stop);
         String user = dp.getProperty(UiOption.User.pname());
@@ -492,7 +477,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), modify_options, args, dp, sm_host, sm_port, "sm", callback, null);
+        init (this.getClass().getName(), modify_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Modify);
         String user = dp.getProperty(UiOption.User.pname());
@@ -524,7 +509,7 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), query_options, args, dp, sm_host, sm_port, "sm", callback, null);
+        init(this.getClass().getName(), query_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = null;
         String sid = cli_props.getProperty(UiOption.Query.pname()).trim();
@@ -554,27 +539,27 @@ public class DuccServiceApi
         formatter.setWidth(IUiOptions.help_width);
 
         System.out.println("------------- Register Options ------------------");
-        options = makeOptions(registration_options, true);
+        options = makeOptions(registration_options);
         formatter.printHelp(this.getClass().getName(), options);
 
         System.out.println("\n\n------------- Unregister Options ------------------");
-        options = makeOptions(unregister_options, true);
+        options = makeOptions(unregister_options);
         formatter.printHelp(this.getClass().getName(), options);
 
         System.out.println("\n\n------------- Start Options ------------------");
-        options = makeOptions(start_options, true);
+        options = makeOptions(start_options);
         formatter.printHelp(this.getClass().getName(), options);
 
         System.out.println("\n\n------------- Stop Options ------------------");
-        options = makeOptions(stop_options, true);
+        options = makeOptions(stop_options);
         formatter.printHelp(this.getClass().getName(), options);
 
         System.out.println("\n\n------------- Modify Options ------------------");
-        options = makeOptions(modify_options, true);
+        options = makeOptions(modify_options);
         formatter.printHelp(this.getClass().getName(), options);
 
         System.out.println("\n\n------------- Query Options ------------------");
-        options = makeOptions(query_options, true);
+        options = makeOptions(query_options);
         formatter.printHelp(this.getClass().getName(), options);
 
         System.exit(1);
@@ -757,7 +742,8 @@ public class DuccServiceApi
                     System.exit(1);
             }
         } catch (Exception e) {
-            System.out.println("Service call failed: " + e.toString());
+            System.out.println("Service call failed: " + e);
+            //e.printStackTrace();
             System.exit(1);            
         }
         System.exit(rc ? 0 : 1);

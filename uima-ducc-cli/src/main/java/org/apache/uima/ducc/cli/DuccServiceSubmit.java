@@ -41,8 +41,6 @@ public class DuccServiceSubmit
     //private String jvmarg_string = null;
     //private Properties jvmargs = null;
     ServiceRequestProperties requestProperties = new ServiceRequestProperties();
-    static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.http.node";
     
     UiOption[] opts_release = {
         UiOption.Help,
@@ -114,11 +112,10 @@ public class DuccServiceSubmit
     public DuccServiceSubmit(String[] args)
         throws Exception
     {
-        init();
         if(DuccUiUtilities.isSupportedBeta()) {
             opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or", null, null);
+        init(this.getClass().getName(), opts, args, requestProperties, null);
     }
     
     /**
@@ -138,15 +135,10 @@ public class DuccServiceSubmit
     public DuccServiceSubmit(Properties props)
         throws Exception
     {
-        for ( Object k : props.keySet() ) {      
-            Object v = props.get(k);
-            requestProperties.put(k, v);
-        }
-        init();
         if(DuccUiUtilities.isSupportedBeta()) {
             opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or", null, null);
+        init (this.getClass().getName(), opts, props, requestProperties, null);
     }
     
     /**
@@ -162,8 +154,7 @@ public class DuccServiceSubmit
         if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
             key_ja = UiOption.JvmArgs.pname();
         }
-        String jvmarg_string = (String) requestProperties.get(key_ja);
-        Properties jvmargs = DuccUiUtilities.jvmArgsToProperties(jvmarg_string);
+        String jvmarg_string = requestProperties.getProperty(key_ja);
 
         //
         // Need to check if the mutually exclusive UIMA-AS DD and the Custom executable are specified
@@ -188,7 +179,7 @@ public class DuccServiceSubmit
             try {
                 String dd = (String) requestProperties.get(UiOption.ProcessDD.pname());
                 String wd = (String) requestProperties.get(UiOption.WorkingDirectory.pname());
-                String inferred_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmargs);
+                String inferred_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmarg_string);
                 if (endpoint == null) {
                     endpoint = inferred_endpoint;
                     requestProperties.put(UiOption.ServiceRequestEndpoint.pname(), endpoint);
@@ -217,7 +208,7 @@ public class DuccServiceSubmit
             return false;
         }
 
-        if ( ! resolve_service_dependencies(endpoint) ) {            
+        if ( ! check_service_dependencies(endpoint) ) {            
             return false;
         }
         

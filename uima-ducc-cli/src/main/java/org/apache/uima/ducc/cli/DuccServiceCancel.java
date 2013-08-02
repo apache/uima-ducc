@@ -35,8 +35,6 @@ public class DuccServiceCancel
 {
 	
     JobRequestProperties requestProperties = new JobRequestProperties();
-    static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.http.node";
 
     long canceledPid = -1;
     String responseMessage = null;
@@ -58,7 +56,7 @@ public class DuccServiceCancel
 	public DuccServiceCancel(String [] args) 
         throws Exception
     {
-        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
+        init (this.getClass().getName(), opts, args, requestProperties, null);
 	}
 
     /**
@@ -69,7 +67,7 @@ public class DuccServiceCancel
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
-        init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
+        init(this.getClass().getName(), opts, arg_array, requestProperties, null);
 	}
 
     /**
@@ -79,11 +77,7 @@ public class DuccServiceCancel
 	public DuccServiceCancel(Properties props) 
         throws Exception
     {
-        for ( Object k : props.keySet() ) {      
-            Object v = props.get(k);
-            requestProperties.put(k, v);
-        }
-        init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or");
+        init (this.getClass().getName(), opts, props, requestProperties, null);
 	}
 
     /**
@@ -95,11 +89,6 @@ public class DuccServiceCancel
 	{
 		return responseMessage;
 	}
-
-    // public boolean isService()
-//     {
-//         return true;
-//     }
 
     /**
      * Execute collects the parameters for job cancelation and sends them to the DUCC Orchestrator

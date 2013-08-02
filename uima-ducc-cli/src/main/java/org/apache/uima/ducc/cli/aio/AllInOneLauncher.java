@@ -20,7 +20,6 @@ package org.apache.uima.ducc.cli.aio;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,9 +42,6 @@ import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 public class AllInOneLauncher extends CliBase {
     
     private static String cid = AllInOneLauncher.class.getSimpleName();
-    
-    private static String or_port = "ducc.orchestrator.http.port";
-    private static String or_host = "ducc.orchestrator.http.node";
     
     private static String remote = "remote";
     private static String local = "local";
@@ -107,13 +103,13 @@ public class AllInOneLauncher extends CliBase {
     
     public AllInOneLauncher(String[] args) throws Exception {
         this.args = args;
-        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", null, null);
+        init (this.getClass().getName(), opts, args, jobRequestProperties, null);
     }
     
     public AllInOneLauncher(String[] args, IDuccCallback consoleCb) throws Exception {
         this.args = args;
         mh = new MessageHandler(consoleCb);
-        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
+        init (this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
     }
 
     private boolean isLocal() {

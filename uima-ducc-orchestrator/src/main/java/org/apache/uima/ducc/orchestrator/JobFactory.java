@@ -22,10 +22,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map;
 
+import org.apache.tools.ant.taskdefs.ExecTask;
+import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -52,11 +52,11 @@ import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccCommand;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaAggregate;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaAggregateComponent;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
-import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
@@ -93,25 +93,15 @@ public class JobFactory {
 		int retVal = 0;
 		if(environmentVariables != null) {
 			logger.debug(methodName, job.getDuccId(), environmentVariables);
-			String[] envVarList = environmentVariables.split("\\s+");
-			for (String envVar : envVarList) {
-				logger.debug(methodName, job.getDuccId(), envVar);
-				String[] kv = {};
-				try {
-					kv = envVar.split("=",2);
-					String envKey = kv[0].trim();
-					String envValue = kv[1].trim();
-					aCommandLine.addEnvVar(envKey, envValue);
-					String message = "type:"+type+" "+"key:"+envKey+" "+"value:"+envValue;
-					logger.debug(methodName, job.getDuccId(), message);
-				}
-				catch(Exception e) {
-					logger.warn(methodName, job.getDuccId(), envVar);
-					logger.warn(methodName, job.getDuccId(), envVar.length());
-					logger.warn(methodName, job.getDuccId(), kv.length);
-				}
+			// Tokenize the list of assignments, dequote, and convert to a map of environment settings
+			ArrayList<String> envVarList = DuccUiUtilities.tokenizeList(environmentVariables, true);
+			Map<String, String> envMap = DuccUiUtilities.parseAssignments(envVarList, false);
+			if (envMap == null) {
+                logger.warn(methodName, job.getDuccId(),"Invalid environment syntax in: " + environmentVariables);
+                return 0;  // Should not happen as CLI should have checked and rejected the request
 			}
-			retVal++;
+			aCommandLine.addEnvironment(envMap);
+			retVal = envMap.size();
 		}
 		logger.trace(methodName, job.getDuccId(), "exit");
 		return retVal;
@@ -146,51 +136,6 @@ public class JobFactory {
 		return list;
 	}
 
-	/*
-	private static ArrayList<String> parseJvmArgs(String jvmArgs) {
-		ArrayList<String> args = new ArrayList<String>();
-		if(jvmArgs != null) {
-			String[] tokens = jvmArgs.split("-");
-			for(String token : tokens) {
-				String flag = token.trim();
-				if(flag.equals("")) {
-				}
-				else if(flag.equals("\"")) {
-				}
-				else if(flag.equals("'")) {
-				}
-				else {
-					args.add("-"+flag);
-				}
-			}
-		}
-		return args;
-	}
-	*/
-	
-	// tokenize by blanks, but keep quoted items together
-	
-	private ArrayList<String> parseJvmArgs(String jvmArgs) {
-		ArrayList<String> matchList = new ArrayList<String>();
-		if(jvmArgs != null) {
-			Pattern regex = Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
-			Matcher regexMatcher = regex.matcher(jvmArgs);
-			while (regexMatcher.find()) {
-				if (regexMatcher.group(1) != null) {
-					// Add double-quoted string without the quotes
-					matchList.add(regexMatcher.group(1));
-				} else if (regexMatcher.group(2) != null) {
-					// Add single-quoted string without the quotes
-					matchList.add(regexMatcher.group(2));
-				} else {
-					// Add unquoted word
-					matchList.add(regexMatcher.group());
-				}
-			}
-		}
-		return matchList;
-	}
-	
 	private void dump(DuccWorkJob job, IDuccUimaAggregate uimaAggregate) {
 		String methodName = "dump";
 		logger.info(methodName, job.getDuccId(), "brokerURL     "+uimaAggregate.getBrokerURL());
@@ -333,7 +278,7 @@ public class JobFactory {
 		logger.debug(methodName, job.getDuccId(), "driver CP (combined):"+driverClasspath);
 		driverCommandLine.setClasspath(driverClasspath);
 		String driver_jvm_args = PropertiesHelper.getDriverJvmArgs(jobRequestProperties);
-		ArrayList<String> dTokens = parseJvmArgs(driver_jvm_args);
+		ArrayList<String> dTokens = DuccUiUtilities.tokenizeList(driver_jvm_args, true);
 		for(String token : dTokens) {
 			driverCommandLine.addOption(token);
 		}
@@ -519,7 +464,7 @@ public class JobFactory {
 			pipelineCommandLine.setClassName("main:provided-by-Process-Manager");
 			pipelineCommandLine.setClasspath(processClasspath);
 			String process_jvm_args = PropertiesHelper.getProcessJvmArgs(jobRequestProperties);
-			ArrayList<String> pTokens = parseJvmArgs(process_jvm_args);
+			ArrayList<String> pTokens = DuccUiUtilities.tokenizeList(process_jvm_args, true);
 			for(String token : pTokens) {
 				pipelineCommandLine.addOption(token);
 			}
@@ -539,13 +484,11 @@ public class JobFactory {
 			logger.info(methodName, job.getDuccId(), "process env vars: "+envCountProcess);
 			logger.debug(methodName, job.getDuccId(), "ducclet: "+executableProcessCommandLine.getCommandLine());
 			job.setCommandLine(executableProcessCommandLine);
-			List<String> process_executable_arguments = ParsingHelper.parse(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args));
-			ListIterator<String> listIterator = process_executable_arguments.listIterator();
-			while(listIterator.hasNext()) {
-				String arg = listIterator.next();
-				executableProcessCommandLine.addArgument(arg);
-				logger.debug(methodName, job.getDuccId(), "arg: "+arg);
-			}
+			// Tokenize arguments string and strip any quotes, then add to command line.
+			// Note: placeholders replaced by CLI so can avoid the add method.
+			List<String> process_executable_arguments = DuccUiUtilities.tokenizeList(
+			        jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args), true);
+			executableProcessCommandLine.getArguments().addAll(process_executable_arguments);
 		}
 		// process_initialization_failures_cap
 		String failures_cap = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_initialization_failures_cap);
@@ -583,7 +526,7 @@ public class JobFactory {
             logger.debug(methodName, job.getDuccId(), "No service dependencies");
         } else {
             logger.debug(methodName, job.getDuccId(), "Adding service dependency", depstr);
-            String[] deps = depstr.split("\\s");      
+            String[] deps = depstr.split("\\s+");      
             job.setServiceDependencies(deps);
         }
         // Service Endpoint

@@ -37,9 +37,6 @@ public class DuccManagedReservationSubmit
 {
     private static String dt = "Managed Reservation";
     
-    private static String or_port = "ducc.orchestrator.http.port";
-    private static String or_host = "ducc.orchestrator.http.node";
-   
     private ServiceRequestProperties serviceRequestProperties;
 
     private UiOption[] opts_release = new UiOption[] {
@@ -125,11 +122,10 @@ public class DuccManagedReservationSubmit
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties(); 
-        init();
         if(DuccUiUtilities.isSupportedBeta()) {
             opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, args, serviceRequestProperties, or_host, or_port, "or", consoleCb);
+        init (this.getClass().getName(), opts, args, serviceRequestProperties, consoleCb);
     }
         
     /**
@@ -146,11 +142,10 @@ public class DuccManagedReservationSubmit
     {
         String[] arg_array = args.toArray(new String[args.size()]);
         serviceRequestProperties = new ServiceRequestProperties();   
-        init();
         if(DuccUiUtilities.isSupportedBeta()) {
             opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, arg_array, serviceRequestProperties, or_host, or_port, "or", consoleCb);
+        init (this.getClass().getName(), opts, arg_array, serviceRequestProperties, consoleCb);
     }
         
     /**
@@ -166,17 +161,10 @@ public class DuccManagedReservationSubmit
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties();
-        // TODO - can we get OR to just use properties and not these specialized classes?
-        //        Until then, we need to pass in the right kind of props, sigh.
-        for ( Object k : props.keySet() ) {      
-            Object v = props.get(k);
-            serviceRequestProperties.put(k, v);
-        }
-        init();
         if(DuccUiUtilities.isSupportedBeta()) {
             opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, null, serviceRequestProperties, or_host, or_port, "or", consoleCb);
+        init (this.getClass().getName(), opts, props, serviceRequestProperties, consoleCb);
     }
 
                         
@@ -189,11 +177,6 @@ public class DuccManagedReservationSubmit
     public boolean execute() throws Exception 
     {
 
-        // These must be enforced for "ducclets"
-        serviceRequestProperties.setProperty(UiOption.ProcessThreadCount.pname(), "1");
-        serviceRequestProperties.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");     
-        serviceRequestProperties.put(UiOption.ServiceTypeOther.pname(), "");
-        
         /*
          * set DUCC_LD_LIBRARY_PATH in process environment
          */
@@ -220,6 +203,12 @@ public class DuccManagedReservationSubmit
             }
         }
 
+        // Create a copy to be saved later without these 3 "ducclet" properties required by DUCC
+        ServiceRequestProperties serviceProperties = (ServiceRequestProperties)serviceRequestProperties.clone();
+        serviceRequestProperties.setProperty(UiOption.ProcessThreadCount.pname(), "1");
+        serviceRequestProperties.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");     
+        serviceRequestProperties.setProperty(UiOption.ServiceTypeOther.pname(), "");
+        
         SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties);
         SubmitServiceReplyDuccEvent reply = null;
         
@@ -260,7 +249,7 @@ public class DuccManagedReservationSubmit
                 if ( friendlyId < 0 ) {
                     retval = false;
                 } else {
-                    saveSpec(DuccUiConstants.managed_reservation_properties, serviceRequestProperties);
+                    saveSpec(DuccUiConstants.managed_reservation_properties, serviceProperties);
                     startMonitors(true, DuccContext.ManagedReservation);       // starts conditionally, based on job spec and console listener present
                 }
             }

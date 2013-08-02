@@ -24,16 +24,19 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.Parser;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDucc;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -55,11 +58,10 @@ public abstract class CliBase
     private String myClassName = "N/A";
     private boolean init_done = false;
     protected String ducc_home;
-    DuccProperties ducc_properties;
     DuccEventHttpDispatcher dispatcher;
 
     protected Options options;
-    protected CommandLineParser parser;
+    protected Parser parser;
     protected CommandLine commandLine;
 
     protected long friendlyId = -1;
@@ -70,7 +72,7 @@ public abstract class CliBase
     protected ArrayList<String> warnings = new ArrayList<String>();
     protected ArrayList<String> messages = new ArrayList<String>();
 
-    protected boolean debug = false;
+    protected boolean debug;
 
     protected ConsoleListener  console_listener = null;
     protected String host_address = "N/A";
@@ -81,8 +83,10 @@ public abstract class CliBase
 
     CountDownLatch waiter = null;
 
-    protected Properties userSpecifiedProperties = new Properties();
-    protected Properties fileSpecifiedProperties = new Properties();
+    protected Properties userSpecifiedProperties;
+    
+    // Options added to the saved spec file that must be removed if used as a --specification option
+    private List<String> addedOptions = Arrays.asList(UiOption.SubmitPid.pname(), UiOption.User.pname());
     
     /**
      * All extenders must implement execute - this method does whatever processing on the input
@@ -93,7 +97,7 @@ public abstract class CliBase
      */
     public abstract boolean execute() throws Exception;
 
-    String getLogDirectory(String extension)
+    String getLogDirectory()
     {
         /*
          * employ default log directory if not specified
@@ -114,9 +118,6 @@ public abstract class CliBase
                     log_directory = System.getProperty("user.home") + File.separator+log_directory;
                 }
             }
-        }
-        if ( extension != null ) {
-            log_directory = log_directory + File.separator + extension;
         }
 
         cli_props.setProperty(UiOption.LogDirectory.pname(), log_directory);
@@ -164,24 +165,13 @@ public abstract class CliBase
     }
 
     /*
-     * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
+     * Check the syntax & if a service refers to itself -- place-holders already resolved
      */
-    boolean resolve_service_dependencies(String endpoint)
+    boolean check_service_dependencies(String endpoint)
     {
-        String key_ja = UiOption.ProcessJvmArgs.pname();
-        if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
-            key_ja = UiOption.JvmArgs.pname();
-        }
-        String jvmargs = cli_props.getProperty(key_ja);
-        
-        Properties jvmprops = DuccUiUtilities.jvmArgsToProperties(jvmargs);
-
         String deps = cli_props.getProperty(UiOption.ServiceDependency.pname());
         try {
-            deps = DuccUiUtilities.resolve_service_dependencies(endpoint, deps, jvmprops);                
-            if ( deps != null ) {
-                cli_props.setProperty(UiOption.ServiceDependency.pname(), deps);
-            }
+            DuccUiUtilities.check_service_dependencies(endpoint, deps);                
             return true;
         } catch ( Throwable t ) {
             message("ERROR:", t.toString());
@@ -208,7 +198,7 @@ public abstract class CliBase
         }
     }
 
-    protected Options makeOptions(UiOption[] optlist, boolean strict)
+    protected Options makeOptions(UiOption[] optlist)
     {
         Options opts = new Options();
         for ( UiOption opt : optlist ) {
@@ -216,7 +206,6 @@ public abstract class CliBase
             Option o = new Option(opt.sname(), opt.pname(), (arg != null), opt.makeDesc());
             o.setArgName(arg);
             o.setOptionalArg(arg != null && arg.endsWith("(optional)"));
-            o.setRequired(strict && opt.required());
             if (opt.multiargs()) {
               o.setArgs(Option.UNLIMITED_VALUES);   // (Untested as we have no multiarg options)
             }
@@ -256,48 +245,22 @@ public abstract class CliBase
         return arglist.toArray(new String[arglist.size()]);
     }
 
-    private void enhanceProperties(CommandLine commandLine, boolean showdebug)
-    {
-        Option[] cliopts = commandLine.getOptions();
-        for ( Option o : cliopts ) {
-            if ( debug && showdebug ) {
-                System.out.println("CLI Override: " + o.toString());
-            }
-            String k = o.getLongOpt().trim();
-            String v = o.getValue();
-            if ( v == null ) v = "";      // Boolean options have an empty value
-            v = v.trim();
-
-            cli_props.put(k, v);
-        }
-    }
-
-
     /**
-     * Use this init if you use the default log location and don't need a console callback.
+     * Standard init for all except the Service calls that are sent to the SM
      */
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, String host_s, String port_s, String servlet)
-        throws Exception
-    {
-        this.init(myClassName, opts, args, cli_props, host_s, port_s, servlet, null, null);
-    }
 
-    /**
-     * Use this init if you you need a console callback and use the default log location.
-     */
     protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props, 
-            String host_s, String port_s, String servlet, IDuccCallback consoleCb)
-        throws Exception
-    {
-        this.init(myClassName, opts, args, cli_props, host_s, port_s, servlet, consoleCb, null);
+                    IDuccCallback consoleCb) throws Exception {
+        this.init (myClassName, opts, args, null, cli_props, consoleCb, "orchestrator");
     }
 
-    protected synchronized void init() {
-        ducc_home = Utils.findDuccHome();
+    protected synchronized void init(String myClassName, UiOption[] opts, Properties props, DuccProperties cli_props, 
+                    IDuccCallback consoleCb) throws Exception {
+        this.init (myClassName, opts, null, props, cli_props, consoleCb, "orchestrator");
     }
     
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, DuccProperties cli_props,
-                     String host_s, String port_s, String servlet, IDuccCallback consoleCb, String logExtension)
+    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, Properties props, 
+                    DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
         throws Exception
     {
         if ( init_done ) return;
@@ -314,112 +277,149 @@ public abstract class CliBase
         this.cli_props = cli_props;
         parser = new PosixParser();
 
-        // Set up for reverse lookup
-//        for (UiOption opt : UiOption.values() ) {
-//            reverseOptions.put(opt.pname(), opt);
-//        }
-
-//         options.addOption(OptionBuilder
-//                           .withArgName(DuccUiConstants.parm_driver_descriptor_CR)
-//                           .withDescription(makeDesc(DuccUiConstants.desc_driver_descriptor_CR,DuccUiConstants.exmp_driver_descriptor_CR)).hasArg()
-//                           .withLongOpt(DuccUiConstants.name_driver_descriptor_CR).create());
-
-        // If given only a properties file convert to an array of strings for the parser
+        options = makeOptions(opts);
+        // If given only a properties file parse as if only have defaults
         if (args == null) {
-            args = mkArgs(cli_props);
-            cli_props.clear();
+            commandLine = parser.parse(options, null, props);
+        } else {
+            fixupQuotedArgs(args);
+            commandLine = parser.parse(options, args);
         }
-        
-        // Initially don't check for required options as they may be in a specification file
-        options = makeOptions(opts, false);
-        commandLine = parser.parse(options, args);
-
-        Option[] optionArray = commandLine.getOptions();
-        for(Option option : optionArray) {
-        	String key = option.getLongOpt().trim();
-        	String value = option.getValue("").trim();
-        	userSpecifiedProperties.setProperty(key, value);
-        }
-        
-        if (commandLine.hasOption(UiOption.Help.pname())) {
+        if (commandLine.getOptions().length == 0 || commandLine.hasOption(UiOption.Help.pname())) {
             usage(null);
         }
-        if (commandLine.hasOption(UiOption.Debug.pname())) {
-            debug = true;
-        }
-        if(commandLine.getOptions().length == 0) {
-            usage(null);
-        }
+        debug = commandLine.hasOption(UiOption.Debug.pname());
 
         // Load the specification file, if given on the command line.  Note that registration
-        // bypasses the somewhat redundant --specification kw so we check two options.
-        String spec1 =  UiOption.Specification.pname();
-        String val = null;
-        if ( commandLine.hasOption(spec1) ) {
-            val = commandLine.getOptionValue(spec1);
+        // bypasses the somewhat redundant --specification option so we check two options.
+        // Cannot have both as --specification && --register are never both valid.
+        String fname = null;
+        for (String spec : new String[] { UiOption.Specification.pname(), UiOption.Register.pname()}) {
+            fname = commandLine.getOptionValue(spec);
+            if (fname != null) break;
         }
-        String spec2 =  UiOption.Register.pname();
-        if ( commandLine.hasOption(spec2) ) {
-            val = commandLine.getOptionValue(spec2);
-        }        
-        if ( val != null ) {
-            File file = new File(val);
-            FileInputStream fis = new FileInputStream(file);
-            cli_props.load(fis);
-
-            String[] keyArray = cli_props.keySet().toArray(new String[0]);
-            for(String key : keyArray) {
-            	String value = cli_props.getProperty(key);
-            	fileSpecifiedProperties.setProperty(key, value);
+        // If have a specification file re-parse using it for default values
+        if ( fname != null ) {
+            FileInputStream fis = new FileInputStream(new File(fname));
+            Properties defaults = new Properties();
+            defaults.load(fis);
+            fis.close();
+            sanitize(defaults, options);  // Check for illegals as commons cli 1.2 thows a NPE !
+            // If invoked with overriding properties add to or replace the defaults 
+            if (props != null) {
+                defaults.putAll(props);
             }
-            
-            // Loop through options and enhance / override things from cl options
-            enhanceProperties(commandLine, true);
-
-            // Now a trick - we'll rebuild the command line with the props as well as the cli args
-            // and reparse strictly.
-            args = mkArgs(cli_props);
-            cli_props.clear();
+            commandLine = parser.parse(options, args, defaults);
         }
 
-        // Even if no specification file provided, re-parse and check for required options
-        options = makeOptions(opts, true);
-        commandLine = parser.parse(options, args);
-        enhanceProperties(commandLine, false);
-
-        String propsfile = ducc_home + "/resources/ducc.properties";
-        ducc_properties = new DuccProperties();
-        ducc_properties.load(propsfile);
-        cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());   // my pid
-
-        String host = ducc_properties.getStringProperty(host_s);
-        String port = ducc_properties.getStringProperty(port_s);
-
-        if ( host == null ) {
-            throw new IllegalStateException(host_s + " is not set in ducc.properties");
-        }
+        // Copy options into cli_props
+        setOptions(opts);
         
-        if ( port == null ) {
-            throw new IllegalStateException(port_s + " is not set in ducc.properties");
-        }
-            
-        String targetUrl = "http://"+ host + ":" + port + "/" + servlet;
-        dispatcher = new DuccEventHttpDispatcher(targetUrl);
+        // Save a copy of the user-specified ones by cloning the underlying properties
+        userSpecifiedProperties = (Properties)((Properties)cli_props).clone();
+        
+        cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
-        if ( getLogDirectory(logExtension) == null ) {
+        if ( getLogDirectory() == null ) {
             throw new IllegalArgumentException("Cannot access log directory.");
         }
         setWorkingDirectory();
         setUser();
 
+        //TODO - shouldn't environment fixups be done here for all requests that may use it??
+        
         NodeIdentity ni = new NodeIdentity();
-        this.host_address = ni.getIp();           
+        host_address = ni.getIp();           
 
         initConsoleListener();
 
+        String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
+        dispatcher = new DuccEventHttpDispatcher(targetUrl);
+        
         init_done = true;
     }
 
+    /*
+     * Save options as properties after resolving any ${..} placeholders
+     * Also check that all required ones provided
+     */
+    void setOptions(UiOption[] opts) throws Exception {
+        for (Option opt : commandLine.getOptions()) {
+            String val = opt.getValue();
+            if (val == null) {
+                val = "true";  // Treat no-arg options as booleans ... apache.commons.cli expects this
+            } else {
+                if (val.contains("${")) {
+                    val = resolvePlaceholders(val);
+                }
+            }
+            cli_props.put(opt.getLongOpt(), val);
+            if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = " + val);
+        }
+
+        for (UiOption opt : opts) {
+            if (opt.required() && !cli_props.containsKey(opt.pname())) {
+                throw new Exception("Missing required option: " + opt.pname());
+            }
+        }
+    }
+    
+    /*
+     * Clean up the properties in a specification file 
+     * Remove any added by the CLI that the parse would call illegal
+     * Check for invalid options as Commons CLI 1.2 throws a NPE
+     * Correct booleans by treating empty as "true" and removing anything
+     * other than 'true' or 'yes' or '1' (CLI 1.2 mishandles others)
+     */
+    
+    private void sanitize(Properties props, Options opts) {
+        for (String key : props.stringPropertyNames()) {
+            if (addedOptions.contains(key)) {
+                props.remove(key);
+            } else {
+                Option opt = options.getOption(key);
+                if (opt == null) {
+                    throw new IllegalArgumentException("Invalid option " + key + " in specification file");
+                }
+                if (!opt.hasArg()) {
+                    String val = props.getProperty(key);
+                    if (val.length() == 0) {
+                        props.setProperty(key, "true");
+                    } else if (!val.equalsIgnoreCase("true") &&
+                               !val.equalsIgnoreCase("yes") &&
+                               !val.equals("1")) {
+                        message("WARN: Ignoring illegal value: ", key, "=", val);
+                        props.remove(key);
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
+     * Resolve any ${..} placeholders against user's system properties and environment
+     */
+    private String resolvePlaceholders(String contents) {
+        //  Placeholders syntax ${<placeholder>} 
+        Pattern pattern = Pattern.compile("\\$\\{(.*?)\\}");  // Stops on first '}'
+        Matcher matcher = pattern.matcher(contents); 
+
+        StringBuffer sb = new StringBuffer();
+        while (matcher.find()) {
+            final String key = matcher.group(1);
+            String value = System.getProperty(key);
+            if (value == null) {
+                value = System.getenv(key);
+                if (value == null) {
+                    throw new IllegalArgumentException("Missing value for placeholder '" + key + "' in: " + contents);
+                }
+            }
+            matcher.appendReplacement(sb, value);        
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
+    
     void saveSpec(String name, DuccProperties props) 
         throws Exception
     {
@@ -432,12 +432,9 @@ public abstract class CliBase
             throw new IllegalStateException("saveSpec: Cannot create log directory: " + f.toString());
         }
 
+        // Save the specification (but exclude the 'signature' entry)
         String comments = null;
-        FileOutputStream fos = null;
-        OutputStreamWriter out = null;
-        fos = new FileOutputStream(fileName);
-        out = new OutputStreamWriter(fos);
-
+        OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(fileName));
         String key = UiOption.Signature.pname();
         if ( props.containsKey(key) ) {
             Object value = props.remove(key);
@@ -446,27 +443,13 @@ public abstract class CliBase
         } else {
             props.store(out, comments);
         }
-
         out.close();
-        fos.close();
         
-        /////
-        
+        // Also save just the values the user provided
         fileName = directory + File.separator + DuccUiConstants.user_specified_properties;
-        fos = new FileOutputStream(fileName);
-        out = new OutputStreamWriter(fos);
+        out = new OutputStreamWriter(new FileOutputStream(fileName));
         userSpecifiedProperties.store(out, comments);
         out.close();
-        fos.close();
-        
-        /////
-        
-        fileName = directory + File.separator + DuccUiConstants.file_specified_properties;
-        fos = new FileOutputStream(fileName);
-        out = new OutputStreamWriter(fos);
-        fileSpecifiedProperties.store(out, comments);
-        out.close();
-        fos.close();
     }
 
     /**
@@ -557,27 +540,28 @@ public abstract class CliBase
      * Return internal API debug status.
      * @return True if the API debugging flag is set; false otherwise.
      */
-    public boolean isDebug()
+/*    public boolean isDebug()
     {
         return debug;
-    }
+    }*/
 
     /**
      * Set the internal API debug flag.
      * @param val Set to true to enable debugging, and false to disable it.
      */
-    public void setDebug(boolean val)
+/*    public void setDebug(boolean val)
     {
         this.debug = val;
     }
-
+*/
     // nobody seems to use this
 //     public String getHostAddress()
 //     {
 //         return host_address;
 //     }
 
-    public boolean hasProperty(String key)
+/* Also unused?
+ *     public boolean hasProperty(String key)
     {
         return cli_props.containsKey(key);
     }
@@ -585,7 +569,7 @@ public abstract class CliBase
     public String getProperty(String key)
     {
         return (String) cli_props.getProperty(key);
-    }
+    }*/
 
     protected IDuccCallback getCallback()
     {
@@ -805,4 +789,20 @@ public abstract class CliBase
         return false;
     }
 
+    /*
+     * Since apache-commons-cli 1.2 wrongly removes initial or final quotes, add extra one(s)
+     * i.e. an --environment setting of FOO="a b" becomes FOO="a b""
+     * What about a lonely " ... both starts & ends so would become => """
+     */
+    private String[] fixupQuotedArgs(String[] args) {
+        for (int i = 0; i < args.length; ++i) {
+            if (args[i].charAt(0) == '"') {
+                args[i] = "\"" + args[i];
+            }
+            if (args[i].endsWith("\"")) {
+                args[i] = args[i] + "\"";
+            }
+        }
+        return args;
+    }
 }

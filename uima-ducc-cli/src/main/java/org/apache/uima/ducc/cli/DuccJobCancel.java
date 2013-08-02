@@ -34,8 +34,6 @@ public class DuccJobCancel
 {
 	
     JobRequestProperties jobRequestProperties = new JobRequestProperties();
-    static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.http.node";
 
     long canceledPid = -1;
     String responseMessage = null;
@@ -59,7 +57,7 @@ public class DuccJobCancel
 	public DuccJobCancel(String [] args) 
         throws Exception
     {
-        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", null);
+        init (this.getClass().getName(), opts, args, jobRequestProperties, null);
 	}
 
     /**
@@ -70,7 +68,7 @@ public class DuccJobCancel
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
-        init(this.getClass().getName(), opts, arg_array, jobRequestProperties, or_host, or_port, "or", null);
+        init(this.getClass().getName(), opts, arg_array, jobRequestProperties, null);
 	}
 
     /**
@@ -80,11 +78,7 @@ public class DuccJobCancel
 	public DuccJobCancel(Properties props) 
         throws Exception
     {
-        for ( Object k : props.keySet() ) {      
-            Object v = props.get(k);
-            jobRequestProperties.put(k, v);
-        }
-        init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", null, null);
+        init (this.getClass().getName(), opts, props, jobRequestProperties, null);
 	}
 
     /**

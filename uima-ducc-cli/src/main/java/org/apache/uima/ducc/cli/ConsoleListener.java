@@ -63,7 +63,7 @@ class ConsoleListener
         NodeIdentity ni = new NodeIdentity();
         this.console_host_address = ni.getIp();            
 
-        debug = submit.isDebug();
+        debug = submit.debug; //isDebug();
     }
 
     String getConsoleHostAddress()

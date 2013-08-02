@@ -39,12 +39,6 @@ public class DuccJobSubmit
     extends CliBase 
 {    
     private JobRequestProperties jobRequestProperties = new JobRequestProperties();        
-    static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.http.node";
-    
-    // public DuccJobSubmit(IDuccMessageProcessor duccMessageProcessor) {
-//         this.duccMessageProcessor = duccMessageProcessor;
-//     }
     
     static UiOption[] opts_release = new UiOption[] {
         UiOption.Help,
@@ -218,12 +212,10 @@ public class DuccJobSubmit
     public DuccJobSubmit(String[] args, IDuccCallback consoleCb)
         throws Exception
     {
-        init();
         if(DuccUiUtilities.isSupportedBeta()) {
             opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, args, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
-        enrich_parameters_with_defaults(this, jobRequestProperties);
+        init (this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
         if(isAllInOne()) {
             allInOneLauncher = new AllInOneLauncher(args, consoleCb);
         }
@@ -241,23 +233,17 @@ public class DuccJobSubmit
     public DuccJobSubmit(Properties props, IDuccCallback consoleCb)
         throws Exception
     {
-        for ( Object k : props.keySet() ) {      
-            Object v = props.get(k);
-            jobRequestProperties.put(k, v);
-        }
-        init();
-        if(DuccUiUtilities.isSupportedBeta()) {
+        if (DuccUiUtilities.isSupportedBeta()) {
             opts = opts_beta;
         }
-        init(this.getClass().getName(), opts, null, jobRequestProperties, or_host, or_port, "or", consoleCb, null);
-        enrich_parameters_with_defaults(this, jobRequestProperties);
+        init (this.getClass().getName(), opts, props, jobRequestProperties, consoleCb);
         if(isAllInOne()) {
             String[] args = mkArgs(props);
             allInOneLauncher = new AllInOneLauncher(args, consoleCb);
         }
     }
     
-    protected void enrich_parameters_with_defaults(CliBase base, Properties props)
+    protected void enrich_parameters_with_defaults(Properties props)
             throws Exception
     {
        	String pname = UiOption.SchedulingClass.pname();
@@ -267,7 +253,7 @@ public class DuccJobSubmit
            	if(scheduling_class != null) {
            		props.put(pname, scheduling_class);
            		String text = pname+"="+scheduling_class+" [default]";
-           		base.message(text);
+           		message(text);
            	}
            	else {
            		throw new MissingArgumentException(pname);
@@ -469,7 +455,7 @@ public class DuccJobSubmit
         if(allInOneLauncher != null) {
             return allInOneLauncher.execute();
         }
-                    
+        enrich_parameters_with_defaults(jobRequestProperties);   
         try {
             enrich_parameters_for_debug(jobRequestProperties);
         } catch (Exception e1) {
@@ -541,7 +527,7 @@ public class DuccJobSubmit
         }
 
         /*
-         * set DUCC_LD_LIBRARY_PATH in driver, process environment
+         * Augment the environment(s) with DUCC_LD_LIBRARY_PATH and any propagetd values
          */
         boolean ev0 = jobRequestProperties.containsKey(UiOption.Environment.pname());
         boolean evd = jobRequestProperties.containsKey(UiOption.DriverEnvironment.pname());
@@ -597,7 +583,7 @@ public class DuccJobSubmit
         /*
          * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
          */
-        if ( ! resolve_service_dependencies(null) ) {
+        if ( ! check_service_dependencies(null) ) {
             return false;
         }
 

@@ -33,9 +33,6 @@ import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 public class DuccReservationSubmit 
     extends CliBase
 {
-    static String or_port = "ducc.orchestrator.http.port";
-    static String or_host = "ducc.orchestrator.http.node";
-
     ReservationRequestProperties requestProperties = new ReservationRequestProperties();
 	
 	private String nodeList = "";
@@ -47,7 +44,7 @@ public class DuccReservationSubmit
 	public DuccReservationSubmit(String[] args)
         throws Exception
     {
-        init(this.getClass().getName(), opts, args, requestProperties, or_host, or_port, "or");
+        init (this.getClass().getName(), opts, args, requestProperties, null);
     }
 
     /**
@@ -58,7 +55,7 @@ public class DuccReservationSubmit
         throws Exception
     {
         String[] arg_array = args.toArray(new String[args.size()]);
-        init(this.getClass().getName(), opts, arg_array, requestProperties, or_host, or_port, "or");
+        init (this.getClass().getName(), opts, arg_array, requestProperties, null);
     }
 
     /**
@@ -68,11 +65,7 @@ public class DuccReservationSubmit
 	public DuccReservationSubmit(Properties props)
         throws Exception
     {
-        for ( Object k : props.keySet() ) {      
-            Object v = props.get(k);
-            requestProperties.put(k, v);
-        }
-        init(this.getClass().getName(), opts, null, requestProperties, or_host, or_port, "or");
+        init (this.getClass().getName(), opts, props, requestProperties, null);
     }
 
     UiOption[] opts = new UiOption[] {
@@ -86,33 +79,6 @@ public class DuccReservationSubmit
         UiOption.ReservationMemorySize,
     };
 
-// 	@SuppressWarnings("static-access")
-// 	private void addOptions(Options options) {
-// // // 		options.addOption(OptionBuilder
-// // // 				.withDescription(DuccUiConstants.desc_help).hasArg(false)
-// // // 				.withLongOpt(DuccUiConstants.name_help).create());
-// // 		options.addOption(OptionBuilder
-// // 				.withArgName(DuccUiConstants.parm_description)
-// // 				.withDescription(makeDesc(DuccUiConstants.desc_description,DuccUiConstants.exmp_description)).hasArg()
-// // 				.withLongOpt(DuccUiConstants.name_description).create());
-// 		options.addOption(OptionBuilder
-// 				.withArgName(DuccUiConstants.parm_reservation_scheduling_class)
-// 				.withDescription(makeDesc(DuccUiConstants.desc_reservation_scheduling_class,DuccUiConstants.exmp_reservation_scheduling_class)).hasArg()
-// 				.withLongOpt(DuccUiConstants.name_reservation_scheduling_class).create());
-// 		options.addOption(OptionBuilder
-// 				.withArgName(DuccUiConstants.parm_number_of_instances)
-// 				.withDescription(makeDesc(DuccUiConstants.desc_number_of_instances,DuccUiConstants.exmp_number_of_instances)).hasArg()
-// 				.withLongOpt(DuccUiConstants.name_number_of_instances).create());
-// 		options.addOption(OptionBuilder
-// 				.withArgName(DuccUiConstants.parm_instance_memory_size)
-// 				.withDescription(makeDesc(DuccUiConstants.desc_instance_memory_size,DuccUiConstants.exmp_instance_memory_size)).hasArg()
-// 				.withLongOpt(DuccUiConstants.name_instance_memory_size).create());
-// 		options.addOption(OptionBuilder
-// 				.withArgName(DuccUiConstants.parm_specification)
-// 				.withDescription(DuccUiConstants.desc_specification).hasArg()
-// 				.withLongOpt(DuccUiConstants.name_specification).create());
-// 	}
-	
 
     /**
      * Execute collects the parameters for the reservation and sends them to the DUCC Orchestrator
