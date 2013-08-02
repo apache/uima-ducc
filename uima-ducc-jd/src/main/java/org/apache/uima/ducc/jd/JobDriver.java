@@ -762,7 +762,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			StringBuffer sb = new StringBuffer();
 			sb.append("job driver received JobStop from plugin error handler");
 			if(directive.hasReason()) {
-				sb.append("with reason: ");
+				sb.append(" with reason: ");
 				sb.append(directive.getReason());
 			}
 			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale(sb.toString()));
@@ -1308,7 +1308,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			StringBuffer sb = new StringBuffer();
 			sb.append("job driver received JobStop from plugin error handler");
 			if(directive.hasReason()) {
-				sb.append("with reason: ");
+				sb.append(" with reason: ");
 				sb.append(directive.getReason());
 			}
 			driverStatusReport.killJob(JobCompletionType.CanceledByDriver, new Rationale(sb.toString()));
