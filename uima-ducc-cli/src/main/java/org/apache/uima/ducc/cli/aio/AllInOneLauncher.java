@@ -32,6 +32,7 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
+import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
@@ -912,7 +913,8 @@ public class AllInOneLauncher extends CliBase {
         }
         
         if(process_jvm_args != null) {
-            String[] jvmargs = process_jvm_args.split("\\s+");  // Must split on white-space, not a single blank
+            // Tokenize and strip quotes
+            ArrayList<String> jvmargs = DuccUiUtilities.tokenizeList(process_jvm_args, true);
             for(String jvmarg : jvmargs) {
                 message = "jvmarg: "+jvmarg;
                 mh.frameworkDebug(cid, mid, message);
