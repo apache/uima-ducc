@@ -1154,8 +1154,20 @@ public class DuccHandler extends DuccAbstractHandler {
 						sb.append(wis.getWiId());
 						// Status
 						sb.append("<td align=\"right\">");
+						
 						State state = wis.getState();
-						sb.append(state);
+						StringBuffer status = new StringBuffer();
+						switch(state) {
+						case lost:
+							status = sb.append("<span title=\"Work Item was queued but never dequeued. (This is most likely a DUCC framework issue.)\" >");
+							sb.append(state);
+							sb.append("</span>");
+							break;
+						default:
+							sb.append(state);
+							break;
+						}
+						sb.append(status);
 						// Queuing Time (sec)
 						time = getAdjustedTime(wis.getMillisOverhead(), job);
 						time = time/1000;
