@@ -24,7 +24,7 @@
     <name>DUCC Job Flow Controller</name>
     <description>Ducc FlowController for Job Processes assembled from user components. If WI-Cas is sent to initial CM, it is then dropped. All other parent CASes continue thru the flow.</description>
     <version>1.0</version>
-    <vendor>IBM</vendor>
+    <vendor>Apache UIMA</vendor>
     <configurationParameters/>
     <configurationParameterSettings/>
     <typeSystemDescription>

@@ -128,10 +128,6 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
     @Override
     public Step next() throws AnalysisEngineProcessException {
 
-      if (currentStep >= mSequence.size()) {
-        return new FinalStep(); // this CAS is cooked
-      }
-
       // If this is a work item CAS in a pipeline with an initial CM that has just been
       // to the CM then check if it should be sent to the last step, e.g. the CC.
       if (mStartsWithCasMultiplier && !internallyCreatedCas && currentStep == 1) {
@@ -142,13 +138,20 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
           if (fsIter.hasNext()) {
             throw new IllegalStateException("More than one instance of Workitem type");
           }
-          if (wi.getSendToCC()) {
-        	currentStep = mSequence.size();
-            return new SimpleStep((String) mSequence.get(mSequence.size() - 1));
+          if (wi.getSendToAll()) {
+        	// send WI-CAS to all delegates 
+          }
+          else if (wi.getSendToLast()) {
+        	// send to last delegate only
+        	currentStep = mSequence.size() - 1;
           }
         }
-        // Do not send to CC
-        return new FinalStep();
+        // No Workitem FS in CAS, WI-CAS is at end of flow
+        else return new FinalStep();
+      }
+
+      if (currentStep >= mSequence.size()) {
+        return new FinalStep(); // this CAS is cooked
       }
 
       // Send to next component in pipeline

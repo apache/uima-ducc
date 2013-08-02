@@ -14,7 +14,7 @@ import org.apache.uima.cas.Feature;
 import org.apache.uima.jcas.cas.TOP_Type;
 
 /** 
- * Updated by JCasGen Fri Jul 19 18:26:47 EDT 2013
+ * Updated by JCasGen Fri Aug 02 09:06:21 EDT 2013
  * @generated */
 public class Workitem_Type extends TOP_Type {
   /** @generated */
@@ -42,38 +42,74 @@ public class Workitem_Type extends TOP_Type {
   public final static boolean featOkTst = JCasRegistry.getFeatOkTst("org.apache.uima.ducc.Workitem");
  
   /** @generated */
-  final Feature casFeat_inputfile;
+  final Feature casFeat_sendToLast;
   /** @generated */
-  final int     casFeatCode_inputfile;
+  final int     casFeatCode_sendToLast;
   /** @generated */ 
-  public String getInputfile(int addr) {
-        if (featOkTst && casFeat_inputfile == null)
-      jcas.throwFeatMissing("inputfile", "org.apache.uima.ducc.Workitem");
-    return ll_cas.ll_getStringValue(addr, casFeatCode_inputfile);
+  public boolean getSendToLast(int addr) {
+        if (featOkTst && casFeat_sendToLast == null)
+      jcas.throwFeatMissing("sendToLast", "org.apache.uima.ducc.Workitem");
+    return ll_cas.ll_getBooleanValue(addr, casFeatCode_sendToLast);
   }
   /** @generated */    
-  public void setInputfile(int addr, String v) {
-        if (featOkTst && casFeat_inputfile == null)
-      jcas.throwFeatMissing("inputfile", "org.apache.uima.ducc.Workitem");
-    ll_cas.ll_setStringValue(addr, casFeatCode_inputfile, v);}
+  public void setSendToLast(int addr, boolean v) {
+        if (featOkTst && casFeat_sendToLast == null)
+      jcas.throwFeatMissing("sendToLast", "org.apache.uima.ducc.Workitem");
+    ll_cas.ll_setBooleanValue(addr, casFeatCode_sendToLast, v);}
     
   
  
   /** @generated */
-  final Feature casFeat_outputfile;
+  final Feature casFeat_sendToAll;
   /** @generated */
-  final int     casFeatCode_outputfile;
+  final int     casFeatCode_sendToAll;
   /** @generated */ 
-  public String getOutputfile(int addr) {
-        if (featOkTst && casFeat_outputfile == null)
-      jcas.throwFeatMissing("outputfile", "org.apache.uima.ducc.Workitem");
-    return ll_cas.ll_getStringValue(addr, casFeatCode_outputfile);
+  public boolean getSendToAll(int addr) {
+        if (featOkTst && casFeat_sendToAll == null)
+      jcas.throwFeatMissing("sendToAll", "org.apache.uima.ducc.Workitem");
+    return ll_cas.ll_getBooleanValue(addr, casFeatCode_sendToAll);
   }
   /** @generated */    
-  public void setOutputfile(int addr, String v) {
-        if (featOkTst && casFeat_outputfile == null)
-      jcas.throwFeatMissing("outputfile", "org.apache.uima.ducc.Workitem");
-    ll_cas.ll_setStringValue(addr, casFeatCode_outputfile, v);}
+  public void setSendToAll(int addr, boolean v) {
+        if (featOkTst && casFeat_sendToAll == null)
+      jcas.throwFeatMissing("sendToAll", "org.apache.uima.ducc.Workitem");
+    ll_cas.ll_setBooleanValue(addr, casFeatCode_sendToAll, v);}
+    
+  
+ 
+  /** @generated */
+  final Feature casFeat_inputspec;
+  /** @generated */
+  final int     casFeatCode_inputspec;
+  /** @generated */ 
+  public String getInputspec(int addr) {
+        if (featOkTst && casFeat_inputspec == null)
+      jcas.throwFeatMissing("inputspec", "org.apache.uima.ducc.Workitem");
+    return ll_cas.ll_getStringValue(addr, casFeatCode_inputspec);
+  }
+  /** @generated */    
+  public void setInputspec(int addr, String v) {
+        if (featOkTst && casFeat_inputspec == null)
+      jcas.throwFeatMissing("inputspec", "org.apache.uima.ducc.Workitem");
+    ll_cas.ll_setStringValue(addr, casFeatCode_inputspec, v);}
+    
+  
+ 
+  /** @generated */
+  final Feature casFeat_outputspec;
+  /** @generated */
+  final int     casFeatCode_outputspec;
+  /** @generated */ 
+  public String getOutputspec(int addr) {
+        if (featOkTst && casFeat_outputspec == null)
+      jcas.throwFeatMissing("outputspec", "org.apache.uima.ducc.Workitem");
+    return ll_cas.ll_getStringValue(addr, casFeatCode_outputspec);
+  }
+  /** @generated */    
+  public void setOutputspec(int addr, String v) {
+        if (featOkTst && casFeat_outputspec == null)
+      jcas.throwFeatMissing("outputspec", "org.apache.uima.ducc.Workitem");
+    ll_cas.ll_setStringValue(addr, casFeatCode_outputspec, v);}
     
   
  
@@ -114,6 +150,24 @@ public class Workitem_Type extends TOP_Type {
   
  
   /** @generated */
+  final Feature casFeat_bytelength;
+  /** @generated */
+  final int     casFeatCode_bytelength;
+  /** @generated */ 
+  public int getBytelength(int addr) {
+        if (featOkTst && casFeat_bytelength == null)
+      jcas.throwFeatMissing("bytelength", "org.apache.uima.ducc.Workitem");
+    return ll_cas.ll_getIntValue(addr, casFeatCode_bytelength);
+  }
+  /** @generated */    
+  public void setBytelength(int addr, int v) {
+        if (featOkTst && casFeat_bytelength == null)
+      jcas.throwFeatMissing("bytelength", "org.apache.uima.ducc.Workitem");
+    ll_cas.ll_setIntValue(addr, casFeatCode_bytelength, v);}
+    
+  
+ 
+  /** @generated */
   final Feature casFeat_blocksize;
   /** @generated */
   final int     casFeatCode_blocksize;
@@ -150,20 +204,20 @@ public class Workitem_Type extends TOP_Type {
   
  
   /** @generated */
-  final Feature casFeat_sendToCC;
+  final Feature casFeat_lastBlock;
   /** @generated */
-  final int     casFeatCode_sendToCC;
+  final int     casFeatCode_lastBlock;
   /** @generated */ 
-  public boolean getSendToCC(int addr) {
-        if (featOkTst && casFeat_sendToCC == null)
-      jcas.throwFeatMissing("sendToCC", "org.apache.uima.ducc.Workitem");
-    return ll_cas.ll_getBooleanValue(addr, casFeatCode_sendToCC);
+  public boolean getLastBlock(int addr) {
+        if (featOkTst && casFeat_lastBlock == null)
+      jcas.throwFeatMissing("lastBlock", "org.apache.uima.ducc.Workitem");
+    return ll_cas.ll_getBooleanValue(addr, casFeatCode_lastBlock);
   }
   /** @generated */    
-  public void setSendToCC(int addr, boolean v) {
-        if (featOkTst && casFeat_sendToCC == null)
-      jcas.throwFeatMissing("sendToCC", "org.apache.uima.ducc.Workitem");
-    ll_cas.ll_setBooleanValue(addr, casFeatCode_sendToCC, v);}
+  public void setLastBlock(int addr, boolean v) {
+        if (featOkTst && casFeat_lastBlock == null)
+      jcas.throwFeatMissing("lastBlock", "org.apache.uima.ducc.Workitem");
+    ll_cas.ll_setBooleanValue(addr, casFeatCode_lastBlock, v);}
     
   
 
@@ -176,12 +230,20 @@ public class Workitem_Type extends TOP_Type {
     casImpl.getFSClassRegistry().addGeneratorForType((TypeImpl)this.casType, getFSGenerator());
 
  
-    casFeat_inputfile = jcas.getRequiredFeatureDE(casType, "inputfile", "uima.cas.String", featOkTst);
-    casFeatCode_inputfile  = (null == casFeat_inputfile) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_inputfile).getCode();
+    casFeat_sendToLast = jcas.getRequiredFeatureDE(casType, "sendToLast", "uima.cas.Boolean", featOkTst);
+    casFeatCode_sendToLast  = (null == casFeat_sendToLast) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_sendToLast).getCode();
 
  
-    casFeat_outputfile = jcas.getRequiredFeatureDE(casType, "outputfile", "uima.cas.String", featOkTst);
-    casFeatCode_outputfile  = (null == casFeat_outputfile) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_outputfile).getCode();
+    casFeat_sendToAll = jcas.getRequiredFeatureDE(casType, "sendToAll", "uima.cas.Boolean", featOkTst);
+    casFeatCode_sendToAll  = (null == casFeat_sendToAll) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_sendToAll).getCode();
+
+ 
+    casFeat_inputspec = jcas.getRequiredFeatureDE(casType, "inputspec", "uima.cas.String", featOkTst);
+    casFeatCode_inputspec  = (null == casFeat_inputspec) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_inputspec).getCode();
+
+ 
+    casFeat_outputspec = jcas.getRequiredFeatureDE(casType, "outputspec", "uima.cas.String", featOkTst);
+    casFeatCode_outputspec  = (null == casFeat_outputspec) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_outputspec).getCode();
 
  
     casFeat_encoding = jcas.getRequiredFeatureDE(casType, "encoding", "uima.cas.String", featOkTst);
@@ -192,16 +254,20 @@ public class Workitem_Type extends TOP_Type {
     casFeatCode_language  = (null == casFeat_language) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_language).getCode();
 
  
-    casFeat_blocksize = jcas.getRequiredFeatureDE(casType, "blocksize", "uima.cas.Integer", featOkTst);
-    casFeatCode_blocksize  = (null == casFeat_blocksize) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_blocksize).getCode();
+    casFeat_bytelength = jcas.getRequiredFeatureDE(casType, "bytelength", "uima.cas.Integer", featOkTst);
+    casFeatCode_bytelength  = (null == casFeat_bytelength) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_bytelength).getCode();
 
  
     casFeat_blockindex = jcas.getRequiredFeatureDE(casType, "blockindex", "uima.cas.Integer", featOkTst);
     casFeatCode_blockindex  = (null == casFeat_blockindex) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_blockindex).getCode();
 
  
-    casFeat_sendToCC = jcas.getRequiredFeatureDE(casType, "sendToCC", "uima.cas.Boolean", featOkTst);
-    casFeatCode_sendToCC  = (null == casFeat_sendToCC) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_sendToCC).getCode();
+    casFeat_blocksize = jcas.getRequiredFeatureDE(casType, "blocksize", "uima.cas.Integer", featOkTst);
+    casFeatCode_blocksize  = (null == casFeat_blocksize) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_blocksize).getCode();
+
+ 
+    casFeat_lastBlock = jcas.getRequiredFeatureDE(casType, "lastBlock", "uima.cas.Boolean", featOkTst);
+    casFeatCode_lastBlock  = (null == casFeat_lastBlock) ? JCas.INVALID_FEATURE_CODE : ((FeatureImpl)casFeat_lastBlock).getCode();
 
   }
 }
