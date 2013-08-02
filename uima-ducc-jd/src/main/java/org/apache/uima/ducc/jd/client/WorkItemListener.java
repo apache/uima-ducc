@@ -36,7 +36,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	private IJobDriver jobDriver;
 	
 	// <for testing only!!!>
-	boolean injectError = false;
+	boolean injectLost = false;
 	// </for testing only!!!>
 	
 	public WorkItemListener(IJobDriver jobDriver) {
@@ -62,7 +62,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		try {
 			casId = ""+status.getCAS().hashCode();
 			// <for testing only!!!>
-			if(injectError) {
+			if(injectLost) {
 				WorkItem wi = jobDriver.getWorkItem(casId);
 				wi.getCallbackState().statePendingAssigned();
 				duccOut.warn(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
@@ -105,7 +105,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			casId = ""+status.getCAS().hashCode();
 			WorkItem wi = jobDriver.getWorkItem(casId);
 			// <for testing only!!!>
-			if(injectError) {
+			if(injectLost) {
 				wi.getCallbackState().statePendingAssigned();
 				duccOut.warn(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
 				int seqNo = wi.getSeqNo();
