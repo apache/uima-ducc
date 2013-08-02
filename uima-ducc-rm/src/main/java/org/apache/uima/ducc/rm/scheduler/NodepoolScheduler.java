@@ -1618,16 +1618,21 @@ public class NodepoolScheduler
                 logger.trace(methodName, nj.getId(), "Not a candidate, insufficient rich jobs:", m.getId());
             }
         }
-        if ( logger.isDebug() ) {
-            // print under debug, but don't do the log leader for each machine
-            logger.debug(methodName, nj.getId(), "Found", eligibleMachines.size(), "machines to be searched in this order:");
-            StringBuffer buf = new StringBuffer();
-            for ( Machine m : eligibleMachines.keySet() ) {
-                buf.append(m.getId());
-                buf.append(" ");
-            }
-            logger.debug(methodName, nj.getId(), "Eligible machines:", buf.toString());
+
+        if ( nj.isReservation() && ( eligibleMachines.size() < needed ) ) {
+            // if we can't clear enough for the reservation we have to wait.  Very unlikely, but not impossible.
+            logger.info(methodName, nj.getId(), "Found insufficient machines (", eligibleMachines.size(), "for reservation. Not clearing.");
+            return 0;
         }
+
+        logger.info(methodName, nj.getId(), "Found", eligibleMachines.size(), "machines to be searched in this order:");
+        StringBuffer buf = new StringBuffer();
+        for ( Machine m : eligibleMachines.keySet() ) {
+            buf.append(m.getId());
+            buf.append(" ");
+            }
+        logger.info(methodName, nj.getId(), "Eligible machines:", buf.toString());
+
         // first part done
 
         // Now just bop through the machines until either we can't find anything, or we find everything.
@@ -1704,7 +1709,7 @@ public class NodepoolScheduler
                 given = given + (g / orderNeeded);    // at least one,or else we have a bug 
                 logger.debug(methodName, nj.getId(), "LOOPEND: given[", given, "] g[", g, "] orderNeeded[", orderNeeded, "]");
             }
-
+            logger.debug(methodName, nj.getId(), "Given_per_round", given_per_round, "given", given, "needed", needed);
         } while ( (given_per_round > 0) && ( given < needed ));
         
         return given;
@@ -1732,28 +1737,33 @@ public class NodepoolScheduler
 
                 HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                 for ( IRmJob j : jobs.values() ) {
-                    if ( needy.containsKey(j) ) {                            // if needy it's not a candidate
-                        logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's needy.");
-                        continue;
-                    }
-
-                    if ( ! j.isInitialized() ) {
-                        logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's not initialized yet.");
-                        continue;                                            // if not initialized its not a candidate
-                    }
-
-                    //
-                    // Need at least one potential candidate of worse or equal priority
-                    //
-                    
-                    if ( j.getSchedulingPriority() < nj.getSchedulingPriority() ) {
-                        logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it has better priority.");
-                        continue;
-                    }
-
-                    if ( ! compatibleNodepools(j, nj) ) {
-                        logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because of incompatible nodepools.");
-                        continue;
+                    if ( nj.isReservation() && (nj.getSchedulingPriority() > j.getSchedulingPriority()) ) {
+                            // We could end up evictin really needy stuff - hopefully not, but these guys are Top Men so there.
+                            logger.debug(methodName, nj.getId(), "Reservation priority override on candidate selection.");
+                    } else {
+                        if ( needy.containsKey(j) ) {                            // if needy it's not a candidate
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's needy.");
+                            continue;
+                        }
+                        
+                        if ( ! j.isInitialized() ) {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's not initialized yet.");
+                            continue;                                            // if not initialized its not a candidate
+                        }
+                        
+                        //
+                        // Need at least one potential candidate of worse or equal priority
+                        //
+                        
+                        if ( j.getSchedulingPriority() < nj.getSchedulingPriority() ) {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it has better priority.");
+                            continue;
+                        }
+                        
+                        if ( ! compatibleNodepools(j, nj) ) {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because of incompatible nodepools.");
+                            continue;
+                        }
                     }
 
                     int nshares = j.countNShares();

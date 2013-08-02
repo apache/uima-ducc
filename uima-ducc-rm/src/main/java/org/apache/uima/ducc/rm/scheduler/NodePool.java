@@ -947,7 +947,9 @@ class NodePool
                     j.shrinkByOne(s);
                     nPendingByOrder[order]++;
                 } else {
-                    logger.warn(methodName, null, "Found non-preemptable share on machine that should be clearable:", s);
+                    // This is 99.44% caused by fragmentation.  We could force the issue here, but instead will
+                    // defer to the defrag code which will try to find better candidates for eviction.
+                    logger.warn(methodName, null, "Found non-preemptable share on machine that should be clearable (possible fragmentation):", s);
                 }
             }
             given++;
