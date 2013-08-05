@@ -178,12 +178,15 @@ To run the verification, issue these commands.
   
     Examine the output of check\_ducc.  If any errors are shown, correct the errors and rerun
     check\_ducc until there are no errors.  
-  \item Finally, start ducc: ./start\_ducc
+  \item Finally, start ducc: ./start\_ducc -s
   \end{enumerate}
   
   Start\_ducc will perform a number of consistency checks and print the versions of the components.
   It then starts the ActiveMQ broker, the DUCC control processes, and a single DUCC agent on the
-  local node. You will see some startup messages similar to the following:
+  local node.  Note that ``single user mode'' (-s) is specified for this first start.  This inhibits
+  the checks on the permissions on ducc\_ling (described \hyperref[sec:duccling]{below}).
+
+  You will see some startup messages similar to the following:
 
 \begin{verbatim}
 ENV: Java is configured as: /share/jdk1.6/bin/java
@@ -308,6 +311,7 @@ $HOME/ducc/logs/job-id
       \end{itemize}
 
 \section{Ducc\_ling Installation}
+\label{sec:duccling}
     Before proceeding with this step, please note: 
     \begin{itemize}
         \item This step is required ONLY to install multi-user capabilities.

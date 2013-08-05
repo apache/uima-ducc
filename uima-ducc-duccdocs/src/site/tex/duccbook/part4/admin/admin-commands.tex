@@ -37,6 +37,12 @@ start\_ducc -n foo.nodes -n bar.nodes -n baz.nodes
           Start the management processes (rm, sm, pm, orchestrator) on the local node. The 
           webserver is started on the local node, or the node configured in ducc.properties. 
 
+        \item[-s, --singleuser] \hfill \\
+          Start DUCC in ``single-user'' mode.  This inhibits certain checks that are ususally
+          needed running in multi-user mode; specifically, permissions on the ducc\_ling
+          utility are not verified.  In this mode all jobs are usually run as whatever user is used
+          to start DUCC.
+
         \item[-c, --component {[component] }] \hfill \\
           Start a specific DUCC component, optionally on a specific node. If the component 
           name is qualified with a nodename, the component is started on that node. To qualify 
