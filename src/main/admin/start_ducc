@@ -56,7 +56,7 @@ class StartDucc(DuccUtil):
             print 'Waiting for broker', str(i)
             time.sleep(1)
 
-    def start_component(self, ducc, component, or_parms):
+    def start_component(self, ducc, component, or_parms, single_user):
 
         node = self.ducc_properties.get('ducc.head')
         com = component
@@ -82,7 +82,11 @@ class StartDucc(DuccUtil):
         if ( node == 'local' ):
             node = self.localhost
 
-        lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '-d', str(time.time()), '--nodup', "'")
+        if ( single_user ):
+            lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-s', '-b', or_parms, '-d', str(time.time()), '--nodup', "'")
+        else:
+            lines = self.ssh(node, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', or_parms, '-d', str(time.time()), '--nodup', "'")
+
         # we'll capture anything that the python shell spews because it may be useful, and then drop the
         # pipe when we see a PID message
         while 1:
@@ -102,7 +106,7 @@ class StartDucc(DuccUtil):
         if ( com in self.default_components ):           # tracks where the management processes are
             self.pids.put(com, com + '@' + node)
 
-    def start_agents(self, nodelist):
+    def start_agents(self, nodelist, single_user):
 
         # print 'NODELIST', nodelist
         #counter = 1
@@ -112,7 +116,11 @@ class StartDucc(DuccUtil):
             
             spacer = '   '
             print host
-            lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '-d', str(time.time()), '--nodup', "'")
+            if (single_user):
+                lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-s', '-b', '-d', str(time.time()), '--nodup', "'")
+            else:
+                lines = self.ssh(host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c' 'agent', '-b', '-d', str(time.time()), '--nodup', "'")
+
             while 1:
                 line = lines.readline().strip()
                 #print '[l]' + line
@@ -170,6 +178,10 @@ class StartDucc(DuccUtil):
         print "   -m --management"
         print "        Start the management processes (rm, sm, pm, webserver, orchestrator) on the local node."
         print ""
+        print "   -s --singleuser"
+        print "        Start ducc in 'single user mode'.  This bypasses some checking required for multi-user"
+        print "        mode and not required for single-user mode."
+        print ""
         print "   -c, --component component"
         print "        Start a specific DUCC component, optionally on a specific node.  If the component name"
         print "        is qualified with a nodename, the component is started on that node.  To qualify a"
@@ -224,13 +236,14 @@ class StartDucc(DuccUtil):
 
         nodefiles = []
         components = []
-        management = False
+        management = True
+        single_user = False
         or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
         self.pids = DuccProperties()
         self.pids.load_if_exists(self.pid_file)
         
         try:
-            opts, args = getopt.getopt(argv, 'c:mn:h?v', ['component=', 'components=', 'help', 'nodelist=', 'management', 'cold', 'warm', 'hot'])
+            opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'components=', 'help', 'nodelist=', 'management', 'singleuser', 'cold', 'warm', 'hot'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
                        
@@ -241,6 +254,8 @@ class StartDucc(DuccUtil):
                 management = True
             elif o in ( '-n', '--nodelist' ):
                 nodefiles.append(a)
+            elif o in ( '-s', '--singleuser' ):
+                single_user = True
             elif o in ( '--cold', '--warm', '--hot' ):
                 or_parms = o[2:]         # (strip the leading --)
             elif ( o == '-v'):
@@ -249,17 +264,17 @@ class StartDucc(DuccUtil):
             elif o in ( '-h', '--help' ):
                self.usage(None)
             elif ( o == '-?'):
-               self.usage(None)
+                self.usage(None)
             else:
                 self.invalid('bad args: ', ' '.join(argv))
 
         # 'management' means start all the management daemons - if specific components are also specified
         # there is at least a redundancy and maybe also a conflict.
         if ( (len(components) != 0) and management ):
-            self.invalid("The --management and --compoent options are mutually exclusive")
+            self.invalid("The --management and --component options are mutually exclusive")
 
-        # no args - make equivalent of -management and -nodefile=DUCC.HOME/resources/ducc.nodes
-        if ( len(argv) == 0 ):
+        # no args, or just -s - make equivalent of -management and -nodefile=DUCC.HOME/resources/ducc.nodes
+        if ( (len(argv) == 0) or ((len(argv) == 1) and single_user) ):
             nodefiles =  self.default_nodefiles
             components = self.default_components
             must_verify_nodepools = True
@@ -320,7 +335,7 @@ class StartDucc(DuccUtil):
 
         for (nodefile, nodelist) in nodes.items():
             print '********** Starting agents from file', nodefile
-            self.start_agents(nodelist)
+            self.start_agents(nodelist, single_user)
 
         if ( len(components) != 0 ):
             print 'Starting', or_parms
@@ -329,7 +344,7 @@ class StartDucc(DuccUtil):
                 if ( com == 'broker' ):
                     pass     # already started
                 else:
-                    self.start_component(ducc, com, or_parms)
+                    self.start_component(ducc, com, or_parms, single_user)
         else:
             print 'Not starting management components.'
 

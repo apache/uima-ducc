@@ -106,6 +106,7 @@ class DuccUtil(DuccBase):
         # tcp        0      0 :::61616                :::*                    LISTEN      
         for line in lines:
             toks = line.split()
+            #print '[]', line
             if ( toks[-1] == 'LISTEN' ):
                 port = toks[3]
                 if (port.endswith(self.broker_port)):

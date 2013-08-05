@@ -56,7 +56,7 @@ class Ducc(DuccUtil):
         
         print "Started AMQ broker"
 
-    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate):
+    def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate, single_user):
 
         if ( component == 'all' ):
             component = 'rm,sm,pm,ws,orchestrator'
@@ -86,11 +86,14 @@ class Ducc(DuccUtil):
                 if ( not self.check_clock_skew(localdate) ):
                     return
 
-                dok = self.verify_duccling()
-                if ( not dok ):
-                    print 'NOTOK ducc_ling is not set up correctly on node', self.localhost
-                    print dok
-                    return
+                if ( not single_user ) :
+                    dok = self.verify_duccling()
+                    if ( not dok ):
+                        print 'NOTOK ducc_ling is not set up correctly on node', self.localhost
+                        print dok
+                        return
+                else:
+                    print 'Single user mode: bypassing ducc_ling checks.'
 
                 if ( not verify_slave_node(localdate, self.ducc_properties) ):
                     # we assume that verify_local_node is spewing a line of the form
@@ -218,6 +221,7 @@ class Ducc(DuccUtil):
         print '   -n <numagents> if > 1, multiple agents are started (testing mode)'
         print '   -o <mem-in-GB> rm memory override for use on small machines'
         print '   -k causes the entire DUCC system to shutdown'
+        print '   -s start in single-user mode (inhibit some sanity checks)'
         print '   --nodup If specified, do not start a process if it appears to be already started.'
         print '   --or_parms [cold|warm|hot]'
         print '   --ducc_head nodename the name of the "ducc head" where ducc is started from'
@@ -233,11 +237,12 @@ class Ducc(DuccUtil):
         shutdown = False
         background = False
         or_parms = None
+        single_user = False
         nodup = False           # we allow duplicates unless asked not to
         localdate = 0
 
         try:
-           opts, args = getopt.getopt(argv, 'bc:d:n:o:k?v', ['or_parms=', 'nodup' ])
+           opts, args = getopt.getopt(argv, 'bc:d:n:o:sk?v', ['or_parms=', 'nodup' ])
         except:
             self.usage('Bad arguments ' + ' '.join(argv))
     
@@ -256,6 +261,8 @@ class Ducc(DuccUtil):
                 rmoverride = a
             elif ( o == '-k'):
                 shutdown = True
+            elif ( o == '-s'):
+                single_user = True
             elif ( o == '--or_parms' ):
                 or_parms = a
             elif ( o == '--nodup' ):
@@ -279,7 +286,7 @@ class Ducc(DuccUtil):
         if ( component == 'broker' ):
             self.run_broker(background)
         else:
-            self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate)
+            self.run_component(component, or_parms, numagents, rmoverride, background, nodup, localdate, single_user)
         return
 
     def __call__(self, *args):
