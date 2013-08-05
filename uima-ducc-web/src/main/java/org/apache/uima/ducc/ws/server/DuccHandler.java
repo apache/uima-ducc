@@ -1159,7 +1159,8 @@ public class DuccHandler extends DuccAbstractHandler {
 						StringBuffer status = new StringBuffer();
 						switch(state) {
 						case lost:
-							status = sb.append("<span title=\"Work Item was queued but never dequeued. (This is most likely a DUCC framework issue.)\" >");
+							//status = sb.append("<span title=\"Work Item was queued but never dequeued. (This is most likely a DUCC framework issue.)\" >");
+							status = sb.append("<span title=\"Work Item was queued but never dequeued.\" >");
 							sb.append(state);
 							sb.append("</span>");
 							break;
