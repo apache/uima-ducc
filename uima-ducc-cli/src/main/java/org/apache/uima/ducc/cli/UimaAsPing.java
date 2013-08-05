@@ -230,9 +230,9 @@ public class UimaAsPing
 //        {
 //        }
 	
-        public void onBeforeProcessCAS(UimaASProcessStatus status, String ip, String p) 
+        public void onBeforeProcessMeta(UimaASProcessStatus status, String ip, String p) 
         {
-            String methodName = "UimaAsPing:onBeforeProcessCAS";
+            String methodName = "UimaAsPing:onBeforeProcessMeta";
             logger.info(methodName, null, "Get-Meta received from ", ip, p, "for", ep);
             nodeIp = ip;
             pid = p;
