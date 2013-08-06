@@ -198,7 +198,10 @@ public abstract class CliBase
         }
     }
 
-    protected Options makeOptions(UiOption[] optlist)
+    /*
+     * Also used by DuccMonitor
+     */
+    static public Options makeOptions(UiOption[] optlist)
     {
         Options opts = new Options();
         for ( UiOption opt : optlist ) {

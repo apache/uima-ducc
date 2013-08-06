@@ -158,35 +158,11 @@ public abstract class DuccMonitor {
 				break;
 			}
 		}
-		options = makeOptions(opts, false);
+		options = CliBase.makeOptions(opts);
 		// message processor
 		if (messageProcessor != null) {
 			this.messageProcessor = messageProcessor;
 		}
-	}
-
-	protected Options makeOptions(UiOption[] optlist, boolean strict) {
-		Options opts = new Options();
-		for (UiOption opt : optlist) {
-			OptionBuilder.withDescription(opt.makeDesc());
-			OptionBuilder.withLongOpt(opt.pname());
-			if (opt.argname() == null) {
-				OptionBuilder.hasArg(false);
-			} else {
-				OptionBuilder.withArgName(opt.argname());
-				if (opt.multiargs()) {
-					OptionBuilder.hasArgs();
-				} else {
-					OptionBuilder.hasArgs(1);
-				}
-			}
-			if (strict && opt.required()) {
-				OptionBuilder.isRequired();
-			}
-			Option o = OptionBuilder.create();
-			opts.addOption(o);
-		}
-		return opts;
 	}
 
 	protected void trace(String message) {
@@ -506,7 +482,7 @@ public abstract class DuccMonitor {
 		try {
 			code = runInternal(args);
 		} catch (Exception e) {
-			messageProcessor.status(e.toString());
+			messageProcessor.status("ERROR: " + e.toString());
 		}
 		debug("rc=" + code);
 		return code;
