@@ -20,6 +20,7 @@ package org.apache.uima.ducc.pm.event;
 
 import org.apache.camel.Body;
 import org.apache.uima.ducc.pm.ProcessManager;
+import org.apache.uima.ducc.pm.ProcessManagerComponent;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
@@ -51,6 +52,11 @@ implements DuccEventDelegateListener {
 	 * @param jobMap - state Map sent by the Job Manager
 	 */
 	public void onJobManagerStateUpdate(@Body OrchestratorStateDuccEvent duccEvent) {
+		// process OR state only if the JD has been assigned
+		if ( !duccEvent.getWorkMap().isJobDriverNodeAssigned() ) {
+			((ProcessManagerComponent)processManager).logger.info("onJobManagerStateUpdate", null, "Orchestrator JD node not assigned. Ignoring Orchestrator state update");
+			return;
+		}
 		processManager.dispatchStateUpdateToAgents(duccEvent.getWorkMap().getMap());
 	}
 }
