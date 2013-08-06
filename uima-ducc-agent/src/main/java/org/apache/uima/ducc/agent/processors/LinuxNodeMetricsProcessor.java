@@ -107,15 +107,23 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
 			e.getIn().setHeader("node", agent.getIdentity().getName());
 			NodeMemory memInfo = nmiFuture.get();
-	    NodeUsersCollector nodeUsersCollector = new NodeUsersCollector(agent, logger);
+			TreeMap<String, NodeUsersInfo> users = null;
+			// begin collecting user processes and activate rogue process detector
+			// only after the agent receives the first Ducc state publication.
+			if ( agent.receivedDuccState ) {
+			    NodeUsersCollector nodeUsersCollector = new NodeUsersCollector(agent, logger);
+			    
+			    logger.info(methodName, null, "... Agent Collecting User Processes");
+			    
+			    Future<TreeMap<String,NodeUsersInfo>> nuiFuture = 
+			            pool.submit(nodeUsersCollector);
+			    users = nuiFuture.get();
+			} else {
+				users = new TreeMap<String, NodeUsersInfo>();
+			}
 	    
-	    logger.info(methodName, null, "... Agent Collecting User Processes");
-	    
-	    Future<TreeMap<String,NodeUsersInfo>> nuiFuture = 
-	            pool.submit(nodeUsersCollector);
-	    
-      NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, loadFuture.get(),
-              cpuFuture.get(), nuiFuture.get());
+            NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, loadFuture.get(),
+              cpuFuture.get(), users);
       
 			Node node = new DuccNode(agent.getIdentity(), nodeMetrics);
 			// Make the agent aware how much memory is available on the node. Do this once.

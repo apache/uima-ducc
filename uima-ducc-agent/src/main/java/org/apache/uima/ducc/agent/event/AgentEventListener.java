@@ -142,6 +142,10 @@ public class AgentEventListener implements DuccEventDelegateListener {
 				}
 			  
 		  }
+		  // 	received at least one Ducc State
+		  if ( !agent.receivedDuccState ) {
+			  agent.receivedDuccState = true;
+		  }
 		} catch( Exception e ) {
 			logger.error("onDuccJobsStateEvent", null, e);
 		}
