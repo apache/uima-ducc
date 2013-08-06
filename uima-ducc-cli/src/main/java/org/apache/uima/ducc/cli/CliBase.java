@@ -60,7 +60,7 @@ public abstract class CliBase
     protected String ducc_home;
     DuccEventHttpDispatcher dispatcher;
 
-    protected Options options;
+    protected Options cliOptions;
     protected Parser parser;
     protected CommandLine commandLine;
 
@@ -262,7 +262,7 @@ public abstract class CliBase
         this.init (myClassName, opts, null, props, cli_props, consoleCb, "orchestrator");
     }
     
-    protected synchronized void init(String myClassName, UiOption[] opts, String[] args, Properties props, 
+    protected synchronized void init(String myClassName, UiOption[] uiOpts, String[] args, Properties props, 
                     DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
         throws Exception
     {
@@ -280,13 +280,13 @@ public abstract class CliBase
         this.cli_props = cli_props;
         parser = new PosixParser();
 
-        options = makeOptions(opts);
+        cliOptions = makeOptions(uiOpts);
         // If given only a properties file parse as if only have defaults
         if (args == null) {
-            commandLine = parser.parse(options, null, props);
+            commandLine = parser.parse(cliOptions, null, props);
         } else {
             fixupQuotedArgs(args);
-            commandLine = parser.parse(options, args);
+            commandLine = parser.parse(cliOptions, args);
         }
         if (commandLine.getOptions().length == 0 || commandLine.hasOption(UiOption.Help.pname())) {
             usage(null);
@@ -307,16 +307,16 @@ public abstract class CliBase
             Properties defaults = new Properties();
             defaults.load(fis);
             fis.close();
-            sanitize(defaults, options);  // Check for illegals as commons cli 1.2 thows a NPE !
+            sanitize(defaults, cliOptions);  // Check for illegals as commons cli 1.2 thows a NPE !
             // If invoked with overriding properties add to or replace the defaults 
             if (props != null) {
                 defaults.putAll(props);
             }
-            commandLine = parser.parse(options, args, defaults);
+            commandLine = parser.parse(cliOptions, args, defaults);
         }
 
         // Copy options into cli_props
-        setOptions(opts);
+        setOptions(uiOpts);
         
         // Save a copy of the user-specified ones by cloning the underlying properties
         userSpecifiedProperties = (Properties)((Properties)cli_props).clone();
@@ -346,11 +346,11 @@ public abstract class CliBase
      * Save options as properties after resolving any ${..} placeholders
      * Also check that all required ones provided
      */
-    void setOptions(UiOption[] opts) throws Exception {
+    void setOptions(UiOption[] uiOpts) throws Exception {
         for (Option opt : commandLine.getOptions()) {
             String val = opt.getValue();
             if (val == null) {
-                val = "true";  // Treat no-arg options as booleans ... apache.commons.cli expects this
+                val = opt.hasArg() ? "" : "true"; // Treat no-arg options as booleans ... apache.commons.cli expects this
             } else {
                 if (val.contains("${")) {
                     val = resolvePlaceholders(val);
@@ -360,7 +360,7 @@ public abstract class CliBase
             if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = " + val);
         }
 
-        for (UiOption opt : opts) {
+        for (UiOption opt : uiOpts) {
             if (opt.required() && !cli_props.containsKey(opt.pname())) {
                 throw new Exception("Missing required option: " + opt.pname());
             }
@@ -380,7 +380,7 @@ public abstract class CliBase
             if (addedOptions.contains(key)) {
                 props.remove(key);
             } else {
-                Option opt = options.getOption(key);
+                Option opt = cliOptions.getOption(key);
                 if (opt == null) {
                     throw new IllegalArgumentException("Invalid option " + key + " in specification file");
                 }
@@ -512,7 +512,7 @@ public abstract class CliBase
         }
         HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(DuccUiConstants.help_width);
-        formatter.printHelp(myClassName, options);
+        formatter.printHelp(myClassName, cliOptions);
         System.exit(1);
     }
 
@@ -531,7 +531,7 @@ public abstract class CliBase
         if ( key.startsWith("--") ) {
             key = key.substring(2);
         }
-        Option option = options.getOption(key);
+        Option option = cliOptions.getOption(key);
         if (option == null ) {
             return false;
         }
