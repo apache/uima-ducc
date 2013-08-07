@@ -1466,6 +1466,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 						}
 					}
 				}
+				row.add(new JsonPrimitive(val));
+				
+				// Row
 				data.add(row);
 			}
 		}
