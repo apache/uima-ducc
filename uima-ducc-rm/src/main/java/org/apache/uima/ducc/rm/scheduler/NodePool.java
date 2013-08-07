@@ -696,6 +696,11 @@ class NodePool
 
         if ( unresponsiveMachines.containsKey(node) ) {          // reactive the node
             Machine m = unresponsiveMachines.remove(node);
+
+            if ( m.getShareOrder() != order ) {                  // can change. e.g. if it was taken offline for
+                m.setShareOrder(order);                          //    hardware changes.
+            }
+
             allMachines.put(node, m);
             machinesByName.put(m.getId(), m);
             machinesByIp.put(m.getIp(), m);
