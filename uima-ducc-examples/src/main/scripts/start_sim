@@ -151,6 +151,7 @@ class StartSim(DuccUtil):
         do_all = True
         if ( len(instances) > 0 ):
             do_all = False
+            print 'Starting instances:', instances
 
         print "Starting from nodes in", nodelist
         props = DuccProperties()
@@ -176,11 +177,11 @@ class StartSim(DuccUtil):
                         ndx = ndx + 1
 
         for (index, node, mem) in allnodes:
-            print 'Starting', index, node, mem
             if ( not do_all ):
                 if ( not instances.has_key(index) ):
                     continue
 
+            print 'Starting', index, node, mem
             ip = '192.168.4.' + index
             pnode = node + '-' + index
             print 'Starting agent on', node, 'instance', index, 'as pseudo-node', pnode, 'IP', ip, 'memory', mem,
@@ -339,7 +340,7 @@ class StartSim(DuccUtil):
 
             self. run_local_agent(pseudoname, IP, memory)
             sys.exit(0)
-        else:                  
+        else:         
             if ( (IP != None) or (memory != None) or ( pseudoname != None )) :
                 self.invalid("Running with a nodelist is not compatible with running a single agent.");
 
