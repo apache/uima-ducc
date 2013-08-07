@@ -245,7 +245,10 @@ class DuccProcess(Thread):
         
         CMD = CMD + ' --process_per_item_time_max '           + self.runner.process_timeout  # in minutes
         CMD = CMD + ' --process_initialization_failures_cap ' + self.runner.init_fail_cap 
-        
+
+        if ( self.runner.init_timeout > 0 ):
+            CMD = CMD + ' --process_initialization_time_max ' + str(self.runner.init_timeout)
+
         CMD = CMD + ' --process_environment ' \
                   + '"' \
                   + ' AE_INIT_TIME='  + str(self.runner.init_time) \
@@ -573,7 +576,8 @@ class RunDucc(DuccUtil):
                 continue
     
     def usage(self, msg):
-        print msg
+        if ( msg != None ):
+            print msg
         print 'Usage:'
         print '   runducc.py [optons]'
         print 'Options:'
@@ -595,6 +599,10 @@ class RunDucc(DuccUtil):
         print ''
         print '   -i, --init_time seconds'
         print '       This is the AE initialization minimum time in seconds. Default:', self.init_time
+        print ''
+        print '   --init_timeout minutes'
+        print '        Max time in minutes NOTE MINUTES a process is allowed to initialize.  Best used n conjunction with careful choice of'
+        print '        -i and -r'
         print ''
         print '   --init_fail_cap number-of-failures.'
         print '       This is the max init failures tolerated before the system starts to cap processes. Default:', self.init_fail_cap
@@ -649,6 +657,7 @@ class RunDucc(DuccUtil):
         self.memory_override = None
         self.init_time = 10000
         self.init_range = 1000
+        self.init_timeout = 0
         self.process_timeout = str(60*24)  # 24 hour default - nothing in current megas will fail on this
         self.style = 'AE'
         self.service_pid = None
@@ -662,12 +671,16 @@ class RunDucc(DuccUtil):
         self.use_ibm_package = False
         self.submit_package = 'org.apache.uima.ducc'
 
-        opts, args  = getopt.getopt(argv, 'b:d:i:r:m:p:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
-                                                                     'init_fail_cap=', 'range=', 'memory_override=', 'process_timeout=',
+        try:
+            opts, args  = getopt.getopt(argv, 'b:d:i:r:m:p:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
+                                                                      'init_fail_cap=', 'range=', 'memory_override=', 'process_timeout=', 'init_timeout=',
                                                                       'watch',
-                                                                     'jd_uima_log=', 'jp_uima_log=', 
-                                                                     'use_jar'
-                                                                     ])
+                                                                      'jd_uima_log=', 'jp_uima_log=', 
+                                                                      'use_jar'
+                                                                      ])
+        except:
+            print "Unknown option"
+            self.usage(None)
     
         for ( o, a ) in opts:
             if o in ('-d', '--directory'):
@@ -686,6 +699,8 @@ class RunDucc(DuccUtil):
                 self.process_timeout = a
             elif o in ('-w', '--watch' ):
                 self.watch = True        
+            elif o in ('--init_timeout' ):
+                self.init_timeout = int(a)
             elif o in ('--jd_uima_log' ):
                 self.jd_uima_log = a       
             elif o in ('--jp_uima_log' ):
@@ -713,8 +728,8 @@ class RunDucc(DuccUtil):
             elif ( o == '-?'):
                 self.usage(None)
             else:
-                print 'badarg', a
-                self.usage('bad arg: ' + a)
+                print 'Invalud argument:', o
+                self.usage(None)
     
         if ( self.test_dir == None ):
             self.usage("Missing test_dir")
@@ -725,6 +740,7 @@ class RunDucc(DuccUtil):
         print '    style              :', self.style
         print '    init-time          :', self.init_time / 1000
         print '    init-range         :', self.init_range / 1000
+        print '    init-timeout       :', self.init_timeout
         print '    init-bloat         :', self.init_bloat
         print '    process-bloat      :', self.process_bloat
         print '    watch              :', self.watch           
