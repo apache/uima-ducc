@@ -37,6 +37,7 @@ import org.apache.uima.analysis_engine.metadata.impl.FixedFlow_impl;
 import org.apache.uima.analysis_engine.metadata.impl.FlowControllerDeclaration_impl;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.resource.PearSpecifier;
 import org.apache.uima.resource.RelativePathResolver;
 import org.apache.uima.resource.ResourceConfigurationException;
 import org.apache.uima.resource.ResourceCreationSpecifier;
@@ -409,9 +410,11 @@ public class UimaUtils {
 				.getConfigurationParameterSettings();
 		int indx = 0;
 		for (List<String> componentOverrides : overrides) {
-			addComponentOverrides(flowNames.get(indx), componentOverrides,
-					(ResourceCreationSpecifier) specifiers[indx],
-					aggregateDeclarations, aggregateSetttings);
+			if ( specifiers[indx] instanceof ResourceCreationSpecifier ) {
+				addComponentOverrides(flowNames.get(indx), componentOverrides,
+						(ResourceCreationSpecifier) specifiers[indx],
+						aggregateDeclarations, aggregateSetttings);
+			}
 			indx++;
 		}
 		
