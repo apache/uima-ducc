@@ -216,7 +216,7 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
         	  mPreviouslyDone++;
           }
           if (mIgnorePrevious || !outFile.exists()) {
-            mWorkList.add(new WorkItem(files[i].getAbsolutePath(),outfilename+".processed",0,files[i].length(),0,false));
+            mWorkList.add(new WorkItem(files[i].getAbsolutePath(),outfilename+".processed",0,files[i].length(),0,true));
             logger.log(Level.FINE, "adding "+outfilename);
           }
         }
