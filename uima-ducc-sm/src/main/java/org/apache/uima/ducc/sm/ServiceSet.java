@@ -957,6 +957,12 @@ public class ServiceSet
         if ( true ) {
             implementors.put(id, job_state);
             ServiceState cumulative = cumulativeJobState();
+            //
+            // Note on the CUMULATIVE state: this is the cumulative state as determined by service processes.  If they
+            // should all die at once through some temporary glitch the state could go to Unavailable even though the
+            // SM would now be in active retry - the states below avoid regression state if CUMULATIVE goes to
+            // Unavailable but the retry count indicates retry is still in progress.
+            //
 
             //
             // The ping state is pretty much always the right state.  But if we're
@@ -995,8 +1001,13 @@ public class ServiceSet
                             setServiceState(ServiceState.Initializing);
                             break;
                         case NotAvailable:
-                            setServiceState(ServiceState.NotAvailable);
-                            stopPingThread();
+                            if ( failure_run >= failure_max ) {
+                                setServiceState(ServiceState.NotAvailable);
+                                stopPingThread();
+                            } else {
+                                // don't regress if we're in retry
+                                logger.info(methodName, id, "RETRY RETRY RETRY prevents state regression from Initializing");
+                            }
                           break;
                     }
                     break;
@@ -1029,8 +1040,13 @@ public class ServiceSet
                             setServiceState(ServiceState.Initializing);
                             break;
                         case NotAvailable:
-                            stopPingThread();
-                            setServiceState(ServiceState.NotAvailable);
+                            if ( failure_run >= failure_max ) {
+                                setServiceState(ServiceState.NotAvailable);
+                                stopPingThread();
+                            } else {
+                                // don't regress if we're in retry
+                                logger.info(methodName, id, "RETRY RETRY RETRY prevents state regression from Available");
+                            }
                             break;
                     }
 
@@ -1049,8 +1065,13 @@ public class ServiceSet
                             break;
                         case Waiting:
                             break;
-                        case NotAvailable:                
-                            setServiceState(ServiceState.NotAvailable);
+                        case NotAvailable:   
+                            if ( failure_run >= failure_max ) {
+                                setServiceState(ServiceState.NotAvailable);
+                            } else {
+                                // don't regress if we're in retry
+                                logger.info(methodName, id, "RETRY RETRY RETRY prevents state regression from Waiting");
+                            }
                             stopPingThread();
                             break;
                     }
@@ -1098,7 +1119,7 @@ public class ServiceSet
     synchronized boolean excessiveRunFailures()
     {
         String methodName = "runFailures";
-        if ( (++failure_run) > failure_max ) {
+        if ( (++failure_run) >= failure_max ) {
             logger.debug(methodName, id, "RUN FAILURES EXCEEDED");
             return true;
         }

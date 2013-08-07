@@ -650,15 +650,28 @@ public class ServiceHandler
                 resolveState(id, s);
             } 
 
-            // now factor in cumulative state of the implementors and manage the ping thread as needed
-            sset.establish(id, w.getJobState());
-
-            // State is established.  Now, if the instance died, remove it - OR will keep publishing it for a while and we want to ignore those
+            // See what happened to the instance ...
             if (  w.isActive() ) {
                 // Hard to know for sure, if there are a bunch of instances, some working and some not, how to manage this.
                 // But this is a state *change* of something, and the something is active, so probably the service is OK now
                 // if it hadn't been before.
-                //  sset.resetRunFailures();
+                
+                // Need to be cautious here - this will get reset if ANYthing is running.  So we could have a bunch
+                // of live instances and some new ones, where the live ones are ok but for some reason we can't start
+                // new ones, in which case this gets set too often.
+                //
+                // This seems like it would be rare and since we aren't actually pounding restarts (only attempts every
+                // SM cycle) maybe its ok.  The alternative is to track state changes which is added complexity - for
+                // waht gain, we need to determine with experience.
+                //
+                // I suppose the ServiceManagerHandler could easily track the per-process state change - we'd have to
+                // modify the thing in the map it passes in to show 'before' and 'after' states instead of just passing
+                // in the DuccWork thing.
+                //
+                JobState          state = w.getJobState();
+                if ( state == JobState.Running ) {         // only if we confirm it's alive
+                    sset.resetRunFailures();
+                }
             } else {
                 JobState          state = w.getJobState();
                 
@@ -685,6 +698,9 @@ public class ServiceHandler
                     }
                 }
             }
+
+            // Now factor in cumulative state of the implementors and manage the ping thread as needed
+            sset.establish(id, w.getJobState());
 
             if ( (sset.getServiceState() == ServiceState.NotAvailable) && (sset.countReferences() == 0) && (sset.countImplementors() == 0) ) {
                 // this service is now toast.  remove from our maps asap to avoid clashes if it gets
