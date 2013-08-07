@@ -38,7 +38,7 @@ under the License.
   </script>
   
 </head>
-<body onload="ducc_init('system-administration');" onResize="window.location.href = window.location.href;">
+<body onload="ducc_init('system-administration');" onResize="ducc_resize();">
 
 <!-- ####################### common ######################## -->
 <div class="flex-page">

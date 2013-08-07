@@ -65,6 +65,15 @@ function toggleById(id) {
    	$("#"+id).toggle();
 }
 
+function ducc_resize() {
+    if(navigator.appCodeName == "Mozilla") {
+    	// See Jira 3158
+    }
+    else {
+        window.location.href = window.location.href;
+    }
+}
+
 function ducc_error(loc, err)
 {
 	var txt;

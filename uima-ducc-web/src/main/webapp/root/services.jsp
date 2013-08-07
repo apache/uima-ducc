@@ -61,7 +61,7 @@ if (table_style.equals("scroll")) {
 }
 %>	
 </head>
-<body onload="ducc_init('services');" onResize="window.location.href = window.location.href;">
+<body onload="ducc_init('services');" onResize="ducc_resize();">
 
 <!-- ####################### common ######################## -->
 <div class="flex-page">

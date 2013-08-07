@@ -68,7 +68,7 @@ under the License.
   %>	
 </head>
 
-<body onload="ducc_init('system-machines');" onResize="window.location.href = window.location.href;">
+<body onload="ducc_init('system-machines');" onResize="ducc_resize();">
 
 <!-- ####################### common ######################## -->
 <div class="flex-page">

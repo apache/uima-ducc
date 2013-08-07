@@ -54,7 +54,7 @@ if (table_style.equals("scroll")) {
 }
 %>	
 </head>
-<body onload="ducc_init('system-classes');" onResize="window.location.href = window.location.href;">
+<body onload="ducc_init('system-classes');" onResize="ducc_resize();">
 
 <!-- ####################### common ######################## -->
 <div class="flex-page">
