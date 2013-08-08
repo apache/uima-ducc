@@ -439,6 +439,12 @@ public class DuccUiUtilities {
      * @return - array of options
      */
     public static ArrayList<String> tokenizeList(String options, boolean stripQuotes) {
+        
+      ArrayList<String> tokens = new ArrayList<String>();
+      if (options == null) {
+        return tokens;
+      }
+      
       // Pattern matches a non-quoted region or a double-quoted region or a single-quoted region
       // 1st part matches one or more non-whitespace characters but not " or '
       // 2nd part matches a "quoted" region containing any character except "
@@ -449,10 +455,8 @@ public class DuccUiUtilities {
       String doubleQuoteRegex = "\"([^\"]*)\"";
       String singleQuoteRegex = "'([^']*)'";
       final String regex = noSpaceRegex + "|" + doubleQuoteRegex + "|" + singleQuoteRegex;     
-      
       Pattern patn = Pattern.compile(regex);
       Matcher matcher = patn.matcher(options);
-      ArrayList<String> tokens = new ArrayList<String>();
       StringBuilder sb = new StringBuilder();
       
       // If stripping quotes extract the capturing group (without the quotes)
@@ -523,18 +527,23 @@ public class DuccUiUtilities {
      * Test the quote handling and optional stripping 
      */
     public static void main(String[] args) {
-      String list = "SINGLE_QUOTED='single quoted'\tDOUBLE_QUOTED=\"double quoted\"     SINGLE_QUOTE=\"'\" \r DOUBLE_QUOTE='\"'";
-      System.out.println("List: " + list);
-      System.out.println("\n  quotes preserved:");
-      ArrayList<String> tokens = tokenizeList(list, false);
-      for (String token : tokens) {
-        System.out.println("~" + token + "~");
-      }
-
-      System.out.println("\n  quotes stripped:");
-      tokens = tokenizeList(list, true);
-      for (String token : tokens) {
-        System.out.println("~" + token + "~");
+      String[] lists = { "SINGLE_QUOTED='single quoted'\tDOUBLE_QUOTED=\"double quoted\"     SINGLE_QUOTE=\"'\" \r DOUBLE_QUOTE='\"'",
+                         "",
+                         "            ",
+                         null };
+      
+      for (String list : lists) { 
+        System.out.println("List: " + list);
+        ArrayList<String> tokens = tokenizeList(list, false);
+        System.out.println("\n  quotes preserved on " + tokens.size());
+        for (String token : tokens) {
+          System.out.println("~" + token + "~");
+        }
+        tokens = tokenizeList(list, true);
+        System.out.println("\n  quotes stripped from " + tokens.size());
+        for (String token : tokens) {
+          System.out.println("~" + token + "~");
+        }
       }
     }
 }
