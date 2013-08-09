@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -474,7 +475,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		try {
 			double dSize = Double.parseDouble(size) * multiplier;
-			retVal = dSize+"";
+			DecimalFormat formatter = new DecimalFormat("###0");
+			retVal = formatter.format(dSize);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, id, messages.fetchLabel("type")+type+" "+messages.fetchLabel("size")+size, e);
