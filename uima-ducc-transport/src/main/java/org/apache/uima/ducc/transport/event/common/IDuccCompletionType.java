@@ -27,6 +27,7 @@ public interface IDuccCompletionType extends Serializable {
 		Lost,							// Job was terminated, but with lost work items (only, no error work items)
 		EndOfJob,						// Job finished without error
 		Error,							// Job finished with error
+		Warning,						// Job finished with warning
 		CanceledByUser,					// Job was canceled by user
 		CanceledByAdministrator,		// Job was canceled by administrator
 		CanceledByDriver,				// Job was canceled by driver

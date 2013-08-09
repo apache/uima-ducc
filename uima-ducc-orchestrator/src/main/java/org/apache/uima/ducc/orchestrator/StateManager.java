@@ -1347,10 +1347,10 @@ public class StateManager {
 			job.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 		case EndOfJob:
 			if(job.getProcessFailureCount() > 0) {
-				job.setCompletion(JobCompletionType.Error, rationale);
+				job.setCompletion(JobCompletionType.Warning, new Rationale("all work items completed, but job process failure(s) occurred"));
 			}
 			else if(job.getProcessInitFailureCount() > 0) {
-				job.setCompletion(JobCompletionType.Error, rationale);
+				job.setCompletion(JobCompletionType.Warning, new Rationale("all work items completed, but job process initialization failure(s) occurred"));
 			}
 			else {
 				try {

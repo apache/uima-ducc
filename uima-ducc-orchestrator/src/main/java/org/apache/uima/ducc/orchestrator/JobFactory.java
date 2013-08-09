@@ -24,7 +24,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.tools.ant.taskdefs.ExecTask;
 import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
