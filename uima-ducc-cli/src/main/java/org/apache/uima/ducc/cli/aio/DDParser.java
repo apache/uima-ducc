@@ -73,9 +73,8 @@ public class DDParser extends DefaultHandler {
 				for(int i = 0; i < count; i++) {
 					String name = attributes.getQName(i);
 					String value = attributes.getValue(i);
-					//System.out.println(i+": "+name+"="+value);
 					if(name != null) {
-						if(name.trim().equalsIgnoreCase("name")) {
+						if(name.trim().equalsIgnoreCase("name") || name.trim().equalsIgnoreCase("location")) {
 							ddImport = value;
 						}
 					}
