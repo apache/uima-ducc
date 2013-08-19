@@ -191,8 +191,10 @@ implements IJobDriverComponent {
 					}
 				}
 				try {
-					ConcurrentSkipListMap<Long, JobProcessData> map = jpc.transform(job);
-					jpc.exportData(map);
+					if(jpc != null) {
+						ConcurrentSkipListMap<Long, JobProcessData> map = jpc.transform(job);
+						jpc.exportData(map);
+					}
 				}
 				catch(Exception e) {
 					duccOut.error(methodName, job.getDuccId(), summarize(e), e);
