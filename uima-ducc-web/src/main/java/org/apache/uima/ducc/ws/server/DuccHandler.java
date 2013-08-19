@@ -1116,100 +1116,104 @@ public class DuccHandler extends DuccAbstractHandler {
 					double time;
 					int counter = 0;
 			    	for (Entry<IWorkItemState, IWorkItemState> entry : sortedMap.entrySet()) {
+			    		StringBuffer row = new StringBuffer();
 			    		IWorkItemState wis = entry.getValue();
-					    sb.append(trGet(counter++));
+					    row.append(trGet(counter++));
 			    		if(counter > DuccConstants.workItemsDisplayMax) {
 			    			// SeqNo
-							sb.append("<td align=\"right\">");
-							sb.append("*****");
+							row.append("<td align=\"right\">");
+							row.append("*****");
 							// Id
-							sb.append("<td align=\"right\">");
-							sb.append("*****");
+							row.append("<td align=\"right\">");
+							row.append("*****");
 							// Status
-							sb.append("<td align=\"right\">");
-							sb.append("display");
+							row.append("<td align=\"right\">");
+							row.append("display");
 							// Queuing Time (sec)
-							sb.append("<td align=\"right\">");
-							sb.append("limit");
+							row.append("<td align=\"right\">");
+							row.append("limit");
 							// Processing Time (sec)
-							sb.append("<td align=\"right\">");
-							sb.append("reached");
+							row.append("<td align=\"right\">");
+							row.append("reached");
 							// Node (IP)
-							sb.append("<td align=\"right\">");
-							sb.append("*****");
+							row.append("<td align=\"right\">");
+							row.append("*****");
 							// Node (Name)
-							sb.append("<td align=\"right\">");
-							sb.append("*****");
+							row.append("<td align=\"right\">");
+							row.append("*****");
 							// PID
-							sb.append("<td align=\"right\">");
-							sb.append("*****");
+							row.append("<td align=\"right\">");
+							row.append("*****");
+							sb.append(row);
 			    			duccLogger.warn(methodName, job.getDuccId(), "work items display max:"+DuccConstants.workItemsDisplayMax);
 			    			break;
 			    		}
 			    		// SeqNo
-						sb.append("<td align=\"right\">");
-						sb.append(wis.getSeqNo());
+						row.append("<td align=\"right\">");
+						row.append(wis.getSeqNo());
 						// Id
-						sb.append("<td align=\"right\">");
-						sb.append(wis.getWiId());
+						row.append("<td align=\"right\">");
+						row.append(wis.getWiId());
 						// Status
-						sb.append("<td align=\"right\">");
+						row.append("<td align=\"right\">");
 						
 						State state = wis.getState();
 						StringBuffer status = new StringBuffer();
 						switch(state) {
 						case lost:
-							//status = sb.append("<span title=\"Work Item was queued but never dequeued. (This is most likely a DUCC framework issue.)\" >");
-							status = sb.append("<span title=\"Work Item was queued but never dequeued.\" >");
-							sb.append(state);
-							sb.append("</span>");
+							//status = row.append("<span title=\"Work Item was queued but never dequeued. (This is most likely a DUCC framework issue.)\" >");
+							status.append("<span title=\"Work Item was queued but never dequeued.\" >");
+							status.append(state);
+							status.append("</span>");
 							break;
 						default:
-							sb.append(state);
+							status.append(state);
 							break;
 						}
-						sb.append(status);
+						row.append(status);
 						// Queuing Time (sec)
 						time = getAdjustedTime(wis.getMillisOverhead(), job);
 						time = time/1000;
-						sb.append("<td align=\"right\">");
-						sb.append(formatter.format(time));
+						row.append("<td align=\"right\">");
+						row.append(formatter.format(time));
 						// Processing Time (sec)
 						time = getAdjustedTime(wis.getMillisProcessing(), job);
 						time = time/1000;
-						sb.append("<td align=\"right\">");
+						row.append("<td align=\"right\">");
 						switch(state) {
 						case start:
 						case queued:
 						case operating:
-							sb.append("<span title=\"estimated\" class=\"health_green\">");
+							row.append("<span title=\"estimated\" class=\"health_green\">");
 							break;
 						default:
-							sb.append("<span class=\"health_black\">");
+							row.append("<span class=\"health_black\">");
 							break;
 						}
-						sb.append(formatter.format(time));
-						sb.append("</span>");
+						row.append(formatter.format(time));
+						row.append("</span>");
 						// Node (IP)
-						sb.append("<td>");
+						row.append("<td>");
 						String node = wis.getNode();
 						if(node != null) {
-							sb.append(node);
+							row.append(node);
 						}
 						// Node (Name)
-						sb.append("<td>");
+						row.append("<td>");
 						if(node != null) {
 							String hostName = machinesData.getNameForIp(node);
 							if(hostName != null) {
-								sb.append(hostName);
+								row.append(hostName);
 							}
 						}
 						// PID
-						sb.append("<td>");
+						row.append("<td>");
 						String pid = wis.getPid();
 						if(pid != null) {
-							sb.append(pid);
+							row.append(pid);
 						}
+						sb.append(row);
+						duccLogger.trace(methodName, null, "**"+counter+"**"+" "+row);
 			    	}
 			    }
 			}
