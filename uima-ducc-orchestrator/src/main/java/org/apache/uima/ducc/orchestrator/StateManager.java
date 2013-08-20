@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
@@ -31,6 +32,7 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
@@ -652,6 +654,8 @@ public class StateManager {
 		return retVal;
 	}
 	
+	private static AtomicBoolean refusedLogged = new AtomicBoolean(false);
+	
 	/**
 	 * RM reconciliation
 	 */
@@ -736,11 +740,20 @@ public class StateManager {
 							break;
 						case WaitingForResources:
 							if(rmResourceState.isRefused()) {
-								duccWorkReservation.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
-								duccWorkReservation.setCompletionType(ReservationCompletionType.ResourcesUnavailable);
-								duccWorkReservation.setCompletionRationale(new Rationale("resource manager refused allocation: "+rmResourceState.getReason()));
-								changes += stateChange(duccWorkReservation,ReservationState.Completed);
-								logger.warn(methodName, duccId, messages.fetchLabel("refused")+rmResourceState.getReason());
+								String schedulingClass = duccWorkReservation.getSchedulingInfo().getSchedulingClass().trim();
+								if(schedulingClass.equals(DuccSchedulerClasses.JobDriver)) {
+									if(!refusedLogged.get()) {
+										logger.warn(methodName, duccId, messages.fetchLabel("refusal ignored")+rmResourceState.getReason());
+										refusedLogged.set(true);
+									}
+								}
+								else {
+									duccWorkReservation.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+									duccWorkReservation.setCompletionType(ReservationCompletionType.ResourcesUnavailable);
+									duccWorkReservation.setCompletionRationale(new Rationale("resource manager refused allocation: "+rmResourceState.getReason()));
+									changes += stateChange(duccWorkReservation,ReservationState.Completed);
+									logger.warn(methodName, duccId, messages.fetchLabel("refused")+rmResourceState.getReason());
+								}
 							}
 							else {
 								if(rmResourceState.getResources() != null) {
