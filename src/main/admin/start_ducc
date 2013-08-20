@@ -236,7 +236,7 @@ class StartDucc(DuccUtil):
 
         nodefiles = []
         components = []
-        management = True
+        management = False
         single_user = False
         or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
         self.pids = DuccProperties()
@@ -271,7 +271,7 @@ class StartDucc(DuccUtil):
         # 'management' means start all the management daemons - if specific components are also specified
         # there is at least a redundancy and maybe also a conflict.
         if ( (len(components) != 0) and management ):
-            self.invalid("The --management and --component options are mutually exclusive")
+            self.invalid("The [-m | --management] and [-c | --component] options are mutually exclusive.")
 
         # no args, or just -s - make equivalent of -management and -nodefile=DUCC.HOME/resources/ducc.nodes
         if ( (len(argv) == 0) or ((len(argv) == 1) and single_user) ):
