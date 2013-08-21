@@ -444,15 +444,20 @@ public class ProcessAccounting {
 			twi = new TimeWindow();
 			twi.setStart(ts);
 			twi.setEnd(ts);
-			process.setTimeWindowRun(twi);
+			process.setTimeWindowInit(twi);
 		}
 		long i0 = twi.getStartLong();
 		long i1 = twi.getEndLong();
 		if(i0 != i1) {
 			if(i1 < i0) {
 				twi.setEnd(ts);
+				i1 = twi.getEndLong();
 			}
 		}
+		ITimeWindow twr = new TimeWindow();
+		twr.setStartLong(i1);
+		twr.setEndLong(i1);
+		process.setTimeWindowRun(twr);
 	}
 	
 	private void runStop(IDuccWorkJob job, IDuccProcess process) {
