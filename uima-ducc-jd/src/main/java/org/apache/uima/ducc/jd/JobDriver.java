@@ -116,6 +116,8 @@ public class JobDriver extends Thread implements IJobDriver {
 	
 	private ConcurrentHashMap<String,WorkItem> casWorkItemMap = null;
 	
+	private long total = -1;
+	
 	public JobDriver() {
 		super();
 	}
@@ -161,28 +163,30 @@ public class JobDriver extends Thread implements IJobDriver {
 			casSource = new CasSource(this, crxml, crcfg, casDispatchMap);
 			Progress progress = casSource.getProgress();
 			if(progress != null) {
-				long total = progress.getTotal();
+				total = progress.getTotal();
 				duccOut.info(location, jobid, "total: "+total);
 				driverStatusReport.setWorkItemsTotal(total);
 			}
 			duccOut.debug(location, jobid, "CAS source initialized");
-			// Initialize job process exception handler
-			String jdProcessExceptionHandlerClassName = job.getDriver().getProcessExceptionHandler();
-			if(jdProcessExceptionHandlerClassName != null) {
-				try {
-					jdProcessExceptionHandler = JdProcessExceptionHandlerLoader.load(job.getDriver().getProcessExceptionHandler());
-					duccOut.info(location, jobid, "user specified handler = "+jdProcessExceptionHandlerClassName);
+			if(total > 0) {
+				// Initialize job process exception handler
+				String jdProcessExceptionHandlerClassName = job.getDriver().getProcessExceptionHandler();
+				if(jdProcessExceptionHandlerClassName != null) {
+					try {
+						jdProcessExceptionHandler = JdProcessExceptionHandlerLoader.load(job.getDriver().getProcessExceptionHandler());
+						duccOut.info(location, jobid, "user specified handler = "+jdProcessExceptionHandlerClassName);
+					}
+					catch (Exception e) {
+						duccOut.error(location, jobid, e);
+						duccErr.error(location, jobid, e);
+						driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+summarize(e)));
+						terminate();
+						throw new JobDriverTerminateException("initialize failed", e);
+					}
 				}
-				catch (Exception e) {
-					duccOut.error(location, jobid, e);
-					duccErr.error(location, jobid, e);
-					driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+summarize(e)));
-					terminate();
-					throw new JobDriverTerminateException("initialize failed", e);
+				else {
+					duccOut.info(location, jobid, "default handler = "+JdProcessExceptionHandler.class.getName());
 				}
-			}
-			else {
-				duccOut.info(location, jobid, "default handler = "+JdProcessExceptionHandler.class.getName());
 			}
 		}
 		catch(JobDriverTerminateException e) {
@@ -202,8 +206,15 @@ public class JobDriver extends Thread implements IJobDriver {
 	}
 	
 	public void run() {
+		String location = "run";
 		try {
-			process();
+			if(total > 0) {
+				process();
+			}
+			else {
+				duccOut.warn(location, jobid, "no work items to process");
+			}
+			
 		} 
 		catch (JobDriverTerminateException e) {
 		}
