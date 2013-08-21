@@ -88,15 +88,25 @@ public class AllInOne extends CliBase {
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 
+	private class NoWorkItems extends Exception {
+		private static final long serialVersionUID = 1L;
+	}
+	
 	private void initialize() throws Exception {
 		String mid = "initialize";
 		mh.frameworkTrace(cid, mid, "enter");
 		// Generator
 		casGenerator = new CasGenerator(jobRequestProperties, mh);
 		casGenerator.initialize();
-		// Pipeline
-		casPipeline = new CasPipeline(jobRequestProperties, mh);
-		casPipeline.initialize();
+		int total = casGenerator.getTotal();
+		if(total > 0) {
+			// Pipeline
+			casPipeline = new CasPipeline(jobRequestProperties, mh);
+			casPipeline.initialize();
+		}
+		else {
+			throw new NoWorkItems();
+		}
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
@@ -126,10 +136,16 @@ public class AllInOne extends CliBase {
 	public void go() throws Exception {
 		String mid = "go";
 		mh.frameworkTrace(cid, mid, "enter");
-		examine();
-		initialize();
-		process();
-		statistics();
+		try {
+			examine();
+			initialize();
+			process();
+			statistics();
+		}
+		catch(NoWorkItems e) {
+			String message = "no work items";
+			mh.warn(cid, mid, message);
+		}
 		mh.frameworkTrace(cid, mid, "exit");
 	}
 	
