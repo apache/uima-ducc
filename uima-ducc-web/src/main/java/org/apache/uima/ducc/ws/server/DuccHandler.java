@@ -684,51 +684,62 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<td align=\"right\">");
 		double pctCPU = 0;
 		String displayCPU = formatter.format(pctCPU);
-		boolean rt = false;
-		if(runTime != null) {
-			if(runTime.contains(":")) {
-				rt = true;
-			}
-			else {
-				try {
-					long value = Long.parseLong(runTime);
-					if(value > 0) {
-						rt = true;
+		if(process.getDataVersion() < 1) {
+			boolean rt = false;
+			if(runTime != null) {
+				if(runTime.contains(":")) {
+					rt = true;
+				}
+				else {
+					try {
+						long value = Long.parseLong(runTime);
+						if(value > 0) {
+							rt = true;
+						}
+					}
+					catch(Exception e) {
 					}
 				}
-				catch(Exception e) {
+			}
+			try {
+				if(rt) {
+					long msecsCPU = process.getCpuTime()*1000;
+					long msecsRun = process.getTimeWindowRun().getElapsedMillis();
+					switch(process.getProcessState()) {
+					case Running:
+						long msecsInit = process.getTimeWindowInit().getElapsedMillis();
+						msecsRun = msecsRun - msecsInit;
+						break;
+					}
+					double secsCPU = (msecsCPU*1.0)/1000.0;
+					double secsRun = (msecsRun*1.0)/1000.0;
+					double timeCPU = secsCPU;
+					double timeRun = secsRun;
+					pctCPU = 100*(timeCPU/timeRun);
+					if(!Double.isNaN(pctCPU)) {
+						StringBuffer tb = new StringBuffer();
+						String fmtsecsCPU = formatter.format(secsCPU);
+						String fmtsecsRun = formatter.format(secsRun);
+						String title = "title="+"\""+"seconds"+" "+"CPU:"+fmtsecsCPU+" "+"run:"+fmtsecsRun+"\"";
+						tb.append("<span "+title+">");
+						String fmtPctCPU = formatter.format(pctCPU);
+						tb.append(fmtPctCPU);
+						tb.append("</span>");
+						displayCPU = tb.toString();
+					}
 				}
 			}
-		}
-		try {
-			if(rt) {
-				long msecsCPU = process.getCpuTime()*1000;
-				long msecsRun = process.getTimeWindowRun().getElapsedMillis();
-				switch(process.getProcessState()) {
-				case Running:
-					long msecsInit = process.getTimeWindowInit().getElapsedMillis();
-					msecsRun = msecsRun - msecsInit;
-					break;
-				}
-				double secsCPU = (msecsCPU*1.0)/1000.0;
-				double secsRun = (msecsRun*1.0)/1000.0;
-				double timeCPU = secsCPU;
-				double timeRun = secsRun;
-				pctCPU = 100*(timeCPU/timeRun);
-				if(!Double.isNaN(pctCPU)) {
-					StringBuffer tb = new StringBuffer();
-					String fmtsecsCPU = formatter.format(secsCPU);
-					String fmtsecsRun = formatter.format(secsRun);
-					String title = "title="+"\""+"seconds"+" "+"CPU:"+fmtsecsCPU+" "+"run:"+fmtsecsRun+"\"";
-					tb.append("<span "+title+">");
-					String fmtPctCPU = formatter.format(pctCPU);
-					tb.append(fmtPctCPU);
-					tb.append("</span>");
-					displayCPU = tb.toString();
-				}
+			catch(Exception e) {
 			}
 		}
-		catch(Exception e) {
+		else {
+			pctCPU = process.getCpuTime();
+			String fmtPctCPU = formatter.format(pctCPU);
+			StringBuffer tb = new StringBuffer();
+			tb.append("<span>");
+			tb.append(fmtPctCPU);
+			tb.append("</span>");
+			displayCPU = tb.toString();
 		}
 		sb.append(displayCPU);
 		sb.append("</td>");

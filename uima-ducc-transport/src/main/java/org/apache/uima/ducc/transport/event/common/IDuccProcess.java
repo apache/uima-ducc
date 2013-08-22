@@ -34,6 +34,8 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 
 public interface IDuccProcess extends Serializable {
 	
+	public long getDataVersion();
+	
 	public DuccId getDuccId();
 	public void setDuccId(DuccId duccId);
 	

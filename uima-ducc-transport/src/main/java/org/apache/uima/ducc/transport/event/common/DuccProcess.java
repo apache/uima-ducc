@@ -38,6 +38,7 @@ public class DuccProcess implements IDuccProcess {
 	 * please increment this sUID when removing or modifying a field
 	 */
 	private static final long serialVersionUID = 1L;
+	private long dataVersion=1;
 	private DuccId duccId = null;
 	private Node  node = null;
 	private NodeIdentity  nodeIdentity = null;
@@ -88,6 +89,16 @@ public class DuccProcess implements IDuccProcess {
 		NodeIdentity nodeIdentity = node.getNodeIdentity();
 		setNodeIdentity(nodeIdentity);
 		setProcessType(processType);
+	}
+	
+	public long getDataVersion() {
+		long retVal = 0;
+		try {
+			retVal = dataVersion;
+		}
+		catch(Exception e) {
+		}
+		return retVal;
 	}
 	
 	public List<IUimaPipelineAEComponent> getUimaPipelineComponents() {
