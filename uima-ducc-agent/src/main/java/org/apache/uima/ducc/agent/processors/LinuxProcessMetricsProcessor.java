@@ -50,7 +50,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
   // private RandomAccessFile nodeStatFile;
   private RandomAccessFile processStatFile;
 
-  private long initTimeinSeconds = 0;
+  private long totalCpuInitUsage = 0;
   
   private boolean initializing = true;
   
@@ -71,6 +71,10 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
   private int fudgeFactor = 5; // default is 5%
 
   private volatile boolean closed = true;
+  
+  private long clockAtStartOfRun=0;
+  
+  private long percentCPU=0;
   
   // private int logCounter=0;
   public LinuxProcessMetricsProcessor(DuccLogger logger, IDuccProcess process, NodeAgent agent,
@@ -159,7 +163,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                         pid, processStatFile, 42, 0);
 
                 processCpuUsage = pool.submit(processCpuUsageCollector);
-                totalCpuUsage += processCpuUsage.get().getTotalJiffies();
+                totalCpuUsage += (processCpuUsage.get().getTotalJiffies()/ agent.cpuClockRate);
                 
                 RandomAccessFile rStatmFile =
                         new RandomAccessFile("/proc/" + pid + "/statm", "r");
@@ -188,7 +192,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                      process.getPID(), processStatFile, 42, 0);
 
              processCpuUsage = pool.submit(processCpuUsageCollector);
-             totalCpuUsage = processCpuUsage.get().getTotalJiffies();
+             totalCpuUsage = processCpuUsage.get().getTotalJiffies()/ agent.cpuClockRate;
              
              ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(statmFile, 2,
                      0);
@@ -205,18 +209,24 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         // report cpu utilization while the process is running
         if ( managedProcess.getDuccProcess().getProcessState().equals(ProcessState.Running)) {
           if (agent.cpuClockRate > 0) {
+        	  // if the process just change state from Initializing to Running ...
             if ( initializing ) {
               initializing = false;
               // cache how much cpu was used up during initialization of the process
-              initTimeinSeconds = totalCpuUsage / agent.cpuClockRate;
+              totalCpuInitUsage = totalCpuUsage;
+              // capture time when process state changed to Running
+              clockAtStartOfRun = System.currentTimeMillis();
             }
-            //  normalize cpu usage to report in seconds. Also subtract how much cpu was
+            // normalize time in running state into seconds
+            long timeSinceRunningInSeconds = (System.currentTimeMillis() - clockAtStartOfRun)/1000;
+            //  normalize cpu % usage to report in seconds. Also subtract how much cpu was
             //  used during initialization
-            long cpu = ( totalCpuUsage/agent.cpuClockRate)-initTimeinSeconds;
+            percentCPU = 100* ( totalCpuUsage - totalCpuInitUsage )/timeSinceRunningInSeconds;
+            
             logger.info("process", null, "----------- PID:" + process.getPID()
-                    + " CPU Time (seconds):" + cpu);
+                    + " CPU Time:" + percentCPU+"%");
             // Publish cumulative CPU usage
-            process.setCpuTime(cpu);
+            process.setCpuTime(percentCPU);
           } else {
             process.setCpuTime(0);
             logger.info("process", null,
@@ -224,9 +234,13 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                             + process.getPID());
           }
           
-        } else {
-          //   report 0 for CPU while the process is initializing
-          process.setCpuTime(0);
+        } else if ( managedProcess.getDuccProcess().getProcessState().equals(ProcessState.Initializing)) {
+            //   report 0 for CPU while the process is initializing
+            process.setCpuTime(0);
+        }
+        else {
+          //   if process is not dead, report the last known percentCPU
+          process.setCpuTime(percentCPU);
         }
        // long majorFaults = processMajorFaultUsage.get().getMajorFaults();
         // collects process Major faults (swap in memory)
