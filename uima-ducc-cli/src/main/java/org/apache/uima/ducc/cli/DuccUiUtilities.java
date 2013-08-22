@@ -122,9 +122,6 @@ public class DuccUiUtilities {
         String target = "DUCC_"+source;
         ArrayList<String> envList = tokenizeList(environment, false); // Don't strip quotes
         Map<String,String> envMap = parseAssignments(envList, false); // Keep all entries
-        if (envMap == null) {
-            return null;   // Syntax error
-        }
         if (envMap.containsKey(source)) {
             if (!envMap.containsKey(target)) {
                 envMap.put(target, envMap.get(source));
@@ -168,17 +165,13 @@ public class DuccUiUtilities {
         }
 	}
 	
-	public static boolean ducc_environment(CliBase base, Properties jobRequestProperties, String key) {
+	public static void ducc_environment(CliBase base, Properties jobRequestProperties, String key) {
 		String environment_string = jobRequestProperties.getProperty(key, "");
 		String fixedEnv = fixupEnvironment(environment_string);
-        if (fixedEnv == null) {
-            return false;  // error
-        } 
         // If the input string returned unmodified, no need to change the property
         if (fixedEnv != environment_string) {
             jobRequestProperties.setProperty(key, fixedEnv);
         }
-        return true;
 	}
 	
 	/* 
@@ -313,32 +306,31 @@ public class DuccUiUtilities {
      * @param jvmargs
      * @return
      */
-    public static String getEndpoint(String working_dir, String process_DD, String jvmargs)
-    {
-    	// convert relative path for process_DD to absolute if needed
-        if ( !process_DD.startsWith("/") && process_DD.endsWith(".xml") && working_dir != null ) {
+    public static String getEndpoint(String working_dir, String process_DD, String jvmargs) {
+        // convert relative path for process_DD to absolute if needed
+        if (!process_DD.startsWith("/") && process_DD.endsWith(".xml") && working_dir != null) {
             process_DD = working_dir + "/" + process_DD;
         }
 
-        //  parse process_DD into DOM, resolving the descriptor either by name or by location
+        // parse process_DD into DOM, resolving the descriptor either by name or by location
         Document doc = null;
-		try {
-			XMLInputSource xmlin = UimaUtils.getXMLInputSource(process_DD);
-			DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			doc = db.parse(xmlin.getInputStream());
-		} catch ( Throwable t ) {
+        try {
+            XMLInputSource xmlin = UimaUtils.getXMLInputSource(process_DD);
+            DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            doc = db.parse(xmlin.getInputStream());
+        } catch (Throwable t) {
             t.printStackTrace();
             throw new IllegalArgumentException(t.getMessage());
-		}
-                
+        }
+
         // locate the <inputQueue node within the xml - should only be one such node, and it MUST exist
         // then construct an endpoint and resolve any placeholders against the process JVM args
-		// just as is done by Spring in a UIMA-AS Deployment Descriptor
+        // just as is done by Spring in a UIMA-AS Deployment Descriptor
         NodeList nodes = doc.getElementsByTagName("inputQueue");
-        if ( nodes.getLength() > 0 ) {
+        if (nodes.getLength() > 0) {
             Element element = (Element) nodes.item(0);
             String endpoint = element.getAttribute("endpoint");
-            String broker   = element.getAttribute("brokerURL");
+            String broker = element.getAttribute("brokerURL");
             String ep = "UIMA-AS:" + endpoint + ":" + broker;
             if (ep.contains("${")) {
                 ArrayList<String> jvmargList = tokenizeList(jvmargs, true); // Strip quotes
@@ -498,7 +490,8 @@ public class DuccUiUtilities {
      *  
      * @return - map of key/value pairs null if syntax is illegal
      */
-    public static Map<String, String> parseAssignments(List<String> assignments, boolean jvmArgs) {
+    public static Map<String, String> parseAssignments(List<String> assignments, boolean jvmArgs) 
+        throws IllegalArgumentException {
 
       HashMap<String, String> map = new HashMap<String, String>();
       if (assignments == null || assignments.size() == 0) {
@@ -508,7 +501,7 @@ public class DuccUiUtilities {
         String[] parts = assignment.split("=", 2); // Split on first '='
         String key = parts[0];
         if (key.length() == 0) {
-          return null;
+          throw new IllegalArgumentException("Missing key in assignment: " + assignment);
         }
         if (jvmArgs) {
           if (!key.startsWith("-D")) {

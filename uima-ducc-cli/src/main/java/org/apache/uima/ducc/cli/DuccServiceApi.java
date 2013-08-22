@@ -281,9 +281,7 @@ public class DuccServiceApi
         if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
             key_ev = UiOption.Environment.pname();
         }
-        if (!DuccUiUtilities.ducc_environment(this, cli_props, key_ev)) {
-            throw new IllegalArgumentException("Invalid environment syntax: " + cli_props.getProperty(key_ev));
-        }
+        DuccUiUtilities.ducc_environment(this, cli_props, key_ev);
         
         setLinger();
 

@@ -378,6 +378,7 @@ public class AllInOneLauncher extends CliBase {
         String mid = "examine_environment";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.Environment.pname();
+        DuccUiUtilities.ducc_environment(this, jobRequestProperties, pname); // Augment environment
         if(jobRequestProperties.containsKey(pname)) {
             environment = jobRequestProperties.getProperty(pname);
             String message = environment;
@@ -394,6 +395,7 @@ public class AllInOneLauncher extends CliBase {
             return;
         }
         String pname = UiOption.ProcessEnvironment.pname();
+        DuccUiUtilities.ducc_environment(this, jobRequestProperties, pname); // Augment environment
         if(jobRequestProperties.containsKey(pname)) {
             environment = jobRequestProperties.getProperty(pname);
             String message = environment;
@@ -936,28 +938,16 @@ public class AllInOneLauncher extends CliBase {
             pb.directory(wd);
         }
         
-        /*
-         * Note: env values must not contain blanks, e.g this will fail
-         *    environment = foo="a b" bar=abc
-         */
+        // Put environment settings in the process's environment
         if(environment != null) {
+            ArrayList<String> envList = DuccUiUtilities.tokenizeList(environment, true); // Strip quotes
+            Map<String,String> envMap = DuccUiUtilities.parseAssignments(envList, false); // Keep all entries
             Map<String,String> env = pb.environment();
             env.clear();
-            String[]envVars = environment.split("\\s+");
-            for(String envVar : envVars) {
-                String[] nvp = envVar.trim().split("=");
-                if(nvp.length != 2) {
-                    message = "invalid environment variable specified: "+envVar;
-                    mh.error(cid, mid, message);
-                    throw new IllegalArgumentException("invalid environment specified");
-                }
-                String name = nvp[0];
-                String value = nvp[1];
-                message = "environment: "+name+"="+value;
-                mh.frameworkInfo(cid, mid, message);
-                env.put(name, value);
-            }
+            env.putAll(envMap);
         }
+        
+        // Run!
         pb.redirectErrorStream(true);
         Process process = pb.start();
         

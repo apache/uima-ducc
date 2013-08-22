@@ -94,8 +94,10 @@ public class JobFactory {
 			logger.debug(methodName, job.getDuccId(), environmentVariables);
 			// Tokenize the list of assignments, dequote, and convert to a map of environment settings
 			ArrayList<String> envVarList = DuccUiUtilities.tokenizeList(environmentVariables, true);
-			Map<String, String> envMap = DuccUiUtilities.parseAssignments(envVarList, false);
-			if (envMap == null) {
+			Map<String, String> envMap;
+			try {
+			    envMap = DuccUiUtilities.parseAssignments(envVarList, false);
+			} catch (IllegalArgumentException e) {
                 logger.warn(methodName, job.getDuccId(),"Invalid environment syntax in: " + environmentVariables);
                 return 0;  // Should not happen as CLI should have checked and rejected the request
 			}

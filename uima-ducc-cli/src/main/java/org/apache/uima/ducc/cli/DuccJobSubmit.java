@@ -539,23 +539,15 @@ public class DuccJobSubmit
             throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.ProcessEnvironment.pname());
         }
         if(ev0) {
-            if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname())) {
-                return false;
-            }
+            DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname());
         }
         else {
             if(evd || evp) {
-                if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.DriverEnvironment.pname())) {
-                    return false;
-                }
-                if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.ProcessEnvironment.pname())) {
-                    return false;
-                }
+                DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.DriverEnvironment.pname());
+                DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.ProcessEnvironment.pname());
             }
             else {
-                if (!DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname())) {
-                    return false;
-                }
+                DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname());
             }
         }
         

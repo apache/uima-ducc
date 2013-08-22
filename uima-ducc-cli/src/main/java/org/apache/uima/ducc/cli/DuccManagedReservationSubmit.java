@@ -186,20 +186,14 @@ public class DuccManagedReservationSubmit
             throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.ProcessEnvironment.pname());
         }
         if(ev0) {
-            if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
-                return false;
-            }
+            DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname());
         }
         else {
             if(evp) {
-                if (!DuccUiUtilities.ducc_environment(this,serviceRequestProperties, UiOption.ProcessEnvironment.pname())) {
-                    return false;
-                }
+                DuccUiUtilities.ducc_environment(this,serviceRequestProperties, UiOption.ProcessEnvironment.pname());
             }
             else {
-                if (!DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname())) {
-                    return false;
-                }
+                DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname());
             }
         }
 
