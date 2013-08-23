@@ -329,9 +329,30 @@ public class ProcessAccounting {
 		return;
 	}
 	
+	/*
+	private void validate(IDuccProcess inventoryProcess) {
+		String methodName = "validate";
+		if(inventoryProcess != null) {
+			ITimeWindow twInit = inventoryProcess.getTimeWindowInit();
+			ITimeWindow twRun = inventoryProcess.getTimeWindowRun();
+			if(twInit != null) {
+				if(twRun != null) {
+					long initEnd = twInit.getEndLong();
+					long runStart = twRun.getStartLong();
+					if(initEnd > runStart) {
+						DuccId duccPid = inventoryProcess.getDuccId();
+						logger.warn(methodName, null, duccPid, "initEnd:"+initEnd+" "+"runStart:"+runStart);
+					}
+				}
+			}
+		}
+	}
+	*/
+	
 	public void copyTimeRun(IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "copyTimeRun";
 		logger.trace(methodName, null, messages.fetch("enter"));
+		//validate(inventoryProcess);
 		DuccId processId = inventoryProcess.getDuccId();
 		DuccId jobId = getJobId(processId);
 		ITimeWindow twRun = inventoryProcess.getTimeWindowRun();
@@ -437,26 +458,34 @@ public class ProcessAccounting {
 		logger.trace(methodName, job.getDuccId(), messages.fetch("exit"));
 	}
 	
+	private ITimeWindow makeTimeWindow(String ts) {
+		ITimeWindow tw = new TimeWindow();
+		tw.setStart(ts);
+		tw.setEnd(ts);
+		return tw;
+	}
+	
 	private void initStop(IDuccWorkJob job, IDuccProcess process) {
 		String ts = TimeStamp.getCurrentMillis();
 		ITimeWindow twi = process.getTimeWindowInit();
 		if(twi == null) {
-			twi = new TimeWindow();
-			twi.setStart(ts);
-			twi.setEnd(ts);
+			twi = makeTimeWindow(ts);
 			process.setTimeWindowInit(twi);
 		}
-		long i0 = twi.getStartLong();
-		long i1 = twi.getEndLong();
-		if(i0 != i1) {
-			if(i1 < i0) {
-				twi.setEnd(ts);
-				i1 = twi.getEndLong();
+		else {
+			long i0 = twi.getStartLong();
+			long i1 = twi.getEndLong();
+			if(i0 != i1) {
+				if(i1 < i0) {
+					twi.setEnd(ts);
+				}
 			}
 		}
-		ITimeWindow twr = new TimeWindow();
-		twr.setStartLong(i1);
-		twr.setEndLong(i1);
+	}
+	
+	private void runStart(IDuccWorkJob job, IDuccProcess process) {
+		ITimeWindow twi = process.getTimeWindowInit();
+		ITimeWindow twr = makeTimeWindow(twi.getEnd());
 		process.setTimeWindowRun(twr);
 	}
 	
@@ -464,39 +493,50 @@ public class ProcessAccounting {
 		String ts = TimeStamp.getCurrentMillis();
 		ITimeWindow twi = process.getTimeWindowInit();
 		if(twi == null) {
-			twi = new TimeWindow();
-			twi.setStart(ts);
-			twi.setEnd(ts);
+			twi = makeTimeWindow(ts);
 			process.setTimeWindowRun(twi);
-		}
-		long i0 = twi.getStartLong();
-		long i1 = twi.getEndLong();
-		if(i0 != i1) {
-			if(i1 < i0) {
-				twi.setEnd(ts);
-				i1 = twi.getEndLong();
-			}
 		}
 		ITimeWindow twr = process.getTimeWindowRun();
 		if(twr == null) {
-			twr = new TimeWindow();
-			twr.setStart(twi.getEnd());
-			twr.setEnd(twi.getEnd());
+			twr = makeTimeWindow(twi.getEnd());
 			process.setTimeWindowRun(twr);
 		}
+		else {
+			long r0 = twr.getStartLong();
+			long r1 = twr.getEndLong();
+			if(r0 != r1) {
+				if(r1 < r0) {
+					twr.setEnd(ts);
+				}
+			}
+		}
+		adjustWindows(job, process);
+	}
+
+	private void adjustWindows(IDuccWorkJob job, IDuccProcess process) {
+		String methodName = "adjustWindows";
+		ITimeWindow twi = process.getTimeWindowInit();
+		long i0 = twi.getStartLong();
+		long i1 = twi.getEndLong();
+		ITimeWindow twr = process.getTimeWindowRun();
 		long r0 = twr.getStartLong();
 		long r1 = twr.getEndLong();
-		if(r0 != r1) {
-			if(r0 < i1) {
-				twr.setStart(twi.getEnd());
-				r0 = twr.getStartLong();
-			}
-			if(r1 < r0) {
-				twr.setEnd(ts);
+		if(i0 != i1) {
+			if(r0 != r1) {
+				if(r0 < i1) {
+					logger.warn(methodName, job.getDuccId(), process.getDuccId(), "run-start: "+r0+" -> "+i1);
+					r0 = i1;
+					twr.setStartLong(r0);
+					if(r1 < r0) {
+						logger.warn(methodName, job.getDuccId(), process.getDuccId(), "run-end: "+r1+" -> "+r0);
+						r1 = r0;
+						twr.setEndLong(r1);
+					}
+				}
 			}
 		}
 	}
-
+	
 	public void updateProcessTime(IDuccWorkJob job, IDuccProcess inventoryProcess, IDuccProcess process) {
 		String methodName = "updateProcessTime";
 		logger.trace(methodName, job.getDuccId(), messages.fetch("enter"));
@@ -508,6 +548,7 @@ public class ProcessAccounting {
 		case Running:				// Process Agent is processing work items
 			copyTimeInit(inventoryProcess, process);
 			initStop(job, process);
+			runStart(job, process);
 			copyTimeRun(inventoryProcess, process);
 			break;
 		case Stopped:				// Process Agent reports process stopped
@@ -517,6 +558,7 @@ public class ProcessAccounting {
 		case Killed:				// Agent forcefully killed the process
 			copyTimeInit(inventoryProcess, process);
 			copyTimeRun(inventoryProcess, process);
+			initStop(job, process);
 			runStop(job, process);
 			break;
 		case Undefined:
