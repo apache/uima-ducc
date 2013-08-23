@@ -785,7 +785,7 @@ public class JobManagerConverter
 
         // otherwise, if the shares it has allocated is < the number it wants, it is in fact
         // pending but not complete.
-        logger.info(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances());
+        logger.trace(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances());
         return ( j.countNShares() < j.countInstances());
     }
 
@@ -901,7 +901,8 @@ public class JobManagerConverter
 
         RmStateDuccEvent response = new RmStateDuccEvent(rmJobState);
         try {
-            logger.debug(methodName, null, response.toString() );            
+            logger.info(methodName, null, "Schedule sent to Orchestrator");
+            logger.info(methodName, null, response.toString() );            
         } catch (Exception e) {
             logger.error(methodName, null, e);
         }
