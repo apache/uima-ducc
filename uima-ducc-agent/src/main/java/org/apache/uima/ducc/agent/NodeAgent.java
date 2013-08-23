@@ -854,8 +854,21 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             processEntry.getValue().setProcessJmxUrl(duccEvent.getProcessJmxUrl());
           }
           ITimeWindow tw = processEntry.getValue().getTimeWindowInit();
-          if (tw.getEnd() == null && duccEvent.getState().equals(ProcessState.Running)) {
-            tw.setEnd(TimeStamp.getCurrentMillis());
+          if (tw.getEnd() == null ) {
+        	if ( !duccEvent.getState().equals(ProcessState.Initializing)) {
+        		// Mark the time the process ended initialization. It also 
+        		// covers a case when the process terminates while initializing
+          	    tw.setEnd(TimeStamp.getCurrentMillis());
+            
+            	if ( duccEvent.getState().equals(ProcessState.Running)) {
+        		    ITimeWindow twr = new TimeWindow();
+        		    String millis;
+        		    millis = TimeStamp.getCurrentMillis();
+        		    // Mark the time the process started running
+        		    processEntry.getValue().setTimeWindowRun(twr);
+        		    twr.setStart(millis);
+            	}
+        	}
           }
           ManagedProcess deployedProcess = null;
           synchronized (monitor) {
@@ -1144,13 +1157,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       ProcessStateUpdate processStateUpdate = new ProcessStateUpdate(process.getProcessState(),
               process.getPID(), process.getDuccId().getUnique());
       ProcessStateUpdateDuccEvent event = new ProcessStateUpdateDuccEvent(processStateUpdate);
+      /*
       if (process != null) {
         ITimeWindow tw = process.getTimeWindowInit();
         if (tw.getEnd() == null) {
           tw.setEnd(TimeStamp.getCurrentMillis());
         }
       }
-
+*/
       updateProcessStatus(event);
     } catch (Exception e) {
       logger.error(methodName, null, e);

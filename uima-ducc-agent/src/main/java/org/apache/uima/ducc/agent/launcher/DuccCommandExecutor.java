@@ -305,14 +305,14 @@ public class DuccCommandExecutor extends CommandExecutor {
 	private void startProcess(ICommandLine cmdLine,String[] cmd, Map<String, String> processEnv) throws Exception {
 		String methodName = "startProcess";
 
-		ITimeWindow twr = new TimeWindow();
-		String millis;
-		millis = TimeStamp.getCurrentMillis();
-        
-		((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowRun(twr);
-		twr.setStart(millis);
+//		ITimeWindow twr = new TimeWindow();
+//		String millis;
+//		millis = TimeStamp.getCurrentMillis();
+//        
+//		((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowRun(twr);
+//		twr.setStart(millis);
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-
+		/*
 		if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop) ||
 				((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service)   ) {
 			ITimeWindow twi = new TimeWindow();
@@ -320,6 +320,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			twi.setStart(millis);
 			twi.setEnd(millis);
 		}
+	*/
 		Map<String, String> env = pb.environment();
 		//	Dont enherit agent's environment
 		env.clear();
@@ -341,8 +342,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 		} catch(Exception e) {
 			throw e;
 		} finally {
-			millis = TimeStamp.getCurrentMillis();
-			twr.setEnd(millis);
+//			millis = TimeStamp.getCurrentMillis();
+//			twr.setEnd(millis);
 		}
 	}
 	private void doExec(ProcessBuilder pb, String[] cmd, boolean isKillCmd) throws Exception {
