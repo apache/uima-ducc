@@ -1029,9 +1029,12 @@ public class NodepoolScheduler
             if ( jobs.size() == 0 ) {
                 logger.info(methodName, null, "No jobs to schedule in class ", rc.getName());
             } else {
+                StringBuffer buf = new StringBuffer();
                 for ( IRmJob j : jobs.values() ) {
-                    logger.info(methodName, j.getId(), "Scheduling job in class ", rc.getName());
+                    buf.append(" ");
+                    buf.append(j.getId());
                 }
+                logger.info(methodName, null, "Scheduling jobs in class:", rc.getName(), buf.toString());
             }
         }
         if ( total_jobs == 0 ) {
@@ -1056,8 +1059,8 @@ public class NodepoolScheduler
 
                 if ( j.countNShares() > 0 ) {
                     // already accounted for as well, since it is a non-preemptable share
-                    logger.info(methodName, j.getId(), "Already scheduled with", j.countNShares(), "processes, ", 
-                                (j.countNShares() * j.getShareOrder()), "Q shares");
+                    logger.info(methodName, j.getId(), "[stable]", j.countNShares(), "proc, ", 
+                                (j.countNShares() * j.getShareOrder()), "QS");
                     // j.addQShares(j.countNShares() * j.getShareOrder());
                     int[] gbo = NodePool.makeArray();
                     gbo[j.getShareOrder()] = j.countNShares();       // must set the allocation so eviction works right
@@ -1893,12 +1896,18 @@ public class NodepoolScheduler
         }
 
         boolean must_defrag = false;
+        String headerfmt = "%12s %10s %6s %4s %7s %6s %2s";
+        String datafmt   = "%12s %10s %6d %4d %7d %6d %2d";
+
         for ( ResourceClass rc : resourceClasses.values() ) {
             // Next: Look at every job and work out its "need".  Collect jobs by nodepool into the jobmaps.
             Map<IRmJob, IRmJob> allJobs = rc.getAllJobs();
             String npn = rc.getNodepoolName();
             Map<IRmJob, Integer> jobmap = jobs.get(npn);
 
+            if ( allJobs.size() == 0 ) continue;
+
+            logger.info(methodName, null, String.format(headerfmt, "Nodepool", "User", "PureFS", "NSh", "Counted", "Needed", "O"), "Class:", rc.getName());
             for ( IRmJob j : allJobs.values() ) {
 
                 int counted = 0;
@@ -1934,16 +1943,28 @@ public class NodepoolScheduler
 
 
                 logger.info(methodName, j.getId(), 
-                            String.format("NP: %10s User %8s Pure fs[%3d] Nshares[%3d] AsgnNshares[%3d] needed[%3d] O[%d] %s",
+                            String.format(datafmt, 
                                           npn,
                                           j.getUser().getName(),
                                           j.getPureFairShare(),
                                           current,
                                           counted,
                                           needed,
-                                          order,
-                                          (needed > 0) ? "POTENTIALLY NEEDY" : ""
-                                          ));
+                                          order),
+                            (needed > 0) ? "POTENTIALLY NEEDY" : ""
+                            );
+
+//                             String.format("NP: %10s User %8s Pure fs[%3d] Nshares[%3d] AsgnNshares[%3d] needed[%3d] O[%d] %s",
+//                                           npn,
+//                                           j.getUser().getName(),
+//                                           j.getPureFairShare(),
+//                                           current,
+//                                           counted,
+//                                           needed,
+//                                           order,
+//                                           (needed > 0) ? "POTENTIALLY NEEDY" : ""
+//                                           ));
+
                 
             }
         }
@@ -2141,6 +2162,9 @@ public class NodepoolScheduler
         String methodName = "schedule";
         // TODO: we don't need to count jobs - let caller do this an bypass calling the scheduler
         //       all the jobs are attached to the resource classes, we never need the dormant or running jobs lists here
+
+        logger.info(methodName, null, "Machine occupancy before schedule");
+        globalNodepool.queryMachines();
         
         int jobcount = 0;
         for ( ResourceClass rc : resourceClasses.values() ) {
@@ -2199,8 +2223,6 @@ public class NodepoolScheduler
                 ArrayList<ResourceClass> rcs = (ArrayList<ResourceClass>) classes[i];
             findWhatOf(rcs);
         }
-        logger.info(methodName, null, "Machine occupancy after expansion");
-        globalNodepool.queryMachines();
         //
         //
         // ////////////////////////////////////////////////////////////////////////////////////////////////////

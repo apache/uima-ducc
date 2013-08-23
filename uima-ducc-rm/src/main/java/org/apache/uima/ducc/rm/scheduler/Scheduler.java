@@ -168,7 +168,7 @@ public class Scheduler
         idFactory = new DuccIdFactory(1);
 
         try {
-            schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.rm.ClassBasedScheduler");
+            schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.ClassBasedScheduler");
             @SuppressWarnings("unchecked")
 			Class<IScheduler> cl = (Class<IScheduler>) Class.forName(schedImplName);
             scheduler = (IScheduler) cl.newInstance();
@@ -541,11 +541,11 @@ public class Scheduler
         jobs = upd.getShrunkenJobs();
         for (IRmJob j : jobs.values()) {
             
-            logger.info(methodName, j.getId(), ">>>>>>>>>> SHRINK");
+            logger.trace(methodName, j.getId(), ">>>>>>>>>> SHRINK");
 
             HashMap<Share, Share> sharesE = j.getAssignedShares();
             HashMap<Share, Share> sharesR = j.getPendingRemoves();
-            logger.info(methodName, j.getId(), "removing", sharesR.size(), "of existing", sharesE.size(), "shares.");
+            logger.trace(methodName, j.getId(), "removing", sharesR.size(), "of existing", sharesE.size(), "shares.");
 
             for ( Share s : sharesE.values() ) {
                 logger.debug(methodName, j.getId(), "    current", s.toString());
@@ -554,7 +554,7 @@ public class Scheduler
             for ( Share s : sharesR.values() ) {
                 logger.debug(methodName, j.getId(), "    remove ", s.toString());
             }
-            logger.info(methodName, j.getId(), ">>>>>>>>>>");
+            logger.trace(methodName, j.getId(), ">>>>>>>>>>");
 
             jmu.removeShares(j, sharesR);
             // jobManager.stopJob(j, shares);                 // stops job on everything on the pendingRemoves list
@@ -569,8 +569,8 @@ public class Scheduler
             HashMap<Share, Share> sharesE = j.getAssignedShares();
             HashMap<Share, Share> sharesN = j.getPendingShares();        	
 
-            logger.info(methodName, j.getId(), "<<<<<<<<<<  EXPAND");
-            logger.info(methodName, j.getId(), "adding", sharesN.size(), "new shares to existing", sharesE.size(), "shares.");
+            logger.trace(methodName, j.getId(), "<<<<<<<<<<  EXPAND");
+            logger.trace(methodName, j.getId(), "adding", sharesN.size(), "new shares to existing", sharesE.size(), "shares.");
 
             for ( Share s : sharesE.values()) {
                 logger.debug(methodName, j.getId(), "    existing ", s.toString());
@@ -579,7 +579,7 @@ public class Scheduler
             for ( Share s : sharesN.values()) {
                 logger.debug(methodName, j.getId(), "    expanding", s.toString());
             }
-            logger.info(methodName, j.getId(), "<<<<<<<<<<");
+            logger.trace(methodName, j.getId(), "<<<<<<<<<<");
 
             sharesN = j.promoteShares();
             if ( sharesN.size() == 0 ) {
@@ -608,35 +608,35 @@ public class Scheduler
             if ( j.countNShares() < 0 ) {
                 throw new SchedulingException(j.getId(), "Share count went negative " + j.countNShares());
             }
-            logger.info(methodName, j.getId(), ".......... STABLE with ", j.countNShares(), " shares.");
+            logger.trace(methodName, j.getId(), ".......... STABLE with ", j.countNShares(), " shares.");
         }
 
         jobs = upd.getDormantJobs();                             // squirrel these away to try next time
         for (IRmJob j: jobs.values()) {
-            logger.info(methodName, j.getId(), ".......... DORMANT");
+            logger.trace(methodName, j.getId(), ".......... DORMANT");
 //            dormantJobs .put(j.getId(), j);
         }
 
         jobs = upd.getReservedJobs();
         for (IRmJob j: jobs.values()) {
-            logger.info(methodName, j.getId(), "<<<<<<<<<<  RESERVE");
+            logger.trace(methodName, j.getId(), "<<<<<<<<<<  RESERVE");
 
             HashMap<Share, Share> sharesE = j.getAssignedShares();
             HashMap<Share, Share> sharesN = j.getPendingShares();        	
 
             if ( sharesE.size() == j.countInstances() ) {
-                logger.info(methodName, j.getId(), "reserve_stable", sharesE.size(), "machines");
+                logger.trace(methodName, j.getId(), "reserve_stable", sharesE.size(), "machines");
             } else  if ( sharesN.size() == j.countInstances() ) {           // reservation is complete but not yet confirmed?
-                logger.info(methodName, j.getId(), "reserve_adding", sharesN.size(), "machines");
+                logger.trace(methodName, j.getId(), "reserve_adding", sharesN.size(), "machines");
                 for ( Share s : sharesN.values()) {
                     logger.debug(methodName, j.getId(), "    reserve_expanding ", s.toString());
                 }
                 jmu.addShares(j, sharesN);                
                 j.promoteShares();
             } else {
-                logger.info(methodName, j.getId(), "reserve_pending", j.countInstances(), "machines");
+                logger.trace(methodName, j.getId(), "reserve_pending", j.countInstances(), "machines");
             }
-            logger.info(methodName, j.getId(), "<<<<<<<<<<");
+            logger.trace(methodName, j.getId(), "<<<<<<<<<<");
         }
 
         jmu.setAllJobs(allJobs);
@@ -645,7 +645,7 @@ public class Scheduler
         Iterator<IRmJob> iter = jobs.values().iterator();
         while ( iter.hasNext() ) {
             IRmJob j = iter.next();
-            logger.info(methodName, j.getId(), ".......... REFUSED");
+            logger.trace(methodName, j.getId(), ".......... REFUSED");
         }
 
         return jmu;
