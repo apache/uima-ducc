@@ -406,7 +406,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Start
 			row.add(new JsonPrimitive(""));
-			// End
+			// Duration
 			row.add(new JsonPrimitive(""));
 			// User
 			row.add(new JsonPrimitive(""));
@@ -424,8 +424,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Run Fails
 			row.add(new JsonPrimitive(""));
-			// Size
+			// Pgin
 			row.add(new JsonPrimitive(""));
+			// Swap
+			row.add(new JsonPrimitive(""));
+			// Size
+			row.add(new JsonPrimitive(""));			
 			// Total
 			row.add(new JsonPrimitive(""));
 			// Done
