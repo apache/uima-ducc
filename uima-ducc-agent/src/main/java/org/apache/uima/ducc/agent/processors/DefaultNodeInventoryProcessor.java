@@ -113,6 +113,25 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 				outgoingMessage.getIn().setBody(new NodeInventoryUpdateDuccEvent(inventory));
 				StringBuffer sb = new StringBuffer("Node Inventory ("+inventory.size()+")");
 				for( Map.Entry<DuccId, IDuccProcess> p : inventory.entrySet()) {
+					/*
+					long endInitLong = 0;
+					String endInit = "";
+					ITimeWindow wInit = p.getValue().getTimeWindowInit();
+					if(wInit != null) {
+						endInit = wInit.getEnd();
+						endInitLong = wInit.getEndLong();
+					}
+					long startRunLong = 0;
+					String startRun = "";
+					ITimeWindow wRun = p.getValue().getTimeWindowRun();
+					if(wRun != null) {
+						startRun = wRun.getStart();
+						startRunLong = wRun.getStartLong();
+					}
+					if(endInitLong > startRunLong) {
+						logger.warn(methodName, null, "endInit:"+endInitLong+" "+"startRun:"+startRunLong);
+					}
+					*/
 	        int pipelineInitStats = (p.getValue().getUimaPipelineComponents() == null ) ? 0 : 
 	          p.getValue().getUimaPipelineComponents().size();
 					sb.append("\n\t[Process Type=").
@@ -124,6 +143,8 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 					   append(" State=").append(p.getValue().getProcessState()).
 					   append(" Resident Memory=").append(p.getValue().getResidentMemory()).
 					   append(" Init Stats List Size:"+pipelineInitStats).
+					   //append(" end init:"+endInit).
+					   //append(" start run:"+startRun).
 					   append("] ");
           if ( p.getValue().getProcessState().equals(ProcessState.Stopped) ||
                   p.getValue().getProcessState().equals(ProcessState.Failed) ||
