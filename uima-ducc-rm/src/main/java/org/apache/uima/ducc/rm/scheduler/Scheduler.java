@@ -548,11 +548,11 @@ public class Scheduler
             logger.trace(methodName, j.getId(), "removing", sharesR.size(), "of existing", sharesE.size(), "shares.");
 
             for ( Share s : sharesE.values() ) {
-                logger.debug(methodName, j.getId(), "    current", s.toString());
+                logger.trace(methodName, j.getId(), "    current", s.toString());
             }
 
             for ( Share s : sharesR.values() ) {
-                logger.debug(methodName, j.getId(), "    remove ", s.toString());
+                logger.trace(methodName, j.getId(), "    remove ", s.toString());
             }
             logger.trace(methodName, j.getId(), ">>>>>>>>>>");
 
@@ -573,11 +573,11 @@ public class Scheduler
             logger.trace(methodName, j.getId(), "adding", sharesN.size(), "new shares to existing", sharesE.size(), "shares.");
 
             for ( Share s : sharesE.values()) {
-                logger.debug(methodName, j.getId(), "    existing ", s.toString());
+                logger.trace(methodName, j.getId(), "    existing ", s.toString());
             }
 
             for ( Share s : sharesN.values()) {
-                logger.debug(methodName, j.getId(), "    expanding", s.toString());
+                logger.trace(methodName, j.getId(), "    expanding", s.toString());
             }
             logger.trace(methodName, j.getId(), "<<<<<<<<<<");
 
@@ -629,7 +629,7 @@ public class Scheduler
             } else  if ( sharesN.size() == j.countInstances() ) {           // reservation is complete but not yet confirmed?
                 logger.trace(methodName, j.getId(), "reserve_adding", sharesN.size(), "machines");
                 for ( Share s : sharesN.values()) {
-                    logger.debug(methodName, j.getId(), "    reserve_expanding ", s.toString());
+                    logger.trace(methodName, j.getId(), "    reserve_expanding ", s.toString());
                 }
                 jmu.addShares(j, sharesN);                
                 j.promoteShares();
@@ -722,7 +722,7 @@ public class Scheduler
         }
 
         // tracking the OR hang problem - are topics being delivered?
-        logger.debug("nodeArrives", null, "Total arrivals:", total_arrivals);
+        logger.info("nodeArrives", null, "Total arrivals:", total_arrivals);
 
         handleDeadNodes();
         nodepool.reset(NodePool.getMaxOrder());
