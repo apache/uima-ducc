@@ -63,83 +63,89 @@ public class RmStateDuccEvent
 
         // Each resource has a DuccId which is the share ID that RM assigns, and the
         // NodeIdentity corresponding to that share.
-        StringBuffer buf = new StringBuffer();
+        StringBuffer buf = new StringBuffer("\n");
 
         ArrayList<IRmJobState> jobs = new ArrayList<IRmJobState>();
         jobs.addAll(rmJobState.values());
         Collections.sort(jobs, new JobByIdSorter());
 
-        buf.append(String.format("\n%6s %8s %9s %8s %s\n", "Id", "Existing", "Additions", "Removals", "Refusal"));
-        for ( IRmJobState j : jobs ) {
-            String st = "?";
-            switch ( j.getDuccType() ) {
-               case Reservation:
-                   st = "R";
-                   break;
-               case Job:
-                   st = "J";
-                   break;
-               case Service:
-                   st = "S";
-                   break;
-            }
-            buf.append(String.format("%1s%d %8d %9d %8d %s\n",
-                                     st,
-                                     j.getId().getFriendly(),
-                                     (j.getResources() == null ? 0 : j.getResources().size()),
-                                     (j.getPendingAdditions() == null ? 0 : j.getPendingAdditions().size()),
-                                     (j.getPendingRemovals() == null ? 0 : j.getPendingRemovals().size()),
-                                     (j.isRefused() ? j.getReason() : "N/A")));
-        }
+//         buf.append(String.format("\n%6s %8s %9s %8s %s\n", "Id", "Existing", "Additions", "Removals", "Refusal"));
+//         for ( IRmJobState j : jobs ) {
+//             String st = "?";
+//             switch ( j.getDuccType() ) {
+//                case Reservation:
+//                    st = "R";
+//                    break;
+//                case Job:
+//                    st = "J";
+//                    break;
+//                case Service:
+//                    st = "S";
+//                    break;
+//             }
+//             buf.append(String.format("%1s%d %8d %9d %8d %s\n",
+//                                      st,
+//                                      j.getId().getFriendly(),
+//                                      (j.getResources() == null ? 0 : j.getResources().size()),
+//                                      (j.getPendingAdditions() == null ? 0 : j.getPendingAdditions().size()),
+//                                      (j.getPendingRemovals() == null ? 0 : j.getPendingRemovals().size()),
+//                                      (j.isRefused() ? j.getReason() : "N/A")));
+//         }
 
         for ( IRmJobState j : jobs ) {
             int counter = 0;
-            buf.append(String.format("%s %s\n   Existing: ", j.getDuccType(), j.getId().getFriendly()));
+            
+            if (j.isRefused() ) {
+                buf.append(String.format("%s %s\n\tRefused: %s", j.getDuccType(), j.getId().getFriendly(), j.getReason()));
+                continue;
+            }
+
             Map<DuccId, IResource> existing = j.getResources();
             if ( existing == null ) {
-                buf.append("<none>\n");
+                buf.append(String.format("%s %s\n\tExisting[0]", j.getDuccType(), j.getId().getFriendly()));
             } else {
-                for ( IResource r : existing.values() ) {
-                    if ((counter++ % 10) == 0 ) {
-                        buf.append("\n      ");
-                    }
-                    
+                buf.append(String.format("%s %s\n\tExisting[%d]: ", j.getDuccType(), j.getId().getFriendly(), existing.size()));
+                for ( IResource r : existing.values() ) {                    
                     buf.append(r.toString());
                     buf.append(" ");
+                    if ((++counter % 10) == 0 ) {
+                        buf.append("\n\t");
+                    }
+
                 }
                 buf.append("\n");
             }
 
             counter = 0;
-            buf.append(String.format("%s %s\n\tAdditions: ", j.getDuccType(), j.getId().getFriendly()));
+
             Map<DuccId, IResource> additions = j.getPendingAdditions();
             if ( additions == null ) {
-                buf.append("<none>\n");
+                buf.append(String.format("\tAdditions[0]"));
             } else {
-                
+                    buf.append(String.format("\tAdditions[%d]: ", additions.size()));
                 for ( IResource r : additions.values() ) {
-                    if ((counter++ % 10) == 0 ) {
-                        buf.append("\n      ");
-                    }
                     buf.append(r.toString());
                     buf.append(" ");
+                    if ((++counter % 10) == 0 ) {
+                        buf.append("\n\t");
+                    }
                 }
                 buf.append("\n");
             }
 
             counter = 0;
-            buf.append(String.format("%s %s\n\tRemovals: ", j.getDuccType(), j.getId().getFriendly()));
+
             Map<DuccId, IResource> removals = j.getPendingRemovals();
             if ( removals == null ) {
-                buf.append("<none>\n");
+                buf.append(String.format("\tRemovals[0]"));
             } else {
-
+                buf.append(String.format("\tRemovals[%d]: ", removals.size()));
                 for ( IResource r : removals.values() ) {
-                    if ((counter++ % 10) == 0 ) {
-                        buf.append("\n      ");
-                    }
                     buf.append(r.toString());
                     buf.append(" ");
+                    if ((++counter % 10) == 0 ) {
+                        buf.append("\n\t");
+                    }
                 }
                 buf.append("\n");
             }
