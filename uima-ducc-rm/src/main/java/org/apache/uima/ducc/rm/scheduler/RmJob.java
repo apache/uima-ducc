@@ -1228,11 +1228,13 @@ public class RmJob
 
     public static String getHeader()
     {
-        return String.format("%6s %30s %10s %10s %6s %5s %13s %8s %6s %9s %11s %8s", 
-                             "ID", "JobName", "User", "Class", 
-                             "Shares", "Order", "QuantumShares", 
-                             "NTh/nNst", "Memory",
-                             "Questions", "Q Remaining", "InitWait");
+        //                      1    2    3    4   5   6   7   8   9  10  11  12  13
+        return String.format("%11s %30s %10s %10s %6s %5s %7s %3s %6s %6s %8s %8s %9s", 
+                             "ID", "JobName", "User", "Class",         // 1 2 3 4
+                             "Shares", "Order", "QShares",             // 5 6 7
+                             "NTh", "Memory",                          // 8 9
+                             "nQuest", "Ques Rem", "InitWait",         // 10 11 12
+                             "Max P/Nst");                             // 13
     }
 
     public String toString()
@@ -1242,20 +1244,27 @@ public class RmJob
             shares = countInstances();
         }
 
-        if ( isReservation() ) {
-            return String.format("%1s%5s %30.30s %10s %10s %6d %5d %13d %8s %6d",
-                                 getShortType(),
-                                 id.toString(), name, username, getClassName(), 
-                                 shares, share_order, (shares * share_order),
-                                 "", memory);                                 
-        } else {
-            return String.format("%1s%5s %30.30s %10s %10s %6d %5d %13d %8d %6d %9d %11d %8s", 
-                                 getShortType(),
-                                 id.toString(), name, username, getClassName(), 
-                                 shares, share_order, (shares * share_order),
-                                 threads, memory,
-                                 nQuestions(), nQuestionsRemaining(),
-                                 init_wait);
+        //                    1       2    3    4   5   6   7   8   9  10  11  12 13
+        String format = "%11s %30.30s %10s %10s %6d %5d %7d %3d %6d %6d %8d %8s %9d";
+        String jid = String.format("%1s%10s", getShortType(), id.toString()).replace(' ', '_');
+        if ( isReservation() ) {//     1       2    3    4   5   6    7   8   9  10   11  12 13
+            return String.format(format,
+                                 jid,                                               // 1
+                                 name.replace(' ', '_'), username, getClassName(), // 2 3 4
+                                 shares, share_order, (shares * share_order),      // 5 6 7
+                                 0, memory,                                        // 8 9
+                                 0, 0, 0,                                          // 10 11 12
+                                 n_machines);                                      // 13
+            
+                                 
+        } else {   
+            return String.format(format,
+                                 jid,                                               // 1
+                                 name.replace(' ', '_'), username, getClassName(),  // 2 3 4
+                                 shares, share_order, (shares * share_order),      // 5 6 7
+                                 threads, memory,                                  // 8 9
+                                 nQuestions(), nQuestionsRemaining(), init_wait,   // 10 11 12
+                                 max_shares);                                      // 13
         }
     }
 
