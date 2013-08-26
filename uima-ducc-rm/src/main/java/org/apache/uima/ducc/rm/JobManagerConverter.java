@@ -105,11 +105,10 @@ public class JobManagerConverter
         }
     }
 
-    String timeWindowString(ITimeWindow w)
+    String getElapsedTime(ITimeWindow w)
     {
         if ( w == null ) return "0";
-
-        return "" + w.getStart() + ":" + w.getEnd();
+        return w.getElapsed();
     }
 
 //    void formatSchedulingInfo(DuccId id, IDuccSchedulingInfo si, int remaining_work)
@@ -175,7 +174,7 @@ public class JobManagerConverter
             }
 
             logger.info(methodName, job.getDuccId(), 
-                        String.format("total: %s -> %s: %d compl: %s error: %s rem: %d mean: %f",
+                        String.format("total: %s -> %s: %d compl: %s error: %s rem: %d mean: %.2f",
                                       state,
                                       job.getStateObject(),
                                       total_work,  
@@ -565,7 +564,7 @@ public class JobManagerConverter
                     logger.info(methodName, jobid, 
                                 String.format("Process %5s", pl.getPID()), sl.toString(),
                                 "State:", pr.getProcessState(), "->", pl.getProcessState(),
-                                timeWindowString(pr.getTimeWindowInit()), timeWindowString(pr.getTimeWindowRun()));
+                                getElapsedTime(pr.getTimeWindowInit()), getElapsedTime(pr.getTimeWindowRun()));
                 }
             }
 

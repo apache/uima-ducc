@@ -950,8 +950,10 @@ public class RmJob
 
         long future = Math.max(nquestions_remaining - projected, 0);                        // work still to do after doubling
 
-        logger.info(methodName, getId(), username, "O", getShareOrder(),"T", target, "NTh", (nprocesses * threads), "TI", avg_init, "TR", time_per_item,
-                    "R", rate, "QR", nquestions_remaining, "P", projected, "F", future, 
+        logger.info(methodName, getId(), username, "O", getShareOrder(),"T", target, "NTh", (nprocesses * threads), "TI", avg_init, 
+                    "TR", (long) time_per_item,
+                    "R", String.format("%.4e", rate),
+                    "QR", nquestions_remaining, "P", projected, "F", future, 
                      "return", (future / threads));
 
         int answer = (int) future / threads;
