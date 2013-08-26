@@ -105,6 +105,13 @@ public class JobManagerConverter
         }
     }
 
+    String timeWindowString(ITimeWindow w)
+    {
+        if ( w == null ) return "0";
+
+        return "" + w.getStart() + ":" + w.getEnd();
+    }
+
 //    void formatSchedulingInfo(DuccId id, IDuccSchedulingInfo si, int remaining_work)
 //    {
 //    	String methodName = "formatSchedulingInfo";
@@ -138,7 +145,7 @@ public class JobManagerConverter
     /**
      * Update scheduler internal job structure with updated data from arriving job state.
      */
-    void jobUpdate(IDuccWork job)
+    void jobUpdate(Object state, IDuccWork job)
     {
     	String methodName = "jobUpate";
         IDuccSchedulingInfo si = job.getSchedulingInfo();
@@ -161,12 +168,21 @@ public class JobManagerConverter
             // work item count.  the job will run, but slowly in that case.
             int remaining_work = Math.max(total_work - completed_work, 1);
 
+            double arith_mean = Double.NaN;
+            IDuccPerWorkItemStatistics stats = si.getPerWorkItemStatistics();        
+            if(stats != null) {
+            	arith_mean = stats.getMean();
+            }
+
             logger.info(methodName, job.getDuccId(), 
-                        String.format("total_work: %5d items completed: %5s items error %3s remaining work %5d",
+                        String.format("total: %s -> %s: %d compl: %s error: %s rem: %d mean: %f",
+                                      state,
+                                      job.getStateObject(),
                                       total_work,  
                                       si.getWorkItemsCompleted(),    // note this comes in as string (!) from OR
                                       si.getWorkItemsError(),        // also string
-                                      remaining_work
+                                      remaining_work,
+                                      arith_mean
                                       ));
 
             if ( max_shares != existing_max_shares ) {
@@ -175,18 +191,13 @@ public class JobManagerConverter
                             si.getSharesMax());
             } 
                 
-            double arith_mean = Double.NaN;
-            IDuccPerWorkItemStatistics stats = si.getPerWorkItemStatistics();        
-            if(stats != null) {
-            	arith_mean = stats.getMean();
-            }
             j.setNQuestions(total_work, remaining_work, arith_mean);
 
             // formatSchedulingInfo(job.getDuccId(), si, remaining_work);
 
             if ( job instanceof IDuccWorkJob ) {
                 if ( j.setInitWait( ((IDuccWorkJob) job).isRunnable()) ) {
-                    logger.debug(methodName, jobid, "Set Initialized.");
+                    logger.info(methodName, jobid, "Set Initialized.");
                     scheduler.signalInitialized(j);
                 }
             } else {
@@ -289,8 +300,8 @@ public class JobManagerConverter
     boolean jobArrives(IDuccWork job)
     {
     	String methodName = "jobArrives";
-        logger.debug(methodName, job.getDuccId(), "Job arives");
-        logger.debug(methodName, job.getDuccId(), "Job is of type", job.getDuccType());
+        logger.trace(methodName, job.getDuccId(), "Job arives");
+        logger.trace(methodName, job.getDuccId(), "Job is of type", job.getDuccType());
 
         // Properties props = new Properties();
         
@@ -419,7 +430,7 @@ public class JobManagerConverter
               }
               
               status = receiveExecutable(j, job);
-              logger.debug(methodName, j.getId(), "Serivce, Pop, or Job arrives, accepted:", status);
+              logger.trace(methodName, j.getId(), "Serivce, Pop, or Job arrives, accepted:", status);
               break;
           case Reservation:
               switch ( rescl.getPolicy() ) {
@@ -435,7 +446,7 @@ public class JobManagerConverter
               j.setNInstances(max_machines);
 
               status = receiveReservation(j, job);
-              logger.debug(methodName, j.getId(), "Reservation arrives, accepted:", status);
+              logger.trace(methodName, j.getId(), "Reservation arrives, accepted:", status);
               break;
           default:
               refuse(j, "Unknown job type: " + job.getDuccType());
@@ -484,6 +495,8 @@ public class JobManagerConverter
             long mem = p.getResidentMemory();
             ProcessState state = p.getProcessState();
             String pid = p.getPID();
+
+            logger.info(methodName, jobid, "New process ", s.toString(), mem, state, pid);
             if ( ! s.update(jobid, mem, state, p.getTimeWindowInit(), p.getTimeWindowRun(), pid) ) {
                 // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
                 throw new SchedulingException(jobid, "Process assignemnt arrives for share " + s.toString() +
@@ -508,7 +521,7 @@ public class JobManagerConverter
             scheduler.signalCompletion(j, s);
             logger.info(methodName, jobid, 
                          String.format("Process %5s", p.getPID()),
-                         "Completes in share", s.toString());
+                         "Completion:", s.toString());
         }
 
         for( DuccMapValueDifference<IDuccProcess> pd: diffmap ) {
@@ -544,14 +557,15 @@ public class JobManagerConverter
                              );
             } else {
                 if ( (pr.getPID() == null) && (pl.getPID() != null) ) {
-                    logger.info(methodName, jobid, 
+                    logger.trace(methodName, jobid, 
                                 String.format("Process %5s", pl.getPID()),
                                 "PID assignement for share", shareL);
                 }
                 if ( pl.getProcessState() != pr.getProcessState() ) {
                     logger.info(methodName, jobid, 
-                                String.format("Process %5s", pl.getPID()),
-                                "State update:", pr.getProcessState(), "-->", pl.getProcessState());
+                                String.format("Process %5s", pl.getPID()), sl.toString(),
+                                "State:", pr.getProcessState(), "->", pl.getProcessState(),
+                                timeWindowString(pr.getTimeWindowInit()), timeWindowString(pr.getTimeWindowRun()));
                 }
             }
 
@@ -584,10 +598,10 @@ public class JobManagerConverter
                 if ( s != null ) {              // in some final states the share is already gone, not an error (e.g. Stopped)
                     IRmJob j = scheduler.getJob(jobid);
                     scheduler.signalCompletion(j, s);
-                    logger.debug(methodName, jobid, "Process", pl.getPID(), " completed due to state", state);
+                    logger.info(methodName, jobid, "Process", pl.getPID(), " completed due to state", state);
                 }
             } else {
-                logger.debug(methodName, jobid, "Process", pl.getPID(), "ignoring update because of state", state);
+                logger.info(methodName, jobid, "Process", pl.getPID(), "ignoring update because of state", state);
             }
                     
         }            
@@ -598,8 +612,6 @@ public class JobManagerConverter
     public void eventArrives(DuccWorkMap jobMap)
     {
     	String methodName = "eventArrives";
-
-        logger.debug(methodName, null, "Got Orchestrator");
 
         if ( jobMap.size() == 0 ) {
             logger.debug(methodName, null, "No state from Orchestrator");
@@ -633,7 +645,7 @@ public class JobManagerConverter
 
         for ( IDuccWork w : jobMap.values() ) {
         	//IDuccWork j = (IDuccWork) w;
-            logger.debug(methodName, w.getDuccId(), "Arrives in JmStateEvent state =", w.getStateObject());
+            logger.trace(methodName, w.getDuccId(), "Arrives in JmStateEvent state =", w.getStateObject());
         }
 
         //
@@ -643,7 +655,7 @@ public class JobManagerConverter
         for ( IDuccWork w : jobs.values() ) {
 
             if ( w.isSchedulable() ) {
-                logger.debug(methodName, w.getDuccId(), "Incoming, state = ", w.getStateObject());
+                logger.info(methodName, w.getDuccId(), "Incoming, state = ", w.getStateObject());
                 try {
                     if ( jobArrives(w) ) {                // if not ... something is fubar and we have to ignore it for now
                         localMap.addDuccWork(w);
@@ -652,13 +664,13 @@ public class JobManagerConverter
                     logger.error(methodName, w.getDuccId(), "Can't receive job because of exception", e);
                 }
             } else {
-                logger.debug(methodName, w.getDuccId(), "Received non-schedulable job, state = ", w.getStateObject());
+                logger.info(methodName, w.getDuccId(), "Received non-schedulable job, state = ", w.getStateObject());
             }
         }
         
         jobs = diffmap.getRight();
         for ( IDuccWork w :jobs.values() ) {
-            logger.debug(methodName, w.getDuccId(), "Gone");
+            logger.info(methodName, w.getDuccId(), "Gone");
             jobRemoved(w.getDuccId());
         }
 
@@ -666,10 +678,9 @@ public class JobManagerConverter
         for( DuccMapValueDifference<IDuccWork> jd: diffmap ) {
             IDuccWork r = jd.getRight();
             IDuccWork l = jd.getLeft();
-            logger.debug(methodName, l.getDuccId(), "Reconciling, incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
 
             if ( ! l.isSchedulable() ) {
-                logger.debug(methodName, l.getDuccId(), "Removing unschedulable job state = ", r.getStateObject());
+                logger.info(methodName, l.getDuccId(), "Removing unschedulable:", r.getStateObject());
                 jobRemoved(r.getDuccId());
             } else {
 
@@ -704,12 +715,13 @@ public class JobManagerConverter
 
                 switch ( l.getDuccType() ) {
                   case Job:    
-                      jobUpdate(l);
+                      jobUpdate(r.getStateObject(), l);
                       reconcileProcesses(l.getDuccId(), l, r);
                       break;
                   case Service:
                   case Pop:
                   case Reservation:
+                      logger.info(methodName, l.getDuccId(), "[SPR] State: ", r.getStateObject(), "->", l.getStateObject());
                       // for the moment, these guyes have nothing to reconcile.
                       break;
                   case Undefined:
@@ -719,7 +731,7 @@ public class JobManagerConverter
            
         }
 
-        logger.debug(methodName, null, "Done with JmStateDuccEvent with some jobs processed");
+        logger.trace(methodName, null, "Done with JmStateDuccEvent with some jobs processed");
 
     }
 
@@ -804,14 +816,9 @@ public class JobManagerConverter
         //ArrayList<IRmJobState> rmJobState = null;
         Map<DuccId, IRmJobState> rmJobState = null;
 
-
         if ( jmu == null ) {                     // no changes
-            logger.debug(methodName, null, "Publishing old RM state");
             rmJobState = previousJobState;
         } else {
-            // TODO: create a new rmJobState; remember to set previousJobState
-            logger.debug(methodName, null, "Publishing new RM state");
-
             rmJobState = new HashMap<DuccId, IRmJobState>();
 
             // Must handle all jobs that ar refused here in JMC because nobody else knows about them
