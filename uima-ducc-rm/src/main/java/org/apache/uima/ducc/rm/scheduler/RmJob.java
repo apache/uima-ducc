@@ -913,14 +913,7 @@ public class RmJob
      */
     int getProjectedCap()
     {
-    	String methodName = "getPrjCap";        // want this to line up with getJobCap in logs
-        if ( init_wait ) {                      // no cap if not initialized, because we don't know.  other caps will dominate.
-            return Integer.MAX_VALUE;
-        }
-
-        if ( time_per_item == Double.NaN ) {
-            return Integer.MAX_VALUE;
-        }
+    	String methodName = "getPrjCap";                      // want this to line up with getJobCap in logs
 
         // Get average init time
         int count = 0;
@@ -951,13 +944,22 @@ public class RmJob
         long future = Math.max(nquestions_remaining - projected, 0);                        // work still to do after doubling
 
         logger.info(methodName, getId(), username, "O", getShareOrder(),"T", target, "NTh", (nprocesses * threads), "TI", avg_init, 
-                    "TR", (long) time_per_item,
+                    "TR", time_per_item,
                     "R", String.format("%.4e", rate),
                     "QR", nquestions_remaining, "P", projected, "F", future, 
+                    "ST", submit_time,
                      "return", (future / threads));
 
-        int answer = (int) future / threads;
-        if ( (future % threads ) > 0 ) answer++;
+        int answer = 0;
+
+        if ( init_wait || (time_per_item == Double.NaN) ) {   // no cap if not initialized, or no per-itme time yet
+            // (We could exit sooner but for debugging purposes we very much want that log statement just above even
+            //  if there's some junk in it.)
+            answer = Integer.MAX_VALUE;
+        } else {            
+            answer = (int) future / threads;
+            if ( (future % threads ) > 0 ) answer++;
+        }
 
         return answer;                                                                     // number of processes we expect to need
                                                                                            // in the future
@@ -1246,6 +1248,7 @@ public class RmJob
             shares = countInstances();
         }
 
+        if ( name == null ) name = "";
         //                    1       2    3    4   5   6   7   8   9  10  11  12 13
         String format = "%11s %30.30s %10s %10s %6d %5d %7d %3d %6d %6d %8d %8s %9d";
         String jid = String.format("%1s%10s", getShortType(), id.toString()).replace(' ', '_');
@@ -1294,7 +1297,7 @@ public class RmJob
     //
     // Order shares by INCREASING investment
     //
-    class ShareByInvestmentSorter
+    public static class ShareByInvestmentSorter
     	implements Comparator<Share>
     {	
     	public int compare(Share s1, Share s2)

@@ -18,7 +18,10 @@
 */
 package org.apache.uima.ducc.rm;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.Node;
@@ -855,9 +858,9 @@ public class JobManagerConverter
                     continue;
                 }
 
-                Map<DuccId, IResource> all_shares      = new HashMap<DuccId, IResource>();
-                Map<DuccId, IResource> shrunken_shares = new HashMap<DuccId, IResource>();
-                Map<DuccId, IResource> expanded_shares = new HashMap<DuccId, IResource>();
+                Map<DuccId, IResource> all_shares      = new LinkedHashMap<DuccId, IResource>();
+                Map<DuccId, IResource> shrunken_shares = new LinkedHashMap<DuccId, IResource>();
+                Map<DuccId, IResource> expanded_shares = new LinkedHashMap<DuccId, IResource>();
                 Map<Share, Share> shares = null;
                 Map<Share, Share> redrive = null;
 
@@ -866,7 +869,9 @@ public class JobManagerConverter
                 } else {
                     shares = j.getAssignedShares();
                     if ( shares != null ) {
-                        for ( Share s : shares.values() ) {
+                        ArrayList<Share> sorted = new ArrayList<Share>(shares.values());
+                        Collections.sort(sorted, new RmJob.ShareByInvestmentSorter());
+                        for ( Share s : sorted ) {
                             Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
                             all_shares.put(s.getId(), r);
                         }
@@ -1021,5 +1026,6 @@ public class JobManagerConverter
         
         return (nodes.size() != 0);
     }
+
 }
 
