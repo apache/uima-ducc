@@ -236,3 +236,44 @@
           \end{itemize}
       \end{description}
 
+    
+    \section{Security Measures}
+    The following DUCC security measures are provided:
+
+    \begin{description}
+    \item[command line interface] The CLI employs HTTP to send requests
+    to the DUCC controller.  The CLI creates and employs public and private
+    security keys in the user's home directory for authentication of HTTP
+    requests.  The controller validates requests via these same security keys.
+    \item[webserver] The webserver facilitates operational control and
+    therefore authentication is desirable. 
+    \begin{itemize}
+    \item[\textit{user}] Each user has the ability to control certain aspects of
+    only his/her active submissions.
+    \item[\textit{admin}] Each administrator has the ability to control certain
+    aspects of any user's active submissions, as well as modification of some
+    DUCC operational characteristics.
+    \end{itemize}
+    A simple interface is provided so
+    that an installation can plug-in a site specific authentication mechanism
+    comprising userid and password.
+    \item[ActiveMQ] TBD.
+    \end{description}
+    
+    \section{Security Issues}
+    The following DUCC security issues should be considered:
+    
+    \begin{description}
+    \item[submit transmission 'sniffed'] In the event that the DUCC submit
+    command is 'sniffed' then the user authentication mechanism is compromised
+    and user masquerading is possible.  That is, the userid encryption mechanism
+    can be exploited such that user A can submit a job pretending to be user B.
+    \item[user \textit{ducc} password compromised] In the event that the \textit{ducc}
+    user password is compromised then the root privileged command
+    \textbf{ducc\_ling} can be used to become any other user except root.
+    \item[user \textit{root} password compromised] In the event that the
+    \textit{root} user password is compromised DUCC provides no protection. 
+    That is, compromising the root user is equivalent to compromising the DUCC
+    user password.
+    \end{description}  
+     
