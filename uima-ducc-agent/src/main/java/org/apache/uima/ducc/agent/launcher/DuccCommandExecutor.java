@@ -305,22 +305,24 @@ public class DuccCommandExecutor extends CommandExecutor {
 	private void startProcess(ICommandLine cmdLine,String[] cmd, Map<String, String> processEnv) throws Exception {
 		String methodName = "startProcess";
 
-//		ITimeWindow twr = new TimeWindow();
-//		String millis;
-//		millis = TimeStamp.getCurrentMillis();
-//        
-//		((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowRun(twr);
-//		twr.setStart(millis);
+		String millis;
+		millis = TimeStamp.getCurrentMillis();
+        
 		ProcessBuilder pb = new ProcessBuilder(cmd);
-		/*
+		
 		if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop) ||
 				((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Service)   ) {
 			ITimeWindow twi = new TimeWindow();
 			((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowInit(twi);
 			twi.setStart(millis);
 			twi.setEnd(millis);
+
+			ITimeWindow twr = new TimeWindow();
+			((ManagedProcess) managedProcess).getDuccProcess().setTimeWindowRun(twr);
+			twr.setStart(millis);
+
 		}
-	*/
+	
 		Map<String, String> env = pb.environment();
 		//	Dont enherit agent's environment
 		env.clear();
