@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.Constants;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuccProcessMap {
@@ -222,6 +223,22 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		}
 	}
 
+	public static boolean isUserFailureReasonForStoppingProcess(String reason) {
+		boolean retVal = false;
+		if(reason != null) {
+			if(reason.equals(ReasonForStoppingProcess.Croaked.name())) {
+				retVal = true;
+			}
+			else if(reason.equals(ReasonForStoppingProcess.ExceededShareSize.name())) {
+				retVal = true;
+			}
+			else if(reason.equals(ReasonForStoppingProcess.ExceededSwapThreshold.name())) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
 	private boolean isFailedProcess(IDuccProcess process) {
 		boolean retVal = false;
 		ProcessState processState = process.getProcessState();
@@ -230,14 +247,7 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		case Failed:
 		case Stopped:
 		case Killed:
-			if(reason != null) {
-				if(reason.equals("")) {
-					// Nevermind
-				}
-				else {
-					retVal = true;
-				}
-			}
+			retVal = isUserFailureReasonForStoppingProcess(reason);
 		}
 		return retVal;
 	}
