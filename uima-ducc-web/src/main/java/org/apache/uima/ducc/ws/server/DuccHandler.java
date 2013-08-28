@@ -523,10 +523,12 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 				boolean cluetips_disabled = true;
 				if(cluetips_disabled) {
-					String p_idJob = pname_idJob+"="+job.getDuccId().getFriendly();
-					String p_idPro = pname_idPro+"="+process.getDuccId().getFriendly();
-					initTime = "<a href=\""+duccUimaInitializationReport+"?"+p_idJob+"&"+p_idPro+"\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">"+initTime+"</a>";
-					loadme.append("");
+					if(!initTime.equals("00")) {
+						String p_idJob = pname_idJob+"="+job.getDuccId().getFriendly();
+						String p_idPro = pname_idPro+"="+process.getDuccId().getFriendly();
+						initTime = "<a href=\""+duccUimaInitializationReport+"?"+p_idJob+"&"+p_idPro+"\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">"+initTime+"</a>";
+						loadme.append("");
+					}
 				}
 				else {
 					List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
