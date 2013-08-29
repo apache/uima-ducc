@@ -417,8 +417,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   }
 
   private boolean invalidCommand(ICommandLine commandLine) {
-    return (commandLine == null || commandLine.getCommandLine() == null || commandLine
-            .getCommandLine().length == 0);
+    return (commandLine == null || commandLine.getExecutable() == null
+                                || commandLine.getExecutable().length() == 0);
   }
 
   private boolean isProcessDeallocated(IDuccProcess process) {
