@@ -37,16 +37,6 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 		super(DuccContext.Job, true, messageProcessor);
 	}
 	
-	@Deprecated
-	public DuccJobMonitor(boolean quiet) {
-		super(DuccContext.Job, true);
-	}
-	
-	@Deprecated
-	public DuccJobMonitor(IDuccCallback messageProcessor, boolean quiet) {
-		super(DuccContext.Job, true, messageProcessor);
-	}
-	
 	private DuccJobMonitor(String uniqueSignature) {
 		super(DuccContext.Job, false);
 	}

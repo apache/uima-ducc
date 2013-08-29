@@ -27,9 +27,6 @@ public interface IDuccEnv {
 	public static final String DUCC_HOME_DIR = DUCC_HOME+File.separator;
 	public static final String DUCC_RESOURCES_DIR = DUCC_HOME_DIR+"resources"+File.separator;
 	public static final String DUCC_PROPERTIES_FILE = DUCC_RESOURCES_DIR+"ducc.properties";
-	//TODO
-	@Deprecated
-	public static final String DUCC_AUTHORIZED_MACHINES_FILE = DUCC_RESOURCES_DIR+"ducc.authorized-machines-list";
 	public static final String DUCC_NODES_FILE_NAME = "ducc.nodes";
 	public static final String DUCC_NODES_FILE_PATH = DUCC_RESOURCES_DIR+DUCC_NODES_FILE_NAME;
 	public static final String DUCC_ADMINISTRATORS_FILE = DUCC_RESOURCES_DIR+"ducc.administrators";

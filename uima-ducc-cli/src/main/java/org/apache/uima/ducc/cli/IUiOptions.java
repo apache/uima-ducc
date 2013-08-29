@@ -91,30 +91,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },       
         
-        // Deprecated
-        CancelJobOnInterrupt { 
-            public String pname()       { return JobSpecificationProperties.key_cancel_job_on_interrupt; }
-            public String argname()     { return null; }
-            public String description() { return "same as "+CancelOnInterrupt.pname(); }
-            public String example()     { return null; }
-            public String deflt()       { return null; }
-            public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
-        },            
-
-        // Deprecated
-        CancelManagedReservationOnInterrupt { 
-            public String pname()       { return ReservationSpecificationProperties.key_cancel_managed_reservation_on_interrupt; }
-            public String argname()     { return null; }
-            public String description() { return "same as "+CancelOnInterrupt.pname(); }
-            public String example()     { return null; }
-            public String deflt()       { return null; }
-            public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
-        }, 
-        
         Classpath { 
             public String pname()       { return JobSpecificationProperties.key_classpath; }
             public String description() { return "Classpath for the Job. Default is current classpath."; }
@@ -128,10 +104,10 @@ public interface IUiOptions
         
         ClasspathOrder { 
             public String pname()       { return JobSpecificationProperties.key_classpath_order; }
-            public String argname()     { return ClasspathOrderParms.UserBeforeDucc.name() + " or " + ClasspathOrderParms.DuccBeforeUser.name(); }
+            public String argname()     { return ClasspathOrderParms.UserBeforeDucc.pname() + " or " + ClasspathOrderParms.DuccBeforeUser.pname(); }
             public String description() { return "Specify user-supplied classpath before DUCC-supplied classpath, or the reverse."; }
             public String example()     { return null; }
-            public String deflt()       { return ClasspathOrderParms.UserBeforeDucc.name(); }
+            public String deflt()       { return ClasspathOrderParms.UserBeforeDucc.pname(); }
             public String label()       { return name(); }
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
@@ -192,17 +168,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-        DriverClasspath { 
-            public String pname()       { return JobSpecificationProperties.key_driver_classpath; }
-            public String description() { return "Classpath for the Job driver. Default is current classpath."; }
-            public String argname()     { return "java classpath"; }
-            public String example()     { return null; }
-            public String deflt()       { return null; }
-            public String label()       { return "DriverClassPath"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
-        },            
-
         DriverDescriptorCR { 
             public String pname()       { return JobSpecificationProperties.key_driver_descriptor_CR; }
             public String description() { return "Driver (collection reader) descriptor."; }
@@ -221,17 +186,6 @@ public interface IUiOptions
             public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
             public String deflt()       { return null; }
             public String label()       { return "DriverDescriptorCROverrides"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
-        },            
-
-        DriverEnvironment { 
-            public String pname()       { return JobSpecificationProperties.key_driver_environment; }
-            public String argname()     { return "env vars"; }
-            public String description() { return "Blank-delimited list of environment variables."; }
-            public String example()     { return "TERM=xterm DISPLAY=me.org.net:1.0"; }
-            public String deflt()       { return null; }
-            public String label()       { return "DriverEnvironment"; }
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
@@ -301,17 +255,6 @@ public interface IUiOptions
             public boolean multiargs()  { return false; }
             public boolean required()   { return true; }
         },
-        
-        JvmArgs { 
-            public String pname()       { return JobSpecificationProperties.key_jvm_args; }
-            public String argname()     { return "jvm arguments"; }
-            public String description() { return "Blank-delimited list of JVM Arguments passed to the job driver."; }
-            public String example()     { return "-Xmx100M -DMYVAR=foo"; }
-            public String deflt()       { return null; }
-            public String label()       { return "JvmArgs"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
-        },    
         
         ManagedReservationId { 
             public String pname()       { return JobRequestProperties.key_id; }
@@ -553,17 +496,6 @@ public interface IUiOptions
             public boolean required()   { return false; }
         },            
 
-        ProcessClasspath { 
-            public String pname()       { return JobSpecificationProperties.key_process_classpath; }
-            public String description() { return "Classpath for each job process. Default is current classpath."; }
-            public String argname()     { return "java classpath"; }
-            public String example()     { return null; }
-            public String deflt()       { return null; }
-            public String label()       { return "processClassPath"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
-        },            
-
         ProcessDescriptorAE { 
             public String pname()       { return JobSpecificationProperties.key_process_descriptor_AE; }
             public String description() { return "Process Analysis Enginefor aggregate."; }
@@ -648,17 +580,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return null; }
             public String label()       { return "ProcessDeploymentsMax"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
-        },            
-
-        ProcessEnvironment { 
-            public String pname()       { return JobSpecificationProperties.key_process_environment; }
-            public String argname()     { return "environment-var-list"; }
-            public String description() { return "Blank delimited list of Environment variables."; }
-            public String example()     { return "A=B MYENV=foo"; }
-            public String deflt()       { return null; }
-            public String label()       { return "ProcessEnvironment"; }
             public boolean multiargs()  { return false; }
             public boolean required()   { return false; }
         },            
@@ -1003,40 +924,6 @@ public interface IUiOptions
         {
             if ( example() == null ) return description();
             return description() + "\nexample: " + example();
-        }
-        
-        // Beta options helper functions
-        
-        public UiOption[] getBetaOptions() {
-            UiOption[] list = { DriverClasspath, 
-                                DriverEnvironment,
-                                DriverJvmArgs,
-                                ProcessClasspath, 
-                                ProcessEnvironment,
-                                ProcessJvmArgs,
-                                };
-            return list;
-        }
-        
-        public boolean isBetaOption(String pname) {
-            boolean retVal = false;
-            if(pname != null) {
-                UiOption[] list = getBetaOptions();
-                for(UiOption option : list) {
-                    if(pname.equals(option.pname())) {
-                        retVal = true;
-                    }
-                }
-            }
-            return retVal;
-        }
-        
-        public boolean isBetaOption(UiOption option) {
-            boolean retVal = false;
-            if(option != null) {
-                retVal = isBetaOption(option.pname());
-            }
-            return retVal;
         }
         
     };

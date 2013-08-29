@@ -22,6 +22,7 @@ package org.apache.uima.ducc.cli;
 import java.util.ArrayList;
 
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
+import org.apache.uima.ducc.cli.DuccMonitor;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
@@ -68,14 +69,6 @@ class MonitorListener
                 arrayList.add("--"+DuccUiConstants.name_monitor_cancel_on_interrupt);
             }
 
-            if(props.containsKey(DuccUiConstants.name_submit_cancel_job_on_interrupt)) {
-                arrayList.add("--"+DuccUiConstants.name_monitor_cancel_job_on_interrupt);
-            }
-
-            if(props.containsKey(DuccUiConstants.name_submit_cancel_managed_reservation_on_interrupt)) {
-                arrayList.add("--"+DuccUiConstants.name_monitor_cancel_managed_reservation_on_interrupt);
-            }
-            
             String[] argList = arrayList.toArray(new String[0]);
             switch(context) {
             case ManagedReservation:

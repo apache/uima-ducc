@@ -32,8 +32,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
@@ -87,15 +85,14 @@ public abstract class DuccMonitor {
 
 	private UiOption[] optsSubmitJob = new UiOption[] { UiOption.Help,
 			UiOption.Debug, UiOption.Quiet, UiOption.Timestamp, UiOption.JobId,
-			UiOption.CancelOnInterrupt, UiOption.CancelJobOnInterrupt, };
+			UiOption.CancelOnInterrupt, };
 
 	private UiOption[] optsMonitorJob = new UiOption[] { UiOption.Help,
 			UiOption.Debug, UiOption.Quiet, UiOption.Timestamp, UiOption.JobId, };
 
 	private UiOption[] optsSubmitManagedReservation = new UiOption[] {
 			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
-			UiOption.ManagedReservationId, UiOption.CancelOnInterrupt,
-			UiOption.CancelManagedReservationOnInterrupt, };
+			UiOption.ManagedReservationId, UiOption.CancelOnInterrupt, };
 
 	private UiOption[] optsMonitorManagedReservation = new UiOption[] {
 			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
@@ -271,14 +268,6 @@ public abstract class DuccMonitor {
 				flag_debug.set(true);
 			}
 			if (commandLine.hasOption(UiOption.CancelOnInterrupt.pname())) {
-				flag_cancel_on_interrupt.set(true);
-			}
-			if (commandLine.hasOption(UiOption.CancelJobOnInterrupt.pname())) {
-				flag_cancel_on_interrupt.set(true);
-			}
-			if (commandLine
-					.hasOption(UiOption.CancelManagedReservationOnInterrupt
-							.pname())) {
 				flag_cancel_on_interrupt.set(true);
 			}
 			if (commandLine.hasOption(UiOption.JobId.pname())) {

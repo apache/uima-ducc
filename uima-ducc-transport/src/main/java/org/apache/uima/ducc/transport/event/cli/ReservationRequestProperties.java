@@ -58,6 +58,7 @@ public class ReservationRequestProperties extends ReservationSpecificationProper
 	 */
 	public static String key_node_list = "node_list";	
 	
+	// Not used ?
 	public static List<String> keys_requiring_values = Arrays.asList(
 			JobRequestProperties.key_signature,
 			JobRequestProperties.key_description,

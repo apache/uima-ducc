@@ -39,7 +39,6 @@ import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
-import org.apache.uima.ducc.transport.event.cli.PropertiesHelper;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
@@ -259,7 +258,7 @@ public class JobFactory {
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_components);
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_job_id+job.getDuccId().toString());
 		// classpath
-		String driverClasspath = PropertiesHelper.getDriverClasspath(jobRequestProperties);
+		String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
 		logger.debug(methodName, job.getDuccId(), "driver CP (spec):"+driverClasspath);
 		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
 		if(driverClasspath != null) {
@@ -278,13 +277,13 @@ public class JobFactory {
 		}
 		logger.debug(methodName, job.getDuccId(), "driver CP (combined):"+driverClasspath);
 		driverCommandLine.setClasspath(driverClasspath);
-		String driver_jvm_args = PropertiesHelper.getDriverJvmArgs(jobRequestProperties);
+		String driver_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_jvm_args);
 		ArrayList<String> dTokens = DuccUiUtilities.tokenizeList(driver_jvm_args, true);
 		for(String token : dTokens) {
 			driverCommandLine.addOption(token);
 		}
 		// Environment
-		String driverEnvironmentVariables = PropertiesHelper.getDriverEnvironment(jobRequestProperties);
+		String driverEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 		int envCountDriver = addEnvironment(job, "driver", driverCommandLine, driverEnvironmentVariables);
 		logger.info(methodName, job.getDuccId(), "driver env vars: "+envCountDriver);
 		logger.debug(methodName, job.getDuccId(), "driver: "+driverCommandLine.getCommand());
@@ -347,7 +346,7 @@ public class JobFactory {
 		// log
 		jobRequestProperties.specification(logger);
 		// classpath
-		String processClasspath = PropertiesHelper.getProcessClasspath(jobRequestProperties);
+		String processClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
 		logger.debug(methodName, job.getDuccId(), "process CP (spec):"+processClasspath);
 		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
 		if(processClasspath != null) {
@@ -464,12 +463,12 @@ public class JobFactory {
 			JavaCommandLine pipelineCommandLine = new JavaCommandLine(javaCmd);
 			pipelineCommandLine.setClassName("main:provided-by-Process-Manager");
 			pipelineCommandLine.setClasspath(processClasspath);
-			String process_jvm_args = PropertiesHelper.getProcessJvmArgs(jobRequestProperties);
+			String process_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_jvm_args);
 			ArrayList<String> pTokens = DuccUiUtilities.tokenizeList(process_jvm_args, true);
 			for(String token : pTokens) {
 				pipelineCommandLine.addOption(token);
 			}
-			String processEnvironmentVariables = PropertiesHelper.getProcessEnvironment(jobRequestProperties);
+			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 			int envCountProcess = addEnvironment(job, "process", pipelineCommandLine, processEnvironmentVariables);
 			logger.info(methodName, job.getDuccId(), "process env vars: "+envCountProcess);
 			logger.debug(methodName, job.getDuccId(), "pipeline: "+pipelineCommandLine.getCommand());
@@ -480,7 +479,7 @@ public class JobFactory {
 			// ducclet (sometimes known as arbitrary process)
 			String process_executable = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable);
 			NonJavaCommandLine executableProcessCommandLine = new NonJavaCommandLine(process_executable);
-			String processEnvironmentVariables = PropertiesHelper.getProcessEnvironment(jobRequestProperties);
+			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 			int envCountProcess = addEnvironment(job, "process", executableProcessCommandLine, processEnvironmentVariables);
 			logger.info(methodName, job.getDuccId(), "process env vars: "+envCountProcess);
 			logger.debug(methodName, job.getDuccId(), "ducclet: "+executableProcessCommandLine.getCommandLine());
@@ -540,9 +539,6 @@ public class JobFactory {
         }
         // Cancel On Interrupt
         if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_on_interrupt)) {
-        	job.setCancelOnInterrupt();
-        }
-        else if(jobRequestProperties.containsKey(JobSpecificationProperties.key_cancel_job_on_interrupt)) {
         	job.setCancelOnInterrupt();
         }
         else if(jobRequestProperties.containsKey(ReservationSpecificationProperties.key_cancel_managed_reservation_on_interrupt)) {

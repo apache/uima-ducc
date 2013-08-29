@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
@@ -42,7 +43,7 @@ public class DuccServiceSubmit
     //private Properties jvmargs = null;
     ServiceRequestProperties requestProperties = new ServiceRequestProperties();
     
-    UiOption[] opts_release = {
+    UiOption[] opts = {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
@@ -50,41 +51,9 @@ public class DuccServiceSubmit
         UiOption.LogDirectory,
         UiOption.WorkingDirectory,
         UiOption.Jvm,
-        UiOption.JvmArgs,
-        UiOption.Classpath,
-        UiOption.Environment,
-        UiOption.ProcessMemorySize,
-        UiOption.ProcessDD,
-        UiOption.ProcessExecutable,
-        UiOption.ProcessExecutableArgs,
-        UiOption.ProcessFailuresLimit,
-        UiOption.ClasspathOrder,
-        UiOption.Specification,
-        UiOption.ServiceDependency,
-        UiOption.ServiceRequestEndpoint,
-        UiOption.ServiceLinger,
-        UiOption.ServicePingArguments,
-        UiOption.ServicePingClass,
-        UiOption.ServicePingClasspath,
-        UiOption.ServicePingJvmArgs,
-        UiOption.ServicePingTimeout,
-        UiOption.ServicePingDoLog,
-    };
-    
-    UiOption[] opts_beta = {
-        UiOption.Help,
-        UiOption.Debug, 
-        UiOption.Description,
-        UiOption.SchedulingClass,
-        UiOption.LogDirectory,
-        UiOption.WorkingDirectory,
-        UiOption.Jvm,
-        UiOption.JvmArgs,
-        UiOption.Classpath,
-        UiOption.Environment,
         UiOption.ProcessJvmArgs,
-        UiOption.ProcessClasspath,
-        UiOption.ProcessEnvironment,
+        UiOption.Classpath,
+        UiOption.Environment,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
         UiOption.ProcessExecutable,
@@ -102,9 +71,7 @@ public class DuccServiceSubmit
         UiOption.ServicePingTimeout,
         UiOption.ServicePingDoLog,
     };
-    
-    UiOption[] opts = opts_release;
-
+   
     /**
      * @param args Array of string arguments as described in the 
      *      <a href="/doc/duccbook.html#DUCC_CLI_SERVICE_SUBMIT">DUCC CLI reference.</a>
@@ -112,9 +79,6 @@ public class DuccServiceSubmit
     public DuccServiceSubmit(String[] args)
         throws Exception
     {
-        if(DuccUiUtilities.isSupportedBeta()) {
-            opts = opts_beta;
-        }
         init(this.getClass().getName(), opts, args, requestProperties, null);
     }
     
@@ -135,9 +99,6 @@ public class DuccServiceSubmit
     public DuccServiceSubmit(Properties props)
         throws Exception
     {
-        if(DuccUiUtilities.isSupportedBeta()) {
-            opts = opts_beta;
-        }
         init (this.getClass().getName(), opts, props, requestProperties, null);
     }
     
@@ -150,12 +111,6 @@ public class DuccServiceSubmit
     public boolean execute() 
         throws Exception 
     {
-        String key_ja = UiOption.ProcessJvmArgs.pname();
-        if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
-            key_ja = UiOption.JvmArgs.pname();
-        }
-        String jvmarg_string = requestProperties.getProperty(key_ja);
-
         //
         // Need to check if the mutually exclusive UIMA-AS DD and the Custom executable are specified
         //
@@ -173,12 +128,17 @@ public class DuccServiceSubmit
             if (customCmd != null) {
                 message("WARN: --process_executable is ignored for UIMA-AS services");
             }
+            
+            // This should have already been done when registered, but perhaps not in old services.
+            fixupClasspath(UiOption.Classpath.pname());
+            
             //
             // Always extract the endpoint from the DD since when it is explicitly specified it must match.
             //
             try {
                 String dd = (String) requestProperties.get(UiOption.ProcessDD.pname());
                 String wd = (String) requestProperties.get(UiOption.WorkingDirectory.pname());
+                String jvmarg_string = requestProperties.getProperty(UiOption.ProcessJvmArgs.pname());
                 String inferred_endpoint = DuccUiUtilities.getEndpoint(wd, dd, jvmarg_string);
                 if (endpoint == null) {
                     endpoint = inferred_endpoint;

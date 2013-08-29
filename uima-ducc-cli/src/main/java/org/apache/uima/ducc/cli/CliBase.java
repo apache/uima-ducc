@@ -97,11 +97,12 @@ public abstract class CliBase
      */
     public abstract boolean execute() throws Exception;
 
+    /*
+     * Get log directory or employ default log directory if not specified
+     */
     String getLogDirectory()
     {
-        /*
-         * employ default log directory if not specified
-         */
+
         String log_directory = cli_props.getProperty(UiOption.LogDirectory.pname());
         if(log_directory == null) {
             // no log directory was specified - default to user's home + "/ducc/logs"
@@ -233,21 +234,6 @@ public abstract class CliBase
         return arglist.toArray(new String[arglist.size()]);
     }
     
-    private String[] mkArgs(DuccProperties props)
-    {
-        List<String> arglist = new ArrayList<String>();
-        for ( Object o : props.keySet() ) {
-            String k = (String) o;
-            String v = props.getStringProperty(k, "");
-            arglist.add("--" + k);
-            // Assume an empty value indicates a boolean option
-            if (v.length() > 0) {
-              arglist.add(v);
-            }
-        }
-        return arglist.toArray(new String[arglist.size()]);
-    }
-
     /**
      * Standard init for all except the Service calls that are sent to the SM
      */
@@ -266,6 +252,9 @@ public abstract class CliBase
                     DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
         throws Exception
     {
+        // Optionally convert deprecated options
+        if (System.getenv("DUCC_ACCEPT_DEPRECATED_OPTIONS") != null) cleanupArgs(args);
+        
         if ( init_done ) return;
         
         if ( consoleCb == null ) {
@@ -648,9 +637,7 @@ public abstract class CliBase
         boolean monitor_attach = 
                 (
                 cli_props.containsKey(UiOption.WaitForCompletion.pname()) || 
-                cli_props.containsKey(UiOption.CancelOnInterrupt.pname()) || 
-                cli_props.containsKey(UiOption.CancelJobOnInterrupt.pname()) || 
-                cli_props.containsKey(UiOption.CancelManagedReservationOnInterrupt.pname()) 
+                cli_props.containsKey(UiOption.CancelOnInterrupt.pname())  
                 );
             
         if ( monitor_attach ) {
@@ -691,19 +678,14 @@ public abstract class CliBase
         if ( console_attach ) {
             console_listener = new ConsoleListener(this, consoleCb);
             
-            String key_pe = UiOption.ProcessEnvironment.pname();
-            String key_de = UiOption.DriverEnvironment.pname();
-            if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
-                key_pe = UiOption.Environment.pname();
-                key_de = UiOption.Environment.pname();
-            }
+            String key = UiOption.Environment.pname();
             
             if ( cli_props.containsKey(UiOption.ProcessAttachConsole.pname()) ) {
-                set_console_port(cli_props, key_pe);
+                set_console_port(cli_props, key);
             } 
             
             if  (cli_props.containsKey(UiOption.DriverAttachConsole.pname()) ) {
-                set_console_port(cli_props, key_de);
+                set_console_port(cli_props, key);
             } 
         }
     }
@@ -723,7 +705,7 @@ public abstract class CliBase
         }
     }
 
-    protected void stopListeners()
+    protected synchronized void stopListeners()
     {
         if ( console_listener != null ) {
             console_listener.shutdown();
@@ -807,5 +789,43 @@ public abstract class CliBase
             }
         }
         return args;
+    }
+    
+    /*
+     * Get specified class path (or the default) and remove any DUCC jars used to submit a request
+     * so they cannot accidentally replace any in the user's classpath.
+     */
+    protected String fixupClasspath(String key_cp) {
+        String classpath = cli_props.getStringProperty(key_cp,
+                        System.getProperty("java.class.path"));
+        StringBuilder sb = new StringBuilder();
+        for (String jar : classpath.split(":")) {
+            if (!jar.startsWith(ducc_home)) {
+                sb.append(jar).append(":");
+            }
+        }
+        classpath = sb.toString();
+        cli_props.setProperty(key_cp, classpath);
+        return classpath;
+    }
+    
+    /*
+     * Change any deprecated options to their new name.  If this produces duplicate specifications then the 
+     * commons-cli parser probably chooses the last one.
+     * 
+     */
+    private void cleanupArgs(String[] args) {
+        for (int i = 0; i < args.length; ++i) {
+            String arg = args[i];
+            if (arg.equals("--driver_classpath") || arg.equals("--process_classpath")) {
+                args[i] = "--classpath";
+            } else if (arg.equals("--driver_environment") || arg.equals("--process_environment")) {
+                args[i] = "--environment";
+            } else if (arg.equals("--cancel_job_on_interrupt") || arg.equals("--cancel_managed_reservation_on_interrupt")) {
+                args[i] = "--cancel_on_interrupt";
+            } else if (arg.equals("--jvm_args")) {
+                args[i] = "--process_jvm_args";
+            }
+        }
     }
 }

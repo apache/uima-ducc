@@ -36,7 +36,6 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_scheduling_priority = "scheduling_priority";
 	
 	public static String key_jvm = "jvm";
-	public static String key_jvm_args = "jvm_args";
 	public static String key_classpath = "classpath";
 	public static String key_environment = "environment";
 	
@@ -46,16 +45,11 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_driver_attach_console  = "driver_attach_console";
 	
 	public static String key_driver_jvm_args = "driver_jvm_args";
-	public static String key_driver_classpath = "driver_classpath";
-	public static String key_driver_environment = "driver_environment";
-	public static String key_driver_memory_size = "driver_memory_size";
 	public static String key_driver_descriptor_CR = "driver_descriptor_CR";
 	public static String key_driver_descriptor_CR_overrides = "driver_descriptor_CR_overrides";
 	public static String key_driver_exception_handler = "driver_exception_handler";
 	
 	public static String key_process_jvm_args = "process_jvm_args";
-	public static String key_process_classpath = "process_classpath";
-	public static String key_process_environment = "process_environment";
 	public static String key_process_memory_size = "process_memory_size";
 	public static String key_process_DD = "process_DD";
 	public static String key_process_descriptor_CM = "process_descriptor_CM";
@@ -86,9 +80,6 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
     
 	public static String key_classpath_order = "classpath_order";
 	
-	// Deprecated
-	public static String key_cancel_job_on_interrupt = "cancel_job_on_interrupt";
-
 	public static String[] keys = {
 		JobRequestProperties.key_signature,
 		JobRequestProperties.key_description,
@@ -102,15 +93,10 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 		key_scheduling_priority,
 		key_jvm,
 		key_driver_jvm_args,
-		key_driver_classpath,
-		key_driver_environment,
-		key_driver_memory_size,
 		key_driver_descriptor_CR,
 		key_driver_descriptor_CR_overrides,
 		key_driver_exception_handler,
 		key_process_jvm_args,
-		key_process_classpath,
-		key_process_environment,
 		key_process_memory_size,
 		key_process_DD,
 		key_process_descriptor_CM,
@@ -124,15 +110,11 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 		key_process_initialization_failures_cap,
 		key_process_failures_limit,
 		key_process_thread_count,
-		/*
-		key_process_get_meta_time_max,
-		*/
 		key_process_initialization_time_max,
 		key_process_per_item_time_max,
         key_service_dependency,
         key_wait_for_completion,
         key_classpath_order,
-        key_cancel_job_on_interrupt,
 	};
 	
 	public boolean isRecognized(String key) {

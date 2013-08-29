@@ -39,7 +39,7 @@ public class DuccManagedReservationSubmit
     
     private ServiceRequestProperties serviceRequestProperties;
 
-    private UiOption[] opts_release = new UiOption[] {
+    private UiOption[] opts = new UiOption[] {
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
@@ -56,28 +56,6 @@ public class DuccManagedReservationSubmit
         UiOption.WaitForCompletion,
         UiOption.CancelOnInterrupt,
     };
-
-    private UiOption[] opts_beta = new UiOption[] {
-        UiOption.Help,
-        UiOption.Debug, 
-        UiOption.Description,
-        UiOption.Environment,
-        UiOption.LogDirectory,
-        UiOption.ProcessAttachConsole,
-        UiOption.ProcessEnvironment,
-        UiOption.ProcessExecutable,
-        UiOption.ProcessExecutableArgs,
-        UiOption.ProcessFailuresLimit,
-        UiOption.ProcessMemorySize,
-        UiOption.SchedulingClass,
-        UiOption.Specification,
-        UiOption.WorkingDirectory,
-        UiOption.WaitForCompletion,
-        UiOption.CancelOnInterrupt,
-        UiOption.CancelManagedReservationOnInterrupt,
-    };
-    
-    private UiOption[] opts = opts_release;
 
     /**
      * @param args List of string arguments as described in the 
@@ -122,9 +100,6 @@ public class DuccManagedReservationSubmit
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties(); 
-        if(DuccUiUtilities.isSupportedBeta()) {
-            opts = opts_beta;
-        }
         init (this.getClass().getName(), opts, args, serviceRequestProperties, consoleCb);
     }
         
@@ -142,9 +117,6 @@ public class DuccManagedReservationSubmit
     {
         String[] arg_array = args.toArray(new String[args.size()]);
         serviceRequestProperties = new ServiceRequestProperties();   
-        if(DuccUiUtilities.isSupportedBeta()) {
-            opts = opts_beta;
-        }
         init (this.getClass().getName(), opts, arg_array, serviceRequestProperties, consoleCb);
     }
         
@@ -161,9 +133,6 @@ public class DuccManagedReservationSubmit
         throws Exception
     {
         serviceRequestProperties = new ServiceRequestProperties();
-        if(DuccUiUtilities.isSupportedBeta()) {
-            opts = opts_beta;
-        }
         init (this.getClass().getName(), opts, props, serviceRequestProperties, consoleCb);
     }
 
@@ -180,22 +149,7 @@ public class DuccManagedReservationSubmit
         /*
          * set DUCC_LD_LIBRARY_PATH in process environment
          */
-        boolean ev0 = serviceRequestProperties.containsKey(UiOption.Environment.pname());
-        boolean evp = serviceRequestProperties.containsKey(UiOption.ProcessEnvironment.pname());
-        if(ev0 && evp) {
-            throw new IllegalArgumentException("Conflict: cannot specify both "+UiOption.Environment.pname()+" and "+UiOption.ProcessEnvironment.pname());
-        }
-        if(ev0) {
-            DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname());
-        }
-        else {
-            if(evp) {
-                DuccUiUtilities.ducc_environment(this,serviceRequestProperties, UiOption.ProcessEnvironment.pname());
-            }
-            else {
-                DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname());
-            }
-        }
+        DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname());
 
         // Create a copy to be saved later without these 3 "ducclet" properties required by DUCC
         ServiceRequestProperties serviceProperties = (ServiceRequestProperties)serviceRequestProperties.clone();

@@ -49,7 +49,7 @@ public class DuccServiceApi
     String endpoint = null;
     IDuccCallback callback = null;
 
-    UiOption[] registration_options_release = {
+    UiOption[] registration_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Description,
@@ -57,45 +57,9 @@ public class DuccServiceApi
         UiOption.LogDirectory,
         UiOption.WorkingDirectory,
         UiOption.Jvm,
-        UiOption.JvmArgs,
-        UiOption.Classpath,
-        UiOption.Environment,
-        UiOption.ProcessMemorySize,
-        UiOption.ProcessDD,
-        UiOption.ProcessExecutable,
-        UiOption.ProcessExecutableArgs,
-        UiOption.ProcessFailuresLimit,
-        UiOption.ClasspathOrder,
-        // UiOption.Specification          // not used for registration
-        UiOption.ServiceDependency,
-        UiOption.ServiceRequestEndpoint,
-        UiOption.ServiceLinger,
-        UiOption.ServicePingArguments,
-        UiOption.ServicePingClass,
-        UiOption.ServicePingClasspath,
-        UiOption.ServicePingJvmArgs,
-        UiOption.ServicePingTimeout,
-        UiOption.ServicePingDoLog,
-
-        UiOption.Register,
-        UiOption.Autostart,
-        UiOption.Instances,
-    }; 
-
-    UiOption[] registration_options_beta = {
-        UiOption.Help,
-        UiOption.Debug,
-        UiOption.Description,
-        UiOption.SchedulingClass,
-        UiOption.LogDirectory,
-        UiOption.WorkingDirectory,
-        UiOption.Jvm,
-        UiOption.JvmArgs,
-        UiOption.Classpath,
-        UiOption.Environment,
         UiOption.ProcessJvmArgs,
-        UiOption.ProcessClasspath,
-        UiOption.ProcessEnvironment,
+        UiOption.Classpath,
+        UiOption.Environment,
         UiOption.ProcessMemorySize,
         UiOption.ProcessDD,
         UiOption.ProcessExecutable,
@@ -117,9 +81,7 @@ public class DuccServiceApi
         UiOption.Autostart,
         UiOption.Instances,
     }; 
-    
-    UiOption[] registration_options = registration_options_release;
-    
+   
     UiOption[] unregister_options = {
         UiOption.Help,
         UiOption.Debug,
@@ -239,8 +201,7 @@ public class DuccServiceApi
         String default_linger = DuccPropertiesResolver.get("ducc.sm.default.linger", "5000");
         String linger         = cli_props.getStringProperty(UiOption.ServiceLinger.pname(), default_linger);
         try {             
-            @SuppressWarnings("unused")
-			long actual = Long.parseLong(linger); // make sure it's a long, don't care about the value
+			Long.parseLong(linger); // make sure it's a long, don't care about the value
         } catch ( NumberFormatException e ) {
             throw new IllegalArgumentException(UiOption.ServiceLinger.pname() + " is not numeric: " + linger);
         }
@@ -267,9 +228,6 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        if(DuccUiUtilities.isSupportedBeta()) {
-        	registration_options = registration_options_beta;
-        }
         init (this.getClass().getName(), registration_options, args, null, dp, callback, "sm");
 
         // Note: dp & cli_props are identical ... use only the class variable here for consistency
@@ -277,10 +235,7 @@ public class DuccServiceApi
         /*
          * Fixup the environment: rename LD_LIBRARY_PATH & add any standard ones
          */
-        String key_ev = UiOption.ProcessEnvironment.pname();
-        if ( cli_props.containsKey(UiOption.Environment.pname()) ) {
-            key_ev = UiOption.Environment.pname();
-        }
+        String key_ev = UiOption.Environment.pname();
         DuccUiUtilities.ducc_environment(this, cli_props, key_ev);
         
         setLinger();
@@ -305,23 +260,13 @@ public class DuccServiceApi
             }
             // Infer the classpath (DuccProperties will return the default if the value isn't found.)
             // Note: only used for UIMA-AS services
-        	String key_cp = UiOption.ProcessClasspath.pname();
-            if ( cli_props.containsKey(UiOption.Classpath.pname()) ) {
-            	key_cp = UiOption.Classpath.pname();
-            }
-            String classpath = cli_props.getStringProperty(key_cp, System.getProperty("java.class.path"));
-            cli_props.setProperty(key_cp, classpath);
+            fixupClasspath(UiOption.Classpath.pname());
 
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
             // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one
             // we extract from the DD - the job will fail otherwise, so we catch this early.
             //
-            String key_ja = UiOption.ProcessJvmArgs.pname();
-            if ( cli_props.containsKey(UiOption.JvmArgs.pname()) ) {
-                key_ja = UiOption.JvmArgs.pname();
-            }
-            String jvmarg_string = cli_props.getProperty(key_ja);
-            
+            String jvmarg_string = cli_props.getProperty(UiOption.ProcessJvmArgs.pname());
             String inferred_endpoint = extractEndpoint(jvmarg_string);
             if (endpoint == null) {
                 endpoint = inferred_endpoint;
@@ -342,8 +287,7 @@ public class DuccServiceApi
             if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
                 throw new IllegalArgumentException("Custom service is missing ping class name.");
             }
-            String classpath = cli_props.getStringProperty(UiOption.ServicePingClasspath.pname(), System.getProperty("java.class.path"));            
-            cli_props.setProperty(UiOption.ServicePingClasspath.pname(), classpath);
+            fixupClasspath(UiOption.ServicePingClasspath.pname());
         
         } else {
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);

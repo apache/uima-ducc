@@ -329,18 +329,8 @@ public class AllInOneLauncher extends CliBase {
         String mid = "examine_classpath";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.Classpath.pname();
-        if (jobRequestProperties.containsKey(pname)) {
-            classpath = jobRequestProperties.getProperty(pname);
-            used(pname);
-        } else {
-            pname = UiOption.ProcessClasspath.pname();
-            if (jobRequestProperties.containsKey(pname)) {
-                classpath = jobRequestProperties.getProperty(pname);
-                used(pname);
-            } else {
-                classpath = System.getProperty("java.class.path");
-            }
-        }
+        classpath = fixupClasspath(pname);
+        used(pname);
         String message = classpath;
         mh.frameworkDebug(cid, mid, message);
 
@@ -352,9 +342,9 @@ public class AllInOneLauncher extends CliBase {
         } else {
             value = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_job_factory_classpath_order);
         }
-        if (ClasspathOrderParms.UserBeforeDucc.pname().equalsIgnoreCase(value)) {
+        if (ClasspathOrderParms.UserBeforeDucc.pname().equals(value)) {
             classpath_user_first = true;
-        } else if (ClasspathOrderParms.DuccBeforeUser.pname().equalsIgnoreCase(value)) {
+        } else if (ClasspathOrderParms.DuccBeforeUser.pname().equals(value)) {
             classpath_user_first = false;
         } else {
             throw new IllegalArgumentException(UiOption.ClasspathOrder.pname()+": "+value);
@@ -379,36 +369,12 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.Environment.pname();
         DuccUiUtilities.ducc_environment(this, jobRequestProperties, pname); // Augment environment
-        if(jobRequestProperties.containsKey(pname)) {
-            environment = jobRequestProperties.getProperty(pname);
+        environment = jobRequestProperties.getProperty(pname);
+        if (environment != null) {
             String message = environment;
             mh.frameworkDebug(cid, mid, message);
             used(pname);
         }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_process_environment() {
-        String mid = "examine_process_environment";
-        mh.frameworkTrace(cid, mid, enter);
-        if(jobRequestProperties.containsKey(UiOption.Environment.pname())) {
-            return;
-        }
-        String pname = UiOption.ProcessEnvironment.pname();
-        DuccUiUtilities.ducc_environment(this, jobRequestProperties, pname); // Augment environment
-        if(jobRequestProperties.containsKey(pname)) {
-            environment = jobRequestProperties.getProperty(pname);
-            String message = environment;
-            mh.frameworkDebug(cid, mid, message);
-            used(pname);
-        }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_driver_environment() {
-        String mid = "examine_driver_environment";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
         mh.frameworkTrace(cid, mid, exit);
     }
     
@@ -719,20 +685,6 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, exit);
     }
     
-    private void examine_cancel_job_on_interrupt() {
-        String mid = "examine_cancel_job_on_interrupt";
-        mh.frameworkTrace(cid, mid, enter);
-        String pname = UiOption.CancelJobOnInterrupt.pname();
-        if(jobRequestProperties.containsKey(pname)) {
-            cancel_on_interrupt = true;
-            wait_for_completion = true;
-            String message = pname+"="+cancel_on_interrupt;
-            mh.frameworkDebug(cid, mid, message);
-            used(pname);
-        }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
     private void examine_cancel_on_interrupt() {
         String mid = "examine_cancel_on_interrupt";
         mh.frameworkTrace(cid, mid, enter);
@@ -837,8 +789,6 @@ public class AllInOneLauncher extends CliBase {
         
         // environment
         examine_environment();
-        examine_driver_environment();
-        examine_process_environment();
         
         // jd
         examine_driver_exception_handler();
@@ -876,7 +826,6 @@ public class AllInOneLauncher extends CliBase {
         // wait_for_completion & cancel
         examine_wait_for_completion();
         examine_cancel_on_interrupt();
-        examine_cancel_job_on_interrupt();
         
         // specification - handled by super()
         examine_specification();

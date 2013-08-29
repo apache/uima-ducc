@@ -211,27 +211,6 @@ public class DuccUiConstants {
 	public static final String exmp_driver_jvm_args = "-Xmx100M -Xms50M";
 	public static final String dval_driver_jvm_args = "";
 	
-	public static final String name_driver_classpath = JobSpecificationProperties.key_driver_classpath;
-	public static final String parm_driver_classpath = "classpath";
-	public static final String desc_driver_classpath = "Driver classpath.  Default is current classpath.";
-	public static final String labl_driver_classpath = "Classpath";
-	public static final String exmp_driver_classpath = "";
-	public static final String dval_driver_classpath = "";
-	
-	public static final String name_driver_environment = JobSpecificationProperties.key_driver_environment;
-	public static final String parm_driver_environment = "environment";
-	public static final String desc_driver_environment = "Driver environment.";
-	public static final String labl_driver_environment = "Environment";
-	public static final String exmp_driver_environment = "\"TERM=xterm DISPLAY=:1.0\"";
-	public static final String dval_driver_environment = "";
-	
-	public static final String name_driver_memory_size = JobSpecificationProperties.key_driver_memory_size;
-	public static final String parm_driver_memory_size = "size[KB|MB|GB|TB]";
-	public static final String desc_driver_memory_size = "Size of memory for driver, defaults to GB if units omitted.";
-	public static final String labl_driver_memory_size = "Memory Size";
-	public static final String exmp_driver_memory_size = "16GB";
-	public static final String dval_driver_memory_size = "";
-	
 	public static final String name_driver_descriptor_CR = JobSpecificationProperties.key_driver_descriptor_CR;
 	public static final String parm_driver_descriptor_CR = "descriptor.xml";
 	public static final String desc_driver_descriptor_CR = "Driver Collection Reader.";
@@ -259,20 +238,6 @@ public class DuccUiConstants {
 	public static final String labl_process_jvm_args = "Jvm Args";
 	public static final String exmp_process_jvm_args = "-Xmx400M -Xms100M";
 	public static final String dval_process_jvm_args = "";
-	
-	public static final String name_process_classpath = JobSpecificationProperties.key_process_classpath;
-	public static final String parm_process_classpath = "classpath";
-	public static final String desc_process_classpath = "Process classpath.  Default is current classpath.";
-	public static final String labl_process_classpath = "Classpath";
-	public static final String exmp_process_classpath = "";
-	public static final String dval_process_classpath = "";
-	
-	public static final String name_process_environment = JobSpecificationProperties.key_process_environment;
-	public static final String parm_process_environment = "environment";
-	public static final String desc_process_environment = "Process environment.";
-	public static final String labl_process_environment = "Environment";
-	public static final String exmp_process_environment = "\"LANG=en_US.UTF-8\"";
-	public static final String dval_process_environment = "";
 	
 	public static final String name_process_executable = "process_executable";
 	public static final String parm_process_executable = "string";
@@ -380,15 +345,6 @@ public class DuccUiConstants {
 	public static final String exmp_process_thread_count = "4";
 	public static final String dval_process_thread_count = "4";
 	
-	/*
-	public static final String name_process_get_meta_time_max = JobSpecificationProperties.key_process_get_meta_time_max;
-	public static final String parm_process_get_meta_time_max = "integer";
-	public static final String desc_process_get_meta_time_max = "Maximum elapsed time (in minutes) for processing getMeta.";
-	public static final String labl_process_get_meta_time_max = "Time Max: initalize";
-	public static final String exmp_process_get_meta_time_max = "2";
-	public static final String dval_process_get_meta_time_max = "2";
-	*/
-	
 	public static final String name_process_initialization_time_max = JobSpecificationProperties.key_process_initialization_time_max;
 	public static final String parm_process_initialization_time_max = "integer";
 	public static final String desc_process_initialization_time_max = "Maximum elapsed time (in minutes) for processing initialization.";
@@ -417,14 +373,6 @@ public class DuccUiConstants {
 	public static final String exmp_submit_cancel_on_interrupt = null;
 	public static final String dval_submit_cancel_on_interrupt = null;
 	
-	//@Deprecated
-	public static final String name_submit_cancel_job_on_interrupt = "cancel_job_on_interrupt";
-	public static final String parm_submit_cancel_job_on_interrupt = null;
-	public static final String desc_submit_cancel_job_on_interrupt = "Cancel job on interrupt (Ctrl-C).";
-	public static final String labl_submit_cancel_job_on_interrupt = null;
-	public static final String exmp_submit_cancel_job_on_interrupt = null;
-	public static final String dval_submit_cancel_job_on_interrupt = null;
-	
 	public static final String classpath_order_user_before_ducc = "user-before-ducc";
 	public static final String classpath_order_ducc_before_user = "ducc-before-user";
 	public static final String classpath_order_default = classpath_order_user_before_ducc;
@@ -446,35 +394,6 @@ public class DuccUiConstants {
 	public static final String labl_monitor_cancel_on_interrupt = labl_submit_cancel_on_interrupt;
 	public static final String exmp_monitor_cancel_on_interrupt = exmp_submit_cancel_on_interrupt;
 	public static final String dval_monitor_cancel_on_interrupt = dval_submit_cancel_on_interrupt;
-	
-	public static final String name_monitor_cancel_job_on_interrupt = name_submit_cancel_job_on_interrupt;
-	public static final String parm_monitor_cancel_job_on_interrupt = parm_submit_cancel_job_on_interrupt;
-	public static final String desc_monitor_cancel_job_on_interrupt = "Cancel job on interrupt (Ctrl-C).";
-	public static final String labl_monitor_cancel_job_on_interrupt = labl_submit_cancel_job_on_interrupt;
-	public static final String exmp_monitor_cancel_job_on_interrupt = exmp_submit_cancel_job_on_interrupt;
-	public static final String dval_monitor_cancel_job_on_interrupt = dval_submit_cancel_job_on_interrupt;
-	
-	/* 
-	 * submit Managed Reservation
-	 */
-	
-	public static final String name_submit_cancel_managed_reservation_on_interrupt = "cancel_managed_reservation_on_interrupt";
-	public static final String parm_submit_cancel_managed_reservation_on_interrupt = null;
-	public static final String desc_submit_cancel_managed_reservation_on_interrupt = "Cancel managed_reservation on interrupt (Ctrl-C); only possible when --"+name_wait_for_completion+" is also specified.";
-	public static final String labl_submit_cancel_managed_reservation_on_interrupt = null;
-	public static final String exmp_submit_cancel_managed_reservation_on_interrupt = null;
-	public static final String dval_submit_cancel_managed_reservation_on_interrupt = null;
-	
-	/* 
-	 * monitor Managed Reservation
-	 */
-	
-	public static final String name_monitor_cancel_managed_reservation_on_interrupt = name_submit_cancel_managed_reservation_on_interrupt;
-	public static final String parm_monitor_cancel_managed_reservation_on_interrupt = parm_submit_cancel_managed_reservation_on_interrupt;
-	public static final String desc_monitor_cancel_managed_reservation_on_interrupt = "Cancel managed_reservation on interrupt (Ctrl-C).";
-	public static final String labl_monitor_cancel_managed_reservation_on_interrupt = labl_submit_cancel_managed_reservation_on_interrupt;
-	public static final String exmp_monitor_cancel_managed_reservation_on_interrupt = exmp_submit_cancel_managed_reservation_on_interrupt;
-	public static final String dval_monitor_cancel_managed_reservation_on_interrupt = dval_submit_cancel_managed_reservation_on_interrupt;
 	
 	/* 
 	 * submit Service

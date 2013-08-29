@@ -45,6 +45,7 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 	public static String key_id = "id";	
 	public static String key_dpid = "dpid";	
 	
+	// Not used?
 	public static List<String> keys_requiring_values = Arrays.asList(
 			JobRequestProperties.key_signature,
 			JobRequestProperties.key_description,
@@ -58,15 +59,10 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 			key_scheduling_priority,
 			key_jvm,
 			key_driver_jvm_args,
-			key_driver_classpath,
-			key_driver_environment,
-			key_driver_memory_size,
 			key_driver_descriptor_CR,
 			key_driver_descriptor_CR_overrides,
 			key_driver_exception_handler,
 			key_process_jvm_args,
-			key_process_classpath,
-			key_process_environment,
 			key_process_memory_size,
 			key_process_DD,
 			key_process_descriptor_CM,

@@ -49,24 +49,6 @@ import org.w3c.dom.NodeList;
 
 public class DuccUiUtilities {
 	
-	private static boolean betaSet = false;
-    private static boolean isBeta;
-
-    public static boolean isSupportedBeta() {
-	    if (betaSet) return isBeta;
-	    
-	    // Set DUCC_HOME stsem property (if not already set) for DuccPropertiesResolver
-	    Utils.findDuccHome();
-	    
-	    // Only if "on" allow old-style process/driver options
-		isBeta = false;
-		String value = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_beta);
-		if(value != null && value.equalsIgnoreCase("on")) {
-		    isBeta = true;
-		}
-		return isBeta;
-	}
-	
 	public static String getUser() {
 		String user = System.getProperty("user.name");
 		String runmode = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_runmode);
@@ -81,41 +63,7 @@ public class DuccUiUtilities {
 		return user;
 	}
 
-	public static ArrayList<String> getDuplicateOptions(CommandLine commandLine) {
-		ArrayList<String> duplicates = new ArrayList<String>();
-		HashMap<String,String> seen = new HashMap<String,String>();
-		Option[] options = commandLine.getOptions();
-		for(Option option : options) {
-			String name = option.getLongOpt();
-			if(seen.containsKey(name)) {
-				if(!duplicates.contains(name)) {
-					duplicates.add(name);
-				}
-			}
-			else {
-				seen.put(name,name);
-			}
-		}
-		return duplicates;
-	}
-	
-	//**********
-	
-// 	public static boolean duplicate_options(IDuccMessageProcessor duccMessageProcessor, CommandLine commandLine) {
-// 		boolean retVal = false;
-// 		ArrayList<String> duplicates = DuccUiUtilities.getDuplicateOptions(commandLine);
-// 		if(!duplicates.isEmpty()) {
-// 			for(String duplicate : duplicates) {
-// 				duccMessageProcessor.err("duplicate option: "+duplicate);
-// 			}
-// 			retVal = true;
-// 		}
-// 		return retVal;
-// 	}
-	
-	//**********
-	
-	public static String fixupEnvironment(String environment) {
+	private static String fixupEnvironment(String environment) {
 	    // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
 	    boolean modified = false;
         String source = "LD_LIBRARY_PATH";
