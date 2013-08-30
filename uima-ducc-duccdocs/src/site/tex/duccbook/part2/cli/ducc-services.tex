@@ -47,9 +47,8 @@
 
     \paragraph{Usage:}
        \begin{description}
-          \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-services.jar {\em options}
           \item[Script wrapper] \ducchome/bin/ducc\_services {\em options}
-          \item[Java Main]      java -cp \ducchome/lib/uima-ducc-services.jar org.apache.uima.ducc.cli.DuccServiceApi {\em options}
+          \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar org.apache.uima.ducc.cli.DuccServiceApi {\em options}
           \end{description}
           
           The ducc\_services CLI requires one of the verbs listed above as the first argument. Other arguments are determined
@@ -99,7 +98,7 @@
 
         \item[$--$classpath] The CLASSPATH used for the service, if the service is a
           \hyperref[sec:services.types]{UIMA-AS services}.  If not specified, the CLASSPATH used
-          by the {\em ducc\_service\_submit} command is used.
+          by the {\em ducc\_services} command is used.
           
         \item[$--$classpath\_order {[UserBeforeDucc | DuccBeforeUser]} ] When DUCC deploys a process,
           set the user-supplied classpath before DUCC-supplied classpath, or the reverse.  This is
@@ -139,12 +138,12 @@
 \end{verbatim}
 
 
-        \item[$--$jvm\_args {[list]} ]        
+        \item[$--$process\_jvm\_args {[list]} ]        
           This specifes extra JVM arguments to be provided to the server process for
           \hyperref[sec:services.types]{UIMA-AS services}. It is a blank delimited 
             list of strings. Example: 
 \begin{verbatim}
---jvm_args -Xmx100M -Xms50M
+--process_jvm_args -Xmx100M -Xms50M
 \end{verbatim}
 
           Note: When used as a CLI option, the argument string must usually be quoted to protect
@@ -272,14 +271,13 @@
         If the service is CUSTOM, the endpoint is required, and must be of the form
         {\tt CUSTOM:string} where the contents of the string are determined by the service.
 
-      \item[$--$specification, $-$f {[file]}] All the parameters used to submit a service may be placed in a
-        standard Java properties file.  This file may then be used to submit the service (rather than
-        providing all the parameters directory to submit).
+      \item[$--$specification, $-$f {[file]}] All the parameters used to register a service may be placed in a
+        standard Java properties file.  This file may then be used to register the service (rather than
+        providing all the parameters directly).
         For example, 
 
 \begin{verbatim}
-ducc_service_submit --specification svc.props 
-ducc_service_submit -f svc.props 
+ducc_services --register svc.props 
 \end{verbatim}
         
         where the svc.props contains: 
@@ -287,7 +285,7 @@ ducc_service_submit -f svc.props
 \begin{verbatim}
 environment         = AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0
 description         = Test Service 3
-jvm_args            = -DdefaultBrokerURL=tcp://agent86:61616
+process_jvm_args    = -DdefaultBrokerURL=tcp://agent86:61616
 classpath           = /home/bob/lib/app.jar
 process_memory_size = 15
 working_directory   = /home/bob/services
@@ -297,7 +295,7 @@ service_dependency  =  UIMA-AS:FixedSleepAE_4:tcp://agent86:61616
 \end{verbatim}
         
         \item[$--$working\_directory {[directory-name]}]
-          This specifies the working directory to be set by the Job Driver and Job Process processes. 
+          This specifies the working directory to be set for the service processes. 
           If not specified, the current directory is used.
     \end{description}
 
@@ -426,7 +424,7 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --act
           false, all instance start and stop is manual.
           Example: 
 \begin{verbatim}
-ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --autostart false 
+ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --autostart false 
 \end{verbatim}
         \end{description}
 

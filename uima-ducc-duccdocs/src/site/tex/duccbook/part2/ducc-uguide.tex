@@ -20,22 +20,21 @@
 \begin{verbatim}
 description                    Test job 1
 
-driver_classpath               ../lib/uima-ducc-examples.jar
+classpath                      ../lib/uima-ducc-examples.jar
+environment                    AE_INIT_TIME=5 AE_INIT_RANGE=5 LD_LIBRARY_PATH=/a/nother/path
+scheduling_class               normal
+
 driver_descriptor_CR           org.apache.uima.ducc.test.randomsleep.FixedSleepCR
 driver_descriptor_CR_overrides jobfile:1.inputs,compression:10,error_rate:0.0
 driver_jvm_args                -Xmx500M
-driver_environment             LD_LIBRARY_PATH=/a/nother/bogus/path
 
 process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepAE
 process_memory_size            4
-process_classpath              ../lib/uima-ducc-examples.jar
 process_jvm_args               -Xmx100M 
 process_thread_count           2
 process_per_item_time_max      5
-process_environment            AE_INIT_TIME=5 AE_INIT_RANGE=5 LD_LIBRARY_PATH=/a/nother/path
 process_deployments_max        999
 
-scheduling_class               normal
 \end{verbatim}
 
     This can be submitted, overriding the scheduling class and memory, thus:
@@ -63,14 +62,13 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     The Command Line Interface is provided in several forms:
 
     \begin{enumerate}
-      \item A Java executable jar.
-      \item A wrapper script around the executable jar.
-      \item Direct invocation of each command's {\tt main} with the {\tt java} command.
+      \item A wrapper script around the uima-ducc-cli.jar.
+      \item Direct invocation of each command's {\tt class} with the {\tt java} command.
     \end{enumerate}
 
-    When using the executable jars and scripts the full execution environment is established
-    silently.  When directly invoking a command's {\tt main} one must set the java {\tt CLASSPATH} to
-    specify the appropriate jar for the command, as described in subsequent sections.
+    When using the scripts the full execution environment is established
+    silently.  When invoking a command's {\tt class} directly, the java {\tt CLASSPATH}
+    must include the uima-ducc-cli.jar, as illustrated in the wrapper scripts.
 
     \paragraph{Provided Commands}
     The following commands are provided:
@@ -82,8 +80,6 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     \item[ducc\_monitor] Monitor the progress of a job that is already submitted.
     \item[ducc\_process\_submit] Submit an arbitrary process (managed reservation) for execution.
     \item[ducc\_process\_cancel] Cancel an arbitrary process.
-    \item[ducc\_service\_submit] Submit a (non-registered) service instance for execution.
-    \item[ducc\_service\_cancel] Cancel a (non-registered) service instance.
     \item[ducc\_services] Register, unregister, start, stop, modify, and query a service.
     \item[ducc\_view\_perf] Fetch performance data from the log and history files for analysis
       by spreadsheets, etc.

@@ -14,9 +14,8 @@
            lifetime is printed on the console.
        \paragraph{Usage:}
            \begin{description}
-             \item[Executable Jar] java -jar \ducchome/lib/uima-ducc-submit.jar {\em options}
              \item[Script wrapper] \ducchome/bin/ducc\_submit {\em options}
-             \item[Java Main]      java -cp \ducchome/lib/uima-ducc-submit.jar org.apache.uima.ducc.cli.DuccJobSubmit {\em options}
+             \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar org.apache.uima.ducc.cli.DuccJobSubmit {\em options}
            \end{description}
 
         \paragraph{Options:}
@@ -39,7 +38,7 @@
              for both the Job Driver and each Job Process. If not specified the CLASSPATH found by the underlying
              {\tt DuccJobSubmit.main()} method is used.
 
-           \item[$--$classpath\_order {[UserBeforeDucc $|$ DuccBeforeUser]} ]
+           \item[$--$classpath\_order {[user-before-ducc $|$ ducc-before-user]} ]
              When DUCC deploys a process, set the user-supplied CLASSPATH before DUCC-supplied
              CLASSPATH, or the reverse.
              
