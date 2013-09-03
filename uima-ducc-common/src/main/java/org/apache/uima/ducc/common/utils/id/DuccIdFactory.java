@@ -25,11 +25,11 @@ public class DuccIdFactory implements IDuccIdFactory {
 	private volatile long seqno = -1;
 
 	private IPropertiesFileManager propertiesFileManager = null;
-	private String propertiesFileKey = null;
-	
+	private String propertiesFileKey = null;       
+
 	public DuccIdFactory() {	
 	}
-	
+
 	public DuccIdFactory(IPropertiesFileManager propertiesFileManager, String propertiesFileKey) {	
 		this.propertiesFileManager = propertiesFileManager;
 		this.propertiesFileKey = propertiesFileKey;
@@ -39,13 +39,23 @@ public class DuccIdFactory implements IDuccIdFactory {
 		seqno = seed-1;
 	}
 	
+    /**
+     * During recovery, if you pass in a "friendly", you always want the passed-in friendly, but 
+     * you want to ensure that at the end of recovery, the seed is set to the largest of the
+     * recovered IDs.
+     */
+    public DuccId next(long s) {
+        seqno = Math.max(s, seqno);
+        return new DuccId(s);
+    }
+
 	public DuccId next() {
 		synchronized(this) {
 			if(propertiesFileManager != null) {
 				seqno = propertiesFileManager.increment(propertiesFileKey);
 			}
 			else {
-				seqno++;
+				seqno++;                
 			}
 			return new DuccId(seqno);
 		}

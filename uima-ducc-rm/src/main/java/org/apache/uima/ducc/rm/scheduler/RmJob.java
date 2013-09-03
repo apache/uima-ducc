@@ -199,7 +199,7 @@ public class RmJob
      *     So resched = IR & RU
      *        IW      = !RU
      *
-     *    We return resched so caller knows the tickle the scheduler
+     *    We return resched so caller knows to tickle the scheduler
      */
     public boolean setInitWait(boolean is_running)
     {
@@ -511,10 +511,10 @@ public class RmJob
     public void removeAllShares()
     {
     	String methodName = "removeAllShares";
-        if ( logger.isDebug() ) {
+        if ( logger.isTrace() ) {
             for ( Map<Share, Share> m : sharesByMachine.values() ) {
                 for ( Share s : m.values() ) {
-                    logger.debug(methodName, getId(), "Clear share", s);
+                    logger.trace(methodName, getId(), "Clear share", s);
                 }
             }
         }
@@ -1033,7 +1033,7 @@ public class RmJob
             }
         }
 
-        logger.debug(methodName, getId(), username, "O", getShareOrder(), "Base cap:", base_cap, "Expected future cap:", projected_cap, "potential cap", potential_cap, "actual cap", actual_cap);
+        logger.info(methodName, getId(), username, "O", getShareOrder(), "Base cap:", base_cap, "Expected future cap:", projected_cap, "potential cap", potential_cap, "actual cap", actual_cap);
         return actual_cap;
     }
 
@@ -1248,7 +1248,6 @@ public class RmJob
             shares = countInstances();
         }
 
-        if ( name == null ) name = "";
         //                    1       2    3    4   5   6   7   8   9  10  11  12 13
         String format = "%11s %30.30s %10s %10s %6d %5d %7d %3d %6d %6d %8d %8s %9d";
         String jid = String.format("%1s%10s", getShortType(), id.toString()).replace(' ', '_');

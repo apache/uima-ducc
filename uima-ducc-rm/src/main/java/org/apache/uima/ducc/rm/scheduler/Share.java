@@ -23,6 +23,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
+import org.apache.uima.ducc.transport.event.common.TimeWindow;
 
 
 
@@ -261,10 +262,17 @@ public class Share
      * Returns only initialization time.  Eventually getInvestment() may take other things into
      * consideration so we separate these two (even though currently they do the same thing.)
      */
-    long getInitializationTime()
+    public long getInitializationTime()
     {
         if ( init_time == null ) return 0;
         return init_time.getElapsedMillis();        
+    }
+
+    public void setInitializationTime(long millis)
+    {
+        init_time = new TimeWindow();
+        init_time.setStartLong(0);
+        init_time.setEndLong(millis);
     }
 
     boolean isInitialized()

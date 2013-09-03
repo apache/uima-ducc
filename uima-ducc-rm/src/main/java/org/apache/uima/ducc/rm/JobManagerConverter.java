@@ -111,7 +111,7 @@ public class JobManagerConverter
     String getElapsedTime(ITimeWindow w)
     {
         if ( w == null ) return "0";
-        return w.getElapsed();
+        return w.getDiff();
     }
 
 //    void formatSchedulingInfo(DuccId id, IDuccSchedulingInfo si, int remaining_work)
@@ -177,10 +177,10 @@ public class JobManagerConverter
             }
 
             logger.info(methodName, job.getDuccId(), 
-                        String.format("total: %s -> %s: %d compl: %s error: %s rem: %d mean: %.2f",
+                        String.format("tot: %d %s -> %s compl: %s err: %s rem: %d mean: %f",
+                                      total_work,  
                                       state,
                                       job.getStateObject(),
-                                      total_work,  
                                       si.getWorkItemsCompleted(),    // note this comes in as string (!) from OR
                                       si.getWorkItemsError(),        // also string
                                       remaining_work,
@@ -470,10 +470,10 @@ public class JobManagerConverter
     void jobRemoved(DuccId id)
     {
     	String methodName = "jobRemoved";
-        logger.debug(methodName, id, "Signalling removal");
+        logger.trace(methodName, id, "Signalling removal");
         scheduler.signalCompletion(id);
         localMap.removeDuccWork(id);
-        logger.debug(methodName, id, "Remove signalled");
+        logger.trace(methodName, id, "Remove signalled");
     }
 
     public void reconcileProcesses(DuccId jobid, IDuccWork l, IDuccWork r)
@@ -872,7 +872,7 @@ public class JobManagerConverter
                         ArrayList<Share> sorted = new ArrayList<Share>(shares.values());
                         Collections.sort(sorted, new RmJob.ShareByInvestmentSorter());
                         for ( Share s : sorted ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), s.getInitializationTime());
                             all_shares.put(s.getId(), r);
                         }
                         redrive = sanityCheckForOrchestrator(j, shares, expanded.get(j.getId()));
@@ -881,7 +881,7 @@ public class JobManagerConverter
                     shares = shrunken.get(j.getId());
                     if ( shares != null ) {
                         for ( Share s : shares.values() ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
                             shrunken_shares.put(s.getId(), r);
                         }
                     }                                        
@@ -889,14 +889,14 @@ public class JobManagerConverter
                     shares = expanded.get(j.getId());
                     if ( shares != null ) {                    
                         for ( Share s : shares.values() ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
                             expanded_shares.put(s.getId(), r);
                         }
                     }
                     
                     if ( redrive != null ) {
                         for ( Share s : redrive.values() ) {
-                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder());
+                            Resource r = new Resource(s.getId(), s.getNode(), s.isPurged(), s.getShareOrder(), 0);
                             expanded_shares.put(s.getId(), r);
                         }
                     }

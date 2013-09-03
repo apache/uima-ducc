@@ -1082,7 +1082,18 @@ public class Scheduler
         purgeShare(share, job);
     }
 
-    private synchronized void processRecovery(IRmJob j)
+    /**
+     * Log following / reconstruction, needed to init before recovery.
+     */
+    public void resetNodepools()
+    {
+        nodepool.reset(NodePool.getMaxOrder());
+    }
+
+    /**
+     * Make this public for log following.
+     */
+    public synchronized void processRecovery(IRmJob j)
     {
     	String methodName = "processRecovery";
 
@@ -1141,8 +1152,12 @@ public class Scheduler
 
     public synchronized static DuccId newId()
     {
-        DuccId id = idFactory.next();
-        return id;
+        return idFactory.next();
+    }
+
+    public synchronized static DuccId newId(long id)
+    {
+        return idFactory.next(id);
     }
 
     public void queryMachines()

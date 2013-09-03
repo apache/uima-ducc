@@ -29,19 +29,20 @@ public class Resource implements IResource {
     private Node    node;                  // Node id, assigned by Agent
     private boolean purged;                // Purged, for node failure
     private int     qShares;               // Number of quantum shares this resource occupies
-
+    private transient long itime;               // initialization time, for the toString, but not to be transmitted
     // dissallow
     @SuppressWarnings("unused")
 	private Resource()
     {
     }
 
-    public Resource(DuccId duccId, Node node, boolean purged, int qShares) 
+    public Resource(DuccId duccId, Node node, boolean purged, int qShares, long itime) 
     {
         this.duccId  = duccId;
         this.node    = node;        
         this.purged  = purged;
         this.qShares = qShares;
+        this.itime = itime;
     }
 	
     public DuccId getId() 
@@ -71,6 +72,6 @@ public class Resource implements IResource {
 
     public String toString()
     {
-        return getNodeId().getName() + "." + duccId.getFriendly() + ( purged ? "[P]" : "");
+        return getNodeId().getName() + "." + duccId.getFriendly() + "^" + itime + ( purged ? "^P" : "");
     }
 }

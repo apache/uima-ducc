@@ -318,16 +318,16 @@ public class NodepoolScheduler
         HashMap<IEntity, Integer>   deserved   = new HashMap<IEntity, Integer>();      // qshares
 
         
+        // This section dealing with RmCounter writes the counting parameters to the log in a form
+        // that can be cut/pasted into a java properties file.  This file can then be used in the
+        // RmCounter test/deveopment application.  It also turns out to be very useful in the log
+        // in general so it is promoted to 'info' level.
         StringBuffer   enames = null;
         StringBuffer eweights = null;
-        if ( logger.isDebug() ) {
-            // for debugging, we'll print the parts of the props
-            //    file needed for the RmCounter prototyper
-            logger.debug(methodName, null, descr, "RmCounter Start");
-            logger.debug(methodName, null, descr, "maxorder = ", NodePool.getMaxOrder());
-            enames = new StringBuffer();            
-            eweights = new StringBuffer();  
-        }
+        logger.info(methodName, null, descr, "RmCounter Start");
+        logger.info(methodName, null, descr, "maxorder = ", NodePool.getMaxOrder());
+        enames = new StringBuffer();            
+        eweights = new StringBuffer();  
 
         for ( IEntity e : working ) {              
             int[] gbo = NodePool.makeArray();
@@ -338,23 +338,20 @@ public class NodepoolScheduler
 
             // jrc e.initWantedByOrder();
 
-            if ( logger.isDebug() ) {          // RmCounter props file
-                enames.append(e.getName());
-                enames.append(" ");
-                eweights.append(Integer.toString(e.getShareWeight()));
-                eweights.append(" ");      
-            }                      
+            enames.append(e.getName());
+            enames.append(" ");
+            eweights.append(Integer.toString(e.getShareWeight()));
+            eweights.append(" ");      
         }
 
-        if ( logger.isDebug() ) {       // RmCounter props file
-            logger.debug(methodName, null, descr, "entity_names = ", enames.toString());
-            logger.debug(methodName, null, descr, "weights      = ", eweights.toString());
-            for ( IEntity e : working ) {
-                logger.debug(methodName, null, descr, "wantedby." + e.getName() + " = ", fmtArray(e.getWantedByOrder()));
-            }
-            logger.debug(methodName, null, descr, "vmachines =", fmtArray(vshares));
-            logger.debug(methodName, null, descr, "RmCounter End");
+        logger.info(methodName, null, descr, "entity_names = ", enames.toString());
+        logger.info(methodName, null, descr, "weights      = ", eweights.toString());
+        for ( IEntity e : working ) {
+            logger.info(methodName, null, descr, "wantedby." + e.getName() + " = ", fmtArray(e.getWantedByOrder()));
         }
+        logger.info(methodName, null, descr, "vmachines =", fmtArray(vshares));
+        logger.info(methodName, null, descr, "RmCounter End");
+
 
         int pass = 0;
         do {
@@ -760,12 +757,14 @@ public class NodepoolScheduler
 
     private void howMuchFairShare(ArrayList<ResourceClass> rcs)
     {
-        String methodName = "fairShare";
-        logger.info(methodName, null, "Scheduling FAIR SHARE for these classes:");
-        logger.info(methodName, null, "   ", ResourceClass.getHeader());
-        logger.info(methodName, null, "   ", ResourceClass.getDashes());
-        for ( ResourceClass pc : rcs ) {
-            logger.info(methodName, null, "   ", pc.toString());
+        String methodName = "howMuchFairShare";
+        if ( logger.isTrace() ) {
+            logger.trace(methodName, null, "Scheduling FAIR SHARE for these classes:");
+            logger.trace(methodName, null, "   ", ResourceClass.getHeader());
+            logger.trace(methodName, null, "   ", ResourceClass.getDashes());
+            for ( ResourceClass pc : rcs ) {
+                logger.trace(methodName, null, "   ", pc.toString());
+            }
         }
 
         ArrayList<ResourceClass> eligible = new ArrayList<ResourceClass>();
@@ -1015,11 +1014,14 @@ public class NodepoolScheduler
     protected void howMuchFixed(ArrayList<ResourceClass> rcs)
     {
     	String methodName = "howMuchFixedShare";
-        logger.info(methodName, null, "Scheduling FIXED SHARE for these classes:");
-        logger.info(methodName, null, "   ", ResourceClass.getHeader());
-        logger.info(methodName, null, "   ", ResourceClass.getDashes());
-        for ( ResourceClass pc : rcs ) {
-            logger.info(methodName, null, "   ", pc.toString());
+
+        if ( logger.isTrace() ) {
+            logger.trace(methodName, null, "Scheduling FIXED SHARE for these classes:");
+            logger.trace(methodName, null, "   ", ResourceClass.getHeader());
+            logger.trace(methodName, null, "   ", ResourceClass.getDashes());
+            for ( ResourceClass pc : rcs ) {
+                logger.trace(methodName, null, "   ", pc.toString());
+            }
         }
 
         int total_jobs = 0;
@@ -1175,11 +1177,14 @@ public class NodepoolScheduler
 	private void howMuchReserve(ArrayList<ResourceClass> rcs)
     {
         String methodName = "howMuchToreserve";
-        logger.info(methodName, null, "Calculating counts for RESERVATION for these classes:");
-        logger.info(methodName, null, "   ", ResourceClass.getHeader());
-        logger.info(methodName, null, "   ", ResourceClass.getDashes());
-        for ( ResourceClass pc : rcs ) {
-            logger.info(methodName, null, "   ", pc.toString());
+
+        if ( logger.isTrace() ) {
+            logger.trace(methodName, null, "Calculating counts for RESERVATION for these classes:");
+            logger.trace(methodName, null, "   ", ResourceClass.getHeader());
+            logger.trace(methodName, null, "   ", ResourceClass.getDashes());
+            for ( ResourceClass pc : rcs ) {
+                logger.trace(methodName, null, "   ", pc.toString());
+            }
         }
 
         for ( ResourceClass rc : rcs ) {
