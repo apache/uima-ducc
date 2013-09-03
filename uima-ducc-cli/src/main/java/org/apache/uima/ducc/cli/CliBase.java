@@ -799,8 +799,9 @@ public abstract class CliBase
         String classpath = cli_props.getStringProperty(key_cp,
                         System.getProperty("java.class.path"));
         StringBuilder sb = new StringBuilder();
+        String duccPrefix = ducc_home + "/lib";
         for (String jar : classpath.split(":")) {
-            if (!jar.startsWith(ducc_home)) {
+            if (!jar.startsWith(duccPrefix)) {
                 sb.append(jar).append(":");
             }
         }
