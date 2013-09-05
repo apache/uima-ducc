@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 
@@ -34,7 +35,7 @@ public class ResourceClass
     implements SchedConstants,
                IEntity
 {
-    //private DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
+    private DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
 
     private String id;
     private Policy policy;
@@ -417,8 +418,11 @@ public class ResourceClass
 
     void removeJob(IRmJob j)
     {
+        String methodName = "removeJob";
         if ( ! allJobs.containsKey(j) ) {
-            throw new SchedulingException(j.getId(), "Priority class " + getName() + " cannot find job to remove.");
+            if ( j.isRefused() ) return;
+
+            logger.error(methodName, j.getId(), "Priority class", getName(), "cannot find job to remove.");
         }
 
         allJobs.remove(j);
