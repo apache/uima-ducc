@@ -876,10 +876,19 @@ public class ServiceSet
      */
     private ServiceState cumulativeJobState()
     {
-        ServiceState response = ServiceState.Undefined;
+        ServiceState response = ServiceState.NotAvailable;
         for ( JobState s : implementors.values() ) {
             ServiceState translated = translateJobState(s);
             if (  translated.ordinality() > response.ordinality() ) response = translated;
+        }
+
+        // if we're stopped, we cannot advance global state beyond whatever it is, i.e. an "active"
+        // implementor that hasn't quit yet is not allowed to progress state.
+        if ( isStopped() ) {
+            ServiceState current = getServiceState();
+            if ( current.ordinality() < response.ordinality() ) {
+                response = current;
+            }
         }
         return response;
     }
@@ -1158,7 +1167,9 @@ public class ServiceSet
             residualMeta = serviceMeta;
             serviceMeta = null;
         } else {
-            setServiceState(ServiceState.NotAvailable);
+            if ( ! isStopped() ) {                      // state may still be Stopping, don't over regress state
+                setServiceState(ServiceState.NotAvailable);
+            }
         }
 
         if ( isImplicit() ) {
