@@ -29,7 +29,7 @@ public class User
     private HashMap<ResourceClass, HashMap<IRmJob, IRmJob>> jobsByClass = new HashMap<ResourceClass, HashMap<IRmJob, IRmJob>>();
 
     private HashMap<Integer, HashMap<IRmJob, IRmJob>> jobsByOrder = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
-    private int user_shares;       // number of shares to apportion to jobs in this user in current epoch
+    //private int user_shares;       // number of shares to apportion to jobs in this user in current epoch
     private int pure_fair_share;   // uncapped un-bonused counts
     private int share_wealth;      // defrag, how many relevent Q shares do i really have?
     private int[] given_by_order =  null;
@@ -175,91 +175,91 @@ public class User
         return Integer.MAX_VALUE;  // no cap for users
     }
 
-    HashMap<IRmJob, IRmJob> getJobs()
-    {
-        return jobs;
-    }
+//    HashMap<IRmJob, IRmJob> getJobs()
+//    {
+//        return jobs;
+//    }
 
-    HashMap<IRmJob, IRmJob> getJobsOfOrder(int order)
-    {
-        return jobsByOrder.get(order);
-    }
+//    HashMap<IRmJob, IRmJob> getJobsOfOrder(int order)
+//    {
+//        return jobsByOrder.get(order);
+//    }
 
-    HashMap<Integer, HashMap<IRmJob, IRmJob>> getJobsByOrder()
-    {
-        return jobsByOrder;
-    }
+//    HashMap<Integer, HashMap<IRmJob, IRmJob>> getJobsByOrder()
+//    {
+//        return jobsByOrder;
+//    }
 
-    HashMap<String, Machine> getMachines()
-    {
-        // TODO: fill this in - walk the jobs and return the hash
-        System.out.println("Warning: getMachines() is not implemented and is returning null");
-        return null;
-    }
+//    HashMap<String, Machine> getMachines()
+//    {
+//        // TODO: fill this in - walk the jobs and return the hash
+//        System.out.println("Warning: getMachines() is not implemented and is returning null");
+//        return null;
+//    }
 
-    public int countJobs()
-    {
-        return jobs.size();
-    }
+//    public int countJobs()
+//    {
+//        return jobs.size();
+//    }
 
-    public int countJobs(int o)
-    {
-        if ( jobsByOrder.containsKey(o) ) {
-            return jobsByOrder.get(o).size();
-        }
-        return 0;
-    }
+//    public int countJobs(int o)
+//    {
+//        if ( jobsByOrder.containsKey(o) ) {
+//            return jobsByOrder.get(o).size();
+//        }
+//        return 0;
+//    }
 
-    public void clearShares()
-    {
-        user_shares = 0;
-        //System.out.println("**** user " + getId() + "/" + uniqueId + " clearing shares");
-        //sharesByOrder.clear();
-    }
+//    public void clearShares()
+//    {
+//        user_shares = 0;
+//        //System.out.println("**** user " + getId() + "/" + uniqueId + " clearing shares");
+//        //sharesByOrder.clear();
+//    }
 
-    public void addQShares(int s)
-    {
-        user_shares += s;
-        //System.out.println("***** user " + getId() + "/" + uniqueId + " shares are " + s);
-    }
+//    public void addQShares(int s)
+//    {
+//        user_shares += s;
+//        //System.out.println("***** user " + getId() + "/" + uniqueId + " shares are " + s);
+//    }
 
-    /**
-     * Try to find the smallest bonus shares we can use.
-     */
-    public int canUseBonus(int bonus, int[] tmpSharesByOrder)
-    {
-        for ( int i = 1; i <= Math.min(bonus, tmpSharesByOrder.length); i++ ) {
-            
-            if ( jobsByOrder.containsKey(i) && (tmpSharesByOrder[i] > 0) ) {
-                return i;
-            }
-        }
-        return 0;
-    }
+//    /**
+//     * Try to find the smallest bonus shares we can use.
+//     */
+//    public int canUseBonus(int bonus, int[] tmpSharesByOrder)
+//    {
+//        for ( int i = 1; i <= Math.min(bonus, tmpSharesByOrder.length); i++ ) {
+//            
+//            if ( jobsByOrder.containsKey(i) && (tmpSharesByOrder[i] > 0) ) {
+//                return i;
+//            }
+//        }
+//        return 0;
+//    }
 
-    public int countQShares(String x)
-    {
-        //System.out.println(x + " **** user " + getId() + "/" + uniqueId + " returning " + user_shares + " shares");
-        return this.user_shares;
-    }
+//    public int countQShares(String x)
+//    {
+//        //System.out.println(x + " **** user " + getId() + "/" + uniqueId + " returning " + user_shares + " shares");
+//        return this.user_shares;
+//    }
 
 
-    int countCappedQShares(int physicalCap, int order)
-    {
-        int K = 0;
-        physicalCap = physicalCap * order;                         // to quantum shares
-        HashMap<IRmJob, IRmJob> jobs = jobsByOrder.get(order);
-
-        if ( jobs == null ) {
-        	return 0;
-        }
-        
-        for ( IRmJob j : jobs.values() ) {
-            K += (Math.min(j.getJobCap(), physicalCap));
-        }
-
-        return Math.min(K, physicalCap) * order;
-    }
+//    int countCappedQShares(int physicalCap, int order)
+//    {
+//        int K = 0;
+//        physicalCap = physicalCap * order;                         // to quantum shares
+//        HashMap<IRmJob, IRmJob> jobs = jobsByOrder.get(order);
+//
+//        if ( jobs == null ) {
+//        	return 0;
+//        }
+//        
+//        for ( IRmJob j : jobs.values() ) {
+//            K += (Math.min(j.getJobCap(), physicalCap));
+//        }
+//
+//        return Math.min(K, physicalCap) * order;
+//    }
 
     @Override
     public int hashCode()
