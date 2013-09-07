@@ -64,6 +64,7 @@ public class RmJob
     protected int share_order = 0;                    // How many shares per process this job requires (calculated on submission)
 
     protected int share_cap = Integer.MAX_VALUE;      // initially; scheduler policy will reset as the job ages
+    protected int job_cap = 0;                        // current, cached cap on the job, reset at the start of every cycle
     protected int pure_fair_share = 0;                // pure uncapped un-bonused share for this job
 
     protected long submit_time;                       // when job is submitted ( sched or job-manager sets this )
@@ -911,7 +912,7 @@ public class RmJob
      *
      * How to use this ... 
      */
-    int getProjectedCap()
+    private int getProjectedCap()
     {
     	String methodName = "getPrjCap";                      // want this to line up with getJobCap in logs
 
@@ -970,13 +971,16 @@ public class RmJob
      * This returns the largest number that can actually be used, which will be either the
      * share cap itself, or nProcess / nThreads, in N shares.
      */
-    public int getJobCap()
+    public void initJobCap()
     {    	
 		String methodName = "getJobCap";
 
         if ( isRefused() ) {
-            return 0;
+            job_cap = 0;
+            return;
         }
+
+        if ( getSchedulingPolicy() != Policy.FAIR_SHARE ) return;
 
         int c = nquestions_remaining / threads;
 
@@ -1034,7 +1038,12 @@ public class RmJob
         }
 
         logger.info(methodName, getId(), username, "O", getShareOrder(), "Base cap:", base_cap, "Expected future cap:", projected_cap, "potential cap", potential_cap, "actual cap", actual_cap);
-        return actual_cap;
+        job_cap =  actual_cap;
+    }
+
+    public int getJobCap()
+    {
+        return job_cap;
     }
 
     public int getMaxShares()

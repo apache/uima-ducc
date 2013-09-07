@@ -2165,18 +2165,23 @@ public class NodepoolScheduler
     public void schedule(SchedulingUpdate upd)
     {
         String methodName = "schedule";
-        // TODO: we don't need to count jobs - let caller do this an bypass calling the scheduler
-        //       all the jobs are attached to the resource classes, we never need the dormant or running jobs lists here
 
         logger.info(methodName, null, "Machine occupancy before schedule");
         globalNodepool.queryMachines();
         
         int jobcount = 0;
         for ( ResourceClass rc : resourceClasses.values() ) {
-            jobcount += rc.countJobs();
+
+            HashMap<IRmJob, IRmJob> allJobs = rc.getAllJobs();
+            jobcount += allJobs.size();
+            for ( IRmJob j : allJobs.values() ) {
+                j.initJobCap();
+            }
         }
+
         if ( jobcount == 0 ) {
             logger.info(methodName, null, "No jobs to schedule");
+            return;
         }
 
         this.schedulingUpdate = upd;

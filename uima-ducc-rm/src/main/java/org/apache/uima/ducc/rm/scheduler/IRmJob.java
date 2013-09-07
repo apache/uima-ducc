@@ -201,7 +201,8 @@ public interface IRmJob
      * share cap itself, or nProcess / nThreads, in quantum shares.
      */
     public int getJobCap();
-
+    public void initJobCap();   // calculate the cap at start of cycle and cache it
+                                // because it is frequently used
 
     public String getUserName();
     public void   setUserName(String n);

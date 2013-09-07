@@ -749,9 +749,11 @@ public class JobManagerConverter
         String methodName = "sanityCheckForOrchestrator";
         IDuccWork w = localMap.findDuccWork(j.getId());
 
-        Map<Share, Share> ret = new HashMap<Share, Share>();
-        if ( shares == null ) return null;                                    // no shares for whatever reason, we couldn't care less ...
+        if ( w == null ) return null;                  // deal with race - the job could have completed right as we are ready to
+                                                       // publish, in which case it's gone from localMap
+        if ( shares == null ) return null;             // no shares for whatever reason, we couldn't care less ...
 
+        Map<Share, Share> ret = new HashMap<Share, Share>();
         switch ( w.getDuccType() ) {
             case Job:
             case Service:
