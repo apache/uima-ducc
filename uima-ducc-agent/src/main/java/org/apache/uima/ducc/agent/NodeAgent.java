@@ -416,9 +416,16 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     return (HashMap<DuccId, IDuccProcess>) inventory;
   }
 
+  /*
+   * Check if both the command and its args are missing,
+   * since the command defaults to the DUCC JVM.
+   */
   private boolean invalidCommand(ICommandLine commandLine) {
-    return (commandLine == null || commandLine.getExecutable() == null
-                                || commandLine.getExecutable().length() == 0);
+      if (commandLine != null) {
+          if (commandLine.getExecutable() != null && commandLine.getExecutable().length() > 0) return false;
+          if (commandLine.getCommandLine() != null && commandLine.getCommandLine().length > 0) return false;
+      }
+      return true;
   }
 
   private boolean isProcessDeallocated(IDuccProcess process) {
