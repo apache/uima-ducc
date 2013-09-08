@@ -125,13 +125,8 @@ public class JobFactory {
 	private ArrayList<String> toArrayList(String overrides) {
 		String methodName = "toArrayList";
 		logger.trace(methodName, null, "enter");
-		ArrayList<String> list = new ArrayList<String>();
-		if(overrides != null) {
-			String[] items = overrides.split(",");
-			for(String item : items) {
-				list.add(item.trim());
-			}
-		}
+		// To match other lists tokenize on blanks & strip any quotes around values.
+		ArrayList<String> list = DuccUiUtilities.tokenizeList(overrides, true);
 		logger.trace(methodName, null, "exit");
 		return list;
 	}

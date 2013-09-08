@@ -19,9 +19,10 @@
 package org.apache.uima.ducc.jd.client;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +31,7 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
+import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -103,12 +105,13 @@ public class CasSource {
         ConfigurationParameterDeclarations configurationParameterDeclarations = specifier.getMetaData().getConfigurationParameterDeclarations();
         ConfigurationParameterSettings cps = specifier.getMetaData().getConfigurationParameterSettings();
         if(crcfg!= null) {
-            Plist plist = new Plist(crcfg);
-            TreeMap<String,String> map = plist.getParameterMap();
-            Iterator<String> iterator = map.keySet().iterator();
-            while(iterator.hasNext()) {
-                String name = iterator.next();
-                String value = map.get(name);
+            // Tokenize override assignments on whitespace, honoring but stripping quotes
+            // Then create a map from all of them
+            ArrayList<String> toks = DuccUiUtilities.tokenizeList(crcfg, true);
+            Map<String,String> map = DuccUiUtilities.parseAssignments(toks, false);
+            for (Entry<String, String> ent : map.entrySet()) {
+                String name = ent.getKey();
+                String value = ent.getValue();
                 duccOut.debug(location, job.getDuccId(), "config param name:"+name+" "+"value:"+value);
                 ConfigurationParameter configurationParameter = UimaUtils.findConfigurationParameter(configurationParameterDeclarations, name);
                 Object object = UimaUtils.getOverrideValueObject(configurationParameter, value);

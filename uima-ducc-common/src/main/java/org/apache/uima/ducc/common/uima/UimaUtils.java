@@ -37,7 +37,6 @@ import org.apache.uima.analysis_engine.metadata.impl.FixedFlow_impl;
 import org.apache.uima.analysis_engine.metadata.impl.FlowControllerDeclaration_impl;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.resource.PearSpecifier;
 import org.apache.uima.resource.RelativePathResolver;
 import org.apache.uima.resource.ResourceConfigurationException;
 import org.apache.uima.resource.ResourceCreationSpecifier;
@@ -461,10 +460,9 @@ public class UimaUtils {
 		// Process overrides
 		for (String cmOverride : componentOverrides) {
 			System.out.println(".... Processing Override:"+cmOverride);
-			// each override is expressed as <name>=<value> pair, so parse the
-			// string
-			// to get the name and value parts
-			String[] nvp = cmOverride.split("=");
+			// each override is expressed as <name>=<value> pair, so split on
+			// the first '=' found ... in case the value contains an '='
+			String[] nvp = cmOverride.split("=", 2);
 			// Fetch component parameter declarations to get the primitive type
 			// of the parameter
 			ConfigurationParameterDeclarations componentParameterDeclarations = specifier

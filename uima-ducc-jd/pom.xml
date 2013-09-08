@@ -37,7 +37,12 @@
 			<version>${ducc.version}</version>
 		</dependency>
 
-	</dependencies>
+        <dependency>
+        	<groupId>org.apache.uima</groupId>
+        	<artifactId>uima-ducc-cli</artifactId>
+        	<version>0.8.0-SNAPSHOT</version>
+        </dependency>
+  </dependencies>
   
   
 </project>

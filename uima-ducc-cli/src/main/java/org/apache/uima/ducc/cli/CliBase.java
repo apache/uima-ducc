@@ -826,6 +826,10 @@ public abstract class CliBase
                 args[i] = "--cancel_on_interrupt";
             } else if (arg.equals("--jvm_args")) {
                 args[i] = "--process_jvm_args";
+            } else if (arg.endsWith("_overrides")) {
+                if (++i < args.length) {
+                    args[i] = args[i].replaceAll(",", " ");
+                }
             }
         }
     }
