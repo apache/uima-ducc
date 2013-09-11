@@ -18,22 +18,20 @@
 */
 package org.apache.uima.ducc.rm.scheduler;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.uima.ducc.common.IIdentity;
 import org.apache.uima.ducc.common.Node;
+import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 import org.apache.uima.ducc.common.utils.Version;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -60,34 +58,35 @@ public class Scheduler
     String ducc_home;
     // Integer epoch = 5;                                                 // scheduling epoch, seconds
 
-    NodePool nodepool;
+    NodePool[] nodepools;
 
     //
     // Fair-share and fixed-share use shares only, not machines
     //
-    HashMap<DuccId, Share> busyShares        = new HashMap<DuccId, Share>(); // Running "fair" share jobs
+    Map<DuccId, Share> busyShares        = new HashMap<DuccId, Share>(); // Running "fair" share jobs
 
     // incoming reports of machines that are now free
-    HashMap<DuccId, Pair<IRmJob, Share>> vacatedShares= new HashMap<DuccId, Pair<IRmJob, Share>>();
+    Map<DuccId, Pair<IRmJob, Share>> vacatedShares= new HashMap<DuccId, Pair<IRmJob, Share>>();
     // boolean growthOccurred = false;                                           // don't care which grew, just that something grew
 
-    ArrayList<IRmJob>        incomingJobs    = new ArrayList<IRmJob>();       // coming in from external world but not added our queues yet
-    ArrayList<IRmJob>        recoveredJobs   = new ArrayList<IRmJob>();       // coming in from external world but we don't now about them, (hopefully
-                                                                              //    because we crashed and not for more nefarious reasons)
-    ArrayList<IRmJob>        completedJobs   = new ArrayList<IRmJob>();       // signaled complete from outside but not yet dealt with
-    ArrayList<IRmJob>        initializedJobs = new ArrayList<IRmJob>();       // Init is complete so we can begin full (un)fair share allocation
+    List<IRmJob>        incomingJobs    = new ArrayList<IRmJob>();       // coming in from external world but not added our queues yet
+    List<IRmJob>        recoveredJobs   = new ArrayList<IRmJob>();       // coming in from external world but we don't now about them, (hopefully
+                                                                         //    because we crashed and not for more nefarious reasons)
+    List<IRmJob>        completedJobs   = new ArrayList<IRmJob>();       // signaled complete from outside but not yet dealt with
+    List<IRmJob>        initializedJobs = new ArrayList<IRmJob>();       // Init is complete so we can begin full (un)fair share allocation
 
     //HashMap<Node, Node> incomingNodes  = new HashMap<Node, Node>();         // node updates
-    HashMap<Node, Node> deadNodes      = new HashMap<Node, Node>();           // missed too many heartbeats
-    HashMap<Node, Node> allNodes       = new HashMap<Node, Node>();           // the guys we know
+    Map<Node, Node> deadNodes      = new HashMap<Node, Node>();           // missed too many heartbeats
+    // HashMap<Node, Node> allNodes       = new HashMap<Node, Node>();           // the guys we know
+    Map<String, NodePool>    nodepoolsByNode = new HashMap<String, NodePool>(); // all nodes, and their associated pool
 
-    HashMap<String, User>    users     = new HashMap<String, User>();         // Active users - has a job in the system
+    Map<String, User>    users     = new HashMap<String, User>();         // Active users - has a job in the system
     //HashMap<DuccId, IRmJob>    runningJobs = new HashMap<DuccId, IRmJob>();
 
-    HashMap<DuccId, IRmJob>  allJobs = new HashMap<DuccId, IRmJob>();
+    Map<DuccId, IRmJob>  allJobs = new HashMap<DuccId, IRmJob>();
 
-    HashMap<ResourceClass, ResourceClass> resourceClasses = new HashMap<ResourceClass, ResourceClass>();
-    HashMap<String, ResourceClass> resourceClassesByName = new HashMap<String, ResourceClass>();
+    Map<ResourceClass, ResourceClass> resourceClasses = new HashMap<ResourceClass, ResourceClass>();
+    Map<String, ResourceClass> resourceClassesByName = new HashMap<String, ResourceClass>();
 
     String defaultClassName = null;
     int defaultNThreads = 1;
@@ -96,7 +95,7 @@ public class Scheduler
 
     // these two are initialized in constructor
     String schedImplName;
-    IScheduler scheduler;
+    IScheduler[] schedulers;
 
     long share_quantum    = 16;             // 16 GB in KB - smallest share size
     long share_free_dram  = 0;              // 0  GB in KB  - minim memory after shares are allocated
@@ -146,7 +145,7 @@ public class Scheduler
         String ep         = SystemPropertyResolver.getStringProperty("ducc.rm.eviction.policy", "SHRINK_BY_MACHINE");
         evictionPolicy    = EvictionPolicy.valueOf(ep);        
 
-        nodepool          = new NodePool(null, evictionPolicy, 0);   // global nodepool
+        // nodepool          = new NodePool(null, evictionPolicy, 0);   // global nodepool
         share_quantum     = SystemPropertyResolver.getLongProperty("ducc.rm.share.quantum", share_quantum) * 1024 * 1024;        // GB -> KB
         share_free_dram   = SystemPropertyResolver.getLongProperty("ducc.rm.reserved.dram", share_free_dram) * 1024 * 1024;   // GB -> KB
         ducc_home         = SystemPropertyResolver.getStringProperty("DUCC_HOME");
@@ -167,20 +166,24 @@ public class Scheduler
 
         idFactory = new DuccIdFactory(1);
 
-        try {
-            schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.ClassBasedScheduler");
-            @SuppressWarnings("unchecked")
-			Class<IScheduler> cl = (Class<IScheduler>) Class.forName(schedImplName);
-            scheduler = (IScheduler) cl.newInstance();
-        } catch (ClassNotFoundException e) {
-            throw new SchedulingException(null, "Cannot find class " + schedImplName);
-        } catch (InstantiationException e) {
-            throw new SchedulingException(null, "Cannot instantiate class " + schedImplName);            
-        } catch (IllegalAccessException e) {
-            throw new SchedulingException(null, "Cannot instantiate class " + schedImplName + ": can't access constructor.");            
-        }
+//        try {
+//            schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.ClassBasedScheduler");
+//            @SuppressWarnings("unchecked")
+//			Class<IScheduler> cl = (Class<IScheduler>) Class.forName(schedImplName);
+//            scheduler = (IScheduler) cl.newInstance();
+//        } catch (ClassNotFoundException e) {
+//            throw new SchedulingException(null, "Cannot find class " + schedImplName);
+//        } catch (InstantiationException e) {
+//            throw new SchedulingException(null, "Cannot instantiate class " + schedImplName);            
+//        } catch (IllegalAccessException e) {
+//            throw new SchedulingException(null, "Cannot instantiate class " + schedImplName + ": can't access constructor.");            
+//        }
 
-        String class_definitions = SystemPropertyResolver.getStringProperty("ducc.rm.class.definitions", "scheduler.classes");
+        String class_definitions = SystemPropertyResolver
+            .getStringProperty(DuccPropertiesResolver
+                               .ducc_rm_class_definitions, "scheduler.classes");
+
+        class_definitions = System.getProperty("DUCC_HOME") + "/resources/" + class_definitions;
         try {
             initClasses(class_definitions);
         } catch ( Exception e ) {
@@ -190,9 +193,9 @@ public class Scheduler
 
         // we share most of the state with the actual scheduling code - no need to keep passing this around
         // TODO: Make sure these are all Sialized correctly
-        scheduler.setEvictionPolicy(evictionPolicy);
-        scheduler.setClasses(resourceClasses);
-        scheduler.setNodePool(nodepool);
+//         scheduler.setEvictionPolicy(evictionPolicy);
+//         scheduler.setClasses(resourceClasses);
+//         scheduler.setNodePool(nodepools[0]);
 
         logger.info(methodName, null, "Scheduler running with share quantum           : ", (share_quantum / (1024*1024)), " GB");
         logger.info(methodName, null, "                       reserved DRAM           : ", (share_free_dram / (1024*1024)), " GB");
@@ -237,8 +240,14 @@ public class Scheduler
         return initialized;
     }
 
+    public Machine getMachine(Node n)
+    {
+        return getMachine(n.getNodeIdentity());
+    }
+
     public Machine getMachine(NodeIdentity ni)
     {
+        NodePool nodepool = getNodepoolByName(ni);
     	return nodepool.getMachine(ni);        
     }
 
@@ -307,96 +316,231 @@ public class Scheduler
         return share_order;
     }
 
-    /**
-     * Use the NodeIdentity to infer my the domain name.
-     *
-     * Itertate through the possible names - if one of them has a '.'
-     * the we have to assume the following stuff is the domain name.
-     * We only get one such name, so we give up the search if we find
-     * it.
-     */
-    static String cached_domain = null;
-    private String getDomainName()
-    {
-    	String methodName = "getDomainName";
+//     /**
+//      * Use the NodeIdentity to infer my the domain name.
+//      *
+//      * Itertate through the possible names - if one of them has a '.'
+//      * the we have to assume the following stuff is the domain name.
+//      * We only get one such name, so we give up the search if we find
+//      * it.
+//      */
+//     static String cached_domain = null;
+//     private String getDomainName()
+//     {
+//     	String methodName = "getDomainName";
 
-        String answer = System.getProperty("SIM_RM_DOMAIN");       // for the simulation wrapper, to replay logs from other domains correctly
-        if ( answer != null ) {
-            return answer;
+//         String answer = System.getProperty("SIM_RM_DOMAIN");       // for the simulation wrapper, to replay logs from other domains correctly
+//         if ( answer != null ) {
+//             return answer;
+//         }
+
+//         if ( cached_domain != null ) return cached_domain;
+//         try {
+// 			NodeIdentity ni   = new NodeIdentity();
+// 			for ( IIdentity id : ni.getNodeIdentities()) {
+// 			    String n = id.getName();
+// 			    int ndx = n.indexOf(".");
+// 			    if ( ndx > 0 ) {
+// 			        cached_domain =  n.substring(ndx + 1);
+//                     return cached_domain;
+// 			    }
+// 			}
+// 		} catch (Exception e) {
+// 			// TODO Auto-generated catch block
+// 			logger.warn(methodName, null, "Cannot create my own node identity:", e);
+// 		}
+//         return null;  // crappy config if this happens, some stuff may not match nodepools and
+//                       // nothing to do about it.
+//     }
+
+//     Map<String, String> readNodepoolFile(String npfile)
+//     {
+//         String methodName = "readNodepoolFile";
+//         String my_domain = getDomainName();
+//         String ducc_home = System.getProperty("DUCC_HOME");
+//         npfile = ducc_home + "/resources/" + npfile;
+
+//         logger.info(methodName, null, "Domain name:", my_domain);
+//         Map<String, String> response = new HashMap<String, String>();
+
+//         try {
+//             BufferedReader br = new BufferedReader(new FileReader(npfile));
+//             String node = "";
+//             while ( (node = br.readLine()) != null ) {
+//                 int ndx = node.indexOf("#");
+//                 if ( ndx >= 0 ) {
+//                     node = node.substring(0, ndx);
+//                 }
+//                 node = node.trim();
+//                 if (node.equals("") ) {
+//                     continue;
+//                 }
+
+//                 if ( node.startsWith("import") ) {
+//                     String[] tmp = node.split("\\s");
+//                     response.putAll(readNodepoolFile(tmp[1]));
+//                     continue;
+//                 }
+//                 response.put(node, node);
+
+//                 // include fully and non-fully qualified names to allow sloppiness of config
+//                 ndx = node.indexOf(".");
+//                 String dnode;
+//                 if ( ndx >= 0 ) {
+//                     dnode = node.substring(0, ndx);
+//                     response.put(dnode, dnode);
+//                 } else if ( my_domain != null ) {
+//                     dnode = node + "." + my_domain;
+//                     response.put(dnode, dnode);
+//                 }
+//             }
+//             br.close();                        
+            
+//         } catch (FileNotFoundException e) {
+//             throw new SchedulingException(null, "Cannot open NodePool file \"" + npfile + "\": file not found.");
+//         } catch (IOException e) {
+//             throw new SchedulingException(null, "Cannot read NodePool file \"" + npfile + "\": I/O Error.");
+//         }
+                
+//         return response;
+//     }
+
+    /**
+     * Collect all the classes served by the indicated nodepool (property set).  This fills
+     * in the 'ret' map from the parameter 'dp' and recursive calls to the children in dp.
+
+     * @param dp This is the properties object from the configurator for a top-level
+     *            nodepool.
+     * @param ret This is the map to be filled in by this routine.
+     */
+    void getClassesForNodepool(DuccProperties dp, Map<ResourceClass, ResourceClass> ret)
+    {
+        @SuppressWarnings("unchecked")
+		List<DuccProperties> class_set = (List<DuccProperties>) dp.get("classes");
+        if ( class_set != null ) {
+            for ( DuccProperties cl : class_set ) {
+                ResourceClass rc = resourceClassesByName.get(cl.getStringProperty("name"));
+                ret.put(rc, rc);
+            }
         }
 
-        if ( cached_domain != null ) return cached_domain;
-        try {
-			NodeIdentity ni   = new NodeIdentity();
-			for ( IIdentity id : ni.getNodeIdentities()) {
-			    String n = id.getName();
-			    int ndx = n.indexOf(".");
-			    if ( ndx > 0 ) {
-			        cached_domain =  n.substring(ndx + 1);
-                    return cached_domain;
-			    }
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			logger.warn(methodName, null, "Cannot create my own node identity:", e);
-		}
-        return null;  // crappy config if this happens, some stuff may not match nodepools and
-                      // nothing to do about it.
+        @SuppressWarnings("unchecked")
+		List<DuccProperties> children = (List<DuccProperties>) dp.get("children");
+        if ( children != null ) {
+            for (DuccProperties child : children ) {
+                getClassesForNodepool(child, ret);
+            }
+        }        
     }
 
-    Map<String, String> readNodepoolFile(String npfile)
+    /**
+     * Map each node by name into the nodepool it belongs to
+     */
+    void mapNodesToNodepool(Map<String, String> nodes, NodePool pool)
     {
-        String methodName = "readNodepoolFile";
-        String my_domain = getDomainName();
-        String ducc_home = System.getProperty("DUCC_HOME");
-        npfile = ducc_home + "/resources/" + npfile;
+        if ( nodes == null ) return;
 
-        logger.info(methodName, null, "Domain name:", my_domain);
-        Map<String, String> response = new HashMap<String, String>();
-
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(npfile));
-            String node = "";
-            while ( (node = br.readLine()) != null ) {
-                int ndx = node.indexOf("#");
-                if ( ndx >= 0 ) {
-                    node = node.substring(0, ndx);
-                }
-                node = node.trim();
-                if (node.equals("") ) {
-                    continue;
-                }
-
-                if ( node.startsWith("import") ) {
-                    String[] tmp = node.split("\\s");
-                    response.putAll(readNodepoolFile(tmp[1]));
-                    continue;
-                }
-                response.put(node, node);
-
-                // include fully and non-fully qualified names to allow sloppiness of config
-                ndx = node.indexOf(".");
-                String dnode;
-                if ( ndx >= 0 ) {
-                    dnode = node.substring(0, ndx);
-                    response.put(dnode, dnode);
-                } else if ( my_domain != null ) {
-                    dnode = node + "." + my_domain;
-                    response.put(dnode, dnode);
-                }
-            }
-            br.close();                        
-            
-        } catch (FileNotFoundException e) {
-            throw new SchedulingException(null, "Cannot open NodePool file \"" + npfile + "\": file not found.");
-        } catch (IOException e) {
-            throw new SchedulingException(null, "Cannot read NodePool file \"" + npfile + "\": I/O Error.");
+        for ( String s : nodes.keySet() ) {
+             nodepoolsByNode.put(s, pool);
         }
-                
-        return response;
+    }
+
+    /**
+     * (Recursively) build up the heirarchy under the parent nodepool.
+     */
+    void createSubpools(NodePool parent, List<DuccProperties> children)
+    {
+        if ( children == null ) return;
+
+        for ( DuccProperties dp : children ) {
+            String id = dp.getStringProperty("name");
+            @SuppressWarnings("unchecked")
+			Map<String, String> nodes = (Map<String, String>) dp.get("nodes");
+            NodePool child = parent.createSubpool(id, nodes, 0);
+            mapNodesToNodepool(nodes, child);
+
+            @SuppressWarnings("unchecked")
+			List<DuccProperties> grandkids = (List<DuccProperties>) dp.get("children");
+            createSubpools(child, grandkids);            
+        }
     }
 
     void initClasses(String filename)
+    {
+    	String methodName = "initClasses";
+        String me = Scheduler.class.getName() + ".Config";
+        DuccLogger initLogger = new DuccLogger(me, COMPONENT_NAME);
+        NodeConfiguration nc = new NodeConfiguration(filename, initLogger);
+		try {
+			nc.readConfiguration();
+		} catch (Throwable e) {
+            logger.error(methodName, null, e);
+            logger.error(methodName, null, "Scheduler exits: unable to read configuration.");
+            System.exit(1);
+		}
+
+        nc.printConfiguration();
+
+        DuccProperties[] nps = nc.getToplevelNodepools();
+        Map<String, DuccProperties> cls = nc.getClasses();
+
+        nodepools = new NodePool[nps.length];                   // top-level nodepools
+        schedulers = new IScheduler[nps.length];                // a schedler for each top-level nodepool
+
+        // Here build up the ResourceClass definitions
+        logger.info(methodName, null, "Classes:");
+        logger.info(methodName, null, ResourceClass.getHeader());
+        logger.info(methodName, null, ResourceClass.getDashes());
+        for ( DuccProperties props : cls.values() ) {
+            ResourceClass rc = new ResourceClass(props);
+            resourceClasses.put(rc, rc);
+            resourceClassesByName.put(rc.getName(), rc);
+            logger.info(methodName, null, rc.toString());
+        }
+
+        // Instatntiate one scheduler per top-level nodepool
+        try {
+            schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.ClassBasedScheduler");
+            @SuppressWarnings("unchecked")
+			Class<IScheduler> cl = (Class<IScheduler>) Class.forName(schedImplName);
+            for ( int i = 0; i < nps.length; i++ ) {
+                schedulers[i] = (IScheduler) cl.newInstance();
+                schedulers[i].setEvictionPolicy(evictionPolicy);
+            }
+
+        } catch (ClassNotFoundException e) {
+            throw new SchedulingException(null, "Cannot find class " + schedImplName);
+        } catch (InstantiationException e) {
+            throw new SchedulingException(null, "Cannot instantiate class " + schedImplName);            
+        } catch (IllegalAccessException e) {
+            throw new SchedulingException(null, "Cannot instantiate class " + schedImplName + ": can't access constructor.");            
+        }
+
+        // Here create the nodepool configuration
+        for ( int i = 0; i < nps.length; i++ ) {
+            DuccProperties np = nps[i];
+            String id = np.getStringProperty("name");
+            @SuppressWarnings("unchecked")
+			Map<String, String> nodes = (Map<String, String>) np.get("nodes");
+            nodepools[i] = new NodePool(null, id, nodes, evictionPolicy, 0, 0);
+            schedulers[i].setNodePool(nodepools[i]);                    // set its top-level nodepool
+
+            mapNodesToNodepool(nodes, nodepools[i]);
+            logger.info(methodName, null, "Created top-level nodepool", id);
+
+            @SuppressWarnings("unchecked")
+			List<DuccProperties> children = (List<DuccProperties>) np.get("children");
+            createSubpools(nodepools[i], children);
+
+            Map<ResourceClass, ResourceClass> classesForNp = new HashMap<ResourceClass, ResourceClass>();
+            getClassesForNodepool(np, classesForNp);           // all classes served by this heirarchy - fills in classesForNp
+
+            schedulers[i].setClasses(classesForNp);
+        }
+
+    }
+
+    void initClassesOld(String filename)
         throws Exception
     {
         String methodName = "initClasses";
@@ -410,10 +554,12 @@ public class Scheduler
         if ( npn != null ) {
             String[] npnames = npn.split("\\s+");
             for ( String nodepoolName : npnames ) {
-                int nporder = props.getIntProperty("scheduling.nodepool." + nodepoolName + ".order", 100);                
-                String npfile = props.getProperty("scheduling.nodepool." + nodepoolName).trim();
-                Map<String,String> npnodes = readNodepoolFile(npfile);                
-                nodepool.createSubpool(nodepoolName, npnodes, nporder);                    
+                @SuppressWarnings("unused")
+				int nporder = props.getIntProperty("scheduling.nodepool." + nodepoolName + ".order", 100);                
+                @SuppressWarnings("unused")
+				String npfile = props.getProperty("scheduling.nodepool." + nodepoolName).trim();
+                // jrc  Map<String,String> npnodes = readNodepoolFile(npfile);                
+                // jrc nodepool.createSubpool(nodepoolName, npnodes, nporder);                    
 //                 } catch (FileNotFoundException e) {
 //                     throw new SchedulingException(null, "Cannot open NodePool file \"" + npfile + "\": file not found.");
 //                 } catch (IOException e) {
@@ -428,98 +574,19 @@ public class Scheduler
             throw new SchedulingException(null, "No class definitions found, scheduler cannot start.");
         }
         
-        String[] classNames = cn.split("\\s+");
+//        String[] classNames = cn.split("\\s+");
         logger.info(methodName, null, "Classes:");
         logger.info(methodName, null, ResourceClass.getHeader());
         logger.info(methodName, null, ResourceClass.getDashes());
-        for ( String n : classNames ) {
-        	n = n.trim();
-            ResourceClass rc = new ResourceClass(n); //, nodepool.getMachinesByName(), nodepool.getMachinesByIp());
-            rc.init(props);
-            resourceClasses.put(rc, rc);
-            resourceClassesByName.put(n, rc);
-            logger.info(methodName, null, rc.toString());
-        }
+//        for ( String n : classNames ) {
+//        	n = n.trim();
+//            ResourceClass rc = new ResourceClass(n); //, nodepool.getMachinesByName(), nodepool.getMachinesByIp());
+//            rc.init(props);
+//            resourceClasses.put(rc, rc);
+//            resourceClassesByName.put(n, rc);
+//            logger.info(methodName, null, rc.toString());
+//        }
     }
-
-    void initClassesX(String filename)
-        throws Exception
-    {
-        String methodName = "initClasses";
-        DuccProperties props = new DuccProperties();
-        props.load(ducc_home + "/resources/" + filename);
-
-        defaultClassName = props.getProperty("scheduling.default.name");
-        String my_domain = getDomainName();
-
-        // read in nodepools
-        String npn = props.getProperty("scheduling.nodepool");
-        if ( npn != null ) {
-            String[] npnames = npn.split(" ");
-            for ( String nodepoolName : npnames ) {
-                int nporder = props.getIntProperty("scheduling.nodepool." + nodepoolName + ".order", 100);                
-                String npfile = props.getProperty("scheduling.nodepool." + nodepoolName).trim();
-                try {
-                    String ducc_home = System.getProperty("DUCC_HOME");
-                    npfile = ducc_home + "/resources/" + npfile;
-                    BufferedReader br = new BufferedReader(new FileReader(npfile));
-                    String node = "";
-                    HashMap<String, String> npnodes = new HashMap<String, String>();
-                    while ( (node = br.readLine()) != null ) {
-                        int ndx = node.indexOf("#");
-                        if ( ndx >0 ) {
-                            node = node.substring(0, ndx);
-                        }
-                        node = node.trim();
-                        if (node.equals("") ) {
-                            continue;
-                        }
-
-                        npnodes.put(node, node);
-
-                        // include fully and non-fully qualified names to allow sloppiness of config
-                        ndx = node.indexOf(".");
-                        String dnode;
-                        if ( ndx >= 0 ) {
-                            dnode = node.substring(0, ndx);
-                            npnodes.put(dnode, dnode);
-                        } else if ( my_domain != null ) {
-                            dnode = node + "." + my_domain;
-                            npnodes.put(dnode, dnode);
-                        }
-                    }
-                    br.close();                        
-                    nodepool.createSubpool(nodepoolName, npnodes, nporder);
-                    
-                } catch (FileNotFoundException e) {
-                    throw new SchedulingException(null, "Cannot open NodePool file \"" + npfile + "\": file not found.");
-                } catch (IOException e) {
-                    throw new SchedulingException(null, "Cannot read NodePool file \"" + npfile + "\": I/O Error.");
-                }
-            }
-        }
-        
-        // read in the class definitions
-        String cn = props.getProperty("scheduling.class_set");
-        if ( cn == null ) {
-            throw new SchedulingException(null, "No class definitions found, scheduler cannot start.");
-        }
-        
-        String[] classNames = cn.split("\\s+");
-        logger.info(methodName, null, "Classes:");
-        logger.info(methodName, null, ResourceClass.getHeader());
-        logger.info(methodName, null, ResourceClass.getDashes());
-        for ( String n : classNames ) {
-        	n = n.trim();
-            ResourceClass rc = new ResourceClass(n); //, nodepool.getMachinesByName(), nodepool.getMachinesByIp());
-            rc.init(props);
-            resourceClasses.put(rc, rc);
-            resourceClassesByName.put(n, rc);
-            logger.info(methodName, null, rc.toString());
-        }
-    }
-
-
 
     /**
      * Called only from schedule, under the 'this' monitor.
@@ -639,7 +706,7 @@ public class Scheduler
             logger.trace(methodName, j.getId(), "<<<<<<<<<<");
         }
 
-        jmu.setAllJobs(allJobs);
+        jmu.setAllJobs((HashMap<DuccId, IRmJob>)allJobs);
 
         jobs = upd.getRefusedJobs();
         Iterator<IRmJob> iter = jobs.values().iterator();
@@ -682,7 +749,7 @@ public class Scheduler
         synchronized(this) {
 
             for ( Node n : nodeUpdates.values() ) {
-                Machine m = nodepool.getMachine(n);
+                Machine m = getMachine(n);
 
                 if ( m == null ) {
                     // must have been removed because of earlier missed hb
@@ -725,7 +792,7 @@ public class Scheduler
         logger.info("nodeArrives", null, "Total arrivals:", total_arrivals);
 
         handleDeadNodes();
-        nodepool.reset(NodePool.getMaxOrder());
+        resetNodepools();
 
         // TODO: Can we combine these two into one?
         SchedulingUpdate upd = new SchedulingUpdate();              // state from internal scheduler
@@ -875,7 +942,10 @@ public class Scheduler
             }
 
             logger.info(methodName, null, "Scheduling " + newJobs.size(), " new jobs.  Existing jobs: " + allJobs.size());
-            scheduler.schedule(upd);
+            for ( int i = 0; i < schedulers.length; i++ ) {
+                logger.info(methodName, null, "Run scheduler", i, "with top-level nodepool", nodepools[i].getId());
+                schedulers[i].schedule(upd);
+            }
 
             logger.info(methodName, null, "--------------- Scheduler returns ---------------");
             logger.info(methodName, null, "\n", upd.toString());
@@ -908,6 +978,23 @@ public class Scheduler
 //         }
 //     }
 
+    //
+    // Return a nodepool by Node.  If the node can't be associated with a nodepool, return the
+    // default nodepool, which is always the first one defined in the config file.
+    //
+    NodePool getNodepoolByName(NodeIdentity ni)
+    {
+        NodePool np = nodepoolsByNode.get( ni.getName() );
+        if ( np == null ) {
+            np = nodepoolsByNode.get( ni.getIp() );
+        }
+        if ( np == null ) {
+            np = nodepools[0];
+            nodepoolsByNode.put( ni.getName(), np);          // assign this guy to the default np
+        }
+        return np;
+    }
+
     private int total_arrivals = 0;
     public void nodeArrives(Node node)
     {        
@@ -918,11 +1005,12 @@ public class Scheduler
         synchronized(this) {
             // the amount of memory available for shares, adjusted with configured overhead
 
-            Machine m = nodepool.getMachine(node);
+            NodePool np = getNodepoolByName(node.getNodeIdentity());
+            Machine m = np.getMachine(node);
             int share_order = 0;
 
             if ( m == null ) {
-                allNodes.put(node, node);
+                // allNodes.put(node, node);
                 long allocatable_mem =  node.getNodeMetrics().getNodeMemory().getMemTotal() - share_free_dram;
                 if ( dramOverride > 0 ) {
                     allocatable_mem = dramOverride;
@@ -932,15 +1020,8 @@ public class Scheduler
                 share_order = m.getShareOrder();
             }
             
-            m = nodepool.nodeArrives(node, share_order);                         // announce to the nodepools
-            // m.heartbeat_down();
-            // logger.info(methodName, null, "Node arrives:", m.getId());                                                              // make SURE it's reset ok
+            m = np.nodeArrives(node, share_order);                         // announce to the nodepools
         }
-
-        // The second block registers it in the heartbeat map
-//        synchronized(incomingNodes) {
-//            incomingNodes.put(node, node);
-//        }
     }
 
     public void nodeDeath(Map<Node, Node> nodes)
@@ -1087,7 +1168,9 @@ public class Scheduler
      */
     public void resetNodepools()
     {
-        nodepool.reset(NodePool.getMaxOrder());
+        for ( NodePool np : nodepools ) {
+            np.reset(NodePool.getMaxOrder());
+        }
     }
 
     /**
@@ -1162,7 +1245,9 @@ public class Scheduler
 
     public void queryMachines()
     {
-        nodepool.queryMachines();
+        for ( NodePool np : nodepools ) {
+            np.queryMachines();
+        }
     }
 
     class MachineByOrderSorter

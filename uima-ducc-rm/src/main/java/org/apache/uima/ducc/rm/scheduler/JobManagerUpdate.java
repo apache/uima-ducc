@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
@@ -30,11 +31,11 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 public class JobManagerUpdate
 {
 
-    private HashMap<DuccId, HashMap<Share, Share>> expandedShares = new HashMap<DuccId, HashMap<Share, Share>>();  // by job, which shares to add
+    private Map<DuccId, HashMap<Share, Share>> expandedShares = new HashMap<DuccId, HashMap<Share, Share>>();  // by job, which shares to add
 
-    private HashMap<DuccId, HashMap<Share, Share>> shrunkenShares = new HashMap<DuccId, HashMap<Share, Share>>();  // by job, which shares to remove
+    private Map<DuccId, HashMap<Share, Share>> shrunkenShares = new HashMap<DuccId, HashMap<Share, Share>>();  // by job, which shares to remove
 
-    private HashMap<DuccId, IRmJob> allJobs;                   // current state of all jobs
+    private Map<DuccId, IRmJob> allJobs;                   // current state of all jobs
 
     @SuppressWarnings("unchecked")
 	public void setAllJobs(HashMap<DuccId, IRmJob> jobs)
@@ -42,7 +43,7 @@ public class JobManagerUpdate
         allJobs = (HashMap<DuccId, IRmJob>) jobs.clone();                            // shallow copy intentional
     }
 
-    public HashMap<DuccId, IRmJob> getAllJobs()
+    public Map<DuccId, IRmJob> getAllJobs()
     {
         return allJobs;
     }
@@ -58,11 +59,11 @@ public class JobManagerUpdate
         expandedShares.put(job.getId(), (HashMap<Share, Share>) shares.clone());                             // shallow copy intentional
     }
     
-	public HashMap<DuccId, HashMap<Share, Share>> getExpandedShares() {
+	public Map<DuccId, HashMap<Share, Share>> getExpandedShares() {
 		return expandedShares;
 	}
 
-	public HashMap<DuccId, HashMap<Share, Share>> getShrunkenShares() {
+	public Map<DuccId, HashMap<Share, Share>> getShrunkenShares() {
 		return shrunkenShares;
 	}
 

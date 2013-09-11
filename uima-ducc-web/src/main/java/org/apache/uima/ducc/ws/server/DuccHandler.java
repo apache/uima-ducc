@@ -27,11 +27,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimeZone;
@@ -42,9 +44,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
+import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.authentication.AuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -2204,8 +2206,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+    /**
+     * @Deprecated
+     */
 	private void handleServletJsonSystemClassesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
+	throws Exception
 	{
 		String methodName = "handleJsonServletSystemClassesData";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -2214,14 +2219,15 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("\"aaData\": [ ");
 		
 		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
-		DuccProperties properties = schedulerClasses.getClasses();
-		String class_set = properties.getProperty("scheduling.class_set");
-		class_set.trim();
+        Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
+
 		boolean first = true;
-		if(class_set != null) {
-			String[] class_array = StringUtils.split(class_set);
-			for(int i=0; i<class_array.length; i++) {
-				String class_name = class_array[i].trim();
+		if( clmap != null ) {
+            DuccProperties[] class_set = clmap.values().toArray(new DuccProperties[clmap.size()]);
+            Arrays.sort(class_set, new NodeConfiguration.ClassSorter());
+
+			for( DuccProperties cl : class_set ) {
+				String class_name = cl.getProperty("name");
 				if(first) {
 					first = false;
 				}
@@ -2232,15 +2238,15 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(quote(class_name));
 				sb.append(",");
 
-                String policy = properties.getStringProperty("scheduling.class."+class_name+".policy");
+                String policy = cl.getProperty("policy");
 				sb.append(quote(policy));
 				sb.append(",");
-				sb.append(quote(properties.getStringProperty("scheduling.class."+class_name+".share_weight", "100")));
+				sb.append(quote(cl.getStringProperty("weight", "-")));
 				sb.append(",");
-				sb.append(quote(properties.getStringProperty("scheduling.class."+class_name+".priority")));
+				sb.append(quote(cl.getProperty("priority")));
 				// cap is either absolute or proportional.  if proprotional, it ends with '%'.  It's always
                 // either-or so at least one of these columns will have N/A
-				String val = properties.getStringProperty("scheduling.class."+class_name+".cap", "0");
+				String val = cl.getStringProperty("cap", "0");
 				if( (val == null) || val.equals("0") ) {
                     sb.append(",");
     				sb.append(quote("-"));
@@ -2257,38 +2263,43 @@ public class DuccHandler extends DuccAbstractHandler {
     				sb.append(",");
     				sb.append(quote(val));
                 }
-				val = properties.getStringProperty("scheduling.class."+class_name+".initialization.cap", System.getProperty("ducc.rm.initialization.cap"));
-				if ( val == null ) {
-                    val = "2";
+
+                if ( policy.equals("FAIR_SHARE") ) {
+                    val = cl.getStringProperty("initialization-cap", System.getProperty("ducc.rm.initialization.cap"));
+                    if ( val == null ) {
+                        val = "2";
+                    }
+                    sb.append(",");
+                    sb.append(quote(val));
+                    boolean bval = cl.getBooleanProperty("expand-by-doubling", true);
+                    Boolean b = new Boolean(bval);
+                    sb.append(",");
+                    sb.append(quote(b.toString()));
+                    val = cl.getStringProperty("use-prediction", System.getProperty("ducc.rm.prediction"));
+                    if ( val == null ) {
+                        val = "true";
+                    }
+                    sb.append(",");
+                    sb.append(quote(val));
+                    val = cl.getStringProperty("prediction-fudge", System.getProperty("ducc.rm.prediction.fudge"));
+                    if ( val == null ) {
+                        val = "10000";
+                    }
+                    sb.append(",");
+                    sb.append(quote(val));
+                } else {
+                    sb.append(",-,-,-,-"); 
                 }
-				sb.append(",");
-				sb.append(quote(val));
-				boolean bval = properties.getBooleanProperty("scheduling.class."+class_name+".expand.by.doubling", true);
-				Boolean b = new Boolean(bval);
-				sb.append(",");
-				sb.append(quote(b.toString()));
-				val = properties.getStringProperty("scheduling.class."+class_name+".prediction", System.getProperty("ducc.rm.prediction"));
-				if ( val == null ) {
-					val = "true";
-				}
-				sb.append(",");
-				sb.append(quote(val));
-				val = properties.getStringProperty("scheduling.class."+class_name+".prediction.fudge", System.getProperty("ducc.rm.prediction.fudge"));
-				if ( val == null ) {
-					val = "10000";
-				}
-				sb.append(",");
-				sb.append(quote(val));
 
                 // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
                 // ugly code here.
                 if ( policy.equals("RESERVE") ) {
-                    val = properties.getStringProperty("scheduling.class."+class_name+".max_machines", "0");
+                    val = cl.getProperty("max-machines");
                     if( val == null || val.equals("0")) {
                         val = "-";
                     }
                 } else if ( policy.equals("FIXED_SHARE") ) {
-                    val = properties.getStringProperty("scheduling.class."+class_name+".max_processes", "0");
+                    val = cl.getStringProperty("max-properties");
                     if( val == null || val.equals("0")) {
                         val = "-";
                     }
@@ -2298,7 +2309,7 @@ public class DuccHandler extends DuccAbstractHandler {
 
 				sb.append(",");
 				sb.append(quote(val));
-				val = properties.getStringProperty("scheduling.class."+class_name+".nodepool", "--global--");
+				val = cl.getStringProperty("nodepool");
 				sb.append(",");
 				sb.append(quote(val));
 				sb.append("]");
@@ -2569,7 +2580,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}	
 	
 	private void handleDuccServletReservationSchedulingClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
+	throws Exception
 	{
 		String methodName = "handleDuccServletReservationSchedulingCLasses";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
@@ -3449,7 +3460,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	}		
 	
 	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
+	throws Exception
 	{
 		String methodName = "handleDuccRequest";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));

@@ -42,7 +42,7 @@ public class NodepoolScheduler
 {
     DuccLogger logger = DuccLogger.getLogger(NodepoolScheduler.class, COMPONENT_NAME);
 
-    HashMap<ResourceClass, ResourceClass> resourceClasses;
+    Map<ResourceClass, ResourceClass> resourceClasses;
     Map<IRmJob, IRmJob> needyJobs = new TreeMap<IRmJob, IRmJob>(new JobByTimeSorter());
     NodePool globalNodepool;
 
@@ -62,7 +62,7 @@ public class NodepoolScheduler
         do_defragmentation = SystemPropertyResolver.getBooleanProperty("ducc.rm.defragmentation", do_defragmentation);
     }
 
-    public void setClasses(HashMap<ResourceClass, ResourceClass> prclasses)
+    public void setClasses(Map<ResourceClass, ResourceClass> prclasses)
     {
         this.resourceClasses = prclasses;
 
@@ -73,6 +73,7 @@ public class NodepoolScheduler
         // i.e. we don't support mixed-share at this point.
         HashMap<Integer, ArrayList<ResourceClass>> sorter = new HashMap<Integer, ArrayList<ResourceClass>>();
         for ( ResourceClass pcl : prclasses.values() ) {
+ 
             ArrayList<ResourceClass> cl = sorter.get(pcl.getPriority());
             if ( cl == null ) {
                 cl = new ArrayList<ResourceClass>();
@@ -742,7 +743,7 @@ public class NodepoolScheduler
         if ( np == globalNodepool ) {
             ArrayList<ResourceClass> tmp = new ArrayList<ResourceClass>();
             for ( ResourceClass rc : rcs ) {
-                if (rc.getNodepoolName().equals(NodePool.globalName) ) {
+                if ( rc.getNodepoolName().equals(globalNodepool.getId()) ) {
                     tmp.add(rc);
                 }
             }
@@ -2165,9 +2166,6 @@ public class NodepoolScheduler
     public void schedule(SchedulingUpdate upd)
     {
         String methodName = "schedule";
-
-        logger.info(methodName, null, "Machine occupancy before schedule");
-        globalNodepool.queryMachines();
         
         int jobcount = 0;
         for ( ResourceClass rc : resourceClasses.values() ) {
@@ -2180,9 +2178,12 @@ public class NodepoolScheduler
         }
 
         if ( jobcount == 0 ) {
-            logger.info(methodName, null, "No jobs to schedule");
+            logger.info(methodName, null, "No jobs to schedule under nodepool", globalNodepool.getId());
             return;
         }
+
+        logger.info(methodName, null, "Machine occupancy before schedule");
+        globalNodepool.queryMachines();
 
         this.schedulingUpdate = upd;
 

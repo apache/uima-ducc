@@ -22,9 +22,11 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -34,10 +36,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.IDuccEnv;
+import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -1031,40 +1033,42 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	}
 	
 	private void handleServletLegacySystemClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
+	throws Exception
 	{
 		String methodName = "handleServletLegacySystemClasses";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		
+
+        
 		DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
-		DuccProperties properties = schedulerClasses.getClasses();
-		String class_set = properties.getProperty("scheduling.class_set");
-		class_set.trim();
-		if(class_set != null) {
-			String[] class_array = StringUtils.split(class_set);
-			for(int i=0; i<class_array.length; i++) {
-				String class_name = class_array[i].trim();
+        Map<String, DuccProperties> clmap = schedulerClasses.getClasses();
+		if ( clmap != null ) {
+            DuccProperties[] class_set = clmap.values().toArray(new DuccProperties[clmap.size()]);
+            Arrays.sort(class_set, new NodeConfiguration.ClassSorter());
+            int i = 0;
+
+            for ( DuccProperties cl : class_set) {
+				String class_name = cl.getProperty("name");
 				sb.append(trGet(i+1));
 				sb.append("<td>");
 				sb.append(class_name);
 				sb.append("</td>");	
 				sb.append("<td>");
 
-                String policy = properties.getStringProperty("scheduling.class."+class_name+".policy");
+                String policy = cl.getProperty("policy");
 				sb.append(policy);
 				sb.append("</td>");	
 				sb.append("<td align=\"right\">");
-				sb.append(properties.getStringProperty("scheduling.class."+class_name+".share_weight", "100"));
+				sb.append(cl.getStringProperty("weight", "-"));
 				sb.append("</td>");	
 				sb.append("<td align=\"right\">");
-				sb.append(properties.getStringProperty("scheduling.class."+class_name+".priority"));
+				sb.append(cl.getProperty("priority"));
 				sb.append("</td>");	
 
                 // cap is either absolute or proportional.  if proprotional, it ends with '%'.  It's always
                 // either-or so at least one of these columns will have N/A
-				String val = properties.getStringProperty("scheduling.class."+class_name+".cap", "0");
-				if( (val == null) || val.equals("0") ) {
+				String val = cl.getProperty("cap");
+				if( (val == null) || val.equals("0") || (Integer.parseInt(val) == Integer.MAX_VALUE) ) {
                     sb.append("<td align=\"right\">");
                     sb.append("-");
                     sb.append("</td>");
@@ -1089,49 +1093,56 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
                     sb.append("</td>");
                 }
 
-				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".initialization.cap", 
-                                                   System.getProperty("ducc.rm.initialization.cap"));
-                if ( val == null ) {
-                    val = "2";
+                if ( policy.equals("FAIR_SHARE") ) {
+                    sb.append("<td align=\"right\">");
+                    val = cl.getStringProperty("initialization-cap",
+                                               System.getProperty("ducc.rm.initialization.cap"));
+                    if ( val == null ) {
+                        val = "2";
+                    }
+                    
+                    sb.append(val);
+                    sb.append("</td>");	
+                    
+                    sb.append("<td align=\"right\">");
+                    String bval = cl.getStringProperty("expand-by-doubling", "-");
+                    sb.append(bval);
+                    sb.append("</td>");	
+
+                    sb.append("<td align=\"right\">");
+                    val = cl.getStringProperty("use-prediction",
+                                               System.getProperty("ducc.rm.prediction"));
+                    if ( val == null ) {
+                        val = "-";
+                    }
+                    sb.append(val);
+                    sb.append("</td>");	
+                    
+                    sb.append("<td align=\"right\">");
+                    val = cl.getStringProperty("prediction-fudge",
+                                               System.getProperty("ducc.rm.prediction.fudge"));
+                    if ( val == null ) {
+                        val = "-"; 
+                    }
+                    sb.append(val);
+                    sb.append("</td>");	
+                } else {
+                    sb.append("<td align=\"right\">-</td>");          // not applicable for non-fair-share
+                    sb.append("<td align=\"right\">-</td>");
+                    sb.append("<td align=\"right\">-</td>");
+                    sb.append("<td align=\"right\">-</td>");
                 }
-
-				sb.append(val);
-				sb.append("</td>");	
-
-				sb.append("<td align=\"right\">");
-				boolean bval = properties.getBooleanProperty("scheduling.class."+class_name+".expand.by.doubling", true);
-                sb.append(bval);
-				sb.append("</td>");	
-
-				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".prediction", 
-                                                   System.getProperty("ducc.rm.prediction"));
-                if ( val == null ) {
-                    val = "true";
-                }
-                sb.append(val);
-				sb.append("</td>");	
-
-				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".prediction.fudge",
-                                                   System.getProperty("ducc.rm.prediction.fudge"));
-                if ( val == null ) {
-                    val = "10000";
-                }
-                sb.append(val);
-				sb.append("</td>");	
 
                 // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
                 // ugly code here.
  				sb.append("<td align=\"right\">");
                 if ( policy.equals("RESERVE") ) {
-                    val = properties.getStringProperty("scheduling.class."+class_name+".max_machines", "0");
+                    val = cl.getProperty("max-machines");
                     if( val == null || val.equals("0")) {
                         val = "-";
                     }
                 } else if ( policy.equals("FIXED_SHARE") ) {
-                    val = properties.getStringProperty("scheduling.class."+class_name+".max_processes", "0");
+                    val = cl.getProperty("max-processes");
                     if( val == null || val.equals("0")) {
                         val = "-";
                     }
@@ -1139,7 +1150,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 					val = "-";
                 }
 
-				val = properties.getStringProperty("scheduling.class."+class_name+".max_shares", "0");
+				val = cl.getProperty("max-shares");
 				if( val == null || val.equals("0")) {
 					val = "-";
 				}
@@ -1147,7 +1158,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");	
 
 				sb.append("<td align=\"right\">");
-				val = properties.getStringProperty("scheduling.class."+class_name+".nodepool", "--global--");
+				val = cl.getProperty("nodepool");
                 sb.append(val);
 				sb.append("</td>");	
 				
@@ -1155,16 +1166,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("<td align=\"right\">");
 				val = "-";
 				if(schedulerClasses.isPreemptable(class_name)) {
-					String v1 = properties.getStringProperty("scheduling.class."+class_name+".debug", "");
+					String v1 = cl.getStringProperty("debug", "");
 					if(!v1.equals("")) {
 						val = v1;
-					}
-					else {
-						String v2 = properties.getStringProperty("scheduling.default.name.debug", "");
-						if(!v2.equals("")) {
-							val = "["+v2+"]";
-						}
-					}
+					} 
 				}
 				sb.append(val);
 				sb.append("</td>");	
@@ -1177,6 +1182,154 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
+
+	// private void handleServletLegacySystemClassesX(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	// throws IOException, ServletException
+	// {
+	// 	String methodName = "handleServletLegacySystemClasses";
+	// 	duccLogger.trace(methodName, jobid, messages.fetch("enter"));
+	// 	StringBuffer sb = new StringBuffer();
+		
+	// 	DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
+	// 	DuccProperties properties = schedulerClasses.getClasses();
+	// 	String class_set = properties.getProperty("scheduling.class_set");
+	// 	class_set.trim();
+	// 	if(class_set != null) {
+	// 		String[] class_array = StringUtils.split(class_set);
+	// 		for(int i=0; i<class_array.length; i++) {
+	// 			String class_name = class_array[i].trim();
+	// 			sb.append(trGet(i+1));
+	// 			sb.append("<td>");
+	// 			sb.append(class_name);
+	// 			sb.append("</td>");	
+	// 			sb.append("<td>");
+
+    //             String policy = properties.getStringProperty("scheduling.class."+class_name+".policy");
+	// 			sb.append(policy);
+	// 			sb.append("</td>");	
+	// 			sb.append("<td align=\"right\">");
+	// 			sb.append(properties.getStringProperty("scheduling.class."+class_name+".share_weight", "100"));
+	// 			sb.append("</td>");	
+	// 			sb.append("<td align=\"right\">");
+	// 			sb.append(properties.getStringProperty("scheduling.class."+class_name+".priority"));
+	// 			sb.append("</td>");	
+
+    //             // cap is either absolute or proportional.  if proprotional, it ends with '%'.  It's always
+    //             // either-or so at least one of these columns will have N/A
+	// 			String val = properties.getStringProperty("scheduling.class."+class_name+".cap", "0");
+	// 			if( (val == null) || val.equals("0") ) {
+    //                 sb.append("<td align=\"right\">");
+    //                 sb.append("-");
+    //                 sb.append("</td>");
+    //                 sb.append("<td align=\"right\">");
+    //                 sb.append("-");
+    //                 sb.append("</td>");
+	// 			} else if ( val.endsWith("%") ) {
+    //                 sb.append("<td align=\"right\">");
+    //                 sb.append(val);
+    //                 sb.append("</td>");
+
+    //                 sb.append("<td align=\"right\">");
+    //                 sb.append("-");
+    //                 sb.append("</td>");
+    //             } else {
+    //                 sb.append("<td align=\"right\">");
+    //                 sb.append("-");
+    //                 sb.append("</td>");
+
+    //                 sb.append("<td align=\"right\">");
+    //                 sb.append(val);
+    //                 sb.append("</td>");
+    //             }
+
+	// 			sb.append("<td align=\"right\">");
+	// 			val = properties.getStringProperty("scheduling.class."+class_name+".initialization.cap", 
+    //                                                System.getProperty("ducc.rm.initialization.cap"));
+    //             if ( val == null ) {
+    //                 val = "2";
+    //             }
+
+	// 			sb.append(val);
+	// 			sb.append("</td>");	
+
+	// 			sb.append("<td align=\"right\">");
+	// 			boolean bval = properties.getBooleanProperty("scheduling.class."+class_name+".expand.by.doubling", true);
+    //             sb.append(bval);
+	// 			sb.append("</td>");	
+
+	// 			sb.append("<td align=\"right\">");
+	// 			val = properties.getStringProperty("scheduling.class."+class_name+".prediction", 
+    //                                                System.getProperty("ducc.rm.prediction"));
+    //             if ( val == null ) {
+    //                 val = "true";
+    //             }
+    //             sb.append(val);
+	// 			sb.append("</td>");	
+
+	// 			sb.append("<td align=\"right\">");
+	// 			val = properties.getStringProperty("scheduling.class."+class_name+".prediction.fudge",
+    //                                                System.getProperty("ducc.rm.prediction.fudge"));
+    //             if ( val == null ) {
+    //                 val = "10000";
+    //             }
+    //             sb.append(val);
+	// 			sb.append("</td>");	
+
+    //             // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
+    //             // ugly code here.
+ 	// 			sb.append("<td align=\"right\">");
+    //             if ( policy.equals("RESERVE") ) {
+    //                 val = properties.getStringProperty("scheduling.class."+class_name+".max_machines", "0");
+    //                 if( val == null || val.equals("0")) {
+    //                     val = "-";
+    //                 }
+    //             } else if ( policy.equals("FIXED_SHARE") ) {
+    //                 val = properties.getStringProperty("scheduling.class."+class_name+".max_processes", "0");
+    //                 if( val == null || val.equals("0")) {
+    //                     val = "-";
+    //                 }
+    //             } else {
+	// 				val = "-";
+    //             }
+
+	// 			val = properties.getStringProperty("scheduling.class."+class_name+".max_shares", "0");
+	// 			if( val == null || val.equals("0")) {
+	// 				val = "-";
+	// 			}
+	// 			sb.append(val);
+	// 			sb.append("</td>");	
+
+	// 			sb.append("<td align=\"right\">");
+	// 			val = properties.getStringProperty("scheduling.class."+class_name+".nodepool", "--global--");
+    //             sb.append(val);
+	// 			sb.append("</td>");	
+				
+	// 			// Debug
+	// 			sb.append("<td align=\"right\">");
+	// 			val = "-";
+	// 			if(schedulerClasses.isPreemptable(class_name)) {
+	// 				String v1 = properties.getStringProperty("scheduling.class."+class_name+".debug", "");
+	// 				if(!v1.equals("")) {
+	// 					val = v1;
+	// 				}
+	// 				else {
+	// 					String v2 = properties.getStringProperty("scheduling.default.name.debug", "");
+	// 					if(!v2.equals("")) {
+	// 						val = "["+v2+"]";
+	// 					}
+	// 				}
+	// 			}
+	// 			sb.append(val);
+	// 			sb.append("</td>");	
+
+	// 			sb.append("</tr>");
+	// 		}
+	// 	}
+		
+	// 	duccLogger.debug(methodName, jobid, sb);
+	// 	response.getWriter().println(sb);
+	// 	duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+	// }		
 
 	private void handleServletLegacySystemDaemons(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
@@ -1661,7 +1814,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	}
 	
 	private void handleDuccRequest(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	throws IOException, ServletException
+	throws Exception
 	{
 		String methodName = "handleDuccRequest";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));

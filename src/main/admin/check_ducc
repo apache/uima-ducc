@@ -92,13 +92,16 @@ class CheckDucc(DuccUtil):
         print "       Reap user processes.  This uses kill -9 and ducc_ling to forcibly terrrminate user processes."
         print "       Only processes specified by '-u' or '--userid' are targeted."
         print ""
+        print "    -v --verbose" 
+        print "       If specified, print the validated configuration to the console."
+        print ""
         print "    -? prints this message."
         sys.exit(1)
     
     def main(self, argv):
 
         try:
-            opts, args = getopt.getopt(argv, 'cikn:pqrs:u:h?v', ['--configuration', '--nodelist=', '--user=', '--int', '--quit', '--kill', '--pids', '--reap', '--version'])
+            opts, args = getopt.getopt(argv, 'cikn:opqrs:u:h?v', ['--configuration', '--nodelist=', '--user=', '--int', '--quit', '--kill', '--pids', '--reap', '--verbose' ])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
@@ -112,6 +115,7 @@ class CheckDucc(DuccUtil):
         do_validate = False
         checkdate = 0
         config_only = False
+        verbose = False
 
         for ( o, a ) in opts:
             if o in ('-c', '--configuration'):
@@ -143,10 +147,10 @@ class CheckDucc(DuccUtil):
                 # intended to be called recursively from check_ducc, NOT from the command line
                 do_validate = True
                 checkdate = float(a)
+            elif o in ('-v', '--verbose'):
+                verbose = True
             elif o in ('-h', '-?', '--help'):
                 self.usage(None)
-            elif o in ('-v', '--version'):
-                self.version(None)
             else:
                 print 'badarg', a
                 usage('bad arg: ' + a)               
@@ -210,10 +214,17 @@ class CheckDucc(DuccUtil):
             nodes['local'] = localnodes
 
         self.verify_jvm()
-        if self.verify_class_configuration(nodes, check_nodepools):
-            print "OK: Class configuration checked"
+
 
         if ( config_only ):
+            if ( len(nodefiles) > 1 ):
+                print "NOTOK: Config check: specify a single master nodefile only."
+                return
+            if self.verify_class_configuration(nodefiles[0], verbose):
+                print "OK: Class configuration checked"
+            else:
+                print "NOTOK: Errors in class or node configuration."
+
             return
 
         # checking starts here        

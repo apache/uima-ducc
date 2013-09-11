@@ -37,7 +37,6 @@ class NodePool
 {
 	DuccLogger logger = DuccLogger.getLogger(NodePool.class, COMPONENT_NAME);
     String id;
-    static final String globalName = "--global--";
     NodePool parent = null;
 
     int depth;
@@ -90,20 +89,20 @@ class NodePool
     HashMap<Integer, HashMap<Node, Machine>> virtualMachinesByOrder;
     static int maxorder = 0;
 
-    NodePool(NodePool parent, EvictionPolicy ep, int order)
-    {
-        this.parent = parent;
-        this.id = globalName;
-        this.evictionPolicy = ep;
-        this.depth = 0;
-        this.order = order;
-    }
+//     NodePool(NodePool parent, String id, EvictionPolicy ep, int order)
+//     {
+//         this.parent = parent;
+//         this.id = id;
+//         this.evictionPolicy = ep;
+//         this.depth = 0;
+//         this.order = order;
+//     }
 
-    NodePool(NodePool parent, String id, Map<String, String> subpool, EvictionPolicy ep, int depth, int order)
+    NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int order)
     {
         this.parent = parent;
         this.id = id;
-        this.subpoolNames = subpool;
+        this.subpoolNames = nodes;
         this.evictionPolicy = ep;
         this.depth = depth;
         this.order = order;
@@ -590,7 +589,8 @@ class NodePool
             np.reset(order);
         }
 
-        if ( id.equals(globalName) && ( updated > 0 ) ) {
+        if ( (parent == null) && ( updated > 0 ) ) {
+        	// top-level nodepool will recurse
             logger.info(methodName, null, "Scheduling Tables:\n", toString());
             updated = 0;
         }
@@ -665,10 +665,11 @@ class NodePool
      * We can assume that all node updates are refused until all subpools are created
      * so we don't have to worry about updating the pools until nodeArrives(), below.
      */
-    void createSubpool(String className, Map<String, String> names, int order)
+    NodePool createSubpool(String className, Map<String, String> names, int order)
     {
         NodePool np = new NodePool(this, className, names, evictionPolicy, depth + 1, order);
         children.put(className, np);
+        return np;
     }
 
     /**

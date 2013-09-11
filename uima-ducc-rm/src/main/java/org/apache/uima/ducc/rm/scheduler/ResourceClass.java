@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
-import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 
@@ -35,7 +34,7 @@ public class ResourceClass
     implements SchedConstants,
                IEntity
 {
-    private DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
+    //private DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
 
     private String id;
     private Policy policy;
@@ -44,11 +43,11 @@ public class ResourceClass
 
     private int share_weight;       // for fair-share, the share weight to use
     private int min_shares;         // fixed-shre: min shares to hand out
-    private int max_processes;      // fixed-share: max shares to hand out regardless of
+    private int max_processes = 0;      // fixed-share: max shares to hand out regardless of
                                     // what is requested or what fair-share turns out to be
 
-    private int max_machines;       // reservation: max machines that can be reserved by a single user - global across
-                            // all this user's requests.
+    private int max_machines = 0;   // reservation: max machines that can be reserved by a single user - global across
+                                    // all this user's requests.
 
     // for reservation, this caps machines. 
     // for shares, this caps shares
@@ -80,7 +79,7 @@ public class ResourceClass
 
     private boolean expand_by_doubling = true;
     private int initialization_cap = 2;
-    private int prediction_fudge = 10000;
+    private long prediction_fudge = 60000;
     private boolean use_prediction = true;
 
     private int[] given_by_order  = null;
@@ -88,92 +87,133 @@ public class ResourceClass
 
     private static Comparator<IEntity> apportionmentSorter = new ApportionmentSorterCl();
 
-    public ResourceClass(String id) //, HashMap<String, Machine> machinesByName, HashMap<String, Machine> machinesByIp)
+    public ResourceClass(DuccProperties props)
     {
-        this.id = id;
-        this.policy = Policy.FAIR_SHARE;
-        this.share_weight = 100;
-        this.priority = 10;
-        this.max_processes = Integer.MAX_VALUE;
+        //
+        // We can assume everything useful is here because the parser insured it
+        //
+        this.id = props.getStringProperty("name");
+        this.policy = Policy.valueOf(props.getStringProperty("policy"));
+        this.priority = props.getIntProperty("priority");
         this.min_shares = 0;
 
-        this.max_machines = Integer.MAX_VALUE;
+        if ( policy == Policy.RESERVE ) {
+            this.max_machines = props.getIntProperty("max-machines");
+            this.enforce_memory = props.getBooleanProperty("enforce-memory", true);
+        }
+
+        if ( policy != Policy.RESERVE ) {
+            this.max_processes = props.getIntProperty("max-processes");
+        }
+
+        if ( max_processes <= 0 ) max_processes = Integer.MAX_VALUE;
+        if ( max_machines <= 0 )  max_machines  = Integer.MAX_VALUE;
 
         this.absolute_cap = Integer.MAX_VALUE;
         this.percent_cap  = 1.0;
 
-        this.expand_by_doubling  = SystemPropertyResolver.getBooleanProperty("ducc.rm.expand.by.doubling", true);
-        this.initialization_cap  = SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap", 2);
-
-        this.use_prediction     = SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true);
-        this.prediction_fudge   = SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 10000);   // extra fudge factor to add in to the
-                                                                                           // projection, in miliseconds.
-
-        //this.machinesByName = machinesByName;
-        //this.machinesByIp = machinesByIp;
-    }
-
-    // TODO: sanity check 
-    //   - emit warnings if shares are specified in reservations
-    //                   if machines are sprcified for fair or fixed-share
-    //                   etc.
-    void init(DuccProperties props)
-    {
-    	//String methodName = "init";
-    	String k = "scheduling.class." + id + ".";
-        String s;
-        s = props.getProperty(k + "policy");
-        
-        if ( s == null ) {
-        	throw new SchedulingException(null, "Configuration problem: no policy for class " + id + ".");
-        }
-        policy = Policy.valueOf(s);
-
-        share_weight     = props.getIntProperty(k + "share_weight"   , DEFAULT_SHARE_WEIGHT);
-        priority  = props.getIntProperty(k + "priority", DEFAULT_PRIORITY);
-        min_shares = props.getIntProperty(k + "min_shares", 0);       // default no min
-
-        switch ( policy ) {
-            case FAIR_SHARE:
-                max_processes = props.getIntProperty(k + "max_processes", DEFAULT_MAX_PROCESSES);       // default no max
-                max_machines = 0;
-                break;
-
-            case FIXED_SHARE:
-                max_processes = props.getIntProperty(k + "max_processes", DEFAULT_MAX_PROCESSES);       // default no max
-                max_machines = 0;
-                break;
-
-            case RESERVE:
-                max_processes = 0;
-                max_machines = props.getIntProperty(k + "max_machines", DEFAULT_MAX_INSTANCES);       // default max 1
-                break;
-
-        }
-        if ( max_processes <= 0 ) max_processes = Integer.MAX_VALUE;
-        if ( max_machines <= 0 )  max_machines  = Integer.MAX_VALUE;
-
-        enforce_memory = props.getBooleanProperty(k + "enforce.memory", true);
-        
-        initialization_cap = props.getIntProperty(k + "initialization.cap", initialization_cap);
-        expand_by_doubling = props.getBooleanProperty(k + "expand.by.doubling", expand_by_doubling);
-        use_prediction     = props.getBooleanProperty(k + "prediction", use_prediction);
-        prediction_fudge   = props.getIntProperty(k + "prediction.fudge", prediction_fudge);
-
-        s = props.getStringProperty(k + "cap", ""+Integer.MAX_VALUE);                // default no cap
-        if ( s.endsWith("%") ) {
-            int t = Integer.parseInt(s.substring(0, s.length()-1));
-            percent_cap = (t * 1.0 ) / 100.0;
+        String cap  = props.getStringProperty("cap");
+        if ( cap.endsWith("%") ) {
+            int t = Integer.parseInt(cap.substring(0, cap.length()-1));
+            this.percent_cap = (t * 1.0 ) / 100.0;
         } else {
-            absolute_cap = Integer.parseInt(s);
+            absolute_cap = Integer.parseInt(cap);
             if (absolute_cap == 0) absolute_cap = Integer.MAX_VALUE;
         }
 
-        nodepoolName = props.getStringProperty(k + "nodepool", null);                               // optional nodepool
-        if (nodepoolName == null) {
-            nodepoolName = NodePool.globalName;
-        } 
+        if ( this.policy == Policy.FAIR_SHARE ) {
+            this.share_weight = props.getIntProperty("weight");
+            if ( props.containsKey("expand-by-doubling") ) {
+                this.expand_by_doubling = props.getBooleanProperty("expand-by-doubling", true);
+            } else {
+                this.expand_by_doubling  = SystemPropertyResolver.getBooleanProperty("ducc.rm.expand.by.doubling", true);
+            }
+            
+            if ( props.containsKey("initialization-cap") ) {
+                this.initialization_cap = props.getIntProperty("initialization-cap");
+            } else {
+                this.initialization_cap  = SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap", 2);
+            }
+            
+            if ( props.containsKey("use-prediction") ) {
+                this.use_prediction = props.getBooleanProperty("use-prediction", true);
+            } else {
+                this.use_prediction = SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true);
+            }
+            
+            if ( props.containsKey("prediction-fudge") ) {
+                this.prediction_fudge = props.getLongProperty("prediction-fudge");
+            } else {
+                this.prediction_fudge  = SystemPropertyResolver.getLongProperty("ducc.rm.prediction.fudge", 60000);
+            }
+        }
+
+        this.nodepoolName = props.getStringProperty("nodepool");
+
+                                                                        
     }
+
+//     // TODO: sanity check 
+//     //   - emit warnings if shares are specified in reservations
+//     //                   if machines are sprcified for fair or fixed-share
+//     //                   etc.
+//     void init(DuccProperties props)
+//     {
+//     	//String methodName = "init";
+//     	String k = "scheduling.class." + id + ".";
+//         String s;
+//         s = props.getProperty(k + "policy");
+        
+//         if ( s == null ) {
+//         	throw new SchedulingException(null, "Configuration problem: no policy for class " + id + ".");
+//         }
+//         policy = Policy.valueOf(s);
+
+//         share_weight     = props.getIntProperty(k + "share_weight"   , DEFAULT_SHARE_WEIGHT);
+//         priority  = props.getIntProperty(k + "priority", DEFAULT_PRIORITY);
+//         min_shares = props.getIntProperty(k + "min_shares", 0);       // default no min
+
+//         switch ( policy ) {
+//             case FAIR_SHARE:
+//                 max_processes = props.getIntProperty(k + "max_processes", DEFAULT_MAX_PROCESSES);       // default no max
+//                 max_machines = 0;
+//                 break;
+
+//             case FIXED_SHARE:
+//                 max_processes = props.getIntProperty(k + "max_processes", DEFAULT_MAX_PROCESSES);       // default no max
+//                 max_machines = 0;
+//                 break;
+
+//             case RESERVE:
+//                 max_processes = 0;
+//                 max_machines = props.getIntProperty(k + "max_machines", DEFAULT_MAX_INSTANCES);       // default max 1
+//                 break;
+
+//         }
+//         if ( max_processes <= 0 ) max_processes = Integer.MAX_VALUE;
+//         if ( max_machines <= 0 )  max_machines  = Integer.MAX_VALUE;
+
+//         enforce_memory = props.getBooleanProperty(k + "enforce.memory", true);
+        
+//         initialization_cap = props.getIntProperty(k + "initialization.cap", initialization_cap);
+//         expand_by_doubling = props.getBooleanProperty(k + "expand.by.doubling", expand_by_doubling);
+//         use_prediction     = props.getBooleanProperty(k + "prediction", use_prediction);
+//         prediction_fudge   = props.getIntProperty(k + "prediction.fudge", prediction_fudge);
+
+//         s = props.getStringProperty(k + "cap", ""+Integer.MAX_VALUE);                // default no cap
+//         if ( s.endsWith("%") ) {
+//             int t = Integer.parseInt(s.substring(0, s.length()-1));
+//             percent_cap = (t * 1.0 ) / 100.0;
+//         } else {
+//             absolute_cap = Integer.parseInt(s);
+//             if (absolute_cap == 0) absolute_cap = Integer.MAX_VALUE;
+//         }
+
+//         nodepoolName = props.getStringProperty(k + "nodepool", null);                               // optional nodepool
+//         if (nodepoolName == null) {
+//             nodepoolName = NodePool.globalName;
+//         } 
+//     }
 
     public long getTimestamp()
     {
@@ -220,7 +260,7 @@ public class ResourceClass
         return use_prediction;
     }
 
-    public int getPredictionFudge()
+    public long getPredictionFudge()
     {
         return prediction_fudge;
     }
@@ -418,11 +458,10 @@ public class ResourceClass
 
     void removeJob(IRmJob j)
     {
-        String methodName = "removeJob";
         if ( ! allJobs.containsKey(j) ) {
             if ( j.isRefused() ) return;
 
-            logger.error(methodName, j.getId(), "Priority class", getName(), "cannot find job to remove.");
+            throw new SchedulingException(j.getId(), "Priority class " + getName() + " cannot find job to remove.");
         }
 
         allJobs.remove(j);

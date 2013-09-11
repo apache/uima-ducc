@@ -16,27 +16,29 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.rm.scheduler;
+package org.apache.uima.ducc.common.utils;
 
-import java.util.Map;
-
-import org.apache.uima.ducc.rm.scheduler.SchedConstants.EvictionPolicy;
-
-
-/**
- * Define the scheduling interface.  You can have any scheduler you want, as long
- * as it conforms to this thing.
- *
- * We're going to assume that the caller of this interface won't call it unless 
- * something has changed that might affect the current schedule.
- */
-public interface IScheduler
+public class IllegalConfigurationException
+    extends Exception
 {
-    public void schedule(SchedulingUpdate upd);
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-    public void setClasses(Map<ResourceClass, ResourceClass> classes);        // classes
+	public IllegalConfigurationException(String s)
+    {
+        super(s);
+    }
 
-    public void setNodePool(NodePool nodepool);
+    public IllegalConfigurationException(String s, Throwable cause)
+    {
+        super(s, cause);
+    }
 
-    public void setEvictionPolicy(EvictionPolicy p);
+    public IllegalConfigurationException(Throwable cause)
+    {
+        super(cause);
+    }
+
 }

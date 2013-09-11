@@ -308,8 +308,8 @@ class StartDucc(DuccUtil):
                 print "Can't read nodefile", nf
                 ok = False
 
-        if ok and (len(nodefiles) > 0):
-            if self.verify_class_configuration(nodes, must_verify_nodepools):
+        if ok and (len(nodefiles) == 1):
+            if self.verify_class_configuration(nodefiles[0], False):
                 print "OK: Class configuration checked"
             else:
                 print "NOTOK: Bad configuration, cannot start."

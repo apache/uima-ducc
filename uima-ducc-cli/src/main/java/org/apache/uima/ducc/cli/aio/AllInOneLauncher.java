@@ -391,7 +391,7 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, exit);
     }
     
-    private void examine_scheduling_class() throws MissingArgumentException {
+    private void examine_scheduling_class() throws Exception {
         String mid = "examine_scheduling_class";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.SchedulingClass.pname();
@@ -752,7 +752,7 @@ public class AllInOneLauncher extends CliBase {
         }
     }
     
-    private void examine() throws MissingArgumentException, IllegalArgumentException, IOException {
+    private void examine() throws Exception {
         String mid = "examine";
         mh.frameworkTrace(cid, mid, "enter");
         
