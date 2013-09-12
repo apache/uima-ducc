@@ -19,4 +19,7 @@
 package org.apache.uima.ducc.agent.processors;
 
 public abstract class BaseProcessor {
+	public void stop() {
+		
+	}
 }

@@ -86,7 +86,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
     processStatFile = new RandomAccessFile(processStatFilePath, "r");
     this.managedProcess = managedProcess;
     this.agent = agent;
-    pool = Executors.newFixedThreadPool(30);
+    pool = Executors.newCachedThreadPool();
     this.process = process;
     gcStatsCollector = new DuccGarbageStatsCollector(logger, process);
 
@@ -105,7 +105,16 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
     }
     closed = false;
   }
+  public void stop() {
+	  try {
+		  if ( pool != null ) {
+			  pool.shutdown();
+		  }
+	  } catch( Exception e) {
+          logger.error("LinuxProcessMetricsProcessor.stop()", null, e);
 
+	  }
+  }
   public void close() {
 	  closed = true;
     try {
@@ -115,7 +124,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
       if ( processStatFile != null && processStatFile.getFD().valid()) {
     	  processStatFile.close();
       }
-     
+      this.stop();
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -390,4 +399,5 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
      
     
   }
+  
 }

@@ -33,5 +33,10 @@ public class DefaultProcessMetricsProcessor implements ProcessMetricsProcessor {
 	}
 	public void process(Exchange arg0) throws Exception {
 	}
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

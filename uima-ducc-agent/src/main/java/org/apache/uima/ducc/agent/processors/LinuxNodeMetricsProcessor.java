@@ -59,7 +59,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			String loadAvgFilePath) throws FileNotFoundException {
 		super();
 		this.agent = agent;
-		pool = Executors.newFixedThreadPool(PROCFILES);
+		pool = Executors.newCachedThreadPool();
 		// open files and keep them open until stop() is called
 		memInfoFile = new RandomAccessFile(memInfoFilePath, "r");
 		loadAvgFile = new RandomAccessFile(loadAvgFilePath, "r");
