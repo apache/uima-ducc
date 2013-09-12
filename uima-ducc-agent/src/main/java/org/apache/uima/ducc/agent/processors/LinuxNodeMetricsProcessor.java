@@ -49,7 +49,6 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
     public static String[] MeminfoTargetFields = new String[] {"MemTotal:","MemFree:","SwapTotal:","SwapFree:"};
 
 	private NodeAgent agent;
-	private static final int PROCFILES = 8;
 	private final ExecutorService pool;
 	private RandomAccessFile memInfoFile;
 	private RandomAccessFile loadAvgFile;
