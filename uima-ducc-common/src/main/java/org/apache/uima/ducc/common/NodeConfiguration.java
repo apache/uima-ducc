@@ -663,7 +663,7 @@ public class NodeConfiguration
         }
 
         // map the child nodepools into their parents
-        for ( DuccProperties p : npmap.values() ) {
+        for ( DuccProperties p : nodepools ) {
             String parent = p.getStringProperty("parent", null);
             String name   = p.getStringProperty("name");
             if ( parent == null ) {
