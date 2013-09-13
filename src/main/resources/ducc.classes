@@ -12,8 +12,9 @@ Nodepool --default--  { }
 # Nnodepools may be defined with additional Nodepool statements.  For example here we define
 # a nodpool as a subpool of the default:
 #    Nodepool  subpool1 { parent = --default-- }
-# Here we define a second 'top-level' nodepool with no parent:
-#    Nodepool  toplevel1 {}
+# Here we define a second 'top-level' nodepool with no parent, consisting of the nodes defined
+# in the file toplevel1.nodes.
+#    Nodepool  toplevel1 { nodefile = toplevel1.nodes }
 
 
 # --------------------- Fair share definitions ---------------
