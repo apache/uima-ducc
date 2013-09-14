@@ -114,30 +114,34 @@ public class DuccHandlerUtils {
 		String retVal = "";
 		if(value != null) {
 			String tValue = value.trim();
+			String tPopup = popup;
+			if(tPopup != null) {
+				tPopup = popup.replace("\"", "&quot;");
+			}
 			if(tValue.equalsIgnoreCase(valueDown)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(openSpan(health_red, popup));
+				sb.append(openSpan(health_red, tPopup));
 				sb.append(tValue);
 				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
 			else if(tValue.equalsIgnoreCase(valueUp)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(openSpan(health_green, popup));
+				sb.append(openSpan(health_green, tPopup));
 				sb.append(tValue);
 				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
 			else if(tValue.equalsIgnoreCase(valuePoor)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(openSpan(health_red, popup));
+				sb.append(openSpan(health_red, tPopup));
 				sb.append(tValue);
 				sb.append(closeSpan());
 				retVal = sb.toString();
 			}
 			else if(tValue.equalsIgnoreCase(valueGood)) {
 				StringBuffer sb = new StringBuffer();
-				sb.append(openSpan(health_green, popup));
+				sb.append(openSpan(health_green, tPopup));
 				sb.append(tValue);
 				sb.append(closeSpan());
 				retVal = sb.toString();
