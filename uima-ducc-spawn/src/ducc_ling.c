@@ -35,13 +35,14 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/resource.h>
+#include <stdarg.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "0.8.8"
+#define VERSION "0.8.9"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -65,6 +66,7 @@
  * 2013-06-20 0.8.6 Show full environment being passed to exec-ed process. jrc
  * 2013-07-16 0.8.7 Agh.  MAX_COMPONENTS is restricting depth of directories too much and crashing!.  jrc
  * 2013-07-25 0.8.8 Allow unlimited path elements. jrc
+ * 2013-09-15 0.8.9 Common logging and -q option. jrc
  */
 
 /**
@@ -80,6 +82,8 @@
  */
 #define BUFLEN (PATH_MAX)
 #define STRLEN (BUFLEN-1)
+
+static int quiet = 0;
 
 struct limit_set
 {
@@ -109,18 +113,39 @@ struct limit_set limits[] = {
 };
 u_long limits_len = sizeof(limits) / sizeof (struct limit_set);
 
+void
+log_stdout(char *format, ...)
+{
+    if ( quiet ) return;
+
+	va_list pvar;
+	va_start(pvar, format);
+	vfprintf(stdout, format, pvar);
+	va_end(pvar);
+}
+
+void
+log_stderr(char *format, ...)
+{
+	va_list pvar;
+	va_start(pvar, format);
+	vfprintf(stderr, format, pvar);
+	va_end(pvar);
+}
+
 void version()
 {
-    fprintf(stdout, "050 ducc_ling Version %s compiled %s at %s\n", VERSION, __DATE__, __TIME__);
+    log_stdout("050 ducc_ling Version %s compiled %s at %s\n", VERSION, __DATE__, __TIME__);
 }
 
 
 void usage()
 {
-    fprintf(stderr, "999 Usage:\n");
-    fprintf(stderr, "999   ducc_ling <-v> <-u user> [-a] [-w workingdir] [-f filepath] -- program_name [program args]\n");
+    log_stderr("999 Usage:\n");
+    log_stderr("999   ducc_ling <-v> <-u user> [-q] [-a] [-w workingdir] [-f filepath] -- program_name [program args]\n");
     exit(1);
 }
+
 
 /**
  * Make a subdirectory.
@@ -134,15 +159,15 @@ int mksubdir(char *path)
 
     // if it exists and is a dir just return
     if ( stat(path, &statbuf) == 0 ) {
-        fprintf(stdout, "2210 Directory %s already exists.\n", path);
+        log_stdout("2210 Directory %s already exists.\n", path);
         if ( ! ( statbuf.st_mode & S_IFDIR) ) { 
-            fprintf(stderr, "2200 Log base %s is not a directory\n", path);
+            log_stderr("2200 Log base %s is not a directory\n", path);
             return 0;
         }
         return 1;
     }
 
-    fprintf(stdout, "2000 Creating directory %s\n", path);
+    log_stdout("2000 Creating directory %s\n", path);
     if ( mkdir(path, 0777) != 0 ) {
 
         if ( errno == EEXIST ) {
@@ -152,9 +177,9 @@ int mksubdir(char *path)
             // make the directory will now fail with "already exists".  So we simply repeat the
             // stat to make sure it's a directory and not a regular file.
             if ( stat(path, &statbuf) == 0 ) {
-                fprintf(stdout, "2210 Directory %s already exists.\n", path);
+                log_stdout("2210 Directory %s already exists.\n", path);
                 if ( ! ( statbuf.st_mode & S_IFDIR) ) { 
-                    fprintf(stderr, "2200 Log base %s is not a directory\n", path);
+                    log_stderr("2200 Log base %s is not a directory\n", path);
                     return 0;
                 }
                 return 1;
@@ -182,7 +207,7 @@ void concat(char *buf, const char *thing)
     // Shouldn't happen unless we're sloppy or being hacked. Die hard and fast.
     //
     if ( (strlen(buf) + strlen(thing) + 1 ) > BUFLEN ) {
-        fprintf(stderr, "3000 Buffer overflow: string length too long to concatenate %s and %s.  maxlen = %d\n",
+        log_stderr("3000 Buffer overflow: string length too long to concatenate %s and %s.  maxlen = %d\n",
                buf, thing, BUFLEN);
         exit(1);
     }
@@ -249,7 +274,7 @@ void show_env(char **envp)
 {
     int count = -1;
     while ( envp[++count] != NULL ) {
-        fprintf(stdout, "Environ[%d] = %s\n", count, envp[count]);
+        log_stdout("Environ[%d] = %s\n", count, envp[count]);
     }
 }
 
@@ -261,7 +286,7 @@ void query_limits()
     for ( i = 0; i < limits_len; i++ ) {
         getrlimit(limits[i].resource, &limstruct);
         char *name = limits[i].name+12;
-        fprintf(stdout, "4050 Limits: %10s soft[%lld] hard[%lld]\n", name, limstruct.rlim_cur, limstruct.rlim_max);            
+        log_stdout("4050 Limits: %10s soft[%lld] hard[%lld]\n", name, limstruct.rlim_cur, limstruct.rlim_max);            
     }
 }
 
@@ -269,10 +294,10 @@ void set_one_limit(char *name, int resource, rlim_t val)
 {
     struct rlimit limstruct;
     char * lim_name = &name[5];
-    fprintf(stdout, "4010 Setting %s to %lld\n", lim_name, val);   // ( bypass DUCC_ in the name. i heart c. )
+    log_stdout("4010 Setting %s to %lld\n", lim_name, val);   // ( bypass DUCC_ in the name. i heart c. )
     
     getrlimit(resource, &limstruct);
-    fprintf(stdout, "4020 Before: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);
+    log_stdout("4020 Before: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);
 
     // prep the message, which we may never actually use
     char buf[BUFLEN];
@@ -287,7 +312,7 @@ void set_one_limit(char *name, int resource, rlim_t val)
     }
     
     getrlimit(resource, &limstruct);
-    fprintf(stdout, "4040 After: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);    
+    log_stdout("4040 After: %s soft[%lld] hard[%lld]\n", lim_name, limstruct.rlim_cur, limstruct.rlim_max);    
 }
  
 void set_limits()
@@ -300,7 +325,7 @@ void set_limits()
              char *en = 0;
              rlim_t lim = strtoll(climit, &en, 10);             
              if (*en) {
-                 fprintf(stderr, "4000 %s is not numeric; core limit note set: %s\n", limits[i].name, climit);
+                 log_stderr("4000 %s is not numeric; core limit note set: %s\n", limits[i].name, climit);
                  return;
              }
              set_one_limit(limits[i].name, limits[i].resource, lim);
@@ -317,7 +342,7 @@ void renice()
         char *en = 0;
         niceval = strtol(nicestr, &en, 10);
     }
-    fprintf(stdout, "4050 Nice: Using %d\n", niceval);
+    log_stdout("4050 Nice: Using %d\n", niceval);
     int rc = nice(niceval);
     if ( rc < 0 ) {
        perror("4060 Can't set nice.");     
@@ -339,7 +364,7 @@ void redirect_to_file(char *filepath)
     //snprintf(buf, STRLEN, "%s/%s-%d.log", logdir, log, getpid());
     //buf[STRLEN] = '\0';
         
-    fprintf(stdout, "1200 Redirecting stdout and stderr to %s as uid %d euid %d\n", logfile, getuid(), geteuid());
+    log_stdout("1200 Redirecting stdout and stderr to %s as uid %d euid %d\n", logfile, getuid(), geteuid());
 
     fflush(stdout);
     fflush(stderr);
@@ -375,18 +400,18 @@ void redirect_to_socket(char *sockloc)
 
     colon = strchr(sockloc, ':');
     if ( colon == NULL ) {
-        fprintf(stderr, "1700 invalid socket, missing port: %s\n", sockloc);
+        log_stderr("1700 invalid socket, missing port: %s\n", sockloc);
         exit(1);
     }
     portname = colon+1;
     *colon = '\0';
     hostname = sockloc;
-    fprintf(stdout, "1701 host[%s] port[%s]\n", hostname, portname);
+    log_stdout("1701 host[%s] port[%s]\n", hostname, portname);
 
     char *en = 0;
     long lport = strtol(portname, &en, 10);
     if ( *en ) {
-        fprintf(stderr, "1702 Port[%s] is not numeric.\n", portname);
+        log_stderr("1702 Port[%s] is not numeric.\n", portname);
         exit(1);
     }
     port = lport;
@@ -399,10 +424,10 @@ void redirect_to_socket(char *sockloc)
     struct in_addr ip;
     //struct hostent *hp;    
     if (!inet_aton(hostname, &ip)) {
-        fprintf(stderr, "1703 Can't parse IP address %s\n", hostname);
+        log_stderr("1703 Can't parse IP address %s\n", hostname);
         exit(1);
     }
-    fprintf(stdout, "1704 addr: %x\n", ip.s_addr);
+    log_stdout("1704 addr: %x\n", ip.s_addr);
     
     struct sockaddr_in serv_addr;
     memset(&serv_addr, 0, sizeof(serv_addr));
@@ -410,19 +435,19 @@ void redirect_to_socket(char *sockloc)
     bcopy((char *)&ip.s_addr, (char *)&serv_addr.sin_addr.s_addr, sizeof(serv_addr.sin_addr.s_addr));
     serv_addr.sin_port = htons(port);
 
-    fprintf(stdout, "1705 About to connect\n");
+    log_stdout("1705 About to connect\n");
     sock = socket(AF_INET, SOCK_STREAM, 0);
     if (connect(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("1707 Error connecting to console socket.");
         exit(1);
     }
-    fprintf(stdout, "1706 Connected\n");
+    log_stdout("1706 Connected\n");
 
     struct sockaddr sockname;
     socklen_t namelen;
     if ( getsockname(sock, &sockname,  &namelen ) == 0 ) {
         struct sockaddr_in *sin = (struct sockaddr_in *) &sockname;
-        fprintf(stdout, "1708 Local port is %d\n", sin -> sin_port);
+        log_stdout("1708 Local port is %d\n", sin -> sin_port);
     } else {
         perror("1709 Cannot get local socket name");
         exit(1);
@@ -476,6 +501,7 @@ int do_append(char *filepath, int argc, char **argv)
  *                          to the **exact** file path specified in -f.  This 
  *                          provides an efficient way for DUCC to update some logs
  *                          in use space.
+ *       -q               - inhibit all informational messages (but not error messages)
  *       -v                 print version and exit
  *
  *     If -f is missing, no redirection is performed and no files are created.
@@ -494,15 +520,13 @@ int main(int argc, char **argv, char **envp)
     char buf[BUFLEN];
     int append = 0;
 
-    version();            // this gets echoed into the Agent's log
-
     // dont allow root to exec a process
     if ( getuid() == 0 ) {
-        fprintf(stderr, "400 Can't run ducc_ling as root\n");
+        log_stderr("400 Can't run ducc_ling as root\n");
     	exit(1);
     }
 
-    while ( (opt = getopt(argc, argv, "af:w:u:vh?") ) != -1) {
+    while ( (opt = getopt(argc, argv, "af:w:u:vqh?") ) != -1) {
         switch (opt) {
         case 'a':
             append = 1;
@@ -517,35 +541,42 @@ int main(int argc, char **argv, char **envp)
             workingdir = optarg;
             break;
         case 'v':
-            exit(0);      // version is already printed
+            version();
+            exit(0);  
+            break;
+        case 'q':
+            quiet = 1; 
             break;
         case 'h':
         case '?':
             usage();
         default:
-            fprintf(stderr, "100 Unrecognized argument %s\n", optarg);
+            log_stderr("100 Unrecognized argument %s\n", optarg);
             usage();
         }
     }
+
     argc -= optind;
     argv += optind;
 
+    version();            // this gets echoed into the Agent's log
+
     if ( userid == NULL ) {
-        fprintf(stderr, "200 missing userid\n");
+        log_stderr("200 missing userid\n");
         exit(1);
     } 
 
 
     if ( getenv("DUCC_CONSOLE_LISTENER") != NULL ) {
-        fprintf(stdout, "302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
+        log_stdout("302 Redirecting console into socket %s.\n", getenv("DUCC_CONSOLE_LISTENER"));
         redirect = 1;
     } else if ( filepath != NULL ) {
-        fprintf(stdout, "301 Redirecting console into file %s.\n", filepath);
+        log_stdout("301 Redirecting console into file %s.\n", filepath);
         redirect = 1;
     }
         
     // do this here before redirection stdout / stderr
-    fprintf(stdout, "0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
+    log_stdout("0 %d\n", getpid());                                         // code 0 means we passed tests and are about to dup I/O
     
     //	fetch "ducc" user passwd structure
     pwd = getpwnam("ducc");
@@ -556,17 +587,17 @@ int main(int argc, char **argv, char **envp)
         // Seems theres a bug in getpwuid and nobody seems to have a good answer.  On mac we don't
         // care anyway so we ignore it (because mac is supported for test only).
         if ( pwd == NULL ) {
-            fprintf(stdout, "600 No \"ducc\" user found and I can't find my own name.  Running as id %d", getuid());
+            log_stdout("600 No \"ducc\" user found and I can't find my own name.  Running as id %d", getuid());
         } else {
-            fprintf(stdout, "600 No \"ducc\" user found, running instead as %s.\n", pwd->pw_name);
+            log_stdout("600 No \"ducc\" user found, running instead as %s.\n", pwd->pw_name);
         }
 #else
-        fprintf(stdout, "600 No \"ducc\" user found, running instead as %s.\n", pwd->pw_name);
+        log_stdout("600 No \"ducc\" user found, running instead as %s.\n", pwd->pw_name);
 #endif
     } else if ( pwd->pw_uid != getuid() ) {
-        fprintf(stdout, "700 Caller is not ducc (%d), not switching ids ... \n", pwd->pw_uid);
+        log_stdout("700 Caller is not ducc (%d), not switching ids ... \n", pwd->pw_uid);
         pwd = getpwuid(getuid());
-        fprintf(stdout, "800 Running instead as %s.\n", pwd->pw_name);
+        log_stdout("800 Running instead as %s.\n", pwd->pw_name);
         //exit(0);
     } else {
         switch_ids = 1;
@@ -579,13 +610,13 @@ int main(int argc, char **argv, char **envp)
         pwd = getpwnam(userid);
 
         if ( pwd == NULL ) {
-            fprintf(stderr, "820 User \"%s\" does not exist.\n", userid);
+            log_stderr("820 User \"%s\" does not exist.\n", userid);
             exit(1);
         }
         
         //	dont allow to change uid to root.
         if ( pwd->pw_uid == 0 ) {
-            fprintf(stderr, "900 setuid to root not allowed. Exiting.\n");
+            log_stderr("900 setuid to root not allowed. Exiting.\n");
             exit(1);
         }
 
@@ -594,7 +625,7 @@ int main(int argc, char **argv, char **envp)
             buf[STRLEN] = '\0';
             perror(buf);
         } else {
-            fprintf(stdout, "830 Switched to group %d.\n", pwd-> pw_gid);
+            log_stdout("830 Switched to group %d.\n", pwd-> pw_gid);
         }
 
         if ( setuid(pwd->pw_uid) != 0 ) {
@@ -602,14 +633,14 @@ int main(int argc, char **argv, char **envp)
             buf[STRLEN] = '\0';
             perror(buf);
         } else {
-            fprintf(stdout, "840 Switched to user %d.\n", pwd-> pw_uid);
+            log_stdout("840 Switched to user %d.\n", pwd-> pw_uid);
         }
     }
 
     if ( redirect && ( filepath != NULL) ) {
         logfile = mklogfile(filepath);
     } else {
-        fprintf(stdout, "300 Bypassing redirect of log.\n");
+        log_stdout("300 Bypassing redirect of log.\n");
     } 
 
     if ( append ) {
@@ -631,7 +662,7 @@ int main(int argc, char **argv, char **envp)
             redirect_to_socket(console_port);
             if ( filepath != NULL ) {
                 // on console redirection, spit out the name of the log file it would have been
-                fprintf(stdout, "1002 CONSOLE_REDIRECT %s\n", logfile);
+                log_stdout("1002 CONSOLE_REDIRECT %s\n", logfile);
             }
         } else {
             redirect_to_file(filepath);
@@ -651,7 +682,7 @@ int main(int argc, char **argv, char **envp)
             perror(buf);
             exit(1);
         }
-        fprintf(stdout, "1120 Changed to working directory %s\n", workingdir);
+        log_stdout("1120 Changed to working directory %s\n", workingdir);
     }
     
     // 
@@ -664,19 +695,19 @@ int main(int argc, char **argv, char **envp)
         char *srchstring = "DUCC_LD_LIBRARY_PATH=";
         int len = strlen(srchstring);
         if ( strncmp(envp[env_index], srchstring, len) == 0 ) {
-            // fprintf(stdout, "3000 Found DUCC_LD_LIBRARY_PATH and it is %s\n", envp[env_index]);
+            // log_stdout("3000 Found DUCC_LD_LIBRARY_PATH and it is %s\n", envp[env_index]);
             pathstr = &envp[env_index];
             break;
         }
     }
     if ( pathstr == NULL ) {
-        fprintf(stdout, "3001 Did not find DUCC_LD_LIBRARY_PATH, not setting LD_LIBRARY_PATH.\n");
+        log_stdout("3001 Did not find DUCC_LD_LIBRARY_PATH, not setting LD_LIBRARY_PATH.\n");
     } else {
         //
         // We modify the variable in place.
         //
         char *val = getenv("DUCC_LD_LIBRARY_PATH");
-        //fprintf(stdout, "3002 Changing DUCC_LD_LIBRARY_PATH to LD_LIBRARY_PATH\n");
+        //log_stdout("3002 Changing DUCC_LD_LIBRARY_PATH to LD_LIBRARY_PATH\n");
         sprintf(*pathstr, "LD_LIBRARY_PATH=%s", val);
     }
     show_env(envp);
@@ -684,12 +715,12 @@ int main(int argc, char **argv, char **envp)
     //
     // Now just transmogrify into the requested command
     //
-    fprintf(stdout, "1000 Command to exec: %s\n", argv[0]);
+    log_stdout("1000 Command to exec: %s\n", argv[0]);
     for ( i = 1; i < argc; i++ ) {
-        fprintf(stdout, "    arg[%d]: %s\n", i, argv[i]);
+        log_stdout("    arg[%d]: %s\n", i, argv[i]);
     }
 
-    fprintf(stdout, "1001 Command launching...\n");
+    log_stdout("1001 Command launching...\n");
     fflush(stdout);
     fflush(stderr);
     execve(argv[0], argv, envp);                     // just run the passed-in command
