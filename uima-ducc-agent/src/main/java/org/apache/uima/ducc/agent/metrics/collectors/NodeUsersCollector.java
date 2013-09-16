@@ -182,13 +182,13 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
    * @param list
    * @return
    */
-  private boolean processAncestorIsAgent(String ppid, Set<RunningProcess> list) {
+  private boolean processAncestorIsOwnedByDucc(String ppid, Set<RunningProcess> list) {
 	  for( RunningProcess pi : list ) {
 		  if ( pi.getPid().equals(ppid) ) {
 			  if (  pi.getOwner().equalsIgnoreCase("ducc") ) {
 				  return true;
 			  } else {
-				  return processAncestorIsAgent(pi.getPpid(), list);
+				  return processAncestorIsOwnedByDucc(pi.getPpid(), list);
 			  }
 		  } 
 	  }
@@ -243,10 +243,28 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
       
       Set<RunningProcess> tempProcessList = 
               new HashSet<RunningProcess>();
+  
+      // To detect rogues there are two scans through process list:
+      // #1 - fills tempProcessList which will be used to check each
+      //     process parent if its own by ducc.
+      // #2 - the actual rogue process detection loop
+      
+      List<String> procList = new ArrayList<String>();
       // read the next line from ps output
       while ((line = reader.readLine()) != null) {
-
-        String tokens[] = line.split(regex);
+    	  // save line for subsequent processing in the for..loop below
+    	  procList.add(line);
+          String tokens[] = line.split(regex);
+          if ( tokens.length > 0 ) {
+          	RunningProcess p = 
+                      new RunningProcess(tokens[1],tokens[2],tokens[0]);
+            // add process to a list which is used to look up each process parent
+          	tempProcessList.add(p);
+          }
+      }
+      // the above loop filled tempProcessList, so now detect rogue processes.
+      for( String procInfo : procList) {
+        String tokens[] = procInfo.split(regex);
         String user = tokens[0];
         String pid = tokens[1];
         String ppid = tokens[2];
@@ -254,12 +272,12 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
 
         
         if ( tokens.length > 0 ) {
-        	RunningProcess p = 
-                    new RunningProcess(pid,ppid,user);
-            tempProcessList.add(p);
+//        	RunningProcess p = 
+//                    new RunningProcess(pid,ppid,user);
+//            tempProcessList.add(p);
             //	walk up the tree of ancestor processes to check if any is owned by ducc. If so, this
             //  process is not rogue.
-            if ( processAncestorIsAgent(pid, tempProcessList)) {
+            if ( processAncestorIsOwnedByDucc(pid, tempProcessList)) {
             	continue;  // skip as this is not a rogue process
             }
         	// Detect and skip all ducc daemons except uima-as service
@@ -300,7 +318,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
             }
             // add a process to a list of processes currently running on the node. The list will be used
             // to remove stale rogue processes at the end of this method
-            currentPids.add(tokens[1]);
+           // currentPids.add(tokens[1]);
             currentPids.add(pid);
             if ( logger == null ) {
             } else {
