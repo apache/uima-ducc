@@ -209,7 +209,7 @@ public class NodeConfiguration
     {
     	//String methodName = "readNodepoolFile";
         allNodefiles.put(npfile, npfile);
-        String ducc_home = System.getProperty("DUCC_HOME");
+        //String ducc_home = System.getProperty("DUCC_HOME");
         npfile = resolve(npfile);
 
         Map<String, String> response = new HashMap<String, String>();
