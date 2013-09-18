@@ -367,7 +367,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			// block waiting for the process to terminate.
 			exitCode = process.waitFor();
 			if ( !isKillCommand(cmdLine) ) {
-				logger.info(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), ">>>>>>>>>>>>> Process with PID:"+((ManagedProcess)super.managedProcess).getDuccProcess().getPID()+" Terminated");
+				logger.info(methodName, ((ManagedProcess)super.managedProcess).getDuccId(), ">>>>>>>>>>>>> Process with PID:"+((ManagedProcess)super.managedProcess).getDuccProcess().getPID()+" Terminated. Exit Code:"+exitCode);
 				//	 Process is dead, determine if the cgroup container should be destroyed as well.
 				if ( agent.useCgroups ) { 
 					String containerId = getContainerId();
