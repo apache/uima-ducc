@@ -19,25 +19,7 @@
 
 # Usage: 
 # Where
-# This program is an example of launching remote java processes via DUCC
-# It assumes that the DUCC runtime is in /home/ducc/ducc_runtime
-# To change to a different runtime, use -DDUCC_HOME=alternative-ducc-runtme
-
-# To use from eclipse, put a soft link to this file in $JAVA_HOME/bin/
-# and then specify java-viaducc as an alternate java executable
-# in the eclipse run_configuration 
-
-# This progam can also be used from the command line by adding
-# -Dduccremotejvmdir=SOME_JVM_DIR_PATH
-# pointing to a JVM_DIR on the remote systems
-
-# Other options available are:
-# -Dduccmemorysize=N
-# -Dduccclass=SOME_CLASS
-
-# and to specify ENV parameters ENV1 and ENV2 to be set for the remote process,
-# preset a local ENV parameter DUCC_REMOTE_ENVIRONMENT="ENV1=foo ENV2=bar"
-
+#
 import sys
 import os
 import re
