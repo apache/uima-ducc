@@ -19,9 +19,7 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.BufferedReader;
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -1115,8 +1113,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
+				String userId = duccWebSessionManager.getUserId(request);
 				WorkItemStateManager workItemStateManager = new WorkItemStateManager(job.getLogDirectory()+jobNo);
-				workItemStateManager.importData();
+				workItemStateManager.importData(userId);
 				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateManager.getMap();
 			    if( (map == null) || (map.size() == 0) ) {
 			    	sb.append("no data (map empty?)");
@@ -1257,8 +1256,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
+				String userId = duccWebSessionManager.getUserId(request);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
-			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary();
+			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(userId);
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
 			    	sb.append("no data (map empty?)");
 			    }
@@ -1461,9 +1461,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
-				Properties usProperties = DuccFile.getUserSpecifiedProperties(job);
-				Properties fsProperties = DuccFile.getFileSpecifiedProperties(job);
-				Properties properties = DuccFile.getJobProperties(job);
+				String userId = duccWebSessionManager.getUserId(request);
+				Properties usProperties = DuccFile.getUserSpecifiedProperties(job, userId);
+				Properties fsProperties = DuccFile.getFileSpecifiedProperties(job, userId);
+				Properties properties = DuccFile.getJobProperties(job, userId);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
 				while(enumeration.hasMoreElements()) {
@@ -1503,8 +1504,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append("<br>");
 				sb.append("<br>");
 			}
-			catch(Exception e) {
-				duccLogger.warn(methodName, null, e);
+			catch(Throwable t) {
+				duccLogger.warn(methodName, null, t);
 				sb = new StringBuffer();
 				sb.append("no data");
 			}
@@ -1684,9 +1685,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob managedReservation = getManagedReservation(reservationNo);
 		if(managedReservation != null) {
 			try {
-				Properties usProperties = DuccFile.getUserSpecifiedProperties(managedReservation);
-				Properties fsProperties = DuccFile.getFileSpecifiedProperties(managedReservation);
-				Properties properties = DuccFile.getManagedReservationProperties(managedReservation);
+				String userId = duccWebSessionManager.getUserId(request);
+				Properties usProperties = DuccFile.getUserSpecifiedProperties(managedReservation, userId);
+				Properties fsProperties = DuccFile.getFileSpecifiedProperties(managedReservation, userId);
+				Properties properties = DuccFile.getManagedReservationProperties(managedReservation, userId);
 				TreeMap<String,String> map = new TreeMap<String,String>();
 				Enumeration<?> enumeration = properties.keys();
 				while(enumeration.hasMoreElements()) {
@@ -1726,8 +1728,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append("<br>");
 				sb.append("<br>");
 			}
-			catch(Exception e) {
-				duccLogger.warn(methodName, null, e);
+			catch(Throwable t) {
+				duccLogger.warn(methodName, null, t);
 				sb = new StringBuffer();
 				sb.append("no data");
 			}
@@ -2800,18 +2802,34 @@ public class DuccHandler extends DuccAbstractHandler {
 		String fname = request.getParameter("fname");
 		sb.append(fname);
 		sb.append("</h3>");
+		InputStreamReader isr = null;
+		BufferedReader br = null;
 		try {
-			FileInputStream fis = new FileInputStream(fname);
-			DataInputStream dis = new DataInputStream(fis);
-			BufferedReader br = new BufferedReader(new InputStreamReader(dis));
+			String userId = duccWebSessionManager.getUserId(request);
+			isr = DuccFile.getInputStreamReader(fname, userId);
+			br = new BufferedReader(isr);
 			String logLine;
 			while ((logLine = br.readLine()) != null)   {
 					sb.append(logLine+"<br>");
 			}
-			br.close();
 		}
 		catch(FileNotFoundException e) {
 			sb.append("File not found");
+		}
+		catch(Throwable t) {
+			sb.append("Error accessing file");
+		}
+		finally {
+			try {
+				br.close();
+			}
+			catch(Throwable t) {
+			}
+			try {
+				isr.close();
+			}
+			catch(Throwable t) {
+			}
 		}
 		sb.append("</body>");
 		sb.append("</html>");
