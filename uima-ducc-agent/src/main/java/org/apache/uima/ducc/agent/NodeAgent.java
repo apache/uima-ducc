@@ -199,6 +199,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     }
     /* Enable CGROUPS */
     String cgroups;
+    String cgUtilsPath=null;
     boolean excludeNodeFromCGroups = false;
     if (!virtualAgent
             && (cgroups = System.getProperty("ducc.agent.launcher.cgroups.enable")) != null) {
@@ -229,7 +230,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
         if (!excludeNodeFromCGroups) {
         	//	fetch a list of paths the agent will search to find cgroups utils
         	//  like cgexec. The default location is /usr/bin
-        	String cgUtilsPath=null;
+        	
         	String cgroupsUtilsDirs = System.getProperty("ducc.agent.launcher.cgroups.utils.dir");
             if (cgroupsUtilsDirs == null) {
             	cgUtilsPath = "/usr/bin";  // default
@@ -285,7 +286,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       logger.info("nodeAgent", null, "------- CGroups Not Enabled on this Machine");
     }
     logger.info("nodeAgent", null, "CGroup Support=" + useCgroups + " excludeNodeFromCGroups="
-            + excludeNodeFromCGroups + " excludeAPs=" + excludeAPs);
+            + excludeNodeFromCGroups + " excludeAPs=" + excludeAPs+" CGroups utils Dir:"+cgUtilsPath);
 
     String useSpawn = System.getProperty("ducc.agent.launcher.use.ducc_spawn");
     if (useSpawn != null && useSpawn.toLowerCase().equals("true")) {

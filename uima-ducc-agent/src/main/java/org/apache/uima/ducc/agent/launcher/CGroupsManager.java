@@ -62,7 +62,9 @@ public class CGroupsManager {
 			e.printStackTrace();
 		}
 	}
-
+	public String getCGroupsUtilsDir( ){
+		return cgroupUtilsDir;
+	}
 	public CGroupsManager(String cgroupUtilsDir, String cgroupBaseDir, String cgroupSubsystems,
 			DuccLogger agentLogger) {
 		this.cgroupUtilsDir = cgroupUtilsDir;

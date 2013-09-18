@@ -171,7 +171,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 						}
 
 					    String[] cgroupCmd = new String[cmd.length+3];
-						cgroupCmd[0] = "/usr/bin/cgexec";
+						cgroupCmd[0] = agent.cgroupsManager.getCGroupsUtilsDir()+"/cgexec";
 						cgroupCmd[1] = "-g";
 						cgroupCmd[2] = agent.cgroupsManager.getSubsystems()+":ducc/"+containerId;
 						int inx = 3;
