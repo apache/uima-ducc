@@ -51,6 +51,36 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 		return map;
 	}
 	
+	public PerformanceMetricsSummaryMap readJsonGz(String userId) throws IOException, ClassNotFoundException {
+		PerformanceMetricsSummaryMap map = new PerformanceMetricsSummaryMap();
+		JobPerformanceSummaryData data = null;
+		if(data == null) {
+			try {
+				data = jsonGz.importData(userId);
+			}
+			catch(Exception e) {
+			}
+		}
+		if(data == null) {
+			try {
+				data = jsonGz.importData();
+			}
+			catch(Exception e) {
+			}
+		}
+		Integer casCount = data.getCasCount();
+		map.putCasCount(casCount);
+		ConcurrentSkipListMap<String, JobPerformanceSummary> gzMap = data.getMap();
+		Set<Entry<String, JobPerformanceSummary>> entries = gzMap.entrySet();
+		for(Entry<String, JobPerformanceSummary> entry : entries) {
+			String key = entry.getKey();
+			IJobPerformanceSummary jps = entry.getValue();
+			PerformanceMetricsSummaryItem value = new PerformanceMetricsSummaryItem(jps.getName(),jps.getUniqueName(),jps.getAnalysisTime(),jps.getNumProcessed(),jps.getAnalysisTimeMin(),jps.getAnalysisTimeMax());
+			map.putItem(key, value);
+		}
+		return map;
+	}
+	
 	@Deprecated
 	private boolean legacy = true;
 	
@@ -76,6 +106,21 @@ public class PerformanceSummaryReader extends PerformanceSummaryBase {
 		PerformanceMetricsSummaryMap map = null;
 		try {
 			map = readJsonGz();
+			return map;
+		}
+		catch(Exception e) {
+			if(!legacy) {
+				e.printStackTrace();
+			}
+		}
+		map = readSer();
+		return map;
+	}
+	
+	public PerformanceMetricsSummaryMap readSummary(String userId) {
+		PerformanceMetricsSummaryMap map = null;
+		try {
+			map = readJsonGz(userId);
 			return map;
 		}
 		catch(Exception e) {
