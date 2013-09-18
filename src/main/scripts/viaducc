@@ -17,20 +17,33 @@
 #   specific language governing permissions and limitations
 #   under the License.
 
-# Usage: 
-# Where
 #
+# To use this to execute your Eclipse workspace, install as a symbolic link in your
+# JRE/bin directory, with the name java_viaducc, linking back to the base version
+# of viaducc in your ducc_runtime.
+#
+# Then configre your Eclipse's launch JRE to use java_viaducc in place of 'java'
+
 import sys
 import os
 import re
 
-ducc_mem_size = 30
+global ducc_mem_size
+global default_jvm
+
 ducc_class = 'fixed'
 java_cmd   = None
 ducc_home  = None       # tbd in a minute
-ducc_env   = ''
+
+# get the default DUCC_HOME right away for message
+realpath = os.path.realpath(sys.argv[0])
+ndx = realpath.rindex('/')
+ndx = realpath.rindex('/', 0, ndx)
+ducc_home = realpath[:ndx]
+print 'DUCC_HOME is ', ducc_home
        
 def usage():
+
     print "Usage: viaducc [defines] [command and parameters]"
     print "  -or-"
     print "       java_viaducc [defines] [java-class and parameters]"
@@ -40,7 +53,7 @@ def usage():
     print "       The default is -DDUCC_MEMORY_SIZE="+str(ducc_mem_size)
     print""
     print "   -DDUCC_HOME=alternative-DUCC-runtime"
-    print "       The default is -DDUCC_HOME=" + DEFAULT_JAVA_HOME
+    print "       The default is -DDUCC_HOME=" + ducc_home
     print ""
     print "   -DDUCC_CLASS=ducc-scheduling-class"
     print "       The default is -DDUCC_CLASS=" + ducc_class
@@ -51,6 +64,7 @@ def usage():
     print ""
     print "   -DJAVA_BIN=specific-java-bin-directory"
     print "       For use with java_viaducc.  Details follow."
+    print "       The default is -DJAVA_BIN=" + default_jvm
     print ""
     print "   When invoked as 'viaducc' the command is executed in a DUCC-managed resource"
     print "with the console (bi-directionally) redirected to the submitter's console."
@@ -74,15 +88,22 @@ def usage():
     sys.exit(0)
 
 # where should I get java from?
-def get_java(ducc_properties):
+def read_properties():
+    ducc_properties = ducc_home + '/resources/ducc.properties'
+    if ( not os.path.exists(ducc_properties) ):
+        print "Cannot access DUCC_HOME at " + ducc_home
+        sys.exit(1)
+
+    ducc_jvm = None
     # first see if i'm executed out of some JAVA_HOME somewhere
     jpath = os.path.abspath(sys.argv[0])    
     ndx = jpath.rindex('/')
     jdir = jpath[:ndx]
     java = jdir + '/java'
     if ( os.path.exists(java)):
-        return java
+        ducc_jvm = java
 
+    ducc_mem     = 4
     # nope, we'll use the default ducc java
     props = open(ducc_properties)
     try:
@@ -92,12 +113,25 @@ def get_java(ducc_properties):
             if ( mobj ):
                 key = line[:mobj.start()].strip()
                 val = line[mobj.end():].strip()
-                if ( key == 'ducc.jvm' ):       # yes!
-                    return val
+                if ( (ducc_jvm == None) and (key == 'ducc.jvm') ):       # yes!
+                    ducc_jvm = val
+                    continue
+                if ( key == 'ducc.rm.share.quantum' ):       # yes!
+                    ducc_mem = val
+                    continue
     finally:
         props.close();
 
+    return (ducc_jvm, ducc_mem)
+
 def main():
+
+    global ducc_mem_size
+    global default_jvm
+
+    p = read_properties()
+    default_jvm = p[0]
+    ducc_mem_size = p[1]
 
     if ( len(sys.argv) == 1 ):
         usage()
@@ -124,6 +158,7 @@ def main():
     for arg in sys.argv[1:]:
  
         if (arg in ('-h', '-?', '-help', '--help') ):
+            # have to wait for parsing the args to look up DUCC_HOME so we defer emitting the message
             usage()
        
         elif (arg.startswith(p_mem_size) ):
@@ -144,25 +179,13 @@ def main():
         else:
             ducc_args.append("'" + arg + "'")
 
-    if ( ducc_home == None ):
-        # must resolve it
-        realpath = os.path.realpath(sys.argv[0])
-        ndx = realpath.rindex('/')
-        ndx = realpath.rindex('/', 0, ndx)
-        ducc_home = realpath[:ndx]
-        print 'DUCC_HOME is ', ducc_home
-
-    ducc_properties = ducc_home + '/resources/ducc.properties'
-    if ( not os.path.exists(ducc_properties) ):
-        print "Cannot access DUCC_HOME at " + ducc_home
-        sys.exit(1)
-
     if ( need_java and (java_cmd == None) ):
-        java_cmd = get_java(ducc_properties)        
+        java_cmd = default_jvm
         if ( (java_cmd == None) or (java_cmd == '') ):
             print "Cannot figure out where java is"
             sys.exit(1);
 
+    
     CMD = ducc_home + '/bin/ducc_process_submit'
     CMD = CMD +       ' --process_attach_console'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
@@ -188,7 +211,7 @@ def main():
 
     print CMD
 
-    rc = os.system(CMD)
-    sys.exit(rc);
+    #rc = os.system(CMD)
+    #sys.exit(rc);
 
 main()
