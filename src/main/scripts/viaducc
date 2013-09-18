@@ -30,6 +30,7 @@ import re
 
 global ducc_mem_size
 global default_jvm
+global ducc_home
 
 ducc_class = 'fixed'
 java_cmd   = None
@@ -128,6 +129,7 @@ def main():
 
     global ducc_mem_size
     global default_jvm
+    global ducc_home
 
     p = read_properties()
     default_jvm = p[0]
@@ -139,7 +141,6 @@ def main():
     ducc_mem_size = 30
     ducc_class = 'fixed'
     java_cmd   = None
-    ducc_home  = None
     ducc_env   = ''
 
     # remember to add the '=' at the end of these
@@ -190,7 +191,7 @@ def main():
     CMD = CMD +       ' --process_attach_console'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
     CMD = CMD +       ' --scheduling_class ' + ducc_class
-    CMD = CMD +       ' --description ' + sys.argv[0]
+#    CMD = CMD +       ' --description ' + sys.argv[0]
     CMD = CMD +       ' --wait_for_completion'
     CMD = CMD +       ' --cancel_on_interrupt'
     CMD = CMD +       ' --working_directory ' + os.getcwd()
@@ -211,7 +212,7 @@ def main():
 
     print CMD
 
-    #rc = os.system(CMD)
-    #sys.exit(rc);
+    rc = os.system(CMD)
+    sys.exit(rc);
 
 main()
