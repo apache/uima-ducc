@@ -329,6 +329,9 @@ public class JobManagerConverter
         IDuccStandardInfo   sti = job.getStandardInfo();
         
         String name       = sti.getDescription();
+        if ( name == null ) {
+            name = "A Job With No Name.";
+        }
         String user_name  = sti.getUser();
         j.setUserName(user_name);
         j.setJobName(name);
