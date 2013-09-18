@@ -30,7 +30,9 @@ import java.lang.reflect.Type;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.IOHelper;
+import org.apache.uima.ducc.common.utils.Utils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -43,11 +45,14 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 	
 	private Gson gson = new Gson();
 	
+	private String ducc_ling = 
+			Utils.resolvePlaceholderIfExists(
+					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+	
 	public JobPerformanceSummaryJsonGz(String directory) {
 		initialize(directory);
 	}
 	
-
 	public void initialize(String directory) {
 		this.filename = IOHelper.marryDir2File(directory,job_performance_summary_json_gz);
 	}
@@ -133,5 +138,24 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 	    }
 		return data;
 	}
-
+	
+	public JobPerformanceSummaryData importData(String userid) throws IOException, ClassNotFoundException {
+		JobPerformanceSummaryData data = new JobPerformanceSummaryData();
+		if(userid == null) {
+			data = importData();
+		}
+		else {
+			try {
+				AlienFile alienFile = new AlienFile(userid, filename, ducc_ling);
+				String json = alienFile.getString();
+				Type typeOfMap = new TypeToken<JobPerformanceSummaryData>() { }.getType();
+				data = gson.fromJson(json, typeOfMap);
+			}
+			catch(Throwable t) {
+				// TODO
+			}
+		}
+		return data;
+	}
+	
 }

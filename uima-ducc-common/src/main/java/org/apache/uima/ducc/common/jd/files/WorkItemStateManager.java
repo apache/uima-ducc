@@ -59,10 +59,15 @@ public class WorkItemStateManager {
 		pSer.exportData(map);
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void importData() throws IOException, ClassNotFoundException {
+		String userId = null;
+		importData(userId);
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void importData(String userId) throws IOException, ClassNotFoundException {
 		try {
-			map = pJsonGz.importData();
+			map = pJsonGz.importData(userId);
 			return;
 		}
 		catch(Exception e) {

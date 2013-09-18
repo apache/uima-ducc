@@ -31,7 +31,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.IOHelper;
+import org.apache.uima.ducc.common.utils.Utils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -43,6 +45,10 @@ public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 	private String filename = null;
 	
 	private Gson gson = new Gson();
+	
+	private String ducc_ling = 
+			Utils.resolvePlaceholderIfExists(
+					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
 	
 	public WorkItemStateJsonGz(String directory) {
 		initialize(directory);
@@ -136,4 +142,24 @@ public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 		return map;
 	}
 
+	
+	public ConcurrentSkipListMap<Long, IWorkItemState> importData(String userid) throws IOException, ClassNotFoundException {
+		ConcurrentSkipListMap<Long, IWorkItemState> map = new ConcurrentSkipListMap<Long, IWorkItemState>();
+		if(userid == null) {
+			map = importData();
+		}
+		else {
+			try {
+				AlienFile alienFile = new AlienFile(userid, filename, ducc_ling);
+				String json = alienFile.getString();
+		        Type typeOfMap = new TypeToken<ConcurrentSkipListMap<Long, WorkItemState>>() { }.getType();
+				map = gson.fromJson(json, typeOfMap);
+			}
+			catch(Throwable t) {
+				// TODO
+			}
+		}
+		return map;
+	}
+	
 }
