@@ -982,7 +982,13 @@ implements Orchestrator {
 					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
 					OrchestratorCheckpoint.getInstance().saveState();
 					// state: WaitingForServices
-					stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
+					JobState nextState = JobState.WaitingForServices;
+					if(duccWorkJob.getServiceDependencies() == null) {
+						String message = messages.fetch("bypass")+" "+nextState;
+						logger.debug(methodName, duccWorkJob.getDuccId(), message);
+						nextState = JobState.WaitingForResources;
+					}
+					stateJobAccounting.stateChange(duccWorkJob, nextState);
 					OrchestratorCheckpoint.getInstance().saveState();
 					// prepare for reply to submitter
 					properties.put(JobRequestProperties.key_id, duccWorkJob.getId());
