@@ -87,7 +87,8 @@
     Each factory-created representation comprises appropriate information as follows:
     
     \begin{itemize}
-    
+      \item
+
       \begin{itemize}
       \item standard information
         \begin{itemize}
@@ -99,6 +100,9 @@
           \item date of completion (initially \varNull)
           \item description (text supplied by user)
         \end{itemize} 
+
+
+
       \item scheduling information
         \begin{itemize}
           \item scheduling class
@@ -145,13 +149,17 @@
         \begin{itemize}
           \item See job process information above.
         \end{itemize} 
+
       \item managed reservation information
         TBD      
       \item unmanaged reservation information
         TBD          
+
     \end{itemize} 
-    
-    \subsubsection{Checkpoint Supervisor} 
+  \end{itemize}    
+
+
+  \subsubsection{Checkpoint Supervisor} 
     
     The Checkpoint Supervisor provides functions to save and restore state information
     to/from persistent storage. State is stored whenever a significant change occurs.

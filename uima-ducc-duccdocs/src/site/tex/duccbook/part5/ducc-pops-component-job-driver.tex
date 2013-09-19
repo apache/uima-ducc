@@ -34,16 +34,21 @@
         \item The \varJobDriver~module is the main thread.        
         It setups and executes the \varJobDriver~runtime environment.
         \begin{itemize} 
+
           \item{initialize}
             \begin{description}
-            The initialize method sets-up all the machinery to
+            \item The initialize method sets-up all the machinery to
             fetch and process \varCASes.
             \end{description}
+
           \item{run}
-          \begin{description}
-            The run method manages all the machinery to
-            fetch and process \varCASes.
-          \end{description}
+
+            \begin{description}
+              \item The run method manages all the machinery to
+              fetch and process \varCASes.
+            \end{description}
+
+
           \begin{itemize} 
             \item{wait for eligibility}
               \begin{description}
@@ -51,30 +56,30 @@
               \end{description}
             \item{initialize \varUIMAAS~client}
               \begin{description}
-                Create an instance and one thread client for each corresponding \varJobProcess thread.
+                \item Create an instance and one thread client for each corresponding \varJobProcess thread.
               \end{description}
             \item{queue \varWorkItems}
               \begin{description}
-                While terminate conditions are absent, repeat the process of queuing one work item for each thread, then sleeping for an interval, then rechecking for termination and performing additional queuing.
+                \item While terminate conditions are absent, repeat the process of queuing one work item for each thread, then sleeping for an interval, then rechecking for termination and performing additional queuing.
               \end{description}
           \end{itemize} 
         \end{itemize} 
         \end{description}
       \item{Job Driver Component}
         \begin{description}
-        This module initializes the \varJobDriver function,
+          \item This module initializes the \varJobDriver function,
         receives and evaluates \ORMaps with respect to
         continuance or termination of the \varJobDriver,
         and triggers publication of \varJobDriver status reports.
         \end{description}
       \item{Job Driver Terminate Exception}
         \begin{description}
-          This module provides a means to identify the exception and
+          \item This module provides a means to identify the exception and
           possible reason for same when the \varJobDriver~abnormally terminates.
         \end{description}
       \item{Synchronized Stats}
         \begin{description}
-          This module provides a method for the \varJobDriver~to accumulate
+          \item This module provides a method for the \varJobDriver~to accumulate
           statistics in a thread safe manner. 
           Per \varWorkItem~statistics are maintained and produced:
         \end{description}
@@ -159,7 +164,7 @@
             
       \item{\varWorkItem}
         \begin{description}
-        The \varWorkItem~represents one \varCAS~to be processed, normally by one of the
+        \item The \varWorkItem~represents one \varCAS~to be processed, normally by one of the
         distributed \varUIMA pipelines.
           \begin{itemize}
             \item Manage and track the lifecycle of a \varWorkItem~steps:
@@ -179,24 +184,26 @@
         \end{description}  
       
       \item{\varWorkItem~Listener}
+        \item
         \begin{description}
+          \item
           \begin{itemize}
             \item onBeforeMessageSend
               \begin{description}
-                Process callback that indicates work item has been placed on MQ queue and
+                \item Process callback that indicates work item has been placed on MQ queue and
                 is awaiting grab by a \varJP.
               \end{description} 
             \item onBeforeProcessCAS
               \begin{description}
-                Process callback that indicates work item has been grabbed from MQ queue and
+                \item Process callback that indicates work item has been grabbed from MQ queue and
                 is active in a \varUIMA~pipeline.
                 The associated node and \varLinux~process identity are provided.
               \end{description} 
           \end{itemize}  
         \end{description}  
       
-    \end{itemize}
-        \end{description}  
+
+
         
     \end{itemize}  
     
