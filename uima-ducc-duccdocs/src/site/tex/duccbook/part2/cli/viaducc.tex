@@ -1,0 +1,59 @@
+% Create well-known link to this spot for HTML version
+\ifpdf
+\else
+\HCode{<a name='DUCC_VIADUCC'></a>}
+\fi
+    \section{viaducc and java\_viaducc}
+    \label{sec:cli.viaducc}
+
+    \paragraph{Description:}
+        Viaducc is a small script wrapper around the \hyperref[sec:cli.ducc-process-submit]{\em
+          ducc\_process\_submit } CLI to facilitate execution of Eclipse workspaces directly in DUCC,
+        and to provide a simple interface to submit arbitrary processes.
+
+        When run as the command ``viaducc'', the arguments are bundled into the form expected by
+        \hyperref[sec:cli.ducc-process-submit]{\em ducc\_process\_submit } and submits the command
+        to DUCC.
+
+        When run as the command ``java\_viaducc'', the arguments are assumed to be a Java classname
+        and its arguments.  This is passed for execution by DUCC via DUCC's default JRE, or
+        optionally, a specific JRE supplied by the user.
+
+        If ``java\_viaducc'' is installed as a symbolic link from the local JRE/bin directory to the
+        ``viaducc'' command in the DUCC runtime/bin directory, it may be specified as an alternative
+        to the ``java'' command in an eclipse launcher.  The remote stdin and stdout of the deployed
+        DUCC process are redirected to your Eclipse console.  This provides essentially transparent
+        execution of code in your Eclipse workspaces in DUCC-managed resources.
+
+    \paragraph{Usage:}
+\begin{verbatim}
+     viaducc [defines] [command and parameters]"
+\end{verbatim}
+     or
+\begin{verbatim}
+     java_viaducc [defines] [java-class and parameters]"
+\end{verbatim}
+
+     The ``defines'' are described below.  The ``command and parameters'' are either any command
+     (with full path) and it's arguments, or a Java class (with a ``main'') and its arguments (including
+     the classpath if necessary.)
+
+     \paragraph{Defines}
+
+     The arguments are specified in the syntax of Java ``-D'' system properties, to be more consistent
+     with execution under Eclipse.
+     \begin{description}
+         \item[-DDUCC\_MEMORY\_SIZE] This specifies the memory required, in GB.  If not specified, the
+           smallest memory quanta configured for the scheduler is used.
+         \item[-DDUCC\_CLASS] This is the scheduling class to submit the process to.  It should generally
+           be a non-preemptable class.  If not specified, it defaults to class ``fixed''.
+         \item[-DDUCC\_ENVIRONMENT] This species additional environment parameters to pass to the job.
+           It should specify a quoted string of blank-delimeted K=V environment values.  For example:
+\begin{verbatim}
+      -DDUCC_ENVIRONMENT="DUCC_RLIMIT_NOFILE=1000 V1=V2 A=B"
+\end{verbatim}
+         \item[-DJAVA\_BIN] This species the exact ``java'' command to use, for ``java\_viaducc''.  it
+           must be a full path to some JRE that is known to be installed on all the DUCC nodes.  If not
+           specified, the JRE used to run ducc is uses.
+    \end{description}
+        

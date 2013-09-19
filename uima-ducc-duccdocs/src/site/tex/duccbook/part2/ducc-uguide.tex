@@ -44,7 +44,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
 
     The DUCC CLI parameters are now described in detail.
 
-    \paragraph{The DUCC Job Descriptor}
+    \subsection{The DUCC Job Descriptor}
     The DUCC Job Descriptor includes properties to enable automated management and scale-out 
     over large computing clusters.  The job descriptor includes
     \begin{itemize}
@@ -57,8 +57,38 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
       \item Debugging and monitoring requirements and preferences
     \end{itemize}
   
+    \subsection{Operating System Limit Support}
+    The CLI supports specification of operating system limits applied to the various job processes.
+    To specify a limit, pass the name of the limit and its value in the {\em environment} specified
+    in the job.  Limits are named with the string ``DUCC\_RLIMIT\_name'' where ``name'' is the name of
+    a specific limit.  Supported limits include:
+    \begin{itemize}
+       \item DUCC\_RLIMIT\_CORE    
+       \item DUCC\_RLIMIT\_CPU    
+       \item DUCC\_RLIMIT\_DATA   
+       \item DUCC\_RLIMIT\_FSIZE  
+       \item DUCC\_RLIMIT\_MEMLOCK
+       \item DUCC\_RLIMIT\_NOFILE 
+       \item DUCC\_RLIMIT\_NPROC  
+       \item DUCC\_RLIMIT\_RSS    
+       \item DUCC\_RLIMIT\_STACK  
+       \item DUCC\_RLIMIT\_AS        
+       \item DUCC\_RLIMIT\_LOCKS     
+       \item DUCC\_RLIMIT\_SIGPENDING
+       \item DUCC\_RLIMIT\_MSGQUEUE  
+       \item DUCC\_RLIMIT\_NICE      
+       \item DUCC\_RLIMIT\_STACK     
+       \item DUCC\_RLIMIT\_RTPRIO   
+    \end{itemize}
+    See the Linux documentation for details on the meanings of these limits and their values.
 
-    \paragraph{Command  Line Forms}
+    For example, to set the maximum number of open files allowed in any job process, specify 
+    an environment similar to this when submitting the job:
+\begin{verbatim}
+     ducc_job_submit .... --environment="DUCC_RLIMT_NOFILE=1024" ...
+\end{verbatim}
+    
+    \subsection{Command  Line Forms}
     The Command Line Interface is provided in several forms:
 
     \begin{enumerate}
@@ -70,7 +100,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     silently.  When invoking a command's {\tt class} directly, the java {\tt CLASSPATH}
     must include the uima-ducc-cli.jar, as illustrated in the wrapper scripts.
 
-    \paragraph{Provided Commands}
+    \subsection{DUCC Commands}
     The following commands are provided:
     \begin{description}
     \item[ducc\_submit] Submit a job for execution.
@@ -83,6 +113,8 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     \item[ducc\_services] Register, unregister, start, stop, modify, and query a service.
     \item[ducc\_view\_perf] Fetch performance data from the log and history files for analysis
       by spreadsheets, etc.
+    \item[viaducc] This is a script wrapper to facilitate execution of Eclipse workspaces as
+      DUCC jobs as well as general execution of arbitrary processes in DUCC-managed resources.
     \end{description}
     
     The next section describes these commands in detail.
@@ -100,6 +132,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     \input{part2/cli/ducc-process-cancel.tex}
     \input{part2/cli/ducc-services.tex}
     \input{part2/cli/ducc-perf-stats.tex}
+    \input{part2/cli/viaducc.tex}
 
 
 % Create well-known link to this spot for HTML version
