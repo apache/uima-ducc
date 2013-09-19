@@ -7,7 +7,7 @@
             are usually managed by DUCC but need not be.
           \item A service is accompanied by a small program called a ``pinger'' that
             the DUCC Service Manager uses to gauge the availability and health of the
-            service.  This process must always be supplied to DUCC; however, DUCC will
+            service.  This pinger must always be be present; however, DUCC will
             supply a default pinger for UIMA-AS services.
       \end{itemize}
 
@@ -17,12 +17,12 @@
       The DUCC service manager implements several high-level functions:
       
       \begin{itemize}
-          \item Insure services are available for jobs before allowing the jobs to start. This fail-fast
-            prevents unnecessary allocation of resources (with potential eviction of healthy processes)
+          \item Insure services are available for jobs before allowing the jobs to start. This is a fail-fast
+            to prevent unnecessary allocation of resources (with potential eviction of healthy processes)
             for jobs that can't run, as well as quick feedback to users that something is amiss.
       
           \item Manage the start-up and management of services: allocate resources, spawn the
-            processes, insure the processes stay alive, handle errors, etc.
+            processes, manage the pingers, insure the processes stay alive, handle errors, etc.
       
           \item Report on the state and availability of services.
        \end{itemize}
@@ -42,6 +42,11 @@
             and declare it in the service registration.            
       \end{description}
 
+      DUCC also supports the concept of a service that is not managed by DUCC.  For example, a
+      database or a search engine may be better managed with other facilities.  In order to manage
+      dependencies by jobs on this type of service, DUCC supports a CUSTOM service that supplies
+      only a ``pinger'' and no other process.  This is known as a ``ping-only'' service.
+
       \section{Service References and Endpoints} 
       \label{sec:service.endpoints}
       Services are referenced by an entity called a service
@@ -55,7 +60,7 @@
       The {\em service-type} must be either UIMA-AS or CUSTOM.
       
       The {\em unique id and contact information} is any string needed to insure the service is
-      uniquely named.  This string is passed to the service pinger and must contain sufficient
+      uniquely named.  This string is passed to the service pinger and may contain 
       information for the pinger to contact the service.  For UIMA-AS services, service endpoint is
       inferred by the CLI by inspection of the UIMA-AS service's DD XML descriptor.  The UIMA-AS
       service endpoint is always of the form:
@@ -73,9 +78,8 @@
       
       \section{Service Classes.} 
       \label{sec:service.classes}
-      Services may be started externally to DUCC, explicitly through DUCC as with
-      \hyperref[sec:cli.service-submit]{ducc\_service\_submit}, or as registered services.  It is
-      also possible to register a ``ping-only'' service that has no process managed by DUCC,
+      Services may be started externally to DUCC, or as registered services.  It is
+      possible to register a ``ping-only'' CUSTOM service that has no process managed by DUCC,
       consisting only of a pinger.  To distinguish among the various behaviours and management
       mechanisms for service we define a number of {\em service classes}.
 
@@ -85,9 +89,12 @@
       referenced by a job's {\em service\_dependency} parameter.  Such a service is called
       an {\em implicit} service.
 
-      On submission of a job with a dependency on a service, the SM sets up a "ping" thread based on the
+      If the service dependency is a UIMA-AS service, or if it is a registered CUSTOM service,
+      the SM sets up a "ping" thread based on the
       service endpoint of the dependency to discover if the service exists at the endpoint. If so,
-      the SM updates its list of known services and marks the job "ready to schedule".
+      the SM updates its list of known services and marks the job "ready to schedule".  If neither
+      of these cases is true the job is ``refused'' by the Service Manager, causing DUCC to cancel
+      the job.
 
       When jobs referencing implicit services exit, a timer is set and DUCC continues to monitor the
       service against the possibility that subsequent jobs will need it. Once the last job using the
@@ -115,30 +122,22 @@
       A CUSTOM pinger is written to an interface defined by the DUCC API.  The pinger may perform
       any action needed to determine if the CUSTOM service is active and responsive and may return
       a string for display in the web server, summarizing service statistics.
-      
-      
-      \subsection{Submitted Services.} A \hyperref[sec:cli.service-submit]{submitted service} is a
-      service that is submitted to DUCC with the ducc\_service\_submit CLI.  Both UIMA-AS and
-      CUSTOM services may be submitted for execution by DUCC. Because DUCC is managing this service
-      it can provide more support than for implicit services.  However, DUCC does not persist the
-      service definition. If a submitted service exits involuntarily (crashes), DUCC will make
-      some number of attempts to restart it.  If the configured restart count is exceeded DUCC
-      will stop the service.
-
-      A submitted service is intended for short-term services, and for easy debugging of services.
-      To persist a service over system restarts and other failures, services must be registered.
-      
+            
       \subsection{Registered Services.} \hyperref[sec:cli.ducc-services]{Registered services} are
       fully managed by DUCC. A service is registered with DUCC using the
       \hyperref[sec:cli.ducc-services]{ducc\_services} CLI. Service registrations are persisted by
       DUCC and last over DUCC and cluster restarts.
 
+      Note that if an incoming job references a service that is not registered and which is not
+      responsive to the default pinger, that job is marked ``Services Unavailable'' and canceled
+      by the system.
+
       There are several variants on Registered Services:
       \begin{description}
 
-        \item[Autostarted Services] An autostarted service is a registered service that is flagged to be
+        \item[Autostarted Services] An autostarted service is a registered service that is
           automatically started when the DUCC system is started. When DUCC is started, the SM checks the
-          service registry for all service that are marked for automatic start-up.  If flagged for autostart,
+          service registry for all service that are marked for automatic start-up.  If registered for autostart,
           the DUCC Service Manager submits the registered number of instances
           on behalf of the registering user.  If an instance should die, DUCC automatically restarts
           the instance.  Short of massive failures, DUCC will insure the service is always running
@@ -156,10 +155,6 @@
           again soon.)  When the keep-alive timer expires, and there are no more dependent
           jobs or services, the on-demand service is automatically stopped to free up its resources for
           other work.
-
-          Note that if an incoming job references a service that is not registered and which is not
-          responsive to the default pinger, that job is marked ``Services Unavailable'' and canceled
-          by the system.
 
         \item[Ping-Only Services] 
           \phantomsection\label{subsub:services.ping-only}
@@ -198,20 +193,23 @@
       ping directives.
 
       \subsection{Implementing a Pinger}
-      Pingers must implement the class {\tt org.apache.uima.ducc.common.AServicePing}.  The abstract class
+      Pingers must implement the class {\tt org.apache.uima.ducc.cli.AServicePing}.  The abstract class
       is shown below.
       \begin{figure}[H]
 \begin{verbatim}
-package org.apache.uima.ducc.common;
+import org.apache.uima.ducc.common.IServiceStatistics;
 
 public abstract class AServicePing
 {
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.
+     * @param arguments This is passed in from the service specification's
+     *                  service_ping_arguments string.
+     *
      * @param endpoint This is the name of the service endpoint, as passed in
      *                 at service registration.
      */
-    public abstract void init(String endpoint)  throws Exception;
+    public abstract void init(String arguments, String endpoint)  throws Exception;
 
     /**
      * Stop is called by the ping wrapper when it is being killed.  Implementors may optionally
@@ -221,58 +219,89 @@ public abstract class AServicePing
 
     /**
      * Returns the object with application-derived health and statistics.
-     * @return {@link ServiceStatistcs} This object contains the informaton the service manager and web server require
+     * @return This object contains the informaton the service manager and web server require
      *     for correct management and display of the service.
      */
-    public abstract ServiceStatistics getStatistics();
-    
+    public abstract IServiceStatistics getStatistics();    
 }
+
 \end{verbatim}
         \caption{Service Ping Abstract Class}
         \label{fig:service.abstract.pinger}
 
       \end{figure}
-      
-      The ServiceStatistics class defines these methods:
-      \begin{description}
-        \item[ServiceStatistics(boolean alive, boolean healthy, String info)] This is the constructor.
-          \begin{description}
-            \item[boolean alive] Set this to ``true'' if the service is responsive.  If a pinger responds
-              ``false'' (or does not respond), the Service Manager will assume the service is unavailable
-              and will not allow jobs dependent on this service to start.  (Dependent jobs that are already
-              started are allowed to continue, but are annotated in the web server, such that developers
-              will know the job may not be functioning because of the service.)
-            \item[boolean healthy] The pinger may perform analysis on the service to determine whether
-              the service is ``healthy'' or not.  This is strictly subjective and is used by the
-              Service Manager only for reporting to the web server.
-            \item[String info] This is any string in any format.  The pinger sets health and availability
-              data into it for display in the webserver.  For example, the default UIMA-AS pinger sets
-              ActiveMQ service statistics into this string.)
-          \end{description}
-          
-          \item[void setAlive(boolean alive)] Set the ``aliveness'' of the service.
+ 
+      Here we show the class {\em org.apache.uima.ducc.common.IServiceStatistics}.  Custom pingers must
+      implement this class and return an instance in response to AServicePing.getStatistics().  A default
+      ServiceStatistics class is provide and may be used by custom pingers as
+      {\em org org.apache.uima.ducc.cliServiceStatistics}.  See the Javadoc for more complete details
+      of these classes.
 
-          \item[void setUnhealthy(boolean val)] Set the ``healthiness'' of the service.
-            
-          \item[void setInfo(String info)] update the service information string.
-      \end{description}
-
-      A sample CUSTOM pinger is shown below. The pinger assumes a simple
-      service port that, on connection, returns an integer.  If the connect and read of the integer succeeds,
-      the ping is marked successful.   This assumes the service endpoint is of the form
+      \begin{figure}[H]
 \begin{verbatim}
-      CUSTOM:hostname:port
+public interface  IServiceStatistics
+    extends Serializable
+{
+
+    /**
+     * Query whether the service is alive. This is used internally by the Service Manager.
+     *
+     * @return "true" if the service is responsive, "false" otherwise.
+     */
+    public boolean isAlive();
+
+    /**
+     * Query wether the service is "healthy". This is used internally by the Service Manager.
+     * @return "true" if the service is healthy, "false" otherwise.
+     */
+    public boolean isHealthy();
+
+    /**
+     * Return service statistics, if any. This is used internally by the Service Manager.
+     * @return A string containing information regarding the service. 
+     */
+    public String  getInfo();
+
+    /**
+     * Set the "aliveness" of the service.  This is called by each pinger for each service.  Set
+     *  this to return "true" if the service is responsive.  Otherwise return "false" so the Service
+     *  Manager can reject jobs dependent on this service.
+     * @param alive Set to "true" if the service is responseve, "false" otherwise.
+     */
+    public void setAlive(boolean alive);
+ 
+    /**
+     * Set the "health" of the service.  This is called by each pinger for each service.  This is a
+     * subject judgement made by the service owner on behalf of his own service.  This is used only
+     * to reflect status in the DUCC Web Server.
+     * @param healthy Set to "true" if the service is healthy, "false" otherwise.
+     */
+    public void setHealthy(boolean healthy);
+
+    /**
+     * Set the monitor statistics for the service. This is any arbitray string describing critical
+     * or useful characteristics of the service.  This string is presented as a "hover" in the
+     * webserver over the "health" field.
+     * @param info This is an arbitrary string summarizing the service's performance. 
+     */
+    public void setInfo(String info);
+
+}
 \end{verbatim}
-      where ``hostname'' is the name of a host where the custom service is running, and ``port'' is
-      a TCP/IP port the service uses to respond to pings.
-      
+        \caption{ISeriveStatistics Interface}
+        \label{fig:service.iservicestatistics}
+
+      \end{figure}
+
+      Below is a sample CUSTOM pinger for a hypothetical service that returns four integers in
+      response to a ping.
       \begin{figure}[H]
 \begin{verbatim}
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.net.Socket;
-import org.apache.uima.ducc.common.AServicePing;
-import org.apache.uima.ducc.common.ServiceStatistics;
+import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.cli.ServiceStatistics;
 
 public class CustomPing
     extends AServicePing
@@ -280,6 +309,8 @@ public class CustomPing
     String host;
     String port;
     public void init(String endpoint) throws Exception {
+        // Parse the service endpoint, which is a String of the form 
+        //    host:port
         String[] parts = endpoint.split(":");
         host = parts[1];
         port = parts[2];
@@ -287,11 +318,13 @@ public class CustomPing
 
     public void stop()  {  }
 
-    public long readLong(DataInputStream dis) throws Exception {
+    private long readLong(DataInputStream dis) throws Exception {
         return Long.reverseBytes(dis.readLong());
     }
 
     public ServiceStatistics getStatistics() {
+        // Contact the service, interpret the results, and return a state
+        // object for the service.
         ServiceStatistics stats = new ServiceStatistics(false, false,"<NA>");
         try {
             Socket sock = new Socket(host, Integer.parseInt(port));
@@ -319,13 +352,13 @@ public class CustomPing
       This section provides the information needed to use the pinger API and build a
       custom pinger. 
 
-      \paragraph{Establish compile CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
+      \paragraph{1. Establish compile CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
 \begin{verbatim}
-      $DUCC_HOME/lib/uima-ducc-common.jar
+      $DUCC_HOME/lib/uima-ducc-cli.jar
 \end{verbatim}      
       This provides the definition for the {\em AServicePing} and {\em ServiceStatistics} classes.
 
-      \paragraph{Create a registration}Next, create a service registration for the pinger.  While
+      \paragraph{2. Create a registration}Next, create a service registration for the pinger.  While
       debugging, set the directive
 \begin{verbatim}
       service_ping_dolog = true
@@ -347,19 +380,17 @@ public class CustomPing
      description              = Ping-only service
      service_request_endpoint = CUSTOM:localhost:7175
      service_ping_class       = CustomPing
-     service_ping_classpath   = /myhome/CustomPing.class:/home/ducc/ducc_runtime/lib/uima_ducc_common.jar
+     service_ping_classpath   = /myhome/CustomPing.class:/home/ducc/ducc_runtime/lib/uima_ducc_cli.jar
      service_ping_dolog       = true
      service_ping_timeout     = 500
-     scheduling_class         = fixed
+     service_ping_aruments    = Arg1 Arg2
+     service_ping_jvm_args   = -DXmx50M
 \end{verbatim}
        
-      \paragraph{Register and start the pinger} Start up your custom service so the pinger has something to connect to, and then start
+      \paragraph{3. Register and start the pinger} Start up your custom service so the pinger has something to contact, then start
       the pinger.  It may be easier to debug the pinger if you initially start the service outside of DUCC. Once
-      the pinger is working it is straightforward to integrate it into the pinger's service registration.
-\begin{verbatim}
-/home/ducc/ducc_runtime/bin/ducc_services --register myping.svc
-/home/ducc/ducc_runtime/bin/ducc_services --start CUSTOM:localhost:7175
-\end{verbatim}
+      the pinger is working it is straightforward to integrate it into the pinger's service registration by merging
+      the registration for the pinger with the registration for the service.
 
       That's it!  Check the web server to make sure the service ``comes alive''.  Check your pinger's
       debugging log if it doesn't.  Once registered, you can stop and start the pinger at will using
@@ -369,9 +400,10 @@ public class CustomPing
 \end{verbatim}
      where $<$serviceid$>$ is the id returned when you registered the pinger.
 
-     \paragraph{If all else fails ...}
-     If your pinger does not work and you cannot determine the reason, it may be useful to check
-     the Service Manager's log for clues.  The Service Manager's log is found in
+     \paragraph{4. f all else fails ...}
+     If your pinger does not work and you cannot determine the reason, be sure you enable {\em service\_ping\_dolog} and
+     look in your log directory, as most problems with pingers are reflected there.  As a last resort, you can
+     inspect the the Service Manager's log in
 \begin{verbatim}
     $DUCC_HOME/logs/sm.log
 \end{verbatim}
