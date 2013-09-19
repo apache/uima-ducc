@@ -209,7 +209,12 @@ class DuccBase:
         # print '**** spawn', cmd, '****'
         ducc = subprocess.Popen(cmd, shell=True)
         pid = ducc.pid
-        status = os.waitpid(pid, 0)
+        try:
+            status = os.waitpid(pid, 0)
+        except KeyboardInterrupt:
+            print 'KeyboardInterrupt'
+        except:
+            print "Unexpected exception: ", sys.exc_info()[0]
         return pid
 
     def popen(self, *CMD):
