@@ -835,6 +835,11 @@ implements Orchestrator {
 					Thread.sleep(1000);
 				}
 				// prepare for reply to submitter
+				try {
+					properties.put(ReservationReplyProperties.key_message, duccWorkReservation.getCompletionRationale().getText());
+				}
+				catch(Throwable t) {
+				}
 				properties.put(ReservationRequestProperties.key_id, duccWorkReservation.getId());
 				// node list
 				properties.put(ReservationRequestProperties.key_node_list, "");

@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.transport.event.SubmitReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitReservationReplyDuccEvent;
+import org.apache.uima.ducc.transport.event.cli.ReservationReplyProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 
 
@@ -36,6 +37,7 @@ public class DuccReservationSubmit
     ReservationRequestProperties requestProperties = new ReservationRequestProperties();
 	
 	private String nodeList = "";
+	private String info = "";
 	
     /**
      * @param args Array of string arguments as described in the 
@@ -114,7 +116,17 @@ public class DuccReservationSubmit
         if ( rc ) { 
         	nodeList = reply.getProperties().getProperty(UiOption.ReservationNodeList.pname());
         }
-
+        
+        if((nodeList.trim()).length() == 0) {
+        	Properties properties = reply.getProperties();
+            if(properties != null) {
+            	String key = ReservationReplyProperties.key_message;
+            	if(properties.containsKey(key)) {
+            		info = properties.getProperty(key);
+            	}
+            }
+        }
+        
         return rc;
     }
 
@@ -155,8 +167,12 @@ public class DuccReservationSubmit
                 
                 // Fetch the Ducc ID
             	System.out.println("Process " + ds.getDuccId() + " submitted.");
-                System.out.println("resID = " + ds.getDuccId());
-                System.out.println("nodes: "  + ds.getHostsAsString());
+                System.out.println("resID = " + ds.getDuccId() + " "+ds.info);
+                String nodes = ds.getHostsAsString().trim();
+                if(nodes.length() == 0) {
+                	nodes = "none";
+                }
+                System.out.println("nodes: "  + nodes);
             	System.exit(0);
             } else {
                 System.out.println("Could not submit reservation.");
