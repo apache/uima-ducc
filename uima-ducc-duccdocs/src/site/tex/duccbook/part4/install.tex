@@ -32,7 +32,13 @@ Both single and multi-user configurations have the following software pre-requis
 \begin{itemize}
   \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
   \item Reasonably current Linux.  DUCC has been tested on SLES 10.2, 11.1, and 11.2, and RHEL 6.3.
-  \item For CGroupt support, libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL.
+    
+    {\em Note:} On some systems the {\em user limits} are defined too low for DUCC.  You must insure that
+      the {\em hard limits} for user ``ducc'' are set correctly.  Specifically the thread limit {\em ulimit -u}
+      should be set to at least {\em 20000} and the number of open file descriptors {\em ulimit -n} should be set
+      to at least {\em 8192}.
+
+  \item For CGroupt support, libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL.  
   \item IBM or Oracle Java JRE 1.6 or greater.
   \item Python 2.x, where 'x' is 4 or greater.  DUCC has not been tested on Python 3.x.
 \end{itemize}
