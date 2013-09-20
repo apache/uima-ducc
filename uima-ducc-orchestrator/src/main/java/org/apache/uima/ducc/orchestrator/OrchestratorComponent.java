@@ -810,6 +810,12 @@ implements Orchestrator {
 				logger.error(methodName, null, error_message);
 				submitError(properties, error_message);
 			}
+			else if(!Validate.accept(duccEvent)) {
+				//String error_message = messages.fetch(" type=accept error, text=system is not configured to accept requests of this type.");
+				String error_message = messages.fetch("Request was not accepted: System is configured to refuse reservations.");
+				logger.error(methodName, null, error_message);
+				submitError(properties, error_message);
+			}
 			else if(Validate.request(duccEvent)) {
 				DuccWorkReservation duccWorkReservation = reservationFactory.create(common,(ReservationRequestProperties)properties);
 				long t0 = System.currentTimeMillis();

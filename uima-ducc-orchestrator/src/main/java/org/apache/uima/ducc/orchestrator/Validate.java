@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.orchestrator.utilities.MemorySpecification;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
@@ -126,6 +127,12 @@ public class Validate {
 		return retVal;
 	}
 	
+	public static boolean accept(SubmitReservationDuccEvent duccEvent) {
+		String value = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_unmanaged_reservations_accepted);
+		Boolean result = new Boolean(value);
+		return result;
+	}
+		
 	public static boolean request(SubmitReservationDuccEvent duccEvent) {
 		boolean retVal = true;
 		ReservationRequestProperties properties = (ReservationRequestProperties) duccEvent.getProperties();
