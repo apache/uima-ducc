@@ -13,28 +13,26 @@
     \begin{description}
         \item[Managed Jobs]
             Managed jobs are Java applications implemented in the UIMA framework. 
-            They are scaled out by DUCC using UIMA-AS. Managed jobs are executed as some 
+            and are scaled out by DUCC using UIMA-AS. Managed jobs are executed as some 
             number of discrete processes distributed over the cluster resources. All processes of all jobs 
             are by definition preemptable; the number of processes is allowed to increase and decrease 
             over time in order to provide all users access to the computing resources. 
         \item[Services]
             Services are long-running processes which perform some function on behalf of 
-            jobs or other services. Most DUCC services are UIMA-AS services and are managed the 
-            same as managed jobs. From a scheduling point of view, there is no difference between 
-            services and managed jobs. 
+            jobs or other services. Most DUCC services are UIMA-AS assigned to a non-preemptable 
+            resource class, as defined below.
 
         \item{Reservations}
-            A reservation provides persistent, dedicated use of some portion of the 
-            resources to a specific user. A reservation may be for an entire machine, or it may be for 
-            some portion of a machine. Machines are subdivided according to the amount of memory 
-            installed on the machine. 
-            The work that DUCC is designed to support is extremely memory-intensive. In most cases 
-            resources are significantly more constrained by memory than by CPU processing poser. The entire 
-            resource pool in a DUCC cluster therefore consists of the total memory of all the processors in the           
-            cluster. 
+            A reservation provides non-preemptable, persistent, dedicated use of a full machine or
+            some part of a machine to a specific user.
 
         \item{Arbitrary Processes}
-            \todo Define these.
+            An {\em arbitrary process} or {\em managed reservation} is any process at all, which may
+            or may not have anything to do with UIMA.  These processes are usually used for services,
+            or to launch very large Eclipse work-spaces for debugging.  DUCC supports this type of 
+            process but is not optimized for it.  These processes are usually scheduled to be 
+            non-preemptable, occupying either a dedicated machine or some portion of a machine.
+
       \end{description}
           
     In order to apportion the cumulative memory resource among requests, the Resource Manager 
@@ -72,9 +70,9 @@
     an equal number of shares. This weighed adjustment of fair-share assignments is called weighted 
     fair share. 
     
-    The abstraction used to organized jobs by importance is the job class or simply class. As jobs enter 
+    The abstraction used to organized jobs by importance is the job class or simply ``class''. As jobs enter 
     the system they are grouped with other jobs of the same importance and assigned to a common 
-    class. The class and its attributes are described in subsequent sections. 
+    class. The class abstraction and its attributes are described in \hyperref[sec:rm.job-classes]{subsequent sections}. 
     
     The scheduler executes in two phases: 
     \begin{enumerate}
@@ -98,15 +96,18 @@
           user may have jobs in more than one class, in which case that user's fair share is calculated
           independently within each class.
           
-        \item Job counts: For each user (independently within each class), collect all the jobs
-          assigned to that user and apply fair-share to equally divide all the user's shares among
-          their jobs. This apportions all shares given to this user for each class among the user's
-          jobs in that class.  Reservations are relatively simple. If the number of shares or
-          machines requested is available or can be made available through preemption of fair-share
-          jobs, the reservation is satisfied and resources are allocated. If not, the reservation
-          fails. In the case where preemptions are required, the reservation is delayed until all
-          necessary resources have been freed.
+        \item Job counts: For each user, collect all jobs
+          assigned to that user and equally divide all the user's shares among
+          the jobs. This apportions all shares given to this user for each class among the user's
+          jobs in that class. 
     \end{enumerate}
+
+    Reservations are relatively simple. If the number of shares or machines requested is available
+    the reservation succeeds immediately.  If a sufficient number of co-located shares can be made
+    available through preemption of fair-share jobs, preemptions are scheduled and the reservation
+    is deferred until space becomes available.  resources are allocated. If space cannot be found by
+    means of preemption, the reservation fails.
+
 
     \section{Scheduling Policies}
 
@@ -115,22 +116,39 @@
         \item[FAIR\_SHARE] This is the weighted-fair-share policy described in detail above.
 
         \item[FIXED\_SHARE] The FIXED\_SHARE policy is used to reserve a portion of a machine. The
-          allocation is treated as a reservation in that it is permanently allocated (until it is
-          canceled) and it cannot be preempted by any other request.
+          allocation is non-preemptable and remains active until it is canceled.
 
-          A fixed-share request specifies a number of processes of a given size, for example, "10 
+          FIXED\_SHARE allocations have several uses:
+          \begin{itemize}
+            \item As reservations.  In this case DUCC starts no work in the share(s); the user must
+              log in (or run something via ssh), and then manually release the reservation to free
+              the resources.  This is often used for testing and debugging.
+            \item For services.  If a service is registered to run in a FIXED\_SHARE allocation,
+              DUCC allocates the resources, starts and manages the service, and releases the
+              resource if the service is stopped or unregistered.
+            \item For UIMA jobs.  A ``normal'' UIMA job may be submitted to a FIXED\_SHARE
+              class.  In this case, the processes are never preempted, allowing constant and
+              predictable execution of the job.  The resources are automatically released when
+              the job exits.
+          \end{itemize}
+          
+          {\em Note:} A fixed-share request specifies a number of processes of a given size, for example, "10 
           processes of 32GB each". The ten processes may or may not be collocated on the same 
           machine. Note that the resource manager attempts to minimize fragmentation so if there is a 
           very large machine with few allocations, it is likely that there will be some collocation of the 
           assigned processes. 
           
-          A fixed-share allocation may be thought of a reservation for a "partial" machine. 
-
+          {\em Note:} A fixed-share allocation may be thought of a reservation for a "partial" machine. 
+          
         \item[RESERVE] The RESERVE policy is used to reserve a full machine. It always returns an
           allocation for an entire machine. The reservation is permanent (until it is canceled) and
           it cannot be preempted by any other request.
 
-          It is possible to configure the scheduling policy so that a reservation returns any machine in 
+          Reservations may also be used for services or UIMA jobs in the same way as FIXED\_SHARE 
+          allocations, the difference being that a reservation occupies full machines and FIXED\_SHARE
+          occupies portions of a machine.
+
+          {\em Note:} It is possible to configure the scheduling policy so that a reservation returns any machine in 
           the cluster that is available, or to restrict it to machines of the size specified in the reservation 
           request. 
     \end{description}
@@ -142,20 +160,21 @@
     high importance jobs. Priorities are used to resolve these conflicts
 
     Simply: priority is used to specify the order of evaluation of the job classes. Weight is used
-    to specify the importance (or weights) of the job classes for use by the weighted fair-share
-    scheduling policy.
+    to proportionally allocate the number of shares to each class under the weighted fair-share
+    policies.
 
     \paragraph{Priority.} It is possible that conflicts may arise in scheduling policies. For example, it may be
     desired that reservations be fulfilled before any fair-share jobs are scheduled. It may be
     desired that some types of jobs are so important that when they enter the system all other
     fair-share jobs be evicted. Other such examples can be found.
     
-    To help resolve this, the Resource Manager allows job classes to be prioritized. Priority is
+    To resolve this, the Resource Manager allows job classes to be prioritized. Priority is
     used to determine the order of evaluation of the scheduling classes.
     
     When a scheduling cycle starts, the scheduling classes are ordered from "best" to "worst" priority. 
     The scheduler then attempts to allocate ALL of the system's resources to the "best" priority class. 
-    If any resources are left, the scheduler goes on to the next class and so on, until either all the 
+    If any resources are left, the scheduler proceeds to schedule classes in the next best
+    priority, and so on, until either all the 
     resources are exhausted or there is no more work to schedule. 
     
     It is possible to have multiple job classes of the same priority. What this means is that resources 
@@ -165,16 +184,13 @@
     
     To constrain high priority jobs from completely monopolizing the system, class caps may be 
     assigned. Higher priority guarantees that some resources will be available (or made available) but 
-    doesn't that that all resources necessarily be used. 
+    doesn't require that all resources necessarily be used. 
 
     \paragraph{Weight.} Weight is used to determine the relative importance of jobs in a set of job classes of 
     the same priority when doing fair-share allocation. All job classes of the same priority are assigned 
     shares from the full set of available resources according to their weights using weighted fair-share. 
     Weights are used only for fair-share allocation. 
     
-    Class caps may also be used to insure that very high importance jobs cannot fully monopolize all of 
-    the resources in the system. 
-
     \section{Node Pools}
     It may be desired or necessary to constrain certain types of resource allocations to a specific
     subset of the resources. Some nodes may have special hardware, or perhaps it is desired to
@@ -183,35 +199,28 @@
 
     Nodepools impose hierarchical partitioning on the set of available machines. A nodepool is a
     subset of the full set of machines in the cluster. Nodepools may not overlap. A nodepool may
-    itself contain non-overlapping subpools. The highest level nodepool is called the "global"
-    nodepool. If a job class does not have an associated nodepool, the global nodepool is implicitly
-    associated with he class.
+    itself contain non-overlapping subpools.  It is possible to define and schedule work to
+    multiple, independent nodepools.
 
-    Nodepools are associated with job classes. During scheduling, a job may be assigned resources
+    Job classes are associated with nodepools. During scheduling, a job may be assigned resources
     from its associated nodepool, or from any of the subpools which divide the associated nodepool.
     The scheduler attempts to fully exhaust resources in the associated nodepool before allocating
     within the subpools, and during eviction, attempts to first evict from the subpools. The
     scheduler insures that the nodepool mechanism does not disrupt fair-share allocation.
-
-    If it is desired that jobs assigned to some subpool take priority over jobs that have spilled
-    over from the "superpool", then the class associated with the subpool should be given greater
-    weight, or greater priority, as appropriate. (See the Weight vs Priority discussion.)
-
-    There is no explicit priority associated with nodepools. However, it is possible to assign a
-    "preference" to a specific nodepool, if it is desired that those nodes be chosen first when the
-    are available. Use the nodepool configurations "order" directive to do this.
+    
+    More information on nodepools and their configuration can be \hyperref[subsec:nodepools]{found here}.
 
     \section{Job Classes}
     \label{sec:rm.job-classes}
     The primary abstraction to control and configure the scheduler is the class. A class is simply a set 
-    of rules used to parameterize how resources are assigned to jobs. Every job that enters the system is 
-    associated with one job class. 
+    of rules used to parametrize how resources are assigned to jobs. Every job that enters the system is 
+    associated with a single job class. 
     
     The job class defines the following rules: 
     
     \begin{description}
         \item[Priority] This is the order of evaluation and assignment of resources to this class. See
-          the discussion ofPriority vs Weight for details. 
+          the discussion of priority vs Weight for details. 
 
         \item[Weight] This defines the "importance" of jobs in this class and is used in the weighted
           fair-share calculations. 
@@ -219,7 +228,7 @@
         \item[Scheduling Policy] This defines the policy, fair share, fixed share, or reserve used to
           schedule the jobs in this class.
 
-        \item[Caps] Class caps limit the total resources assigned to a class. This is designed to prevent
+        \item[Cap] Class caps limit the total resources assigned to a class. This is designed to prevent
           high importance and high priority job classes from fully monopolizing the resources. It can be
           used to limit the total resources available to lower importance and lower priority classes.
 
@@ -273,3 +282,4 @@
           classes for either policy.
     \end{description}
         
+    More information on nodepools and their configuration can be \hyperref[subsubsec:class.configuration]{found here}.
