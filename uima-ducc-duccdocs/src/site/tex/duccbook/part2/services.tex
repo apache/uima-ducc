@@ -308,7 +308,7 @@ public class CustomPing
 {
     String host;
     String port;
-    public void init(String endpoint) throws Exception {
+    public void init(String args, String endpoint) throws Exception {
         // Parse the service endpoint, which is a String of the form 
         //    host:port
         String[] parts = endpoint.split(":");

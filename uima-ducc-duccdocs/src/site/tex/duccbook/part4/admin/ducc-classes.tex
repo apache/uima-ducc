@@ -1,185 +1,196 @@
-\section{DUCC Class Definitions}
+\section{Scheduler Configuration: Classes and Nodepools}
 \label{sec:ducc.classes}
 
-    The class configuration file is used by the Resource Manager configure the rules used for job 
-    scheduling. See the Resource Manager chapter for a detailed description of the DUCC schedueler. 
+The class configuration file is used by the Resource Manager configure the rules used for job
+scheduling. See the \hyperref[sec:]{Resource Manager chapter} for a detailed description of the DUCC
+schedueler, scheduling classes, and how classes are used to configure the scheduling process.
 
-    The name of class configuration file is specified in ducc.properties. The default name is 
-    ducc.classes [105] and is specified by the property ducc.rm.class.definitions property. 
+The scheduler  configuration file is specified in ducc.properties. The default name is 
+ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
+  
+\subsection{Nodepools}
 
-    This file configures the classes and the associate scheduling rules of each class. It contains 
-    properties to declare the following: 
+\subsubsection{Overview}
+    A {\em nodepool} is a grouping of a subset of the physical nodes to allow differing
+    scheduling policies to be applied to different nodes in the system.  Some typical
+    nodepool groupings might include:
     \begin{enumerate}
-      \item The names of each class. 
-      \item The default class to use if none is specified with the job. 
-      \item The names of all the nodepools. 
-      \item For each nodepool, the name of the file containing member nodes. 
-      \item A set of properties for each class, declaring the rules enforced by that class. 
+      \item Group Intel and Power nodes separately so that users may submit jobs that run
+        only in Intel architecture, or only Power, or ``don't care''.
+      \item Designate a group of nodes with large locally attached disks such that users
+        can run jobs that require thos disks.
+      \item Designate a specific set of nodes with specialized hardware such as high-speed
+        network, such that jobs can be scheduled to run only on those nodes.
     \end{enumerate}
 
-    The general properties are as follows. The default values are the defaults in the system as initially 
-    installed. 
+    A Nodepool is a subset of some larger collection of nodes.  Nodepools themselves may be
+    further subdivided.  Nodepools may not overlap: every node belongs to one and exactly
+    one nodepool.  During system start-up the consistency of nodepool definition is checked
+    and the system will refuse to start if the configuration is incorrect.
 
-    \begin{description}
+    For example, the diagram below is an abstract representation of all the nodes in a
+    system.  There are five nodepools defined:
+    \begin{itemize}
+      \item Nodepool ``Default'' is subdivided into three pools, NP1, NP2, and NP3.  All
+        the nodes not contained in NP1, NP2, and NP3 belong to the pool called ``Default''.
+      \item Nodepool NP1 is not further subdivided.
+      \item Nodepool NP2 is not firther subdivided.
+      \item Nodepool NP3 is further subdivided to form NP4.  All nodes within NP3 but
+        not in NP4 are contained in NP3.
+      \item Nodepool NP4 is not further subdivided.
+    \end{itemize}
 
-      \item[scheduling.class.set] \hfill \\
-        This defines the set of class names for the installation.  The names themselves are arbitrary
-        and correspond to the rules defined in subsequent properties.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[bb=0 0 241 161, width=5.5in]{images/Nodepool1.jpg}
+      \caption{Nodepool Example}
+      \label{fig:Nodepools1}
+    \end{figure}
 
-        \begin{description}
-          \item[Default Value] background low normal high urgent weekly fixed reserve JobDriver 
-        \end{description}
-          
-      \item[scheduling.default.name] \hfill \\
-        This is the default class that jobs are assigned to, when not otherwise designated in their 
-        submission properties. 
-        \begin{description}
-          \item[Default Value] normal 
-        \end{description}
-    \end{description}        
+    In the figure below the Nodepools are incorrectly defined for two reasons:
+    \begin{enumerate}
+       \item NP1 and NP2 overlap.
+       \item NP4 overlaps both nodepool ``Default'' and NP3.
+    \end{enumerate}
     
-    Nodepools are declared with a set of properties to name each nodepool and to name a file for 
-    each pool that declares membership in the nodepool. For each nodepool a property of the form 
-    scheduling.nodepool.NODEPOOLNAME is declared, where NODEPOOLNAME is one of the 
-    declared nodepools. 
+    \begin{figure}[H]
+      \centering
+      \includegraphics[bb=0 0 241 161, width=5.5in]{images/Nodepool2.jpg}
+      \caption{Nodepools: Overlapping Pools are Incorrect}
+      \label{fig:Nodepools2}
+    \end{figure}
 
-    The property to declare nodepool names is as follows: 
+    Multiple ``top-level'' nodepools are allowed.  A ``top-level'' nodepool has no containing
+    pool.  Multiple top-level pools logically divide a cluster of machines into {\em multiple
+      independent clusters} from the standpoint of the scheduler.  Work scheduled over one
+    pool in no way affects work scheduled over the other pool.  The figure below shows an
+    abstract nodepool configuration with two top-level nodepools, ``Top-NP1'' and ``Top-NP2''.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[bb=0 0 496 161, width=5.5in]{images/Nodepool3.jpg}
+      \caption{Nodepools: Multiple top-level Nodepools}
+      \label{fig:Nodepools3}
+    \end{figure}
 
-    \begin{description}
-      \item[scheduling.nodepool] \hfill \\
-      This is the list of nodepool names. For example: 
-\begin{verbatim}
-      scheduling.nodepool = res res1 res2 
-\end{verbatim}
-      \begin{description}
-        \item[Default Value] reserve 
-      \end{description}
-    \end{description}
+\subsubsection{Scheduling considerations}
+    A primary goal of the scheduler is to insure that no resources are left idle if there
+    is pending work that is able to use those resources.  Therefore, work scheduled to
+    a class defined over a specific nodepool (say, NpAllOfThem), may be scheduled on nodes
+    in any of the nodepools contained within NpAllOfThem.  If work defined over a
+    subpool (such as NP1) arrives, processes on nodes in NP1 that were scheduled for
+    NpAllOfThem are considered ``squatters'' and are the most likely candidates for
+    eviction. (Processes assigned to their proper nodepools are considered ``residents''
+    and are evicted only after all ``squatters'' have been evicted.)  The scheduler strives
+    to avoid creating ``squatters''.
+
+    Because non-preemptable process can't be preempeted, work submitted to a class
+    implementing one of the non-preemptable policies (FIXED or RESERVE) are never allowed
+    to ``squat'' in other nodepools and will scheduled only on the nodes in their
+    proper nodepool.
+
+    In the case of multiple top-level nodepools: these nodepools and their subpools
+    form independent scheduling groups.  Specifically, fair-share allocations over any
+    nodepool in one top-level pool does NOT affect the fair-share allocations for jobs
+    in any other top-level nodepool.
+
+\subsubsection{Configuration}
+    DUCC uses a simplified JSON-like structure to define nodepools.
+
+    At least one nodepool definition is required.  This nodepool need not have any subpools or node
+    definitions.  The first top-level nodepool is considered the ``default'' nodepool.  A node not
+    named specifically within one of the node files which checks in with DUCC is assigned to this
+    first, or ``default'' nodepool. 
+
+    Thus, if only one nodepool is defined with no other attributes, all nodes are
+    assigned to that pool.
+
+    A nodepool definition consists of the token ``Nodepool'' followed by its
+    name, followed by a block delimeted with ``curly'' braces \{ and \}.  This
+    block contains the attributes of the nodepool as key/value pairs.
+    Lineneds are ignored.  A semicolon $;$ may optionally be used to
+    delimit key/value pairs for readability, and an equals sign ``='' may optinally
+    be used to delimit keys from values, also just for readability.
+
+    The attributes of a Nodepool are:
+    \begin{definition}
+      \item[domain] This is valid only in the ``default'' nodepool.  Any node
+        in any nodfile which does not have a doman, and any node which checks
+        in with the schedule without a domain name is assigned this domain name
+        in order that the scheduler may deal entirely with full-qualified node names.
+      \item[nodefile] This is the name of a file containing the names of the nodes
+        which are members of this nodepool.
+      \item[parent] This is used to indicate which nodepool is the logical parent.
+        Any nodepool without a ``parent'' is considered a top-level nodepool.
+    \end{definition}
         
-    This is an example of a declaration of three nodepools. 
-
-\begin{verbatim}
-scheduling.nodepool = res res1 res1 
-scheduling.nodepool.res = res.nodes 
-scheduling.nodepool.res1 = res1.nodes 
-scheduling.nodepool.res2 = res2.nodes 
-\end{verbatim}
-    
-    There is no way to enforce priority assignment to any given nodepool. It is possible to declare a 
-    "preference", such that the resources in a given nodepool are considered first when searching for 
-    nodes. To configure a preference, use the order decorattion on a nodepool specificaion. 
-
-    To declare nodepool order, specify the property {\tt scheduling.nodepool.[poolname].order}. The
-    nodepools are sorted numerically according to their order, and pools with lower order are
-    searched before pools with higher order. The global nodepool always order "0" so it is usally
-    searched first. For example, the pool configuration below establishes a search order of
-
+    The following example defines six nodepools, 
     \begin{enumerate}
-      \item global 
-      \item res2 
-      \item res 
-      \item res1 
+      \item A top-level nodepool called ``--default--'',
+      \item A top-level nodepool called ``jobdriver'',
+      \item A subpool of ``--default--'' called ``intel'',
+      \item A subpool of ``--default--'' called ``power'',
+      \item A subpool of ``intel'' called ``nightly-test'',
+      \item And a subpool of ``power'' called ``testing-p7'',
     \end{enumerate}
     
-    This is an example of a declaration of three nodepools. 
-
 \begin{verbatim}
-scheduling.nodepool = res res1 res1 
-scheduling.nodepool.res = res.nodes 
-scheduling.nodepool.res.order = 4 
-scheduling.nodepool.res1 = res1.nodes 
-scheduling.nodepool.res1.order = 7 
-scheduling.nodepool.res2 = res2.nodes 
-scheduling.nodepool.res2.order = 2 
+    Nodepool --default--  { domain bluej.net }
+    Nodepool jobdriver    { nodefile jobdriver.nodes }
+    
+    Nodepool intel        { nodefile intel.nodes        ; parent --default-- }
+    Nodepool power        { nodefile power.nodes        ; parent --default-- }
+
+    Nodepool nightly-test { nodefile nightly-test.nodes ; parent intel }
+    Nodepool timing-p7    { nodefile timing-p7.nodes    ; parent power }
 \end{verbatim}
     
-    For each class named in scheduling.class.set a set of properties is specified, defining the rules 
-    implemented by that class. Each such property is of the form 
+\subsection{Class Definitions}
 
-\begin{verbatim}
-scheduling.class.CLASSNAME.RULE = VALUE 
-\end{verbatim}
-    
-    where 
+    Scheduler classes are defined in the same simplified JSON-like language as
+    nodepools.
+
+    A simple inheritance (or ``template'') scheme is supported for classes.  Any
+    class may be configured to ``derive'' from any other class.  In this case, the
+    child class acquires all the attributes of the parent class, any of which may
+    be selectively overridden.  Multiple inheritance is not supported but
+    nested inheritance is; that is, class A may inherit from class B which inherits
+    from class C and so on. In this way, generalized templates for the site's
+    class structure may be defined.  
+
+    The general form of a class definition consists of the keword Class, followed
+    by the name of the class, and then optionally by the name of a ``parent'' class
+    whose characteristics it inherits.   Following the name (and optionally parent class
+    name) are the attributes of the class, also within a \{ \} block.
+
+    The attributes defined for classes are:
     \begin{description}
-      \item[CLASSNAME] specifies is the name of the class. 
-      \item[RULE] specifies rule. Rules are described below. 
-      \item[VALUE] specifies the value of the rule, as described below. 
-      \end{description}
+      \item[abstract] If specified, this indicates this class is a template ONLY. It is used
+        as a model for oher classes.  Values are ``true'' or ``false''.  The default is
+        ``false''.
+      \item[cap] This specifies the largest number of shares any job in this class
+        may be assigned.  It may be an absolute number or a percentage.  If specified as
+        a percentage (i.e. it contains a trailing \%), it specifies a percentage of the
+        total nodes in the containing nodepool.
+      \item[debug] FAIR_SHARE only. This specifies the name of a class to substitute
+        for jobs submitted for debug.
+      \item[expand-by-doubling] FAIR_SHARE only.  If ``true'', and the ``initialization-cap'' is
+        set, then after any process has initialized, the job will expand to its maximum allowable
+        shares by doubling in size each scheduling cycle.
+      \item[initialization-cap] FAIR_SHARE only. If specified, this is the largest number of processes this job
+        may be assigned until at least one process has successfully completed initialization.
+      \item[max-processes] FIXED-SHARE only.  This is the largest number of FIXED-SHARE,
+        non-preemptable shares any single job may be assigned.
+      \item[prediction-fudge] FAIR_SHARE only. When the scheduler is considering expanding the
+        number of processes for a job it tries to determine if the job may complete before those
+        processes are allocated and initialized.  The ``prediction-fudge'' adds some amount of 
+        time (in milliseconds) to the projected completion time.  This allows installations to
+        prevent jobs from expanding when they were otherwise going to end in a few minutes
+        anyway.
+      \item[nodepool] If specified, jobs for this class are assigned to nodes in this nodepool. 
+      \item[policy] This is the scheduling policy, one of FAIR_SHARE, FIXED_SHARE, or RESERVE. This
+        attribute is required (there is no default).
+      \item[priority] This is the scheduling priority for jobs in this class.
+      \item[weight] FAIR_SHARE only. This is the fair-share weight for jobs in this class.
       
-      The rules are: 
-      \begin{description}
-
-        \item[policy] \hfill \\
-          This is the scheduling policy, required, and must be one of: 
-          \begin{itemize}
-            \item[] FAIR\_SHARE 
-            \item[] FIXED\_SHARE 
-            \item[] RESERVE 
-          \end{itemize}
-            
-        \item[share\_weight] \hfill \\
-          This is any integer. This is the weighted-fair-share weight for the class as discussed above. It is 
-          only used when policy = FAIR\_SHARE. 
-
-        \item[priority] \hfill \\
-          This is the evaluation priority for the class as discussed above. This is used for all scheduling 
-          policies. 
-
-        \item[cap] \hfill \\
-          This is an integer, or an integer with "\%" appended to denote a percentage. It is used for all 
-          scheduling classes. 
-
-          This is the class cap as discussed above. It may be an absolute value, in processes (which may 
-          comprise more than one share quanta), or it may be specified as a percentage by appending 
-          "\%" to the end. When specified as a percentage, it caps the shares allocated to this class as 
-          that percentage of the total shares remaining when the class is evaluated.. It does not consider 
-          shares that may have been available and assigned to higher-priority classes. 
-
-        \item[nodepool] \hfill \\
-          This is the name of the nodepool associated with this class. It must be one of the names 
-          declared in the property scheduling.nodepool. 
-
-        \item[prediction] \hfill \\
-          Acceptable values are true and false. When set to true the scheduler uses prediction when 
-          allocating shares. It is only used when policy = FAIR\_SHARE. 
-
-        \item[prediction.fudge] \hfill \\
-          Acceptable values are any integer, denoting milliseconds. This is the prediction fudge as 
-          discussed above. It is only used when policy = FAIR\_SHARE. 
-
-        \item[expand.by.doubling] \hfill \\
-          Acceptable values are true and false. When set to true the scheduler doubles a job's shares 
-          up to it's fair-share when possible, as discussed above. It is only used when policy = 
-          FAIR\_SHARE. 
-
-        \item[expand.by.doubling] \hfill \\
-          Acceptable values are true and false. When set to true the scheduler doubles a job's shares up 
-          to it's fair-share when possible, as discussed above. When set in ducc.classes it overrides the 
-          defaults from ducc.properties. It is only used when policy = FAIR\_SHARE. 
-
-        \item[initialization.cap] \hfill \\
-          Acceptable values are any integer. This is the maximum number of processes assigned to a job 
-          until the first process has successfully completed initialization. To disable the cap, set it to zero 
-          0. It is only used when policy = FAIR\_SHARE. 
-
-        \item[max\_processes] \hfill \\
-          Acceptable values are any integer. This is the maximum number of processes assigned to a 
-          FIXED\_SHARE request. If more are requested, the request is canceled. It is only used when 
-          policy = FIXED\_SHARE. If set to 0 or not specified, there is no enforced maximum. 
-
-        \item[max\_machines] \hfill \\
-          Acceptable values are any integer. This is the maximum number of machines assigned to a 
-          RESERVE request. If more are requested, the request is canceled. It is only used when policy = 
-          RESERVE. If set to 0 or not specified, there is no enforced maximum. 
-
-        \item[enforce.memory] \hfill \\
-          Acceptable values are true and false. When set to true the scheduler requires that any machine 
-          selected for a reservation matches the reservation's declared memory. The declared memory 
-          is converted to a number of quantum shares. Only machines whose memory, when converted 
-          to share quanta are selected. When set to false, any machine in the configured nodepool is 
-          selected. It is only used when policy = RESERVE. 
-      \end{description}
-          
-
-        
+    \end{description}
+    
