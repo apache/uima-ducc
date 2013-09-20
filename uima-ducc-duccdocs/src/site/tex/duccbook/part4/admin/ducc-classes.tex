@@ -3,7 +3,7 @@
 
 The class configuration file is used by the Resource Manager configures the rules used for job
 scheduling. See the \hyperref[chap:rm]{Resource Manager chapter} for a detailed description of the DUCC
-schedueler, scheduling classes, and how classes are used to configure the scheduling process.
+scheduler, scheduling classes, and how classes are used to configure the scheduling process.
 
 The scheduler  configuration file is specified in ducc.properties. The default name is 
 ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
@@ -89,7 +89,7 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
     to ``squat'' in other nodepools and are only scheduled on nodes in their
     proper nodepool.
 
-    In the case of multiple top-level nodepools: these nodepools and their subpools
+    In the case of multiple top-level nodepools: these nodepools and their sub-pools
     form independent scheduling groups.  Specifically,
     \begin{itemize}
         \item Fair-share allocations over any nodepool in one top-level pool do NOT affect the
@@ -116,10 +116,10 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
     assigned to that pool.
 
     A nodepool definition consists of the token ``Nodepool'' followed by the 
-    name of the nodepool, followed by a block delimeted with ``curly'' braces \{ and \}.  This
+    name of the nodepool, followed by a block delimited with ``curly'' braces \{ and \}.  This
     block contains the attributes of the nodepool as key/value pairs.
     Lineneds are ignored.  A semicolon ``$;$'' may optionally be used to
-    delimit key/value pairs for readability, and an equals sign ``='' may optinally
+    delimit key/value pairs for readability, and an equals sign ``='' may optionally
     be used to delimit keys from values, also just for readability.  See the 
     \hyperref[fig:nodepool.configuration]{below}.
 
@@ -176,7 +176,7 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
 
     \subsection{Class Definitions}
 
-    Scheduler classes are defined in the same simplified JSON-like language as
+    Scheduler classes are defined in the same simple block language as
     nodepools.
 
     A simple inheritance (or ``template'') scheme is supported for classes.  Any
@@ -187,18 +187,18 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
     from class C and so on. In this way, generalized templates for the site's
     class structure may be defined.  
 
-    The general form of a class definition consists of the keword Class, followed
+    The general form of a class definition consists of the keyword Class, followed
     by the name of the class, and then optionally by the name of a ``parent'' class
     whose characteristics it inherits.   Following the name (and optionally parent class
-    name) are the attributes of the class, also within a \{ blocak \} as for nodepools, and
-    with lines and key/value pairs optionally delimeted by  ``$;$'' and ``$=$'', respectively.
+    name) are the attributes of the class, also within a \{ block \} as for nodepools, and
+    with lines and key/value pairs optionally delimited by  ``$;$'' and ``$=$'', respectively.
     See the sample \hyperref[fig:class.configuration]{below}.
 
     The attributes defined for classes are:
     \begin{description}
 
       \item[abstract] If specified, this indicates this class is a template ONLY. It is used
-        as a model for oher classes.  Values are ``true'' or ``false''.  The default is
+        as a model for other classes.  Values are ``true'' or ``false''.  The default is
         ``false''.  This class is never passed to the scheduler and may not be referenced
         by jobs.
 
@@ -228,7 +228,7 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
         memory size that exactly matches an eligible machine, modulo the share quanta.  For example,
         if the share quanta is 15G, a 15G reservation will never be honored on a 256G machine; in this
         case a 240G (or more) reservations must be specified.  The DUCC Web Server's {\em Machines} page
-        displays the reccomended request size for every machine.  
+        displays the recommended request size for every machine.  
 
         If {\em enforce} is not specified, the default is ``true''.
 
@@ -354,7 +354,7 @@ The administrative command, \hyperref[subsec:admin.check-ducc]{\em check\_ducc} 
 validate a configuration, with the {\em -c} option.  This reads the entire configuration and
 nodefiles, validates consistency of the definitions and insures the nodepools do not overlap.
 
-During startup, the \hyperref[subsec:admin.check-ducc]{\em start\_ducc} command always runs full validation, and if the
+During start-up, the \hyperref[subsec:admin.check-ducc]{\em start\_ducc} command always runs full validation, and if the
 configuration is found to be incorrect, the cluster is not started.
 
 Configuration checking is done internally by the DUCC java utility {\em

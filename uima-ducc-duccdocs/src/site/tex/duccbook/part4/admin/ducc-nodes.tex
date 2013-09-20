@@ -9,28 +9,28 @@
     All the administrative commands operate upon node lists. By carefully organized these lists it is 
     possible to administer portions of a cluster independently. 
 
-    In particular, it is highly reccomended that the nodelists reflect the nodepool structure.  In
+    In particular, it is highly recommended that the nodelists reflect the nodepool structure.  In
     this way, the configuration used to start DUCC is guaranteed to match the nodeppool definitions.
 
     Several types of records are permitted in nodelists:
     \begin{description}
 
-      \item[Comments] A comment is delimeted with the symbol ``$\#$''.  All text on the line
+      \item[Comments] A comment is delimited with the symbol ``$\#$''.  All text on the line
         following this symbol is ignored.
 
       \item[import] If a line starts with the symbol {\em import}, the next symbol on that line
-        is excpected to be the name of another node list.  This permits the DUCC cluster's
+        is expected to be the name of another node list.  This permits the DUCC cluster's
         nodes to be configured in a structured manner.
 
         For instance, the file {\em ducc.nodes} might consist entirely of {\em import} statements
         naming all of the nodepool files.
-      \item[domaon] This must be the first line of the file.  If specified, it should name
+      \item[domain] This must be the first line of the file.  If specified, it should name
         the default domain to be used for all the nodes in this file, and the nodes named
         in imported files.  If not specified, then during start-up, nodes without domain names are assigned
         domain names according to the global domain name specified in the \hyperref[subsubsec:nodepool.configuration]{Resource Manager configuration}
         file, and if none is specified there, the domain name on the host starting DUCC is used.
 
-      \item[nodename] This is a single token conisisting of the name of a node on which an
+      \item[nodename] This is a single token consisting of the name of a node on which an
         agent it to be started.
 
     \end{description}
