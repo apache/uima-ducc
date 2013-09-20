@@ -70,12 +70,14 @@ public class DuccPropertiesResolver {
     public static final String ducc_broker_name = "ducc.broker.name";
     public static final String ducc_broker_jmx_port = "ducc.broker.jmx.port";
     public static final String ducc_jms_provider = "ducc.jms.provider";
+    
     public static final String ducc_orchestrator_state_update_endpoint_type = "ducc.orchestrator.state.update.endpoint.type";
     public static final String ducc_orchestrator_state_update_endpoint = "ducc.orchestrator.state.update.endpoint";
     public static final String ducc_orchestrator_http_port = "ducc.orchestrator.http.port";
     public static final String ducc_orchestrator_http_node = "ducc.orchestrator.http.node";
     public static final String ducc_orchestrator_maintenance_rate = "ducc.orchestrator.maintenance.rate";
     public static final String ducc_orchestrator_job_factory_classpath_order = "ducc.orchestrator.job.factory.classpath.order";    
+    public static final String ducc_orchestrator_unmanaged_reservations_accepted = "ducc.orchestrator.unmanaged.reservations.accepted";  
     
     public static final String default_process_get_meta_time_max = "default.process.get.meta.time.max";
     public static final String ducc_agent_launcher_process_init_timeout = "ducc.agent.launcher.process.init.timeout";
@@ -108,6 +110,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(default_process_per_item_time_max,"1");
         defaultProperties.put(ducc_rm_share_quantum,"10");
         defaultProperties.put(ducc_jd_share_quantum,"300");
+        defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
     }
     
     private void init(Properties properties) {
