@@ -1,7 +1,8 @@
 
 \section{Administrative Commands}
 
-\subsection{start-ducc}
+\subsection{start\_ducc}
+\label{subsec:admin.start-ducc}
 
     \subsubsection{{\em Description}}
     The command \ducchome/admin/start\_ducc is used to start DUCC processes. If run with no parameters
@@ -106,7 +107,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
 \end{verbatim}
 
     
-\subsection{stop-ducc}
+\subsection{stop\_ducc}
 
     \subsubsection{{\em Description:}}
     Stop\_ducc is used to stop DUCC processes. If run with no parameters it takes the following 
@@ -233,7 +234,10 @@ check_ducc -n nlist1 -n nlist2
 \begin{verbatim}
 check_ducc -u billy 
 \end{verbatim}
-               
+          
+           \item[-c --configuration]
+             Verify the \hyperref[sec:ducc.classes]{Resource Manager configuration}.
+
            \item[-p --pids]
                
                Rewrite the PID file. The PID file contains the process ids of all known DUCC 
