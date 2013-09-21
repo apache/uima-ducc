@@ -78,7 +78,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
       
       To start a specific management process, run start\_ducc with the -c component parameter, 
       specify the component that should be started. 
-  
+      
       \subsubsection{{\em Examples: }}
 
       Start all DUCC processes, using custom nodelists: 
@@ -106,7 +106,25 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
         start\_ducc -c ws@bingle 
 \end{verbatim}
 
-    
+      \subsubsection{{\em Debugging:}}
+
+      Sometimes something will not start and it can be difficult to understand why.  To diagnose, it is
+      helpful to know that {\em start\_ducc} is simply a wrapper around a lower-level bit of scripting
+      that does the actual work.  That lower-level code can be invoked stand-alone, in which case
+      console messages that {\em check\_ducc} will have suppressed are presented to the console.
+
+      The lower-level script is called {\em ducc.py} and accepts the same {\em -c component} flag as
+      start\_ducc.  If some component will not start, try running {\em ducc.py -c component} directly.
+      It will start in the foreground and usually the cause of the problem becomes evident from
+      the console.
+
+      For example, suppose the Resource Manager will not start.  Run the following:
+\begin{verbatim}
+      ./ducc.py -c rm
+\end{verbatim}
+      and examine the output.  Use {\em CTL-C} to stop the component when done.
+      
+
 \subsection{stop\_ducc}
 
     \subsubsection{{\em Description:}}
@@ -117,7 +135,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
     \subsubsection{\em Usage:}
 
     \begin{description}
-      \item[stoph\_ducc {[options]}] \hfill \\ 
+      \item[stop\_ducc {[options]}] \hfill \\ 
         If no options are given, help text is presented. At least one option is required, to avoid 
         accidental cluster shutdown. 
       \end{description}
@@ -181,15 +199,13 @@ start_ducc -c rmc
               \item[agent\@node] Node Agent on the specified node.
               \end{description}
               
-            \item[-k, --kill] \hfill \\
-              Use this to forcibly kill a component using kill -9. This should only be used if the -a option 
-              does not work. This normally has the same effect as check\_ducc -k, with the difference that 
-              check\_ducc indiscriminately kills all the DUCC processes it can find, whereas stop\_ducc-k 
-              can be directed to a specific instance of a component. 
-
        \end{description}
             
-
+   \subsubsection{{\em Notes:}}
+   Sometimes problems in the network or elsewhere prevent the DUCC components from stopping properly.  The
+   {\em check\_ducc} command, described in the following section, contains options to query the
+   existance of DUCC processes in the cluster, to forcibly ({\em kill -9}) terminate them, and to
+   more gracefully terminate them ({\em kill -INT}).
           
 
 
@@ -197,9 +213,9 @@ start_ducc -c rmc
 \label{subsec:admin.check-ducc}
     \subsubsection{{\em Description:}}
 
-    Check\_ducc is used to find and report on DUCC processes. It can be used to find processes 
-    owned by ducc (management processes, agents, and job processes), or ducc jobs owned by 
-    users. 
+    Check\_ducc is used to verify the integrity of the DUCC installation and to find and report on
+    DUCC processes. It identifies processes owned by ducc (management processes, agents,
+    and job processes), and processes started by DUCC on behalf of users.
     
     Check\_ducc can also be used to clean up errant DUCC processes when stop\_ducc is unable 
     to do so. The difference is that stop\_ducc generally tries more gracefully stop processes. 
@@ -211,11 +227,11 @@ start_ducc -c rmc
           \item[check\_ducc {[options]}]
               If no options are given this is the equivalent of: 
 \begin{verbatim}
-check_ducc -n ../resources/ducc.nodes 
+check_ducc -c -n ../resources/ducc.nodes 
 \end{verbatim}
               
-              This searches for all the processes owned by user ducc on all the nodes in ducc.nodes. User 
-              processes are not searched for. 
+              This verifies the integrity of the DUCC installation and searches for all the
+              processes owned by user {\em ducc} and started by DUCC on all the nodes in ducc.nodes.
         \end{description}
             
      \subsubsection{\em{Options:}}
@@ -261,54 +277,18 @@ check_ducc -u billy
 \begin{verbatim}
 check_ducc -u billy -u bobby -r 
 \end{verbatim}
+
+            \item[-i, --int] \hfill \\
+              Use this to send a shutdown signal ({\em kill -INT}) to all the DUCC processes.  The DUCC processes
+              catch this signal, close their resources and exit.  Some resources take some time to close, or in
+              case of problems, are unable to close, in which case the DUCC processes will unconditionally exit.
+
+              Sometimes problems in the network or elsewhere prevent {\em check\_ducc -i} from terminating
+              the DUCC processes.  In this case, use {\em check\_ducc -k}, described below.
+
+            \item[-k, --kill] \hfill \\
+              Use this to forcibly kill a component using kill -9. This should only be used if {\em stop\_ducc}
+              or {\em check\_ducc -i} does not work.  
+
            \end{description}               
        
-\subsection{verify\_ducc}
-
-    \subsubsection{{\em Description:}}
-    verify\_ducc performs a number of internal consistency checks to insure the DUCC installation 
-    is complete and has no obvious configuration errors. The following checks are performed: 
-    \begin{itemize}
-      \item Insure ducc\_ling is installed in the configured location and has correct permission and ownership on all nodes. 
-      \item Insure ActiveMQ is installed and configured in a way compatible with the ActiveMQ URL in ducc.properties. 
-      \item Insure all nodelists exist and are readable. 
-      \item Insure all nodes can be reached via ssh. 
-      \item Insure all nodes are running identical versions of DUCC. 
-      \item Insure java is installed in the location configured in ducc.properties on all nodes. 
-      \item Print the version of java on all nodes. 
-      \item Print the version of operating system on all nodes. 
-      \item Print the amount of RAM on all nodes. 
-      \item Insure all configured nodepools in ducc.classes exist and reference nodes are configured 
-      \end{itemize}
-      
-      \subsubsection{{\em Usage:}}
-
-         \begin{description}
-           \item{verify\_ducc {[options]}} \hfill \\
-             If no options are given, the nodes in ducc\_runtime/resources/ducc.nodes are used 
-             and the default ActiveMQ broker location of ~ducc/activemq is used. 
-         \end{description}
-           
-      \subsubsection{{\em Options:}}
-          \begin{description}
-            \item[-b {[broker\_install\_dir]}] \hfill \\
-          This specifies the name of the ActiveMQ broker configuration file that you are using. 
-\begin{verbatim}
-verify_ducc -b /home/challngr/amqbroker/amq/conf/activemq-nojournal5.xml 
-\end{verbatim}
-          
-          \item[-n {[nodelist]}] \hfill \\
-            This specifies the nodelist against which the DUCC installation is verified. This nodelist             
-            should be the same nodelist that DUCC will be started with. 
-          \end{description}
-        
-      \subsubsection{{\em Notes:}}
-
-      It may take a couple attempts to get verify\_ducc to run without error. It is important that all 
-      problems reported by verify\_ducc are handled before trying to start DUCC the first time. 
-      
-      It is recommended that verify\_ducc be run after any update to the DUCC configuration, most 
-      importantly, the addition of nodes. Verify\_ducc checks the ducc\_ling configuration on the new 
-      nodes as well as verifies network and ssh connectivity. 
-
-
