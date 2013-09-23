@@ -36,6 +36,7 @@ class CheckDucc(DuccUtil):
         self.check_clock_skew(checkdate)
         self.verify_jvm()
         self.verify_duccling()
+        self.verify_limits()
         return
 
 

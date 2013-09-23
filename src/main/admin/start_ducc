@@ -28,7 +28,6 @@ from ducc_util import DuccUtil
 from ducc_base  import DuccProperties
 from local_hooks import verify_slave_node
 from local_hooks import verify_master_node
-from local_hooks import verify_master_node
 from ducc        import Ducc
 
 class StartDucc(DuccUtil):
@@ -318,6 +317,10 @@ class StartDucc(DuccUtil):
         if ( not ok ):
             sys.exit(1)
                 
+        if ( not self.verify_limits() ):
+            print "Limits too low to run DUCC"
+            sys.exit(1)
+        
         # activeMQ needs to be started externally before starting any DUCC processes
         if ( self.automanage and ('broker' in components) ):
             if ( self.is_amq_active() ):

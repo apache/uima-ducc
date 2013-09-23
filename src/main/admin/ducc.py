@@ -86,6 +86,9 @@ class Ducc(DuccUtil):
                 if ( not self.check_clock_skew(localdate) ):
                     return
 
+                if ( not self.verify_limits() ):
+                    return
+
                 if ( not single_user ) :
                     dok = self.verify_duccling()
                     if ( not dok ):

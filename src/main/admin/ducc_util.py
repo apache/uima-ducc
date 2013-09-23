@@ -234,6 +234,36 @@ class DuccUtil(DuccBase):
         CMD = self.duccling + ' -v >' + self.DUCC_HOME + '/state/duccling.version'
         os.system(CMD)
 
+    def verify_limits(self):
+        ret = True
+        (softnproc , hardnproc)  = resource.getrlimit(resource.RLIMIT_NPROC)
+        (softnfiles, hardnfiles)  = resource.getrlimit(resource.RLIMIT_NOFILE)
+        
+        if ( softnproc < hardnproc ):
+            try:
+                resource.setrlimit(resource.RLIMIT_NPROC, (hardnproc, hardnproc))
+            except:
+                print 'NOTOK: could not set soft RLIMIT_NPROC up to the hard limit'
+                ret = False
+
+        if ( softnfiles < hardnfiles ):
+            try:
+                resource.setrlimit(resource.RLIMIT_NOFILE, (hardnfiles, hardnfiles))
+            except:
+                print 'NOTOK: could not set soft RLIMIT_NOFILES up to the hard limit'
+                ret = False
+
+        (softnproc , hardnproc)  = resource.getrlimit(resource.RLIMIT_NPROC)
+        (softnfiles, hardnfiles)  = resource.getrlimit(resource.RLIMIT_NOFILE)
+        
+        if ( softnproc < 20000 ):
+            print 'WARN: Soft limit RLIMIT_NPROC is too small (< 20000).  DUCC may be unable to create sufficient threads.'
+
+        if ( softnproc < 8192 ):
+            print 'WARN: Soft limit RLIMIT_NOFILES is too small (< 8192).  DUCC may be unable to open sufficient files or sockets.'
+
+        return ret
+
     def verify_jvm(self):
         jvm = self.java()
         CMD = jvm + ' -version > /dev/null 2>&1'
