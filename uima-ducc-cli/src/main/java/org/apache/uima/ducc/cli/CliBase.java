@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.Parser;
@@ -296,7 +297,7 @@ public abstract class CliBase
             Properties defaults = new Properties();
             defaults.load(fis);
             fis.close();
-            sanitize(defaults, cliOptions);  // Check for illegals as commons cli 1.2 thows a NPE !
+            sanitize(defaults, cliOptions);  // Check for illegals as commons cli 1.2 throws a NPE !
             // If invoked with overriding properties add to or replace the defaults 
             if (props != null) {
                 defaults.putAll(props);
@@ -351,7 +352,7 @@ public abstract class CliBase
 
         for (UiOption opt : uiOpts) {
             if (opt.required() && !cli_props.containsKey(opt.pname())) {
-                throw new Exception("Missing required option: " + opt.pname());
+                throw new MissingOptionException("Missing required option: " + opt.pname());
             }
         }
     }
@@ -365,6 +366,7 @@ public abstract class CliBase
      */
     
     private void sanitize(Properties props, Options opts) {
+        if (System.getenv("DUCC_ACCEPT_DEPRECATED_OPTIONS") != null) cleanupProps(props);
         for (String key : props.stringPropertyNames()) {
             if (addedOptions.contains(key)) {
                 props.remove(key);
@@ -830,6 +832,30 @@ public abstract class CliBase
                 if (++i < args.length) {
                     args[i] = args[i].replaceAll(",", " ");
                 }
+            }
+        }
+    }
+    
+    /*
+     * Correct any deprecated options provided in a specification file.
+     * If this produces duplicate entries the last found will be used.
+     */
+    private void cleanupProps(Properties props) {
+        for (String key : props.stringPropertyNames()) {
+            if (key.equals("driver_classpath") || key.equals("process_classpath")) {
+                props.put("classpath", props.get(key));
+                props.remove(key);
+            } else if (key.equals("driver_environment") || key.equals("process_environment")) {
+                props.put("environment", props.get(key));
+                props.remove(key);
+            } else if (key.equals("cancel_job_on_interrupt") || key.equals("cancel_managed_reservation_on_interrupt")) {
+                props.put("cancel_on_interrupt", props.get(key));
+                props.remove(key);
+            } else if (key.equals("jvm_args")) {
+                props.put("process_jvm_args", props.get(key));
+                props.remove(key);
+            } else if (key.endsWith("_overrides")) {
+                props.put(key, ((String)props.get(key)).replaceAll(",", " "));
             }
         }
     }
