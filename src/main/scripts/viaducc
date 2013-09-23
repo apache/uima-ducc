@@ -41,7 +41,6 @@ realpath = os.path.realpath(sys.argv[0])
 ndx = realpath.rindex('/')
 ndx = realpath.rindex('/', 0, ndx)
 ducc_home = realpath[:ndx]
-print 'DUCC_HOME is ', ducc_home
        
 def usage():
 
@@ -186,19 +185,21 @@ def main():
             print "Cannot figure out where java is"
             sys.exit(1);
 
-    
+    # DUCC_HOME isn't ususally needed but viaducc is slithery and may end up tryng to
+    # execute from somebody else's ducc so let's be sure we point at the right one
+    os.environ['DUCC_HOME'] = ducc_home
     CMD = ducc_home + '/bin/ducc_process_submit'
     CMD = CMD +       ' --process_attach_console'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
     CMD = CMD +       ' --scheduling_class ' + ducc_class
-#    CMD = CMD +       ' --description ' + sys.argv[0]
+    CMD = CMD +       ' --description ' + os.path.basename(sys.argv[0])
     CMD = CMD +       ' --wait_for_completion'
     CMD = CMD +       ' --cancel_on_interrupt'
     CMD = CMD +       ' --working_directory ' + os.getcwd()
     CMD = CMD +       ducc_env
  
     if ( need_java ):
-        CMD = CMD +   ' --process_executable ' + java_cmd        
+        CMD = CMD +   ' --process_executable ' + java_cmd 
         if ( len(ducc_args) > 0):
             CMD = CMD +   ' --process_executable_args "' + ' '.join(ducc_args) + '"'
     else:
