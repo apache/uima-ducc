@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+*/
 package org.apache.uima.ducc.common.utils;
 
 import java.io.BufferedReader;
@@ -20,16 +38,6 @@ public class AlienFile {
 	private String command_cat = "/bin/cat";
 	private String file_name;
 	private String encoding = "UTF-8";
-	
-	private static String suffix_gz = ".gz";
-	
-	private static boolean isGzFileType(String filename) {
-		boolean retVal = false;
-		if(filename.endsWith(suffix_gz)) {
-			retVal = true;
-		}
-		return retVal;
-	}
 	
 	protected void set_ducc_ling(String value) {
 		ducc_ling = value;
@@ -135,7 +143,7 @@ public class AlienFile {
 		p.waitFor();
 		InputStream pOut = p.getInputStream();
 		InputStreamReader isr;
-		if(isGzFileType(file_name)) {
+		if(FileHelper.isGzFileType(file_name)) {
 			GZIPInputStream gis = new GZIPInputStream(pOut);
 			isr = new InputStreamReader(gis, encoding);
 		}
@@ -173,7 +181,7 @@ public class AlienFile {
 			Process p = pb.start();
 			p.waitFor();
 			InputStream pOut = p.getInputStream();
-			if(isGzFileType(file_name)) {
+			if(FileHelper.isGzFileType(file_name)) {
 				GZIPInputStream gis = new GZIPInputStream(pOut);
 				isr = new InputStreamReader(gis, encoding);
 			}
@@ -214,7 +222,7 @@ public class AlienFile {
 			Process p = pb.start();
 			//p.waitFor();
 			InputStream pOut = p.getInputStream();
-			if(isGzFileType(file_name)) {
+			if(FileHelper.isGzFileType(file_name)) {
 				GZIPInputStream gis = new GZIPInputStream(pOut);
 				isr = new InputStreamReader(gis, encoding);
 			}
