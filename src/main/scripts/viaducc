@@ -103,7 +103,6 @@ def read_properties():
     if ( os.path.exists(java)):
         ducc_jvm = java
 
-    ducc_mem     = 4
     # nope, we'll use the default ducc java
     props = open(ducc_properties)
     try:
@@ -137,7 +136,6 @@ def main():
     if ( len(sys.argv) == 1 ):
         usage()
 
-    ducc_mem_size = 30
     ducc_class = 'fixed'
     java_cmd   = None
     ducc_env   = ''
