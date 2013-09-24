@@ -304,10 +304,9 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
           }
           return;
         } else {
-          // if the fudgeFactor is negative, don't check if the process exceeded its
-          // memory assignment.
+          // Use Memory Guard only if cgroups are disabled and fudge factor > -1
 
-          if (fudgeFactor > -1
+          if ( !agent.useCgroups && fudgeFactor > -1
                   && managedProcess.getProcessMemoryAssignment().getMaxMemoryWithFudge() > 0) {
             // RSS is in terms of pages(blocks) which size is system dependent. Default 4096 bytes
             long rss = (totalRss * (blockSize / 1024)) / 1024; // normalize RSS into MB
