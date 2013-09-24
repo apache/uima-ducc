@@ -322,7 +322,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                       "\n\n********************************************************\n\tProcess with PID:"
                               + managedProcess.getPid()
                               + " Exceeded its max memory assignment (including a fudge factor) of "
-                              + managedProcess.getProcessMemoryAssignment()
+                              + managedProcess.getProcessMemoryAssignment().getMaxMemoryWithFudge()
                               + " MBs. This Process Resident Memory Size: "
                               + rss
                               + " MBs .Killing process ...\n********************************************************\n\n");
