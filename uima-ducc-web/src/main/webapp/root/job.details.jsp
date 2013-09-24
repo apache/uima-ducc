@@ -87,6 +87,7 @@ under the License.
 			<li><a href="#tabs-2">Work Items</a></li>
 			<li><a href="#tabs-3">Performance</a></li>
 			<li><a href="#tabs-4">Specification</a></li>
+			<li><a href="#tabs-5">Files</a></li>
 		</ul>
 			<div id="tabs-1">
 			    <%@ include file="job.details.table.processes.jsp" %>
@@ -100,6 +101,9 @@ under the License.
 			<div id="tabs-4">
    				<%@ include file="job.details.table.specification.jsp" %>
 			</div>
+			<div id="tabs-5">
+                <%@ include file="job.details.table.files.jsp" %>
+            </div>
 		</div>
 </td>
 </table>

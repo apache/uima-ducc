@@ -26,9 +26,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.Properties;
+import java.util.TreeMap;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.uima.ducc.cli.DuccUiConstants;
 import org.apache.uima.ducc.common.utils.AlienFile;
+import org.apache.uima.ducc.common.utils.FileHelper;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 
@@ -37,6 +40,22 @@ public class DuccFile {
 	private static String ducc_ling = 
 			Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+	
+	public static TreeMap<String, File> getFilesInLogDirectory(IDuccWorkJob job, String user) throws Throwable {
+		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+		TreeMap<String, File> map = new TreeMap<String, File>();
+		try {
+			File filedir = new File(directory);
+			File[] filelist = filedir.listFiles();
+			for(File file : filelist) {
+				map.put(file.getName(), file);
+			}
+		}
+		catch(Exception e) {
+			// no worries
+		}
+		return map;
+	}
 	
 	public static Properties getUserSpecifiedProperties(IDuccWorkJob job, String user) throws Throwable {
 		String directory = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
@@ -142,10 +161,15 @@ public class DuccFile {
 		InputStreamReader isr = null;
 		FileInputStream fis = new FileInputStream(path);
 		DataInputStream dis = new DataInputStream(fis);
-		isr = new InputStreamReader(dis);
+		if(FileHelper.isGzFileType(path)) {
+			GZIPInputStream gis = new GZIPInputStream(dis);
+			isr = new InputStreamReader(gis, FileHelper.encoding);
+		}
+		else {
+			isr = new InputStreamReader(dis);
+		}
 		return isr;
 	}
-	
 	
 	public static InputStreamReader getInputStreamReader(String path, String user) throws Throwable {
 		if(user == null) {

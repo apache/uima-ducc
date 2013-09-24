@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -113,20 +114,25 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccAuthenticatorVersion 		= duccContext+"/authenticator-version";
 	private String duccAuthenticatorPasswordChecked	= duccContext+"/authenticator-password-checked";
 	
+	private String duccFileContents 				= duccContext+"/file-contents";
+	
 	private String duccJobIdData					= duccContext+"/job-id-data";
 	private String duccJobWorkitemsCountData		= duccContext+"/job-workitems-count-data";
 	private String duccJobProcessesData    			= duccContext+"/job-processes-data";
 	private String duccJobWorkitemsData				= duccContext+"/job-workitems-data";
 	private String duccJobPerformanceData			= duccContext+"/job-performance-data";
 	private String duccJobSpecificationData 		= duccContext+"/job-specification-data";
+	private String duccJobFilesData 				= duccContext+"/job-files-data";
 	private String duccJobInitializationFailData	= duccContext+"/job-initialization-fail-data";
 	private String duccJobRuntimeFailData			= duccContext+"/job-runtime-fail-data";
 	
 	private String duccReservationProcessesData    	= duccContext+"/reservation-processes-data";
 	private String duccReservationSpecificationData = duccContext+"/reservation-specification-data";
+	private String duccReservationFilesData 		= duccContext+"/reservation-files-data";
 	
 	private String duccServiceDeploymentsData    	= duccContext+"/service-deployments-data";
 	private String duccServiceRegistryData 			= duccContext+"/service-registry-data";
+	private String duccServiceFilesData 			= duccContext+"/service-files-data";
 	private String duccServiceSummaryData			= duccContext+"/service-summary-data";
 	
 	private String duccSystemAdminAdminData 		= duccContext+"/system-admin-admin-data";
@@ -1515,6 +1521,214 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
+	private void handleDuccServletJobFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletJobFilesData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		String jobNo = request.getParameter("id");
+		DuccWorkJob job = getJob(jobNo);
+		if(job != null) {
+			try {
+				String userId = duccWebSessionManager.getUserId(request);
+				TreeMap<String, File> map = DuccFile.getFilesInLogDirectory(job, userId);
+				Set<String> keys = map.keySet();
+				int counter = 0;
+				for(String key : keys) {
+					File file = map.get(key);
+					StringBuffer row = new StringBuffer();
+					//
+					String tr = trGet(counter);
+					sb.append(tr);
+					/*
+					// date
+					row.append("<td>");
+					row.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
+					String date = getTimeStamp(request,job.getDuccId(), ""+file.lastModified());
+					row.append(date);
+					row.append("</span>");
+					row.append("</td>");
+					*/
+					// name
+					row.append("<td>");
+					String href = "<a href=\""+duccFileContents+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					row.append(href);
+					row.append("</td>");
+					// size
+					row.append("<td>");
+					row.append(getFileSize(file.getAbsolutePath()));
+					row.append("</td>");
+					//
+					row.append("</tr>");
+					sb.append(row);
+					counter++;
+				}
+			}
+			catch(Throwable t) {
+				duccLogger.warn(methodName, null, t);
+				sb = new StringBuffer();
+				sb.append("no data");
+			}
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+		
+	private void handleDuccServletReservationFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletReservationFilesData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		String reservationNo = request.getParameter("id");
+		DuccWorkJob reservation = getManagedReservation(reservationNo);
+		if(reservation != null) {
+			try {
+				String userId = duccWebSessionManager.getUserId(request);
+				TreeMap<String, File> map = DuccFile.getFilesInLogDirectory(reservation, userId);
+				Set<String> keys = map.keySet();
+				int counter = 0;
+				for(String key : keys) {
+					File file = map.get(key);
+					StringBuffer row = new StringBuffer();
+					//
+					String tr = trGet(counter);
+					sb.append(tr);
+					/*
+					// date
+					row.append("<td>");
+					row.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
+					String date = getTimeStamp(request,job.getDuccId(), ""+file.lastModified());
+					row.append(date);
+					row.append("</span>");
+					row.append("</td>");
+					*/
+					// name
+					row.append("<td>");
+					String href = "<a href=\""+duccFileContents+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					row.append(href);
+					row.append("</td>");
+					// size
+					row.append("<td>");
+					row.append(getFileSize(file.getAbsolutePath()));
+					row.append("</td>");
+					//
+					row.append("</tr>");
+					sb.append(row);
+					counter++;
+				}
+			}
+			catch(Throwable t) {
+				duccLogger.warn(methodName, null, t);
+				sb = new StringBuffer();
+				sb.append("no data");
+			}
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
+		if(job != null) {
+			try {
+				String userId = duccWebSessionManager.getUserId(request);
+				TreeMap<String, File> map = DuccFile.getFilesInLogDirectory(job, userId);
+				Set<String> keys = map.keySet();
+				for(String key : keys) {
+					File file = map.get(key);
+					StringBuffer row = new StringBuffer();
+					//
+					String tr = trGet(counter);
+					sb.append(tr);
+					/*
+					// date
+					row.append("<td>");
+					row.append("<span title=\""+DuccConstants.hintPreferencesDateStyle+"\">");
+					String date = getTimeStamp(request,job.getDuccId(), ""+file.lastModified());
+					row.append(date);
+					row.append("</span>");
+					row.append("</td>");
+					*/
+					// id
+					row.append("<td>");
+					row.append(job.getId()+"."+process.getDuccId());
+					row.append("</td>");
+					// name
+					row.append("<td>");
+					String href = "<a href=\""+duccFileContents+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					row.append(href);
+					row.append("</td>");
+					// size
+					row.append("<td>");
+					row.append(getFileSize(file.getAbsolutePath()));
+					row.append("</td>");
+					//
+					row.append("</tr>");
+					sb.append(row);
+					counter++;
+				}
+			}
+			catch(Throwable t) {
+				// no worries
+			}
+		}
+	}
+	
+	private void handleDuccServletServiceFilesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceFilesData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		
+		String name = request.getParameter("name");
+		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+		Properties properties;
+		properties = payload.meta;
+		
+		ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
+		
+		DuccWorkJob service = null;
+		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+		if(duccWorkMap.getServiceKeySet().size()> 0) {
+			Iterator<DuccId> iterator = null;
+			iterator = duccWorkMap.getServiceKeySet().iterator();
+			int counter = 0;
+			String type = "SPU";
+			String service_type = properties.getProperty(IServicesRegistry.service_type);
+			if(service_type != null) {
+				if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
+					type = "SPC";
+				}
+			}
+			while(iterator.hasNext()) {
+				DuccId serviceId = iterator.next();
+				String fid = ""+serviceId.getFriendly();
+				if(implementors.contains(fid)) {
+					service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
+					IDuccProcessMap map = service.getProcessMap();
+					for(DuccId key : map.keySet()) {
+						IDuccProcess process = map.get(key);
+						buildServiceFilesListEntry(baseRequest,request,sb, service, process, type, ++counter);
+					}
+				}
+			}
+		}
+		
+		if(sb.length() == 0) {
+			sb.append("<tr>");
+			sb.append("<td>");
+			sb.append("not found");
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+				
 	private void handleDuccServletJobInitializationFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -2784,6 +2998,50 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private void handleDuccServletFileContents(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletFileContents";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		String fname = request.getParameter("fname");
+		StringBuffer sb = new StringBuffer();
+		InputStreamReader isr = null;
+		BufferedReader br = null;
+		try {
+			String userId = duccWebSessionManager.getUserId(request);
+			isr = DuccFile.getInputStreamReader(fname, userId);
+			br = new BufferedReader(isr);
+			String logLine;
+			while ((logLine = br.readLine()) != null)   {
+				if(fname.endsWith(".xml")) {
+					logLine = logLine.replace("<", "&lt");
+					logLine = logLine.replace(">", "&gt");
+				}
+				sb.append(logLine+"<br>");
+			}
+		}
+		catch(FileNotFoundException e) {
+			sb.append("File not found");
+		}
+		catch(Throwable t) {
+			sb.append("Error accessing file");
+		}
+		finally {
+			try {
+				br.close();
+			}
+			catch(Throwable t) {
+			}
+			try {
+				isr.close();
+			}
+			catch(Throwable t) {
+			}
+		}
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}	
+	
 	private void handleDuccServletLogData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3540,6 +3798,18 @@ public class DuccHandler extends DuccAbstractHandler {
 				handleDuccServletJobSpecificationData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
+			else if(reqURI.startsWith(duccJobFilesData)) {
+				handleDuccServletJobFilesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccReservationFilesData)) {
+				handleDuccServletReservationFilesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServiceFilesData)) {
+				handleDuccServletServiceFilesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
 			else if(reqURI.startsWith(duccJobInitializationFailData)) {
 				handleDuccServletJobInitializationFailData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
@@ -3692,6 +3962,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			*/
 			else if(reqURI.startsWith(duccLogData)) {
 				handleDuccServletLogData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccFileContents)) {
+				handleDuccServletFileContents(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJpInitSummary)) {

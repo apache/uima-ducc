@@ -626,6 +626,51 @@ function ducc_load_job_specification_data()
 	}	
 }
 
+function ducc_init_job_files_data()
+{
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+        $("#files_data_area").html(data);
+    }
+    catch(err) {
+        ducc_error("ducc_init_job_files_data",err);
+    }
+}
+
+var ms_load_job_files_data = +new Date() - ms_reload_min;
+
+function ducc_load_job_files_data()
+{
+    var ms_now = +new Date();
+    if(ms_now < ms_load_job_files_data + ms_reload_min) {
+        return;
+    }
+    ms_load_job_files_data = ms_now;
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+        $("#loading_files_area").html(data);
+        server_url= "/ducc-servlet/job-files-data"+location.search;
+        $.ajax(
+        {
+            url : server_url,
+            async: true,
+            success : function (data) 
+            {
+                $("#files_data_area").html(data);
+                hide_show();
+                data = "";
+                $("#loading_files_area").html(data);
+                sorttable.makeSortable(document.getElementById('files_table'));
+            }
+        });
+    }
+    catch(err) {
+        data = "";
+        $("#loading_files_area").html(data);
+        ducc_error("ducc_load_job_files_data",err);
+    }   
+}
+
 function ducc_init_reservation_specification_data()
 {
 	try {
@@ -662,6 +707,51 @@ function ducc_load_reservation_specification_data()
 	catch(err) {
 		ducc_error("ducc_load_reservation_specification_data",err);
 	}	
+}
+
+function ducc_init_reservation_files_data()
+{
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+        $("#files_data_area").html(data);
+    }
+    catch(err) {
+        ducc_error("ducc_init_reservation_files_data",err);
+    }
+}
+
+var ms_load_reservation_files_data = +new Date() - ms_reload_min;
+
+function ducc_load_reservation_files_data()
+{
+    var ms_now = +new Date();
+    if(ms_now < ms_load_reservation_files_data + ms_reload_min) {
+        return;
+    }
+    ms_load_reservation_files_data = ms_now;
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+        $("#loading_files_area").html(data);
+        server_url= "/ducc-servlet/reservation-files-data"+location.search;
+        $.ajax(
+        {
+            url : server_url,
+            async: true,
+            success : function (data) 
+            {
+                $("#files_data_area").html(data);
+                hide_show();
+                data = "";
+                $("#loading_files_area").html(data);
+                sorttable.makeSortable(document.getElementById('files_table'));
+            }
+        });
+    }
+    catch(err) {
+        data = "";
+        $("#loading_files_area").html(data);
+        ducc_error("ducc_load_reservation_files_data",err);
+    }   
 }
 
 function ducc_init_service_registry_data()
@@ -761,6 +851,51 @@ function ducc_init_service_deployments_data()
 	catch(err) {
 		ducc_error("ducc_init_service_deployments_data",err);
 	}
+}
+
+function ducc_init_service_files_data()
+{
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+        $("#files_data_area").html(data);
+    }
+    catch(err) {
+        ducc_error("ducc_init_service_files_data",err);
+    }
+}
+
+var ms_load_service_files_data = +new Date() - ms_reload_min;
+
+function ducc_load_service_files_data()
+{
+    var ms_now = +new Date();
+    if(ms_now < ms_load_service_files_data + ms_reload_min) {
+        return;
+    }
+    ms_load_service_files_data = ms_now;
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+        $("#loading_files_area").html(data);
+        server_url= "/ducc-servlet/service-files-data"+location.search;
+        $.ajax(
+        {
+            url : server_url,
+            async: true,
+            success : function (data) 
+            {
+                $("#files_data_area").html(data);
+                hide_show();
+                data = "";
+                $("#loading_files_area").html(data);
+                sorttable.makeSortable(document.getElementById('files_table'));
+            }
+        });
+    }
+    catch(err) {
+        data = "";
+        $("#loading_files_area").html(data);
+        ducc_error("ducc_load_service_files_data",err);
+    }   
 }
 
 function hide_show() {
@@ -1528,11 +1663,13 @@ function ducc_init(type)
 			ducc_init_job_workitems_data();
 			ducc_init_job_performance_data();
 			ducc_init_job_specification_data();
+			ducc_init_job_files_data();
 			ducc_load_job_workitems_count_data();
 			ducc_load_job_processes_data();
 			ducc_load_job_workitems_data();
 			ducc_load_job_performance_data();
 			ducc_load_job_specification_data();
+			ducc_load_job_files_data();
 		}
 		if(type == "uima-initialization-report") {
 		    uima_initialization_report();
@@ -1540,16 +1677,20 @@ function ducc_init(type)
 		if(type == "reservation-details") {
 			ducc_init_reservation_processes_data();
 			ducc_init_reservation_specification_data();
+			ducc_init_reservation_files_data();
 			ducc_load_reservation_processes_data();
 			ducc_load_reservation_specification_data();
+			ducc_load_reservation_files_data();
 		}
 		if(type == "service-details") {
 			ducc_init_service_summary_data();
 			ducc_init_service_deployments_data();
 			ducc_init_service_registry_data();
+			ducc_init_service_files_data();
 			ducc_load_service_summary_data();
 			ducc_load_service_deployments_data();
 			ducc_load_service_registry_data();
+			ducc_load_service_files_data();
 			ducc_service_update_form_button();
 		}
 		if(type == "system-machines") {
@@ -1999,12 +2140,15 @@ function ducc_update_page(type)
 				ducc_load_job_workitems_data();
 				ducc_load_job_performance_data();
 				//ducc_load_job_specification_data();
+				ducc_load_job_files_data();
 			}
 			if(type == "reservation-details") {
 				//ducc_load_reservation_specification_data();
 				ducc_load_reservation_processes_data();
+				ducc_load_reservation_files_data();
 			}
 			if(type == "service-details") {
+				ducc_load_service_files_data();
 				ducc_load_service_registry_data();
 				ducc_load_service_deployments_data();
 				ducc_service_update_form_button();

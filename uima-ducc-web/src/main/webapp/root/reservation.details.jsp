@@ -77,6 +77,7 @@ under the License.
 		<ul>
 			<li><a href="#tabs-1">Processes</a></li>
 			<li><a href="#tabs-2">Specification</a></li>
+			<li><a href="#tabs-3">Files</a></li>
 		</ul>
 			<div id="tabs-1">
 			    <%@ include file="reservation.details.table.processes.jsp" %>
@@ -86,6 +87,9 @@ under the License.
    					<span id="specification_data_area"></span>
    				</div>
 			</div>
+			<div id="tabs-3">
+                <%@ include file="reservation.details.table.files.jsp" %>
+            </div>
 		</div>
 </td>
 </table>
