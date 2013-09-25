@@ -71,52 +71,7 @@ uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.
         </configuration>
 
 
-		<!-- HACK - Build these manifest-only jars as are referenced in old snapshots -->
         <executions>
-
-          <execution>
-            <id>DuccJobSubmit</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-              <!-- Name the jar -->
-              <finalName>uima-ducc-submit</finalName>
-			  <archive>
- 				<manifest>
-				  <addClasspath>false</addClasspath>
-				</manifest>
-				<manifestEntries>
-				  <class-path>uima-ducc-cli.jar ${DUCC_CP}</class-path>
-				</manifestEntries>
-			  </archive>
-              <excludes>
-                <exclude>**/</exclude>
-                <exclude>META-INF/*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
-
-          <execution>
-            <id>DuccServiceSubmit</id>
-            <goals><goal>jar</goal></goals>
-            <phase>package</phase>
-            <configuration>
-              <!-- Name the jar -->
-              <finalName>uima-ducc-service-submit</finalName>
-			  <archive>
- 				<manifest>
-				  <addClasspath>false</addClasspath>
-				</manifest>
-				<manifestEntries>
-				  <class-path>uima-ducc-cli.jar ${DUCC_CP}</class-path>
-				</manifestEntries>
-			  </archive>
-              <excludes>
-                <exclude>**/</exclude>
-                <exclude>META-INF/*</exclude>
-              </excludes>
-            </configuration>
-          </execution>
 
 		  <!-- Build the cli jar last so it is the one installed in the repository !! -->
           <execution>
