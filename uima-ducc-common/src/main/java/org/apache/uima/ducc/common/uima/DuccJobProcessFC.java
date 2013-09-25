@@ -131,9 +131,14 @@ public class DuccJobProcessFC extends JCasFlowController_ImplBase {
       // If this is a work item CAS in a pipeline with an initial CM that has just been
       // to the CM then check if it should be sent to the last step, e.g. the CC.
       if (mStartsWithCasMultiplier && !internallyCreatedCas && currentStep == 1) {
-        // has been to CM, see if should go to CC
-        Iterator<TOP> fsIter = this.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
-        if (fsIter.hasNext()) {
+        // Parent CAS has been to the initial CM, so see if a special flow has been requested.
+        // Get an iterator only if the Workitem type is in the CAS's typesystem 
+        // (avoids JCAS_TYPE_NOT_IN_CAS error)
+        Iterator<TOP> fsIter = null;
+        if (this.getJCas().getTypeSystem().getType(Workitem.class.getName()) != null) {
+          fsIter = this.getJCas().getJFSIndexRepository().getAllIndexedFS(Workitem.type);
+        }
+        if (fsIter != null && fsIter.hasNext()) {
           Workitem wi = (Workitem) fsIter.next();
           if (fsIter.hasNext()) {
             throw new IllegalStateException("More than one instance of Workitem type");
