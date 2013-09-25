@@ -345,6 +345,10 @@ public abstract class CliBase
                 if (val.contains("${")) {
                     val = resolvePlaceholders(val);
                 }
+                String oval = (String) cli_props.get(opt.getLongOpt());
+                if (oval != null && !oval.equals(val)) {
+                    throw new Exception("Duplicate option specified: " + opt.getLongOpt());
+                }
             }
             cli_props.put(opt.getLongOpt(), val);
             if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = " + val);
@@ -813,8 +817,9 @@ public abstract class CliBase
     }
     
     /*
-     * Change any deprecated options to their new name.  If this produces duplicate specifications then the 
-     * commons-cli parser probably chooses the last one.
+     * Change any deprecated options to their new name.  If this produces duplicate specifications with different
+     * values then a duplicate options error will be thrown.  
+     * Could suppress this and use just one of them ????
      * 
      */
     private void cleanupArgs(String[] args) {
