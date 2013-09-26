@@ -18,11 +18,13 @@
 #   under the License.
 
 #
-# To use this to execute your Eclipse workspace, install as a symbolic link in your
-# JRE/bin directory, with the name java_viaducc, linking back to the base version
-# of viaducc in your ducc_runtime.
+# To use this to execute your Eclipse workspace, install as a symbolic
+# link in your JRE/bin directory, with any name other than 'viaducc',
+# for instance, java-viaducc,, linking back to the base version of
+# viaducc in your ducc_runtime.
 #
-# Then configre your Eclipse's launch JRE to use java_viaducc in place of 'java'
+# Then configre your Eclipse's launch JRE to use java_viaducc in place
+# of 'java'
 
 import sys
 import os
@@ -148,8 +150,11 @@ def main():
     p_env       = '-DDUCC_ENVIRONMENT='
 
     need_java = False
-    if ('java_viaducc' in sys.argv[0]):
+    if ( os.path.basename(sys.argv[0]) != 'viaducc' ):
         # if invokded as 'java_viaducc we must inject some kind of jvm as the executable
+        # this is more liberal: any link other than 'viaducc' caused injection of the
+        # jvm, to allow multiple, different symlinks (in case there are multiple,
+        # different versions of ducc, not really reccomended, but supported)
         need_java = True
 
     ducc_args = []
