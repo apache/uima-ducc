@@ -213,17 +213,25 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletLoginLink";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		boolean userAuth = isAuthenticated(request,response);
-        if (userAuth) {
-        	sb.append("<span class=\"status_on\">");
-        	sb.append("Logged-in");
-        	sb.append("<span>");
-        }
-        else {
-    		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
-    		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Login</a>";
-    		sb.append(href);
-        }
+		String value = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_ws_login_enabled);
+		Boolean result = new Boolean(value);
+		if(!result) {
+			String href = "<span title=\"System is configured to disallow logins\" stylen=\"font-size:8pt;\" disabled>Login</span>";
+			sb.append(href);
+		}
+		else {
+			boolean userAuth = isAuthenticated(request,response);
+	        if (userAuth) {
+	        	sb.append("<span class=\"status_on\">");
+	        	sb.append("Logged-in");
+	        	sb.append("<span>");
+	        }
+	        else {
+	    		String link = "https://"+request.getServerName()+":"+getDuccWebServer().getPortSsl()+"/";
+	    		String href = "<a href=\""+link+"login.html\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">Login</a>";
+	    		sb.append(href);
+	        }
+		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
