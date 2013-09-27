@@ -374,27 +374,19 @@ public class UimaUtils {
 	}
 	
 	public static Object getOverrideValueObject(ConfigurationParameter configurationParameter, String value) throws ResourceConfigurationException {
-		Object retVal = value;
-		if (configurationParameter != null) {
-			try {
-				if (configurationParameter.getType().equals("Integer")) {
-					retVal = Integer.parseInt(value);
-				} 
-				else if (configurationParameter.getType().equals("Boolean")) {
-					retVal = Boolean.parseBoolean(value);
-				} 
-				else if (configurationParameter.getType().equals("Float")) {
-					retVal = Float.parseFloat(value);
-				}
-			}
-			catch(Throwable t) {
-				throw new ResourceConfigurationException(t);
-			}
-		}
-		else {
-			throw new ResourceConfigurationException();
-		}
-		return retVal;
+        Object retVal = value;
+        try {
+            if (configurationParameter.getType().equals("Integer")) {
+                retVal = Integer.parseInt(value);
+            } else if (configurationParameter.getType().equals("Boolean")) {
+                retVal = Boolean.parseBoolean(value);
+            } else if (configurationParameter.getType().equals("Float")) {
+                retVal = Float.parseFloat(value);
+            }
+        } catch (Throwable t) {
+            throw new ResourceConfigurationException(t);
+        }
+        return retVal;
 	}
 
 	private static void addOverrides(List<List<String>> overrides,

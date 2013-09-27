@@ -114,6 +114,10 @@ public class CasSource {
                 String value = ent.getValue();
                 duccOut.debug(location, job.getDuccId(), "config param name:"+name+" "+"value:"+value);
                 ConfigurationParameter configurationParameter = UimaUtils.findConfigurationParameter(configurationParameterDeclarations, name);
+                if (configurationParameter == null) {
+                    throw new ResourceConfigurationException(
+                                    ResourceConfigurationException.NONEXISTENT_PARAMETER, new Object[] { name, "CollectionReader" });
+                }
                 Object object = UimaUtils.getOverrideValueObject(configurationParameter, value);
                 cps.setParameterValue(name, object);
             }

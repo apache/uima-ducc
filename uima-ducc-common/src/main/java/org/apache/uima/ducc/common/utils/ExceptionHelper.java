@@ -37,6 +37,10 @@ public class ExceptionHelper {
 					sb.append(":");
 					sb.append(ste.getLineNumber());
 					sb.append(")");
+					if (e.getCause() != null) {
+					    sb.append(" cause: ");
+					    sb.append(e.getCause());
+					}
 				}
 				
 			}
