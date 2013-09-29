@@ -862,45 +862,43 @@ class NodePool
      */
     int countOutNSharesByOrder(int order, int nrequested)
     {
-        int o1 = order;                                        // first order to search, then increasing
         int given = 0;                                         // track count given, for recursion
-        int k = 0;                                             // always the number of N-shares we need still
 
-        while ( (given < nrequested ) && ( o1 <= maxorder ) ) {
-            int avail = vMachinesByOrder[o1] + nMachinesByOrder[o1];
+        int rem = 0;
+        int low = order;
+        int high = low;
 
-            int base = o1 / order;                             // number of 'order sized shares we can make from a 'o1 machine
-            int r =    o1 % order;                             // order 'r of the leftovers, after carving out an 'order machine
-            k =  Math.min((nrequested - given), avail * base);  // the number of shares we need
+        while ( (given < nrequested ) && ( low <= maxorder ) ) {
 
-            if ( k > 0 ) {                                     // anything to be gotten from these machiens?
-                int gPrime            = Math.min(vMachinesByOrder[o1], k);  // cap wanted by available
-                int kr                = Math.min(k, gPrime * r);            // number of r-shares leftover
-                vMachinesByOrder[o1] -= gPrime;                // adjust virtual ...
-                vMachinesByOrder[r]  += kr;                    // and residual
-                given                += gPrime;                // update number given
-                k                    -= gPrime;                // constant, number still needed
+            int avail = vMachinesByOrder[low] + nMachinesByOrder[low];
+            if ( avail > 0 ) {
+                if (vMachinesByOrder[low] > 0 ) {
+                    vMachinesByOrder[low]--;
+                } else {
+                    nMachinesByOrder[low]--;
+                }
+                
+                given++;
+                rem = low - order;
+                if ( rem > 0 ) {
+                    vMachinesByOrder[rem]++;
+                    low = Math.max(rem, order);
+                }
+                high = Math.max(low, high);
 
-                if ( k != 0 ) {                                // not done?      
-                    gPrime                = Math.min(nMachinesByOrder[o1], k); // again, cap by available physical machines
-                    kr                    = Math.min(k, gPrime * r);           // r-shares left over
-                    nMachinesByOrder[o1] -= gPrime;            // update count
-                    vMachinesByOrder[r]  += kr;                // and residual
-                    given                += gPrime;            // and given
-                } 
+            } else {
+                low++;
             }
-
-            o1++;
         }
 
         // oops, I can't do this myself, make a child do it.
-        k = nrequested - given;            // the number of shares we need
+        int k = nrequested - given;            // the number of shares we need
         if ( k > 0 ) {
             Iterator<NodePool> iter = children.values().iterator();
             while ( iter.hasNext() && ( k > 0 ) ) {
-                NodePool np = iter.next();
-                given += np.countOutNSharesByOrder(order, k);
-                k      = nrequested - given;
+                NodePool np  = iter.next();
+                given       += np.countOutNSharesByOrder(order, k);
+                k            = nrequested - given;
             }
         }
 
