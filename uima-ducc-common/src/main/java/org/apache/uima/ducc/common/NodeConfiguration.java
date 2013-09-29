@@ -37,6 +37,7 @@ import java.util.StringTokenizer;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
+import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 
 
 
@@ -83,11 +84,11 @@ public class NodeConfiguration
         defaultFairShareClass.put("weight", "100");
         defaultFairShareClass.put("priority", "10");
         defaultFairShareClass.put("cap", Integer.toString(Integer.MAX_VALUE));
-        defaultFairShareClass.put("expand-by-doubling", "true");
-        defaultFairShareClass.put("initialization-cap", "2");
-        defaultFairShareClass.put("use-prediction", "true");
+        defaultFairShareClass.put("expand-by-doubling", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.expand.by.doubling", true));
+        defaultFairShareClass.put("initialization-cap", ""+SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap", 2));
+        defaultFairShareClass.put("use-prediction", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
+        defaultFairShareClass.put("prediction-fudge", ""+SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 60000));
         defaultFairShareClass.put("max-processes", Integer.toString(Integer.MAX_VALUE));
-        defaultFairShareClass.put("prediction-fudge", "60000");
         defaultFairShareClass.put("nodepool", "<required>");
         defaultFairShareClass.put("debug", "fixed");
         defaultFairShareClass.put("abstract", "<optional>");
@@ -486,7 +487,6 @@ public class NodeConfiguration
             String k = (String) o;
             String vm = model.getProperty(k);
             String vi = in.getProperty(k);
-
             if ( vi == null)  {
                 if ( vm.equals("<required>" ) ) {
                     throw new IllegalConfigurationException("Missing required property " + k + " in " + type + " " + name);
