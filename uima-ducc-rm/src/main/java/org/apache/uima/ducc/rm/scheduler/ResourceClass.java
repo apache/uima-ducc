@@ -77,11 +77,11 @@ public class ResourceClass
 
     // int class_shares;       // number of shares to apportion to jobs in this class in current epoch
 
-    private boolean expand_by_doubling = true;
-    private int initialization_cap = 2;
-    private long prediction_fudge = 60000;
-    private boolean use_prediction = true;
-
+    private boolean expand_by_doubling = SystemPropertyResolver.getBooleanProperty("ducc.rm.expand.by.doubling", true);
+    private int initialization_cap = SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap", 2);
+    private long prediction_fudge = SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 60000);
+    private boolean use_prediction = SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true);
+    
     private int[] given_by_order  = null;
     private int[] wanted_by_order = null;               // volatile - changes during countClassesByOrder
 
