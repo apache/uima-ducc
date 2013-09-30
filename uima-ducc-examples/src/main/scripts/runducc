@@ -192,7 +192,7 @@ class DuccProcess(Thread):
             jvm_classpath = jvm_classpath + ':' + self.DUCC_HOME + '/examples/simple/resources/service'
         
         plain_broker_url = self.runner.broker_protocol + '://' + self.runner.broker_host + ':' + self.runner.broker_port
-        cr_parms         = 'jobfile:' + self.jobfile + ',compression:' + self.runner.compression + ',error_rate:' + str(self.runner.error_rate)
+        cr_parms         = '"jobfile=' + self.jobfile + ' compression=' + self.runner.compression + ' error_rate=' + str(self.runner.error_rate) + '"'
         process_args.append(process_xmx)
         process_args.append('-DdefaultBrokerURL=' + plain_broker_url )
 
@@ -222,9 +222,6 @@ class DuccProcess(Thread):
         CMD = CMD + ' --driver_descriptor_CR '                + cr
         CMD = CMD + ' --driver_descriptor_CR_overrides '      + cr_parms
         CMD = CMD + ' --driver_jvm_args '                     + jvm_driver_args
-        CMD = CMD + ' --driver_classpath '                    + jvm_classpath
-        CMD = CMD + ' --driver_environment '                  + 'LD_LIBRARY_PATH=/a/other/bogus/path'
-        # CMD = CMD + ' --driver_exception_handler '            + 'org.apache.uima.ducc.test.handler.TimeoutHandler'
         
         if ( self.runner.style == 'DD' ):
             CMD = CMD + ' --process_DD '                      + dd
@@ -237,7 +234,7 @@ class DuccProcess(Thread):
             #CMD = CMD + ' --working_directory '               + working_dir
 
         CMD = CMD + ' --process_memory_size '                 + memory
-        CMD = CMD + ' --process_classpath '                   + jvm_classpath
+        CMD = CMD + ' --classpath '                   + jvm_classpath
         
         CMD = CMD + ' --process_jvm_args '                    + jvm_process_args
         CMD = CMD + ' --process_thread_count '                + nthreads
@@ -249,7 +246,7 @@ class DuccProcess(Thread):
         if ( self.runner.init_timeout > 0 ):
             CMD = CMD + ' --process_initialization_time_max ' + str(self.runner.init_timeout)
 
-        CMD = CMD + ' --process_environment ' \
+        CMD = CMD + ' --environment ' \
                   + '"' \
                   + ' AE_INIT_TIME='  + str(self.runner.init_time) \
                   + ' AE_INIT_RANGE=' + str(self.runner.init_range) \
@@ -258,8 +255,11 @@ class DuccProcess(Thread):
                   + ' LD_LIBRARY_PATH=/a/bogus/path' \
                   + '"'
 
-        if ( machines != None ):
-            CMD = CMD + ' --process_deployments_max '  + machines
+        if ( self.runner.max_machines == 0 ):
+            if ( machines != None ):
+                CMD = CMD + ' --process_deployments_max '  + machines
+        elif (self.runner.max_machines != -1 ):
+            CMD = CMD + ' --process_deployments_max '  + self.runner.max_machines
 
         if ( self.runner.watch ):
             CMD = CMD + ' --wait_for_completion true'     
@@ -620,6 +620,9 @@ class RunDucc(DuccUtil):
         print '   -m, --memory_override mem-in-GB'
         print '       Use this instead of what is in the props file. Default: None'
         print ''
+        print '   -n, --nmachines_override process_deployments_max'
+        print '       Override the preconfigured max machines. Use -1 to fully inhibit max machines'
+        print ''
         print '   -p, --process_timeout sec'
         print '       Process timeout, in seconds. Default:', self.process_timeout
         print ''
@@ -670,13 +673,14 @@ class RunDucc(DuccUtil):
         self.use_apache_package = True
         self.use_ibm_package = False
         self.submit_package = 'org.apache.uima.ducc'
+        self.max_machines = 0
 
         try:
-            opts, args  = getopt.getopt(argv, 'b:d:i:r:m:p:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
-                                                                      'init_fail_cap=', 'range=', 'memory_override=', 'process_timeout=', 'init_timeout=',
-                                                                      'watch',
-                                                                      'jd_uima_log=', 'jp_uima_log=', 
-                                                                      'use_jar'
+            opts, args  = getopt.getopt(argv, 'b:d:i:r:m:n:p:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
+                                                                        'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
+                                                                        'init_timeout=','watch',
+                                                                        'jd_uima_log=', 'jp_uima_log=', 
+                                                                        'use_jar'
                                                                       ])
         except:
             print "Unknown option"
@@ -695,6 +699,8 @@ class RunDucc(DuccUtil):
                 self.init_range = int(a) * 1000
             elif o in ('-m', '--memory_override'):
                 self.memory_override = a
+            elif o in ('-n', '--nmachines'):
+                self.max_machines = int(a)
             elif o in ('-p', '--process_timeout'):
                 self.process_timeout = a
             elif o in ('-w', '--watch' ):
@@ -748,6 +754,7 @@ class RunDucc(DuccUtil):
         print '    init_error         :', self.init_error
         print '    process_timeout    :', self.process_timeout
         print '    memory_override    :', self.memory_override
+        print '    max_machines       :', self.max_machines
         print '    jd_uima_log        :', self.jd_uima_log
         print '    jp_uima_log        :', self.jp_uima_log
         print '    use_jar            :', self.use_jar

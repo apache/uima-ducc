@@ -32,6 +32,9 @@ import sys
 import time
 import getopt
 
+from threading import *
+import Queue
+
 #designed to run only here, relative to ducc_runtime
 os.environ['DUCC_HOME'] = os.path.abspath(sys.argv[0] + '/../../..')
 sys.path.append(os.environ['DUCC_HOME'] + '/admin')
@@ -39,6 +42,8 @@ sys.path.append(os.environ['DUCC_HOME'] + '/admin')
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
 from ducc import Ducc
+from ducc_util import ThreadPool
+
 
 class StartSim(DuccUtil):
 
@@ -96,39 +101,40 @@ class StartSim(DuccUtil):
     #
     # Start admin components rm pm sm ws or, on local node using Ducc.py
     #        
-    def startComponents(self, components, or_parms):
+    def startComponent(self, args):
 
-        for (com, com) in components.items():
+        msgs = []
+        com, or_parms = args
 
-            if ( com == 'broker' ):
-                continue
+        if ( com in ('ws', 'viz') ):
+            node = self.webserver_node
+        else:
+            node = self.localhost
 
-            if ( com in ('ws', 'viz') ):
-                node = self.webserver_node
-            else:
-                node = self.localhost
+        if ( com == 'or' ):
+            lines = self.ssh(node, True, "'", 
+                             self.DUCC_HOME + '/admin/ducc.py', '-c', 'or', '-b', 
+                             '--or_parms', or_parms, "'")
+        else:
+            lines = self.ssh(node, True, "'", 
+                             self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', "'")
 
-            if ( com == 'or' ):
-                lines = self.ssh(node, True, "'", 
-                                 self.DUCC_HOME + '/admin/ducc.py', '-c', 'or', '-b', 
-                                 '--or_parms', or_parms, "'")
-            else:
-                lines = self.ssh(node, True, "'", 
-                                 self.DUCC_HOME + '/admin/ducc.py', '-c', com, '-b', "'")
+        msgs.append(('Start', com, 'on', node))
+        while 1:
+            line = lines.readline().strip()
+            if ( not line ):
+                break
+        # print '[] ' + line
+            if ( line.startswith('PID') ):
+                toks = line.split(' ')    # get the PID
+                self.pidlock.acquire();
+                self.pids.put(com, self.localhost + ' ' + toks[1] + ' ' + self.localhost)
+                self.pidlock.release();
+                lines.close()
+                msgs.append(('    PID', toks[1]))
+                break
 
-            print 'Start', com, 'on', node,
-            while 1:
-                line = lines.readline().strip()
-                if ( not line ):
-                    break
-            # print '[] ' + line
-                if ( line.startswith('PID') ):
-                    toks = line.split(' ')    # get the PID
-                    self.pids.put(com, self.localhost + ' ' + toks[1] + ' ' + self.localhost)
-                    lines.close()
-                    print 'PID', toks[1]
-                    break
-
+        return msgs
 
     #
     # Read the special nodelist and start "special" agents
@@ -144,10 +150,31 @@ class StartSim(DuccUtil):
     # We use Jerry's memory override for each agent to get it to falsely report the memory
     # instead of reading from the real machine.
     #
-  
-    def startAgents(self, nodelist, instances):
 
-        
+    def startOneAgent(self, args):
+        response = []
+        node, cmd, mem, ip, pnode, index = args
+        response.append(('Starting agent on', node, 'instance', index, 'as pseudo-node', pnode, 'IP', ip, 'memory', mem))
+        lines = self.ssh(node, True, "'", cmd, '--agent', '--memory', mem, '--addr', ip, '--pseudoname', pnode, "'")
+        while 1:
+            line = lines.readline().strip()
+            if ( not line ):
+                break
+            #print '[]', line
+            if ( line.startswith('PID')):
+                toks = line.split(' ')    # get the PID
+                lines.close()
+                response.append(('  ... Started,  PID', toks[1]))
+
+                # Gottoa run on old python that doesn't know 'with'
+                self.pidlock.acquire()
+                self.pids.put(index, node + ' ' + toks[1] + ' ' + pnode)
+                self.pidlock.release()
+
+                break
+        return response
+  
+    def startAgents(self, nodelist, instances):        
         do_all = True
         if ( len(instances) > 0 ):
             do_all = False
@@ -176,30 +203,16 @@ class StartSim(DuccUtil):
                         allnodes.append( (str(ndx), node, mem) )
                         ndx = ndx + 1
 
+        here = os.getcwd()
+        cmd = os.path.abspath(sys.argv[0])   
         for (index, node, mem) in allnodes:
             if ( not do_all ):
                 if ( not instances.has_key(index) ):
                     continue
 
-            print 'Starting', index, node, mem
             ip = '192.168.4.' + index
             pnode = node + '-' + index
-            print 'Starting agent on', node, 'instance', index, 'as pseudo-node', pnode, 'IP', ip, 'memory', mem,
-
-            here = os.getcwd()
-            cmd = os.path.abspath(sys.argv[0])   
-            lines = self.ssh(node, True, "'", cmd, '--agent', '--memory', mem, '--addr', ip, '--pseudoname', pnode, "'")
-            while 1:
-                line = lines.readline().strip()
-                if ( not line ):
-                    break
-                #print '[1]', line
-                if ( line.startswith('PID')):
-                    toks = line.split(' ')    # get the PID
-                    lines.close()
-                    print 'Started,  PID', toks[1]
-                    self.pids.put(index, node + ' ' + toks[1] + ' ' + pnode)
-                    break
+            self.threadpool.invoke(self.startOneAgent, node, cmd, mem, ip, pnode, index)
 
 
     def usage(self, msg):
@@ -267,6 +280,7 @@ class StartSim(DuccUtil):
         sys.exit(1)
 
     def main(self, argv):
+        print "Running as", os.getpid()
 
         if ( len(argv) == 0 ):
             self.usage(None)
@@ -341,6 +355,9 @@ class StartSim(DuccUtil):
             self. run_local_agent(pseudoname, IP, memory)
             sys.exit(0)
         else:         
+            self.pidlock = Lock()
+            self.threadpool = ThreadPool(50)
+
             if ( (IP != None) or (memory != None) or ( pseudoname != None )) :
                 self.invalid("Running with a nodelist is not compatible with running a single agent.");
 
@@ -350,9 +367,12 @@ class StartSim(DuccUtil):
             if ( node_config != None ):
                 self.startAgents(node_config, instances)
 
-            self.startComponents(components, or_parms)
+            for (com, com) in components.items():
+                if ( com != 'broker' ):    # started separately
+                    self.threadpool.invoke(self.startComponent, com, or_parms)
 
-        self.pids.write('sim.pids')            
+            self.threadpool.quit()
+            self.pids.write('sim.pids')            
 
 if __name__ == "__main__":
     starter = StartSim()
