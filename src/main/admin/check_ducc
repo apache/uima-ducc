@@ -29,6 +29,9 @@ from ducc_base  import DuccProperties
 from local_hooks import verify_slave_node
 from local_hooks import verify_master_node
 
+#from ducc_util import ThreadWorker
+from ducc_util import ThreadPool
+
 class CheckDucc(DuccUtil):
 
     def validate(self, checkdate):
@@ -39,12 +42,71 @@ class CheckDucc(DuccUtil):
         self.verify_limits()
         return
 
-
     def verify_activemq(self):
         if ( self.is_amq_active() ):
             print 'ActiveMQ is found listening at', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
             return True
         return False
+
+    def check_node(self, args):
+
+        messages = []
+        spacer = '   '            
+        node  = args[0]
+
+        messages.append((' '))
+        messages.append(('Checking', node, '...'))
+
+        response = self.find_ducc_process(node)   # a tuple, (True|False, proclist)
+        if ( not response[0] ):
+            messages.append((spacer, "No response."))
+            return messages
+
+        proclist = response[1]              # a list of tuples, tuple is (component, pid, user)
+        if ( len(proclist) > 0 ):
+            for proc in proclist:
+                component  = proc[0]
+                pid        = proc[1]
+                found_user = proc[2]
+                
+                if ( component == 'orchestrator' ):
+                    component = 'or'
+
+                process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
+                if ( self.kill_signal != None ) :
+                    if ( self.user != found_user ):
+                        messages.append((spacer, "Not killing someone else's process.", process_id))
+                    elif ( component == 'unknown-java' ):
+                        messages.append((spacer, 'Not killing non-ducc process', process_id))
+                    else:
+                        messages.append((spacer, 'Killing (' +  self.kill_signal + ')', process_id))
+                        self.kill_process(node, proc, self.kill_signal)
+                        self.pids.delete(pid)
+                        process_changes = True
+
+                else:
+                    messages.append((spacer, 'Found', process_id))
+                    full_name = component + '@' + node
+                    if ( component == 'agent' ):
+                        self.pids.put(full_name, pid)
+
+                    if ( component in self.default_components ):
+                        self.pids.put(full_name, pid)
+                        self.pids.put(component, full_name)
+        else:
+            messages.append((spacer, 'no processes found.'))
+
+        if ( self.kill_signal == None ):                    
+            lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-s", str(int(time())))
+            while 1:
+                line = lines.readline()
+                if ( not line ):
+                    break
+                line = line.strip()
+                messages.append((spacer, line))
+                #messages.append((spacer, '[]', line))
+
+        return messages
 
     def usage(self, msg):
         if ( msg != None ):
@@ -63,11 +125,6 @@ class CheckDucc(DuccUtil):
         print "    -c --configuration"
         print "        Do basic sanity checking on the configuration only.  Note that configuration checking is always"
         print "        performed with most options.  The [-c, --configuration] option does ONLY configuration checking."
-        print ""
-        print "    -u --user userid"
-        print "        Userid is the user whose processes check_ducc searches for.  If not specified,"
-        print "        the user executing check_ducc is used.  If specified as 'all' then all ducc processes"
-        print "        are searched for."
         print ""
         print "    -k --kill"
         print "       Force-kill any DUCC process you find on a node (if normal stop_ducc isn't working.  This"
@@ -89,10 +146,6 @@ class CheckDucc(DuccUtil):
         print "    -s localdate"
         print "       Validate the local installation, called via ssh usually. The date is the dat on the calling machine."
         print ""
-        print "    -r --reap"
-        print "       Reap user processes.  This uses kill -9 and ducc_ling to forcibly terrrminate user processes."
-        print "       Only processes specified by '-u' or '--userid' are targeted."
-        print ""
         print "    -v --verbose" 
         print "       If specified, print the validated configuration to the console."
         print ""
@@ -107,10 +160,8 @@ class CheckDucc(DuccUtil):
             self.usage("Invalid arguments " + ' '.join(argv))
     
         nodefiles = []
-        user = os.environ['LOGNAME']
-        victim_user = None
-        kill_signal = None
-        reap = False
+        self.user = os.environ['LOGNAME']
+        self.kill_signal = None
         redo_pids = False
         process_changes = False
         do_validate = False
@@ -124,24 +175,20 @@ class CheckDucc(DuccUtil):
             elif o in ('-n', '--nodelist'):
                 nodefiles.append(a)
             elif o in ('-i', '--int'):
-                if ( kill_signal != None ):
-                    print 'Conflicting kill signals: -INT and', kill_signal
+                if ( self.kill_signal != None ):
+                    print 'Conflicting kill signals: -INT and', self.kill_signal
                     return
-                kill_signal = '-INT'
+                self.kill_signal = '-INT'
             elif o in ('-q', '--quit'):
-                if ( kill_signal != None ):
-                    print 'Conflicting kill signals: -QUIT and', kill_signal
+                if ( self.kill_signal != None ):
+                    print 'Conflicting kill signals: -QUIT and', self.kill_signal
                     return
-                kill_signal = '-QUIT'
+                self.kill_signal = '-QUIT'
             elif o in ('-k', '--kill'):
-                if ( kill_signal != None ):
-                    print 'Conflicting kill signals: -KILL and', kill_signal
+                if ( self.kill_signal != None ):
+                    print 'Conflicting kill signals: -KILL and', self.kill_signal
                     return
-                kill_signal = '-KILL'
-            elif o in ('-u', '--user'):
-                victim_user = a
-            elif o in ('-r', '--reap'):
-                reap = True
+                self.kill_signal = '-KILL'
             elif o in ('-p', '--pids'):
                 redo_pids = True
             elif o in ('-s'):
@@ -170,9 +217,6 @@ class CheckDucc(DuccUtil):
             print e
 
 
-        if ( reap and (user == 'ducc') ):
-            usage('Can only reap non-udcc users')
-
         jvm = self.ducc_properties.get('ducc.jvm')
         if ( jvm == None ):
             print 'WARN: ducc.jvm is not specified in ducc.properties. Default is simply "java" which may not work on all nodes.'
@@ -185,8 +229,8 @@ class CheckDucc(DuccUtil):
             print 'ActiveMQ is not running on', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
 
         # init the PID file
-        pids = DuccProperties()
-        pids.load_if_exists(self.pid_file)
+        self.pids = DuccProperties()
+        self.pids.load_if_exists(self.pid_file)
 
         # read the nodelists
         if ( len(nodefiles) == 0 ):
@@ -198,8 +242,9 @@ class CheckDucc(DuccUtil):
             check_nodepools = False
 
         nodes = {}
+        n_nodes = 0
         for nf in nodefiles:
-            nodes = self.read_nodefile(nf, nodes)
+            n_nodes, nodes = self.read_nodefile(nf, nodes)
 
         #
         # add in the local host if needed, and the webserver node
@@ -229,92 +274,32 @@ class CheckDucc(DuccUtil):
             return
 
         # checking starts here        
+        print "Checking", n_nodes, "nodes"
+        self.threadpool = ThreadPool(n_nodes + 5)    # more for the head processes
         checked = {}
         for (nodefile, nodelist) in nodes.items():
             if ( nodelist == None ):
                 # loading the nodes prints the necessary message
                 continue
-            spacer = '   '            
             for node in nodelist:
                 if ( checked.has_key(node) ):
                     continue
 
                 checked[node] = node
-                print 'Checking', node, '...',
-                response = self.find_ducc_process(node)   # a tuple, (True|False, proclist)
-                if ( not response[0] ):
-                    continue
-                proclist = response[1]              # a list of tuples, tuple is (component, pid, user)
-                if ( len(proclist) > 0 ):
-                    print ''
-                    for proc in proclist:
-                        component  = proc[0]
-                        pid        = proc[1]
-                        found_user = proc[2]
-                        
-                        if ( component == 'orchestrator' ):
-                            component = 'or'
-    
-                        if ( (victim_user != None) and ( victim_user != found_user) ):
-                            continue
+                self.threadpool.invoke(self.check_node, node)
 
-                        process_id = found_user + ' ' + component + '@' + node + ' PID ' + pid 
-                        if ( kill_signal != None ) :
-                            if ( user != found_user ):
-                                print spacer, "Not killing someone else's process.", process_id
-                            elif ( component == 'unknown-java' ):
-                                print spacer, 'Not killing non-ducc process', process_id
-                            else:
-                                print spacer, 'Killing (' +  kill_signal + ')', process_id
-                                self.kill_process(node, proc, kill_signal)
-                                pids.delete(pid)
-                                process_changes = True
-                        elif ( reap ):
-                            # reaping is only for non-ducc JD and JP processes, and only if ducc calls it
-                            if ( user != 'ducc' ):
-                                print "You're not ducc - reap is not allowed.", process_id
-                            elif (found_user == 'ducc'):
-                                print "Not reaping ducc process", process_id
-                            elif ( component in ['jd', 'uima-as'] ):
-                                print spacer, 'Reaping', process_id
-                                self.ssh(node, False, '/local/ducc/bin/ducc_ling', '-u', found_user, '--', '/bin/kill', '-9', pid)
-                            else:
-                                print spacer, 'Not reaping unknown process', process_id
-                        else:
-                            print spacer, 'Found', process_id
-                            full_name = component + '@' + node
-                            if ( component == 'agent' ):
-                                pids.put(full_name, pid)
-    
-                            if ( component in self.default_components ):
-                                pids.put(full_name, pid)
-                                pids.put(component, full_name)
-                else:
-                    print 'no processes found.'
+        self.threadpool.quit()
 
-                if ( not ((kill_signal != None) or reap) ):                    
-                    lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-s", str(int(time())))
-                    while 1:
-                        line = lines.readline()
-                        if ( not line ):
-                            break
-                        line = line.strip()
-                        print spacer, line
-                        #print '[]', line
-
-        if ( reap ):
-            return
-
-        if ( kill_signal != None ):
+        if ( self.kill_signal != None ):
             self.stop_broker()
             self.remove_orchestrator_lock()
                 
-        if ( len(pids) == 0):
+        if ( len(self.pids) == 0):
             if ( os.path.exists(self.pid_file) ):
                 os.remove(self.pid_file)
         elif (process_changes or redo_pids):
-            pids.write(self.pid_file)
-
+            self.pids.write(self.pid_file)
+    
 if __name__ == "__main__":
     checker = CheckDucc()
     checker.main(sys.argv[1:])

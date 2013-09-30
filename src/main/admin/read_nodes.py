@@ -32,7 +32,8 @@ class ReadNodes(DuccUtil):
 
     def main(self, argv):
         nodes = {}
-        nodes = self.read_nodefile(argv[0], nodes)
+        n_nodes = 0
+        n_nodes, nodes = self.read_nodefile(argv[0], nodes)
         for ( nodefile, nodelist ) in nodes.items():
             for host in nodelist:
                 print host

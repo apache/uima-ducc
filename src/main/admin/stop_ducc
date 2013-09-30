@@ -267,8 +267,9 @@ class StopDucc(DuccUtil):
         # make sure all the nodefiles exist and are readable
         ok = True
         nodes = {}
+        n_nodes = 0
         for n in nodefiles:
-            nodes = self.read_nodefile(n, nodes)
+            n_nodes, nodes = self.read_nodefile(n, nodes)
 
         for ( nf, nl ) in nodes.items():
             if ( nl == None ):                       # die early if the parameters are wrong

@@ -27,6 +27,11 @@ import re
 import grp
 import resource
 import time
+
+from threading import *
+import traceback
+import Queue
+
 from  stat import *
 from local_hooks import find_other_processes
 
@@ -45,6 +50,59 @@ else:
 sys.path.append(DUCC_HOME + '/bin')
 from ducc_base import DuccBase
 from ducc_base import DuccProperties
+
+class ThreadWorker(Thread):
+    def __init__(self, queue, outlock):
+        Thread.__init__(self)
+        self.queue = queue
+        self.outlock = outlock
+        
+    def run(self):
+        while True:
+            (method, args) = self.queue.get()
+
+            if ( args == 'quit' ):
+                self.queue.task_done()
+                return;
+
+            try:
+                response = method(args)
+                if ( response != None and len(response) > 0):
+                    self.outlock.acquire()
+                    for l in response:
+                        print ' '.join(l)
+                    self.outlock.release()
+            except:
+                print "Exception executing", str(method), str(args)
+                traceback.print_exc()
+
+            self.queue.task_done()
+
+class ThreadPool:
+    def __init__(self, size):
+        self.size = size
+        self.queue = Queue.Queue()
+        outlock = Lock()
+
+        MAX_NPSIZE = 100
+        if ( self.size > MAX_NPSIZE ):
+            self.size = MAX_NPSIZE
+
+        for i in range(self.size):
+            worker = ThreadWorker(self.queue, outlock)
+            worker.start()
+
+    def invoke(self, method, *args):
+        self.queue.put((method, args))
+        pass
+            
+    def quit(self):
+        for i in range(self.size):
+            self.queue.put((None, 'quit'))
+
+        print "Waiting for Completion"
+        self.queue.join()
+        print "All threads returned"
 
 class DuccUtil(DuccBase):
 
@@ -597,6 +655,7 @@ class DuccUtil(DuccBase):
     #
     def read_nodefile(self, nodefile, ret):
         #print 'READ_NODEFILE:', nodefile, ret
+        n_nodes = 0
         if ( os.path.exists(nodefile) ):
             nodes = []
             f = open(nodefile)
@@ -610,16 +669,18 @@ class DuccUtil(DuccBase):
                     toks = node.split(' ')
                     newfile = toks[1]
                     newfile = self.resolve(newfile, nodefile)  # resolve newfile relative to nodefile
-                    ret = self.read_nodefile(newfile, ret)
+                    (count, ret) = self.read_nodefile(newfile, ret)
+                    n_nodes = n_nodes + count
                     continue
                 nodes.append(node)
+                n_nodes = n_nodes + 1
             ret[nodefile] = nodes
         else:
             print 'Cannot read nodefile', nodefile
             ret[nodefile] = None
 
-        #print 'RETURN', nodefile, ret
-        return ret
+        #print 'RETURN', n_nodes, nodefile, ret
+        return (n_nodes, ret)
 
     def compare_nodes(self, n1, n2):
 
