@@ -88,7 +88,9 @@ public class Scheduler
     Map<ResourceClass, ResourceClass> resourceClasses = new HashMap<ResourceClass, ResourceClass>();
     Map<String, ResourceClass> resourceClassesByName = new HashMap<String, ResourceClass>();
 
-    String defaultClassName = null;
+    String defaultFairShareName = null;
+    String defaultReserveName = null;
+
     int defaultNThreads = 1;
     int defaultNTasks = 10;
     int defaultMemory = 16;
@@ -204,6 +206,8 @@ public class Scheduler
         logger.info(methodName, null, "                       default threads         : ", defaultNThreads);
         logger.info(methodName, null, "                       default tasks           : ", defaultNTasks);
         logger.info(methodName, null, "                       default memory          : ", defaultMemory);
+        logger.info(methodName, null, "                       default fairshare class : ", defaultFairShareName);
+        logger.info(methodName, null, "                       default reserve         : ", defaultReserveName);
         logger.info(methodName, null, "                       class definition file   : ", class_definitions);
         logger.info(methodName, null, "                       eviction policy         : ", evictionPolicy);
         logger.info(methodName, null, "                       use prediction          : ", SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
@@ -256,9 +260,14 @@ public class Scheduler
         this.jobManager = jobmanager;
     }
 
-    public String getDefaultClassName()
+    public String getDefaultFairShareName()
     {
-    	return defaultClassName;
+    	return defaultFairShareName;
+    }
+
+    public String getDefaultReserveName()
+    {
+    	return defaultReserveName;
     }
 
     public int getDefaultNThreads()
@@ -498,6 +507,16 @@ public class Scheduler
             logger.info(methodName, null, rc.toString());
         }
 
+        DuccProperties dc = nc.getDefaultFairShareClass();
+        if ( dc != null ) {
+            defaultFairShareName = dc.getProperty("name");
+        }
+
+        dc = nc.getDefaultReserveClass();
+        if ( dc != null ) {
+            defaultReserveName = dc.getProperty("name");
+        }
+
         // Instatntiate one scheduler per top-level nodepool
         try {
             schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.ClassBasedScheduler");
@@ -538,54 +557,6 @@ public class Scheduler
             schedulers[i].setClasses(classesForNp);
         }
 
-    }
-
-    void initClassesOld(String filename)
-        throws Exception
-    {
-        String methodName = "initClasses";
-        DuccProperties props = new DuccProperties();
-        props.load(ducc_home + "/resources/" + filename);
-
-        defaultClassName = props.getProperty("scheduling.default.name");
-
-        // read in nodepools
-        String npn = props.getProperty("scheduling.nodepool");
-        if ( npn != null ) {
-            String[] npnames = npn.split("\\s+");
-            for ( String nodepoolName : npnames ) {
-                @SuppressWarnings("unused")
-				int nporder = props.getIntProperty("scheduling.nodepool." + nodepoolName + ".order", 100);                
-                @SuppressWarnings("unused")
-				String npfile = props.getProperty("scheduling.nodepool." + nodepoolName).trim();
-                // jrc  Map<String,String> npnodes = readNodepoolFile(npfile);                
-                // jrc nodepool.createSubpool(nodepoolName, npnodes, nporder);                    
-//                 } catch (FileNotFoundException e) {
-//                     throw new SchedulingException(null, "Cannot open NodePool file \"" + npfile + "\": file not found.");
-//                 } catch (IOException e) {
-//                     throw new SchedulingException(null, "Cannot read NodePool file \"" + npfile + "\": I/O Error.");
-//                 }
-            }
-        }
-        
-        // read in the class definitions
-        String cn = props.getProperty("scheduling.class_set");
-        if ( cn == null ) {
-            throw new SchedulingException(null, "No class definitions found, scheduler cannot start.");
-        }
-        
-//        String[] classNames = cn.split("\\s+");
-        logger.info(methodName, null, "Classes:");
-        logger.info(methodName, null, ResourceClass.getHeader());
-        logger.info(methodName, null, ResourceClass.getDashes());
-//        for ( String n : classNames ) {
-//        	n = n.trim();
-//            ResourceClass rc = new ResourceClass(n); //, nodepool.getMachinesByName(), nodepool.getMachinesByIp());
-//            rc.init(props);
-//            resourceClasses.put(rc, rc);
-//            resourceClassesByName.put(n, rc);
-//            logger.info(methodName, null, rc.toString());
-//        }
     }
 
     /**

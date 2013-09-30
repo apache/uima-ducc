@@ -48,7 +48,8 @@ public interface ISchedulerMain
     void signalCompletion(IRmJob job, Share share);
     //void signalGrowth(DuccId jobid, Share share);
 
-    String getDefaultClassName();
+    String getDefaultFairShareName();
+    String getDefaultReserveName();
     int    getDefaultNTasks();
     int    getDefaultNThreads();
     int    getDefaultMemory();
