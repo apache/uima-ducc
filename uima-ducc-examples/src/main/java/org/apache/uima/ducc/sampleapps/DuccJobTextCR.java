@@ -42,9 +42,12 @@ import org.apache.uima.util.ProgressImpl;
  * <ul>
  * <li><code>InputDirectory</code> - path to directory containing input files</li>
  * <li><code>OutputDirectory</code> - path to directory for output files</li>
+ * <li><code>IgnorePreviousOutput</code> (optional) - flag to ignore previous output files</li>
  * <li><code>Encoding</code> (optional) - character encoding of the input files</li>
  * <li><code>Language</code> (optional) - language of the input documents</li>
  * <li><code>BlockSize</code> (optional) - Block size used to process input files</li>
+ * <li><code>SendToLast</code> (optional) - flag to route WorkItem CAS to last pipeline component. Only used for jobs with initial CM.</li>
+ * <li><code>SendToAll</code> (optional) - flag to route WorkItem CAS to all pipeline components. Only used for jobs with initial CM.</li>
  * </ul>
  * 
  */
@@ -86,13 +89,16 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
   public static final String PARAM_BLOCKSIZE = "BlockSize";
 
   /**
-   * Name of configuration parameter specifying the block size used to break input files into work-items.
-   * Output files will correspond to the input data found in each block.
-   * If not specified, the entire file will be processed as a single work-item.
+   * Flag to route WorkItem CAS to last pipeline component. Used to flush any output data.
+   * This string is ignored if the Job has a CM component.
    */
   public static final String PARAM_SENDTOLAST = "SendToLast";
 
-  public static final String PARAM_DEBUG = "Debug";
+  /**
+   * Flag to route WorkItem CAS to all pipeline components.
+   * If the Job has no CM component the WI CAS is already sent to AE and CC.
+   */
+  public static final String PARAM_SENDTOALL = "SendToAll";
   
   class WorkItem {
     public WorkItem(String absolutePathIn, String absolutePathOut, int i, long len, long off, boolean end) {
@@ -129,7 +135,7 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
 
   private Boolean mSendToLast;
 
-  private Boolean mDebug;
+  private Boolean mSendToAll;
 
   private int mPreviouslyDone;
 
@@ -146,7 +152,7 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
     mEncoding  = (String) getConfigParameterValue(PARAM_ENCODING);
     mLanguage  = (String) getConfigParameterValue(PARAM_LANGUAGE);
     mSendToLast = (Boolean) getConfigParameterValue(PARAM_SENDTOLAST);
-    mDebug = (Boolean) getConfigParameterValue(PARAM_DEBUG);
+    mSendToAll = (Boolean) getConfigParameterValue(PARAM_SENDTOALL);
 
     if (null == mIgnorePrevious) {
     	mIgnorePrevious = Boolean.FALSE;
@@ -154,8 +160,8 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
     if (null == mSendToLast) {
     	mSendToLast = Boolean.FALSE;
     }
-    if (null == mDebug) {
-    	mDebug = Boolean.FALSE;
+    if (null == mSendToAll) {
+    	mSendToAll = Boolean.FALSE;
     }
     mCurrentIndex = 0;
     mPreviouslyDone = 0;
@@ -167,13 +173,10 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
               new Object[] { PARAM_INPUTDIR, this.getMetaData().getName(), inDirectory.getPath() });
     }
 
-    // if output directory does not exist or is not a directory, throw exception
+    // if output directory is a file throw exception
     File outDirectory = new File(mOutputdirectory);
     if (outDirectory.exists() && !outDirectory.isDirectory()) {
       throw new ResourceInitializationException(new RuntimeException("Specified output directory "+mOutputdirectory+" is a file"));
-    }
-    if (!outDirectory.exists()) {
-    	mIgnorePrevious = true;
     }
 
     mBlocksize = 0;
@@ -183,11 +186,10 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
       logger.log(Level.INFO, "Using blocksize "+ mBlocksize);
     }
     if (null != mIgnorePrevious && mIgnorePrevious) {
-//      mIgnorePrevious = Boolean.FALSE;
       logger.log(Level.INFO, "Overwriting previous outfiles");
     }
 
-    // get list of files or file-parts in the specified directory, and subdirectories if recursive
+    // get list of files or file-parts in the specified directory
     mWorkList = new ArrayList<WorkItem>();
     addFilesFromDir(inDirectory);
     if (0 < mPreviouslyDone) {
@@ -211,12 +213,12 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
         outfilename = outfilename.substring(mInputdirectory.length());
         outfilename = mOutputdirectory+outfilename;
         if (mBlocksize == 0) {
-          File outFile = new File(outfilename+".processed");
+          File outFile = new File(outfilename+"_processed.zip");
           if (!mIgnorePrevious && outFile.exists()) {
         	  mPreviouslyDone++;
           }
           if (mIgnorePrevious || !outFile.exists()) {
-            mWorkList.add(new WorkItem(files[i].getAbsolutePath(),outfilename+".processed",0,files[i].length(),0,true));
+            mWorkList.add(new WorkItem(files[i].getAbsolutePath(),outfilename+"_processed.zip",0,files[i].length(),0,true));
             logger.log(Level.FINE, "adding "+outfilename);
           }
         }
@@ -228,12 +230,12 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
           while (fsize > 0) {
             String outfilechunk = outfilename+"_"+j;
             long length = (fsize < mBlocksize) ? fsize : mBlocksize;
-            File outFile = new File(outfilechunk+".processed");
+            File outFile = new File(outfilechunk+"_processed.zip");
             if (!mIgnorePrevious && outFile.exists()) {
           	  mPreviouslyDone++;
             }
             if (mIgnorePrevious || !outFile.exists()) {
-              mWorkList.add(new WorkItem(files[i].getAbsolutePath(),outfilechunk+".processed",j,length,offset,fsize==length));
+              mWorkList.add(new WorkItem(files[i].getAbsolutePath(),outfilechunk+"_processed.zip",j,length,offset,fsize==length));
               logger.log(Level.FINE, "adding "+outfilechunk);
             }
             j++;
@@ -272,6 +274,7 @@ public class DuccJobTextCR extends CollectionReader_ImplBase {
     	  wi.setLanguage(mLanguage);
       }
       wi.setSendToLast(mSendToLast);
+      wi.setSendToAll(mSendToAll);
       wi.addToIndexes();
       wi.setLastBlock(mWorkList.get(mCurrentIndex).last);
       logger.log(Level.INFO, "Sending "+wi.getInputspec()+" index="+wi.getBlockindex()+" last="+wi.getLastBlock()+" length="+wi.getBytelength());
