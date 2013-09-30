@@ -866,7 +866,6 @@ class NodePool
 
         int rem = 0;
         int low = order;
-        int high = low;
 
         while ( (given < nrequested ) && ( low <= maxorder ) ) {
 
@@ -884,7 +883,6 @@ class NodePool
                     vMachinesByOrder[rem]++;
                     low = Math.max(rem, order);
                 }
-                high = Math.max(low, high);
 
             } else {
                 low++;
