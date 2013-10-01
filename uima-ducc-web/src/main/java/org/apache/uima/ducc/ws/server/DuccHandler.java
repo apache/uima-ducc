@@ -1690,41 +1690,46 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		String name = request.getParameter("name");
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
-		ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
-		Properties properties;
-		properties = payload.meta;
-		
-		ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
-		
-		DuccWorkJob service = null;
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		if(duccWorkMap.getServiceKeySet().size()> 0) {
-			Iterator<DuccId> iterator = null;
-			iterator = duccWorkMap.getServiceKeySet().iterator();
-			int counter = 0;
-			String type = "SPU";
-			String service_type = properties.getProperty(IServicesRegistry.service_type);
-			if(service_type != null) {
-				if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-					type = "SPC";
+		try {
+			String name = request.getParameter("name");
+			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+			Properties properties;
+			properties = payload.meta;
+			
+			ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
+			
+			DuccWorkJob service = null;
+			DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+			if(duccWorkMap.getServiceKeySet().size()> 0) {
+				Iterator<DuccId> iterator = null;
+				iterator = duccWorkMap.getServiceKeySet().iterator();
+				int counter = 0;
+				String type = "SPU";
+				String service_type = properties.getProperty(IServicesRegistry.service_type);
+				if(service_type != null) {
+					if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
+						type = "SPC";
+					}
 				}
-			}
-			while(iterator.hasNext()) {
-				DuccId serviceId = iterator.next();
-				String fid = ""+serviceId.getFriendly();
-				if(implementors.contains(fid)) {
-					service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
-					IDuccProcessMap map = service.getProcessMap();
-					for(DuccId key : map.keySet()) {
-						IDuccProcess process = map.get(key);
-						buildServiceFilesListEntry(baseRequest,request,sb, service, process, type, ++counter);
+				while(iterator.hasNext()) {
+					DuccId serviceId = iterator.next();
+					String fid = ""+serviceId.getFriendly();
+					if(implementors.contains(fid)) {
+						service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
+						IDuccProcessMap map = service.getProcessMap();
+						for(DuccId key : map.keySet()) {
+							IDuccProcess process = map.get(key);
+							buildServiceFilesListEntry(baseRequest,request,sb, service, process, type, ++counter);
+						}
 					}
 				}
 			}
 		}
-		
+		catch(Throwable t) {
+			// no worries
+		}
+
 		if(sb.length() == 0) {
 			sb.append("<tr>");
 			sb.append("<td>");
@@ -1969,39 +1974,44 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		String name = request.getParameter("name");
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
-		ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
-		Properties properties;
-		properties = payload.meta;
-		
-		ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
-		
-		DuccWorkJob service = null;
-		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
-		if(duccWorkMap.getServiceKeySet().size()> 0) {
-			Iterator<DuccId> iterator = null;
-			iterator = duccWorkMap.getServiceKeySet().iterator();
-			int counter = 0;
-			String type = "SPU";
-			String service_type = properties.getProperty(IServicesRegistry.service_type);
-			if(service_type != null) {
-				if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-					type = "SPC";
+		try {
+			String name = request.getParameter("name");
+			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+			Properties properties;
+			properties = payload.meta;
+			
+			ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
+			
+			DuccWorkJob service = null;
+			DuccWorkMap duccWorkMap = DuccData.getInstance().get();
+			if(duccWorkMap.getServiceKeySet().size()> 0) {
+				Iterator<DuccId> iterator = null;
+				iterator = duccWorkMap.getServiceKeySet().iterator();
+				int counter = 0;
+				String type = "SPU";
+				String service_type = properties.getProperty(IServicesRegistry.service_type);
+				if(service_type != null) {
+					if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
+						type = "SPC";
+					}
 				}
-			}
-			while(iterator.hasNext()) {
-				DuccId serviceId = iterator.next();
-				String fid = ""+serviceId.getFriendly();
-				if(implementors.contains(fid)) {
-					service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
-					IDuccProcessMap map = service.getProcessMap();
-					for(DuccId key : map.keySet()) {
-						IDuccProcess process = map.get(key);
-						buildServiceProcessListEntry(sb, service, process, type, ++counter);
+				while(iterator.hasNext()) {
+					DuccId serviceId = iterator.next();
+					String fid = ""+serviceId.getFriendly();
+					if(implementors.contains(fid)) {
+						service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
+						IDuccProcessMap map = service.getProcessMap();
+						for(DuccId key : map.keySet()) {
+							IDuccProcess process = map.get(key);
+							buildServiceProcessListEntry(sb, service, process, type, ++counter);
+						}
 					}
 				}
 			}
+		}
+		catch(Throwable t) {
+			// no worries
 		}
 		
 		if(sb.length() == 0) {
