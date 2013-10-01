@@ -146,6 +146,9 @@ class CheckDucc(DuccUtil):
         print "    -s localdate"
         print "       Validate the local installation, called via ssh usually. The date is the dat on the calling machine."
         print ""
+        print "    --nothreading"
+        print "        Disable multithreaded operation if it would otherwise be used"
+        print ""
         print "    -v --verbose" 
         print "       If specified, print the validated configuration to the console."
         print ""
@@ -155,7 +158,7 @@ class CheckDucc(DuccUtil):
     def main(self, argv):
 
         try:
-            opts, args = getopt.getopt(argv, 'cikn:opqrs:u:h?v', ['--configuration', '--nodelist=', '--user=', '--int', '--quit', '--kill', '--pids', '--reap', '--verbose' ])
+            opts, args = getopt.getopt(argv, 'cikn:opqs:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'pids', 'verbose', 'nothreading' ])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
@@ -189,6 +192,8 @@ class CheckDucc(DuccUtil):
                     print 'Conflicting kill signals: -KILL and', self.kill_signal
                     return
                 self.kill_signal = '-KILL'
+            elif o in ( '--nothreading' ):
+                self.disable_threading()
             elif o in ('-p', '--pids'):
                 redo_pids = True
             elif o in ('-s'):

@@ -200,7 +200,7 @@ class Ducc(DuccUtil):
                 pid = self.nohup(cmd)
             else:
                 pid = self.spawn(' '.join(cmd))
-                print 'PID ' + pid      # nohup will print this from the (twice) forked process if background
+                print 'PID ' + str(pid) # nohup will print this from the (twice) forked process if background
                                         # hard for us to access it here in nohup
 
         if ( (c == 'ws') or ( c == 'viz') ):

@@ -27,6 +27,7 @@ import re
 import grp
 import resource
 import time
+import platform
 
 from threading import *
 import traceback
@@ -50,6 +51,9 @@ else:
 sys.path.append(DUCC_HOME + '/bin')
 from ducc_base import DuccBase
 from ducc_base import DuccProperties
+
+global use_threading
+use_threading = True
 
 class ThreadWorker(Thread):
     def __init__(self, queue, outlock):
@@ -80,29 +84,38 @@ class ThreadWorker(Thread):
 
 class ThreadPool:
     def __init__(self, size):
-        self.size = size
-        self.queue = Queue.Queue()
-        outlock = Lock()
+        if ( use_threading ):
+            self.size = size
+            self.queue = Queue.Queue()
+            outlock = Lock()
 
-        MAX_NPSIZE = 100
-        if ( self.size > MAX_NPSIZE ):
-            self.size = MAX_NPSIZE
+            MAX_NPSIZE = 100
+            if ( self.size > MAX_NPSIZE ):
+                self.size = MAX_NPSIZE
 
-        for i in range(self.size):
-            worker = ThreadWorker(self.queue, outlock)
-            worker.start()
+            for i in range(self.size):
+                worker = ThreadWorker(self.queue, outlock)
+                worker.start()
 
     def invoke(self, method, *args):
-        self.queue.put((method, args))
-        pass
+        if ( use_threading ):
+            self.queue.put((method, args))
+        else:
+            response = method(args)
+            if ( response != None and len(response) > 0):
+                for l in response:
+                    print ' '.join(l)
             
     def quit(self):
-        for i in range(self.size):
-            self.queue.put((None, 'quit'))
+        if ( use_threading ):
+            for i in range(self.size):
+                self.queue.put((None, 'quit'))
 
-        print "Waiting for Completion"
-        self.queue.join()
-        print "All threads returned"
+            print "Waiting for Completion"
+            self.queue.join()
+            print "All threads returned"
+        else:
+            print 'All Work completed'
 
 class DuccUtil(DuccBase):
 
@@ -579,7 +592,7 @@ class DuccUtil(DuccBase):
         return lines.readline().strip()
 
     def show_ducc_environment(self):
-
+        global use_threading
         #
         # Print the java version
         #
@@ -601,6 +614,7 @@ class DuccUtil(DuccBase):
                 response.append('ENV: ' + line.strip())
                 
 
+        response.append('ENV: Threading enabled: ' + str(use_threading))
         #
         # Get the total memory for the node
         #
@@ -726,7 +740,12 @@ class DuccUtil(DuccBase):
 
         return (rc == 0)
 
+    def disable_threading(self):
+        global use_threading
+        use_threading = False
+
     def __init__(self):
+        global use_threading
         DuccBase.__init__(self)
         self.duccling = None
         self.broker_url = 'tcp://localhost:61616'
@@ -747,6 +766,16 @@ class DuccUtil(DuccBase):
         self.automanage = False
         if (manage_broker in ('t', 'true', 'T', 'True')) :
             self.automanage = True                    
+
+        py_version = platform.python_version().split('.')
+        if ( int(py_version[0]) > 2 ):
+            print "Warning, only Python Version 2 is supported."
+        if ( int(py_version[1]) < 4 ):
+            print "Python must be at least at version 2.4."
+            sys.exit(1)
+        if ( int(py_version[1]) < 6 ):
+            use_threading = False
+
 
 if __name__ == "__main__":
     util = DuccUtil()

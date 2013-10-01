@@ -99,7 +99,7 @@ class StartDucc(DuccUtil):
             line = lines.readline().strip()
             if ( not line ):
                 break
-            msgs.append(('[]', line))
+            #msgs.append(('[]', line))
             if ( line.startswith('PID') ):
                 toks = line.split(' ')    # get the PID
                 msgs.append(('     PID', toks[1]))
@@ -179,9 +179,6 @@ class StartDucc(DuccUtil):
         print ""
         print "        start_ducc -n foo.nodes -n bar.nodes -n baz.nodes"
         print ""
-        print "   -m --management"
-        print "        Start the management processes (rm, sm, pm, webserver, orchestrator) on the local node."
-        print ""
         print "   -s --singleuser"
         print "        Start ducc in 'single user mode'.  This bypasses some checking required for multi-user"
         print "        mode and not required for single-user mode."
@@ -202,6 +199,9 @@ class StartDucc(DuccUtil):
         print "          ws - web server"
         print "          viz - visualization server"
         print "          agent - node agent"        
+        print ""
+        print "    --nothreading"
+        print "        Disable multithreaded operation if it would otherwise be used"
         print ""
         print "Examples:"
         print "   Start all DUCC processes, using custom nodelists:"
@@ -229,10 +229,6 @@ class StartDucc(DuccUtil):
     
     def main(self, argv):
 
-        environ = self.show_ducc_environment()
-        for e in environ:
-            print e
-
         if ( not self.verify_jvm() ):
             sys.exit(1);
 
@@ -240,26 +236,25 @@ class StartDucc(DuccUtil):
 
         nodefiles = []
         components = []
-        management = False
         single_user = False
         or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
         self.pids = DuccProperties()
         self.pids.load_if_exists(self.pid_file)
         
         try:
-            opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'components=', 'help', 'nodelist=', 'management', 'singleuser', 'cold', 'warm', 'hot'])
+            opts, args = getopt.getopt(argv, 'c:mn:sh?v', ['component=', 'components=', 'help', 'nodelist=', 'singleuser', 'cold', 'warm', 'hot', 'nothreading'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
                        
         for ( o, a ) in opts:
             if o in ( '-c', '--components' ): 
                 components.append(a)
-            elif o in ( '-m', '--management' ):
-                management = True
             elif o in ( '-n', '--nodelist' ):
                 nodefiles.append(a)
             elif o in ( '-s', '--singleuser' ):
                 single_user = True
+            elif o in ( '--nothreading' ):
+                self.disable_threading()
             elif o in ( '--cold', '--warm', '--hot' ):
                 or_parms = o[2:]         # (strip the leading --)
             elif ( o == '-v'):
@@ -272,21 +267,13 @@ class StartDucc(DuccUtil):
             else:
                 self.invalid('bad args: ', ' '.join(argv))
 
-        # 'management' means start all the management daemons - if specific components are also specified
-        # there is at least a redundancy and maybe also a conflict.
-        if ( (len(components) != 0) and management ):
-            self.invalid("The [-m | --management] and [-c | --component] options are mutually exclusive.")
+        environ = self.show_ducc_environment()
+        for e in environ:
+            print e
 
         # no args, or just -s - make equivalent of -management and -nodefile=DUCC.HOME/resources/ducc.nodes
-        if ( (len(argv) == 0) or ((len(argv) == 1) and single_user) ):
+        if ( (len(components) == 0) and (len(nodefiles) == 0 ) ) :
             nodefiles =  self.default_nodefiles
-            components = self.default_components
-            must_verify_nodepools = True
-        else:
-            must_verify_nodepools = False
-
-        # this means all the non-agent processes - conflicts are already checked
-        if ( management ):
             components = self.default_components
 
         self.verify_required_directories()
@@ -297,9 +284,6 @@ class StartDucc(DuccUtil):
         if ( not verify_master_node(self.ducc_properties) ):
             print 'FAIL: Cannot run javac to run java verification'
             return
-
-        #print 'nodefiles:', nodefiles
-        #print 'components:', components
 
         # make sure all the nodefiles exist and are readable
         ok = True
@@ -359,7 +343,6 @@ class StartDucc(DuccUtil):
         if ( len(components) != 0 ):
             print 'Starting', or_parms
 
-
             for com in components:
                 if ( com == 'broker' ):
                     pass     # already started
@@ -372,8 +355,6 @@ class StartDucc(DuccUtil):
                         traceback.print_exc()
                         print "Errors encounted, DUCC may not be started correctly."
                         sys.exit(1)
-        else:
-            print 'Not starting management components.'
 
         self.threadpool.quit()
 

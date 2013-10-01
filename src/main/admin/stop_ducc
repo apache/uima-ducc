@@ -146,6 +146,11 @@ class StopDucc(DuccUtil):
         print '   -k --kill'
         print '        Stop the component forcibly and immediately using kill -9.  Use this only if a'
         print '        normal stop does not work (e.g. the process may be hung).'
+        print ''
+        print '    --nothreading'
+        print '        Disable multithreaded operation if it would otherwise be used'
+        print ''
+
         sys.exit(1)
 
     def invalid(self, *msg):
@@ -174,7 +179,7 @@ class StopDucc(DuccUtil):
         all = False
 
         try:
-            opts, args = getopt.getopt(argv, 'ac:n:kmmn:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'management', 'kill', 'quiesce'])
+            opts, args = getopt.getopt(argv, 'ac:n:kmmn:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'management', 'kill', 'quiesce', 'nothreading'])
         except:
             self.invalid('Invalid arguments ' + ' '.join(argv))
         
@@ -195,6 +200,8 @@ class StopDucc(DuccUtil):
                 force = True
             elif o in ( '-q', '--quiesce' ):
                 quiesce = True
+            elif o in ( '--nothreading' ):
+                self.disable_threading()
             elif ( o == '-v' ) :
                 print self.version()
                 sys.exit(0)
