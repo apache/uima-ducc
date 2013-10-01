@@ -379,7 +379,8 @@ public abstract class CliBase
             } else {
                 if (uiopt == UiOption.ClasspathOrder) {
                     String val = cli_props.getStringProperty(uiopt.pname());
-                    if (!val.equals(ClasspathOrderParms.DuccBeforeUser) && !val.equals(ClasspathOrderParms.UserBeforeDucc)) {
+                    if (!val.equals(ClasspathOrderParms.DuccBeforeUser.pname())
+                                    && !val.equals(ClasspathOrderParms.UserBeforeDucc.pname())) {
                         throw new IllegalArgumentException("Invalid value for " + uiopt.pname() + ": " + val);
                     }
                 }
