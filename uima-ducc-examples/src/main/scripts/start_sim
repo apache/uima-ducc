@@ -262,6 +262,9 @@ class StartSim(DuccUtil):
         print "   --pseudoname pseudoname"
         print "        Use this as the hostname for the agent. Valid only with -a."
         print ""
+        print "    --nothreading"
+        print "        Disable multithreaded operation if it would otherwise be used"
+        print ""
         print "   -v, --version"
         print "        Print the current DUCC version"
         sys.exit(1)
@@ -298,7 +301,8 @@ class StartSim(DuccUtil):
         try:
             opts, args = getopt.getopt(argv, 'c:i:n:vh?', ['component=', 'help', 'agent', 'memory=', 
                                                           'instance=', 'addr=', 'pseudoname=', 'node-config=', 
-                                                          'version', 'hot', 'warm', 'cold'])
+                                                          'version', 'hot', 'warm', 'cold',
+                                                           'nothreading'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
                   
@@ -321,6 +325,8 @@ class StartSim(DuccUtil):
                 instances[a] = a
             elif o in ( '--pseudoname' ):
                 pseudoname = a
+            elif o in ( '--nothreading' ):
+                self.disable_threading()
             elif o in ( '-v', '--version' ):
                 print self.version()
                 os.exit(0)

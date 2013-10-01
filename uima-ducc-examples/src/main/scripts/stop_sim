@@ -83,6 +83,9 @@ class StopSim(DuccUtil):
         print "   -r --resume"
         print "        Sends SIGCONT to the indicated process"
         print ""
+        print "    --nothreading"
+        print "        Disable multithreaded operation if it would otherwise be used"
+        print ""
         print "   -v, --version"
         print "        Print the current DUCC version"
         print ""
@@ -106,7 +109,7 @@ class StopSim(DuccUtil):
         signal = '-INT'
 
         try:
-            opts, args = getopt.getopt(argv, 'c:i:kprvh?', ['component=', 'instance=', 'kill' 'pause', 'resume', 'version'])
+            opts, args = getopt.getopt(argv, 'c:i:kprvh?', ['component=', 'instance=', 'kill' 'pause', 'resume','nothreading', 'version'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
                   
@@ -121,6 +124,8 @@ class StopSim(DuccUtil):
                 signal = '-STOP'
             elif o in ( '-r', '--resume' ):
                 signal = '-CONT'
+            elif o in ( '--nothreading' ):
+                self.disable_threading()
             elif o in ( '-v', '--version' ):
                 print self.version()
                 sys.exit(0)
