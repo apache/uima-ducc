@@ -92,10 +92,6 @@ public class DuccReservationSubmit
      */
 	public boolean execute()
     {		
-        if ( ! requestProperties.containsKey(UiOption.NumberOfInstances.pname()) ) {
-            requestProperties.put(UiOption.NumberOfInstances.pname(), UiOption.NumberOfInstances.deflt());
-        }
-     
         SubmitReservationDuccEvent      ev    = new SubmitReservationDuccEvent(requestProperties);
         SubmitReservationReplyDuccEvent reply = null;
         

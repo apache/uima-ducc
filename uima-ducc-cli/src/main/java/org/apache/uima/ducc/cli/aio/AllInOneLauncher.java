@@ -36,7 +36,6 @@ import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
@@ -242,13 +241,6 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, exit);
     }
     
-    private void examine_driver_attach_console() {
-        String mid = "examine_driver_attach_console";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
     // jvm
     
     private void examine_jvm() {
@@ -318,13 +310,6 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, exit);
     }
     
-    private void examine_driver_jvm_args() {
-        String mid = "examine_driver_jvm_args";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
     private void examine_classpath() throws IOException {
         String mid = "examine_classpath";
         mh.frameworkTrace(cid, mid, enter);
@@ -334,21 +319,11 @@ public class AllInOneLauncher extends CliBase {
         String message = classpath;
         mh.frameworkDebug(cid, mid, message);
 
+        // Note: defaulted or validated in init method
         pname = UiOption.ClasspathOrder.pname();
-        String value;
-        if (jobRequestProperties.containsKey(pname)) {
-            value = jobRequestProperties.getProperty(pname);
-            used(pname);
-        } else {
-            value = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_orchestrator_job_factory_classpath_order);
-        }
-        if (ClasspathOrderParms.UserBeforeDucc.pname().equals(value)) {
-            classpath_user_first = true;
-        } else if (ClasspathOrderParms.DuccBeforeUser.pname().equals(value)) {
-            classpath_user_first = false;
-        } else {
-            throw new IllegalArgumentException(UiOption.ClasspathOrder.pname()+": "+value);
-        }
+        String value = jobRequestProperties.getProperty(pname);
+        used(pname);
+        classpath_user_first = value.equals(ClasspathOrderParms.UserBeforeDucc.pname());
         message = value;
         mh.frameworkDebug(cid, mid, message);
 
@@ -395,18 +370,8 @@ public class AllInOneLauncher extends CliBase {
         String mid = "examine_scheduling_class";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.SchedulingClass.pname();
-        if(!jobRequestProperties.containsKey(pname)) {
-           	DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-           	String scheduling_class = duccSchedulerClasses.getDefaultClassName();
-           	if(scheduling_class != null) {
-           		jobRequestProperties.put(pname, scheduling_class);
-           		String text = pname+"="+scheduling_class+" [default]";
-           		mh.debug(cid, mid, text);
-           	}
-           	else {
-           		throw new MissingArgumentException(pname);
-           	}
-        }
+        // If omitted let DUCC choose the default for an AP
+        // If a preemptable one change to a fixed one if possible
         if (jobRequestProperties.containsKey(pname)) {
             DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
             scheduling_class = jobRequestProperties.getProperty(pname);
@@ -421,67 +386,10 @@ public class AllInOneLauncher extends CliBase {
                     jobRequestProperties.put(pname, scheduling_class);
                     message = pname + "=" + scheduling_class + " [replacement, specific]";
                     mh.info(cid, mid, message);
-                } else {
-                    String default_scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-                    if (default_scheduling_class != null) {
-                        scheduling_class = default_scheduling_class;
-                        jobRequestProperties.put(pname, scheduling_class);
-                        message = pname + "=" + scheduling_class + " [replacement, default]";
-                        mh.info(cid, mid, message);
-                    }
                 }
             }
             used(pname);
         }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_process_deployments_max() {
-        String mid = "examine_process_deployments_max";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-
-    private void examine_process_initialization_failures_cap() {
-        String mid = "examine_process_initialization_failures_cap";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_process_failures_limit() {
-        String mid = "examine_process_failures_limit";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_process_thread_count() {
-        String mid = "examine_process_thread_count";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_process_per_item_time_max() {
-        String mid = "examine_process_per_itm_time_max";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_process_get_meta_time_max() {
-        String mid = "examine_process_get_meta_time_max";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_service_dependency() {
-        String mid = "examine_service_dependency";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
         mh.frameworkTrace(cid, mid, exit);
     }
     
@@ -540,13 +448,6 @@ public class AllInOneLauncher extends CliBase {
             mh.frameworkDebug(cid, mid, message);
             used(pname);
         }
-        mh.frameworkTrace(cid, mid, exit);
-    }
-    
-    private void examine_driver_exception_handler() {
-        String mid = "examine_driver_exception_handler";
-        mh.frameworkTrace(cid, mid, enter);
-        // ignored
         mh.frameworkTrace(cid, mid, exit);
     }
     
@@ -711,47 +612,6 @@ public class AllInOneLauncher extends CliBase {
     
     /////
     
-    private void reconcile_descriptors() throws MissingArgumentException {
-        if(driver_descriptor_CR == null) {
-            throw new MissingArgumentException(UiOption.DriverDescriptorCR.pname());
-        }
-        if(process_DD != null) {
-            if(process_descriptor_CM != null) {
-                throw new IllegalArgumentException(UiOption.ProcessDescriptorCM.pname());
-            }
-            if(process_descriptor_AE != null) {
-                throw new IllegalArgumentException(UiOption.ProcessDescriptorAE.pname());
-            }
-            if(process_descriptor_CC != null) {
-                throw new IllegalArgumentException(UiOption.ProcessDescriptorCC.pname());
-            }
-        }
-        else {
-            if(process_descriptor_CM == null) {
-                if(process_descriptor_CM_overrides != null) {
-                    throw new IllegalArgumentException(UiOption.ProcessDescriptorCMOverrides.pname());
-                }
-            }
-            if(process_descriptor_AE == null) {
-                if(process_descriptor_AE_overrides != null) {
-                    throw new IllegalArgumentException(UiOption.ProcessDescriptorAEOverrides.pname());
-                }
-            }
-            if(process_descriptor_CC == null) {
-                if(process_descriptor_CC_overrides != null) {
-                    throw new IllegalArgumentException(UiOption.ProcessDescriptorCCOverrides.pname());
-                }
-            }
-            if(process_descriptor_CM == null) {
-                if(process_descriptor_AE == null) {
-                    if(process_descriptor_CC == null) {
-                        throw new MissingArgumentException(UiOption.ProcessDescriptorAE.pname());
-                    }
-                }
-            }
-        }
-    }
-    
     private void examine() throws Exception {
         String mid = "examine";
         mh.frameworkTrace(cid, mid, "enter");
@@ -763,7 +623,6 @@ public class AllInOneLauncher extends CliBase {
         
         // console
         examine_process_attach_console();
-        examine_driver_attach_console();
         
         // timestamp
         examine_timestamp();
@@ -782,16 +641,12 @@ public class AllInOneLauncher extends CliBase {
         
         // jvm_args
         examine_process_jvm_args();
-        examine_driver_jvm_args();
         
         // classpath
         examine_classpath();
         
         // environment
         examine_environment();
-        
-        // jd
-        examine_driver_exception_handler();
         
         // uima
         examine_driver_descriptor_CR();
@@ -803,19 +658,12 @@ public class AllInOneLauncher extends CliBase {
         examine_process_descriptor_CC();
         examine_process_descriptor_CC_overrides();
         examine_process_DD();
-        reconcile_descriptors();
+        // DuccJobSubmit does not check for an invalid set
+        // Perhaps should be done in CliBase validation
+        // reconcile_descriptors();
         
         // memory
         examine_process_memory_size();
-        
-        // various ignored
-        examine_process_deployments_max();
-        examine_process_initialization_failures_cap();
-        examine_process_failures_limit();
-        examine_process_thread_count();
-        examine_process_per_item_time_max();
-        examine_process_get_meta_time_max();
-        examine_service_dependency();
         
         // description
         examine_description();
@@ -961,10 +809,13 @@ public class AllInOneLauncher extends CliBase {
         sb.append(AllInOne.class.getCanonicalName());
         sb.append(" ");
         for (UiOption opt : allInOneOpts) {
-          String val = jobRequestProperties.getProperty(opt.pname());
-          if (val != null) {
-            sb.append(" --" + opt.pname() + " " + val);
-          }
+            String val = jobRequestProperties.getProperty(opt.pname());
+            if (val != null) {
+                sb.append(" --" + opt.pname());
+                if (opt.argname() != null ) {
+                    sb.append(" " + val);
+                }
+            }
         }
         mh.frameworkTrace(cid, mid, "exit");
         return sb.toString();

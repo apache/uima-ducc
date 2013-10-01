@@ -40,13 +40,13 @@
 
            \item[$--$classpath\_order {[user-before-ducc $|$ ducc-before-user]} ]
              When DUCC deploys a process, set the user-supplied CLASSPATH before DUCC-supplied
-             CLASSPATH, or the reverse.
+             CLASSPATH, or the reverse. The default is user-before-ducc.
              
            \item[$--$debug] Enable debugging messages. This is primarily for debugging DUCC itself.
 
            \item[$--$description {[text]}] The text is any string used to describe the job. It is
              displayed in the Web Server. When specified on a command-line the text usually 
-             must be surrounded by quotes to protect it from the shell.
+             must be surrounded by quotes to protect it from the shell.  The default is ``none''.
 
            \item[$--$driver\_attach\_console] If specified, redirect remote job driver stdout and stderr
              to the local submitting console.
@@ -86,9 +86,12 @@
 %"--process\_environment TERM=xterm DISPLAY=:1.0 DUCC\_LD\_LIBRARY\_PATH=/my/own/
 %            \end{verbatim}
 
-%           \item[$--$driver\_exception\_handler {[classname]}] This specifies a developer-supplied
-%             exception handler for the Job Driver.  It must
-%             implement org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler.
+           \item[$--$driver\_exception\_handler {[classname]}] This specifies a developer-supplied
+             exception handler for the Job Driver.  It must
+             implement org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler or extend
+             org.apache.uima.ducc.common.jd.plugin.AbstractJdProcessExceptionHandler.  A default
+             handler is provided.
+
 
            \item[$--$driver\_jvm\_args {[list]} ]
 

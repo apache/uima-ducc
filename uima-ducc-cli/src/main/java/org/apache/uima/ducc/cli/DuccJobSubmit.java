@@ -177,24 +177,6 @@ public class DuccJobSubmit
         }
     }
     
-    protected void enrich_parameters_with_defaults(Properties props)
-            throws Exception
-    {
-       	String pname = UiOption.SchedulingClass.pname();
-        if(!props.containsKey(pname)) {
-           	DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-           	String scheduling_class = duccSchedulerClasses.getDefaultClassName();
-           	if(scheduling_class != null) {
-           		props.put(pname, scheduling_class);
-           		String text = pname+"="+scheduling_class+" [default]";
-           		message(text);
-           	}
-           	else {
-           		throw new MissingArgumentException(pname);
-           	}
-        }
-    }
-    
     protected void transform_scheduling_class(CliBase base, Properties props)
             throws Exception
     {
@@ -208,10 +190,6 @@ public class DuccJobSubmit
                  scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
                  if(scheduling_class != null) {
                      text = pname+"="+scheduling_class+" [replacement, specific]";
-                 }
-                 else {
-                     scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-                     text = pname+"="+scheduling_class+" [replacement, default]";
                  }
              }
              else {
@@ -289,62 +267,6 @@ public class DuccJobSubmit
 
     }
     
-    private long getThreadsLimit() {
-        long limit = 0;
-        try {
-            String p_limit = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_submit_threads_limit);
-            if(p_limit != null) {
-                p_limit = p_limit.trim();
-                if(!p_limit.equals("unlimited")) {
-                    limit = Long.parseLong(p_limit);
-                }
-            }
-        }
-        catch(Throwable t) {
-            message(t.toString());
-        }
-        return limit;
-    }
-    
-    private boolean adjust_max_threads(Properties properties) {
-        boolean retVal = false;
-        try {
-            long limit = getThreadsLimit();
-            if(limit == 0) {
-                return retVal;
-            }
-            String p_threads = properties.getProperty(UiOption.ProcessThreadCount.pname());
-            if(p_threads == null) {
-                p_threads = UiOption.ProcessThreadCount.deflt();;
-            }
-
-            long threads = Long.parseLong(p_threads);
-            String p_procs = properties.getProperty(UiOption.ProcessDeploymentsMax.pname());
-            if(p_procs == null) {
-                long procs = limit / threads;
-                p_procs = "unlimited";
-                String a_procs = ""+procs;
-                message(UiOption.ProcessDeploymentsMax.pname(), ": requested[" + p_procs + "] adjusted to[" + a_procs + "]");
-                properties.setProperty(UiOption.ProcessDeploymentsMax.pname(), a_procs);
-                retVal = true;
-            }
-            else {
-                long procs = Long.parseLong(p_procs);
-                if( (procs * threads) > limit ) {
-                    procs = limit / threads;
-                    String a_procs = ""+procs;
-                    message(UiOption.ProcessDeploymentsMax.pname(), ": requested["+p_procs+"] adjusted to["+a_procs + "]");
-                    properties.setProperty(UiOption.ProcessDeploymentsMax.pname(), a_procs);
-                    retVal = true;
-                }
-            }
-        }
-        catch(Throwable t) {
-            message(t.toString());
-        }
-        return retVal;
-    }
-    
     //**********
     
     private String getDuccProperty(String propertyName, String defaultValue) {
@@ -389,49 +311,28 @@ public class DuccJobSubmit
         if(allInOneLauncher != null) {
             return allInOneLauncher.execute();
         }
-        enrich_parameters_with_defaults(jobRequestProperties);   
+        // Defaults now provided in init()
         try {
             enrich_parameters_for_debug(jobRequestProperties);
         } catch (Exception e1) {
             message(e1.toString());
             return false;
         }
-        
 
         /*
          * Set default classpath if not specified & remove DUCC jars
          */
         fixupClasspath(UiOption.Classpath.pname());
 
-        /*
-         * employ default process initialization failures cap if not specified
-         */
-        String process_initialization_failures_cap = jobRequestProperties.getProperty(UiOption.ProcessInitializationFailuresCap.pname());
-        if(process_initialization_failures_cap == null) {
-            jobRequestProperties.setProperty(UiOption.ProcessInitializationFailuresCap.pname(), UiOption.ProcessInitializationFailuresCap.deflt());
-        }
-
-        /*
-         * employ default process failures limit if not specified
-         */
-        String process_failures_limit = jobRequestProperties.getProperty(UiOption.ProcessFailuresLimit.pname());
-        if(process_failures_limit == null) {
-            jobRequestProperties.setProperty(UiOption.ProcessFailuresLimit.pname(), UiOption.ProcessFailuresLimit.deflt());
-        }
         if (jobRequestProperties.containsKey(UiOption.Debug.pname())) {
             jobRequestProperties.dump();
         }
 
         /*
-         * Augment the environment(s) with DUCC_LD_LIBRARY_PATH and any propagetd values
+         * Augment the environment(s) with DUCC_LD_LIBRARY_PATH and any propagated values
          */
         DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname());
         
-        /*
-         * limit total number of threads
-         */
-        adjust_max_threads(jobRequestProperties);
-
         /*
          * adjust driver and process jvm args
          */

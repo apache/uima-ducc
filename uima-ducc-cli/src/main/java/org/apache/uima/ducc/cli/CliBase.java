@@ -37,6 +37,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.MissingOptionException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.Parser;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDucc;
@@ -305,11 +306,19 @@ public abstract class CliBase
             commandLine = parser.parse(cliOptions, args, defaults);
         }
 
+        // Check if any orphaned args left
+        List<?> extraArgs = commandLine.getArgList();
+        if (extraArgs.size() > 0) {
+            throw new ParseException("Superfluous arguments provided (perhaps quotes omitted?): " + extraArgs);
+        }
+        
         // Copy options into cli_props
         setOptions(uiOpts);
         
         // Save a copy of the user-specified ones by cloning the underlying properties
         userSpecifiedProperties = (Properties)((Properties)cli_props).clone();
+        
+        setDefaults(uiOpts);
         
         cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
@@ -334,7 +343,6 @@ public abstract class CliBase
 
     /*
      * Save options as properties after resolving any ${..} placeholders
-     * Also check that all required ones provided
      */
     void setOptions(UiOption[] uiOpts) throws Exception {
         for (Option opt : commandLine.getOptions()) {
@@ -353,10 +361,28 @@ public abstract class CliBase
             cli_props.put(opt.getLongOpt(), val);
             if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = " + val);
         }
-
-        for (UiOption opt : uiOpts) {
-            if (opt.required() && !cli_props.containsKey(opt.pname())) {
-                throw new MissingOptionException("Missing required option: " + opt.pname());
+    }
+    
+    /*
+     * Check for missing required options, set defaults, and validate where possible
+     */
+    void setDefaults(UiOption[] uiOpts) throws Exception {
+        for (UiOption uiopt : uiOpts) {
+            if (!cli_props.containsKey(uiopt.pname())) {
+                if (uiopt.required()) {
+                    throw new MissingOptionException("Missing required option: " + uiopt.pname());
+                }
+                if (uiopt.deflt() != null) {
+                    if (debug) System.out.println("CLI set default: " + uiopt.pname() + " = " + uiopt.deflt());
+                    cli_props.put(uiopt.pname(), uiopt.deflt());
+                }
+            } else {
+                if (uiopt == UiOption.ClasspathOrder) {
+                    String val = cli_props.getStringProperty(uiopt.pname());
+                    if (!val.equals(ClasspathOrderParms.DuccBeforeUser) && !val.equals(ClasspathOrderParms.UserBeforeDucc)) {
+                        throw new IllegalArgumentException("Invalid value for " + uiopt.pname() + ": " + val);
+                    }
+                }
             }
         }
     }
@@ -799,7 +825,7 @@ public abstract class CliBase
     
     /*
      * Get specified class path (or the default) and remove any DUCC jars used to submit a request
-     * so they cannot accidentally replace any in the user's classpath.
+     * so they cannot accidentally replace any in the user's class path.
      */
     protected String fixupClasspath(String key_cp) {
         String classpath = cli_props.getStringProperty(key_cp,

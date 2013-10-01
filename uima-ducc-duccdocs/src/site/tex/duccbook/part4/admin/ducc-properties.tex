@@ -768,24 +768,6 @@
           \item[Type] Tuning 
         \end{description}
         
-      \item[ducc.orchestrator.job.factory.classpath.order] \hfill \\
-        When the DUCC Agent spawns a process it must set the process's Java CLASSPATH. 
-        This CLASSPATH must contain a minimum set of entries, which are supplied by the 
-        Agent. However, users may want their own CLASSPATH to take precedence; for 
-        example, they may have a different version of some .jar file. In this case the user's 
-        CLASSPATH should be set before DUCC's. To control this, set this tuning parameter to 
-        one of two values: 
-        \begin{itemize}
-          \item[] user-before-ducc 
-          \item[]ducc-before-user
-        \end{itemize}
- 
-        \begin{description}
-          \item[Default Value] user-before-ducc 
-          \item[Type] Tuning 
-        \end{description}
-
-
       \item[ducc.orchestrator.http.port] \hfill \\
         This is the HTTP port used by the Orchestrator to field requests from the CLI / API. 
         \begin{description}          

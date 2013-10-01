@@ -300,6 +300,27 @@ public class JobFactory {
 		job.setDriver(driver);
 	}
 	
+	private void checkSchedulingLimits(DuccWorkJob job, DuccSchedulingInfo schedulingInfo) {
+	    String methodName = "checkSpec";
+        long limit = 0;
+        String p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_threads_limit);
+        if (p_limit != null) {
+            if (!p_limit.equals("unlimited")) {
+                limit = Long.parseLong(p_limit);
+            }
+        }
+        if (limit <= 0) {
+            return;
+        }
+        int threads_per_share = schedulingInfo.getIntThreadsPerShare();
+        long sharesLimit = limit / threads_per_share;
+        long maxShares = schedulingInfo.getLongSharesMax();
+        if (maxShares == 0 || maxShares > sharesLimit) {
+            logger.info(methodName, job.getDuccId(), "change max-shares from "+maxShares+" to " + sharesLimit);
+            schedulingInfo.setSharesMax(String.valueOf(sharesLimit));
+        }
+	}
+	
 	public DuccWorkJob create(CommonConfiguration common, JobRequestProperties jobRequestProperties) {
 		String methodName = "create";
 		DuccWorkJob job = new DuccWorkJob();
@@ -402,6 +423,9 @@ public class JobFactory {
 		schedulingInfo.setThreadsPerShare(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
 		schedulingInfo.setShareMemorySize(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
 		schedulingInfo.setShareMemoryUnits(MemoryUnits.GB);
+		
+		checkSchedulingLimits(job, schedulingInfo);
+		
 		// process_initialization_time_max
 		String pi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_initialization_time_max);
 		if(pi_time == null) {

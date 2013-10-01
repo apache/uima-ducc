@@ -52,10 +52,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "If present, apply current service updates to the running instances.."; } 
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
         
         AllInOne   { 
@@ -63,10 +60,7 @@ public interface IUiOptions
             public String argname()     { return "local|remote"; } 
             public String description() { return "Run driver and pipeline in single process."; } 
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
         
         Autostart   { 
@@ -76,8 +70,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return "false"; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
 
         CancelOnInterrupt { 
@@ -85,10 +77,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Cancel on interrupt (Ctrl-C). Implies "+WaitForCompletion.pname(); }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },       
         
         Classpath { 
@@ -96,10 +85,7 @@ public interface IUiOptions
             public String description() { return "Classpath for the Job. Default is current classpath."; }
             public String argname()     { return "java classpath"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return "ClassPath"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },    
         
         ClasspathOrder { 
@@ -109,8 +95,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return ClasspathOrderParms.UserBeforeDucc.pname(); }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Debug { 
@@ -118,10 +102,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Enable CLI Debugging messages."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         DjPid { 
@@ -129,10 +110,7 @@ public interface IUiOptions
             public String argname()     { return "number"; }
             public String description() { return "DUCC Process Id.  If specified only this DUCC process will be canceled.  If not specified, then entire job will be canceled.";}
             public String example()     { return "22"; }
-            public String deflt()       { return null; }
             public String label()       { return "Ducc Process Id"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         DriverDebug { 
@@ -140,10 +118,7 @@ public interface IUiOptions
             public String argname()     { return "debugger-port-number"; }
             public String description() { return "Append JVM debug flags to the jvm arguments to start the JobDriver in remote debug mode."; }
             public String example()     { return "driver_debug 8001"; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessDebug"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Description { 
@@ -151,10 +126,8 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "Description of the run."; }
             public String example()     { return "My excellent job!"; }
-            public String deflt()       { return null; }
+            public String deflt()       { return "none"; }
             public String label()       { return "Description"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         DriverAttachConsole { 
@@ -162,10 +135,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "If specified, redirect remote job driver stdout and stderr to the local submitting console."; }
             public String example()     { return null; }
-            public String deflt()       { return "Do not redirect the console"; }
             public String label()       { return "DriverAttachConsole"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         DriverDescriptorCR { 
@@ -173,9 +143,7 @@ public interface IUiOptions
             public String description() { return "Driver (collection reader) descriptor."; }
             public String argname()     { return "descriptor xml"; }
             public String example()     { return "/home/" + System.getProperty("user.name") + "/descriptors/MyCR.xml"; }
-            public String deflt()       { return null; }
             public String label()       { return "DriverDescriptorCR"; }
-            public boolean multiargs()  { return false; }
             public boolean required()   { return true; }
         },            
 
@@ -184,21 +152,15 @@ public interface IUiOptions
             public String argname()     { return "list of overrides"; }
             public String description() { return "Driver Collection Reader configuration parameter name/value pair overrides. Parameters must already be defined in the CR descriptor."; }
             public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
-            public String deflt()       { return null; }
             public String label()       { return "DriverDescriptorCROverrides"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         DriverExceptionHandler { 
             public String pname()       { return JobSpecificationProperties.key_driver_exception_handler; }
             public String description() { return "Driver Exception handler class.  Must implement "+IJdProcessExceptionHandler.class.getName(); }
-            public String argname()     { return "path.classname"; }
-            public String example()     { return "org.apache.uima.ducc.myProject.MyDriverExceptionHandler"; }
-            public String deflt()       { return "org.apache.uima.ducc.common.jd.plugin.JdProcessExceptionHandler"; }
+            public String argname()     { return "classname"; }
+            public String example()     { return "org.bob.myProject.MyDriverExceptionHandler"; }
             public String label()       { return "DriverExceptionHandler"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         DriverJvmArgs { 
@@ -206,10 +168,7 @@ public interface IUiOptions
             public String argname()     { return "jvm arguments"; }
             public String description() { return "Blank-delimited list of JVM Arguments passed to the job driver."; }
             public String example()     { return "-Xmx100M -DMYVAR=foo"; }
-            public String deflt()       { return null; }
             public String label()       { return "DriverJvmArgs"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },    
         
         Environment { 
@@ -217,10 +176,7 @@ public interface IUiOptions
             public String argname()     { return "env vars"; }
             public String description() { return "Blank-delimited list of environment variables."; }
             public String example()     { return "TERM=xterm DISPLAY=me.org.net:1.0"; }
-            public String deflt()       { return null; }
             public String label()       { return "Environment"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },   
         
         Help { 
@@ -228,10 +184,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Print this help message"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Instances   { 
@@ -241,8 +194,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return "1"; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
 
         JobId { 
@@ -250,9 +201,7 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "The id of the job"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
             public boolean required()   { return true; }
         },
         
@@ -261,9 +210,7 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "The id of the managed reservation"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
             public boolean required()   { return true; }
         },      
         
@@ -272,10 +219,7 @@ public interface IUiOptions
             public String argname()     { return "path-name-to-java"; }
             public String description() { return "The jvm to use.  Must be a full path to the 'java' executable.  Default is\n   the jvm that DUCC is using."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return "Jvm"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         LogDirectory { 
@@ -283,10 +227,7 @@ public interface IUiOptions
             public String argname()     { return "path"; }
             public String description() { return "The directory where logs are written.  Default: $HOME/ducc/logs"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return "LogDirectory"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Message { 
@@ -294,10 +235,7 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "Orchestrator response string - internally generated."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Modify    { 
@@ -305,9 +243,7 @@ public interface IUiOptions
              public String argname()     { return "service-id-or-endpoint" ; } 
              public String description() { return "Modify meta properties for a registered service." ; } 
              public String example()     { return null; }
-             public String deflt()       { return null; }
              public String label()       { return name(); }
-             public boolean multiargs()  { return false; }
              public boolean required()   { return true; }
         },
 
@@ -318,8 +254,6 @@ public interface IUiOptions
             public String example()     { return "1"; }
             public String deflt()       { return "1"; }
             public String label()       { return "Number of instances"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },  
         
         Quiet { 
@@ -327,10 +261,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Disable CLI Informational messages."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },  
         
         Register    { 
@@ -346,10 +277,7 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "Any (service-dependent) ping arguments, to be passed to the pinger."; }
             public String example()     { return "q_thresh=12,svc_thresh=.01"; }
-            public String deflt()       { return ""; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServicePingClass { 
@@ -357,10 +285,7 @@ public interface IUiOptions
             public String argname()     { return "classname"; }
             public String description() { return "Class to ping ervice, must extend AServicePing.java"; }
             public String example()     { return "org.bob.Pinger"; }
-            public String deflt()       { return ""; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServicePingClasspath { 
@@ -368,10 +293,7 @@ public interface IUiOptions
             public String argname()     { return "classpath"; }
             public String description() { return "Classpath containing service_custom_ping class and dependencies."; }
             public String example()     { return "Bob.jar"; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServicePingJvmArgs { 
@@ -379,10 +301,7 @@ public interface IUiOptions
             public String argname()     { return "java-system-property-assignments"; }
             public String description() { return "-D jvm system property assignments to pass to jvm"; }
             public String example()     { return "-DxmX=3"; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServicePingTimeout { 
@@ -392,8 +311,6 @@ public interface IUiOptions
             public String example()     { return "1000"; }
             public String deflt()       { return "500"; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServicePingDoLog { 
@@ -401,10 +318,7 @@ public interface IUiOptions
             public String argname()     { return "boolean"; }
             public String description() { return "If specified, log the pinger, else suppress the log."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServiceTypeCustom { 
@@ -412,10 +326,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Service type - internally generated"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServiceTypeOther { 
@@ -423,10 +334,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Service type - internally generated"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServiceTypeUima { 
@@ -434,10 +342,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Service type - internally generated"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Start       { 
@@ -445,10 +350,7 @@ public interface IUiOptions
             public String description() { return "Start a registered service." ; } 
             public String argname()     { return "service-id-or-endpoint" ; } 
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
 
         Stop        { 
@@ -456,10 +358,7 @@ public interface IUiOptions
             public String description() { return "Stop a registered service." ; } 
             public String argname()     { return "service-id-or-endpoint" ; } 
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
 
         SubmitPid { 
@@ -468,10 +367,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return null; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessAttachConsole { 
@@ -479,10 +375,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "If specified, redirect remote process stdout and stderr to the local submitting console."; }
             public String example()     { return null; }
-            public String deflt()       { return "Do not redirect the console"; }
             public String label()       { return "ProcessAttachConsole"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDebug { 
@@ -490,10 +383,7 @@ public interface IUiOptions
             public String argname()     { return "debugger-port-number"; }
             public String description() { return "Listening port number the remote process is to connect to."; }
             public String example()     { return "8000"; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessDebug"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDescriptorAE { 
@@ -501,10 +391,7 @@ public interface IUiOptions
             public String description() { return "Process Analysis Enginefor aggregate."; }
             public String argname()     { return "descriptor xml"; }
             public String example()     { return "/home/" + System.getProperty("user.name") + "/descriptors/MyAE.xml"; }
-            public String deflt()       { return null; }
             public String label()       { return "DriverDescriptorAE"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDescriptorAEOverrides { 
@@ -512,10 +399,7 @@ public interface IUiOptions
             public String argname()     { return "list of overrides"; }
             public String description() { return "Process Analysis Engine configuration parameter name/value pair overrides. Parameters must already be defined in the AE descriptor."; }
             public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessDescriptorAEOverrides"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDescriptorCC { 
@@ -523,10 +407,7 @@ public interface IUiOptions
             public String description() { return "Process CAS Consumer for aggregate."; }
             public String argname()     { return "descriptor xml"; }
             public String example()     { return "/home/" + System.getProperty("user.name") + "/descriptors/MyCC.xml"; }
-            public String deflt()       { return null; }
             public String label()       { return "DriverDescriptorCC"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDescriptorCCOverrides { 
@@ -534,10 +415,7 @@ public interface IUiOptions
             public String argname()     { return "list of overrides"; }
             public String description() { return "Process CAS Consumer configuration parameter name/value pair overrides. Parameters must already be defined in the CC descriptor."; }
             public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessDescriptorCCOverrides"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDescriptorCM { 
@@ -545,10 +423,7 @@ public interface IUiOptions
             public String description() { return "Process CAS Multiplier for aggregate."; }
             public String argname()     { return "descriptor xml"; }
             public String example()     { return "/home/" + System.getProperty("user.name") + "/descriptors/MyCM.xml"; }
-            public String deflt()       { return null; }
             public String label()       { return "DriverDescriptorCM"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDescriptorCMOverrides { 
@@ -556,10 +431,7 @@ public interface IUiOptions
             public String argname()     { return "list of overrides"; }
             public String description() { return "Process CAS Multiplier configuration parameter name/value pair overrides. Parameters must already be defined in the CM descriptor."; }
             public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessDescriptorCMOverrides"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDD { 
@@ -567,10 +439,7 @@ public interface IUiOptions
             public String description() { return "Process deployment descriptor (mutually exclusive with CM+AE+CC)."; }
             public String argname()     { return "dd.xml"; }
             public String example()     { return "/home/" + System.getProperty("user.name") + "/descriptors/MyDD.xml"; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessDD"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessDeploymentsMax { 
@@ -578,10 +447,7 @@ public interface IUiOptions
             public String description() { return "Maximum number of processes dispatched for this job at any time.."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessDeploymentsMax"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessExecutable { 
@@ -589,10 +455,7 @@ public interface IUiOptions
             public String argname()     { return "program name"; }
             public String description() { return "The full path to a program to be executed."; }
             public String example()     { return "/bin/ls"; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessExecutableArgs { 
@@ -600,10 +463,7 @@ public interface IUiOptions
             public String argname()     { return "argument list"; }
             public String description() { return "Blank-delimited list of arguments for " + ProcessExecutable.pname(); }
             public String example()     { return "-a -t -l"; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessGetMetaTimeMax {
@@ -612,10 +472,7 @@ public interface IUiOptions
             public String description() { return "Maximum elapsed time (in minutes) for processing getMeta."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 		
         ProcessInitializationTimeMax { 
@@ -623,10 +480,7 @@ public interface IUiOptions
             public String description() { return DuccUiConstants.desc_process_initialization_time_max; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },     
 		
         ProcessInitializationFailuresCap { 
@@ -636,8 +490,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return "99"; }
             public String label()       { return "ProcessInitializationFailuresCap"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessFailuresLimit { 
@@ -647,8 +499,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return "20"; }
             public String label()       { return "ProcessFailuresLimit"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessJvmArgs { 
@@ -656,10 +506,7 @@ public interface IUiOptions
             public String argname()     { return "jvm arguments"; }
             public String description() { return "Blank-delimited list of JVM Arguments passed to each process"; }
             public String example()     { return "-Xmx100M -DMYVAR=foo"; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessJvmArgs"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessMemorySize { 
@@ -667,10 +514,7 @@ public interface IUiOptions
             public String argname()     { return "size-in-GB"; }
             public String description() { return "Maximum memory for each process, in GB."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessMemorySize"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessThreadCount { 
@@ -680,8 +524,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return "4"; }
             public String label()       { return "ProcessThreadCount"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ProcessPerItemTimeMax { 
@@ -689,10 +531,7 @@ public interface IUiOptions
             public String description() { return "Maximum elapsed time (in minutes) for processing one CAS."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Query       { 
@@ -709,10 +548,7 @@ public interface IUiOptions
             public String argname()     { return "quoted text"; }
             public String description() { return "Reason for the cancel"; }
             public String example()     { return "Back to the drawing board"; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ReservationMemorySize { 
@@ -720,9 +556,7 @@ public interface IUiOptions
             public String argname()     { return "size[KB|MB|GB|TB]"; }
             public String description() { return "Size of instance's memory, defaults to GB if units omitted."; }
             public String example()     { return "64GB"; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
             public boolean required()   { return true; }
         },            
 
@@ -732,10 +566,7 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "Set of nodes reserved - internall generated."; }
             public String example()     { return "Back to the drawing board"; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         RoleAdministrator { 
@@ -743,10 +574,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Act in the capacity of DUCC administrator."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },     
         
         SchedulingClass { 
@@ -754,10 +582,7 @@ public interface IUiOptions
             public String argname()     { return "scheduling class name"; }
             public String description() { return "The class to run the job in."; }
             public String example()     { return "normal"; }
-            public String deflt()       { return null; }
             public String label()       { return "SchedulingClass"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServiceLinger { 
@@ -767,8 +592,6 @@ public interface IUiOptions
             public String example()     { return null; }
             public String deflt()       { return "300000"; } // 5 minutes
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServiceDependency { 
@@ -776,10 +599,7 @@ public interface IUiOptions
             public String argname()     { return "list"; }
             public String description() { return "List of service descriptor strings."; }
             public String example()     { return "UIMA-AS:RandomSleepAE:tcp://bluej672:61616 CUSTOM:myservice";}
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         ServiceRequestEndpoint { 
@@ -788,10 +608,7 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "Unique id for this service. Usually inferred for UIMA-AS services."; }
             public String example()     { return "UIMA-AS:queueName:ActiveMqUrl"; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Signature { 
@@ -800,10 +617,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return null; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Specification { 
@@ -812,10 +626,7 @@ public interface IUiOptions
             public String argname()     { return "file"; }
             public String description() { return "Properties file comprising the specification, where the keys are names of parameters. Individual parameters take precedence over those specified in properties file, if any."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         SubmitErrors { 
@@ -824,10 +635,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return null; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         SubmitWarnings { 
@@ -836,10 +644,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return null; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Timestamp { 
@@ -847,10 +652,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Enables timestamp on monitor messages."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return "ProcessTimestamp"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         Unregister  { 
@@ -858,10 +660,7 @@ public interface IUiOptions
             public String argname()     { return "service-id-or-endpoint" ; } 
             public String description() { return "Unregister a service." ; } 
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },
 
         Update { 
@@ -869,10 +668,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "If specified, update service registry with accompanying parameters."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         User { 
@@ -880,10 +676,7 @@ public interface IUiOptions
             public String argname()     { return "userid"; }
             public String description() { return "Filled in (and overridden) by the CLI, the id of the submitting user."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return null; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         WaitForCompletion { 
@@ -891,10 +684,7 @@ public interface IUiOptions
             public String argname()     { return null; }
             public String description() { return "Do not exit until job is completed."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return name(); }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
 
         WorkingDirectory { 
@@ -902,10 +692,7 @@ public interface IUiOptions
             public String argname()     { return "path"; }
             public String description() { return "The working directory set in each process. Default to current directory."; }
             public String example()     { return null; }
-            public String deflt()       { return null; }
             public String label()       { return "WorkingDirectory"; }
-            public boolean multiargs()  { return false; }
-            public boolean required()   { return false; }
         },            
         ;
           
@@ -918,7 +705,7 @@ public interface IUiOptions
         public boolean required()  { return false; } // this option is required
         public String  deflt()     { return null; }  // default, or ""
         public String  label()     { return null; }  // Parameter name for label in web form
-        public String sname()      { return null; }  // short name of option
+        public String  sname()     { return null; }  // short name of option
 
         public String makeDesc()
         {
