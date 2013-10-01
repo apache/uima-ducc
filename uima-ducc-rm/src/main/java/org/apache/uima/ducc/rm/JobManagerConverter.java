@@ -350,7 +350,20 @@ public class JobManagerConverter
         int memory        = toInt(si.getShareMemorySize(), scheduler.getDefaultMemory());
         String className  = si.getSchedulingClass();
         if ( className == null ) {
-            className = scheduler.getDefaultClassName();
+            switch ( job.getDuccType() ) {
+               case Job:              
+                   className = scheduler.getDefaultFairShareName();
+                   break;
+               case Service:
+               case Pop:
+               case Reservation:
+                   className = scheduler.getDefaultReserveName();
+                   break;
+            }
+            if ( className == null ) {
+                j.refuse("No scheduling class defined and no default class configured.");
+                return false;
+            }
         }
 
         j.setMinShares(min_shares);
