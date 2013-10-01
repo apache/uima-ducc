@@ -585,6 +585,7 @@ implements Orchestrator {
 		String methodName = "startJob";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {
+			OrchestratorHelper.assignDefaults(duccEvent);
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
 			int jdNodes = hostManager.nodes();
 			if(!isSignatureValid(properties)) {
@@ -804,6 +805,7 @@ implements Orchestrator {
 		String methodName = "startReservation";
 		logger.trace(methodName, null, messages.fetch("enter"));	
 		try {
+			OrchestratorHelper.assignDefaults(duccEvent);
 			Properties properties = duccEvent.getProperties();
 			if(!isSignatureValid(properties)) {
 				String error_message = messages.fetch(" type=authentication error, text=signature not valid.");
@@ -956,6 +958,7 @@ implements Orchestrator {
 		String methodName = "startService";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		try {
+			OrchestratorHelper.assignDefaults(duccEvent);
 			JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
 			NodeIdentity nodeIdentity = hostManager.getNode();
 			if(!isSignatureValid(properties)) {

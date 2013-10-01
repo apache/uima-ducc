@@ -35,6 +35,7 @@ import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.JobSpecificationProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
+import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
 
@@ -110,6 +111,8 @@ public class Validate {
 	public static boolean request(SubmitJobDuccEvent duccEvent) {
 		boolean retVal = true;
 		JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
+		String key;
+		String value;
 		//
 		retVal = integer(retVal,
 				properties,
@@ -117,7 +120,14 @@ public class Validate {
 				IDuccSchedulingInfo.defaultThreadsPerShare,
 				IDuccSchedulingInfo.minThreadsPerShare,
 				IDuccSchedulingInfo.maxThreadsPerShare);
-		//TODO		
+		// scheduling class
+		key = JobRequestProperties.key_scheduling_class;
+		value = (String) properties.get(key);
+		if(value == null) {
+			String reason = createReason("invalid", key, value);
+			addError(properties,reason);
+			retVal = false;
+		}	
 		return retVal;
 	}
 	
@@ -160,8 +170,9 @@ public class Validate {
 		key = ReservationRequestProperties.key_scheduling_class;
 		value = (String) properties.get(key);
 		if(value == null) {
-			String reason = createReason("using", key, "default");
-			addWarning(properties,reason);
+			String reason = createReason("invalid", key, value);
+			addError(properties,reason);
+			retVal = false;
 		}
 		return retVal;
 	}
@@ -195,6 +206,8 @@ public class Validate {
 	public static boolean request(SubmitServiceDuccEvent duccEvent) {
 		boolean retVal = true;
 		JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
+		String key;
+		String value;
 		//
 		retVal = integer(retVal,
 				properties,
@@ -202,7 +215,14 @@ public class Validate {
 				IDuccSchedulingInfo.defaultThreadsPerShare,
 				IDuccSchedulingInfo.minThreadsPerShare,
 				IDuccSchedulingInfo.maxThreadsPerShare);
-		//TODO		
+		// scheduling class
+		key = ServiceRequestProperties.key_scheduling_class;
+		value = (String) properties.get(key);
+		if(value == null) {
+			String reason = createReason("invalid", key, value);
+			addError(properties,reason);
+			retVal = false;
+		}
 		return retVal;
 	}
 	
