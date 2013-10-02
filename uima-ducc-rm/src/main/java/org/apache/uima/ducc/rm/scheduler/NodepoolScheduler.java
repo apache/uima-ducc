@@ -1648,6 +1648,7 @@ public class NodepoolScheduler
         int given_per_round = 0;
         do {
             int g = 0;
+            given_per_round = 0;
             for ( Machine m : eligibleMachines.keySet() ) {
 
                 //
