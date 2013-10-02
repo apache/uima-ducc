@@ -96,6 +96,8 @@ import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
+import org.apache.uima.ducc.ws.utils.LinuxSignals;
+import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandler extends DuccAbstractHandler {
@@ -482,22 +484,41 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</td>");
 			break;
 		default:
-			ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
-			String toolTip = ProcessDeallocationType.getToolTip(deallocationType);
-			if(toolTip == null) {
+			if(type.equals("MR")) {
 				sb.append("<td>");
+				int code = process.getProcessExitCode();
+				if(LinuxSignals.isSignal(code)) {
+					Signal signal = LinuxSignals.lookup(code);
+					if(signal != null) {
+						sb.append(signal.name()+"="+signal.number());
+					}
+					else {
+						sb.append("UnknownSignal"+"="+LinuxSignals.getValue(code));
+					}
+				}
+				else {
+					sb.append("ProgramExitCode"+"="+code);
+				}
+				sb.append("</td>");
 			}
 			else {
-				sb.append("<td title=\""+toolTip+"\">");
+				ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
+				String toolTip = ProcessDeallocationType.getToolTip(deallocationType);
+				if(toolTip == null) {
+					sb.append("<td>");
+				}
+				else {
+					sb.append("<td title=\""+toolTip+"\">");
+				}
+				switch(deallocationType) {
+				case Undefined:
+					break;
+				default:
+					sb.append(process.getProcessDeallocationType());
+					break;
+				}
+				sb.append("</td>");
 			}
-			switch(deallocationType) {
-			case Undefined:
-				break;
-			default:
-				sb.append(process.getProcessDeallocationType());
-				break;
-			}
-			sb.append("</td>");
 			break;
 		}
 		// State:agent
