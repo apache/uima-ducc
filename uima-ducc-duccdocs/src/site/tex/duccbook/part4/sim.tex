@@ -183,6 +183,9 @@ agentn.79 = 6
           individual component, or {\em all} to start all of the components.  NOTE: It is
           usually an error to start any of these components more than once.  However 
           {\em start\_sim} allows it, to permit error injection.
+        \item[--nothreading] If specified, the command does not run in multi-threaded mode
+          even if it is supported on the local platform.
+
       \end{description}
       
     \subsection{Stopping a Simulated Cluster}
@@ -233,8 +236,11 @@ agentn.79 = 6
         agent ids in ``sim.pids''. {\em Kill -INT} is used to enable orderly shutdown
       unless overridden with -k, -p, or -r as described below.
       \item[-k, --kill] Use {\em kill -9} to kill the process.
-      \item[-p, --pause] Use {\em kill -STOP} to kill the process.
-      \item[-r, --resume] Use {\em kill -CONT} to kill the process.
+      \item[-p, --pause] Signal the process with {\em SIGSTOP}.
+      \item[-r, --resume] Signal the process with {\em SIGCONT}.
+      \item[--nothreading] If specified, the command does not run in multi-threaded mode
+        even if it is supported on the local platform.
+
     \end{description}
     
 \section{Job Simulation}

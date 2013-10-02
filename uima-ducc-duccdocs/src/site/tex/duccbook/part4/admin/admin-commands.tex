@@ -1,6 +1,15 @@
 
 \section{Administrative Commands}
 
+   The administrative commands include a command to start DUCC, one to stop it, and one to 
+   verify the configuration and query the state of the cluster.
+
+   Note: The scripting that supports these functions runs (by default) in multi-threaded mode so
+   large clusters can be started, stopped, and queried quickly.  If DUCC is running on an older
+   system, the threading may not work right, in which case the scripts detect this and run
+   single-threaded.  As well, all these commands support a ``--nothreading'' option to manually
+   disable the threading.
+
 \subsection{start\_ducc}
 \label{subsec:admin.start-ducc}
 
@@ -34,10 +43,6 @@ start\_ducc -n foo.nodes -n bar.nodes -n baz.nodes
 \end{verbatim}
           
 
-        \item[-m, --management] \hfill \\
-          Start the management processes (rm, sm, pm, orchestrator) on the local node. The 
-          webserver is started on the local node, or the node configured in ducc.properties. 
-
         \item[-s, --singleuser] \hfill \\
           Start DUCC in ``single-user'' mode.  This inhibits certain checks that are ususally
           needed running in multi-user mode; specifically, permissions on the ducc\_ling
@@ -63,6 +68,9 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
             \item[agent]Node Agents
           \end{description}
 
+          \item[--nothreading] If specified, the command does not run in multi-threaded mode
+            even if it is supported on the local platform.
+
       \end{description}
 
       \subsubsection{{\em Notes: }}
@@ -81,22 +89,13 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
       
       \subsubsection{{\em Examples: }}
 
-      Start all DUCC processes, using custom nodelists: 
-\begin{verbatim}
-        start\_ducc -m -n foo.nodes -n bar.nodes 
-\end{verbatim}
-      
-      Start just management processes: 
-\begin{verbatim}
-        start\_ducc -m 
-\end{verbatim}
-      
-      Start just agents on a specific set of nodes: 
+      Start some nodes from two different nodelist.  This doesn't start any of the management processes
+      but it does insure the ActiveMQ Broker is available.
 \begin{verbatim}
         start\_ducc -n foo.nodes -n bar.nodes 
 \end{verbatim}
-      
-      Start and agent on a specific node: 
+                  
+      Start an agent on a specific node: 
 \begin{verbatim}
         start\_ducc -c agent@a.specific.node 
 \end{verbatim}
@@ -163,10 +162,6 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
 stop\_ducc -n foo.nodes -n bar.nodes -n baz.nodes 
 \end{verbatim}
 
-          \item[-m, --management] \hfill \\
-            Stop only the management processes rm, pm, or, sm, and ws. All agents are left running; 
-            all job drivers are left running, all job processes are left running. 
-
           \item[-c, --component [component]] \hfill \\
             Stop a specific DUCC component. 
 
@@ -198,6 +193,9 @@ start_ducc -c rmc
               \item[ws] The Web Server.                 
               \item[agent\@node] Node Agent on the specified node.
               \end{description}
+
+          \item[--nothreading] If specified, the command does not run in multi-threaded mode
+            even if it is supported on the local platform.
               
        \end{description}
             
@@ -242,15 +240,7 @@ check_ducc -c -n ../resources/ducc.nodes
 \begin{verbatim}
 check_ducc -n nlist1 -n nlist2 
 \end{verbatim}
-             
-           \item[-u --user {[userid]}]
-             The userid specifies the user whose processes check\_ducc searches for. If not specified, the 
-             user executing check\_ducc is used. If the user is specified as 'all' then all ducc processes 
-             belonging to all users are searched for. 
-\begin{verbatim}
-check_ducc -u billy 
-\end{verbatim}
-          
+                       
            \item[-c --configuration]
              Verify the \hyperref[sec:ducc.classes]{Resource Manager configuration}.
 
@@ -264,20 +254,6 @@ check_ducc -u billy
                process dies spontaneously. Use check\_ducc -p to search the cluster for processes and 
                refresh the PID file. 
                
-             \item[-r --reap]
-
-               Reap user processes. This uses kill -9 and ducc\_ling to forcibly terminate user processes. 
-               Only processes specified by '-u' or '--userid' are targeted. If the user "all" is specified, then 
-               all user processes are terminated. The intent of this is to easily find and terminate "rogue" 
-               user processes that do not terminate. 
-               
-               Use this option with care. It does not distinguish user processes by specific job id. Every 
-               process started by DUCC owned by the designated user is killed. 
-
-\begin{verbatim}
-check_ducc -u billy -u bobby -r 
-\end{verbatim}
-
             \item[-i, --int] \hfill \\
               Use this to send a shutdown signal ({\em kill -INT}) to all the DUCC processes.  The DUCC processes
               catch this signal, close their resources and exit.  Some resources take some time to close, or in
@@ -289,6 +265,9 @@ check_ducc -u billy -u bobby -r
             \item[-k, --kill] \hfill \\
               Use this to forcibly kill a component using kill -9. This should only be used if {\em stop\_ducc}
               or {\em check\_ducc -i} does not work.  
+
+          \item[--nothreading] If specified, the command does not run in multi-threaded mode
+            even if it is supported on the local platform.
 
            \end{description}               
        

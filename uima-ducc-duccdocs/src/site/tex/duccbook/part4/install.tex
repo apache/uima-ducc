@@ -33,10 +33,9 @@ Both single and multi-user configurations have the following software pre-requis
   \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
   \item Reasonably current Linux.  DUCC has been tested on SLES 10.2, 11.1, and 11.2, and RHEL 6.3.
     
-    {\em Note:} On some systems the {\em user limits} are defined too low for DUCC.  You must insure that
-      the {\em hard limits} for user ``ducc'' are set correctly.  Specifically the thread limit {\em ulimit -u}
-      should be set to at least {\em 20000} and the number of open file descriptors {\em ulimit -n} should be set
-      to at least {\em 8192}.
+    {\em Note:} On some systems the default {\em user limits} are defined too low for DUCC.  The shell
+    start-up scripts for user {\em ducc} should set the soft limit to be the same as the hard limit.  
+    During DUCC boot, the DUCC start-up scripts will emit a warning if the limits are too low.
 
   \item For CGroupt support, libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL.  
   \item IBM or Oracle Java JRE 1.6 or greater.
@@ -73,6 +72,22 @@ To build the documentation, the following is required:
 More detailed one-time setup instructions for source-level builds via subversion can be found here:
 \url{http://uima.apache.org/one-time-setup.html\#svn-setup}
 
+\section{Building from Source}
+
+To build from source, insure you have
+Subversion and Maven installed.  Extract the source from the SVN repository named above. Then change directory into
+the root directory (usually current-directory>/trunk), and run the command
+\begin{verbatim}
+    mvn install
+\end{verbatim}
+
+If this is your first Maven build it may take quite a while as Maven downloads all the
+open-source pre-requisites.  (The pre-requisites are stored in the Maven repository, usually
+your \$HOME/.m2).
+
+When build is complete, a tarball is placed in your current-directory/trunk/target
+directory.
+
 \section{Documentation}
 After single-user installation, the DUCC documentation is found (in both PDF and HTML format) in the directory 
 ducc\_runtime/docs.  As well, the DUCC web server contains a link to the full documentation on each major page.
@@ -84,7 +99,8 @@ If building from source, Maven places the documentation in
     \item {\tt trunk/uima-ducc-duccdocs/target/site} (main documentation), and 
     \item {\tt trunk/site/apidocs} (API Javadoc)
 \end{itemize}
-    
+
+
 \section{Single-user  Installation and Verification}
 
 Single-user installation sets up an initial, working configuration on a single system.  No security
