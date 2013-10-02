@@ -234,7 +234,7 @@ class DuccProcess(Thread):
             #CMD = CMD + ' --working_directory '               + working_dir
 
         CMD = CMD + ' --process_memory_size '                 + memory
-        CMD = CMD + ' --classpath '                   + jvm_classpath
+        CMD = CMD + ' --classpath '                           + jvm_classpath
         
         CMD = CMD + ' --process_jvm_args '                    + jvm_process_args
         CMD = CMD + ' --process_thread_count '                + nthreads
@@ -345,11 +345,11 @@ class ServiceStarter(DuccUtil):
         props.put('description', 'Test Service ' + svcid)
         props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
-        props.put('process_classpath', 
+        props.put('classpath', 
                   self.DUCC_HOME + '/examples/lib/uima-ducc-examples.jar:' + 
                   self.DUCC_HOME + '/examples/simple/resources')
         props.put('process_jvm_args', '-Xmx100M -DdefaultBrokerURL=' + plain_broker_url)
-        props.put('process_environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path')
+        props.put('environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path')
         props.put('scheduling_class', 'fixed')
         props.put('working_directory', os.getcwd())
 

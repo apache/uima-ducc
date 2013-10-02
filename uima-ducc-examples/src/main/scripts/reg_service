@@ -96,11 +96,11 @@ class RegService(DuccUtil):
         props.put('description', "Test Service " + svcid)
         props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
-        props.put('process_classpath', 
+        props.put('classpath', 
                   self.DUCC_HOME + '/examples/lib/uima-ducc-examples.jar:' + 
                   self.DUCC_HOME + '/examples/simple/resources')
         props.put('process_jvm_args', '-DdefaultBrokerURL=' + plain_broker_url)
-        props.put('process_environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0')
+        props.put('environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0')
         props.put('scheduling_class', 'fixed')
         props.put('working_directory', os.getcwd())
 
