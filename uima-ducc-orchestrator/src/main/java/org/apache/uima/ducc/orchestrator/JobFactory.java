@@ -424,7 +424,9 @@ public class JobFactory {
 		schedulingInfo.setShareMemorySize(jobRequestProperties.getProperty(JobSpecificationProperties.key_process_memory_size));
 		schedulingInfo.setShareMemoryUnits(MemoryUnits.GB);
 		
-		checkSchedulingLimits(job, schedulingInfo);
+		if (job.getDuccType() == DuccType.Job){ 
+		    checkSchedulingLimits(job, schedulingInfo);
+		}
 		
 		// process_initialization_time_max
 		String pi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_initialization_time_max);
