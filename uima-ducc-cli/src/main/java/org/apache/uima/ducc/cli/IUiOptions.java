@@ -587,7 +587,7 @@ public interface IUiOptions
 
         ServiceLinger { 
             public String pname()       { return "service_linger"; }
-            public String argname()     { return "seconds"; }
+            public String argname()     { return "milliseconds"; }
             public String description() { return "Time in milliseconds to wait after last referring job or service exits before stopping a non-autostarted service."; }
             public String example()     { return null; }
             public String deflt()       { return "300000"; } // 5 minutes
@@ -647,6 +647,14 @@ public interface IUiOptions
             public String label()       { return null; }
         },            
 
+        SuppressConsoleLog { 
+            public String pname()       { return "suppress_console_log"; }
+            public String argname()     { return null; }
+            public String description() { return "Do not copy stdout to a log file."; }
+            public String example()     { return null; }
+            public String label()       { return name(); }
+        }, 
+        
         Timestamp { 
             public String pname()       { return "timestamp"; }
             public String argname()     { return null; }

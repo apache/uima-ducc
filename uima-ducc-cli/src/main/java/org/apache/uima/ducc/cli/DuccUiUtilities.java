@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -111,11 +112,12 @@ public class DuccUiUtilities {
         }
 	}
 	
-	public static void ducc_environment(CliBase base, Properties jobRequestProperties, String key) {
+	public static void ducc_environment(CliBase base, Properties jobRequestProperties, String extraEnv) {
+	    String key = UiOption.Environment.pname();
 		String environment_string = jobRequestProperties.getProperty(key, "");
-		String fixedEnv = fixupEnvironment(environment_string);
+		String fixedEnv = fixupEnvironment(environment_string + extraEnv);
         // If the input string returned unmodified, no need to change the property
-        if (fixedEnv != environment_string) {
+        if (!fixedEnv.equals(environment_string)) {
             jobRequestProperties.setProperty(key, fixedEnv);
         }
 	}

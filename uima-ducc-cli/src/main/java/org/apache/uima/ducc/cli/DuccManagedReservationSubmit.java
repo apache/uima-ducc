@@ -21,6 +21,7 @@ package org.apache.uima.ducc.cli;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
@@ -52,6 +53,7 @@ public class DuccManagedReservationSubmit
         UiOption.ProcessMemorySize,
         UiOption.SchedulingClass,
         UiOption.Specification,
+        UiOption.SuppressConsoleLog,
         UiOption.WorkingDirectory,
         UiOption.WaitForCompletion,
         UiOption.CancelOnInterrupt,
@@ -145,11 +147,6 @@ public class DuccManagedReservationSubmit
      */
     public boolean execute() throws Exception 
     {
-
-        /*
-         * set DUCC_LD_LIBRARY_PATH in process environment
-         */
-        DuccUiUtilities.ducc_environment(this, serviceRequestProperties, UiOption.Environment.pname());
 
         // Create a copy to be saved later without these 3 "ducclet" properties required by DUCC
         ServiceRequestProperties serviceProperties = (ServiceRequestProperties)serviceRequestProperties.clone();

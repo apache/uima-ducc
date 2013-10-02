@@ -343,7 +343,6 @@ public class AllInOneLauncher extends CliBase {
         String mid = "examine_environment";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.Environment.pname();
-        DuccUiUtilities.ducc_environment(this, jobRequestProperties, pname); // Augment environment
         environment = jobRequestProperties.getProperty(pname);
         if (environment != null) {
             String message = environment;

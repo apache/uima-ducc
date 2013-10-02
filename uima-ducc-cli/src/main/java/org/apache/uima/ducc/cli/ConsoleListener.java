@@ -51,6 +51,7 @@ class ConsoleListener
     // private int          callers;   // number of remote processes we expect to listen for
 
     boolean debug = false;
+    private boolean suppress_log;
     
     ConsoleListener(CliBase submit, IDuccCallback consoleCb)
         throws Exception
@@ -64,6 +65,7 @@ class ConsoleListener
         this.console_host_address = ni.getIp();            
 
         debug = submit.debug; //isDebug();
+        suppress_log = submit.suppress_console_log;
     }
 
     String getConsoleHostAddress()
@@ -195,11 +197,12 @@ class ConsoleListener
             delete(sock.getPort());
         }
 
-        boolean do_console_out = false;
+        // When not saving a log file stream all of the console back to the caller
+        boolean do_console_out = suppress_log;
 
         void doWrite(String line)
         {
-            if ( line.startsWith(console_tag) ) {
+            if ( line.startsWith(console_tag) && !suppress_log) {
                 String logfile = line.substring(tag_len);
                 try {
                   logout = new PrintWriter(logfile);

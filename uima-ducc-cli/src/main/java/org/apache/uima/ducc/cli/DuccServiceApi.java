@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -55,6 +56,7 @@ public class DuccServiceApi
         UiOption.Description,
         UiOption.SchedulingClass,
         UiOption.LogDirectory,
+        UiOption.SuppressConsoleLog,
         UiOption.WorkingDirectory,
         UiOption.Jvm,
         UiOption.ProcessJvmArgs,
@@ -231,12 +233,6 @@ public class DuccServiceApi
         init (this.getClass().getName(), registration_options, args, null, dp, callback, "sm");
 
         // Note: dp & cli_props are identical ... use only the class variable here for consistency
-        
-        /*
-         * Fixup the environment: rename LD_LIBRARY_PATH & add any standard ones
-         */
-        String key_ev = UiOption.Environment.pname();
-        DuccUiUtilities.ducc_environment(this, cli_props, key_ev);
         
         setLinger();
 

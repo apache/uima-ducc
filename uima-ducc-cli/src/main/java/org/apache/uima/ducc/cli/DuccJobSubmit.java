@@ -86,6 +86,7 @@ public class DuccJobSubmit
         UiOption.ProcessInitializationTimeMax,
 
         UiOption.Specification,
+        UiOption.SuppressConsoleLog,
         UiOption.WaitForCompletion,
         UiOption.CancelOnInterrupt,
         UiOption.ServiceDependency,
@@ -328,11 +329,6 @@ public class DuccJobSubmit
             jobRequestProperties.dump();
         }
 
-        /*
-         * Augment the environment(s) with DUCC_LD_LIBRARY_PATH and any propagated values
-         */
-        DuccUiUtilities.ducc_environment(this, jobRequestProperties, UiOption.Environment.pname());
-        
         /*
          * adjust driver and process jvm args
          */

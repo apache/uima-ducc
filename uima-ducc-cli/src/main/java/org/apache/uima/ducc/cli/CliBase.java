@@ -77,6 +77,7 @@ public abstract class CliBase
     protected boolean debug;
 
     protected ConsoleListener  console_listener = null;
+    protected boolean suppress_console_log;
     protected String host_address = "N/A";
     protected boolean console_attach = false;
     protected IDuccCallback consoleCb = null;
@@ -318,7 +319,11 @@ public abstract class CliBase
         // Save a copy of the user-specified ones by cloning the underlying properties
         userSpecifiedProperties = (Properties)((Properties)cli_props).clone();
         
-        setDefaults(uiOpts);
+        // May need to suppress logging in console listener, or in the DUCC process.
+        suppress_console_log = cli_props.containsKey(UiOption.SuppressConsoleLog.pname());
+        
+        // Apply defaults for and fixup the environment if needed
+        setDefaults(uiOpts, suppress_console_log);
         
         cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
@@ -332,6 +337,7 @@ public abstract class CliBase
         
         NodeIdentity ni = new NodeIdentity();
         host_address = ni.getIp();           
+
 
         initConsoleListener();
 
@@ -366,7 +372,7 @@ public abstract class CliBase
     /*
      * Check for missing required options, set defaults, and validate where possible
      */
-    void setDefaults(UiOption[] uiOpts) throws Exception {
+    void setDefaults(UiOption[] uiOpts, boolean suppress_console) throws Exception {
         for (UiOption uiopt : uiOpts) {
             if (!cli_props.containsKey(uiopt.pname())) {
                 if (uiopt.required()) {
@@ -384,6 +390,12 @@ public abstract class CliBase
                         throw new IllegalArgumentException("Invalid value for " + uiopt.pname() + ": " + val);
                     }
                 }
+            }
+            // If this request accepts the --environment option may need to augment it by
+            // renaming LD_LIBRARY_PATH, propagating some user values, disabling the console log
+            if (uiopt == UiOption.Environment) {
+                String addEnv = suppress_console ? " DUCC_SUPPRESS_CONSOLE=true" : "";
+                DuccUiUtilities.ducc_environment(this, cli_props, addEnv);
             }
         }
     }
