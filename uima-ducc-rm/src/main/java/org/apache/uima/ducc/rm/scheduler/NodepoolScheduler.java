@@ -1917,6 +1917,10 @@ public class NodepoolScheduler
             logger.info(methodName, null, String.format(headerfmt, "Nodepool", "User", "PureFS", "NSh", "Counted", "Needed", "O"), "Class:", rc.getName());
             for ( IRmJob j : allJobs.values() ) {
 
+                if ( j.isRefused() ) {
+                    continue;
+                }
+
                 int counted = 0;
                 switch ( rc.getPolicy() ) {
                     case FAIR_SHARE:

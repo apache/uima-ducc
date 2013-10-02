@@ -59,6 +59,7 @@ public class Scheduler
     // Integer epoch = 5;                                                 // scheduling epoch, seconds
 
     NodePool[] nodepools;
+    int max_order = 0;
 
     //
     // Fair-share and fixed-share use shares only, not machines
@@ -892,6 +893,11 @@ public class Scheduler
                     continue;
                 }
 
+                if ( share_order > max_order ) {
+                    upd.refuse(j, "Memory requested " + j.getMemory() + "GB exceeds the capacity of any machine in the cluster.");
+                    continue;
+                }
+
                 /**
                  * We want to allow this - a normal job, submitted to a reservation class.
                    if ( (prclass.getPolicy() == Policy.RESERVE ) && ( ! j.isReservation() ) ) {
@@ -991,6 +997,7 @@ public class Scheduler
                 share_order = m.getShareOrder();
             }
             
+            max_order = Math.max(share_order, max_order);
             m = np.nodeArrives(node, share_order);                         // announce to the nodepools
         }
     }
