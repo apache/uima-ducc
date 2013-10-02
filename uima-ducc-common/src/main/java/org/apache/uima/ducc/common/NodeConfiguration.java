@@ -65,7 +65,11 @@ public class NodeConfiguration
     String defaultDomain = null;
     String firstNodepool = null;
 
+    boolean fairShareExists = false;
+    boolean fixedExists = false;
+    boolean reserveExists = false;
     DuccProperties fairShareDefault = null;
+    DuccProperties fixedDefault     = null;
     DuccProperties reserveDefault   = null;
     String ducc_home = null;
     String default_domain = null;
@@ -280,7 +284,7 @@ public class NodeConfiguration
         } catch (IOException e) {
             throw new IllegalConfigurationException("Cannot read NodePool file \"" + npfile + "\": I/O Error.");
         }
-        
+
 //         for (String s : response.keySet() ) {
 //             System.out.println(npfile + ": " + s);
 //         }
@@ -549,6 +553,8 @@ public class NodeConfiguration
             } else {
                 if ( policy.equals("FAIR_SHARE" ) ) {
                     fairShareDefault = p;
+                } else if ( policy.equals("FIXED_SHARE") ) {
+                    fixedDefault = p;
                 } else {
                     reserveDefault = p;
                 }
@@ -614,14 +620,17 @@ public class NodeConfiguration
                 throw new IllegalConfigurationException("Class " + name + " is missing scheduling policy ");
             }
             if ( policy.equals("FAIR_SHARE") ) {
+                fairShareExists = true;
                 handleDefault(p, fairShareDefault, policy);
                 supplyDefaults(p, defaultFairShareClass);
             } else
             if ( policy.equals("FIXED_SHARE") ) {
-                handleDefault(p, reserveDefault, policy);
+                fixedExists = true;
+                handleDefault(p, fixedDefault, policy);
                 supplyDefaults(p, defaultFixedShareClass);
             } else
             if ( policy.equals("RESERVE") ) {
+                reserveExists = true;
                 handleDefault(p, reserveDefault, policy);
                 supplyDefaults(p, defaultReserveClass);
             } else {
@@ -743,6 +752,11 @@ public class NodeConfiguration
         return fairShareDefault;
     }
 
+    public DuccProperties getDefaultFixedClass()
+    {
+        return fixedDefault;
+    }
+
     public DuccProperties getDefaultReserveClass()
     {
         return reserveDefault;
@@ -783,6 +797,25 @@ public class NodeConfiguration
        
         for (DuccProperties p : independentNodepools) {      // walk the tree and read the node files
             readNodefile(p, default_domain);
+        }
+
+        String msg = "";
+        String sep = "";
+        if ( fairShareExists && (fairShareDefault == null) ) {
+            msg = "Definition for Default FAIR_SHARE is missing.";
+            sep = "\n";
+        }
+
+        if ( fixedExists && (fixedDefault == null) ) {
+            msg = msg + sep + "Definition for Default FIXED_SHARE class is missing.";
+            sep = "\n";
+        }
+
+        if ( reserveExists && (reserveDefault == null) ) {
+            msg = msg + sep + "Definition for Default RESERVE class is missing.";
+        }
+        if ( !msg.equals("") ) {
+            throw new IllegalConfigurationException(msg);
         }
 
         try {
