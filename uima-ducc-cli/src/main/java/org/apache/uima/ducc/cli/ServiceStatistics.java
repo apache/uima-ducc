@@ -15,7 +15,6 @@ public class  ServiceStatistics
 	private boolean alive = false;
     private boolean healthy = false;
     private String info = "N/A";
-    private String errorString = null;
 
     /**
      * Consstructor
@@ -88,11 +87,7 @@ public class  ServiceStatistics
      */
     public String toString()
     {
-        if ( errorString == null ) {
-            return "Alive[" + alive + "] Healthy[" + healthy + "] + Info: " + info;
-        } else {
-            return "Alive[" + alive + "] Healthy[" + healthy + "] + Errors: " + errorString;
-        }
+        return "Alive[" + alive + "] Healthy[" + healthy + "] + Info: " + info;
     }
 
 }

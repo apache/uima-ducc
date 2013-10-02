@@ -63,6 +63,8 @@ public class UimaAsServiceMonitor
     String pid;
     boolean gmfail = false;
 
+    String jmxFailure = null;
+
     public long getQueueSize()
     {
         return queueSize;
@@ -163,6 +165,11 @@ public class UimaAsServiceMonitor
 		}
     }
 
+    public void setJmxFailure(String msg)
+    {
+        this.jmxFailure = msg;
+    }
+
     public void setSource(String nodeId, String pid, boolean gmfail)
     {
         this.nodeId = nodeId;
@@ -187,22 +194,32 @@ public class UimaAsServiceMonitor
 
     public String format()
     {
-        return "QDEPTH[" + queueSize
-            +  "] AveNQ[" + new DecimalFormat("####.##").format(enqueueTime)
-            +  "] Consum[" + consumerCount
-            +  "] Prod[" + producerCount
-            +  "] minNQ[" + minEnqueueTime
-            +  "] maxNQ[" + maxEnqueueTime
-            +  "] expCnt[" + expiredCount
-            +  "] inFlt[" + inFlightCount
-            +  "] DQ[" + dequeueCount
-            +  "] NQ[" + enqueueCount
-            +  "] NDisp[" + dispatchCount
-            +  "] GMNode[" + nodeId
-            +  "] GMPid[" + pid
-            +  (gmfail ? "(F)" : "")
-            + "]"
-            ;
+        if ( jmxFailure != null ) {
+            return "JMX Failure[" 
+                + jmxFailure + "]" 
+                +  "] MetaNode[" + nodeId
+                +  "] MetaPid[" + pid
+                +  (gmfail ? "(F)" : "")
+                + "]"
+                ;
+        } else {
+            return "QDEPTH[" + queueSize
+                +  "] AveNQ[" + new DecimalFormat("####.##").format(enqueueTime)
+                +  "] Consum[" + consumerCount
+                +  "] Prod[" + producerCount
+                +  "] minNQ[" + minEnqueueTime
+                +  "] maxNQ[" + maxEnqueueTime
+                +  "] expCnt[" + expiredCount
+                +  "] inFlt[" + inFlightCount
+                +  "] DQ[" + dequeueCount
+                +  "] NQ[" + enqueueCount
+                +  "] NDisp[" + dispatchCount
+                +  "] MetaNode[" + nodeId
+                +  "] MetaPid[" + pid
+                +  (gmfail ? "(F)" : "")
+                + "]"
+                ;
+        }
 
     }
 

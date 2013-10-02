@@ -132,11 +132,13 @@ public class UimaAsPing
         }
     }
 
-    void evaluatePing(UimaAsServiceMonitor mon, IServiceStatistics stats)
+    void evaluateBrokerStatistics(IServiceStatistics stats)
     {
     	String methodName = "evaluatePing";
+        // Note that this particular pinger considers 'health' to be a function of whether
+        // the get-mata worked AND the queue statistics.
         try {
-            mon.collect();
+            monitor.collect();
 
             if ( queue_threshold > 0 ) {         // only do this if a threshold is set
                 // if the last 'n' q depths are > threshold, mark the service unhealthy
@@ -147,19 +149,15 @@ public class UimaAsPing
                     sum += queueSizeWindow[i];
                 }
                 sum = sum / window;
-                stats.setHealthy( sum < queue_threshold ? true : false);
+                stats.setHealthy( sum < queue_threshold ? true : false );
                 logger.debug(methodName, null, "EVAL: Q depth", monitor.getQueueSize(), "window", sum, "health", stats.isHealthy());
             } else {
                 stats.setHealthy(true);
             }
 
-            monitor.setSource(nodeIp, pid, gmfail);
-            stats.setAlive(true);
-            stats.setInfo(monitor.format());
         } catch ( Throwable t ) {
-            stats.setAlive(false);
             stats.setHealthy(false);
-            stats.setInfo(t.getMessage());
+            monitor.setJmxFailure(t.getMessage());
         }
     }
 
@@ -169,6 +167,8 @@ public class UimaAsPing
         IServiceStatistics statistics = new ServiceStatistics(false, false, "<NA>");
         nodeIp = "N/A";
         pid = "N/A";
+
+        evaluateBrokerStatistics(statistics);       // if we get here, the get-meta worked well enough
 
         // Instantiate Uima AS Client
         BaseUIMAAsynchronousEngine_impl uimaAsEngine = new BaseUIMAAsynchronousEngine_impl();
@@ -180,11 +180,9 @@ public class UimaAsPing
         appCtx.put(UimaAsynchronousEngine.GetMetaTimeout, meta_timeout);
 
         try {
-            //	this sends GetMeta request and blocks waiting for a reply
-
             uimaAsEngine.initialize(appCtx);
-            evaluatePing(monitor, statistics);       // if we get here, the get-meta worked well enough
             statistics.setAlive(true);
+            statistics.setHealthy(true && statistics.isHealthy());
             listener.ok();
         } catch( ResourceInitializationException e) {
             listener.timeout();
@@ -199,6 +197,9 @@ public class UimaAsPing
 			}
         }
 
+        monitor.setSource(nodeIp, pid, gmfail);
+        statistics.setInfo(monitor.format());
+
         return statistics;
     }
 
@@ -210,8 +211,8 @@ public class UimaAsPing
 
         public void ok()
         {
-            String methodName = "UimaAsPing:get-meta";
-            logger.info(methodName, null, "Get-Meta received from ", nodeIp, "PID", pid);
+            // String methodName = "UimaAsPing:get-meta";
+            // logger.info(methodName, null, "Get-Meta received from ", nodeIp, "PID", pid);
             gmfail = false;
         }
 
@@ -230,12 +231,12 @@ public class UimaAsPing
 //        {
 //        }
 	
-        public void onBeforeProcessMeta(UimaASProcessStatus status, String ip, String p) 
+        public void onBeforeProcessMeta(String IP, String p)
         {
             String methodName = "UimaAsPing:onBeforeProcessMeta";
-            logger.info(methodName, null, "Get-Meta received from ", ip, p, "for", ep);
-            nodeIp = ip;
+            logger.info(methodName, null, "Get-Meta received from ", IP, ":", p, "for", ep);
             pid = p;
+            nodeIp = IP;
         }
 	
 //        private void onBeforeProcessCASHandler(UimaASProcessStatus status, String nodeIP, String pid) 
