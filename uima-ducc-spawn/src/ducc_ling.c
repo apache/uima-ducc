@@ -359,7 +359,12 @@ void renice()
 void redirect_to_file(char *filepath)
 {
     char buf[BUFLEN];
-    char *logfile = mklogfile(filepath);
+
+    char *logfile = filepath;
+    if ( strncmp(filepath, "/dev/null", strlen("/dev/null")) ) {
+        logfile = mklogfile(filepath);
+    }
+
     if ( logfile == NULL ) exit(1);                 // mklogdir creates sufficient erro rmessages
         
     //snprintf(buf, STRLEN, "%s/%s-%d.log", logdir, log, getpid());
@@ -660,7 +665,7 @@ int main(int argc, char **argv, char **envp)
         char *console_port = getenv("DUCC_CONSOLE_LISTENER");
         if ( console_port == NULL ) {
             redirect_to_file(filepath);
-        } else if ( !strcmp(console_port, "suppress") ) {
+        } else if ( !strncmp(console_port, "suppress", strlen("suppress") ) ) {
             log_stdout("303 Redirect stdout and stderr to /dev/null.\n");
             redirect_to_file("/dev/null");
         } else {
