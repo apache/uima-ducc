@@ -111,7 +111,11 @@ public interface IDuccProcess extends Serializable {
 		JPHasNoActiveJob, 
 		LowSwapSpace,
 		AdministratorInitiated,
-		UserInitiated
+		UserInitiated,
+		ProcessInitiated,
+		ExceededErrorThreshold,
+		KilledByDucc,
+		Other
 	}
 	
 	public String getReasonForStoppingProcess();

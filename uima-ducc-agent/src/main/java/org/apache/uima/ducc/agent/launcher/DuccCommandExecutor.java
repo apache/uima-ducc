@@ -21,7 +21,6 @@ package org.apache.uima.ducc.agent.launcher;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,6 +41,7 @@ import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.ProcessStopDuccEvent;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
@@ -348,6 +348,19 @@ public class DuccCommandExecutor extends CommandExecutor {
 //			twr.setEnd(millis);
 		}
 	}
+	/**
+	 * Checks if a given process is AP. The code checks if process type is POP and it is *not* JD
+	 * 
+	 * @param process - process instance
+	 * @return - true if AP, false otherwise
+	 */
+	private boolean isAP( ManagedProcess process ) {
+		if ( !process.isJd() && process.getDuccProcess().getProcessType().equals(ProcessType.Pop) ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 	private void doExec(ProcessBuilder pb, String[] cmd, boolean isKillCmd) throws Exception {
 		String methodName = "doExec";
 		int exitCode=0;
@@ -397,11 +410,21 @@ public class DuccCommandExecutor extends CommandExecutor {
 			((ManagedProcess) managedProcess).getDuccProcess().setProcessExitCode(exitCode);
 			//	 Per team discussion on Aug 31 2011, the process is stopped by an agent when initialization
 			//   times out or initialization failed. Both Initialization_Timeout and FailedIntialization imply
-			//   that the process is stopped.
-			if ( !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.InitializationTimeout) && 
-				 !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.FailedInitialization) &&
-				 !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Failed) && 
-        !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Killed)) { 
+			//   that the process is stopped. If the process is AP and it exited it should be marked 
+			//   as Stopped. If the exit was due to Ducc kill mark reason as KilledByDucc otherwise we have
+			//   no way of knowing why the process exited and in such case reason is Other.
+			if ( (isAP((ManagedProcess)super.managedProcess)) ) {
+				((ManagedProcess) managedProcess).getDuccProcess().setProcessState(ProcessState.Stopped);
+				if ( ((ManagedProcess)super.managedProcess).doKill() ) {   // killed by agent/ducc
+					((ManagedProcess) managedProcess).getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
+				} else {
+					((ManagedProcess) managedProcess).getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.Other.toString());
+				}
+			
+			} else if ( !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.InitializationTimeout) && 
+				        !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.FailedInitialization) &&
+				        !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Failed) && 
+                        !((ManagedProcess) managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Killed)) { 
 				((ManagedProcess) managedProcess).getDuccProcess().setProcessState(ProcessState.Stopped);
 			}
 		}
@@ -448,6 +471,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	              // will have -Dducc.deploy.components option set. 
 	              if (option.startsWith("-Dducc.deploy.components=")) {
 	                processType = "-JD-";
+	                ((ManagedProcess)super.managedProcess).setIsJD();  // mark this process as JD
 	                break;
 	              }
 	            }
