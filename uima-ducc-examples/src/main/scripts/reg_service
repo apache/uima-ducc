@@ -108,7 +108,7 @@ class RegService(DuccUtil):
             props.write(outfile)
             print outfile, 'created.'
         
-        CMD = self.java() + ' -jar ' + self.DUCC_HOME + '/lib/uima-ducc-services.jar --register --instances ' + str(instances)
+        CMD = ' '.join((self.DUCC_HOME + '/bin/ducc_services', '--register', '--instances', str(instances)))
         for (k, v) in props.items():
             CMD = CMD + ' --' + k + " '" + v + "'"
         print CMD

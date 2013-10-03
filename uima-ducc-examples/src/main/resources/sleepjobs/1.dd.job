@@ -1,14 +1,12 @@
 description               Test DD Job 1
 
-driver_classpath          ../lib/uima-ducc-examples.jar
+classpath                 ../lib/uima-ducc-examples.jar
 driver_descriptor_CR      org.apache.uima.ducc.test.randomsleep.FixedSleepCR
 driver_descriptor_CR_overrides jobfile:1.inputs,compression:10,error_rate:0.0
 driver_jvm_args           -Xmx500M
-driver_environment        LD_LIBRARY_PATH=/a/other/bogus/path DUCC_LD_LIBRARY_PATH=/a/other/bogus/path
 
 process_DD                org.apache.uima.ducc.test.ddjob.DDSleepDescriptor
-process_environment       AE_INIT_TIME=10000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/a/bogus/path DUCC_LD_LIBRARY_PATH=/a/bogus/path
-process_classpath         ../lib/uima-ducc-examples.jar
+environment               AE_INIT_TIME=10000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/a/bogus/path DUCC_LD_LIBRARY_PATH=/a/bogus/path
 process_jvm_args          -Xmx100M
 
 scheduling_class          normal
