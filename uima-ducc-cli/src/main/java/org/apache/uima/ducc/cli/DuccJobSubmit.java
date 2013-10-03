@@ -22,7 +22,6 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
@@ -46,11 +45,10 @@ public class DuccJobSubmit
         UiOption.Timestamp,
         
         UiOption.AllInOne,
-        
+
+        UiOption.AttachConsole,
         UiOption.ProcessDebug,
-        UiOption.ProcessAttachConsole,
         UiOption.DriverDebug,
-        UiOption.DriverAttachConsole,
         
         UiOption.Description,
         UiOption.SchedulingClass,

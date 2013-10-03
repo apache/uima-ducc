@@ -232,7 +232,7 @@ public class AllInOneLauncher extends CliBase {
     private void examine_process_attach_console() {
         String mid = "examine_process_attach_console";
         mh.frameworkTrace(cid, mid, enter);
-        String pname = UiOption.ProcessAttachConsole.pname();
+        String pname = UiOption.AttachConsole.pname();
         if(jobRequestProperties.containsKey(pname)) {
             String message = "attach_console";
             mh.frameworkDebug(cid, mid, message);
@@ -858,7 +858,7 @@ public class AllInOneLauncher extends CliBase {
         if(cancel_on_interrupt) {
             addArg(cmdLine, "--"+UiOption.CancelOnInterrupt.pname());
         }
-        addArg(cmdLine, "--"+UiOption.ProcessAttachConsole.pname());    // Always return console output to match "local"
+        addArg(cmdLine, "--"+UiOption.AttachConsole.pname());    // Always return console output to match "local"
 
         String[] argList = cmdLine.toArray(new String[cmdLine.size()]);
         

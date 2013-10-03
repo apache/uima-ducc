@@ -40,7 +40,6 @@ class ConsoleListener
     private CliBase submit;
     private Map<Integer, Pair<StdioReader, StdioWriter>> listeners = new HashMap<Integer, Pair<StdioReader, StdioWriter>>();
 
-    private int          console_listener_port;
     private String       console_host_address;
 
     private boolean      in_shutdown = false;
@@ -58,11 +57,13 @@ class ConsoleListener
     {
         this.submit = submit;
         this.sock = new ServerSocket(0);
-        this.console_listener_port  = sock.getLocalPort();
         this.consoleCb = consoleCb;
         
         NodeIdentity ni = new NodeIdentity();
-        this.console_host_address = ni.getIp();            
+        String host_address = ni.getIp();  
+        int console_listener_port = sock.getLocalPort();
+        this.console_host_address = host_address + ":" + console_listener_port;
+          
 
         debug = submit.debug; //isDebug();
         suppress_log = submit.suppress_console_log;
@@ -71,11 +72,6 @@ class ConsoleListener
     String getConsoleHostAddress()
     {
         return console_host_address;
-    }
-
-    int getConsolePort()
-    {
-        return console_listener_port;
     }
 
     synchronized boolean isShutdown()
@@ -128,7 +124,7 @@ class ConsoleListener
 
     public void run()
     {
-        if ( debug ) System.out.println("Listening on " + console_host_address + " " + console_listener_port);
+        if ( debug ) System.out.println("Listening on " + console_host_address);
 
         while ( true ) {
             try {                    

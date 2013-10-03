@@ -112,12 +112,12 @@ public class DuccUiUtilities {
         }
 	}
 	
-	public static void ducc_environment(CliBase base, Properties jobRequestProperties, String extraEnv) {
+	public static void ducc_environment(CliBase base, Properties jobRequestProperties) {
 	    String key = UiOption.Environment.pname();
 		String environment_string = jobRequestProperties.getProperty(key, "");
-		String fixedEnv = fixupEnvironment(environment_string + extraEnv);
-        // If the input string returned unmodified, no need to change the property
-        if (!fixedEnv.equals(environment_string)) {
+		String fixedEnv = fixupEnvironment(environment_string);
+        // If the same string returned, no need to change the property as it was not modified
+        if (fixedEnv != environment_string) {
             jobRequestProperties.setProperty(key, fixedEnv);
         }
 	}

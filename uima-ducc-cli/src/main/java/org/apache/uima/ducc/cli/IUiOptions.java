@@ -63,6 +63,14 @@ public interface IUiOptions
             public String label()       { return name(); }
         },
         
+        AttachConsole { 
+            public String pname()       { return "attach_console"; }
+            public String argname()     { return null; }
+            public String description() { return "If specified, redirect remote stdout and stderr to the local submitting console."; }
+            public String example()     { return null; }
+            public String label()       { return name(); }
+        },            
+
         Autostart   { 
             public String pname()      { return "autostart"; } 
             public String argname()     { return "boolean: true or false"; } 
@@ -128,14 +136,6 @@ public interface IUiOptions
             public String example()     { return "My excellent job!"; }
             public String deflt()       { return "none"; }
             public String label()       { return "Description"; }
-        },            
-
-        DriverAttachConsole { 
-            public String pname()       { return "driver_attach_console"; }
-            public String argname()     { return null; }
-            public String description() { return "If specified, redirect remote job driver stdout and stderr to the local submitting console."; }
-            public String example()     { return null; }
-            public String label()       { return "DriverAttachConsole"; }
         },            
 
         DriverDescriptorCR { 
@@ -368,14 +368,6 @@ public interface IUiOptions
             public String description() { return null; }
             public String example()     { return null; }
             public String label()       { return null; }
-        },            
-
-        ProcessAttachConsole { 
-            public String pname()       { return "process_attach_console"; }
-            public String argname()     { return null; }
-            public String description() { return "If specified, redirect remote process stdout and stderr to the local submitting console."; }
-            public String example()     { return null; }
-            public String label()       { return "ProcessAttachConsole"; }
         },            
 
         ProcessDebug { 

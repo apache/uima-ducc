@@ -333,12 +333,9 @@ public abstract class CliBase
         setWorkingDirectory();
         setUser();
 
-        //TODO - shouldn't environment fixups be done here for all requests that may use it??
-        
         NodeIdentity ni = new NodeIdentity();
-        host_address = ni.getIp();           
-
-
+        host_address = ni.getIp();
+        
         initConsoleListener();
 
         String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
@@ -371,6 +368,7 @@ public abstract class CliBase
     
     /*
      * Check for missing required options, set defaults, and validate where possible
+     * Also fixup the environment for all that use it.
      */
     void setDefaults(UiOption[] uiOpts, boolean suppress_console) throws Exception {
         for (UiOption uiopt : uiOpts) {
@@ -392,10 +390,9 @@ public abstract class CliBase
                 }
             }
             // If this request accepts the --environment option may need to augment it by
-            // renaming LD_LIBRARY_PATH, propagating some user values, disabling the console log
+            // renaming LD_LIBRARY_PATH & propagating some user values
             if (uiopt == UiOption.Environment) {
-                String addEnv = suppress_console ? " DUCC_SUPPRESS_CONSOLE=true" : "";
-                DuccUiUtilities.ducc_environment(this, cli_props, addEnv);
+                DuccUiUtilities.ducc_environment(this, cli_props);
             }
         }
     }
@@ -582,32 +579,6 @@ public abstract class CliBase
         return debug;
     }*/
 
-    /**
-     * Set the internal API debug flag.
-     * @param val Set to true to enable debugging, and false to disable it.
-     */
-/*    public void setDebug(boolean val)
-    {
-        this.debug = val;
-    }
-*/
-    // nobody seems to use this
-//     public String getHostAddress()
-//     {
-//         return host_address;
-//     }
-
-/* Also unused?
- *     public boolean hasProperty(String key)
-    {
-        return cli_props.containsKey(key);
-    }
-    
-    public String getProperty(String key)
-    {
-        return (String) cli_props.getProperty(key);
-    }*/
-
     protected IDuccCallback getCallback()
     {
         return consoleCb;
@@ -710,29 +681,30 @@ public abstract class CliBase
 
     /**
      * Needs to be done before submitting the job because the job needs the ports.  We'll
-     * just define the listener, but not start it untile the job monitor starts, in case the
+     * just define the listener, but not start it until the job monitor starts, in case the
      * submission fails.
      */
-    protected void initConsoleListener()
-        throws Exception
-    {
-        console_attach =
-            cli_props.containsKey(UiOption.ProcessAttachConsole.pname()) ||
-            cli_props.containsKey(UiOption.DriverAttachConsole.pname());
+    protected void initConsoleListener() throws Exception {
+        String value;
 
-        if ( console_attach ) {
+        console_attach = cli_props.containsKey(UiOption.AttachConsole.pname());
+        if (console_attach) {
             console_listener = new ConsoleListener(this, consoleCb);
-            
-            String key = UiOption.Environment.pname();
-            
-            if ( cli_props.containsKey(UiOption.ProcessAttachConsole.pname()) ) {
-                set_console_port(cli_props, key);
-            } 
-            
-            if  (cli_props.containsKey(UiOption.DriverAttachConsole.pname()) ) {
-                set_console_port(cli_props, key);
-            } 
+            value = console_listener.getConsoleHostAddress();
+        } else if (suppress_console_log) {
+            value = "suppress";
+        } else {
+            return;
         }
+        // Set the console "suppress" flag or the host:port for the console listener into the env
+        String key = UiOption.Environment.pname();
+        String env = cli_props.getProperty(key);
+        if (env == null) {
+            env = "DUCC_CONSOLE_LISTENER=" + value;
+        } else {
+            env += " DUCC_CONSOLE_LISTENER=" + value;
+        }
+        cli_props.setProperty(key, env);
     }
 
     /**
@@ -760,31 +732,6 @@ public abstract class CliBase
         if ( monitor_listener != null ) {
             monitor_listener.shutdown();
             monitor_listener = null;
-        }
-    }
-
-    protected void set_console_port(DuccProperties props, String key)
-    {
-        if ( key != null ) {         
-            if ( console_listener == null ) {
-                message("WARN: Attempt to set console port but listener is not running.");
-                return;
-            }
-
-            String console_host_address = console_listener.getConsoleHostAddress();
-            int console_listener_port = console_listener.getConsolePort();
-
-            String envval = "DUCC_CONSOLE_LISTENER";
-            String env = props.getProperty(key);            
-            // Set the host:port for the console listener into the env
-            String console_address = console_host_address + ":" + console_listener_port;
-            String dp = envval + "=" + console_address;
-            if ( env == null ) {
-                env = dp;
-            } else {
-                env = env + " " + dp;
-            }
-            props.setProperty(key, env);
         }
     }
 
@@ -868,6 +815,8 @@ public abstract class CliBase
                 args[i] = "--classpath";
             } else if (arg.equals("--driver_environment") || arg.equals("--process_environment")) {
                 args[i] = "--environment";
+            } else if (arg.equals("--driver_attach_console") || arg.equals("--process_attach_console")) {
+                    args[i] = "--attach_console";
             } else if (arg.equals("--cancel_job_on_interrupt") || arg.equals("--cancel_managed_reservation_on_interrupt")) {
                 args[i] = "--cancel_on_interrupt";
             } else if (arg.equals("--jvm_args")) {
@@ -891,6 +840,9 @@ public abstract class CliBase
                 props.remove(key);
             } else if (key.equals("driver_environment") || key.equals("process_environment")) {
                 props.put("environment", props.get(key));
+                props.remove(key);
+            } else if (key.equals("driver_attach_console") || key.equals("process_attach_console")) {
+                props.put("attach_console", props.get(key));
                 props.remove(key);
             } else if (key.equals("cancel_job_on_interrupt") || key.equals("cancel_managed_reservation_on_interrupt")) {
                 props.put("cancel_on_interrupt", props.get(key));

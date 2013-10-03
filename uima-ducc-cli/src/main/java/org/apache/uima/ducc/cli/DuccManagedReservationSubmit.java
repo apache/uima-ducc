@@ -21,7 +21,6 @@ package org.apache.uima.ducc.cli;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
@@ -46,7 +45,7 @@ public class DuccManagedReservationSubmit
         UiOption.Description,
         UiOption.Environment,
         UiOption.LogDirectory,
-        UiOption.ProcessAttachConsole,
+        UiOption.AttachConsole,
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
         UiOption.ProcessFailuresLimit,
