@@ -30,6 +30,12 @@ public class UserLogging {
 	private String userLogDir = null;
 	private String userDuccLog = null;
 	
+	
+	public static void record(String userName, String userLogDir, String text) {
+		 UserLogging userLogging = new UserLogging(userName, userLogDir);
+		 userLogging.toUserDuccLog(text);
+	}
+	
 	public UserLogging(String userName, String userLogDir) {
 		setUserName(userName);
 		setUserLogDir(userLogDir);

@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.orchestrator;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -35,6 +36,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccReservation;
@@ -706,6 +708,10 @@ public class StateManager {
 								duccWorkJob.setCompletionRationale(new Rationale("resource manager refused allocation: "+rmResourceState.getReason()));
 								changes += stateChange(duccWorkJob,JobState.Completed);
 								logger.warn(methodName, duccId, messages.fetchLabel("refused")+rmResourceState.getReason());
+								String userName = duccWorkJob.getStandardInfo().getUser();
+								String userLogDir = duccWorkJob.getUserLogsDir()+duccWorkJob.getDuccId().getFriendly()+File.separator;;
+								String text = rmResourceState.getReason();
+								UserLogging.record(userName, userLogDir, text);
 							}
 							if(duccWorkJob.getProcessMap().size() > 0) {
 								changes += stateChange(duccWorkJob,JobState.Initializing);
@@ -808,6 +814,10 @@ public class StateManager {
 								duccWorkService.setCompletionRationale(new Rationale("resource manager refused allocation: "+rmResourceState.getReason()));
 								changes += stateChange(duccWorkService,JobState.Completed);
 								logger.warn(methodName, duccId, messages.fetchLabel("refused")+rmResourceState.getReason());
+								String userName = duccWorkService.getStandardInfo().getUser();
+								String userLogDir = duccWorkService.getUserLogsDir()+duccWorkService.getDuccId().getFriendly()+File.separator;;
+								String text = rmResourceState.getReason();
+								UserLogging.record(userName, userLogDir, text);
 							}
 							if(duccWorkService.getProcessMap().size() > 0) {
 								changes += stateChange(duccWorkService,JobState.Initializing);
