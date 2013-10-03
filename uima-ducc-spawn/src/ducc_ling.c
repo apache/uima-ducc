@@ -42,7 +42,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "0.8.9"
+#define VERSION "0.8.10"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -67,6 +67,7 @@
  * 2013-07-16 0.8.7 Agh.  MAX_COMPONENTS is restricting depth of directories too much and crashing!.  jrc
  * 2013-07-25 0.8.8 Allow unlimited path elements. jrc
  * 2013-09-15 0.8.9 Common logging and -q option. jrc
+ * 2013-10-03 0.8.10 DUCC_CONSOLE_LISTENER=suppress means direct stdin/stderr to /dev/null jrc
  */
 
 /**
@@ -657,16 +658,19 @@ int main(int argc, char **argv, char **envp)
     //
     if ( redirect ) {
         char *console_port = getenv("DUCC_CONSOLE_LISTENER");
-        if ( console_port != NULL ) {
+        if ( console_port == NULL ) {
+            redirect_to_file(filepath);
+        } else if ( !strcmp(console_port, "suppress") ) {
+            log_stdout("303 Redirect stdout and stderr to /dev/null.\n");
+            redirect_to_file("/dev/null");
+        } else {
             fflush(stdout);
             redirect_to_socket(console_port);
             if ( filepath != NULL ) {
                 // on console redirection, spit out the name of the log file it would have been
                 log_stdout("1002 CONSOLE_REDIRECT %s\n", logfile);
             }
-        } else {
-            redirect_to_file(filepath);
-        }
+        } 
         version();             // this gets echoed as first message into the redirected log
         query_limits();       // Once, for the user
     }
