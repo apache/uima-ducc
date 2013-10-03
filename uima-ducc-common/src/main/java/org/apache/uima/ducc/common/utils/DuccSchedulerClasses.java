@@ -130,17 +130,9 @@ public class DuccSchedulerClasses {
     public String getDebugClassDefaultName() throws Exception {
         String retVal = null;
         readConfiguration();
-        // May not be safe to get the default reserve class ... it could be configured as "reserve"
-        /*DuccProperties properties = nodeConfiguration.getDefaultReserveClass();
+        DuccProperties properties = nodeConfiguration.getDefaultFixedClass();
         if (properties != null) {
             retVal = properties.getProperty("name");
-            System.out.println("!! default reserve class = " + retVal);
-        }*/
-        
-        // Get debug class for the default fair-share class
-        retVal = getDefaultClassName();
-        if (retVal != null) {
-            retVal = getDebugClassSpecificName(retVal);
         }
         return retVal;
     }
@@ -154,7 +146,10 @@ public class DuccSchedulerClasses {
         if ( properties != null ) {
             retVal = properties.getProperty("debug");
         }
-		return retVal;
+        if (retVal == null) {
+            retVal = getDebugClassDefaultName();
+        }
+	    return retVal;
 	}
 	
 	public String[] getReserveClasses()

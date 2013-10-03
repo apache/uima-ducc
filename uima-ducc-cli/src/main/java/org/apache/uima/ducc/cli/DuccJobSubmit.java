@@ -176,35 +176,29 @@ public class DuccJobSubmit
         }
     }
     
+    /*
+     * If preemptable change to a non-preemptable scheduling class.
+     * If none provided use the default fixed class
+     */
     protected void transform_scheduling_class(CliBase base, Properties props)
             throws Exception
     {
     	 String scheduling_class = null;
-         String text = null;
+         String user_scheduling_class = null;
          String pname = UiOption.SchedulingClass.pname();
          DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
-         if(props.containsKey(pname)) {
-             String user_scheduling_class = props.getProperty(pname);
-             if(duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
+         if (props.containsKey(pname)) {
+             user_scheduling_class = props.getProperty(pname);
+             if (duccSchedulerClasses.isPreemptable(user_scheduling_class)) {
                  scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(user_scheduling_class);
-                 if(scheduling_class != null) {
-                     text = pname+"="+scheduling_class+" [replacement, specific]";
-                 }
              }
-             else {
-                 scheduling_class = user_scheduling_class;
-                 text = pname+"="+scheduling_class+" [original]";
-             }
-         }
-         else {
+         } else {
              scheduling_class = duccSchedulerClasses.getDebugClassDefaultName();
-             text = pname+"="+scheduling_class+" [default]";
          }
-         if(scheduling_class != null) {
+         if (scheduling_class != null) {
               props.setProperty(pname, scheduling_class);
-              if(text != null) {
-                  base.message(text);
-              }
+              String text = pname+"="+scheduling_class+" -- was "+user_scheduling_class;
+              base.message(text);
          }
     }
     
