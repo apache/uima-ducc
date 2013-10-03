@@ -192,7 +192,7 @@ def main():
     # execute from somebody else's ducc so let's be sure we point at the right one
     os.environ['DUCC_HOME'] = ducc_home
     CMD = ducc_home + '/bin/ducc_process_submit'
-    CMD = CMD +       ' --process_attach_console'
+    CMD = CMD +       ' --attach_console'
     CMD = CMD +       ' --process_memory_size ' + str(ducc_mem_size)
     CMD = CMD +       ' --scheduling_class ' + ducc_class
     CMD = CMD +       ' --description ' + os.path.basename(sys.argv[0])
