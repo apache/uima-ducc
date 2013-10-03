@@ -71,4 +71,4 @@ Class reserve-base {
       max-machines = 10
 }
  
-Class reserve     reserve-base { }
+Class reserve     reserve-base { default = true }
