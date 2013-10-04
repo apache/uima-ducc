@@ -592,7 +592,7 @@ public class ServiceManagerComponent
             userHome = LinuxUtils.getUserHome(user);
         }
         
-        Crypto crypto = new Crypto(userHome,AccessType.READER);
+        Crypto crypto = new Crypto(user,userHome,AccessType.READER);
         String signature = (String)crypto.decrypt(auth_block);
         
         return user.equals(signature);
