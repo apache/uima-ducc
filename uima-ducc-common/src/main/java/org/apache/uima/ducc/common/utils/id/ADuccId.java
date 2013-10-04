@@ -65,6 +65,11 @@ public class ADuccId
     	this.unique = unique;
     }
     
+    public UUID getUUID()
+    {
+    	return unique;
+    }
+    
     /* (non-Javadoc)
 	 * @see java.lang.compareTo()
 	 */
