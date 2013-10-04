@@ -81,7 +81,7 @@ under the License.
 			<li><a href="#tabs-1">Deployments</a></li>
 			<li><a href="#tabs-2">Registry</a></li>
 			<li><a href="#tabs-3">Files</a></li>
-			
+			<li><a href="#tabs-4">History</a></li>
 		</ul>
 			<div id="tabs-1">
 			    <%@ include file="service.details.table.deployments.jsp" %>
@@ -96,6 +96,9 @@ under the License.
 			</div>
 			<div id="tabs-3">
                 <%@ include file="service.details.table.files.jsp" %>
+            </div>
+            <div id="tabs-4">
+                <%@ include file="service.details.table.history.jsp" %>
             </div>
 		</div>
 </td>
