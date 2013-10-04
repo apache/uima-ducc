@@ -135,6 +135,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccServiceDeploymentsData    	= duccContext+"/service-deployments-data";
 	private String duccServiceRegistryData 			= duccContext+"/service-registry-data";
 	private String duccServiceFilesData 			= duccContext+"/service-files-data";
+	private String duccServiceHistoryData 			= duccContext+"/service-history-data";
 	private String duccServiceSummaryData			= duccContext+"/service-summary-data";
 	
 	private String duccSystemAdminAdminData 		= duccContext+"/system-admin-admin-data";
@@ -1762,7 +1763,79 @@ public class DuccHandler extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
-				
+	
+	private void handleDuccServletServiceHistoryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceHistoryData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		
+		try {
+			String name = request.getParameter("name");
+			duccLogger.debug(methodName, null, name);
+			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+			Properties properties;
+			properties = payload.meta;
+			String numeric_id = properties.getProperty(IServicesRegistry.numeric_id);
+			properties = payload.svc;
+			String log_directory = properties.getProperty(IServicesRegistry.log_directory);
+			File serviceDirectory = new File(log_directory);
+			if(serviceDirectory.isDirectory()) {
+				int counter = 0;
+				TreeMap<String,File> map = new TreeMap<String,File>();
+				File[] files = serviceDirectory.listFiles();
+				for(File file : files) {
+					if(file.isDirectory()) {
+						map.put(file.getName(),file);
+					}
+				}
+				for(String historyDirectoryName : map.descendingKeySet()) {
+					File historyDirectoryFile = map.get(historyDirectoryName);
+					File[] historyFiles = historyDirectoryFile.listFiles();
+					for(File historyFile : historyFiles) {
+						StringBuffer row = new StringBuffer();
+						String tr = trGet(counter);
+						row.append(tr);
+						// id
+						row.append("<td>");
+						row.append(numeric_id+"."+historyDirectoryFile.getName());
+						row.append("</td>");
+						// name
+						row.append("<td>");
+						String href = "<a href=\""+duccFileContents+"?"+"fname="+historyFile.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+historyFile.getName()+"</a>";
+						row.append(href);
+						row.append("</td>");
+						// size
+						row.append("<td>");
+						row.append(getFileSize(historyFile.getAbsolutePath()));
+						row.append("</td>");
+						//
+						row.append("</tr>");
+						sb.append(row);
+						counter++;
+					}
+				}
+			}
+			duccLogger.debug(methodName, null, log_directory);
+		}
+		catch(Throwable t) {
+			// no worries
+		}
+
+		if(sb.length() == 0) {
+			sb.append("<tr>");
+			sb.append("<td>");
+			sb.append("not found");
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}			
+	
 	private void handleDuccServletJobInitializationFailData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -3847,6 +3920,10 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccServiceFilesData)) {
 				handleDuccServletServiceFilesData(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}
+			else if(reqURI.startsWith(duccServiceHistoryData)) {
+				handleDuccServletServiceHistoryData(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
 			else if(reqURI.startsWith(duccJobInitializationFailData)) {
