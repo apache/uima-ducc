@@ -195,7 +195,7 @@ public abstract class CliBase
         if(property != null) {
             String signatureRequiredProperty = property.trim().toLowerCase();
             if(signatureRequiredProperty.equals("on")) {
-                Crypto crypto = new Crypto(System.getProperty("user.home"));
+                Crypto crypto = new Crypto(user,System.getProperty("user.home"));
                 byte[] cypheredMessage = crypto.encrypt(user);
                 cli_props.put(UiOption.Signature.pname(), cypheredMessage);
             }
