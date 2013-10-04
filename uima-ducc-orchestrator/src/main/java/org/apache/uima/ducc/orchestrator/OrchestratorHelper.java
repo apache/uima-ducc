@@ -76,7 +76,7 @@ public class OrchestratorHelper {
 		return defaultReserveName;
 	}
 	
-	private static void assignDefaultFairShareClass(Properties properties, String key) {
+	protected static void assignDefaultFairShareClass(Properties properties, String key) {
 		String location = "assignDefaultFairShareClass";
 		try {
 			String value = (String) properties.getProperty(key);
@@ -91,6 +91,36 @@ public class OrchestratorHelper {
 		}
 	}
 	
+	private static String getDefaultFixedClass() {
+		String location = "getDefaultFixedClass";
+		String defaultFixedName = null;
+		try {
+			NodeConfiguration nc = getNodeConfiguration();
+			DuccProperties rp = nc.getDefaultFixedClass();
+			defaultFixedName = rp.getProperty(name);
+		}
+		catch(Throwable t) {
+			logger.error(location, jobid, t);
+		}
+		return defaultFixedName;
+	}
+	
+	protected static void assignDefaultFixedClass(Properties properties, String key) {
+		String location = "assignDefaultFixedClass";
+		try {
+			String value = (String) properties.getProperty(key);
+			if(value == null) {
+				value = getDefaultFixedClass();
+				properties.setProperty(key, value);
+				logger.info(location, jobid, key+"="+value);
+			}
+		}
+		catch(Throwable t) {
+			logger.error(location, jobid, t);
+		}
+	}
+	
+	/*
 	private static String getDefaultReserveClass() {
 		String location = "getDefaultReserveClass";
 		String defaultReserveName = null;
@@ -105,7 +135,7 @@ public class OrchestratorHelper {
 		return defaultReserveName;
 	}
 	
-	private static void assignDefaultReserveClass(Properties properties, String key) {
+	protected static void assignDefaultReserveClass(Properties properties, String key) {
 		String location = "assignDefaultReserveClass";
 		try {
 			String value = (String) properties.getProperty(key);
@@ -119,6 +149,7 @@ public class OrchestratorHelper {
 			logger.error(location, jobid, t);
 		}
 	}
+	*/
 	
 	public static void assignDefaults(SubmitJobDuccEvent duccEvent) {
 		Properties properties = duccEvent.getProperties();
@@ -129,13 +160,13 @@ public class OrchestratorHelper {
 	public static void assignDefaults(SubmitReservationDuccEvent duccEvent) {
 		Properties properties = duccEvent.getProperties();
 		String key = ReservationRequestProperties.key_scheduling_class;
-		assignDefaultReserveClass(properties, key);
+		assignDefaultFixedClass(properties, key);
 	}
 	
 	public static void assignDefaults(SubmitServiceDuccEvent duccEvent) {
 		Properties properties = duccEvent.getProperties();
 		String key = ServiceRequestProperties.key_scheduling_class;
-		assignDefaultReserveClass(properties, key);
+		assignDefaultFixedClass(properties, key);
 	}
 	
 	/*
