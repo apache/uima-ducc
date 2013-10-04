@@ -518,7 +518,8 @@ implements Orchestrator {
 						userHome = System.getProperty("user.home");
 					}
 				}
-				Crypto crypto = new Crypto(userHome,AccessType.READER);
+				Crypto crypto = new Crypto(user,userHome,AccessType.READER);
+				logger.debug(methodName, null, "readable:"+crypto.isReadablePublic()+" "+"public:"+crypto.getPublic());
 				String signature = (String)crypto.decrypt((byte[])properties.get(SpecificationProperties.key_signature));
 				if(user.equals(signature)) {
 					logger.debug(methodName, null, "user:"+user+" signature:"+signature+" valid:y");
