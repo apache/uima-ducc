@@ -44,9 +44,11 @@ public interface IStateServices {
 	public static final String service_statistics = "service-statistics";
 	public static final String service_type = "service-type";
 	public static final String user = "user";
+	
 	public static final String scheduling_class = "scheduling_class";
 	public static final String process_memory_size = "process_memory_size";
 	public static final String description = "description";
+	public static final String log_directory = "log_directory";
 	
 	public static final String process_executable = "process_executable";
 	
