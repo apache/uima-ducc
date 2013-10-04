@@ -20,6 +20,7 @@ package org.apache.uima.ducc.common.utils;
 
 import java.io.BufferedReader;
 import java.io.Closeable;
+import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
@@ -235,6 +236,24 @@ public class AlienFile {
 		}
 		
 		return isr;
+	}
+
+	public DataInputStream getDataInputStream() throws Throwable {
+		DataInputStream dis = null;
+		try {
+			String[] command = getCommand();
+			echo(command);
+			ProcessBuilder pb = new ProcessBuilder( command );
+			Process p = pb.start();
+			//p.waitFor();
+			InputStream pOut = p.getInputStream();
+			dis= new DataInputStream(pOut);
+		} 
+		catch(Throwable t) {
+			throw t;
+		}
+		
+		return dis;
 	}
 	
 	public static void main(String[] args) throws Throwable {

@@ -22,6 +22,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -43,6 +44,9 @@ import java.util.Properties;
 
 import javax.crypto.Cipher;
 
+import org.apache.uima.ducc.common.utils.AlienFile;
+import org.apache.uima.ducc.common.utils.Utils;
+
 public class Crypto implements ICrypto {
 	
 	private boolean traditional = false;
@@ -52,6 +56,7 @@ public class Crypto implements ICrypto {
 	private String pubFilePermissions = "0755";
 	private String pvtFilePermissions = "0700";
 
+	private String user;
 	private String dirUserKeys;
 	private String filePvt;
 	private String filePub;
@@ -66,23 +71,24 @@ public class Crypto implements ICrypto {
 		WRITER,
 	}
 	
-	public Crypto(String dirHome) throws CryptoException {
-		init(dirHome,dirDotDucc,AccessType.WRITER);
+	public Crypto(String user, String dirHome) throws CryptoException {
+		init(user,dirHome,dirDotDucc,AccessType.WRITER);
 	}
 	
-	public Crypto(String dirHome, AccessType accessType) throws CryptoException {
-		init(dirHome,dirDotDucc,accessType);
+	public Crypto(String user, String dirHome, AccessType accessType) throws CryptoException {
+		init(user,dirHome,dirDotDucc,accessType);
 	}
 	
-	public Crypto(String dirHome, String dirSub) throws CryptoException {
-		init(dirHome,dirSub,AccessType.WRITER);
+	public Crypto(String user, String dirHome, String dirSub) throws CryptoException {
+		init(user,dirHome,dirSub,AccessType.WRITER);
 	}
 	
-	public Crypto(String dirHome, String dirSub, AccessType accessType) throws CryptoException {
-		init(dirHome,dirSub,accessType);
+	public Crypto(String user, String dirHome, String dirSub, AccessType accessType) throws CryptoException {
+		init(user,dirHome,dirSub,accessType);
 	}
 	
-	private void init(String dirHome, String dirSub, AccessType accessType) throws CryptoException {
+	private void init(String tgtUser, String dirHome, String dirSub, AccessType accessType) throws CryptoException {
+		user = tgtUser;
 		dirUserKeys = dirHome+File.separator+dirSub;
 		filePub = dirUserKeys+File.separator+"public.key";
 		filePvt = dirUserKeys+File.separator+"private.key";
@@ -100,6 +106,14 @@ public class Crypto implements ICrypto {
 		catch(Exception e) {
 			throw new CryptoException(e);
 		}
+	}
+	
+	public String getPublic() {
+		return filePub;
+	}
+	
+	public String getPrivate() {
+		return filePvt;
 	}
 	
 	private boolean isMissingKeys() {
@@ -214,9 +228,37 @@ public class Crypto implements ICrypto {
 		}
 	}
 	
-	private Key getPubicKeyFromFile(String fileName) throws CryptoException {
+	public boolean isReadablePrivate() {
+		boolean readable = false;
+		File file = new File(filePvt);
+		readable = file.canRead();
+		return readable;
+	}
+	
+	public boolean isReadablePublic() {
+		boolean readable = false;
+		File file = new File(filePub);
+		readable = file.canRead();
+		return readable;
+	}
+	
+	private Key getPubicKeyFromFile() throws CryptoException {
 		try {
-			ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fileName)));
+			String fileName = filePub;
+			ObjectInputStream ois = null;
+			DataInputStream dis = null;
+			if(isReadablePublic()) {
+				ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fileName)));
+			}
+			else {
+				String ducc_ling = 
+						Utils.resolvePlaceholderIfExists(
+								System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+				
+				AlienFile alienFile = new AlienFile(user,fileName,ducc_ling);
+				dis = alienFile.getDataInputStream();
+				ois = new ObjectInputStream(new BufferedInputStream(dis));
+			}
 			try {
 				BigInteger mod = (BigInteger) ois.readObject();
 			    BigInteger exp = (BigInteger) ois.readObject();
@@ -234,16 +276,22 @@ public class Crypto implements ICrypto {
 			    return key;
 			}
 			finally {
-				ois.close();
+				if(ois != null) {
+					ois.close();
+				}
+				if(dis != null) {
+					dis.close();
+				}
 			}
 		}
-		catch(Exception e) {
-			throw new CryptoException(e);
+		catch(Throwable t) {
+			throw new CryptoException(t);
 		}
 	}
 	
-	private Key getPrivateKeyFromFile(String fileName) throws CryptoException {
+	private Key getPrivateKeyFromFile() throws CryptoException {
 		try {
+			String fileName = filePvt;
 			ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fileName)));
 			try {
 				BigInteger mod = (BigInteger) ois.readObject();
@@ -312,7 +360,7 @@ public class Crypto implements ICrypto {
 
 	public byte[] encrypt(Object o) throws CryptoException {
 		try {
-			Key key = getPrivateKeyFromFile(filePvt);
+			Key key = getPrivateKeyFromFile();
 			cipher.init(Cipher.ENCRYPT_MODE, key);
 			return cipher.doFinal(o2b(o));
 			}
@@ -324,7 +372,7 @@ public class Crypto implements ICrypto {
 
 	public Object decrypt(byte[] byteArray) throws CryptoException {
 		try {
-			Key key = getPubicKeyFromFile(filePub);
+			Key key = getPubicKeyFromFile();
 			cipher.init(Cipher.DECRYPT_MODE, key);
 			return b2o(cipher.doFinal(byteArray));
 			}
@@ -337,7 +385,7 @@ public class Crypto implements ICrypto {
 	
 	public static void main(String[] args) {
 		try {
-			Crypto crypto = new Crypto(System.getProperty("user.home"));
+			Crypto crypto = new Crypto(System.getProperty("user"),System.getProperty("user.home"));
 			String message = "Hello DUCC!";
 			byte[] cypheredMessage = crypto.encrypt(message);
 			Properties properties = new Properties();
