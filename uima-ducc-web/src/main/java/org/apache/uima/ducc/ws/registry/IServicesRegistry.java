@@ -56,5 +56,6 @@ public class IServicesRegistry {
 	public static final String description = IStateServices.description;
 	public static final String process_memory_size = IStateServices.process_memory_size;
 	public static final String scheduling_class = IStateServices.scheduling_class;
+	public static final String log_directory = IStateServices.log_directory;
 	
 }
