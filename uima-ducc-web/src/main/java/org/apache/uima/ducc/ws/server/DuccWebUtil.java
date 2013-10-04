@@ -113,8 +113,13 @@ public class DuccWebUtil {
 	
 	public static boolean isAvailable(Properties propertiesMeta) {
 		boolean retVal = true;
-		String state = propertiesMeta.getProperty(key_state).trim();
-		if(state.equalsIgnoreCase(value_NotAvailable)) {
+		try {
+			String state = propertiesMeta.getProperty(key_state).trim();
+			if(state.equalsIgnoreCase(value_NotAvailable)) {
+				retVal = false;
+			}
+		}
+		catch(Exception e) {
 			retVal = false;
 		}
 		return retVal;
