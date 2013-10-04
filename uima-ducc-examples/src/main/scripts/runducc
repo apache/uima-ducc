@@ -262,7 +262,7 @@ class DuccProcess(Thread):
             CMD = CMD + ' --process_deployments_max '  + self.runner.max_machines
 
         if ( self.runner.watch ):
-            CMD = CMD + ' --wait_for_completion true'     
+            CMD = CMD + ' --wait_for_completion'     
 
         self.user = user
         self.cmd = CMD
