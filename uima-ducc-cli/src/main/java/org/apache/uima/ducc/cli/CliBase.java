@@ -255,8 +255,7 @@ public abstract class CliBase
                     DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
         throws Exception
     {
-        // Optionally convert deprecated options
-        if (System.getenv("DUCC_ACCEPT_DEPRECATED_OPTIONS") != null) cleanupArgs(args);
+        CliFixups.cleanupArgs(args);   // Default implementation does nothing
         
         if ( init_done ) return;
         
@@ -406,7 +405,7 @@ public abstract class CliBase
      */
     
     private void sanitize(Properties props, Options opts) {
-        if (System.getenv("DUCC_ACCEPT_DEPRECATED_OPTIONS") != null) cleanupProps(props);
+        CliFixups.cleanupProps(props);     // By default does nothing
         for (String key : props.stringPropertyNames()) {
             if (addedOptions.contains(key)) {
                 props.remove(key);
@@ -802,57 +801,4 @@ public abstract class CliBase
         return classpath;
     }
     
-    /*
-     * Change any deprecated options to their new name.  If this produces duplicate specifications with different
-     * values then a duplicate options error will be thrown.  
-     * Could suppress this and use just one of them ????
-     * 
-     */
-    private void cleanupArgs(String[] args) {
-        for (int i = 0; i < args.length; ++i) {
-            String arg = args[i];
-            if (arg.equals("--driver_classpath") || arg.equals("--process_classpath")) {
-                args[i] = "--classpath";
-            } else if (arg.equals("--driver_environment") || arg.equals("--process_environment")) {
-                args[i] = "--environment";
-            } else if (arg.equals("--driver_attach_console") || arg.equals("--process_attach_console")) {
-                    args[i] = "--attach_console";
-            } else if (arg.equals("--cancel_job_on_interrupt") || arg.equals("--cancel_managed_reservation_on_interrupt")) {
-                args[i] = "--cancel_on_interrupt";
-            } else if (arg.equals("--jvm_args")) {
-                args[i] = "--process_jvm_args";
-            } else if (arg.endsWith("_overrides")) {
-                if (++i < args.length) {
-                    args[i] = args[i].replaceAll(",", " ");
-                }
-            }
-        }
-    }
-    
-    /*
-     * Correct any deprecated options provided in a specification file.
-     * If this produces duplicate entries the last found will be used.
-     */
-    private void cleanupProps(Properties props) {
-        for (String key : props.stringPropertyNames()) {
-            if (key.equals("driver_classpath") || key.equals("process_classpath")) {
-                props.put("classpath", props.get(key));
-                props.remove(key);
-            } else if (key.equals("driver_environment") || key.equals("process_environment")) {
-                props.put("environment", props.get(key));
-                props.remove(key);
-            } else if (key.equals("driver_attach_console") || key.equals("process_attach_console")) {
-                props.put("attach_console", props.get(key));
-                props.remove(key);
-            } else if (key.equals("cancel_job_on_interrupt") || key.equals("cancel_managed_reservation_on_interrupt")) {
-                props.put("cancel_on_interrupt", props.get(key));
-                props.remove(key);
-            } else if (key.equals("jvm_args")) {
-                props.put("process_jvm_args", props.get(key));
-                props.remove(key);
-            } else if (key.endsWith("_overrides")) {
-                props.put(key, ((String)props.get(key)).replaceAll(",", " "));
-            }
-        }
-    }
 }

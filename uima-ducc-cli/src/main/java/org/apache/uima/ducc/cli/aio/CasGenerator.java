@@ -19,14 +19,16 @@
 package org.apache.uima.ducc.cli.aio;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.TreeMap;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
+import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.resource.ResourceConfigurationException;
@@ -84,18 +86,19 @@ public class CasGenerator {
 			throw e;
 		}
 		ResourceSpecifier crrs = xmlParser.parseCollectionReaderDescription(in);
-		// CR overrides
+		// CR overrides - throw up if trying to override an undefined parameter
         ResourceCreationSpecifier specifier = (ResourceCreationSpecifier) crrs;
         ConfigurationParameterDeclarations configurationParameterDeclarations = specifier.getMetaData().getConfigurationParameterDeclarations();
         ConfigurationParameterSettings cps = specifier.getMetaData().getConfigurationParameterSettings();
         if(crOverrides != null) {
-            Plist plist = new Plist(crOverrides);
-            TreeMap<String,String> map = plist.getParameterMap();
-            Iterator<String> iterator = map.keySet().iterator();
-            while(iterator.hasNext()) {
-                String name = iterator.next();
-                String value = map.get(name);
-                String message = "config param name:"+name+" "+"value:"+value;
+            // Tokenize override assignments on whitespace, honoring but stripping quotes
+            // Then create a map from all of them
+            ArrayList<String> toks = DuccUiUtilities.tokenizeList(crOverrides, true);
+            Map<String,String> map = DuccUiUtilities.parseAssignments(toks, false);
+            for (Entry<String, String> ent : map.entrySet()) {
+                String name = ent.getKey();
+                String value = ent.getValue();
+                String message = "config param: "+name+" = '"+value+"'";
                 mh.frameworkDebug(cid, mid, message);
                 ConfigurationParameter configurationParameter = UimaUtils.findConfigurationParameter(configurationParameterDeclarations, name);
                 if (configurationParameter == null) {

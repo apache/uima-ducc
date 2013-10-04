@@ -33,6 +33,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
+import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.resource.ResourceSpecifier;
@@ -60,13 +61,8 @@ public class CasPipeline {
 	private ArrayList<String> toArrayList(String overrides) {
 		String mid = "toArrayList";
 		mh.frameworkTrace(cid, mid, "enter");
-		ArrayList<String> list = new ArrayList<String>();
-		if(overrides != null) {
-			String[] items = overrides.split(",");
-			for(String item : items) {
-				list.add(item.trim());
-			}
-		}
+		// To match other lists tokenize on blanks & strip any quotes around values.
+        ArrayList<String> list = DuccUiUtilities.tokenizeList(overrides, true);
 		mh.frameworkTrace(cid, mid, "exit");
 		return list;
 	}

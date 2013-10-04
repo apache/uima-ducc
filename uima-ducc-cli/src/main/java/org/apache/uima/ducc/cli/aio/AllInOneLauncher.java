@@ -94,20 +94,15 @@ public class AllInOneLauncher extends CliBase {
     
     private JobRequestProperties jobRequestProperties = new JobRequestProperties(); 
     
-    private String[] args = new String[0];
     private UiOption[] opts = DuccJobSubmit.opts;
     
     private HashMap<String,String> optionsMap = new HashMap<String,String>();
 
-
-    
     public AllInOneLauncher(String[] args) throws Exception {
-        this.args = args;
         init (this.getClass().getName(), opts, args, jobRequestProperties, null);
     }
     
     public AllInOneLauncher(String[] args, IDuccCallback consoleCb) throws Exception {
-        this.args = args;
         mh = new MessageHandler(consoleCb);
         init (this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
     }
@@ -704,27 +699,26 @@ public class AllInOneLauncher extends CliBase {
         commandArray.add("-classpath");
         commandArray.add(classpath);
         
-        String[] cp = classpath.split(":");
-        for(String c : cp) {
-            message = "classpath: "+c;
-            mh.frameworkDebug(cid, mid, message);
-        }
-        
         if(process_jvm_args != null) {
             // Tokenize and strip quotes
             ArrayList<String> jvmargs = DuccUiUtilities.tokenizeList(process_jvm_args, true);
             for(String jvmarg : jvmargs) {
-                message = "jvmarg: "+jvmarg;
-                mh.frameworkDebug(cid, mid, message);
                 commandArray.add(jvmarg);
             }
         }
 
+        // Now the AllInOne class and all its legal options
         commandArray.add(AllInOne.class.getCanonicalName());
-        for(String arg : args) {
-            commandArray.add(arg);
+        for (UiOption opt : allInOneOpts) {
+            String val = jobRequestProperties.getProperty(opt.pname());
+            if (val != null) {
+                commandArray.add("--" + opt.pname());
+                if (opt.argname() != null ) {
+                    commandArray.add(val);
+                }
+            }
         }
-
+        
         String[] command = commandArray.toArray(new String[0]);
         ProcessBuilder pb = new ProcessBuilder( command );
         if(working_directory != null) {
@@ -741,6 +735,11 @@ public class AllInOneLauncher extends CliBase {
             Map<String,String> env = pb.environment();
             env.clear();
             env.putAll(envMap);
+        }
+        
+        // Dump command line
+        for (String arg : commandArray) {
+            mh.frameworkDebug(cid, mid, arg);
         }
         
         // Run!
@@ -812,7 +811,11 @@ public class AllInOneLauncher extends CliBase {
             if (val != null) {
                 sb.append(" --" + opt.pname());
                 if (opt.argname() != null ) {
-                    sb.append(" " + val);
+                    if (val.indexOf(' ') >= 0) {
+                        sb.append(" \"" + val + "\"");
+                    } else {
+                        sb.append(" " + val);
+                    }
                 }
             }
         }

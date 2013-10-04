@@ -73,7 +73,6 @@ uima-ducc-common.jar uima-ducc-transport.jar ../resources/ slf4j/jcl-over-slf4j.
 
         <executions>
 
-		  <!-- Build the cli jar last so it is the one installed in the repository !! -->
           <execution>
             <id>${project.artifactId}</id>
             <goals><goal>jar</goal></goals>
