@@ -898,6 +898,51 @@ function ducc_load_service_files_data()
     }   
 }
 
+function ducc_init_service_history_data()
+{
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+        $("#history_data_area").html(data);
+    }
+    catch(err) {
+        ducc_error("ducc_init_service_history_data",err);
+    }
+}
+
+var ms_load_service_history_data = +new Date() - ms_reload_min;
+
+function ducc_load_service_history_data()
+{
+    var ms_now = +new Date();
+    if(ms_now < ms_load_service_history_data + ms_reload_min) {
+        return;
+    }
+    ms_load_service_history_data = ms_now;
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
+        $("#loading_history_area").html(data);
+        server_url= "/ducc-servlet/service-history-data"+location.search;
+        $.ajax(
+        {
+            url : server_url,
+            async: true,
+            success : function (data) 
+            {
+                $("#history_data_area").html(data);
+                hide_show();
+                data = "";
+                $("#loading_history_area").html(data);
+                sorttable.makeSortable(document.getElementById('history_table'));
+            }
+        });
+    }
+    catch(err) {
+        data = "";
+        $("#loading_history_area").html(data);
+        ducc_error("ducc_load_service_history_data",err);
+    }   
+}
+
 function hide_show() {
 	var classpathdata = ducc_appl("classpathdata");
 	var c_value = ducc_get_cookie(classpathdata);
@@ -1687,10 +1732,12 @@ function ducc_init(type)
 			ducc_init_service_deployments_data();
 			ducc_init_service_registry_data();
 			ducc_init_service_files_data();
+			ducc_init_service_history_data();
 			ducc_load_service_summary_data();
 			ducc_load_service_deployments_data();
 			ducc_load_service_registry_data();
 			ducc_load_service_files_data();
+			ducc_load_service_history_data();
 			ducc_service_update_form_button();
 		}
 		if(type == "system-machines") {
@@ -2148,6 +2195,7 @@ function ducc_update_page(type)
 				ducc_load_reservation_files_data();
 			}
 			if(type == "service-details") {
+			    ducc_load_service_history_data();
 				ducc_load_service_files_data();
 				ducc_load_service_registry_data();
 				ducc_load_service_deployments_data();
