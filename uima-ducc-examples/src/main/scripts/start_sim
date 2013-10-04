@@ -213,7 +213,7 @@ class StartSim(DuccUtil):
             ip = '192.168.4.' + index
             pnode = node + '-' + index
             self.threadpool.invoke(self.startOneAgent, node, cmd, mem, ip, pnode, index)
-
+            time.sleep(.1)
 
     def usage(self, msg):
         if (msg != None):
