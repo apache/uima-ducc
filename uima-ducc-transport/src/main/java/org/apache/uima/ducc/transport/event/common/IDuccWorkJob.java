@@ -24,7 +24,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
 
-public interface IDuccWorkJob extends IDuccWorkService, IDuccWorkExecutable, Serializable {
+public interface IDuccWorkJob extends Identifiable, IDuccWorkService, IDuccWorkExecutable, Serializable {
 	
 	public String getUserLogsDir();
 	
