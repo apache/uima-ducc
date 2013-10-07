@@ -692,6 +692,7 @@ public interface IUiOptions
             public String argname()     { return "path"; }
             public String description() { return "The working directory set in each process. Default to current directory."; }
             public String example()     { return null; }
+            public String deflt()       { return "."; }
             public String label()       { return "WorkingDirectory"; }
         },            
         ;

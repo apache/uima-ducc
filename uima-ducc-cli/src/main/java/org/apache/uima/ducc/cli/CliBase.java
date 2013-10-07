@@ -21,6 +21,7 @@ package org.apache.uima.ducc.cli;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -152,19 +153,21 @@ public abstract class CliBase
         return log_directory;
     }
 
-    void setWorkingDirectory()
+    /*
+     * If the workong directory has been defined (or defaulted) make sure it is absolute
+     */
+    void setWorkingDirectory() throws IOException
     {
         String working_directory = cli_props.getProperty(UiOption.WorkingDirectory.pname());
-        if(working_directory == null) {
-            working_directory = System.getProperty("user.dir");
-            cli_props.setProperty(UiOption.WorkingDirectory.pname(), working_directory);
+        if (working_directory == null) {
+            return;     // Not valid for this request
         }
         File f = new File(working_directory);
         if ( ! f.exists() ) {
             throw new IllegalArgumentException("Working directory " + working_directory + " does not exist.");
         }
-        if ( ! f.canExecute() ) {
-            throw new IllegalArgumentException("Working directory " + working_directory + " exists but cannot be accessed.");
+        if ( ! f.isAbsolute() ) {
+            cli_props.setProperty(UiOption.WorkingDirectory.pname(), f.getCanonicalPath());
         }
     }
 
