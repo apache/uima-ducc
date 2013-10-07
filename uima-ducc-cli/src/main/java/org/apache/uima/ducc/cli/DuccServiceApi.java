@@ -26,6 +26,7 @@ import org.apache.commons.cli.Options;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
@@ -288,6 +289,15 @@ public class DuccServiceApi
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);
         }
 
+        // Check if falsely using a fair-share class
+        String scheduling_class = cli_props.getProperty(UiOption.SchedulingClass.pname());
+        if (scheduling_class != null) {
+            DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+            if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
+                throw new IllegalArgumentException("Invalid pre-emptable scheduling class: " + scheduling_class);
+            }
+        }
+        
         // work out stuff I'm dependent upon
         if ( !check_service_dependencies(endpoint) ) {
             throw new IllegalArgumentException("Invalid service dependencies");
