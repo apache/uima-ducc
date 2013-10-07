@@ -46,7 +46,7 @@ import org.apache.uima.util.XMLSerializer;
 public class DuccCasCC extends JCasAnnotator_ImplBase {
 
   public static final String PARAM_XMICOMPRESSIONLEVEL = "XmiCompressionLevel";
-  public static final String PARAM_USEBINARYSERIALIZATION = "UseBinarySerialization";
+  public static final String PARAM_USEBINARYCOMPRESSION = "UseBinaryCompression";
 
   private Logger logger;
   private String outputFilename=null;
@@ -61,8 +61,8 @@ public class DuccCasCC extends JCasAnnotator_ImplBase {
   public void initialize(UimaContext aContext) throws ResourceInitializationException {
     super.initialize(aContext);
     zipCompLevel = (Integer)getContext().getConfigParameterValue(PARAM_XMICOMPRESSIONLEVEL);
-    useBinaryCas = (null == getContext().getConfigParameterValue(PARAM_USEBINARYSERIALIZATION)) ? Boolean.FALSE :
-    	(Boolean) getContext().getConfigParameterValue(PARAM_USEBINARYSERIALIZATION);
+    useBinaryCas = (null == getContext().getConfigParameterValue(PARAM_USEBINARYCOMPRESSION)) ? Boolean.FALSE :
+    	(Boolean) getContext().getConfigParameterValue(PARAM_USEBINARYCOMPRESSION);
     logger = aContext.getLogger();
     if (useBinaryCas) {
     	zipCompLevel = 0;

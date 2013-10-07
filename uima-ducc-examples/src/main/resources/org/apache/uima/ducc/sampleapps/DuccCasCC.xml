@@ -37,7 +37,7 @@
         <mandatory>true</mandatory>
       </configurationParameter>
       <configurationParameter>
-        <name>UseBinarySerialization</name>
+        <name>UseBinaryCompression</name>
         <description>Enable use of UIMA compressed binary CAS format</description>
         <type>Boolean</type>
         <multiValued>false</multiValued>
