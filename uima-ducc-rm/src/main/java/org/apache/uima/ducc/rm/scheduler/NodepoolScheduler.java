@@ -1047,9 +1047,9 @@ public class NodepoolScheduler
         for ( ResourceClass rc : rcs ) {
             ArrayList<IRmJob> jobs = rc.getAllJobsSorted(new JobByTimeSorter());
 
-            int shares_given_out = 0;                       // n-shares; virtual shares
+            int shares_given_out = 0;                       // q-shares, to compare against machine capacity
             for ( IRmJob j : jobs ) {
-                shares_given_out += j.countNShares();
+                shares_given_out += (j.countNShares() * j.getShareOrder());
                 j.clearShares();
             }
 
@@ -1100,7 +1100,8 @@ public class NodepoolScheduler
                 //
                 // Make sure this allocation does not blow the class cap.
                 //
-                if ( ((n_instances + shares_given_out) * order) > classcap ) {                         // to q-shares before comparing
+                shares_given_out += (n_instances * order);
+                if ( shares_given_out > classcap ) {                         // to q-shares before comparing
                     schedulingUpdate.refuse(j, "Job refused because class cap of " + classcap + " is exceeded.");
                     continue;
                 }
