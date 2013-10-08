@@ -112,6 +112,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_rm_share_quantum,"10");
         defaultProperties.put(ducc_jd_share_quantum,"300");
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
+        defaultProperties.put(ducc_ws_login_enabled,"true");
     }
     
     private void init(Properties properties) {
