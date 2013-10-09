@@ -99,7 +99,7 @@ public class ResourceClass
 
         if ( policy == Policy.RESERVE ) {
             this.max_machines = props.getIntProperty("max-machines");
-            this.enforce_memory = props.getBooleanProperty("enforce-memory", true);
+            this.enforce_memory = props.getBooleanProperty("enforce", true);
         }
 
         if ( policy != Policy.RESERVE ) {
