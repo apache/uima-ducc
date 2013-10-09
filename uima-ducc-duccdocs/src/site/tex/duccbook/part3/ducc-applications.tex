@@ -1,106 +1,157 @@
 \chapter{Building and Testing Jobs}
 \section{Overview}
 
-A DUCC job consists of two parts, a JobDriver and one or more
-JobProcesses. DUCC jobs are implemented using UIMA-AS. The JobDriver uses the UIMA-AS client
-API to send WorkItem CASes to the job's input queue. JobProcesses are deployed
+A DUCC job consists of two process types, a Job Driver process and one or more
+Job Processes. These processes are connected together via UIMA-AS.
+The Job Driver uses the UIMA-AS client API to send Work Item CASes 
+to the job's input queue. Job Processes instantiate the analytic pipeline are deployed
 as UIMA-AS services comsuming CASes from the job input queue.
 
-The JD process wraps the job's Collection Reader whose
-function is to define the collection of WorkItems to be processed.
-The CollectionReader returns a small CAS for each WorkItem containing a
-reference to the WorkItem data. The JobDriver then submits each CAS to the job's
-input queue so that it can be delivered to the next available JobProcess.
+The Job Driver process wraps the job's Collection Reader whose
+function is to define the collection of Work Items to be processed.
+The CollectionReader returns a small CAS for each Work Item containing a
+reference to the Work Item data. The Job Driver then submits each CAS to the job's
+input queue so that it can be delivered to an available pipeline in a Job Process.
 
-The JobProcess contains the analysis pipeline. A typical job pipeline consists
-of the user specified CAS Multiplier (CM), Analysis Engine (AE), CAS
-Consumer (CC), along with a built-in DUCC Flow Controller that routes CASes
-thru these components. The WorkItem CAS is typically sent only to the CM and returned by
-the JobProcess when all child CASes produced by the CM have completed
-processing; optionally the CR can configure WorkItem CAS flow to go to the CC 
-or to the AE & CC to "flush" context if necessary. 
+A typical job's analytic pipeline consists of an Aggregate Analysis Engine comprised by
+the user specified CAS Multiplier (CM), Analysis Engine (AE) and CAS
+Consumer (CC) components, along with a built-in DUCC Flow Controller.
+The Work Item CAS is typically sent only to the CM and returned by
+the Job Process when all child CASes produced by the CM have completed
+processing; optionally the CR can configure Work Item CAS flow to go to the CC 
+or to the AE \& CC to "flush" context if necessary. 
 
 	\begin{description}
-	    \item[Note:] Although the JobDriver will receive back the WorkItem CAS, 
+	    \item[Note:] Although the Job Driver will receive back the Work Item CAS, 
 	    there is no provision for any user code to analyze results there. Therefore a
-		JobProcess typically adds no results to a WorkItem CAS.
+		Job Process typically adds no results to a Work Item CAS.
 	\end{description}
 
-   \subsection{Basic JobProcess Threading Model}
-   In addition to the pipeline definition, CM, AE and CC components, the job
+   \subsection{Basic Job Process Threading Model}
+   In addition to the pipeline definition of explicitly named CM, AE and CC components, the job
    specification also includes the number of pipeline threads to run in each
-   JobProcess. Each pipeline thread receives WorkItems independently.
+   Job Process. Each pipeline thread receives Work Items independently.
 
    DUCC creates an aggreate descriptor for the pipeline, and then creates a
-   Deployment Descriptor for the JobProcess which deploys the specified number
-   of synchronous pipelines.
+   Deployment Descriptor for the Job Process which deploys the specified number
+   of synchronous pipelines (using the job specification parameter: process\_thread\_count)
+
+   UIMA configuration parameters in the CR, CM, AE or CC components can be overriden using
+   job specification parameters: driver\_descriptor\_CR\_overrides, process\_descriptor\_CM\_overrides,
+   process\_descriptor\_AE\_overrides and process\_descriptor\_CC\_overrides, respectively.
    
    \subsection{Alternate Pipeline Threading Model}
    
-   Alternately a JobProcess can be fully specified by a user submitted
-   Deployment Descriptor. Thus any UIMA-AS service design can be used as a
-   JobProcess. In this case the parameter --process_thread_count simply defines
-   how many WorkItems CASes will be sent to a JobProcess concurrently.
+   Alternately a Job Process can be fully specified by a user submitted UIMA-AS
+   Deployment Descriptor. Thus any UIMA-AS service deployment can be used as a
+   Job Process. In this case the parameter process\_thread\_count just defines
+   how many Work Items CASes will be sent to each Job Process concurrently.
    
 	\begin{description}
-	    \item[Note:] A UIMA-AS service may be configured to
-	    return child CASes; although child CASes returned from a JobProcess will be
-	    ignored by the JobDriver, there may be significant overhead in wasted
+	    \item[Note:] In general a UIMA-AS service may be configured to
+	    return child CASes; although child CASes returned from a Job Process will be
+	    ignored by the Job Driver, there may be significant overhead in wasted
 	    serialization and I/O.
 	\end{description}
 
 \section{Collection Segmentation and Artifact Extraction}
 
-UIMA is built around artifact processing. The standard UIMA pipeline starts with
+UIMA is built around artifact processing. A classic UIMA pipeline starts with
 a Collection Reader that defines collection seqmentation, extracts the artifacts
-to be analyzed and initializes the CASes to be delivered to subsequent analytic components. 
+to be analyzed and puts them into the CASes to be delivered to subsequent analytic components. 
 A Collection reader designed for a specific data collection is highly reusable
 for many different analytic scenarios.
 
-For DUCC collection processing the role of collection segmentation is
-implemented by the Collection Reader (CR) running in the JobDriver, while
-artifact extraction and CAS initialization implemented in the Cas Multiplier
-(CM) running in the JobProcess. The combination of a DUCC Collection Reader and
-associated CAS multiplier is also highly reusable. 
+A single Collection Reader supplying artifacts to a large number of analysis pipelines 
+would be a bottleneck. Not only would artifact data need to be transported twice across
+the compute cluster, but all analysis results would be returned to the Job Driver.
+To solve both of these problems, a DUCC Collection Reader (CR) only sends a reference
+to the artifacts in the Work Item CAS, and artifact data is read directly by the analysis pipeline.
+
+So, in DUCC collection processing the role of collection segmentation is
+implemented by the CR run in the Job Driver, while
+artifact extraction and CAS initialization are implemented in the Cas Multiplier
+(CM) run in the Job Process. The combination of a DUCC CR and associated CM 
+is also highly reusable. 
+
+\begin{description}
+    \item[Note:] In many cases it is useful to group multiple artifacts into each
+      Work Item CAS. Both DUCC sample applications described below exhibit this design.
+\end{description}
 
 \section{CAS Consumer Changes for DUCC}
 
 CAS Consumers in a UIMA pipeline may require changes for scale out into DUCC
-jobs, for example to avoid scale out bottlenecks, to preserve collection level
-processing, or to flush results at end-of-collection processing.
+jobs, again to avoid scale out bottlenecks, as well as to preserve collection level
+processing, or to flush results at end-of-work-item processing.
    
 	\begin{description}
 	    \item[Federated ouput:] Scaled out DUCC jobs distribute artifact processing
 	    to multiple pipeline instances. All instances of a CAS Consumer should have
-	    independent access to the output device.
+	    independent access to the output target (filesystem, service, database, etc.).
 	    \item[Singleton processing:] Collection level processing
-	    requiring a singleton process would usually be done as a follow-on job.
+	    requiring that all results go to a singleton process would usually be done as a 
+            follow-on job.
 	    This avoids introducing a singleton bottleneck, as well as allowing
-	    incremental progress so that JobProcess errors due to data-dependent bugs
-	    can often be fixed and a repeated run can utilize the incremental progress
-	    previously one.
-	    \item[Flushing cached data:] In some scenarios each WorkItem delivered to a
-	    pipeline would be considered an independent collection. If the CAS Consumer
-	    is caching artifact data which needs to be flushed after processing the
-	    last artifact, the WorkItem CAS can be routed to the CAS Consumer after
-	    the last artifact CAS is processed and used to trigger cache flush.
+	    incremental progress so that Job Process errors due to data-dependent analysis bugs
+	    can often be fixed, enabling a restarted job to utilize the incremental progress made by
+	    previous job runs.
+	    \item[Flushing cached data:] In some scenarios each Work Item delivered to a
+	    pipeline would be considered an independent collection. If a CAS Consumer
+	    caches data which needs to be flushed after processing the
+	    last artifact for a Work Item, the Work Item CAS can be routed to the CAS Consumer after
+	    the last artifact CAS is processed and used to trigger cache flushing.
 	\end{description}
 
 
-\section{Job Development for Existing Pipeline Design}
+\section{Job Development for an Existing Pipeline Design}
 
-Assuming that existing job design (CR, CM, CC) is to be reused, job development
-is focussed on the Analysis Engine (AE) to be plugged in. Before deploying a new
-AE in a multithreaded JobProcess it is wise to run it single threaded
-(--process_thread_count 1)to separate basic logic from threading problems.
+Assuming that an existing job input-output design (CR, CM, CC) is to be reused, job
+development is focussed on the Analysis Engine (AE) to be plugged in. Before deploying a new
+AE in a multithreaded Job Process it is best to run it single threaded
+(process\_thread\_count=1) to separate basic logic errors from threading
+problems.
 
-To debug a JobProcess with eclipse, first create a debug configuration for a
-remote java application, specifying Connection Type = Socket Listen on a free
-port P. Then add to the job specification the following argument,
---process_debug host:port, where host is the machine running eclipse and port is
-the value P used in the debug configuration.
+To debug a Job Process with eclipse, first create a debug configuration for a
+"remote java application", specifying "Connection Type = Socket Listen" on some
+free port P. Start the debug configuration and confirm it is listening on the specified port.
+Then, before submitting the job, add to the job specification the argument
+process\_debug=host:port, where host is the machine running eclipse and port is
+the value P used in the running debug configuration.
 
-\section{Job Development for New Pipeline Design}
+When the process\_debug parameter is specified, DUCC will only run a single Job Process
+which will connect back to the debug configuration.
+
+
+\section{Job Development for a New Pipeline Design}
+
+A DUCC job is a UIMA application comprised of user code broken into a Collection
+Reader running in the Job Driver and an Agreggate Analysis Engine (analysis pipeline) running in one 
+or more Job Processes, with every Job Process running multiple instances of the pipeline, each in a different
+thread. The major components of this UIMA application are as follows:
+
+\begin{itemize}
+  \item User Collection reader - segments the input collection in to Work Items
+  \item User CAS Multiplier - inputs a Work Item and segments it into artifacts (CASes)
+  \item User Analysis Engine - processes the CASes
+  \item User CAS Consumer - outputs results for each Work Item
+  \item DUCC built-in Flow Controller - routes Work Item CASes to the CM and optionally to the CC or AE \& CC.
+\end{itemize}
+
+It is best to develop and debug the interactions between these components as one, 
+single-threaded UIMA aggregate. DUCC provides an easy way to accomplish this, using
+the all\_in\_one specification parameter.
+
+\begin{description}
+    \item[all\_in\_one=local] When set to local, all Job components are run in the same
+      single-threaded process, on the same machine as eclipse.
+    \item[all\_in\_one=remote] With remote, the single-threaded process is run on a DUCC
+      worker machine as a DUCC Managed Reservation. 
+\end{description}
+
+Running an all\_in\_one process under eclipse debug is done in the same way as described above
+in the previous section.
+
 
 
 \chapter{Sample Application: Raw Text Processing}
