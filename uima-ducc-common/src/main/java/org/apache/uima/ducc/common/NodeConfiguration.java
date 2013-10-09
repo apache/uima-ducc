@@ -233,7 +233,7 @@ public class NodeConfiguration
                 }
 
                 if ( node.startsWith("domain") ) {
-                    String[] tmp = node.split("\\s");
+                    String[] tmp = node.split("\\s+");
                     if ( tmp.length == 2 ) {
                         domain = tmp[1];
                         continue;
@@ -243,7 +243,7 @@ public class NodeConfiguration
                 }
 
                 if ( node.startsWith("import") ) {
-                    String[] tmp = node.split("\\s");
+                    String[] tmp = node.split("\\s+");
                     if ( allNodefiles.containsKey(tmp[1]) ) {
                         if ( skip ) continue;
                         throw new IllegalConfigurationException("Duplicate imported nodefile " + tmp[1] + " found in " + npfile + ", not allowed.");
