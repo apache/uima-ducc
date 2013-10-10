@@ -33,6 +33,8 @@ public class DuccHandlerUtils {
 	private static String valueGood = "Good";
 	private static String valuePoor = "Poor";
 	
+	private static String valueError = "Error";
+	
 	//private static String health_neutral = "health_neutral";
 	private static String health_green = "health_green";
 	private static String health_red = "health_red";
@@ -142,6 +144,13 @@ public class DuccHandlerUtils {
 			else if(tValue.equalsIgnoreCase(valueGood)) {
 				StringBuffer sb = new StringBuffer();
 				sb.append(openSpan(health_green, tPopup));
+				sb.append(tValue);
+				sb.append(closeSpan());
+				retVal = sb.toString();
+			}
+			else if(tValue.equalsIgnoreCase(valueError)) {
+				StringBuffer sb = new StringBuffer();
+				sb.append(openSpan(health_red, tPopup));
 				sb.append(tValue);
 				sb.append(closeSpan());
 				retVal = sb.toString();
