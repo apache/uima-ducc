@@ -878,16 +878,22 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 				sb.append("</td>");
 				// Health
 				sb.append("<td>");
-				String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
-				String statistics = null;
-				if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
-					statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
-					if(statistics != null) {
-						statistics = statistics.trim();
-					}
+				if(propertiesMeta.containsKey(IServicesRegistry.submit_error)) {
+					String decoratedHealth = DuccHandlerUtils.getDecorated("Error",propertiesMeta.getProperty(IServicesRegistry.submit_error));
+					sb.append(decoratedHealth);
 				}
-				String decoratedHealth = DuccHandlerUtils.getDecorated(health,statistics);
-				sb.append(decoratedHealth);
+				else {
+					String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
+					String statistics = null;
+					if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
+						statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
+						if(statistics != null) {
+							statistics = statistics.trim();
+						}
+					}
+					String decoratedHealth = DuccHandlerUtils.getDecorated(health,statistics);
+					sb.append(decoratedHealth);
+				}
 				sb.append("</td>");
 				// No. of Instances
 				sb.append("<td align=\"right\">");
