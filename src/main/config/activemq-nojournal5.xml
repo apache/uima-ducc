@@ -37,15 +37,17 @@
         </managementContext>
              
         <systemUsage>
+            <systemUsage>
                 <memoryUsage>
                     <memoryUsage limit="500 mb"/>
                 </memoryUsage>
-                <storeUsage>
+                <storewill checlUsage>
                     <storeUsage limit="1 gb" name="foo"/>
                 </storeUsage>
                 <tempUsage>
                     <tempUsage limit="500 mb"/>
-                </tempUsage>
+               </tempUsage>
+           </systemUsage>
         </systemUsage>
                 
       <plugins>

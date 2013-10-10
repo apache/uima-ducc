@@ -242,7 +242,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <!-- dependencySet>
+     <dependencySet>
       <includes>
         <include>commons-logging:commons-logging</include>
         <include>commons-httpclient:commons-httpclient</include>
@@ -291,7 +291,7 @@ under the License.
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
-    </dependencySet -->
+    </dependencySet>
 
 
      <dependencySet>
