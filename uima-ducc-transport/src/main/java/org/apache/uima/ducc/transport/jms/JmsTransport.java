@@ -18,11 +18,14 @@
 */
 package org.apache.uima.ducc.transport.jms;
 
+import java.io.FileNotFoundException;
+
 import javax.jms.ConnectionFactory;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.jms.JmsComponent;
+import org.apache.uima.ducc.common.authentication.BrokerCredentials;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,45 +44,51 @@ public class JmsTransport {
 	//@Autowired CamelContext context;
 	@Value("#{ systemProperties['ducc.broker.url'] }")String brokerUrl;
 	
+	@Value("#{ systemProperties['ducc.broker.credentials.file'] }")String brokerCredentialsFile;
+
+	private ConnectionFactory getConnectionFactory() {
+		BrokerCredentials.Credentials credentials = null;
+		ConnectionFactory connectionFactory;
+		try {
+			credentials = BrokerCredentials.get(brokerCredentialsFile);
+			if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
+				connectionFactory =
+				        new ActiveMQConnectionFactory(credentials.getUsername(), credentials.getPassword(), brokerUrl);
+			} else {
+				connectionFactory =
+				        new ActiveMQConnectionFactory(brokerUrl);
+			}
+		} catch( FileNotFoundException fne) {
+			connectionFactory =
+			        new ActiveMQConnectionFactory(brokerUrl);
+		}
+		return connectionFactory;
+	}
 	@Bean
 	public CamelContext jmsContext() {
 		CamelContext ctx = common.camelContext();
 		if ( ctx.getComponent("activemq") == null ) {
-			ConnectionFactory connectionFactory =
-		        new ActiveMQConnectionFactory(brokerUrl);
+			ConnectionFactory connectionFactory = getConnectionFactory();
 			JmsComponent jmsComponent = JmsComponent.jmsComponentAutoAcknowledge(connectionFactory); 
-//			jmsComponent.setUseMessageIDAsCorrelationID(true);
-		//  jmsComponent.setConcurrentConsumers(maxServerTasks);
-//			common.camelContext().addComponent("activemq", jmsComponent);
 			ctx.addComponent("activemq", jmsComponent);
 		}
-		
-//		if ( context.getComponent("activemq") == null ) {
-//	        context.addComponent("activemq", ActiveMQComponent.activeMQComponent(brokerUrl));
-//		}
-//		return common.camelContext();
 		return ctx;
 	}
-	@Bean
+ 	@Bean
 	public CamelContext jmsContextWithClientACK() {
 		CamelContext ctx = common.camelContext();
 		if ( ctx.getComponent("activemq") == null ) {
-			ConnectionFactory connectionFactory =
-		        new ActiveMQConnectionFactory(brokerUrl);
+			ConnectionFactory connectionFactory = getConnectionFactory();
 			JmsComponent jmsComponent = JmsComponent.jmsComponentClientAcknowledge(connectionFactory); 
-//			jmsComponent.setUseMessageIDAsCorrelationID(true);
-		//  jmsComponent.setConcurrentConsumers(maxServerTasks);
 			ctx.addComponent("activemq", jmsComponent);
 		}
 		
-//		if ( context.getComponent("activemq") == null ) {
-//	        context.addComponent("activemq", ActiveMQComponent.activeMQComponent(brokerUrl));
-//		}
-//		return common.camelContext();
 		return ctx;
 	}
 	@Bean 
 	public DuccEventDispatcher duccEventDispatcher() {
 		return new DuccEventDispatcher(common.camelContext());
 	}
+
+	
 }

@@ -231,7 +231,7 @@ under the License.
         <include>org.apache.activemq:activemq-all</include>
         <include>org.apache.activemq:activemq-camel</include>
         <include>org.apache.activemq:activemq-pool</include>
-        <!-- include>org.fusesource.commonman:commons-management</include -->
+        <include>org.apache.activemq:activemq-jaas</include>
         <include>commons-pool:commons-pool</include>
         <include>org.apache.geronimo.specs:geronimo-servlet_2.5_spec</include>
         <include>xpp3:xpp3</include>
@@ -241,6 +241,59 @@ under the License.
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
+
+     <!-- dependencySet>
+      <includes>
+      <!-- UNCOMMENT THIS SET FOR THE RELEASE -->
+        <include>commons-logging:commons-logging</include>
+        <include>commons-httpclient:commons-httpclient</include>
+        <include>commons-codec:commons-codec</include>
+
+		<include>org.eclipse.jetty.aggregate:jetty-all-server</include>
+        <include>com.thoughtworks.xstream:xstream</include>
+        
+        <include>org.apache.activemq:activemq-camel</include>
+        <include>org.apache.activemq:activemq-console</include>
+        <include>org.apache.activemq:activemq-core</include>
+        <include>org.apache.activemq:activemq-spring</include>
+        <include>org.apache.activemq:activemq-pool</include>
+        <include>org.apache.activemq:activemq-optional</include>
+        <include>org.apache.activemq:activemq-jaas</include>
+        
+        <include>org.apache.geronimo.specs:geronimo-jms_1.1_spec</include>
+        <include>org.apache.geronimo.specs:geronimo-j2ee-management_1.1_spec</include>
+        <include>org.apache.geronimo.specs:geronimo-servlet_2.5_spec</include>
+        
+        <include>org.apache.xbean:xbean-spring</include>
+        
+        <include>org.springframework:spring-core</include>
+        <include>org.springframework:spring-expression</include>
+        <include>org.springframework:spring-beans</include>
+        <include>org.springframework:spring-aop</include>
+        <include>org.springframework:spring-tx</include>
+        <include>org.springframework:spring-asm</include>
+        <include>org.springframework:spring-jms</include>
+        <include>org.springframework:spring-context</include>
+
+        <include>org.slf4j:jcl-over-slf4j</include>
+        <include>org.slf4j:slf4j-log4j12</include>
+        <include>org.slf4j:slf4j-api</include>
+        
+        <include>log4j:log4j</include>
+        
+        <include>aopalliance:aopalliance</include>
+
+        <include>xpp3:xpp3</include>
+
+      </includes>      
+
+      <outputDirectory>ducc_runtime/activemq/lib</outputDirectory>
+      <useTransitiveDependencies>false</useTransitiveDependencies>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet -->
+
 
      <dependencySet>
       <includes>
@@ -296,21 +349,68 @@ under the License.
   <fileSets>
 
    
+    <!--          ACTIVEMQ 5.6.0                -->
+    <!-- fileSet>
+      <directory>target/apache-activemq/apache-activemq-5.6.0/conf</directory>
+      <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
+      <includes>
+      	<include>credentials-enc.properties</include>
+      	<include>credentials.properties</include>
+      	<include>jetty-realm.properties</include>
+      	<include>jetty.xml</include>
+      	<include>README.txt</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet -->
+    
+    <fileSet>
+      <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
+      <outputDirectory>ducc_runtime/activemq</outputDirectory>
+      <includes>
+      	<include>bin/*</include>
+      	<include>bin/**/*</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
 
     <fileSet>
       <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
       <outputDirectory>ducc_runtime/activemq</outputDirectory>
+      <includes>
+      	<include>LICENSE</include>
+      	<include>NOTICE</include>
+      	<include>README.txt</include>
+      	<include>user-guide.html</include>
+      	<include>WebConsole-README.html</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+    
+    <fileSet>
+      <directory>src/main/config/</directory>
+      <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
+      <includes>
+      	<include>activemq-nojournal5.xml</include>
+      	<include>ducc-broker-credentials.properties</include>
+      </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
     
     
+    <!--      JETTY  -->
     <fileSet>
       <directory>target/jetty/jetty-distribution-7.4.4.v20110707/lib</directory>
       <outputDirectory>ducc_runtime/webserver/lib</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
+    
+    
+    
     
     <fileSet>
       <directory>src/main/resources</directory>
@@ -520,12 +620,12 @@ under the License.
       <fileMode>755</fileMode>
     </file>
 
-  <file>
+  <!-- file>
       <source>src/main/scripts/dd2spring.xsl</source>
       <outputDirectory>ducc_runtime/resources</outputDirectory>
       <destName>dd2spring.xsl</destName>
       <fileMode>755</fileMode>
-    </file>
+    </file -->
         
       <file>
       <source>src/main/cglib/com.springsource.net.sf.cglib-${cglib.version}.jar</source>
