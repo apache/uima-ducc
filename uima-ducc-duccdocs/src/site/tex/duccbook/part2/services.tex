@@ -74,68 +74,22 @@
       service endpoints int their specifications. See the 
       \hyperref[sec:cli.ducc-submit]{\em job } and 
       \hyperref[sec:cli.ducc-services]{\em services } CLI descriptions for details.
-      
-      
-      \section{Service Classes.} 
-      \label{sec:service.classes}
-      Services may be started externally to DUCC, or as registered services.  It is
-      possible to register a ``ping-only'' CUSTOM service that has no process managed by DUCC,
-      consisting only of a pinger.  To distinguish among the various behaviours and management
-      mechanisms for service we define a number of {\em service classes}.
-
-      \subsection{Implicit Services.} 
-      \label{sec:services.implicit}
-      An implicit service is started externally to DUCC and discovered by DUCC only when it is
-      referenced by a job's {\em service\_dependency} parameter.  Such a service is called
-      an {\em implicit} service.
-
-      If the service dependency is a UIMA-AS service, or if it is a registered CUSTOM service,
-      the SM sets up a "ping" thread based on the
-      service endpoint of the dependency to discover if the service exists at the endpoint. If so,
-      the SM updates its list of known services and marks the job "ready to schedule".  If neither
-      of these cases is true the job is ``refused'' by the Service Manager, causing DUCC to cancel
-      the job.
-
-      When jobs referencing implicit services exit, a timer is set and DUCC continues to monitor the
-      service against the possibility that subsequent jobs will need it. Once the last job using the
-      service has exited and the service timer expired, the SM stops the monitors and purges the
-      service from its records.
-
-      \subsubsection{Implicit UIMA-AS services}
-      If a job \hyperref[sec:service.endpoints]{references} a UIMA-AS service that is not known to the
-      DUCC Service Manager, the Service Manager will start
-      its default internal pinger.  The default pinger uses JMX to monitor the ActiveMQ queue statistics,
-      and also issues UIMA-AS ``get-meta'' requests to the service to insure it is responsive.  The
-      service is monitored throughout the lifetime of the job. 
-
-      If the service should stop
-      responding, its state is updated to "not-responding" but the job is allowed to continue as
-      DUCC cannot tell if the job is using the service.  New jobs are not granted resources if
-      their pre-requisite services are not active, as determined by the ping process.
-
-      \subsubsection{Implicit CUSTOM services, or ``ping-only'' Service} 
-      If a job \hyperref[sec:service.endpoints]{references} a CUSTOM service, the service must be
-      registered and have a CUSTOM \hyperref[sec:service.pingers]{pinger} associated with it. Such a
-      service is referred to as a ``ping-only'' service.  DUCC will start the pinger and monitor the
-      service as expected.  
-
-      A CUSTOM pinger is written to an interface defined by the DUCC API.  The pinger may perform
-      any action needed to determine if the CUSTOM service is active and responsive and may return
-      a string for display in the web server, summarizing service statistics.
+           
+      All services must be registered with DUCC.  It is
+      possible to register a ``ping-only'' service that has no process managed by DUCC,
+      consisting only of a pinger.  
             
-      \subsection{Registered Services.} \hyperref[sec:cli.ducc-services]{Registered services} are
-      fully managed by DUCC. A service is registered with DUCC using the
+      A service is registered with DUCC using the
       \hyperref[sec:cli.ducc-services]{ducc\_services} CLI. Service registrations are persisted by
       DUCC and last over DUCC and cluster restarts.
 
-      Note that if an incoming job references a service that is not registered and which is not
-      responsive to the default pinger, that job is marked ``Services Unavailable'' and canceled
-      by the system.
+      An incoming job which references a service that is not registered is marked ``Services
+      Unavailable'' and canceled by the system.
 
-      There are several variants on Registered Services:
+      There are several variants on services:
       \begin{description}
 
-        \item[Autostarted Services] An autostarted service is a registered service that is
+        \item[Autostarted Services] An autostarted service is a  service that is
           automatically started when the DUCC system is started. When DUCC is started, the SM checks the
           service registry for all service that are marked for automatic start-up.  If registered for autostart,
           the DUCC Service Manager submits the registered number of instances
@@ -158,7 +112,7 @@
 
         \item[Ping-Only Services] 
           \phantomsection\label{subsub:services.ping-only}
-          \hyperref[sec:services.implicit]{Ping-only services} consist of only
+          Ping-only services consist of only
           a ping thread.  The service itself is not managed in any way by DUCC.  This is useful for
           managing dependencies on services that are not under DUCC control: DUCC can detect and
           report on the health of these services and take appropriate actions on dependent jobs if
@@ -400,7 +354,7 @@ public class CustomPing
 \end{verbatim}
      where $<$serviceid$>$ is the id returned when you registered the pinger.
 
-     \paragraph{4. f all else fails ...}
+     \paragraph{4. If f  all  else fails ...}
      If your pinger does not work and you cannot determine the reason, be sure you enable {\em service\_ping\_dolog} and
      look in your log directory, as most problems with pingers are reflected there.  As a last resort, you can
      inspect the the Service Manager's log in

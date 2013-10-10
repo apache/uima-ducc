@@ -445,12 +445,7 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
 
       If no id is given, information about all services is returned. 
 
-      Below is a query against a system with three services. 
-
-      The service with endpoint {\tt UIMA-AS:FixedSleepAE\_6:tcp://bobmach291:61617} is a service
-      submitted outside of DUCC so it is marked as Implicit and has no implementing processes that
-      are known to DUCC. It is used by job 0 (``References'') and is active, available, and being
-      actively pinged. The ActiveMq queue statistics are shown.
+      Below is a sample service query.
 
       The service with endpoint {\tt UIMA-AS:FixedSleepAE\_5:tcp://bobmach:61617} is a 
       registered service, whose registered numeric id is 2. It is registered for two instances and 
@@ -460,24 +455,8 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
       instances whose DUCC Ids are 9 and 5. It is currently used (referenced) 
       by DUCC jobs 1 and 5. 
 
-      The service with endpoint {\tt UIMA-AS:FixedSleepAE\_1:tcp://bobmach:61617} is a 
-      submitted service. It was submitted twice, and so has two implementers, DUCC service 
-      jobs 0 and 1. It is referenced by job 7. It will continue to run until somebody cancels it, 
-      even if it is not used. 
 
 \begin{verbatim}
-Service: UIMA-AS:FixedSleepAE_6:tcp://bobmach291:61617 
-Service Class : Implicit 
-Implementors : (N/A) 
-References : 0 
-Dependencies : none 
-Service State : Available 
-Ping Active : true 
-Autostart : false 
-Manual Stop : false 
-Queue Statistics: 
-Consum Prod Qsize minNQ maxNQ expCnt inFlgt  DQ  NQ Disp 
-    78  240   170     2 36414      0      0 636 806  636 
 
 Service: UIMA-AS:FixedSleepAE_5:tcp://bobmach291:61617 
 Service Class : Registered as ID 2 instances[2] linger[5] 
@@ -491,19 +470,6 @@ Manual Stop : false
 Queue Statistics: 
 Consum Prod Qsize minNQ maxNQ expCnt inFlgt  DQ  NQ Disp 
     52   44     0     0     3      0      0 402 402  402 
-
-Service: UIMA-AS:FixedSleepAE_1:tcp://bobmach291:61617 
-Service Class : Submitted 
-Implementors : 1 0 
-References : 7 
-Dependencies : none 
-Service State : Available 
-Ping Active : true 
-Autostart : false 
-Manual Stop : false 
-Queue Statistics: 
-Consum Prod Qsize minNQ   maxNQ expCnt inFlgt  DQ  NQ Disp 
-    52    0     0     1 1504371      0      0  35  35   35 
 \end{verbatim}
     \end{description}
     \paragraph{Notes:}
