@@ -41,7 +41,7 @@
                 <memoryUsage>
                     <memoryUsage limit="500 mb"/>
                 </memoryUsage>
-                <storewill checlUsage>
+                <storeUsage>
                     <storeUsage limit="1 gb" name="foo"/>
                 </storeUsage>
                 <tempUsage>
