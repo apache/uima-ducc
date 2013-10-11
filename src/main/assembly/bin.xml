@@ -349,19 +349,16 @@ under the License.
 
    
     <!--          ACTIVEMQ 5.6.0                -->
-    <!-- fileSet>
+    <fileSet>
       <directory>target/apache-activemq/apache-activemq-5.6.0/conf</directory>
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
       <includes>
-      	<include>credentials-enc.properties</include>
-      	<include>credentials.properties</include>
-      	<include>jetty-realm.properties</include>
-      	<include>jetty.xml</include>
-      	<include>README.txt</include>
+      	<include>logging.properties</include>
+      	<include>log4j.properties</include>
       </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
-    </fileSet -->
+    </fileSet>
     
     <fileSet>
       <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
