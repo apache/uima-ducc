@@ -46,6 +46,8 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventStopMetrics;
+import org.apache.uima.ducc.common.authentication.BrokerCredentials;
+import org.apache.uima.ducc.common.authentication.BrokerCredentials.Credentials;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.launcher.ssh.DuccRemoteLauncher;
 import org.apache.uima.ducc.common.launcher.ssh.DuccRemoteLauncher.ProcessCompletionCallback;
@@ -86,13 +88,29 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			loadProperties(DuccService.DUCC_PROPERTY_FILE);
 			// fetch the broker URL from ducc.properties
 			this.brokerUrl = System.getProperty("ducc.broker.url");
+			String brokerCredentialsFile = 
+					System.getProperty("ducc.broker.credentials.file");
 			// fetch the admin endpoint from the ducc.properties where
 			// the admin events will be sent by the DuccServiceReaper
 			targetEndpoint = System.getProperty("ducc.admin.endpoint");
 			System.out.println("+++ Activating JMS Component for Endpoint:"
 					+ targetEndpoint + " Broker:" + brokerUrl);
-			context.addComponent("activemq",
-					ActiveMQComponent.activeMQComponent(brokerUrl));
+			
+			ActiveMQComponent duccAMQComponent = new ActiveMQComponent(context);
+		    duccAMQComponent.setBrokerURL(brokerUrl);
+			
+//			context.addComponent("activemq",
+//					ActiveMQComponent.activeMQComponent(brokerUrl));
+		    
+		    if ( brokerCredentialsFile != null ) {
+		      String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
+	    	  Credentials credentials = BrokerCredentials.get(path);
+			  if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
+				duccAMQComponent.setUserName(credentials.getUsername());
+				duccAMQComponent.setPassword(credentials.getPassword());
+	 		  }   
+		    }
+			context.addComponent("activemq",duccAMQComponent);
 			this.pt = context.createProducerTemplate();
 		} catch (Exception e) {
 			System.out
