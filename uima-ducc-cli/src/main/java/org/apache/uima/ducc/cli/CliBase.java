@@ -772,9 +772,11 @@ public abstract class CliBase
      * Since apache-commons-cli 1.2 wrongly removes initial or final quotes, add extra one(s)
      * i.e. an --environment setting of FOO="a b" becomes FOO="a b""
      * What about a lonely " ... both starts & ends so would become => """
+     * Should we turn an empty string into "" ?  For now leave as-is
      */
     private String[] fixupQuotedArgs(String[] args) {
         for (int i = 0; i < args.length; ++i) {
+            if (args[i].length() == 0) continue;
             if (args[i].charAt(0) == '"') {
                 args[i] = "\"" + args[i];
             }

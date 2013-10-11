@@ -690,7 +690,12 @@ public class DuccServiceApi
             }
         } catch (Exception e) {
             System.out.println("Service call failed: " + e);
-            //e.printStackTrace();
+            for (String arg : args) {
+                if (arg.equals("--debug")) {
+                    e.printStackTrace();
+                    break;
+                }
+            }
             System.exit(1);            
         }
         System.exit(rc ? 0 : 1);
