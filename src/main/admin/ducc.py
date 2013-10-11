@@ -38,6 +38,7 @@ class Ducc(DuccUtil):
         broker_memory_opts = self.ducc_properties.get('ducc.broker.memory.options')
         broker_config = self.ducc_properties.get('ducc.broker.configuration')
         broker_home = self.ducc_properties.get('ducc.broker.home')
+        broker_credentials = self.ducc_properties.get('ducc.broker.credentials.file')
 
         if ( broker_config[0] != '/' ):     # relative to broker_home if not absolute
             broker_config = broker_home + '/' + broker_config
@@ -45,8 +46,12 @@ class Ducc(DuccUtil):
         os.environ['ACTIVEMQ_OPTS'] = '-DDUCC_AMQ_PORT=' + broker_port + \
             ' -DDUCC_AMQ_JMX_PORT=' + broker_jmx_port + \
             ' -DDUCC_AMQ_DECORATION=' + broker_url_decoration + \
+            ' -DDUCC_BROKER_CREDENTIALS_FILE=' + broker_credentials + \
             ' ' + broker_memory_opts
         os.environ['ACTIVEMQ_HOME'] = broker_home
+
+        print 'ACTIVEMQ_OPTS:', os.environ['ACTIVEMQ_OPTS']
+        print 'ACTIVEMQ_HOME:', os.environ['ACTIVEMQ_HOME']
 
         here = os.getcwd()
         os.chdir(broker_home + '/bin')
