@@ -20,7 +20,6 @@ package org.apache.uima.ducc.transport;
 
 import java.util.List;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials;
