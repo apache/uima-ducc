@@ -192,7 +192,6 @@ public interface IUiOptions
             public String argname()     { return "integer"; } 
             public String description() { return "Number of service processes."; } 
             public String example()     { return null; }
-            public String deflt()       { return "1"; }
             public String label()       { return name(); }
         },
 
