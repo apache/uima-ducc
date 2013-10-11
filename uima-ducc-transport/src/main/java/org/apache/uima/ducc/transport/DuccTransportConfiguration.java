@@ -18,8 +18,14 @@
 */
 package org.apache.uima.ducc.transport;
 
+import java.util.List;
+
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.common.authentication.BrokerCredentials;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -32,21 +38,65 @@ public class DuccTransportConfiguration {
 	@Value("#{ systemProperties['ducc.broker.url'] }")String brokerUrl;
 	private static ActiveMQComponent duccAMQComponent = null;
 	
-	public void configureJMSTransport(String endpoint, CamelContext context) throws Exception {
-	  
+	@Value("#{ systemProperties['ducc.broker.credentials.file'] }")String brokerCredentialsFile;
+
+	public void configureJMSTransport(DuccLogger logger, String endpoint, CamelContext context) throws Exception {
+		BrokerCredentials.Credentials credentials = null;
 	  synchronized(ActiveMQComponent.class) {
 	    if ( duccAMQComponent == null ) {
-	      duccAMQComponent = ActiveMQComponent.activeMQComponent(brokerUrl);
+//	      duccAMQComponent = ActiveMQComponent.activeMQComponent(brokerUrl);
+	      duccAMQComponent = new ActiveMQComponent(context);
+	      duccAMQComponent.setBrokerURL(brokerUrl);
+	      
+	      logger.info("configureJMSTransport", null, "brokerCredentialsFile:"+brokerCredentialsFile);
+	      if ( brokerCredentialsFile != null ) {
+	    	  String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
+		      logger.info("configureJMSTransport", null, "brokerCredentialsFile Path:"+path);
+	    	  credentials = BrokerCredentials.get(path);
+		      logger.info("configureJMSTransport", null, "Username:"+credentials.getUsername()+" Password:"+credentials.getPassword());
+				if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
+					duccAMQComponent.setUserName(credentials.getUsername());
+				    duccAMQComponent.setPassword(credentials.getPassword());
+				    System.out.println(">>>>>>>>>>>>>>> Running with AMQ Credentials");
+				} 
+	      }
+	      List<String> cs =context.getComponentNames();
+	      for( String s : cs ) {
+	    	  logger.info("configureJMSTransport", null, "Componennt:"+s);
+	      }
 	      context.addComponent("activemq",duccAMQComponent);
 	    }
 	  }
 	}
-	public DuccEventDispatcher duccEventDispatcher(String requestEndpoint,CamelContext context) throws Exception {
-    configureJMSTransport(requestEndpoint, context);
-		//  dont configure JMS for JP service wrapper which uses mina (sockets)
-//	  if ( requestEndpoint != null && !requestEndpoint.startsWith("mina")) {
-	//    configureJMSTransport(requestEndpoint, context);
-		//}
+	public void configureJMSTransport( String endpoint, CamelContext context) throws Exception {
+		BrokerCredentials.Credentials credentials = null;
+	  synchronized(ActiveMQComponent.class) {
+	    if ( duccAMQComponent == null ) {
+		      duccAMQComponent = new ActiveMQComponent(context);
+		      duccAMQComponent.setBrokerURL(brokerUrl);
+
+//	      duccAMQComponent = ActiveMQComponent.activeMQComponent(brokerUrl);
+	      if ( brokerCredentialsFile != null ) {
+	    	  String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
+	    	  credentials = BrokerCredentials.get(path);
+				if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
+					duccAMQComponent.setUserName(credentials.getUsername());
+				    duccAMQComponent.setPassword(credentials.getPassword());
+				    System.out.println(">>>>>>>>>>>>>>> Running with AMQ Credentials");
+				} 
+	      }
+	      
+	      context.addComponent("activemq",duccAMQComponent);
+	    }
+	  }
+	}
+	public DuccEventDispatcher duccEventDispatcher(DuccLogger logger,String requestEndpoint,CamelContext context) throws Exception {
+    configureJMSTransport(logger, requestEndpoint, context);
 		return new DuccEventDispatcher(context, requestEndpoint);
 	}
+	public DuccEventDispatcher duccEventDispatcher(String requestEndpoint,CamelContext context) throws Exception {
+	    configureJMSTransport(requestEndpoint, context);
+			return new DuccEventDispatcher(context, requestEndpoint);
+	}
 }
+
