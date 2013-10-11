@@ -31,8 +31,8 @@ public class BrokerCredentials {
 			try {
 				properties.load(new FileInputStream(brokerCredentialsFile));
 						//Utils.findDuccHome()+File.separator+"activemq"+File.separator+"credentials.properties"));
-				cr.setUsername(properties.getProperty("activemq.username"));
-				cr.setPassword(properties.getProperty("activemq.password"));
+				cr.setUsername(properties.getProperty("ducc.broker.admin.username"));
+				cr.setPassword(properties.getProperty("ducc.broker.admin.password"));
 				return cr;
 
 			} catch( IOException e) {}
