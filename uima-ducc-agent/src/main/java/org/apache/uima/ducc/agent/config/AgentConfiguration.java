@@ -21,6 +21,7 @@ package org.apache.uima.ducc.agent.config;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
@@ -377,7 +378,7 @@ public class AgentConfiguration {
   }
 
   public DuccEventDispatcher getCommonProcessDispatcher(CamelContext camelContext) throws Exception {
-    return agentTransport.duccEventDispatcher(common.managedServiceEndpoint, camelContext);
+    return agentTransport.duccEventDispatcher(logger, common.managedServiceEndpoint, camelContext);
   }
 
   @Bean
@@ -390,7 +391,7 @@ public class AgentConfiguration {
       // optionally configures Camel Context for JMS. Checks the 'agentRequestEndpoint' to
       // to determine type of transport. If the the endpoint starts with "activemq:", a
       // special ActiveMQ component will be activated to enable JMS transport
-      agentTransport.configureJMSTransport(common.agentRequestEndpoint, camelContext);
+      agentTransport.configureJMSTransport(logger,common.agentRequestEndpoint, camelContext);
       AgentEventListener delegateListener = agentDelegateListener(agent);
 
       if (common.managedProcessStateUpdateEndpointType != null
@@ -413,7 +414,9 @@ public class AgentConfiguration {
       metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
               Integer.parseInt(common.nodeMetricsPublishRate));
       camelContext.addRoutes(metricsRouteBuilder);
-
+      
+      
+      
       logger.info("nodeAgent", null, "------- Agent Initialized - Identity Name:"
               + agent.getIdentity().getName() + " IP:" + agent.getIdentity().getIp()
               + " JP State Update Endpoint:" + common.managedProcessStateUpdateEndpoint);
