@@ -72,7 +72,6 @@ public class NodeConfiguration
     DuccProperties fixedDefault     = null;
     DuccProperties reserveDefault   = null;
     String ducc_home = null;
-    String default_domain = null;
 
     public NodeConfiguration(String config_file_name, DuccLogger logger)
     {
@@ -219,8 +218,9 @@ public class NodeConfiguration
 
         Map<String, String> response = new HashMap<String, String>();
         
+        BufferedReader br = null;
         try {
-            BufferedReader br = new BufferedReader(new FileReader(npfile));
+            br = new BufferedReader(new FileReader(npfile));
             String node = "";
             while ( (node = br.readLine()) != null ) {
                 int ndx = node.indexOf("#");
@@ -277,12 +277,17 @@ public class NodeConfiguration
                 }
 
             }
-            br.close();                        
             
         } catch (FileNotFoundException e) {
             throw new IllegalConfigurationException("Cannot open NodePool file \"" + npfile + "\": file not found.");
         } catch (IOException e) {
             throw new IllegalConfigurationException("Cannot read NodePool file \"" + npfile + "\": I/O Error.");
+        } finally {
+            try {
+				br.close();
+			} catch (IOException e) {
+				// nothing
+			}                        
         }
 
 //         for (String s : response.keySet() ) {
@@ -744,7 +749,7 @@ public class NodeConfiguration
     {
         global_nodefile = resolve(global_nodefile);
         if ( allNodefiles.containsKey(global_nodefile) ) return;           // already passed if is's there and we're here
-        readNodepoolFile(global_nodefile, default_domain, true);                   // will throw if there's an issue
+        readNodepoolFile(global_nodefile, defaultDomain, true);            // will throw if there's an issue
     }
 
     public DuccProperties getDefaultFairShareClass()
@@ -789,14 +794,13 @@ public class NodeConfiguration
 
         config_file_name = resolve(config_file_name);
         in = new BufferedReader(new FileReader(config_file_name));
-        default_domain = getDomainName();
 
         parseStanzas();
         doClassInheritance();
         connectNodepools();
        
         for (DuccProperties p : independentNodepools) {      // walk the tree and read the node files
-            readNodefile(p, default_domain);
+            readNodefile(p, defaultDomain);
         }
 
         String msg = "";
