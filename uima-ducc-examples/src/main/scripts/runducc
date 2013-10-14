@@ -352,6 +352,7 @@ class ServiceStarter(DuccUtil):
         props.put('environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path')
         props.put('scheduling_class', 'fixed')
         props.put('working_directory', os.getcwd())
+        props.put('service_ping_arguments', 'broker_jmx_port=' + self.broker_jmx_port)
 
         svcfile = svcid + '.gen.svc'
         props.write(svcfile)
@@ -383,21 +384,6 @@ class ServiceStarter(DuccUtil):
         svcprops.load(svcfile)
 
         all_services = {}
-
-        submit = svcprops.get('submit')
-        self.submitted = {}
-        if ( submit != None ):
-            submit = submit.strip()
-            # make a map with the service id as key and the number of instances as val
-            toks = submit.split() 
-            for t in toks:
-                t = t.strip()
-                if ( self.submitted.has_key(t) or  all_services.has_key(t) ):
-                    print "Duplicate submitted service", t
-                    sys.exit(1)
-
-                self.submitted[t] = None
-                all_services[t] = None
 
         register = svcprops.get('register')
         self.registered = {}
@@ -491,11 +477,6 @@ class ServiceStarter(DuccUtil):
             for svc in v:
                 print 'Stopping', svc.pid
                 svc.send_signal(2)
-
-        for (k, v) in self.submitted.items():
-            for id in v:
-                print 'Canceling', id
-                os.system(self.DUCC_HOME + '/bin/ducc_service_cancel --id ' + id)
 
         for (k, v) in self.registered.items():
             for id in v:
