@@ -1,0 +1,17 @@
+description	            DUCC Cas input sample application
+driver_descriptor_CR    org.apache.uima.ducc.sampleapps.DuccJobCasCR
+process_descriptor_CM   org.apache.uima.ducc.sampleapps.DuccCasCM
+process_descriptor_AE   org.apache.uima.ducc.sampleapps.DuccSampleAE
+process_descriptor_CC   org.apache.uima.ducc.sampleapps.DuccCasCC
+process_memory_size     2
+process_thread_count    8
+process_deployments_max 4
+process_jvm_args        -Xmx1G -XX:+UseCompressedOops
+scheduling_class        normal
+working_directory       ${MyAppDir}
+log_directory           ${MyAppDir}
+classpath               ${MyAppDir}/uima-ducc-examples.jar:${MyAppDir}/opennlp.uima.OpenNlpTextAnalyzer
+process_per_item_time_max       10
+driver_descriptor_CR_overrides  SendToLast=true InputSpec=${MyInputDir} OutputDirectory=${MyOutputDir}
+process_descriptor_CC_overrides UseBinaryCompression=true
+wait_for_completion

@@ -39,10 +39,9 @@ import org.apache.uima.util.ProgressImpl;
  * A DUCC Job collection reader that reads text files from a directory in the filesystem.
  * It can be configured with the following parameters:
  * <ul>
- * <li><code>InputDirectory</code> - path to directory containing input *.zip files</li>
+ * <li><code>InputSpec</code> - path to directory containing input *.zip files</li>
  * <li><code>OutputDirectory</code> - path to directory for output files</li>
- * <li><code>Language</code> (optional) - language of the input documents</li>
- * <li><code>BlockSize</code> (optional) - Block size used to process input files</li>
+ * <li><code>IgnorePreviousOutput</code> (optional) - flag to ignore previous output files</li>
  * <li><code>SendToLast</code> (optional) - flag to route WorkItem CAS to last pipeline component. Only used for jobs with initial CM.</li>
  * <li><code>SendToAll</code> (optional) - flag to route WorkItem CAS to all pipeline components. Only used for jobs with initial CM.</li>
  * </ul>
