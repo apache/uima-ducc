@@ -34,6 +34,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
@@ -511,8 +512,40 @@ public class ProcessAccounting {
 			}
 		}
 		adjustWindows(job, process);
+		adjustRunTime(process);
 	}
-
+	
+	// <uima-3351>
+	private void adjustRunTime(IDuccProcess process) {
+		IDuccProcessWorkItems pwi = process.getProcessWorkItems();
+		if(pwi == null) {
+			setNoRunTime(process);
+		}
+		else {
+			if((pwi.getCountDispatch() == 0) 
+			&& (pwi.getCountDone() == 0 )
+			&& (pwi.getCountError() == 0) 
+			&& (pwi.getCountLost() == 0)
+			&& (pwi.getCountPreempt() == 0) 
+			&& (pwi.getCountRetry() == 0)
+			) {
+				setNoRunTime(process);
+			}
+		}
+	}
+	
+	private void setNoRunTime(IDuccProcess process) {
+		ITimeWindow twr = process.getTimeWindowRun();
+		if(twr == null) {
+			twr = new TimeWindow();
+			process.setTimeWindowRun(twr);
+		}
+		long time = 0;
+		twr.setStartLong(time);
+		twr.setEndLong(time);
+	}
+	// </uima-3351>
+	
 	private void adjustWindows(IDuccWorkJob job, IDuccProcess process) {
 		String methodName = "adjustWindows";
 		ITimeWindow twi = process.getTimeWindowInit();
