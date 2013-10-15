@@ -1,4 +1,5 @@
 \chapter{Building and Testing Jobs}
+
 \section{Overview}
 
 A DUCC job consists of two process types, a Job Driver process and one or more
@@ -149,10 +150,180 @@ the all\_in\_one specification parameter.
       worker machine as a DUCC Managed Reservation. 
 \end{description}
 
-Running an all\_in\_one process under eclipse debug is done in the same way as described above
-in the previous section.
-
+To debug an all\_in\_one job with eclipse, first create a debug configuration for a
+"remote java application", specifying "Connection Type = Socket Listen" on some
+free port P. Start the debug configuration and confirm it is listening on the specified port.
+Then, before submitting the all\_in\_one job, add the argument process\_debug=host:port, 
+where host is the machine running eclipse and port is
+the value P used in the running debug configuration.
 
 
 \chapter{Sample Application: Raw Text Processing}
-\chapter{Sample Application: Follow-on CAS Processing}
+
+\section{Application Function and Design}
+This application expects as input a directory containing one or more flat text files, 
+uses paragraph boundaries to segment the text into separate artifacts, 
+processes each artifact with the OpenNlpTextAnalyzer, and writes
+the results as compressed UIMA CASes in zip files. Paragraph boundaries are defined as
+two or more consecutive newline characters.
+
+Each input file is a Work Item. In order to facilitate processing scale out, 
+an optional blocksize parameter can be specified that will be used to break larger 
+files into multiple Work Items. Paragraphs that cross block boundaries are processed
+in the block where they started. An error is thrown if a paragraph crosses two block
+boundaries. A block with nothing but newline characters is also treated as an error.
+
+An output zip file is created for each Work Item. The CAS compression format is selectable as
+compressed XmiCas or UIMA compressed binary form 6 format. When compressed binary
+is used, each zip file also contains the full UIMA Type System in compressed text.
+CASes in UIMA compressed binary form 6 format have the same flexibility as an XmiCas in that
+they can be deserialized into a CAS with a different, but compatible Type System.
+
+By default any previously completed output files found in the output directory are preserved.
+During Work Item processing the associated output files have "\_temp" appended to their
+filenames, and these incompleted output files are always ignored.
+
+\section{Configuration Parameters}
+The Collection Reader for this job is the DuccJobTextCR. It has the following configuration
+parameters:
+
+\begin{description}
+    \item[InputDirectory] path to directory containing input files.
+    \item[OutputDirectory] path to directory for output files.
+    \item[IgnorePreviousOutput] (optional) boolean to ignore (overwrite) previous output files.
+    \item[Encoding] (optional) character encoding of the input files.
+    \item[Language] (optional) language of the input documents, i.e. cas.setDocumentLanguage(language).
+    \item[BlockSize] (optional) integer value used to break larger input files into multiple Work Items.
+    \item[SendToLast] (optional) boolean to route WorkItem CAS to last pipeline component. Set to true in this application.
+    \item[SendToAll] (optional) boolean to route WorkItem CAS to all pipeline components. Not used in this application.
+\end{description}
+
+The CAS Consumer is the DuccCasCC and has the following configuration parameters:
+
+\begin{description}
+  \item[XmiCompressionLevel] (optional) compression value if using ZIP compression. Default is 7.
+  \item[UseBinaryCompression] (optional) boolean to select UIMA binary CAS compression.
+\end{description}
+
+\section{Set up a working directory}
+For this and the following sample program, create a working directory in a writable filesystem.
+
+Copy to this directory the example job specification files:
+\begin{verbatim}
+   cp $DUCC_HOME/examples/descriptors/org/apache/uima/ducc/sampleapps/*.job .
+\end{verbatim}
+
+Copy a UIMA logger configuration file that supresses tons of output from OpenNLP:
+\begin{verbatim}
+   cp $DUCC_HOME/examples/descriptors/org/apache/uima/ducc/sampleapps/ConsoleLogger.properties .
+\end{verbatim}
+
+Copy the executable code and resources for the DUCC sample application components:
+\begin{verbatim}
+   cp $DUCC_HOME/examples/lib/uima-ducc-examples.jar .
+\end{verbatim}
+
+Note that the source code for DUCC sample applications is in ducc\_runtime/examples/src,
+with descriptors in ducc\_runtime/examples/descriptors.
+
+\section{Download and Install OpenNLP}
+Download OpenNLP from http://opennlp.apache.org and follow the directions in the
+UIMA Integration section of their manual to build the UIMA pear file.
+Then {\em install} the UIMA pear file in the working directory and
+test it with the UIMA Cas Visual Debugger application.
+
+After testing, a small modification of the installed OpenNLP descriptor file
+is necessary for DUCC to run it multithreaded. 
+Edit opennlp.uima.OpenNlpTextAnalyzer/desc/OpenNlpTextAnalyzer.xml
+and change the setting for {\em multipleDeploymentAllowed} from false to true.
+
+\section{Get some Input Text}
+Choose one or more flat text files in UTF8 format that only use newline characters,
+{\em not CR-LF sequences}.
+The text should be big enough to see the impact of DUCC job scale out.
+We used test data from the core UIMA test set,
+\begin{verbatim}
+   http://svn.apache.org/viewvc/uima/uimaj/trunk/uimaj-core/src/test/resources/data/moby.txt
+\end{verbatim}
+and downloaded it to a subdirectory `Moby'.
+
+\section{Run the Job}
+The job specification, DuccRawTextSpec.job, uses a placeholder to reference the working directory
+and various operational components located there. For this example the placeholders will be resolved
+from environmental variables. Some of the job components, for example
+the Job Driver descriptor, is found via the classpath in uima-ducc-examples.jar.
+
+The job is submitted from the command line with the following:
+\begin{verbatim}
+   MyAppDir=/pathToWorkingDirectory \
+   MyInputDir=$MyAppDir/Moby \
+   MyOutputDir=$MyAppDir/Moby.processed \
+   pathToDuccRuntime/bin/ducc_submit -f DuccRawTextSpec.job
+\end{verbatim}
+
+Given that moby.txt is 1.2Mbytes and a blocksize of 100000 is used, there are 13 Work Items. Each Job Process is configured to run 8 parallel OpenNLP pipelines. For comparison, the job can be forced to run all Work Items in a single process with only one thread:
+\begin{verbatim}
+   MyAppDir=/pathToWorkingDirectory \
+   MyInputDir=$MyAppDir/Moby \
+   MyOutputDir=$MyAppDir/Moby.processed \
+   pathToDuccRuntime/bin/ducc_submit -f DuccRawTextSpec.job \
+   --process_deployments_max 1 \
+   --process_thread_count 1
+\end{verbatim}
+
+\section{Output Data}
+There will be an output zipfile for every Work Item, the zipfile containing a compressed CAS for each document (paragraph) 
+found in the Work Item. If UseBinaryCompression=true each zipfile will also contain the TypeSystem for the CASes. 
+This is needed when deserializing these CASes into a different TypeSystem.
+
+DuccTextCM finds 768 paragraphs in moby.txt. The total size of the resultant 768 XmiCas files is 108MB. The total size using ZIP compression and packaging these into 13 output Work Item zipfiles is 20MB. Using UIMA binary compressed format the total size is 6.5MB.
+
+This output data will be used as input data for the following CAS input processing sample application.
+
+
+\chapter{Sample Application: CAS Input Processing}
+
+\section{Application Function and Design}
+The main purpose of this application is to demonstrate the overhead of processing a collection of CASes grouped into zipfiles 
+and compressed with ZIP or with UIMA compressed binary form 6 CAS format.
+
+
+\section{Configuration Parameters}
+The Collection Reader for this job is the DuccJobCasCR. It has the following configuration
+parameters:
+
+\begin{description}
+    \item[InputSpec] path to directory containing input files (named InputSpec in the hope that more options will be added).
+    \item[OutputDirectory] path to directory for output files.
+    \item[IgnorePreviousOutput] (optional) boolean to ignore (overwrite) previous output files.
+    \item[SendToLast] (optional) boolean to route WorkItem CAS to last pipeline component. Set to true in this application.
+    \item[SendToAll] (optional) boolean to route WorkItem CAS to all pipeline components. Not used in this application.
+\end{description}
+
+
+The CAS Consumer is the DuccCasCC and has the following configuration parameters:
+
+\begin{description}
+  \item[XmiCompressionLevel] (optional) compression value if using ZIP compression. Default is 7.
+  \item[UseBinaryCompression] (optional) boolean to select UIMA binary CAS compression.
+\end{description}
+
+\section{Run the Job}
+The job specification, DuccCasInputSpec.job, uses a placeholder to reference the working directory
+and various operational components located there. For this example the placeholders will be resolved
+from environmental variables. Some of the job components, for example
+the Job Driver descriptor, is found via the classpath in uima-ducc-examples.jar.
+
+The job is submitted from the command line with the following:
+\begin{verbatim}
+   MyAppDir=/pathToWorkingDirectory \
+   MyInputDir=$MyAppDir/Moby.processed \ 
+   MyOutputDir=$MyAppDir/Moby.followon \
+   pathToDuccRuntime/bin/ducc_submit -f DuccCasInputSpec.job
+\end{verbatim}
+
+\section{Limiting Job Resources}
+Using UIMA binary compression format for both input and output CASes, a single-threaded Jop Process will complete in about 8 seconds. That translates to roughly 100 CASes per second (average uncompressed XmiCas size of 140KB) reading, deserializing, re-serializing and re-writing compressed CAS data.
+Although this thread is primarily CPU bound on serialization work, it would not be hard to become I/O bound with enough threads banging on a shared filesystem. For this sample job, DuccCasInputSpec.job limits the total number of processing threads to 32 using the combination of process\_thread\_count=8 and process\_deployments\_max=4.
+
+
