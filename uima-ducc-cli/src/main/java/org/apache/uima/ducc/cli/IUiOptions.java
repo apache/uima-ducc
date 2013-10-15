@@ -76,7 +76,6 @@ public interface IUiOptions
             public String argname()     { return "boolean: true or false"; } 
             public String description() { return "If True, start the service when DUCC starts."; } 
             public String example()     { return null; }
-            public String deflt()       { return "false"; }
             public String label()       { return name(); }
         },
 
