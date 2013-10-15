@@ -24,7 +24,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 
-public interface IDuccWork extends Serializable {
+public interface IDuccWork extends Identifiable, Serializable {
 	
 	public DuccId getDuccId();
 	public void setDuccId(DuccId duccId);
