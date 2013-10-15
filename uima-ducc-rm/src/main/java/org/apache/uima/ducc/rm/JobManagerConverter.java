@@ -817,8 +817,18 @@ public class JobManagerConverter
 
         // otherwise, if the shares it has allocated is < the number it wants, it is in fact
         // pending but not complete.
-        logger.trace(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances());
-        return ( j.countNShares() < j.countInstances());
+        logger.info(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances(), "isComplete", j.isCompleted());
+
+        if ( j.isCompleted() ) {
+            return false;
+        }
+
+        if ( j.countNShares() == j.countInstances() ) {
+            j.markComplete();                  // non-preemptable, remember it finally got it's max
+            return false;
+        }
+
+        return (j.countNShares() < j.countInstances());
     }
 
     /**

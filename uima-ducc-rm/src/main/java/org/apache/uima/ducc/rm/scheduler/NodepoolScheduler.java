@@ -1954,6 +1954,8 @@ public class NodepoolScheduler
                         must_defrag = true;
                     }                    
                 } else {                                       // if not fair-share, must always try to defrag if needed
+                    if ( j.isCompleted() ) continue;           // non-preemptable, this means it has at least once received
+                                                               // its full allocation, and therefore cannot be needy
                     if ( needed > 0 ) {
                         jobmap.put(j, needed);   
                         must_defrag = true;

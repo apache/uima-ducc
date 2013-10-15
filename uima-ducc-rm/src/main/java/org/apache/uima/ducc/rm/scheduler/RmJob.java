@@ -173,6 +173,13 @@ public class RmJob
         return is_reservation;
     }
 
+    /**
+     * For non-preemptable, remember max alloc has been reached, so we don't try to expand if 
+     * used for a job-job.
+     * 
+     * For preemptable, must remember the job completed for defrag, because it could stick 
+     * around a while after completion.
+     */
     public void markComplete()
     {
         completed = true;
@@ -1253,9 +1260,9 @@ public class RmJob
     public String toString()
     {
         int shares = assignedShares.size() + pendingShares.size();        
-        if ( getSchedulingPolicy() != Policy.FAIR_SHARE ) {
-            shares = countInstances();
-        }
+        //if ( getSchedulingPolicy() != Policy.FAIR_SHARE ) {
+        //    shares = countInstances();
+        //}
 
         //                    1       2    3    4   5   6   7   8   9  10  11  12 13
         String format = "%11s %30.30s %10s %10s %6d %5d %7d %3d %6d %6d %8d %8s %9d";
