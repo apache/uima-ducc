@@ -79,8 +79,21 @@ public class DuccCasCC extends JCasAnnotator_ImplBase {
     Iterator<FeatureStructure> fsit = jcas.getIndexRepository().getAllIndexedFS(jcas.getCasType(Workitem.type));
     if (fsit.hasNext()) {
       Workitem wi = (Workitem) fsit.next();
-      if (!outputFilename.equals(wi.getOutputspec())) {
-    	  throw new AnalysisEngineProcessException(new RuntimeException("flush mismatch: "+outputFilename+" != "+wi.getOutputspec()));
+      if (outputFilename == null || !outputFilename.equals(wi.getOutputspec())) {
+    	  // this Work Item contained no documents. Create empty output file.
+    	  try {
+    		outFile = new File(wi.getOutputspec());
+          	File outDir = outFile.getParentFile();
+          	if (outDir != null && !outDir.exists()) {
+          		outDir.mkdirs();
+          	}
+          	zos = new ZipOutputStream(new FileOutputStream(outFile));
+    		zos.close();
+    		logger.log(Level.INFO, "DuccCasCC: Flushed empty "+wi.getOutputspec());
+    		return;
+		} catch (Exception e) {
+        	throw new AnalysisEngineProcessException(e);
+		}
       }
       try {
 		zos.close();
@@ -91,7 +104,7 @@ public class DuccCasCC extends JCasAnnotator_ImplBase {
 	} catch (IOException e) {
 		throw new AnalysisEngineProcessException(e);
 	}
-      logger.log(Level.INFO, "DuccDummyCC: Flushed "+wi.getOutputspec());
+      logger.log(Level.INFO, "DuccCasCC: Flushed "+wi.getOutputspec());
       return;
     }
 
