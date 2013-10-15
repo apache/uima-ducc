@@ -1,0 +1,16 @@
+description                     DUCC raw text sample application
+driver_descriptor_CR            org.apache.uima.ducc.sampleapps.DuccJobTextCR
+process_descriptor_CM           org.apache.uima.ducc.sampleapps.DuccTextCM
+process_descriptor_AE           ${MyAppDir}/opennlp.uima.OpenNlpTextAnalyzer/opennlp.uima.OpenNlpTextAnalyzer_pear.xml
+process_descriptor_CC           org.apache.uima.ducc.sampleapps.DuccCasCC
+process_memory_size             4
+process_thread_count            8
+process_jvm_args                -Xmx3G -XX:+UseCompressedOops -Djava.util.logging.config.file=${MyAppDir}/ConsoleLogger.properties
+scheduling_class                normal
+working_directory               ${MyAppDir}
+log_directory                   ${MyAppDir}
+process_per_item_time_max       10
+classpath                       ${MyAppDir}/uima-ducc-examples.jar
+driver_descriptor_CR_overrides  BlockSize=100000 SendToLast=true InputDirectory=${MyInputDir} OutputDirectory=${MyOutputDir}
+process_descriptor_CC_overrides UseBinaryCompression=true
+wait_for_completion
