@@ -423,17 +423,19 @@ public class DuccHandler extends DuccAbstractHandler {
 		long id = process.getDuccId().getFriendly();
 		System.out.println(id);
 		 */
-		if(type.equals("SPC")) {
+		switch(type) {
+		case SPC:
 			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
-		}
-		else if(type.equals("SPU")) {
+			break;
+		case SPU:
 			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
-		}
-		else if(type.equals("MR")) {
+			break;
+		case MR:
 			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
-		}
-		else {
+			break;
+		default:
 			sb.append(process.getDuccId().getFriendly());
+			break;
 		}
 		sb.append("</td>");
 		// Log
@@ -485,7 +487,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</td>");
 			break;
 		default:
-			if(type.equals("MR")) {
+			switch(type) {
+			case MR:
 				sb.append("<td>");
 				int code = process.getProcessExitCode();
 				if(LinuxSignals.isSignal(code)) {
@@ -500,9 +503,9 @@ public class DuccHandler extends DuccAbstractHandler {
 				else {
 					sb.append("ProgramExitCode"+"="+code);
 				}
-				sb.append("</td>");
-			}
-			else {
+				sb.append("</td>");				
+				break;
+			default:
 				ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
 				String toolTip = ProcessDeallocationType.getToolTip(deallocationType);
 				if(toolTip == null) {
@@ -519,6 +522,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					break;
 				}
 				sb.append("</td>");
+				break;
 			}
 			break;
 		}
@@ -534,83 +538,84 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Time:init
-		if(type.equals("MR")) {
-			// 
-		}
-		else {
-			StringBuffer loadme = new StringBuffer();
-			String initTime = "00";
-			String itd0 = "<td align=\"right\">";
-			String itd1 = "</td>";
-			String isp0 = "<span>";
-			String isp1 = "</span>";
-			try {
-				TimeWindow t = (TimeWindow) process.getTimeWindowInit();
-				if(t != null) {
-					long now = System.currentTimeMillis();
-					String tS = t.getStart(""+now);
-					String tE = t.getEnd(""+now);
-					initTime = getDuration(jobid,tE,tS);
-					if(t.isEstimated()) {
-						isp0 = "<span title=\"estimated\" class=\"health_green\">";
+		switch(type) {
+			case MR:
+				break;
+			default:
+				StringBuffer loadme = new StringBuffer();
+				String initTime = "00";
+				String itd0 = "<td align=\"right\">";
+				String itd1 = "</td>";
+				String isp0 = "<span>";
+				String isp1 = "</span>";
+				try {
+					TimeWindow t = (TimeWindow) process.getTimeWindowInit();
+					if(t != null) {
+						long now = System.currentTimeMillis();
+						String tS = t.getStart(""+now);
+						String tE = t.getEnd(""+now);
+						initTime = getDuration(jobid,tE,tS);
+						if(t.isEstimated()) {
+							isp0 = "<span title=\"estimated\" class=\"health_green\">";
+						}
+						else {
+							isp0 = "<span class=\"health_black\">";
+						}
+					}
+					boolean cluetips_disabled = true;
+					if(cluetips_disabled) {
+						if(!initTime.equals("00")) {
+							String p_idJob = pname_idJob+"="+job.getDuccId().getFriendly();
+							String p_idPro = pname_idPro+"="+process.getDuccId().getFriendly();
+							initTime = "<a href=\""+duccUimaInitializationReport+"?"+p_idJob+"&"+p_idPro+"\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">"+initTime+"</a>";
+							loadme.append("");
+						}
 					}
 					else {
-						isp0 = "<span class=\"health_black\">";
-					}
-				}
-				boolean cluetips_disabled = true;
-				if(cluetips_disabled) {
-					if(!initTime.equals("00")) {
-						String p_idJob = pname_idJob+"="+job.getDuccId().getFriendly();
-						String p_idPro = pname_idPro+"="+process.getDuccId().getFriendly();
-						initTime = "<a href=\""+duccUimaInitializationReport+"?"+p_idJob+"&"+p_idPro+"\" onclick=\"var newWin = window.open(this.href,'child','height=600,width=475,scrollbars');  newWin.focus(); return false;\">"+initTime+"</a>";
-						loadme.append("");
-					}
-				}
-				else {
-					List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
-					if(upcList != null) {
-						if(!upcList.isEmpty()) {
-							String id = ""+process.getDuccId().getFriendly();
-							initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
-							loadme.append("<div id=\"loadme"+id+"\">");
-							loadme.append("<table>");
-							loadme.append("<tr>");
-							String ch1 = "Name";
-							String ch2 = "State";
-							String ch3 = "Time";
-							loadme.append("<td>"+"<b>"+ch1+"</b>");
-							loadme.append("<td>"+"<b>"+ch2+"</b>");
-							loadme.append("<td>"+"<b>"+ch3+"</b>");
-							Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
-							while(upcIterator.hasNext()) {
-								IUimaPipelineAEComponent upc = upcIterator.next();
-								String iName = upc.getAeName();
-								String iState = upc.getAeState().toString();
-								String iTime = FormatHelper.duration(upc.getInitializationTime());
+						List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
+						if(upcList != null) {
+							if(!upcList.isEmpty()) {
+								String id = ""+process.getDuccId().getFriendly();
+								initTime = "<a class=\"classLoad\" title=\""+id+"\" href=\"#loadme"+id+"\" rel=\"#loadme"+id+"\">"+initTime+"</a>";
+								loadme.append("<div id=\"loadme"+id+"\">");
+								loadme.append("<table>");
 								loadme.append("<tr>");
-								loadme.append("<td>"+iName);
-								loadme.append("<td>"+iState);
-								loadme.append("<td>"+iTime);
+								String ch1 = "Name";
+								String ch2 = "State";
+								String ch3 = "Time";
+								loadme.append("<td>"+"<b>"+ch1+"</b>");
+								loadme.append("<td>"+"<b>"+ch2+"</b>");
+								loadme.append("<td>"+"<b>"+ch3+"</b>");
+								Iterator<IUimaPipelineAEComponent> upcIterator = upcList.iterator();
+								while(upcIterator.hasNext()) {
+									IUimaPipelineAEComponent upc = upcIterator.next();
+									String iName = upc.getAeName();
+									String iState = upc.getAeState().toString();
+									String iTime = FormatHelper.duration(upc.getInitializationTime());
+									loadme.append("<tr>");
+									loadme.append("<td>"+iName);
+									loadme.append("<td>"+iState);
+									loadme.append("<td>"+iTime);
+								}
+								loadme.append("</table>");
+								loadme.append("</div>");
 							}
-							loadme.append("</table>");
-							loadme.append("</div>");
 						}
 					}
 				}
-			}
-			catch(Exception e) {
-				duccLogger.trace(location, jobid, "no worries", e);
-			}
-			catch(Throwable t) {
-				duccLogger.trace(location, jobid, "no worries", t);
-			}
-			sb.append(itd0);
-			sb.append(isp0);
-			sb.append(loadme);
-			sb.append(initTime);
-			sb.append(isp1);
-			sb.append(itd1);
+				catch(Exception e) {
+					duccLogger.trace(location, jobid, "no worries", e);
+				}
+				catch(Throwable t) {
+					duccLogger.trace(location, jobid, "no worries", t);
+				}
+				sb.append(itd0);
+				sb.append(isp0);
+				sb.append(loadme);
+				sb.append(initTime);
+				sb.append(isp1);
+				sb.append(itd1);				
+				break;
 		}
 		// Time:run
 		String runTime = "00";
@@ -646,10 +651,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(rtd1);
 		// Time GC, PgIn, Swap...
 		DecimalFormat formatter = new DecimalFormat("##0.0");
-		if(type.equals("MR")) {
-			// 
-		}
-		else {
+		switch(type) {
+		case MR:
+			break;
+		default:
 			SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
 			// Time:gc
 			long timeGC = 0;
@@ -718,6 +723,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(displaySwap);
 				sb.append("</td>");
 			}
+			break;
 		}
 		// %cpu
 		sb.append("<td align=\"right\">");
@@ -830,16 +836,14 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(displayRss);
 			sb.append("</td>");
 		}
-		if(type.equals("SPC")) {
-			// 
-		}
-		else if(type.equals("SPU")) {
-			// 
-		}
-		else if(type.equals("MR")) {
-			// 
-		}
-		else {
+		switch(type) {
+		case SPC:
+			break;
+		case SPU:
+			break;
+		case MR:
+			break;
+		default:
 			// Time:avg
 			IDuccProcessWorkItems pwi = process.getProcessWorkItems();
 			sb.append("<td align=\"right\">");
@@ -883,12 +887,13 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(pwi.getCountPreempt());
 			}
 			sb.append("</td>");
+			break;
 		}
 		// Jconsole:Url
-		if(type.equals("MR")) {
-			// 
-		}
-		else {
+		switch(type) {
+		case MR:
+			break;
+		default:
 			sb.append("<td>");
 			switch(process.getProcessState()) {
 			case Initializing:
@@ -900,9 +905,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			sb.append("</td>");
 			sb.append("</tr>");
+			break;
 		}
 		// jd.err.log
-		if(type.equals("JD")) {
+		switch(type) {
+		case JD:
 			if(fileExists(logsjobdir+errfile)) {
 				String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
 				sb.append(tr);
@@ -919,6 +926,9 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append("</td>");
 				sb.append("</tr>");
 			}
+			break;
+		default:
+			break;
 		}
 	}
 	
@@ -1659,7 +1669,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
+	private void buildServiceFilesListEntry(Request baseRequest,HttpServletRequest request, StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter) {
 		if(job != null) {
 			try {
 				String userId = duccWebSessionManager.getUserId(request);
@@ -1727,11 +1737,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				Iterator<DuccId> iterator = null;
 				iterator = duccWorkMap.getServiceKeySet().iterator();
 				int counter = 0;
-				String type = "SPU";
+				ShareType type = ShareType.SPU;
 				String service_type = properties.getProperty(IServicesRegistry.service_type);
 				if(service_type != null) {
 					if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-						type = "SPC";
+						type = ShareType.SPC;
 					}
 				}
 				while(iterator.hasNext()) {
