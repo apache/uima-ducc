@@ -623,26 +623,48 @@ public class DuccHandler extends DuccAbstractHandler {
 		String rtd1 = "</td>";
 		String rsp0 = "<span>";
 		String rsp1 = "</span>";
-		try {
-			TimeWindow t = (TimeWindow) process.getTimeWindowRun();
-			if(t != null) {
-				long now = System.currentTimeMillis();
-				String tS = t.getStart(""+now);
-				String tE = t.getEnd(""+now);
-				runTime = getDuration(jobid,tE,tS);
-				if(t.isEstimated()) {
-					rsp0 = "<span title=\"estimated\" class=\"health_green\">";
-				}
-				else {
-					rsp0 = "<span class=\"health_black\">";
+		// <UIMA-3351>
+		boolean useTimeRun = true;
+		switch(type) {
+		case SPC:
+			break;
+		case SPU:
+			break;
+		case MR:
+			break;
+		case JD:
+			break;	
+		case UIMA:
+			if(!process.isAssignedWork()) {
+				useTimeRun = false;
+			}
+			break;	
+		default:
+			break;
+		}
+		// </UIMA-3351>
+		if(useTimeRun) {
+			try {
+				TimeWindow t = (TimeWindow) process.getTimeWindowRun();
+				if(t != null) {
+					long now = System.currentTimeMillis();
+					String tS = t.getStart(""+now);
+					String tE = t.getEnd(""+now);
+					runTime = getDuration(jobid,tE,tS);
+					if(t.isEstimated()) {
+						rsp0 = "<span title=\"estimated\" class=\"health_green\">";
+					}
+					else {
+						rsp0 = "<span class=\"health_black\">";
+					}
 				}
 			}
-		}
-		catch(Exception e) {
-			duccLogger.trace(location, jobid, "no worries", e);
-		}
-		catch(Throwable t) {
-			duccLogger.trace(location, jobid, "no worries", t);
+			catch(Exception e) {
+				duccLogger.trace(location, jobid, "no worries", e);
+			}
+			catch(Throwable t) {
+				duccLogger.trace(location, jobid, "no worries", t);
+			}
 		}
 		sb.append(rtd0);
 		sb.append(rsp0);
