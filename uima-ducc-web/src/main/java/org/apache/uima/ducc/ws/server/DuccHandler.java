@@ -108,6 +108,9 @@ public class DuccHandler extends DuccAbstractHandler {
 
 	private static IAuthenticationManager iAuthenticationManager = AuthenticationManager.getInstance();
 
+	private enum ShareType { JD, MR, SPC, SPU, UIMA };
+	private enum LogType { POP, UIMA };
+	
 	private String duccVersion						= duccContext+"/version";
 	
 	private String duccLoginLink					= duccContext+"/login-link";
@@ -334,28 +337,25 @@ public class DuccHandler extends DuccAbstractHandler {
 	}
 	*/
 	
-	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, String type) {
+	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, ShareType type) {
 		String retVal = "";
-		if(type == "UIMA") {
-			String fType = type;
-			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-		}
-		if(type == "MR") {
-			String fType = "POP";
-			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-		}
-		else if(type == "SPU") {
-			String fType = "UIMA";
-			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-		}
-		else if(type == "SPC") {
-			String fType = "POP";
-			retVal = job.getDuccId().getFriendly()+"-"+fType+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-		}
-		else if(type == "JD") {
+		switch(type) {
+		case UIMA:
+			retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+			break;
+		case MR:
+			retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+			break;
+		case SPU:
+			retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+			break;
+		case SPC:
+			retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+			break;
+		case JD:
 			retVal = "jd.out.log";
+			break;
 		}
-		
 		return retVal;
 	}
 	
@@ -405,7 +405,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	String pname_idJob = "idJob";
 	String pname_idPro = "idPro";
 	
-	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
+	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter) {
 		String location = "buildJobProcessListEntry";
 		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String logfile = buildLogFileName(job, process, type);
@@ -1071,13 +1071,13 @@ public class DuccHandler extends DuccAbstractHandler {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getDriver().getProcessMap().get(processId);
-				buildJobProcessListEntry(sb, job, process, "JD", ++counter);
+				buildJobProcessListEntry(sb, job, process, ShareType.JD, ++counter);
 			}
 			iterator = job.getProcessMap().keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getProcessMap().get(processId);
-				buildJobProcessListEntry(sb, job, process, "UIMA", ++counter);
+				buildJobProcessListEntry(sb, job, process, ShareType.UIMA, ++counter);
 			}
 		}
 		if(sb.length() == 0) {
@@ -1876,7 +1876,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
 						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-						String logfile = buildLogFileName(job, process, "UIMA");
+						String logfile = buildLogFileName(job, process, ShareType.UIMA);
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
 						if(reason != null) {
@@ -1924,7 +1924,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						DuccId processId = processIterator.next();
 						IDuccProcess process = processMap.get(processId);
 						String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-						String logfile = buildLogFileName(job, process, "UIMA");
+						String logfile = buildLogFileName(job, process, ShareType.UIMA);
 						String link = logfile;
 						String reason = process.getReasonForStoppingProcess();
 						if(reason != null) {
@@ -1947,7 +1947,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, String type, int counter) {
+	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter) {
 		buildJobProcessListEntry(sb, job, process, type, counter);
 	}
 	
@@ -1976,12 +1976,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(managedReservation != null) {
 			Iterator<DuccId> iterator = null;
 			int counter = 0;
-			String type = "MR";
 			iterator = managedReservation.getProcessMap().keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = managedReservation.getProcessMap().get(processId);
-				buildServiceProcessListEntry(sb, managedReservation, process, type, ++counter);
+				buildServiceProcessListEntry(sb, managedReservation, process, ShareType.MR, ++counter);
 			}
 		}
 		if(sb.length() == 0) {
@@ -2083,11 +2082,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				Iterator<DuccId> iterator = null;
 				iterator = duccWorkMap.getServiceKeySet().iterator();
 				int counter = 0;
-				String type = "SPU";
+				ShareType type = ShareType.SPU;
 				String service_type = properties.getProperty(IServicesRegistry.service_type);
 				if(service_type != null) {
 					if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-						type = "SPC";
+						type = ShareType.SPC;
 					}
 				}
 				while(iterator.hasNext()) {
