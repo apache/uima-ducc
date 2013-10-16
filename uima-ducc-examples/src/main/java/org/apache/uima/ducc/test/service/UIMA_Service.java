@@ -164,7 +164,7 @@ public class UIMA_Service implements ApplicationListener {
    * @throws Exception
    */
   public SpringContainerDeployer deploy(String[] springContextFiles) throws Exception {
-    SpringContainerDeployer springDeployer = new SpringContainerDeployer();
+    SpringContainerDeployer springDeployer = new SpringContainerDeployer(this);
     // now try to deploy the array of spring context files
     springDeployer.deploy(springContextFiles);
     // Poll the deployer for the initialization status. Wait for either successful
