@@ -264,6 +264,27 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 
+
+	public boolean isAssignedWork() {
+		boolean retVal = true;
+		IDuccProcessWorkItems pwi = getProcessWorkItems();
+		if(pwi == null) {
+			retVal = false;
+		}
+		else {
+			if((pwi.getCountDispatch() == 0) 
+			&& (pwi.getCountDone() == 0 )
+			&& (pwi.getCountError() == 0) 
+			&& (pwi.getCountLost() == 0)
+			&& (pwi.getCountPreempt() == 0) 
+			&& (pwi.getCountRetry() == 0)
+			) {
+				retVal = false;
+			}
+		}
+		return retVal;
+	}
+	
 	
 	public boolean isActive() {
 		boolean retVal = false;
