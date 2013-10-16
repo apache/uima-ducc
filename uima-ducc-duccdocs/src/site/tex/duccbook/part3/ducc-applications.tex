@@ -129,7 +129,7 @@ which will connect back to the debug configuration.
 A DUCC job is a UIMA application comprised of user code broken into a Collection
 Reader running in the Job Driver and an Agreggate Analysis Engine (analysis pipeline) running in one 
 or more Job Processes, with every Job Process running multiple instances of the pipeline, each in a different
-thread. The major components of this UIMA application are as follows:
+thread. The major components of the basic Job Process application are as follows:
 
 \begin{itemize}
   \item User Collection reader - segments the input collection in to Work Items
@@ -139,9 +139,46 @@ thread. The major components of this UIMA application are as follows:
   \item DUCC built-in Flow Controller - routes Work Item CASes to the CM and optionally to the CC or AE \& CC.
 \end{itemize}
 
-It is best to develop and debug the interactions between these components as one, 
-single-threaded UIMA aggregate. DUCC provides an easy way to accomplish this, using
-the all\_in\_one specification parameter.
+\subsection{DUCC built-in Flow Controller}
+This flow controller provides separate flows for Work Item CASes and for CASes produced by the CM and/or AE.
+Its behavior is controlled by the existence of a CM component, and then further specified by the
+org.apache.uima.ducc.Workitem feature structure in the Work Item CAS.
+
+When no CM is defined the Work Item CAS is simply delivered to the AE, and then to the CC if defined. 
+Any CASes created by the AE will be routed to the CC.
+
+With a defined CM, the Work Item CAS is delivered only to the CM, and then returned from the JP when processing
+of all child CASes created by the CM and AE has completed. Work Item CAS flow can be further refined by the CR by
+creating a org.apache.uima.ducc.Workitem feature structure and setting the setSendToLast feature to true,
+or by setting the setSendToAll feature to true.
+
+\subsection{Workitem Feature Structure}
+This feature structure is defined in DuccJobFlowControlTS.xml, located in uima-ducc-common.jar.
+In addition to Work Item CAS flow control features, the WorkItem feature structure includes features that are useful
+for a DUCC job application. Here is the complete list of features:
+
+\begin{description}
+  \item[sendToLast] (Boolean) - indicates the Work Item CAS be sent to the CC
+  \item[sendToAll] (Boolean) - indicates Work Item CAS be sent to the AE and CC
+  \item[inputspec] (String) - reference to Work Item input data
+  \item[outputspec] (String) - reference to Work Item output data
+  \item[encoding] (String) - useful for reading Work Item input data
+  \item[language] (String) - used by the CM for setting document text language
+  \item[bytelength] (Integer) - size of Work Item
+  \item[blockindex] (Integer) - used if a Work Item is one of multiple pieces of an input resource
+  \item[blocksize] (Integer) - used to indicate block size for splitting an input resource
+  \item[lastBlock] (Boolean) - indicates this is the last block of an input resource
+\end{description}
+
+\subsection{Deployment Descriptor (DD) Jobs}
+Job Processes with arbitrary aggregate hierarchy, flow control and threading can be fully specified
+via a complete UIMA AS Deployment Descriptor. DUCC will modify the input queue to use DUCC's private
+broker and input queue name to correspond to the DUCC job ID.
+
+\subsection{Debugging}
+It is best to develop and debug the interactions between job application components as one, 
+single-threaded UIMA aggregate. DUCC provides an easy way to accomplish this, for both basic
+and DD job models, using the all\_in\_one specification parameter.
 
 \begin{description}
     \item[all\_in\_one=local] When set to local, all Job components are run in the same
