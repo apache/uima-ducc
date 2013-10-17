@@ -420,6 +420,8 @@ public class ManagedProcess implements Process {
 						getDuccProcess().setReasonForStoppingProcess(
 								ReasonForStoppingProcess.Croaked.toString());
 					}
+				} else if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping)) {
+					pstate = ProcessState.Stopped;
 				} else {
 					// if the process was stopped due InitializationFailure or
 					// InitializationTimeout

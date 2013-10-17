@@ -72,8 +72,8 @@ implements ManagedService {
 	public void notifyAgentWithStatus(ProcessState state) {
 		serviceAdapter.notifyAgentWithStatus(state);
 	}
-	public void notifyAgentWithStatus(ProcessState state, String processJmxUrl) {
-		serviceAdapter.notifyAgentWithStatus(state, processJmxUrl);
+	public void notifyAgentWithStatus(ProcessState state, String message) {
+		serviceAdapter.notifyAgentWithStatus(state, message);
 	}
 	public void notifyAgentWithStatus(List<IUimaPipelineAEComponent> pipeline) {
 		serviceAdapter.notifyAgentWithStatus(pipeline);

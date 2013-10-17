@@ -933,6 +933,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             return;
           } else if (changeState(duccEvent.getState())) {
             processEntry.getValue().setProcessState(duccEvent.getState());
+            // if the process is Stopping, it must have hit an error threshold
           }
           // Check if MemoryCollector should be created for this
           // process. It collects
@@ -991,10 +992,12 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             // kill the process
             undeployProcess(processEntry.getValue());
           } 
-//          else if (duccEvent.getState().equals(ProcessState.Stopping)) { 
-//              deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
-//              deployedProcess.isStopping();
-//          }
+          else if (duccEvent.getState().equals(ProcessState.Stopping)) { 
+              deployedProcess.getDuccProcess().setProcessState(ProcessState.Stopping);
+              processEntry.getValue().
+              	    setReasonForStoppingProcess(ReasonForStoppingProcess.ExceededErrorThreshold.toString());
+              deployedProcess.setStopping();
+          }
           if (duccEvent.getUimaPipeline() != null) {
             StringBuffer buffer = new StringBuffer("\t\tUima Pipeline -");
             for (IUimaPipelineAEComponent uimaAeState : duccEvent.getUimaPipeline()) {

@@ -63,7 +63,7 @@ public class ServiceAdapter implements ServiceStateNotificationAdapter {
 	public void notifyAgentWithStatus(ProcessState state) {
 		notifyAgentWithStatus(state, null);
 	}
-	public void notifyAgentWithStatus(ProcessState state, String processJmxUrl) {
+	public void notifyAgentWithStatus(ProcessState state, String message) {
 	  synchronized( stateLock ) {
 	    this.state = state;
 	    if ( pid == null ) {
@@ -71,10 +71,10 @@ public class ServiceAdapter implements ServiceStateNotificationAdapter {
 	      pid = Utils.getPID();
 	    }
 	    ProcessStateUpdate processUpdate = null;
-	    if ( processJmxUrl == null ) {
+	    if ( message == null ) {
 	      processUpdate = new ProcessStateUpdate(state, pid, duccProcessId,null);
 	    } else {
-	      processUpdate = new ProcessStateUpdate(state, pid, duccProcessId,processJmxUrl, null);
+	      processUpdate = new ProcessStateUpdate(state, pid, duccProcessId,message, null);
 	    }
 	    //System.out.println("................. >>> ProcessStateUpdate==NULL?"+(processUpdate==null)+" JmxUrl="+processJmxUrl);
 	    if (endpoint != null ) {

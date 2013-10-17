@@ -15,7 +15,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/
+ */
 package org.apache.uima.ducc.agent.deploy.uima;
 
 import java.io.File;
@@ -36,6 +36,8 @@ import javax.management.ObjectName;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.uima.aae.UimaASApplicationEvent.EventTrigger;
+import org.apache.uima.aae.UimaASApplicationExitEvent;
 import org.apache.uima.aae.controller.AnalysisEngineController;
 import org.apache.uima.adapter.jms.activemq.SpringContainerDeployer;
 import org.apache.uima.adapter.jms.service.UIMA_Service;
@@ -50,7 +52,8 @@ import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.agent.UimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
-
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 
 /**
  * Service wrapper for UIMA AS service. Deploys UIMA AS using Spring deployer
@@ -58,51 +61,58 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
  * {@code ServiceStateNotificationAdapter}.
  * 
  */
-public class ManagedUimaService extends AbstractManagedService {
+public class ManagedUimaService extends AbstractManagedService implements
+		ApplicationListener<ApplicationEvent> {
 
 	private SpringContainerDeployer serviceDeployer;
 	private String saxonJarPath;
 	private String dd2SpringXslPath;
-  private String processJmxUrl=null;
+	private String processJmxUrl = null;
 	protected DuccLogger logger;
-	private String agentStateUpdateEndpoint="";
-	
+	private String agentStateUpdateEndpoint = "";
+
 	public static void main(String[] args) {
 		try {
-			ManagedUimaService ms = 
-					new ManagedUimaService("${DUCC_HOME}/lib/saxon8/saxon8.jar", "${DUCC_HOME}/bin/dd2spring.xsl",null, new DefaultCamelContext());
-			ms.deploy(new String[] {XStreamUtils.marshall(new DuccUimaDeploymentDescriptor(args[0]))});
-		} catch( Exception e) {
+			ManagedUimaService ms = new ManagedUimaService(
+					"${DUCC_HOME}/lib/saxon8/saxon8.jar",
+					"${DUCC_HOME}/bin/dd2spring.xsl", null,
+					new DefaultCamelContext());
+			ms.deploy(new String[] { XStreamUtils
+					.marshall(new DuccUimaDeploymentDescriptor(args[0])) });
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public ManagedUimaService(String saxonJarPath,String dd2SpringXslPath,
+
+	public ManagedUimaService(String saxonJarPath, String dd2SpringXslPath,
 			ServiceStateNotificationAdapter serviceAdapter, CamelContext context) {
 		super(serviceAdapter, context);
 		this.saxonJarPath = saxonJarPath;
 		this.dd2SpringXslPath = dd2SpringXslPath;
-		//	Fetch uima logger and inject UIMALogFormatter to show thread ids
-//		Logger l = java.util.logging.Logger.getLogger("org.apache.uima");
-//		ConsoleHandler ch = new ConsoleHandler();
-//		ch.setFormatter(new UIMALogFormatter());
-//		l.addHandler(ch);
+		// Fetch uima logger and inject UIMALogFormatter to show thread ids
+		// Logger l = java.util.logging.Logger.getLogger("org.apache.uima");
+		// ConsoleHandler ch = new ConsoleHandler();
+		// ch.setFormatter(new UIMALogFormatter());
+		// l.addHandler(ch);
 		logger = new DuccLogger(DuccService.class);
 	}
 
 	public void onServiceStateChange(ProcessState state) {
 		super.notifyAgentWithStatus(state);
 	}
+
 	public void setAgentStateUpdateEndpoint(String agentUpdateEndpoint) {
-	  this.agentStateUpdateEndpoint = agentUpdateEndpoint;
+		this.agentStateUpdateEndpoint = agentUpdateEndpoint;
 	}
+
 	public void quiesceAndStop() {
 		try {
 			if (serviceDeployer != null) {
 				serviceDeployer.getTopLevelController().quiesceAndStop();
 				AnalysisEngineController topLevelController = serviceDeployer
 						.getTopLevelController();
-				if (topLevelController != null && !topLevelController.isStopped()) {
+				if (topLevelController != null
+						&& !topLevelController.isStopped()) {
 					serviceDeployer
 							.undeploy(SpringContainerDeployer.QUIESCE_AND_STOP);
 				}
@@ -129,21 +139,26 @@ public class ManagedUimaService extends AbstractManagedService {
 	}
 
 	public void killService() {
-    logger.info("killService", null, "Ducc UIMA Service process received STOP event. Stopping UIMA AS ...");
-    if (serviceDeployer != null) {
-      // Use top level controller to stop all components. This method doesnt wait
-      // for inflight CASes to be processed
-      serviceDeployer.getTopLevelController().stop();
-    }
-    logger.info("killService", null, "Ducc UIMA Service process stopped UIMA AS and exiting via System.exit()");
+		logger.info("killService", null,
+				"Ducc UIMA Service process received STOP event. Stopping UIMA AS ...");
+		if (serviceDeployer != null) {
+			// Use top level controller to stop all components. This method
+			// doesnt wait
+			// for inflight CASes to be processed
+			serviceDeployer.getTopLevelController().stop();
+		}
+		logger.info("killService", null,
+				"Ducc UIMA Service process stopped UIMA AS and exiting via System.exit()");
 		System.exit(-1);
 	}
 
 	public void stopService() {
-		System.out.println("UIMA AS process received STOP event. Proceeding to STOP in quiesce mode");
-		
+		System.out
+				.println("UIMA AS process received STOP event. Proceeding to STOP in quiesce mode");
+
 		if (serviceDeployer != null) {
-			// Use top level controller to stop all components. This method blocks until
+			// Use top level controller to stop all components. This method
+			// blocks until
 			// ALL in flight CASes are processed.
 			serviceDeployer.getTopLevelController().quiesceAndStop();
 		}
@@ -151,78 +166,77 @@ public class ManagedUimaService extends AbstractManagedService {
 		currentState = ProcessState.Stopped;
 		try {
 			super.stop();
-		} catch( Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
 	/**
 	 * Returns UIMA AS service arguments: saxonURL, xslt parser
 	 * 
-	 * @param args - commandline args
+	 * @param args
+	 *            - commandline args
 	 * @return
 	 * @throws Exception
 	 */
 	public String[] getServiceArgs(String[] args) throws Exception {
 		String ddPath = args[0];
-		ddPath = Utils.resolvePlaceholderIfExists(ddPath,System.getProperties());
-		return new String[] {"-saxonURL",
-				Utils.resolvePlaceholderIfExists(saxonJarPath,System.getProperties()),
-				"-xslt", 
-				Utils.resolvePlaceholderIfExists(dd2SpringXslPath,System.getProperties()),
-				"-dd",ddPath};
+		ddPath = Utils.resolvePlaceholderIfExists(ddPath,
+				System.getProperties());
+		return new String[] {
+				"-saxonURL",
+				Utils.resolvePlaceholderIfExists(saxonJarPath,
+						System.getProperties()),
+				"-xslt",
+				Utils.resolvePlaceholderIfExists(dd2SpringXslPath,
+						System.getProperties()), "-dd", ddPath };
 	}
-/*
-	private void setupLogging() throws Exception {
-		Properties props = new Properties();
-	    	try {
-	    		InputStream configStream = 
-				getClass().getResourceAsStream
-				("Logger.properties");
-		        props.load(configStream);
-		        configStream.close();
-	    	} catch(IOException e) {
-	        	System.out.println("Error");
-	  	}
-	    	//props.setProperty("log4j.rootLogger","INFO, stdout");
-	    	Enumeration<Logger> en = LogManager.getCurrentLoggers();
-	    	while (en.hasMoreElements()) {
-	    		System.out.println("Logger Appender Class:"+en.nextElement().getName());
-	    	}
-	    	LogManager.resetConfiguration();
-	    	PropertyConfigurator.configure(props);		
-	}
-*/	
+
+	/*
+	 * private void setupLogging() throws Exception { Properties props = new
+	 * Properties(); try { InputStream configStream =
+	 * getClass().getResourceAsStream ("Logger.properties");
+	 * props.load(configStream); configStream.close(); } catch(IOException e) {
+	 * System.out.println("Error"); }
+	 * //props.setProperty("log4j.rootLogger","INFO, stdout");
+	 * Enumeration<Logger> en = LogManager.getCurrentLoggers(); while
+	 * (en.hasMoreElements()) {
+	 * System.out.println("Logger Appender Class:"+en.nextElement().getName());
+	 * } LogManager.resetConfiguration(); PropertyConfigurator.configure(props);
+	 * }
+	 */
 	/**
 	 * deploys UIMA AS service
 	 */
 	public void deploy(String[] args) throws Exception {
-		//	Instrument this process with JMX Agent. The Agent will
-		//  find an open port and start JMX Connector allowing
-		//  jmx clients to connect to this jvm using standard
-		//  jmx connect url. This process does not require typical
-		//  -D<jmx params> properties. Currently the JMX does not
-		//  use security allowing all clients to connect.
+		// Instrument this process with JMX Agent. The Agent will
+		// find an open port and start JMX Connector allowing
+		// jmx clients to connect to this jvm using standard
+		// jmx connect url. This process does not require typical
+		// -D<jmx params> properties. Currently the JMX does not
+		// use security allowing all clients to connect.
 		processJmxUrl = super.getProcessJmxUrl();
-		System.out.println("Connect jConsole to this process using JMX URL:"+processJmxUrl);
+		System.out.println("Connect jConsole to this process using JMX URL:"
+				+ processJmxUrl);
 
 		UIMA_Service service = new UIMA_Service();
-		
+
 		StringBuffer sb = new StringBuffer("Deploying UIMA AS with args:\n");
-		
-		for( String arg : args) {
-			sb.append(arg+"\n");
+
+		for (String arg : args) {
+			sb.append(arg + "\n");
 		}
 		System.out.println(sb.toString());
 		String[] serviceArgs = getServiceArgs(args);
-		
+
 		sb.setLength(0);
 		sb.append("Service Args:\n");
-		for( String arg : serviceArgs) {
-			sb.append(" "+arg);
+		for (String arg : serviceArgs) {
+			sb.append(" " + arg);
 		}
 		System.out.println(sb.toString());
 
-    System.out.println("ManagedUimaService initializing...");
+		System.out.println("ManagedUimaService initializing...");
 
 		// parse command args and run dd2spring to generate spring context
 		// files from deployment descriptors
@@ -231,15 +245,19 @@ public class ManagedUimaService extends AbstractManagedService {
 			throw new Exception(
 					"Spring Context Files Not Generated. Unable to Launch Uima AS Service");
 		}
-		//	 Make sure that the dd2spring generated file exists
+		// Make sure that the dd2spring generated file exists
 		File generatedFile = new File(contextFiles[0]);
-		while( !generatedFile.exists() ) {
-			synchronized(generatedFile) {
+		while (!generatedFile.exists()) {
+			synchronized (generatedFile) {
 				generatedFile.wait(500);
 			}
 		}
-		System.out.println("ManagedUimaService initialized - ready to process. Agent State Update endpoint:"+agentStateUpdateEndpoint);
-		System.out.println(".... Verified dd2spring generated spring context file:"+contextFiles[0]);
+		System.out
+				.println("ManagedUimaService initialized - ready to process. Agent State Update endpoint:"
+						+ agentStateUpdateEndpoint);
+		System.out
+				.println(".... Verified dd2spring generated spring context file:"
+						+ contextFiles[0]);
 		// Let the Agent know that the service is entering Initialization
 		// state. This is an initial state of a service, covering
 		// process bootstrapping(startup) and initialization of UIMA
@@ -249,8 +267,8 @@ public class ManagedUimaService extends AbstractManagedService {
 		ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(
 				1);
 		executor.prestartAllCoreThreads();
-		//	Instantiate a UIMA AS jmx monitor to poll for status of the AE.
-		//  This monitor checks if the AE is initializing or ready.  
+		// Instantiate a UIMA AS jmx monitor to poll for status of the AE.
+		// This monitor checks if the AE is initializing or ready.
 		UimaAEJmxMonitor monitor = new UimaAEJmxMonitor(this, serviceArgs);
 		/*
 		 * This will execute the UimaAEJmxMonitor continuously for every 15
@@ -265,9 +283,9 @@ public class ManagedUimaService extends AbstractManagedService {
 		// initialized and all UIMA-AS components are successfully deployed
 		// or there is a failure.
 		try {
-      serviceDeployer = service.deploy(contextFiles);
-		} catch( Throwable t) {
-		  t.printStackTrace();
+			serviceDeployer = service.deploy(contextFiles, this);
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 		// Stop executor. It was only needed to poll AE initialization status.
 		// Since deploy() completed
@@ -276,16 +294,16 @@ public class ManagedUimaService extends AbstractManagedService {
 		// need to poll for initialization status
 		executor.shutdownNow();
 
-		if (serviceDeployer == null || serviceDeployer.initializationFailed() ) {
-      currentState = ProcessState.FailedInitialization;
+		if (serviceDeployer == null || serviceDeployer.initializationFailed()) {
+			currentState = ProcessState.FailedInitialization;
 			System.out
 					.println(">>> Failed to Deploy UIMA Service. Check UIMA Log for Details");
 			super.notifyAgentWithStatus(ProcessState.FailedInitialization);
 		} else {
-	    currentState = ProcessState.Running;
-	    // Update agent with the most up-to-date state of the pipeline
-	    monitor.run();
-	    super.notifyAgentWithStatus(currentState,processJmxUrl);
+			currentState = ProcessState.Running;
+			// Update agent with the most up-to-date state of the pipeline
+			monitor.run();
+			super.notifyAgentWithStatus(currentState, processJmxUrl);
 		}
 
 	}
@@ -293,11 +311,12 @@ public class ManagedUimaService extends AbstractManagedService {
 	public void updateAgent(List<IUimaPipelineAEComponent> pipeline) {
 		super.notifyAgentWithStatus(pipeline);
 	}
+
 	public static class UimaAEJmxMonitor implements Runnable {
 		MBeanServer server = null;
 		ManagedUimaService service;
-    static int howManySeenSoFar = 1;
-    public List<IUimaPipelineAEComponent> aeStateList = new ArrayList<IUimaPipelineAEComponent>();
+		static int howManySeenSoFar = 1;
+		public List<IUimaPipelineAEComponent> aeStateList = new ArrayList<IUimaPipelineAEComponent>();
 
 		public UimaAEJmxMonitor(ManagedUimaService service, String[] serviceArgs)
 				throws Exception {
@@ -316,8 +335,9 @@ public class ManagedUimaService extends AbstractManagedService {
 
 		public void run() {
 			try {
-				//	create an ObjectName with UIMA As JMS naming convention to enable 
-				//  finding deployed uima components.
+				// create an ObjectName with UIMA As JMS naming convention to
+				// enable
+				// finding deployed uima components.
 				ObjectName uimaServicePattern = new ObjectName(
 						"org.apache.uima:type=ee.jms.services,*");
 				// Fetch UIMA AS MBean names from JMX Server that match above
@@ -332,7 +352,7 @@ public class ManagedUimaService extends AbstractManagedService {
 					if (targetName.endsWith("FlowController")) { // skip FC
 						continue;
 					}
-					//	Only interested in AEs
+					// Only interested in AEs
 					if (instance
 							.getClassName()
 							.equals("org.apache.uima.analysis_engine.impl.AnalysisEngineManagementImpl")) {
@@ -345,10 +365,10 @@ public class ManagedUimaService extends AbstractManagedService {
 							continue;
 						}
 						StringBuffer sb = new StringBuffer();
-						//int partCount = 0;
-						//	compose component name from jmx ObjectName
+						// int partCount = 0;
+						// compose component name from jmx ObjectName
 						for (String part : aeObjectNameParts) {
-							//partCount++;
+							// partCount++;
 							if (part.startsWith("org.apache.uima:type")
 									|| part.startsWith("s=")) {
 								continue; // skip service name part of the name
@@ -361,75 +381,121 @@ public class ManagedUimaService extends AbstractManagedService {
 								sb.append(part.substring(part.indexOf("=") + 1));
 							}
 						}
-						// Fetch a proxy to the AE Management object which holds AE stats
-						AnalysisEngineManagement proxy = JMX.newMBeanProxy(server, instance.getObjectName(),AnalysisEngineManagement.class);
+						// Fetch a proxy to the AE Management object which holds
+						// AE stats
+						AnalysisEngineManagement proxy = JMX.newMBeanProxy(
+								server, instance.getObjectName(),
+								AnalysisEngineManagement.class);
 
 						IUimaPipelineAEComponent aeState = null;
-//						if ((aeState = getUimaAeByName(aeStateList, sb.toString())) == null) {
-            if ((aeState = getUimaAeByName(sb.toString())) == null) {
-              // Not interested in AEs that are in a Ready State
-              if ( AnalysisEngineManagement.State.valueOf(proxy.getState()).equals(AnalysisEngineManagement.State.Ready)) {
-                continue;
-              }
-							aeState = new UimaPipelineAEComponent(sb.toString(), proxy.getThreadId(),	AnalysisEngineManagement.State.valueOf(proxy.getState()));
+						// if ((aeState = getUimaAeByName(aeStateList,
+						// sb.toString())) == null) {
+						if ((aeState = getUimaAeByName(sb.toString())) == null) {
+							// Not interested in AEs that are in a Ready State
+							if (AnalysisEngineManagement.State.valueOf(
+									proxy.getState()).equals(
+									AnalysisEngineManagement.State.Ready)) {
+								continue;
+							}
+							aeState = new UimaPipelineAEComponent(
+									sb.toString(), proxy.getThreadId(),
+									AnalysisEngineManagement.State
+											.valueOf(proxy.getState()));
 							aeStateList.add(aeState);
-							((UimaPipelineAEComponent)aeState).startInitialization = System.currentTimeMillis();
-              aeState.setAeState(AnalysisEngineManagement.State.Initializing);
+							((UimaPipelineAEComponent) aeState).startInitialization = System
+									.currentTimeMillis();
+							aeState.setAeState(AnalysisEngineManagement.State.Initializing);
 							updateAgent = true;
-						} else  {
-						  // continue publishing AE state while the AE is initializing
-						  if (AnalysisEngineManagement.State.valueOf(proxy.getState()).equals(AnalysisEngineManagement.State.Initializing)) {
-                updateAgent = true;
-                aeState.setInitializationTime(System.currentTimeMillis()-((UimaPipelineAEComponent)aeState).startInitialization);
-                // publish state if the AE just finished initializing and is now in Ready state
-              } else if (aeState.getAeState().equals(AnalysisEngineManagement.State.Initializing) &&
-                      AnalysisEngineManagement.State.valueOf(proxy.getState()).equals(AnalysisEngineManagement.State.Ready)) {
-                 aeState.setAeState(AnalysisEngineManagement.State.Ready);
-                 updateAgent = true;
-                 synchronized(this) {
-                   try {
-                     wait(5);
-                   }catch(InterruptedException ex) {
-                   }
-                 }
-                 aeState.setInitializationTime(proxy.getInitializationTime());
-                 // AE reached ready state we no longer need to publish its state
-                 componentsToDelete.add(aeState);
-              } 
+						} else {
+							// continue publishing AE state while the AE is
+							// initializing
+							if (AnalysisEngineManagement.State
+									.valueOf(proxy.getState())
+									.equals(AnalysisEngineManagement.State.Initializing)) {
+								updateAgent = true;
+								aeState.setInitializationTime(System
+										.currentTimeMillis()
+										- ((UimaPipelineAEComponent) aeState).startInitialization);
+								// publish state if the AE just finished
+								// initializing and is now in Ready state
+							} else if (aeState
+									.getAeState()
+									.equals(AnalysisEngineManagement.State.Initializing)
+									&& AnalysisEngineManagement.State
+											.valueOf(proxy.getState())
+											.equals(AnalysisEngineManagement.State.Ready)) {
+								aeState.setAeState(AnalysisEngineManagement.State.Ready);
+								updateAgent = true;
+								synchronized (this) {
+									try {
+										wait(5);
+									} catch (InterruptedException ex) {
+									}
+								}
+								aeState.setInitializationTime(proxy
+										.getInitializationTime());
+								// AE reached ready state we no longer need to
+								// publish its state
+								componentsToDelete.add(aeState);
+							}
 						}
-            service.logger.debug("UimaAEJmxMonitor.run()", null, "---- AE Name:"+proxy.getName()+" AE State:"+proxy.getState()+" AE init time="+aeState.getInitializationTime()+" Proxy Init time="+proxy.getInitializationTime()+" Proxy Thread ID:"+proxy.getThreadId());
+						service.logger.debug(
+								"UimaAEJmxMonitor.run()",
+								null,
+								"---- AE Name:" + proxy.getName()
+										+ " AE State:" + proxy.getState()
+										+ " AE init time="
+										+ aeState.getInitializationTime()
+										+ " Proxy Init time="
+										+ proxy.getInitializationTime()
+										+ " Proxy Thread ID:"
+										+ proxy.getThreadId());
 					}
 				}
-        howManySeenSoFar = 1;  // reset error counter
+				howManySeenSoFar = 1; // reset error counter
 				if (updateAgent) {
-          service.logger.debug("UimaAEJmxMonitor.run()", null, "---- Publishing UimaPipelineAEComponent List - size="+aeStateList.size());
-          try {
-            service.updateAgent(aeStateList);
-          } catch( Exception ex) {
-            throw ex;
-          } finally {
-            //  remove components that reached Ready state
-            for (IUimaPipelineAEComponent aeState : componentsToDelete) {
-              aeStateList.remove(aeState);
-            }            
-          }
+					service.logger.debug("UimaAEJmxMonitor.run()", null,
+							"---- Publishing UimaPipelineAEComponent List - size="
+									+ aeStateList.size());
+					try {
+						service.updateAgent(aeStateList);
+					} catch (Exception ex) {
+						throw ex;
+					} finally {
+						// remove components that reached Ready state
+						for (IUimaPipelineAEComponent aeState : componentsToDelete) {
+							aeStateList.remove(aeState);
+						}
+					}
 				}
 
-			} catch( UndeclaredThrowableException e ) {
-			   if ( !(e.getCause() instanceof InstanceNotFoundException) ) {
-			     if ( howManySeenSoFar > 3 ) { // allow up three errors of this kind
-	           service.logger.info("UimaAEJmxMonitor.run()", null, e);
-	           howManySeenSoFar = 1;
-	           throw e; 
-			     }
-           howManySeenSoFar++;
-			   } else {
-			     // AE not fully initialized yet, ignore the exception
-			   }
-			}	catch (Throwable e) {
-        howManySeenSoFar = 1;
-        service.logger.info("UimaAEJmxMonitor.run()", null, e);
+			} catch (UndeclaredThrowableException e) {
+				if (!(e.getCause() instanceof InstanceNotFoundException)) {
+					if (howManySeenSoFar > 3) { // allow up three errors of this
+												// kind
+						service.logger.info("UimaAEJmxMonitor.run()", null, e);
+						howManySeenSoFar = 1;
+						throw e;
+					}
+					howManySeenSoFar++;
+				} else {
+					// AE not fully initialized yet, ignore the exception
+				}
+			} catch (Throwable e) {
+				howManySeenSoFar = 1;
+				service.logger.info("UimaAEJmxMonitor.run()", null, e);
 			}
+		}
+	}
+
+	public void onApplicationEvent(ApplicationEvent event) {
+		if (event instanceof UimaASApplicationExitEvent) {
+			String reason = "ProcessCASFailed";
+			if (!((UimaASApplicationExitEvent) event).getEventTrigger().equals(
+					EventTrigger.ExceededErrorThreshold)) {
+				reason = "ExceededErrorThreshold";
+			}
+			notifyAgentWithStatus(ProcessState.Stopping, reason);
 		}
 	}
 

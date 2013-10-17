@@ -57,7 +57,7 @@ public class Launcher {
     public void start(ICommandLine cmdLine, int howMany, String ip, String nodeName) throws Exception {
         //	Launch as many agents as requested  
         for( int i=0; i < howMany; i++ ) {
-            String host = new String(nodeName);
+            String host = nodeName;
             //	Append suffix to node name for each Agent instance
             if ( host.indexOf(".") > -1 ) {
                 String tmp = host.substring(0,host.indexOf("."));

@@ -26,6 +26,7 @@ public interface IProcessState extends Serializable {
 		Starting,               // Process Manager sent request to start the Process
 		Initializing,			// Process Agent is initializing process
 		Running,				// Process Agent is available for processing work items
+		Stopping,               // Process is shutting down
 		Stopped,				// Process Agent reports process stopped
 		Failed,					// Process Agent reports process failed
 		FailedInitialization,	// Process Agent reports process failed initialization

@@ -28,10 +28,17 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 public class ProcessStateUpdateDuccEvent extends AbstractDuccEvent {
 	private static final long serialVersionUID = -9138045039215135857L;
 	private ProcessStateUpdate processUpdate;
+	private String message;
 	
 	public ProcessStateUpdateDuccEvent(ProcessStateUpdate processUpdate) {
 		super(EventType.PROCESS_STATE);
 		this.processUpdate = processUpdate;
+	}
+	public String getMessage() {
+		return message;
+	}
+	public void setMessage( String message) {
+		this.message = message;
 	}
 	/**
 	 * @return the state
