@@ -268,9 +268,13 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                 + " Time to Collect Swap Usage:" + (System.currentTimeMillis() - st));
         // }
         // logCounter++;
-
+        
         if (processSwapUsage > 0 && processSwapUsage > managedProcess.getMaxSwapThreshold()) {
-          logger.error(
+        /*
+            // Disable code that kill a process if it exceeds its swap allocation. Per JIRA 
+            // UIMA-3320, agent will monitor node-wide swap usage and will kill processes that
+            // use most of the swap.
+        	logger.error(
                   "process",
                   null,
                   "\n\n********************************************************\n\tProcess with PID:"
@@ -303,6 +307,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
             logger.error("process", null, ee);
           }
           return;
+          */
         } else {
           // Use Memory Guard only if cgroups are disabled and fudge factor > -1
 
