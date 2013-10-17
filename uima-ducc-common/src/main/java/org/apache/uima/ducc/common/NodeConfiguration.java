@@ -791,6 +791,7 @@ public class NodeConfiguration
         if ( ducc_home == null ) {
             throw new IllegalConfigurationException("DUCC_HOME must be defined as a system property.");
         }
+        defaultDomain = getDomainName();
 
         config_file_name = resolve(config_file_name);
         in = new BufferedReader(new FileReader(config_file_name));
