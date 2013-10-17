@@ -510,6 +510,16 @@ under the License.
     <fileSet>
       <directory>uima-ducc-web/src/main/webapp/root</directory>
       <outputDirectory>ducc_runtime/webserver/root</outputDirectory>
+      <excludes>
+         <exclude>opensources/DataTables-1.9.1/docs/**</exclude>
+         <exclude>opensources/DataTables-1.9.1/media/unit_testing/**</exclude>
+         <exclude>opensources/DataTables-1.9.1/examples/**</exclude>
+         <exclude>opensources/jquery-ui-1.8.4/docs/**</exclude>
+         <exclude>opensources/jquery-ui-1.8.4/demos/**</exclude>
+         <exclude>opensources/jquery-ui-1.8.4/tests/**</exclude>
+         <exclude>opensources/**/*.txt</exclude>
+         <exclude>opensources/**/*.zip</exclude>
+      </excludes>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
