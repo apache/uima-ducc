@@ -75,6 +75,7 @@ import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccReasonForProcessNotRunning.ReasonForStopping;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
@@ -924,8 +925,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                     + processEntry.getValue().getDuccId()
                     + " Was Previously Tagged for Kill While It Was Starting");
             undeployProcess(processEntry.getValue());
+          } else if ( deployedProcess != null && deployedProcess.doKill() && 
+        		  deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped) ) {
+        	  deployedProcess.getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
           } else if ( deployedProcess != null && ( deployedProcess.doKill()
-                  || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Stopped)
                   || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Failed)
                   || deployedProcess.getDuccProcess().getProcessState().equals(ProcessState.Killed)) ) {
             // The process has already stopped, but managed to send
