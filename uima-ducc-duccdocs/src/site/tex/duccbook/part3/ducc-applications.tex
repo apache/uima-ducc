@@ -280,11 +280,12 @@ and change the setting for {\em multipleDeploymentAllowed} from false to true.
 Choose one or more flat text files in UTF8 format that only use newline characters,
 {\em not CR-LF sequences}.
 The text should be big enough to see the impact of DUCC job scale out.
-We used test data from the core UIMA test set,
+We used test data from gutenberg.org at
 \begin{verbatim}
-   http://svn.apache.org/viewvc/uima/uimaj/trunk/uimaj-core/src/test/resources/data/moby.txt
+   http://www.gutenberg.org/ebooks/search/?sort_order=downloads
 \end{verbatim}
-and downloaded it to a subdirectory `Moby'.
+downloading 'Plain Text UTF-8' versions of {\em Moby Dick}, {\em War and Peace} and {\em The Complete Works of William Shakespeare} 
+to a subdirectory `Books', and removing all '\r' characters as well as extraneous text.
 
 \section{Run the Job}
 The job specification, DuccRawTextSpec.job, uses placeholders to reference the working directory
@@ -294,36 +295,65 @@ from environmental variables.
 The job is submitted from the command line with the following:
 \begin{verbatim}
    MyAppDir=pathToWorkingDirectory \
-   MyInputDir=$MyAppDir/Moby \
-   MyOutputDir=$MyAppDir/Moby.processed \
+   MyInputDir=$MyAppDir/Books \
+   MyOutputDir=$MyAppDir/Books.processed \
    pathToDuccRuntime/bin/ducc_submit -f DuccRawTextSpec.job
 \end{verbatim}
 
-Given that moby.txt is 1.2Mbytes and a blocksize of 100000 is used, there are 13 Work Items. Each Job Process is configured to run 8 parallel OpenNLP pipelines. For comparison, the job can be forced to run all Work Items in a single process with only one thread:
+The total size of the three txt files is 9.4Mbytes and with a blocksize of 100000 there are 100 Work Items. Each Job Process is 
+configured to run 8 parallel OpenNLP pipelines. To examine the performance of processing with just a single Job Process, 
+the job can be submitted as:
+
 \begin{verbatim}
    MyAppDir=pathToWorkingDirectory \
-   MyInputDir=$MyAppDir/Moby \
-   MyOutputDir=$MyAppDir/Moby.processed \
+   MyInputDir=$MyAppDir/Books \
+   MyOutputDir=$MyAppDir/Books.processed \
    pathToDuccRuntime/bin/ducc_submit -f DuccRawTextSpec.job \
-   --process_deployments_max 1 \
-   --process_thread_count 1
+   --process_deployments_max 1
 \end{verbatim}
 
-\section{Output Data}
+\section{Job Output}
 There will be an output zipfile for every Work Item, with zipfiles containing a compressed CAS for each document (paragraph) 
 found in a Work Item. If UseBinaryCompression=true each zipfile will also contain the TypeSystem for the CASes. 
 This is needed when deserializing these CASes into a different TypeSystem.
 
-DuccTextCM finds 768 paragraphs in moby.txt. The total size of the resultant 768 XmiCas files is 108MB. The total size using ZIP compression and packaging these into 13 output Work Item zipfiles is 20MB. Using UIMA binary compressed format the further reduces total size to 6.5MB.
+DuccTextCM finds 19245 paragraphs in the three txt files. If the output CASes are stored as 19245 uncompressed XMI files, the total size is 911MB. Using the default ZIP compressed XMI format and packed into 100 Work Item zip files, the total size is 165MB, a 5.5x compression. Using UIMA binary compressed format further reduces total size to 62MB.
 
 This output data will be used as input data for the following CAS input processing sample application.
+
+\section{Job Performance Details}
+DUCC captures a number of process performance metrics.
+\hyperref[fig:OpenNLP-Process-Measurements]{Figure ~\ref{fig:OpenNLP-Process-Measurements}} shows details on the JD and 
+single JP processes. The \%CPU time shown, 728, is lower than the actual because the Job Process was idle 
+for some time before it received the first Work Item and also idle between finishing the last Work Item and being shut down.
+For the 14 minutes of active processing (taken from the JP logfile), DUCC shows the JVM spent a total of 58 seconds in 
+GC (garbage collection), had no major page faults or page space, and used a max of 2.1GB of RSS.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[bb=0 0 947 299, width=7in]{images/BooksRaw.png}
+  \caption{OpenNLP Process Measurements}
+  \label{fig:OpenNLP-Process-Measurements}
+\end{figure}
+
+On the Performance tab, DUCC shows the breakdown of clock time spent in each primitive UIMA component running in the 
+Job Process. See \hyperref[fig:OpenNLP-Process-Breakdown]{Figure ~\ref{fig:OpenNLP-Process-Breakdown}}.
+Processing time was dominated by the Parser component at 76.7\%. The time spent compressing and writing out CASes 
+was 0.5\%, and the time reading the input text files well below 0.1\%.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[bb=0 0 708 469, width=5.5in]{images/BooksRawPerf.png}
+  \caption{OpenNLP Process Breakdown}
+  \label{fig:OpenNLP-Process-Breakdown}
+\end{figure}
 
 
 \chapter{Sample Application: CAS Input Processing}
 
 \section{Application Function and Design}
-The main purpose of this application is to demonstrate the overhead of processing a collection of CASes grouped into zipfiles 
-and stored as ZIP compressed XmiCas or with UIMA compressed binary form 6 format.
+The main purpose of this application is to demonstrate the overhead of processing a collection of CASes grouped into 
+zipfiles and stored as ZIP compressed XmiCas or with UIMA compressed binary form 6 format.
 
 
 \section{Configuration Parameters}
@@ -354,20 +384,29 @@ from environmental variables.
 The job is submitted from the command line with the following:
 \begin{verbatim}
    MyAppDir=pathToWorkingDirectory \
-   MyInputDir=$MyAppDir/Moby.processed \ 
-   MyOutputDir=$MyAppDir/Moby.followon \
-   pathToDuccRuntime/bin/ducc_submit -f DuccCasInputSpec.job
+   MyInputDir=$MyAppDir/Books.processed \ 
+   MyOutputDir=$MyAppDir/Books.followon \
+   pathToDuccRuntime/bin/ducc_submit -f DuccCasInputSpec.job \
+   --process_deployments_max 1
 \end{verbatim}
 
-\section{Limiting Job Resources}
-The average uncompressed size of XmiCas formatted CASes from processing the 768 paragraphs in moby.txt is 140KB.
-Using UIMA binary compression format for both input and output CASes, a single-threaded Jop Process will complete
-this CAS processing task in about 8 seconds. That translates to roughly 100 CASes per second: reading, deserializing, 
-re-serializing and re-writing the CAS data.
+\section{Job Performance Details}
+\hyperref[fig:CAS-Input-Processing]{Figure ~\ref{fig:CAS-Input-Processing}} shows the component breakdown
+using binary CAS compression. Reading and deserializing took 38\% vs the 60\% spent serializing and writing.
+Using 8 pipeline threads in one process the 19245 CASes output from the last application were read and 
+re-written in 9 seconds.
 
-Although this thread is primarily CPU bound doing serialization work, it is possible to become I/O bound 
-with enough threads banging on a shared filesystem. For this sample job doing no additional processing, 
-DuccCasInputSpec.job limits the total number of processing threads to 32 using the combination 
+\begin{figure}[H]
+  \centering
+  \includegraphics[bb=0 0 704 251, width=5.5in]{images/BooksCasPerf.png}
+  \caption{CAS Input Processing Performacne}
+  \label{fig:CAS-Input-Processing}
+\end{figure}
+
+\section{Limiting Job Resources}
+Although this 8-threaded Job Process was primarily CPU bound doing serialization work, it is possible to become I/O bound 
+with enough threads banging on a shared filesystem.
+DuccCasInputSpec.job demonstrates how to limit the total number of processing threads to 32 using the combination 
 of process\_thread\_count=8 and process\_deployments\_max=4.
 
 I/O vs CPU bottlenecks can be detected using the detailed performance job data reported by DUCC and comparing results
