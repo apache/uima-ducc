@@ -7,56 +7,6 @@ licensed to the Apache Software Foundation under the
 "IBM UIMA-EE License Agreement".
 Copyright (c) 2007, 2008 IBM Corporation
 
-This product includes software, Apache ActiveMQ, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Camel, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Spring Framework, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Google Guava, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-
-
-This product includes software, Apache Commons CLI, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-
-This product includes software, Joda Time, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, HttpClient , developed
-at the Apache Software Foundation (http://www.apache.org/).
- 
-This product includes software, Apache Commons Codec, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons Pool, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons-Collections, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons Lang, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons Math, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache log4j, developed
-at the Apache Software Foundation (http://www.apache.org/).
- 
-This product includes software, Apache MINA, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Jetty, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Google GSon, developed
-at the Apache Software Foundation (http://www.apache.org/).
 
 This product includes software, ClueTip Plugin, developed
 at http://plugins.learningjquery.com/cluetip/.
@@ -68,47 +18,7 @@ This product includes software, jQuery, developed at http://jquery.com/.
 
 This product includes software, jQuery UI, developed at http://jqueryui.com/.
 
-This product includes software, SLF4J, developed at http://slf4j.org/.
-
-This product includes software, SLF4J, developed at Codehaus (http://xstream.codehaus.org/).
-
-This product includes software, JSch, developed at JCraft (http://www.jcraft.com/jsch/).
-
 This product includes software, JGrowl, developed at http://stanlemon.net/2013/03/16/jgrowl-1-2-11/.
 
 This product includes software, sorttable, developed at http://kryogenix.org/code/browser/sorttable/.
 
-This product includes software known as 
-"The Saxon XSLT and XQuery Processor from Saxonica Limited", whose
-home page URL is http://www.saxonica.com/ 
-
-Saxon includes the org.apache.xerces.util.XMLChar module from the Apache 
-Xerces product, renamed as net.sf.saxon.om.XMLChar but otherwise unchanged. 
-See the copyright statements included in the source code of that module for
-conditions of use.
-
-Saxon includes code for performing Unicode normalization that is derived 
-from the sample code published for this purpose by the Unicode consortium. 
-For the terms of use of this code, see http://www.unicode.org/terms_of_use.html, 
-which should be regarded as forming part of these conditions of use, and part 
-of the Saxon documentation. 
-
-This product contains icons developed by the SVG Icons project 
-(http://sourceforge.net/projects/svgicons), licensed under the 
-BSD license (see LICENSE file).
-
-This product includes Apache XMLBeans software, developed at the Apache Software 
-Foundation (http://www.apache.org/). From binary distribution of XMLBeans NOTICE 
-file:
-Portions of this software were originally based on the following:
-     - software copyright (c) 2000-2003, BEA Systems, <http://www.bea.com/>.
-
-   Aside from contributions to the Apache XMLBeans project, this
-   software also includes:
-
-    - one or more source files from the Apache Xerces-J and Apache Axis
-      products, Copyright (c) 1999-2003 Apache Software Foundation
-
-    - W3C XML Schema documents Copyright 2001-2003 (c) World Wide Web
-      Consortium (Massachusetts Institute of Technology, European Research
-      Consortium for Informatics and Mathematics, Keio University)
