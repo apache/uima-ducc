@@ -46,6 +46,7 @@ under the License.
 	<th title="Minimum seconds for any work item">Time<br>Min</th>
 	<th title="The number of work items that completed successfully">Done</th>
 	<th title="The number of work items that failed to complete successfully">Error</th>
+	<th title="The number of work items currently dispatched (queued+operating)">Dis-<br>patch</th>
 	<th title="The number of work items that were retried, excluding preemptions">Retry</th>
 	<th title="The number of work items that were preempted">Pre-<br>empt</th>
 	<th title="The JConsole URL for this process">JConsole<br>URL</th>

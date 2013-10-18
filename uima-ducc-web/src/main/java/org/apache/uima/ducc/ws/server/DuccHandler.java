@@ -108,6 +108,7 @@ public class DuccHandler extends DuccAbstractHandler {
 
 	private static IAuthenticationManager iAuthenticationManager = AuthenticationManager.getInstance();
 
+	private enum DetailsType { Job, Reservation, Service };
 	private enum ShareType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
 	
@@ -405,10 +406,10 @@ public class DuccHandler extends DuccAbstractHandler {
 	String pname_idJob = "idJob";
 	String pname_idPro = "idPro";
 	
-	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter) {
+	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter) {
 		String location = "buildJobProcessListEntry";
 		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		String logfile = buildLogFileName(job, process, type);
+		String logfile = buildLogFileName(job, process, sType);
 		String errfile = "jd.err.log";
 		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
@@ -423,7 +424,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		long id = process.getDuccId().getFriendly();
 		System.out.println(id);
 		 */
-		switch(type) {
+		switch(sType) {
 		case SPC:
 			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
 			break;
@@ -487,7 +488,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("</td>");
 			break;
 		default:
-			switch(type) {
+			switch(sType) {
 			case MR:
 				sb.append("<td>");
 				int code = process.getProcessExitCode();
@@ -538,7 +539,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		sb.append("</td>");
 		// Time:init
-		switch(type) {
+		switch(sType) {
 			case MR:
 				break;
 			default:
@@ -625,7 +626,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String rsp1 = "</span>";
 		// <UIMA-3351>
 		boolean useTimeRun = true;
-		switch(type) {
+		switch(sType) {
 		case SPC:
 			break;
 		case SPU:
@@ -673,7 +674,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(rtd1);
 		// Time GC, PgIn, Swap...
 		DecimalFormat formatter = new DecimalFormat("##0.0");
-		switch(type) {
+		switch(sType) {
 		case MR:
 			break;
 		default:
@@ -858,7 +859,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(displayRss);
 			sb.append("</td>");
 		}
-		switch(type) {
+		switch(sType) {
 		case SPC:
 			break;
 		case SPU:
@@ -897,6 +898,23 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(pwi.getCountError());
 			}
 			sb.append("</td>");
+			// Dispatch
+			switch(dType) {
+			case Job:
+				sb.append("<td align=\"right\">");
+				if(pwi != null) {
+					if(job.isCompleted()) {
+						sb.append("0");
+					}
+					else {
+						sb.append(pwi.getCountDispatch());
+					}
+				}
+				sb.append("</td>");
+				break;
+			default:
+				break;
+			}
 			// Retry
 			sb.append("<td align=\"right\">");
 			if(pwi != null) {
@@ -912,7 +930,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		}
 		// Jconsole:Url
-		switch(type) {
+		switch(sType) {
 		case MR:
 			break;
 		default:
@@ -930,7 +948,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		}
 		// jd.err.log
-		switch(type) {
+		switch(sType) {
 		case JD:
 			if(fileExists(logsjobdir+errfile)) {
 				String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
@@ -1103,13 +1121,13 @@ public class DuccHandler extends DuccAbstractHandler {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getDriver().getProcessMap().get(processId);
-				buildJobProcessListEntry(sb, job, process, ShareType.JD, ++counter);
+				buildJobProcessListEntry(sb, job, process, DetailsType.Job, ShareType.JD, ++counter);
 			}
 			iterator = job.getProcessMap().keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getProcessMap().get(processId);
-				buildJobProcessListEntry(sb, job, process, ShareType.UIMA, ++counter);
+				buildJobProcessListEntry(sb, job, process, DetailsType.Job, ShareType.UIMA, ++counter);
 			}
 		}
 		if(sb.length() == 0) {
@@ -1979,8 +1997,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, ShareType type, int counter) {
-		buildJobProcessListEntry(sb, job, process, type, counter);
+	private void buildServiceProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter) {
+		buildJobProcessListEntry(sb, job, process, dType, sType, counter);
 	}
 	
 	private void handleDuccServletReservationProcessesData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
@@ -2012,7 +2030,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = managedReservation.getProcessMap().get(processId);
-				buildServiceProcessListEntry(sb, managedReservation, process, ShareType.MR, ++counter);
+				buildServiceProcessListEntry(sb, managedReservation, process, DetailsType.Reservation, ShareType.MR, ++counter);
 			}
 		}
 		if(sb.length() == 0) {
@@ -2129,7 +2147,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						IDuccProcessMap map = service.getProcessMap();
 						for(DuccId key : map.keySet()) {
 							IDuccProcess process = map.get(key);
-							buildServiceProcessListEntry(sb, service, process, type, ++counter);
+							buildServiceProcessListEntry(sb, service, process, DetailsType.Service, type, ++counter);
 						}
 					}
 				}
