@@ -503,7 +503,9 @@ public class StateManager {
 						break;
 					case Completed:
 						if(!duccWorkJob.isCompleted()) {
-							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
+							if(!duccWorkJob.isFinished()) {
+								stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
+							}
 							deallocateJobDriver(duccWorkJob, jdStatusReport);
 							duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 							switch(jdStatusReport.getJobCompletionType()) {
