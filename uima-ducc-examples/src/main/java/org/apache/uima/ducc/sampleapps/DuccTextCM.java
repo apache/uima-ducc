@@ -204,7 +204,7 @@ public class DuccTextCM extends JCasMultiplier_ImplBase {
     	currentindex++;
     	if (currentindex == bytelength) {
     	  if (firstdoc) {
-    	    throw new RuntimeException("All newlines found in "+inputFileName+" block "+blockindex);
+    		return false; // nothing but newlines in this block
     	  }
     	}
       }
