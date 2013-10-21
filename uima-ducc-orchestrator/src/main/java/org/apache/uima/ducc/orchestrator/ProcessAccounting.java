@@ -677,6 +677,18 @@ public class ProcessAccounting {
 		String jdTotalWorkItems = ""+jdStatusReport.getWorkItemsTotal();
 		if(!compare(jdTotalWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsTotal())) {
 			duccWorkJob.getSchedulingInfo().setWorkItemsTotal(jdTotalWorkItems);
+			// <uima-3533> Limit max-shares to most that can be used (relevant only for fixed-shares)
+			long total_work = jdStatusReport.getWorkItemsTotal();
+			int tps = duccWorkJob.getSchedulingInfo().getIntThreadsPerShare();
+			if (total_work > 0 && tps > 0) {
+			    long max_usable = (total_work + tps - 1) / tps;
+			    long max_shares = duccWorkJob.getSchedulingInfo().getLongSharesMax();
+			    if (max_shares > max_usable) {
+			        duccWorkJob.getSchedulingInfo().setLongSharesMax(max_usable);
+			        logger.info(methodName, duccWorkJob.getDuccId(), "reduced max-shares", max_shares, "to max-usable", max_usable);
+			    }
+			}
+			// </uima-3353>
 		}
 		String jdCompletedWorkItems = ""+jdStatusReport.getWorkItemsProcessingCompleted();
 		if(!compare(jdCompletedWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsCompleted())) {

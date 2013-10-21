@@ -436,16 +436,6 @@ public class JobManagerConverter
                       
                   case FIXED_SHARE:
                       max_processes   = toInt(si.getSharesMax(), DEFAULT_INSTANCES);
-                      // <uima-3353>
-                      switch ( job.getDuccType() ) {
-                      	case Job:  
-                      		int calc_max_processes = (int) Math.ceil(remaining_work/(threads*1.0));
-                      		max_processes    = Math.min(max_processes, calc_max_processes);
-                      		break;
-                      	default:
-                      		break;
-                      }
-                      // </uima-3353>
                       j.setMaxShares(max_processes);
                       j.setNInstances(max_processes);
                       break;
