@@ -69,6 +69,7 @@ public class ServiceDescription
 
     // for submitted service, the registered service id
     private ADuccId id;
+    private String  user;                 // the owner of the service
     private boolean deregistered;         // still known but trying to shutdown
 
     // number of registered instances
@@ -86,6 +87,16 @@ public class ServiceDescription
 	public void setId(ADuccId id) {
 		this.id = id;
 	}
+
+    public String getUser()
+    {
+        return user;
+    }
+
+    public void setUser(String user)
+    {
+        this.user = user;
+    }
 
 	public ArrayList<ADuccId> getImplementors() {
 		return implementors;
@@ -256,7 +267,9 @@ public class ServiceDescription
             case Registered:
                 sb.append(" as ID ");
                 sb.append(id);
-                sb.append(" instances[");
+                sb.append(" Owner[");
+                sb.append(user);
+                sb.append("] instances[");
                 sb.append(Integer.toString(instances));
                 sb.append("] linger[");
                 sb.append(Long.toString(linger));

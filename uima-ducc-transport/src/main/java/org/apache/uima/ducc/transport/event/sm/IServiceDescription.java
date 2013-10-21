@@ -47,6 +47,15 @@ public interface IServiceDescription
 	public void setId(ADuccId id);
 
     /**
+     * Get the owner of the service
+     */
+    public String getUser();
+    /**
+     * Set the owner of the service
+     */
+    public void   setUser(String u);
+
+    /**
      * This returns the set of DUCC Ids for all the service instances which 
      * implement this service.  If the list is empty, no known implementors of the service
      * are being managed by DUCC.
