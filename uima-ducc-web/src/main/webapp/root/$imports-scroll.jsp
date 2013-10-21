@@ -17,7 +17,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 <%
-String table_style = "classic";
+String table_style = "scroll";
 String cookieName = "ducc:table_style";
 String cookieValue = null;
 Cookie cookie = null;

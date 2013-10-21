@@ -284,11 +284,11 @@ function ducc_load_jobs_data()
 	}
 	ms_load_jobs_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
-	if(table_style == "classic") {
-		ducc_load_classic_jobs_data()
+	if(table_style == "scroll") {
+		ducc_load_scroll_jobs_data()
 	}
 	else {
-		ducc_load_scroll_jobs_data()
+		ducc_load_classic_jobs_data()
 	}
 }
 
@@ -367,11 +367,11 @@ function ducc_load_services_data()
 	}
 	ms_load_services_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
-	if(table_style == "classic") {
-		ducc_load_classic_services_data()
+	if(table_style == "scroll") {
+		ducc_load_scroll_services_data()
 	}
 	else {
-		ducc_load_scroll_services_data()
+		ducc_load_classic_services_data()
 	}
 }
 
@@ -1085,11 +1085,11 @@ function ducc_load_machines_data()
 	}
 	ms_load_system_machines_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
-	if(table_style == "classic") {
-		ducc_load_classic_machines_data()
+	if(table_style == "scroll") {
+		ducc_load_scroll_machines_data()
 	}
 	else {
-		ducc_load_scroll_machines_data()
+		ducc_load_classic_machines_data()
 	}
 }
 
@@ -1185,11 +1185,11 @@ function ducc_load_reservations_data()
 	ms_load_reservations_data = ms_now;
 	ducc_reservation_form_button();
 	var table_style = ducc_preferences_get("table_style");
-	if(table_style == "classic") {
-		ducc_load_classic_reservations_data()
+	if(table_style == "scroll") {
+		ducc_load_scroll_reservations_data()
 	}
 	else {
-		ducc_load_scroll_reservations_data()
+		ducc_load_classic_reservations_data()
 	}
 }
 
@@ -1459,11 +1459,11 @@ function ducc_init_system_administration_data()
 function ducc_load_system_classes_data()
 {
 	var table_style = ducc_preferences_get("table_style");
-	if(table_style == "classic") {
-		ducc_load_classic_system_classes_data()
+	if(table_style == "scroll") {
+		ducc_load_scroll_system_classes_data()
 	}
 	else {
-		ducc_load_scroll_system_classes_data()
+		ducc_load_classic_system_classes_data()
 	}
 }
 
@@ -1606,11 +1606,11 @@ function ducc_load_system_daemons_data()
 	}
 	ms_load_system_daemons_data = ms_now;
 	var table_style = ducc_preferences_get("table_style");
-	if(table_style == "classic") {
-		ducc_load_classic_system_daemons_data()
+	if(table_style == "scroll") {
+		ducc_load_scroll_system_daemons_data()
 	}
 	else {
-		ducc_load_scroll_system_daemons_data()
+		ducc_load_classic_system_daemons_data()
 	}
 	ducc_default_agents();
 }
@@ -2768,7 +2768,7 @@ function ducc_preferences_reset()
 {
 	try {
 		var key = ducc_appl("table_style");
-		var value = "scroll";
+		var value = "classic";
 		//alert("ducc_preferences_reset"+" "+"key:"+key+" "+"value:"+value);
 		ducc_put_cookie(key,value);
 		var key = ducc_appl("date_style");
@@ -2831,16 +2831,16 @@ function ducc_preferences_table_style() {
 		var key = ducc_appl("table_style");
 		var value = ducc_get_cookie(key);
 		//alert("ducc_preferences"+" "+"key:"+key+" "+"value:"+value);
-		if(value == "scroll") {
+		if(value == "classic") {
 			document.form_preferences.table_style[0].checked = true;
 			document.form_preferences.table_style[1].checked = false;
 		}
-		else if(value == "classic") {
+		else if(value == "scroll") {
 			document.form_preferences.table_style[0].checked = false;
 			document.form_preferences.table_style[1].checked = true;
 		}
 		else {
-			value = "scroll";
+			value = "classic";
 			ducc_put_cookie(key, value);
 			document.form_preferences.table_style[0].checked = true;
 			document.form_preferences.table_style[1].checked = false;

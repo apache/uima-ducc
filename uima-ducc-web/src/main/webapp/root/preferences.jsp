@@ -119,9 +119,9 @@ boolean role = true;
         <tr>
         <td><i><b>Table Style</b></i>
 		<td>&nbsp
-		<td><input type="radio"  name="table_style" value="scroll" checked onclick="ducc_preferences_set('table_style','scroll')" /> Scroll
+		<td><input type="radio"  name="table_style" value="classic" checked onclick="ducc_preferences_set('table_style','classic')" /> Classic
 		<td>&nbsp
-		<td><input type="radio"  name="table_style" value="classic"        onclick="ducc_preferences_set('table_style','classic')" /> Classic
+		<td><input type="radio"  name="table_style" value="scroll"          onclick="ducc_preferences_set('table_style','scroll')"  /> Scroll
 		<td>&nbsp
 		<td>&nbsp
 <%
