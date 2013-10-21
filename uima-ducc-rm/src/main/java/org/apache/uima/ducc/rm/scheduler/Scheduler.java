@@ -1168,10 +1168,26 @@ public class Scheduler
             sharenames.append(s.toString());
             sharenames.append(" ");
 
-            if ( rc.getPolicy() != Policy.RESERVE ) {          // if it's RESERVE, the share order is already set from
-                                                               // the machine when the job arrives. 
-                s.setShareOrder(share_order);
+            switch ( rc.getPolicy() ) {
+                case FAIR_SHARE:
+                    s.setShareOrder(share_order);
+                    break;
+                case FIXED_SHARE:
+                    logger.info(methodName, j.getId(), "Set fixed bit for FIXED job");
+                    s.setShareOrder(share_order);
+                    s.setFixed();
+                    break;
+                case RESERVE:
+                    logger.info(methodName, j.getId(), "Set fixed bit for RESERVE job");
+                    s.setFixed();
+                    break;
             }
+
+            // if ( rc.getPolicy() != Policy.RESERVE ) {          // if it's RESERVE, the share order is already set from
+            //                                                    // the machine when the job arrives. 
+            //     s.setShareOrder(share_order);
+            // }
+
             Machine m = s.getMachine();
             NodePool np = m.getNodepool();
             np.connectShare(s, m, j, s.getShareOrder());

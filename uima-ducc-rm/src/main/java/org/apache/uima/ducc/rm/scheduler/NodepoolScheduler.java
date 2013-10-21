@@ -883,7 +883,10 @@ public class NodepoolScheduler
             expandNeedyJobs(subpool, rcs);
         }
 
-        List<IRmJob> jobs = new ArrayList<IRmJob>();
+        List<IRmJob> fair_share_jobs = new ArrayList<IRmJob>();
+        List<IRmJob> fixed_share_jobs = new ArrayList<IRmJob>();
+        List<IRmJob> reservations = new ArrayList<IRmJob>();
+
         List<IRmJob> removeList = new ArrayList<IRmJob>();
         for ( IRmJob j : needyJobs.values() ) {
             if ( j.isCompleted() ) {
@@ -900,7 +903,16 @@ public class NodepoolScheduler
             if ( !jobInClass(rcs, j) ) continue;
 
             if ( getNodepool(rc) == np ) {
-                jobs.add(j);
+                switch ( rc.getPolicy()) {
+                    case FAIR_SHARE:
+                        fair_share_jobs.add(j);
+                    case FIXED_SHARE:
+                        fixed_share_jobs.add(j);
+                        break;
+                    case RESERVE:
+                        reservations.add(j);
+                        break;
+                }
                 removeList.add(j);
             } 
         }
@@ -909,9 +921,34 @@ public class NodepoolScheduler
             needyJobs.remove(j);
         }
 
-        Collections.sort(jobs, new JobByTimeSorter());
-        logger.trace(methodName, null, "NP[", np.getId(), "Expand needy jobs.", listJobSet(jobs));
-        np.doExpansion(jobs);
+
+        // try to connect shares now
+        Collections.sort(reservations, new JobByTimeSorter());
+        logger.debug(methodName, null, "NP[", np.getId(), "Expand needy reservations.", listJobSet(reservations));
+        for ( IRmJob j : reservations ) {
+            ResourceClass rc = j.getResourceClass();
+            np.allocateForReservation(j, rc);
+        }
+
+        Collections.sort(fixed_share_jobs, new JobByTimeSorter());
+        logger.debug(methodName, null, "NP[", np.getId(), "Expand needy fixed.", listJobSet(fixed_share_jobs));
+        for ( IRmJob j : fixed_share_jobs ) {
+            if ( np.findShares(j) > 0 ) {
+                //
+                // Need to fix the shares here, if any, because the findShares() code is same for fixed and fair share so it
+                // won't have done that yet.
+                //
+                for ( Share s : j.getPendingShares().values() ) {
+                    s.setFixed();
+                    logger.info(methodName, j.getId(), "Assign:", s);
+                }
+            }
+        }
+ 
+        Collections.sort(fair_share_jobs, new JobByTimeSorter());
+        logger.debug(methodName, null, "NP[", np.getId(), "Expand needy jobs.", listJobSet(fair_share_jobs));
+        np.doExpansion(fair_share_jobs);
+
         logger.trace(methodName, null, "Exit : needyJobs.size =", needyJobs.size());
     }
 
@@ -1060,22 +1097,20 @@ public class NodepoolScheduler
 
             for ( IRmJob j : jobs ) {
 
+                int n_instances = Math.max(j.countInstances(), 1);  // n-shrares; virtual shares - API treats this as a reservation
+                                                                    // and we overload the n-machines field for the count.
                 if ( j.countNShares() > 0 ) {
                     // already accounted for as well, since it is a non-preemptable share
                     logger.info(methodName, j.getId(), "[stable]", j.countNShares(), "proc, ", 
                                 (j.countNShares() * j.getShareOrder()), "QS");
                     // j.addQShares(j.countNShares() * j.getShareOrder());
                     int[] gbo = NodePool.makeArray();
-                    gbo[j.getShareOrder()] = j.countNShares();       // must set the allocation so eviction works right
+                    //gbo[j.getShareOrder()] = j.countNShares();       // must set the allocation so eviction works right
+                    gbo[j.getShareOrder()] = n_instances;       // must set the allocation so eviction works right
                     j.setGivenByOrder(gbo);
                     continue;
                 }
 
-                //
-                // For now, only schedule minshares, ignore maxshares.
-                //
-                int n_instances = Math.max(j.countInstances(), 1);  // n-shrares; virtual shares - API treats this as a reservation
-                                                                    // and we overload the n-machines field for the count.
                 int order = j.getShareOrder();
 
                 // Don't schedule non-preemptable shares over subpools
