@@ -4,15 +4,13 @@
 
 A DUCC job consists of two process types, a Job Driver process and one or more
 Job Processes. These processes are connected together via UIMA-AS.
-The Job Driver uses the UIMA-AS client API to send Work Item CASes 
-to the job's input queue. Job Processes containing the analytic pipeline are deployed
-as UIMA-AS services comsume CASes from the job input queue.
-
 The Job Driver process wraps the job's Collection Reader (CR). The CR
 function is to define the collection of Work Items to be processed.
 The Collection Reader returns a small CAS for each Work Item containing a
-reference to the Work Item data which is sent to the job's
-input queue so that it can be delivered to the next available pipeline in a Job Process.
+reference to the Work Item data
+The Job Driver uses the UIMA-AS client API to send Work Item CASes 
+to the job's input queue. Job Processes containing the analytic pipeline are deployed
+as UIMA-AS services and comsume CASes from the job input queue.
 
 A basic job's analytic pipeline consists of an Aggregate Analysis Engine comprised by
 the user specified CAS Multiplier (CM), Analysis Engine (AE) and CAS
@@ -35,7 +33,7 @@ or to the AE \& CC to complete all processing for that Work Item.
    Each pipeline thread receives Work Items independently.
 
    DUCC creates an aggreate descriptor for the pipeline, and then creates a
-   Deployment Descriptor for the Job Process which deploys the specified number
+   Deployment Descriptor for the Job Process which specifying the number
    of synchronous pipelines.
    
    \subsection{Alternate Pipeline Threading Model}
@@ -55,6 +53,11 @@ or to the AE \& CC to complete all processing for that Work Item.
    UIMA configuration parameters in the CR, CM, AE or CC components can be overriden using
    job specification parameters: driver\_descriptor\_CR\_overrides, process\_descriptor\_CM\_overrides,
    process\_descriptor\_AE\_overrides and process\_descriptor\_CC\_overrides, respectively.
+
+   Another approach is to use the {\em External Configuration Parameter Overrides} mechanism
+   in core UIMA. External overrides is the only approach available for jobs submitted with
+   a Deployment Descriptor.
+
 
 \section{Collection Segmentation and Artifact Extraction}
 
@@ -93,8 +96,7 @@ processing, or to flush results at end-of-work-item processing.
 	    independent access to the output target (filesystem, service, database, etc.).
 	    \item[Singleton processing:] Collection level processing
 	    requiring that all results go to a singleton process would usually be done as a 
-            follow-on job.
-	    This avoids introducing a singleton bottleneck, as well as allowing
+            follow-on job, allowing
 	    incremental progress; Job Process errors due to data-dependent analysis bugs
 	    can often be fixed without invalidating completed Work Items, 
             enabling a restarted job to utilize the progress made by
@@ -118,11 +120,11 @@ problems.
 To debug a Job Process with eclipse, first create a debug configuration for a
 "remote java application", specifying "Connection Type = Socket Listen" on some
 free port P. Start the debug configuration and confirm it is listening on the specified port.
-Then, before submitting the job, add to the job specification the argument
+Then add to the job specification
 process\_debug=port, where port is the value P used in the running debug configuration.
 
 When the process\_debug parameter is specified, DUCC will only run a single Job Process
-which will connect back to the debug configuration.
+that will connect back to the eclipse debug configuration.
 
 
 \section{Job Development for a New Pipeline Design}
@@ -156,7 +158,6 @@ creating a org.apache.uima.ducc.Workitem feature structure and setting the setSe
 or by setting the setSendToAll feature to true.
 
 \subsection{Workitem Feature Structure}
-This feature structure is defined in DuccJobFlowControlTS.xml, located in uima-ducc-common.jar.
 In addition to Work Item CAS flow control features, the WorkItem feature structure includes other features that are useful
 for a DUCC job application. Here is the complete list of features:
 
@@ -176,7 +177,7 @@ for a DUCC job application. Here is the complete list of features:
 \subsection{Deployment Descriptor (DD) Jobs}
 Job Processes with arbitrary aggregate hierarchy, flow control and threading can be fully specified
 via a UIMA AS Deployment Descriptor. DUCC will modify the input queue to use DUCC's private
-broker and queue name to correspond to the DUCC job ID.
+broker and change the queue name to correspond to the DUCC job ID.
 
 \subsection{Debugging}
 It is best to develop and debug the interactions between job application components as one, 
@@ -203,14 +204,14 @@ where port is the value P used in the running debug configuration.
 This application expects as input a directory containing one or more flat text files, 
 uses paragraph boundaries to segment the text into separate artifacts, 
 processes each artifact with the OpenNlpTextAnalyzer, and writes
-the results as compressed UIMA CASes in zip files. Paragraph boundaries are defined as
+the results as compressed UIMA CASes packaged in zip files. Paragraph boundaries are defined as
 two or more consecutive newline characters.
 
 By default each input file is a Work Item. In order to facilitate processing scale out, 
 an optional blocksize parameter can be specified that will be used to break larger 
 files into multiple Work Items. Paragraphs that cross block boundaries are processed
 in the block where they started. An error is thrown if a paragraph crosses two block
-boundaries. A block with nothing but newline characters is also treated as an error.
+boundaries.
 
 An output zip file is created for each Work Item. The CAS compression format is selectable as
 either ZIP compressed XmiCas or UIMA compressed binary form 6 format. When compressed binary
@@ -233,7 +234,7 @@ parameters:
     \item[Encoding] (optional) character encoding of the input files.
     \item[Language] (optional) language of the input documents, i.e. cas.setDocumentLanguage(language).
     \item[BlockSize] (optional) integer value used to break larger input files into multiple Work Items.
-    \item[SendToLast] (optional) boolean to route WorkItem CAS to last pipeline component. Set to true in this application.
+    \item[SendToLast] (optional) boolean to route WorkItem CAS to last pipeline component. Is set to true for this application.
     \item[SendToAll] (optional) boolean to route WorkItem CAS to all pipeline components. Not used in this application.
 \end{description}
 
@@ -285,7 +286,7 @@ We used test data from gutenberg.org at
    http://www.gutenberg.org/ebooks/search/?sort_order=downloads
 \end{verbatim}
 downloading 'Plain Text UTF-8' versions of {\em Moby Dick}, {\em War and Peace} and {\em The Complete Works of William Shakespeare} 
-to a subdirectory `Books', and removing all '\r' characters as well as extraneous text.
+to a subdirectory `Books', and removing all 'CR' characters (0xD) as well as extraneous text.
 
 \section{Run the Job}
 The job specification, DuccRawTextSpec.job, uses placeholders to reference the working directory
@@ -326,7 +327,7 @@ DUCC captures a number of process performance metrics.
 \hyperref[fig:OpenNLP-Process-Measurements]{Figure ~\ref{fig:OpenNLP-Process-Measurements}} shows details on the JD and 
 single JP processes. The \%CPU time shown, 728, is lower than the actual because the Job Process was idle 
 for some time before it received the first Work Item and also idle between finishing the last Work Item and being shut down.
-For the 14 minutes of active processing (taken from the JP logfile), DUCC shows the JVM spent a total of 58 seconds in 
+DUCC shows the JVM spent a total of 58 seconds in 
 GC (garbage collection), had no major page faults or page space, and used a max of 2.1GB of RSS.
 
 \begin{figure}[H]
