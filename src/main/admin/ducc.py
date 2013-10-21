@@ -154,10 +154,6 @@ class Ducc(DuccUtil):
                     args = '-' + or_parms
                 if ( self.or_jvm_args != None ):
                     jvm_opts.append(self.or_jvm_args)
-                cpstate = self.DUCC_HOME + '/state/ducc.classpath'
-                f = open(cpstate, 'w')
-                f.write(os.environ['CLASSPATH'])
-                f.close()
 
             if ( c == 'pm' ):
                 if ( self.pm_jvm_args != None ):
