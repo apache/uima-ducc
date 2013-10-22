@@ -411,7 +411,7 @@ public class NodeConfiguration
 
         parseInternal(ret);
         String dd = ret.getProperty("domain");
-        if ( name.equals(firstNodepool) ) {
+        if ( name.equals(firstNodepool) && (dd != null) ) {
             defaultDomain = dd;
         } else {
             if ( dd != null ) {
