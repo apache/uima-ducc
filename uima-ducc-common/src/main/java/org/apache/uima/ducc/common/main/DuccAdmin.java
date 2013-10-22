@@ -103,13 +103,18 @@ public class DuccAdmin extends AbstractDuccComponent implements
 //				context.addComponent("activemq",
 //						ActiveMQComponent.activeMQComponent(brokerUrl));
 			    
-			    if ( brokerCredentialsFile != null ) {
-			      String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
-		    	  Credentials credentials = BrokerCredentials.get(path);
-				  if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
-					duccAMQComponent.setUserName(credentials.getUsername());
-					duccAMQComponent.setPassword(credentials.getPassword());
-		 		  }   
+			    if ( brokerCredentialsFile != null && brokerCredentialsFile.length() > 0 ) {
+			    	try {
+					      String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
+				    	  Credentials credentials = BrokerCredentials.get(path);
+						  if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
+							duccAMQComponent.setUserName(credentials.getUsername());
+							duccAMQComponent.setPassword(credentials.getPassword());
+				 		  }   
+			    	} catch(FileNotFoundException e) {
+						System.out.println("DuccAdmin Failed - File Not Found:"+brokerCredentialsFile);
+						System.exit(-1);
+			    	}
 			    }
 				context.addComponent("activemq",duccAMQComponent);
 				this.pt = context.createProducerTemplate();
