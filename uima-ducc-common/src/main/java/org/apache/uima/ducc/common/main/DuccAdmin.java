@@ -88,30 +88,36 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			loadProperties(DuccService.DUCC_PROPERTY_FILE);
 			// fetch the broker URL from ducc.properties
 			this.brokerUrl = System.getProperty("ducc.broker.url");
-			String brokerCredentialsFile = 
-					System.getProperty("ducc.broker.credentials.file");
-			// fetch the admin endpoint from the ducc.properties where
-			// the admin events will be sent by the DuccServiceReaper
-			targetEndpoint = System.getProperty("ducc.admin.endpoint");
-			System.out.println("+++ Activating JMS Component for Endpoint:"
-					+ targetEndpoint + " Broker:" + brokerUrl);
-			
-			ActiveMQComponent duccAMQComponent = new ActiveMQComponent(context);
-		    duccAMQComponent.setBrokerURL(brokerUrl);
-			
-//			context.addComponent("activemq",
-//					ActiveMQComponent.activeMQComponent(brokerUrl));
-		    
-		    if ( brokerCredentialsFile != null ) {
-		      String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
-	    	  Credentials credentials = BrokerCredentials.get(path);
-			  if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
-				duccAMQComponent.setUserName(credentials.getUsername());
-				duccAMQComponent.setPassword(credentials.getPassword());
-	 		  }   
-		    }
-			context.addComponent("activemq",duccAMQComponent);
-			this.pt = context.createProducerTemplate();
+			try {
+				String brokerCredentialsFile = 
+						System.getProperty("ducc.broker.credentials.file");
+				// fetch the admin endpoint from the ducc.properties where
+				// the admin events will be sent by the DuccServiceReaper
+				targetEndpoint = System.getProperty("ducc.admin.endpoint");
+				System.out.println("+++ Activating JMS Component for Endpoint:"
+						+ targetEndpoint + " Broker:" + brokerUrl);
+				
+				ActiveMQComponent duccAMQComponent = new ActiveMQComponent(context);
+			    duccAMQComponent.setBrokerURL(brokerUrl);
+				
+//				context.addComponent("activemq",
+//						ActiveMQComponent.activeMQComponent(brokerUrl));
+			    
+			    if ( brokerCredentialsFile != null ) {
+			      String path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
+		    	  Credentials credentials = BrokerCredentials.get(path);
+				  if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
+					duccAMQComponent.setUserName(credentials.getUsername());
+					duccAMQComponent.setPassword(credentials.getPassword());
+		 		  }   
+			    }
+				context.addComponent("activemq",duccAMQComponent);
+				this.pt = context.createProducerTemplate();
+			} catch( Throwable exx) {
+				System.out.println("DuccAdmin Failed:"+exx);
+				System.exit(-1);
+			}
+
 		} catch (Exception e) {
 			System.out
 					.println("DuccAdmin was not able to load properties from "
