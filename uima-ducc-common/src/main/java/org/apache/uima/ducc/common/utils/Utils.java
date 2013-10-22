@@ -274,6 +274,8 @@ public class Utils {
 	 * @return
 	 */
 	public static String resolvePlaceholderIfExists(String value, Properties props ) {
+		findDuccHome();  // add DUCC_HOME to System.properties
+
 		if ( value != null && value.contains("${")) {
             PropertyPlaceholderHelper pph = new PropertyPlaceholderHelper("${","}");
             value = pph.replacePlaceholders(value, props);

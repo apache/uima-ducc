@@ -106,6 +106,7 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			    if ( brokerCredentialsFile != null && brokerCredentialsFile.length() > 0 ) {
 			    	String path ="";
 			    	try {
+			    		  Utils.findDuccHome();  // add DUCC_HOME to System.properties
 					      path = Utils.resolvePlaceholderIfExists(brokerCredentialsFile, System.getProperties());
 				    	  Credentials credentials = BrokerCredentials.get(path);
 						  if ( credentials.getUsername() != null && credentials.getPassword() != null ) {
