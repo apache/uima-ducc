@@ -1,3 +1,142 @@
-              Apache Distributed UIMA Cluster Computing (DUCC) Version 1.0 README
+              Apache Distributed UIMA Cluster Computing (DUCC) Version 0.0.8 README
               
+              
+1. What is DUCC?
+=========================================
+
+DUCC stands for Distributed UIMA Cluster Computing. DUCC is a cluster management system providing tooling,
+management, and scheduling facilities to automate the scale-out of applications written to the UIMA framework.
+Core UIMA provides a generalized framework for applications that process unstructured information such as human
+language, but does not provide a scale-out mechanism. UIMA-AS provides a scale-out mechanism to distribute UIMA
+pipelines over a cluster of computing resources, but does not provide job or cluster management of the resources.
+DUCC defines a formal job model that closely maps to a standard UIMA pipeline. Around this job model DUCC
+provides cluster management services to automate the scale-out of UIMA pipelines over computing clusters.
+
+2. Building from the Source Distribution
+========================================
+     
+We use Maven 3.0 for building; download this if needed, 
+and set the environment variable MAVEN_OPTS to -Xmx800m -XX:MaxPerSize-256m.
+
+Then build from the directory containing this README by issuing the command
+   mvn clean install.
+   
+This builds everything except the ...source-release.zip file. If you want that,
+change the command to 
+
+   mvn clean install -Papache-release
+   
+Look for the result in the two artifacts: 
+   target/uima-ducc-[version]-source-release.zip (if run with -Papache-release) and
+   target/uima-as-[version]-bin.tar.gz
+
+For more details, please see http://uima.apache.org/building-uima.html   
+
+3. What's New in 0.0.8?
+====================== 
+  
+UIMA DUCC 0.0.8 is the first Apache release. For up-to-date information on UIMA-DUCC 
+issues, see our issue tracker: http://issues.apache.org/jira/browse/UIMA/components/12319807
+
+
+4. Contents of Apache UIMA DUCC binary distribution
+--------------------------------------------------
+
+The Apache UIMA DUCC binary distribution includes
+  - Apache UIMA Java SDK version 2.4.2
+  - Apache UIMA Asynchronous Scaleout (AS) version 2.4.2
+  - Saxon
+  - Apache ActiveMQ version 5.6.0
+  - Spring Framework version 3.0.5.RELEASE
+  - Apache Camel version 2.10.1
+  - Apache Mina
+  - Apache Commons CLI version 1.2
+  - Apache Commons Math version 2.0
+  - Apache Commons Lang version 2.6
+  - Apache Commons Collections version 3.2.1
+  - Apache Log4J version 1.2.16
+  - Apache Commons HTTP Client version 3.1
+  - XMLBeans version 2.5.0
+  - XStream version 1.5.0_16
+  - SLF4J version 1.5.11
+  - JUnit version 4.8.2
+  - JODA Time version 1.2
+  - Google Guava version 0.9
+  - Google-Gson version 2.2.2
+  
+  shell scripts:
+  --------------
+
+  admin/start_ducc: starts DUCC
+  admin/stop_ducc: stops DUCC
+  
+
+  documentation:
+  --------------
+ 
+  docs/duccbok.pdf: UIMA-DUCC documentation
+  docs/install.pdf: UIMA-DUCC installation guide
+
+  examples:
+  ---------
+ 
+  examples/ - contains ducc example source code and resources
+  
+  descriptors:
+  ------------
+ 
+  examples/descriptors/ - contains sample descriptor files 
+
+  resources
+  -----------
+  
+  resources/ - contains ducc configuration files
+  
+  
+2. Installation and Setup
+=========================
+
+Please refer to docs/install.pdf for installation instructions.
+
+2.1 Supported Platforms
+-----------------------
+
+UIMA-DUCC Requires Java 6 or later. It has been tested with Sun Java 6 on Linux,
+and with IBM Java 6 on Linux. 
+
+
+3. Known problems/limitations with Release 0.0.8
+================================================
+
+  
+     
+  
+
+Crypto Notice
+-------------
+
+   This distribution includes cryptographic software.  The country in 
+   which you currently reside may have restrictions on the import, 
+   possession, use, and/or re-export to another country, of 
+   encryption software.  BEFORE using any encryption software, please 
+   check your country's laws, regulations and policies concerning the
+   import, possession, or use, and re-export of encryption software, to 
+   see if this is permitted.  See <http://www.wassenaar.org/> for more
+   information.
+
+   The U.S. Government Department of Commerce, Bureau of Industry and
+   Security (BIS), has classified this software as Export Commodity 
+   Control Number (ECCN) 5D002.C.1, which includes information security
+   software using or performing cryptographic functions with asymmetric
+   algorithms.  The form and manner of this Apache Software Foundation
+   distribution makes it eligible for export under the License Exception
+   ENC Technology Software Unrestricted (TSU) exception (see the BIS 
+   Export Administration Regulations, Section 740.13) for both object 
+   code and source code.
+
+   The following provides more details on the included cryptographic
+   software:
+   
+   This distribution includes portions of Apache ActiveMQ, which, in
+   turn, is classified as being controlled under ECCN 5D002.
  
