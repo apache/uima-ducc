@@ -369,18 +369,20 @@ public class ManagedProcess implements Process {
 		String reason = getDuccProcess().getReasonForStoppingProcess();
 
 		ProcessState pstate = getDuccProcess().getProcessState();
-
+        boolean initError = (reason != null && (reason
+				.equals(ReasonForStoppingProcess.FailedInitialization
+						.toString()) || reason
+				.equals(ReasonForStoppingProcess.InitializationTimeout
+						.toString())));
 		if (isKillCmd
 				||
 				// if the process is to be killed due to init problems, set the
 				// state to Stopped
-				(reason != null && (reason
-						.equals(ReasonForStoppingProcess.FailedInitialization
-								.toString()) || reason
-						.equals(ReasonForStoppingProcess.InitializationTimeout
-								.toString())))) {
+				(reason != null && initError ) ) {
 			getDuccProcess().setProcessState(ProcessState.Stopped);
-
+			if ( !initError ) {  
+				getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
+			}
 		} else {
 			// Process has terminated. Determine why the process terminated.
 			log("ManagedProcess.drainProcessStreams", "Ducc Process with PID:"
@@ -392,6 +394,7 @@ public class ManagedProcess implements Process {
 				if ( isAP ) {
 					// Agent killed the AP process 
 					pstate = ProcessState.Stopped;
+					getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
 				} else {
 					// Agent killed the process due to timeout waiting for OR state
 					pstate = ProcessState.Killed;
