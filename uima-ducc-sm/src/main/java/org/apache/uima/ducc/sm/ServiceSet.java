@@ -1657,6 +1657,7 @@ public class ServiceSet
         sd.setAutostart(autostart);
         sd.setLinger(linger_time);
         sd.setId(id);
+        sd.setUser(user);
         sd.setDeregistered(isDeregistered());
 
         if ( serviceMeta != null ) {
