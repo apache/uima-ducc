@@ -867,6 +867,7 @@ public class Scheduler
 
 
                 if ( j.isRefused() ) {          // the JobManagerConverter has already refused it
+                    logger.info(methodName, j.getId(), "Bypassing previously refused job.");
                     upd.refuse(j, j.getRefusalReason());
                 }
 

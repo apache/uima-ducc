@@ -698,38 +698,11 @@ public class JobManagerConverter
             IDuccWork l = jd.getLeft();
 
             if ( ! l.isSchedulable() ) {
-                logger.info(methodName, l.getDuccId(), "Removing unschedulable:", r.getStateObject());
+                logger.info(methodName, l.getDuccId(), "Removing unschedulable:", r.getStateObject(), "->", r.getStateObject());
                 jobRemoved(r.getDuccId());
             } else {
 
                 localMap.addDuccWork(l);           // still schedulable, and we already know about it, just sync the state
-
-                // 
-                // Terrible ugliness here because the states should be so hard to get a handle on.
-                //
-                // Nonetheless, if this code hits, it's because the same job keeps coming back in
-                // WaitingForResources so it's not in the left-side map.  We need to insure the
-                // scheduler runs an epoch next opportunity it has.
-                //
-                // NO LONGER NEEDED because scheduler always runs without checking if there's work to do.
-                //
-                // Object s = l.getStateObject();
-                // if ( s instanceof JobState ) {
-                //     if ( ((JobState) s)  == JobState.WaitingForResources ) {
-                //         logger.debug(methodName, l.getDuccId(), "Job: force epoch");
-                //         scheduler.signalForceEpoch();
-                //         continue;
-                //     }
-                //   }
-
-                // if ( s instanceof ReservationState ) {
-                //     if ( ((ReservationState) s)  == ReservationState.WaitingForResources ) {
-                //         logger.debug(methodName, l.getDuccId(), "Reservation: force epoch");
-                //         scheduler.signalForceEpoch();
-                //         continue;
-                //     }
-                //   }
-
 
                 switch ( l.getDuccType() ) {
                   case Job:    
