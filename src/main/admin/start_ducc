@@ -36,7 +36,7 @@ from ducc_util import ThreadPool
 class StartDucc(DuccUtil):
 
     def start_broker(self):
-        
+
         broker_host = self.ducc_properties.get('ducc.broker.hostname')
         print 'broker host', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
@@ -169,9 +169,7 @@ class StartDucc(DuccUtil):
         print "Usage:"
         print "   start_ducc [options]"
         print "        If no options are given, all DUCC processes are started, using the default"
-        print "        nodelist, DUCC_HOME/resources/ducc.nodes.  This is the equivalemnt of"
-        print ""
-        print "        start_ducc -n $DUCC_HOME/resources/ducc.nodes -m"
+        print "        nodelist, DUCC_HOME/resources/ducc.nodes. "
         print ""
         print "Options:"
         print "   -n --nodelist nodefile"
@@ -205,10 +203,7 @@ class StartDucc(DuccUtil):
         print ""
         print "Examples:"
         print "   Start all DUCC processes, using custom nodelists:"
-        print "       start_ducc -m -n foo.nodes -n bar.nodes"
-        print ""
-        print "   Start just managemnet processes:"
-        print "       start_ducc -m"
+        print "       start_ducc -n foo.nodes -n bar.nodes"
         print ""
         print "   Start just agents on a specific set of nodes:"
         print "       start_ducc -n foo.nodes -n bar.nodes"

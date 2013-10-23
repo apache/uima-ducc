@@ -123,12 +123,6 @@ class StopDucc(DuccUtil):
         print ''
         print '        stop_ducc -n foo.nodes -n bar.nodes -n baz.nodes'
         print ''
-        print '   -q --quiesce nodefile'
-        print '        Queesce the nodes in the nodefile.'
-        print ''
-        print '   -m --management'
-        print '        Stop the management processes (rm, pm, sm, or, and ws).'
-        print ''
         print '   -c --component component'
         print '        Stop a specific component.  The component may be qualified with the node name'
         print '        using the @ symbol: component@node.'
@@ -172,7 +166,6 @@ class StopDucc(DuccUtil):
 
         components = []
         nodefiles = []
-        management = False
         do_agents = False
         do_components = False
         force = False
@@ -180,7 +173,7 @@ class StopDucc(DuccUtil):
         all = False
 
         try:
-            opts, args = getopt.getopt(argv, 'ac:n:kmmn:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'management', 'kill', 'quiesce', 'nothreading'])
+            opts, args = getopt.getopt(argv, 'ac:n:kn:qh?v', ['all', 'component=', 'components=', 'help', 'nodelist=', 'kill', 'quiesce', 'nothreading'])
         except:
             self.invalid('Invalid arguments ' + ' '.join(argv))
         
@@ -188,9 +181,6 @@ class StopDucc(DuccUtil):
             if o in ('-c', '--component', '--components'):
                 components.append(a)
                 do_components = True
-            elif o in ( '-m', '--management' ):
-                management = True
-                components = self.default_components
             elif o in ( '-a', '--all' ):
                 all = True
                 components = self.default_components
@@ -215,8 +205,6 @@ class StopDucc(DuccUtil):
                 self.invalid('bad arg: ' + a)
 
         if ( quiesce ):
-            if ( management ):
-                self.invalid("May not quiesce management nodes.")
             if ( all ):
                 self.invalid("May not quiesce 'all'.");
             if ( force ):
@@ -226,14 +214,10 @@ class StopDucc(DuccUtil):
                     self.invalid("Only agents may be quiesced.")
 
 
-        # 'management' means stop all the management daemons - if specific components are also specified
-        # there is at least a redundancy and maybe also a conflict.
-        if ( do_components and management ):
-            self.invalid("The --management and --compoent options are mutually exclusive")
 
         # avaid confusion by insuring that if 'all', then nothing else is specified
-        if ( all and ( do_components or management ) ):
-            self.invalid("The --all option is mutually exclusive with --management and --component")
+        if ( all and ( do_components ) ):
+            self.invalid("The --all option is mutually exclusive with --component")
         
         # 'all' means everything. we use broadcast.  should use check_ducc to make sure
         # it actually worked, and find the stragglers.
