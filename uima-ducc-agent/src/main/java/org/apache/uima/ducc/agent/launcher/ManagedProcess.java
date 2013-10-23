@@ -333,6 +333,7 @@ public class ManagedProcess implements Process {
 		stdErrReader.start();
 		// block until the process is terminated or the agent terminates
 		boolean finished = false;
+		int exitcode = 0;
 		while (!finished) {
 			try {
 				process.waitFor();
@@ -343,7 +344,7 @@ public class ManagedProcess implements Process {
 			} catch (InterruptedException e) {
 			}
 			try {
-				process.exitValue();
+				exitcode = process.exitValue();
 				finished = true;
 			} catch (IllegalThreadStateException e) {
 			}
@@ -426,11 +427,14 @@ public class ManagedProcess implements Process {
 				} else if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping)) {
 					pstate = ProcessState.Stopped;
 				} else {
-					// if the process was stopped due InitializationFailure or
-					// InitializationTimeout
-					// the following method will be a noop.
-					addReasonForStopping(getDuccProcess(),
-							ReasonForStoppingProcess.Deallocated.toString());
+					if ( exitcode - 128 == 9) { // check if the process was killed with -9
+						addReasonForStopping(getDuccProcess(),
+								ReasonForStoppingProcess.KilledByDucc.toString());
+					} else {
+						addReasonForStopping(getDuccProcess(),
+								ReasonForStoppingProcess.Deallocated.toString());
+						
+					}
 					pstate = ProcessState.Stopped;
 				}
 				notifyProcessObserver(pstate);
