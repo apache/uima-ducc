@@ -34,25 +34,68 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	//private static Messages duccMsg = JobDriverContext.getInstance().getSystemMessages();
 	
 	private IJobDriver jobDriver;
+	private DuccId jobid;
 	
 	// <for testing only!!!>
+	boolean synchronous = false;
 	boolean injectLost = false;
+	boolean injectDelay = false;
 	// </for testing only!!!>
 	
 	public WorkItemListener(IJobDriver jobDriver) {
 		super();
 		this.jobDriver = jobDriver;
+		this.jobid = jobDriver.getJob().getDuccId();
 	}
 	
 	@Override
 	public void onBeforeMessageSend(UimaASProcessStatus status) {
 		String methodName = "onBeforeMessageSend";
 		try {
-			onBeforeMessageSendHandler(status);
+			Thread thread = new OnBeforeMessageSendHandler(status);
+			if(synchronous) {
+				thread.run();
+			}
+			else {
+				thread.start();
+			}
 		}
 		catch(Exception e) {
-			duccOut.error(methodName, null, e);
+			duccOut.error(methodName, jobid, e);
 		}
+	}
+	
+	private class OnBeforeMessageSendHandler extends Thread {
+		private UimaASProcessStatus status;
+		public OnBeforeMessageSendHandler(UimaASProcessStatus status) {
+			this.status = status;
+		}
+		public void run() {
+			String methodName = "OnBeforeMessageSendHandler";
+			try {
+				// <for testing only!!!>
+				if(injectLost) {
+					String casId = null;
+					casId = ""+status.getCAS().hashCode();
+					WorkItem wi = jobDriver.getWorkItem(casId);
+					wi.getCallbackState().statePendingAssigned();
+					duccOut.warn(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
+					int seqNo = wi.getSeqNo();
+					if(seqNo <= 1) {
+						duccOut.warn(methodName, jobid, "callback #1 discarded seqNo:"+seqNo+" "+"casId:"+casId);
+						return;
+					}
+				}
+				// </for testing only!!!>
+				onBeforeMessageSendHandler(status);
+			}
+			catch(Exception e) {
+				duccOut.error(methodName, jobid, e);
+			}
+			finally {
+				duccOut.debug(methodName, jobid, "exit");
+			}
+	    }
 	}
 	
 	private void onBeforeMessageSendHandler(UimaASProcessStatus status) {
@@ -61,28 +104,15 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		ThreadLocation threadLocation = null;
 		try {
 			casId = ""+status.getCAS().hashCode();
-			// <for testing only!!!>
-			if(injectLost) {
-				WorkItem wi = jobDriver.getWorkItem(casId);
-				wi.getCallbackState().statePendingAssigned();
-				duccOut.warn(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
-				int seqNo = wi.getSeqNo();
-				if(seqNo <= 1) {
-					duccOut.warn(methodName, null, "callback #1 discarded seqNo:"+seqNo+" "+"casId:"+casId);
-					return;
-				}
-			}
-			// </for testing only!!!>
 			jobDriver.queued(jobDriver.getWorkItem(casId));
 			threadLocation = jobDriver.getCasDispatchMap().get(casId);
-			DuccId jobid = jobDriver.getJob().getDuccId();
 			duccOut.debug(methodName, jobid, "action:send "+threadLocation.getInfo());
 			jobDriver.getDriverStatusReportLive().workItemQueued(casId,jobid);
 			jobDriver.getWorkItemStateManager().queued(threadLocation.getSeqNo());
-			duccOut.debug(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId);
+			duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId);
 		}
 		catch(Exception e) {
-			duccOut.error(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
+			duccOut.error(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
 		}
 	}
 	
@@ -90,11 +120,68 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	public void onBeforeProcessCAS(UimaASProcessStatus status, String nodeIP, String pid) {
 		String methodName = "onBeforeProcessCAS";
 		try {
-			onBeforeProcessCASHandler(status, nodeIP, pid);
+			Thread thread = new OnBeforeProcessCASHandler(status, nodeIP, pid);
+			if(synchronous) {
+				thread.run();
+			}
+			else {
+				thread.start();
+			}
 		}
 		catch(Exception e) {
-			duccOut.error(methodName, null, e);
+			duccOut.error(methodName, jobid, e);
 		}
+	}
+	
+	private class OnBeforeProcessCASHandler extends Thread {
+		private UimaASProcessStatus status;
+		private String nodeIP;
+		private String pid;
+		public OnBeforeProcessCASHandler(UimaASProcessStatus status, String nodeIP, String pid) {
+			this.status = status;
+			this.nodeIP = nodeIP;
+			this.pid = pid;
+		}
+		public void run() {
+			String methodName = "OnBeforeProcessCASHandler";
+			try {
+				// <for testing only!!!>
+				if(injectLost) {
+					String casId = null;
+					casId = ""+status.getCAS().hashCode();
+					WorkItem wi = jobDriver.getWorkItem(casId);
+					wi.getCallbackState().statePendingAssigned();
+					duccOut.warn(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
+					int seqNo = wi.getSeqNo();
+					if(seqNo <= 3) {
+						duccOut.warn(methodName, jobid, "callback #2 discarded seqNo:"+seqNo+" "+"casId:"+casId);
+						return;
+					}
+				}
+				if(injectDelay) {
+					String casId = null;
+					casId = ""+status.getCAS().hashCode();
+					WorkItem wi = jobDriver.getWorkItem(casId);
+					int seqNo = wi.getSeqNo();
+					if((seqNo > 4) && (seqNo < 8)){
+						duccOut.warn(methodName, jobid, "callback delayed seqNo:"+seqNo+" "+"casId:"+casId);
+						try {
+							Thread.sleep(70*1000);
+						}
+						catch(Exception e) {
+						}
+					}
+				}
+				// </for testing only!!!>
+				onBeforeProcessCASHandler(status, nodeIP, pid);
+			}
+			catch(Exception e) {
+				duccOut.error(methodName, jobid, e);
+			}
+			finally {
+				duccOut.debug(methodName, jobid, "exit");
+			}
+	    }
 	}
 	
 	private void onBeforeProcessCASHandler(UimaASProcessStatus status, String nodeIP, String pid) {
@@ -104,28 +191,17 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		try {
 			casId = ""+status.getCAS().hashCode();
 			WorkItem wi = jobDriver.getWorkItem(casId);
-			// <for testing only!!!>
-			if(injectLost) {
-				wi.getCallbackState().statePendingAssigned();
-				duccOut.warn(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
-				int seqNo = wi.getSeqNo();
-				if(seqNo <= 3) {
-					duccOut.warn(methodName, null, "callback #2 discarded seqNo:"+seqNo+" "+"casId:"+casId);
-					return;
-				}
-			}
-			// </for testing only!!!>
 			wi.getCallbackState().stateNotPending();
-			duccOut.debug(methodName, null, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
+			duccOut.debug(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
 			String PID = pid.split(":")[0];
 			jobDriver.dequeued(jobDriver.getWorkItem(casId), nodeIP, PID);
 			threadLocation = jobDriver.getCasDispatchMap().get(casId);
 			threadLocation.setNodeId(nodeIP);
 			threadLocation.setProcessId(pid);
-			duccOut.debug(methodName, jobDriver.getJob().getDuccId(), "action:process "+threadLocation.getInfo());
+			duccOut.debug(methodName, jobid, "action:process "+threadLocation.getInfo());
 			jobDriver.assignLocation(jobDriver, casId, nodeIP, PID);
 			jobDriver.getDriverStatusReportLive().workItemOperatingStart(casId, nodeIP, PID);
-			duccOut.debug(methodName, null, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+pid);
+			duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+pid);
 			jobDriver.getCasDispatchMap().update(casId, nodeIP, pid);
 			jobDriver.getDriverStatusReportLive().workItemPendingProcessAssignmentRemove(casId);
 			jobDriver.getWorkItemStateManager().operating(threadLocation.getSeqNo());
@@ -136,25 +212,25 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			if(threadLocation != null) {
 				seqNo = threadLocation.getSeqNo();
 			}
-			duccOut.error(methodName, null, "seqNo:"+seqNo+" "+"casId:"+casId, e);
+			duccOut.error(methodName, jobid, "seqNo:"+seqNo+" "+"casId:"+casId, e);
 		}
 	}
 	
 	@Override
 	public void initializationComplete(EntityProcessStatus aStatus) {
 		String methodName = "initializationComplete";
-		duccOut.debug(methodName, null, "status!");
+		duccOut.debug(methodName, jobid, "status!");
 	}
 
 	@Override
 	public void entityProcessComplete(CAS aCas, EntityProcessStatus aStatus) {
 		String methodName = "entityProcessComplete";
-		duccOut.debug(methodName, null, "status!");
+		duccOut.debug(methodName, jobid, "status!");
 	}
 
 	@Override
 	public void collectionProcessComplete(EntityProcessStatus aStatus) {
 		String methodName = "collectionProcessComplete";
-		duccOut.debug(methodName, null, "status!");
+		duccOut.debug(methodName, jobid, "status!");
 	}
 }

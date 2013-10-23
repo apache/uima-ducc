@@ -424,7 +424,7 @@ public class JobDriver extends Thread implements IJobDriver {
 				duccOut.warn(location, jobid, JobRequestProperties.key_process_per_item_time_max+":"+wiTimeout);
 			}
 			appCtx.put(UimaAsynchronousEngine.ServerUri, serverUri);
-			appCtx.put(UimaAsynchronousEngine.Endpoint, endPoint);
+			appCtx.put(UimaAsynchronousEngine.ENDPOINT, endPoint);
 			appCtx.put(UimaAsynchronousEngine.CasPoolSize, 1);
 			appCtx.put(UimaAsynchronousEngine.GetMetaTimeout, metaTimeout*60*1000);
 			appCtx.put(UimaAsynchronousEngine.Timeout, wiTimeout*60*1000);
