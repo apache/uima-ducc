@@ -151,6 +151,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
                   p.getValue().getProcessState().equals(ProcessState.Killed)) {
               sb.append(" Reason:"+p.getValue().getReasonForStoppingProcess());
              }
+          sb.append(" Exit Code="+p.getValue().getProcessExitCode());
 				}
 				logger.info(methodName, null, "Agent "+agent.getIdentity().getName()+" Posting Inventory:"+sb.toString());
 			} else {
