@@ -460,13 +460,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 	      }
 	    } else {
            String processType = "-UIMA-";
-           if ( cmdLine instanceof JavaCommandLine ) {
-        	  // the  Utils.findDuccHome(); has been made in the Agent constructor, so 
-        	  // the DUCC_HOME should have been added to System properties
-        	  ((JavaCommandLine)cmdLine).
-        	     addOption("-Dlog4j.configurationFile="+
-        	          Utils.resolvePlaceholders("${DUCC_HOME}/resources/log4j.xml"));
-          }
 	      switch( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType() ) {
 	        case Pop:
 	          // Both JD and POP arbitrary process are POPs. Assume this is an arbitrary process
