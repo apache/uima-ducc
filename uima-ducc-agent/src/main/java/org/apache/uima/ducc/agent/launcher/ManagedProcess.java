@@ -381,7 +381,7 @@ public class ManagedProcess implements Process {
 				// state to Stopped
 				(reason != null && initError ) ) {
 			getDuccProcess().setProcessState(ProcessState.Stopped);
-			if ( !initError && exitcode - 128 == 9 ) {  // killed with -9?
+			if ( !initError && ( exitcode - 128 == 9 || exitcode - 128 == 15 ) ) {  // killed with -9?
 				getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
 			}
 		} else {
@@ -395,7 +395,7 @@ public class ManagedProcess implements Process {
 				if ( isAP ) {
 					// Agent killed the AP process 
 					pstate = ProcessState.Stopped;
-					if ( exitcode - 128 == 9 ) {   // kill -9?
+					if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) {   // kill -9 or -15?
 						getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
 					}
 				} else {
@@ -429,7 +429,7 @@ public class ManagedProcess implements Process {
 				} else if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping)) {
 					pstate = ProcessState.Stopped;
 				} else {
-					if ( exitcode - 128 == 9) { // check if the process was killed with -9
+					if ( exitcode - 128 == 9 || exitcode - 128 == 15 ) { // check if the process was killed with -9
 						addReasonForStopping(getDuccProcess(),
 								ReasonForStoppingProcess.KilledByDucc.toString());
 					} else {
