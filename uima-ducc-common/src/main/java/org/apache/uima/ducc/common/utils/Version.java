@@ -38,10 +38,10 @@ package org.apache.uima.ducc.common.utils;
  */
 public class Version
 {
-    private static final int major = 0;       // Major version
+    private static final int major = 1;       // Major version
     private static final int minor = 8;       // Minor - may be API changes, or new function
     private static final int ptf   = 0;       // Fix level, fully compatible with previous, no relevent new function
-    private static final String id = "beta";  // A short decoration, optional
+    private static final String id = null;    // A short decoration, optional
 
     public final static String version()
     {
