@@ -51,12 +51,9 @@
              displayed in the Web Server. When specified on a command-line the text usually 
              must be surrounded by quotes to protect it from the shell.  The default is ``none''.
 
-           \item[$--$attach\_console] If specified, redirect remote stdout and stderr
-             to the local submitting console.
-
-           \item[$--$driver\_debug {[debugger-address]}] Append JVM debug flags to the JVM arguments
+           \item[$--$driver\_debug {[debug-port]}] Append JVM debug flags to the JVM arguments
              to start the JobDriver in remote debug mode.  The remote process debugger will attempt
-             to contact the specified port. The address is of the form {\tt host:port}.
+             to contact the specified port.
 
            \item[$--$driver\_descriptor\_CR {[descriptor.xml]} ] This is the XML descriptor for the
              Collection Reader.  This descriptor is a resource that is searched for in the CLASSPATH
@@ -160,10 +157,10 @@
 --process_DD /home/billy/resource/DD_foo.xml 
              \end{verbatim}
 
-           \item[$--$process\_debug {[debugger-address]}] Append JVM debug flags to the JVM
+           \item[$--$process\_debug {[debug-port]}] Append JVM debug flags to the JVM
              arguments to start the Job Process in remote debug mode.  The remote process will start
              its debugger and attempt to contact the debugger (usually Eclipse) on the specified
-             port.  The address is of the form {\tt host:port}.
+             port.
              
            \item[$--$process\_deployments\_max {[integer]} ]
 
