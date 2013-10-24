@@ -176,7 +176,7 @@ public class UimaAsPing
         uimaAsEngine.addStatusCallbackListener(listener);
         Map<String, Object> appCtx = new HashMap<String, Object>();
         appCtx.put(UimaAsynchronousEngine.ServerUri, broker);
-        appCtx.put(UimaAsynchronousEngine.Endpoint, endpoint);
+        appCtx.put(UimaAsynchronousEngine.ENDPOINT, endpoint);
         appCtx.put(UimaAsynchronousEngine.GetMetaTimeout, meta_timeout);
 
         try {
