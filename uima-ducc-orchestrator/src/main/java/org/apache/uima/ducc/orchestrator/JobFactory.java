@@ -277,6 +277,8 @@ public class JobFactory {
 		for(String token : dTokens) {
 			driverCommandLine.addOption(token);
 		}
+		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
+		driverCommandLine.addOption("-Dlog4j.configurationFile=" + System.getenv("DUCC_HOME") + "/resources/log4j.xml");
 		// Environment
 		String driverEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 		int envCountDriver = addEnvironment(job, "driver", driverCommandLine, driverEnvironmentVariables);
