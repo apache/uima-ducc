@@ -428,20 +428,6 @@ class ServiceStarter(DuccUtil):
                 self.standalone[t] = None
                 all_services[t] = None
 
-        for (k, v) in self.submitted.items():
-            instances = svcprops.get("instances_" + k)
-            if ( instances == None ):
-                print "Missing instances for submitted job", k
-                break
-            print "Submitting service", k, "with", instances, "instances"
-            for i in range(0, int(instances)):
-                id = self.submit_service(k)
-                idlist = self.submitted[k]
-                if ( idlist == None ):
-                    idlist = []
-                    self.submitted[k] = idlist
-                idlist.append(id)
-
         for (k, v) in self.registered.items():
             instances = svcprops.get("instances_" + k)
             if ( instances == None ):
