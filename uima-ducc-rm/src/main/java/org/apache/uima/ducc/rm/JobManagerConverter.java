@@ -692,13 +692,15 @@ public class JobManagerConverter
             jobRemoved(w.getDuccId());
         }
 
-        // Todo : manage stuff that is diffs, not new, not deletions
+        //
+        // Stuff on the left is incoming.  Stuff on the right is already in my map.
+        //
         for( DuccMapValueDifference<IDuccWork> jd: diffmap ) {
             IDuccWork r = jd.getRight();
             IDuccWork l = jd.getLeft();
 
             if ( ! l.isSchedulable() ) {
-                logger.info(methodName, l.getDuccId(), "Removing unschedulable:", r.getStateObject(), "->", r.getStateObject());
+                logger.info(methodName, l.getDuccId(), "Removing unschedulable:", r.getStateObject(), "->", l.getStateObject());
                 jobRemoved(r.getDuccId());
             } else {
 

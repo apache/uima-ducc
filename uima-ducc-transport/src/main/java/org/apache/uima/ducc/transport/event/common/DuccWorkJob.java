@@ -171,6 +171,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		case WaitingForResources:
 		case Initializing:
 		case Running:
+		case Completing:
 			retVal = true;	
 			break;
 		}
