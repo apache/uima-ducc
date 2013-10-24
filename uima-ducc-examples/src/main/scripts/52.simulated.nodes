@@ -1,0 +1,26 @@
+# names of nodes in the test cluster
+nodes       = sys534 sys290 sys291 sys292 sys293
+
+# set of memory sizes to configure
+memory      = 31 47 79
+
+# ok, this makes it 53 nodes: 52 below and this one
+sys534.31 = 1
+
+# how to configure memories: node.memsize = count
+sys290.31 = 7
+sys290.47 = 5
+sys290.79 = 1
+
+sys291.31 = 7
+sys291.47 = 5
+sys291.79 = 1
+
+sys292.31 = 7
+sys292.47 = 5
+sys292.79 = 1
+
+sys293.31 = 7
+sys293.47 = 5
+sys293.79 = 1
+

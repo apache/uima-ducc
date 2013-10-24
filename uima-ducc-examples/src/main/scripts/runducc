@@ -212,11 +212,7 @@ class DuccProcess(Thread):
         print 'jvm_process_args', jvm_process_args
 
         CMD = 'java'
-        if ( self.runner.use_jar) :
-            CMD = CMD + ' -jar'
-            CMD = CMD + ' ' + self.DUCC_HOME + '/lib/uima-ducc-submit.jar'
-        else:
-            CMD = CMD + ' ' + self.runner.submit_package + '.cli.DuccJobSubmit'
+        CMD = CMD + ' ' + self.runner.submit_package + '.cli.DuccJobSubmit'
 
         CMD = CMD + ' --description '                         + description + '[' + self.runner.style + ']'
         CMD = CMD + ' --driver_descriptor_CR '                + cr
@@ -599,9 +595,6 @@ class RunDucc(DuccUtil):
         print '   --jp_uima_log log-properties'
         print '       If specified, use the indicated properties file for JP UIMA/UIMA-AS logging. Default:', self.jp_uima_log
         print ''
-        print '   --use_jar'
-        print '       Indicate whether to use the executable jars for submit.  Default:', self.use_jar
-        print ''
         print '   -w, --watch'
         print '       Specifies that we submit in keepalive mode and watch the jobs, creating a dir with outputs. Default:', self.watch
         print '       If specified, we run verification against the results.'
@@ -612,7 +605,6 @@ class RunDucc(DuccUtil):
         print '   -y'
         print '       Error probability during initialation, int, 0:100', self.init_error
         print ''
-        print 'We run using the compiled classes in the development tree (not jar files)'
         print 'We run with DUCC_HOME set to', os.environ['DUCC_HOME']
         sys.exit(1)
     
@@ -636,9 +628,6 @@ class RunDucc(DuccUtil):
         self.service_startup = None
         self.jd_uima_log = None
         self.jp_uima_log = None
-        self.use_jar = False
-        self.use_apache_package = True
-        self.use_ibm_package = False
         self.submit_package = 'org.apache.uima.ducc'
         self.max_machines = 0
 
@@ -646,8 +635,7 @@ class RunDucc(DuccUtil):
             opts, args  = getopt.getopt(argv, 'b:d:i:r:m:n:p:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                         'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
                                                                         'init_timeout=','watch',
-                                                                        'jd_uima_log=', 'jp_uima_log=', 
-                                                                        'use_jar'
+                                                                        'jd_uima_log=', 'jp_uima_log='
                                                                       ])
         except:
             print "Unknown option"
@@ -678,8 +666,6 @@ class RunDucc(DuccUtil):
                 self.jd_uima_log = a       
             elif o in ('--jp_uima_log' ):
                 self.jp_uima_log = a       
-            elif o in ('--use_jar' ):
-                self.use_jar = True
             elif o in ('--AE'):
                 self.style = 'AE'
             elif o in ('--DD'):
@@ -724,17 +710,9 @@ class RunDucc(DuccUtil):
         print '    max_machines       :', self.max_machines
         print '    jd_uima_log        :', self.jd_uima_log
         print '    jp_uima_log        :', self.jp_uima_log
-        print '    use_jar            :', self.use_jar
-        print '    use_ibm_package    :', self.use_ibm_package
-        print '    use_apache_package :', self.use_apache_package
         print '    DUCC_HOME          :', self.DUCC_HOME
 
-        if ( self.use_ibm_package ):
-            self.submit_package = 'com.ibm.ducc'
-        elif (self.use_apache_package):
-            self.submit_package = 'org.apache.uima.ducc'
-        elif (not self.use_jar):
-            self.usage('Cannot tell which package to use for submit')
+        self.submit_package = 'org.apache.uima.ducc'
 
         if ( self.style == 'SE' ):
             if ( self.service_startup == None ):

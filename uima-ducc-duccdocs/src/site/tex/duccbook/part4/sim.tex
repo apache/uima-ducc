@@ -1,7 +1,7 @@
 % Create well-known link to this spot for HTML version
 \ifpdf
 \else
-\HCode{<a name='DUCC_SIM'></a>}
+\HCode{<a name='DUCC\_SIM'></a>}
 \fi
 \chapter{Simulation and System Testing}
 \label{chap:simulation}
@@ -15,15 +15,15 @@
     of these to be spawned on a single node, or on a small set of nodes with 
     multiple simulated nodes apiece.  The standard testing configuration 
     used for most of the development of DUCC consisted of four
-    physical 32-GB machines support 52 simulated nodes of varying memory
+    physical 32-GB machines running 52 simulated nodes of varying memory
     sizes from 32 to 128-GB each.
 
     To simulate job loads, a simple UIMA-AS job that sleeps for some easily configured
     length of time was constructed.  Another control file is used to
     generate \hyperref[sec:cli.ducc-submit]{job specifications} requesting randomly-chosen
-    job parameters such as memory requirements, service dependencies and so on.
+    job parameters such as memory requirements, service dependencies, scheduling classes, and so on.
 
-    The test suite contains a simple Analysis Engine called
+    The test suite contains a simple UIMA Analysis Engine called
     {\tt FixedSleepAE}, and a simple Collection Reader called
     {\tt FixedSleepCR}.  The CR reads a set of sleep times, creates
     CASs, and ships them to the AEs via DUCC's Job Driver.  The CAS
@@ -87,7 +87,7 @@
           of the CLI, (which uses HTTP).
     \end{enumerate}
     
-    Normally, the DUCC Agents use the name and IP address of the node 
+    Normally, the DUCC Agents report the name, IP address, and physical memory of the node 
     they actually do reside upon. This is simply for convenience. 
     It is possible to parametrize the DUCC Agents to report any arbitrary
     name and address to the DUCC.  DUCC components that need to know
@@ -107,7 +107,7 @@
 
     \subsection{Node Configuration}
 
-    A properties file similar to a Java properties file is used to configure
+    A Java properties file is used to configure
     simulated nodes.  There are three types o entries in this file:
     \begin{description}
       \item[nodes] This single entry provides the blank-delimited names of the physical nodes
@@ -156,14 +156,47 @@ agentn.79 = 6
   agentn-3
     etc.
 \end{verbatim}
-      
+
+      \subsection{Setting up Test Mode}
+
+      During simulation and testing it is desirable and usually required that DUCC run
+      in unprivileged mode, with all processes belonging to a single userid.  Unfortunately,
+      this does not exercise any of the multi-user code paths, especially in the Resource
+      Manager.
+
+      To accommodate this, DUCC can be configured to run in ``test mode'', such that work
+      is submitted under ``simulated'' userid which DUCC treats as discrete IDs.  All actual
+      work is executed under the ownership of the tester however.
+
+      To establish test mode:
+      \begin{enumerate}
+          \item Insure that {\em ducc.properties} is configured to point to a non-privileged
+            version of {\em ducc\_ling}.  Specifically, configure this line in {\em ducc.properties}
+\begin{verbatim}
+    ducc.agent.launcher.ducc_spawn_path=/home/ducctest/duccling.dir/amd64/ducc_ling
+\end{verbatim}
+            in this example a version of {\em ducc\_ling} known to not have elevated privileges
+            it configured.
+          \item Configure test mode in {\em ducc.properties}:
+\begin{verbatim}
+    ducc.runmode=Test
+\end{verbatim}
+            IMPORTANT: Do not start DUCC with {\em ducc.runmode=Test} if {\em ducc\_ling} has
+            elevated privileges.  Test mode bypasses the authentication and authorization checks
+            that are normally used and the system would run completely open.
+      \end{enumerate}
+
+      In test mode, jobs may specify what simulated userid is to be used.  Most of DUCC does not
+      pay any attention to the user so this works fine, and the parts that do care about the
+      user are bypassed when {\em ducc.runmode=Test} is configured.
+
       \subsection{Starting a Simulated Cluster}
       DUCC provides a start-up script in the directory {\tt \duccruntime/examples/systemtest} 
       called {\tt start\_sim}.  
 
       WARNING: Cluster simulation is intended for DUCC testing, including error injection.  It is
       similar to flying a high-performance fighter jet.  It is intentionally twitchy.  Very little
-      checking is done and processes may be started multiple time whether it normally is sane to
+      checking is done and processes may be started multiple time regardless of whether is sane to
       do this.
 
       To start a simulated cluster, use the {\em start\_sim} script:
@@ -322,7 +355,7 @@ machines = 11
        All the job meta-descriptors for a run must be placed into a single directory.
 
 
-     \subsection{Prepare Descriptors}
+     \subsection{{\em Prepare} Descriptors}
      \label{subsec:simulation.run-description}
      A  {\em prepare descriptor} is also a
      standard Java properties file.  This defines where the set of meta descriptors resides,
@@ -418,8 +451,6 @@ compression                   = 96        # comporession for timings
      \begin{enumerate}
        \item Registered services, started by reference,
        \item Registered services, started by the simulator,
-       \item Standalone services, started independently of DUCC and discovered
-         by reference from a job.
      \end{enumerate}
 
      To use these simulated services, configure a ``service boot'' file and reference
@@ -431,14 +462,13 @@ compression                   = 96        # comporession for timings
          list of pseudo IDs for the registered services.
        \item[start] This specifies which of the registered services to automatically 
          start.  The value is some subset of the pseudo IDS specified under {\em register}
-       \item[standalone] This specifies the pseudo IDs of the standalone (non-DUCC) services.
        \item[instances\_{[id]}] Here {\em id} is one of the IDs specified for {\em submit,
            register,} or {\em standalone}.  The value is the number of instances of that
          specific service to set up.
      \end{description}
      
      \paragraph{Service pseudo IDs}
-     DUCC is packaged with 10 pre-configured services that use the FixedSleepAE. ALl of these
+     DUCC is packaged with 10 pre-configured services that use the FixedSleepAE. All of these
      services behave identically, the only difference is their endpoints, which allows
      the simulated runs to activate and use multiple independent services.  Because the
      endpoints are in the various UIMA XML service descriptors, it is necessary to use
@@ -459,11 +489,6 @@ instances_3 2
 
 # start these registered services
 start 2 3 
-
-# start 2 standalone services
-standalone 4 5 
-instances_4 1
-instances_5 1
 \end{verbatim}
 
      \subsection{Generating a Job Set}
@@ -484,7 +509,8 @@ prepare [config-file]
      
 
 \subsection{Running the Test Driver}
-    A test run is driven from the script {\em \duccruntime/examples/systemtest/runducc}. This
+    A test run is driven from the script {\em runducc} which resides in the 
+    directory {\em \duccruntime/examples/systemtest}. This
     script supports a large number of options intended to inject errors and otherwise
     perturb a run.
 
@@ -515,6 +541,11 @@ prepare [config-file]
       \item[-i time-in-sec] If specified, this forces each AE to spend a minimum of the indicated time
         in it's initialization method (also a sleep). If not specified, the default is
         10 seconds. The actual time is controlled by the {\em -r} (range) option.
+      \item[--init\_fail\_cap count] This sets the job property {\em process\_initialization\_failures\_cap}
+        to the the indicated value, to control the number of initialization failures to be tolerated
+        before terminating the job.
+      \item[--int\_timeout seconds] This sets the job property {\em process\_initialization\_time\_max}
+        to the indicated value, to control the time allowed in initialization before failure is reported.
       \item[-r time-in-sec] This specifies the top range for initialization.  The service
         will spend the time specified in {\em -i}, PLUS a random value from 1 to
         the time specified in {\em -r} in its initialization phase.
@@ -527,8 +558,8 @@ prepare [config-file]
       \item[-n max-Number-of-processes] Max machine override.  If specified, this overrides the configured process max
         from the job control file.  Specify the max as $0$ and no maximum will be submitted with the job,
         causing the scheduler to try to allocated the largest possible number of processes to the job.
-      \item[-p time-in-seconds] Generated the {\em time-in-seconds} as the maximum processing time
-        for a work item.  DUCC will terminate any work item that exceeds this time.
+      \item[-p time-in-seconds] If specified the job property {\em process\_per\_item\_time\_max},
+        which sets a timeout on work items, is set to the indicated time.
       \item[-w, --watch] Submit every job with the {\em wait\_for\_completion} flag. This runs the
         driver in multi-threaded mode, with each thread monitoring the progress of a job.
       \item[-x rate] This specifies an expected error rate for execution phase in a job process, from 0-100 (a
@@ -574,14 +605,25 @@ prepare [config-file]
          and {\em sys293} is supplied in \duccruntime/examples/systemtest. Change
          the node names to the names of real machines, making any other adjustments
          needed.
-       \item Update your {\em \duccruntime/resources/ducc.mpdes} so that all the real node names specified
+       \item Update your {\em \duccruntime/resources/ducc.nodes} so that all the real node names specified
          int the simulated node file are included.
        \item Update your {\em \duccruntime/resources/ducc.properties} so the 
          {\em ducc.head} is specified as the {\em real, physical} machine where you will
          start the simulated cluster.
        \item Be sure the {\em job driver} nodepool, if configured in
          {\em \duccruntime/resources/ducc.classes}, specifies the name of one of the
-         simulated nodes.
+         simulated nodes.  When first running these tests it is usually best that
+         the job driver NOT be configured on a specific node in {\em ducc.classes}
+         as it can be confusing to get this right on simulated clusters.
+
+         Specifically, in {\em ducc.classes}, configure the {\em JobDriver} class
+         thus:
+\begin{verbatim}
+     Class JobDriver fixed-base { }
+\end{verbatim}
+         This allows DUCC to schedule the job driver on any node in the simulated
+         cluster.
+        
        \item Generate the job set.  For example, to generate the job set for the
          15-minute run,
 \begin{verbatim}
