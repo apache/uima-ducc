@@ -381,7 +381,7 @@ public class ManagedProcess implements Process {
 				// state to Stopped
 				(reason != null && initError ) ) {
 			getDuccProcess().setProcessState(ProcessState.Stopped);
-			if ( !initError ) {  
+			if ( !initError && exitcode - 128 == 9 ) {  // killed with -9?
 				getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
 			}
 		} else {
@@ -395,7 +395,9 @@ public class ManagedProcess implements Process {
 				if ( isAP ) {
 					// Agent killed the AP process 
 					pstate = ProcessState.Stopped;
-					getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
+					if ( exitcode - 128 == 9 ) {   // kill -9?
+						getDuccProcess().setReasonForStoppingProcess(ReasonForStoppingProcess.KilledByDucc.toString());
+					}
 				} else {
 					// Agent killed the process due to timeout waiting for OR state
 					pstate = ProcessState.Killed;
