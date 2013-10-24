@@ -162,7 +162,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   public NodeAgent(NodeIdentity ni) {
     this();
     this.nodeIdentity = ni;
-
+    Utils.findDuccHome();  // add DUCC_HOME to System.properties
   }
 
   /**
@@ -179,6 +179,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           AgentConfiguration factory) throws Exception {
     super(COMPONENT_NAME, context);
 
+    Utils.findDuccHome();  // add DUCC_HOME to System.properties
+    
     // Running a real agent
     virtualAgent = System.getProperty("ducc.agent.virtual") == null ? false : true;
 
