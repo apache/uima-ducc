@@ -77,7 +77,8 @@ class Ducc(DuccUtil):
         jvm_opts.append('-Dos.page.size=' + self.os_pagesize)
         jvm_opts.append('-Dducc.deploy.configuration=' + self.DUCC_HOME + '/resources/ducc.properties')
         jvm_opts.append('-Dducc.head=' + ducc_head)
- 
+        jvm_opts.append('-Dlog4j.configurationFile=' + self.DUCC_HOME + '/resources/log4j.xml')
+
         service = 'org.apache.uima.ducc.common.main.DuccService'
         for c in complist:
             if ( c == 'agent' ):
@@ -195,7 +196,8 @@ class Ducc(DuccUtil):
         if ( args != None ):
             cmd.append(args)
 
-            #print 'CMD', cmd
+        #print 'CMD', cmd
+
         if ( pid == None ):
             if ( background ):
                 pid = self.nohup(cmd)
