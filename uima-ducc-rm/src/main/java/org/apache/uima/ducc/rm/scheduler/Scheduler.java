@@ -1057,10 +1057,15 @@ public class Scheduler
         synchronized(completedJobs) {
             try {
                 IRmJob job = allJobs.get(id);
+                if ( job == null ) {
+                    logger.warn(methodName, id, "Job completion signal: early termination; nothing to complete.");
+                    return;  // canceled or terminated very soon.
+                }
+
                 logger.info(methodName, id, "Job completion signal.");
                 completedJobs.add(job);
-            } catch (Exception e) {
-                logger.warn(methodName, id, e);
+            } catch (Throwable t) {
+                logger.warn(methodName, id, t);
             }
         }
     }
