@@ -35,6 +35,7 @@ under the License.
 	<th title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
 	<th title="Process agent state">State<br>Agent</th>
 	<th title="Process agent reason (for agent state)">Reason<br>Agent</th>
+	<th title="Process exit code or signal">Exit</th>
 	<!--
 	<th title="Process initialization time, hh:mm:ss, as reported by the agent managing the process. The agent reports initialization start and end times. The time reported here is the difference between them, unless initialization is ongoing then the end time is estimated as now.">Time<br>Init</th>
 	-->

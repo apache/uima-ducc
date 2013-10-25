@@ -72,6 +72,7 @@ import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
@@ -489,6 +490,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		default:
 			switch(sType) {
+			/*
 			case MR:
 				sb.append("<td>");
 				int code = process.getProcessExitCode();
@@ -506,8 +508,10 @@ public class DuccHandler extends DuccAbstractHandler {
 				}
 				sb.append("</td>");				
 				break;
+			*/
 			default:
 				ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
+				/*
 				String toolTip = ProcessDeallocationType.getToolTip(deallocationType);
 				if(toolTip == null) {
 					sb.append("<td>");
@@ -515,6 +519,8 @@ public class DuccHandler extends DuccAbstractHandler {
 				else {
 					sb.append("<td title=\""+toolTip+"\">");
 				}
+				*/
+				sb.append("<td>");
 				switch(deallocationType) {
 				case Undefined:
 					break;
@@ -535,9 +541,41 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<td>");
 		String agentReason = process.getReasonForStoppingProcess();
 		if(agentReason != null) {
-			sb.append(process.getReasonForStoppingProcess());
+			if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.KilledByDucc.toString())) {
+				agentReason = "<div title=\""+ReasonForStoppingProcess.KilledByDucc.toString()+"\">Discontinued</div>";
+			}
+			else if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.Other.toString())) {
+				agentReason = "<div title=\""+ReasonForStoppingProcess.Other.toString()+"\">Discontinued</div>";
+			}
+			sb.append(agentReason);
 		}
 		sb.append("</td>");
+		// Exit
+		sb.append("<td>");
+		switch(process.getProcessState()) {
+		case Stopped:
+		case Failed:
+		case FailedInitialization:
+		case InitializationTimeout:
+		case Killed:
+			int code = process.getProcessExitCode();
+			if(LinuxSignals.isSignal(code)) {
+				Signal signal = LinuxSignals.lookup(code);
+				if(signal != null) {
+					sb.append(signal.name()+"("+signal.number()+")");
+				}
+				else {
+					sb.append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
+				}
+			}
+			else {
+				sb.append("ExitCode"+"="+code);
+			}
+			break;
+		default:
+			break;
+		}
+		sb.append("</td>");	
 		// Time:init
 		switch(sType) {
 			case MR:

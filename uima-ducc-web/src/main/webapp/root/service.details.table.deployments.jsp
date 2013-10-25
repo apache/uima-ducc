@@ -32,6 +32,7 @@ under the License.
 	<th title="Process scheduling reason (for scheduling state)">Reason<br>Scheduler<br><small>or extraordinary status</small></th>
 	<th title="Process agent state">State<br>Agent</th>
 	<th title="Process agent reason (for agent state)">Reason<br>Agent</th>
+	<th title="Process exit code or signal">Exit</th>
 	<th title="Process initialization time, ddd:hh:mm:ss">Time<br>Init</th>
     <th title="Process run time (not including process initialization time), ddd:hh:mm:ss">Time<br>Run</th>
 	<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
