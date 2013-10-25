@@ -37,7 +37,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	private DuccId jobid;
 	
 	// <for testing only!!!>
-	boolean synchronous = false;
+	boolean asynchronous = false;
 	boolean injectLost = false;
 	boolean injectDelay = false;
 	// </for testing only!!!>
@@ -53,11 +53,11 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		String methodName = "onBeforeMessageSend";
 		try {
 			Thread thread = new OnBeforeMessageSendHandler(status);
-			if(synchronous) {
-				thread.run();
+			if(asynchronous) {
+				thread.start();
 			}
 			else {
-				thread.start();
+				thread.run();
 			}
 		}
 		catch(Exception e) {
@@ -121,11 +121,11 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		String methodName = "onBeforeProcessCAS";
 		try {
 			Thread thread = new OnBeforeProcessCASHandler(status, nodeIP, pid);
-			if(synchronous) {
-				thread.run();
+			if(asynchronous) {
+				thread.start();
 			}
 			else {
-				thread.start();
+				thread.run();
 			}
 		}
 		catch(Exception e) {
