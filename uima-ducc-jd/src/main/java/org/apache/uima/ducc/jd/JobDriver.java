@@ -214,10 +214,14 @@ public class JobDriver extends Thread implements IJobDriver {
 			else {
 				duccOut.warn(location, jobid, "no work items to process");
 			}
-			
 		} 
 		catch (JobDriverTerminateException e) {
+			duccOut.error(location, jobid, e);
 		}
+		catch(Throwable t) {
+			duccOut.error(location, jobid, t);
+		}
+		duccOut.debug(location, jobid, "thread processing complete");
 	}
 	
 	private void setJobid(DuccId value) {
@@ -605,7 +609,6 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, e);
-			System.exit(-1);
 		}
 	}
 	

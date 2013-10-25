@@ -21,6 +21,7 @@ package org.apache.uima.ducc.jd;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.camel.CamelContext;
@@ -70,9 +71,9 @@ implements IJobDriverComponent {
 	
 	private JobProcessCollection jpc = null;
 	
-//	private int retryCount = 0;
-//	private int retryLimit = 2;
-	
+	private AtomicBoolean started = new AtomicBoolean(false);
+	private AtomicBoolean active = new AtomicBoolean(true);
+
 	private void init(String jdBrokerUrl,String jdQueuePrefix) {
 		String methodName = "init";
 		duccOut.trace(methodName, null, duccMsg.fetch("enter"));
@@ -82,46 +83,6 @@ implements IJobDriverComponent {
 		this.jdQueue = jdQueuePrefix+jobId;
 		duccOut.debug(methodName, null, duccMsg.fetchLabel("job.broker")+this.jdBrokerUrl+" "+duccMsg.fetchLabel("job.queue")+this.jdQueue);
 		duccOut.trace(methodName, null, duccMsg.fetch("exit"));
-	}
-	
-	private void waitForPublication() {
-		String methodName = "waitForPublication";
-		int secs = 60;
-		int pubC = publicationCounter.get();
-		int pubT = pubC+3;
-		int diff = pubT-pubC;
-		int prev = 0;
-		while(diff > 0) {
-			if(diff != prev) {
-				duccOut.debug(methodName, duccId, "pending publications:"+diff);
-			}
-			if(secs <= 0) {
-				break;
-			}
-			secs--;
-			try {
-				Thread.sleep(1000);
-			}
-			catch(Exception e) {
-			}
-			pubC = publicationCounter.get();
-			prev = diff;
-			diff = pubT - pubC;
-		}
-		duccOut.debug(methodName, duccId, "pending publications:"+diff);
-	}
-	
-	private void suicide() {
-		String methodName = "suicide";
-		waitForPublication();
-		try {
-			duccOut.debug(methodName, duccId, "..."+duccMsg.fetch("and away we go")+"!");
-			super.stop();
-		}
-		catch(Exception e) {
-			duccOut.error(methodName, duccId, e);
-			System.exit(-1);
-		}
 	}
 	
 	private void dumpProcessMap(DuccWorkJob job) {
@@ -151,7 +112,7 @@ implements IJobDriverComponent {
 	
 	private boolean dumpProcessMapEnabled = false;
 	
-	public String summarize(Exception e) {
+	protected String summarize(Exception e) {
 		return ExceptionHelper.summarize(e);
 	}
 	
@@ -172,7 +133,8 @@ implements IJobDriverComponent {
 				if(thread != null) {
 					thread.setJob(job);
 				}
-				if(thread == null) {
+				if(!started.get()) {
+					started.set(true);
 					duccOut.debug(methodName, job.getDuccId(), job.getJobState());
 					duccOut.trace(methodName, job.getDuccId(), duccMsg.fetch("creating driver thread"));
 					try {
@@ -190,56 +152,39 @@ implements IJobDriverComponent {
 						duccOut.error(methodName, null, t);
 					}
 				}
-				try {
-					if(jpc != null) {
-						ConcurrentSkipListMap<Long, JobProcessData> map = jpc.transform(job);
-						jpc.exportData(map);
+				if(active.get()) {
+					try {
+						if(jpc != null) {
+							ConcurrentSkipListMap<Long, JobProcessData> map = jpc.transform(job);
+							jpc.exportData(map);
+						}
+					}
+					catch(Exception e) {
+						duccOut.error(methodName, job.getDuccId(), summarize(e), e);
 					}
 				}
-				catch(Exception e) {
-					duccOut.error(methodName, job.getDuccId(), summarize(e), e);
-				}
 			}
-			/*
-			if(job.isCompleted()) {
-				int count = job.getProcessMap().getUsableProcessCount();
-				if(count > 0) {
-					duccOut.debug(methodName, job.getDuccId(), duccMsg.fetchLabel("processes active")+count);
-				}
-				else {
-					duccOut.trace(methodName, job.getDuccId(), duccMsg.fetch("terminate driver thread"));
-					thread.terminate();
+		}
+		else {
+			duccOut.debug(methodName, duccId, duccMsg.fetch("job not found"));
+			if(active.get()) {
+				active.set(false);
+				if(thread != null) {
+					thread.kill(new Rationale("job driver failed to locate job in map"));
 					thread.interrupt();
 					try {
 						thread.join();
 					} catch (InterruptedException e) {
-						duccOut.debug(methodName, job.getDuccId(), e);
+						duccOut.debug(methodName, duccId, e);
 					}
-					duccOut.trace(methodName, duccId, duccMsg.fetch("job completed"));
-					suicide();
+					duccOut.debug(methodName, duccId, duccMsg.fetch("thread killed"));
 				}
 			}
-			*/
-		}
-		else {
-			duccOut.debug(methodName, duccId, duccMsg.fetch("job not found"));
-			if(thread != null) {
-				thread.kill(new Rationale("job driver failed to locate job in map"));
-				thread.interrupt();
-				try {
-					thread.join();
-				} catch (InterruptedException e) {
-					duccOut.debug(methodName, duccId, e);
-				}
-				duccOut.debug(methodName, duccId, duccMsg.fetch("thread killed"));
-			}
-			duccOut.debug(methodName, duccId, duccMsg.fetch("job killed"));
-			suicide();
 		}
 		duccOut.trace(methodName, null, duccMsg.fetch("exit"));
 	}
 	
-	public void publisher() {
+	protected void publisher() {
 		String methodName = "publisher";
 		PerformanceSummaryWriter performanceSummaryWriter = thread.getPerformanceSummaryWriter();
 		if(performanceSummaryWriter == null) {
@@ -267,41 +212,43 @@ implements IJobDriverComponent {
 	public JdStateDuccEvent getState() {
 		String methodName = "getState";
 		duccOut.trace(methodName, null, duccMsg.fetch("enter"));
-		JdStateDuccEvent jdStateDuccEvent = null;
-		publicationCounter.addAndGet(1);
-		try {
-			duccOut.debug(methodName, null, duccMsg.fetch("publishing state"));
-			jdStateDuccEvent = new JdStateDuccEvent();
-			if(thread != null) {
-				thread.rectifyStatus();
-				DriverStatusReport dsr = thread.getDriverStatusReportCopy();
-				if(dsr == null) {
-					duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));
+		JdStateDuccEvent jdStateDuccEvent = new JdStateDuccEvent();
+		if(active.get()) {
+			publicationCounter.addAndGet(1);
+			try {
+				duccOut.debug(methodName, null, duccMsg.fetch("publishing state"));
+				if(thread != null) {
+					thread.rectifyStatus();
+					DriverStatusReport dsr = thread.getDriverStatusReportCopy();
+					if(dsr == null) {
+						duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));
+					}
+					else {
+						duccOut.debug(methodName, null, "driverState:"+dsr.getDriverState());
+						duccOut.debug(methodName, dsr.getDuccId(), dsr.getLogReport());
+						jdStateDuccEvent.setState(dsr);
+					}
+					publisher();
 				}
 				else {
-					duccOut.debug(methodName, null, "driverState:"+dsr.getDriverState());
-					duccOut.debug(methodName, dsr.getDuccId(), dsr.getLogReport());
-					jdStateDuccEvent.setState(dsr);
+					duccOut.debug(methodName, null, duccMsg.fetch("thread is null"));
 				}
-				publisher();
 			}
-			else {
-				duccOut.debug(methodName, null, duccMsg.fetch("thread is null"));
+			catch(Exception e) {
+				duccOut.error(methodName, null, e);
 			}
-		}
-		catch(Exception e) {
-			duccOut.error(methodName, null, e);
 		}
 		duccOut.trace(methodName, null, duccMsg.fetch("exit"));
 		return jdStateDuccEvent;
 	}
 	
-	
 	public void evaluateJobDriverConstraints(OrchestratorAbbreviatedStateDuccEvent duccEvent) {
 		String methodName = "evaluateDispatchedJobConstraints";
 		duccOut.trace(methodName, null, duccMsg.fetch("enter"));
 		duccOut.debug(methodName, null, duccMsg.fetchLabel("received")+"OrchestratorStateEvent");
-		process(duccEvent);
+		if(active.get()) {
+			process(duccEvent);
+		}
 		duccOut.trace(methodName, null, duccMsg.fetch("exit"));
 	}
 	
