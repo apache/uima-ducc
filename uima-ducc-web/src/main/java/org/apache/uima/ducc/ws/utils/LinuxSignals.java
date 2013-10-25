@@ -67,7 +67,9 @@ public class LinuxSignals {
 	    public int number() { return number; }
 	    public String description() { return description; }
 	}
-	
+
+    private static int signalUpperLimit = Signal.SIGSYS.number()+1;
+    
 	private static TreeMap<Integer, Signal> map = createMap();
 	
 	private static TreeMap<Integer, Signal> createMap() {
@@ -112,19 +114,20 @@ public class LinuxSignals {
 		signalMap.put(key,value);
 	}
 	
-	private static int boundary = 128;
+	private static int boundary_lower = 128;
+	private static int boundary_upper = 128+signalUpperLimit;
 	
 	public static int getValue(int code) {
-		return code - boundary;
+		return code - boundary_lower;
 	}
 	
 	public static boolean isSignal(int code) {
-		return code > boundary;
+		return (code > boundary_lower) && (code < boundary_upper);
 	}
 	
 	public static Signal lookup(int code) {
 		Signal retVal = null;
-		Integer key = Integer.valueOf(code-boundary);
+		Integer key = Integer.valueOf(code-boundary_lower);
 		if(map.containsKey(key)) {
 			retVal = map.get(key);
 		}
@@ -142,8 +145,8 @@ public class LinuxSignals {
 	}
 	
 	public static void main(String[] args) {
-		for(int i=1; i < 32; i++) {
-			report(i+boundary);
+		for(int i=1; i < 35; i++) {
+			report(i+boundary_lower);
 		}
 	}
 	
