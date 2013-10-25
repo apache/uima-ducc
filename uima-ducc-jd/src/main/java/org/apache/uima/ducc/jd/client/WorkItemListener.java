@@ -38,7 +38,8 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	
 	// <for testing only!!!>
 	boolean asynchronous = false;
-	boolean injectLost = false;
+	boolean injectLost1 = false;
+	boolean injectLost2 = false;
 	boolean injectDelay = false;
 	// </for testing only!!!>
 	
@@ -74,7 +75,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			String methodName = "OnBeforeMessageSendHandler";
 			try {
 				// <for testing only!!!>
-				if(injectLost) {
+				if(injectLost1) {
 					String casId = null;
 					casId = ""+status.getCAS().hashCode();
 					WorkItem wi = jobDriver.getWorkItem(casId);
@@ -146,7 +147,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			String methodName = "OnBeforeProcessCASHandler";
 			try {
 				// <for testing only!!!>
-				if(injectLost) {
+				if(injectLost2) {
 					String casId = null;
 					casId = ""+status.getCAS().hashCode();
 					WorkItem wi = jobDriver.getWorkItem(casId);
