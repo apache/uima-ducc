@@ -234,7 +234,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 		                cmdL.addArgument("/PID");
 		            } else {
 		                cmdL = new NonJavaCommandLine("/bin/kill");
-		                cmdL.addArgument("-15");
+		                if ( ((ManagedProcess) managedProcess).isJd() ) {
+		                	// kill JD hard.
+			                cmdL.addArgument("-9");
+		                } else {
+			                cmdL.addArgument("-15");
+		                }
 		            }
 		            cmdL.addArgument(((ManagedProcess) managedProcess).getDuccProcess().getPID());
 
