@@ -344,6 +344,8 @@ public class StateManager {
 		try {
 			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
 			IDuccProcessWorkItems pwi = pwiMap.getTotals();
+			pwi.setCountUnassigned(jdStatusReport.getWorkItemPendingProcessAssignmentCount());
+			logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 			DuccWorkPopDriver driver = job.getDriver();
 			IDuccProcessMap processMap = driver.getProcessMap();
 			if(processMap != null) {
