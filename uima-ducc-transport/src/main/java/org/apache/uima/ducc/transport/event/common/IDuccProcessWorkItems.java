@@ -22,6 +22,9 @@ import java.io.Serializable;
 
 public interface IDuccProcessWorkItems extends Serializable {
 	
+	public long getCountUnassigned();	
+	public void setCountUnassigned(long count);
+	
 	public long getCountDispatch();
 	public long getCountDone();
 	public long getCountError();

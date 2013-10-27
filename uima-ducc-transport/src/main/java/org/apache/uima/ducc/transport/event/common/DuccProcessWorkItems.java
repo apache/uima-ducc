@@ -24,6 +24,8 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 
 	private static final long serialVersionUID = 1L;
 
+	private long unassigned = 0;
+	
 	private AtomicLong dispatch = new AtomicLong(0);
 	private AtomicLong done = new AtomicLong(0);
 	private AtomicLong error = new AtomicLong(0);
@@ -33,6 +35,14 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 	private AtomicLong completedMillisTotal = new AtomicLong(0);
 	private AtomicLong completedMillisMax = new AtomicLong(0);
 	private AtomicLong completedMillisMin = new AtomicLong(0);
+
+	public long getCountUnassigned() {
+		return unassigned;
+	}
+
+	public void setCountUnassigned(long count) {
+		unassigned = count;
+	}
 	
 	private void setMin(long update) {
 		completedMillisMin.compareAndSet(0, update);
@@ -80,7 +90,6 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 	
 	public void lost() {
 		lost.incrementAndGet();
-		undispatch();
 	}
 	
 	public void preempt() {
