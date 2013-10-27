@@ -40,7 +40,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	boolean asynchronous = false;
 	boolean injectLost1 = false;
 	boolean injectLost2 = false;
-	boolean injectDelay = false;
+	boolean injectDelay3 = false;
 	// </for testing only!!!>
 	
 	public WorkItemListener(IJobDriver jobDriver) {
@@ -82,13 +82,22 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 					wi.getCallbackState().statePendingAssigned();
 					duccOut.warn(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
 					int seqNo = wi.getSeqNo();
-					if(seqNo <= 1) {
+					if(seqNo == 1) {
 						duccOut.warn(methodName, jobid, "callback #1 discarded seqNo:"+seqNo+" "+"casId:"+casId);
 						return;
 					}
 				}
 				// </for testing only!!!>
-				onBeforeMessageSendHandler(status);
+				String casId = ""+status.getCAS().hashCode();
+				String name = "onBeforeMessageSendHandler";
+				if(jobDriver.callbackRegister(casId, name)) {
+					onBeforeMessageSendHandler(status);
+				}
+				else {
+					WorkItem wi = jobDriver.getWorkItem(casId);
+					int seqNo = wi.getSeqNo();
+					duccOut.warn(methodName, jobid, "callback #1 out-of-order seqNo:"+seqNo+" "+"casId:"+casId);
+				}
 			}
 			catch(Exception e) {
 				duccOut.error(methodName, jobid, e);
@@ -105,12 +114,18 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		ThreadLocation threadLocation = null;
 		try {
 			casId = ""+status.getCAS().hashCode();
-			jobDriver.queued(jobDriver.getWorkItem(casId));
-			threadLocation = jobDriver.getCasDispatchMap().get(casId);
-			duccOut.debug(methodName, jobid, "action:send "+threadLocation.getInfo());
-			jobDriver.getDriverStatusReportLive().workItemQueued(casId,jobid);
-			jobDriver.getWorkItemStateManager().queued(threadLocation.getSeqNo());
-			duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId);
+			if(jobDriver.isLostCas(casId)) {
+				threadLocation = jobDriver.getLostCas(casId);
+				duccOut.warn(methodName, jobid, "action:lost "+threadLocation.getInfo());
+			}
+			else {
+				jobDriver.queued(jobDriver.getWorkItem(casId));
+				threadLocation = jobDriver.getCasDispatchMap().get(casId);
+				duccOut.debug(methodName, jobid, "action:send "+threadLocation.getInfo());
+				jobDriver.getDriverStatusReportLive().workItemQueued(casId,jobid);
+				jobDriver.getWorkItemStateManager().queued(threadLocation.getSeqNo());
+				duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId);
+			}
 		}
 		catch(Exception e) {
 			duccOut.error(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId, e);
@@ -154,17 +169,17 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 					wi.getCallbackState().statePendingAssigned();
 					duccOut.warn(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
 					int seqNo = wi.getSeqNo();
-					if(seqNo <= 3) {
+					if(seqNo == 2) {
 						duccOut.warn(methodName, jobid, "callback #2 discarded seqNo:"+seqNo+" "+"casId:"+casId);
 						return;
 					}
 				}
-				if(injectDelay) {
+				if(injectDelay3) {
 					String casId = null;
 					casId = ""+status.getCAS().hashCode();
 					WorkItem wi = jobDriver.getWorkItem(casId);
 					int seqNo = wi.getSeqNo();
-					if((seqNo > 4) && (seqNo < 8)){
+					if(seqNo == 3) {
 						duccOut.warn(methodName, jobid, "callback delayed seqNo:"+seqNo+" "+"casId:"+casId);
 						try {
 							Thread.sleep(70*1000);
@@ -174,6 +189,14 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 					}
 				}
 				// </for testing only!!!>
+				String casId = ""+status.getCAS().hashCode();
+				String name = "onBeforeMessageSendHandler";
+				if(jobDriver.callbackRegister(casId, name)) {
+					WorkItem wi = jobDriver.getWorkItem(casId);
+					int seqNo = wi.getSeqNo();
+					duccOut.warn(methodName, jobid, "callback #1 missing seqNo:"+seqNo+" "+"casId:"+casId);
+					onBeforeMessageSendHandler(status);
+				}
 				onBeforeProcessCASHandler(status, nodeIP, pid);
 			}
 			catch(Exception e) {
@@ -191,22 +214,28 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		ThreadLocation threadLocation = null;
 		try {
 			casId = ""+status.getCAS().hashCode();
-			WorkItem wi = jobDriver.getWorkItem(casId);
-			wi.getCallbackState().stateNotPending();
-			duccOut.debug(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
-			String PID = pid.split(":")[0];
-			jobDriver.dequeued(jobDriver.getWorkItem(casId), nodeIP, PID);
-			threadLocation = jobDriver.getCasDispatchMap().get(casId);
-			threadLocation.setNodeId(nodeIP);
-			threadLocation.setProcessId(pid);
-			duccOut.debug(methodName, jobid, "action:process "+threadLocation.getInfo());
-			jobDriver.assignLocation(jobDriver, casId, nodeIP, PID);
-			jobDriver.getDriverStatusReportLive().workItemOperatingStart(casId, nodeIP, PID);
-			duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+pid);
-			jobDriver.getCasDispatchMap().update(casId, nodeIP, pid);
-			jobDriver.getDriverStatusReportLive().workItemPendingProcessAssignmentRemove(casId);
-			jobDriver.getWorkItemStateManager().operating(threadLocation.getSeqNo());
-			jobDriver.getWorkItemStateManager().location(threadLocation.getSeqNo(),nodeIP, PID);
+			if(jobDriver.isLostCas(casId)) {
+				threadLocation = jobDriver.getLostCas(casId);
+				duccOut.warn(methodName, jobid, "action:lost "+threadLocation.getInfo());
+			}
+			else {
+				WorkItem wi = jobDriver.getWorkItem(casId);
+				wi.getCallbackState().stateNotPending();
+				duccOut.debug(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
+				String PID = pid.split(":")[0];
+				jobDriver.dequeued(jobDriver.getWorkItem(casId), nodeIP, PID);
+				threadLocation = jobDriver.getCasDispatchMap().get(casId);
+				threadLocation.setNodeId(nodeIP);
+				threadLocation.setProcessId(pid);
+				duccOut.debug(methodName, jobid, "action:process "+threadLocation.getInfo());
+				jobDriver.assignLocation(jobDriver, casId, nodeIP, PID);
+				jobDriver.getDriverStatusReportLive().workItemOperatingStart(casId, nodeIP, PID);
+				duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+pid);
+				jobDriver.getCasDispatchMap().update(casId, nodeIP, pid);
+				jobDriver.getDriverStatusReportLive().workItemPendingProcessAssignmentRemove(casId);
+				jobDriver.getWorkItemStateManager().operating(threadLocation.getSeqNo());
+				jobDriver.getWorkItemStateManager().location(threadLocation.getSeqNo(),nodeIP, PID);
+			}
 		}
 		catch(Exception e) {
 			String seqNo = null;

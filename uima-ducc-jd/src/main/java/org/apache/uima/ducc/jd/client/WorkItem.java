@@ -148,13 +148,21 @@ public class WorkItem implements Runnable {
 				callbackState.statePendingQueued();
 				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+callbackState.getState());
 				client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
+				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
 				//injectRandomThrowable();
 				if(!isLost.get()) {
 					ended();
 				}
+				else {
+					duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"lost+ended");
+				}
 			} catch(Exception e) {
 				if(!isLost.get()) {
 					exception(e);
+				}
+				else {
+					duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"lost+exception");
+					duccOut.debug(methodName, null, e);
 				}
 			}
 		}

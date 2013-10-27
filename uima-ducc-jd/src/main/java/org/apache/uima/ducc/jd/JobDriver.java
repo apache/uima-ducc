@@ -116,6 +116,9 @@ public class JobDriver extends Thread implements IJobDriver {
 	
 	private ConcurrentHashMap<String,WorkItem> casWorkItemMap = null;
 	
+	private ConcurrentHashMap<String,String> callbackMap = new ConcurrentHashMap<String,String>();
+	private ConcurrentHashMap<String,ThreadLocation> lostMap = new ConcurrentHashMap<String,ThreadLocation>();
+	
 	private long total = -1;
 	
 	public JobDriver() {
@@ -266,6 +269,7 @@ public class JobDriver extends Thread implements IJobDriver {
 									long tdiff = cTime - sTime;
 									if(tdiff > mTime) {
 										duccOut.warn(location, null, "reaping (no callback) seqNo:"+seqNo+" "+"casId:"+casId+" "+"tdiff:"+tdiff);
+										registerLostCas(workItem.getCasId(), getCasDispatchMap().get(casId));
 										workItem.lost();
 									}
 								}
@@ -1272,7 +1276,7 @@ public class JobDriver extends Thread implements IJobDriver {
 				String message = "casCount:"+casCount+" "+"endCount:"+endCount;
 				duccOut.debug(location, jobid, message);
 				remove(workItem);
-				casSource.recycle(workItem.getCAS());
+				recycleCAS(workItem);
 				accountingWorkItemIsDone(workItem.getProcessId(),time);
 				queueCASes(1,queue,workItemFactory);
 			}
@@ -1294,7 +1298,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			workItemStateManager.error(workItem.getSeqNo());
 			workItemError(workItem, e, directive);
 			remove(workItem);
-			casSource.recycle(workItem.getCAS());
+			recycleCAS(workItem);
 			accountingWorkItemIsError(workItem.getProcessId());
 			try {
 				queueCASes(1,queue,workItemFactory);
@@ -1311,7 +1315,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			workItemStateManager.error(workItem.getSeqNo());
 			workItemError(workItem, e, directive);
 			remove(workItem);
-			casSource.recycle(workItem.getCAS());
+			recycleCAS(workItem);
 			accountingWorkItemIsError(workItem.getProcessId());
 			break;
 		case ProcessStop_CasRetry:
@@ -1330,17 +1334,26 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 	
+	private void recycleCAS(WorkItem workItem) {
+		String casId = null;
+		casId = ""+workItem.getCAS().hashCode();
+		if(!isLostCas(casId)) {
+			casSource.recycle(workItem.getCAS());
+		}
+	}
+	
 	public void lost(WorkItem workItem) {
 		String location = "lost";
 		try {
 			duccOut.info(location, workItem.getJobId(), "seqNo:"+workItem.getSeqNo());
 			workItemInactive();
+			driverStatusReport.workItemDequeued(workItem.getCasId());
 			driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
 			driverStatusReport.workItemOperatingEnd(workItem.getCasId());
 			workItemStateManager.lost(workItem.getSeqNo());
 			workItemLost(workItem);
 			remove(workItem);
-			casSource.recycle(workItem.getCAS());
+			recycleCAS(workItem);
 			accountingWorkItemIsLost(workItem.getProcessId());
 			queueCASes(1,queue,workItemFactory);
 		}
@@ -1408,7 +1421,7 @@ public class JobDriver extends Thread implements IJobDriver {
 				workItemStateManager.error(workItem.getSeqNo());
 				workItemError(workItem, e);
 				remove(workItem);
-				casSource.recycle(workItem.getCAS());
+				recycleCAS(workItem);
 				accountingWorkItemIsError(workItem.getProcessId());
 				queueCASes(1,queue,workItemFactory);
 			}
@@ -1432,7 +1445,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			workItemStateManager.error(workItem.getSeqNo());
 			workItemError(workItem, t);
 			remove(workItem);
-			casSource.recycle(workItem.getCAS());
+			recycleCAS(workItem);
 			accountingWorkItemIsError(workItem.getProcessId());
 			queueCASes(1,queue,workItemFactory);
 		}
@@ -1496,6 +1509,57 @@ public class JobDriver extends Thread implements IJobDriver {
 		if(casSource != null) {
 			casSource.rectifyStatus();
 		}
+	}
+
+	public boolean callbackRegister(String casId, String name) {
+		boolean retVal = false;
+		synchronized(this) {
+			if(casId != null) {
+				if(name != null) {
+					if(!callbackMap.containsKey(casId)) {
+						callbackMap.put(casId, name);
+						retVal = true;
+					}
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	public void callbackUnregister(String casId) {
+		synchronized(this) {
+			if(casId != null) {
+				callbackMap.remove(casId);
+			}
+		}
+	}
+
+	public void registerLostCas(String casId, ThreadLocation threadLocation) {
+		synchronized(this) {
+			if(casId != null) {
+				lostMap.put(casId, threadLocation);
+			}
+		}
+	}
+
+	public ThreadLocation getLostCas(String casId) {
+		ThreadLocation retVal = null;
+		synchronized(this) {
+			if(casId != null) {
+				retVal = lostMap.get(casId);
+			}
+		}
+		return retVal;
+	}
+	
+	public boolean isLostCas(String casId) {
+		boolean retVal = false;
+		synchronized(this) {
+			if(casId != null) {
+				retVal = lostMap.containsKey(casId);
+			}
+		}
+		return retVal;
 	}
 	
 }

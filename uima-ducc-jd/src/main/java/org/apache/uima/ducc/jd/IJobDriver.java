@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.jd;
 
 import org.apache.uima.ducc.jd.client.IWorkItemMonitor;
+import org.apache.uima.ducc.jd.client.ThreadLocation;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 
 
@@ -29,4 +30,10 @@ public interface IJobDriver extends IJobDriverAccess, IWorkItemMonitor {
 	
 	public IDuccWorkJob getJob();
 	public void setJob(IDuccWorkJob job);
+	
+	public boolean callbackRegister(String casId, String name);
+	public void callbackUnregister(String casId);
+	
+	public boolean isLostCas(String casId);
+	public ThreadLocation getLostCas(String casId);
 }
