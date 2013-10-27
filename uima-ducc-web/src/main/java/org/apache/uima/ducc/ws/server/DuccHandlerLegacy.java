@@ -281,7 +281,14 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		// Dispatch
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		if(duccData.isLive(duccId)) {
-			sb.append(job.getSchedulingInfo().getWorkItemsDispatched());
+			int dispatch = 0;
+			int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
+			try {
+				dispatch = Integer.parseInt(job.getSchedulingInfo().getWorkItemsDispatched())-unassigned;
+			}
+			catch(Exception e) {
+			}
+			sb.append(dispatch);
 		}
 		else {
 			sb.append("0");

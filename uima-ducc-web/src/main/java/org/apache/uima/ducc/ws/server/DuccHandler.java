@@ -1091,20 +1091,28 @@ public class DuccHandler extends DuccAbstractHandler {
 		case Undefined:
 			break;
 		default:
+			int dispatch = 0;
+			int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
+			int limbo = job.getSchedulingInfo().getLimboMap().size();
+			try {
+				dispatch = Integer.parseInt(job.getSchedulingInfo().getWorkItemsDispatched())-unassigned;
+			}
+			catch(Exception e) {
+			}
 			// dispatch
 			sb.append("<th title=\"The number of work items currently dispatched\">");
 			sb.append("Dispatch: ");
-			sb.append(job.getSchedulingInfo().getWorkItemsDispatched());
+			sb.append(dispatch);
 			sb.append("&nbsp");
 			// unassigned
 			sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
 			sb.append("Unassigned: ");
-			sb.append(job.getSchedulingInfo().getCasQueuedMap().size());
+			sb.append(unassigned);
 			sb.append("&nbsp");
 			// limbo
 			sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
 			sb.append("Limbo: ");
-			sb.append(job.getSchedulingInfo().getLimboMap().size());
+			sb.append(limbo);
 			sb.append("&nbsp");
 			break;
 		}
