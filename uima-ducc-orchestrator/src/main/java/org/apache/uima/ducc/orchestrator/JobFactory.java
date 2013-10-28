@@ -238,6 +238,8 @@ public class JobFactory {
 		String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
 		// getMeta
 		String meta_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
+		// lost
+		String lost_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_queue_timeout_minutes);
 		// process_per_item_time_max
 		String wi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_per_item_time_max);
 		if(wi_time == null) {
@@ -246,7 +248,7 @@ public class JobFactory {
 		// Exception handler
 		String processExceptionHandler = jobRequestProperties.getProperty(JobRequestProperties.key_driver_exception_handler);
 		// Command line
-		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, wi_time, processExceptionHandler);
+		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, lost_time, wi_time, processExceptionHandler);
 		JavaCommandLine driverCommandLine = new JavaCommandLine(javaCmd);
 		driverCommandLine.setClassName(IDuccCommand.main);
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_configruation);
