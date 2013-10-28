@@ -29,25 +29,28 @@ public class DuccWorkPopDriver extends DuccWorkPop {
 		private String cr = null;
 		private String crConfig = null;
 		private String metaTimeout = null;
+		private String lostTimeout = null;
 		private String wiTimeout = null;
 		private String processExceptionHandler = null;
 		
-		public DuccWorkPopDriver(String serverUri, String endPoint, String cr, String crConfig, String metaTimeout, String wiTimeout, String processExceptionHandler) {
+		public DuccWorkPopDriver(String serverUri, String endPoint, String cr, String crConfig, String metaTimeout, String lostTimeout, String wiTimeout, String processExceptionHandler) {
 			this.serverUri = serverUri;
 			this.endPoint = endPoint;
 			this.cr = cr;
 			this.crConfig = crConfig;
 			this.metaTimeout = metaTimeout;
+			this.lostTimeout = lostTimeout;
 			this.wiTimeout = wiTimeout;
 			this.processExceptionHandler = processExceptionHandler;
 		}
 		
-		public DuccWorkPopDriver(String serverUri, String endPoint, String cr, String crConfig, String metaTimeout, String wiTimeout) {
+		public DuccWorkPopDriver(String serverUri, String endPoint, String cr, String crConfig, String metaTimeout, String lostTimeout, String wiTimeout) {
 			this.serverUri = serverUri;
 			this.endPoint = endPoint;
 			this.cr = cr;
 			this.crConfig = crConfig;
 			this.metaTimeout = metaTimeout;
+			this.lostTimeout = lostTimeout;
 			this.wiTimeout = wiTimeout;
 		}
 		
@@ -69,6 +72,10 @@ public class DuccWorkPopDriver extends DuccWorkPop {
 		
 		public String getMetaTimeout() {
 			return metaTimeout;
+		}
+		
+		public String getLostTimeout() {
+			return lostTimeout;
 		}
 		
 		public String getWiTimeout() {
