@@ -109,6 +109,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	private String endPoint = null;
 	private int wiTimeout = 1;
 	private int metaTimeout = 1;
+	private long lostTimeout = 5;
 	
 	private WorkItemFactory workItemFactory;
 	
@@ -242,9 +243,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	private String getJdJmxUrl() {
 		return jdJmxUrl;
 	}
-	
-	private long reapTimeout = 1;
-	
+
 	private void missingCallbackReaper() {
 		String location = "missingCallbackReaper";
 		try {
@@ -265,7 +264,7 @@ public class JobDriver extends Thread implements IJobDriver {
 								if(workItem.getCallbackState().isPendingCallback()) {
 									long sTime = workItem.getTimeWindow().getStartLong();
 									long cTime = System.currentTimeMillis();
-									long mTime = 1000*60*reapTimeout;
+									long mTime = 1000*60*lostTimeout;
 									long tdiff = cTime - sTime;
 									if(tdiff > mTime) {
 										duccOut.warn(location, null, "reaping (no callback) seqNo:"+seqNo+" "+"casId:"+casId+" "+"tdiff:"+tdiff);
@@ -423,6 +422,13 @@ public class JobDriver extends Thread implements IJobDriver {
 			}
 			catch(Exception e) {
 				duccOut.warn(location, jobid, DuccPropertiesResolver.default_process_get_meta_time_max+":"+metaTimeout);
+			}
+			try {
+				lostTimeout = Integer.parseInt(getJob().getDriver().getLostTimeout());
+				duccOut.info(location, jobid, DuccPropertiesResolver.ducc_jd_queue_timeout_minutes+":"+lostTimeout);
+			}
+			catch(Exception e) {
+				duccOut.warn(location, jobid, DuccPropertiesResolver.ducc_jd_queue_timeout_minutes+":"+lostTimeout);
 			}
 			try {
 				wiTimeout = Integer.parseInt(getJob().getDriver().getWiTimeout());
