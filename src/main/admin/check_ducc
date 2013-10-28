@@ -268,8 +268,8 @@ class CheckDucc(DuccUtil):
 
 
         if ( config_only ):
-            if ( len(nodefiles) > 1 ):
-                print "NOTOK: Config check: specify a single master nodefile only."
+            if ( nodefiles != self.default_nodefiles):
+                print "NOTOK: Config check only works with full, default nodefile:", self.default_nodefiles
                 return
             if self.verify_class_configuration(nodefiles[0], verbose):
                 print "OK: Class configuration checked"

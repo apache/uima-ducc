@@ -36,7 +36,7 @@ from ducc_util import ThreadPool
 class StartDucc(DuccUtil):
 
     def start_broker(self):
-
+        
         broker_host = self.ducc_properties.get('ducc.broker.hostname')
         print 'broker host', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
@@ -292,7 +292,7 @@ class StartDucc(DuccUtil):
                 print "Can't read nodefile", nf
                 ok = False
 
-        if ok and (len(nodefiles) == 1):
+        if ok and (nodefiles == self.default_nodefiles):
             if self.verify_class_configuration(nodefiles[0], False):
                 print "OK: Class configuration checked"
             else:
