@@ -84,6 +84,7 @@ public class DuccPropertiesResolver {
     public static final String default_process_per_item_time_max = "default.process.per.item.time.max";
     
     public static final String ducc_jd_queue_prefix = "ducc.jd.queue.prefix";
+    public static final String ducc_jd_queue_timeout_minutes = "ducc.jd.queue.timeout.minutes";
     
     public static final String ducc_rm_class_definitions = "ducc.rm.class.definitions";
     public static final String ducc_rm_share_quantum = "ducc.rm.share.quantum";
@@ -113,6 +114,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_jd_share_quantum,"300");
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
         defaultProperties.put(ducc_ws_login_enabled,"true");
+        defaultProperties.put(ducc_jd_queue_timeout_minutes,"5");
     }
     
     private void init(Properties properties) {
