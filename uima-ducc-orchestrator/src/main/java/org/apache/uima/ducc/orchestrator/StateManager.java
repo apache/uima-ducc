@@ -1261,7 +1261,7 @@ public class StateManager {
 										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
 									}
 									if(!service.hasAliveProcess()) {
-										completeJob(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+										completeService(service, new Rationale("state manager reported no viable service process exists, type="+processType));
 									}
 									break;
 								case Job_Uima_AS_Process:
@@ -1270,7 +1270,7 @@ public class StateManager {
 										OrchestratorCommonArea.getInstance().getProcessAccounting().deallocate(service,ProcessDeallocationType.Stopped);
 									}
 									if(!service.hasAliveProcess()) {
-										completeJob(service, new Rationale("state manager reported no viable service process exists, type="+processType));
+										completeService(service, new Rationale("state manager reported no viable service process exists, type="+processType));
 									}
 									break;
 								}
@@ -1333,7 +1333,6 @@ public class StateManager {
 		String location = "completeManagedReservation";
 		DuccId jobid = null;
 		try {
-			
 			jobid = service.getDuccId();
 			Map<DuccId, IDuccProcess> map = service.getProcessMap().getMap();
 			int size = map.size();
@@ -1365,13 +1364,27 @@ public class StateManager {
 		}
 	}
 	
+	private void completeService(DuccWorkJob service, IRationale rationale) {
+		if(service.getProcessFailureCount() > 0) {
+			service.setCompletion(JobCompletionType.Warning, new Rationale("process failure(s) occurred"));
+		}
+		else if(service.getProcessInitFailureCount() > 0) {
+			service.setCompletion(JobCompletionType.Warning, new Rationale("process initialization failure(s) occurred"));
+		}
+		else {
+			setCompletionIfNotAlreadySet(service, JobCompletionType.EndOfJob, rationale);
+		}
+		advanceToCompleted(service);
+	}
+	
 	private void completeJob(DuccWorkJob job, IRationale rationale) {
 		String location = "completeJob";
 		DuccId jobid = null;
 		switch(job.getCompletionType()) {
 		case Undefined:
-			job.setCompletion(JobCompletionType.EndOfJob, rationale);
+			job.setCompletion(JobCompletionType.Undefined, rationale);
 			job.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+			break;
 		case EndOfJob:
 			if(job.getProcessFailureCount() > 0) {
 				job.setCompletion(JobCompletionType.Warning, new Rationale("all work items completed, but job process failure(s) occurred"));

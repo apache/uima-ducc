@@ -129,7 +129,15 @@ public class StateJobAccounting {
 			case Completing:
 				job.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 			}
-			recordUserState(job);
+			switch(state) {
+			case Completed:
+				recordUserState(job);
+				recordUserCompletion(job);
+				break;
+			default:
+				recordUserState(job);
+				break;
+			}
 			boolean advanceVal = advance(job);
 			if(!advanceVal) {
 				logger.info(methodName, job.getDuccId(),"current["+next+"] previous["+prev+"]");
@@ -293,6 +301,7 @@ public class StateJobAccounting {
 	public boolean complete(IDuccWorkJob job, JobCompletionType completionType, IRationale completionRationale) {
 		String methodName = "complete";
 		boolean retVal = false;
+		logger.debug(methodName, job.getDuccId(), job.getCompletionType()+" "+job.getCompletionRationale());
 		switch(job.getCompletionType()) {
 		case Undefined:
 			retVal = true;
@@ -301,7 +310,6 @@ public class StateJobAccounting {
 		if(retVal) {
 			job.setCompletion(completionType,completionRationale);
 			logger.info(methodName, job.getDuccId(), completionType+" "+completionRationale);
-			recordUserCompletion(job);
 		}
 		else {
 			logger.info(methodName, job.getDuccId(), completionType+" "+"ignored");
@@ -322,6 +330,7 @@ public class StateJobAccounting {
 			if(jobState != null) {
 				text = jobState.toString();
 				userLogging.toUserDuccLog(text);
+				logger.debug(methodName, job.getDuccId(), text);
 			}
 		}
 		catch(Exception e) {
@@ -340,13 +349,15 @@ public class StateJobAccounting {
 			UserLogging userLogging = new UserLogging(userName, userLogDir);
 			JobCompletionType jobCompletionType = job.getCompletionType();
 			if(jobCompletionType != null) {
-				text = jobCompletionType.toString();
+				text = "completion type: "+jobCompletionType.toString();
 				userLogging.toUserDuccLog(text);
+				logger.debug(methodName, job.getDuccId(), text);
 			}
 			IRationale rationale = job.getCompletionRationale();
 			if(rationale != null) {
-				text = rationale.toString();
+				text = "rationale: "+rationale.toString();
 				userLogging.toUserDuccLog(text);
+				logger.debug(methodName, job.getDuccId(), text);
 			}
 		}
 		catch(Exception e) {
