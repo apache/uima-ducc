@@ -274,11 +274,25 @@ public class JobFactory {
 		}
 		logger.debug(methodName, job.getDuccId(), "driver CP (combined):"+driverClasspath);
 		driverCommandLine.setClasspath(driverClasspath);
+		// Add the user-provided JVM args
+		boolean haveXmx = false;
 		String driver_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_jvm_args);
 		ArrayList<String> dTokens = DuccUiUtilities.tokenizeList(driver_jvm_args, true);
 		for(String token : dTokens) {
 			driverCommandLine.addOption(token);
+			if (!haveXmx) {
+			    haveXmx = token.startsWith("-Xmx");
+			}
 		}
+		// Add any site-provided JVM args, but not -Xmx if the user has provided one
+		String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_driver_jvm_args);
+		dTokens = DuccUiUtilities.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
+		for (String token : dTokens) {
+		    if (!haveXmx || !token.startsWith("-Xmx")) {
+		        driverCommandLine.addOption(token);
+		    }
+		}
+		
 		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
 		driverCommandLine.addOption("-Dlog4j.configuration=file://" + System.getenv("DUCC_HOME") + "/resources/log4j.xml");
 		// Environment
@@ -493,6 +507,13 @@ public class JobFactory {
 			for(String token : pTokens) {
 				pipelineCommandLine.addOption(token);
 			}
+		    // Add any site-provided JVM args
+	        String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_process_jvm_args);
+	        pTokens = DuccUiUtilities.tokenizeList(siteJvmArgs, true);   // a null arg is acceptable
+	        for(String token : pTokens) {
+	            pipelineCommandLine.addOption(token);
+	        }
+			
 			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 			int envCountProcess = addEnvironment(job, "process", pipelineCommandLine, processEnvironmentVariables);
 			logger.info(methodName, job.getDuccId(), "process env vars: "+envCountProcess);

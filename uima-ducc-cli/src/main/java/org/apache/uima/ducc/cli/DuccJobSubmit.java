@@ -275,22 +275,6 @@ public class DuccJobSubmit
         }
         return propertyValue;
     }
-    
-    private void adjust_specific_jvm_args(String additionalArgs, UiOption args_option)
-    {
-        String additionalJvmArgs = getDuccProperty(additionalArgs, null);
-        if(additionalJvmArgs != null) {
-            String jvmArgs = jobRequestProperties.getProperty(args_option.pname());
-            if(jvmArgs == null) {
-                jvmArgs = additionalJvmArgs;
-            }
-            else {
-                jvmArgs += " "+additionalJvmArgs;
-            }
-            jobRequestProperties.setProperty(args_option.pname(), jvmArgs);
-        }
-
-    }
 
     //**********        
     
@@ -319,17 +303,6 @@ public class DuccJobSubmit
 
         if (jobRequestProperties.containsKey(UiOption.Debug.pname())) {
             jobRequestProperties.dump();
-        }
-
-        /*
-         * adjust driver and process jvm args
-         */
-        boolean jad = jobRequestProperties.containsKey(UiOption.DriverJvmArgs.pname());
-        boolean jap = jobRequestProperties.containsKey(UiOption.ProcessJvmArgs.pname());
-        
-        if(jad || jap) {
-            adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_driver_jvm_args, UiOption.DriverJvmArgs);
-            adjust_specific_jvm_args(DuccPropertiesResolver.ducc_submit_process_jvm_args, UiOption.ProcessJvmArgs);
         }
 
         /*
