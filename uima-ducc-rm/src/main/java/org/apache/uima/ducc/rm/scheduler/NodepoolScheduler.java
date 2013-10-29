@@ -1120,8 +1120,12 @@ public class NodepoolScheduler
 
                 // Don't schedule non-preemptable shares over subpools
                 if ( np.countLocalShares() < n_instances ) {
-                    schedulingUpdate.refuse(j, "Job refused because insufficient resources are availble.");
-                    logger.warn(methodName, j.getId(), "Cannot accept Fixed Share job nodepool " + np.getId() 
+                    schedulingUpdate.refuse(j, "1 Job refused because insufficient resources are availble. Available for class " 
+                                            + rc.getName() + ": "
+                                            + np.countLocalShares()
+                                            + "requested:" + n_instances);
+
+                    logger.warn(methodName, j.getId(), "1 Cannot accept Fixed Share job nodepool " + np.getId() 
                                             + " has insufficient nodes left. Available[" 
                                             + np.countLocalShares() 
                                             + "] requested[" + n_instances + "]");
@@ -1132,8 +1136,8 @@ public class NodepoolScheduler
                 // Now see if we have sufficient shares in the system for this allocation. Note that pool nodes are accounted for here as well.
                 //
                 if ( np.countNSharesByOrder(order) < n_instances ) {     // countSharesByOrder is N shares, as is minshares
-                    schedulingUpdate.refuse(j, "Job refused because insufficient resources are availble.");
-                    logger.warn(methodName, j.getId(), "Cannot accept Fixed Share job, insufficient shares available. Available[" + np.countNSharesByOrder(order) + "] requested[" + n_instances + "]");
+                    schedulingUpdate.refuse(j, "2 Job refused because insufficient resources are availble.");
+                    logger.warn(methodName, j.getId(), "2 Cannot accept Fixed Share job, insufficient shares available. Available[" + np.countNSharesByOrder(order) + "] requested[" + n_instances + "]");
                     continue;
                 }
 
@@ -1142,12 +1146,12 @@ public class NodepoolScheduler
                 //
                 shares_given_out += (n_instances * order);
                 if ( shares_given_out > classcap ) {                         // to q-shares before comparing
-                    schedulingUpdate.refuse(j, "Job refused because class cap of " + classcap + " is exceeded.");
+                    schedulingUpdate.refuse(j, "3 Job refused because class cap of " + classcap + " is exceeded.");
                     continue;
                 }
 
                 if ( rc.getMaxProcesses() < n_instances ) {               // Does it blow the configured limit for this class?
-                    schedulingUpdate.refuse(j, "Job refused because class max of " + rc.getMaxProcesses() + " is exceeded.");
+                    schedulingUpdate.refuse(j, "3 Job refused because class max of " + rc.getMaxProcesses() + " is exceeded.");
                     continue;
                 }
 

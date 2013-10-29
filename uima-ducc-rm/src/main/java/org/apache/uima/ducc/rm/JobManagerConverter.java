@@ -73,7 +73,8 @@ public class JobManagerConverter
 {
     DuccLogger logger = DuccLogger.getLogger(JobManagerConverter.class, COMPONENT_NAME);
     ISchedulerMain scheduler;
-    
+    NodeStability nodeStability = null;
+
     DuccWorkMap localMap = null;
     JobManagerUpdate lastJobManagerUpdate = new JobManagerUpdate();
 
@@ -81,10 +82,12 @@ public class JobManagerConverter
     
     boolean recovery = false;
 
-    public JobManagerConverter(ISchedulerMain scheduler)
+    public JobManagerConverter(ISchedulerMain scheduler, NodeStability ns)
     {
         this.scheduler = scheduler;
         this.localMap = new DuccWorkMap();
+        this.nodeStability = ns;
+
         DuccLogger.setUnthreaded();
 
         recovery = SystemPropertyResolver.getBooleanProperty("ducc.rm.fast.recovery", true);
@@ -1024,7 +1027,7 @@ public class JobManagerConverter
         }
         logger.info(methodName, null, "Recovered[", nodes.size(), "] nodes from OR state.");
         for (Node n : nodes.values() ) {
-            scheduler.nodeArrives(n);
+            nodeStability.nodeArrives(n);
         }
         
         return (nodes.size() != 0);

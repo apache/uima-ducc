@@ -52,6 +52,7 @@ import org.springframework.context.annotation.Import;
             int nodeStability = SystemPropertyResolver.getIntProperty("ducc.rm.node.stability", DEFAULT_STABILITY_COUNT);
             int agentMetricsRate = SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", DEFAULT_NODE_METRICS_RATE);
             NodeStability ns = new NodeStability(rm, nodeStability, agentMetricsRate);            
+            rm.setNodeStability(ns);
             jmel.setEndpoint(common.rmStateUpdateEndpoint);
             jmel.setNodeStability(ns);
             ns.start();

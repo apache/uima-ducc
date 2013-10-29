@@ -59,6 +59,8 @@ public class ResourceManagerComponent
     DuccEventDispatcher eventDispatcher;
     String stateEndpoint;
 
+    NodeStability stabilityManager = null;
+
     public ResourceManagerComponent(CamelContext context) {
         super("ResourceManager", context);
         this.scheduler = new Scheduler();
@@ -74,13 +76,18 @@ public class ResourceManagerComponent
         return schedulerReady;
     }
 
+    public void setNodeStability(NodeStability ns)
+    {
+        this.stabilityManager = ns;
+    }
+
     public void start(DuccService service, String[] args)
         throws Exception
     {
         super.start(service, args);
         DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ResourceManager,getProcessJmxUrl());
 
-        converter = new JobManagerConverter(scheduler);
+        converter = new JobManagerConverter(scheduler, stabilityManager);
 
         initStability         = SystemPropertyResolver.getIntProperty("ducc.rm.init.stability", DEFAULT_INIT_STABILITY_COUNT);
         nodeStability         = SystemPropertyResolver.getIntProperty("ducc.rm.node.stability", DEFAULT_STABILITY_COUNT);
