@@ -629,6 +629,7 @@ under the License.
       <directoryMode>755</directoryMode>        
       <includes>
         <include>*.jpg</include>
+        <include>*.png</include>
       </includes>
     </fileSet>
   
