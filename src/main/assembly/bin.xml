@@ -97,7 +97,7 @@ under the License.
         <include>org.apache.uima:uimaj-as-jms</include>
         <include>org.apache.uima:uimaj-as-activemq</include>
       </includes>      
-      <outputFileNameMapping>${artifact.artifactId}-${org.apache.uima.as.version}.jar</outputFileNameMapping>
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -109,7 +109,7 @@ under the License.
       <includes>
         <include>org.apache.uima:uimaj-core</include>
       </includes>      
-      <outputFileNameMapping>uima-core-${org.apache.uima.version}.jar</outputFileNameMapping>
+      <outputFileNameMapping>uima-core.jar</outputFileNameMapping>
       <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -349,16 +349,6 @@ under the License.
 
    
     <!--          ACTIVEMQ 5.6.0                -->
-    <fileSet>
-      <directory>target/apache-activemq/apache-activemq-5.6.0/conf</directory>
-      <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
-      <includes>
-      	<include>logging.properties</include>
-      	<include>log4j.properties</include>
-      </includes>
-      <fileMode>755</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
     
     <fileSet>
       <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
@@ -366,25 +356,27 @@ under the License.
       <includes>
       	<include>bin/*</include>
       	<include>bin/**/*</include>
+      	<include>**/conf/credentials-enc.properties</include>
+      	<include>**/conf/credentials.properties</include>
+      	<include>**/conf/log4j.properties</include>
+      	<include>**/conf/logging.properties</include>
+      	<include>activemq-all-5.6.0.jar</include>
       </includes>
+      <excludes>
+      	<exclude>LICENSE</exclude>
+      	<exclude>NOTICE</exclude>
+      	<exclude>README.txt</exclude>
+      	<exclude>user-guide.html</exclude>
+      	<exclude>WebConsole-README.txt</exclude>
+      	<exclude>**/example/*</exclude>
+      	<exclude>**/example/**/*</exclude>
+      	<exclude>**/webapps/*</exclude>
+      	<exclude>**/docs/*</exclude>
+      </excludes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
 
-    <fileSet>
-      <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
-      <outputDirectory>ducc_runtime/activemq</outputDirectory>
-      <includes>
-      	<include>LICENSE</include>
-      	<include>NOTICE</include>
-      	<include>README.txt</include>
-      	<include>user-guide.html</include>
-      	<include>WebConsole-README.html</include>
-      </includes>
-      <fileMode>755</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
     <fileSet>
       <directory>src/main/config/</directory>
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
@@ -396,6 +388,17 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
     
+    <!--  For binary tarbal include LICENSE and NOTICE.  -->
+    <fileSet>
+      <directory>src/main/legal/</directory>
+      <outputDirectory>ducc_runtime</outputDirectory>
+      <includes>
+      	<include>LICENSE</include>
+      	<include>NOTICE</include>
+      </includes>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
     
     <!--      JETTY  -->
     <fileSet>
@@ -435,6 +438,28 @@ under the License.
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes />
+    </fileSet>
+
+
+    <fileSet>
+      <directory>src/main/legal</directory>
+      <outputDirectory>ducc_runtime/</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+      <includes />
+    </fileSet>
+
+<fileSet>
+      <directory></directory>
+      <outputDirectory></outputDirectory>
+      <includes>
+        <include>README</include>
+        <include>RELEASE_NOTES.html</include>
+        <include>pom.xml</include>
+      </includes>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>
+     
     </fileSet>
 
     <fileSet>
@@ -661,6 +686,12 @@ under the License.
     <file>
       <source>src/main/config/activemq-nojournal5.xml</source>
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
+      <fileMode>644</fileMode>
+    </file>
+    
+    <file>
+      <source>src/main/config/README.txt</source>
+      <outputDirectory>ducc_runtime/activemq</outputDirectory>
       <fileMode>644</fileMode>
     </file>
     
