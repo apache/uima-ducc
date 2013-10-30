@@ -95,6 +95,7 @@ class DuccProcess(Thread):
 
     def execute(self):
         os.environ['USER'] = self.user
+        print 'CLASSPATH:', os.environ['CLASSPATH']
         print 'Running', self.jobfile, 'as', os.environ['USER'], 'compression', self.runner.compression
         print self.cmd
         os.system(self.cmd)
@@ -102,6 +103,7 @@ class DuccProcess(Thread):
     def run(self):
         os.environ['USER'] = self.user
 
+        print 'CLASSPATH:', os.environ['CLASSPATH']
         print "Running as", os.environ['USER']
         print self.cmd
 
@@ -693,8 +695,6 @@ class RunDucc(DuccUtil):
         if ( self.test_dir == None ):
             self.usage("Missing test_dir")
 
-        os.environ['CLASSPATH'] = self.DUCC_HOME + "/lib/uima-ducc-cli.jar"
-
         print 'Running with'
         print '    test_dir           :', self.test_dir
         print '    batchfile          :', self.batchfile
@@ -728,6 +728,7 @@ class RunDucc(DuccUtil):
             os.system(self.DUCC_HOME + '/bin/ducc_services --query')
             #service_starter.stop_services()
 
+        os.environ['CLASSPATH'] = self.DUCC_HOME + "/lib/uima-ducc-cli.jar"
         if ( self.watch ):
             self.queue = Queue.Queue()
 
