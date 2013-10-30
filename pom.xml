@@ -252,7 +252,7 @@
 									<groupId>org.apache.activemq</groupId>
 									<artifactId>apache-activemq</artifactId>
 									<version>${org.apache.activemq.version}</version>
-									<type>zip</type>
+									<type>tar.gz</type>
 									<classifier>bin</classifier>
 									<outputDirectory>${project.build.directory}/apache-activemq</outputDirectory>
 								</artifactItem>
