@@ -678,23 +678,14 @@ public class ServiceHandler
                 if ( state == JobState.Completed ) {
                     sset.removeImplementor(id);
                     JobCompletionType jct = w.getCompletionType();
-                        
-                    logger.info(methodName, id, "Removing stopped instance from maps: state[", state, "] completion[", jct, "]");
-                    switch ( jct ) {
-                        case EndOfJob:
-                        case CanceledByUser:
-                        case CanceledByAdministrator:
-                        case Undefined:
-                            break;
-                        default:
-                            logger.debug(methodName, id, "RECORDING FAILURE");
-                            // all other cases are errors that contribute to the error count
-                            if ( sset.excessiveRunFailures() ) {    // if true, the count is exceeeded, but reset
-                                logger.warn(methodName, null, "Process Failure: " + jct + " Maximum consecutive failures[" + sset.failure_run + "] max [" + sset.failure_max + "]");
-                            } else {
-                                sset.start();
-                            }
-                            break;
+                    if ( ! sset.isStopped() ) {
+                        logger.warn(methodName, id, "UNEXPECTED instance termination in state[", state, "] with completion[", jct, "]");
+                        // all other cases are errors that contribute to the error count
+                        if ( sset.excessiveRunFailures() ) {    // if true, the count is exceeeded, but reset
+                            logger.warn(methodName, null, "Process Failure: " + jct + " Maximum consecutive terminations[" + sset.failure_run + "] max [" + sset.failure_max + "]");
+                        } else {
+                            sset.start();
+                        }
                     }
                 }
             }
