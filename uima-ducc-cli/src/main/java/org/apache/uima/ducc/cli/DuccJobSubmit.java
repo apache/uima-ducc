@@ -217,8 +217,6 @@ public class DuccJobSubmit
     protected void enrich_parameters_for_debug(Properties props)
         throws Exception
     {
-        String key_process = UiOption.ProcessJvmArgs.pname();
-        String key_driver = UiOption.ProcessJvmArgs.pname();
         try {        
             int jp_debug_port = -1;
             int jd_debug_port = -2;       // a trick, must be different from jp_debug_port; see below
@@ -232,7 +230,7 @@ public class DuccJobSubmit
                 }
                 jp_debug_port = Integer.parseInt(jp_port_s);
                 
-                set_debug_parms(props, key_process, jp_debug_port);
+                set_debug_parms(props, UiOption.ProcessJvmArgs.pname(), jp_debug_port);
                 // For debugging, if the JP is being debugged, we have to force max processes to 1 & no restarts
                 props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
                 props.setProperty(UiOption.ProcessFailuresLimit.pname(), "1");
@@ -248,7 +246,7 @@ public class DuccJobSubmit
                     throw new IllegalArgumentException("Missing port for " + do_debug);
                 }
                 jd_debug_port = Integer.parseInt(jd_port_s);
-                set_debug_parms(props, key_driver, jd_debug_port);
+                set_debug_parms(props, UiOption.DriverJvmArgs.pname(), jd_debug_port);
             }
             
             if ( jp_debug_port == jd_debug_port ) {
