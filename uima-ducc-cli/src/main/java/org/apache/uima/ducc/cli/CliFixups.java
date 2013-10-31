@@ -28,9 +28,9 @@ import java.util.Properties;
 
 public class CliFixups {
 
-    static void cleanupArgs(String[] args) {
+    static void cleanupArgs(String[] args, String className) {
     }
     
-    static void cleanupProps(Properties props) {
+    static void cleanupProps(Properties props, String className) {
     }
 }

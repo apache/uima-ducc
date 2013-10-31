@@ -173,16 +173,16 @@
       \item[$--$process\_executable\_args {[list-of-arguments]}] For \hyperref[sec:services.types]{CUSTOM
           services}, this specifies the program arguments, if any.
 
-      \item[$--$process\_failures\_limit {[integer]}] 
+      \item[$--$process\_memory\_size {[size]}] This specifies the maximum amount of RAM in GB to be
+        allocated to each Job Process.  This value is used by the Resource Manager to allocate
+        resources. 
+
+      \item[$--$instance\_failures\_limit {[integer]}] 
         This specifies the maximum number of consecutive individual service instance failures that are to be 
         tolerated before stopping the service. The default is five (5). If the instance is successfully
         restarted, the count is reset to zero (0), so that the occasional process failure does not cause
         the entire service to be terminated.
         
-      \item[$--$process\_memory\_size {[size]}] This specifies the maximum amount of RAM in GB to be
-        allocated to each Job Process.  This value is used by the Resource Manager to allocate
-        resources. 
-
       \item[$--$scheduling\_class {[classname]}] This specifies the name of the scheuling class the RM
         will use to determine the resource allocation for each process. The names of the classes are
         installation dependent. If not specified, the default is taken from the global DUCC

@@ -193,7 +193,15 @@ public interface IUiOptions
             public String example()     { return null; }
             public String label()       { return name(); }
         },
-
+        
+        InstanceFailuresLimit { 
+            public String pname()       { return "instance_failures_limit"; }
+            public String description() { return "Number of consecutive instance failures that will cause the service to be stopped."; }
+            public String argname()     { return "integer"; }
+            public String example()     { return null; }
+            public String deflt()       { return "5"; }
+            public String label()       { return "InstanceFailuresLimit"; }
+        },   
         JobId { 
             public String pname()       { return JobRequestProperties.key_id; }
             public String argname()     { return "string"; }

@@ -66,7 +66,7 @@ public class DuccServiceApi
         UiOption.ProcessDD,
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
-        UiOption.ProcessFailuresLimit,
+        UiOption.InstanceFailuresLimit,
         UiOption.ClasspathOrder,
         // UiOption.Specification          // not used for registration
         UiOption.ServiceDependency,

@@ -238,7 +238,7 @@ public class ServiceSet
         this.service_state = ServiceState.NotAvailable;
         this.linger_time = props.getLongProperty(RegistrationOption.ServiceLinger.decode(), 5000);
         this.key = meta.getProperty("endpoint");
-        this.failure_max = props.getIntProperty(UiOption.ProcessFailuresLimit.pname(), ServiceManagerComponent.failure_max);
+        this.failure_max = props.getIntProperty(UiOption.InstanceFailuresLimit.pname(), ServiceManagerComponent.failure_max);
 
         parseEndpoint(key);
 

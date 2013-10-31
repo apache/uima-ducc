@@ -48,7 +48,6 @@ public class DuccManagedReservationSubmit
         UiOption.AttachConsole,
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
-        UiOption.ProcessFailuresLimit,
         UiOption.ProcessMemorySize,
         UiOption.SchedulingClass,
         UiOption.Specification,

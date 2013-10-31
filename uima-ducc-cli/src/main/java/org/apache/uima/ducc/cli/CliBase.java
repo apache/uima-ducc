@@ -258,7 +258,7 @@ public abstract class CliBase
                     DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
         throws Exception
     {
-        CliFixups.cleanupArgs(args);   // Default implementation does nothing
+        CliFixups.cleanupArgs(args, myClassName);   // Default implementation does nothing
         
         if ( init_done ) return;
         
@@ -408,7 +408,7 @@ public abstract class CliBase
      */
     
     private void sanitize(Properties props, Options opts) {
-        CliFixups.cleanupProps(props);     // By default does nothing
+        CliFixups.cleanupProps(props, myClassName);     // By default does nothing
         for (String key : props.stringPropertyNames()) {
             if (addedOptions.contains(key)) {
                 props.remove(key);

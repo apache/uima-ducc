@@ -57,7 +57,7 @@ public class DuccServiceSubmit
         UiOption.ProcessDD,
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
-        UiOption.ProcessFailuresLimit,
+        UiOption.InstanceFailuresLimit,
         UiOption.ClasspathOrder,
         UiOption.Specification,
         UiOption.ServiceDependency,

@@ -259,7 +259,7 @@ public class ServiceManagerComponent
 		super.start(service, args);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ServiceManager,getProcessJmxUrl());
 
-        failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.max", failure_max);
+        // (UIMA-3397) failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.max", failure_max);
         meta_ping_rate = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate", meta_ping_rate);
         meta_ping_timeout = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout", meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability", meta_ping_stability);
