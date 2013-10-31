@@ -1230,6 +1230,9 @@ public class StateManager {
 											else if(lost > 0) {
 												setCompletionIfNotAlreadySet(job, JobCompletionType.Lost, new Rationale("state manager detected lost work items="+lost));
 											}
+											else {
+												setCompletionIfNotAlreadySet(job, JobCompletionType.EndOfJob, rationale);
+											}
 											completeJob(job, rationale);
 										}
 										break;
