@@ -4,7 +4,7 @@
   <primitive>true</primitive>
   <annotatorImplementationName>org.apache.uima.ducc.sampleapps.DuccSampleAE</annotatorImplementationName>
   <analysisEngineMetaData>
-    <name>DuccDummyAE</name>
+    <name>DuccSampleAE</name>
     <description/>
     <version>1.0</version>
     <vendor/>
