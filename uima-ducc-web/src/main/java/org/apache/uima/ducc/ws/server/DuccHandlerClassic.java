@@ -78,22 +78,22 @@ import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.eclipse.jetty.server.Request;
 
-public class DuccHandlerLegacy extends DuccAbstractHandler {
+public class DuccHandlerClassic extends DuccAbstractHandler {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerLegacy.class.getName());
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerClassic.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 
 	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
-	public final String legacyJobs 					= duccContextLegacy+"-jobs-data";
-	public final String legacyReservations 			= duccContextLegacy+"-reservations-data";
-	public final String legacyServices			 	= duccContextLegacy+"-services-data";
-	public final String legacySystemClasses	 		= duccContextLegacy+"-system-classes-data";
-	public final String legacySystemDaemons	 		= duccContextLegacy+"-system-daemons-data";
-	public final String legacySystemMachines	 	= duccContextLegacy+"-system-machines-data";
+	public final String classicJobs 				= duccContextClassic+"-jobs-data";
+	public final String classicReservations 		= duccContextClassic+"-reservations-data";
+	public final String classicServices			 	= duccContextClassic+"-services-data";
+	public final String classicSystemClasses	 	= duccContextClassic+"-system-classes-data";
+	public final String classicSystemDaemons	 	= duccContextClassic+"-system-daemons-data";
+	public final String classicSystemMachines	 	= duccContextClassic+"-system-machines-data";
 	
-	public DuccHandlerLegacy(DuccWebServer duccWebServer) {
+	public DuccHandlerClassic(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
 	}
 
@@ -330,10 +330,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</tr>");
 	}
 
-	private void handleServletLegacyJobs(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletClassicJobs(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleServletLegacyJobs";
+		String methodName = "handleServletClassicJobs";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
@@ -702,10 +702,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		sb.append("</tr>");
 	}
 	
-	private void handleServletLegacyReservations(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletClassicReservations(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleServletLegacyReservations";
+		String methodName = "handleServletClassicReservations";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
@@ -762,10 +762,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
-	private void handleServletLegacyServices(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletClassicServices(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleServletLegacyServices";
+		String methodName = "handleServletClassicServices";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
@@ -1045,10 +1045,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
-	private void handleServletLegacySystemClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletClassicSystemClasses(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws Exception
 	{
-		String methodName = "handleServletLegacySystemClasses";
+		String methodName = "handleServletClassicSystemClasses";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 
@@ -1196,10 +1196,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
 
-	// private void handleServletLegacySystemClassesX(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	// private void handleServletClassicSystemClassesX(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	// throws IOException, ServletException
 	// {
-	// 	String methodName = "handleServletLegacySystemClasses";
+	// 	String methodName = "handleServletClassicSystemClasses";
 	// 	duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 	// 	StringBuffer sb = new StringBuffer();
 		
@@ -1344,10 +1344,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 	// 	duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	// }		
 
-	private void handleServletLegacySystemDaemons(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletClassicSystemDaemons(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleServletLegacySystemDaemons";
+		String methodName = "handleServletClassicSystemDaemons";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
@@ -1582,10 +1582,10 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
-	private void handleServletLegacySystemMachines(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	private void handleServletClassicSystemMachines(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
-		String methodName = "handleServletLegacySystemMachines";
+		String methodName = "handleServletClassicSystemMachines";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		
 		int counter = 0;
@@ -1834,23 +1834,23 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 		duccLogger.debug(methodName, jobid,request.toString());
 		duccLogger.debug(methodName, jobid,"getRequestURI():"+request.getRequestURI());
 		String reqURI = request.getRequestURI()+"";
-		if(reqURI.startsWith(legacyJobs)) {
-			handleServletLegacyJobs(target, baseRequest, request, response);
+		if(reqURI.startsWith(classicJobs)) {
+			handleServletClassicJobs(target, baseRequest, request, response);
 		}
-		else if(reqURI.startsWith(legacyReservations)) {
-			handleServletLegacyReservations(target, baseRequest, request, response);
+		else if(reqURI.startsWith(classicReservations)) {
+			handleServletClassicReservations(target, baseRequest, request, response);
 		}
-		else if(reqURI.startsWith(legacyServices)) {
-			handleServletLegacyServices(target, baseRequest, request, response);
+		else if(reqURI.startsWith(classicServices)) {
+			handleServletClassicServices(target, baseRequest, request, response);
 		}
-		else if(reqURI.startsWith(legacySystemClasses)) {
-			handleServletLegacySystemClasses(target, baseRequest, request, response);
+		else if(reqURI.startsWith(classicSystemClasses)) {
+			handleServletClassicSystemClasses(target, baseRequest, request, response);
 		}
-		else if(reqURI.startsWith(legacySystemDaemons)) {
-			handleServletLegacySystemDaemons(target, baseRequest, request, response);
+		else if(reqURI.startsWith(classicSystemDaemons)) {
+			handleServletClassicSystemDaemons(target, baseRequest, request, response);
 		}
-		else if(reqURI.startsWith(legacySystemMachines)) {
-			handleServletLegacySystemMachines(target, baseRequest, request, response);
+		else if(reqURI.startsWith(classicSystemMachines)) {
+			handleServletClassicSystemMachines(target, baseRequest, request, response);
 		}
 		else {
 			handleServletUnknown(target, baseRequest, request, response);
@@ -1866,7 +1866,7 @@ public class DuccHandlerLegacy extends DuccAbstractHandler {
 			duccLogger.debug(methodName, jobid,request.toString());
 			duccLogger.debug(methodName, jobid,"getRequestURI():"+request.getRequestURI());
 			String reqURI = request.getRequestURI()+"";
-			if(reqURI.startsWith(duccContextLegacy)) {
+			if(reqURI.startsWith(duccContextClassic)) {
 				response.setContentType("text/html;charset=utf-8");
 				response.setStatus(HttpServletResponse.SC_OK);
 				baseRequest.setHandled(true);

@@ -297,7 +297,7 @@ function ducc_load_classic_jobs_data()
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/legacy-jobs-data",
+			url : "/ducc-servlet/classic-jobs-data",
 			success : function (data) 
 			{
 				$("#jobs_list_area").html(data);
@@ -380,7 +380,7 @@ function ducc_load_classic_services_data()
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/legacy-services-data",
+			url : "/ducc-servlet/classic-services-data",
 			success : function (data) 
 			{
 				$("#services_list_area").html(data);
@@ -1098,7 +1098,7 @@ function ducc_load_classic_machines_data()
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/legacy-system-machines-data",
+			url : "/ducc-servlet/classic-system-machines-data",
 			success : function (data) 
 			{
 				$("#machines_list_area").html(data);
@@ -1198,7 +1198,7 @@ function ducc_load_classic_reservations_data()
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/legacy-reservations-data",
+			url : "/ducc-servlet/classic-reservations-data",
 			success : function (data) 
 			{
 				$("#reservations_list_area").html(data);
@@ -1472,7 +1472,7 @@ function ducc_load_classic_system_classes_data()
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/legacy-system-classes-data",
+			url : "/ducc-servlet/classic-system-classes-data",
 			success : function (data) 
 			{
 				$("#system_classes_list_area").html(data);
@@ -1620,7 +1620,7 @@ function ducc_load_classic_system_daemons_data()
 	try {
 		$.ajax(
 		{
-			url : "/ducc-servlet/legacy-system-daemons-data",
+			url : "/ducc-servlet/classic-system-daemons-data",
 			success : function (data) 
 			{
 				$("#system_daemons_list_area").html(data);

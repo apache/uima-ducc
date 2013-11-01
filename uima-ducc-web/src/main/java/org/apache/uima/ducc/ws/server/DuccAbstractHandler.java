@@ -82,7 +82,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	
 	public final String duccContextJsonFormat = duccContext+"/json-format";
 	public final String duccContextUser       = duccContext+"/user";
-	public final String duccContextLegacy     = duccContext+"/legacy";
+	public final String duccContextClassic    = duccContext+"/classic";
 	public final String duccContextProxy      = duccContext+"/proxy";
 	
 	public final String duccjConsoleLink	  = duccContext+"/jconsole-link.jnlp";
