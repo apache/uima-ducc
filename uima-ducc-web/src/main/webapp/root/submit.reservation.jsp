@@ -78,7 +78,7 @@ under the License.
     <tr>
     <td>
       <div id="refreshbutton">
-        <input type="image" onClick="ducc_refresh('submit-reservation')" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
+        <input type="image" onClick="ducc_refresh('submit-reservation')" title="Refresh" alt="Refresh" src="opensources/images/refresh.png">
       </div>
     <td>
       <div>

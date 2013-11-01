@@ -71,7 +71,7 @@ boolean role = true;
       
     </span>
     <span>
-      <img src="opensources/images/duckquack-1.144x101px.jpg" style="border:3px solid #ffff7a" alt="logo">
+      <img src="opensources/images/144x144Stick_figure_-_choosing.jpg" style="border:3px solid #ffff7a" alt="logo">
     </span>
     <br>
     
@@ -85,7 +85,7 @@ boolean role = true;
     <tr>
     <td>
       <div id="refreshbutton">
-        <input type="image" onClick="location.reload()" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
+        <input type="image" onClick="location.reload()" title="Refresh" alt="Refresh" src="opensources/images/refresh.png">
       </div>
     <td>
       <div>

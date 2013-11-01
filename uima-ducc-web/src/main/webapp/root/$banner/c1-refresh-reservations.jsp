@@ -21,7 +21,7 @@ under the License.
 <tr>
 <td>
 <span id="refreshbutton">
-<input type="image" onclick="ducc_refresh('reservations');" title="Refresh" alt="Refresh" src="opensources/images/1284662827_refresh.png">
+<input type="image" onclick="ducc_refresh('reservations');" title="Refresh" alt="Refresh" src="opensources/images/refresh.png">
 </span>
 <span id="loading" style="display:none;">
 <img title="loading" src="opensources/images/indicator.gif" style="border:1px solid #000000" alt="Loading...">
