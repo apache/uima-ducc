@@ -8,7 +8,7 @@ process_thread_count            8
 process_jvm_args                -Xmx3G -XX:+UseCompressedOops -Djava.util.logging.config.file=${MyAppDir}/ConsoleLogger.properties
 scheduling_class                normal
 working_directory               ${MyAppDir}
-log_directory                   ${MyAppDir}
+log_directory                   ${MyAppDir}/logs
 process_per_item_time_max       10
 classpath                       ${MyAppDir}/uima-ducc-examples.jar
 driver_descriptor_CR_overrides  BlockSize=100000 SendToLast=true InputDirectory=${MyInputDir} OutputDirectory=${MyOutputDir}
