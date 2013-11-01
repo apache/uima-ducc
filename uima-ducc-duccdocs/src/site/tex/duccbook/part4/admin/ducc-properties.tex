@@ -567,6 +567,18 @@
           \end{description}
 
 
+        \item[ducc.jd.queue.timeout.minutes] \hfill \\
+         After dispatching a work item to UIMA-AS client for processing, the
+         number of minutes that the Job Driver will wait for two callbacks
+         (queued and assigned) before considering the work item lost. The
+         elapsed time for the callbacks is normally sub-second. Intermittent
+         network problems may cause unusual spikes.
+          \begin{description}
+            \item[Default Value] 5
+            \item[Type] Tuning 
+          \end{description}
+
+
         \item[ducc.jd.share.quantum] \hfill \\
           When CGroups are enabled, this is the RSS, in MB, that is reserved for each JD process, and enforced
           by the CGroup support.  Larger JDs are permitted, but the CGroup support will force the excess
