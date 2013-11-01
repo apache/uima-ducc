@@ -30,12 +30,13 @@ import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.Util;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 
@@ -501,7 +502,24 @@ public class DriverStatusReport implements Serializable {
 	}
 	
 	public int getWorkItemsDispatched() {
-		return getWorkItemsQueued()+getWorkItemsOperating();
+		String methodName = "getWorkItemsDispatched";
+		//return getWorkItemsQueued()+getWorkItemsOperating();
+		//<UIMA-3365>
+		int retVal = 0;
+		try {
+			DuccProcessWorkItemsMap pwiMap = getDuccProcessWorkItemsMap();
+			Iterator<DuccId> iterator = pwiMap.keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId processId = iterator.next();
+				IDuccProcessWorkItems pwi = pwiMap.get(processId);
+				retVal += pwi.getCountDispatch();
+			}
+		}
+		catch(Throwable t) {
+			duccOut.debug(methodName, duccId, t);
+		}
+		return retVal;
+		//</UIMA-3365>
 	}
 	
 	public void workItemPendingProcessAssignmentAdd(String casId) {
