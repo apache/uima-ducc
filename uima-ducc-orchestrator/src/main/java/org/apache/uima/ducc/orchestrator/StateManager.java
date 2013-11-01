@@ -332,6 +332,7 @@ public class StateManager {
 				IDuccProcess process = processMap.get(processId);
 				IDuccProcessWorkItems pwi = pwiMap.get(processId);
 				process.setProcessWorkItems(pwi);
+				logger.trace(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 			}
 		}
 		catch(Throwable t) {
@@ -345,7 +346,6 @@ public class StateManager {
 			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
 			IDuccProcessWorkItems pwi = pwiMap.getTotals();
 			pwi.setCountUnassigned(jdStatusReport.getWorkItemPendingProcessAssignmentCount());
-			logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 			DuccWorkPopDriver driver = job.getDriver();
 			IDuccProcessMap processMap = driver.getProcessMap();
 			if(processMap != null) {
@@ -354,6 +354,7 @@ public class StateManager {
 					DuccId processId = iterator.next();
 					IDuccProcess process = processMap.get(processId);
 					process.setProcessWorkItems(pwi);
+					logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 				}
 			}
 		}
@@ -1230,9 +1231,11 @@ public class StateManager {
 											else if(lost > 0) {
 												setCompletionIfNotAlreadySet(job, JobCompletionType.Lost, new Rationale("state manager detected lost work items="+lost));
 											}
+											// <UIMA-3337>
 											else {
 												setCompletionIfNotAlreadySet(job, JobCompletionType.EndOfJob, rationale);
 											}
+											// </UIMA-3337>
 											completeJob(job, rationale);
 										}
 										break;
