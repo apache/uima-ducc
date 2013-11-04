@@ -91,10 +91,6 @@ public class DuccWebServer {
 		this.commonConfiguration = commonConfiguration;
 		init();
 	}
-
-	public String getJdHostUser() {
-		return commonConfiguration.jdHostUser;
-	}
 	
 	/**
 	 * The DUCC cluster name can be set in the ducc.properties file, for example:
