@@ -46,7 +46,6 @@ import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
-import org.apache.uima.ducc.common.jd.JdConstants;
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.persistence.services.StateServices;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
@@ -55,6 +54,7 @@ import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -485,7 +485,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String disabled = getDisabledWithHover(request,duccwork);
 				String user = duccwork.getStandardInfo().getUser();
 				if(user != null) {
-					if(user.equals(JdConstants.reserveUser)) {
+					DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+					String jdHostUser = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_user);
+					// We presume that user is sufficient to identify JD shares
+					if(user.equals(jdHostUser)) {
 						disabled = "disabled=\"disabled\"";
 					}
 				}
