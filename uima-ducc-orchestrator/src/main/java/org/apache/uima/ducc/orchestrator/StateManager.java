@@ -1121,6 +1121,7 @@ public class StateManager {
 					case WaitingForServices:
 						switch(serviceState) {
 						case Waiting:
+                        case Starting:
 						case Initializing:
 							break;
 						case Available:
@@ -1129,6 +1130,7 @@ public class StateManager {
 							logger.info(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
 							break;
 						case NotAvailable:
+						case Stopped:
                         case Stopping:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
 							duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
