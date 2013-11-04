@@ -26,6 +26,11 @@ import org.apache.uima.ducc.common.IServiceStatistics;
 
 public abstract class AServicePing
 {
+
+    int implementors = 0;
+    int references = 0;
+    int runErrors = 0;
+
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.
      * @param arguments This is passed in from the service specification's
@@ -49,4 +54,44 @@ public abstract class AServicePing
      */
     public abstract IServiceStatistics getStatistics();
     
+    public int countAdditions()
+    {
+        return 0;
+    }
+
+    public int countDeletions()
+    {
+        return 0;
+    }
+
+    public int countImplementors()
+    {
+    	return implementors;
+    }
+
+    public int countReferences()
+    {
+    	return references;
+    }
+
+    public void setImplementors(int imp)
+    {
+        this.implementors = imp;
+    }
+
+    public void setReferences(int ref)
+    {
+        this.references = ref;
+    }
+
+    public void setRunErrors(int e)
+    {
+        this.runErrors = e;
+    }
+
+    public boolean isExcessiveErrors()
+    {
+        return false;
+    }
+
 }
