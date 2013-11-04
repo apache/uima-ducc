@@ -124,7 +124,7 @@ public class DuccPropertiesResolver {
         
         defaultProperties.put(ducc_jd_host_class,"JobDriver");
         defaultProperties.put(ducc_jd_host_description,"Job Driver");
-        defaultProperties.put(ducc_jd_host_memory_size,"8GB");
+        defaultProperties.put(ducc_jd_host_memory_size,"2GB");
         defaultProperties.put(ducc_jd_host_number_of_machines,"1");
         defaultProperties.put(ducc_jd_host_user,"System");
     }
