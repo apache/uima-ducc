@@ -44,7 +44,6 @@ public class MqReaper {
 	private DuccPropertiesResolver duccPropertiesResolver = null;
 	
 	private String jd_queue_prefix = null;
-	private String jd_queue_prefix_default = "ducc.jd.queue.";
 	
 	private static MqReaper instance = null;
 	
@@ -89,7 +88,7 @@ public class MqReaper {
 	
 	private void resolve() {
 		String location = "resolve";
-		jd_queue_prefix = getDuccProperty(DuccPropertiesResolver.ducc_jd_queue_prefix, jd_queue_prefix_default);
+		jd_queue_prefix = getDuccProperty(DuccPropertiesResolver.ducc_jd_queue_prefix);
 		logger.info(location,duccId,DuccPropertiesResolver.ducc_jd_queue_prefix+":"+jd_queue_prefix);
 	}
 	
@@ -97,20 +96,11 @@ public class MqReaper {
 		duccPropertiesResolver = DuccPropertiesHelper.configure();
 	}
 	
-	private String getDuccProperty(String key, String defaultValue) {
+	private String getDuccProperty(String key) {
 		if(duccPropertiesResolver == null) {
 			configure();
 		}
 		String value = duccPropertiesResolver.getFileProperty(key);
-		if(value == null) {
-			value = defaultValue;
-		}
-		else {
-			value = value.trim();
-			if(value.length() == 0) {
-				value = defaultValue;
-			}
-		}
 		return value;
 	}
 	
