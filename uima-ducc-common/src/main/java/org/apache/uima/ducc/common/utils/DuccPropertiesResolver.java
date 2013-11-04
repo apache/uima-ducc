@@ -82,6 +82,12 @@ public class DuccPropertiesResolver {
     public static final String default_process_get_meta_time_max = "default.process.get.meta.time.max";
     public static final String ducc_agent_launcher_process_init_timeout = "ducc.agent.launcher.process.init.timeout";
     public static final String default_process_per_item_time_max = "default.process.per.item.time.max";
+   
+    public static final String ducc_jd_host_class = "ducc.jd.host.class";
+    public static final String ducc_jd_host_description = "ducc.jd.host.description";
+    public static final String ducc_jd_host_memory_size = "ucc.jd.host.memory.size";
+    public static final String ducc_jd_host_number_of_machines = "ducc.jd.host.number.of.machines";
+    public static final String ducc_jd_host_user = "ducc.jd.host.user";
     
     public static final String ducc_jd_queue_prefix = "ducc.jd.queue.prefix";
     public static final String ducc_jd_queue_timeout_minutes = "ducc.jd.queue.timeout.minutes";
@@ -115,6 +121,12 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
         defaultProperties.put(ducc_ws_login_enabled,"true");
         defaultProperties.put(ducc_jd_queue_timeout_minutes,"5");
+        
+        defaultProperties.put(ducc_jd_host_class,"JobDriver");
+        defaultProperties.put(ducc_jd_host_description,"Job Driver");
+        defaultProperties.put(ducc_jd_host_memory_size,"8GB");
+        defaultProperties.put(ducc_jd_host_number_of_machines,"1");
+        defaultProperties.put(ducc_jd_host_user,"System");
     }
     
     private void init(Properties properties) {

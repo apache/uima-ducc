@@ -19,6 +19,5 @@
 package org.apache.uima.ducc.common.jd;
 
 public class JdConstants {
-	public static String reserveUser = "System";
 	public static String key_duccJobId = "ducc.job.id";
 }
