@@ -178,10 +178,12 @@ public interface IService
         // Always use encode and decode and you can't get this wrong.
         //
 		Waiting           { public String decode() { return "waiting"        ; } },  // A job is waiting on at least one service to ping
+        Starting          { public String decode() { return "starting"       ; } },  // Instance is started, but not yet to Initializing
 		Initializing      { public String decode() { return "initializing"   ; } },  // A job is waiting on at least one service to initialize
 		Available         { public String decode() { return "available"      ; } },  // All services for this job are active and pinging, or else
                                                                                      //     no services are needed for the job
-        NotAvailable      { public String decode() { return "not-available"  ; } },  // At least one service is not available and can't be made available
+        NotAvailable      { public String decode() { return "not-available"  ; } },  // SM to OR only: reference to a non-existent service 
+        Stopped           { public String decode() { return "stopped"        ; } },  // (newsm) The service is not started
         Stopping          { public String decode() { return "stopping"       ; } },  // Service is told to stop but it takes a while
         Undefined         { public String decode() { return "undefined"      ; } },  // Catch-all, means basically "who cares"
        ;
@@ -191,6 +193,8 @@ public interface IService
         public static ServiceState encode(String value)
         {
             if ( value.equals("waiting"       ) ) return Waiting;
+            if ( value.equals("starting"      ) ) return Starting;
+            if ( value.equals("stopped"       ) ) return Stopped;
             if ( value.equals("initializing"  ) ) return Initializing;
             if ( value.equals("available"     ) ) return Available;
             if ( value.equals("not-available" ) ) return NotAvailable;
@@ -203,10 +207,12 @@ public interface IService
         public int ordinality()
         {
             switch ( this ) {
-                case Available:    return 6;
-                case Initializing: return 5;
-                case Waiting:      return 4;
-                case Stopping:     return 3;
+                case Available:    return 8;
+                case Waiting:      return 7;
+                case Initializing: return 6;
+                case Starting:     return 5;
+                case Stopping:     return 4;
+                case Stopped:      return 3;
                 case NotAvailable: return 2;
                 case Undefined:    return 1;
                 default:           return 0;

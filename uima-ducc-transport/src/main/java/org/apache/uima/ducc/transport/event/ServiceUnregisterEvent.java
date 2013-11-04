@@ -38,11 +38,21 @@ public class ServiceUnregisterEvent
 		return friendly;
 	}
 
+	public void setFriendly(long f)
+	{
+		this.friendly = f;
+	}
+	
     public String getEndpoint()
     {
         return epname;
     }
 
+    public void setEndpoint(String ep)
+    {
+    	this.epname = ep;
+    }
+    
 	@Override
 	public String toString() {
 		return "ServiceUnregisterEvent [friendly=" + friendly + ", user="
