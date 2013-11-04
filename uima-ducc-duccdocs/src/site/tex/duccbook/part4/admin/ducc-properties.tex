@@ -668,11 +668,10 @@
         \end{description}
         
       \item[ducc.sm.instance.failure.max] \hfill \\
-        This is the maximum number of consecutive failures of a service instance permitted before DUCC
-        stops creating new instances.  In the case of submitted services, the instance is no longer
-        restarted and is cleaned up.  In the case of registered services, no more instances are started
-        and the {\em autostart} flag is turned off.  The next manual {\em start} command resets the
-        count to 0.
+        This is the maximum number of consecutive failures of service instance initialization 
+        permitted before DUCC stops creating new instances.  When this cap is hit the SM
+        will disable autostart for the service.  It may be overridden by the service
+        registration's {\em instance\_failures\_limit} parameter.
         \begin{description}
           \item[Default Value] 5
           \item[Type] Tuning 
@@ -834,20 +833,15 @@
         \item[ducc.rm.state.publish.rate] \hfill \\
           This is the rate, in milliseconds, at which the Resource Manager publishes its state to the 
           Orchestrator. 
-          \begin{description}
-            \item[Default Value] 60000 
-            \item[Type] Tuning
-          \end{description} 
-          
-        \item[ducc.rm.fast.recovery] \hfill \\
-          If enabled, RM tries to start as soon as it recoveres state from an OR publication,
-          instread of waiting for {\em init.stability} for nodes to check in. 
 
+          This can directly affect user response.  For small clusters a value of 10000 is often acceptable
+          and results in faster response.  On larger clusters the value should be raised to around
+          60000 (60 seconds) to avoid thrashing.
           \begin{description}
-            \item[Default Value] false
+            \item[Default Value] 10000 
             \item[Type] Tuning
           \end{description} 
-          
+                    
         \item[ducc.rm.share.quantum] \hfill \\
           The share quantum is the smallest amount of RAM that is schedulable for jobs, in GB. 
           Jobs are scheduled based entirely on their memory requirements. Memory is allocated in 
@@ -872,42 +866,6 @@
           described in detail the section on ducc.properties [77]. 
           \begin{description}
             \item[Default Value] ducc.classes 
-            \item[Type] Tuning 
-          \end{description}
-          
-        \item[ducc.rm.default.tasks] \hfill \\
-          In order to calculate the number of processes to allocate to a job, the scheduler must know 
-          how many tasks or work items the job will execute. If the job does not declare that number, 
-          default.tasks is used. 
-          \begin{description}
-            \item[Default Value] 10 
-            \item[Type] Tuning 
-          \end{description}
-          
-        \item[ducc.rm.default.memory] \hfill \\
-          If a job does not declare the amount of memory each process requires, the scheduler uses 
-          default.memory for scheduling. The unit is GB. 
-
-          Note that the Agents enforce the declared memory, so if a process understates its 
-          requirements it will generally be killed. 
-          \begin{description}
-            \item[Default Value] 15 
-            \item[Type] Tuning 
-          \end{description}
-          
-        \item[ducc.rm.default.threads] \hfill \\
-          Each job process will be dispatched with some number of threads such that DUCC will 
-          dispatch work items to these threads. The scheduler uses this number to calculate the 
-          number of processes that must be allocated. 
-
-          The maximum number of processes a job requites is determined by the formula:           
-          $num\_processes = ciel(num\_work\_items / num\_threads)$ 
-          
-          Thus, a job that declares 100 work items and 4 threads is assigned a maximum of          
-          $ciel(100/4) = 25 processes$
-          
-          \begin{description}
-            \item[Default Value] 4 
             \item[Type] Tuning 
           \end{description}
           
@@ -984,7 +942,7 @@
           \hyperref[sec:ducc.classes]{ducc.classes}.
 
           \begin{description}
-            \item[Default Value] 2             
+            \item[Default Value] 1
             \item[Type] Tuning 
           \end{description}
           
@@ -1038,23 +996,7 @@
           \item[Default Value] 120000
           \item[Type] Tuning 
           \end{description}
-          
-        \item[ducc.rm.defragmentation] \hfill \\
-          In certain configurations and under certain loads the resource allocations can get
-          ``fragmented'' so that sufficient resources exists for new work, but only piecemeal, and
-          thus they cannot be allocated.  The Resource Manager will perform a limited defragmentation
-          by searching for ``rich'' jobs (jobs with lots of resources) and evicting one or two
-          procsses in order to make spece for new jobs.  Sufficient space is cleared only to
-          allow as much new work as possible to ``get a foot in the door'' and get an initial
-          resource allocation.
-
-          Local installations may override this behaviour and prevent defragmentation altogether
-          with this property.
-          \begin{description}
-          \item[Default Value] true
-          \item[Type] Tuning 
-          \end{description}
-          
+                    
 
         \item[ducc.rm.defragmentation.threshold] \hfill \\
           If {\em ducc.rm.defragmentation} is enable, limited defragmentation of resources is
