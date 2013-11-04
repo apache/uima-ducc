@@ -271,6 +271,8 @@ implements Orchestrator {
 			StartType startType = getStartType(args);
 			logger.info(methodName, null, "##### "+startType+" #####");
 			boolean saveState = false;
+			DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+			String jdHostClass = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_class);
 			long t0 = System.currentTimeMillis();
 			synchronized(workMap) {
 				Iterator<IDuccWork> iterator = workMap.values().iterator();
@@ -301,13 +303,13 @@ implements Orchestrator {
 							saveState = true;
 							break;
 						case warm:
-							if(commonConfiguration.jdHostClass.equals(reservation.getSchedulingInfo().getSchedulingClass())) {
+							if(jdHostClass.equals(reservation.getSchedulingInfo().getSchedulingClass())) {
 								cancel(reservation);
 								saveState = true;
 							}
 							break;
 						case hot:
-							if(commonConfiguration.jdHostClass.equals(reservation.getSchedulingInfo().getSchedulingClass())) {
+							if(jdHostClass.equals(reservation.getSchedulingInfo().getSchedulingClass())) {
 								IDuccReservationMap map = reservation.getReservationMap();
 								Iterator<Entry<DuccId, IDuccReservation>> entries = map.entrySet().iterator();
 								while(entries.hasNext()) {
