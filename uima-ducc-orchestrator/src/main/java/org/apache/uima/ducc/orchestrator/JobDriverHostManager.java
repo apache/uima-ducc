@@ -25,9 +25,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
-import org.apache.uima.ducc.common.jd.JdConstants;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.cli.ReservationRequestProperties;
 import org.apache.uima.ducc.transport.event.cli.ReservationSpecificationProperties;
@@ -51,12 +51,6 @@ public class JobDriverHostManager {
 	public static JobDriverHostManager getInstance() {
 		return hostManager;
 	}
-	
-	private String jdHostClass = "job-driver";
-	private String jdHostDescription = "Job Driver";
-	private String jdHostMemorySize = "8GB";
-	private String jdHostUser = JdConstants.reserveUser;
-	private String jdHostNumberOfMachines = "1";
 	
 	private ArrayList<String> keyList = new ArrayList<String>();
 	private TreeMap<String,NodeIdentity> nodeMap = new TreeMap<String,NodeIdentity>();
@@ -145,71 +139,32 @@ public class JobDriverHostManager {
 		return;
 	}
 	
-	private void setConfiguration() {
-		String methodName="setConfiguration";
-		CommonConfiguration common = JobDriverHostManager.commonConfiguration;
-		if(common.jdHostClass != null) {
-			jdHostClass = common.jdHostClass;
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.class")+jdHostClass);
-		}
-		else {
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.class")+jdHostClass+" "+messages.fetch("(default)"));
-		}
-		if(common.jdHostDescription != null) {
-			jdHostDescription = common.jdHostDescription;
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.description")+jdHostDescription);
-		}
-		else {
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.description")+jdHostDescription+" "+messages.fetch("(default)"));
-		}
-		if(common.jdHostMemorySize != null) {
-			jdHostMemorySize = common.jdHostMemorySize;
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.memory.size")+jdHostMemorySize);
-		}
-		else {
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.memory.size")+jdHostMemorySize+" "+messages.fetch("(default)"));
-		}
-		if(common.jdHostNumberOfMachines != null) {
-			jdHostNumberOfMachines = common.jdHostNumberOfMachines;
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.number.of.machines")+jdHostNumberOfMachines);
-		}
-		else {
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.number.of.machines")+jdHostNumberOfMachines+" "+messages.fetch("(default)"));
-		}
-		if(common.jdHostUser != null) {
-			jdHostUser = common.jdHostUser;
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.user")+jdHostUser);
-		}
-		else {
-			logger.debug(methodName, null, messages.fetchLabel("jd.host.user")+jdHostUser+" "+messages.fetch("(default)"));
-		}
-	}
-	
-	private boolean processJdHostClass() {
+	private void processJdHostClass() {
 		String methodName = "processJdHostClass";
 		logger.trace(methodName, null, messages.fetch("enter"));
-		boolean retVal = false;
-		if(commonConfiguration.jdHostClass != null) {
-			setConfiguration();
-			ReservationRequestProperties reservationRequestProperties = new ReservationRequestProperties();
-			reservationRequestProperties.put(ReservationSpecificationProperties.key_scheduling_class, jdHostClass);
-			reservationRequestProperties.put(ReservationSpecificationProperties.key_description, jdHostDescription);
-			reservationRequestProperties.put(ReservationSpecificationProperties.key_instance_memory_size, jdHostMemorySize);
-			reservationRequestProperties.put(ReservationSpecificationProperties.key_number_of_instances, jdHostNumberOfMachines);
-			reservationRequestProperties.put(ReservationSpecificationProperties.key_user, jdHostUser);
-			duccWorkReservation = ReservationFactory.getInstance().create(commonConfiguration, reservationRequestProperties);
-			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-			workMap.addDuccWork(duccWorkReservation);
-			// state: Received
-			duccWorkReservation.stateChange(ReservationState.Received);
-			OrchestratorCheckpoint.getInstance().saveState();
-			// state: WaitingForResources
-			duccWorkReservation.stateChange(ReservationState.WaitingForResources);
-			OrchestratorCheckpoint.getInstance().saveState();
-			retVal = true;
-		}
+		DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+		String jdHostClass = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_class);
+		String jdHostDescription = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_description);
+		String jdHostMemorySize = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_memory_size);
+		String jdHostumberOfMachines = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_number_of_machines);
+		String jdHostUser = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_user);
+		ReservationRequestProperties reservationRequestProperties = new ReservationRequestProperties();
+		reservationRequestProperties.put(ReservationSpecificationProperties.key_scheduling_class, jdHostClass);
+		reservationRequestProperties.put(ReservationSpecificationProperties.key_description, jdHostDescription);			
+		reservationRequestProperties.put(ReservationSpecificationProperties.key_instance_memory_size, jdHostMemorySize);
+		reservationRequestProperties.put(ReservationSpecificationProperties.key_number_of_instances, jdHostumberOfMachines);
+		reservationRequestProperties.put(ReservationSpecificationProperties.key_user, jdHostUser);
+		duccWorkReservation = ReservationFactory.getInstance().create(commonConfiguration, reservationRequestProperties);
+		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
+		workMap.addDuccWork(duccWorkReservation);
+		// state: Received
+		duccWorkReservation.stateChange(ReservationState.Received);
+		OrchestratorCheckpoint.getInstance().saveState();
+		// state: WaitingForResources
+		duccWorkReservation.stateChange(ReservationState.WaitingForResources);
+		OrchestratorCheckpoint.getInstance().saveState();
 		logger.trace(methodName, null, messages.fetch("exit"));
-		return retVal;
+		return;
 	}
 	
 	public void init() {
