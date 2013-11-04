@@ -98,7 +98,6 @@ public class DuccPropertiesResolver {
     
     public static final String ducc_ws_host = "ducc.ws.node";
     public static final String ducc_ws_port = "ducc.ws.port";
-    public static final String ducc_ws_authentication_pw = "ducc.ws.authentication.pw";
     public static final String ducc_ws_max_history_entries = "ducc.ws.max.history.entries";
     public static final String ducc_ws_login_enabled = "ducc.ws.login.enabled";
     
