@@ -58,7 +58,7 @@
                             <settings>
                                 <outputDirectory>reference/html_singlepage</outputDirectory>
                                 <tex4htCommandArgs>
-                                    <tex4htCommandArg></tex4htCommandArg>
+                                    <tex4htCommandArg>html,0</tex4htCommandArg>
                                     <tex4htCommandArg></tex4htCommandArg>
                                     <tex4htCommandArg></tex4htCommandArg>
                                     <tex4htCommandArg>-interaction=nonstopmode --src-specials</tex4htCommandArg>

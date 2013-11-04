@@ -381,7 +381,7 @@ under the License.
       <directory>src/main/config/</directory>
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
       <includes>
-      	<include>activemq-nojournal5.xml</include>
+      	<include>activemq-ducc.xml</include>
       	<include>ducc-broker-credentials.properties</include>
       </includes>
       <fileMode>755</fileMode>
@@ -685,7 +685,7 @@ under the License.
     </file>
     
     <file>
-      <source>src/main/config/activemq-nojournal5.xml</source>
+      <source>src/main/config/activemq-ducc.xml</source>
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
       <fileMode>644</fileMode>
     </file>
