@@ -236,7 +236,7 @@
 
 
        \item[ducc.agent.jvm.args] \hfill \\
-         This specifies the list of arguments passed to the JVM when spawing the Agent. 
+         This specifies the list of arguments passed to the JVM when spawning the Agent. 
          \begin{description}           
            \item[Default] Xmx100M 
            \item[Type] Tuning 
@@ -252,7 +252,7 @@
          \end{description}
 
        \item[ducc.orchestrator.jvm.args] \hfill \\
-         This specifies the list of arguments passed to the JVM when spawing the Orchestrator. 
+         This specifies the list of arguments passed to the JVM when spawning the Orchestrator. 
          \begin{description}
            \item[Default] Xmx1G 
            \item[Type] Tuning 
@@ -260,7 +260,7 @@
 
 
        \item[ducc.pm.jvm.args] \hfill \\
-         This specifies the list of arguments passed to the JVM when spawing the Process Manager. 
+         This specifies the list of arguments passed to the JVM when spawning the Process Manager. 
          \begin{description}
            \item[Default] Xmx1G 
            \item[Type] Tuning 
@@ -275,7 +275,7 @@
          \end{description}
                    
        \item[ducc.rm.jvm.args] \hfill \\
-         This specifies the list of arguments passed to the JVM when spawing the Resource 
+         This specifies the list of arguments passed to the JVM when spawning the Resource 
          Manager. 
          \begin{description}           
            \item[Default] Xmx1G 
@@ -283,14 +283,15 @@
          \end{description}
 
        \item[ducc.sm.jvm.args] \hfill \\
-         This specifies the list of arguments passed to the JVM when spawing the Service Manager. 
+         This specifies the list of arguments passed to the JVM when spawning the Service Manager. 
          \begin{description}
            \item[Default] Xmx1G 
            \item[Type] Tuning 
          \end{description}
 
        \item[ducc.ws.jvm.args] \hfill \\
-         specifies the list of arguments passed to the JVM when spawing the Webserver. 
+         specifies the list of arguments passed to the JVM when spawning the
+         Webserver.
          \begin{description}
            \item[Default] Xmx8G 
            \item[Type] Tuning 
@@ -512,11 +513,13 @@
           \end{description}
 
         \item[ducc.jd.queue.prefix] \hfill \\
-          This is a human-readable string used to form queue names for the JMS queues used to pass 
-          CASs from the Job Driver to the Job Processes. 
+          This is a human-readable string used to form queue names for the JMS
+          queues used to pass CASs from the Job Driver to the Job Processes.
+          The completed queue named comprises the prefix concatenated with the
+          DUCC assigned Job number.
           \begin{description}
             \item[Default Value] ducc.jd.queue. 
-          \i  tem[Type] Private 
+            \item[Type] Private 
           \end{description}
           
         \item[ducc.jd.host.class] \hfill \\
@@ -620,16 +623,16 @@
         \end{description}          
         
       \item[ducc.sm.meta.ping.rate] \hfill \\
-        This is the time, in milliseconds, between pings by the Servic Manager to each known, 
-        running service. 
+        This is the time, in milliseconds, between pings by the Service Manager
+        to each known, running service. 
         \begin{description}          
           \item[Default Value] 60000 
           \item[Typ] Tuning
         \end{description} 
         
       \item[ducc.sm.meta.ping.stability] \hfill \\
-        This is the number consecutive pings that may be missed before a service is considered 
-        unavailable. 
+        This is the number of consecutive pings that may be missed before a
+        service is considered unavailable. 
         \begin{description}
           \item[Default Value] 10 
           \item[Type] Tuning 
