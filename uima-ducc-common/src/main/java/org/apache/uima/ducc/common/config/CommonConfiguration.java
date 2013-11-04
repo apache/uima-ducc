@@ -111,31 +111,6 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.jd.queue.prefix'] }")
 	public String jdQueuePrefix;
 	
-	//	fetch the class from which to reserve host where the JD should run 
-	//  example: job-driver-class
-	@Value("#{ systemProperties['ducc.jd.host.class'] }")
-	public String jdHostClass;
-	
-	//	fetch the JD host description 
-	//  example: Job Driver
-	@Value("#{ systemProperties['ducc.jd.host.description'] }")
-	public String jdHostDescription;
-	
-	//	fetch the JD host memory size
-	//  example: 8GB
-	@Value("#{ systemProperties['ducc.jd.host.memory.size'] }")
-	public String jdHostMemorySize;
-	
-	//	fetch the JD host number of machines
-	//  example: 1
-	@Value("#{ systemProperties['ducc.jd.host.number.of.machines'] }")
-	public String jdHostNumberOfMachines;
-	
-	//	fetch the JD host user
-	//  example: System
-	@Value("#{ systemProperties['ducc.jd.host.user'] }")
-	public String jdHostUser;
-	
 	//	fetch the name of an endpoint where the Service Manager should post state updates
 	@Value("#{ systemProperties['ducc.sm.state.update.endpoint'] }")
 	public String smStateUpdateEndpoint;
