@@ -18,6 +18,8 @@ provides cluster management services to automate the scale-out of UIMA pipelines
 We use Maven 3.0 for building; download this if needed, 
 and set the environment variable MAVEN_OPTS to -Xmx800m -XX:MaxPerSize-256m.
 
+To build UIMA-DUCC, install Java SDK 6 or later.
+
 Then build from the directory containing this README by issuing the command
    mvn clean install.
    
