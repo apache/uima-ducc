@@ -29,7 +29,7 @@ public abstract class AServicePing
 
     int implementors = 0;
     int references = 0;
-    int runErrors = 0;
+    int runFailures = 0;
 
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.
@@ -84,12 +84,17 @@ public abstract class AServicePing
         this.references = ref;
     }
 
-    public void setRunErrors(int e)
+    public void setRunFailures(int e)
     {
-        this.runErrors = e;
+        this.runFailures = e;
     }
 
-    public boolean isExcessiveErrors()
+    public int getRunFailures()
+    {
+        return this.runFailures;
+    }
+
+    public boolean isExcessiveFailures()
     {
         return false;
     }
