@@ -33,7 +33,7 @@ public class ServiceQueryReplyEvent
     List<IServiceDescription> services = new ArrayList<IServiceDescription>();
     public ServiceQueryReplyEvent()
     {
-        super(true, "Query Reply", "No Endpoint", null);
+        super(true, "Query Reply", "No Endpoint", -1);
     }
 
     public void addService(IServiceDescription s)

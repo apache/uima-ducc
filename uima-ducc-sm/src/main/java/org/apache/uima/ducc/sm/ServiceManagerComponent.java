@@ -615,7 +615,7 @@ public class ServiceManagerComponent
 
         if ( ! validated ) {
             logger.warn(methodName, null, "User", user, "cannot be validated.", action, "rejected.");
-            req.setReply(new ServiceReplyEvent(false, "User " + user + " cannot be validated. " + action + " rejected.", "NONE", null));
+            req.setReply(new ServiceReplyEvent(false, "User " + user + " cannot be validated. " + action + " rejected.", "NONE", -1));
             return false;
         }
         return true;
@@ -637,7 +637,7 @@ public class ServiceManagerComponent
             id = newId();
         } catch ( Exception e ) {
             logger.error(methodName, null, e);
-            ev.setReply(new ServiceReplyEvent(false, "Internal error; unable to generate id", endpoint, null));
+            ev.setReply(new ServiceReplyEvent(false, "Internal error; unable to generate id", endpoint, -1));
             return;
         }
         logger.debug(methodName, id, "Unique:", id.getUnique());

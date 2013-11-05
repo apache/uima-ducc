@@ -33,9 +33,9 @@ public class ServiceReplyEvent
     private boolean return_code;
     private String message = "N/A";
     private String endpoint;
-    private DuccId id;
+    private long id;
     
-	public ServiceReplyEvent(boolean rc, String message, String endpoint, DuccId id)
+	public ServiceReplyEvent(boolean rc, String message, String endpoint, long id)
     {
 		super(EventType.SERVICE_REPLY);
         this.return_code = rc;
@@ -68,16 +68,12 @@ public class ServiceReplyEvent
 		this.endpoint = endpoint;
 	}
 
-	public DuccId getDuccId() {
+	public long getId() 
+    {
 		return id;
 	}
 
-	public long getId() 
-    {
-		return (id == null ) ? -1 : id.getFriendly();
-	}
-
-	public void setId(DuccId id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 

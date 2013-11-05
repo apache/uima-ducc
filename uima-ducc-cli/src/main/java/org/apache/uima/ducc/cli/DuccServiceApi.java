@@ -516,10 +516,11 @@ public class DuccServiceApi
 
     static boolean format_reply(UiOption verb, IServiceReply reply)
     {
-        String result = (reply.getReturnCode()) ? "succeeded" : "failed";
-        String reason = (reply.getReturnCode()) ? "" : ": " +reply.getMessage();
-        String action = "Service " + verb;
-        String msg = (action + " " + result + " ID " + ((reply.getId() == -1) ? "<none>" : reply.getId()) + " endpoint " + reply.getEndpoint() + reason);
+        // Note
+        String ep = reply.getEndpoint()!=null ? reply.getEndpoint() : "";
+        String id = reply.getId()!=-1 ? " ID["+String.valueOf(reply.getId())+"]" : "";
+        String result = (reply.getReturnCode()) ? " succeeded - " : " failed - ";
+        String msg = "Service " + verb + result + reply.getMessage() + " - " + ep + id;
         switch ( verb ) {
            case Register:
            case Unregister:
@@ -529,7 +530,11 @@ public class DuccServiceApi
                System.out.println(msg);
                break;
            case Query:
-               System.out.println(reply.toString());
+               if (reply.getReturnCode()) {
+                   System.out.println(reply.toString());
+               } else {
+                   System.out.println(msg);
+               }
                break;
         }
 
