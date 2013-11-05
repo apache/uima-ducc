@@ -38,7 +38,7 @@ class StartDucc(DuccUtil):
     def start_broker(self):
         
         broker_host = self.ducc_properties.get('ducc.broker.hostname')
-        print 'broker host', broker_host
+        print 'Starting broker on', broker_host
         lines = self.ssh(broker_host, True, "'", self.DUCC_HOME + '/admin/ducc.py', '-c', 'broker', "'")
         while 1:
             line = lines.readline().strip()
@@ -55,7 +55,7 @@ class StartDucc(DuccUtil):
         for i in range(0, 9):
             if ( self.is_amq_active() ):
                 return
-            print 'Waiting for broker', str(i)
+            print 'Waiting for broker .....', str(i)
             time.sleep(1)
 
     def start_component(self, args):
@@ -309,14 +309,14 @@ class StartDucc(DuccUtil):
         # activeMQ needs to be started externally before starting any DUCC processes
         if ( self.automanage and ('broker' in components) ):
             if ( self.is_amq_active() ):
-                print 'ActiveMQ is already running on host and port:', self.broker_host + ':' + self.broker_port, 'NOT restarting'
+                print 'ActiveMQ broker is already running on host and port:', self.broker_host + ':' + self.broker_port, 'NOT restarting'
             else:
                 self.start_broker()
 
         if ( self.is_amq_active() ):
-            print 'ActiveMQ is found on configured host and port:', self.broker_host + ':' + self.broker_port
+            print 'ActiveMQ broker is found on configured host and port:', self.broker_host + ':' + self.broker_port
         else:
-            print 'ActiveMQ cannot be found on configured host and port:', self.broker_host + ':' + self.broker_port
+            print 'ActiveMQ broker cannot be found on', self.broker_host + ':' + self.broker_port, 'check', self.DUCC_HOME+'/activemq/data/activemq.log'
             sys.exit(1)
 
         ducc = Ducc()

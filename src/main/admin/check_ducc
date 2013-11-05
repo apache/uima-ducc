@@ -231,7 +231,7 @@ class CheckDucc(DuccUtil):
             return
 
         if ( not self.verify_activemq() ):
-            print 'ActiveMQ is not running on', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
+            print 'ActiveMQ broker is not running on', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
 
         # init the PID file
         self.pids = DuccProperties()

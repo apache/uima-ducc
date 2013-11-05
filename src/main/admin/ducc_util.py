@@ -166,7 +166,7 @@ class DuccUtil(DuccBase):
     def is_amq_active(self):
         netstat = self.find_netstat()
         if ( netstat == None ):
-            print "Cannot determine if ActiveMq is alive."
+            print "Cannot determine if ActiveMq broker is alive."
             return false
 
         lines = self.popen('ssh', self.broker_host, netstat, '-an')
