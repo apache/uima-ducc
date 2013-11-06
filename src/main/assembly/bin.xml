@@ -640,23 +640,32 @@ under the License.
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
+    
+    
+  <fileSet>
+      <directory>uima-ducc-duccdocs/target/site/duccbook/*.pdf</directory>
+      <outputDirectory>ducc_runtime/doc</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+    
   </fileSets>
   
   <files>
   
-  <file>
-      <source>uima-ducc-duccdocs/target/site/duccbook/duccbook.pdf</source>
+  <!-- file>
+      <source>uima-ducc-duccdocs/target/site/duccbook/*.pdf</source>
       <outputDirectory>ducc_runtime/doc</outputDirectory>
       <destName>duccbook.pdf</destName>
       <fileMode>644</fileMode>
-    </file>
+    </file -->
 
-  <file>
+  <!-- file>
       <source>uima-ducc-duccdocs/target/site/duccbook/install-so.pdf</source>
       <outputDirectory>ducc_runtime/doc</outputDirectory>
       <destName>install.pdf</destName>
       <fileMode>644</fileMode>
-    </file>
+    </file -->
 
   <file>
       <source>src/main/scripts/dd2spring.xsl</source>
