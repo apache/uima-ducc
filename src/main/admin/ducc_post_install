@@ -126,13 +126,17 @@ class PostInstall(DuccUtil):
     def update_property(self, key, val, comment):
         self.ducc_properties.put(key, val)
         propsfile = self.DUCC_HOME + "/resources/ducc.properties"
-        tmp_propsfile = propsfile + ".tmp"
+        tmp_propsfile = self.DUCC_HOME + "/resources/ducc.properties.tmp"
         f = open(propsfile)
         tf = open(tmp_propsfile, "w")
-        tf.write('# ' + comment + '\n')
-        tf.write(key + " = " + val + "\n")
         for line in f:
-            tf.write(line);
+            l = line.strip()
+            if ( l.startswith(key) ):
+                tf.write('# ' + comment + '\n')
+                tf.write(key + ' = ' + val + '\n')
+            else:
+                tf.write(line);
+
         f.close()
         tf.close()
         os.rename(propsfile, propsfile + ".orig")
@@ -142,7 +146,7 @@ class PostInstall(DuccUtil):
     def get_java_bindir(self):
 
         java = self.java()
-        if ( java == None ):
+        if ( java == '<full-path-to-java-command>' ):
             java = self.which('java')
             if ( java == None ):
                 self.fail("Cannot find Java. The path to java must be configured in ducc.properties as property", 'ducc.jvm')
@@ -211,7 +215,7 @@ class PostInstall(DuccUtil):
             
     def setup_ducc_head(self):
         ducc_head = self.ducc_properties.get('ducc.head')
-        if ( ducc_head == None ):
+        if ( ducc_head == '<head-node>' ):
             ducc_head = self.localhost
             self.update_property('ducc.head', ducc_head, "ducc.head is the node where the main DUCC daemons run");
 
@@ -234,10 +238,7 @@ class PostInstall(DuccUtil):
         self.java_bindir = self.get_java_bindir()
         self.keytool = self.get_java_keytool(self.java_bindir)
         print 'Java version:', self.get_java_version()
-        if ( not '1.6' in self.get_java_version() ):
-            print 'WARNING: DUCC is only tested under Java 1.6'
-        else:
-            print 'Java is verified.'
+        print 'Java is verified.'
 
         self.create_keystore(self.keytool)
         print '\nWeb server keystore generated from ducc.properties'
