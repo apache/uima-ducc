@@ -41,7 +41,7 @@ public class ServiceQueryReplyEvent
         this.services.add(s);
     }
 
-    public List<IServiceDescription> getServices()
+    public List<IServiceDescription> getServiceDescriptions()
     {
         return services;
     }
