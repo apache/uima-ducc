@@ -95,19 +95,19 @@ The Apache UIMA DUCC binary distribution includes
   resources/ - contains ducc configuration files
   
   
-2. Installation and Setup
+5. Installation and Setup
 =========================
 
 Please refer to docs/install.pdf for installation instructions.
 
-2.1 Supported Platforms
+5.1 Supported Platforms
 -----------------------
 
 UIMA-DUCC Requires Java 6 or later. It has been tested with Sun Java 6 on Linux,
 and with IBM Java 6 on Linux. 
 
 
-3. Known problems/limitations with Release 1.0.0
+6. Known problems/limitations with Release 1.0.0
 ================================================
 
   
