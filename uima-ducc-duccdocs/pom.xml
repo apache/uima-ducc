@@ -33,8 +33,15 @@
             </releases>
         </pluginRepository>
     </pluginRepositories>
-
-    <build>
+    
+    <!-- By default ducc-duccdocs is not built. To enable the build, first install latex   -->
+    <!-- and run maven as follows: mvn clean install -Pbuild-duccdocs                       -->
+    <!-- The above defines a profile build-duccdocs which triggers the latex plugin defined -->
+    <!-- below to do the actual latex build.                                                -->
+    <profiles>
+    <profile>
+      <id>build-duccdocs</id>
+      <build>
         <plugins>
 
             <plugin>
@@ -94,5 +101,9 @@
                 </executions>
             </plugin>
         </plugins>
-    </build>
+      </build>
+    
+    </profile>
+    </profiles>
+
 </project>
