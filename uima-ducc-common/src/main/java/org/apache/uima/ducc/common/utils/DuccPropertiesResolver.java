@@ -78,6 +78,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_orchestrator_maintenance_rate = "ducc.orchestrator.maintenance.rate";
     public static final String ducc_orchestrator_job_factory_classpath_order = "ducc.orchestrator.job.factory.classpath.order";    
     public static final String ducc_orchestrator_unmanaged_reservations_accepted = "ducc.orchestrator.unmanaged.reservations.accepted";  
+    public static final String ducc_orchestrator_use_lock_file = "ducc.orchestrator.use.lock.file";  
     
     public static final String default_process_get_meta_time_max = "default.process.get.meta.time.max";
     public static final String ducc_agent_launcher_process_init_timeout = "ducc.agent.launcher.process.init.timeout";
@@ -118,6 +119,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_rm_share_quantum,"10");
         defaultProperties.put(ducc_jd_share_quantum,"300");
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
+        defaultProperties.put(ducc_orchestrator_use_lock_file,"false");
         defaultProperties.put(ducc_ws_login_enabled,"true");
         defaultProperties.put(ducc_jd_queue_timeout_minutes,"5");
         defaultProperties.put(ducc_jd_queue_prefix,"ducc.jd.queue.");
