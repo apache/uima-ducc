@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.persistence.PropertiesFileManager;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
@@ -115,7 +116,13 @@ public class OrchestratorCommonArea {
 	}
 	
 	private void init() {
-		ComponentHelper.oneInstance(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
+		// <Jira 3414>
+		DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
+		Boolean use_lock_file = new Boolean(dpr.getProperty(DuccPropertiesResolver.ducc_orchestrator_use_lock_file));
+		if(use_lock_file) {
+			ComponentHelper.oneInstance(IDuccEnv.DUCC_STATE_DIR,"orchestrator");
+		}
+		// </Jira 3414>
 		setPropertiesFileManager(new PropertiesFileManager(IDuccLoggerComponents.abbrv_orchestrator, IDuccEnv.DUCC_STATE_DIR, constOrchestratorProperties, false, true));
 		initSeqNo();
 		setDuccIdFactory(new DuccIdFactory(propertiesFileManager,constSeqNo));
