@@ -390,7 +390,7 @@
 			  <artifactId>apache-rat-plugin</artifactId> 
 			  <executions> 
 			      <execution> 
-			           <id>ducc-rat</id> 
+			           <id>default-cli</id> 
 			           <configuration> 
 			              <excludes combine.children="append"> 
      				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
