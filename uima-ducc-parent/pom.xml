@@ -778,6 +778,7 @@
 			      <execution> 
 			           <id>default-cli</id> 
 			           <configuration> 
+			              <failOnError>false</failOnError>
 			              <excludes combine.children="append"> 
      				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
      				        <exclude>**/.settings/*</exclude>
