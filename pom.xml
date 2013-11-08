@@ -398,6 +398,8 @@
      				        <exclude>uima-ducc-cli/**</exclude> 
      				        <exclude>uima-ducc-common/**</exclude> 
      				        <exclude>uima-ducc-duccdocs/**</exclude> 
+     				        <exclude>**/*.tex</exclude>
+     				        <exclude>**/*.dict</exclude>
      				        <exclude>uima-ducc-examples/**</exclude> 
      				        <exclude>uima-ducc-jd/**</exclude> 
      				        <exclude>uima-ducc-orchestrator/**</exclude> 
