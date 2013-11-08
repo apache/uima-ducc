@@ -782,6 +782,7 @@
 			              <excludes combine.children="append"> 
      				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
      				        <exclude>**/.settings/*</exclude>
+     				        <exclude>**/keystore</exclude>
      				        <exclude>uima-ducc-agent/**</exclude> 
      				        <exclude>uima-ducc-cli/**</exclude> 
      				        <exclude>uima-ducc-common/**</exclude> 
