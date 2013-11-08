@@ -823,6 +823,7 @@
 			  <version>0.10</version>
 			  <executions> 
 			      <execution> 
+			           <phase>install</phase>
 			           <id>default-cli</id> 
 			           <configuration> 
 			              
@@ -834,7 +835,6 @@
      				        <exclude>uima-ducc-cli/**</exclude> 
      				        <exclude>uima-ducc-common/**</exclude> 
      				        <exclude>uima-ducc-duccdocs/**</exclude> 
-     				        <exclude>**/*.tex</exclude>
      				        <exclude>**/*.dict</exclude>
      				        <exclude>uima-ducc-examples/**</exclude> 
      				        <exclude>uima-ducc-jd/**</exclude> 
