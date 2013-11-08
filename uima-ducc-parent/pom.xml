@@ -764,6 +764,51 @@
  
 	</dependencies>
 
+	<profiles>
+		<profile>
+			<id>apache-release</id>
+			<build>
+				<plugins>
+							<!-- run Release Audit Tool (RAT) on src and bin distrs -->
+			<plugin> 
+			  <groupId>org.apache.rat</groupId> 
+			  <artifactId>apache-rat-plugin</artifactId> 
+			  <version>0.10</version>
+			  <executions> 
+			      <execution> 
+			           <id>default-cli</id> 
+			           <configuration> 
+			              <excludes combine.children="append"> 
+     				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
+     				        <exclude>**/.settings/*</exclude>
+     				        <exclude>uima-ducc-agent/**</exclude> 
+     				        <exclude>uima-ducc-cli/**</exclude> 
+     				        <exclude>uima-ducc-common/**</exclude> 
+     				        <exclude>uima-ducc-duccdocs/**</exclude> 
+     				        <exclude>**/*.tex</exclude>
+     				        <exclude>**/*.dict</exclude>
+     				        <exclude>uima-ducc-examples/**</exclude> 
+     				        <exclude>uima-ducc-jd/**</exclude> 
+     				        <exclude>uima-ducc-orchestrator/**</exclude> 
+     				        <exclude>uima-ducc-parent/**</exclude> 
+     				        <exclude>uima-ducc-pm/**</exclude> 
+     				        <exclude>uima-ducc-rm/**</exclude> 
+     				        <exclude>uima-ducc-sm/**</exclude> 
+     				        <exclude>uima-ducc-spawn/**</exclude> 
+     				        <exclude>uima-ducc-transport/**</exclude> 
+     				        <exclude>uima-ducc-web/**</exclude> 
+     				        <exclude>**/uima-ducc-web/src/main/webapp/root/opensources/**/*</exclude> 
+				          </excludes> 
+				       </configuration> 
+				    </execution> 
+				</executions> 
+				</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>			
+
+
 	<build>
 		<finalName>${project.artifactId}</finalName>
 		<pluginManagement>
