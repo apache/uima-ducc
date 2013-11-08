@@ -817,13 +817,30 @@
 		<pluginManagement>
 		
 		 <plugins>
-			<plugin> 
+			
+		 
+		    <!-- Prereq Java 6 because of lib dependencies -->
+		    <plugin>
+		      <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <source>1.6</source>
+            <target>1.6</target>
+          </configuration>		      
+		    </plugin>
+		  </plugins>
+		</pluginManagement>
+        
+        
+        
+        <!--  define common plugins that are shared by every pom -->
+		<plugins>
+		<plugin> 
 			  <groupId>org.apache.rat</groupId> 
 			  <artifactId>apache-rat-plugin</artifactId> 
 			  <version>0.10</version>
 			  <executions> 
 			      <execution> 
-			           <phase>install</phase>
+			          
 			           <id>default-cli</id> 
 			           <configuration> 
 			              
@@ -852,19 +869,6 @@
 				    </execution> 
 				</executions> 
 			</plugin>
-		 
-		    <!-- Prereq Java 6 because of lib dependencies -->
-		    <plugin>
-		      <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
-          </configuration>		      
-		    </plugin>
-		  </plugins>
-		</pluginManagement>
-        <!--  define common plugins that are shared by every pom -->
-		<plugins>
             <!-- Each jar produced should have metadata attached to a Manifest -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
