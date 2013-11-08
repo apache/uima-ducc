@@ -161,7 +161,7 @@
 							<subpackages>org.apache.uima</subpackages>
 
 							<excludePackageNames>
-                              org.apache.uima.ducc.cli.*:org.apache.uima.ducc.api.*:org.apache.uima.ducc.common.*:org.apache.uima.ducc.transport.*
+                              org.apache.uima.ducc.cli.*:org.apache.uima.ducc.api.*:org.apache.uima.ducc.common.*:org.apache.uima.ducc.transport.*:org.apache.uima.ducc.agent.*:org.apache.uima.ducc.examples.*:org.apache.uima.ducc.orchestrator.*:org.apache.uima.ducc.pm.*:org.apache.uima.ducc.rm.*:org.apache.uima.ducc.sm.*:
                             </excludePackageNames>
 
 							<!-- add a few classes in impl packages that are directly used by 
