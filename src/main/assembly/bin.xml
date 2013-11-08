@@ -58,6 +58,29 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+    <dependencySet>
+      <includes>
+        <include>org.kohsuke:libpam4j</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputDirectory>ducc_runtime/lib/libpam4j</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+    <dependencySet>
+      <includes>
+        <include>net.java.dev.jna:jna</include>
+      </includes>
+      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputDirectory>ducc_runtime/lib/jna</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+
      <dependencySet>
       <includes>
         <include>org.apache.uima:uima-ducc-common</include>

@@ -157,12 +157,27 @@
 		<aopalliance.version>1.0</aopalliance.version>
 		<google.gson.version>2.2.2</google.gson.version>
 		<cglib.version>2.2.0</cglib.version>
+		<libpam.version>1.7</libpam.version>
+	    <jna.version>4.0.0</jna.version> 
 	</properties>
 
     <!-- dependencyManagement is a declaration section naming each artifact the ducc components   -->
     <!-- depends on.                                                                              -->
 	<dependencyManagement>
 		<dependencies>
+
+            <dependency>
+	           <groupId>net.java.dev.jna</groupId>
+	           <artifactId>jna</artifactId>
+  	           <version>${jna.version}</version>
+            </dependency>
+
+            <dependency>
+	           <groupId>org.kohsuke</groupId>
+	           <artifactId>libpam4j</artifactId>
+  	           <version>${libpam.version}</version>
+            </dependency>
+
 
             <dependency>
 	           <groupId>com.google.code.gson</groupId>
