@@ -385,7 +385,7 @@
 					</plugin>
 
 			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
-			<plugin> 
+			<!-- plugin> 
 			  <groupId>org.apache.rat</groupId> 
 			  <artifactId>apache-rat-plugin</artifactId> 
 			  <version>0.10</version>
@@ -394,7 +394,6 @@
 			           <id>default-cli</id> 
 			           <configuration> 
 			              <excludes combine.children="append"> 
-     				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
      				        <exclude>**/.settings/*</exclude>
      				        <exclude>uima-ducc-agent/**</exclude> 
      				        <exclude>uima-ducc-cli/**</exclude> 
@@ -417,7 +416,7 @@
 				       </configuration> 
 				    </execution> 
 				</executions> 
-				</plugin>
+				</plugin-->
 
 				</plugins>
 			</build>
