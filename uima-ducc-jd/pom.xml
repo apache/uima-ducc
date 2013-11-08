@@ -25,6 +25,22 @@
   <groupId>org.apache.uima</groupId>
   <version>1.0.0-SNAPSHOT</version>
   
+ <!-- Special inheritance note even though the <scm> element that follows 
+		is exactly the same as those in super poms, it cannot be inherited because 
+		there is some special code that computes the connection elements from the 
+		chain of parent poms, if this is omitted. Keeping this a bit factored allows 
+		cutting/pasting the <scm> element, and just changing the following two properties -->
+  <scm>
+	<connection>
+      scm:svn:http://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-jd
+    </connection>
+	<developerConnection>
+      scm:svn:https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-jd
+    </developerConnection>
+	<url>
+      http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk/uima-ducc-jd
+    </url>
+  </scm>
 
   <dependencies>
         <!-- Dependencies on other DUCC projects -->
