@@ -815,7 +815,45 @@
 	<build>
 		<finalName>${project.artifactId}</finalName>
 		<pluginManagement>
-		  <plugins>
+		
+		 <plugins>
+			<plugin> 
+			  <groupId>org.apache.rat</groupId> 
+			  <artifactId>apache-rat-plugin</artifactId> 
+			  <version>0.10</version>
+			  <executions> 
+			      <execution> 
+			           <id>default-cli</id> 
+			           <configuration> 
+			              
+			              <excludes combine.children="append"> 
+     				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
+     				        <exclude>**/.settings/*</exclude>
+     				        <exclude>**/keystore</exclude>
+     				        <exclude>**/*.job</exclude>
+     				        <exclude>uima-ducc-agent/**</exclude> 
+     				        <exclude>uima-ducc-cli/**</exclude> 
+     				        <exclude>uima-ducc-common/**</exclude> 
+     				        <exclude>uima-ducc-duccdocs/**</exclude> 
+     				        <exclude>**/*.tex</exclude>
+     				        <exclude>**/*.dict</exclude>
+     				        <exclude>uima-ducc-examples/**</exclude> 
+     				        <exclude>uima-ducc-jd/**</exclude> 
+     				        <exclude>uima-ducc-orchestrator/**</exclude> 
+     				        <exclude>uima-ducc-parent/**</exclude> 
+     				        <exclude>uima-ducc-pm/**</exclude> 
+     				        <exclude>uima-ducc-rm/**</exclude> 
+     				        <exclude>uima-ducc-sm/**</exclude> 
+     				        <exclude>uima-ducc-spawn/**</exclude> 
+     				        <exclude>uima-ducc-transport/**</exclude> 
+     				        <exclude>uima-ducc-web/**</exclude> 
+     				        <exclude>**/src/main/webapp/root/opensources/**/*</exclude> 
+				          </excludes> 
+				       </configuration> 
+				    </execution> 
+				</executions> 
+			</plugin>
+		 
 		    <!-- Prereq Java 6 because of lib dependencies -->
 		    <plugin>
 		      <artifactId>maven-compiler-plugin</artifactId>
