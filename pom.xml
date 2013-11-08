@@ -388,6 +388,7 @@
 			<plugin> 
 			  <groupId>org.apache.rat</groupId> 
 			  <artifactId>apache-rat-plugin</artifactId> 
+			  <version>0.10</version>
 			  <executions> 
 			      <execution> 
 			           <id>default-cli</id> 
