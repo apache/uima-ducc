@@ -408,7 +408,7 @@
      				        <exclude>uima-ducc-spawn/**</exclude> 
      				        <exclude>uima-ducc-transport/**</exclude> 
      				        <exclude>uima-ducc-web/**</exclude> 
-     				        <exclude>uima-ducc-web/src/main/webapp/root/opensources/**/*</exclude> 
+     				        <exclude>**/uima-ducc-web/src/main/webapp/root/opensources/**/*</exclude> 
 				          </excludes> 
 				       </configuration> 
 				    </execution> 
