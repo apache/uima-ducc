@@ -764,12 +764,12 @@
  
 	</dependencies>
 
-	<profiles>
+	<!-- profiles>
 		<profile>
 			<id>apache-release</id>
 			<build>
 				<plugins>
-							<!-- run Release Audit Tool (RAT) on src and bin distrs -->
+							
 			<plugin> 
 			  <groupId>org.apache.rat</groupId> 
 			  <artifactId>apache-rat-plugin</artifactId> 
@@ -780,7 +780,7 @@
 			           <configuration> 
 			              
 			              <excludes combine.children="append"> 
-     				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
+     				        
      				        <exclude>**/.settings/*</exclude>
      				        <exclude>**/keystore</exclude>
      				        <exclude>**/*.job</exclude>
@@ -809,7 +809,7 @@
 				</plugins>
 			</build>
 		</profile>
-	</profiles>			
+	</profiles -->			
 
 
 	<build>
