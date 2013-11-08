@@ -33,9 +33,13 @@ Both single and multi-user configurations have the following software pre-requis
   \item A userid {\em ducc}, and group {\em ducc}.  User {\em ducc} must the the only member of group {\em ducc}.
   \item Reasonably current Linux.  DUCC has been tested on SLES 10.2, 11.1, and 11.2, and RHEL 6.3.
     
-    {\em Note:} On some systems the default {\em user limits} are defined too low for DUCC.  The shell
-    start-up scripts for user {\em ducc} should set the soft limit to be the same as the hard limit.  
-    During DUCC boot, the DUCC start-up scripts will emit a warning if the limits are too low.
+    {\em Note:} On some systems the default {\em user limits}
+    for max user processes (ulimit -u) and nfiles (ulimit -n) are defined too
+    low for DUCC. The shell login profile for user {\em ducc} should set the
+    soft limit for max user processes to be the same as the hard limit
+    (ulimit -u `ulimit -Hu`), and
+    the nfiles limit raised above 1024 to at least twice the number of user
+    processes running on the cluster.
 
   \item For CGroupt support, libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL.  
   \item IBM or Oracle Java JRE 1.6 or greater.
