@@ -316,34 +316,7 @@
 			</plugin>
 
 
-			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
-			<!-- plugin> <groupId>org.apache.rat</groupId> <artifactId>apache-rat-plugin</artifactId> 
-				<executions> <execution> <id>ducc-rat</id> <configuration> <excludes> <exclude>uima-ducc/target/**</exclude> 
-				<exclude>uima-ducc/src/main/**</exclude> <exclude>uima-ducc-ducbooks/target/**</exclude> 
-				<exclude>uima-ducc-ducbooks/.project</exclude> <exclude>uima-ducc-ducbooks/.settings/**</exclude> 
-				<exclude>uima-ducc/target/**</exclude> <exclude>uima-ducc/.classpath</exclude> 
-				<exclude>uima-ducc/.project</exclude> <exclude>uima-ducc/.settings/**</exclude> 
-				<exclude>uima-ducc-agent/.classpath</exclude> <exclude>uima-ducc-agent/.project</exclude> 
-				<exclude>uima-ducc-agent/.settings/**</exclude> <exclude>uima-ducc-agent/target/**</exclude> 
-				<exclude>uima-ducc-cli/.classpath</exclude> <exclude>uima-ducc-cli/.project</exclude> 
-				<exclude>uima-ducc-cli/.settings/**</exclude> <exclude>uima-ducc-cli/target/**</exclude> 
-				<exclude>uima-ducc-common/.classpath</exclude> <exclude>uima-ducc-common/.project</exclude> 
-				<exclude>uima-ducc-common/.settings/**</exclude> <exclude>uima-ducc-common/target/**</exclude> 
-				<exclude>uima-ducc-jd/.classpath</exclude> <exclude>uima-ducc-jd/.project</exclude> 
-				<exclude>uima-ducc-jd/.settings/**</exclude> <exclude>uima-ducc-jd/target/**</exclude> 
-				<exclude>uima-ducc-orchestrator/.classpath</exclude> <exclude>uima-ducc-orchestrator/.project</exclude> 
-				<exclude>uima-ducc-orchestrator/.settings/**</exclude> <exclude>uima-ducc-orchestrator/target/**</exclude> 
-				<exclude>uima-ducc-parent/target/**</exclude> <exclude>uima-ducc-pm/.classpath</exclude> 
-				<exclude>uima-ducc-pm/.project</exclude> <exclude>uima-ducc-pm/.settings/**</exclude> 
-				<exclude>uima-ducc-pm/target/**</exclude> <exclude>uima-ducc-rm/.classpath</exclude> 
-				<exclude>uima-ducc-rm/.project</exclude> <exclude>uima-ducc-rm/.settings/**</exclude> 
-				<exclude>uima-ducc-rm/target/**</exclude> <exclude>uima-ducc-sm/.classpath</exclude> 
-				<exclude>uima-ducc-sm/.project</exclude> <exclude>uima-ducc-sm/.settings/**</exclude> 
-				<exclude>uima-ducc-sm/target/**</exclude> <exclude>uima-ducc-transport/.classpath</exclude> 
-				<exclude>uima-ducc-transport/.project</exclude> <exclude>uima-ducc-transport/.settings/**</exclude> 
-				<exclude>uima-ducc-transport/target/**</exclude> <exclude>README*</exclude> 
-				<exclude>RELEASE_NOTES*</exclude> </excludes> </configuration> </execution> 
-				</executions> </plugin -->
+
 
 
 		</plugins>
@@ -410,6 +383,37 @@
 							</execution>
 						</executions>
 					</plugin>
+
+			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
+			<plugin> 
+			  <groupId>org.apache.rat</groupId> 
+			  <artifactId>apache-rat-plugin</artifactId> 
+			  <executions> 
+			      <execution> 
+			           <id>ducc-rat</id> 
+			           <configuration> 
+			              <excludes combine.children="append"> 
+     				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
+     				        <exclude>uima-ducc-agent/**</exclude> 
+     				        <exclude>uima-ducc-cli/**</exclude> 
+     				        <exclude>uima-ducc-common/**</exclude> 
+     				        <exclude>uima-ducc-duccdocs/**</exclude> 
+     				        <exclude>uima-ducc-examples/**</exclude> 
+     				        <exclude>uima-ducc-jd/**</exclude> 
+     				        <exclude>uima-ducc-orchestrator/**</exclude> 
+     				        <exclude>uima-ducc-parent/**</exclude> 
+     				        <exclude>uima-ducc-pm/**</exclude> 
+     				        <exclude>uima-ducc-rm/**</exclude> 
+     				        <exclude>uima-ducc-sm/**</exclude> 
+     				        <exclude>uima-ducc-spawn/**</exclude> 
+     				        <exclude>uima-ducc-transport/**</exclude> 
+     				        <exclude>uima-ducc-web/**</exclude> 
+     				        <exclude>uima-ducc-web/src/main/webapp/root/opensources/**/**</exclude> 
+				          </excludes> 
+				       </configuration> 
+				    </execution> 
+				</executions> 
+				</plugin>
 
 				</plugins>
 			</build>
