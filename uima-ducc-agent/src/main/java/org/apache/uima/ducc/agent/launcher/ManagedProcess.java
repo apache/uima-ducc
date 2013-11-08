@@ -245,7 +245,7 @@ public class ManagedProcess implements Process {
 	/**
 	 * Return current state of this object.
 	 * 
-	 * @return
+	 * @return Process - process object
 	 */
 	public Process getInstance() {
 		return this;
@@ -268,7 +268,7 @@ public class ManagedProcess implements Process {
 	}
 
 	/**
-	 * @param uimaLogPath
+	 * @param logPath
 	 *            the uimaLogPath to set
 	 */
 	public void setLogPath(String logPath) {
@@ -497,13 +497,10 @@ public class ManagedProcess implements Process {
 		return command;
 	}
 
+	
 	/**
-	 * @param command
-	 *            the command to set
-	 */
-	/**
-	 * @param command
-	 *            the command to set
+	 * @param commandToRun
+	 *            the command as List
 	 */
 	public void setCommand(List<String> commandToRun) {
 		this.command = commandToRun;
@@ -517,8 +514,8 @@ public class ManagedProcess implements Process {
 	}
 
 	/**
-	 * @param processCorrelationId
-	 *            the processCorrelationId to set
+	 * @param processId
+	 *            the processId to set
 	 */
 	public void setProcessId(String processId) {
 		this.processCorrelationId = processId;
@@ -532,7 +529,7 @@ public class ManagedProcess implements Process {
 	}
 
 	/**
-	 * @param jmxPort
+	 * @param port
 	 *            the jmxPort to set
 	 */
 	public void setPort(String port) {

@@ -848,12 +848,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   /**
    * Called when UIMA AS service wrapper sends an update when a process status changes.
    * 
-   * @param processSimpleDuccId
-   *          - unique DuccId of the UIMA AS process
-   * @param pid
-   *          - process PID
-   * @param state
-   *          - state of the UIMA AS process
+   * @param duccEvent
+   *          - Ducc event object
+   *
    * @throws Exception
    */
 

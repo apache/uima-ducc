@@ -273,7 +273,6 @@ public class RogueProcessReaper {
    *          - process owner
    * @param pid
    *          - process id
-   * @return - true if the process has been killed, false otherwise
    * @throws Exception
    */
   public void kill(final String user, final String pid) throws Exception {

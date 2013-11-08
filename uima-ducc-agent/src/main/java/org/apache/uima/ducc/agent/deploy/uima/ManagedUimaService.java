@@ -176,7 +176,6 @@ public class ManagedUimaService extends AbstractManagedService implements
 	 * 
 	 * @param args
 	 *            - commandline args
-	 * @return
 	 * @throws Exception
 	 */
 	public String[] getServiceArgs(String[] args) throws Exception {

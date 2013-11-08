@@ -82,7 +82,7 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
    * Route builder to receive node agent inventory updates
    * @param delegate - processor where the node inventory is collected and filtered
    * @param endpoint - agent inventory topic
-   * @return
+   * @return RouteBuilder
    */
   public RouteBuilder routeBuilderForEndpoint(final Processor delegate, final String endpoint) {
     return new RouteBuilder() {

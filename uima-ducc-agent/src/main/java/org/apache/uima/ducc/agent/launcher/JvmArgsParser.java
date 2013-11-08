@@ -65,7 +65,7 @@ public class JvmArgsParser {
 	 * 
 	 * @param args - string containing a mix of -X and -D args
 	 * 
-	 * @return
+	 * @return List<String> - list of jvm args
 	 */
 	public static List<String> parse(String args) {
 		List<String> jvm_args = new ArrayList<String>();

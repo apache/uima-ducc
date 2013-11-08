@@ -60,7 +60,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
    * System owned (root, nfs, etc) processes should not be reported as rogue. 
    * 
    * @param userId
-   * @return
+   * @return  boolean - true if a given user should be excluded. False otherwise
    */
   public boolean excludeUser(String userId ) {
     String userFilter =
@@ -82,7 +82,7 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
    * This list contains process names the Agent should exclude while determining rogue processes.
    * 
    * @param process
-   * @return
+   * @return boolean - true if a given process should be excluded. False otherwise
    */
   public boolean excludeProcess(String process ) {
     String processFilter = 
