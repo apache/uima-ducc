@@ -246,6 +246,8 @@ class DuccUtil(DuccBase):
         CLASSPATH = CLASSPATH + ":" + LIB + '/springframework/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/xmlbeans/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/jna/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/libpam4j/*'
 
         # orchestrator http needs codecs
         CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
