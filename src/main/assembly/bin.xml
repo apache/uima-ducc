@@ -472,13 +472,13 @@ under the License.
       <includes />
     </fileSet>
 
-<fileSet>
+    <fileSet>
       <directory></directory>
-      <outputDirectory></outputDirectory>
+      <outputDirectory>ducc_runtime</outputDirectory>
       <includes>
         <include>README</include>
         <include>RELEASE_NOTES.html</include>
-        <include>pom.xml</include>
+        <include>ssuesFixed/**</include>
       </includes>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
