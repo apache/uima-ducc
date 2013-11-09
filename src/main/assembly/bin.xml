@@ -478,7 +478,7 @@ under the License.
       <includes>
         <include>README</include>
         <include>RELEASE_NOTES.html</include>
-        <include>ssuesFixed/**</include>
+        <include>issuesFixed/**</include>
       </includes>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
