@@ -356,7 +356,29 @@
 								</configuration>
 							</execution>
 						</executions>
-					</plugin>				
+					</plugin>		
+					<!--  need this plugin to rename source zip file  -->		
+					<plugin>
+					    <groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<executions>
+						   <execution>
+						      <id>rename-source</id>
+						      <phase>package</phase>
+						      <goals>
+						         <goal>run</goal>
+						      </goals>
+						      <configuration>
+							     <target>
+							         <move file="target/uima-ducc-source-release.zip" 
+							             tofile="target/uima-ducc-${project.version}-source-release.zip" />
+							     
+							     </target>
+						      </configuration>
+						   </execution>
+						</executions>
+						
+					</plugin>
 					<plugin>
 						<artifactId>maven-deploy-plugin</artifactId>
 						<configuration>
