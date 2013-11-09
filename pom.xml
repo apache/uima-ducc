@@ -402,8 +402,7 @@
 							     <target>
 							         <move file="target/uima-ducc-source-release.zip" 
 							             tofile="target/uima-ducc-${project.version}-source-release.zip" />
-							         <move file="uima-ducc.pom" 
-							             tofile="target/uima-ducc-${project.version}.pom" />
+							         
 							     
 							     </target>
 						      </configuration>
