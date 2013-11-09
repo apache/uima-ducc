@@ -75,7 +75,6 @@ import org.apache.uima.ducc.transport.event.common.DuccUserReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccJobDeployment;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess.ReasonForStoppingProcess;
-import org.apache.uima.ducc.transport.event.common.IDuccReasonForProcessNotRunning.ReasonForStopping;
 import org.apache.uima.ducc.transport.event.common.IDuccReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;

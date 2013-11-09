@@ -21,7 +21,6 @@ package org.apache.uima.ducc.agent.config;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.activemq.camel.component.ActiveMQComponent;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
@@ -59,8 +58,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-//import org.apache.uima.ducc.agent.event.AgentPingEvent;
 import com.thoughtworks.xstream.XStream;
+//import org.apache.uima.ducc.agent.event.AgentPingEvent;
 
 @Configuration
 @Import({ DuccTransportConfiguration.class, CommonConfiguration.class,

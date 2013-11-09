@@ -24,12 +24,11 @@ import java.util.concurrent.Callable;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.agent.NodeAgent;
-import org.apache.uima.ducc.agent.NodeAgent.ProcessMemoryUsageRoute;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
-import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
+import org.apache.uima.ducc.transport.event.common.IDuccStandardInfo;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public abstract class CommandExecutor implements Callable<Process> {
