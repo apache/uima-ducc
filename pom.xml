@@ -315,7 +315,37 @@
 				</executions>
 			</plugin>
 
-
+	    <!-- Override default assemble plug-in to use newer version of assembly plugin
+	         Version 2.4 fixes a bug http://jira.codehaus.org/browse/PLXCOMP-176
+	     -->
+	    <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <id>default-cli</id>
+            <configuration>
+              <descriptors>
+                <descriptor>do-not-use--mvn-assembly-assembly--instead-use-mvn-install</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
+            <id>uima-distr</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/bin.xml</descriptor>
+              </descriptors>
+              <finalName>uima-ducc-${project.version}</finalName>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
 
 
 
@@ -407,37 +437,7 @@
 							</execution>
 						</executions>
 					</plugin>
-	    <!-- Override default assemble plug-in to use newer version of assembly plugin
-	         Version 2.4 fixes a bug http://jira.codehaus.org/browse/PLXCOMP-176
-	     -->
-	    <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>default-cli</id>
-            <configuration>
-              <descriptors>
-                <descriptor>do-not-use--mvn-assembly-assembly--instead-use-mvn-install</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-          <execution>
-            <id>uima-distr</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/bin.xml</descriptor>
-              </descriptors>
-              <finalName>uima-ducc-${project.version}</finalName>
-              <tarLongFileMode>gnu</tarLongFileMode>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+
       		
 			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
 			<!-- plugin> 
