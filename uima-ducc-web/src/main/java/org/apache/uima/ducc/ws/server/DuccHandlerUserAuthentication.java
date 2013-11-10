@@ -19,14 +19,11 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.uima.ducc.common.authentication.AuthenticationManager;
-import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager.Role;
 import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -45,28 +42,11 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 	public final String userLogin 					= duccContextUser+"-login";
 	public final String userAuthenticationStatus 	= duccContextUser+"-authentication-status";
 	
-	private static IAuthenticationManager iAuthenticationManager = AuthenticationManager.getInstance();
+	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 	
-	private static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
+	private DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
 	
 	public DuccHandlerUserAuthentication() {
-		initializeAuthenticator();
-	}
-	
-	private void initializeAuthenticator() {
-		String methodName = "initializeAuthenticator";
-		try {
-			Properties properties = DuccWebProperties.get();
-			String key = "ducc.authentication.implementer";
-			if(properties.containsKey(key)) {
-				String value = properties.getProperty(key);
-				Class<?> authenticationImplementer = Class.forName(value);
-				iAuthenticationManager = (IAuthenticationManager)authenticationImplementer.newInstance();
-			}
-		}
-		catch(Exception e) {
-			duccLogger.error(methodName, jobid, e);
-		}
 	}
 	
 	protected boolean isAuthenticated(HttpServletRequest request,HttpServletResponse response) {
@@ -125,7 +105,7 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 			duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
 			sb.append("failure");
 		}
-		else if(iAuthenticationManager.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
+		else if(duccAuthenticator.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
 			duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
 			sb.append("failure");
 		}
@@ -139,13 +119,15 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 					domain = parts[1];
 				}
 			}
-			duccLogger.info(methodName, jobid, messages.fetchLabel("version")+iAuthenticationManager.getVersion());
-			IAuthenticationResult result1 = iAuthenticationManager.isAuthenticate(userId, domain, password);
-			IAuthenticationResult result2 = iAuthenticationManager.isGroupMember(userId, domain, role);
+			duccLogger.debug(methodName, jobid, messages.fetchLabel("version")+duccAuthenticator.getVersion());
+			IAuthenticationResult result1 = duccAuthenticator.isAuthenticate(userId, domain, password);
+			IAuthenticationResult result2 = duccAuthenticator.isGroupMember(userId, domain, role);
+			duccLogger.debug(methodName, jobid, messages.fetch("login ")+userId+" "+"group reason: "+result2.getReason());
 			if(result1.isSuccess() && result2.isSuccess()) {
 				duccWebSessionManager.login(request, userId);
 				duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("success"));
 				sb.append("success");
+				
 			}
 			else {
 				IAuthenticationResult result;

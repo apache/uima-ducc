@@ -46,8 +46,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.NodeConfiguration;
-import org.apache.uima.ducc.common.authentication.AuthenticationManager;
-import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
@@ -107,11 +105,11 @@ public class DuccHandler extends DuccAbstractHandler {
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
 
-	private static IAuthenticationManager iAuthenticationManager = AuthenticationManager.getInstance();
-
 	private enum DetailsType { Job, Reservation, Service };
 	private enum ShareType { JD, MR, SPC, SPU, UIMA };
 	private enum LogType { POP, UIMA };
+	
+	private DuccAuthenticator duccAuthenticator = DuccAuthenticator.getInstance();
 	
 	private String duccVersion						= duccContext+"/version";
 	
@@ -188,27 +186,10 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	public DuccHandler(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
-		initializeAuthenticator();
 	}
 	
 	public String getFileName() {
 		return dir_home+File.separator+dir_resources+File.separator+getDuccWebServer().getClassDefinitionFile();
-	}
-	
-	private void initializeAuthenticator() {
-		String methodName = "initializeAuthenticator";
-		try {
-			Properties properties = DuccWebProperties.get();
-			String key = "ducc.authentication.implementer";
-			if(properties.containsKey(key)) {
-				String value = properties.getProperty(key);
-				Class<?> authenticationImplementer = Class.forName(value);
-				iAuthenticationManager = (IAuthenticationManager)authenticationImplementer.newInstance();
-			}
-		}
-		catch(Exception e) {
-			duccLogger.error(methodName, jobid, e);
-		}
 	}
 	
 	/*
@@ -304,7 +285,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletAuthenticatorVersion";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		sb.append(iAuthenticationManager.getVersion());
+		sb.append(duccAuthenticator.getVersion());
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
@@ -315,7 +296,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletduccAuthenticatorPasswordChecked";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
-		if(iAuthenticationManager.isPasswordChecked()) {
+		if(duccAuthenticator.isPasswordChecked()) {
 			sb.append("<input type=\"password\" name=\"password\"/>");
 		}
 		else {
