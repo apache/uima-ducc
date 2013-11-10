@@ -717,8 +717,10 @@ public class JobManagerConverter
                   case Service:
                   case Pop:
                   case Reservation:
-                      logger.info(methodName, l.getDuccId(), "[SPR] State: ", r.getStateObject(), "->", l.getStateObject());
-                      // for the moment, these guyes have nothing to reconcile.
+                      if ( r.getStateObject() != l.getStateObject() ) {
+                          logger.info(methodName, l.getDuccId(), "[SPR] State: ", r.getStateObject(), "->", l.getStateObject());
+                      }
+                      // for the moment, these guys have nothing to reconcile.
                       break;
                   case Undefined:
                       throw new SchedulingException(l.getDuccId(), "Work arrives as type Undefined - should have been filtered out by now.");                      
