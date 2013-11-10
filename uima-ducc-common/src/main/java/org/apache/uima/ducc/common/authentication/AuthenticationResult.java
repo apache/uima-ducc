@@ -24,8 +24,12 @@ public class AuthenticationResult implements IAuthenticationResult {
 	private int code = -1;
 	private String reason = null;
 	private Exception exception = null;
-		
+	
 	public AuthenticationResult() {
+	}
+	
+	public AuthenticationResult(boolean value) {
+		this.result = value;
 	}
 	
 	public AuthenticationResult(String reason, Exception exception) {

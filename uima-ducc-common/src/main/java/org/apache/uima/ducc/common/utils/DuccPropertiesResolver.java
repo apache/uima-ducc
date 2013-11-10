@@ -49,8 +49,14 @@ public class DuccPropertiesResolver {
     private Properties defaultProperties = new DuccProperties();
     
     public DuccPropertiesResolver() {
-        init(initialProperties);
-        initDefaultProperties();
+    	try {
+    		init(initialProperties);
+            initDefaultProperties();
+    	}
+    	catch(Throwable t) {
+    		t.printStackTrace();
+    	}
+        
     }
     
     public static final String ducc_submit_beta = "ducc.submit.beta";
@@ -97,11 +103,17 @@ public class DuccPropertiesResolver {
     public static final String ducc_rm_share_quantum = "ducc.rm.share.quantum";
     public static final String ducc_jd_share_quantum = "ducc.jd.share.quantum";
     
+    public static final String ducc_authentication_implementer = "ducc.authentication.implementer";
+    public static final String ducc_authentication_users_include = "ducc.authentication.users.include";
+    public static final String ducc_authentication_users_exclude = "ducc.authentication.users.exclude";
+    public static final String ducc_authentication_groups_include = "ducc.authentication.groups.include";
+    public static final String ducc_authentication_groups_exclude = "ducc.authentication.groups.exclude";
+    
     public static final String ducc_ws_host = "ducc.ws.node";
     public static final String ducc_ws_port = "ducc.ws.port";
     public static final String ducc_ws_max_history_entries = "ducc.ws.max.history.entries";
     public static final String ducc_ws_login_enabled = "ducc.ws.login.enabled";
-    
+   
     public static final String ducc_agent_node_inventory_publish_rate ="ducc.agent.node.inventory.publish.rate";
     public static final String ducc_agent_node_inventory_publish_rate_skip ="ducc.agent.node.inventory.publish.rate.skip";
     
@@ -121,6 +133,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
         defaultProperties.put(ducc_orchestrator_use_lock_file,"false");
         defaultProperties.put(ducc_ws_login_enabled,"true");
+        defaultProperties.put(ducc_authentication_implementer,"org.apache.uima.ducc.common.authentication.LinuxAuthenticationManager");
         defaultProperties.put(ducc_jd_queue_timeout_minutes,"5");
         defaultProperties.put(ducc_jd_queue_prefix,"ducc.jd.queue.");
         defaultProperties.put(ducc_jd_host_class,"JobDriver");

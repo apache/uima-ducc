@@ -19,6 +19,10 @@
 package org.apache.uima.ducc.common.authentication;
 	
 public interface IAuthenticationResult {
+	
+	public static boolean SUCCESS = true;
+	public static boolean FAILURE = false;
+	
 	public void setSuccess();
 	public void setFailure();
 	public boolean isSuccess();
