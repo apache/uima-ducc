@@ -83,8 +83,7 @@ public class JobFactory {
 	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
 	private DuccIdFactory jdIdFactory = new DuccIdFactory();
-
-	private String java_classpath = System.getProperty("java.class.path");
+	
 	private String classpath_order = System.getProperty("ducc.orchestrator.job.factory.classpath.order");
 	
 	private int addEnvironment(DuccWorkJob job, String type, ACommandLine aCommandLine, String environmentVariables) {
@@ -284,6 +283,13 @@ public class JobFactory {
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_components);
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_job_id+job.getDuccId().toString());
 		// classpath
+		DuccProperties props = new DuccProperties();
+		try {
+            props.load(IDuccEnv.DUCC_CLASSPATH_FILE);
+        } catch (Exception e) {
+            logger.error(methodName, job.getDuccId(), "Failed to load " + IDuccEnv.DUCC_CLASSPATH_FILE);
+        }
+		String java_classpath = props.getProperty("ducc.jobdriver.classpath");		
 		String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
 		logger.debug(methodName, job.getDuccId(), "driver CP (spec):"+driverClasspath);
 		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
@@ -411,6 +417,13 @@ public class JobFactory {
 		// log
 		jobRequestProperties.specification(logger);
 		// classpath
+        DuccProperties props = new DuccProperties();
+        try {
+            props.load(IDuccEnv.DUCC_CLASSPATH_FILE);
+        } catch (Exception e) {
+            logger.error(methodName, job.getDuccId(), "Failed to load " + IDuccEnv.DUCC_CLASSPATH_FILE);
+        }
+        String java_classpath = props.getProperty("ducc.jobprocess.classpath"); 
 		String processClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
 		logger.debug(methodName, job.getDuccId(), "process CP (spec):"+processClasspath);
 		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);

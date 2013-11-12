@@ -30,6 +30,7 @@ public interface IDuccEnv {
 	public static final String DUCC_NODES_FILE_NAME = "ducc.nodes";
 	public static final String DUCC_NODES_FILE_PATH = DUCC_RESOURCES_DIR+DUCC_NODES_FILE_NAME;
 	public static final String DUCC_ADMINISTRATORS_FILE = DUCC_RESOURCES_DIR+"ducc.administrators";
+	public static final String DUCC_CLASSPATH_FILE = DUCC_RESOURCES_DIR+"jobclasspath.properties";
 	
 	public static final String DUCC_STATE_DIR = DUCC_HOME_DIR+"state"+File.separator;
 	public static final String DUCC_DAEMONS_DIR = DUCC_STATE_DIR+"daemons"+File.separator;
