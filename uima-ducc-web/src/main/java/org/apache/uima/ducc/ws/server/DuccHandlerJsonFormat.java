@@ -176,7 +176,51 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		sb.append("</span>");
 		row.add(new JsonPrimitive(sb.toString()));
 		// Class
-		row.add(new JsonPrimitive(stringNormalize(job.getSchedulingInfo().getSchedulingClass(),messages.fetch("default"))));
+		sb = new StringBuffer();
+		String schedulingClass = stringNormalize(job.getSchedulingInfo().getSchedulingClass(),messages.fetch("default"));
+		long debugPortDriver = job.getDebugPortDriver();
+		long debugPortProcess = job.getDebugPortProcess();
+		title = "debug ports:";
+		if(debugPortDriver >= 0) {
+			title = title + " driver="+debugPortDriver;
+		}
+		if(debugPortProcess >= 0) {
+			title = title + " process="+debugPortProcess;
+		}
+		switch(DuccCookies.getDisplayStyle(request)) {
+		case Textual:
+		default:
+			sb.append(schedulingClass);
+			if((debugPortDriver >= 0) || (debugPortProcess >= 0)) {
+				sb.append("<br>");
+				if(job.isCompleted()) {
+					sb.append("<span class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span class=\"health_green\""+">");
+				}
+				sb.append("<div title=\""+title+"\">DEBUG</div>");
+				sb.append("</span>");
+			}
+			break;
+		case Visual:
+			sb.append("<table width=\"100%\">");
+			sb.append("<tr>");
+			sb.append("<td align=\"left\">");
+			sb.append(schedulingClass);
+			sb.append("</td>");
+			sb.append("<td align=\"right\">");
+			if((debugPortDriver >= 0) || (debugPortProcess >= 0)) {
+				sb.append("<span title=\""+title+"\">");
+				sb.append("<img src=\"./opensources/images/Delena-cancerides-huntsman-spider.jpg\">");
+				sb.append("</span>");
+			}
+			sb.append("</td>");
+			sb.append("</tr>");
+			sb.append("</table>");
+			break;
+		}	
+		row.add(new JsonPrimitive(sb.toString()));
 		// State
 		sb = new StringBuffer();
 		String state = job.getStateObject().toString();

@@ -103,4 +103,9 @@
                   In case this is not legally possible: Frankyboy5 grants anyone the right to use this work for any purpose, without any conditions, unless
                   such conditions are required by law.
    attribution... N/A
-   
+      
+20. image........ Delena-cancerides-huntsman-spider.jpg
+   source........ http://commons.wikimedia.org/wiki/File:Delena-cancerides-huntsman-spider.jpg
+   license....... http://creativecommons.org/licenses/by-sa/2.0/deed.en
+   attribution... © Bryce McQuillan / Wikimedia Commons / CC-BY-SA-2.0
+         

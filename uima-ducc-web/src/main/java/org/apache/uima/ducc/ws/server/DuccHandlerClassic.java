@@ -154,7 +154,49 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		sb.append("</td>");
 		// Class
 		sb.append("<td valign=\"bottom\">");
-		sb.append(stringNormalize(job.getSchedulingInfo().getSchedulingClass(),messages.fetch("default")));
+		String schedulingClass = stringNormalize(job.getSchedulingInfo().getSchedulingClass(),messages.fetch("default"));
+		long debugPortDriver = job.getDebugPortDriver();
+		long debugPortProcess = job.getDebugPortProcess();
+		title = "debug ports:";
+		if(debugPortDriver >= 0) {
+			title = title + " driver="+debugPortDriver;
+		}
+		if(debugPortProcess >= 0) {
+			title = title + " process="+debugPortProcess;
+		}
+		switch(DuccCookies.getDisplayStyle(request)) {
+		case Textual:
+		default:
+			sb.append(schedulingClass);
+			if((debugPortDriver >= 0) || (debugPortProcess >= 0)) {
+				sb.append("<br>");
+				if(job.isCompleted()) {
+					sb.append("<span class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span class=\"health_green\""+">");
+				}
+				sb.append("<div title=\""+title+"\">DEBUG</div>");
+				sb.append("</span>");
+			}
+			break;
+		case Visual:
+			sb.append("<table width=\"100%\">");
+			sb.append("<tr>");
+			sb.append("<td align=\"left\">");
+			sb.append(schedulingClass);
+			sb.append("</td>");
+			sb.append("<td align=\"right\">");
+			if((debugPortDriver >= 0) || (debugPortProcess >= 0)) {
+				sb.append("<span title=\""+title+"\">");
+				sb.append("<img src=\"./opensources/images/Delena-cancerides-huntsman-spider.jpg\">");
+				sb.append("</span>");
+			}
+			sb.append("</td>");
+			sb.append("</tr>");
+			sb.append("</table>");
+			break;
+		}	
 		sb.append("</td>");
 		/*
 		sb.append("<td align=\"right\">");
