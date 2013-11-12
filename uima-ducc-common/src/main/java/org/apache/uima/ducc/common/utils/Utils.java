@@ -234,6 +234,7 @@ public class Utils {
 	 * Resolves placeholders in provided contents using java's Matcher. Finds
 	 * all occurances of ${<placeholder>} and resolves each using provided
 	 * Properties object which holds <placeholder>=<value> pairs.
+	 * If the placeholder not found then tries the System properties.
 	 *  
 	 * @param contents - target text containing placeholder(s)
 	 * @param props - Properties object holding key/value pairs
@@ -254,12 +255,14 @@ public class Utils {
             // extract placeholder
             final String key = matcher.group(1);
             //  Find value for extracted placeholder. 
-            final String placeholderValue = props.getProperty(key);
+            String placeholderValue = props.getProperty(key);
             if (placeholderValue == null) {
-                throw new IllegalArgumentException("Missing value for placeholder: " + key);
-            } else {
-                matcher.appendReplacement(sb, placeholderValue);        
+                placeholderValue = System.getProperty(key);
+                if (placeholderValue == null) {
+                    throw new IllegalArgumentException("Missing value for placeholder: " + key);
+                }
             }
+            matcher.appendReplacement(sb, placeholderValue);        
         }
         matcher.appendTail(sb);
         return sb.toString();
