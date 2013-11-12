@@ -226,6 +226,33 @@ public class JobFactory {
 		return retVal;
 	}
 	
+	private void setDebugPorts(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
+		String location = "setDebugPorts";
+		DuccId jobid = job.getDuccId();
+		String portDriver = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_debug);
+		if(portDriver != null) {
+			try {
+				long port = Long.parseLong(portDriver);
+				job.setDebugPortDriver(port);
+				logger.debug(location, jobid, "Driver debug port: "+job.getDebugPortDriver());
+			}
+			catch(Exception e) {
+				logger.error(location, jobid, "Invalid driver debug port: "+portDriver);
+			}
+		}
+		String portProcess = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_debug);
+		if(portProcess != null) {
+			try {
+				long port = Long.parseLong(portProcess);
+				job.setDebugPortProcess(port);
+				logger.debug(location, jobid, "Process debug port: "+job.getDebugPortProcess());
+			}
+			catch(Exception e) {
+				logger.error(location, jobid, "Invalid process debug port: "+portProcess);
+			}
+		}
+	}
+	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
 		String methodName = "createDriver";
 		// java command
@@ -352,15 +379,17 @@ public class JobFactory {
 		else {
 			job.setDuccType(DuccType.Job);
 			job.setDuccId(duccIdFactory.next());
+			
 		}
 		// driver
 		DuccType duccType = job.getDuccType();
 		switch(duccType) {
 			case Job:
 				createDriver(common, jobRequestProperties, job);
-			break;
-		case Service:
-			break;
+				setDebugPorts(common, jobRequestProperties, job);
+				break;
+			case Service:
+				break;
 		}
         // Service Deployment Type
         if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_type_custom)) {
