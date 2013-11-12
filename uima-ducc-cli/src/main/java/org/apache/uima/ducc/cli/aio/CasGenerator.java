@@ -28,9 +28,9 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
-import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.uima.UimaUtils;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.resource.ResourceConfigurationException;
 import org.apache.uima.resource.ResourceCreationSpecifier;
 import org.apache.uima.resource.ResourceInitializationException;
@@ -93,8 +93,8 @@ public class CasGenerator {
         if(crOverrides != null) {
             // Tokenize override assignments on whitespace, honoring but stripping quotes
             // Then create a map from all of them
-            ArrayList<String> toks = DuccUiUtilities.tokenizeList(crOverrides, true);
-            Map<String,String> map = DuccUiUtilities.parseAssignments(toks, false);
+            ArrayList<String> toks = QuotedOptions.tokenizeList(crOverrides, true);
+            Map<String,String> map = QuotedOptions.parseAssignments(toks, false);
             for (Entry<String, String> ent : map.entrySet()) {
                 String name = ent.getKey();
                 String value = ent.getValue();

@@ -33,9 +33,9 @@ import org.apache.uima.analysis_engine.AnalysisEngineDescription;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
-import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.uima.UimaUtils;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.util.XMLInputSource;
 
@@ -62,7 +62,7 @@ public class CasPipeline {
 		String mid = "toArrayList";
 		mh.frameworkTrace(cid, mid, "enter");
 		// To match other lists tokenize on blanks & strip any quotes around values.
-        ArrayList<String> list = DuccUiUtilities.tokenizeList(overrides, true);
+        ArrayList<String> list = QuotedOptions.tokenizeList(overrides, true);
 		mh.frameworkTrace(cid, mid, "exit");
 		return list;
 	}

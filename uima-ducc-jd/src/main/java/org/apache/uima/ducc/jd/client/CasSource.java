@@ -31,10 +31,10 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
-import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.jd.IJobDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.resource.ResourceConfigurationException;
@@ -107,8 +107,8 @@ public class CasSource {
         if(crcfg!= null) {
             // Tokenize override assignments on whitespace, honoring but stripping quotes
             // Then create a map from all of them
-            ArrayList<String> toks = DuccUiUtilities.tokenizeList(crcfg, true);
-            Map<String,String> map = DuccUiUtilities.parseAssignments(toks, false);
+            ArrayList<String> toks = QuotedOptions.tokenizeList(crcfg, true);
+            Map<String,String> map = QuotedOptions.parseAssignments(toks, false);
             for (Entry<String, String> ent : map.entrySet()) {
                 String name = ent.getKey();
                 String value = ent.getValue();

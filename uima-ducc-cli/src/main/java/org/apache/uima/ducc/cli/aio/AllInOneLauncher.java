@@ -32,11 +32,11 @@ import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
-import org.apache.uima.ducc.cli.DuccUiUtilities;
 import org.apache.uima.ducc.cli.IDuccCallback;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Level;
 import org.apache.uima.ducc.cli.aio.IMessageHandler.Toggle;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 
 public class AllInOneLauncher extends CliBase {
@@ -701,7 +701,7 @@ public class AllInOneLauncher extends CliBase {
         
         if(process_jvm_args != null) {
             // Tokenize and strip quotes
-            ArrayList<String> jvmargs = DuccUiUtilities.tokenizeList(process_jvm_args, true);
+            ArrayList<String> jvmargs = QuotedOptions.tokenizeList(process_jvm_args, true);
             for(String jvmarg : jvmargs) {
                 commandArray.add(jvmarg);
             }
@@ -730,8 +730,8 @@ public class AllInOneLauncher extends CliBase {
         
         // Put environment settings in the process's environment
         if(environment != null) {
-            ArrayList<String> envList = DuccUiUtilities.tokenizeList(environment, true); // Strip quotes
-            Map<String,String> envMap = DuccUiUtilities.parseAssignments(envList, false); // Keep all entries
+            ArrayList<String> envList = QuotedOptions.tokenizeList(environment, true); // Strip quotes
+            Map<String,String> envMap = QuotedOptions.parseAssignments(envList, false); // Keep all entries
             Map<String,String> env = pb.environment();
             env.clear();
             env.putAll(envMap);

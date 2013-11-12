@@ -24,12 +24,14 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.uima.ducc.cli.DuccUiUtilities;
+import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
@@ -81,7 +83,7 @@ public class JobFactory {
 	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
 	private DuccIdFactory jdIdFactory = new DuccIdFactory();
-	
+
 	private String java_classpath = System.getProperty("java.class.path");
 	private String classpath_order = System.getProperty("ducc.orchestrator.job.factory.classpath.order");
 	
@@ -92,10 +94,10 @@ public class JobFactory {
 		if(environmentVariables != null) {
 			logger.debug(methodName, job.getDuccId(), environmentVariables);
 			// Tokenize the list of assignments, dequote, and convert to a map of environment settings
-			ArrayList<String> envVarList = DuccUiUtilities.tokenizeList(environmentVariables, true);
+			ArrayList<String> envVarList = QuotedOptions.tokenizeList(environmentVariables, true);
 			Map<String, String> envMap;
 			try {
-			    envMap = DuccUiUtilities.parseAssignments(envVarList, false);
+			    envMap = QuotedOptions.parseAssignments(envVarList, false);
 			} catch (IllegalArgumentException e) {
                 logger.warn(methodName, job.getDuccId(),"Invalid environment syntax in: " + environmentVariables);
                 return 0;  // Should not happen as CLI should have checked and rejected the request
@@ -126,7 +128,7 @@ public class JobFactory {
 		String methodName = "toArrayList";
 		logger.trace(methodName, null, "enter");
 		// To match other lists tokenize on blanks & strip any quotes around values.
-		ArrayList<String> list = DuccUiUtilities.tokenizeList(overrides, true);
+		ArrayList<String> list = QuotedOptions.tokenizeList(overrides, true);
 		logger.trace(methodName, null, "exit");
 		return list;
 	}
@@ -304,7 +306,7 @@ public class JobFactory {
 		// Add the user-provided JVM args
 		boolean haveXmx = false;
 		String driver_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_jvm_args);
-		ArrayList<String> dTokens = DuccUiUtilities.tokenizeList(driver_jvm_args, true);
+		ArrayList<String> dTokens = QuotedOptions.tokenizeList(driver_jvm_args, true);
 		for(String token : dTokens) {
 			driverCommandLine.addOption(token);
 			if (!haveXmx) {
@@ -313,7 +315,7 @@ public class JobFactory {
 		}
 		// Add any site-provided JVM args, but not -Xmx if the user has provided one
 		String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_driver_jvm_args);
-		dTokens = DuccUiUtilities.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
+		dTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
 		for (String token : dTokens) {
 		    if (!haveXmx || !token.startsWith("-Xmx")) {
 		        driverCommandLine.addOption(token);
@@ -532,13 +534,13 @@ public class JobFactory {
 			pipelineCommandLine.setClassName("main:provided-by-Process-Manager");
 			pipelineCommandLine.setClasspath(processClasspath);
 			String process_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_jvm_args);
-			ArrayList<String> pTokens = DuccUiUtilities.tokenizeList(process_jvm_args, true);
+			ArrayList<String> pTokens = QuotedOptions.tokenizeList(process_jvm_args, true);
 			for(String token : pTokens) {
 				pipelineCommandLine.addOption(token);
 			}
 		    // Add any site-provided JVM args
 	        String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_process_jvm_args);
-	        pTokens = DuccUiUtilities.tokenizeList(siteJvmArgs, true);   // a null arg is acceptable
+	        pTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);   // a null arg is acceptable
 	        for(String token : pTokens) {
 	            pipelineCommandLine.addOption(token);
 	        }
@@ -561,7 +563,7 @@ public class JobFactory {
 			job.setCommandLine(executableProcessCommandLine);
 			// Tokenize arguments string and strip any quotes, then add to command line.
 			// Note: placeholders replaced by CLI so can avoid the add method.
-			List<String> process_executable_arguments = DuccUiUtilities.tokenizeList(
+			List<String> process_executable_arguments = QuotedOptions.tokenizeList(
 			        jobRequestProperties.getProperty(JobSpecificationProperties.key_process_executable_args), true);
 			executableProcessCommandLine.getArguments().addAll(process_executable_arguments);
 		}
