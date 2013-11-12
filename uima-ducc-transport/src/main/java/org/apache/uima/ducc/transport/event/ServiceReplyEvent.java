@@ -20,7 +20,6 @@ package org.apache.uima.ducc.transport.event;
 
 import java.util.List;
 
-import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.IServiceReply;
 
