@@ -46,6 +46,9 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	
 	private AtomicLong processFailureLimit = new AtomicLong(defaultFailureLimit);
 	
+	private AtomicLong debugPortDriver = new AtomicLong(-1);
+	private AtomicLong debugPortProcess = new AtomicLong(-1);
+	
 	private IRationale completionRationale = null;
 
 	public DuccWorkJob() {
@@ -370,6 +373,35 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		return;
 	}
 
+	
+	public long getDebugPortDriver() {
+		long retVal = -1;
+		try {
+			retVal = debugPortDriver.get();
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+
+	public void setDebugPortDriver(long port) {
+		debugPortDriver.set(port);
+	}
+
+	public long getDebugPortProcess() {
+		long retVal = -1;
+		try {
+			retVal = debugPortProcess.get();
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+
+	public void setDebugPortProcess(long port) {
+		debugPortProcess.set(port);
+	}
+	
 	
 	public long getAliveProcessCount() {
 		long retVal = 0;

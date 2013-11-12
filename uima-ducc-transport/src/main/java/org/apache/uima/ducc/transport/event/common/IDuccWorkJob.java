@@ -74,6 +74,12 @@ public interface IDuccWorkJob extends Identifiable, IDuccWorkService, IDuccWorkE
 	public long getProcessFailureLimit();
 	public void setProcessFailureLimit(long limit);
 	
+	public long getDebugPortDriver();
+	public void setDebugPortDriver(long port);
+	
+	public long getDebugPortProcess();
+	public void setDebugPortProcess(long port);
+	
 	public long getAliveProcessCount();
 	public boolean hasAliveProcess();
 	
