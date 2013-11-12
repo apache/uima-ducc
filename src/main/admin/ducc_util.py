@@ -347,11 +347,11 @@ class DuccUtil(DuccBase):
             return False
         return True
 
-    def verify_duccling(self):
+    def verify_duccling(self, single_user):
         
         check_permission = True                        # if we're not ducc we don't care about permissions
         user = os.environ['LOGNAME']
-        if ( user != 'ducc' ):
+        if ( (user != 'ducc') or ( single_user) ):
             check_permission = False
                     
         if ( check_permission ) :            # only care about ducc_ling setup if we're ducc

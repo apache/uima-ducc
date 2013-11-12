@@ -38,8 +38,8 @@ class CheckDucc(DuccUtil):
         verify_slave_node(checkdate, self.ducc_properties)
         self.check_clock_skew(checkdate)
         self.verify_jvm()
-        self.verify_duccling()
         self.verify_limits()
+        self.verify_duccling(self.single_user)
         return
 
     def verify_activemq(self):
@@ -97,7 +97,10 @@ class CheckDucc(DuccUtil):
             messages.append((spacer, 'no processes found.'))
 
         if ( self.kill_signal == None ):                    
-            lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-s", str(int(time())))
+            if ( self.single_user ) :
+                lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-s", "-x", str(int(time())))
+            else:
+                lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-x", str(int(time())))
             while 1:
                 line = lines.readline()
                 if ( not line ):
@@ -143,7 +146,10 @@ class CheckDucc(DuccUtil):
         print "       the PID file needs rebuilding.  This option causes the file to be rebuilt regardless of"
         print "       changes."
         print ""
-        print "    -s localdate"
+        print "    -s --singleuser"
+        print "       Bypasses the multi-user ducc_ling checks."
+        print ""
+        print "    -x localdate"
         print "       Validate the local installation, called via ssh usually. The date is the dat on the calling machine."
         print ""
         print "    --nothreading"
@@ -158,7 +164,7 @@ class CheckDucc(DuccUtil):
     def main(self, argv):
 
         try:
-            opts, args = getopt.getopt(argv, 'cikn:opqs:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'pids', 'verbose', 'nothreading' ])
+            opts, args = getopt.getopt(argv, 'cikn:opqsx:h?v', ['configuration', 'nodelist=', 'int', 'quit', 'kill', 'pids', 'verbose', 'nothreading', 'singleuser'])
         except:
             self.usage("Invalid arguments " + ' '.join(argv))
     
@@ -171,6 +177,7 @@ class CheckDucc(DuccUtil):
         checkdate = 0
         config_only = False
         verbose = False
+        self.single_user = False
 
         for ( o, a ) in opts:
             if o in ('-c', '--configuration'):
@@ -194,9 +201,11 @@ class CheckDucc(DuccUtil):
                 self.kill_signal = '-KILL'
             elif o in ( '--nothreading' ):
                 self.disable_threading()
+            elif o in ('-s', '--singleuser' ):
+                self.single_user = True
             elif o in ('-p', '--pids'):
                 redo_pids = True
-            elif o in ('-s'):
+            elif o in ('-x'):
                 # intended to be called recursively from check_ducc, NOT from the command line
                 do_validate = True
                 checkdate = float(a)
@@ -216,7 +225,7 @@ class CheckDucc(DuccUtil):
             return
 
         os.system('cat ' + self.DUCC_HOME + '/state/duccling.version')
-        # not -s option, do this only on local node
+        # not -x option, do this only on local node
         env = self.show_ducc_environment()
         for e in env:
             print e

@@ -96,7 +96,7 @@ class Ducc(DuccUtil):
                     return
 
                 if ( not single_user ) :
-                    dok = self.verify_duccling()
+                    dok = self.verify_duccling(single_user)
                     if ( not dok ):
                         print 'NOTOK ducc_ling is not set up correctly on node', self.localhost
                         print dok
