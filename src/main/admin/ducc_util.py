@@ -293,17 +293,6 @@ class DuccUtil(DuccBase):
             print tag, 'Clock skew[', skew, '] on', os.uname()[1], ". Remote time is", time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime())
         return ok or bypass
 
-    def check_orchestrator_lock(self):
-        lock = self.DUCC_HOME + '/state/orchestrator.lock'
-        if ( os.path.exists(lock) ):
-            print 'NOTOK WARNING The Orchestrator lock file', lock, 'exists. WARNING NOTOK'
-            print 'NOTOK WARNING Insure the Orchestrator is not running and clear this lock.                             WARNING NOTOK'
-            print 'NOTOK WARNING When the lock is clear try restarting the Orchestrator coponent.                        WARNING NOTOK'
-            time.sleep(5)
-
-            return False
-        return True
-
     def get_duccling_version(self):
         CMD = self.duccling + ' -v >' + self.DUCC_HOME + '/state/duccling.version'
         os.system(CMD)
@@ -553,34 +542,6 @@ class DuccUtil(DuccBase):
             answer[node] = data
 
         return answer
-
-
-
-    #def read_nodefile(self, nodefile, nodes):
-    #
-    #    if ( not os.path.exists(nodefile) ):
-    #        print 'Nodefile', nodefile, 'does not exist or cannot be read.'
-    #        return None
-    # 
-    #     f = open(nodefile)
-    #     for node in f:
-    #         node = node.strip()
-    #         if ( not node ):
-    #             continue
-    #         if ( node.startswith('#') ):
-    #             continue
-    #         nodes.append(node)
-    #
-    #       return nodes
-    
-    def remove_orchestrator_lock(self):
-        orlock = self.DUCC_HOME + '/state/orchestrator.lock'
-        try:
-            if ( os.path.exists(orlock) ):
-                os.remove(orlock)
-            print 'Orchestrator lock removed'
-        except:
-            print 'Unable to remove orchestrator lock'
 
     def kill_process(self, node, proc, signal):
         self.ssh(node, False, 'kill', signal, proc[1])

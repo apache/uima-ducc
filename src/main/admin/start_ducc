@@ -273,9 +273,6 @@ class StartDucc(DuccUtil):
 
         self.verify_required_directories()
 
-        if ( 'or' in components ):
-            self.check_orchestrator_lock()
-
         if ( not verify_master_node(self.ducc_properties) ):
             print 'FAIL: Cannot run javac to run java verification'
             return

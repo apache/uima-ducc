@@ -306,7 +306,6 @@ class CheckDucc(DuccUtil):
 
         if ( self.kill_signal != None ):
             self.stop_broker()
-            self.remove_orchestrator_lock()
                 
         if ( len(self.pids) == 0):
             if ( os.path.exists(self.pid_file) ):

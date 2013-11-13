@@ -70,9 +70,6 @@ class StopDucc(DuccUtil):
             print 'Stopping component', com, 'on node', target_node, 'with PID', pid, 'forcibly (kill -9)'
             self.nohup(['ssh', target_node, 'kill', '-KILL', pid], False)
 
-            if ( component == 'or' ):
-                self.remove_orchestrator_lock()
-
             pass
         else:
             print 'Stopping component', com, 'on node', target_node, 'with PID', pid
