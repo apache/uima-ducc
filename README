@@ -110,9 +110,17 @@ and with IBM Java 6 on Linux.
 6. Known problems/limitations with Release 1.0.0
 ================================================
 
-  
-     
-  
+a) Chapter 13.3 States: "Because non-preemptable allocations can’t be
+   preempeted, work submitted to a class implementing one of the non-
+   preemptable policies (FIXED or RESERVE) are never allowed to “squat” in other
+   nodepools and are only scheduled on nodes in their proper nodepool."
+
+   There are some situations where in fact, FIXED jobs can be scheduled into
+   nodepools which are subsets of the nodepool the FIXED class is defined over.
+   While technically a bug, there are also use cases for this behavior,
+   especially on large systems.  If this causes problems, usually classes
+   can be reconfigured to bypass the issue  The behavior is to be 
+   addressed in a future release.
 
 Crypto Notice
 -------------
