@@ -113,54 +113,56 @@ public class DuccWebSessionManager {
 		return;
 	}
 	
-	public void logout(HttpServletRequest request) {
+	public boolean logout(HttpServletRequest request) {
 		String location = "logout";
+		boolean retVal = false;
 		if(request == null) {
 			duccLogger.debug(location, jobid, "request is null");
-			return;
+			return retVal;
 		}
 		HttpSession session = request.getSession();
 		if(session == null) {
 			duccLogger.debug(location, jobid, "session is null");
-			return;
+			return retVal;
 		}
 		String userId = (String) session.getAttribute(ducc_user_id);
 		if(userId == null) {
 			duccLogger.debug(location, jobid, "userId is null");
-			return;
+			return retVal;
 		}
 		String validationId = (String) session.getAttribute(ducc_validation_id);
 		if(validationId == null) {
 			duccLogger.debug(location, jobid, "validationId is null");
-			return;
+			return retVal;
 		}
 		String sessionId =  session.getId();
 		if(sessionId == null) {
 			duccLogger.debug(location, jobid, "sessionId is null");
-			return;
+			return retVal;
 		}
 		IdSet idSet = map.get(userId);
 		if(idSet == null) {
 			duccLogger.debug(location, jobid, "idSet is null");
-			return;
+			return retVal;
 		}
 		if(!validationId.equals(idSet.validationId)) {
 			duccLogger.debug(location, jobid, "given:"+validationId);
 			duccLogger.debug(location, jobid, "known:"+idSet.validationId);
 			duccLogger.debug(location, jobid, "validation mismatch!");
-			return;
+			return retVal;
 		}
 		if(!sessionId.equals(idSet.sessionId)) {
 			duccLogger.debug(location, jobid, "given:"+sessionId);
 			duccLogger.debug(location, jobid, "known:"+idSet.sessionId);
 			duccLogger.debug(location, jobid, "session mismatch!");
-			return;
+			return retVal;
 		}
 		session.removeAttribute(ducc_validation_id);
 		session.removeAttribute(ducc_user_id);
 		map.remove(userId);
 		iRemove(location, userId, idSet);
-		return;
+		retVal = true;
+		return retVal;
 	}
 	
 	public boolean isAuthentic(HttpServletRequest request) {

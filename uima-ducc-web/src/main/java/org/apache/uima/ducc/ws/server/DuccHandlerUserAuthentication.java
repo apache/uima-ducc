@@ -87,8 +87,25 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 	{
 		String methodName = "handleDuccServletLogout";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-		duccWebSessionManager.logout(request);
+		String userId = null;
 		StringBuffer sb = new StringBuffer();
+		try {
+			userId = duccWebSessionManager.getUserId(request);
+			boolean result = duccWebSessionManager.logout(request);
+			if(result) {
+				duccLogger.info(methodName, jobid, messages.fetch("logout ")+userId+" "+messages.fetch("success"));
+				sb.append("success");
+			}
+			else {
+				duccLogger.info(methodName, jobid, messages.fetch("logout ")+userId+" "+messages.fetch("failed"));
+				sb.append("failure");
+			}
+			
+		}
+		catch(Throwable t) {
+			sb.append("failure"+" "+t.getMessage());
+			duccLogger.error(methodName, jobid, "userid="+userId);
+		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
@@ -101,56 +118,61 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		String userId = request.getParameter("userid");
 		String password = request.getParameter("password");
-		if((userId == null) || (userId.trim().length() == 0)) {
-			duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
-			sb.append("failure");
-		}
-		else if(duccAuthenticator.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
-			duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
-			sb.append("failure");
-		}
-		else {
-			Role role = Role.User;
-			String domain = null;
-			if(userId != null) {
-				if(userId.contains("@")) {
-					String[] parts = userId.split("@",2);
-					userId = parts[0];
-					domain = parts[1];
-				}
+		try {
+			if((userId == null) || (userId.trim().length() == 0)) {
+				duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
+				sb.append("failure");
 			}
-			duccLogger.debug(methodName, jobid, messages.fetchLabel("version")+duccAuthenticator.getVersion());
-			IAuthenticationResult result1 = duccAuthenticator.isAuthenticate(userId, domain, password);
-			IAuthenticationResult result2 = duccAuthenticator.isGroupMember(userId, domain, role);
-			duccLogger.debug(methodName, jobid, messages.fetch("login ")+userId+" "+"group reason: "+result2.getReason());
-			if(result1.isSuccess() && result2.isSuccess()) {
-				duccWebSessionManager.login(request, userId);
-				duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("success"));
-				sb.append("success");
-				
+			else if(duccAuthenticator.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
+				duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
+				sb.append("failure");
 			}
 			else {
-				IAuthenticationResult result;
-				if(!result1.isSuccess()) {
-					result = result1;
+				Role role = Role.User;
+				String domain = null;
+				if(userId != null) {
+					if(userId.contains("@")) {
+						String[] parts = userId.split("@",2);
+						userId = parts[0];
+						domain = parts[1];
+					}
+				}
+				duccLogger.debug(methodName, jobid, messages.fetchLabel("version")+duccAuthenticator.getVersion());
+				IAuthenticationResult result1 = duccAuthenticator.isAuthenticate(userId, domain, password);
+				IAuthenticationResult result2 = duccAuthenticator.isGroupMember(userId, domain, role);
+				duccLogger.debug(methodName, jobid, messages.fetch("login ")+userId+" "+"group reason: "+result2.getReason());
+				if(result1.isSuccess() && result2.isSuccess()) {
+					duccWebSessionManager.login(request, userId);
+					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("success"));
+					sb.append("success");
 				}
 				else {
-					result = result2;
+					IAuthenticationResult result;
+					if(!result1.isSuccess()) {
+						result = result1;
+					}
+					else {
+						result = result2;
+					}
+					int code = result.getCode();
+					String reason = result.getReason();
+					Exception exception = result.getException();
+					StringBuffer text = new StringBuffer();
+					text.append("code:"+code);
+					if(reason != null) {
+						text.append(", "+"reason:"+reason);
+					}
+					sb.append("failure"+" "+text);
+					if(exception != null) {
+						text.append(", "+"exception:"+exception);
+					}
+					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed")+" "+text);
 				}
-				int code = result.getCode();
-				String reason = result.getReason();
-				Exception exception = result.getException();
-				StringBuffer text = new StringBuffer();
-				text.append("code:"+code);
-				if(reason != null) {
-					text.append(", "+"reason:"+reason);
-				}
-				sb.append("failure"+" "+text);
-				if(exception != null) {
-					text.append(", "+"exception:"+exception);
-				}
-				duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed")+" "+text);
 			}
+		}
+		catch(Throwable t) {
+			sb.append("failure"+" "+t.getMessage());
+			duccLogger.error(methodName, jobid, "userid="+userId);
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
