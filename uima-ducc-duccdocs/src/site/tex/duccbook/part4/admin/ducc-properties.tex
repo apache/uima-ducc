@@ -709,25 +709,18 @@
         \end{description}
         
       \item[ducc.orchestrator.start.type] \hfill \\
-        This indicates the level of recovery to be taken on restarting a system. In general, if DUCC 
-        is fully shutdown, only cold and warm starts make sense because the Job Processes and 
-        Job Drivers are terminated during the shutdown. However if a management process died 
-        or was terminated by the administrators, most work can be recovered without interruption, 
-        allowing for a hot start. There are three level of startup: 
+        This indicates the level of recovery to be taken on restarting a
+        system. There are two levels of startup:
         \begin{description}
-            \item[cold] All reservations are canceled, all currently running jobs (if any) are
-              terminated. All services are terminated. The system starts with no jobs, reservations, or
-              services active.
+            \item[cold] All reservations are canceled, all currently running
+            jobs (if any) are terminated. All services are terminated. The
+            system starts with no jobs, reservations, or services active.
 
-            \item[warm] All reservations are restored. All currently running jobs (if any) are 
-              terminated. All services are started or restarted as indicated by their state when 
-              the system went down. The system starts with no jobs active, but reservations and 
-              services are preserved. 
-
-            \item[hot] All reservations are restored. The system attempts to reattach to all jobs that are 
-              still running. The system attempts to reattach to any services that are still running. 
-              Any services that need to be restarted are restarted.
-            \end{description}
+            \item[warm] All unmanaged reservations are restored. All currently
+            running jobs (if any) are terminated. All services are started or
+            restarted as indicated by their state when the system went down.
+            The system starts with no jobs active, but unmanaged reservations
+            and services are preserved.
 
           \begin{description}
           \item[Default Value] warm 
