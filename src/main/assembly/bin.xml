@@ -571,8 +571,7 @@ under the License.
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
-    
-    
+   
     <fileSet>
       <!--  build up the sample code resources  -->
       <directory>uima-ducc-examples/src/main/resources/org/apache/uima/ducc/sampleapps</directory>
@@ -634,25 +633,25 @@ under the License.
 
     <fileSet>
       <!-- build up the webserver directory -->
-      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage/duccbook</directory>
+      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage</directory>
       <outputDirectory>ducc_runtime/webserver/root/doc</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
-        <include>*.css</include>
-        <include>*.html</include>
+        <include>duccbook/*.css</include>
+        <include>duccbook/*.html</include>
       </includes>
     </fileSet>
 
   <fileSet>
       <!-- build up the webserver directory -->
-      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage/duccbook</directory>
+      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage</directory>
       <outputDirectory>ducc_runtime/webserver/root/doc/images</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
-        <include>*.jpg</include>
-        <include>*.png</include>
+        <include>duccbook/*.jpg</include>
+        <include>duccbook/*.png</include>
       </includes>
     </fileSet>
   
@@ -666,10 +665,10 @@ under the License.
     
     
   <fileSet>
-      <directory>uima-ducc-duccdocs/target/site/duccbook</directory>
+      <directory>uima-ducc-duccdocs/target/site</directory>
       <outputDirectory>ducc_runtime/doc</outputDirectory>
       <includes>
-        <include>*.pdf</include>
+        <include>duccbook/*.pdf</include>
       </includes>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
