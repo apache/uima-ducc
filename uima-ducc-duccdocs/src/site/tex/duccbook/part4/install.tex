@@ -60,7 +60,7 @@ Both single and multi-user configurations have the following software pre-requis
     processes running on the cluster.
 
   \item For CGroupt support, libcgroup1-0.37+ on SLES and libcgroup-0.37+ on RHEL.  
-  \item IBM or Oracle Java JRE 1.6 or greater.
+  \item DUCC has been tested and run on IBM and Oracle JDK 1.6 and 1.7.
   \item Python 2.x, where 'x' is 4 or greater.  DUCC has not been tested on Python 3.x.
 \end{itemize}
   
@@ -85,10 +85,10 @@ this, the following is required:
     \item Apache Ant, any reasonably current version.
 \end{itemize}
     
-To build the documentation, the following is required:
+To (optionally) build the documentation, the following is also required:
 \begin{itemize}
   \item Latex, including the \emph{pdflatex} and \emph{htlatex} packages.  A good place
-    to start if you need to install it is \url{http://latex-project.org/ftp.html}
+    to start if you need to install it is \url{https://www.tug.org/texlive/}.
 \end{itemize}
 
 More detailed one-time setup instructions for source-level builds via subversion can be found here:
@@ -97,11 +97,18 @@ More detailed one-time setup instructions for source-level builds via subversion
 \section{Building from Source}
 
 To build from source, insure you have
-Subversion and Maven installed.  Extract the source from the SVN repository named above. Then change directory into
+Subversion and Maven installed.  Extract the source from the SVN repository named above. 
+
+Then change directory into
 the root directory (usually current-directory>/trunk), and run the command
 \begin{verbatim}
     mvn install
 \end{verbatim}
+or
+\begin{verbatim}
+    mvn install -Pbuild-duccdocs
+\end{verbatim}
+if you have LaTeX insalled and wish to do the optional build of documentation.
 
 If this is your first Maven build it may take quite a while as Maven downloads all the
 open-source pre-requisites.  (The pre-requisites are stored in the Maven repository, usually
@@ -121,7 +128,6 @@ If building from source, Maven places the documentation in
     \item {\tt trunk/uima-ducc-duccdocs/target/site} (main documentation), and 
     \item {\tt trunk/site/apidocs} (API Javadoc)
 \end{itemize}
-
 
 \section{Single-user  Installation and Verification}
 
