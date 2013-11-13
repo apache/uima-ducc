@@ -893,6 +893,11 @@
      				        <exclude>uima-ducc-common/**</exclude> 
      				        <exclude>uima-ducc-duccdocs/**</exclude> 
      				        <exclude>**/*.dict</exclude>
+     				        <exclude>**/*.tex</exclude>
+                            <exclude>**/*.dict</exclude>
+                            <exclude>**/*.log</exclude>
+                            <exclude>**/*.out</exclude>
+                            <exclude>**/*.aux</exclude>
      				        <exclude>uima-ducc-examples/**</exclude> 
      				        <exclude>uima-ducc-jd/**</exclude> 
      				        <exclude>uima-ducc-orchestrator/**</exclude> 
