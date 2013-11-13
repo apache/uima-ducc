@@ -315,37 +315,7 @@
 				</executions>
 			</plugin>
 
-	    <!-- Override default assemble plug-in to use newer version of assembly plugin
-	         Version 2.4 fixes a bug http://jira.codehaus.org/browse/PLXCOMP-176
-	     -->
-	    <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>default-cli</id>
-            <configuration>
-              <descriptors>
-                <descriptor>do-not-use--mvn-assembly-assembly--instead-use-mvn-install</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-          <execution>
-            <id>uima-distr</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/bin.xml</descriptor>
-              </descriptors>
-              <finalName>uima-ducc-${project.version}</finalName>
-              <tarLongFileMode>gnu</tarLongFileMode>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+
 
 
 
@@ -402,7 +372,8 @@
 							     <target>
 							         <move file="target/uima-ducc-source-release.zip" 
 							             tofile="target/uima-ducc-${project.version}-source-release.zip" />
-							         
+							         <move file="target/uima-ducc.pom" 
+							             tofile="target/uima-ducc-${project.version}.pom" />
 							     
 							     </target>
 						      </configuration>
@@ -436,7 +407,37 @@
 							</execution>
 						</executions>
 					</plugin>
-
+	    <!-- Override default assemble plug-in to use newer version of assembly plugin
+	         Version 2.4 fixes a bug http://jira.codehaus.org/browse/PLXCOMP-176
+	     -->
+	    <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <id>default-cli</id>
+            <configuration>
+              <descriptors>
+                <descriptor>do-not-use--mvn-assembly-assembly--instead-use-mvn-install</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
+          <execution>
+            <id>uima-distr</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <descriptors>
+                <descriptor>src/main/assembly/bin.xml</descriptor>
+              </descriptors>
+              <finalName>uima-ducc-${project.version}</finalName>
+              <tarLongFileMode>gnu</tarLongFileMode>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       		
 			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
 			<!-- plugin> 
@@ -455,6 +456,9 @@
      				        <exclude>uima-ducc-duccdocs/**</exclude> 
      				        <exclude>**/*.tex</exclude>
      				        <exclude>**/*.dict</exclude>
+     				        <exclude>**/*.log</exclude>
+     				        <exclude>**/*.out</exclude>
+                            <exclude>**/*.aux</exclude>
      				        <exclude>uima-ducc-examples/**</exclude> 
      				        <exclude>uima-ducc-jd/**</exclude> 
      				        <exclude>uima-ducc-orchestrator/**</exclude> 
