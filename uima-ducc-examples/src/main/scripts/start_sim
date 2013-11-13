@@ -77,7 +77,7 @@ class StartSim(DuccUtil):
 
         if ( not self.verify_jvm() ):
             return        
-        self.verify_duccling()
+        self.verify_duccling(True)
 
         memory = int(memory) * 1024 * 1024    # to GB from KB
         CMDPARMS = []
@@ -344,7 +344,7 @@ class StartSim(DuccUtil):
 
         if ( not self.verify_jvm() ):
             return        
-        self.verify_duccling()
+        self.verify_duccling(True)
 
         if ( os.path.exists('sim.pids') ):
             self.pids.load('sim.pids')
