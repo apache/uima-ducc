@@ -56,7 +56,7 @@ public class OrchestratorCheckpoint {
 	private volatile boolean saveEnabled = false;
 	private volatile boolean restoreEnabled = false;
 	
-	private volatile String status = "off";
+	private volatile String status = "on";
 	
 	public boolean switchOnOff(String position) {
 		String methodName = "switchOnOff";
