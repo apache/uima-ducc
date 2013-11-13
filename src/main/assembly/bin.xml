@@ -666,8 +666,11 @@ under the License.
     
     
   <fileSet>
-      <directory>uima-ducc-duccdocs/target/site/duccbook/*.pdf</directory>
+      <directory>uima-ducc-duccdocs/target/site/duccbook</directory>
       <outputDirectory>ducc_runtime/doc</outputDirectory>
+      <includes>
+        <include>*.pdf</include>
+      </includes>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
