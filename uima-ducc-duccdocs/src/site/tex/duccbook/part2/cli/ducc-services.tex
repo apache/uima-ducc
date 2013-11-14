@@ -118,8 +118,9 @@
           \hyperref[sec:services.types]{UIMA-AS services}.  If not specified, the CLASSPATH used
           by the {\em ducc\_services} command is used.
           
-        \item[$--$classpath\_order {[UserBeforeDucc | DuccBeforeUser]} ] When DUCC deploys a process,
-          set the user-supplied classpath before DUCC-supplied classpath, or the reverse.  This is
+        \item[$--$classpath\_order {[user-before-ducc $|$ ducc-before-user]} ] When DUCC deploys a service,
+          set the user-supplied CLASSPATH before DUCC-supplied CLASSPATH, or the reverse. 
+          The default is ducc-before-user. This is
           only valid for  \hyperref[sec:services.types]{UIMA-AS services}.
           
         \item[$--$debug ]
