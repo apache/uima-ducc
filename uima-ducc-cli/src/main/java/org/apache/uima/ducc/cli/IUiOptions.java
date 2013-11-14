@@ -100,7 +100,7 @@ public interface IUiOptions
             public String argname()     { return ClasspathOrderParms.UserBeforeDucc.pname() + " or " + ClasspathOrderParms.DuccBeforeUser.pname(); }
             public String description() { return "Specify user-supplied classpath before DUCC-supplied classpath, or the reverse."; }
             public String example()     { return null; }
-            public String deflt()       { return ClasspathOrderParms.UserBeforeDucc.pname(); }
+            public String deflt()       { return ClasspathOrderParms.DuccBeforeUser.pname(); }
             public String label()       { return name(); }
         },            
 

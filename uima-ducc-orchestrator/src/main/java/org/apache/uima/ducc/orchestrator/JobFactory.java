@@ -283,13 +283,7 @@ public class JobFactory {
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_components);
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_job_id+job.getDuccId().toString());
 		// classpath
-		DuccProperties props = new DuccProperties();
-		try {
-            props.load(IDuccEnv.DUCC_CLASSPATH_FILE);
-        } catch (Exception e) {
-            logger.error(methodName, job.getDuccId(), "Failed to load " + IDuccEnv.DUCC_CLASSPATH_FILE);
-        }
-		String java_classpath = props.getProperty("ducc.jobdriver.classpath");		
+		String java_classpath = getDuccClasspath(0);  // for driver	
 		String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
 		logger.debug(methodName, job.getDuccId(), "driver CP (spec):"+driverClasspath);
 		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
@@ -417,13 +411,7 @@ public class JobFactory {
 		// log
 		jobRequestProperties.specification(logger);
 		// classpath
-        DuccProperties props = new DuccProperties();
-        try {
-            props.load(IDuccEnv.DUCC_CLASSPATH_FILE);
-        } catch (Exception e) {
-            logger.error(methodName, job.getDuccId(), "Failed to load " + IDuccEnv.DUCC_CLASSPATH_FILE);
-        }
-        String java_classpath = props.getProperty("ducc.jobprocess.classpath"); 
+        String java_classpath = getDuccClasspath(1);    // for job processes & services 
 		String processClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
 		logger.debug(methodName, job.getDuccId(), "process CP (spec):"+processClasspath);
 		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
@@ -636,5 +624,32 @@ public class JobFactory {
         }
 		//TODO be sure to clean-up fpath upon job completion!
 		return job;
+	}
+	
+	/*
+	 * Get minimal subset of the DUCC classpath for job driver & job processes
+	 * Cache the values unless asked to reload when testing
+	 */
+	private String[] cps = null;
+	private String getDuccClasspath(int type) {
+	    if (cps != null) {
+	        return cps[type];
+	    }
+	    DuccProperties props = new DuccProperties();
+	    try {
+	        props.load(IDuccEnv.DUCC_CLASSPATH_FILE);
+	    } catch (Exception e) {
+	        logger.error("getClasspath", null, "Using full classpath as failed to load " + IDuccEnv.DUCC_CLASSPATH_FILE);
+	        return System.getProperty("java.class.path");
+	    }
+	    // If reload specified don't cache the results (for ease of testing changes to the classpaths)
+	    if (props.getProperty("ducc.reload.file") != null) {
+	        return props.getProperty(type==0 ? "ducc.jobdriver.classpath" : "ducc.jobprocess.classpath");
+	    } else {
+	        cps = new String[2];
+	        cps[0] = props.getProperty("ducc.jobdriver.classpath");
+	        cps[1] = props.getProperty("ducc.jobprocess.classpath");
+	        return cps[type];
+	    }
 	}
 }
