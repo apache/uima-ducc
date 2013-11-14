@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -33,7 +32,6 @@ import org.apache.uima.ducc.common.utils.Utils;
 public class DuccAsUser {
 
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAsUser.class.getName());
-	private static Messages messages = Messages.getInstance();
 	
 	public static String magicString = "1001 Command launching...";
 	
@@ -47,7 +45,7 @@ public class DuccAsUser {
 			Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
 		
-		duccLogger.debug(methodName, null, messages.fetchLabel("the duckling launcher")+c_launcher_path);
+		duccLogger.debug(methodName, null, "the duckling launcher "+c_launcher_path);
 		
 		ArrayList<String> cmd = new ArrayList<String>();
 		
