@@ -52,8 +52,6 @@ class StopSim(DuccUtil):
             cmp = inst
         self.ssh(node, False, 'kill', signal, pid)
 
-        if ( inst == 'or' ):
-            self.remove_orchestrator_lock()
         return msgs
 
     def usage(self, msg):
