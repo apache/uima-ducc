@@ -511,7 +511,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_process_memory_size; }
             public String argname()     { return "size-in-GB"; }
             public String description() { return "Maximum memory for each process, in GB."; }
-            public String example()     { return null; }
+            public String example()     { return "30"; }
             public String label()       { return "ProcessMemorySize"; }
         },            
 
@@ -551,9 +551,9 @@ public interface IUiOptions
 
         ReservationMemorySize { 
             public String pname()       { return ReservationSpecificationProperties.key_instance_memory_size; }
-            public String argname()     { return "size[KB|MB|GB|TB]"; }
-            public String description() { return "Size of instance's memory, defaults to GB if units omitted."; }
-            public String example()     { return "64GB"; }
+            public String argname()     { return "size-in-GB"; }
+            public String description() { return "Size of instance's memory, in GB."; }
+            public String example()     { return "64"; }
             public String label()       { return name(); }
             public boolean required()   { return true; }
         },            

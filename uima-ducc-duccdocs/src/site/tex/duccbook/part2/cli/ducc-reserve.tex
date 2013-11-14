@@ -53,8 +53,8 @@
             \item[$--$help ]             
               Prints the usage text to the console. 
                             
-            \item[$--$instance\_memory\_size {[KB|MB|GB|TB]}]]               
-              This specifies the amount of memory the reserved machine must supoprt. For full machine 
+            \item[$--$instance\_memory\_size {[integer]}]               
+              This specifies the amount of memory the reserved machine must support. For full machine 
               reservations, this is the total memory on the machine. For partial reservations, the machine 
               may have more memory, but not less than is specified. 
 
@@ -75,7 +75,7 @@
             
     \paragraph{Notes:}
     Reservations may be for full machines, or partial machines based on memory. The mechanism for
-    distinguishing which type of reservation the job class. A job class implementing the RESERVE
+    distinguishing which type of reservation is the job class. A job class implementing the RESERVE
     scheduling policy results in a full machine being reserved. A job clas simplementing the FIXED
     scheduling policy results in a partial machine being reserved. The default DUCC distribution
     configures class {\em reserve} for full machine reservations, and class {\em fixed} for partial

@@ -389,6 +389,11 @@ public abstract class CliBase
                                     && !val.equals(ClasspathOrderParms.UserBeforeDucc.pname())) {
                         throw new IllegalArgumentException("Invalid value for " + uiopt.pname() + ": " + val);
                     }
+                } else if (uiopt == UiOption.ProcessMemorySize || uiopt == UiOption.ReservationMemorySize)  {
+                    String val = cli_props.getStringProperty(uiopt.pname());
+                    if (!val.matches("^\\d+$")) {
+                        throw new IllegalArgumentException("Invalid non-numeric value for " + uiopt.pname() + ": " + val);
+                    }
                 }
             }
             // If this request accepts the --environment option may need to augment it by
