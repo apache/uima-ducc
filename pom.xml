@@ -127,112 +127,6 @@
 
 
 		<plugins>
-			<!-- This java doc config is for building the ones distributed with the 
-				bin packaging, and also posted on our website. -->
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>javadocs-distr</id>
-						<phase>prepare-package</phase> <!-- must be before assembly -->
-						<!--phase>deploy</phase -->   <!-- comment above and uncomment to disable javadocs, for testing/experimentation, 
-							with assembly:assembly -->
-						<goals>
-							<goal>javadoc</goal>
-						</goals>
-						<configuration>
-							<quiet>true</quiet>
-							<groups>
-								<group>
-									<title>Packages</title>
-									<packages>*</packages>
-								</group>
-							</groups>
-
-							<!--verbose>true</verbose -->
-							<sourcepath>
-								uima-ducc-common/src/main/java:uima-ducc-cli/src/main/java
-							</sourcepath>
-
-                            <show>
-                              public
-                            </show>
-
-							<subpackages>org.apache.uima</subpackages>
-
-							<excludePackageNames>
-                              org.apache.uima.ducc.cli.*:org.apache.uima.ducc.api.*:org.apache.uima.ducc.common.*:org.apache.uima.ducc.transport.*:org.apache.uima.ducc.agent.*:org.apache.uima.ducc.examples.*:org.apache.uima.ducc.orchestrator.*:org.apache.uima.ducc.pm.*:org.apache.uima.ducc.rm.*:org.apache.uima.ducc.sm.*:
-                            </excludePackageNames>
-
-							<!-- add a few classes in impl packages that are directly used by 
-								user code -->
-							<additionalparam>
-
-								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/IServiceStatistics.java
-								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/ADuccId.java
-								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/IDuccId.java
-
-								${basedir}/uima-ducc-transport/src/main/java/org/apache/uima/ducc/transport/event/sm/IServiceReply.java
-								${basedir}/uima-ducc-transport/src/main/java/org/apache/uima/ducc/transport/event/sm/IServiceDescription.java
-
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/AServicePing.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobCancel.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobSubmit.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationCancel.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationSubmit.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationCancel.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationSubmit.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceApi.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceCancel.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceSubmit.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccCallback.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
-								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/CliBase.java
-
-							</additionalparam>
-
-							<!-- Link these to the uimaj javadocs on apache.org -->
-							<!-- links>
-								<link>http://uima.apache.org/d/uimaj-${uimajDependencyVersion}/apidocs</link>
-							</links -->
-							<doctitle>Apache UIMA DUCC Java SDK ${project.version} User-Level
-								API Documentation</doctitle>
-							<windowtitle>Apache UIMA DUCC Java SDK ${project.version}
-								User-Level API Documentation</windowtitle>
-						</configuration>
-					</execution>
-				</executions>
-
-			</plugin>
-
-			<!-- plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>generate checksums for binary artifacts</id>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<phase>verify</phase>
-						<configuration>
-							<target>
-								<checksum algorithm="sha1" format="MD5SUM">
-									<fileset dir="${project.build.directory}">
-										<include name="*.zip" />
-										<include name="*.gz" />
-									</fileset>
-								</checksum>
-								<checksum algorithm="md5" format="MD5SUM">
-									<fileset dir="${project.build.directory}">
-										<include name="*.zip" />
-										<include name="*.gz" />
-									</fileset>
-								</checksum>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin -->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -316,37 +210,36 @@
 			</plugin>
 
 
-        <!-- Override default assemble plug-in to use newer version of assembly plugin
-             Version 2.4 fixes a bug http://jira.codehaus.org/browse/PLXCOMP-176
-         -->
-        <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <id>default-cli</id>
-            <configuration>
-              <descriptors>
-                <descriptor>do-not-use--mvn-assembly-assembly--instead-use-mvn-install</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
-          <execution>
-            <id>uima-distr</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <descriptors>
-                <descriptor>src/main/assembly/bin.xml</descriptor>
-              </descriptors>
-              <finalName>uima-ducc-${project.version}</finalName>
-              <tarLongFileMode>gnu</tarLongFileMode>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+			<!-- Override default assemble plug-in to use newer version of assembly 
+				plugin Version 2.4 fixes a bug http://jira.codehaus.org/browse/PLXCOMP-176 -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<executions>
+					<execution>
+						<id>default-cli</id>
+						<configuration>
+							<descriptors>
+								<descriptor>do-not-use--mvn-assembly-assembly--instead-use-mvn-install</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>uima-distr</id>
+						<phase>integration-test</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptors>
+								<descriptor>src/main/assembly/bin.xml</descriptor>
+							</descriptors>
+							<finalName>uima-ducc-${project.version}</finalName>
+							<tarLongFileMode>gnu</tarLongFileMode>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 
 
 
@@ -359,8 +252,8 @@
 			<id>apache-release</id>
 			<build>
 				<plugins>
-				
-                    <!-- Build JIRA Report -->				
+
+					<!-- Build JIRA Report -->
 					<!-- depends on having -Djira.version set -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -372,7 +265,7 @@
 								<goals>
 									<goal>jira-report</goal>
 								</goals>
-				
+
 								<phase>generate-resources</phase>
 								<configuration>
 									<useJql>true</useJql>
@@ -387,29 +280,29 @@
 								</configuration>
 							</execution>
 						</executions>
-					</plugin>		
-					<!--  need this plugin to rename source zip file  -->		
+					</plugin>
+					<!-- need this plugin to rename source zip file -->
 					<plugin>
-					    <groupId>org.apache.maven.plugins</groupId>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
-						   <execution>
-						      <id>rename-source</id>
-						      <phase>package</phase>
-						      <goals>
-						         <goal>run</goal>
-						      </goals>
-						      <configuration>
-							     <target>
-							         <move file="target/uima-ducc-source-release.zip" 
-							             tofile="target/uima-ducc-${project.version}-source-release.zip" />
-							        
-							     
-							     </target>
-						      </configuration>
-						   </execution>
+							<execution>
+								<id>rename-source</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<move file="target/uima-ducc-source-release.zip"
+											tofile="target/uima-ducc-${project.version}-source-release.zip" />
+
+
+									</target>
+								</configuration>
+							</execution>
 						</executions>
-						
+
 					</plugin>
 					<plugin>
 						<artifactId>maven-deploy-plugin</artifactId>
@@ -419,95 +312,38 @@
 					</plugin>
 
 
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>generate checksums for binary artifacts</id>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<phase>verify</phase>
-						<configuration>
-							<target>
-								<checksum algorithm="sha1" format="MD5SUM">
-									<fileset dir="${project.build.directory}">
-										<include name="*.zip" />
-										<include name="*.gz" />
-									</fileset>
-								</checksum>
-								<checksum algorithm="md5" format="MD5SUM">
-									<fileset dir="${project.build.directory}">
-										<include name="*.zip" />
-										<include name="*.gz" />
-									</fileset>
-								</checksum>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-
-
-					<!--plugin>
+					<plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>generate checksums for source-release</id>
+								<id>generate checksums for binary artifacts</id>
 								<goals>
 									<goal>run</goal>
 								</goals>
 								<phase>verify</phase>
 								<configuration>
 									<target>
-										<checksum algorithm="sha1" format="MD5SUM"
-											file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
-										<checksum algorithm="md5" format="MD5SUM"
-											file="${project.build.directory}/${project.artifactId}-${project.version}-source-release.zip" />
+										<checksum algorithm="sha1" format="MD5SUM">
+											<fileset dir="${project.build.directory}">
+												<include name="*.zip" />
+												<include name="*.gz" />
+											</fileset>
+										</checksum>
+										<checksum algorithm="md5" format="MD5SUM">
+											<fileset dir="${project.build.directory}">
+												<include name="*.zip" />
+												<include name="*.gz" />
+											</fileset>
+										</checksum>
 									</target>
 								</configuration>
 							</execution>
 						</executions>
-					</plugin -->
+					</plugin>
 
-      		
-			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
-			<!-- plugin> 
-			  <groupId>org.apache.rat</groupId> 
-			  <artifactId>apache-rat-plugin</artifactId> 
-			  <version>0.10</version>
-			  <executions> 
-			      <execution> 
-			           <id>default-cli</id> 
-			           <configuration> 
-			              <excludes combine.children="append"> 
-     				        <exclude>**/.settings/*</exclude>
-     				        <exclude>uima-ducc-agent/**</exclude> 
-     				        <exclude>uima-ducc-cli/**</exclude> 
-     				        <exclude>uima-ducc-common/**</exclude> 
-     				        <exclude>uima-ducc-duccdocs/**</exclude> 
-     				        <exclude>**/*.tex</exclude>
-     				        <exclude>**/*.dict</exclude>
-     				        <exclude>**/*.log</exclude>
-     				        <exclude>**/*.out</exclude>
-                            <exclude>**/*.aux</exclude>
-     				        <exclude>uima-ducc-examples/**</exclude> 
-     				        <exclude>uima-ducc-jd/**</exclude> 
-     				        <exclude>uima-ducc-orchestrator/**</exclude> 
-     				        <exclude>uima-ducc-parent/**</exclude> 
-     				        <exclude>uima-ducc-pm/**</exclude> 
-     				        <exclude>uima-ducc-rm/**</exclude> 
-     				        <exclude>uima-ducc-sm/**</exclude> 
-     				        <exclude>uima-ducc-spawn/**</exclude> 
-     				        <exclude>uima-ducc-transport/**</exclude> 
-     				        <exclude>uima-ducc-web/**</exclude> 
-     				        <exclude>**/uima-ducc-web/src/main/webapp/root/opensources/**/*</exclude> 
-				          </excludes> 
-				       </configuration> 
-				    </execution> 
-				</executions> 
-				</plugin-->
+
+
+
 
 				</plugins>
 			</build>
@@ -517,19 +353,19 @@
 
 	<!-- Include all ducc modules -->
 	<modules>
-        <module>uima-ducc-parent</module>
-        <module>uima-ducc-cli</module>
-        <module>uima-ducc-jd</module>
-        <module>uima-ducc-pm</module>
-        <module>uima-ducc-rm</module>
-        <module>uima-ducc-sm</module>
-        <module>uima-ducc-orchestrator</module>
-        <module>uima-ducc-common</module>
-        <module>uima-ducc-transport</module>
-        <module>uima-ducc-agent</module>
-        <module>uima-ducc-duccdocs</module>
-        <module>uima-ducc-web</module>		
-        <module>uima-ducc-examples</module>		
+		<module>uima-ducc-parent</module>
+		<module>uima-ducc-cli</module>
+		<module>uima-ducc-jd</module>
+		<module>uima-ducc-pm</module>
+		<module>uima-ducc-rm</module>
+		<module>uima-ducc-sm</module>
+		<module>uima-ducc-orchestrator</module>
+		<module>uima-ducc-common</module>
+		<module>uima-ducc-transport</module>
+		<module>uima-ducc-agent</module>
+		<module>uima-ducc-duccdocs</module>
+		<module>uima-ducc-web</module>
+		<module>uima-ducc-examples</module>
 	</modules>
 </project>
 

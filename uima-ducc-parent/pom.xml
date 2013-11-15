@@ -9,7 +9,7 @@
 	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
 	OF ANY KIND, either express or implied. See the License for the specific 
 	language governing permissions and limitations under the License. -->
-	
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -26,104 +26,100 @@
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
- <!-- Special inheritance note even though the <scm> element that follows 
+	<!-- Special inheritance note even though the <scm> element that follows 
 		is exactly the same as those in super poms, it cannot be inherited because 
 		there is some special code that computes the connection elements from the 
 		chain of parent poms, if this is omitted. Keeping this a bit factored allows 
 		cutting/pasting the <scm> element, and just changing the following two properties -->
-  <scm>
-	<connection>
+	<scm>
+		<connection>
       scm:svn:http://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-parent
     </connection>
-	<developerConnection>
+		<developerConnection>
       scm:svn:https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-parent
     </developerConnection>
-	<url>
+		<url>
       http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk/uima-ducc-parent
     </url>
-  </scm>
+	</scm>
 
- <!-- The repositories section is duplicated from
-       the parent pom one, and adds the Apache Snapshot Nexus repository
-       where UIMA snapshots are deployed.  This is needed if for instance,
-       a project depends on some new SNAPSHOT level of a build tool,
-       where the users hasn't checked out the build tooling.
+	<!-- The repositories section is duplicated from the parent pom one, and 
+		adds the Apache Snapshot Nexus repository where UIMA snapshots are deployed. 
+		This is needed if for instance, a project depends on some new SNAPSHOT level 
+		of a build tool, where the users hasn't checked out the build tooling. This 
+		allows maven to find the snapshots when looking for the parent of this pom -->
+	<repositories>
+		<repository>
+			<id>eclipsePlugins</id>
+			<name>Eclipse components</name>
+			<layout>default</layout>
+			<url>http://repo1.maven.org/eclipse</url>
 
-       This allows maven to find the snapshots when looking for the parent of
-       this pom -->
-  <repositories>
-    <repository>
-      <id>eclipsePlugins</id>
-      <name>Eclipse components</name>
-      <layout>default</layout>
-      <url>http://repo1.maven.org/eclipse</url>
+			<releases>
+				<updatePolicy>never</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</releases>
 
-      <releases>
-        <updatePolicy>never</updatePolicy>
-        <checksumPolicy>fail</checksumPolicy>
-      </releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
 
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
+		<!-- modify central repository access: Turn on checksum checking -->
+		<repository>
+			<id>central</id>
+			<name>Maven Repository Switchboard</name>
+			<layout>default</layout>
+			<url>http://repo1.maven.org/maven2</url>
 
-    <!-- modify central repository access:
-         Turn on checksum checking-->
-    <repository>
-      <id>central</id>
-      <name>Maven Repository Switchboard</name>
-      <layout>default</layout>
-      <url>http://repo1.maven.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>fail</checksumPolicy>
+				<updatePolicy>never</updatePolicy>
+			</releases>
 
-      <releases>
-        <enabled>true</enabled>
-        <checksumPolicy>fail</checksumPolicy>
-        <updatePolicy>never</updatePolicy>
-      </releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
+		</repository>
 
-    </repository>
-    
-    <!-- this is needed if this pom refers to a snapshot of the parent -->
-    <repository>
-      <id>apache.snapshots</id>
-      <name>Apache Snapshot Repository</name>
-      <url>http://repository.apache.org/snapshots</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-    </repository>  
-    
+		<!-- this is needed if this pom refers to a snapshot of the parent -->
+		<repository>
+			<id>apache.snapshots</id>
+			<name>Apache Snapshot Repository</name>
+			<url>http://repository.apache.org/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
 
-  </repositories>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>apache.snapshots.plugins</id>
-      <name>Apache Snapshot Repository - Maven plugins</name>
-      <url>http://repository.apache.org/snapshots</url>
-      <layout>default</layout>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <checksumPolicy>fail</checksumPolicy>
-        <updatePolicy>never</updatePolicy>
-      </snapshots>
-    </pluginRepository>
-    
-  </pluginRepositories>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>apache.snapshots.plugins</id>
+			<name>Apache Snapshot Repository - Maven plugins</name>
+			<url>http://repository.apache.org/snapshots</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<checksumPolicy>fail</checksumPolicy>
+				<updatePolicy>never</updatePolicy>
+			</snapshots>
+		</pluginRepository>
+
+	</pluginRepositories>
 
 
 	<!-- Declare version numbers for all dependencies -->
 	<properties>
-	    <!-- Ducc jira version -->
-	    <jira.version>12324398</jira.version>
+		<!-- Ducc jira version -->
+		<jira.version>12324398</jira.version>
 		<maven.build.timestamp.format>MM-dd-yyyy HH:mm</maven.build.timestamp.format>
 		<ducc.version>${project.version}</ducc.version>
 		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
@@ -158,54 +154,55 @@
 		<google.gson.version>2.2.2</google.gson.version>
 		<cglib.version>2.2.0</cglib.version>
 		<libpam.version>1.7</libpam.version>
-	    <jna.version>4.0.0</jna.version> 
+		<jna.version>4.0.0</jna.version>
 	</properties>
 
-    <!-- dependencyManagement is a declaration section naming each artifact the ducc components   -->
-    <!-- depends on.                                                                              -->
+	<!-- dependencyManagement is a declaration section naming each artifact 
+		the ducc components -->
+	<!-- depends on. -->
 	<dependencyManagement>
 		<dependencies>
 
-            <dependency>
-	           <groupId>net.java.dev.jna</groupId>
-	           <artifactId>jna</artifactId>
-  	           <version>${jna.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>net.java.dev.jna</groupId>
+				<artifactId>jna</artifactId>
+				<version>${jna.version}</version>
+			</dependency>
 
-            <dependency>
-	           <groupId>org.kohsuke</groupId>
-	           <artifactId>libpam4j</artifactId>
-  	           <version>${libpam.version}</version>
-            </dependency>
+			<dependency>
+				<groupId>org.kohsuke</groupId>
+				<artifactId>libpam4j</artifactId>
+				<version>${libpam.version}</version>
+			</dependency>
 
 
-            <dependency>
-	           <groupId>com.google.code.gson</groupId>
-	           <artifactId>gson</artifactId>
-  	           <version>${google.gson.version}</version>
+			<dependency>
+				<groupId>com.google.code.gson</groupId>
+				<artifactId>gson</artifactId>
+				<version>${google.gson.version}</version>
 
-            </dependency>
-    
-            <dependency>
-               <groupId>org.slf4j</groupId>
-               <artifactId>slf4j-log4j12</artifactId>
-               <version>${slf4j.version}</version>
-            </dependency>
-        
-       
-    
-        <dependency>
-           <groupId>org.slf4j</groupId>
-           <artifactId>jcl-over-slf4j</artifactId>
-           <version>${slf4j.version}</version>
-        </dependency>
+			</dependency>
 
-        <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-          <version>${slf4j.version}</version>
-        </dependency>
-			
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+
+
+
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>jcl-over-slf4j</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+
 			<dependency>
 				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
@@ -249,11 +246,8 @@
 				<version>${jsch.version}</version>
 			</dependency>
 
-			<!-- dependency>
-				<groupId>org.apache.httpcomponents</groupId>
-				<artifactId>httpclient</artifactId>
-				<version>${http.client.version}</version>
-			</dependency -->
+			<!-- dependency> <groupId>org.apache.httpcomponents</groupId> <artifactId>httpclient</artifactId> 
+				<version>${http.client.version}</version> </dependency -->
 
 			<dependency>
 				<groupId>commons-codec</groupId>
@@ -268,11 +262,8 @@
 				<version>${commons.cli.version}</version>
 			</dependency>
 
-			<!-- dependency>
-				<groupId>org.fusesource.commonman</groupId>
-                <artifactId>commons-management</artifactId>
-				<version>${commons.management.version}</version>
-			</dependency -->
+			<!-- dependency> <groupId>org.fusesource.commonman</groupId> <artifactId>commons-management</artifactId> 
+				<version>${commons.management.version}</version> </dependency -->
 
 
 
@@ -480,98 +471,99 @@
 				<artifactId>spring-context-support</artifactId>
 				<version>${org.springframework.version}</version>
 			</dependency>
-			
-			<!-- dependency>
-				<groupId>org.fusesource.commonman</groupId>
-                <artifactId>commons-management</artifactId>
-			</dependency -->
-			
-			
-			<dependency>
-               <groupId>commons-pool</groupId>
-               <artifactId>commons-pool</artifactId>
-               <version>${commons.pool.version}</version>
-   		    </dependency>
-            
 
-          
-            <dependency>
-                <groupId>org.apache.geronimo.specs</groupId>
+			<!-- dependency> <groupId>org.fusesource.commonman</groupId> <artifactId>commons-management</artifactId> 
+				</dependency -->
+
+
+			<dependency>
+				<groupId>commons-pool</groupId>
+				<artifactId>commons-pool</artifactId>
+				<version>${commons.pool.version}</version>
+			</dependency>
+
+
+
+			<dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
 				<artifactId>geronimo-servlet_2.5_spec</artifactId>
 				<version>${geronimo.servlet-spec.version}</version>
-            </dependency>
-                
-            <dependency>
-   		       <groupId>xpp3</groupId>
-               <artifactId>xpp3</artifactId>
-               <version>${xpp3.version}</version>
-            </dependency>
-                    
-            <dependency>
-               <groupId>com.thoughtworks.xstream</groupId>
-               <artifactId>xstream</artifactId>
-               <version>${xstream.version}</version>
-            </dependency>
+			</dependency>
 
-            <dependency>
-               <groupId>org.apache.mina</groupId>
-               <artifactId>mina-core</artifactId>
-               <version>${mina.core.version}</version>
-            </dependency>
-            
-            <dependency>
-              <groupId>aopalliance</groupId>
-              <artifactId>aopalliance</artifactId>
-              <version>${aopalliance.version}</version>        
-            </dependency>
-            
-            <dependency>
-            	<groupId>commons-httpclient</groupId>
+			<dependency>
+				<groupId>xpp3</groupId>
+				<artifactId>xpp3</artifactId>
+				<version>${xpp3.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>com.thoughtworks.xstream</groupId>
+				<artifactId>xstream</artifactId>
+				<version>${xstream.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.mina</groupId>
+				<artifactId>mina-core</artifactId>
+				<version>${mina.core.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>aopalliance</groupId>
+				<artifactId>aopalliance</artifactId>
+				<version>${aopalliance.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>commons-httpclient</groupId>
 				<artifactId>commons-httpclient</artifactId>
 				<version>${commons.httpclient.version}</version>
-            </dependency>
-            
+			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
-    <!-- Since all ducc components have the same dependencies, include them in this parent -->
-    <!-- pom which is inherited from by all other poms. An exception to this is the jetty which -->
-    <!-- is declared in uima-ducc-web project. Below dont add versions as version for each   -->
-    <!-- dependency is defined in dependencyMangagement section above                      -->
+	<!-- Since all ducc components have the same dependencies, include them 
+		in this parent -->
+	<!-- pom which is inherited from by all other poms. An exception to this 
+		is the jetty which -->
+	<!-- is declared in uima-ducc-web project. Below dont add versions as version 
+		for each -->
+	<!-- dependency is defined in dependencyMangagement section above -->
 	<dependencies>
 
-           <dependency>
-	           <groupId>net.java.dev.jna</groupId>
-	           <artifactId>jna</artifactId>
-            </dependency>
-
-            <dependency>
-	           <groupId>org.kohsuke</groupId>
-	           <artifactId>libpam4j</artifactId>
-            </dependency>
-            
-        <dependency>
-           <groupId>org.slf4j</groupId>
-           <artifactId>slf4j-log4j12</artifactId>
-        </dependency> 
-            
-		
 		<dependency>
-           <groupId>org.slf4j</groupId>
-           <artifactId>jcl-over-slf4j</artifactId>
-        </dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+		</dependency>
 
-        <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </dependency>
-        
-        <dependency>
+		<dependency>
+			<groupId>org.kohsuke</groupId>
+			<artifactId>libpam4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 		</dependency>
-        
-        
+
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -623,25 +615,25 @@
 			<artifactId>joda-time</artifactId>
 		</dependency>
 
-			<dependency>
-				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-all</artifactId>
-			</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-all</artifactId>
+		</dependency>
 
-			<dependency>
-				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-camel</artifactId>
-			</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-camel</artifactId>
+		</dependency>
 
-			<dependency>
-				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-jaas</artifactId>
-			</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-jaas</artifactId>
+		</dependency>
 
-			<dependency>
-				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-pool</artifactId>
-			</dependency>
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-pool</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>org.apache.camel</groupId>
@@ -760,165 +752,75 @@
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
-        <dependency>
-          <groupId>aopalliance</groupId>
-          <artifactId>aopalliance</artifactId>
-                  
-        </dependency>
+		<dependency>
+			<groupId>aopalliance</groupId>
+			<artifactId>aopalliance</artifactId>
 
-            <dependency>
-               <groupId>commons-pool</groupId>
-               <artifactId>commons-pool</artifactId>
-   		    </dependency>
-   		    
-            <dependency>
-                <groupId>org.apache.geronimo.specs</groupId>
-				<artifactId>geronimo-servlet_2.5_spec</artifactId>
-				
-            </dependency>
+		</dependency>
 
-            <dependency>
-   		       <groupId>xpp3</groupId>
-               <artifactId>xpp3</artifactId>
-            </dependency>
-            
-            <dependency>
-               <groupId>com.thoughtworks.xstream</groupId>
-               <artifactId>xstream</artifactId>
-            </dependency>
-            
-             <dependency>
-               <groupId>org.apache.mina</groupId>
-               <artifactId>mina-core</artifactId>
-            </dependency>
-            
-            <dependency>
-            	<groupId>commons-httpclient</groupId>
-				<artifactId>commons-httpclient</artifactId>
-            </dependency>
-            
-                        <dependency>
-	           <groupId>com.google.code.gson</groupId>
-	           <artifactId>gson</artifactId>
-            </dependency>
- 
+		<dependency>
+			<groupId>commons-pool</groupId>
+			<artifactId>commons-pool</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-servlet_2.5_spec</artifactId>
+
+		</dependency>
+
+		<dependency>
+			<groupId>xpp3</groupId>
+			<artifactId>xpp3</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.thoughtworks.xstream</groupId>
+			<artifactId>xstream</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.mina</groupId>
+			<artifactId>mina-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+		</dependency>
+
 	</dependencies>
-
-	<!-- profiles>
-		<profile>
-			<id>apache-release</id>
-			<build>
-				<plugins>
-							
-			<plugin> 
-			  <groupId>org.apache.rat</groupId> 
-			  <artifactId>apache-rat-plugin</artifactId> 
-			  <version>0.10</version>
-			  <executions> 
-			      <execution> 
-			           <id>default-cli</id> 
-			           <configuration> 
-			              
-			              <excludes combine.children="append"> 
-     				        
-     				        <exclude>**/.settings/*</exclude>
-     				        <exclude>**/keystore</exclude>
-     				        <exclude>**/*.job</exclude>
-     				        <exclude>uima-ducc-agent/**</exclude> 
-     				        <exclude>uima-ducc-cli/**</exclude> 
-     				        <exclude>uima-ducc-common/**</exclude> 
-     				        <exclude>uima-ducc-duccdocs/**</exclude> 
-     				        <exclude>**/*.tex</exclude>
-     				        <exclude>**/*.dict</exclude>
-     				        <exclude>uima-ducc-examples/**</exclude> 
-     				        <exclude>uima-ducc-jd/**</exclude> 
-     				        <exclude>uima-ducc-orchestrator/**</exclude> 
-     				        <exclude>uima-ducc-parent/**</exclude> 
-     				        <exclude>uima-ducc-pm/**</exclude> 
-     				        <exclude>uima-ducc-rm/**</exclude> 
-     				        <exclude>uima-ducc-sm/**</exclude> 
-     				        <exclude>uima-ducc-spawn/**</exclude> 
-     				        <exclude>uima-ducc-transport/**</exclude> 
-     				        <exclude>uima-ducc-web/**</exclude> 
-     				        <exclude>**/src/main/webapp/root/opensources/**/*</exclude> 
-				          </excludes> 
-				       </configuration> 
-				    </execution> 
-				</executions> 
-				</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles -->			
 
 
 	<build>
 		<finalName>${project.artifactId}</finalName>
 		<pluginManagement>
-		
-		 <plugins>
-			
-		 
-		    <!-- Prereq Java 6 because of lib dependencies -->
-		    <plugin>
-		      <artifactId>maven-compiler-plugin</artifactId>
-          <configuration>
-            <source>1.6</source>
-            <target>1.6</target>
-          </configuration>		      
-		    </plugin>
-		  </plugins>
+			<plugins>
+				<!-- Prereq Java 6 because of lib dependencies -->
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<configuration>
+						<source>1.6</source>
+						<target>1.6</target>
+					</configuration>
+				</plugin>
+			</plugins>
 		</pluginManagement>
-        
-        
-        
-        <!--  define common plugins that are shared by every pom -->
+
+
+
+		<!-- define common plugins that are shared by every pom -->
 		<plugins>
-		<plugin> 
-			  <groupId>org.apache.rat</groupId> 
-			  <artifactId>apache-rat-plugin</artifactId> 
-			  <version>0.10</version>
-			  <executions> 
-			      <execution> 
-			          
-			           <id>default-cli</id> 
-			           <configuration> 
-			              
-			              <excludes combine.children="append"> 
-     				        <!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
-     				        <exclude>**/.settings/*</exclude>
-     				        <exclude>**/keystore</exclude>
-     				        <exclude>uima-ducc-agent/**</exclude> 
-     				        <exclude>uima-ducc-cli/**</exclude> 
-     				        <exclude>uima-ducc-common/**</exclude> 
-     				        <exclude>uima-ducc-duccdocs/**</exclude> 
-     				        <exclude>**/*.dict</exclude>
-     				        <exclude>**/*.tex</exclude>
-                            <exclude>**/*.dict</exclude>
-                            <exclude>**/*.log</exclude>
-                            <exclude>**/*.out</exclude>
-                            <exclude>**/*.aux</exclude>
-     				        <exclude>uima-ducc-examples/**</exclude> 
-     				        <exclude>uima-ducc-jd/**</exclude> 
-     				        <exclude>uima-ducc-orchestrator/**</exclude> 
-     				        <exclude>uima-ducc-parent/**</exclude> 
-     				        <exclude>uima-ducc-pm/**</exclude> 
-     				        <exclude>uima-ducc-rm/**</exclude> 
-     				        <exclude>uima-ducc-sm/**</exclude> 
-     				        <exclude>uima-ducc-spawn/**</exclude> 
-     				        <exclude>uima-ducc-transport/**</exclude> 
-     				        <exclude>uima-ducc-web/**</exclude> 
-     				        <exclude>**/src/main/webapp/root/opensources/**/*</exclude> 
-				          </excludes> 
-				       </configuration> 
-				    </execution> 
-				</executions> 
-			</plugin>
-            <!-- Each jar produced should have metadata attached to a Manifest -->
+
+			<!-- Each jar produced should have metadata attached to a Manifest -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-<!-- 				<version>2.4</version> -->
 				<configuration>
 					<archive>
 						<!-- index>true</index -->
@@ -938,6 +840,58 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<id>apache-release</id>
+			<build>
+				<plugins>
 
+					<!-- run Release Audit Tool (RAT) on src and bin distrs -->
+					<plugin>
+						<groupId>org.apache.rat</groupId>
+						<artifactId>apache-rat-plugin</artifactId>
+						<version>0.10</version>
+						<executions>
+							<execution>
+
+								<id>default-cli</id>
+								<configuration>
+
+									<excludes combine.children="append">
+										<!-- workaround https://issues.apache.org/jira/browse/RAT-97 -->
+										<exclude>**/.settings/*</exclude>
+										<exclude>**/keystore</exclude>
+										<exclude>uima-ducc-agent/**</exclude>
+										<exclude>uima-ducc-cli/**</exclude>
+										<exclude>uima-ducc-common/**</exclude>
+										<exclude>uima-ducc-duccdocs/**</exclude>
+										<exclude>**/*.dict</exclude>
+										<exclude>**/*.tex</exclude>
+										<exclude>**/*.dict</exclude>
+										<exclude>**/*.log</exclude>
+										<exclude>.pydevproject</exclude>
+										<exclude>**/*.out</exclude>
+										<exclude>**/*.aux</exclude>
+										<exclude>uima-ducc-examples/**</exclude>
+										<exclude>uima-ducc-jd/**</exclude>
+										<exclude>uima-ducc-orchestrator/**</exclude>
+										<exclude>uima-ducc-parent/**</exclude>
+										<exclude>uima-ducc-pm/**</exclude>
+										<exclude>uima-ducc-rm/**</exclude>
+										<exclude>uima-ducc-sm/**</exclude>
+										<exclude>uima-ducc-spawn/**</exclude>
+										<exclude>uima-ducc-transport/**</exclude>
+										<exclude>uima-ducc-web/**</exclude>
+										<exclude>**/src/main/webapp/root/opensources/**/*</exclude>
+									</excludes>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+	</profiles>
 
 </project>
