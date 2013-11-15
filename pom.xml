@@ -205,7 +205,7 @@
 
 			</plugin>
 
-			<plugin>
+			<!-- plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
@@ -232,7 +232,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin -->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -417,7 +417,40 @@
 							<skip>true</skip>
 						</configuration>
 					</plugin>
-					<plugin>
+
+
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>generate checksums for binary artifacts</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<phase>verify</phase>
+						<configuration>
+							<target>
+								<checksum algorithm="sha1" format="MD5SUM">
+									<fileset dir="${project.build.directory}">
+										<include name="*.zip" />
+										<include name="*.gz" />
+									</fileset>
+								</checksum>
+								<checksum algorithm="md5" format="MD5SUM">
+									<fileset dir="${project.build.directory}">
+										<include name="*.zip" />
+										<include name="*.gz" />
+									</fileset>
+								</checksum>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+
+
+					<!--plugin>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
 							<execution>
@@ -436,7 +469,7 @@
 								</configuration>
 							</execution>
 						</executions>
-					</plugin>
+					</plugin -->
 
       		
 			<!-- run Release Audit Tool (RAT) on src and bin distrs -->
