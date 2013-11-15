@@ -314,7 +314,7 @@ public class JobFactory {
 			}
 		}
 		// Add any site-provided JVM args, but not -Xmx if the user has provided one
-		String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_driver_jvm_args);
+		String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_driver_jvm_args);
 		dTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
 		for (String token : dTokens) {
 		    if (!haveXmx || !token.startsWith("-Xmx")) {
@@ -350,7 +350,7 @@ public class JobFactory {
 	private void checkSchedulingLimits(DuccWorkJob job, DuccSchedulingInfo schedulingInfo) {
 	    String methodName = "checkSpec";
         long limit = 0;
-        String p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_threads_limit);
+        String p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_threads_limit);
         if (p_limit != null) {
             if (!p_limit.equals("unlimited")) {
                 limit = Long.parseLong(p_limit);
@@ -540,7 +540,7 @@ public class JobFactory {
 				pipelineCommandLine.addOption(token);
 			}
 		    // Add any site-provided JVM args
-	        String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_process_jvm_args);
+	        String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_process_jvm_args);
 	        pTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);   // a null arg is acceptable
 	        for(String token : pTokens) {
 	            pipelineCommandLine.addOption(token);

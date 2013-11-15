@@ -58,7 +58,7 @@ import org.apache.uima.util.XMLInputSource;
 
 public class UimaUtils {
 	public static final String FlowControllerKey="FixedFlowController";
-	public static final String FlowControllerResourceSpecifier="ducc.uima-as.flow-controller.specifier";
+	public static final String FlowControllerResourceSpecifier="ducc.flow-controller.specifier";
 	public static RelativePathResolver resolver = new RelativePathResolver_impl();
 
 

@@ -73,7 +73,7 @@ public class DuccUiUtilities {
         }
         // Augment user-specified environment with a few useful ones (only if not already set), e.g. USER HOME
         // If an augmented value contains a blank add single or double quotes 
-        String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_submit_environment_propagated);
+        String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_environment_propagated);
         if (envNames != null) {
             for (String name : envNames.split("\\s+")) {
                 if (!envMap.containsKey(name)) {

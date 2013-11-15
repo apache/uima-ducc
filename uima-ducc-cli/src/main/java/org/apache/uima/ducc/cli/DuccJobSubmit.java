@@ -257,22 +257,6 @@ public class DuccJobSubmit
         }
 
     }
-    
-    //**********
-    
-    private String getDuccProperty(String propertyName, String defaultValue) {
-        String propertyValue = defaultValue;
-        try {
-            String value = DuccPropertiesResolver.getInstance().getProperty(propertyName);
-            if(value != null) {
-                propertyValue = value;
-            }
-        }
-        catch(Throwable t) {
-            message(t.toString());
-        }
-        return propertyValue;
-    }
 
     //**********        
     
