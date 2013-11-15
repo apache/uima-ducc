@@ -130,7 +130,7 @@
 		<org.apache.activemq.version>5.6.0</org.apache.activemq.version>
 		<org.apache.camel.version>2.10.1</org.apache.camel.version>
 		<org.apache.uima.version>2.4.2</org.apache.uima.version>
-		<org.apache.uima.as.version>2.4.2-SNAPSHOT</org.apache.uima.as.version>
+		<org.apache.uima.as.version>2.4.2</org.apache.uima.as.version>
 		<com.google.guava.version>r09</com.google.guava.version>
 		<commons.cli.version>1.2</commons.cli.version>
 		<joda.time.version>2.1</joda.time.version>
