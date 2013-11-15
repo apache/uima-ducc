@@ -58,12 +58,17 @@
         <systemUsage>
             <systemUsage>
                 <memoryUsage>
+                    <!-- Memory for incoming messages before going to broker's Store -->
                     <memoryUsage limit="500 mb"/>
                 </memoryUsage>
                 <storeUsage>
+                    <!-- Broker's memory where messages are stored -->
+                    <!-- before being dispatched to consumers      -->
                     <storeUsage limit="1 gb" name="foo"/>
                 </storeUsage>
                 <tempUsage>
+                    <!-- Disk space dedicated to persistent messages -->
+                    <!-- Currently not used by Ducc                  -->
                     <tempUsage limit="500 mb"/>
                </tempUsage>
            </systemUsage>
