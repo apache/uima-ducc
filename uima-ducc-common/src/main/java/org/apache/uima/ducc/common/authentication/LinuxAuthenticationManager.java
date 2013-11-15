@@ -18,12 +18,9 @@
 */
 package org.apache.uima.ducc.common.authentication;
 
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
-import org.jvnet.libpam.PAM;
-import org.jvnet.libpam.UnixUser;
 
 public class LinuxAuthenticationManager implements IAuthenticationManager {
 	
@@ -33,7 +30,7 @@ public class LinuxAuthenticationManager implements IAuthenticationManager {
 	
 	private DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
 	
-	private ConcurrentHashMap<String,Set<String>> userGroupsCache = new ConcurrentHashMap<String,Set<String>>();
+	private ConcurrentHashMap<String,String[]> userGroupsCache = new ConcurrentHashMap<String,String[]>();
 	
 	public static IAuthenticationManager getInstance() {
 		return instance;
@@ -136,13 +133,29 @@ public class LinuxAuthenticationManager implements IAuthenticationManager {
 			if(ar.isSuccess()) {
 				ar = checkUserNotIncluded(userid);
 				if(ar.isSuccess()) {
-					UnixUser u = new PAM("sshd").authenticate(userid, password);
-					Set<String> groups = u.getGroups();
-					if(groups != null) {
-						userGroupsCache.put(userid, groups);
+					String[] args = { userid, password };
+					UserAuthenticate instance = new UserAuthenticate();
+					String result = instance.launch(args);
+					// success groups = [group1, group2]
+					if(result.startsWith("success")) {
+						result = result.trim();
+						result = result.replace("success groups =", "");
+						result = result.replace("[", "");
+						result = result.replace("]", "");
+						result = result.replace(" ", "");
+						String[] groups = result.split(",");
+						if(groups != null) {
+							userGroupsCache.put(userid, groups);
+						}
+						else {
+							userGroupsCache.remove(userid);
+						}
 					}
+					// failure pam_authenticate failed: Authentication failure
 					else {
-						userGroupsCache.remove(userid);
+						ar.setFailure();
+						result = result.replace("failure pam", "pam");
+						ar.setReason(result);
 					}
 				}
 			}
@@ -163,7 +176,7 @@ public class LinuxAuthenticationManager implements IAuthenticationManager {
 		else {
 			String excludeString = transform(getProperty(DuccPropertiesResolver.ducc_authentication_groups_exclude));
 			if(excludeString.trim().length() > 0) {
-				Set<String> userGroups = userGroupsCache.get(userid);
+				String[] userGroups = userGroupsCache.get(userid);
 				if(userGroups == null) {
 					retVal.setFailure();
 					retVal.setReason("userid has no groups?");
@@ -191,7 +204,7 @@ public class LinuxAuthenticationManager implements IAuthenticationManager {
 		else {
 			String includeString = transform(getProperty(DuccPropertiesResolver.ducc_authentication_groups_include));
 			if(includeString.trim().length() > 0) {
-				Set<String> userGroups = userGroupsCache.get(userid);
+				String[] userGroups = userGroupsCache.get(userid);
 				if(userGroups == null) {
 					retVal.setFailure();
 					retVal.setReason("userid has no groups?");
