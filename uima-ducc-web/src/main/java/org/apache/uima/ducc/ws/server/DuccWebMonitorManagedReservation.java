@@ -37,6 +37,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 
 public class DuccWebMonitorManagedReservation {
 	

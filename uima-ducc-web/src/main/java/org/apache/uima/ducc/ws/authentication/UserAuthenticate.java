@@ -16,15 +16,20 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.authentication;
+package org.apache.uima.ducc.ws.authentication;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 
 public class UserAuthenticate {
 	
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(UserAuthenticate.class.getName());
+	
 	private String failure = "failure";
 	
 	public String launch(String[] args) {
+		String methodName = "launch";
 		String result = null;
 		try {
 			if(args == null) {
@@ -42,16 +47,32 @@ public class UserAuthenticate {
 			else {
 				String userId = args[0];
 				String cp = System.getProperty("java.class.path");
-				String java = "/bin/java";
-				String jclass = "org.apache.uima.ducc.common.authentication.PamAuthenticate";
+				String jclass = "org.apache.uima.ducc.ws.authentication.PamAuthenticate";
 				String jhome = System.getProperty("java.home");
+				String java = "/bin/java";
 				StringBuffer mask = new StringBuffer();
 				for(int i=0; i<args[1].length(); i++) {
 					mask.append("x");
 				}
 				String[] arglist = { "-u", userId, "-q", "--", jhome+java, "-cp", cp, jclass, args[0], args[1] };
 				String[] masklist = { "-u", userId, "-q", "--", jhome+java, "-cp", cp, jclass, args[0], mask.toString() };
-				result = DuccAsUser.duckling(userId, arglist, masklist);
+				duccLogger.debug(methodName, null, masklist[0]);
+				duccLogger.debug(methodName, null, masklist[1]);
+				duccLogger.debug(methodName, null, masklist[2]);
+				duccLogger.debug(methodName, null, masklist[3]);
+				duccLogger.debug(methodName, null, masklist[4]);
+				duccLogger.debug(methodName, null, masklist[5]);
+				//duccLogger.debug(methodName, null, masklist[6]);
+				String[] cplist = cp.split(":");
+				if(cplist != null) {
+					for(String item : cplist) {
+						duccLogger.debug(methodName, null, item);
+					}
+				}
+				duccLogger.debug(methodName, null, masklist[7]);
+				duccLogger.debug(methodName, null, masklist[8]);
+				duccLogger.debug(methodName, null, masklist[9]);
+				result = DuccAsUser.ducklingQuiet(userId, arglist, masklist);
 			}
 		}
 		catch(Throwable t) {

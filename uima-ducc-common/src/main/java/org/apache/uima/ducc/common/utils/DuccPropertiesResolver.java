@@ -131,7 +131,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
         defaultProperties.put(ducc_orchestrator_use_lock_file,"false");
         defaultProperties.put(ducc_ws_login_enabled,"true");
-        defaultProperties.put(ducc_authentication_implementer,"org.apache.uima.ducc.common.authentication.LinuxAuthenticationManager");
+        defaultProperties.put(ducc_authentication_implementer,"org.apache.uima.ducc.ws.authentication.LinuxAuthenticationManager");
         defaultProperties.put(ducc_jd_queue_timeout_minutes,"5");
         defaultProperties.put(ducc_jd_queue_prefix,"ducc.jd.queue.");
         defaultProperties.put(ducc_jd_host_class,"JobDriver");

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.authentication;
+package org.apache.uima.ducc.ws.authentication;
 
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.UnixUser;
@@ -29,7 +29,7 @@ public class PamAuthenticate {
 		System.out.println(result.name()+" "+text);
 	}
 	
-	private void launch(String[] args) {
+	protected void launch(String[] args, boolean verbose) {
 		try {
 			if(args == null) {
 				info(Result.failure, "args==null");
@@ -53,13 +53,15 @@ public class PamAuthenticate {
 		}
 		catch(Throwable t) {
 			info(Result.failure,t.getMessage());
-			//t.printStackTrace();
+			if(verbose) {
+				t.printStackTrace();
+			}
 		}
 	}
 	
 	public static void main(String[] args) {
 		PamAuthenticate instance = new PamAuthenticate();
-		instance.launch(args);
+		instance.launch(args, false);
 	}
 
 }

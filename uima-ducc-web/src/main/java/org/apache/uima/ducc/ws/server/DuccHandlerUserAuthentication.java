@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandlerUserAuthentication extends DuccAbstractHandler {

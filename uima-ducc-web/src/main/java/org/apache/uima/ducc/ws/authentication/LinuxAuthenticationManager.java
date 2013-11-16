@@ -16,10 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.authentication;
+package org.apache.uima.ducc.ws.authentication;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.authentication.AuthenticationResult;
+import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
+import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 
 public class LinuxAuthenticationManager implements IAuthenticationManager {

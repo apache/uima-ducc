@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ws.server;
+package org.apache.uima.ducc.ws.authentication;
 
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
@@ -50,6 +50,14 @@ public class DuccAuthenticator implements IAuthenticationManager {
 		try {
 			String key = DuccPropertiesResolver.ducc_authentication_implementer;
 			String value = duccPropertiesResolver.getProperty(key);
+			duccLogger.info(methodName, jobid, value);
+			String cp = System.getProperty("java.class.path");
+			String[] cplist = cp.split(":");
+			if(cplist != null) {
+				for(String item : cplist) {
+					duccLogger.debug(methodName, null, item);
+				}
+			}
 			Class<?> authenticationImplementer = Class.forName(value);
 			iAuthenticationManager = (IAuthenticationManager)authenticationImplementer.newInstance();
 			duccLogger.info(methodName, jobid, iAuthenticationManager.getVersion());

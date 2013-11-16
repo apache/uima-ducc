@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ws.server;
+package org.apache.uima.ducc.ws.authentication;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -30,7 +30,7 @@ import org.apache.uima.ducc.common.utils.Utils;
 
 
 public class DuccAsUser {
-
+	
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAsUser.class.getName());
 	
 	public static String magicString = "1001 Command launching...";
@@ -117,6 +117,74 @@ public class DuccAsUser {
 		}
 		catch(Exception e) {
 			duccLogger.info(methodName, null, e);
+		}
+		
+		return retVal.toString();
+	}
+	
+	public static String ducklingQuiet(String user, String[] args, String[] argsMasked) {
+
+		StringBuffer retVal = new StringBuffer();
+		
+		String c_launcher_path = 
+			Utils.resolvePlaceholderIfExists(
+					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+
+		ArrayList<String> cmd = new ArrayList<String>();
+		
+		cmd.add(c_launcher_path);
+		
+		StringBuffer sbInfo  = new StringBuffer();
+		StringBuffer sbDebug = new StringBuffer();
+		String prev = "";
+		
+		for(int i=0; i<args.length; i++) {
+			String arg = args[i];
+			cmd.add(arg);
+			if(!arg.equals("-cp")) {
+				if(!prev.equals("-cp")) {
+					sbInfo.append(argsMasked[i]+" ");
+				}
+			}
+			sbDebug.append(argsMasked[i]+" ");
+			prev = arg;
+		}
+
+		ProcessBuilder pb = new ProcessBuilder(cmd);
+		
+		Map<String, String> env = pb.environment();
+		
+		env.put("JobId", "webserver");
+		
+		String runmode = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_runmode);
+		if(runmode != null) {
+			if(runmode.equals("Test")) {
+				env.put("USER", user);
+			}
+		}
+		
+		try {
+			Process process = pb.start();
+			String line;
+			BufferedReader bri = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			BufferedReader bre = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+			boolean trigger = true;
+			while ((line = bri.readLine()) != null) {
+				if(trigger) {
+					retVal.append(line+"\n");
+				}
+				if(line.startsWith(magicString)) {
+					trigger = true;
+				}
+			}
+			bri.close();
+			while ((line = bre.readLine()) != null) {
+				retVal.append(line);
+			}
+			bre.close();
+			process.waitFor();
+		}
+		catch(Exception e) {
 		}
 		
 		return retVal.toString();
