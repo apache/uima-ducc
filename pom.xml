@@ -135,6 +135,84 @@
 
 		<plugins>
 
+			<!-- This java doc config is for building the ones distributed with the 
+				bin packaging, and also posted on our website. -->
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>javadocs-distr</id>
+						<phase>prepare-package</phase> <!-- must be before assembly -->
+						<!--phase>deploy</phase -->   <!-- comment above and uncomment to disable javadocs, for testing/experimentation, 
+							with assembly:assembly -->
+						<goals>
+							<goal>javadoc</goal>
+						</goals>
+						<configuration>
+							<quiet>true</quiet>
+							<groups>
+								<group>
+									<title>Packages</title>
+									<packages>*</packages>
+								</group>
+							</groups>
+
+							<!--verbose>true</verbose -->
+							<sourcepath>
+								uima-ducc-common/src/main/java:uima-ducc-cli/src/main/java
+							</sourcepath>
+
+                            <show>
+                              public
+                            </show>
+
+							<subpackages>org.apache.uima</subpackages>
+
+							<excludePackageNames>
+                              org.apache.uima.ducc.cli.*:org.apache.uima.ducc.api.*:org.apache.uima.ducc.common.*:org.apache.uima.ducc.transport.*:org.apache.uima.ducc.agent.*:org.apache.uima.ducc.examples.*:org.apache.uima.ducc.orchestrator.*:org.apache.uima.ducc.pm.*:org.apache.uima.ducc.rm.*:org.apache.uima.ducc.sm.*:
+                            </excludePackageNames>
+
+							<!-- add a few classes in impl packages that are directly used by 
+								user code -->
+							<additionalparam>
+
+								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/IServiceStatistics.java
+								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/ADuccId.java
+								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/IDuccId.java
+
+								${basedir}/uima-ducc-transport/src/main/java/org/apache/uima/ducc/transport/event/sm/IServiceReply.java
+								${basedir}/uima-ducc-transport/src/main/java/org/apache/uima/ducc/transport/event/sm/IServiceDescription.java
+
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/AServicePing.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccJobSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccManagedReservationSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccReservationSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceApi.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceCancel.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/DuccServiceSubmit.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccCallback.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/IDuccMonitor.java
+								${basedir}/uima-ducc-cli/src/main/java/org/apache/uima/ducc/cli/CliBase.java
+
+							</additionalparam>
+
+							<!-- Link these to the uimaj javadocs on apache.org -->
+							<!-- links>
+								<link>http://uima.apache.org/d/uimaj-${uimajDependencyVersion}/apidocs</link>
+							</links -->
+							<doctitle>Apache UIMA DUCC Java SDK ${project.version} User-Level
+								API Documentation</doctitle>
+							<windowtitle>Apache UIMA DUCC Java SDK ${project.version}
+								User-Level API Documentation</windowtitle>
+						</configuration>
+					</execution>
+				</executions>
+
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
