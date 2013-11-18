@@ -638,8 +638,8 @@ under the License.
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
-        <include>duccbook/*.css</include>
-        <include>duccbook/*.html</include>
+        <include>*.css</include>
+        <include>*.html</include>
       </includes>
     </fileSet>
 
