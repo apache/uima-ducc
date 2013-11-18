@@ -2947,7 +2947,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		DuccWorkMap duccWorkMap = DuccData.getInstance().get();
 		if(duccWorkMap.size()> 0) {
+			sb.append("<span title=\"home="+dir_home+"\">");
 			sb.append(getDuccWebServer().getClusterName());
+			sb.append("</span>");
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
