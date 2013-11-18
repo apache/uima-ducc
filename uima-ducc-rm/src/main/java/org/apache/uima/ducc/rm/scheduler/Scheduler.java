@@ -127,10 +127,10 @@ public class Scheduler
     //
     // Bring up to speed with rest of ducc version. 2013-03-06 jrc
     //
-    final static int rmversion_major = 0;
-    final static int rmversion_minor = 8;
-    final static int rmversion_ptf   = 7;  
-    final static String rmversion_string = "beta";
+    final static int rmversion_major = 1;
+    final static int rmversion_minor = 0;
+    final static int rmversion_ptf   = 0;  
+    final static String rmversion_string = null;
 
     boolean initialized = false;           // we refuse nodeupdates until this is true
     public Scheduler()
@@ -235,8 +235,7 @@ public class Scheduler
         logger.info(methodName, null, "                       DUCC Version            : ", Version.version());
         logger.info(methodName, null, "                       RM Version              : ", ""+ rmversion_major   + "." 
                                                                                              + rmversion_minor   + "." 
-                                                                                             + rmversion_ptf     + "-" 
-                                                                                             + rmversion_string);
+                                                                                             + rmversion_ptf);
         initialized = true;
     }
 
