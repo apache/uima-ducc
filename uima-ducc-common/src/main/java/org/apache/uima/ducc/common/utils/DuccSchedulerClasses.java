@@ -48,9 +48,9 @@ public class DuccSchedulerClasses {
 	}
 	
 	public DuccSchedulerClasses() {
+	    String dir_home = Utils.findDuccHome();  // Ensure DUCC_HOME is in the System properties
 		String key = DuccPropertiesResolver.ducc_rm_class_definitions;
 		String file_classes = DuccPropertiesResolver.getInstance().getFileProperty(key);
-		String dir_home = Utils.findDuccHome();
 		String dir_resources = "resources";
 		fileName = dir_home+File.separator+dir_resources+File.separator+file_classes;
 	}
