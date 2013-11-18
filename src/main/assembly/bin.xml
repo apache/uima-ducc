@@ -645,13 +645,13 @@ under the License.
 
   <fileSet>
       <!-- build up the webserver directory -->
-      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage</directory>
+      <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage/duccbook</directory>
       <outputDirectory>ducc_runtime/webserver/root/doc/images</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
-        <include>duccbook/*.jpg</include>
-        <include>duccbook/*.png</include>
+        <include>*.jpg</include>
+        <include>*.png</include>
       </includes>
     </fileSet>
   
