@@ -392,8 +392,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 					agent.cgroupsManager.destroyContainer(containerId);
 					logger.info(methodName, null, "Removed CGroup Container with ID:"+containerId);
 				}
-			} else {
-				// if DUCC kills a process, its exitCode should be reset to 0
+			}
+     		// if DUCC kills a process, its exitCode should be reset to 0
+			if ( ((ManagedProcess)super.managedProcess).doKill()|| isKillCmd ) {
 				exitCode = 0;
 			}
 			
