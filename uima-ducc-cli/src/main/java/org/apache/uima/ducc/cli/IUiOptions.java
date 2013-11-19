@@ -199,7 +199,7 @@ public interface IUiOptions
             public String description() { return "Number of consecutive instance failures that will cause the service to be stopped."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
-            public String deflt()       { return "5"; }
+            public String deflt()       { return "2"; }
             public String label()       { return "InstanceFailuresLimit"; }
         },   
         JobId { 

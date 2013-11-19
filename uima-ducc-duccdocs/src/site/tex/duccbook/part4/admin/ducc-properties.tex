@@ -178,7 +178,7 @@
          \end{description} 
 
        \item[ducc.cli.httpclient.sotimeout] \hfill \\
-         This is the timeout used by the CLI to communicate with DUCC, in millisseconds. If no 
+         This is the timeout used by the CLI to communicate with DUCC, in milliseconds. If no 
          response is heard within this time, the request times out and is aborted. When set to 0 (the 
          default), the request never times out. 
          \begin{description}
@@ -264,6 +264,9 @@
        \item[ducc.driver.jvm.args] \hfill \\
          If enabled, the arguments here are automatically added to the JVM arguments specified for 
          the Job Driver process. 
+
+         Note: if the user-supplied JVM arguments contain a -Xmx entry then 
+         any -Xmx value specified here will be ignored.
          \begin{description}
            \item[Default] (unconfigured) 
            \item[Type] Local 
@@ -355,9 +358,9 @@
           \end{description}
 
 
-       \item[ducc.submit.threads.limit] \hfill \\
-         This enforces a maximum number of threads per job, amortized over all the processes. No 
-         job will have more threads than this dispatched. This limit is disabled by default. 
+       \item[ducc.threads.limit] \hfill \\
+         This enforces a maximum number of pipeline threads per job, over all its processes. No 
+         job will have more active work-items than this dispatched. This limit is disabled by default. 
 
          The value represents the size of the underlying CAS pool in the Job Driver and therefore
          is related to the size of the Job Driver heap and the real memory consumed by JD.  If
@@ -368,10 +371,10 @@
            \item[Type] Local 
          \end{description}
 
-       \item[ducc.submit.environment.propagated] \hfill \\
+       \item[ducc.environment.propagated] \hfill \\
          This specifies the environmental variables whose values will be merged with the
          user-specified environment option on job, process and service submissions.  A typical setting
-         might be: USER HOME
+         might be: USER HOME LANG
 
          \begin{description}
            \item[Default] (unconfigured) 
@@ -513,7 +516,8 @@
           
 
         \item[ducc.jd.state.publish.rate] \hfill \\
-          The frequency in milliseconds that JD publishes its state to the Orchestrator. A higher rate 
+          The interval in milliseconds between JD state publications to the Orchestrator.
+          A higher rate (smaller number)
           may slightly increase system response but will increase network load. A lower rate will 
           somewhat decrease system response and lower network load. 
           \begin{description}
@@ -672,10 +676,10 @@
         
       \item[ducc.sm.default.linger] \hfill \\
         This is the length of time, in milliseconds, that the SM allows a service to remain alive after 
-        all referenceing jobs have exited. If no new job enters the system by the time this time has 
+        all jobs that reference it have exited. If no new job referencing it enters the system before this time has 
         expired, the SM stops the service. 
         \begin{description}
-          \item[Default Value] 30000
+          \item[Default Value] 300000
           \item[Type] Tuning 
         \end{description}
         
@@ -685,7 +689,7 @@
         will disable autostart for the service.  It may be overridden by the service
         registration's {\em instance\_failures\_limit} parameter.
         \begin{description}
-          \item[Default Value] 5
+          \item[Default Value] 2
           \item[Type] Tuning 
         \end{description}
         
@@ -738,7 +742,7 @@
         \end{description} 
         
       \item[ducc.orchestrator.state.publish.rate] \hfill \\
-        This is the frequency in milliseconds that the Orchestrator publishes its non-abbreviated 
+        The interval in milliseconds between Orchestrator publications of its non-abbreviated  
         state. 
         \begin{description}
           \item[Default Value] 15000 
@@ -762,15 +766,15 @@
         \end{description} 
         
       \item[ducc.orchestrator.abbreviated.state.publish.rate] \hfill \\
-        This is the frequency in milliseconds that the Orchestrator publishes its abbreviated state. 
+        The interval in milliseconds between Orchestrator publications of its abbreviated state. 
         \begin{description}
-          \item[Default Valu] 15000 
+          \item[Default Value] 15000 
           \item[Type] Private
         \end{description} 
 
       \item[ducc.orchestrator.maintenance.rate] \hfill \\
-        This is the frequency in milliseconds that the Orchestrator checks and updates history and 
-        state. 
+        This is the interval in milliseconds between Orchestrator maintenance cycles, which check
+        and update history and state. 
         \begin{description}
           \item[Default Value] 60000 
           \item[Type] Tuning 
@@ -828,8 +832,7 @@
           \end{description}
           
         \item[ducc.rm.state.publish.rate] \hfill \\
-          This is the rate, in milliseconds, at which the Resource Manager publishes its state to the 
-          Orchestrator. 
+          The interval in milliseconds between Resource Manager state publications to the Orchestrator.
 
           This can directly affect user response.  For small clusters a value of 10000 is often acceptable
           and results in faster response.  On larger clusters the value should be raised to around
@@ -1084,9 +1087,9 @@
           \end{description}
          
         \item[ducc.agent.node.metrics.publish.rate] \hfill \\
-          This is the rate at which node metrics updates are published in milliseconds.   Every
-          agent publishes its metrics at this rate.  On large clusters, a high rate (small 
-          value for the rate) can be a burdon on the network.
+          The interval in milliseconds between node metric publications.
+          Every agent publishes its updates at this rate.  On large clusters, a high rate (small 
+          interval) can be a burden on the network.
 
           Note: the Resource Manager uses the data in the node metrics for scheduling.
           \begin{description}
@@ -1111,7 +1114,7 @@
           \end{description}
           
         \item[ducc.agent.node.inventory.publish.rate] \hfill \\
-          This is the rate at which node inventory updates are published in milliseconds. 
+          The interval in milliseconds between node inventory publications.
 
           If the inventory has not changed since the last update the agent bypasses sending the 
           update, up to a maximum of ducc.agent.node.inventory.publish.rate.skip times. 
@@ -1320,7 +1323,7 @@
         \end{description}
         
       \item[ducc.pm.state.publish.rate] \hfill \\
-        This is the rate at which the process manager publishes its heartbeat, in milliseconds. 
+        The interval in milliseconds between process manager heartbeat publications.
         \begin{description}
         \item[Default Value] 25000 
         \item[Type] Private 

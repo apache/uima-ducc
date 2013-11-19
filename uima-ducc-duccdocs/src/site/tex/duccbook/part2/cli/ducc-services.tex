@@ -467,7 +467,7 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
       Below is a sample service query.
 
       The service with endpoint {\tt UIMA-AS:FixedSleepAE\_5:tcp://bobmach:61617} is a 
-      registered service, whose registered numeric id is 2. It is registered for two instances and 
+      registered service, whose registered numeric id is 2. It was registered by bob for two instances and 
       no autostart. Since it is not autostarted, it will be terminated when it is no longer used. It 
       will linger for 5 seconds after the last referencing job completes, in case a subsequent job 
       that uses it enters the system (not a realistic linger time!). It has two active
@@ -478,15 +478,15 @@ ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --autostart false
 \begin{verbatim}
 
 Service: UIMA-AS:FixedSleepAE_5:tcp://bobmach291:61617 
-Service Class : Registered as ID 2 instances[2] linger[5] 
-Implementors : 9 8 
-References : 1 5 
-Dependencies : none 
-Service State : Available 
-Ping Active : true 
-Autostart : false 
-Manual Stop : false 
-Queue Statistics: 
+   Service Class : Registered as ID 2 Owner[bob] instances[2] linger[5000] 
+   Implementors : 9 8 
+   References : 1 5 
+   Dependencies : none 
+   Service State : Available 
+   Ping Active : true 
+   Autostart : false 
+   Manual Stop : false 
+   Queue Statistics: 
 Consum Prod Qsize minNQ maxNQ expCnt inFlgt  DQ  NQ Disp 
     52   44     0     0     3      0      0 402 402  402 
 \end{verbatim}
