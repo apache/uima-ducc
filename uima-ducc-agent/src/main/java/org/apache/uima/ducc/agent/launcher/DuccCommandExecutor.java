@@ -394,7 +394,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 				}
 			}
      		// if DUCC kills a process, its exitCode should be reset to 0
-			if ( ((ManagedProcess)super.managedProcess).doKill()|| isKillCmd ) {
+			if ( ((ManagedProcess)super.managedProcess).doKill() || isKillCmd || 
+				 ((ManagedProcess)super.managedProcess).isStopping()) {  // always true when undeploying process
 				exitCode = 0;
 			}
 			
