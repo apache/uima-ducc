@@ -80,6 +80,8 @@ public class OrchestratorCheckpoint {
 			}
 		}
 		else {
+			setSaveEnabled();
+			setRestoreEnabled();
 			logger.debug(methodName, null, messages.fetchLabel("missing, using")+status);
 		}
 		logger.trace(methodName, null, messages.fetch("exit"));
