@@ -103,7 +103,17 @@ function ducc_identity()
 			success : function (data) 
 			{
 				$("#identity").html(data);
-				$(document).attr("title", "ducc-mon: "+data);
+				try {
+                    a1 = data.split(">");
+                    n1 = a1[1];
+                    a2 = n1.split("<");
+                    n2 = a2[0];
+                    name = n2;
+                    $(document).attr("title", "ducc-mon: "+name);
+                }
+                catch(err) {
+                    //ducc_error("ducc_identity",err);
+                }
 			}
 		});
 	}
