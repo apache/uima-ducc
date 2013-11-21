@@ -233,7 +233,7 @@ char * mklogfile(const char *filepath)
     //
     // First step, the base must exist and be writable.
     //
-    char buf[BUFLEN];            // ( this is MAX_PATH, longest legal path in linux )
+    char buf[BUFLEN];
     char *next_tok = NULL;
     char *final_tok = NULL;
 
