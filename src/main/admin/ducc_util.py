@@ -231,7 +231,8 @@ class DuccUtil(DuccBase):
             extra_jars = local_jars.split()
             for j in extra_jars:
                 CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
-            
+           
+        # Drop slf4j dir as its jars also in springframeork 
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'

@@ -231,8 +231,8 @@ under the License.
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
-	</dependencySet>
-			
+    </dependencySet>
+            
      <dependencySet>
       <includes>
         <include>org.apache.activemq:activemq-core</include>
@@ -257,7 +257,7 @@ under the License.
         <include>commons-httpclient:commons-httpclient</include>
         <include>commons-codec:commons-codec</include>
 
-		<include>org.eclipse.jetty.aggregate:jetty-all-server</include>
+        <include>org.eclipse.jetty.aggregate:jetty-all-server</include>
         <include>com.thoughtworks.xstream:xstream</include>
         
         <include>org.apache.activemq:activemq-camel</include>
@@ -363,24 +363,24 @@ under the License.
       <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
       <outputDirectory>ducc_runtime/activemq</outputDirectory>
       <includes>
-      	<include>bin/*</include>
-      	<include>bin/**/*</include>
-      	<include>**/conf/credentials-enc.properties</include>
-      	<include>**/conf/credentials.properties</include>
-      	<include>**/conf/log4j.properties</include>
-      	<include>**/conf/logging.properties</include>
-      	<include>activemq-all-5.6.0.jar</include>
+        <include>bin/*</include>
+        <include>bin/**/*</include>
+        <include>**/conf/credentials-enc.properties</include>
+        <include>**/conf/credentials.properties</include>
+        <include>**/conf/log4j.properties</include>
+        <include>**/conf/logging.properties</include>
+        <include>activemq-all-5.6.0.jar</include>
       </includes>
       <excludes>
-      	<exclude>LICENSE</exclude>
-      	<exclude>NOTICE</exclude>
-      	<exclude>README.txt</exclude>
-      	<exclude>user-guide.html</exclude>
-      	<exclude>WebConsole-README.txt</exclude>
-      	<exclude>**/example/*</exclude>
-      	<exclude>**/example/**/*</exclude>
-      	<exclude>**/webapps/*</exclude>
-      	<exclude>**/docs/*</exclude>
+        <exclude>LICENSE</exclude>
+        <exclude>NOTICE</exclude>
+        <exclude>README.txt</exclude>
+        <exclude>user-guide.html</exclude>
+        <exclude>WebConsole-README.txt</exclude>
+        <exclude>**/example/*</exclude>
+        <exclude>**/example/**/*</exclude>
+        <exclude>**/webapps/*</exclude>
+        <exclude>**/docs/*</exclude>
       </excludes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
@@ -390,8 +390,8 @@ under the License.
       <directory>src/main/config/</directory>
       <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
       <includes>
-      	<include>activemq-ducc.xml</include>
-      	<include>ducc-broker-credentials.properties</include>
+        <include>activemq-ducc.xml</include>
+        <include>ducc-broker-credentials.properties</include>
       </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
@@ -402,8 +402,8 @@ under the License.
       <directory>src/main/legal/</directory>
       <outputDirectory>ducc_runtime</outputDirectory>
       <includes>
-      	<include>LICENSE</include>
-      	<include>NOTICE</include>
+        <include>LICENSE</include>
+        <include>NOTICE</include>
       </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
@@ -501,8 +501,8 @@ under the License.
       <directoryMode>755</directoryMode>
       <includes />
       <excludes>
-      	<exclude>dd2spring.bat</exclude>
-      	<exclude>dd2spring.xsl</exclude>
+        <exclude>dd2spring.bat</exclude>
+        <exclude>dd2spring.xsl</exclude>
       </excludes>
     </fileSet>
 
@@ -521,7 +521,7 @@ under the License.
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes>
-      	<include>README*</include>
+        <include>README*</include>
       </includes>
       <excludes />
     </fileSet>
