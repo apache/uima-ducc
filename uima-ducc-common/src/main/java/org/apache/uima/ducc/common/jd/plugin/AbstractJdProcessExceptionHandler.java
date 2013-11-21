@@ -43,16 +43,23 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 	 */
 	public Directive handle(String processId, CAS cas, Throwable t, Properties properties) {
 		Directive directive = null;
-		directive = handleRetry(processId, cas, t, properties);
-		if(directive != null) {
-			return directive;
+		try {
+			directive = handleRetry(processId, cas, t, properties);
+			if(directive != null) {
+				return directive;
+			}
+			directive = handleError(processId, cas, t, properties);
+			if(directive != null) {
+				return directive;
+			}
+			directive = Directive.ProcessContinue_CasNoRetry;
+			directive.setReason("default");
 		}
-		directive = handleError(processId, cas, t, properties);
-		if(directive != null) {
-			return directive;
+		catch(Exception e) {
+			directive = Directive.ProcessContinue_CasNoRetry;
+			directive.setReason("exception during exception handler");
 		}
-		directive = Directive.ProcessContinue_CasNoRetry;
-		directive.setReason("default");
+		
 		return directive;
 	}
 	
