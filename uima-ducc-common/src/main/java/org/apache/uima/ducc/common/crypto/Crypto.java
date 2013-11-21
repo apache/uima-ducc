@@ -40,7 +40,6 @@ import java.security.PublicKey;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
-import java.util.Properties;
 
 import javax.crypto.Cipher;
 
