@@ -1,4 +1,4 @@
-package org.apache.uima.ducc.cli.ws.json;
+package org.apache.uima.ducc.cli.test;
 
 import static org.junit.Assert.*;
 
@@ -8,6 +8,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+import org.apache.uima.ducc.cli.ws.json.NodePidList;
+import org.apache.uima.ducc.cli.ws.json.ReservationFacts;
+import org.apache.uima.ducc.cli.ws.json.ReservationFactsList;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
