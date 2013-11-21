@@ -381,25 +381,4 @@ public class Crypto implements ICrypto {
 		}
 	}
 	
-	/* <test> */
-	
-	public static void main(String[] args) {
-		try {
-			Crypto crypto = new Crypto(System.getProperty("user"),System.getProperty("user.home"));
-			String message = "Hello DUCC!";
-			byte[] cypheredMessage = crypto.encrypt(message);
-			Properties properties = new Properties();
-			String key_signature = "signature";
-			properties.put(key_signature, cypheredMessage);
-			cypheredMessage = (byte[]) properties.get(key_signature);
-			Object decypheredMessage = crypto.decrypt(cypheredMessage);
-			System.out.println((String)decypheredMessage);
-		}
-		catch(CryptoException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/* </test> */
-	
 }
