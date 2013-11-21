@@ -30,22 +30,6 @@ under the License.
     
    
    <dependencySets>
-   
-   <dependencySet>
-      <includes>
-        <include>org.slf4j:slf4j-log4j12</include>
-        <include>org.slf4j:jcl-over-slf4j</include>
-        <include>org.slf4j:slf4j-api</include>
-        
-      </includes>
-      <!-- includeBaseDirectory>false</includeBaseDirectory --> 
-      <!-- useTransitiveDependencies>false</useTransitiveDependencies -->
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>ducc_runtime/lib/slf4j</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>  
     
     <dependencySet>
       <includes>
@@ -251,12 +235,14 @@ under the License.
 			
      <dependencySet>
       <includes>
-        <include>org.apache.activemq:activemq-all</include>
+        <include>org.apache.activemq:activemq-core</include>
         <include>org.apache.activemq:activemq-camel</include>
         <include>org.apache.activemq:activemq-pool</include>
         <include>org.apache.activemq:activemq-jaas</include>
         <include>commons-pool:commons-pool</include>
         <include>org.apache.geronimo.specs:geronimo-servlet_2.5_spec</include>
+        <include>org.apache.geronimo.specs:geronimo-j2ee-management_1.1_spec</include>
+        <include>org.apache.geronimo.specs:geronimo-jms_1.1_spec</include>
         <include>xpp3:xpp3</include>
       </includes>      
       <outputDirectory>ducc_runtime/lib/apache-activemq</outputDirectory>

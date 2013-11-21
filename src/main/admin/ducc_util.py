@@ -232,7 +232,6 @@ class DuccUtil(DuccBase):
             for j in extra_jars:
                 CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
             
-        CLASSPATH = CLASSPATH + ":" + LIB + '/slf4j/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'
