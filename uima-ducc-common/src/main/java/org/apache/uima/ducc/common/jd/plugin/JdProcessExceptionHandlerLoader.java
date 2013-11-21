@@ -18,10 +18,6 @@
 */
 package org.apache.uima.ducc.common.jd.plugin;
 
-import java.util.Properties;
-
-import org.apache.uima.cas.CAS;
-
 public class JdProcessExceptionHandlerLoader {
 
 	public static IJdProcessExceptionHandler load(String className) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
@@ -35,60 +31,6 @@ public class JdProcessExceptionHandlerLoader {
 			throw new InstantiationException("Implementation Error: "+className);
 		}
 		return jdEventHandler;
-	}
-	
-	public static void main(String[] args) {
-
-		try {
-			IJdProcessExceptionHandler jdProcessExceptionHandler = JdProcessExceptionHandlerLoader.load(JdProcessExceptionHandler.class.getName());
-			CAS cas = null;
-			Exception e = null;
-			Properties p = null;
-			jdProcessExceptionHandler.handle("test001",cas, e, p);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-			
-		try {
-			IJdProcessExceptionHandler jdProcessExceptionHandler = JdProcessExceptionHandlerLoader.load("org.apache.uima.ducc.common.jd.plugin.example.ExampleJdProcessExceptionHandler");
-			CAS cas = null;
-			Exception e = null;
-			Properties p = null;
-			jdProcessExceptionHandler.handle("test002",cas, e, p);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		try {
-			IJdProcessExceptionHandler jdProcessExceptionHandler = JdProcessExceptionHandlerLoader.load("org.apache.uima.ducc.common.jd.plugin.example.BadJdProcessExceptionHandler");
-			CAS cas = null;
-			Exception e = null;
-			Properties p = null;
-			jdProcessExceptionHandler.handle("test003",cas, e, p);
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 }
