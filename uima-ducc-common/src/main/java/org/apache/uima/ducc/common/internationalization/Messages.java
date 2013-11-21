@@ -20,7 +20,6 @@ package org.apache.uima.ducc.common.internationalization;
 
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 public class Messages {
@@ -68,8 +67,15 @@ public class Messages {
 			resourceBundle = ResourceBundle.getBundle(resourceName,locale);
 		}
 		catch(Exception e) {
-			locale = new Locale(default_language,default_country);
-			resourceBundle = ResourceBundle.getBundle(resourceName,locale);
+		}
+		if(resourceBundle == null) {
+			try {
+				locale = new Locale(default_language,default_country);
+				resourceBundle = ResourceBundle.getBundle(resourceName,locale);
+			}
+			catch(Exception e) {
+				// Give up!
+			}
 		}
 	}
 	
@@ -83,7 +89,7 @@ public class Messages {
 		try {
 			text = resourceBundle.getString(normalizedKey);
 		}
-		catch(MissingResourceException e) {
+		catch(Exception e) {
 			//e.printStackTrace();
 			text = key;
 		}
@@ -94,90 +100,17 @@ public class Messages {
 		return fetch(key)+Placeholders.label_sep;
 	}
 	
-	private String fetch_exact(String key) {
+	public String fetch_exact(String key) {
 		String text;
 		String normalizedKey = normalize(key);
-		text = resourceBundle.getString(normalizedKey);
+		try {
+			text = resourceBundle.getString(normalizedKey);
+		}
+		catch(Exception e) {
+			//e.printStackTrace();
+			text = normalizedKey;
+		}
 		return text;
 	}
-	
-	/*
-	 * <test>
-	 */
-	
-	private static String[] keys = {
-		"and away we go",
-		"CAS.id",
-		"CAS.size",
-		"changing core pool size to",
-		"client initialization complete",
-		"client initialization failed",
-		"client initialization in progress",
-		"client terminated",
-		"client termination failed",
-		"client terminating",
-		"collection reader initialization failed",
-		"creating driver thread",
-		"default",
-		"driver begin",
-		"driver end",
-		"driver init",
-		"enter",
-		"exit",
-		"file",
-		"from",
-		"host",
-		"invalid",
-		"job.broker",
-		"job.queue",
-		"kill thread for",
-		"no",
-		"not found",
-		"log directory",
-		"log directory (default)",
-		"pending job termination",
-		"pending processes termination",
-		"permits to force thread terminations",
-		"plist",
-		"process count",
-		"publishing state",
-		"received",
-		"releasing",
-		"removed queue",
-		"retry",
-		"retry attempts exhausted",
-		"running",
-		"seqNo",
-		"shares",
-		"size zero request ignored",
-		"terminate",
-		"terminate driver thread",
-		"terminating thread",
-		"thread",
-		"threads-per-share",
-		"UIMA-AS",
-		"unable to create user log appender",
-		"user log",
-		"work item monitor class",
-	};
 
-	public static void showMessages(Messages messages) {
-		for(int i=0; i <keys.length; i++) {
-			String key = keys[i];
-			System.out.println(messages.fetch(key));
-			messages.fetch_exact(key);
-		}
-		System.out.println(messages.fetch("foobar"));
-	}
-	
-	public static void main(String[] args) {
-		showMessages(Messages.getInstance());
-		showMessages(Messages.getInstance("foo","bar"));
-		showMessages(Messages.getInstance("","bar"));
-		showMessages(Messages.getInstance(null,"bar"));
-	}
-
-	/*
-	 * </test>
-	 */
 }
