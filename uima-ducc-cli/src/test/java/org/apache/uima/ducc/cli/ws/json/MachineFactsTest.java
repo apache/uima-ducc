@@ -18,14 +18,22 @@
 */
 package org.apache.uima.ducc.cli.ws.json;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.google.gson.Gson;
 
 public class MachineFactsTest {
-
+	
 	private long shareSize = 15;
 	
 	private Random random = new Random();
@@ -141,15 +149,57 @@ public class MachineFactsTest {
 		return machineFactsList;
 	}
 	
-	public static void main(String[] args) {
+	private boolean compare(MachineFacts m1, MachineFacts m2) {
+		boolean retVal = false;
+		try {
+			if(true
+			&& m1.heartbeat.equals(m2.heartbeat) 
+			&& m1.ip.equals(m2.ip) 
+			&& m1.memory.equals(m2.memory) 
+			&& m1.name.equals(m2.name) 
+			&& m1.reserve.equals(m2.reserve) 
+			&& m1.sharesInuse.equals(m2.sharesInuse) 
+			&& m1.sharesTotal.equals(m2.sharesTotal)
+			&& m1.status.equals(m2.status) 
+			&& m1.swap.equals(m2.swap) 
+			) {
+				retVal = true;
+			}
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	
+	@BeforeClass
+	public static void setUpBeforeClass() throws Exception {
+	}
+
+	@AfterClass
+	public static void tearDownAfterClass() throws Exception {
+	}
+
+	@Before
+	public void setUp() throws Exception {
+	}
+
+	@After
+	public void tearDown() throws Exception {
+	}
+
+	@Test
+	public void testMachineFacts() {
 		MachineFactsTest machineFactsTest = new MachineFactsTest();
 		MachineFactsList machineFactsList = machineFactsTest.createMachineFactsList();
 		Gson gson = new Gson();
 		String jSon = gson.toJson(machineFactsList);
-		System.out.println(jSon);
 		MachineFactsList reconstituted = gson.fromJson(jSon, MachineFactsList.class);
-		for(MachineFacts machine : reconstituted) {
-			System.out.println(machine.name);
+		for(int i=0; i<machineFactsList.size(); i++) {
+			MachineFacts m1 = machineFactsList.get(i);
+			MachineFacts m2 = reconstituted.get(i);
+			if(!compare(m1,m2)) {
+				fail("missing "+"name="+m1.name);
+			}
 		}
 	}
 

@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.cli.aio.AllInOneLauncher;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitJobDuccEvent;
