@@ -82,7 +82,7 @@
  * BUFFLEN is largest size for our stack buffers.
  * STRLEN  is longest string we'll place into a stack buffer.
  */
-#define BUFLEN (PATH_MAX)
+#define BUFLEN (4096)
 #define STRLEN (BUFLEN-1)
 
 static int quiet = 0;
