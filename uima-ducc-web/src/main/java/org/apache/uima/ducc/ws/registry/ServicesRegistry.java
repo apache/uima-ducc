@@ -189,25 +189,4 @@ public class ServicesRegistry {
 		}
 		return retVal;
 	}
-	
-	/*
-	
-	public static ServicesRegistry sr = new ServicesRegistry();
-	
-	public static void test(long id) {
-		DuccId duccId = new DuccId(id);
-		String name = sr.findServiceName(duccId);
-		if(name == null) {
-			System.out.println(id+" not found");
-		}
-		else {
-			System.out.println(id+" => "+name);
-		}
-	}
-	
-	public static void main(String[] args) {
-		test(3);
-		test(9);
-	}
-	*/
 }
