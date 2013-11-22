@@ -63,7 +63,7 @@ public class WorkItem implements Runnable {
 	public AtomicBoolean isLost = new AtomicBoolean(false);
 	
 	// <for testing only!!!>
-	boolean injectRandom = false;
+	private final static boolean injectRandom = false;
 	// </for testing only!!!>
 	
 	public WorkItem(UimaAsynchronousEngine client, CasTuple casTuple, DuccId duccId, IWorkItemMonitor workItemMonitor) {

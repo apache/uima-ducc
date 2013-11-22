@@ -37,10 +37,10 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	private DuccId jobid;
 	
 	// <for testing only!!!>
-	boolean asynchronous = false;
-	boolean injectLost1 = false;
-	boolean injectLost2 = false;
-	boolean injectDelay3 = false;
+	private final static boolean asynchronous = false;
+	private final static boolean injectLost1 = false;
+	private final static boolean injectLost2 = false;
+	private final static boolean injectDelay3 = false;
 	// </for testing only!!!>
 	
 	public WorkItemListener(IJobDriver jobDriver) {
