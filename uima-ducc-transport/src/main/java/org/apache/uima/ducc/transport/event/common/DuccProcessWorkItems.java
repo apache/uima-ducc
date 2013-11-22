@@ -210,46 +210,4 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 		return retVal;
 	}
 	
-	// <test>
-	
-	private static void stats(DuccProcessWorkItems pwi) {
-		System.out.println("     done: "+pwi.getCountDone());
-		System.out.println("    error: "+pwi.getCountError());
-		System.out.println("    retry: "+pwi.getCountRetry());
-		System.out.println(" dispatch: "+pwi.getCountDispatch());
-		System.out.println("avg(secs): "+pwi.getSecsAvg());
-		System.out.println("min(secs): "+pwi.getSecsMin());
-		System.out.println("max(secs): "+pwi.getSecsMax());
-	}
-	
-	private static void done(DuccProcessWorkItems pwi, int msecs) {
-		pwi.dispatch();
-		pwi.done(msecs);
-	}
-	
-	private static void error(DuccProcessWorkItems pwi) {
-		pwi.dispatch();
-		pwi.error();
-	}
-	
-	private static void retry(DuccProcessWorkItems pwi) {
-		pwi.dispatch();
-		pwi.retry();
-	}
-	
-	public static void main(String[] args) {
-		DuccProcessWorkItems pwi = new DuccProcessWorkItems();
-		pwi.dispatch();
-		done(pwi,30000);
-		done(pwi,40000);
-		for(int i=0; i<9; i++) {
-			error(pwi);
-		}
-		for(int i=0; i<4; i++) {
-			retry(pwi);
-		}
-		stats(pwi);
-	}
-	
-	// </test>
 }
