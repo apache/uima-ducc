@@ -2673,7 +2673,8 @@ function ducc_submit_reservation()
 			{
 				type: 'POST',
 				url : "/ducc-servlet/reservation-submit-request",
-				data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'instance_memory_units':instance_memory_units,'number_of_instances':number_of_instances,'description':description},
+				//data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'instance_memory_units':instance_memory_units,'number_of_instances':number_of_instances,'description':description},
+				data: {'scheduling_class':scheduling_class,'instance_memory_size':instance_memory_size,'number_of_instances':number_of_instances,'description':description},
 				success : function (data) 
 				{
 					setTimeout(function(){window.close();}, 5000);
