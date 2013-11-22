@@ -365,7 +365,7 @@ public class AgentConfiguration {
     if (ip != null) {
       // Inject IP to enable deployment of multiple Agents on the same node with
       // different identity
-      ni = new NodeIdentity(ip, nodeName); // this should only be used for testing
+      ni = new NodeIdentity(ip, nodeName); // this should only be used for simulation
     } else {
       ni = new NodeIdentity();
     }

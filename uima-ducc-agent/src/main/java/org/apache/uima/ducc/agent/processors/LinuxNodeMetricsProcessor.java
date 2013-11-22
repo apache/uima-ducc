@@ -164,23 +164,4 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 		}
 	}
 
-	public void testMemInfo() throws Exception {
-		NodeMemInfoCollector memCollector = new NodeMemInfoCollector(MeminfoTargetFields);// memCollector = new NodeMemInfoCollector(
-		Future<NodeMemory> nmi = pool.submit(memCollector);
-		NodeMemory mi = nmi.get(); // wait for the metrics
-		System.out.println("....... Got the MemInfo - Total memory:"
-				+ mi.getMemTotal());
-
-	}
-
-	public void testLoadAvg() throws Exception {
-		NodeLoadAverageCollector loadCollector = new NodeLoadAverageCollector(
-				loadAvgFile, 5, 0);
-		Future<NodeLoadAverage> nlai = pool.submit(loadCollector);
-		NodeLoadAverage lai = nlai.get(); // wait for the metrics
-		System.out.println("....... Got the LoadAverage Info LoadAvg1:"
-				+ lai.getLoadAvg1() + " " + lai.getLoadAvg5() + " "
-				+ lai.getLoadAvg15());
-
-	}
 }
