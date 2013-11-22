@@ -567,6 +567,7 @@ under the License.
       <directory>uima-ducc-web/src/main/webapp/root</directory>
       <outputDirectory>ducc_runtime/webserver/root</outputDirectory>
       <excludes>
+         <exclude>opensources/DataTables-1.9.1/media/original/**</exclude>
          <exclude>opensources/**/*.txt</exclude>
       </excludes>
       <fileMode>644</fileMode>
