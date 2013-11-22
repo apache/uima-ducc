@@ -95,7 +95,7 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
   }
   public void start( long delay, String nodeName, String[] pids) {
     try {
-      Agent agent = new TestAgent(agentProcesses);
+      Agent agent = new SimAgent(agentProcesses);
       for (String pid : pids) {
         exemptProcesses.add( new ManagedProcess(pid));
       }
@@ -140,14 +140,14 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
    * Dummy Agent
    *
    */
-  class TestAgent implements Agent {
+  class SimAgent implements Agent {
     public DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
 
     List<ManagedProcess> deployedProcesses;
     private RogueProcessReaper rogueProcessReaper = 
             new RogueProcessReaper(null, 5, 10);
     
-    public TestAgent(List<ManagedProcess> deployedProcesses) {
+    public SimAgent(List<ManagedProcess> deployedProcesses) {
       this.deployedProcesses = deployedProcesses;
     }
     public void startProcess(IDuccProcess process, ICommandLine commandLine,
