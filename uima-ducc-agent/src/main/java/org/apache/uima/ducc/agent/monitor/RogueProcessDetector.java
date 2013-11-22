@@ -62,8 +62,8 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
   public static Object lock = new Object();
   //  processes managed by the agent
   List<ManagedProcess> agentProcesses = new ArrayList<ManagedProcess>();
-  //  processes not managed by the agent, added to the inventory for testing via -p option
-  List<ManagedProcess> testProcesses = new ArrayList<ManagedProcess>();
+  //  processes not managed by the agent, added to the inventory for exemption via -p option
+  List<ManagedProcess> exemptProcesses = new ArrayList<ManagedProcess>();
   
   private static ActiveMQComponent duccAMQComponent = null;
 
@@ -97,9 +97,9 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
     try {
       Agent agent = new TestAgent(agentProcesses);
       for (String pid : pids) {
-        testProcesses.add( new ManagedProcess(pid));
+        exemptProcesses.add( new ManagedProcess(pid));
       }
-      agentProcesses.addAll(testProcesses);
+      agentProcesses.addAll(exemptProcesses);
       nodeToMonitor = nodeName;
       
       loadProperties(DUCC_PROPERTY_FILE);
@@ -414,7 +414,7 @@ public class RogueProcessDetector extends AbstractDuccComponent implements Proce
               if ( clear ) {
                 clear = false;
                 agentProcesses.clear(); // remove old inventory and refresh from new agent inventory
-                agentProcesses.addAll(testProcesses); // copy test processes
+                agentProcesses.addAll(exemptProcesses); // copy exempt processes
               }
               System.out.println("---------- Got Node Process - PID="+process.getValue().getPID());
               agentProcesses.add(new ManagedProcess(process.getValue().getPID()));
