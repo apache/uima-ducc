@@ -613,10 +613,6 @@
 			<artifactId>uimaj-as-activemq</artifactId>
 			<exclusions>
 				<exclusion>
-					<artifactId>activemq-console</artifactId>
-					<groupId>org.apache.activemq</groupId>
-				</exclusion>
-				<exclusion>
 					<artifactId>jetty-webapp</artifactId>
 					<groupId>org.eclipse.jetty</groupId>
 				</exclusion>

@@ -32,6 +32,7 @@ under the License.
    <dependencySets>
     
     <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>com.thoughtworks.xstream:xstream</include>
       </includes>
@@ -43,6 +44,7 @@ under the License.
     </dependencySet>
 
     <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.kohsuke:libpam4j</include>
       </includes>
@@ -54,6 +56,7 @@ under the License.
     </dependencySet>
 
     <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>net.java.dev.jna:jna</include>
       </includes>
@@ -66,6 +69,7 @@ under the License.
 
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uima-ducc-common</include>
         <include>org.apache.uima:uima-ducc-transport</include>
@@ -88,9 +92,10 @@ under the License.
    
    <!-- Google GSon -->   
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>com.google.code.gson:gson</include>
-     </includes>      
+      </includes>      
       <outputDirectory>ducc_runtime/lib/google-gson</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -99,6 +104,7 @@ under the License.
     
      <!-- UIMA-AS -->   
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uimaj-as-core</include>
         <include>org.apache.uima:uimaj-as-jms</include>
@@ -113,6 +119,7 @@ under the License.
 
      <!-- UIMA Core -->
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uimaj-core</include>
       </includes>      
@@ -124,6 +131,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-cli:commons-cli</include>
       </includes>      
@@ -134,6 +142,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>log4j:log4j</include>
       </includes>      
@@ -144,6 +153,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.xmlbeans:xmlbeans</include>
       </includes>      
@@ -154,6 +164,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>com.google.guava:guava</include>
       </includes>      
@@ -164,6 +175,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>joda-time:joda-time</include>
       </includes>      
@@ -174,6 +186,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-httpclient:commons-httpclient</include>
       </includes>      
@@ -184,6 +197,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-codec:commons-codec</include>
       </includes>      
@@ -194,6 +208,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-collections:commons-collections</include>
       </includes>      
@@ -204,6 +219,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-lang:commons-lang</include>
       </includes>      
@@ -214,6 +230,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.commons:commons-math</include>
       </includes>      
@@ -224,6 +241,7 @@ under the License.
     </dependencySet>
 
     <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>junit:junit</include>
       </includes>      
@@ -234,6 +252,7 @@ under the License.
     </dependencySet>
             
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.activemq:activemq-core</include>
         <include>org.apache.activemq:activemq-camel</include>
@@ -252,6 +271,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-logging:commons-logging</include>
         <include>commons-httpclient:commons-httpclient</include>
@@ -304,6 +324,7 @@ under the License.
 
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.camel:camel-context</include>
         <include>org.apache.camel:camel-http</include>
@@ -330,6 +351,7 @@ under the License.
     </dependencySet>
 
      <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.springframework:spring-core</include>
         <include>org.springframework:spring-expression</include>
