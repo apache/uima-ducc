@@ -36,9 +36,6 @@ import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
-import org.apache.uima.ducc.transport.event.common.DuccUimaAggregate;
-import org.apache.uima.ducc.transport.event.common.DuccUimaAggregateComponent;
-import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaAggregate;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaAggregateComponent;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeployableConfiguration;
@@ -230,36 +227,5 @@ public class DeploymentDescriptorGenerator {
 					);
 		return writeDDFile(dd.toXML(), jobId);
 	}
-	public static void main(String args[]) {
-		DuccLogger logger=null;
-		try {
-			logger = new DuccLogger(DeploymentDescriptorGenerator.class, "TestDuccComponent");
-			String logDir = System.getProperty("user.dir");
-			DeploymentDescriptorGenerator 
-			   ddg = new DeploymentDescriptorGenerator("JD", logger, logDir);
-			
-			
-			IDuccUimaDeploymentDescriptor dd = new DuccUimaDeploymentDescriptor(args[0]);			
-			ddg.generateDeploymentDescriptor(dd,"120");
-			
 
-			
-			
-			
-			DuccUimaAggregate dua = new DuccUimaAggregate("TestAggregate", "Some Description", 1, "tcp://localhost:61616", "uima-as.jd.3");
-			DuccUimaAggregateComponent duac = new DuccUimaAggregateComponent("org.apache.uima.ducc.common.test.randomsleep.RandomSleepAE", new ArrayList<String>());
-			List<IDuccUimaAggregateComponent> components = 
-					new ArrayList<IDuccUimaAggregateComponent>();
-			components.add(duac);
-			dua.setComponents(components);
-			String serializedDD = ddg.generate(dua,"3");
-			System.out.println(">>>>>>>>> DD Path:"+serializedDD);
-		} catch( Exception e) {
-			e.printStackTrace();
-		} finally {
-			if ( logger != null ) {
-				logger.shutdown();
-			}
-		}
-	}
 }
