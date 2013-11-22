@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.jd.client;
 
 import java.util.TreeMap;
-import java.util.Iterator;
 
 public class Plist {
 
@@ -55,53 +54,4 @@ public class Plist {
 		return parameterMap;
 	}
 	
-	/*
-	 * <test only>
-	 */
-	
-	private void dump() {
-		TreeMap<String,String> map = this.getParameterMap();
-		Iterator<String> iterator = map.keySet().iterator();
-		while(iterator.hasNext()) {
-			String name = iterator.next();
-			String value = map.get(name);
-			System.out.println("name:"+name+" "+"value:"+value);
-		}
-	}
-	
-	public static void main(String[] args) {
-		Plist plist;
-		String test;
-		test = "WorkItems:0-59,FailItems:17-18";
-		plist = new Plist(test);
-		plist.dump();
-		test = "WorkItems=0-59,FailItems=17-18";
-		plist = new Plist(test);
-		plist.dump();
-		test = "x:1,y:2,z:http://3";
-		plist = new Plist(test);
-		plist.dump();
-		test = null;
-		plist = new Plist(test);
-		plist.dump();
-		test = "x";
-		plist = new Plist(test);
-		plist.dump();
-		test = "x:";
-		plist = new Plist(test);
-		plist.dump();
-		test = ":1";
-		plist = new Plist(test);
-		plist.dump();
-		test = ",";
-		plist = new Plist(test);
-		plist.dump();
-		test = ":,";
-		plist = new Plist(test);
-		plist.dump();
-	}
-	
-	/*
-	 * </test only>
-	 */	
 }
