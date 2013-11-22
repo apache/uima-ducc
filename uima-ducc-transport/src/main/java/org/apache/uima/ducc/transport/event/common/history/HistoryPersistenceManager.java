@@ -348,7 +348,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return serviceRestore(fileName, Verbosity.QUIET);
 	}
 	
-	///// <test>
+	///// <tool>
 	
 	private static int doJobs(HistoryPersistenceManager hpm) throws IOException, ClassNotFoundException {
 		ArrayList<IDuccWorkJob> duccWorkJobs = hpm.jobRestore();
@@ -391,6 +391,6 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		System.out.println("reservations: "+reservations);
 	}
 
-	///// </test>
+	///// </tool>
 
 }
