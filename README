@@ -23,10 +23,16 @@ To build UIMA-DUCC, install Java SDK 6 or later.
 Then build from the directory containing this README by issuing the command
    mvn clean install.
    
-This builds everything except the ...source-release.zip file. If you want that,
-change the command to 
+This builds everything except the ...source-release.zip file and DUCC documentation. 
+To build documentation make sure you have LATEX installed and change the command to:
+
+   mvn clean install.-Pbuild-duccdocs
+
+To build everything including the ...source-release.zip, change the command to 
 
    mvn clean install -Papache-release
+   
+The above also builds DUCC documentation.   
    
 Look for the result in the two artifacts: 
    target/uima-ducc-[version]-source-release.zip (if run with -Papache-release) and
@@ -38,9 +44,8 @@ For more details, please see http://uima.apache.org/building-uima.html
 ====================== 
   
 UIMA DUCC 1.0.0 is the first Apache release. For up-to-date information on UIMA-DUCC 
-issues, see our issue tracker: http://issues.apache.org/jira/browse/UIMA/components/12319807
-
-
+issues, see our issue tracker: http://issues.apache.org/jira/browse/UIMA-2663?jql=project%20%3D%20UIMA%20AND%20component%20&3D%20ORDER%20BY%20priority%20DESC
+   
 4. Contents of Apache UIMA DUCC binary distribution
 --------------------------------------------------
 
@@ -65,6 +70,8 @@ The Apache UIMA DUCC binary distribution includes
   - JODA Time version 1.2
   - Google Guava version 0.9
   - Google-Gson version 2.2.2
+  - libpam4j 1.7
+  - jna 4.0.0
   
   shell scripts:
   --------------
@@ -103,8 +110,9 @@ Please refer to docs/install.pdf for installation instructions.
 5.1 Supported Platforms
 -----------------------
 
-UIMA-DUCC Requires Java 6 or later. It has been tested with Sun Java 6 on Linux,
-and with IBM Java 6 on Linux. 
+UIMA-DUCC has been tested with Sun Java 6 as well as IBM Java 6 on Linux. The cluster of machines DUCC manages
+must all be running a reasonably current level of Linux; other operating systems are not supported.
+. 
 
 
 6. Known problems/limitations with Release 1.0.0
@@ -121,6 +129,10 @@ a) Chapter 13.3 States: "Because non-preemptable allocations can’t be
    especially on large systems.  If this causes problems, usually classes
    can be reconfigured to bypass the issue  The behavior is to be 
    addressed in a future release.
+
+b) By default, we dont build DUCC documentation when doing mvn clean install. Building
+   docs requires LATEX installed which is a considerable download (over 1 Gig).
+   
 
 Crypto Notice
 -------------
