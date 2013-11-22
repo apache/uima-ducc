@@ -62,6 +62,10 @@ public class WorkItem implements Runnable {
 	
 	public AtomicBoolean isLost = new AtomicBoolean(false);
 	
+	// <for testing only!!!>
+	boolean injectRandom = false;
+	// </for testing only!!!>
+	
 	public WorkItem(UimaAsynchronousEngine client, CasTuple casTuple, DuccId duccId, IWorkItemMonitor workItemMonitor) {
 		init(client, casTuple, duccId, workItemMonitor);
 	}
@@ -125,18 +129,6 @@ public class WorkItem implements Runnable {
 		return callbackState;
 	}
 	
-	protected void injectRandomThrowable() throws Throwable {
-		// < *** TEST ONLY!!! *** >
-		final boolean test = false;
-		if(test) {
-			Random random = new Random();
-			if(random.nextBoolean()) {
-				throw new Throwable("just testing Throwable handler");
-			}
-		}
-		// </ *** TEST ONLY!!! *** >
-	}
-	
 	public void run() {
 		String methodName = "run";
 		duccOut.debug(methodName, jobId, duccMsg.fetch("enter"));
@@ -149,7 +141,14 @@ public class WorkItem implements Runnable {
 				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+callbackState.getState());
 				client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
 				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
-				//injectRandomThrowable();
+				// <for testing only!!!>
+				if(injectRandom) {
+					Random random = new Random();
+					if(random.nextBoolean()) {
+						throw new Throwable("just testing Throwable handler");
+					}
+				}
+				// </for testing only!!!>
 				if(!isLost.get()) {
 					ended();
 				}
