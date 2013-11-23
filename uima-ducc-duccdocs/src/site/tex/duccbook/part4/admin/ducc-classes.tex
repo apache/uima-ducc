@@ -102,7 +102,7 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
     and are evicted only after all {\em squatters} have been evicted.)  The scheduler strives
     to avoid creating {\em squatters}.
 
-    Because non-preemptable allocations can't be preempeted, work submitted to a class
+    Because non-preemptable allocations can't be preempted, work submitted to a class
     implementing one of the non-preemptable policies (FIXED or RESERVE) are never allowed
     to ``squat'' in other nodepools and are only scheduled on nodes in their
     proper nodepool.
@@ -170,8 +170,8 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
         nodes named in the file {\em power.nodes}.
       \item A subpool of ``intel'' called ``nightly-test'', consisting of the 
         nodes named in {\em nightly-test.nodes}.
-      \item And a subpool of ``power'' called ``testing-p7'', consisting of the
-        nodes named in {\em timing-ps.nodes}.
+      \item And a subpool of ``power'' called ``timing-p7'', consisting of the
+        nodes named in {\em timing-p7.nodes}.
     \end{enumerate}
 
     \begin{figure}[H]
@@ -244,16 +244,16 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
         are valid for reservations.)
 
       \item[enforce] RESERVE only.  If specified, then reservations for this class must specify a
-        memory size that exactly matches an eligible machine, modulo the share quanta.  For example,
-        if the share quanta is 15G, a 15G reservation will never be honored on a 256G machine; in this
-        case a 240G (or more) reservations must be specified.  The DUCC Web Server's {\em Machines} page
-        displays the recommended request size for every machine.  
+        memory size that when converted to shares exactly matches an eligible machine.  For example,
+        if the share quantum is 15GB, a 15GB reservation will never be honored by a 240GB machine; 
+        for this machine a memory size between 226 \& 240GB would have to be specified.  
+        The DUCC Web Server's {\em Machines} page displays the recommended request size for every machine.  
 
         If {\em enforce} is not specified, the default is ``true''.
 
         If {\em enforce} is set to false, the scheduler will attempt to match the reservation as 
         closely as possible to an existing machine, and if it cannot it will use the next largest
-        machine available.  Thus, a 15G reservation {\em might} be satisfied with a 240G machine if
+        machine available.  Thus, a 15GB reservation {\em might} be satisfied with a 240GB machine if
         that is all that is available at the time.
 
       \item[expand-by-doubling] FAIR\_SHARE only.  If ``true'', and the {\em initialization-cap} is
