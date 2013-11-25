@@ -240,17 +240,6 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>junit:junit</include>
-      </includes>      
-      <outputDirectory>ducc_runtime/lib/junit</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-            
      <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
