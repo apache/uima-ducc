@@ -74,6 +74,15 @@
     
     <target name="java-home">
         <echo message="${java-home}"/>
+        <fail message="Please insure that ducc.properties key=ducc.jvm value=${java-home}/bin/java is part of a JDK: ${java-home}/lib/jconsole.jar was not found.">
+            <condition>
+                <not>
+                    <resourcecount count="1">
+                        <fileset id="fs" dir="${java-home}/lib/" includes="jconsole.jar"/>
+                    </resourcecount>
+                </not>
+            </condition>
+        </fail>
     </target>
     
     <target name="ducc-home">
