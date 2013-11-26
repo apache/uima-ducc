@@ -150,7 +150,7 @@
 		<junit.version>4.8.2</junit.version>
 		<jetty.version>7.4.4.v20110707</jetty.version>
 		<servlet.api.version>2.5</servlet.api.version>
-		<aopalliance.version>1.0</aopalliance.version>
+		<!-- aopalliance.version>1.0</aopalliance.version -->
 		<commons.management.version>1.0</commons.management.version>
 		<commons.pool.version>1.5.4</commons.pool.version>
 		<geronimo.servlet-spec.version>1.2</geronimo.servlet-spec.version>
@@ -442,11 +442,11 @@
 				<version>${org.springframework.version}</version>
 			</dependency>
 
-			<dependency>
+			<!-- dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-aop</artifactId>
 				<version>${org.springframework.version}</version>
-			</dependency>
+			</dependency -->
 
 			<dependency>
 				<groupId>org.springframework</groupId>
@@ -515,11 +515,11 @@
 				<version>${mina.core.version}</version>
 			</dependency>
 
-			<dependency>
+			<!-- dependency>
 				<groupId>aopalliance</groupId>
 				<artifactId>aopalliance</artifactId>
 				<version>${aopalliance.version}</version>
-			</dependency>
+			</dependency -->
 
 			<dependency>
 				<groupId>commons-httpclient</groupId>
@@ -742,10 +742,10 @@
 			<artifactId>spring-beans</artifactId>
 		</dependency>
 
-		<dependency>
+		<!-- dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-aop</artifactId>
-		</dependency>
+		</dependency -->
 
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -773,11 +773,11 @@
 			<artifactId>spring-context-support</artifactId>
 		</dependency>
 
-		<dependency>
+		<!-- dependency>
 			<groupId>aopalliance</groupId>
 			<artifactId>aopalliance</artifactId>
 
-		</dependency>
+		</dependency-->
 
 		<dependency>
 			<groupId>commons-pool</groupId>
