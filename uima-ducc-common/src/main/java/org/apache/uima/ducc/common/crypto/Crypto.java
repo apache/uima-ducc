@@ -191,6 +191,13 @@ public class Crypto implements ICrypto {
 	}
 	
 	private void chmod(String fileName, String permissions) throws CryptoException {
+	  String osName = System.getProperty("os.name");
+	  if (osName.startsWith("Windows")) {
+	    // Windows is not supported for running
+	    // For building, some tests run through this code,
+	    //   so we bypass doing the chmod on Windows environments
+	    return;
+	  }
 		try {
 			exec("chmod "+permissions+" "+fileName);
 		}
