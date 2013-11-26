@@ -37,7 +37,7 @@ under the License.
         <include>com.thoughtworks.xstream:xstream</include>
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>ducc_runtime/lib/xstream</outputDirectory>
+      <outputDirectory>lib/xstream</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -49,7 +49,7 @@ under the License.
         <include>org.kohsuke:libpam4j</include>
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>ducc_runtime/lib/libpam4j</outputDirectory>
+      <outputDirectory>lib/libpam4j</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -61,7 +61,7 @@ under the License.
         <include>net.java.dev.jna:jna</include>
       </includes>
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>ducc_runtime/lib/jna</outputDirectory>
+      <outputDirectory>lib/jna</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -84,7 +84,7 @@ under the License.
         <include>org.apache.uima:uima-ducc-examples</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>ducc_runtime/lib</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -96,7 +96,7 @@ under the License.
       <includes>
         <include>com.google.code.gson:gson</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/google-gson</outputDirectory>
+      <outputDirectory>lib/google-gson</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -111,7 +111,7 @@ under the License.
         <include>org.apache.uima:uimaj-as-activemq</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
+      <outputDirectory>lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -124,7 +124,7 @@ under the License.
         <include>org.apache.uima:uimaj-core</include>
       </includes>      
       <outputFileNameMapping>uima-core.jar</outputFileNameMapping>
-      <outputDirectory>ducc_runtime/lib/uima</outputDirectory>
+      <outputDirectory>lib/uima</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -135,7 +135,7 @@ under the License.
       <includes>
         <include>commons-cli:commons-cli</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/apache-commons-cli</outputDirectory>
+      <outputDirectory>lib/apache-commons-cli</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -146,7 +146,7 @@ under the License.
       <includes>
         <include>log4j:log4j</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/apache-log4j</outputDirectory>
+      <outputDirectory>lib/apache-log4j</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -157,7 +157,7 @@ under the License.
       <includes>
         <include>org.apache.xmlbeans:xmlbeans</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/xmlbeans</outputDirectory>
+      <outputDirectory>lib/xmlbeans</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -168,7 +168,7 @@ under the License.
       <includes>
         <include>com.google.guava:guava</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/guava</outputDirectory>
+      <outputDirectory>lib/guava</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -179,7 +179,7 @@ under the License.
       <includes>
         <include>joda-time:joda-time</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/joda-time</outputDirectory>
+      <outputDirectory>lib/joda-time</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -190,7 +190,7 @@ under the License.
       <includes>
         <include>commons-httpclient:commons-httpclient</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/http-client</outputDirectory>
+      <outputDirectory>lib/http-client</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -201,7 +201,7 @@ under the License.
       <includes>
         <include>commons-codec:commons-codec</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/http-client</outputDirectory>
+      <outputDirectory>lib/http-client</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -212,7 +212,7 @@ under the License.
       <includes>
         <include>commons-collections:commons-collections</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/apache-commons-collections</outputDirectory>
+      <outputDirectory>lib/apache-commons-collections</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -223,7 +223,7 @@ under the License.
       <includes>
         <include>commons-lang:commons-lang</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/apache-commons-lang</outputDirectory>
+      <outputDirectory>lib/apache-commons-lang</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -234,7 +234,7 @@ under the License.
       <includes>
         <include>org.apache.commons:commons-math</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/apache-commons-math</outputDirectory>
+      <outputDirectory>lib/apache-commons-math</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -253,7 +253,7 @@ under the License.
         <include>org.apache.geronimo.specs:geronimo-jms_1.1_spec</include>
         <include>xpp3:xpp3</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/apache-activemq</outputDirectory>
+      <outputDirectory>lib/apache-activemq</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -304,7 +304,7 @@ under the License.
 
       </includes>      
 
-      <outputDirectory>ducc_runtime/activemq/lib</outputDirectory>
+      <outputDirectory>activemq/lib</outputDirectory>
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -333,7 +333,7 @@ under the License.
         <include>org.apache.mina:mina-core</include>
 
       </includes>      
-      <outputDirectory>ducc_runtime/lib/apache-camel</outputDirectory>
+      <outputDirectory>lib/apache-camel</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -356,7 +356,7 @@ under the License.
         <include>org.slf4j:slf4j-api</include>
         <include>aopalliance:aopalliance</include>
       </includes>      
-      <outputDirectory>ducc_runtime/lib/springframework</outputDirectory>
+      <outputDirectory>lib/springframework</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
@@ -372,7 +372,7 @@ under the License.
     
     <fileSet>
       <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
-      <outputDirectory>ducc_runtime/activemq</outputDirectory>
+      <outputDirectory>activemq</outputDirectory>
       <includes>
         <include>bin/*</include>
         <include>bin/**/*</include>
@@ -399,7 +399,7 @@ under the License.
 
     <fileSet>
       <directory>src/main/config/</directory>
-      <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
+      <outputDirectory>activemq/conf</outputDirectory>
       <includes>
         <include>activemq-ducc.xml</include>
         <include>ducc-broker-credentials.properties</include>
@@ -411,7 +411,7 @@ under the License.
     <!--  For binary tarbal include LICENSE and NOTICE.  -->
     <fileSet>
       <directory>src/main/legal/</directory>
-      <outputDirectory>ducc_runtime</outputDirectory>
+      <outputDirectory></outputDirectory>
       <includes>
         <include>LICENSE</include>
         <include>NOTICE</include>
@@ -423,7 +423,7 @@ under the License.
     <!--      JETTY  -->
     <fileSet>
       <directory>target/jetty/jetty-distribution-7.4.4.v20110707/lib</directory>
-      <outputDirectory>ducc_runtime/webserver/lib</outputDirectory>
+      <outputDirectory>webserver/lib</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -433,7 +433,7 @@ under the License.
     
     <fileSet>
       <directory>src/main/resources</directory>
-      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <outputDirectory>resources</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes />
@@ -441,7 +441,7 @@ under the License.
 
     <fileSet>
       <directory>uima-ducc-cli/target</directory>
-      <outputDirectory>ducc_runtime/lib</outputDirectory>
+      <outputDirectory>lib</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes>
@@ -454,7 +454,7 @@ under the License.
 
     <fileSet>
       <directory>src/main/config</directory>
-      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <outputDirectory>resources</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes />
@@ -463,7 +463,7 @@ under the License.
 
     <fileSet>
       <directory>src/main/legal</directory>
-      <outputDirectory>ducc_runtime/</outputDirectory>
+      <outputDirectory></outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes />
@@ -471,7 +471,7 @@ under the License.
 
     <fileSet>
       <directory></directory>
-      <outputDirectory>ducc_runtime</outputDirectory>
+      <outputDirectory></outputDirectory>
       <includes>
         <include>README</include>
         <include>RELEASE_NOTES.html</include>
@@ -484,7 +484,7 @@ under the License.
 
     <fileSet>
       <directory>src/main/admin</directory>
-      <outputDirectory>ducc_runtime/admin</outputDirectory>
+      <outputDirectory>admin</outputDirectory>
       <fileMode>750</fileMode>
       <directoryMode>750</directoryMode>
       <!--  exclude DuccHello.java. It will be copied separately
@@ -497,7 +497,7 @@ under the License.
      -->
     <fileSet>
       <directory>src/main/assembly</directory>
-      <outputDirectory>ducc_runtime/state</outputDirectory>
+      <outputDirectory>state</outputDirectory>
       <excludes>
         <exclude>*</exclude>
       </excludes>
@@ -507,7 +507,7 @@ under the License.
 
     <fileSet>
       <directory>src/main/scripts</directory>
-      <outputDirectory>ducc_runtime/bin</outputDirectory>
+      <outputDirectory>bin</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>
       <includes />
@@ -519,7 +519,7 @@ under the License.
 
     <fileSet>
       <directory>uima-ducc-spawn/src</directory>
-      <outputDirectory>ducc_runtime/duccling/src</outputDirectory>
+      <outputDirectory>duccling/src</outputDirectory>
       <fileMode>750</fileMode>
       <directoryMode>755</directoryMode>
       <includes />
@@ -528,7 +528,7 @@ under the License.
 
     <fileSet>
       <directory>uima-ducc-spawn</directory>
-      <outputDirectory>ducc_runtime/duccling</outputDirectory>
+      <outputDirectory>duccling</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes>
@@ -539,7 +539,7 @@ under the License.
 
     <fileSet>
       <directory>src/main/saxon</directory>
-      <outputDirectory>ducc_runtime/lib/saxon</outputDirectory>
+      <outputDirectory>lib/saxon</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -547,14 +547,14 @@ under the License.
         
     <fileSet>
       <directory>uima-ducc-web/src/main/webapp/etc</directory>
-      <outputDirectory>ducc_runtime/webserver/etc</outputDirectory>
+      <outputDirectory>webserver/etc</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
 
     <fileSet>
       <directory>uima-ducc-web/src/main/webapp/root</directory>
-      <outputDirectory>ducc_runtime/webserver/root</outputDirectory>
+      <outputDirectory>webserver/root</outputDirectory>
       <excludes>
          <exclude>opensources/DataTables-1.9.1/media/original/**</exclude>
          <exclude>opensources/**/*.txt</exclude>
@@ -566,7 +566,7 @@ under the License.
     <fileSet>
       <!--  build up the sample code resources  -->
       <directory>uima-ducc-examples/src/main/resources/org/apache/uima/ducc/sampleapps</directory>
-      <outputDirectory>ducc_runtime/examples/descriptors/sampleapps</outputDirectory>
+      <outputDirectory>examples/descriptors/sampleapps</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       
@@ -578,7 +578,7 @@ under the License.
     <fileSet>
       <!-- build up the verification test jobs -->
       <directory>uima-ducc-examples/src/main/resources/sleepjobs</directory>
-      <outputDirectory>ducc_runtime/examples/simple</outputDirectory>
+      <outputDirectory>examples/simple</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
@@ -590,7 +590,7 @@ under the License.
     <fileSet>
       <!-- build up the verification scripting -->
       <directory>uima-ducc-examples/src/main/scripts</directory>
-      <outputDirectory>ducc_runtime/examples/systemtest</outputDirectory>
+      <outputDirectory>examples/systemtest</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -598,7 +598,7 @@ under the License.
     <fileSet>
       <!-- build up the verification test jobs -->
       <directory>uima-ducc-examples/src/main/resources/org/apache/uima/ducc/test</directory>
-      <outputDirectory>ducc_runtime/examples/simple/resources</outputDirectory>
+      <outputDirectory>examples/simple/resources</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
@@ -609,7 +609,7 @@ under the License.
     <fileSet>
       <!-- build up the verification test source -->
       <directory>uima-ducc-examples/src/main/java</directory>
-      <outputDirectory>ducc_runtime/examples/src</outputDirectory>
+      <outputDirectory>examples/src</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -617,7 +617,7 @@ under the License.
     <fileSet>
       <!-- build up the verification test source -->
       <directory>uima-ducc-examples/src/main/systemtest</directory>
-      <outputDirectory>ducc_runtime/examples/systemtest</outputDirectory>
+      <outputDirectory>examples/systemtest</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -625,7 +625,7 @@ under the License.
     <fileSet>
       <!-- build up the webserver directory -->
       <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage/duccbook</directory>
-      <outputDirectory>ducc_runtime/webserver/root/doc</outputDirectory>
+      <outputDirectory>webserver/root/doc</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
@@ -637,7 +637,7 @@ under the License.
   <fileSet>
       <!-- build up the webserver directory -->
       <directory>uima-ducc-duccdocs/target/site/reference/html_singlepage/duccbook</directory>
-      <outputDirectory>ducc_runtime/webserver/root/doc/images</outputDirectory>
+      <outputDirectory>webserver/root/doc/images</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       <includes>
@@ -649,7 +649,7 @@ under the License.
   <fileSet>
       <!-- add javadocs to the webserver directory -->
       <directory>target/site</directory>
-      <outputDirectory>ducc_runtime/webserver/root/doc</outputDirectory>
+      <outputDirectory>webserver/root/doc</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
@@ -657,7 +657,7 @@ under the License.
     
 <fileSet>
       <directory>uima-ducc-duccdocs/target/site/duccbook</directory>
-      <outputDirectory>ducc_runtime/doc</outputDirectory>
+      <outputDirectory>doc</outputDirectory>
       <includes>
         <include>*.pdf</include>
       </includes>
@@ -669,118 +669,46 @@ under the License.
   
   <files>
   
-  <!-- file>
-      <source>uima-ducc-duccdocs/target/site/duccbook/*.pdf</source>
-      <outputDirectory>ducc_runtime/doc</outputDirectory>
-      <destName>duccbook.pdf</destName>
-      <fileMode>644</fileMode>
-    </file -->
-
-  <!-- file>
-      <source>uima-ducc-duccdocs/target/site/duccbook/install-so.pdf</source>
-      <outputDirectory>ducc_runtime/doc</outputDirectory>
-      <destName>install.pdf</destName>
-      <fileMode>644</fileMode>
-    </file -->
+ 
 
   <file>
       <source>src/main/scripts/dd2spring.xsl</source>
-      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <outputDirectory>resources</outputDirectory>
       <destName>dd2spring.xsl</destName>
       <fileMode>755</fileMode>
     </file>
 
-  <!-- file>
-      <source>src/main/scripts/dd2spring.xsl</source>
-      <outputDirectory>ducc_runtime/resources</outputDirectory>
-      <destName>dd2spring.xsl</destName>
-      <fileMode>755</fileMode>
-    </file -->
         
       <file>
       <source>src/main/cglib/com.springsource.net.sf.cglib-${cglib.version}.jar</source>
-      <outputDirectory>ducc_runtime/lib/springframework</outputDirectory>
+      <outputDirectory>lib/springframework</outputDirectory>
       <destName>com.springsource.net.sf.cglib-${cglib.version}.jar</destName>
     </file>
     
     <file>
       <source>uima-ducc-common/src/main/java/org/apache/uima/ducc/common/internationalization/Messages.properties</source>
-      <outputDirectory>ducc_runtime/resources</outputDirectory>
+      <outputDirectory>resources</outputDirectory>
       <destName>Messages.properties</destName>
     </file>
     
     <file>
       <source>src/main/config/activemq-ducc.xml</source>
-      <outputDirectory>ducc_runtime/activemq/conf</outputDirectory>
+      <outputDirectory>activemq/conf</outputDirectory>
       <fileMode>644</fileMode>
     </file>
     
     <file>
       <source>src/main/config/README.txt</source>
-      <outputDirectory>ducc_runtime/activemq</outputDirectory>
+      <outputDirectory>activemq</outputDirectory>
       <fileMode>644</fileMode>
     </file>
     
     <file>
       <!-- put compiled samples into right place in bin tarball -->
       <source>uima-ducc-examples/target/uima-ducc-examples.jar</source>
-      <outputDirectory>ducc_runtime/examples/lib</outputDirectory>
+      <outputDirectory>examples/lib</outputDirectory>
       <fileMode>644</fileMode>
     </file>
     
-    <!-- 
-    <file>
-      <source>README.BUILD</source>
-      <outputDirectory>ducc_runtime</outputDirectory>
-      <destName>README.BUILD</destName>
-      <fileMode>644</fileMode>
-    </file>
-    <file>
-      <source>README.INSTALL</source>
-      <outputDirectory>ducc_runtime</outputDirectory>
-      <destName>README.INSTALL</destName>
-      <fileMode>644</fileMode>
-    </file>
-    <file>
-      <source>RELEASE.NOTES</source>
-      <outputDirectory>ducc_runtime</outputDirectory>
-      <destName>RELEASE.NOTES</destName>
-      <fileMode>644</fileMode>
-    </file>
-    -->
-
-    <!-- file>
-      <source>target/uimaj/apache-uima/examples/.project</source>
-      <outputDirectory>examples</outputDirectory>
-      <fileMode>644</fileMode> 
-    </file>
-    <file>
-      <source>target/uimaj/apache-uima/RELEASE_NOTES.html</source>
-      <outputDirectory/>
-      <destName>RELEASE_NOTES.uimaj.html</destName>
-      <fileMode>644</fileMode>
-    </file>
-    
-    <file>
-      <source>target/uimaj/apache-uima/LICENSE</source>
-      <outputDirectory/>
-      <destName>LICENSE.uimaj.txt</destName>
-      <fileMode>644</fileMode>
-    </file>
-
-    <file>
-      <source>target/uimaj/apache-uima/NOTICE</source>
-      <outputDirectory/>
-      <destName>NOTICE.uimaj.txt</destName>
-      <fileMode>644</fileMode>
-    </file>
-    
-    
-    <file>
-      <source>src/main/eclipseProject/classpath</source>
-      <outputDirectory>examples</outputDirectory>
-      <destName>.classpath</destName>
-      <fileMode>644</fileMode> 
-    </file -->
-  </files>
+   </files>
 </assembly>
