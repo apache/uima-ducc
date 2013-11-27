@@ -390,138 +390,109 @@ public class DuccHandler extends DuccAbstractHandler {
 	String pname_idJob = "idJob";
 	String pname_idPro = "idPro";
 	
-	private void buildJobProcessListEntry(StringBuffer sb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter) {
+	private void buildJobProcessListEntry(StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter) {
 		String location = "buildJobProcessListEntry";
+		StringBuffer rb = new StringBuffer();
+		int COLS = 26;
+		StringBuffer[] cbList = new StringBuffer[COLS];
+		for(int i=0; i < COLS; i++) {
+			cbList[i] = new StringBuffer();
+		}
 		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String logfile = buildLogFileName(job, process, sType);
 		String errfile = "jd.err.log";
 		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
-		sb.append(tr);
+		rb.append(tr);
 		String pid = process.getPID();
 		if(pid == null) {
 			return;
 		}
+		int index = -1;
 		// Id
-		sb.append("<td align=\"right\">");
+		index++; // jp.00
+		cbList[index].append("<td align=\"right\">");
 		/*
 		long id = process.getDuccId().getFriendly();
 		System.out.println(id);
 		 */
 		switch(sType) {
 		case SPC:
-			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
+			cbList[index].append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
 			break;
 		case SPU:
-			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
+			cbList[index].append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
 			break;
 		case MR:
-			sb.append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
+			cbList[index].append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
 			break;
 		default:
-			sb.append(process.getDuccId().getFriendly());
+			cbList[index].append(process.getDuccId().getFriendly());
 			break;
 		}
-		sb.append("</td>");
+		cbList[index].append("</td>");
 		// Log
-		sb.append("<td>");
+		index++; // jp.01
+		cbList[index].append("<td>");
 		if(pid != null) {
-			sb.append(href);
+			cbList[index].append(href);
 		}
-		sb.append("</td>");
+		cbList[index].append("</td>");
 		// Log Size (in MB)
-		sb.append("<td align=\"right\">");
-		sb.append(getFileSize(logsjobdir+logfile));
-		sb.append("</td>");
+		index++; // jp.02
+		cbList[index].append("<td align=\"right\">");
+		cbList[index].append(getFileSize(logsjobdir+logfile));
+		cbList[index].append("</td>");
 		// Hostname
-		sb.append("<td>");
-		sb.append(process.getNodeIdentity().getName());
-		sb.append("</td>");
-		/*
-		// Hostip
-		sb.append("<td>");
-		sb.append(process.getNodeIdentity().getIp());
-		sb.append("</td>");
-		*/
+		index++; // jp.03
+		cbList[index].append("<td>");
+		cbList[index].append(process.getNodeIdentity().getName());
+		cbList[index].append("</td>");
 		// PID
-		sb.append("<td align=\"right\">");
-		sb.append(pid);
-		sb.append("</td>");
+		index++; // jp.04
+		cbList[index].append("<td align=\"right\">");
+		cbList[index].append(pid);
+		cbList[index].append("</td>");
 		// State:scheduler
-		sb.append("<td>");
-		sb.append(process.getResourceState());
-		sb.append("</td>");
+		index++; // jp.05
+		cbList[index].append("<td>");
+		cbList[index].append(process.getResourceState());
+		cbList[index].append("</td>");
 		// Reason:scheduler
+		index++; // jp.06
 		IDuccProcess jp = process;
 		switch(jp.getProcessState()) {
 		case Starting:
 		case Initializing:
 		case Running:
-			sb.append("<td>");
-			/*
-			NodeIdentity nodeId = jp.getNodeIdentity();
-			if(nodeId != null) {
-				String ip = nodeId.getIp();
-				if(DuccMachinesData.getInstance().isMachineSwapping(ip)) {
-					sb.append("<span class=\"health_red\">");
-					sb.append("Swapping");
-					sb.append("</span>");
-				}
-			}
-			*/
-			sb.append("</td>");
+			cbList[index].append("<td>");
+			cbList[index].append("</td>");
 			break;
 		default:
 			switch(sType) {
-			/*
-			case MR:
-				sb.append("<td>");
-				int code = process.getProcessExitCode();
-				if(LinuxSignals.isSignal(code)) {
-					Signal signal = LinuxSignals.lookup(code);
-					if(signal != null) {
-						sb.append(signal.name()+"="+signal.number());
-					}
-					else {
-						sb.append("UnknownSignal"+"="+LinuxSignals.getValue(code));
-					}
-				}
-				else {
-					sb.append("ProgramExitCode"+"="+code);
-				}
-				sb.append("</td>");				
-				break;
-			*/
 			default:
 				ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
-				/*
-				String toolTip = ProcessDeallocationType.getToolTip(deallocationType);
-				if(toolTip == null) {
-					sb.append("<td>");
-				}
-				else {
-					sb.append("<td title=\""+toolTip+"\">");
-				}
-				*/
-				sb.append("<td>");
+				cbList[index].append("<td>");
 				switch(deallocationType) {
 				case Undefined:
 					break;
 				default:
-					sb.append(process.getProcessDeallocationType());
+					cbList[index].append(process.getProcessDeallocationType());
 					break;
 				}
-				sb.append("</td>");
+				cbList[index].append("</td>");
 				break;
 			}
 			break;
 		}
 		// State:agent
-		sb.append("<td>");
-		sb.append(process.getProcessState());
-		sb.append("</td>");
+		index++; // jp.07
+		cbList[index].append("<td>");
+		cbList[index].append(process.getProcessState());
+		cbList[index].append("</td>");
 		// Reason:agent
-		sb.append("<td>");
+		index++; // jp.08
+		cbList[index].append("<td>");
 		String agentReason = process.getReasonForStoppingProcess();
 		if(agentReason != null) {
 			if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.KilledByDucc.toString())) {
@@ -530,11 +501,12 @@ public class DuccHandler extends DuccAbstractHandler {
 			else if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.Other.toString())) {
 				agentReason = "<div title=\""+ReasonForStoppingProcess.Other.toString()+"\">Discontinued</div>";
 			}
-			sb.append(agentReason);
+			cbList[index].append(agentReason);
 		}
-		sb.append("</td>");
+		cbList[index].append("</td>");
 		// Exit
-		sb.append("<td>");
+		index++; // jp.09
+		cbList[index].append("<td>");
 		switch(process.getProcessState()) {
 		case Stopped:
 		case Failed:
@@ -545,21 +517,22 @@ public class DuccHandler extends DuccAbstractHandler {
 			if(LinuxSignals.isSignal(code)) {
 				Signal signal = LinuxSignals.lookup(code);
 				if(signal != null) {
-					sb.append(signal.name()+"("+signal.number()+")");
+					cbList[index].append(signal.name()+"("+signal.number()+")");
 				}
 				else {
-					sb.append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
+					cbList[index].append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
 				}
 			}
 			else {
-				sb.append("ExitCode"+"="+code);
+				cbList[index].append("ExitCode"+"="+code);
 			}
 			break;
 		default:
 			break;
 		}
-		sb.append("</td>");	
+		cbList[index].append("</td>");	
 		// Time:init
+		index++; // jp.10
 		switch(sType) {
 			case MR:
 				break;
@@ -631,15 +604,16 @@ public class DuccHandler extends DuccAbstractHandler {
 				catch(Throwable t) {
 					duccLogger.trace(location, jobid, "no worries", t);
 				}
-				sb.append(itd0);
-				sb.append(isp0);
-				sb.append(loadme);
-				sb.append(initTime);
-				sb.append(isp1);
-				sb.append(itd1);				
+				cbList[index].append(itd0);
+				cbList[index].append(isp0);
+				cbList[index].append(loadme);
+				cbList[index].append(initTime);
+				cbList[index].append(isp1);
+				cbList[index].append(itd1);				
 				break;
 		}
 		// Time:run
+		index++; // jp.11
 		String runTime = "00";
 		String rtd0 = "<td align=\"right\">";
 		String rtd1 = "</td>";
@@ -688,11 +662,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				duccLogger.trace(location, jobid, "no worries", t);
 			}
 		}
-		sb.append(rtd0);
-		sb.append(rsp0);
-		sb.append(runTime);
-		sb.append(rsp1);
-		sb.append(rtd1);
+		cbList[index].append(rtd0);
+		cbList[index].append(rsp0);
+		cbList[index].append(runTime);
+		cbList[index].append(rsp1);
+		cbList[index].append(rtd1);
 		// Time GC, PgIn, Swap...
 		DecimalFormat formatter = new DecimalFormat("##0.0");
 		switch(sType) {
@@ -701,6 +675,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		default:
 			SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
 			// Time:gc
+			index++; // jp.12
 			long timeGC = 0;
 			try {
 				timeGC = process.getGarbageCollectionStats().getCollectionTime();
@@ -710,51 +685,29 @@ public class DuccHandler extends DuccAbstractHandler {
 			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 			String displayGC = dateFormat.format(new Date(timeGC));
 			displayGC = chomp("00:", displayGC);
-			sb.append("<td align=\"right\">");
-			sb.append(displayGC);
-			sb.append("</td>");
-			/*
-			// Count:gc
-			long countGC = 0;
-			try {
-				countGC = process.getGarbageCollectionStats().getCollectionCount();
-			}
-			catch(Exception e) {
-			}
-			sb.append("<td align=\"right\">");
-			sb.append(countGC);
-			sb.append("</td>");
-			
-			// %gc
-			double pctGC = 0;
-			double timeTotal = timeInitMillis + timeRunMillis;
-			if(timeTotal > 0) {
-				double denom = timeTotal;
-				double numer = timeGC;
-				pctGC = (numer/denom)*100;
-			}
-			sb.append("<td align=\"right\">");
-			sb.append(formatter.format(pctGC));
-			sb.append("</td>");
-			*/
+			cbList[index].append("<td align=\"right\">");
+			cbList[index].append(displayGC);
+			cbList[index].append("</td>");
 			// PgIn
+			index++; // jp.13
 			long faults = 0;
 			try {
 				faults = process.getMajorFaults();
 			}
 			catch(Exception e) {
 			}
-			sb.append("<td align=\"right\">");
-			sb.append(faults);
-			sb.append("</td>");
+			cbList[index].append("<td align=\"right\">");
+			cbList[index].append(faults);
+			cbList[index].append("</td>");
 			// Swap
+			index++; // jp.14
 			if(process.isComplete()) {
 				double swap = process.getSwapUsageMax();
 				swap = swap/Constants.GB;
 				String displaySwap = formatter.format(swap);
-				sb.append("<td align=\"right\" "+">");
-				sb.append(displaySwap);
-				sb.append("</td>");
+				cbList[index].append("<td align=\"right\" "+">");
+				cbList[index].append(displaySwap);
+				cbList[index].append("</td>");
 			}
 			else {
 				double swap = process.getSwapUsage();
@@ -763,14 +716,15 @@ public class DuccHandler extends DuccAbstractHandler {
 				double swapMax = process.getSwapUsageMax();
 				swapMax = swapMax/Constants.GB;
 				String displaySwapMax = formatter.format(swapMax);
-				sb.append("<td title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
-				sb.append(displaySwap);
-				sb.append("</td>");
+				cbList[index].append("<td title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
+				cbList[index].append(displaySwap);
+				cbList[index].append("</td>");
 			}
 			break;
 		}
 		// %cpu
-		sb.append("<td align=\"right\">");
+		index++; // jp.15
+		cbList[index].append("<td align=\"right\">");
 		double pctCPU = 0;
 		String displayCPU = formatter.format(pctCPU);
 		if(process.getDataVersion() < 1) {
@@ -830,44 +784,17 @@ public class DuccHandler extends DuccAbstractHandler {
 			tb.append("</span>");
 			displayCPU = tb.toString();
 		}
-		sb.append(displayCPU);
-		sb.append("</td>");
-		/*
-		// %rss
-		DuccId duccId = job.getDuccId();
-		String size = job.getSchedulingInfo().getShareMemorySize();
-		MemoryUnits units = job.getSchedulingInfo().getShareMemoryUnits();
-		String residentMemory = getProcessMemorySize(duccId,type,size,units);
-		double memory = Double.parseDouble(residentMemory);
-		double rss = process.getResidentMemory();
-		String rssType = "";
-		if(job.isCompleted()) {
-			rss = process.getResidentMemoryMax();
-			rssType = ", maximum achieved";
-		}
-		rss = rss/GB;
-		if(memory == 0) {
-			memory = 1;
-		}
-		double pctRss = 100*(rss/memory);
-		String displayRss = formatter.format(rss);
-		String displayMemory = formatter.format(memory);
-		if(displayRss.equals("0")) {
-			pctRss = 0;
-		}
-		String displayPctRss = formatter.format(pctRss);
-		String title = "title=\"100*"+displayRss+"/"+displayMemory+rssType+"\"";
-		sb.append("<td align=\"right\" "+title+">");
-		sb.append(displayPctRss);
-		sb.append("</td>");
-		*/
+		cbList[index].append(displayCPU);
+		cbList[index].append("</td>");
+		// rss
+		index++; // jp.16
 		if(process.isComplete()) {
 			double rss = process.getResidentMemoryMax();
 			rss = rss/Constants.GB;
 			String displayRss = formatter.format(rss);
-			sb.append("<td align=\"right\" "+">");
-			sb.append(displayRss);
-			sb.append("</td>");
+			cbList[index].append("<td align=\"right\" "+">");
+			cbList[index].append(displayRss);
+			cbList[index].append("</td>");
 		}
 		else {
 			double rss = process.getResidentMemory();
@@ -876,9 +803,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			double rssMax = process.getResidentMemoryMax();
 			rssMax = rssMax/Constants.GB;
 			String displayRssMax = formatter.format(rssMax);
-			sb.append("<td title=\"max="+displayRssMax+"\" align=\"right\" "+">");
-			sb.append(displayRss);
-			sb.append("</td>");
+			cbList[index].append("<td title=\"max="+displayRssMax+"\" align=\"right\" "+">");
+			cbList[index].append(displayRss);
+			cbList[index].append("</td>");
 		}
 		switch(sType) {
 		case SPC:
@@ -889,104 +816,134 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		default:
 			// Time:avg
+			index++; // jp.17
 			IDuccProcessWorkItems pwi = process.getProcessWorkItems();
-			sb.append("<td align=\"right\">");
+			cbList[index].append("<td align=\"right\">");
 			if(pwi != null) {
-				sb.append(pwi.getSecsAvg());
+				cbList[index].append(pwi.getSecsAvg());
 			}
-			sb.append("</td>");
+			cbList[index].append("</td>");
 			// Time:max
-			sb.append("<td align=\"right\">");
+			index++; // jp.18
+			cbList[index].append("<td align=\"right\">");
 			if(pwi != null) {
-				sb.append(pwi.getSecsMax());
+				cbList[index].append(pwi.getSecsMax());
 			}
-			sb.append("</td>");
+			cbList[index].append("</td>");
 			// Time:min
-			sb.append("<td align=\"right\">");
+			index++; // jp.19
+			cbList[index].append("<td align=\"right\">");
 			if(pwi != null) {
-				sb.append(pwi.getSecsMin());
+				cbList[index].append(pwi.getSecsMin());
 			}
-			sb.append("</td>");
+			cbList[index].append("</td>");
 			// Done
-			sb.append("<td align=\"right\">");
+			index++; // jp.20
+			cbList[index].append("<td align=\"right\">");
 			if(pwi != null) {
-				sb.append(pwi.getCountDone());
+				cbList[index].append(pwi.getCountDone());
 			}
-			sb.append("</td>");
+			cbList[index].append("</td>");
 			// Error
-			sb.append("<td align=\"right\">");
+			index++; // jp.21
+			cbList[index].append("<td align=\"right\">");
 			if(pwi != null) {
-				sb.append(pwi.getCountError());
+				cbList[index].append(pwi.getCountError());
 			}
-			sb.append("</td>");
+			cbList[index].append("</td>");
 			// Dispatch
+			index++; // jp.22
 			switch(dType) {
 			case Job:
-				sb.append("<td align=\"right\">");
+				cbList[index].append("<td align=\"right\">");
 				if(pwi != null) {
 					if(job.isCompleted()) {
-						sb.append("0");
+						cbList[index].append("0");
 					}
 					else {
-						sb.append(pwi.getCountDispatch());
+						cbList[index].append(pwi.getCountDispatch());
 					}
 				}
-				sb.append("</td>");
+				cbList[index].append("</td>");
 				break;
 			default:
 				break;
 			}
 			// Retry
-			sb.append("<td align=\"right\">");
+			index++; // jp.23
+			cbList[index].append("<td align=\"right\">");
 			if(pwi != null) {
-				sb.append(pwi.getCountRetry());
+				cbList[index].append(pwi.getCountRetry());
 			}
-			sb.append("</td>");
+			cbList[index].append("</td>");
 			// Preempt
-			sb.append("<td align=\"right\">");
+			index++; // jp.24
+			cbList[index].append("<td align=\"right\">");
 			if(pwi != null) {
-				sb.append(pwi.getCountPreempt());
+				cbList[index].append(pwi.getCountPreempt());
 			}
-			sb.append("</td>");
+			cbList[index].append("</td>");
 			break;
 		}
 		// Jconsole:Url
+		index++; // jp.24
 		switch(sType) {
 		case MR:
 			break;
 		default:
-			sb.append("<td>");
+			cbList[index].append("<td>");
 			switch(process.getProcessState()) {
 			case Initializing:
 			case Running:
 				String jmxUrl = process.getProcessJmxUrl();
 				if(jmxUrl != null) {
-					sb.append(buildjConsoleLink(jmxUrl));
+					cbList[index].append(buildjConsoleLink(jmxUrl));
 				}
 			}
-			sb.append("</td>");
-			sb.append("</tr>");
+			cbList[index].append("</td>");
 			break;
 		}
+		for(int i=0; i < COLS; i++) {
+			rb.append(cbList[i]);
+		}
+		rb.append("</tr>");
+		pb.append(rb.toString());
 		// jd.err.log
 		switch(sType) {
 		case JD:
+			StringBuffer sb;
+			rb = new StringBuffer();
+			rb.append("<tr>");
 			if(fileExists(logsjobdir+errfile)) {
 				String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
-				sb.append(tr);
+				for(int i=0; i < COLS; i++) {
+					cbList[i] = new StringBuffer();
+					cbList[i].append("<td>");
+					cbList[i].append("</td>");
+				}
+				index = -1;
 				// Id
-				sb.append("<td>");
-				sb.append("</td>");
+				index++; // jp.00
 				// Err Log
+				index++; // jp.01
+				sb = new StringBuffer();
 				sb.append("<td>");
 				sb.append(href2);
 				sb.append("</td>");
+				cbList[index] = sb;
 				// Err Log Size (in MB)
+				index++; // jp.02
+				sb = new StringBuffer();
 				sb.append("<td align=\"right\">");
 				sb.append(getFileSize(logsjobdir+errfile));
 				sb.append("</td>");
-				sb.append("</tr>");
+				cbList[index] = sb;
 			}
+			for(int i=0; i < COLS; i++) {
+				rb.append(cbList[i]);
+			}
+			rb.append("</tr>");
+			pb.append(rb.toString());
 			break;
 		default:
 			break;
