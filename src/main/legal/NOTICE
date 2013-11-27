@@ -7,134 +7,32 @@ licensed to the Apache Software Foundation under the
 "IBM UIMA-EE License Agreement".
 Copyright (c) 2007, 2008 IBM Corporation
 
-This product includes software, Apache ActiveMQ, developed
-at the Apache Software Foundation (http://www.apache.org/).
 
-This product includes software, Apache Camel, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Spring Framework, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Google Guava, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons CLI, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Joda Time, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, HttpClient , developed
-at the Apache Software Foundation (http://www.apache.org/).
- 
-This product includes software, Apache Commons Codec, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons Pool, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons-Collections, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons Lang, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache Commons Math, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Apache log4j, developed
-at the Apache Software Foundation (http://www.apache.org/).
- 
-This product includes software, Apache MINA, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Jetty, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, Google GSon, developed
-at the Apache Software Foundation (http://www.apache.org/).
-
-This product includes software, ClueTip Plugin, developed
-at http://plugins.learningjquery.com/cluetip/.
-
-This product includes software, DataTables, developed
-at https://datatables.net/.
-
-This product includes software, jQuery, developed at http://jquery.com/.
-
-This product includes software, jQuery UI, developed at http://jqueryui.com/.
-
-This product includes software, SLF4J, developed at http://slf4j.org/.
-
-This product includes software, SLF4J, developed at Codehaus (http://xstream.codehaus.org/).
-
-This product includes software, JSch, developed at JCraft (http://www.jcraft.com/jsch/).
-
-This product includes software, JGrowl, developed at http://stanlemon.net/2013/03/16/jgrowl-1-2-11/.
-
-This product includes software, sorttable, developed at http://kryogenix.org/code/browser/sorttable/.
-
-This product includes software known as 
-"The Saxon XSLT and XQuery Processor from Saxonica Limited", whose
-home page URL is http://www.saxonica.com/ 
-
-Saxon includes the org.apache.xerces.util.XMLChar module from the Apache 
-Xerces product, renamed as net.sf.saxon.om.XMLChar but otherwise unchanged. 
-See the copyright statements included in the source code of that module for
-conditions of use.
-
-Saxon includes code for performing Unicode normalization that is derived 
-from the sample code published for this purpose by the Unicode consortium. 
-For the terms of use of this code, see http://www.unicode.org/terms_of_use.html, 
-which should be regarded as forming part of these conditions of use, and part 
-of the Saxon documentation. 
-
-This product contains icons developed by the SVG Icons project 
-(http://sourceforge.net/projects/svgicons), licensed under the 
-BSD license (see LICENSE file).
-
-This product includes Apache XMLBeans software, developed at the Apache Software 
-Foundation (http://www.apache.org/). From binary distribution of XMLBeans NOTICE 
-file:
-Portions of this software were originally based on the following:
-     - software copyright (c) 2000-2003, BEA Systems, <http://www.bea.com/>.
-
-   Aside from contributions to the Apache XMLBeans project, this
-   software also includes:
-
-    - one or more source files from the Apache Xerces-J and Apache Axis
-      products, Copyright (c) 1999-2003 Apache Software Foundation
-
-    - W3C XML Schema documents Copyright 2001-2003 (c) World Wide Web
-      Consortium (Massachusetts Institute of Technology, European Research
-      Consortium for Informatics and Mathematics, Keio University)
-      
 This product includes image 
 120px-Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg,
 which is licensed under the Creative Commons licence CC-BY-2.0. The license can 
 be downloaded from 
 http://creativecommons.org/licenses/by/2.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg#metadata
-© jans canon / Wikimedia Commons / CC-BY-2.0
+ï¿½ jans canon / Wikimedia Commons / CC-BY-2.0
 
 This product includes image 120px-Ducks_eating.jpg, which is licensed under 
 the Creative Commons licence CC-BY-2.0. The license can be downloaded from 
 http://creativecommons.org/licenses/by/2.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Ducks_eating.jpg
-© Neil Phillips / Wikimedia Commons / CC-BY-2.0
+ï¿½ Neil Phillips / Wikimedia Commons / CC-BY-2.0
 
 This product includes image 120px-Head_of_a_white_domesticated_duck.jpg, which is licensed 
 under the Creative Commons  licence CC-BY-SA-2.0. The license can be downloaded from 
 http://creativecommons.org/licenses/by-sa/2.0/legalcode.Source:
 http://commons.wikimedia.org/wiki/File:Head_of_a_white_domesticated_duck.jpg
-© Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0 
+ï¿½ Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0 
 
 This product includes image 120px-Rubber_duckies_So_many_ducks.jpg, which is licensed 
 under the Creative Commons  licence CC-BY-2.0. The license can be downloaded from 
 http://creativecommons.org/licenses/by/2.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Rubber_duckies_So_many_ducks.jpg
-© Gaetan Lee / Wikimedia Commons / CC-BY-2.0  
+ï¿½ Gaetan Lee / Wikimedia Commons / CC-BY-2.0  
 
 This product includes image 120px-Thermal_image_of_four_ducks_swimming.jpg, which is licensed 
 under the Creative Commons  licence CC0 1.0. The license can be downloaded from 
@@ -154,13 +52,13 @@ This product includes image 144x144Stick_figure_-_choosing.jpg, which is license
 under the Creative Commons  licence CC-BY-SA-3.0. The license can be downloaded from 
 http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Stick_figure_-_choosing.jpg
-© User:Obsidian Soul / Wikimedia Commons / CC-BY-SA-3.0 
+ï¿½ User:Obsidian Soul / Wikimedia Commons / CC-BY-SA-3.0 
 
 This product includes image 12x1.33in-Bariken_kid.JPG, which is licensed 
 under the Creative Commons  licence CC-BY-SA-3.0. The license can be downloaded from 
 http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Bariken_kid.JPG
-© User:Materialscientist / Wikimedia Commons / CC-BY-SA-3.0 
+ï¿½ User:Materialscientist / Wikimedia Commons / CC-BY-SA-3.0 
 
 This product includes image 800px-Duck_crossing_Louisiana.2x1.4.jpg, which is in 
 public domain in the United States. Source:
@@ -171,14 +69,14 @@ This product includes image 800px-Leg_Of_White_Duck.2x1.6.jpg, which is licensed
 under the Creative Commons  licence CC-BY-SA-3.0. The license can be downloaded from 
 http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Leg_Of_White_Duck.jpg
-© User:Ezhuttukari / Wikimedia Commons / CC-BY-SA-3.0  
+ï¿½ User:Ezhuttukari / Wikimedia Commons / CC-BY-SA-3.0  
 
 This product includes image 90px-Mallards_nest_Culwatty_-_geograph.org.uk_-_813413.jpg, 
 which is licensed  under the Creative Commons  licence CC-BY-SA-2.0. The license 
 can be downloaded from 
 http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Mallard%27s_nest,_Culwatty_-_geograph.org.uk_-_813413.jpg
-© Author:wfmillar / Wikimedia Commons / CC-BY-SA-2.0
+ï¿½ Author:wfmillar / Wikimedia Commons / CC-BY-SA-2.0
 
 
 This product includes image 90px-Swimming_white_domesticated_ducks.jpg, 
@@ -186,14 +84,14 @@ which is licensed  under the Creative Commons  licence CC-BY-SA-2.0. The license
 can be downloaded from 
 http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Swimming_white_domesticated_ducks.jpg
-© Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0
+ï¿½ Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0
 
 This product includes image Delena-cancerides-huntsman-spider.jpg, 
 which is licensed  under the Creative Commons  licence CC-BY-SA-2.0. The license 
 can be downloaded from 
 http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Delena-cancerides-huntsman-spider.jpg
-© Bryce McQuillan / Wikimedia Commons / CC-BY-SA-2.0
+ï¿½ Bryce McQuillan / Wikimedia Commons / CC-BY-SA-2.0
 
 
 This product includes image Ducklings_in_Shaw_Creek.jpg, 
@@ -201,20 +99,20 @@ which is licensed  under the Creative Commons  licence CC-BY-2.0. The license
 can be downloaded from 
 http://creativecommons.org/licenses/by/2.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Ducklings_in_Shaw_Creek.jpg
-© Author:Peggy2012CREATIVELENZ / Wikimedia Commons / CC-BY-2.0 
+ï¿½ Author:Peggy2012CREATIVELENZ / Wikimedia Commons / CC-BY-2.0 
 
 This product includes image Flying_mallard_duck_-_female_2.0x1.4.jpg, 
 which is licensed  under the Creative Commons  licence CC-BY-SA-3.0. The license 
 can be downloaded from 
 http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
 http://commons.wikimedia.org/wiki/File:Flying_mallard_duck_-_female.jpg
-© Author:Martin Correns / Wikimedia Commons / CC-BY-SA-3.0  
+ï¿½ Author:Martin Correns / Wikimedia Commons / CC-BY-SA-3.0  
 
 
 This product includes image indicator.gif, which is in 
 public domain in the United States. Source:
 http://commons.wikimedia.org/wiki/File:Birdleft.gif
-© Author:Pigpen  
+ï¿½ Author:Pigpen  
 
  
 This product includes image propeller_hat_large.svg.png, propeller_hat_small.svg.png, 
@@ -232,7 +130,7 @@ http://commons.wikimedia.org/wiki/File:RCA_Indian_Head_test_pattern.JPG
 This product includes image ts-2.0x1.3.jpeg, which is in 
 public domain in the United States. Source:
 http://commons.wikimedia.org/wiki/File:Mallard_close-up.jpg
-© Author:Frankyboy5 at the wikipedia project
+ï¿½ Author:Frankyboy5 at the wikipedia project
 
 
 
