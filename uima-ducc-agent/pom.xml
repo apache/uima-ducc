@@ -46,22 +46,20 @@
       http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk/uima-ducc-agent
     </url>
   </scm>
-	
+  
   <dependencies>
         <!-- Dependencies on other DUCC projects -->
         <dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-common</artifactId>
-            <version>${ducc.version}</version>			
 		</dependency>
 
         <dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-transport</artifactId>
-			<version>${ducc.version}</version>
 		</dependency>
 
-	</dependencies>
+  </dependencies>
 
   
 </project>

@@ -52,13 +52,11 @@
         <dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-common</artifactId>
-            <version>${ducc.version}</version>			
 		</dependency>
 
         <dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-transport</artifactId>
-			<version>${ducc.version}</version>
 		</dependency>
 
 	</dependencies>

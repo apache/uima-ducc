@@ -72,36 +72,8 @@
 	</properties>
 
 	
-
-
-
-	<dependencies>
-
-		<!-- Dependencies on other DUCC projects -->
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-common</artifactId>
-			<version>${ducc.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-transport</artifactId>
-			<version>${ducc.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-orchestrator</artifactId>
-			<version>${ducc.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-cli</artifactId>
-			<version>${ducc.version}</version>
-		</dependency>
-
+	<dependencyManagement>
+		<dependencies>
 
 		<dependency>
 			<groupId>org.eclipse.jetty.orbit</groupId>
@@ -236,6 +208,144 @@
 			<version>${servlet-api}</version>
 		</dependency>
 
+		</dependencies>
+	</dependencyManagement>
+
+
+
+	<dependencies>
+
+		<!-- Dependencies on other DUCC projects -->
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-common</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-transport</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-orchestrator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-cli</artifactId>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.eclipse.jetty.orbit</groupId>
+			<artifactId>org.apache.jasper.glassfish</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-annotations</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-ajp</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-client</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-continuation</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-deploy</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-http</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-io</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-jmx</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-jndi</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-overlay-deployer</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-plus</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-policy</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-rewrite</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-server</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-servlets</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-util</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-webapp</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-websocket</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-xml</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+		</dependency>
 
 	</dependencies>
 </project>

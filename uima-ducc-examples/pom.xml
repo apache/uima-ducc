@@ -20,7 +20,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
+   <parent>
     <artifactId>uima-ducc-parent</artifactId>
     <groupId>org.apache.uima</groupId>
     <version>1.0.0-SNAPSHOT</version>
@@ -48,28 +48,26 @@
     </url>
   </scm>
   
-  
-  <dependencies>
+    
+   <dependencies>
         <!-- Dependencies on other DUCC projects -->
         <dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-common</artifactId>
-            <version>${ducc.version}</version>			
-		</dependency>
+            <groupId>org.apache.uima</groupId>
+            <artifactId>uima-ducc-common</artifactId>
+        </dependency>
 
         <dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-transport</artifactId>
-			<version>${ducc.version}</version>
-		</dependency>
+            <groupId>org.apache.uima</groupId>
+            <artifactId>uima-ducc-transport</artifactId>
+        </dependency>
 
         <dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-cli</artifactId>
-			<version>${ducc.version}</version>
 		</dependency>
 
-  </dependencies>  
+  </dependencies>
+     
 
   <!-- build>
     <resources>

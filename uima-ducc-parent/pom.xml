@@ -170,6 +170,31 @@
 	<dependencyManagement>
 		<dependencies>
 
+             <dependency>
+			    <groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-cli</artifactId>
+			    <version>${project.version}</version>
+    		 </dependency>
+
+		     <dependency>
+			    <groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-orchestrator</artifactId>
+			    <version>${project.version}</version>
+  		     </dependency>
+
+
+             <dependency>
+			    <groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-common</artifactId>
+                <version>${project.version}</version>			
+		     </dependency>
+
+             <dependency>
+			    <groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-transport</artifactId>
+			    <version>${project.version}</version>
+  		    </dependency>
+
 			<dependency>
 				<groupId>net.java.dev.jna</groupId>
 				<artifactId>jna</artifactId>
