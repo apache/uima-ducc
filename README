@@ -50,29 +50,7 @@ issues, see our issue tracker: http://issues.apache.org/jira/browse/UIMA-2663?jq
 --------------------------------------------------
 
 The Apache UIMA DUCC binary distribution includes
-  - Apache UIMA Java SDK version 2.4.2
-  - Apache UIMA Asynchronous Scaleout (AS) version 2.4.2
-  - Saxon
-  - Apache ActiveMQ version 5.6.0
-  - Spring Framework version 3.0.5.RELEASE
-  - Apache Camel version 2.10.1
-  - Apache Mina
-  - Apache Commons CLI version 1.2
-  - Apache Commons Math version 2.0
-  - Apache Commons Lang version 2.6
-  - Apache Commons Collections version 3.2.1
-  - Apache Log4J version 1.2.16
-  - Apache Commons HTTP Client version 3.1
-  - XMLBeans version 2.5.0
-  - XStream version 1.5.0_16
-  - SLF4J version 1.5.11
-  - JUnit version 4.8.2
-  - JODA Time version 1.2
-  - Google Guava version 0.9
-  - Google-Gson version 2.2.2
-  - libpam4j 1.7
-  - jna 4.0.0
-  
+   
   shell scripts:
   --------------
 
@@ -84,8 +62,12 @@ The Apache UIMA DUCC binary distribution includes
   --------------
  
   docs/duccbok.pdf: UIMA-DUCC documentation
-  docs/install.pdf: UIMA-DUCC installation guide
+  docs/installation.pdf: UIMA-DUCC installation guide
 
+  UIMA DUCC Getting Started can be found online here:
+  http://uima.apache.org/doc-uimaducc-whatitam.html
+    
+ 
   examples:
   ---------
  
@@ -105,7 +87,7 @@ The Apache UIMA DUCC binary distribution includes
 5. Installation and Setup
 =========================
 
-Please refer to docs/install.pdf for installation instructions.
+Please refer to docs/installation.pdf for installation instructions.
 
 5.1 Supported Platforms
 -----------------------
