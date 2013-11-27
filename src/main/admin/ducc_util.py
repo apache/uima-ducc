@@ -255,16 +255,7 @@ class DuccUtil(DuccBase):
         # explicitly NOT ducc_test.jar
         CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/*'
         CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/jsp/*'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-agent.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-cli.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-common.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-transport.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-jd.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-orchestrator.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-pm.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-rm.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-sm.jar'
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc-web.jar'
+        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc/*'
 
         CLASSPATH = CLASSPATH + ':' + RESOURCES
     
@@ -599,23 +590,26 @@ class DuccUtil(DuccBase):
 
         #
         # Print the version information from the DUCC jars
+        # 
+        
         #
-        for j in [\
-                  'uima-ducc-rm.jar',\
-                  'uima-ducc-pm.jar', \
-                  'uima-ducc-orchestrator.jar', \
-                  'uima-ducc-sm.jar', \
-                  'uima-ducc-web.jar', \
-                  'uima-ducc-cli.jar', \
-                  'uima-ducc-agent.jar', \
-                  'uima-ducc-common.jar', \
-                  'uima-ducc-jd.jar', 
-                 ]:
+        #version = manifest.get
+        #for j in [\
+        #          'uima-ducc-rm.jar',\
+        #          'uima-ducc-pm.jar', \
+        #          'uima-ducc-orchestrator.jar', \
+        #          'uima-ducc-sm.jar', \
+        #          'uima-ducc-web.jar', \
+        #          'uima-ducc-cli.jar', \
+        #          'uima-ducc-agent.jar', \
+        #          'uima-ducc-common.jar', \
+        #          'uima-ducc-jd.jar', 
+        #         ]:
 
 
-            manifest = DuccProperties()
-            manifest.load_from_manifest(self.DUCC_HOME + '/lib/' + j)
-            response.append('ENV: %25s %18s %12s %s' % (j + ':', manifest.get('Ducc-Version'), 'compiled at', manifest.get('Build-Date')))
+#            manifest = DuccProperties()
+#            manifest.load_from_manifest(self.DUCC_HOME + '/lib/' + j)
+#            response.append('ENV: %25s %18s %12s %s' % (j + ':', manifest.get('Ducc-Version'), 'compiled at', manifest.get('Build-Date')))
 
         return response
 

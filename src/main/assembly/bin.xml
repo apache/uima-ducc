@@ -83,7 +83,7 @@ under the License.
         <include>org.apache.uima:uima-ducc-web</include>
         <include>org.apache.uima:uima-ducc-examples</include>
       </includes>      
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+      <outputFileNameMapping>uima-ducc/${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
       <outputDirectory>lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -704,12 +704,7 @@ under the License.
       <fileMode>644</fileMode>
     </file>
     
-    <file>
-      <!-- put compiled samples into right place in bin tarball -->
-      <source>uima-ducc-examples/target/uima-ducc-examples.jar</source>
-      <outputDirectory>examples/lib</outputDirectory>
-      <fileMode>644</fileMode>
-    </file>
+
     
    </files>
 </assembly>
