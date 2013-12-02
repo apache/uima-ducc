@@ -935,7 +935,7 @@ public class NodeConfiguration
         System.out.println("       If omitted, validation only is performed.");
         System.out.println("    -v <nodefile> does full node validation against the startup nodefile.  This is useful");
         System.out.println("       when there are configured nodes not explicitly defined to a nodepool.");
-        System.out.println("    <configfile is the node configuration in ducc_runtime/resources.");
+        System.out.println("    <configfile is the node configuration in ducc_runtime/resources, assuming you've installed DUCC into ducc_runtime");
         System.out.println("     -? show this help.");
         System.out.println("");
         System.exit(1);
