@@ -291,16 +291,22 @@ class CheckDucc(DuccUtil):
         print "Checking", n_nodes, "nodes"
         self.threadpool = ThreadPool(n_nodes + 5)    # more for the head processes
         checked = {}
-        for (nodefile, nodelist) in nodes.items():
-            if ( nodelist == None ):
-                # loading the nodes prints the necessary message
-                continue
-            for node in nodelist:
-                if ( checked.has_key(node) ):
-                    continue
 
-                checked[node] = node
-                self.threadpool.invoke(self.check_node, node)
+        try:
+            for (nodefile, nodelist) in nodes.items():
+                if ( nodelist == None ):
+                    # loading the nodes prints the necessary message
+                    continue
+                for node in nodelist:
+                    if ( checked.has_key(node) ):
+                        continue
+    
+                    checked[node] = node
+                    self.threadpool.invoke(self.check_node, node)
+        except:
+            self.threadpool.quit()
+            print sys.exc_info()[0], "Exiting."
+            sys.exit(1)
 
         self.threadpool.quit()
 

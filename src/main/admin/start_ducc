@@ -187,7 +187,7 @@ class StartDucc(DuccUtil):
         print "        component name with a destination node, use the notation component@nodename."
         print "        Multiple components may be specified:"
         print ""
-        print "        start_ducc -c sm -c pm -c rm@f9n4 -c or@bluej22 -c agent@remote1 -c agent@remote2"
+        print "        start_ducc -c sm -c pm -c rm@node1 -c or@node2 -c agent@remote1 -c agent@remote2"
         print ""
         print "        Components include:"
         print "          rm - resource manager"
@@ -308,7 +308,11 @@ class StartDucc(DuccUtil):
             if ( self.is_amq_active() ):
                 print 'ActiveMQ broker is already running on host and port:', self.broker_host + ':' + self.broker_port, 'NOT restarting'
             else:
-                self.start_broker()
+                try:
+                    self.start_broker()
+                except:
+                    print sys.exc_info()[0], "DUCC may not be started correctly."
+                    sys.exit(1)
 
         if ( self.is_amq_active() ):
             print 'ActiveMQ broker is found on configured host and port:', self.broker_host + ':' + self.broker_port
@@ -328,8 +332,7 @@ class StartDucc(DuccUtil):
                     self.threadpool.invoke(self.start_one_agent, node, single_user)
             except:
                 self.threadpool.quit()
-                traceback.print_exc()
-                print "Errors encounted, DUCC may not be started correctly."
+                print sys.exc_info()[0], "DUCC may not be started correctly."
                 sys.exit(1)
                     
         if ( len(components) != 0 ):
@@ -344,8 +347,7 @@ class StartDucc(DuccUtil):
                         #self.start_component(ducc, com, or_parms, single_user)
                     except:
                         self.threadpool.quit()
-                        traceback.print_exc()
-                        print "Errors encounted, DUCC may not be started correctly."
+                        print sys.exc_info()[0], "DUCC may not be started correctly."
                         sys.exit(1)
 
         self.threadpool.quit()
