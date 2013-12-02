@@ -19,6 +19,21 @@
 	 ***************************************************************
    -->
 
+    <!--
+     * This is a sample ant script to build a jar file named
+     * ducc-authenticator.jar comprising the sample class 
+     * AuthenticationManager.
+     *
+     * If one wanted to utilize this class for authentication 
+     * (not recommended as-is since authentication always succeeds!)
+     * one would build the jar file and then:
+     * 1. include it and any of its dependency jars 
+     *    (see build-site-authenticator-jar) in the directory
+     *    ~ducc/ducc_runtime/lib/authentication
+     * 2. update ducc.properties to include the property:
+     *    ducc.local.jars authentication/*
+   -->
+
 <project name="uima-ducc-examples" default="build" basedir=".">
 	
 	<property name="TGT-LIB"  			    value="${basedir}/lib" />

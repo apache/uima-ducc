@@ -19,11 +19,22 @@ package org.apache.uima.ducc.example.authentication.module;
 * under the License.
 ***************************************************************/
 
-
 import org.apache.uima.ducc.common.authentication.AuthenticationResult;
 import org.apache.uima.ducc.common.authentication.IAuthenticationManager;
 import org.apache.uima.ducc.common.authentication.IAuthenticationResult;
 import org.apache.uima.ducc.example.authentication.site.SiteSecurity;
+
+/*
+ * This is a skeleton sample Java class that implements the 
+ * plug-in interface for Web-server Login authentication.
+ * 
+ * The methods in this class delegate to another skeleton sample
+ * Java class, SiteSecurity, to perform the user and group
+ * authentications.
+ * 
+ * See also the DUCC Installation and Verification Guide.
+ * 
+ */
 
 public class AuthenticationManager implements IAuthenticationManager {
 
