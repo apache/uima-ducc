@@ -214,6 +214,7 @@
 			</plugin>
 
 			<plugin>
+			    <!-- This plugin is needed to fetch Apache ActiveMQ and Jetty from maven repo -->
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
@@ -265,7 +266,7 @@
 				</executions>
 			</plugin>
 
-			<plugin>
+			<!-- plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>2.5</version>
 				<executions>
@@ -292,7 +293,7 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin -->
 
 
 			<!-- Override default assemble plug-in to use newer version of assembly 
@@ -310,7 +311,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>uima-distr</id>
+						<id>uima-ducc-distr</id>
 						<phase>integration-test</phase>
 						<goals>
 							<goal>single</goal>
@@ -389,12 +390,12 @@
 						</executions>
 
 					</plugin>
-					<plugin>
+					<!-- plugin>
 						<artifactId>maven-deploy-plugin</artifactId>
 						<configuration>
 							<skip>true</skip>
 						</configuration>
-					</plugin>
+					</plugin -->
 
 				</plugins>
 			</build>
