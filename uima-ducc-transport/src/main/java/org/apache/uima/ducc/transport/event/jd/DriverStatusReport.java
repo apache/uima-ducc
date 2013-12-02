@@ -467,10 +467,10 @@ public class DriverStatusReport implements Serializable {
 		try {
 			synchronized(casQueuedMap) {
 				if(casQueuedMap.containsKey(casId)) {
-					duccOut.warn(methodName, duccId, casId+" already queued");
+					duccOut.debug(methodName, duccId, casId+" already queued");
 				}
 				if(casDequeuedPendingMap.containsKey(casId)) {
-					duccOut.warn(methodName, duccId, casId+" already dequeued");
+					duccOut.debug(methodName, duccId, casId+" already dequeued");
 					casDequeuedPendingMap.remove(casId);
 				}
 				else {
@@ -488,7 +488,7 @@ public class DriverStatusReport implements Serializable {
 		try {
 			synchronized(casQueuedMap) {
 				if(!casQueuedMap.containsKey(casId)) {
-					duccOut.warn(methodName, duccId, casId+" not found");
+					duccOut.debug(methodName, duccId, casId+" not found");
 					casDequeuedPendingMap.put(casId, duccId);
 				}
 				else {
