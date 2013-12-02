@@ -32,8 +32,8 @@ import time
 import subprocess
 import shutil
 import signal
-from threading import *
-import Queue
+#from threading import *
+#import Queue
 
 os.environ['DUCC_HOME'] = os.path.abspath('../..')
 sys.path.append(os.environ['DUCC_HOME'] + '/admin')

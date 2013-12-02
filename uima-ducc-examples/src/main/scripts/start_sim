@@ -235,14 +235,14 @@ class StartSim(DuccUtil):
         print "        'mem-in-GB' is the amount of simulated memory the agent will report"
         print ""
         print "        Example:"
-        print "          1  bluej290 31"
-        print "          2  bluej290 31"
-        print "          9  bluej291 31"
-        print "          10 bluej291 31"
-        print "          17 bluej292 47"
-        print "          18 bluej292 47"
-        print "          25 bluej293 47"
-        print "          26 bluej293 47"
+        print "          1  node290 31"
+        print "          2  node290 31"
+        print "          9  node291 31"
+        print "          10 node291 31"
+        print "          17 node292 47"
+        print "          18 node292 47"
+        print "          25 node293 47"
+        print "          26 node293 47"
         print ""
         print "   -c --components component"
         print "        Start the indicated component, must be one of", ' '.join(self.default_components), "or 'all'"
@@ -367,15 +367,19 @@ class StartSim(DuccUtil):
             if ( (IP != None) or (memory != None) or ( pseudoname != None )) :
                 self.invalid("Running with a nodelist is not compatible with running a single agent.");
 
-            if ( components.get('broker') != None ):
-                self.start_broker()
+            try:
+                if ( components.get('broker') != None ):
+                    self.start_broker()
+    
+                if ( node_config != None ):
+                    self.startAgents(node_config, instances)
+    
+                for (com, com) in components.items():
+                    if ( com != 'broker' ):    # started separately
+                        self.threadpool.invoke(self.startComponent, com, or_parms)
 
-            if ( node_config != None ):
-                self.startAgents(node_config, instances)
-
-            for (com, com) in components.items():
-                if ( com != 'broker' ):    # started separately
-                    self.threadpool.invoke(self.startComponent, com, or_parms)
+            except:
+                pass
 
             self.threadpool.quit()
             self.pids.write('sim.pids')            

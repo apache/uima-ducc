@@ -733,11 +733,7 @@ class RunDucc(DuccUtil):
             self.queue = Queue.Queue()
 
         self.run_batch()
-        
-        #if ( self.style == 'SE' ):
-        #    time.sleep(5)
-        #    service_starter.stop_services()
-        
+                
         if ( self.watch ):
             self.queue.join()
             print 'All threads returned'
