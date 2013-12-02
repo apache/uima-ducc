@@ -141,13 +141,13 @@ public class NodeStatus {
 	}
 	
 	public static void main(String[] args) {
-		_offline("bluej9999");
-		_online("bluej8888");
-		_offline("bluej7777");
-		_online("bluej7777");
-		_query("bluej7777");
-		_query("bluej8888");
-		_query("bluej9999");
-		_query("bluej0000");
+		_offline("node9999");
+		_online("node8888");
+		_offline("node7777");
+		_online("node7777");
+		_query("node7777");
+		_query("node8888");
+		_query("node9999");
+		_query("node0000");
 	}
 }
