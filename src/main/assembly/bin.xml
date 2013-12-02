@@ -83,13 +83,13 @@ under the License.
         <include>org.apache.uima:uima-ducc-web</include>
         <include>org.apache.uima:uima-ducc-examples</include>
       </includes>      
-      <outputFileNameMapping>uima-ducc/${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
-      <outputDirectory>lib</outputDirectory>
+      <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
+      <outputDirectory>lib/uima-ducc</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
-   
+
    <!-- Google GSon -->   
      <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
@@ -438,19 +438,6 @@ under the License.
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
       <includes />
-    </fileSet>
-
-    <fileSet>
-      <directory>uima-ducc-cli/target</directory>
-      <outputDirectory>lib</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>
-      <includes>
-         <include>*.jar</include>
-      </includes>
-      <excludes>
-         <exclude>uima-ducc-cli.jar</exclude>
-      </excludes>
     </fileSet>
 
     <fileSet>
