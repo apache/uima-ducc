@@ -96,7 +96,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 				else {
 					WorkItem wi = jobDriver.getWorkItem(casId);
 					int seqNo = wi.getSeqNo();
-					duccOut.warn(methodName, jobid, "callback #1 out-of-order seqNo:"+seqNo+" "+"casId:"+casId);
+					duccOut.debug(methodName, jobid, "callback #1 out-of-order seqNo:"+seqNo+" "+"casId:"+casId);
 				}
 			}
 			catch(Exception e) {
@@ -194,7 +194,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 				if(jobDriver.callbackRegister(casId, name)) {
 					WorkItem wi = jobDriver.getWorkItem(casId);
 					int seqNo = wi.getSeqNo();
-					duccOut.warn(methodName, jobid, "callback #1 missing seqNo:"+seqNo+" "+"casId:"+casId);
+					duccOut.debug(methodName, jobid, "callback #1 missing seqNo:"+seqNo+" "+"casId:"+casId);
 					onBeforeMessageSendHandler(status);
 				}
 				onBeforeProcessCASHandler(status, nodeIP, pid);
