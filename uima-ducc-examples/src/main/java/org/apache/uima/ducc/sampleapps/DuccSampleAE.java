@@ -19,6 +19,15 @@
 
 package org.apache.uima.ducc.sampleapps;
 
+/*
+ * This sample Analysis Engine is a no-op annotator. It is used to
+ * demonstrate DUCC's overhead whenb processing a collection of compressed
+ * CASes. 
+ * 
+ * See more information in DUCC Book chapters on sample applications.
+ * 
+ */
+
 import org.apache.uima.analysis_component.JCasAnnotator_ImplBase;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.jcas.JCas;

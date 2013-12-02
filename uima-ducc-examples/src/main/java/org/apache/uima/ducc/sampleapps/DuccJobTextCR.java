@@ -37,8 +37,15 @@ import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
 
 /**
- * A simple DUCC Job collection reader that reads text files from a directory in the filesystem.
- * It can be configured with the following parameters:
+ * A DUCC Job collection reader that segments a collection text files from a directory 
+ * in the filesystem into separate Work Items for a DUCC job.
+ * In order to facilitate processing scale out, an optional blocksize parameter can be 
+ * specified that will be used to break larger files into multiple Work Items.
+ * 
+ * By default any previously completed output files found in the output directory are preserved,
+ * but a configuration parameter is available to ignore previous output. 
+
+ * This CR can be configured with the following parameters:
  * <ul>
  * <li><code>InputDirectory</code> - path to directory containing input files</li>
  * <li><code>OutputDirectory</code> - path to directory for output files</li>

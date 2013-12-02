@@ -36,8 +36,11 @@ import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
 
 /**
- * A DUCC Job collection reader that reads text files from a directory in the filesystem.
- * It can be configured with the following parameters:
+ * A DUCC Job collection reader that returns a Work Item CAS for each zipfile found in
+ * a directory. By default any previously completed output files found in the output 
+ * directory are preserved, but a configuration parameter is available to ignore previous output. 
+
+ * This CR can be configured with the following parameters:
  * <ul>
  * <li><code>InputSpec</code> - path to directory containing input *.zip files</li>
  * <li><code>OutputDirectory</code> - path to directory for output files</li>

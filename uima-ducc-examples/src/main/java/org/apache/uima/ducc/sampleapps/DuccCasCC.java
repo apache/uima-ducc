@@ -19,6 +19,18 @@
 
 package org.apache.uima.ducc.sampleapps;
 
+/*
+ * This sample Cas Consumer is designed to create an output zip file for each Work Item.
+ * The CAS compression format is selectable as either ZIP compressed XmiCas or UIMA 
+ * compressed binary form 6 format. When compressed binary is used, each zip file also 
+ * contains the full UIMA Type System in ZIP compressed text.
+ * CASes in UIMA compressed binary form 6 format have the same flexibility as an XmiCas 
+ * in that they can be deserialized into a CAS with a different, but compatible Type System.
+ * 
+ * See more information in DUCC Book chapters on sample applications.
+ * 
+ */
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;

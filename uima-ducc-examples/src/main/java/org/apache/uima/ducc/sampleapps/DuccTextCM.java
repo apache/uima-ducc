@@ -19,6 +19,17 @@
 
 package org.apache.uima.ducc.sampleapps;
 
+/*
+ * This sample Cas Multiplier uses paragraph boundaries to segment a text file, 
+ * or a part of a text file, into multiple documents. A child CAS is created
+ * for each document. Paragraphs that cross block boundaries are processed
+ * in the block where they started. An error is thrown if a paragraph crosses 
+ * two block boundaries.
+ * 
+ * See more information in DUCC Book chapters on sample applications.
+ * 
+ */
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

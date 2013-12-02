@@ -19,6 +19,15 @@
 
 package org.apache.uima.ducc.sampleapps;
 
+/*
+ * This sample Cas Multiplier reads compressed CASes from a specified zipfile
+ * and returns each as a child CAS. A zipfile may contain zip-compressed XMI
+ * format CASes or UIMA compressed binary form 6 format CASes. 
+ * 
+ * See more information in DUCC Book chapters on sample applications.
+ * 
+ */
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
