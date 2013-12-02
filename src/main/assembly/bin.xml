@@ -68,7 +68,7 @@ under the License.
     </dependencySet>
 
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uima-ducc-common</include>
@@ -81,7 +81,6 @@ under the License.
         <include>org.apache.uima:uima-ducc-sm</include>
         <include>org.apache.uima:uima-ducc-orchestrator</include>
         <include>org.apache.uima:uima-ducc-web</include>
-        <include>org.apache.uima:uima-ducc-examples</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
       <outputDirectory>lib/uima-ducc</outputDirectory>
@@ -90,8 +89,21 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+    <!-- Put examples jar one level down as not used by daemons -->
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>org.apache.uima:uima-ducc-examples</include>
+      </includes>      
+      <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
+      <outputDirectory>lib/uima-ducc/examples</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
    <!-- Google GSon -->   
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>com.google.code.gson:gson</include>
@@ -102,8 +114,8 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
     
-     <!-- UIMA-AS -->   
-     <dependencySet>
+    <!-- UIMA-AS -->   
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uimaj-as-core</include>
@@ -117,8 +129,8 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <!-- UIMA Core -->
-     <dependencySet>
+    <!-- UIMA Core -->
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uimaj-core</include>
@@ -130,7 +142,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-cli:commons-cli</include>
@@ -141,7 +153,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>log4j:log4j</include>
@@ -152,7 +164,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.xmlbeans:xmlbeans</include>
@@ -163,7 +175,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>com.google.guava:guava</include>
@@ -174,7 +186,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>joda-time:joda-time</include>
@@ -185,7 +197,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-httpclient:commons-httpclient</include>
@@ -196,7 +208,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-codec:commons-codec</include>
@@ -207,7 +219,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-collections:commons-collections</include>
@@ -218,7 +230,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-lang:commons-lang</include>
@@ -229,7 +241,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.commons:commons-math</include>
@@ -240,7 +252,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.activemq:activemq-core</include>
@@ -259,7 +271,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-logging:commons-logging</include>
@@ -313,7 +325,7 @@ under the License.
     </dependencySet>
 
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.camel:camel-context</include>
@@ -340,7 +352,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-     <dependencySet>
+    <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.springframework:spring-core</include>
