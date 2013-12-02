@@ -845,9 +845,10 @@
 
 	<build>
 		<finalName>${project.artifactId}-${project.version}</finalName>
-		<pluginManagement>
+		<!-- pluginManagement>
+		
 			<plugins>
-				<!-- Prereq Java 6 because of lib dependencies -->
+				
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<configuration>
@@ -856,13 +857,20 @@
 					</configuration>
 				</plugin>
 			</plugins>
-		</pluginManagement>
+		</pluginManagement -->
 
 
 
 		<!-- define common plugins that are shared by every pom -->
 		<plugins>
-
+           <!-- Prereq Java 6 because of lib dependencies -->
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
 			<!-- Each jar produced should have metadata attached to a Manifest -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
