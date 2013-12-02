@@ -79,7 +79,7 @@ In order to build DUCC from source the following software is also required:
     \item Apache Maven, from \url{http://maven.apache.org/index.html}
 \end{itemize}
 
-The DUCC web server optionally supports direct ``jconsole'' attach to DUCC job processes.  To install
+The DUCC webserver server optionally supports direct ``jconsole'' attach to DUCC job processes.  To install
 this, the following is required:
 \begin{itemize}
     \item Apache Ant, any reasonably current version.
@@ -119,8 +119,8 @@ directory.
 
 \section{Documentation}
 After single-user installation, the DUCC documentation is found (in both PDF and HTML format) in the directory 
-ducc\_runtime/docs.  As well, the DUCC web server contains a link to the full documentation on each major page.
-The API is documented only via JavaDoc, distributed in the web server's root directory 
+ducc\_runtime/docs.  As well, the DUCC webserver contains a link to the full documentation on each major page.
+The API is documented only via JavaDoc, distributed in the webserver's root directory 
 {\tt \duccruntime/webserver/root/doc/apidocs.}  
 
 If building from source, Maven places the documentation in
@@ -521,4 +521,61 @@ ducc_runtime/resources/ducc.nodes.
 This is identical to initial verification, with the one difference that the job ``1.job'' should be
 submitted as any user other than ducc.  Watch the webserver and insure that you see the job execute
 under the correct identity.  Once this completes, DUCC is installed and verified.
+ 
+\section{Enable DUCC webserver login}
+
+    This step is optional.  As shipped, the webserver is disabled for
+    logins.  This can be seen by hovering over the Login text located in the
+    upper right of most webserver pages: 
+\begin{verbatim}
+System is configured to disallow logins
+\end{verbatim}
+
+    To enable logins, a Java-based authenticator must be plugged-in and the
+    login feature must be enabled in the ducc.properties file by the DUCC
+    administrator.  Also, ducc\_ling should be properly deployed (see 
+    Ducc\_ling Installation section above).
+    
+    A beta version of a Linux-based authentication plug-in is shipped with DUCC.
+    It can be found in the source tree:
+\begin{verbatim}
+org.apache.uima.ducc.ws.authentication.LinuxAuthenticationManager
+\end{verbatim}
+
+    The Linux-based authentication plug-in will attempt to validate webserver
+    login requests by appealing to the host OS.  The user who wishes to
+    login provides a userid and password to the webserver via https, which
+    in-turn are handed-off to the OS for a success/failure reply.
+    
+    To have the webserver employ the beta Linux-based authentication plug-in,
+    the DUCC administrator should perform the following as user ducc:
+\begin{verbatim}    
+1. edit ducc.properties
+2. locate: ducc.ws.login.enabled = false
+3. modify: ducc.ws.login.enabled = true
+4. save
+\end{verbatim}
+
+    Note: The beta Linux-based authentication plug-in has limited testing.
+    In particular, it was tested using:
+\begin{verbatim}
+Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
+\end{verbatim}    
+    
+    Alternatively, you can provide your own authentication plug-in.  To do so:
+\begin{verbatim}    
+1. author a Java class that implements 
+   org.apache.uima.ducc.common.authentication.IAuthenticationManager
+2. create a jar file comprising your authentication class
+3. put the jar file in a location accessible by the DUCC webserver, such as 
+   ~ducc/runtime/SNAPSHOT/ducc_runtime/webserver/lib/authentication
+4. put any authentication dependency jar files there as well
+5. edit ducc.properties
+6. add the following:
+   ducc.local.jars = authentication/*
+   ducc.authentication.implementer=<your.authenticaor.class.Name>
+7. locate: ducc.ws.login.enabled = false
+8. modify: ducc.ws.login.enabled = true
+9. save   
+\end{verbatim}    
 
