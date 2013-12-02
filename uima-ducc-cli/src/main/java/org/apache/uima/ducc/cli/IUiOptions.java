@@ -596,7 +596,7 @@ public interface IUiOptions
             public String pname()       { return JobSpecificationProperties.key_service_dependency; }
             public String argname()     { return "list"; }
             public String description() { return "List of service descriptor strings."; }
-            public String example()     { return "UIMA-AS:RandomSleepAE:tcp://bluej672:61616 CUSTOM:myservice";}
+            public String example()     { return "UIMA-AS:RandomSleepAE:tcp://node1:61616 CUSTOM:myservice";}
             public String label()       { return name(); }
         },            
 

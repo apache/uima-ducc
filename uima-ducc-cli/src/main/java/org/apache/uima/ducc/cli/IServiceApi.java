@@ -179,7 +179,7 @@ public interface IServiceApi
 
         ServiceDependency { 
             public String decode()      { return "service_dependency"; }
-            public String description() { return "Comma-delimeted list of service descriptor strings. Example:UIMA-AS:RandomSleepAE:tcp://bluej672:61616"; }
+            public String description() { return "Comma-delimeted list of service descriptor strings. Example:UIMA-AS:RandomSleepAE:tcp://node1:61616"; }
             public String argname()     { return "service-dependency-list"; }
         },            
 

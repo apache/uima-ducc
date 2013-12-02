@@ -655,7 +655,7 @@ public class DuccServiceApi
      *
      *  Service is identified as:
      *  type:endpoint:broker
-     *  e.g.  UIMA-AS@FixedSleepAE@tcp://bluej02
+     *  e.g.  UIMA-AS@FixedSleepAE@tcp://node1
      */
 
     /**

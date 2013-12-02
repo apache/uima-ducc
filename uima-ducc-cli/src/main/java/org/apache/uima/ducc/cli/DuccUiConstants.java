@@ -449,6 +449,6 @@ public class DuccUiConstants {
 	public static final String parm_service_dependency = "list";
 	public static final String desc_service_dependency = "Comma-delimeted list of service descriptor strings.";
 	public static final String labl_service_dependency = "Service Descriptors";
-	public static final String exmp_service_dependency = "UIMA-AS:RandomSleepAE:tcp://bluej672:61616";
+	public static final String exmp_service_dependency = "UIMA-AS:RandomSleepAE:tcp://node1:61616";
 	public static final String dval_service_dependency = "";
 }
