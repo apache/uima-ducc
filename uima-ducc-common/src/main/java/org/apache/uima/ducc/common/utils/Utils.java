@@ -385,8 +385,7 @@ public class Utils {
         String n = "/" + cl.getName().replaceAll("\\.", "/")+".class"; // to for /org/apache/uima ... Utils.class
 
 
-        // Assuming you've installed DUCC into /home/whatever/ducc_runtime
-        // URL will be of form jar:file:/home/whatever/ducc_runtime/lib/uima-ducc-common.jar!/org/apache/uima/ducc/common/utils/Utils.class
+        // URL will be of form jar:file:<ducc-home>/lib/uima-ducc/uima-ducc-common-<version>.jar!/org/apache/uima/ducc/common/utils/Utils.class
         URL res = cl.getResource(n);
         if ( res == null ) {
         	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME.");

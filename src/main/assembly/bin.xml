@@ -440,8 +440,17 @@ under the License.
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
-    
-    
+
+    <!--    Unversioned CLI jar -->
+    <fileSet>
+      <directory>uima-ducc-cli/target</directory>
+      <outputDirectory>lib</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+      <includes>
+        <include>uima-ducc-cli.jar</include>
+      </includes>
+    </fileSet>
     
     
     <fileSet>
