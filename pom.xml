@@ -300,7 +300,6 @@
 				plugin Version 2.4 fixes a bug http://jira.codehaus.org/browse/PLXCOMP-176 -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4</version>
 				<executions>
 					<execution>
 						<id>default-cli</id>
@@ -311,7 +310,10 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>uima-ducc-distr</id>
+					    <!-- keep the id of this plugin the same as in the uima-parent's pom.
+					         Otherwise, maven will run this plugin and the parents plugin 
+					         and will build ducc's tgz twice  -->
+						<id>uima-distr</id>
 						<phase>integration-test</phase>
 						<goals>
 							<goal>single</goal>
