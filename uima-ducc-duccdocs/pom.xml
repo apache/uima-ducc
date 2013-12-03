@@ -60,63 +60,101 @@
       <id>build-duccdocs</id>
       <build>
         <plugins>
+          
+          <!-- Run latex commands pdflatex and htlatex to produce pdf and html -->
+          <!-- for the various documents authored in latex -->
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>latex-to-pdf-and-html-for-duccdocs</id>
+                <phase>package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
 
-            <plugin>
-                <groupId>de.akquinet.maven</groupId>
-                <artifactId>maven-latex-plugin</artifactId>
-                <version>1.1</version>
-                <inherited>false</inherited>
+                    <echo message="Building duccbook HTML"  />
+                    <mkdir dir="target/site/duccbook-html"  />
+                    <mkdir dir="target/site/duccbook-html/images"  />
+                    <exec executable="htlatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="duccbook.tex"  />
+                    </exec>
+                    <move todir="target/site/duccbook-html"
+                          overwrite="true"
+                          >
+                      <fileset dir="src/site/tex/duccbook">
+                        <include name="duccbook.html"  />
+                        <include name="duccbook.css"  />
+                      </fileset>
+                    </move>
+                    <copy todir="target/site/duccbook-html/images"
+                          overwrite="true"
+                          >
+                      <fileset dir="src/site/tex/duccbook/images/"/>
+                    </copy>
 
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>latex</goal>
-                        </goals>
-                    </execution>
+                    <delete file="src/site/tex/duccbook/duccbook.4ct"/>
+                    <delete file="src/site/tex/duccbook/duccbook.4tc"/>
+                    <delete file="src/site/tex/duccbook/duccbook.aux"/>
+                    <delete file="src/site/tex/duccbook/duccbook.dvi"/>
+                    <delete file="src/site/tex/duccbook/duccbook.idv"/>
+                    <delete file="src/site/tex/duccbook/duccbook.lg"/>
+                    <delete file="src/site/tex/duccbook/duccbook.log"/>
+                    <delete file="src/site/tex/duccbook/duccbook.tmp"/>
+                    <delete file="src/site/tex/duccbook/duccbook.xref"/>
+                    <echo message="Completed duccbook HTML"  />
 
-                    
-                    <execution>
-                        <id>HTML singlepage</id>
-                        <configuration>
-                            <settings>
-                                <outputDirectory>reference/html_singlepage</outputDirectory>
-                                <tex4htCommandArgs>
-                                    <tex4htCommandArg>html,0</tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg>-interaction=nonstopmode --src-specials</tex4htCommandArg>
-                                </tex4htCommandArgs>
-                            </settings>
-                        </configuration>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>tex4ht</goal>
-                        </goals>
-                    </execution>
-                    
-                    <!--
-                    <execution>
-                        <id>HTML multipage</id>
-                        <configuration>
-                            <settings>
-                                <outputDirectory>reference/html_multipage</outputDirectory>
-                                <tex4htCommandArgs>
-                                    <tex4htCommandArg>html,2</tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg>-interaction=nonstopmode JRC-src-specials</tex4htCommandArg>
-                                </tex4htCommandArgs>
-                            </settings>
-                        </configuration>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>tex4ht</goal>
-                        </goals>
-                    </execution>
-                    -->
-                </executions>
-            </plugin>
+                    <echo message="Building duccbook Installation PDF"  />
+                    <mkdir dir="target/site/duccbook-pdf"  />
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="installation.tex"  />
+                    </exec>
+
+                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
+                    <!-- htlatex by default runs enough to get xrefs and TOC -->
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="installation.tex"  />
+                    </exec>
+                    <echo message="Completed duccbook Installation PDF"  />
+
+
+                    <echo message="Building duccbook PDF"  />
+                    <mkdir dir="target/site/duccbook-pdf"  />
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="duccbook.tex"  />
+                    </exec>
+
+                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
+                    <!-- htlatex by default runs enough to get xrefs and TOC -->
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="duccbook.tex"  />
+                    </exec>
+                    <delete file="target/site/duccbook-pdf/duccbook.aux"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.lof"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.log"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.out"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.toc"/>
+                    <echo message="Completed duccbook PDF"  />
+
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
 
         </plugins>
       </build>
@@ -127,62 +165,102 @@
       <build>
         <plugins>
 
-            <plugin>
-                <groupId>de.akquinet.maven</groupId>
-                <artifactId>maven-latex-plugin</artifactId>
-                <version>1.1</version>
-                <inherited>false</inherited>
 
-                <executions>
-                    <execution>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>latex</goal>
-                        </goals>
-                    </execution>
+          <!-- Run latex commands pdflatex and htlatex to produce pdf and html -->
+          <!-- for the various documents authored in latex -->
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>latex-to-pdf-and-html-for-duccdocs</id>
+                <phase>package</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <target>
 
-                    
-                    <execution>
-                        <id>HTML singlepage</id>
-                        <configuration>
-                            <settings>
-                                <outputDirectory>reference/html_singlepage</outputDirectory>
-                                <tex4htCommandArgs>
-                                    <tex4htCommandArg>html,0</tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg>-interaction=nonstopmode --src-specials</tex4htCommandArg>
-                                </tex4htCommandArgs>
-                            </settings>
-                        </configuration>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>tex4ht</goal>
-                        </goals>
-                    </execution>
-                    
-                    <!--
-                    <execution>
-                        <id>HTML multipage</id>
-                        <configuration>
-                            <settings>
-                                <outputDirectory>reference/html_multipage</outputDirectory>
-                                <tex4htCommandArgs>
-                                    <tex4htCommandArg>html,2</tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg></tex4htCommandArg>
-                                    <tex4htCommandArg>-interaction=nonstopmode JRC-src-specials</tex4htCommandArg>
-                                </tex4htCommandArgs>
-                            </settings>
-                        </configuration>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>tex4ht</goal>
-                        </goals>
-                    </execution>
-                    -->
-                </executions>
-            </plugin>
+                    <echo message="Building duccbook HTML"  />
+                    <mkdir dir="target/site/duccbook-html"  />
+                    <mkdir dir="target/site/duccbook-html/images"  />
+                    <exec executable="htlatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="duccbook.tex"  />
+                    </exec>
+                    <move todir="target/site/duccbook-html"
+                          overwrite="true"
+                          >
+                      <fileset dir="src/site/tex/duccbook">
+                        <include name="duccbook.html"  />
+                        <include name="duccbook.css"  />
+                      </fileset>
+                    </move>
+                    <copy todir="target/site/duccbook-html/images"
+                          overwrite="true"
+                          >
+                      <fileset dir="src/site/tex/duccbook/images/"/>
+                    </copy>
+
+                    <delete file="src/site/tex/duccbook/duccbook.4ct"/>
+                    <delete file="src/site/tex/duccbook/duccbook.4tc"/>
+                    <delete file="src/site/tex/duccbook/duccbook.aux"/>
+                    <delete file="src/site/tex/duccbook/duccbook.dvi"/>
+                    <delete file="src/site/tex/duccbook/duccbook.idv"/>
+                    <delete file="src/site/tex/duccbook/duccbook.lg"/>
+                    <delete file="src/site/tex/duccbook/duccbook.log"/>
+                    <delete file="src/site/tex/duccbook/duccbook.tmp"/>
+                    <delete file="src/site/tex/duccbook/duccbook.xref"/>
+                    <echo message="Completed duccbook HTML"  />
+
+                    <echo message="Building duccbook Installation PDF"  />
+                    <mkdir dir="target/site/duccbook-pdf"  />
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="installation.tex"  />
+                    </exec>
+
+                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
+                    <!-- htlatex by default runs enough to get xrefs and TOC -->
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="installation.tex"  />
+                    </exec>
+                    <echo message="Completed duccbook Installation PDF"  />
+
+
+                    <echo message="Building duccbook PDF"  />
+                    <mkdir dir="target/site/duccbook-pdf"  />
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="duccbook.tex"  />
+                    </exec>
+
+                    <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
+                    <!-- htlatex by default runs enough to get xrefs and TOC -->
+                    <exec executable="pdflatex"
+                          dir="src/site/tex/duccbook"
+                          >
+                      <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="duccbook.tex"  />
+                    </exec>
+                    <delete file="target/site/duccbook-pdf/duccbook.aux"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.lof"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.log"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.out"/>
+                    <delete file="target/site/duccbook-pdf/duccbook.toc"/>
+                    <echo message="Completed duccbook PDF"  />
+
+                  </target>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
 
         </plugins>
       </build>
