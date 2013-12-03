@@ -45,10 +45,8 @@
     \begin{description}
       \item[start\_ducc {[options]}] \hfill \\ 
         If no options are given, all DUCC processes are started, using the default node list, 
-        ducc\_runtime/resources/ducc.nodes. This is the equivalent of 
-\begin{verbatim}
-start\_ducc -n $DUCC\_HOME/resources/ducc.nodes -m 
-\end{verbatim}
+        {\em ducc.nodes}. 
+      
       \end{description}
       
       \subsubsection{{\em Options: }}
@@ -262,11 +260,10 @@ check_ducc -n nlist1 -n nlist2
            \item[-c --configuration]
              Verify the \hyperref[sec:ducc.classes]{Resource Manager configuration}.
 
-           \item[-p --pids]
-               
+           \item[-p --pids]               
                Rewrite the PID file. The PID file contains the process ids of all known DUCC 
                management and agent processes. The PID file is normally managed by start\_ducc and 
-               stop\_ducc and is stored in ducc\_runtime/state/ducc.pids. 
+               stop\_ducc and is stored in the file {\em ducc.pids} in directory {\em ducc\_runtime/state}.
                
                Occasionally the PID file can become partially or fully corrupted; for example, if a DUCC 
                process dies spontaneously. Use check\_ducc -p to search the cluster for processes and 
