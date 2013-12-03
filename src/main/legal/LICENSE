@@ -220,6 +220,7 @@ Apache MINA
 XmlBeans
 Jetty 
 google-gson
+jna
 
 ========================================================================= 
 == The following products are licensed: MOZILLA PUBLIC LICENSE
@@ -612,6 +613,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 DataTables 
 JSch 
 XStream
+libpam
 
  BSD License =========== Copyright (c) 2008-2010, Allan Jardine All rights
   reserved.
