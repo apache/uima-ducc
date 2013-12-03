@@ -62,7 +62,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
 
     The DUCC CLI parameters are now described in detail.
 
-    \subsection{The DUCC Job Descriptor}
+    \section{The DUCC Job Descriptor}
     The DUCC Job Descriptor includes properties to enable automated management and scale-out 
     over large computing clusters.  The job descriptor includes
     \begin{itemize}
@@ -75,7 +75,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
       \item Debugging and monitoring requirements and preferences
     \end{itemize}
   
-    \subsection{Operating System Limit Support}
+    \section{Operating System Limit Support}
     The CLI supports specification of operating system limits applied to the various job processes.
     To specify a limit, pass the name of the limit and its value in the {\em environment} specified
     in the job.  Limits are named with the string ``DUCC\_RLIMIT\_name'' where ``name'' is the name of
@@ -106,7 +106,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
      ducc_job_submit .... --environment="DUCC_RLIMT_NOFILE=1024" ...
 \end{verbatim}
     
-    \subsection{Command  Line Forms}
+    \section{Command  Line Forms}
     The Command Line Interface is provided in several forms:
 
     \begin{enumerate}
@@ -118,7 +118,7 @@ ducc_job_submit --specification 1.job --process_memory_size 16 --scheduling_clas
     silently.  When invoking a command's {\tt class} directly, the java {\tt CLASSPATH}
     must include the uima-ducc-cli.jar, as illustrated in the wrapper scripts.
 
-    \subsection{DUCC Commands}
+    \section{DUCC Commands}
     The following commands are provided:
     \begin{description}
     \item[ducc\_submit] Submit a job for execution.
