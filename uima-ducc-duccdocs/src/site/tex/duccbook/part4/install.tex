@@ -118,10 +118,12 @@ When build is complete, a tarball is placed in your current-directory/trunk/targ
 directory.
 
 \section{Documentation}
+\begin{sloppypar}
 After single-user installation, the DUCC documentation is found (in both PDF and HTML format) in the directory 
 ducc\_runtime/docs.  As well, the DUCC webserver contains a link to the full documentation on each major page.
 The API is documented only via JavaDoc, distributed in the webserver's root directory 
 {\tt \duccruntime/webserver/root/doc/apidocs.}  
+\end{sloppypar}
 
 If building from source, Maven places the documentation in
 \begin{itemize}
@@ -242,21 +244,15 @@ To run the verification, issue these commands.
 ENV: Java is configured as: /share/jdk1.6/bin/java
 ENV: java full version "1.6.0_14-b08"
 MEM: memory is 15 gB
-ENV: system is Linux version 2.6.32-220.el6.x86_64 (mockbuild@x86-004.build.bos.redhat.com) (gcc version 4.4.5 20110214 (Red Hat 4.4.5-6) (GCC) ) #1 SMP Wed Nov 9 08:03:13 EST 2011
-ENV:         uima-ducc-rm.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV:         uima-ducc-pm.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV: uima-ducc-orchestrator.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV:         uima-ducc-sm.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV:        uima-ducc-web.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV:        uima-ducc-cli.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV:      uima-ducc-agent.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV:     uima-ducc-common.jar:     0.8.0-SNAPSHOT  compiled at None
-ENV:         uima-ducc-jd.jar:     0.8.0-SNAPSHOT  compiled at None
+ENV: system is Linux version 2.6.32-220.el6.x86_64 (mockbuild@x86-004.build.bos.redhat.com) 
+ENF: (gcc version 4.4.5 20110214 (Red Hat 4.4.5-6) (GCC) ) #1 SMP Wed Nov 9 08:03:13 EST 2011
 broker host ducchead.biz.org
 [] INFO: Loading '/home/ducc/.activemqrc'
 [] INFO: Using java '/share/jdk1.6/bin/java'
-[] INFO: Starting - inspect logfiles specified in logging.properties and log4j.properties to get details
-[] INFO: pidfile created : '/home/ducc/ducc_runtime/activemq/data/activemq-ducchead.biz.org.pid' (pid '14138')
+[] INFO: Starting - inspect logfiles specified in logging.properties and log4j.properties 
+         to get details
+[] INFO: pidfile created : '/home/ducc/ducc_runtime/activemq/data/activemq-ducchead.biz.org.pid' 
+         (pid '14138')
 [] Started AMQ broker
 Waiting for broker 0
 Waiting for broker 1
@@ -451,10 +447,16 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
          \item Optionally sets user limits.
          \item Prints the effective limits for a job to both the user's log, and the DUCC agent's log.
          \item Changes to the user's working directory, as specified by the job.
-         \item Optionally establishes the LD\_LIBRARY\_PATH for the job from the environment variable
-           DUCC\_LD\_LIBRARY\_PATH, if set in the DUCC job specification. (Secure Linux systems will
-           prevent the LD\_LIBRARY\_PATH from being set by a program with root authority, so this is
+         \item Optionally establishes LD\_LIBRARY\_PATH 
+           for the job from the environment variable
+\begin{verbatim}
+        DUCC_LD_LIBRARY_PATH
+\end{verbatim}
+           if set in the DUCC job specification. (Secure Linux systems will
+           prevent LD\_LIBRARY\_PATH 
+           from being set by a program with root authority, so this is
            done AFTER changing userids).
+
        \end{itemize}
 
 \section{CGroups Installation and Configuration}
