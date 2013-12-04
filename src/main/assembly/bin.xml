@@ -469,15 +469,6 @@ under the License.
       <includes />
     </fileSet>
 
-
-    <fileSet>
-      <directory>src/main/legal</directory>
-      <outputDirectory></outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>
-      <includes />
-    </fileSet>
-
     <fileSet>
       <directory></directory>
       <outputDirectory></outputDirectory>
@@ -486,6 +477,11 @@ under the License.
         <include>RELEASE_NOTES.html</include>
         <include>issuesFixed/**</include>
       </includes>
+      <!-- The NOTICE and LICENSE for binary distro will be copied from src/main/legal  -->
+      <excludes>
+         <exclude>NOTICE</exclude>
+         <exclude>LICENSE</exclude>
+      </excludes>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>
      
@@ -700,12 +696,7 @@ under the License.
       <destName>Messages.properties</destName>
     </file>
     
-    <file>
-      <source>src/main/config/activemq-ducc.xml</source>
-      <outputDirectory>activemq/conf</outputDirectory>
-      <fileMode>644</fileMode>
-    </file>
-    
+
     <file>
       <source>src/main/config/README.txt</source>
       <outputDirectory>activemq</outputDirectory>
