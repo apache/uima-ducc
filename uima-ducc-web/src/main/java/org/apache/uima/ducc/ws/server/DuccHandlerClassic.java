@@ -181,6 +181,21 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			}
 			break;
 		case Visual:
+			// Below
+			sb.append(schedulingClass);
+			if((debugPortDriver >= 0) || (debugPortProcess >= 0)) {
+				sb.append("<br>");
+				if(job.isCompleted()) {
+					sb.append("<span class=\"health_red\""+">");
+				}
+				else {
+					sb.append("<span class=\"health_green\""+">");
+				}
+				sb.append("<div title=\""+title+"\"><img src=\"./opensources/images/Delena-cancerides-huntsman-spider.jpg\"></div>");
+				sb.append("</span>");
+			}
+			/*
+			// On the right
 			sb.append("<table width=\"100%\">");
 			sb.append("<tr>");
 			sb.append("<td align=\"left\">");
@@ -195,6 +210,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			sb.append("</td>");
 			sb.append("</tr>");
 			sb.append("</table>");
+			*/
 			break;
 		}	
 		sb.append("</td>");
