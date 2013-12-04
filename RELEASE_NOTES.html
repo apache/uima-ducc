@@ -30,8 +30,7 @@
 <a href="#what.is.uima-ducc">1. What is UIMA-DUCC?</a><br/>
 <a href="#major.changes">2. Major Changes in this Release</a><br/>
 <a href="#get.involved">3. How to Get Involved</a><br/>
-<a href="#report.issues">4. How to Report Issues</a><br/>
-<a href="#list.issues">5. List of JIRA Issues Fixed in this Release</a>
+<a href="#known.issues">4. Known problems with Release 1.0.0</a><br/>
 </p>  
    
 <h2><a name="what.is.uima-ducc">1. What is UIMA-DUCC?</a></h2>
@@ -49,30 +48,33 @@ provides cluster management services to automate the scale-out of UIMA pipelines
       
 <h2><a name="major.changes">2. Major Changes in this Release</a></h2>
 <p>
-Please see the <a href="README">README</a> for this information. 
+UIMA DUCC 1.0.0 is the first Apache release. For up-to-date information on UIMA-DUCC 
+issues, see our issue tracker: 
+
+<a href="http://issues.apache.org/jira/browse/UIMA-2663?jql=project%20%3D%20UIMA%20AND%20component%20&3D%20ORDER%20BY%20priority%20DESC">
+http://issues.apache.org/jira/browse/UIMA-2663?jql=project%20%3D%20UIMA%20AND%20component%20&3D%20ORDER%20BY%20priority%20DESC</a>
+
 </p> 
   
-  
-<h2><a name="get.involved">3. How to Get Involved</a></h2>
+<h2><a name="list.issues">3. List of JIRA Issues Fixed in this Release</a></h2>
 <p>
-The Apache UIMA project really needs and appreciates any contributions, 
-including documentation help, source code and feedback.  If you are interested
-in contributing, please visit 
-<a href="http://uima.apache.org/get-involved.html">
-  http://uima.apache.org/get-involved.html</a>.
-</p>
-  
-<h2><a name="report.issues">4. How to Report Issues</a></h2>
-<p>
-The Apache UIMA project uses JIRA for issue tracking.  Please report any 
-issues you find at 
-<a href="http://issues.apache.org/jira/browse/uima">http://issues.apache.org/jira/browse/uima</a>
-</p>
-  
-<h2><a name="list.issues">5. List of JIRA Issues Fixed in this Release</a></h2>
-
 Click <a href="issuesFixed/jira-report.html">issuesFixed/jira-report.hmtl</a> for the list of 
 issues fixed in this release.
+</p>
 
+<h2><a name="known.issues">4. Known problems/limitations with Release 1.0.0</a></h2>
+<ul>
+   <li>a) Chapter 13.3 States: "Because non-preemptable allocations can’t be
+   preempeted, work submitted to a class implementing one of the non-
+   preemptable policies (FIXED or RESERVE) are never allowed to “squat” in other
+   nodepools and are only scheduled on nodes in their proper nodepool."
+
+   There are some situations where in fact, FIXED jobs can be scheduled into
+   nodepools which are subsets of the nodepool the FIXED class is defined over.
+   While technically a bug, there are also use cases for this behavior,
+   especially on large systems.  If this causes problems, usually classes
+   can be reconfigured to bypass the issue  The behavior is to be 
+   addressed in a future release.</li>
+</ul>
 </body>
 </html>
