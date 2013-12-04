@@ -375,7 +375,21 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+     <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>net.sf.saxon:saxon</include>
+      </includes>      
+      <outputDirectory>lib/saxon</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputFileNameMapping>${artifact.artifactId}8.jar</outputFileNameMapping>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+
+
    </dependencySets>
+  
   
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
@@ -542,12 +556,12 @@ under the License.
       <excludes />
     </fileSet>
 
-    <fileSet>
+    <!-- fileSet>
       <directory>src/main/saxon</directory>
       <outputDirectory>lib/saxon</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
-    </fileSet>
+    </fileSet -->
 
         
     <fileSet>
