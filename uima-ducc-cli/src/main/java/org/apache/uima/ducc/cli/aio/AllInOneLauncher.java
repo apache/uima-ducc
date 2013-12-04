@@ -305,11 +305,14 @@ public class AllInOneLauncher extends CliBase {
         mh.frameworkTrace(cid, mid, exit);
     }
     
-    private void examine_classpath() throws IOException {
+    private void examine_classpath() {
         String mid = "examine_classpath";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.Classpath.pname();
         classpath = fixupClasspath(pname);
+        if (classpath == null) {
+            throw new IllegalArgumentException("Specified classpath contains only DUCC jars");
+        }
         used(pname);
         String message = classpath;
         mh.frameworkDebug(cid, mid, message);
