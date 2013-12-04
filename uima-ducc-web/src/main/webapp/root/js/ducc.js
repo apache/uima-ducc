@@ -340,6 +340,7 @@ function ducc_load_scroll_jobs_callback()
 		ducc_authentication();
 		ducc_utilization();
 		ducc_cluetips();
+		oTable.fnAdjustColumnSizing();
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_jobs_callback",err);
@@ -423,6 +424,7 @@ function ducc_load_scroll_services_callback()
 		ducc_authentication();
 		ducc_utilization();
 		ducc_cluetips();
+		oTable.fnAdjustColumnSizing();
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_services_callback",err);
@@ -1141,6 +1143,7 @@ function ducc_load_scroll_machines_callback()
 		ducc_authentication();
 		ducc_utilization();
 		ducc_cluetips();
+		oTable.fnAdjustColumnSizing();
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_machines_callback",err);
@@ -1241,6 +1244,7 @@ function ducc_load_scroll_reservations_callback()
 		ducc_authentication();
 		ducc_utilization();
 		ducc_cluetips();
+		oTable.fnAdjustColumnSizing();
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_reservations_callback",err);
@@ -1515,6 +1519,7 @@ function ducc_load_scroll_system_classes_callback()
 		ducc_authentication();
 		ducc_utilization();
 		ducc_cluetips();
+		oTable.fnAdjustColumnSizing();
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_system_classes_callback",err);
@@ -1663,6 +1668,7 @@ function ducc_load_scroll_system_daemons_callback()
 		ducc_authentication();
 		ducc_utilization();
 		ducc_cluetips();
+		oTable.fnAdjustColumnSizing();
 	}
 	catch(err) {
 		ducc_error("ducc_load_scroll_system_daemons_callback",err);
