@@ -375,6 +375,8 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+   </dependencySets>
+  
      <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
@@ -386,10 +388,6 @@ under the License.
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
-
-
-   </dependencySets>
-  
   
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
@@ -556,12 +554,12 @@ under the License.
       <excludes />
     </fileSet>
 
-    <!-- fileSet>
+    <fileSet>
       <directory>src/main/saxon</directory>
       <outputDirectory>lib/saxon</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
-    </fileSet -->
+    </fileSet>
 
         
     <fileSet>

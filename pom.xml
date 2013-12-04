@@ -127,11 +127,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		
-		<dependency>
-			<groupId>net.sf.saxon</groupId>
-			<artifactId>saxon</artifactId>
-			<version>${saxon.version}</version>
-		</dependency>
 	</dependencies>
 
 	<build>

@@ -162,6 +162,7 @@
 		<cglib.version>2.2.0</cglib.version>
 		<libpam.version>1.7</libpam.version>
 		<jna.version>4.0.0</jna.version>
+		
 	</properties>
 
 	<!-- dependencyManagement is a declaration section naming each artifact 
@@ -552,6 +553,7 @@
 				<version>${commons.httpclient.version}</version>
 			</dependency>
 
+		
 		</dependencies>
 	</dependencyManagement>
 
