@@ -280,7 +280,10 @@ public class DuccJobSubmit
         /*
          * Set default classpath if not specified & remove DUCC jars
          */
-        fixupClasspath(UiOption.Classpath.pname());
+        if (fixupClasspath(UiOption.Classpath.pname()) == null){
+            message("Classpath contains only DUCC jars");
+            return false;
+        }
 
         if (jobRequestProperties.containsKey(UiOption.Debug.pname())) {
             jobRequestProperties.dump();

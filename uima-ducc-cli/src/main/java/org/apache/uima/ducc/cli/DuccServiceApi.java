@@ -256,7 +256,9 @@ public class DuccServiceApi
             }
             // Infer the classpath (DuccProperties will return the default if the value isn't found.)
             // Note: only used for UIMA-AS services
-            fixupClasspath(UiOption.Classpath.pname());
+            if (fixupClasspath(UiOption.Classpath.pname()) == null) {
+                throw new IllegalArgumentException("Specified classpath contains only DUCC jars");
+            }
 
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
             // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one

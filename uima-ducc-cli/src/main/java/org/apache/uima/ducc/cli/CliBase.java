@@ -793,9 +793,9 @@ public abstract class CliBase
     }
     
     /*
-     * Get specified class path (or the default) and remove any DUCC jars used to submit a request
+     * Get specified class path (or the default) and remove any DUCC jars (except examples) 
      * so they cannot accidentally replace any in the user's class path.
-     * But if it has only DUCC jars leave it unmodified rather than empty.
+     * But if it has only DUCC jars return null as this must be an error.
      */
     protected String fixupClasspath(String key_cp) {
         String classpath = cli_props.getStringProperty(key_cp,
@@ -803,15 +803,17 @@ public abstract class CliBase
         StringBuilder sb = new StringBuilder();
         String duccPrefix = ducc_home + "/lib";
         for (String jar : classpath.split(":")) {
-            if (!jar.startsWith(duccPrefix)) {
+            if (!jar.startsWith(duccPrefix) || jar.contains("examples")) {
                 sb.append(":").append(jar);
             }
         }
         if (sb.length() > 0) {
             classpath = sb.substring(1);
             cli_props.setProperty(key_cp, classpath);
+            return classpath;
+        } else {
+            return null;
         }
-        return classpath;
     }
     
 }
