@@ -38,9 +38,6 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.apache.uima.ducc.common.IIdentity;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.util.PropertyPlaceholderHelper;
 
 
@@ -186,13 +183,6 @@ public class Utils {
 		return new UID().toString();
 	}
 
-	public static String formatDateTime(DateTime dateTime) throws Exception {
-		if ( dateTime == null ) {
-			return "";
-		}
-		DateTimeFormatter fmt = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
-    	return dateTime.toString(fmt);
-	}
 	public static boolean isLinux() {
 		return System.getProperty("os.name").toLowerCase().equals("linux");
 	}
