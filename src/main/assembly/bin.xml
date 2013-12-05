@@ -381,10 +381,10 @@ under the License.
   <fileSets>
 
    
-    <!--          ACTIVEMQ 5.6.0                -->
+    <!--          ACTIVEMQ               -->
     
     <fileSet>
-      <directory>target/apache-activemq/apache-activemq-5.6.0</directory>
+      <directory>target/apache-activemq/apache-activemq-${org.apache.activemq.version}</directory>
       <outputDirectory>activemq</outputDirectory>
       <includes>
         <include>bin/*</include>
@@ -393,7 +393,7 @@ under the License.
         <include>**/conf/credentials.properties</include>
         <include>**/conf/log4j.properties</include>
         <include>**/conf/logging.properties</include>
-        <include>activemq-all-5.6.0.jar</include>
+        <include>activemq-all-${org.apache.activemq.version}.jar</include>
       </includes>
       <excludes>
         <exclude>LICENSE</exclude>
