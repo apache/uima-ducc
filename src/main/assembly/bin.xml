@@ -562,12 +562,23 @@ under the License.
       <outputDirectory>webserver/root</outputDirectory>
       <excludes>
          <exclude>opensources/DataTables-1.9.1/media/original/**</exclude>
+         <exclude>opensources/DataTables-1.9.1/media/images/sort*</exclude>
          <exclude>opensources/**/*.txt</exclude>
       </excludes>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
    
+    <fileSet>
+      <directory>uima-ducc-web/src/main/webapp/root/opensources/DataTables-1.9.1/media/images/</directory>
+      <outputDirectory>webserver/root/opensources/DataTables-1.9.1/media/images/sort</outputDirectory>
+      <includes>
+        <include>sort*</include>
+      </includes>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+    
     <fileSet>
       <!--  build up the sample code resources  -->
       <directory>uima-ducc-examples/src/main/resources/org/apache/uima/ducc/sampleapps</directory>
