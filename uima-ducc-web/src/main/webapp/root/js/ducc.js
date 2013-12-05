@@ -27,6 +27,18 @@ var ms_reload_min = 5000;
 
 var cluetips_disabled = true;
 
+$(window).resize(function() {
+    try {
+        var table_style = ducc_preferences_get("table_style");
+        if(table_style == "scroll") {
+            oTable.fnAdjustColumnSizing();
+        }
+    }
+    catch(err) {
+        //ducc_error("$(window).resize",err);
+    }   
+});
+
 function ducc_cluetips() {
 	if(cluetips_disabled) {
 		return;
