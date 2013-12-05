@@ -176,7 +176,6 @@
 							<!-- add a few classes in impl packages that are directly used by 
 								user code -->
 							<additionalparam>
-                -Xdoclint:none
 								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/IServiceStatistics.java
 								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/ADuccId.java
 								${basedir}/uima-ducc-common/src/main/java/org/apache/uima/ducc/common/utils/id/IDuccId.java
