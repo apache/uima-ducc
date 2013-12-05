@@ -110,8 +110,10 @@
                     <mkdir dir="target/site/duccbook-pdf"  />
                     <exec executable="pdflatex"
                           dir="src/site/tex/duccbook"
+                          failonerror="true"
                           >
                       <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
+                      <arg value="-interaction=errorstopmode"  />
                       <arg value="installation.tex"  />
                     </exec>
 
