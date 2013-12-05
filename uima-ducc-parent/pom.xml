@@ -162,7 +162,7 @@
 		<cglib.version>2.2.0</cglib.version>
 		<libpam.version>1.7</libpam.version>
 		<jna.version>4.0.0</jna.version>
-		
+		<datatables.version>1.9.1</datatables.version>
 	</properties>
 
 	<!-- dependencyManagement is a declaration section naming each artifact 
