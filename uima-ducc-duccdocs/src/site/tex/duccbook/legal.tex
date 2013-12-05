@@ -41,5 +41,7 @@ Copyright \copyright~ 2012 International Business Machines Corporation
 
 \vspace{.5in}
 
-\newdateformat{mydate}{\monthname[\THEMONTH] \THEYEAR}
+\newdateformat{mydate}{%
+\twodigit{\THEDAY}-\twodigit{\THEMONTH}-\THEYEAR}
+
 Publication date: \mydate\today

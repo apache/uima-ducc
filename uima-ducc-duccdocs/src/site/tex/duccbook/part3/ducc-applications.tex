@@ -163,9 +163,11 @@ thread. The major components of the basic Job Process application are as follows
 It is good if the CR+CM+CC combination can be reused for a broad range of AE.
 
 \subsection{DUCC built-in Flow Controller}
+\begin{sloppypar}
 This flow controller provides separate flows for Work Item CASes and for CASes produced by the CM and/or AE.
 Its behavior is controlled by the existence of a CM component, and then further specified by the
 org.apache.uima.ducc.Workitem feature structure in the Work Item CAS.
+\end{sloppypar}
 
 When no CM is defined the Work Item CAS is simply delivered to the AE, and then to the CC if defined. 
 Any CASes created by the AE will be routed to the CC.
@@ -350,7 +352,7 @@ GC (garbage collection), had no major page faults or page space, and used a max 
 
 \begin{figure}[H]
   \centering
-  \includegraphics[bb=0 0 947 299, width=7in]{images/BooksRaw.png}
+  \includegraphics[width=7in]{images/BooksRaw.png}
   \caption{OpenNLP Process Measurements}
   \label{fig:OpenNLP-Process-Measurements}
 \end{figure}
@@ -362,7 +364,7 @@ was 0.5\%, and the time reading the input text files well below 0.1\%.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[bb=0 0 708 469, width=5.5in]{images/BooksRawPerf.png}
+  \includegraphics[width=5.5in]{images/BooksRawPerf.png}
   \caption{OpenNLP Process Breakdown}
   \label{fig:OpenNLP-Process-Breakdown}
 \end{figure}
@@ -417,7 +419,7 @@ re-written in 9 seconds.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[bb=0 0 704 251, width=5.5in]{images/BooksCasPerf.png}
+  \includegraphics[width=5.5in]{images/BooksCasPerf.png}
   \caption{CAS Input Processing Performacne}
   \label{fig:CAS-Input-Processing}
 \end{figure}

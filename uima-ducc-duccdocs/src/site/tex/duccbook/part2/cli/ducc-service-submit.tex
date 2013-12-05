@@ -79,10 +79,12 @@
           \begin{verbatim}
 --environment TERM=xterm DISPLAY=:1.0
           \end{verbatim}
-             
-          Additional entries may be copied from the user's environment based on the setting of
-          ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
 
+          \begin{sloppypar}
+            Additional entries may be copied from the user's environment based on the setting of
+            ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
+          \end{sloppypar}
+        
           Note: When used as a CLI option, the environment string must usually be
           quoted to protect it from the shell.
           
@@ -153,7 +155,7 @@
         processes are dependent upon. Service dependencies are discussed in detail
         \hyperref[sec:service.endpoints]{here}. Example:
 \begin{verbatim}
---service_dependency UIMA-AS:RandomSleepAE:tcp:node682:61616 UIMA-AS:OtherEp:tcp:node123:123 
+--service_dependency UIMA-AS:Service1:tcp:node682:61616 UIMA-AS:OtherSvc:tcp:node123:123 
 \end{verbatim}
 
         Note: When used as a CLI option, the list must usually be
@@ -170,10 +172,12 @@
         This parameter may be specified for UIMA-AS services; however, DUCC supplies a default
         pinger for UIMA-AS services.
 
-      \item[$--$service\_ping\_classpath {[classpath]}] If {\em service\_ping\_class} is specified,
-        this is the classpath containing service\_custom\_ping class and dependencies.  If not
-        specified, the Agent's classpath is used (which will generally be incorrect.)
-
+        \begin{sloppypar}
+        \item[$--$service\_ping\_classpath {[classpath]}] If {\em service\_ping\_class} is specified,
+          this is the classpath containing service\_custom\_ping class and dependencies.  If not
+          specified, the Agent's classpath is used (which will generally be incorrect.)
+        \end{sloppypar}
+        
       \item[$--$service\_ping\_dolog {[boolean]}] If specified, write pinger stdout and stderr
         messages to a log, else suppress the log. See \hyperref[sec:service.pingers]{Service Pingers}
         for details.
@@ -195,11 +199,12 @@
         \hyperref[sec:service.pingers]{Service Pingers} for more details.
 
       \item[$--$service\_request\_endpoint {[string]}] This specifies the expected service id.  
-
-        This string is optional for UIMA-AS services; if specified, however, it must be of the
-        form {\tt UIMA-AS:queue:broker-url}, and both the queue and broker must match those specified in the
-        service DD specifier.
-
+        \begin{sloppypar}
+          This string is optional for UIMA-AS services; if specified, however, it must be of the
+          form {\tt UIMA-AS:queue:broker-url}, and both the queue and broker must match those specified in the
+          service DD specifier.
+        \end{sloppypar}
+        
         If the service is CUSTOM, the endpoint is required, and must be of the form
         {\tt CUSTOM:string} where the contents of the string are determined by the service.
 

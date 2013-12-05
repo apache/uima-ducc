@@ -38,7 +38,7 @@
     \paragraph{Usage:}
     \begin{description}
     \item[Script wrapper] \ducchome/bin/ducc\_process\_submit {\em options}
-    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar org.apache.uima.ducc.cli.DuccManagedReservationSubmit {\em options}
+    \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar\\org.apache.uima.ducc.cli.DuccManagedReservationSubmit {\em options}
     \end{description}
 
     \paragraph{Options:}
@@ -47,10 +47,12 @@
         \item[$--$attach\_console] If specified, remote process stdout and stderr are 
           redirected to, and stdin redirected from, the local submitting console.
           
+        \begin{sloppypar}
         \item[$--$cancel\_on\_interrupt ] Cancel managed reservation on interrupt
           (Ctrl-C).  If running with {\em $--$wait\_for\_completion} and this flag is specified,
           terminating the submit process will result in the remote process being terminated.
-
+        \end{sloppypar}
+        
         \item[$--$description {[text]}] The text is any string used to describe the process. It is
           displayed in the Web Server. When specified on a command-line the text usually must be
           surrounded by quotes to protect it from the shell.
@@ -63,9 +65,11 @@
           \begin{verbatim}
 --environment TERM=xterm DISPLAY=:1.0
           \end{verbatim}
-             
-          Additional entries may be copied from the user's environment based on the setting of
-          ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
+
+          \begin{sloppypar}
+            Additional entries may be copied from the user's environment based on the setting of
+            ducc.submit.environment.propagated in the global DUCC configuration ducc.properties.
+          \end{sloppypar}
 
           Note: When used as a CLI option, the environment string must usually be
           quoted to protect it from the shell.

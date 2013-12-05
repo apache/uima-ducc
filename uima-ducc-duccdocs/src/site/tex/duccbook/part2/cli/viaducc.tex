@@ -29,10 +29,12 @@
           ducc\_process\_submit } CLI to facilitate execution of Eclipse workspaces directly in DUCC,
         and to provide a simple interface to submit arbitrary processes.
 
-        When run as the command ``viaducc'', the arguments are bundled into the form expected by
-        \hyperref[sec:cli.ducc-process-submit]{\em ducc\_process\_submit } and submits the command
-        to DUCC.
-
+        \begin{sloppypar}
+          When run as the command ``viaducc'', the arguments are bundled into the form expected by
+          \hyperref[sec:cli.ducc-process-submit]{\em ducc\_process\_submit } and submits the command
+          to DUCC.
+        \end{sloppypar}
+        
         When run as the command ``java\_viaducc'', the arguments are assumed to be a Java classname
         and its arguments.  This is passed for execution by DUCC via DUCC's default JRE, or
         optionally, a specific JRE supplied by the user.

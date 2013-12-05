@@ -126,8 +126,9 @@ package org.apache.uima.ducc.common.authentication;
 public interface IAuthenticationManager {
     
     /**
-     * This method is expected to return AuthenticationManager implementation version information.  
-     * It is nominally displayed by the DUCC webserver on the Login/Logout pages.
+     * This method is expected to return AuthenticationManager implementation version 
+     * information.  It is nominally displayed by the DUCC webserver on the Login/Logout 
+     * pages.
      * 
      * Example return value: Acme Authenticator 1.0
      * 
@@ -137,9 +138,11 @@ public interface IAuthenticationManager {
     
     /**
      * This method is expected to return password checking information.  
-     * It is nominally employed by the DUCC webserver to enable/disable password input area on the Login/Logout pages.
+     * It is nominally employed by the DUCC webserver to enable/disable
+     *  password input area on the Login/Logout pages.
      * 
-     * @return True if the AuthenticationManager implementation checks passwords; false otherwise.
+     * @return True if the AuthenticationManager implementation checks passwords; 
+     * false otherwise.
      */
     public boolean isPasswordChecked();
     

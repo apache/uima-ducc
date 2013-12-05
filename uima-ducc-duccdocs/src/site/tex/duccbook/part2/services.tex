@@ -306,7 +306,8 @@ public class CustomPing
             long stat3 = readLong(dis); long stat4 = readLong(dis);
 
             stats.setAlive(true);  stats.setHealthy(true);
-            stats.setInfo(  "S1[" + stat1 + "] S2[" + stat2 + "] S3[" + stat3 + "] S4[" + stat4 + "]" );
+            stats.setInfo(  "S1[" + stat1 + "] S2[" + stat2 + 
+                            "] S3[" + stat3 + "] S4[" + stat4 + "]" );
         } catch ( Throwable t) {
         	t.printStackTrace();
             stats.setInfo(t.getMessage());

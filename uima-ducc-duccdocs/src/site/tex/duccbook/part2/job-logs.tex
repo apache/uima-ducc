@@ -24,9 +24,11 @@
 \chapter{Job Logs}
 \label{chap:job-logs}
 
+\begin{sloppypar}
 \paragraph{Overview}The DUCC logs are managed by Apache log4j.  The DUCC log4j configuration file is found in
 \duccruntime/resources/log4j.xml. It is not in the scope of this document to describe log4j or its
 configuration mechanism. Details on log4j can be found at \url{http://logging.apache.org/log4j}.
+\end{sloppypar}
 
 The "user logs" are the Job Driver (JD) and Job Process (JP) logs. There is one log for each process 
 of a job. The JD log is divided between two physical files: 
@@ -134,17 +136,17 @@ In this example,
 
      \item[job-performance-summary.json.gz]  \hfill \\
        This contains the raw statistics describing
-       the operation of each analytic.  It corresponds to \hyperref[sec:performance]{Performance}
+       the operation of each analytic.  It corresponds to \hyperref[subsec:performance]{Performance}
        tab of the Job Details page in the Web Server.
 
      \item[job-process.json.gz]  \hfill \\
        This contains the raw statistics describing
-       the performance of each individual job process.  It corresponds \hyperref[sec:ws-processes]{Processes}
+       the performance of each individual job process.  It corresponds \hyperref[subsec:ws-processes]{Processes}
        tab of the Job Details page in the Web Server.
 
      \item[work-item-status.json.gz]  \hfill \\
        This contains the raw statistics describing
-       the operation of each individual work-item.  It corresponds to \hyperref[sec:ws-work-items]{Work Items}
+       the operation of each individual work-item.  It corresponds to \hyperref[subsec:ws-work-items]{Work Items}
        tab of the Job Details page in the Web Server.
  \end{description}
      
