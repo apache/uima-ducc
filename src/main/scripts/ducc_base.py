@@ -44,12 +44,11 @@ class DuccProperties:
     #    1 look in this properties file
     #    2 look in the environment
     #
-    def do_subst(self, str):
+    def do_subst(self, st):
         key = None
         p = re.compile("\\$\\{[a-zA-Z0-9_\\.\\-]+\\}")
         ndx = 0
-        
-        response = str
+        response = st.strip()
         m = p.search(response, ndx)    
         while ( m != None ):
             key = m.group()[2:-1]
