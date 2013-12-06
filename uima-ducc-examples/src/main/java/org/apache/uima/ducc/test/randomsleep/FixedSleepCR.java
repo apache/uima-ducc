@@ -38,6 +38,20 @@ import org.apache.uima.util.Logger;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.ProgressImpl;
 
+/**
+ * Colleciton reader for the system tests.  This reads a java properties file containing "work items" which are
+ * actually just sleep times.  Each getNext passes a new sleep time to one of the waiting FixedSleepAE JPs
+ * to simulate real work.
+ *
+ * The CR accepts these overrides:
+ *   - jobfile - this is the name of the properties file with the 'work item' sleep tims
+ *   - compression - this is a number used to adjust each sleep time and hence the duration 
+ *                   of the test.  The sleep time is divided by this number, so a larger
+ *                   compression produces a shorter sleep and a faster run.
+ *   - error_rate - this is passed to the JP for error injection.  It is a float, percentage and
+ *                  indicates the expected rate of errors processing work items to be simulated.
+ */
+
 public class FixedSleepCR extends CollectionReader_ImplBase {
                 
     private volatile Logger logger;

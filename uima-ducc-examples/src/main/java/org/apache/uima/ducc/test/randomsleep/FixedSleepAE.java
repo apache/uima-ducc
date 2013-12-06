@@ -41,8 +41,8 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 /**
- * challngr@us.ibm.com
- * May, 2011
+ * Simple AE for the system test.  It does no computation, instead sleeping to simulate computation.  It
+ * is able to inject errors and adjust it's simulated initialization time.
  */
 
 public class FixedSleepAE extends CasAnnotator_ImplBase 
