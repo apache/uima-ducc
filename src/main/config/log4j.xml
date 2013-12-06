@@ -178,7 +178,7 @@
    </category>
 
    <category name="org.apache.uima.ducc.jd" additivity="false">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="jdout" />
    </category>
 
@@ -208,12 +208,12 @@
    </category>
 
    <category name="org.apache.uima.ducc.user.logs" additivity="true">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="jdout" /> 
    </category>
    
    <category name="org.apache.uima.ducc.user.out" additivity="true">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="jdout" /> 
    </category>
    
