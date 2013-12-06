@@ -166,7 +166,7 @@ public class DuccPropertiesResolver {
         if(value == null) {
             value = defaultProperties.getProperty(key);
         }
-        return value.trim();
+        return value==null ? null : value.trim();
     }
     
     public String getFileProperty(String key) {
@@ -176,6 +176,6 @@ public class DuccPropertiesResolver {
         if(value == null) {
             value = defaultProperties.getProperty(key);
         }
-        return value.trim();
+        return value==null ? null : value.trim();
     }
 }
