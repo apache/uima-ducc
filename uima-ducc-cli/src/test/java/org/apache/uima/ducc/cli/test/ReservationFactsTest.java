@@ -46,7 +46,7 @@ public class ReservationFactsTest {
 	private String[] rClassSet = { "fixed", "reserve", "reserve-p7", "JobDriver" };
 	private String[] stateSet = { "Assigned", "Completed", "WaitingForResources" };
 	private String[] reasonSet = { "", "CanceledByUser", "CanceledBySystem", "ResourcesUnavailable" };
-	private String[] descriptionSet = { "", "java-remote2", "Trainer:BlueJTrain", "ducc!", "Job Driver", "DistributionalSimilaritySemanticAccessServer1", "wics" };
+	private String[] descriptionSet = { "", "java-remote2", "Trainer:TrainerJob", "ducc!", "Job Driver", "DistributionalSimilaritySemanticAccessServer1", "wics" };
 	
 	private String createId() {
 		return ""+random.nextInt(10000);
@@ -91,7 +91,7 @@ public class ReservationFactsTest {
 		ArrayList<NodePidList> list = new ArrayList<NodePidList>();
 		int nodeCount = random.nextInt(5);
 		for(int i=0; i<nodeCount; i++) {
-			String node = "bluej"+random.nextInt(801);
+			String node = "node1"+random.nextInt(801);
 			int pidCount = random.nextInt(10);
 			ArrayList<String> pidList = new ArrayList<String>();
 			for(int j=0; j<pidCount; j++) {

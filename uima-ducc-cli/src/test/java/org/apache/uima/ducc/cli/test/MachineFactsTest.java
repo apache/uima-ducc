@@ -60,7 +60,7 @@ public class MachineFactsTest {
 	}
 	
 	private String createName() {
-		String name = "bluej"+random.nextInt(801);
+		String name = "node1"+random.nextInt(801);
 		return name;
 	}
 	
