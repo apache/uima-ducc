@@ -47,13 +47,13 @@ scheduling.classes.normal     = 75
 scheduling.classes.high       = 15
 scheduling.classes.urgent     = 5
 
-job.services                  = 2 3 4 5 6 7
+job.services                  = 0 1 2 3 4 5 
+job.services.0                = 25
+job.services.1                = 25
 job.services.2                = 25
 job.services.3                = 25
 job.services.4                = 25
 job.services.5                = 25
-job.services.6                = 25
-job.services.7                = 25
 
 job.memory                    = 28 37                              # memorys to assign
 job.memory.28                 = 50

@@ -187,11 +187,6 @@ class DuccProcess(Thread):
             dd = 'org.apache.uima.ducc.test.ddjob.DDSleepDescriptor'
         else:
             ae = 'UimaAsFailAgg_' + services
-
-        jvm_classpath = self.DUCC_HOME + '/examples/lib/uima-ducc-examples.jar'
-
-        if ( self.runner.style == 'SE' ):
-            jvm_classpath = jvm_classpath + ':' + self.DUCC_HOME + '/examples/simple/resources/service'
         
         plain_broker_url = self.runner.broker_protocol + '://' + self.runner.broker_host + ':' + self.runner.broker_port
         cr_parms         = '"jobfile=' + self.jobfile + ' compression=' + self.runner.compression + ' error_rate=' + str(self.runner.error_rate) + '"'
@@ -232,7 +227,7 @@ class DuccProcess(Thread):
             #CMD = CMD + ' --working_directory '               + working_dir
 
         CMD = CMD + ' --process_memory_size '                 + memory
-        CMD = CMD + ' --classpath '                           + jvm_classpath
+        CMD = CMD + ' --classpath '                           + self.runner.examples_classpath
         
         CMD = CMD + ' --process_jvm_args '                    + jvm_process_args
         CMD = CMD + ' --process_thread_count '                + nthreads
@@ -291,48 +286,9 @@ class ServiceThread(Thread):
 
 
 class ServiceStarter(DuccUtil):
-
-    def start_uima_as_service(self, instance):
-        os.environ['USER'] = os.environ['LOGNAME']        # make sure I'm me - after submit may not be
-
-        service_cp = os.environ['CLASSPATH'] + ':' + self.DUCC_HOME + '/examples/lib/uima-ducc-examples.jar'
-        service_cp = service_cp              + ':' + self.DUCC_HOME + '/lib/uima/*'
-        #self.format_cp(service_cp)
-
-	print 'broker:', self.broker_url
-
-        CMD = ['java']
-        CMD.append("-DSERVICE_ID=" + instance)
-        CMD.append("-DdefaultBrokerURL='" + self.broker_url + "'")
-        CMD.append('-DJAVA_HOME=/share/jdk1.6')
-        CMD.append('-classpath ' + service_cp)
-        CMD.append('org.apache.uima.ducc.test.service.UIMA_Service')
-        CMD.append('-saxonURL file:' + self.DUCC_HOME + '/lib/saxon/saxon8.jar')
-        CMD.append('-xslt ' + self.DUCC_HOME + '/resources/dd2spring.xsl')
-        CMD.append('-dd ' + self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + instance + '.xml')
-        #CMD.append('-b')
-        os.environ['AE_INIT_TIME'] = '5'
-        os.environ['AE_INIT_RANGE'] = '5'
-
-        devnw = open(os.devnull, 'w')
-        devnr = open(os.devnull, 'r')
-        service = subprocess.Popen(' '.join(CMD), stdin=devnr, stdout=devnw, stderr=devnw,  shell=True)
-        #print ' '.join(CMD)
-        #service = self.spawn(' '.join(CMD));
-        devnr.close()
-        devnw.close()
-
-        #p = service.stdout
-        #while 1:
-        #    line = p.readline().strip()
-        #    if ( not line ):
-        #        if ( self.terminated):
-        #            return#
-
-        #    print line
-
-        print '------------------------- UIMA_AS Service Pid', service.pid
-        return service
+    def __init__(self, runner):
+        DuccUtil.__init__(self)
+        self.runner = runner
 
     def gen_service(self, svcid):
         os.environ['USER'] = os.environ['LOGNAME']        # make sure I'm me - after submit may not be
@@ -343,9 +299,8 @@ class ServiceStarter(DuccUtil):
         props.put('description', 'Test Service ' + svcid)
         props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
-        props.put('classpath', 
-                  self.DUCC_HOME + '/examples/lib/uima-ducc-examples.jar:' + 
-                  self.DUCC_HOME + '/examples/simple/resources')
+
+        props.put('classpath', self.runner.examples_classpath);
         props.put('process_jvm_args', '-Xmx100M -DdefaultBrokerURL=' + plain_broker_url)
         props.put('environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path')
         props.put('scheduling_class', 'fixed')
@@ -367,11 +322,11 @@ class ServiceStarter(DuccUtil):
             print 'REGISTER', line
             toks = line.split()
             if ( (toks[0] == 'Service') and (toks[2] == 'succeeded') ):
-                print 'Service registered as service', toks[4]
+                print 'Service registered as service', toks[7]
                 if ( start ):
-                    print 'Starting registered service instance', svcid, 'service id', toks[4]
-                    os.system(self.DUCC_HOME + '/bin/ducc_services --start ' + toks[4])
-                return toks[4]
+                    print 'Starting registered service instance', svcid, 'service id', toks[7]
+                    os.system(self.DUCC_HOME + '/bin/ducc_services --start ' + toks[6])
+                return toks[6]
         print 'Cannot register service', svcid, ':', line
         sys.exit(1)
 
@@ -412,20 +367,6 @@ class ServiceStarter(DuccUtil):
                     print "Trying to start service", t, "but it is not registered."
                 self.started[t] = None
 
-        stand = svcprops.get('standalone')
-        self.standalone = {}
-        if ( stand != None ):
-            stand = stand.strip()
-            # make a map with the service id as key and the number of instances as val
-            toks = stand.split() 
-            for t in toks:
-                t = t.strip()
-                if ( self.standalone.has_key(t)  or  all_services.has_key(t) ):
-                    print "Duplicate standalone service", t
-                    sys.exit(1)
-                self.standalone[t] = None
-                all_services[t] = None
-
         for (k, v) in self.registered.items():
             instances = svcprops.get("instances_" + k)
             if ( instances == None ):
@@ -439,28 +380,10 @@ class ServiceStarter(DuccUtil):
                 self.registered[k] = svcs
             svcs.append(service)
 
-        for (k, v) in self.standalone.items():
-            instances = svcprops.get("instances_" + k)
-            if ( instances == None ):
-                print "Missing instances for standalone service", k
-            print "Starting standalone service", k, "with", instances, "instances"
-            for i in range(0, int(instances)):
-                service = self.start_uima_as_service(k)
-                print 'SERVICE PID', service.pid
-                svcs = self.standalone[k]
-                if ( svcs == None ):
-                    svcs = []
-                    self.standalone[k] = svcs
-                svcs.append(service)
-
         os.system(self.DUCC_HOME + '/bin/ducc_services --query')
 
     def stop_services(self):
         os.environ['USER'] = os.environ['LOGNAME']        # make sure I'm me - after submit may not be
-        for (k, v) in self.standalone.items():
-            for svc in v:
-                print 'Stopping', svc.pid
-                svc.send_signal(2)
 
         for (k, v) in self.registered.items():
             for id in v:
@@ -716,17 +639,23 @@ class RunDucc(DuccUtil):
 
         self.submit_package = 'org.apache.uima.ducc'
 
+        self.examples_classpath = self.DUCC_HOME + '/lib/uima-ducc/examples/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/lib/uima/*'
+        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/examples/simple/resources/service'
+
         if ( self.style == 'SE' ):
             if ( self.service_startup == None ):
                 usage("Missing service startup file")
+
             svcfile = self.test_dir + '/' + self.service_startup
-            service_starter = ServiceStarter();
+            service_starter = ServiceStarter(self);
             service_starter.start_services(svcfile)
 
             print 'Pausing a bit'
             time.sleep(15)
             os.system(self.DUCC_HOME + '/bin/ducc_services --query')
             #service_starter.stop_services()
+            #return;
 
         os.environ['CLASSPATH'] = self.DUCC_HOME + "/lib/uima-ducc-cli.jar"
         if ( self.watch ):

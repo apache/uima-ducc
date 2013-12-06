@@ -42,6 +42,15 @@ job.memory.13               = 30
 job.memory.28               = 40
 job.memory.37               = 30
 
+job.services             = 0 1 2 3 4 5 
+job.services.0               = 25
+job.services.1               = 25
+job.services.2               = 25
+job.services.3               = 25
+job.services.4               = 25
+job.services.5               = 25
+
+
 submission.spread           = 42000                               # number of *seconds* to try to spread submission over 
                                                                   # 0 means real time
                                                                   # <= means use compression across realtim
