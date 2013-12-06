@@ -27,7 +27,6 @@
 <customResourceSpecifier xmlns="http://uima.apache.org/resourceSpecifier">
    <resourceClassName>org.apache.uima.aae.jms_adapter.JmsAnalysisEngineServiceAdapter</resourceClassName>
    <parameters>
-     <!-- parameter name="brokerURL" value="tcp://bluej02:61617" / -->
      <parameter name="brokerURL" value="${defaultBrokerURL}" />
      <parameter name="endpoint" value="FixedSleepAE_7"/>
      <parameter name="timeout" value="0"/>
