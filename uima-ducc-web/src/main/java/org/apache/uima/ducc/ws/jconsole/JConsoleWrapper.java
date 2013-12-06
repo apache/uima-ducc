@@ -18,10 +18,40 @@
 */
 package org.apache.uima.ducc.ws.jconsole;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+/**
+ * This is a wrapper for JConsole. It calls it using reflection to avoid
+ * requiring special java classes in the CP.
+ * 
+ *
+ */
 public class JConsoleWrapper {
 
 	public static void main(String[] args) {
-		sun.tools.jconsole.JConsole.main(args);
+		try {
+			// Use reflection to call JConsole at runtime
+			Class<?> c = Class.forName("sun.tools.jconsole.JConsole");
+			Method m = c.getDeclaredMethod("main", new Class[]{ String[].class });
+			Object instance = c.newInstance();
+			m.invoke(instance, (Object[])args);
+		} catch( ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
+		}
+//		sun.tools.jconsole.JConsole.main(args);
 	}
 
 }
