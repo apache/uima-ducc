@@ -252,6 +252,21 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return retVal;
 	}
 	
+	// <UIMA-3489>
+	private boolean isFailedInitialization(IDuccProcess process) {
+		boolean retVal = false;
+		try {
+			String reason = process.getReasonForStoppingProcess();
+			if(ProcessState.FailedInitialization.name().equals(reason)) {
+				retVal = true;
+			}
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	// </UIMA-3489>
+	
 	public ArrayList<DuccId> getFailedInitialization() {
 		ArrayList<DuccId> list = new ArrayList<DuccId>();
 		synchronized(this) {
@@ -262,7 +277,10 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 					// Nevermind
 				}
 				else {
-					if(isFailedProcess(process)) {
+					if(isFailedInitialization(process)) {
+						list.add(process.getDuccId());
+					}
+					else if(isFailedProcess(process)) {
 						list.add(process.getDuccId());
 					}
 				}
