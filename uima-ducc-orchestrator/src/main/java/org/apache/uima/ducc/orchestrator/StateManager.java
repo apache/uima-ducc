@@ -1373,14 +1373,19 @@ public class StateManager {
 	}
 	
 	private void completeService(DuccWorkJob service, IRationale rationale) {
+		String location = "completeService";
+		DuccId jobid = service.getDuccId();
 		if(service.getProcessFailureCount() > 0) {
 			service.setCompletion(JobCompletionType.Warning, new Rationale("process failure(s) occurred"));
+			logger.debug(location, jobid, service.getCompletionRationale().getText()+", "+"ProcessFailureCount="+service.getProcessFailureCount());
 		}
 		else if(service.getProcessInitFailureCount() > 0) {
 			service.setCompletion(JobCompletionType.Warning, new Rationale("process initialization failure(s) occurred"));
+			logger.debug(location, jobid, service.getCompletionRationale().getText()+", "+"ProcessInitFailureCount="+service.getProcessInitFailureCount());
 		}
 		else {
 			setCompletionIfNotAlreadySet(service, JobCompletionType.EndOfJob, rationale);
+			logger.debug(location, jobid, service.getCompletionRationale().getText()+", "+"no failures");
 		}
 		advanceToCompleted(service);
 	}
