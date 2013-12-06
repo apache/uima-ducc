@@ -389,8 +389,8 @@ public class ProcessAccounting {
 			switch(process.getResourceState()) {
 			case Allocated:
 				process.setResourceState(ResourceState.Deallocated);
-				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+inventoryProcess.getProcessState()+" => "+messages.fetchLabel("resource state")+process.getResourceState());
 				String reason = inventoryProcess.getReasonForStoppingProcess();
+				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+inventoryProcess.getProcessState()+" => "+messages.fetchLabel("resource state")+process.getResourceState()+" : "+messages.fetchLabel("reason")+reason);
 				switch(inventoryProcess.getProcessState()) {
 				case Stopped:
 					if(reason != null) {
@@ -404,6 +404,20 @@ public class ProcessAccounting {
 					}
 					process.setProcessDeallocationType(ProcessDeallocationType.Failed);
 					break;
+				/*
+				case FailedInitialization:
+					if(reason != null) {
+						process.setReasonForStoppingProcess(reason);
+					}
+					process.setProcessDeallocationType(ProcessDeallocationType.FailedInitialization);
+					break;
+				case InitializationTimeout:
+					if(reason != null) {
+						process.setReasonForStoppingProcess(reason);
+					}
+					process.setProcessDeallocationType(ProcessDeallocationType.InitializationTimeout);
+					break;
+				*/
 				case Killed:
 					if(reason != null) {
 						process.setReasonForStoppingProcess(reason);
