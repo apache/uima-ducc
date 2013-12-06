@@ -27,6 +27,7 @@ under the License.
   if (table_style.equals("scroll")) {
   %>  
     <script type="text/javascript" charset="utf-8">
+	var oTable;
 	$(document).ready(function() {
 		oTable = $('#machines-table').dataTable( {
 			"bProcessing": true,
@@ -108,7 +109,7 @@ under the License.
 if (table_style.equals("scroll")) {
 %>
 	<table id="machines-table" width="100%">
-	<caption><b>Machines List</b><br><i><small>click column heading to sort</small></i></caption>
+	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Machines List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
 	<tr class="ducc-header">
 	<th class="ducc-col-terminate"></th>
@@ -133,8 +134,8 @@ if (table_style.equals("scroll")) {
 <%
 if (table_style.equals("classic")) {
 %>
-	<table>
-   	<caption><b>Machines List</b><br><i><small>click column heading to sort</small></i></caption>
+	<table id="machines-table" width="100%">
+	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Machines List</b><br><i><small>click column heading to sort</small></i></caption>
    	<tr>
     <td>
       <table class="sortable">

@@ -27,6 +27,7 @@ under the License.
 if (table_style.equals("scroll")) {
 %>  
   <script type="text/javascript" charset="utf-8">
+	var oTable;
 	$(document).ready(function() {
 		oTable = $('#system-classes').dataTable( {
 			"bProcessing": true,
@@ -94,7 +95,7 @@ if (table_style.equals("scroll")) {
 if (table_style.equals("scroll")) {
 %>
 	<table id="system-classes" width="100%">
-	<caption><b>Classes List</b><br><i><small>click column heading to sort</small></i></caption>
+	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Classes List</b><br><i><small>click column heading to sort</small></i></caption>
 	<thead>
 	<tr class="ducc-header">
 	<th align="left">Name</th>
@@ -121,13 +122,11 @@ if (table_style.equals("scroll")) {
 <%
 if (table_style.equals("classic")) {
 %>
-	<table>
-   	<caption><b>Classes List</b><br><i><small>click column heading to sort</small></i></caption>
+	<table id="system-classes" width="100%">
+	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Classes List</b><br><i><small>click column heading to sort</small></i></caption>
    	<tr>
     <td>
       <table class="sortable">
-		<thead>
-		<tr class="ducc-head">
 		<thead>
 		<tr class="ducc-head">
 			<th align="left">Name</th>
