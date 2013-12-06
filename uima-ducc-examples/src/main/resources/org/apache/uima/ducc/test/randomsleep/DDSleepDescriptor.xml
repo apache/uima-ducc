@@ -34,7 +34,7 @@
     <service>
       <inputQueue endpoint="TopLevelTaeQueue" brokerURL="${DefaultBrokerURL}" prefetch="1"/>
       <topDescriptor>
-        <import name="org.apache.uima.ducc.test.ddjob.DDSleepAggregate"/>
+        <import name="org.apache.uima.ducc.test.randomsleep.DDSleepAggregate"/>
       </topDescriptor>
       <analysisEngine>
         <delegates>

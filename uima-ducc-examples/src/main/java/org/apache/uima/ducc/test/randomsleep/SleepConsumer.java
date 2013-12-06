@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.uima.ducc.test.ddjob;
+package org.apache.uima.ducc.test.randomsleep;
 
 import java.util.StringTokenizer;
 
@@ -28,10 +28,8 @@ import org.apache.uima.cas.CAS;
 import org.apache.uima.resource.ResourceInitializationException;
 
 /**
- * challngr@us.ibm.com
- * May, 2011
+ * Minimal CAS consumer for the DD version of the system tests.
  */
-
 public class SleepConsumer extends CasAnnotator_ImplBase 
 {
     String CC_Identifier = "*@@@@@@@@@ CC ";

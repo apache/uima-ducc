@@ -184,7 +184,7 @@ class DuccProcess(Thread):
         if ( self.runner.style == 'AE' ):
             ae = 'org.apache.uima.ducc.test.randomsleep.FixedSleepAE'
         elif ( self.runner.style == 'DD' ):
-            dd = 'org.apache.uima.ducc.test.ddjob.DDSleepDescriptor'
+            dd = 'org.apache.uima.ducc.test.randomsleep.DDSleepDescriptor'
         else:
             ae = 'UimaAsFailAgg_' + services
         

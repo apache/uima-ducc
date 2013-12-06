@@ -23,10 +23,12 @@
    
 <!-- AE that employs CAS indirection inside aggregate. -->
 
+<!-- Pointed to by DDSleepAggregate.xml -->
+
 <analysisEngineDescription xmlns="http://uima.apache.org/resourceSpecifier">
 	<frameworkImplementation>org.apache.uima.java</frameworkImplementation>
 	<primitive>true</primitive>
-	<annotatorImplementationName>org.apache.uima.ducc.test.randomsleep.NoSleepAE</annotatorImplementationName>
+	<annotatorImplementationName>org.apache.uima.ducc.test.randomsleep.SleepConsumer</annotatorImplementationName>
 	<analysisEngineMetaData>
 		<name>DefaultAE</name>
 		<description>Receives CASes with modified index; does nothing (echos).</description>

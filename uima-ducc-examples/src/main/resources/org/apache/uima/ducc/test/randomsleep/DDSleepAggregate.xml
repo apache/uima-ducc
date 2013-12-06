@@ -29,7 +29,7 @@
   <delegateAnalysisEngineSpecifiers>
     
     <delegateAnalysisEngine key="SleepMultiplier">
-      <import name="org.apache.uima.ducc.test.ddjob.SleepMultiplier"/>
+      <import name="org.apache.uima.ducc.test.randomsleep.SleepMultiplier"/>
     </delegateAnalysisEngine>
 
     <delegateAnalysisEngine key="SleepAe">
@@ -37,7 +37,7 @@
     </delegateAnalysisEngine>
 
     <delegateAnalysisEngine key="SleepConsumer">
-      <import name="org.apache.uima.ducc.test.ddjob.SleepConsumer"/>
+      <import name="org.apache.uima.ducc.test.randomsleep.SleepConsumer"/>
     </delegateAnalysisEngine>
 
   </delegateAnalysisEngineSpecifiers>

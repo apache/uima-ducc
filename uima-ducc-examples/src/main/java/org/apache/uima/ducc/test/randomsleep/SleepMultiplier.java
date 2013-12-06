@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.uima.ducc.test.ddjob;
+package org.apache.uima.ducc.test.randomsleep;
 
 import java.util.LinkedList;
 import java.util.StringTokenizer;
@@ -30,7 +30,8 @@ import org.apache.uima.cas.CAS;
 import org.apache.uima.resource.ResourceInitializationException;
 
 /**
- * An example CasMultiplier, which generates the specified number of output CASes.
+ * An example CasMultiplier, which generates the specified number of output CASes,
+ * used in the DD version of the system tests.
  */
 public class SleepMultiplier extends CasMultiplier_ImplBase 
 {
