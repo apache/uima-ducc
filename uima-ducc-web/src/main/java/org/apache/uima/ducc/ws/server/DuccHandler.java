@@ -1847,6 +1847,10 @@ public class DuccHandler extends DuccAbstractHandler {
 						row.append("<td>");
 						row.append(getFileSize(historyFile.getAbsolutePath()));
 						row.append("</td>");
+						// date
+						row.append("<td>");
+						row.append(getTimeStamp(request, jobid, ""+historyFile.lastModified()));
+						row.append("</td>");
 						//
 						row.append("</tr>");
 						sb.append(row);
