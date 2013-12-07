@@ -27,9 +27,9 @@ from ducc_base import DuccProperties
 class PamTest(DuccUtil):
 
     def main(self, argv):
-        cp0 = self.DUCC_HOME+'/lib/uima-ducc-web.jar'
-        cp1 = self.DUCC_HOME+'/lib/libpam4j/libpam4j.jar'
-        cp2 = self.DUCC_HOME+'/lib/jna/jna.jar'
+        cp0 = self.DUCC_HOME+'/lib/uima-ducc/*'
+        cp1 = self.DUCC_HOME+'/lib/libpam4j/*'
+        cp2 = self.DUCC_HOME+'/lib/jna/*'
         cp = cp0+':'+cp1+':'+cp2
         user = raw_input("User: ")
         pw = getpass.getpass()
