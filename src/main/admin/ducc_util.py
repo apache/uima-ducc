@@ -185,12 +185,16 @@ class DuccUtil(DuccBase):
         return False        
 
     def stop_broker(self):
+
         broker_host = self.ducc_properties.get('ducc.broker.hostname')
         broker_home = self.ducc_properties.get('ducc.broker.home')
         broker_name = self.ducc_properties.get('ducc.broker.name')
+        broker_jmx  = self.ducc_properties.get('ducc.broker.jmx.port')
         here = os.getcwd()
         CMD = broker_home + '/bin/activemq'
-        CMD = CMD + ' stop --all ' + broker_name
+        CMD = CMD + ' stop --all'
+        CMD = CMD + ' --jmxurl service:jmx:rmi:///jndi/rmi://' + broker_host + ':' + broker_jmx + '/jmxrmi' 
+        CMD = CMD + ' ' + broker_name
         CMD = 'JAVA_HOME=' + self.java_home() + ' ' + CMD
         print '--------------------', CMD
         self.ssh(broker_host, False, CMD)
