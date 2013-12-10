@@ -141,7 +141,7 @@ public class AlienFile {
 		echo(command);
 		ProcessBuilder pb = new ProcessBuilder( command );
 		Process p = pb.start();
-		p.waitFor();
+		//p.waitFor();
 		InputStream pOut = p.getInputStream();
 		InputStreamReader isr;
 		if(FileHelper.isGzFileType(file_name)) {
@@ -180,7 +180,7 @@ public class AlienFile {
 			echo(command);
 			ProcessBuilder pb = new ProcessBuilder( command );
 			Process p = pb.start();
-			p.waitFor();
+			//p.waitFor();
 			InputStream pOut = p.getInputStream();
 			if(FileHelper.isGzFileType(file_name)) {
 				GZIPInputStream gis = new GZIPInputStream(pOut);
