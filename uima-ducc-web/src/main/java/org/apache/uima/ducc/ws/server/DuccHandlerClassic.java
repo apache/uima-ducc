@@ -134,12 +134,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		else {
 			String duration = getDuration(request,job,now);
 			String decoratedDuration = decorateDuration(request,job, duration);
-			String projection = getProjection(request,job);
 			sb.append("<span class=\"health_green\""+">");
 			sb.append(decoratedDuration);
 			sb.append("</span>");
+			String projection = getProjection(request,job);
 			if(projection.length() > 0) {
-				sb.append("+"+"<span title=\"projected time to completion\"><i>"+projection+"</i></span>");
+				String health = "class=\"health_yellow\"";
+				String title = "title=\"Time (ddd:hh:mm:ss) to completion, based on average processing time per work item\"";
+				sb.append("+"+"<span "+health+" "+title+"><i>"+projection+"</i></span>");
 			}
 		}
 		sb.append("</td>");

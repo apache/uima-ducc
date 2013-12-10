@@ -21,10 +21,11 @@ package org.apache.uima.ducc.ws.server;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,23 +36,26 @@ import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
+import org.apache.uima.ducc.common.jd.files.IWorkItemState;
+import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
+import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
+import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccSchedulingInfo;
-import org.apache.uima.ducc.transport.event.common.IRationale;
-import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.JobProcessInfo;
@@ -763,6 +767,52 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
+	private double getWorkItemLeastOperatingMillis(HttpServletRequest request, IDuccWorkJob job) {
+		String methodName = "getWorkItemLeastDoneOperatingMillis";
+		double retVal = 0;
+		try {
+			String jobNo = job.getId();
+			String userId = job.getStandardInfo().getUser();
+			String jobDir = job.getLogDirectory()+jobNo;
+			WorkItemStateManager workItemStateManager = new WorkItemStateManager(jobDir);
+			workItemStateManager.importData(userId);
+			ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateManager.getMap();
+		    if( (map == null) || (map.size() == 0) ) {
+		    	// nada
+		    }
+		    else {
+		    	double smallest = 0;
+		    	ConcurrentSkipListMap<IWorkItemState,IWorkItemState> sortedMap = new ConcurrentSkipListMap<IWorkItemState,IWorkItemState>();
+				for (Entry<Long, IWorkItemState> entry : map.entrySet()) {
+					IWorkItemState wis = entry.getValue();
+					State state;
+					double time;
+					state = wis.getState();
+					switch(state) {
+					case operating:
+						time = wis.getMillisProcessing();
+						if(smallest == 0) {
+							smallest = time;
+							//duccLogger.info(methodName, job.getDuccId(), wis.getWiId()+" "+time+" "+time/1000);
+						}
+						else {
+							if(time < smallest) {
+								smallest = time;
+								//duccLogger.info(methodName, job.getDuccId(), wis.getWiId()+" "+time+" "+time/1000);
+							}
+						}
+					}
+				}
+				retVal = smallest;
+				
+		    }
+		}
+		catch(Throwable t) {
+			duccLogger.trace(methodName, null, "no worries", t);
+		}
+		return retVal;
+	}
+	
 	public String getProjection(HttpServletRequest request, IDuccWorkJob job) {
 		String methodName = "getProjection";
 		String retVal = "";
@@ -785,11 +835,13 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						double remainingIterations = remainingWorkItems / totalThreads;
 						double avgMillis = perWorkItemStatistics.getMean();
 						double projectedTime = 0;
+						double leastOperatingMillis = getWorkItemLeastOperatingMillis(request, job);
 						if(remainingIterations > 0) {
-							projectedTime = avgMillis * remainingIterations;
+							projectedTime = avgMillis * remainingIterations - leastOperatingMillis;
 						}
 						else {
-							projectedTime = avgMillis - (Calendar.getInstance().getTimeInMillis() - job.getSchedulingInfo().getMostRecentWorkItemStart());
+							//projectedTime = avgMillis - (Calendar.getInstance().getTimeInMillis() - job.getSchedulingInfo().getMostRecentWorkItemStart());
+							projectedTime = avgMillis - leastOperatingMillis;
 						}
 						if(projectedTime > 0) {
 							long millis = Math.round(projectedTime);
@@ -806,15 +858,51 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
+		
+	public double getAvgMillisPerWorkItem(HttpServletRequest request, IDuccWorkJob job) {
+		double avgMillis = 0;
+		IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
+		IDuccPerWorkItemStatistics perWorkItemStatistics = schedulingInfo.getPerWorkItemStatistics();
+		if (perWorkItemStatistics != null) {
+			avgMillis = perWorkItemStatistics.getMean();
+		}
+		return avgMillis;
+	}
 	
 	public String decorateDuration(HttpServletRequest request, IDuccWorkJob job, String duration) {
+		String location = "decorateDuration";
 		String retVal = duration;
-		String cVal = getCompletion(request,job);
-		if(cVal != null) {
-			if(cVal.length() > 0) {
-				String title = "title=\""+"End="+cVal+"\"";
-				retVal = "<span "+title+">"+duration+"</span>";
+		DuccId duccId = job.getDuccId();
+		try {
+			StringBuffer title = new StringBuffer();
+			double avgMillisPerWorkItem = getAvgMillisPerWorkItem(request, job);
+			if(avgMillisPerWorkItem > 0) {
+				if(avgMillisPerWorkItem < 500) {
+					avgMillisPerWorkItem = 500;
+				}
 			}
+			int iAvgMillisPerWorkItem = (int)avgMillisPerWorkItem;
+			if(iAvgMillisPerWorkItem > 0) {
+				if(title.length() > 0) {
+					title.append("; ");
+				}
+				title.append("Time (ddd:hh:mm:ss) elapsed for job, average processing time per work item="+FormatHelper.duration(iAvgMillisPerWorkItem));
+			}
+			String cVal = getCompletion(request,job);
+			if(cVal != null) {
+				if(cVal.length() > 0) {
+					if(title.length() > 0) {
+						title.append("; ");
+					}
+					title.append("End="+cVal);
+				}
+			}
+			if(title.length() > 0) {
+				retVal = "<span "+"title=\""+title+"\""+">"+duration+"</span>";
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, duccId, e);
 		}
 		return retVal;
 	}
