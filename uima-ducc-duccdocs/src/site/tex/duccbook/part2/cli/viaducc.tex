@@ -26,24 +26,27 @@
 
     \paragraph{Description:}
         Viaducc is a small script wrapper around the \hyperref[sec:cli.ducc-process-submit]{\em
-          ducc\_process\_submit } CLI to facilitate execution of Eclipse workspaces directly in DUCC,
-        and to provide a simple interface to submit arbitrary processes.
+          ducc\_process\_submit } CLI to facilitate launching processes on DUCC-managed machines,
+          either from the command line or from an Eclipse run configuration.
 
         \begin{sloppypar}
-          When run as the command ``viaducc'', the arguments are bundled into the form expected by
-          \hyperref[sec:cli.ducc-process-submit]{\em ducc\_process\_submit } and submits the command
-          to DUCC.
+          When run from the command line as ``viaducc'', the arguments are bundled into the form expected by
+          \hyperref[sec:cli.ducc-process-submit]{\em ducc\_process\_submit } and submitted to DUCC.
+          By default the remote stdin and stdout of the deployed process are mapped back to the 
+          command line terminal.
         \end{sloppypar}
         
-        When run as the command ``java\_viaducc'', the arguments are assumed to be a Java classname
-        and its arguments.  This is passed for execution by DUCC via DUCC's default JRE, or
-        optionally, a specific JRE supplied by the user.
+        If a symbolic link to the viaducc script is created with the name ``java\_viaducc''
+        and used from the command line,
+        the arguments are assumed to be a Java classname and its arguments.
+        The java process will be executed using DUCC's default JRE, or
+        optionally, a specific JRE supplied by the user with a -D argument.
 
-        If ``java\_viaducc'' is installed as a symbolic link from the local JRE/bin directory to the
-        ``viaducc'' command in the DUCC runtime/bin directory, it may be specified as an alternative
+        If the ``java\_viaducc'' symbolic link is installed in a JRE/bin directory, DUCC will use
+        the java executable from the same directory. More interestingly, it may be specified as an alternative
         to the ``java'' command in an eclipse launcher.  The remote stdin and stdout of the deployed
-        DUCC process are redirected to your Eclipse console.  This provides essentially transparent
-        execution of code in your Eclipse workspaces in DUCC-managed resources.
+        DUCC process are redirected to the Eclipse console.  This provides essentially transparent
+        execution of code in an Eclipse workspaces on DUCC-managed resources.
 
     \paragraph{Usage:}
 \begin{verbatim}
