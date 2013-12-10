@@ -470,11 +470,11 @@
 				<version>${org.springframework.version}</version>
 			</dependency>
 
-			<!-- dependency>
+			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-aop</artifactId>
 				<version>${org.springframework.version}</version>
-			</dependency -->
+			</dependency>
 
 			<dependency>
 				<groupId>org.springframework</groupId>
@@ -622,6 +622,11 @@
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-stream</artifactId>
 			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
 		</dependency>
 
 	</dependencies>
