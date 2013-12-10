@@ -159,11 +159,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			sb.append(decoratedDuration);
 			sb.append("</span>");
 			String projection = getProjection(request,job);
-			if(projection.length() > 0) {
-				String health = "class=\"health_yellow\"";
-				String title = "title=\"Time (ddd:hh:mm:ss) to completion, based on average processing time per work item\"";
-				sb.append("+"+"<span "+health+" "+title+"><i>"+projection+"</i></span>");
-			}
+			sb.append(projection);
 		}
 		row.add(new JsonPrimitive(sb.toString()));
 		// User

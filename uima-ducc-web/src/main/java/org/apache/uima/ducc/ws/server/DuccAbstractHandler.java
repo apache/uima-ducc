@@ -846,7 +846,19 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						if(projectedTime > 0) {
 							long millis = Math.round(projectedTime);
 							if(millis > 1000) {
-								retVal = FormatHelper.duration(millis);
+								String projection = FormatHelper.duration(millis);
+								String health = "class=\"health_yellow\"";
+								String title = "title=\"Time (ddd:hh:mm:ss) to projected completion, based on average processing time per work item\"";
+								retVal = "+"+"<span "+health+" "+title+"><i>"+projection+"</i></span>";
+							}
+						}
+						else {
+							long millis = Math.round(0-projectedTime);
+							if(millis > 1000) {
+								String projection = FormatHelper.duration(millis);
+								String health = "class=\"health_purple\"";
+								String title = "title=\"Time (ddd:hh:mm:ss) past projected completion, based on average processing time per work item\"";
+								retVal = "-"+"<span "+health+" "+title+"><i>"+projection+"</i></span>";
 							}
 						}
 					}
