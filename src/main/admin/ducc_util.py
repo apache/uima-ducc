@@ -243,6 +243,7 @@ class DuccUtil(DuccBase):
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-camel/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-collections/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/joda-time/*'
+        CLASSPATH = CLASSPATH + ":" + LIB + '/slf4j/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/springframework/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/xmlbeans/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq/*'

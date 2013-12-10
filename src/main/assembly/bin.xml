@@ -244,17 +244,6 @@ under the License.
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
-        <include>org.apache.commons:commons-math</include>
-      </includes>      
-      <outputDirectory>lib/apache-commons-math</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
         <include>org.apache.activemq:activemq-core</include>
         <include>org.apache.activemq:activemq-camel</include>
         <include>org.apache.activemq:activemq-pool</include>
@@ -328,22 +317,24 @@ under the License.
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
+        <include>org.apache.camel:camel-core</include>
         <include>org.apache.camel:camel-context</include>
         <include>org.apache.camel:camel-http</include>
         <include>org.apache.camel:camel-http4</include>
         <include>org.apache.camel:camel-jetty</include>
         <include>org.apache.camel:camel-jms</include>
         <include>org.apache.camel:camel-mina</include>
-        <include>org.apache.camel:camel-servlet</include>
-        <include>org.apache.camel:camel-test-spring</include>
-        <include>org.apache.camel:camel-test</include>
         <include>org.apache.camel:camel-spring</include>
-        <include>org.apache.camel:camel-stream</include>
         <include>org.apache.camel:camel-xmlbeans</include>
         <include>org.apache.camel:camel-xstream</include>
-        <include>org.apache.camel:camel-core</include>
         <include>com.thoughtworks.xstream:xstream</include>
         <include>org.apache.mina:mina-core</include>
+
+        <include>org.apache.camel:camel-servlet</include>
+        <include>org.apache.camel:camel-stream</include>
+        <include>org.apache.camel:camel-test-spring</include>
+        <include>org.apache.camel:camel-test</include>
+		<!--  The last 4 do not appear to be used - no classes loaded from them -->
 
       </includes>      
       <outputDirectory>lib/apache-camel</outputDirectory>
@@ -358,16 +349,11 @@ under the License.
         <include>org.springframework:spring-core</include>
         <include>org.springframework:spring-expression</include>
         <include>org.springframework:spring-beans</include>
-        <include>org.springframework:spring-aop</include>
         <include>org.springframework:spring-tx</include>
         <include>org.springframework:spring-asm</include>
         <include>org.springframework:spring-jms</include>
         <include>org.springframework:spring-context</include>
         <include>org.springframework:spring-context-support</include>
-        <include>org.slf4j:jcl-over-slf4j</include>
-        <include>org.slf4j:slf4j-log4j12</include>
-        <include>org.slf4j:slf4j-api</include>
-        <include>aopalliance:aopalliance</include>
       </includes>      
       <outputDirectory>lib/springframework</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
@@ -375,6 +361,18 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+    <dependencySet>
+      <includes>
+        <include>org.slf4j:slf4j-log4j12</include>
+        <include>org.slf4j:jcl-over-slf4j</include>
+        <include>org.slf4j:slf4j-api</include>
+      </includes>
+      <outputDirectory>lib/slf4j</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>  
+    
    </dependencySets>
 
   <!-- Add other files - scripts, documentation, examples -->

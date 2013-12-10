@@ -52,14 +52,15 @@
 
   <properties>
     <DUCC_CP>
-uima-ducc-common-${ducc.version}.jar uima-ducc-transport-${ducc.version}.jar ../../resources/ ../springframework/jcl-over-slf4j-1.5.11.jar ../springframework/slf4j-api-1.5.11.jar ../springframework/slf4j-log4j12-1.5.11.jar ../xstream/xstream.jar ../http-client/commons-codec-${commons.codec.version}.jar ../http-client/commons-httpclient-${commons.httpclient.version}.jar ../google-gson/gson-${google.gson.version}.jar ../apache-log4j/log4j-${log4j.version}.jar ../apache-commons-cli/commons-cli-${commons.cli.version}.jar ../uima/uima-core.jar ../uima/uimaj-as-core.jar
+uima-ducc-common-${ducc.version}.jar uima-ducc-transport-${ducc.version}.jar ../../resources/ ../slf4j/jcl-over-slf4j-1.5.11.jar ../slf4j/slf4j-api-1.5.11.jar ../slf4j/slf4j-log4j12-1.5.11.jar ../xstream/xstream.jar ../http-client/commons-codec-${commons.codec.version}.jar ../http-client/commons-httpclient-${commons.httpclient.version}.jar ../google-gson/gson-${google.gson.version}.jar ../apache-log4j/log4j-${log4j.version}.jar ../apache-commons-cli/commons-cli-${commons.cli.version}.jar ../uima/uima-core.jar ../uima/uimaj-as-core.jar
     </DUCC_CP>
     <DUCC_CP2>
-uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar ../resources/ springframework/jcl-over-slf4j-1.5.11.jar springframework/slf4j-api-1.5.11.jar springframework/slf4j-log4j12-1.5.11.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uima-core.jar uima/uimaj-as-core.jar
+uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar ../resources/ slf4j/jcl-over-slf4j-1.5.11.jar slf4j/slf4j-api-1.5.11.jar slf4j/slf4j-log4j12-1.5.11.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar uima/uima-core.jar uima/uimaj-as-core.jar
     </DUCC_CP2>
   </properties>
 
   <dependencies>
+
     <dependency>
       <groupId>org.apache.uima</groupId>
       <artifactId>uima-ducc-common</artifactId>
@@ -68,6 +69,50 @@ uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.ve
     <dependency>
       <groupId>org.apache.uima</groupId>
       <artifactId>uima-ducc-transport</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-core</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-activemq</artifactId>
+	  <exclusions>
+		<exclusion>
+		  <groupId>org.eclipse.jetty</groupId>
+		  <artifactId>jetty-webapp</artifactId>
+		</exclusion>
+		<exclusion>
+		  <groupId>net.sf.josql</groupId>
+		  <artifactId>josql</artifactId>
+		</exclusion>
+		<exclusion>
+		  <groupId>net.sf.josql</groupId>
+		  <artifactId>gentlyweb-utils</artifactId>
+		</exclusion>
+	  </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+	  <artifactId>activemq-core</artifactId>
+	</dependency>
+
+    <dependency>
+      <groupId>commons-cli</groupId>
+      <artifactId>commons-cli</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
     </dependency>
 
   </dependencies>

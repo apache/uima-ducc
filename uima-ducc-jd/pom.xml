@@ -50,16 +50,35 @@
   </scm>
 
   <dependencies>
-        <!-- Dependencies on other DUCC projects -->
-        <dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-common</artifactId>
-		</dependency>
+    <!-- Dependencies on other DUCC projects -->
+    <dependency>
+	  <groupId>org.apache.uima</groupId>
+	  <artifactId>uima-ducc-common</artifactId>
+	</dependency>
 
-        <dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-transport</artifactId>
-		</dependency>
+    <dependency>
+	  <groupId>org.apache.uima</groupId>
+	  <artifactId>uima-ducc-transport</artifactId>
+	</dependency>
+
+    <dependency>
+      <groupId>org.apache.uima</groupId>
+      <artifactId>uimaj-as-activemq</artifactId>
+      <exclusions>
+        <exclusion>
+          <artifactId>jetty-webapp</artifactId>
+          <groupId>org.eclipse.jetty</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>josql</artifactId>
+          <groupId>net.sf.josql</groupId>
+        </exclusion>
+        <exclusion>
+          <artifactId>gentlyweb-utils</artifactId>
+          <groupId>net.sf.josql</groupId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
   </dependencies>
   

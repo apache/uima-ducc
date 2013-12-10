@@ -138,7 +138,6 @@
 		<commons.cli.version>1.2</commons.cli.version>
 		<joda.time.version>2.1</joda.time.version>
 		<jsch.version>0.1.29</jsch.version>
-		<!-- http.client.version>4.2.2</http.client.version -->
 		<commons.httpclient.version>3.1</commons.httpclient.version>
 		<commons.codec.version>1.2</commons.codec.version>
 		<commons.collections.version>3.2.1</commons.collections.version>
@@ -148,9 +147,7 @@
 		<slf4j.version>1.5.11</slf4j.version>
 		<xmlbeans.version>2.5.0</xmlbeans.version>
 		<junit.version>4.8.2</junit.version>
-		<jetty.version>7.4.4.v20110707</jetty.version>
 		<servlet.api.version>2.5</servlet.api.version>
-		<!-- aopalliance.version>1.0</aopalliance.version -->
 		<commons.management.version>1.0</commons.management.version>
 		<commons.pool.version>1.5.4</commons.pool.version>
 		<geronimo.servlet-spec.version>1.2</geronimo.servlet-spec.version>
@@ -163,6 +160,10 @@
 		<libpam.version>1.7</libpam.version>
 		<jna.version>4.0.0</jna.version>
 		<datatables.version>1.9.1</datatables.version>
+		<jetty.version>7.4.4.v20110707</jetty.version>
+		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
+		<servlet-api.version>2.5</servlet-api.version>
+
 	</properties>
 
 	<!-- dependencyManagement is a declaration section naming each artifact 
@@ -324,10 +325,17 @@
 				<artifactId>uimaj-as-activemq</artifactId>
 				<version>${org.apache.uima.as.version}</version>
 			</dependency>
+
 			<dependency>
 				<groupId>org.apache.uima</groupId>
 				<artifactId>uimaj-as-jms</artifactId>
 				<version>${org.apache.uima.as.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-core</artifactId>
+				<version>${org.apache.activemq.version}</version>
 			</dependency>
 
 			<dependency>
@@ -340,12 +348,6 @@
 				<groupId>joda-time</groupId>
 				<artifactId>joda-time</artifactId>
 				<version>${joda.time.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.apache.activemq</groupId>
-				<artifactId>activemq-all</artifactId>
-				<version>${org.apache.activemq.version}</version>
 			</dependency>
 
 			<dependency>
@@ -557,293 +559,72 @@
 		</dependencies>
 	</dependencyManagement>
 
-	<!-- Since all ducc components have the same dependencies, include them 
-		in this parent -->
-	<!-- pom which is inherited from by all other poms. An exception to this 
-		is the jetty which -->
-	<!-- is declared in uima-ducc-web project. Below dont add versions as version 
-		for each -->
-	<!-- dependency is defined in dependencyMangagement section above -->
+	<!-- runtime dependencies that must be included in the build -->
+
 	<dependencies>
-
-		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.kohsuke</groupId>
-			<artifactId>libpam4j</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-		</dependency>
-
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-		</dependency>
-
-
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
-
-
-		<dependency>
-			<groupId>com.jcraft</groupId>
-			<artifactId>jsch</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-math</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-cli</groupId>
-			<artifactId>commons-cli</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uimaj-core</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uimaj-as-core</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uimaj-as-activemq</artifactId>
-			<exclusions>
-				<exclusion>
-					<artifactId>jetty-webapp</artifactId>
-					<groupId>org.eclipse.jetty</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>josql</artifactId>
-					<groupId>net.sf.josql</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>gentlyweb-utils</artifactId>
-					<groupId>net.sf.josql</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.uima</groupId>
-			<artifactId>uimaj-as-jms</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>joda-time</groupId>
-			<artifactId>joda-time</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-all</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-camel</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-jaas</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.activemq</groupId>
-			<artifactId>activemq-pool</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-core</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-context</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-http</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-http4</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jetty</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-jms</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-mina</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-servlet</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test-spring</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-test</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-spring</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-stream</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-xmlbeans</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.camel</groupId>
-			<artifactId>camel-xstream</artifactId>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-expression</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-beans</artifactId>
-		</dependency>
-
-		<!-- dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
-		</dependency -->
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-asm</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-jms</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context-support</artifactId>
-		</dependency>
-
-		<!-- dependency>
-			<groupId>aopalliance</groupId>
-			<artifactId>aopalliance</artifactId>
-
-		</dependency-->
-
-		<dependency>
-			<groupId>commons-pool</groupId>
-			<artifactId>commons-pool</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.geronimo.specs</groupId>
-			<artifactId>geronimo-servlet_2.5_spec</artifactId>
-
-		</dependency>
-
-		<dependency>
-			<groupId>xpp3</groupId>
-			<artifactId>xpp3</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.thoughtworks.xstream</groupId>
-			<artifactId>xstream</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.mina</groupId>
 			<artifactId>mina-core</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- the next 4 may not ne needed -->
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-servlet</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>commons-httpclient</groupId>
-			<artifactId>commons-httpclient</artifactId>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-test-spring</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-test</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-stream</artifactId>
+			<scope>runtime</scope>
 		</dependency>
 
 	</dependencies>
-
 
 	<build>
 		<finalName>${project.artifactId}-${project.version}</finalName>
