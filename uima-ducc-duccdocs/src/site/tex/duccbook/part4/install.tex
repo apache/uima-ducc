@@ -34,6 +34,14 @@ First-time users must perform single-user installation and verification on a sin
 this configuration is working and verified, it is straightforward to upgrade to a multi-user
 configuration.
 
+\begin{description}
+    \item[Note:] A key feature of DUCC is to run user processes in CGroups in order to guarantee
+      each process always has the amount of RAM requested. Total RAM allocation to the managed process
+      and its child processes that exceed requested memory will go to swap space.
+      Without CGroups a process that exceeds its requested memory size by N\% is killed 
+      (default N=5 in ducc.properties), and memory use by child processes is ignored.
+\end{description}
+
 DUCC is distributed as a compressed tar file.  The instructions below assume installation from one
 of this distribution media.  If building from source, the build creates this file in your svn
 trunk/target directory. The distribution file is in the form
