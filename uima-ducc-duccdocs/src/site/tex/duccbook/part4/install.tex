@@ -457,7 +457,7 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
        \end{itemize}
 
 \section{CGroups Installation and Configuration}
-    The steps in this task must all be done as user root.
+    The steps in this task must be done as user root and user ducc.
 
     To install and configure CGroups for DUCC:
     \begin{enumerate}
@@ -491,6 +491,11 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
        \item Verify cgconfig service is running by the existence of directory: 
 \begin{verbatim}
    /cgroups/ducc
+\end{verbatim}
+
+       \item Some versions of libcgroup are buggy. As user ducc, verify that the following command executes with no error:
+\begin{verbatim}
+   cgcreate -t ducc -a ducc -g memory:ducc/test-cgroups
 \end{verbatim}
          
        \item Configure the cgconfig service to start on reboot:
