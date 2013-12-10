@@ -141,8 +141,10 @@ If building from source, Maven places the documentation in
 
 \section{Single-user  Installation and Verification}
 
-Single-user installation sets up an initial, working configuration on a single system.  No security
-is established, and all jobs run as user ducc.  Note that all installation must be done as user ducc.
+Single-user installation sets up an initial, working configuration on a single system.  
+Although any user ID can be used to run DUCC in single-user mode, it is recommended to create user ``ducc''
+to avoid confusion. No security is established in single-user mode, and all user processes run as
+the DUCC user ID.
 
 Verification submits a very simple UIMA pipeline for execution under DUCC.  Once this is shown to be
 working, one may proceed to upgrade to full installation.
