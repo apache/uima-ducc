@@ -116,6 +116,10 @@ span.health_yellow {
 	color: #ff6633;
 }
 
+span.health_purple {
+    color: #6633cc;
+}
+
 span.health_red {
 	color: red;
 }
