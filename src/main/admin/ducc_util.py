@@ -39,14 +39,11 @@ from local_hooks import find_other_processes
 
 # simple bootstratp to establish DUCC_HOME and to set the python path so it can
 # find the common code in DUCC_HOME/admin
-if ( os.environ.has_key('DUCC_HOME') ):
-    DUCC_HOME = os.environ['DUCC_HOME']
-else:
-    me = os.path.abspath(sys.argv[0])    
-    ndx = me.rindex('/')
-    ndx = me.rindex('/', 0, ndx)
-    DUCC_HOME = me[:ndx]          # split from 0 to ndx
-    os.environ['DUCC_HOME'] = DUCC_HOME
+# Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
+me = os.path.abspath(sys.argv[0])    
+ndx = me.rindex('/')
+ndx = me.rindex('/', 0, ndx)
+DUCC_HOME = me[:ndx]          # split from 0 to ndx
     
 sys.path.append(DUCC_HOME + '/bin')
 from ducc_base import DuccBase

@@ -349,59 +349,49 @@ public class Utils {
 	}
 
     static String DUCC_HOME = null;
-    public static String findDuccHome()
-    {
+    
+    public static String findDuccHome() {
 
         if ( DUCC_HOME != null ) {
             return DUCC_HOME;
         }
 
-        String ducc_home = System.getProperty("DUCC_HOME");
-        if ( ducc_home != null ) {                  // System properties next
-            DUCC_HOME = ducc_home;
-            return ducc_home;
-        }
-
-        ducc_home = System.getenv("DUCC_HOME");
-        if ( ducc_home != null ) {                  // The environment trumps all
-            DUCC_HOME = ducc_home;
-            System.setProperty("DUCC_HOME", DUCC_HOME);
-            return ducc_home;
-        }
-
-        // If nothing, we infer ducc home from where "this" Utils class lives.
-
-        Class<Utils> cl = Utils.class;
-        String n = "/" + cl.getName().replaceAll("\\.", "/")+".class"; // to for /org/apache/uima ... Utils.class
-
-
-        // URL will be of form jar:file:<ducc-home>/lib/uima-ducc/uima-ducc-common-<version>.jar!/org/apache/uima/ducc/common/utils/Utils.class
-        URL res = cl.getResource(n);
-        if ( res == null ) {
-        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME.");
-        }
+        String sys_ducc_home = System.getProperty("DUCC_HOME");
         
+        // Always assume that DUCC_HOME is where this code resides
+        // Locate the jar (or class file) that holds this class
+        // (Theoretically could get a null from the first 2 gets)
+        URL res = Utils.class.getProtectionDomain().getCodeSource().getLocation();
         String p = res.getFile();
-        String[] parts = p.split("!");
-        p = parts[0];
-
-        // The parent must be "lib", and "I" must be a jar, if this is to be valid
         if ( !p.endsWith(".jar") ) {
-        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME, Utils is not in a jar.");
+            System.out.println("Class file: " + p);
+            if (sys_ducc_home == null) {
+                throw new IllegalArgumentException("Cannot infer DUCC_HOME --- must be invoked from a DUCC jar.");
+            } else {
+                System.out.println("WARNING: Cannot infer DUCC_HOME as not in a jar, so using the system property value: " + sys_ducc_home);
+                DUCC_HOME = sys_ducc_home;
+                return DUCC_HOME;
+            }
         }
                 
+        // File name should be:  <ducc-home>/lib/uima-ducc/uima-ducc-common-<vesrion>.jar
+        // Strip off the jar file and the 2 directories above 
         int ndx = p.lastIndexOf("/");
         ndx = p.lastIndexOf("/", ndx-1);
+        ndx = p.lastIndexOf("/", ndx-1);
         p = p.substring(0, ndx);
-        System.out.println("res " + res);
-        System.out.println("p " + p);
-
-        ndx = p.indexOf(':');       
+        ndx = p.indexOf(':');   
         DUCC_HOME =  p.substring(ndx+1);
 
         File props = new File(DUCC_HOME + "/resources/ducc.properties");
         if ( ! props.exists() ) {
-        	throw new IllegalArgumentException("Cannot find or infer DUCC_HOME, Utils is not in a jar.");
+            System.out.println("Class resource: " + res);
+        	throw new IllegalArgumentException("Cannot infer DUCC_HOME - " + DUCC_HOME + " is invalid.");
+        }
+
+        // Fail if system property specifies a different DUCC_HOME
+        if ( sys_ducc_home != null && !sys_ducc_home.equals(DUCC_HOME)) {
+            throw new IllegalArgumentException("The inferred DUCC_HOME = " + DUCC_HOME + " but the system property = " + sys_ducc_home);
         }
 
         System.setProperty("DUCC_HOME", DUCC_HOME);

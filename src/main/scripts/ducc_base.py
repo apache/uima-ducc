@@ -56,8 +56,6 @@ class DuccProperties:
             val = None
             if ( self.has_key(key) ):
                 val = self.get(key)
-            elif ( os.environ.has_key(key) ):
-                val = os.environ[key]                
 
             if ( val != None ):    
                 response = string.replace(response, m.group() , val)
@@ -93,10 +91,12 @@ class DuccProperties:
     # the internal has, thus building it up.  The input file is
     # in the form of a java-like properties file.
     #
-    def load(self, propsfile):
+    def load(self, propsfile, ducchome=None):
         if ( not os.path.exists(propsfile) ):
             raise DuccPropertiesException(propsfile +  ' does not exist and cannot be loaded.')
 
+        if (ducchome != None):
+            self.props['DUCC_HOME'] = ducchome
         f = open(propsfile);
         for line in f:
             self.mkitem(line.strip())
@@ -176,7 +176,7 @@ class DuccBase:
     def read_properties(self):
 
         self.ducc_properties = DuccProperties()
-        self.ducc_properties.load(self.propsfile)
+        self.ducc_properties.load(self.propsfile, self.DUCC_HOME)
 
         self.webserver_node = self.ducc_properties.get('ducc.ws.node')
         self.jvm            = self.ducc_properties.get('ducc.jvm')
@@ -253,15 +253,11 @@ class DuccBase:
 
     def __init__(self):
 
-        if ( os.environ.has_key('DUCC_HOME') ):
-            self.DUCC_HOME = os.environ['DUCC_HOME']
-        else:
-            me = os.path.abspath(sys.argv[0])    
-            ndx = me.rindex('/')
-            ndx = me.rindex('/', 0, ndx)
-            self.DUCC_HOME = me[:ndx]          # split from 0 to ndx
-            os.environ['DUCC_HOME'] = self.DUCC_HOME
-        
+        # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
+        me = os.path.abspath(sys.argv[0])    
+        ndx = me.rindex('/')
+        ndx = me.rindex('/', 0, ndx)
+        self.DUCC_HOME = me[:ndx]          # split from 0 to ndx
 
         self.system = platform.system()
         self.jvm = None
