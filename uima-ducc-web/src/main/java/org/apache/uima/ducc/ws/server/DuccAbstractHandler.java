@@ -23,9 +23,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -36,9 +34,6 @@ import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
-import org.apache.uima.ducc.common.jd.files.IWorkItemState;
-import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
-import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
@@ -67,7 +62,7 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public abstract class DuccAbstractHandler extends AbstractHandler {
 	
-	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccAbstractHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
 	
 	private DuccId jobid = null;
@@ -767,56 +762,11 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
-	private double getWorkItemLeastOperatingMillis(HttpServletRequest request, IDuccWorkJob job) {
-		String methodName = "getWorkItemLeastDoneOperatingMillis";
-		double retVal = 0;
-		try {
-			String jobNo = job.getId();
-			String userId = job.getStandardInfo().getUser();
-			String jobDir = job.getLogDirectory()+jobNo;
-			WorkItemStateManager workItemStateManager = new WorkItemStateManager(jobDir);
-			workItemStateManager.importData(userId);
-			ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateManager.getMap();
-		    if( (map == null) || (map.size() == 0) ) {
-		    	// nada
-		    }
-		    else {
-		    	double smallest = 0;
-		    	ConcurrentSkipListMap<IWorkItemState,IWorkItemState> sortedMap = new ConcurrentSkipListMap<IWorkItemState,IWorkItemState>();
-				for (Entry<Long, IWorkItemState> entry : map.entrySet()) {
-					IWorkItemState wis = entry.getValue();
-					State state;
-					double time;
-					state = wis.getState();
-					switch(state) {
-					case operating:
-						time = wis.getMillisProcessing();
-						if(smallest == 0) {
-							smallest = time;
-							//duccLogger.info(methodName, job.getDuccId(), wis.getWiId()+" "+time+" "+time/1000);
-						}
-						else {
-							if(time < smallest) {
-								smallest = time;
-								//duccLogger.info(methodName, job.getDuccId(), wis.getWiId()+" "+time+" "+time/1000);
-							}
-						}
-					}
-				}
-				retVal = smallest;
-				
-		    }
-		}
-		catch(Throwable t) {
-			duccLogger.trace(methodName, null, "no worries", t);
-		}
-		return retVal;
-	}
-	
 	public String getProjection(HttpServletRequest request, IDuccWorkJob job) {
 		String methodName = "getProjection";
 		String retVal = "";
 		try {
+			WorkItemStateHelper workItemStateHelper = new WorkItemStateHelper(job);
 			IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
 			IDuccPerWorkItemStatistics perWorkItemStatistics = schedulingInfo.getPerWorkItemStatistics();
 			if (perWorkItemStatistics == null) {
@@ -834,22 +784,18 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						int totalThreads = usableProcessCount * threadsPerProcess;
 						double remainingIterations = remainingWorkItems / totalThreads;
 						double avgMillis = perWorkItemStatistics.getMean();
-						double projectedTime = 0;
-						double leastOperatingMillis = getWorkItemLeastOperatingMillis(request, job);
-						if(remainingIterations > 0) {
-							projectedTime = avgMillis * remainingIterations - leastOperatingMillis;
-						}
-						else {
-							//projectedTime = avgMillis - (Calendar.getInstance().getTimeInMillis() - job.getSchedulingInfo().getMostRecentWorkItemStart());
-							projectedTime = avgMillis - leastOperatingMillis;
-						}
+						double leastOperatingMillis = workItemStateHelper.getLeastOperatingMillis(job);
+						double mostCompletedMillis = workItemStateHelper.getMostCompletedMillis(job);
+						double projectedTime = (avgMillis * remainingIterations) + (mostCompletedMillis - leastOperatingMillis);
+						duccLogger.trace(methodName, job.getDuccId(), "avgMillis:"+avgMillis+" "+"remainingIterations:"+remainingIterations+" "+"mostCompleteMillis:"+mostCompletedMillis+" "+"leastOperatingMillis:"+leastOperatingMillis);
 						if(projectedTime > 0) {
 							long millis = Math.round(projectedTime);
 							if(millis > 1000) {
 								String projection = FormatHelper.duration(millis);
 								String health = "class=\"health_yellow\"";
-								String title = "title=\"Time (ddd:hh:mm:ss) to projected completion, based on average processing time per work item\"";
+								String title = "title=\"Time (ddd:hh:mm:ss) until projected completion\"";
 								retVal = "+"+"<span "+health+" "+title+"><i>"+projection+"</i></span>";
+								retVal = " {"+retVal+"}";
 							}
 						}
 						else {
@@ -857,8 +803,9 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 							if(millis > 1000) {
 								String projection = FormatHelper.duration(millis);
 								String health = "class=\"health_purple\"";
-								String title = "title=\"Time (ddd:hh:mm:ss) past projected completion, based on average processing time per work item\"";
+								String title = "title=\"Time (ddd:hh:mm:ss) past-due projected completion\"";
 								retVal = "-"+"<span "+health+" "+title+"><i>"+projection+"</i></span>";
+								retVal = " {"+retVal+"}";
 							}
 						}
 					}
