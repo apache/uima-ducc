@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
-import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
