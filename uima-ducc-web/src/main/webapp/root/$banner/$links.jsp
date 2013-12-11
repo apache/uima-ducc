@@ -22,7 +22,7 @@ under the License.
 <td>|
 <td><span id="logout_link_area"></span>
 <td>|
-<td><span id="preferences_link_area"><a href="preferences.html" onclick="var newWin = window.open(this.href,'child','height=600,width=900,scrollbars'); newWin.focus(); return false;">Preferences</a></span>
+<td><span id="preferences_link_area"><a href="preferences.html" onclick="var newWin = window.open(this.href,'child','height=600,width=950,scrollbars'); newWin.focus(); return false;">Preferences</a></span>
 <td>|
 <td><span id="duccbook_link_area"></span><a href="doc/duccbook.html" target="_duccbook">DuccBook</a>
 </table>
