@@ -960,7 +960,7 @@ public class RmJob
 
         int answer = 0;
 
-        if ( init_wait || (time_per_item == Double.NaN) ) {   // no cap if not initialized, or no per-itme time yet
+        if ( init_wait || Double.isNaN(time_per_item) ) {   // no cap if not initialized, or no per-itme time yet
             // (We could exit sooner but for debugging purposes we very much want that log statement just above even
             //  if there's some junk in it.)
             answer = Integer.MAX_VALUE;

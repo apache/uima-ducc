@@ -906,6 +906,7 @@ public class NodepoolScheduler
                 switch ( rc.getPolicy()) {
                     case FAIR_SHARE:
                         fair_share_jobs.add(j);
+                        break;
                     case FIXED_SHARE:
                         fixed_share_jobs.add(j);
                         break;
