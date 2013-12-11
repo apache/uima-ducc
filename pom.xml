@@ -68,7 +68,8 @@
 	</properties>
 
 	<!-- declare dependency on each DUCC project -->
-	<dependencies>
+	<dependencyManagement>
+	   <dependencies>
 		<dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-common</artifactId>
@@ -124,9 +125,55 @@
 			<artifactId>uima-ducc-examples</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		
-	</dependencies>
+		</dependencies>
+	</dependencyManagement>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-transport</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-agent</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-pm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-rm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-sm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-orchestrator</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-cli</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-jd</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-examples</artifactId>
+		</dependency>
+	</dependencies>
 	<build>
 		<resources />
 
