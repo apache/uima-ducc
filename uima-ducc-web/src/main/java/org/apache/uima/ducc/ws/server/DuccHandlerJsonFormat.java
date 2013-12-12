@@ -437,7 +437,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 		
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 		
 		long now = System.currentTimeMillis();
 		
@@ -969,7 +969,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		int maxRecords = getServicesMax(request);
 		ArrayList<String> users = getServicesUsers(request);
 		
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 		
 		IStateServices iss = StateServices.getInstance();
 		StateServicesDirectory ssd = iss.getStateServicesDirectory();

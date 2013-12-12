@@ -21,21 +21,52 @@ package org.apache.uima.ducc.ws.registry;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.persistence.services.StateServices;
 import org.apache.uima.ducc.common.persistence.services.StateServicesDirectory;
 import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.springframework.util.StringUtils;
 
 public class ServicesRegistry {
 	
-	public ServicesRegistry() {
+	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(ServicesRegistry.class.getName());
+	
+	private static ServicesRegistry instance = new ServicesRegistry();
+
+	private ServicesRegistryMap map = new ServicesRegistryMap();
+	
+	private AtomicBoolean inProgress = new AtomicBoolean(false);
+	
+	public static ServicesRegistry getInstance() {
+		return instance;
+	}
+	
+	private ServicesRegistry() {
 		refreshCache();
 	}
 	
-	private ServicesRegistryMap map = new ServicesRegistryMap();
+	public void update() {
+		String location = "update";
+		DuccId jobid = null;
+		if(inProgress.compareAndSet(false, true)) {
+			try {
+				refreshCache();
+				logger.debug(location, jobid, "size:"+map.size());
+			}		
+			catch(Exception e) {
+				logger.error(location, jobid, e);
+			}
+		}
+		else {
+			logger.warn(location, jobid, "skipping: already in progress...");
+		}
+		inProgress.set(false);
+	}
 	
 	public void refreshCache() {
 		try {

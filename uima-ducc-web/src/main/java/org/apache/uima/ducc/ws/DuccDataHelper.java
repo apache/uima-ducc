@@ -25,6 +25,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -36,7 +38,9 @@ import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 
 public class DuccDataHelper {
-
+	
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccDataHelper.class.getName());
+	
 	private static DuccDataHelper duccDataHelper = new DuccDataHelper();
 	
 	public static DuccDataHelper getInstance() {
@@ -69,8 +73,11 @@ public class DuccDataHelper {
 	}
 	
 	private String getServiceId(DuccId serviceId) {
+		String methodName = "getServiceId";
+		DuccId jobid = null;
+		duccLogger.trace(methodName, jobid, "enter");
 		String retVal = null;
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 		ServicesRegistryMap map = servicesRegistry.getMap();
 		for(Integer key : map.getDescendingKeySet()) {
 			ServicesRegistryMapPayload payload = map.get(key);
@@ -85,10 +92,14 @@ public class DuccDataHelper {
 				}
 			}
 		}
+		duccLogger.trace(methodName, jobid, "exit");
 		return retVal;
 	}
 	
 	public TreeMap<String,ArrayList<String>> getServiceToServicesUsageMap() {
+		String methodName = "getServiceToServicesUsageMap";
+		DuccId jobid = null;
+		duccLogger.trace(methodName, jobid, "enter");
 		TreeMap<String,ArrayList<String>> map = new TreeMap<String,ArrayList<String>>();
 		DuccData duccData = DuccData.getInstance();
 		ConcurrentSkipListMap<JobInfo, JobInfo> jobs = duccData.getSortedServices();
@@ -123,6 +134,7 @@ public class DuccDataHelper {
 				}
 			}
 		}
+		duccLogger.trace(methodName, jobid, "exit");
 		return map;
 	}
 	

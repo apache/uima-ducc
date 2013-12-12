@@ -1760,7 +1760,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		
 		try {
 			String name = request.getParameter("name");
-			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			Properties properties;
 			properties = payload.meta;
@@ -1820,7 +1820,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		try {
 			String name = request.getParameter("name");
 			duccLogger.debug(methodName, null, name);
-			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			Properties properties;
 			properties = payload.meta;
@@ -2119,7 +2119,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		
 		try {
 			String name = request.getParameter("name");
-			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			Properties properties;
 			properties = payload.meta;
@@ -2176,7 +2176,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		try {
 			String name = request.getParameter("name");
-			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			String hint = getLoginRefreshHint(request, response);
 			String enable_or_disable = getEnabledOrDisabled(request, response);;
@@ -2339,7 +2339,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<tr>");
 		
 		String name = request.getParameter("name");
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 		ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 		Properties properties;
 		properties = payload.meta;
@@ -3644,7 +3644,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String text;
 			String result;
 			name = value.trim();
-			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			if(payload != null) {
 				Properties properties = payload.meta;
@@ -3718,7 +3718,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			String text;
 			String result;
 			String id = value.trim();
-			ServicesRegistry servicesRegistry = new ServicesRegistry();
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			String resourceOwnerUserId = servicesRegistry.findServiceUser(id);
 			if(resourceOwnerUserId != null) {
 				if(isUserAuthorized(request,resourceOwnerUserId)) {

@@ -36,6 +36,7 @@ import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.RmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccListeners;
 import org.apache.uima.ducc.ws.server.DuccWebServer;
 import org.apache.uima.ducc.ws.utils.DatedNodeMetricsUpdateDuccEvent;
@@ -157,6 +158,7 @@ implements IWebServer {
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
 		duccLogger.debug(methodName, jobid, duccMsg.fetchLabel("received")+"SmStateDuccEvent");
 		DuccDaemonsData.getInstance().put(duccEvent);
+		ServicesRegistry.getInstance().update();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 	

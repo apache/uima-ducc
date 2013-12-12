@@ -393,7 +393,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 		
 		long now = System.currentTimeMillis();
 		
@@ -835,8 +835,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		
 		int maxRecords = getServicesMax(request);
 		ArrayList<String> users = getServicesUsers(request);
-		
-		ServicesRegistry servicesRegistry = new ServicesRegistry();
+		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 		ServicesRegistryMap map = servicesRegistry.getMap();
 		if(!map.isEmpty()) {
 			int counter = 0;
