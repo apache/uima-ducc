@@ -35,8 +35,9 @@ import signal
 #from threading import *
 #import Queue
 
-os.environ['DUCC_HOME'] = os.path.abspath('../..')
-sys.path.append(os.environ['DUCC_HOME'] + '/admin')
+#designed to run only here, relative to ducc_runtime
+DUCC_HOME = os.path.abspath(__file__ + '/../../..')
+sys.path.append(DUCC_HOME + '/admin')
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
@@ -69,7 +70,6 @@ class DuccService(DuccUtil):
 
 	print 'broker:', self.broker_url
 
-        DUCC_HOME = os.environ['DUCC_HOME']
         CMD = ['java']
         CMD.append("-DSERVICE_ID=" + instance)
         CMD.append("-DdefaultBrokerURL='" + self.broker_url + "'")
@@ -105,7 +105,7 @@ class DuccService(DuccUtil):
         print 'Where options are'
         print '   -i instance_number'
         print ''
-        print 'We run with DUCC_HOME set to', os.environ['DUCC_HOME']
+        print 'We run with DUCC_HOME set to', self.DUCC_HOME
         sys.exit(1)
     
     def main(self, argv):

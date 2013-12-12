@@ -36,8 +36,8 @@ from threading import *
 import Queue
 
 #designed to run only here, relative to ducc_runtime
-os.environ['DUCC_HOME'] = os.path.abspath(sys.argv[0] + '/../../..')
-sys.path.append(os.environ['DUCC_HOME'] + '/admin')
+DUCC_HOME = os.path.abspath(__file__ + '/../../..')
+sys.path.append(DUCC_HOME + '/admin')
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties

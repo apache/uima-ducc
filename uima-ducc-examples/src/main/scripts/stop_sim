@@ -25,10 +25,7 @@ import os
 import sys
 import time
 
-if ( not os.environ.has_key('DUCC_HOME') ):    
-    os.environ['DUCC_HOME'] = os.path.abspath('../..')
-
-DUCC_HOME=os.environ['DUCC_HOME']
+DUCC_HOME = os.path.abspath(__file__ + '/../../..')
 sys.path.append(DUCC_HOME + '/admin')
 
 import getopt

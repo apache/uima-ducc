@@ -39,7 +39,8 @@ import signal
 from threading import *
 import Queue
 
-os.environ['DUCC_HOME'] = os.path.abspath('../..')
+DUCC_HOME = os.path.abspath(__file__ + '/../../..')
+sys.path.append(DUCC_HOME + '/admin')
 sys.path.append(os.environ['DUCC_HOME'] + '/admin')
 
 
@@ -52,7 +53,7 @@ class DuccProcess(Thread):
         Thread.__init__(self)
         self.runner = runner
         self.jobfile = jobfile
-        self.DUCC_HOME = os.environ['DUCC_HOME']
+        self.DUCC_HOME = DUCC_HOME
 
     # 
     # read file and get nthreads, memory, class
@@ -208,7 +209,7 @@ class DuccProcess(Thread):
         print 'jvm_driver_args', jvm_driver_args
         print 'jvm_process_args', jvm_process_args
 
-        CMD = 'java'
+        CMD = os.environ['JAVA_HOME'] + '/bin/java'
         CMD = CMD + ' ' + self.runner.submit_package + '.cli.DuccJobSubmit'
 
         CMD = CMD + ' --description '                         + description + '[' + self.runner.style + ']'
@@ -530,7 +531,7 @@ class RunDucc(DuccUtil):
         print '   -y'
         print '       Error probability during initialation, int, 0:100', self.init_error
         print ''
-        print 'We run with DUCC_HOME set to', os.environ['DUCC_HOME']
+        print 'We run with DUCC_HOME set to', self.DUCC_HOME
         sys.exit(1)
     
     def main(self, argv):
