@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
+import org.apache.uima.ducc.ws.CacheManager;
 
 public class WorkItemStateHelper {
 	
@@ -39,8 +40,11 @@ public class WorkItemStateHelper {
 		String jobNo = job.getId();
 		String userId = job.getStandardInfo().getUser();
 		String jobDir = job.getLogDirectory()+jobNo;
-		workItemStateManager = new WorkItemStateManager(jobDir);
-		workItemStateManager.importData(userId);
+		workItemStateManager = CacheManager.getInstance().getWorkItemStateManager(jobNo);
+		if(workItemStateManager == null) {
+			workItemStateManager = new WorkItemStateManager(jobDir);
+			workItemStateManager.importData(userId);
+		}
 	}
 	
 	public double getLeastOperatingMillis(IDuccWorkJob job) {
