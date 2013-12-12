@@ -17,7 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 # -----------------------------------------------------------------------
-
+import os
+import sys
 import getopt
 import json
 
@@ -36,6 +37,9 @@ class DuccStateListener(DuccUtil):
             CMD = CMD + ' -agent ' + self.agent
             
         os.system(CMD)
+
+        if ( self.agent != None ):
+            self.output = self.output + '.' + self.agent
 
         fi = open(self.output + '.json')
         fo = open(self.output + '.json.pretty', 'w')
@@ -105,7 +109,7 @@ class DuccStateListener(DuccUtil):
                 self.usage()
                 
         CLASSPATH = os.environ['CLASSPATH']
-        CLASSPATH = CLASSPATH + ':' + self.DUCC_HOME + '/lib/ducc-test.jar'
+        CLASSPATH = CLASSPATH + ':' + self.DUCC_HOME + '/lib/uima-ducc/examples/*'
         os.environ['CLASSPATH'] = CLASSPATH
 
         if ( self.state == 'or' ):
@@ -135,7 +139,7 @@ class DuccStateListener(DuccUtil):
         if ( self.output == None ):
             of = self.topic 
             if ( self.agent != None ):
-                of = of + ".agent." + self.agent
+                of = of + ".agent"
             self.output = of
 
         print '-----------------------'
