@@ -40,7 +40,7 @@ from local_hooks import find_other_processes
 # simple bootstratp to establish DUCC_HOME and to set the python path so it can
 # find the common code in DUCC_HOME/admin
 # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
-me = os.path.abspath(sys.argv[0])    
+me = os.path.abspath(__file__)    
 ndx = me.rindex('/')
 ndx = me.rindex('/', 0, ndx)
 DUCC_HOME = me[:ndx]          # split from 0 to ndx
@@ -665,11 +665,10 @@ class DuccUtil(DuccBase):
         CMD = CMD + " org.apache.uima.ducc.common.NodeConfiguration "
         CMD = CMD + " -v " + allnodes
         if ( verbose ):
-            CMD = CMD + " -p "
+            CMD = CMD + " -p " + classfile
+            print CMD
         else:
-            CMD = CMD + " "
-        CMD = CMD + classfile
-        print CMD
+            CMD = CMD + " " + classfile
         rc = os.system(CMD)
         if ( rc == 0 ):
             print "OK: Class and node definitions validated."

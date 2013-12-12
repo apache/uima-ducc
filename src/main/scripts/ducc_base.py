@@ -254,7 +254,7 @@ class DuccBase:
     def __init__(self):
 
         # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
-        me = os.path.abspath(sys.argv[0])    
+        me = os.path.abspath(__file__)    
         ndx = me.rindex('/')
         ndx = me.rindex('/', 0, ndx)
         self.DUCC_HOME = me[:ndx]          # split from 0 to ndx
