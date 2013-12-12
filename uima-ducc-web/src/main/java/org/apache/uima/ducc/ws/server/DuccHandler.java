@@ -1395,17 +1395,27 @@ public class DuccHandler extends DuccAbstractHandler {
 				    double time_avg = 0;
 				    double time_min = 0;
 				    double time_max = 0;
+				    if(numstats > 0) {
+				    	time_min = uimaStats.get(0).getAnalysisMinTime();
+				    	time_max = uimaStats.get(0).getAnalysisMaxTime();
+				    }
 				    for (int i = 0; i < numstats; ++i) {
 						time_total += (uimaStats.get(i).getAnalysisTime());
-						time_min += uimaStats.get(i).getAnalysisMinTime();
-						time_max += uimaStats.get(i).getAnalysisMaxTime();
+						long itime_min = uimaStats.get(i).getAnalysisMinTime();
+						if(itime_min < time_min) {
+							time_min = itime_min;
+						}
+						long itime_max = uimaStats.get(i).getAnalysisMinTime();
+						if(itime_max > time_max) {
+							time_max = itime_max;
+						}
 					}
 				    time_avg = time_total/casCount;
 				    int counter = 0;
 				    sb.append(trGet(counter++));
 				    // Totals
 					sb.append("<td>");
-					sb.append("<i><b>Total</b></i>");
+					sb.append("<i><b>Summary</b></i>");
 					long ltime = 0;
 					// Total
 					sb.append("<td align=\"right\">");
