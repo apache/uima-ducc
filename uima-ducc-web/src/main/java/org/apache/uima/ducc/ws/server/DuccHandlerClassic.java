@@ -893,8 +893,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 							}
 						}
 						else {
-							if(!deployments.equals(instances)) {
-								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+							try {
+								if(Long.parseLong(deployments) < Long.parseLong(instances)) {
+									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+								}
+							}
+							catch(Exception e) {
 							}
 						}
 					}

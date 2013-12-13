@@ -1030,8 +1030,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 							}
 						}
 						else {
-							if(!deployments.equals(instances)) {
-								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+							try {
+								if(Long.parseLong(deployments) < Long.parseLong(instances)) {
+									col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
+								}
+							}
+							catch(Exception e) {
 							}
 						}
 					}
