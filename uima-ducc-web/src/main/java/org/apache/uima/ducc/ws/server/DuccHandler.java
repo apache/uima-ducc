@@ -392,6 +392,10 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private void buildJobProcessListEntry(StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter) {
 		String location = "buildJobProcessListEntry";
+		String pid = process.getPID();
+		if(pid == null) {
+			return;
+		}
 		StringBuffer rb = new StringBuffer();
 		int COLS = 26;
 		StringBuffer[] cbList = new StringBuffer[COLS];
@@ -404,10 +408,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
 		rb.append(tr);
-		String pid = process.getPID();
-		if(pid == null) {
-			return;
-		}
 		int index = -1;
 		// Id
 		index++; // jp.00
@@ -911,41 +911,37 @@ public class DuccHandler extends DuccAbstractHandler {
 		// jd.err.log
 		switch(sType) {
 		case JD:
-			StringBuffer sb;
-			rb = new StringBuffer();
-			rb.append("<tr>");
 			if(fileExists(logsjobdir+errfile)) {
-				String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
+				rb = new StringBuffer();
+				cbList = new StringBuffer[COLS];
 				for(int i=0; i < COLS; i++) {
 					cbList[i] = new StringBuffer();
 					cbList[i].append("<td>");
 					cbList[i].append("</td>");
 				}
-				index = -1;
 				// Id
-				index++; // jp.00
-				// Err Log
-				index++; // jp.01
-				sb = new StringBuffer();
-				sb.append("<td>");
-				sb.append(href2);
-				sb.append("</td>");
-				cbList[index] = sb;
-				// Err Log Size (in MB)
-				index++; // jp.02
-				sb = new StringBuffer();
-				sb.append("<td align=\"right\">");
-				sb.append(getFileSize(logsjobdir+errfile));
-				sb.append("</td>");
-				cbList[index] = sb;
+				index = 0;
+				// Log
+				index = 1;
+				String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
+				cbList[index] = new StringBuffer();
+				cbList[index].append("<td>");
+				cbList[index].append(href2);
+				cbList[index].append("</td>");
+				// Size
+				index = 2;
+				cbList[index] = new StringBuffer();
+				cbList[index].append("<td align=\"right\">");
+				cbList[index].append(getFileSize(logsjobdir+errfile));
+				cbList[index].append("</td>");
+				// row
+				rb.append(tr);
+				for(int i=0; i < COLS; i++) {
+					rb.append(cbList[i]);
+				}
+				rb.append("</tr>");
+				pb.append(rb.toString());
 			}
-			for(int i=0; i < COLS; i++) {
-				rb.append(cbList[i]);
-			}
-			rb.append("</tr>");
-			pb.append(rb.toString());
-			break;
-		default:
 			break;
 		}
 	}
@@ -1103,17 +1099,27 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(job != null) {
 			Iterator<DuccId> iterator = null;
 			iterator = job.getDriver().getProcessMap().keySet().iterator();
-			int counter = 0;
+			int counter = 1;
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getDriver().getProcessMap().get(processId);
-				buildJobProcessListEntry(sb, job, process, DetailsType.Job, ShareType.JD, ++counter);
+				StringBuffer bb = new StringBuffer();
+				buildJobProcessListEntry(bb, job, process, DetailsType.Job, ShareType.JD, counter);
+				if(bb.length() > 0) {
+					sb.append(bb.toString());
+					counter++;
+				}
 			}
 			iterator = job.getProcessMap().keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getProcessMap().get(processId);
-				buildJobProcessListEntry(sb, job, process, DetailsType.Job, ShareType.UIMA, ++counter);
+				StringBuffer bb = new StringBuffer();
+				buildJobProcessListEntry(bb, job, process, DetailsType.Job, ShareType.UIMA, counter);
+				if(bb.length() > 0) {
+					sb.append(bb.toString());
+					counter++;
+				}
 			}
 		}
 		if(sb.length() == 0) {
