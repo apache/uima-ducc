@@ -33,6 +33,7 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.common.utils.TimeStamp;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
@@ -323,7 +324,7 @@ public class JobFactory {
 		}
 		
 		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
-		driverCommandLine.addOption("-Dlog4j.configuration=file://" + System.getenv("DUCC_HOME") + "/resources/log4j.xml");
+		driverCommandLine.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
 		// Environment
 		String driverEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 		int envCountDriver = addEnvironment(job, "driver", driverCommandLine, driverEnvironmentVariables);
