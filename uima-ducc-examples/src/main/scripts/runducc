@@ -41,8 +41,6 @@ import Queue
 
 DUCC_HOME = os.path.abspath(__file__ + '/../../..')
 sys.path.append(DUCC_HOME + '/admin')
-sys.path.append(os.environ['DUCC_HOME'] + '/admin')
-
 
 from ducc_util import DuccUtil
 from ducc_util import DuccProperties
