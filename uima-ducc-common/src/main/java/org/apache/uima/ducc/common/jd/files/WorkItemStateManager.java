@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.common.jd.files;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 public class WorkItemStateManager {
@@ -145,5 +146,70 @@ public class WorkItemStateManager {
 		IWorkItemState wis = map.get(key);
 		wis.setNode(node);
 		wis.setPid(pid);
+	}
+	
+	public double getMin() {
+		double retVal = -1;
+		try {
+			for (Entry<Long, IWorkItemState> entry : map.entrySet()) {
+				IWorkItemState workItemState = entry.getValue();
+				switch(workItemState.getState()) {
+				case ended:
+					long millis = workItemState.getMillisProcessing();
+					if(millis < retVal) {
+						retVal = millis;
+					}
+					else if(retVal < 0) {
+						retVal = millis;
+					}
+					break;
+				}
+			}
+		}
+		catch(Throwable t) {
+		}
+		return retVal;
+	}
+	
+	public double getMax() {
+		double retVal = -1;
+		try {
+			for (Entry<Long, IWorkItemState> entry : map.entrySet()) {
+				IWorkItemState workItemState = entry.getValue();
+				switch(workItemState.getState()) {
+				case ended:
+					long millis = workItemState.getMillisProcessing();
+					if(millis > retVal) {
+						retVal = millis;
+					}
+					break;
+				}
+			}
+		}
+		catch(Throwable t) {
+		}
+		return retVal;
+	}
+	
+	public double getAvg() {
+		double retVal = 0;
+		try {
+			int count = 0;
+			for (Entry<Long, IWorkItemState> entry : map.entrySet()) {
+				IWorkItemState workItemState = entry.getValue();
+				switch(workItemState.getState()) {
+				case ended:
+					retVal += workItemState.getMillisProcessing();
+					count++;
+					break;
+				}
+			}
+			if(count > 0) {
+				retVal = retVal / count;
+			}
+		}
+		catch(Throwable t) {
+		}
+		return retVal;
 	}
 }
