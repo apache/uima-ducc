@@ -1330,6 +1330,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		if(job != null) {
 			try {
 				String userId = duccWebSessionManager.getUserId(request);
+				WorkItemStateManager workItemStateManager = new WorkItemStateManager(job.getLogDirectory()+jobNo);
+				workItemStateManager.importData(userId);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(userId);
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
@@ -1392,25 +1394,9 @@ public class DuccHandler extends DuccAbstractHandler {
 				    DecimalFormat formatter = new DecimalFormat("##0.0");
 				    // pass 1
 				    double time_total = 0;
-				    double time_avg = 0;
-				    double time_min = 0;
-				    double time_max = 0;
-				    if(numstats > 0) {
-				    	time_min = uimaStats.get(0).getAnalysisMinTime();
-				    	time_max = uimaStats.get(0).getAnalysisMaxTime();
-				    }
 				    for (int i = 0; i < numstats; ++i) {
 						time_total += (uimaStats.get(i).getAnalysisTime());
-						long itime_min = uimaStats.get(i).getAnalysisMinTime();
-						if(itime_min < time_min) {
-							time_min = itime_min;
-						}
-						long itime_max = uimaStats.get(i).getAnalysisMinTime();
-						if(itime_max > time_max) {
-							time_max = itime_max;
-						}
 					}
-				    time_avg = time_total/casCount;
 				    int counter = 0;
 				    sb.append(trGet(counter++));
 				    // Totals
@@ -1426,16 +1412,22 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append(formatter.format(100));
 					// Avg
 					sb.append("<td align=\"right\">");
-					ltime = (long)time_avg;
+					sb.append("<span class=\"health_purple\" title=\"average processing time per completed work item\">");
+					ltime = (long)workItemStateManager.getAvg();
 					sb.append(FormatHelper.duration(ltime));
+					sb.append("</span>");
 					// Min
 					sb.append("<td align=\"right\">");
-					ltime = (long)time_min;
+					sb.append("<span class=\"health_purple\" title=\"minimum processing time for any completed work item\">");
+					ltime = (long)workItemStateManager.getMin();
 					sb.append(FormatHelper.duration(ltime));
+					sb.append("</span>");
 					// Max
 					sb.append("<td align=\"right\">");
-					ltime = (long)time_max;
+					sb.append("<span class=\"health_purple\" title=\"maximum processing time for any completed work item\">");
+					ltime = (long)workItemStateManager.getMax();
 					sb.append(FormatHelper.duration(ltime));
+					sb.append("</span>");
 				    // pass 2
 				    for (int i = 0; i < numstats; ++i) {
 				    	sb.append(trGet(counter++));
