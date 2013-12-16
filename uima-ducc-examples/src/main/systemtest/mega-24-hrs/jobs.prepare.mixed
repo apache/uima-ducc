@@ -24,8 +24,8 @@ random.seed                   = 0         # a number, for determinate randoms
                                           # current time of day
 
 
-src.dir                     = projects/ducc/ducc_test/test/blade-2010-10-13-18/jobs.in   # where the jobs are
-dest.dir                    = projects/ducc/ducc_test/test/blade-2010-10-13-18/jobs      # where to put prepared jobs
+src.dir                     = jobs.in   # where the jobs are
+dest.dir                    = jobs      # where to put prepared jobs
 
 
 scheduling.classes        = normal normal-all normal-P7         # classes
