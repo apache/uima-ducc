@@ -451,13 +451,12 @@ void redirect_to_socket(char *sockloc)
     log_stdout("1706 Connected\n");
 
     struct sockaddr sockname;
-    socklen_t namelen;
+    socklen_t namelen = sizeof(sockname);
     if ( getsockname(sock, &sockname,  &namelen ) == 0 ) {
         struct sockaddr_in *sin = (struct sockaddr_in *) &sockname;
         log_stdout("1708 Local port is %d\n", sin -> sin_port);
     } else {
-        perror("1709 Cannot get local socket name");
-        exit(1);
+        perror("1709 Cannot get local socket name, ignoring error.");
     }
 
     //
