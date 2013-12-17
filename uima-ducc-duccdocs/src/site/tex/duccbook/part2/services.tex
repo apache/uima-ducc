@@ -35,12 +35,12 @@
       The DUCC service manager implements several high-level functions:
       
       \begin{itemize}
-          \item Insure services are available for jobs before allowing the jobs to start. This is a fail-fast
+          \item Ensure services are available for jobs before allowing the jobs to start. This is a fail-fast
             to prevent unnecessary allocation of resources (with potential eviction of healthy processes)
             for jobs that can't run, as well as quick feedback to users that something is amiss.
       
           \item Manage the start-up and management of services: allocate resources, spawn the
-            processes, manage the pingers, insure the processes stay alive, handle errors, etc.
+            processes, manage the pingers, ensure the processes stay alive, handle errors, etc.
       
           \item Report on the state and availability of services.
        \end{itemize}
@@ -77,7 +77,7 @@
       
       The {\em service-type} must be either UIMA-AS or CUSTOM.
       
-      The {\em unique id and contact information} is any string needed to insure the service is
+      The {\em unique id and contact information} is any string needed to ensure the service is
       uniquely named.  This string is passed to the service pinger and may contain 
       information for the pinger to contact the service.  For UIMA-AS services, service endpoint is
       inferred by the CLI by inspection of the UIMA-AS service's DD XML descriptor.  The UIMA-AS
@@ -112,7 +112,7 @@
           service registry for all service that are marked for automatic start-up.  If registered for autostart,
           the DUCC Service Manager submits the registered number of instances
           on behalf of the registering user.  If an instance should die, DUCC automatically restarts
-          the instance.  Short of massive failures, DUCC will insure the service is always running
+          the instance.  Short of massive failures, DUCC will ensure the service is always running
           and immediately ready for use with no manual intervention.
           
         \item[On-Demand Services] An on-demand service is a registered service that is started only
@@ -327,7 +327,7 @@ public class CustomPing
 
       \paragraph{1. Establish compile CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
 \begin{verbatim}
-      $DUCC_HOME/lib/uima-ducc-cli.jar
+      \$HOME/ducc_runtime/lib/uima-ducc-cli.jar
 \end{verbatim}      
       This provides the definition for the {\em AServicePing} and {\em ServiceStatistics} classes.
 
@@ -378,6 +378,6 @@ public class CustomPing
      look in your log directory, as most problems with pingers are reflected there.  As a last resort, you can
      inspect the the Service Manager's log in
 \begin{verbatim}
-    $DUCC_HOME/logs/sm.log
+    \$HOME/ducc_runtime/logs/sm.log
 \end{verbatim}
      

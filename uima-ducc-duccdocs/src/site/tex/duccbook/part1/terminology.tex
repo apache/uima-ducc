@@ -75,7 +75,7 @@
   properties of the job (CLASSPATHs, RAM requirements, etc). 
 
 \item[Job] A DUCC job consists of the components required to deploy and execute a UIMA pipeline over
-  a computing cluster. It consist of a JD to run the Collection Reader, a set of JPs to run the UIMA
+  a computing cluster. It consists of a JD to run the Collection Reader, a set of JPs to run the UIMA
   AEs, and a Job Specification to describe how the parts fit together.
 
 \item[Share Quantum] The DUCC scheduler abstracts the nodes in the cluster as a single large
@@ -95,7 +95,7 @@
   some classes of work.
 
 \item[Work Items] A DUCC work item is one unit of work to be completed in a single DUCC process. It
-  is usually initiated by the submission of a single CAS from the CR to a UIMA service. It could be
+  is usually initiated by the submission of a single CAS from the JD to one of the JPs. It could be
   thought of as a single ``question'' to be answered by a UIMA analytic, or a single ``task'' to
   complete. Usually each DUCC JP executes many work items per job.
 \end{description}

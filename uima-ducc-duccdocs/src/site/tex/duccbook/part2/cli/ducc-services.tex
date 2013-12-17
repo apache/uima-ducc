@@ -241,14 +241,14 @@
         
         The keywords in the string have the following meaning:
         \begin{description}
-          \item[queue\_threshold=nn] If the depth of the ActiveMq Queue for the service exceeds
+          \item[queue\_threshold=nn] If the depth of the ActiveMQ queue for the service exceeds
             this value for some period of time, the health of the service is marked ``poor''.
             If omitted, the value is 0, and no quality measurement is made.
           \item[window=ww] This defines a ``window'' over which the queue threshold is measured.
             the value is the number of consecutive measurements over which the queue depth must
             exceed the threshold.  If omitted, the window size is 0.
           \item[broker\_jmx\_port=pppp] This is the JMX port for the service's broker.  If not
-            specified, the default of 1099 is used.  This is used to gather ActiveMq statistics
+            specified, the default of 1099 is used.  This is used to gather ActiveMQ statistics
             for the service.
           \item[meta\_timeout=tttt] This is the time, in milliseconds, to wait for a response
             to UIMA-AS {\em get-meta}.  If not specified, the default is 5000 milliseconds.

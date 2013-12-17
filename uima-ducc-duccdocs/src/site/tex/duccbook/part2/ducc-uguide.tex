@@ -34,16 +34,19 @@
     parameters may be saved in a standard Java Properties file, without the leading ``$--$''
     characters.  Both a properties file and command-line parameters may be passed to each CLI.  When
     both are present, the parameters on the command line take precedence.  Take, for example
-    the following simple job properties file, call it {\tt 1.job}.
+    the following simple job properties file, call it {\tt 1.job}, where the environment variable
+    ``DH'' has been set to the location of \ducchome.
 \begin{verbatim}
 description                    Test job 1
 
-classpath                      ../lib/uima-ducc-examples.jar
+classpath                      ${DH}/lib/uima-ducc/examples/*
 environment                    AE_INIT_TIME=5 AE_INIT_RANGE=5 LD_LIBRARY_PATH=/a/nother/path
 scheduling_class               normal
 
 driver_descriptor_CR           org.apache.uima.ducc.test.randomsleep.FixedSleepCR
-driver_descriptor_CR_overrides jobfile:1.inputs,compression:10,error_rate:0.0
+driver_descriptor_CR_overrides jobfile=${DH}/lib/examples/simple/1.inputs compression=10
+error_rate=0.0
+
 driver_jvm_args                -Xmx500M
 
 process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepAE

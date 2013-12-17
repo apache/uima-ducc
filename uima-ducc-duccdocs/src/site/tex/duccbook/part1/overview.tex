@@ -183,8 +183,8 @@
         initialization is successful, the process is terminated and all affected CASs are retried, up to some
         configurable threshold.
 
-      \item DUCC insures that processes can successfully initialize before fully scaling out a job,
-        to insure a cluster is not overwhelmed with errant processes.
+      \item DUCC ensures that processes can successfully initialize before fully scaling out a job,
+        to ensure a cluster is not overwhelmed with errant processes.
 
       \item Various error conditions encountered  while a job is running will prevent the errant job
         from continuing scale out, and can result in termination of the job.
@@ -221,7 +221,7 @@
             \item Starts, stops, and monitors all processes on behalf of users.
             \item Patrols the node for ``foreign'' (non-DUCC) processes, reporting them to the
               Web Server, and optionally reaping them.
-            \item Insures job processes to not exceed their declared memory requirements
+            \item Ensures job processes do not exceed their declared memory requirements
               through the use of Linux Cgroups.
           \end{itemize}
 

@@ -104,10 +104,10 @@ More detailed one-time setup instructions for source-level builds via subversion
 
 \section{Building from Source}
 
-To build from source, insure you have
+To build from source, ensure you have
 Subversion and Maven installed.  Extract the source from the SVN repository named above. 
 
-Then change directory into
+Then from your extract directory into
 the root directory (usually current-directory>/trunk), and run the command
 \begin{verbatim}
     mvn install
@@ -175,11 +175,11 @@ workloads.
 tar -zxf <distribution.file>
 \end{verbatim}
 
-        This creates a directory with a name of the form ``apache-uima-ducc-<version>''.
+        This creates a directory with a name of the form ``apache-uima-ducc-[version]''.
   
         This directory contains the full DUCC runtime which
         you may use ``in place'' but it is highly recommended that you move it
-        into a standard location; for example, ducc's HOME directory:
+        into a standard location; for example, under ducc's HOME directory:
 \begin{verbatim}
 mv apache-uima-ducc-1.0.0 $HOME/ducc_runtime
 \end{verbatim}
@@ -187,7 +187,7 @@ mv apache-uima-ducc-1.0.0 $HOME/ducc_runtime
         We refer to this directory, regardless of its location, as \duccruntime. For simplicity,
         the examples in this document assume it has been moved to ducc's \$HOME/ducc\_runtime.
 
-      \item Change directories into the admin sub-directory of  \duccruntime: 
+      \item Change directories into the admin sub-directory of \duccruntime: 
 \begin{verbatim}
 cd $HOME/ducc_runtime/admin
 \end{verbatim}
@@ -222,7 +222,7 @@ The post-installation script performs these tasks:
     \item Sets up the default https keystore for the webserver.
     \item Installs the DUCC documentation ``ducc book'' into the DUCC webserver root.
     \item Builds and installs the C program, ``ducc\_ling'', into the default location.
-    \item Insures that the (supplied) ActiveMQ broker is runnable.
+    \item Ensures that the (supplied) ActiveMQ broker is runnable.
 \end{enumerate}
 
 \section{Initial System Verification}
@@ -241,7 +241,7 @@ To run the verification, issue these commands.
   \item Finally, start ducc: ./start\_ducc -s
   \end{enumerate}
   
-  Start\_ducc will perform a number of consistency checks and print the versions of the components.
+  Start\_ducc will first perform a number of consistency checks.
   It then starts the ActiveMQ broker, the DUCC control processes, and a single DUCC agent on the
   local node.  Note that ``single user mode'' (-s) is specified for this first start.  This inhibits
   the checks on the permissions on ducc\_ling (described \hyperref[sec:duccling]{below}).
@@ -251,36 +251,35 @@ To run the verification, issue these commands.
 \begin{verbatim}
 ENV: Java is configured as: /share/jdk1.6/bin/java
 ENV: java full version "1.6.0_14-b08"
+ENV: Threading enabled: True
 MEM: memory is 15 gB
-ENV: system is Linux version 2.6.32-220.el6.x86_64 (mockbuild@x86-004.build.bos.redhat.com) 
-ENF: (gcc version 4.4.5 20110214 (Red Hat 4.4.5-6) (GCC) ) #1 SMP Wed Nov 9 08:03:13 EST 2011
-broker host ducchead.biz.org
-[] INFO: Loading '/home/ducc/.activemqrc'
-[] INFO: Using java '/share/jdk1.6/bin/java'
-[] INFO: Starting - inspect logfiles specified in logging.properties and log4j.properties 
-         to get details
-[] INFO: pidfile created : '/home/ducc/ducc_runtime/activemq/data/activemq-ducchead.biz.org.pid' 
-         (pid '14138')
-[] Started AMQ broker
-Waiting for broker 0
-Waiting for broker 1
-ActiveMQ is found on configured host and port: ducchead.biz.org:61616
-Starting warm
-local Starting rm
-ducchead.biz.org PID 14198
-local Starting pm
-ducchead.biz.org PID 14223
-local Starting sm
-ducchead.biz.org PID 14248
-local Starting or
-ducchead.biz.org PID 14275
-ducchead.biz.org Starting ws
-ducchead.biz.org PID 14300
+ENV: system is Linux
+allnodes /home/ducc/apache_ducc_runtime/resources/ducc.nodes
+Class definition file is ducc.mixed.classes
+OK: Class and node definitions validated.
+OK: Class configuration checked
+Starting broker on ducchead.biz.org
+Waiting for broker ..... 0
+Waiting for broker ..... 1
+ActiveMQ broker is found on configured host and port: ducchead.biz.org:61618
+Starting 1 agents
 ********** Starting agents from file /home/ducc/ducc_runtime/resources/ducc.nodes
+Starting warm
+Waiting for Completion
+ducchead.biz.org Starting rm
+     PID 14198
+ducchead.biz.org Starting pm
+     PID 14223
+ducchead.biz.org Starting sm
+     PID 14248
+ducchead.biz.org Starting or
+     PID 14275
+ducchead.biz.org Starting ws
+     PID 14300
 ducchead.biz.org
     ducc_ling OK
     DUCC Agent started PID 14325
-bash-4.1$
+All threads returned
 \end{verbatim}
 
   Now open a browser and go to the DUCC webserver's url, http://$<$hostname$>$:42133 where $<$hostname$>$ is
@@ -305,7 +304,7 @@ bash-4.1$
     items completed grow from 0 to 15.  Finally, the job will move into Completing and then
     Completed..
 
-    DUCC creates a log directory in your HOME directory under 
+    Since this example does not specify a log directory DUCC will create a log directory in your HOME directory under 
 \begin{verbatim}
 $HOME/ducc/logs/job-id
 \end{verbatim}
@@ -331,7 +330,7 @@ $HOME/ducc/logs/job-id
 \section{Logs}
     The DUCC system logs are written to the directory
 \begin{verbatim}
-    ducc_runtime/logs
+    $HOME/ducc_runtime/logs
 \end{verbatim}
 
     In that directory are found logs for each of the DUCC components plus one for each node DUCC is
@@ -388,7 +387,7 @@ $HOME/ducc/logs/job-id
     example, one could install it to /local/ducc/bin on local disk on every system.
 
     To install ducc\_ling (these instructions assume it is installed into /local/ducc/bin):
-    As ducc, insure ducc\_ling is built correctly for your architecture:
+    As ducc, ensure ducc\_ling is built correctly for your architecture:
     \begin{enumerate}
         \item cd \duccruntime/duccling/src
         \item make clean all
@@ -523,7 +522,7 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
    To add additional nodes to the ducc cluster, DUCC needs to know what nodes to start its Agent
    processes on.  These nodes are listed in the file
 \begin{verbatim}
-ducc_runtime/resources/ducc.nodes.  
+$HOME/ducc_runtime/resources/ducc.nodes.  
 \end{verbatim}
    
    During initial installation, this file was initialized with the node DUCC is installed on.
@@ -533,7 +532,7 @@ ducc_runtime/resources/ducc.nodes.
 \section{Full DUCC Verification}
 
 This is identical to initial verification, with the one difference that the job ``1.job'' should be
-submitted as any user other than ducc.  Watch the webserver and insure that you see the job execute
+submitted as any user other than ducc.  Watch the webserver and check that the job executes
 under the correct identity.  Once this completes, DUCC is installed and verified.
  
 \section{Enable DUCC webserver login}
@@ -582,12 +581,12 @@ Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
    org.apache.uima.ducc.common.authentication.IAuthenticationManager
 2. create a jar file comprising your authentication class
 3. put the jar file in a location accessible by the DUCC webserver, such as 
-   ~ducc/runtime/SNAPSHOT/ducc_runtime/webserver/lib/authentication
+   ~$HOME/ducc_runtime/lib/authentication
 4. put any authentication dependency jar files there as well
 5. edit ducc.properties
 6. add the following:
    ducc.local.jars = authentication/*
-   ducc.authentication.implementer=<your.authenticaor.class.Name>
+   ducc.authentication.implementer=<your.authenticator.class.Name>
 7. locate: ducc.ws.login.enabled = false
 8. modify: ducc.ws.login.enabled = true
 9. save   

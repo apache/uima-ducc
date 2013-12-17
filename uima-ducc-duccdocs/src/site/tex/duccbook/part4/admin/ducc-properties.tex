@@ -64,7 +64,7 @@
          \end{description} 
            
        \item[ducc.broker.automanage] \hfill \\
-         If set to ``true'', DUCC will start and stop the ActiveMq broker as part of its normal start/stop
+         If set to ``true'', DUCC will start and stop the ActiveMQ broker as part of its normal start/stop
          scripting.  
          \begin{description}
            \item[Default] true
@@ -72,27 +72,27 @@
          \end{description} 
 
        \item[ducc.broker.home] \hfill \\
-         For DUCC auto-managed brokers only, this names the location where ActiveMq is installed
+         For DUCC auto-managed brokers only, this names the location where ActiveMQ is installed
          installed.  
 
-         Note that the DUCC installation includes a default ActiveMq.
+         Note that the DUCC installation includes a default ActiveMQ.
          \begin{description}
            \item[Default] \duccruntime/activemq 
            \item[Type] Tuning
          \end{description} 
            
        \item[ducc.broker.memory.options] \hfill \\
-         For DUCC auto-managed brokers only, this names the ActiveMq configuration file.  The configuration
+         For DUCC auto-managed brokers only, this names the ActiveMQ configuration file.  The configuration
          file is assumed to reside in the directory specified by {\em ducc.broker.home}, so the path must be relative
          to that location.
          \begin{description}
-           \item[Default] conf/activemq-nojournal5.xml
+           \item[Default] conf/activemq-ducc.xml
            \item[Type] Tuning
          \end{description} 
            
            
        \item[ducc.broker.decoration] \hfill \\
-         The property is used by the DUCC Job Driver processes to modify the ActiveMq broker URL
+         The property is used by the DUCC Job Driver processes to modify the ActiveMQ broker URL
          when connecting to the Job Processes.
 
          The supplied default is used to disable broker connection timeouts.  From the ActiveMQ
@@ -119,14 +119,14 @@
          will not work.          
          \begin{description}               
            \item[Default] \$\{ducc.head\}.  The default is defined in the ducc property, {\em ducc.head}.
-             If you want to run the ActiveMq broker on the ``ducc head'', this parameter need not
+             If you want to run the ActiveMQ broker on the ``ducc head'', this parameter need not
              be changed.
            \item[Type] Local 
          \end{description}
 
        \item[ducc.broker.jmx.port] \hfill \\
          This is the port used to make JMX connections to the broker.  This should only
-         be changed by administrators familiar with ActiveMq configuration.         
+         be changed by administrators familiar with ActiveMQ configuration.         
          \begin{description}         
            \item[Default] 1100                      
            \item[Type] Local 
@@ -144,7 +144,7 @@
          This is the internal name of the broker, used to locate Broker's MBean in JMX Registry. 
          It is NOT related to any node name. When using the ActiveMQ distribution supplied with 
          DUCC it should always be set to "localhost".  The default should be changed only by
-         administrators familiar with ActiveMq configuration.
+         administrators familiar with ActiveMQ configuration.
          \begin{description}
            \item[Default] localhost 
            \item[Type] Local              
@@ -170,7 +170,7 @@
 
 
        \item[ducc.broker.server.url.decoration] \hfill \\
-         For DUCC auto-managed brokers only, this configures ActiveMq Server url decoration.
+         For DUCC auto-managed brokers only, this configures ActiveMQ Server url decoration.
          
          \begin{description}
            \item[Default] transport.soWriteTimeout=45000

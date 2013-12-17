@@ -75,7 +75,7 @@
     expose the interesting problems is usually not practical.
 
     DUCC's design divorces all the DUCC processes from specific IP
-    addresses or node names.  ActiveMq is used as a nameserver and
+    addresses or node names.  ActiveMQ is used as a nameserver and
     packet router so that all messages can be delivered by name,
     irrespective of the physical hardware the destination process
     may reside upon.  
@@ -188,7 +188,7 @@ agentn.79 = 6
 
       To establish test mode:
       \begin{enumerate}
-          \item Insure that {\em ducc.properties} is configured to point to a non-privileged
+          \item Ensure that {\em ducc.properties} is configured to point to a non-privileged
             version of {\em ducc\_ling}.  Specifically, configure this line in {\em ducc.properties}
 \begin{verbatim}
     ducc.agent.launcher.ducc_spawn_path=/home/ducctest/duccling.dir/amd64/ducc_ling
@@ -627,8 +627,8 @@ prepare [config-file]
        \begin{sloppypar}
        \item Create a node configuration.  A sample configuration to generate
          52 simulated nodes, and which assumes the
-         physical machines for the simulation are called {\em sys290, sys291, sys292}
-         and {\em sys293} is supplied in \duccruntime/examples/systemtest. Change
+         physical machines for the simulation are called {\em sys290, sys291, sys292, sys293}
+         and {\em sys534} is supplied in \duccruntime/examples/systemtest. Change
          the node names to the names of real machines, making any other adjustments
          needed.
        \end{sloppypar}
@@ -655,20 +655,20 @@ prepare [config-file]
        \item Generate the job set.  For example, to generate the job set for the
          15-minute run,
 \begin{verbatim}
-   cd $DUCC_HOME/examples/systemtest
+   cd $HOME/ducc_runtime/examples/systemtest
    ./prepare mega-15-min/jobs.prepare
 \end{verbatim}
          \item Start the simulated cluster (Assuming your simulated node file is called
            {\em 52.simulated.nodes}:
 \begin{verbatim}
-   cd $DUCC_HOME/examples/systemtest
+   cd $HOME/ducc_runtime/examples/systemtest
    ./start_sim -c all -n 52.simulated.nodes
 \end{verbatim}
-         \item Use the webserver (or for advanced users, log files work also), to insure
+         \item Use the webserver (or for advanced users, log files), to ensure
            everything came up and the job driver node has been assigned.
          \item Start the run:
 \begin{verbatim}
-   cd $DUCC_HOME/examples/systemtest
+   cd $HOME/ducc_runtime/examples/systemtest
    ./runducc -d mega-15-min -b job.ctl
 \end{verbatim}             
          \end{enumerate}
