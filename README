@@ -84,7 +84,7 @@ must all be running a reasonably current level of Linux; other operating systems
 4. Known problems/limitations 
 =============================
 
-a) By default, we dont build DUCC documentation when doing mvn clean install. Building
+a) By default, we don't build DUCC documentation when doing mvn clean install. Building
    docs requires LATEX installed which is a considerable download (over 1 Gig).
    
 
