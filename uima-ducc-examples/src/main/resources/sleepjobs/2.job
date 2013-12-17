@@ -19,7 +19,7 @@
 description                    Test job 2
 
 driver_descriptor_CR           org.apache.uima.ducc.test.randomsleep.FixedSleepCR
-driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/lib/examples/simple/2.inputs compression=1 error_rate=0.0
+driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/examples/simple/2.inputs compression=1 error_rate=0.0
 driver_jvm_args                -Xmx500M
 
 process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepAE

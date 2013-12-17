@@ -20,7 +20,7 @@ description               Test DD Job 1
 
 classpath                 ${DUCC_HOME}/lib/uima-ducc/examples/*
 driver_descriptor_CR      org.apache.uima.ducc.test.randomsleep.FixedSleepCR
-driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/lib/examples/simple/1.inputs compression=10 error_rate=0.0
+driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/examples/simple/1.inputs compression=10 error_rate=0.0
 driver_jvm_args           -Xmx500M
 
 process_DD                org.apache.uima.ducc.test.ddjob.DDSleepDescriptor
