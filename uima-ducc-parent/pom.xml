@@ -17,8 +17,7 @@
    specific language governing permissions and limitations
    under the License.    
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -29,7 +28,7 @@
 	</parent>
 
 	<artifactId>uima-ducc-parent</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>pom</packaging>
 
 	<!-- Special inheritance note even though the <scm> element that follows 
@@ -39,13 +38,13 @@
 		cutting/pasting the <scm> element, and just changing the following two properties -->
 	<scm>
 		<connection>
-      scm:svn:http://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-parent
+      scm:svn:http://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/tags/uima-ducc-1.0.0/uima-ducc-parent
     </connection>
 		<developerConnection>
-      scm:svn:https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk/uima-ducc-parent
+      scm:svn:https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/tags/uima-ducc-1.0.0/uima-ducc-parent
     </developerConnection>
 		<url>
-      http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk/uima-ducc-parent
+      http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/tags/uima-ducc-1.0.0/uima-ducc-parent
     </url>
 	</scm>
 
