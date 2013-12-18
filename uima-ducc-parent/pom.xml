@@ -713,6 +713,7 @@
 										<exclude>.pydevproject</exclude>
 										<exclude>**/*.out</exclude>
 										<exclude>**/*.aux</exclude>
+										<exclude>uima-ducc-spawn/src/Makefile</exclude>
 										<exclude>uima-ducc-examples/**</exclude>
 										<exclude>uima-ducc-jd/**</exclude>
 										<exclude>uima-ducc-orchestrator/**</exclude>
