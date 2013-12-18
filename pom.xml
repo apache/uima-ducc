@@ -20,14 +20,13 @@
 <!-- This pom serves as the release top level project for the multi-module 
 	project UIMA-DUCC -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
 		<groupId>org.apache.uima</groupId>
 		<artifactId>uima-ducc-parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
+		<version>1.0.0</version>
 		<relativePath>uima-ducc-parent/pom.xml</relativePath>
 	</parent>
 
@@ -45,13 +44,13 @@
 		cutting/pasting the <scm> element, and just changing the following two properties -->
 	<scm>
 		<connection>
-      scm:svn:http://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk
+      scm:svn:http://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/tags/uima-ducc-1.0.0
     </connection>
 		<developerConnection>
-      scm:svn:https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/trunk
+      scm:svn:https://svn.apache.org/repos/asf/uima/sandbox/uima-ducc/tags/uima-ducc-1.0.0
     </developerConnection>
 		<url>
-      http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk
+      http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/tags/uima-ducc-1.0.0
     </url>
 	</scm>
 
@@ -427,8 +426,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<move file="target/uima-ducc-source-release.zip"
-											tofile="target/uima-ducc-${project.version}-source-release.zip" />
+										<move file="target/uima-ducc-source-release.zip" tofile="target/uima-ducc-${project.version}-source-release.zip" />
 
 
 									</target>
