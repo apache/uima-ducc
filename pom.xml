@@ -415,7 +415,7 @@
 						</executions>
 					</plugin>
 					<!-- need this plugin to rename source zip file -->
-					<plugin>
+					<!-- plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<executions>
@@ -436,7 +436,7 @@
 							</execution>
 						</executions>
 
-					</plugin>
+					</plugin -->
 					<!-- plugin>
 						<artifactId>maven-deploy-plugin</artifactId>
 						<configuration>
