@@ -96,9 +96,9 @@ public class Crypto implements ICrypto {
 			break;
 		case WRITER:
 			createKeys();
+			checkKeys();
 			break;
 		}
-		checkKeys();
 		try {
 			cipher = Cipher.getInstance(keyType);
 		}
