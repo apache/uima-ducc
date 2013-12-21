@@ -5,7 +5,7 @@
 ========================================
      
 We use Maven 3.0 for building; download this if needed, 
-and set the environment variable MAVEN_OPTS to -Xmx800m -XX:MaxPerSize-256m.
+and set the environment variable MAVEN_OPTS to -Xmx800m -XX:MaxPermSize-256m.
 
 To build UIMA-DUCC, install Java SDK 6 or later.
 
