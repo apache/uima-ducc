@@ -56,22 +56,6 @@ th.ducc-col-terminate {
 	background-color:#ffffff;
 }
 
-tr.ducc-row-odd {
-	background-color:#ffffff;
-}
-
-tr.odd {
-	background-color:#ffffff;
-}
-
-tr.ducc-row-even {
-	background-color:#eeeeee;
-}
-
-tr.even {
-	background-color:#eeeeee;
-}
-
 td.ducc-col-button {
 	background-color:#ffffff;
 }
@@ -181,32 +165,9 @@ table.heading {
 	clear: both;
 }
 
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * DataTables sorting
- */
-
-.sorting_asc {
-	background: url('opensources/DataTables-1.9.1/media/images/sort_asc.png') no-repeat center right;
+table.sortable tbody tr:nth-child(2n) td {
+  background: #ffffff;
 }
-
-.sorting_desc {
-	background: url('opensources/DataTables-1.9.1/media/images/sort_desc.png') no-repeat center right;
+table.sortable tbody tr:nth-child(2n+1) td {
+  background: #eeeeee;
 }
-
-.sorting {
-	background: url('opensources/DataTables-1.9.1/media/images/sort_both.png') no-repeat center right;
-}
-
-.sorting_asc_disabled {
-	background: url('opensources/DataTables-1.9.1/media/images/sort_asc_disabled.png') no-repeat center right;
-}
-
-.sorting_desc_disabled {
-	background: url('opensources/DataTables-1.9.1/mediaDataTables-1.9.1/media/images/sort_desc_disabled.png') no-repeat center right;
-}
- 
-th:active {
-	outline: none;
-}
-

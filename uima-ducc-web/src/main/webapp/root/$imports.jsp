@@ -46,6 +46,7 @@ if (table_style.equals("scroll")) {
 %>
   <script type="text/javascript" language="javascript" src="opensources/DataTables-1.9.1/media/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript" language="javascript" src="opensources/DataTables-plugins/fnReloadAjax.js"></script>
+  <link href="ducc.scroll.css" rel="stylesheet" type="text/css">
 <%
 }
 %>
