@@ -7,6 +7,29 @@ licensed to the Apache Software Foundation under the
 "IBM UIMA-EE License Agreement".
 Copyright (c) 2007, 2008 IBM Corporation
 
+This product includes software known as
+Java Servlet API 2.5 developed by The Apache Software 
+Foundation as part of the Tomcat project.
+
+The names "Tomcat" and "Apache Software Foundation" must not be used to endorse
+or promote products derived from this software without prior written permission.
+For written permission, please contact apache@apache.org.
+
+This product includes software known as 
+"The Saxon XSLT and XQuery Processor from Saxonica Limited", whose
+home page URL is http://www.saxonica.com/ 
+
+Saxon includes the org.apache.xerces.util.XMLChar module from the Apache 
+Xerces product, renamed as net.sf.saxon.om.XMLChar but otherwise unchanged. 
+See the copyright statements included in the source code of that module for
+conditions of use.
+
+Saxon includes code for performing Unicode normalization that is derived 
+from the sample code published for this purpose by the Unicode consortium. 
+For the terms of use of this code, see http://www.unicode.org/terms_of_use.html, 
+which should be regarded as forming part of these conditions of use, and part 
+of the Saxon documentation. 
+
 
 This product includes image 
 120px-Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg,
