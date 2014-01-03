@@ -100,6 +100,28 @@
                     <delete file="src/site/tex/duccbook/duccbook.xref" />
                     <echo message="Completed duccbook HTML" />
 
+                    <echo message="Building duccbook Installation HTML" />
+                    <mkdir dir="target/site/ducc-install-html" />
+                    <exec executable="htlatex" dir="src/site/tex/duccbook" failonerror="true">
+                      <arg value="installation.tex" />
+                    </exec>
+                    <move todir="target/site/ducc-install-html" overwrite="true">
+                      <fileset dir="src/site/tex/duccbook">
+                        <include name="installation.html" />
+                        <include name="installation.css" />
+                      </fileset>
+                    </move>
+                    <delete file="src/site/tex/duccbook/installation.4ct" />
+                    <delete file="src/site/tex/duccbook/installation.4tc" />
+                    <delete file="src/site/tex/duccbook/installation.aux" />
+                    <delete file="src/site/tex/duccbook/installation.dvi" />
+                    <delete file="src/site/tex/duccbook/installation.idv" />
+                    <delete file="src/site/tex/duccbook/installation.lg" />
+                    <delete file="src/site/tex/duccbook/installation.log" />
+                    <delete file="src/site/tex/duccbook/installation.tmp" />
+                    <delete file="src/site/tex/duccbook/installation.xref" />
+                    <echo message="Completed installation HTML" />
+
                     <echo message="Building duccbook Installation PDF" />
                     <mkdir dir="target/site/duccbook-pdf" />
                     <exec executable="pdflatex" dir="src/site/tex/duccbook" failonerror="true">
@@ -136,6 +158,7 @@
                     <delete file="target/site/duccbook-pdf/duccbook.out" />
                     <delete file="target/site/duccbook-pdf/duccbook.toc" />
                     <echo message="Completed duccbook PDF" />
+
 
                   </target>
                 </configuration>
@@ -192,12 +215,35 @@
                     <delete file="src/site/tex/duccbook/duccbook.xref" />
                     <echo message="Completed duccbook HTML" />
 
+                    <echo message="Building duccbook Installation HTML" />
+                    <mkdir dir="target/site/ducc-install-html" />
+                    <exec executable="htlatex" dir="src/site/tex/duccbook" failonerror="true">
+                      <arg value="installation.tex" />
+                    </exec>
+                    <move todir="target/site/ducc-install-html" overwrite="true">
+                      <fileset dir="src/site/tex/duccbook">
+                        <include name="installation.html" />
+                        <include name="installation.css" />
+                      </fileset>
+                    </move>
+                    <delete file="src/site/tex/duccbook/installation.4ct" />
+                    <delete file="src/site/tex/duccbook/installation.4tc" />
+                    <delete file="src/site/tex/duccbook/installation.aux" />
+                    <delete file="src/site/tex/duccbook/installation.dvi" />
+                    <delete file="src/site/tex/duccbook/installation.idv" />
+                    <delete file="src/site/tex/duccbook/installation.lg" />
+                    <delete file="src/site/tex/duccbook/installation.log" />
+                    <delete file="src/site/tex/duccbook/installation.tmp" />
+                    <delete file="src/site/tex/duccbook/installation.xref" />
+                    <echo message="Completed installation HTML" />
+
                     <echo message="Building duccbook Installation PDF" />
                     <mkdir dir="target/site/duccbook-pdf" />
                     <exec executable="pdflatex" dir="src/site/tex/duccbook">
                       <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
                       <arg value="installation.tex" />
                     </exec>
+
 
                     <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
                     <!-- htlatex by default runs enough to get xrefs and TOC -->
