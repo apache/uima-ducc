@@ -582,7 +582,7 @@ under the License.
     <fileSet>
       <!--  build up the sample code resources  -->
       <directory>uima-ducc-examples/src/main/resources/org/apache/uima/ducc/sampleapps</directory>
-      <outputDirectory>examples/descriptors/sampleapps</outputDirectory>
+      <outputDirectory>examples/sampleapps/descriptors</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
       
