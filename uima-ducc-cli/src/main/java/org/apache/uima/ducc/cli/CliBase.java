@@ -352,7 +352,7 @@ public abstract class CliBase
     void setOptions(UiOption[] uiOpts) throws Exception {
         for (Option opt : commandLine.getOptions()) {
             String val = opt.getValue();
-            if (val == null) {
+            if (val == null) {                    // Should only happen for no-arg options
                 val = opt.hasArg() ? "" : "true"; // Treat no-arg options as booleans ... apache.commons.cli expects this
             } else {
                 if (val.contains("${")) {
@@ -363,8 +363,13 @@ public abstract class CliBase
                     throw new Exception("Duplicate option specified: " + opt.getLongOpt());
                 }
             }
-            cli_props.put(opt.getLongOpt(), val);
-            if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = " + val);
+            val = val.trim();
+            if (val.length() > 0) {
+                cli_props.put(opt.getLongOpt(), val);
+                if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = '" + val + "'");
+            } else {
+                if (debug) System.out.println("CLI dropped empty option " + opt.getLongOpt());
+            }
         }
     }
     

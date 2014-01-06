@@ -198,7 +198,7 @@ public class DuccUiUtilities {
             String type = parts[0];
             if (!type.equals(ServiceType.UimaAs.decode()) && !type.equals(ServiceType.Custom.decode())) {
                 throw new IllegalArgumentException(
-                                "Ill-formed or unsuported service type in dependency: " + d);
+                                "Ill-formed or unsupported service type in dependency: '" + d + "'");
             }
 
             if (type.equals(ServiceType.UimaAs.decode())) {
