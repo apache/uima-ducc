@@ -76,8 +76,9 @@
              to contact the specified port.
 
            \item[$--$driver\_descriptor\_CR {[descriptor.xml]} ] This is the XML descriptor for the
-             Collection Reader.  This descriptor is a resource that is searched for in the CLASSPATH
-             and data path as described in the ~\hyperref[par:cli.submit.notes]{notes below}.
+             Collection Reader.  This 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
+             in the ~\hyperref[par:cli.submit.notes]{notes below}.
 
            \item[$--$driver\_descriptor\_CR\_overrides {[list]} ]             
              This is the Job Driver collection reader configuration overrides. They are specified as 
@@ -116,7 +117,7 @@
            
            \item[$--$driver\_jvm\_args {[list]} ]
 
-             This specifies extra JVM arguments to be provided to the Job Driver process. It is a blank delimited 
+             This specifies extra JVM arguments to be provided to the Job Driver process. It is a blank-delimited 
              list of strings. Example: 
              \begin{verbatim}
 --driver_jvm_args -Xmx100M -Xms50M 
@@ -175,8 +176,9 @@ ducc.submit.environment.propagated
 
              This specifies a UIMA Deployment Descriptor for the job processes for DD-style jobs. 
              This is mutually exclusive with $--$process\_descriptor\_AE, $--$process\_descriptor\_CM, 
-             and $--$process\_descriptor\_CC. This descriptor is a resource that is searched for in the 
-             CLASSPATH and data path as described in the ~\hyperref[par:cli.submit.notes]{notes below}.
+             and $--$process\_descriptor\_CC. This 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
+             in the ~\hyperref[par:cli.submit.notes]{notes below}.
              For example:
              \begin{verbatim}
 --process_DD /home/billy/resource/DD_foo.xml 
@@ -202,7 +204,7 @@ ducc.submit.environment.propagated
            \item[$--$process\_descriptor\_AE {[descriptor]}  ]
 
              This specifies the Analysis Engine descriptor to be deployed in the Job Processes. This 
-             descriptor is a resource that is searched for in the CLASSPATH and data path as described 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
              in the ~\hyperref[par:cli.submit.notes]{notes below}.
              It is mutually exclusive with $--$process\_DD For example: 
              \begin{verbatim}
@@ -222,7 +224,7 @@ ducc.submit.environment.propagated
            \item[$--$process\_descriptor\_CC {[descriptor]}  ]
 
              This specifies the CAS Consumer descriptor to be deployed in the Job Processes. This 
-             descriptor is a resource that is searched for in the CLASSPATH and data path as described 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
              in the ~\hyperref[par:cli.submit.notes]{notes below}.
              It is mutually exclusive with $--$process\_DD For example: 
              \begin{verbatim}
@@ -241,7 +243,7 @@ ducc.submit.environment.propagated
            \item[$--$process\_descriptor\_CM {[descriptor]} ]
 
              This specifies the CAS Multiplier descriptor to be deployed in the Job Processes. This 
-             descriptor is a resource that is searched for in the CLASSPATH and data path as described 
+             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
              in the ~\hyperref[par:cli.submit.notes]{notes below}.
              It is mutually exclusive with $--$process\_DD For example: 
              \begin{verbatim}             
@@ -282,7 +284,7 @@ ducc.submit.environment.propagated
              counts as an initialization error towards the initialization failure cap.
 
            \item[$--$process\_jvm\_args {[list]} ] This specifies additional arguments to be passed to
-             the Job Process JVM as a blank-delimited list of strings. Example:
+             all of the job processes as a blank-delimited list of strings. Example:
              \begin{verbatim}
 --process_jvm_args -Xmx400M -Xms100M
              \end{verbatim}
@@ -321,7 +323,7 @@ ducc.submit.environment.propagated
           
 
            \begin{sloppypar}             
-           \item[$--$service\_dependency{[list]}] This specifies a comma-delimited list of services the job
+           \item[$--$service\_dependency{[list]}] This specifies a blank-delimited list of services the job
              processes are dependent upon. Service dependencies are discussed in detail
              \hyperref[sec:service.endpoints]{here}. Example:
 \begin{verbatim}
@@ -384,28 +386,11 @@ process_memory_size                 = 15
              
   \paragraph{Notes:}
   \phantomsection\label{par:cli.submit.notes}
-  When searching for UIMA XML resource files such as descriptors, DUCC searches both the 
-  CLASSPATH and the data path according to the following rules: 
-  
+  When searching for UIMA XML resource files such as descriptors, DUCC searches either the 
+  filesystem or Java classpath according to the following rules:
   \begin{enumerate}
-  \item If the resource ends in .xml it is assumed the resource is a file and the path is either an 
-    absolute path or a path relative to the specified working directory. If the file is not found 
-    the search exits and the job is terminated. 
-    
-  \item If the resource does not end in .xml, DUCC creates a path by replacing the "." 
-    separators with "/" and appending ".xml". It then searches two places: 
-    \begin{enumerate}
-    \item The user's CLASSPATH as a file (that is, not in a jar), and 
-    \item In the jar files provided in the user's CLASSPATH. 
-    \end{enumerate}
-    If the resource is found in either place the search is successful. Otherwise the search 
-    fails and the job is terminated. 
-    
-    The resource search-order rules apply to all of the following submit parameters: 
-    \begin{itemize}
-    \item[]$--$driver\_descriptor\_CR 
-    \item[]$--$process\_descriptor\_AE 
-    \item[]$--$process\_descriptor\_CC 
-    \item[]$--$process\_descriptor\_CM 
-   \end{itemize}
- \end{enumerate}
+    \item If the resource ends in .xml it is assumed the resource is a file in the filesystem 
+      and the path is either an absolute path or a path relative to the specified working directory.
+    \item If the resource does not end in .xml, it is assumed the resource is in the Java
+      classpath. DUCC creates a resource name by replacing the "." separators with "/" and appending ".xml".
+  \end{enumerate}

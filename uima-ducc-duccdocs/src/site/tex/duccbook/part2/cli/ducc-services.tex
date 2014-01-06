@@ -163,7 +163,7 @@
 
         \item[$--$process\_jvm\_args {[list]} ]        
           This specifes extra JVM arguments to be provided to the server process for
-          \hyperref[sec:services.types]{UIMA-AS services}. It is a blank delimited 
+          \hyperref[sec:services.types]{UIMA-AS services}. It is a blank-delimited 
             list of strings. Example: 
 \begin{verbatim}
 --process_jvm_args -Xmx100M -Xms50M
@@ -211,7 +211,7 @@
         installation dependent. If not specified, the default is taken from the global DUCC
         configuration \hyperref[sec:ducc.properties]{ducc.properties.}
 
-      \item[$--$service\_dependency{[list]}] This specifies a comma-delimited list of services the job
+      \item[$--$service\_dependency{[list]}] This specifies a blank-delimited list of services the job
         processes are dependent upon. Service dependencies are discussed in detail
         \hyperref[sec:service.endpoints]{here}. Example:
 \begin{verbatim}
@@ -271,10 +271,10 @@
         messages to a log, else suppress the log. See \hyperref[sec:service.pingers]{Service Pingers}
         for details.
 
-      \item[$--$service\_ping\_jvm\_args {[java-system-property-assignments]}] If 
+      \item[$--$service\_ping\_jvm\_args {[string]}] If 
         {\em service\_ping\_class} is specified, these are the arguments 
         to pass to jvm when running the pinger. The arguments are specified as a blank-delimited
-        list of string.  Example:
+        list of strings.  Example:
 \begin{verbatim}
 --service_ping_jvm_args -Xmx400M -Xms100M
 \end{verbatim}
@@ -288,7 +288,6 @@
         \hyperref[sec:service.pingers]{Service Pingers} for more details.
 
       \item[$--$service\_request\_endpoint {[string]}] This specifies the expected service id.  
-
         \begin{sloppypar}
           This string is optional for UIMA-AS services; if specified, however, it must be of the
           form {\tt UIMA-AS:queue:broker-url}, and both the queue and broker must match those specified in the

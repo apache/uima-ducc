@@ -270,21 +270,21 @@ For this and the following sample program, create a working directory in a writa
 
 Copy to this directory the example job specification files:
 \begin{verbatim}
-   cp pathToDuccRuntime/examples/sampleapps/descriptors/*.job .
+   cp $DUCC_HOME/examples/sampleapps/descriptors/*.job .
 \end{verbatim}
 
 Copy a UIMA logger configuration file that suppresses tons of output from OpenNLP:
 \begin{verbatim}
-   cp pathToDuccRuntime/examples/sampleapps/descriptors/ConsoleLogger.properties .
+   cp $DUCC_HOME/examples/sampleapps/descriptors/ConsoleLogger.properties .
 \end{verbatim}
 
 Copy the executable code and resources for the DUCC sample application components:
 \begin{verbatim}
-   cp pathToDuccRuntime/lib/uima-ducc/examples/uima-ducc-examples-1.0.0.jar .
+   cp $DUCC_HOME/lib/uima-ducc/examples/uima-ducc-examples*.jar .
 \end{verbatim}
 
-For reference the source code for DUCC sample applications is in pathToDuccRuntime/examples/src,
-with descriptors in pathToDuccRuntime/examples/sampleapps/descriptors.
+For reference the source code for DUCC sample applications is in \ducchome/examples/src,
+with descriptors in \ducchome/examples/sampleapps/descriptors.
 
 \section{Download and Install OpenNLP}
 Download OpenNLP from http://opennlp.apache.org and follow the directions in the
@@ -315,10 +315,10 @@ from environmental variables.
 
 The job is submitted from the command line with the following:
 \begin{verbatim}
-   MyAppDir=pathToWorkingDirectory \
+   MyAppDir=. \
    MyInputDir=$MyAppDir/Books \
    MyOutputDir=$MyAppDir/Books.processed \
-   pathToDuccRuntime/bin/ducc_submit -f DuccRawTextSpec.job
+   $DUCC_HOME/bin/ducc_submit -f DuccRawTextSpec.job
 \end{verbatim}
 
 The total size of the three txt files is 9.4Mbytes and with a blocksize of 100000 there are 100 Work Items. Each Job Process is 
@@ -326,10 +326,10 @@ configured to run 8 parallel OpenNLP pipelines. To examine the performance of pr
 the job can be submitted as:
 
 \begin{verbatim}
-   MyAppDir=pathToWorkingDirectory \
+   MyAppDir=. \
    MyInputDir=$MyAppDir/Books \
    MyOutputDir=$MyAppDir/Books.processed \
-   pathToDuccRuntime/bin/ducc_submit -f DuccRawTextSpec.job \
+   $DUCC_HOME/bin/ducc_submit -f DuccRawTextSpec.job \
    --process_deployments_max 1
 \end{verbatim}
 
@@ -404,10 +404,10 @@ from environmental variables.
 
 The job is submitted from the command line with the following:
 \begin{verbatim}
-   MyAppDir=pathToWorkingDirectory \
+   MyAppDir=. \
    MyInputDir=$MyAppDir/Books.processed \ 
    MyOutputDir=$MyAppDir/Books.followon \
-   pathToDuccRuntime/bin/ducc_submit -f DuccCasInputSpec.job \
+   $DUCC_HOME/bin/ducc_submit -f DuccCasInputSpec.job \
    --process_deployments_max 1
 \end{verbatim}
 

@@ -327,23 +327,23 @@ public class CustomPing
 
       \paragraph{1. Establish compile CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
 \begin{verbatim}
-      \$HOME/ducc_runtime/lib/uima-ducc-cli.jar
+     $DUCC_HOME/lib/uima-ducc-cli.jar
 \end{verbatim}      
       This provides the definition for the {\em AServicePing} and {\em ServiceStatistics} classes.
 
       \paragraph{2. Create a registration}Next, create a service registration for the pinger.  While
       debugging, set the directive
 \begin{verbatim}
-      service_ping_dolog = true
+     service_ping_dolog = true
 \end{verbatim}
       This will log any output from  {\tt System.out.println()} to your home directory in
 \begin{verbatim}
-      $HOME/ducc/logs/services
+     $HOME/ducc/logs/services
 \end{verbatim}
 
       Once the pinger is debugged you may want to turn logging off:
 \begin{verbatim}
-      service_ping_dolog = false
+     service_ping_dolog = false
 \end{verbatim}
       
       A sample service registration may look something like the following:
@@ -353,7 +353,7 @@ public class CustomPing
      description              = Ping-only service
      service_request_endpoint = CUSTOM:localhost:7175
      service_ping_class       = CustomPing
-     service_ping_classpath   = /myhome/CustomPing.class:/home/ducc/ducc_runtime/lib/uima_ducc_cli.jar
+     service_ping_classpath   = /myhome/CustomPing.class:$DUCC_HOME/lib/uima_ducc_cli.jar
      service_ping_dolog       = true
      service_ping_timeout     = 500
      service_ping_aruments    = Arg1 Arg2
@@ -368,16 +368,16 @@ public class CustomPing
       That's it!  Check the web server to make sure the service ``comes alive''.  Check your pinger's
       debugging log if it doesn't.  Once registered, you can stop and start the pinger at will using
 \begin{verbatim}
-  ducc_services --start <serviceid>
-  ducc_services --stop <serviceid>
+     ducc_services --start <serviceid>
+     ducc_services --stop <serviceid>
 \end{verbatim}
      where $<$serviceid$>$ is the id returned when you registered the pinger.
 
-     \paragraph{4. If f  all  else fails ...}
+     \paragraph{4. If all else fails ...}
      If your pinger does not work and you cannot determine the reason, be sure you enable {\em service\_ping\_dolog} and
      look in your log directory, as most problems with pingers are reflected there.  As a last resort, you can
      inspect the the Service Manager's log in
 \begin{verbatim}
-    \$HOME/ducc_runtime/logs/sm.log
+     $DUCC_HOME/logs/sm.log
 \end{verbatim}
      

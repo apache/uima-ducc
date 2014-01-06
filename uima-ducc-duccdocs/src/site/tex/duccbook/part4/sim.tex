@@ -341,7 +341,7 @@ agentn.79 = 6
        \item[tod] This specifies a virtual ``time of day of submission'', starting from time 0, specified
          in units of milliseconds, when the job is to be submitted.  During job generation, this may
          be used to enforce precise timing of submission of the jobs.
-       \item[elapsed] This is a space-delimited set of numbers.  Each number represents the elapsed time,
+       \item[elapsed] This is a blank-delimited set of numbers.  Each number represents the elapsed time,
          in milliseconds, for a single work item.  There must be one time for each work item.  
          These numbers are placed into CASs by the job's Job Driver and delivered to each Job Process.
          For example,
@@ -655,20 +655,20 @@ prepare [config-file]
        \item Generate the job set.  For example, to generate the job set for the
          15-minute run,
 \begin{verbatim}
-   cd $HOME/ducc_runtime/examples/systemtest
+   cd $DUCC_HOME/examples/systemtest
    ./prepare mega-15-min/jobs.prepare
 \end{verbatim}
          \item Start the simulated cluster (Assuming your simulated node file is called
            {\em 52.simulated.nodes}:
 \begin{verbatim}
-   cd $HOME/ducc_runtime/examples/systemtest
+   cd $DUCC_HOME/examples/systemtest
    ./start_sim -c all -n 52.simulated.nodes
 \end{verbatim}
          \item Use the webserver (or for advanced users, log files), to ensure
            everything came up and the job driver node has been assigned.
          \item Start the run:
 \begin{verbatim}
-   cd $HOME/ducc_runtime/examples/systemtest
+   cd $DUCC_HOME/examples/systemtest
    ./runducc -d mega-15-min -b job.ctl
 \end{verbatim}             
          \end{enumerate}

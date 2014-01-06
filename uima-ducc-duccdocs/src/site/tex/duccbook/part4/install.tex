@@ -181,15 +181,15 @@ tar -zxf <distribution.file>
         you may use ``in place'' but it is highly recommended that you move it
         into a standard location; for example, under ducc's HOME directory:
 \begin{verbatim}
-mv apache-uima-ducc-1.0.0 $HOME/ducc_runtime
+mv apache-uima-ducc-1.0.0 /home/ducc/ducc_runtime
 \end{verbatim}
 
         We refer to this directory, regardless of its location, as \duccruntime. For simplicity,
-        the examples in this document assume it has been moved to ducc's \$HOME/ducc\_runtime.
+        some of the examples in this document assume it has been moved to /home/ducc/ducc\_runtime.
 
       \item Change directories into the admin sub-directory of \duccruntime: 
 \begin{verbatim}
-cd $HOME/ducc_runtime/admin
+cd $DUCC_HOME/admin
 \end{verbatim}
 
         \item Run the post-installation script: 
@@ -254,7 +254,7 @@ ENV: java full version "1.6.0_14-b08"
 ENV: Threading enabled: True
 MEM: memory is 15 gB
 ENV: system is Linux
-allnodes /home/ducc/apache_ducc_runtime/resources/ducc.nodes
+allnodes /home/ducc/ducc_runtime/resources/ducc.nodes
 Class definition file is ducc.mixed.classes
 OK: Class and node definitions validated.
 OK: Class configuration checked
@@ -330,7 +330,7 @@ $HOME/ducc/logs/job-id
 \section{Logs}
     The DUCC system logs are written to the directory
 \begin{verbatim}
-    $HOME/ducc_runtime/logs
+    $DUCC_HOME/logs
 \end{verbatim}
 
     In that directory are found logs for each of the DUCC components plus one for each node DUCC is
@@ -522,7 +522,7 @@ ducc.agent.launcher.ducc_spawn_path=/local/ducc/bin/ducc_ling
    To add additional nodes to the ducc cluster, DUCC needs to know what nodes to start its Agent
    processes on.  These nodes are listed in the file
 \begin{verbatim}
-$HOME/ducc_runtime/resources/ducc.nodes.  
+$DUCC_HOME/resources/ducc.nodes.  
 \end{verbatim}
    
    During initial installation, this file was initialized with the node DUCC is installed on.
@@ -581,7 +581,7 @@ Red Hat Enterprise Linux Workstation release 6.4 (Santiago)
    org.apache.uima.ducc.common.authentication.IAuthenticationManager
 2. create a jar file comprising your authentication class
 3. put the jar file in a location accessible by the DUCC webserver, such as 
-   ~$HOME/ducc_runtime/lib/authentication
+    $DUCC_HOME/lib/authentication
 4. put any authentication dependency jar files there as well
 5. edit ducc.properties
 6. add the following:
