@@ -315,9 +315,9 @@ from environmental variables.
 
 The job is submitted from the command line with the following:
 \begin{verbatim}
-   MyAppDir=. \
-   MyInputDir=$MyAppDir/Books \
-   MyOutputDir=$MyAppDir/Books.processed \
+   MyAppDir=$PWD \
+   MyInputDir=$PWD/Books \
+   MyOutputDir=$PWD/Books.processed \
    $DUCC_HOME/bin/ducc_submit -f DuccRawTextSpec.job
 \end{verbatim}
 
@@ -326,9 +326,9 @@ configured to run 8 parallel OpenNLP pipelines. To examine the performance of pr
 the job can be submitted as:
 
 \begin{verbatim}
-   MyAppDir=. \
-   MyInputDir=$MyAppDir/Books \
-   MyOutputDir=$MyAppDir/Books.processed \
+   MyAppDir=$PWD \
+   MyInputDir=$PWD/Books \
+   MyOutputDir=$PWD/Books.processed \
    $DUCC_HOME/bin/ducc_submit -f DuccRawTextSpec.job \
    --process_deployments_max 1
 \end{verbatim}
@@ -404,9 +404,9 @@ from environmental variables.
 
 The job is submitted from the command line with the following:
 \begin{verbatim}
-   MyAppDir=. \
-   MyInputDir=$MyAppDir/Books.processed \ 
-   MyOutputDir=$MyAppDir/Books.followon \
+   MyAppDir=$PWD \
+   MyInputDir=$PWD/Books.processed \ 
+   MyOutputDir=$PWD/Books.followon \
    $DUCC_HOME/bin/ducc_submit -f DuccCasInputSpec.job \
    --process_deployments_max 1
 \end{verbatim}
