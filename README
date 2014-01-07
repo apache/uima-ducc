@@ -45,8 +45,11 @@ The Apache UIMA DUCC binary distribution includes
   documentation:
   --------------
  
-  docs/duccbok.pdf: UIMA-DUCC documentation
-  docs/installation.pdf: UIMA-DUCC installation guide
+  docs/d/duccbok.pdf: UIMA-DUCC documentation (PDF Format)
+  docs/d/duccbok.html: UIMA-DUCC documentation (HTML Format)
+  
+  docs/d/installation.pdf: UIMA-DUCC installation guide (PDF Format)
+  docs/d/installation.html: UIMA-DUCC installation guide (HTML Format)
 
   UIMA DUCC Getting Started can be found online here:
   http://uima.apache.org/doc-uimaducc-whatitam.html
@@ -71,7 +74,8 @@ The Apache UIMA DUCC binary distribution includes
 3. Installation and Setup
 =========================
 
-Please refer to docs/installation.pdf for installation instructions.
+Please refer to the INSTALL document located in the directory containing this README for 
+installation instructions.
 
 3.1 Supported Platforms
 -----------------------
