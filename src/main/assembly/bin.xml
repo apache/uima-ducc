@@ -671,9 +671,9 @@ under the License.
     </fileSet>
     
     
-<fileSet>
+    <fileSet>
       <directory>uima-ducc-duccdocs/target/site/duccbook-pdf</directory>
-      <outputDirectory>doc</outputDirectory>
+      <outputDirectory>docs/d</outputDirectory>
       <includes>
         <include>*.pdf</include>
       </includes>
@@ -681,10 +681,29 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
     
+    <fileSet>
+      <directory>uima-ducc-duccdocs/target/site/duccbook-html</directory>
+      <outputDirectory>docs/d</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
+    <fileSet>
+      <directory>target/site/apidocs</directory>
+      <outputDirectory>docs/d/api</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+
   </fileSets>
   
   <files>
   
+    <file>
+      <source>uima-ducc-duccdocs/target/site/duccbook-install/INSTALL</source>
+      <outputDirectory></outputDirectory>
+      <fileMode>755</fileMode>
+    </file>
  
 
   <file>
