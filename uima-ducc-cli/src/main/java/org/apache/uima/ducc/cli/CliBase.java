@@ -364,11 +364,12 @@ public abstract class CliBase
                 }
             }
             val = val.trim();
-            if (val.length() > 0) {
+            // SM cannot handle an empty list of service dependencies
+            if (val.length() == 0 && opt.getLongOpt().equals(UiOption.ServiceDependency.pname())) {
+                if (debug) System.out.println("CLI dropped empty option " + opt.getLongOpt());
+            } else {
                 cli_props.put(opt.getLongOpt(), val);
                 if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = '" + val + "'");
-            } else {
-                if (debug) System.out.println("CLI dropped empty option " + opt.getLongOpt());
             }
         }
     }
