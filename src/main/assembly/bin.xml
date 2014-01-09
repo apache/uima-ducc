@@ -695,17 +695,17 @@ under the License.
       <directoryMode>755</directoryMode>        
     </fileSet>
 
+    <fileSet>
+      <directory>uima-ducc-duccdocs/target/site/duccbook-install</directory>
+      <outputDirectory></outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
   </fileSets>
   
   <files>
   
-    <file>
-      <source>uima-ducc-duccdocs/target/site/duccbook-install/INSTALL</source>
-      <outputDirectory></outputDirectory>
-      <fileMode>755</fileMode>
-    </file>
- 
-
+    
   <file>
       <source>src/main/scripts/dd2spring.xsl</source>
       <outputDirectory>resources</outputDirectory>
