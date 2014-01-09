@@ -390,18 +390,20 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-changes-plugin</artifactId>
-						<version>2.9</version>
+						
 						<executions>
 							<execution>
-								<id>ducc-jira-report</id>
+								<id>default-cli</id>
 								<goals>
 									<goal>jira-report</goal>
 								</goals>
-
-								<phase>generate-resources</phase>
-								<configuration>
+								<!-- Disable this plugin for the first release -->
+								<phase></phase>
+								<!-- Uncomment this for future releases -->
+								<!-- phase>generate-resources</phase -->
+								<!-- configuration>
 									<useJql>true</useJql>
-									<fixVersionIds>${jira.version}</fixVersionIds>
+									<fixVersionIds>${jiraVersion}</fixVersionIds>
 									<component>DUCC</component>
 									<columnNames>Type,Key,Status,Summary</columnNames>
 									<resolution>Fixed</resolution>
@@ -409,38 +411,11 @@
 									<sortColumnNames>Type, Status, Key</sortColumnNames>
 									<outputDirectory>${basedir}/target/issuesFixed/</outputDirectory>
 									<maxEntries>1000</maxEntries>
-								</configuration>
+								</configuration -->
 							</execution>
 						</executions>
 					</plugin>
-					<!-- need this plugin to rename source zip file -->
-					<!-- plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>rename-source</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<move file="target/uima-ducc-source-release.zip" tofile="target/uima-ducc-${project.version}-source-release.zip" />
 
-
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-
-					</plugin -->
-					<!-- plugin>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<configuration>
-							<skip>true</skip>
-						</configuration>
-					</plugin -->
 
 				</plugins>
 			</build>
