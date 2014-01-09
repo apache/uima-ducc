@@ -28,7 +28,7 @@ scheduling_class                normal
 working_directory               ${MyAppDir}
 log_directory                   ${MyAppDir}/logs
 process_per_item_time_max       10
-classpath                       ${MyAppDir}/uima-ducc-examples-1.0.0.jar
+classpath                       ${MyAppDir}/lib/*
 driver_descriptor_CR_overrides  BlockSize=100000 SendToLast=true InputDirectory=${MyInputDir} OutputDirectory=${MyOutputDir}
 process_descriptor_CC_overrides UseBinaryCompression=true
 wait_for_completion

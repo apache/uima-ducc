@@ -280,16 +280,18 @@ Copy a UIMA logger configuration file that suppresses tons of output from OpenNL
 
 Copy the executable code and resources for the DUCC sample application components:
 \begin{verbatim}
-   cp $DUCC_HOME/lib/uima-ducc/examples/uima-ducc-examples*.jar .
+   mkdir lib
+   cp $DUCC_HOME/lib/uima-ducc/examples/uima-ducc-examples*.jar lib
 \end{verbatim}
 
 For reference the source code for DUCC sample applications is in \ducchome/examples/src,
 with descriptors in \ducchome/examples/sampleapps/descriptors.
 
 \section{Download and Install OpenNLP}
-Download OpenNLP from http://opennlp.apache.org and follow the directions in the
-{\em UIMA Integration} section of their manual to build the UIMA pear file.
-Then {\em install} the UIMA pear file in the working directory and
+Download the OpenNLP source distribution from http://opennlp.apache.org and follow the directions in the
+{\em UIMA Integration} section of the included documentation to build the UIMA pear file.
+Then {\em install} the UIMA pear file in the working directory 
+with the {\em runPearInstaller} script and
 test it with the UIMA Cas Visual Debugger application.
 
 A small modification of the installed OpenNLP descriptor file
@@ -306,7 +308,8 @@ We used test data from gutenberg.org at
    http://www.gutenberg.org/ebooks/search/?sort_order=downloads
 \end{verbatim}
 downloading 'Plain Text UTF-8' versions of {\em Moby Dick}, {\em War and Peace} and {\em The Complete Works of William Shakespeare} 
-to a subdirectory `Books', and removing all 'CR' characters (0xD) as well as extraneous text.
+as flat text files in
+a subdirectory `Books', and removing all 'CR' characters (0xD) as well as extraneous text.
 
 \section{Run the Job}
 The job specification, DuccRawTextSpec.job, uses placeholders to reference the working directory
@@ -376,6 +379,9 @@ was 0.5\%, and the time reading the input text files well below 0.1\%.
 The main purpose of this application is to demonstrate the overhead of processing a collection of CASes grouped into 
 zipfiles and stored as ZIP compressed XmiCas or with UIMA compressed binary form 6 format.
 
+	\begin{description}
+    \item[Note:] This application depends on successful processing of the work in the previous chapter.
+	\end{description}
 
 \section{Configuration Parameters}
 The Collection Reader for this job is the DuccJobCasCR. It has the following configuration
