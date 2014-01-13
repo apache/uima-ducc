@@ -263,7 +263,9 @@ implements Orchestrator {
 		return startType;
 	}
 		
-	
+	public DuccLogger getLogger() {
+	    return logger;
+	  }
 	public void start(DuccService service, String[] args) throws Exception {
 		String methodName = "start";
 		logger.trace(methodName, null, messages.fetch("enter"));

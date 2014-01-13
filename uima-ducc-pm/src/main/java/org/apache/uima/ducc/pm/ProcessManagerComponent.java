@@ -91,7 +91,9 @@ implements ProcessManager {
 		logger.info("start", null, "--PM started - jmx URL:"+super.getProcessJmxUrl());
 		
 	}	
-	
+	public DuccLogger getLogger() {
+	    return logger;
+	  }
 	
 	/* New Code */
 	

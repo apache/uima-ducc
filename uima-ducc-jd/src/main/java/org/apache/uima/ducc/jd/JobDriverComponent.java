@@ -84,7 +84,9 @@ implements IJobDriverComponent {
 		duccOut.debug(methodName, null, duccMsg.fetchLabel("job.broker")+this.jdBrokerUrl+" "+duccMsg.fetchLabel("job.queue")+this.jdQueue);
 		duccOut.trace(methodName, null, duccMsg.fetch("exit"));
 	}
-	
+	public DuccLogger getLogger() {
+	    return duccOut;
+	  }
 	private void dumpProcessMap(DuccWorkJob job) {
 		String methodName = "pmap";
 		if(job == null) {

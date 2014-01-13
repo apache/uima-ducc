@@ -73,7 +73,9 @@ implements IWebServer {
 		super.start(service, args);
 		 DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.Webserver,getProcessJmxUrl());
 	}
-	
+	public DuccLogger getLogger() {
+	    return duccLogger;
+	  }
 	public void webServerStart() {
 		String methodName = "webServerStart";
 		try {
