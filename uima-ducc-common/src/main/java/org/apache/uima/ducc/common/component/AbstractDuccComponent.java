@@ -393,9 +393,13 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     e.printStackTrace();
   }
 
+  /** 
+   * Start RMI registry so the JMX clients can connect to the JVM via JMX.
+   * 
+   * @return JMX connect URL
+   * @throws Exception
+   */
   public String startJmxAgent() throws Exception {
-    try {
-
       int rmiRegistryPort = 2099; // start with a default port setting
       if (System.getProperty("ducc.jmx.port") != null) {
         try {
@@ -403,33 +407,46 @@ public abstract class AbstractDuccComponent implements DuccComponent,
           rmiRegistryPort = tmp;
         } catch (NumberFormatException nfe) {
           // default to 2099
+        	nfe.printStackTrace();
         }
       }
       boolean done = false;
       JMXServiceURL url = null;
+      
       // retry until a valid rmi port is found
       while (!done) {
-        try {
-          LocateRegistry.createRegistry(rmiRegistryPort);
-          MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        	try {
+             	//	 set up RMI registry on a given port
+        		LocateRegistry.createRegistry(rmiRegistryPort);
+                done = true;
+                // Got a valid port
+        	} catch( Exception exx) {
+                // Try again with a different port
+                rmiRegistryPort++;
+        	}
+      } // while
 
-          final String hostname = InetAddress.getLocalHost().getHostName();
-          String s = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname,
-                  rmiRegistryPort);
-          url = new JMXServiceURL(s);
-          jmxConnector = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
-          jmxConnector.start();
-          done = true;
-          // Got a valid port
+      try {
+        	MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            DuccProperties dp = new DuccProperties();
+         
+            final String hostname = InetAddress.getLocalHost().getHostName();
+            String s = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname,
+                    rmiRegistryPort);
+            url = new JMXServiceURL(s);
+            jmxConnector = JMXConnectorServerFactory.newJMXConnectorServer(url, null, mbs);
+            jmxConnector.start();
         } catch (Exception e) {
-          // Try again with a different port
-          rmiRegistryPort++;
+        	url = null;
+        	if ( logger != null ) {
+        		logger.error("startJmxAgent", null, "Unable to Start JMX Connector. Running with *No* JMX Connectivity");
+        	}
         }
+      if ( url == null ) {
+    	  return "";    // empty string
+      } else {
+          return url.toString();
       }
-      return url.toString();
-    } catch (Exception e) {
-      throw e;
-    }
   }
 
   public void cleanup(Throwable e) {
