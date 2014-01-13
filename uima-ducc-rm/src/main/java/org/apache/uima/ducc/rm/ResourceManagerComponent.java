@@ -65,7 +65,7 @@ public class ResourceManagerComponent
         super("ResourceManager", context);
         this.scheduler = new Scheduler();
     }
-
+    
     public ISchedulerMain getScheduler()
     {
         return this.scheduler;
@@ -84,18 +84,20 @@ public class ResourceManagerComponent
     public void start(DuccService service, String[] args)
         throws Exception
     {
-        super.start(service, args);
-        DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ResourceManager,getProcessJmxUrl());
-
         converter = new JobManagerConverter(scheduler, stabilityManager);
+
+        super.start(service, args);
+        DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ResourceManager, super.getProcessJmxUrl());
 
         initStability         = SystemPropertyResolver.getIntProperty("ducc.rm.init.stability", DEFAULT_INIT_STABILITY_COUNT);
         nodeStability         = SystemPropertyResolver.getIntProperty("ducc.rm.node.stability", DEFAULT_STABILITY_COUNT);
         nodeMetricsUpdateRate = SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", DEFAULT_NODE_METRICS_RATE);
         schedulingRatio       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.ratio", DEFAULT_SCHEDULING_RATIO);
         schedulingEpoch       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", DEFAULT_SCHEDULING_RATE);
-        scheduler.init();
 
+        
+        scheduler.init();
+        
         startStabilityTimer();
 
         // Start the main processing loop
@@ -104,6 +106,7 @@ public class ResourceManagerComponent
         rmThread.start();
 
         schedulerReady = true;
+       
     }
 
     public RmStateDuccEvent getState() throws Exception 
