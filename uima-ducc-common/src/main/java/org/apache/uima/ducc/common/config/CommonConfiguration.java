@@ -191,6 +191,7 @@ public class CommonConfiguration {
   public String duccORHttpPort; 
 
   public CamelContext camelContext() {
+	    context.setAutoStartup(false);
 		return context;
 	}
 

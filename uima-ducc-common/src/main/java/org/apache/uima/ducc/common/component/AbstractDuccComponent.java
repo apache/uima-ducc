@@ -264,46 +264,59 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   }
 
   public void start(DuccService service, String[] args) throws Exception {
-    String endpoint = null;
-    this.service = service;
-    if (System.getProperty("ducc.deploy.components") != null
-            && !System.getProperty("ducc.deploy.components").equals("uima-as")
-            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
-      if (logger != null) {
-        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
-      }
-      startAdminChannel(endpoint, this);
-      System.out.println(".....Starting Admin Channel on endpoint:" + endpoint);
-    }
-    if (logger != null) {
-      logger.info("start",null, ".....Starting Camel Context");
-    }
-    // Start Camel
-    context.start();
-    if (logger != null) {
-      logger.info("start",null, "..... Camel Initialized and Started");
-    }
-    // Instrument this process with JMX Agent. The Agent will
-    // find an open port and start JMX Connector allowing
-    // jmx clients to connect to this jvm using standard
-    // jmx connect url. This process does not require typical
-    // -D<jmx params> properties. Currently the JMX does not
-    // use security allowing all clients to connect.
-    processJmxUrl = startJmxAgent();
-    System.getProperties().setProperty("ducc.jmx.url", processJmxUrl);
-    if (logger != null) {
-      logger.info("start",null, "Connect jConsole to this process using JMX URL:" + processJmxUrl);
-    }
-    ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this, logger);
-    // serviceDeployer);
-    Runtime.getRuntime().addShutdownHook(shutdownHook);
-    // Register Ducc Component MBean with JMX.
-    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+	    String endpoint = null;
+	    this.service = service;
+	    if (System.getProperty("ducc.deploy.components") != null
+	            && !System.getProperty("ducc.deploy.components").equals("uima-as")
+	            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
+	      if (logger != null) {
+	        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
+	      }
+	      startAdminChannel(endpoint, this);
+	      System.out.println(".....Starting Admin Channel on endpoint:" + endpoint);
+	    }
+	    if (logger != null) {
+	      logger.info("start",null, ".....Starting Camel Context");
+	    }
+	    // Start Camel
+	    context.start();
+	    List<Route> routes  = context.getRoutes();
+	   
+	    for( Route route : routes ) {
+	    	 context.startRoute(route.getId());
+	    	 if (logger != null) {
+	    	      logger.info("start",null, "---OR Route in Camel Context-"+route.getEndpoint().getEndpointUri()+" Route State:"+context.getRouteStatus(route.getId()));
+	    	    }
+	    }
+	    if (logger != null) {
+	      logger.info("start",null, "..... Camel Initialized and Started");
+	    }
+	    // Instrument this process with JMX Agent. The Agent will
+	    // find an open port and start JMX Connector allowing
+	    // jmx clients to connect to this jvm using standard
+	    // jmx connect url. This process does not require typical
+	    // -D<jmx params> properties. Currently the JMX does not
+	    // use security allowing all clients to connect.
+	    if (logger != null) {
+	        logger.info("start",null, "..... Starting JMX Agent");
+	      }
+	    processJmxUrl = startJmxAgent();
+	    if (logger != null && processJmxUrl != null && processJmxUrl.trim().length() > 0 ) {
+	        logger.info("start",null, "..... JMX Agent Ready");
+	        logger.info("start",null, "Connect jConsole to this process using JMX URL:" + processJmxUrl);
+	      }
+	    System.getProperties().setProperty("ducc.jmx.url", processJmxUrl);
 
-    ObjectName name = new ObjectName(
-            "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
-                    + getClass().getSimpleName());
-    mbs.registerMBean(this, name);
+	    ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this, logger);
+	    // serviceDeployer);
+	    Runtime.getRuntime().addShutdownHook(shutdownHook);
+	    // Register Ducc Component MBean with JMX.
+	    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+
+	    ObjectName name = new ObjectName(
+	            "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
+	                    + getClass().getSimpleName());
+	    mbs.registerMBean(this, name);
   }
 
   protected String getProcessJmxUrl() {
