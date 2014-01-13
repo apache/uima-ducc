@@ -80,7 +80,9 @@ public class ResourceManagerComponent
     {
         this.stabilityManager = ns;
     }
-
+    public DuccLogger getLogger() {
+        return logger; 
+    }
     public void start(DuccService service, String[] args)
         throws Exception
     {
