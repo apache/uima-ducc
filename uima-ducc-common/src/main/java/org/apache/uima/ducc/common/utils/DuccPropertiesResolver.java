@@ -90,7 +90,7 @@ public class DuccPropertiesResolver {
    
     public static final String ducc_jd_host_class = "ducc.jd.host.class";
     public static final String ducc_jd_host_description = "ducc.jd.host.description";
-    public static final String ducc_jd_host_memory_size = "ucc.jd.host.memory.size";
+    public static final String ducc_jd_host_memory_size = "ducc.jd.host.memory.size";
     public static final String ducc_jd_host_number_of_machines = "ducc.jd.host.number.of.machines";
     public static final String ducc_jd_host_user = "ducc.jd.host.user";
     
