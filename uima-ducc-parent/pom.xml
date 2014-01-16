@@ -739,7 +739,7 @@ ${uimaDUCCNoticeText}
 										<exclude>uima-ducc-common/**</exclude>
 										<exclude>uima-ducc-duccdocs/**</exclude>
 										<exclude>**/*.dict</exclude>
-										<exclude>**/*.tex</exclude>
+										
 										<exclude>**/*.dict</exclude>
 										<exclude>**/*.log</exclude>
 										<exclude>.pydevproject</exclude>
