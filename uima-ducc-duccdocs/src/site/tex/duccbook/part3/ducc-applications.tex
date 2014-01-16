@@ -162,6 +162,18 @@ thread. The major components of the basic Job Process application are as follows
 
 It is good if the CR+CM+CC combination can be reused for a broad range of AE.
 
+\subsection{Collection Reader (CR) Characteristics}
+A DUCC Job CR sends Work Item CASes to the Job Processes. These CASes contain references to the data
+to be read by the Job Processes. Typically the CR Type System will be very small; in the DUCC sample
+applications the CR Type System only contains the Workitem Feature Structure described below.
+
+\begin{description}
+    \item[Note:] It is important not to include the analytic Type System in the CR. These Type Systems 
+can be quite large and will significantly increase the size of each Work Item CAS. 
+The Job Driver process maintains a CAS pool which must be as large
+as the total number of processing threads active in a job. 
+\end{description}
+
 \subsection{DUCC built-in Flow Controller}
 \begin{sloppypar}
 This flow controller provides separate flows for Work Item CASes and for CASes produced by the CM and/or AE.
