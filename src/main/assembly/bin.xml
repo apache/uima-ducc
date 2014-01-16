@@ -664,8 +664,8 @@ under the License.
   
   <fileSet>
       <!-- add javadocs to the webserver directory -->
-      <directory>target/site</directory>
-      <outputDirectory>webserver/root/doc</outputDirectory>
+      <directory>target/site/apidocs</directory>
+      <outputDirectory>webserver/root/doc/api</outputDirectory>
       <fileMode>644</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
