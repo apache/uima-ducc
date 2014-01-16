@@ -123,6 +123,7 @@
 
 	<!-- Declare version numbers for all dependencies -->
 	<properties>
+	    <uima.ducc>Apache UIMA DUCC:</uima.ducc>
 		<!-- Ducc jira version -->
 		<jiraVersion>12324398</jiraVersion>
 		<maven.build.timestamp.format>MM-dd-yyyy HH:mm</maven.build.timestamp.format>
@@ -161,6 +162,38 @@
 		<jetty.version>7.4.4.v20110707</jetty.version>
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
+		
+        <!-- Needed for NOTICE file packaged in each jar under META-INF -->
+        <projectTimeSpan>2012</projectTimeSpan>
+        <!-- Needed for NOTICE file packaged in each jar under META-INF -->
+		<uimaASNoticeText>
+Portions of UIMA-AS were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-EE License Agreement".
+Copyright (c) 2007, 2008 IBM Corporation
+       </uimaASNoticeText>
+
+        <!-- Needed for NOTICE file packaged in each jar under META-INF -->
+       <uimaDUCCNoticeText>
+Portions of UIMA-DUCC were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-DUCC License Agreement".
+Copyright (c) 2012 IBM Corporation
+      </uimaDUCCNoticeText>
+      
+        <!-- Needed for NOTICE file packaged in each jar under META-INF -->
+		<postNoticeText>
+${ibmNoticeText}
+
+${uimaASNoticeText}
+
+${uimaDUCCNoticeText}
+
+		</postNoticeText>		
 
 	</properties>
 
