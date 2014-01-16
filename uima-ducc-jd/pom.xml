@@ -29,6 +29,7 @@
   <!-- Inherits groupid and version from the parent pom project coordinates -->
   <!-- Uses default packaging ie. jar                                       -->
   <artifactId>uima-ducc-jd</artifactId>
+  <name>${uima.ducc} ${project.artifactId}</name>
   
  <!-- Special inheritance note even though the <scm> element that follows 
 		is exactly the same as those in super poms, it cannot be inherited because 
