@@ -98,10 +98,7 @@
 
        The ``meta'' options include:
        \begin{description}
-           \item[$--$register {[specification file] [options]}] The specification file is optional.  If
-             specified, it has the same contents as described for the \hyperref[sec:cli.service-submit]{{\em
-                 ducc\_service\_submit}} command.  As with {\em ducc\_service\_submit}, any of the
-             keywords in the specification may be overridden on the command line.
+           \item[$--$register {[specification file] [options]}] The specification file is optional.
 
            \item[$--$autostart {[true or false]}] This indicates whether to register the service as
              an autostarted service.  If not specified, the default is {\em false}.
@@ -368,8 +365,7 @@ ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --upda
 
     \subsection{ducc\_services --stop Options}
     The stop function instructs DUCC to stop some number of service instances. If no specific number
-    is specified, all instances are stopped. This is used only for registered services. Use
-    \hyperref[sec:cli.service-cancel]{{\em ducc\_service\_cancel}} command to stop submitted services.
+    is specified, all instances are stopped.
 
     \begin{description}
 
