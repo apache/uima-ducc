@@ -34,4 +34,9 @@ running the ActiveMQ broker as a windows-NT service or a daemon thread
 in Linux or Unix systems.
 
 Reviewed activemq notice and copied relevant legal stuff related to JSP and
-Java Servlet. 
+Java Servlet.
+
+Jan 17, 2014 - all DUCC jars are free of 3rd party classes. We only package
+org/apache/uima/ducc/* classes. If this changes, need to modify NOTICE file
+we bundle in a jar. 
+ 
