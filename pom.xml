@@ -251,6 +251,8 @@
 								API Documentation</doctitle>
 							<windowtitle>Apache UIMA DUCC Java SDK ${project.version}
 								User-Level API Documentation</windowtitle>
+							<!-- Show Copyright message at the bootom of each page -->	
+							<bottom><![CDATA[Copyright &#169; 2012, <a href="http://www.apache.org">The Apache Software Foundation<a>. All rights reserved.]]>  </bottom>	
 						</configuration>
 					</execution>
 				</executions>
