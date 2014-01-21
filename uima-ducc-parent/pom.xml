@@ -28,7 +28,7 @@
 	</parent>
 
 	<artifactId>uima-ducc-parent</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<!-- Special inheritance note even though the <scm> element that follows 
