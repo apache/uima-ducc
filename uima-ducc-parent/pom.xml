@@ -165,6 +165,7 @@
 		
         <!-- Needed for NOTICE file packaged in each jar under META-INF -->
         <projectTimeSpan>2012</projectTimeSpan>
+        <inceptionYear>2012</inceptionYear>
         <!-- Needed for NOTICE file packaged in each jar under META-INF -->
 		<uimaASNoticeText>
 Portions of UIMA-AS were originally developed by
