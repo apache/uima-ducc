@@ -1,12 +1,12 @@
 Apache UIMA-DUCC
 Copyright 2012 The Apache Software Foundation
 
-Portions of UIMA-DUCC were originally developed by
+Portions of Apache UIMA were originally developed by
 International Business Machines Corporation and are
 licensed to the Apache Software Foundation under the
-"Software Grant License Agreement", informally known as the 
-"IBM UIMA-DUCC License Agreement".
-Copyright (c) 2012 IBM Corporation
+"Software Grant License Agreement", informally known as the
+"IBM UIMA License Agreement".
+Copyright (c) 2003, 2006 IBM Corporation.
 
 Portions of UIMA-AS were originally developed by
 International Business Machines Corporation and are
@@ -14,6 +14,13 @@ licensed to the Apache Software Foundation under the
 "Software Grant License Agreement", informally known as the 
 "IBM UIMA-EE License Agreement".
 Copyright (c) 2007, 2008 IBM Corporation
+
+Portions of UIMA-DUCC were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-DUCC License Agreement".
+Copyright (c) 2012 IBM Corporation
 
 This product includes software known as
 Java Servlet API 2.5 developed by The Apache Software 
