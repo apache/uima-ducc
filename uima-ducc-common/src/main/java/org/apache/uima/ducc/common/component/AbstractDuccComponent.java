@@ -441,7 +441,6 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
       try {
         	MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-            DuccProperties dp = new DuccProperties();
          
             final String hostname = InetAddress.getLocalHost().getHostName();
             String s = String.format("service:jmx:rmi:///jndi/rmi://%s:%d/jmxrmi", hostname,
