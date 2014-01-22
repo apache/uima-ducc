@@ -30,7 +30,10 @@
 	<artifactId>uima-ducc-parent</artifactId>
 	<version>1.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-
+	<!-- Add project inception year. This is used by javadoc plugin   -->
+	<!-- also used when generating NOTICE file for DUCC's jars -->
+    <inceptionYear>2012</inceptionYear>
+    
 	<!-- Special inheritance note even though the <scm> element that follows 
 		is exactly the same as those in super poms, it cannot be inherited because 
 		there is some special code that computes the connection elements from the 
@@ -165,7 +168,7 @@
 		
         <!-- Needed for NOTICE file packaged in each jar under META-INF -->
         <projectTimeSpan>2012</projectTimeSpan>
-        <inceptionYear>2012</inceptionYear>
+        
         <!-- Needed for NOTICE file packaged in each jar under META-INF -->
 		<uimaASNoticeText>
 Portions of UIMA-AS were originally developed by
