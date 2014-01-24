@@ -63,7 +63,7 @@ The Apache UIMA DUCC binary distribution includes
   descriptors:
   ------------
  
-  examples/descriptors/ - contains sample descriptor files 
+  examples/sampleapps/descriptors/ - contains sample descriptor files 
 
   resources
   -----------
