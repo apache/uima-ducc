@@ -21,6 +21,7 @@ package org.apache.uima.ducc.ws.server;
 import java.io.File;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.jasper.servlet.JspServlet;
@@ -29,6 +30,7 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.DuccPlugins;
 import org.eclipse.jetty.http.ssl.SslContextFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -171,7 +173,9 @@ public class DuccWebServer {
             	ssl_connector.setHost(ipaddress);
             }
         	SslContextFactory cf = ssl_connector.getSslContextFactory();
-        	cf.setKeyStore(ducc_web + File.separator+"etc"+File.separator+"keystore");
+        	String keystore = ducc_web+File.separator+"etc"+File.separator+"keystore";
+        	logger.info(methodName, null, "keystore:"+keystore);
+        	cf.setKeyStore(keystore);
         	cf.setKeyStorePassword(portSslPw);
         	server.setConnectors(new Connector[]{ connector0, ssl_connector });
         }
@@ -218,12 +222,24 @@ public class DuccWebServer {
 		//
 		HandlerList handlers = new HandlerList();
 		DuccHandler duccHandler = new DuccHandler(this);
+		ArrayList<Handler> localHandlers = DuccPlugins.getInstance().gethandlers(this);
 		DuccHandlerClassic duccHandlerClassic = new DuccHandlerClassic(this);
 		DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat(this);
 		DuccHandlerProxy duccHandlerProxy = new DuccHandlerProxy();
 		DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
 		SessionHandler sessionHandler = new SessionHandler();
-		handlers.setHandlers(new Handler[] { sessionHandler, duccHandlerUserAuthentication, duccHandlerJson, duccHandlerProxy, duccHandlerClassic, duccHandler, jspHandler, resourceHandler, new DefaultHandler() });
+		handlers.addHandler(sessionHandler);
+		handlers.addHandler(duccHandlerUserAuthentication);
+		for(Handler handler: localHandlers) {
+			handlers.addHandler(handler);
+		}
+		handlers.addHandler(duccHandlerJson);
+		handlers.addHandler(duccHandlerProxy);
+		handlers.addHandler(duccHandlerClassic);
+		handlers.addHandler(duccHandler);
+		handlers.addHandler(jspHandler);
+		handlers.addHandler(resourceHandler);
+		handlers.addHandler(new DefaultHandler());
 		server.setHandler(handlers);
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}

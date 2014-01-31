@@ -33,9 +33,9 @@ public class DuccCookies {
 
 	public static final String cookieUri = "/";
 	
-	private static final String join = ":";
+	public static final String join = ":";
 	
-	private static final String application = "ducc";
+	public static final String application = "ducc";
 	
 	private static final String refreshmode = "refreshmode";
 	private static final String valueRefreshmodeAutomatic = "automatic";
@@ -45,8 +45,8 @@ public class DuccCookies {
 	private static final String reservations = "reservations";
 	private static final String services = "services";
 	
-	private static final String max = "max";
-	private static final String users = "users";
+	public static final String max = "max";
+	public static final String users = "users";
 	//private static final String qualifier = "qualifier";
 	
 	public static final String cookieRefreshMode = application+join+refreshmode;
@@ -104,7 +104,7 @@ public class DuccCookies {
 		return application+join+"name";
 	}
 	
-	protected static String getCookie(String defaultValue, HttpServletRequest request, String name) {
+	public static String getCookie(String defaultValue, HttpServletRequest request, String name) {
 		String methodName = "getCookie";
 		String retVal = defaultValue;
 		Cookie[] cookies = request.getCookies();
@@ -122,11 +122,11 @@ public class DuccCookies {
 				}
 			}
 		}
-		duccLogger.debug(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+retVal);
+		duccLogger.trace(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+retVal);
 		return retVal;
 	}
 	
-	protected static String getCookie(HttpServletRequest request, String name) {
+	public static String getCookie(HttpServletRequest request, String name) {
 		return getCookie("",request,name);
 	}
 	
@@ -139,7 +139,7 @@ public class DuccCookies {
 		Cookie cookie = new Cookie(name, value);
 		cookie.setPath(cookieUri);
 		response.addCookie(cookie);
-		duccLogger.debug(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+value);
+		duccLogger.trace(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+value);
 	}
 	
 	protected static void expireCookie(HttpServletResponse response, String name, String value) {
@@ -147,7 +147,7 @@ public class DuccCookies {
 		Cookie cookie = new Cookie(name, value);
 		cookie.setMaxAge(0);
 		response.addCookie(cookie);
-		duccLogger.debug(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+value);
+		duccLogger.trace(methodName, null, messages.fetchLabel("name")+name+" "+messages.fetchLabel("value")+value);
 	}
 	
 	public static enum DateStyle { Long, Medium, Short };

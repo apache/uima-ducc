@@ -131,6 +131,7 @@ implements IWebServer {
 			duccLogger.info(methodName, jobid, duccMsg.fetchLabel("jobs")+jobCount.get()+" "+duccMsg.fetchLabel("reservations")+reservationCount.get()+" "+duccMsg.fetchLabel("services")+serviceCount.get());
 		}
 		DuccData.getInstance().put(wm);
+		DuccPlugins.getInstance().update(wm);
 		DuccListeners.getInstance().update(duccEvent);
 		CacheManager.getInstance().update(wm);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));

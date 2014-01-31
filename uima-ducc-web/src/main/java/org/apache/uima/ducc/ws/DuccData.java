@@ -158,7 +158,7 @@ public class DuccData {
 						sortedJobs.remove(jobInfo);
 						keyMapJobs.remove(duccId);
 						pagingObserver.remove(duccId);
-						logger.info(location, duccId, "size: "+sortedJobs.size());
+						logger.debug(location, duccId, "size: "+sortedJobs.size());
 						pruned++;
 					}
 				}
@@ -180,7 +180,7 @@ public class DuccData {
 						DuccId duccId = reservationInfo.getReservation().getDuccId();
 						sortedReservations.remove(reservationInfo);
 						keyMapReservations.remove(duccId);
-						logger.info(location, duccId, "size: "+sortedReservations.size());
+						logger.debug(location, duccId, "size: "+sortedReservations.size());
 						pruned++;
 					}
 				}
@@ -202,7 +202,7 @@ public class DuccData {
 						DuccId duccId = jobInfo.getJob().getDuccId();
 						sortedServices.remove(jobInfo);
 						keyMapServices.remove(duccId);
-						logger.info(location, duccId, "size: "+sortedServices.size());
+						logger.debug(location, duccId, "size: "+sortedServices.size());
 						pruned++;
 					}
 				}
@@ -224,7 +224,7 @@ public class DuccData {
 						DuccId duccId = info.getDuccWork().getDuccId();
 						sortedCombinedReservations.remove(info);
 						keyMapCombinedReservations.remove(duccId);
-						logger.info(location, duccId, "size: "+sortedCombinedReservations.size());
+						logger.debug(location, duccId, "size: "+sortedCombinedReservations.size());
 						pruned++;
 					}
 				}

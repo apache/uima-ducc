@@ -1818,6 +1818,9 @@ function ducc_init(type)
   			}
 			});
 		}
+		$.getScript("./js/ducc.local.js", function(){
+			ducc_init_local(type);
+		});
 		var table_style = ducc_preferences_get("table_style");
 		display_table_style = table_style;
 		ducc_timed_loop(type);
@@ -2242,6 +2245,9 @@ function ducc_update_page(type)
 				ducc_load_system_classes_data();
 			}
 		}
+		$.getScript("./js/ducc.local.js", function(){
+			ducc_update_page_local(type);
+		});
 	}
 	catch(err) {
 		ducc_error("ducc_update_page",err);

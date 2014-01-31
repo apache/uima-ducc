@@ -41,6 +41,8 @@ public class DuccBoot extends Thread {
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(DuccBoot.class.getName());
 	private static Messages messages = Messages.getInstance();
 	
+	private static DuccPlugins duccPlugins = DuccPlugins.getInstance();
+	
 	private static DuccId jobid = null;
 	
 	public static long maxJobs = 4096;
@@ -119,6 +121,7 @@ public class DuccBoot extends Thread {
 				duccWorkReservation = hpm.reservationRestore(fileName);
 				if(duccWorkReservation != null) {
 					duccData.putIfNotPresent(duccWorkReservation);
+					duccPlugins.restore(duccWorkReservation);
 					restored++;
 				}
 			}
@@ -146,6 +149,7 @@ public class DuccBoot extends Thread {
 				duccWorkJob = hpm.jobRestore(fileName);
 				if(duccWorkJob != null) {
 					duccData.putIfNotPresent(duccWorkJob);
+					duccPlugins.restore(duccWorkJob);
 					restored++;
 				}
 			}
@@ -173,6 +177,7 @@ public class DuccBoot extends Thread {
 				duccWorkService = hpm.serviceRestore(fileName);
 				if(duccWorkService != null) {
 					duccData.putIfNotPresent(duccWorkService);
+					duccPlugins.restore(duccWorkService);
 					restored++;
 				}
 			}
