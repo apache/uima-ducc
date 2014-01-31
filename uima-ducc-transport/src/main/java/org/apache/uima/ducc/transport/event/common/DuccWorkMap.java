@@ -33,7 +33,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeplo
 
 
 @SuppressWarnings({ "rawtypes" })
-public class DuccWorkMap implements Serializable, Map {
+public class DuccWorkMap implements IDuccWorkMap, Serializable, Map {
 	
 	/**
 	 * please increment this sUID when removing or modifying a field 
