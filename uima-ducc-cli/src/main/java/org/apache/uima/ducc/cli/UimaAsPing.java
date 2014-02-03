@@ -35,7 +35,6 @@ import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.EntityProcessStatus;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
-import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
@@ -57,7 +56,6 @@ public class UimaAsPing
     int    broker_jmx_port;
     boolean connected;
     UimaAsServiceMonitor monitor;
-    DuccLogger logger = null;
 
     int[] queueSizeWindow;
     int queueCursor = 0;
@@ -65,15 +63,10 @@ public class UimaAsPing
     String nodeIp;
     String pid;
     boolean gmfail = false;
+    boolean enable_log = false;
 
     public UimaAsPing()
     {
-        this.logger = null;
-    }
-
-    public UimaAsPing(DuccLogger logger)
-    {
-        this.logger = logger;
     }
 
     public void init(String args, String ep)
@@ -129,9 +122,11 @@ public class UimaAsPing
             broker_jmx_port = props.getIntProperty("broker_jmx_port", 1099);
             queue_threshold = props.getIntProperty("queue_threshold", 0);
             window = props.getIntProperty("window", 3);
+            enable_log = props.getBooleanProperty("enable_log", false);
+
         }
         queueSizeWindow = new int[window];
-        logger.debug("<ctr>", null, "INIT: meta_timeout", meta_timeout, "broker_jmx_port", broker_jmx_port, "queue_threshold", queue_threshold, "window", window);
+        doLog("<ctr>", null, "INIT: meta_timeout", meta_timeout, "broker_jmx_port", broker_jmx_port, "queue_threshold", queue_threshold, "window", window);
 
         this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
     }
@@ -141,13 +136,21 @@ public class UimaAsPing
         if ( monitor != null ) monitor.stop();
     }
 
-    private void doLog(String methodName, String msg)
+    private void doLog(String methodName, Object ... msg)
     {
-        if ( logger == null ) {
-            System.out.println(msg);
-        } else {
-            logger.info(methodName, null, msg);
+        if ( ! enable_log ) return;
+
+        StringBuffer buf = new StringBuffer(methodName);
+        for ( Object o : msg ) {
+            buf.append(" ");
+            if ( o == null ) {
+                buf.append("<null>");
+            } else {
+                buf.append(o.toString());
+            }
         }
+        System.out.println(buf);
+
     }
 
     void evaluateBrokerStatistics(IServiceStatistics stats)
@@ -168,7 +171,7 @@ public class UimaAsPing
                 }
                 sum = sum / window;
                 stats.setHealthy( sum < queue_threshold ? true : false );
-                logger.debug(methodName, null, "EVAL: Q depth", monitor.getQueueSize(), "window", sum, "health", stats.isHealthy());
+                doLog(methodName, null, "EVAL: Q depth", monitor.getQueueSize(), "window", sum, "health", stats.isHealthy());
             } else {
                 stats.setHealthy(true);
             }
@@ -230,14 +233,13 @@ public class UimaAsPing
         public void ok()
         {
             // String methodName = "UimaAsPing:get-meta";
-            // logger.info(methodName, null, "Get-Meta received from ", nodeIp, "PID", pid);
             gmfail = false;
         }
 
         public void timeout()
         {
             String methodName = "UimaAsPing:get-meta";
-            logger.info(methodName, null, "Get-Meta timeout from ", nodeIp, "PID", pid);
+            doLog(methodName, null, "Get-Meta timeout from ", nodeIp, "PID", pid);
             gmfail = true;
         }
 
@@ -252,7 +254,7 @@ public class UimaAsPing
         public void onBeforeProcessMeta(String IP, String p)
         {
             String methodName = "UimaAsPing:onBeforeProcessMeta";
-            logger.info(methodName, null, "Get-Meta received from ", IP, ":", p, "for", ep);
+            doLog(methodName, null, "Get-Meta received from ", IP, ":", p, "for", ep);
             pid = p;
             nodeIp = IP;
         }

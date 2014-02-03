@@ -315,7 +315,6 @@ public interface IUiOptions
             public String argname()     { return "time-in-ms"; }
             public String description() { return "Time in milliseconds to wait for a ping to the service."; }
             public String example()     { return "1000"; }
-            public String deflt()       { return "500"; }
             public String label()       { return name(); }
         },            
 

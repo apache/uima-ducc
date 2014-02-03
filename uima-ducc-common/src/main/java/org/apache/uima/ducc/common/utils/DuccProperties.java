@@ -135,6 +135,62 @@ public class DuccProperties extends Properties {
     }
 
     /**
+     * Get the property, trim junk off the end, and try to convert to double.
+     *
+     * @param The name of the property to look for.
+     *
+     * @throws MissingPropertyException if the property does not exist.
+     * @throws NumberFormattingException if the property cannot be converted to a number.
+     */
+    public double getDoubleProperty(String k)
+    {
+        String v = getProperty(k);
+        if ( v == null ) {
+            throw new MissingPropertyException("Can't find property \"" + k + "\"");
+        }
+        v = trimComments(v);
+        return Double.parseDouble(v);
+    }
+
+    /**
+     * Get the property, trim junk off the end, and try to convert to double.  If the property
+     * cannot be found, return the default instead.
+     *
+     * @param The name of the property to look for.
+     *
+     * @throws MissingPropertyException if the property does not exist.
+     * @throws NumberFormattingException if the property cannot be converted to a number.
+     */
+    public double getDoubleProperty(String k, double dflt)
+    {
+        String v = getProperty(k);
+        if ( v == null ) {
+            return dflt;
+        }
+        v = trimComments(v);
+        return Double.parseDouble(v);
+    }
+
+    /**
+     * Get the property, trim junk off the end, and try to convert to double. If the property
+     * cannot be found, return the default instead.
+     *
+     * @param The name of the property to look for.
+     *
+     * @throws MissingPropertyException if the property does not exist.
+     * @throws NumberFormattingException if the property cannot be converted to a number.
+     */
+    public double getLongProperty(String k, double dflt)
+    {
+        String v = getProperty(k);
+        if ( v == null ) {
+            return dflt;
+        }
+        v = trimComments(v);
+        return Double.parseDouble(v);
+    }
+
+    /**
      * Get the property, trim junk off the end and return it.  If you want the junk, just use getProperty().
      *
      * @param The name of the property to look for.

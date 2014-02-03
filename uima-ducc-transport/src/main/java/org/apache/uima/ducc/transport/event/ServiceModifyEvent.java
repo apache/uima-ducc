@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
+import org.apache.uima.ducc.common.utils.DuccProperties;
 
 @SuppressWarnings("serial")
 public class ServiceModifyEvent 
@@ -26,45 +26,66 @@ public class ServiceModifyEvent
 {
     private long friendly;      // the "friendly" part of a DuccId
     private String epname;
-    private int instances;      // 0 ==> don't modify instances
-    private Trinary autostart;
-    private boolean activate;
+    // private int instances;      // 0 ==> don't modify instances
+    // private Trinary autostart;
+    // private boolean activate;
+    // private String pingClass;
 
-	public ServiceModifyEvent(String user, long friendly, String epname, byte[] auth_block)
+    private DuccProperties props;
+
+	public ServiceModifyEvent(String user, long friendly, String epname, DuccProperties props, byte[] auth_block)
     {
 		super(EventType.SERVICE_STOP, user, auth_block);
         this.friendly = friendly;
         this.epname = epname;
-        this.instances = -1;   // default, instances aren't changed
-        this.autostart = Trinary.Unset;
-        this.activate = false;
+        this.props = props;
+        // this.instances = -1;   // default, instances aren't changed
+        // this.autostart = Trinary.Unset;
+        // this.activate = false;
+        // this.pingClass = null;
 	}
 
-    public void setInstances(int instances) {
-        this.instances = instances;
-    }
-
-    public int getInstances() {
-        return instances;
-    }
-
-    public void setAutostart(Trinary autostart) {
-        this.autostart = autostart;
-    }
-
-    public Trinary getAutostart() {
-        return autostart;
-    }
-
-    public void setActivate(boolean activate)
+    public DuccProperties getProperties()
     {
-        this.activate = activate;
+        return props;
     }
 
-    public boolean getActivate()
-    {
-        return activate;
-    }
+
+    // public void setInstances(int instances) {
+    //     this.instances = instances;
+    // }
+
+    // public int getInstances() {
+    //     return instances;
+    // }
+
+    // public void setAutostart(Trinary autostart) {
+    //     this.autostart = autostart;
+    // }
+
+    // public Trinary getAutostart() {
+    //     return autostart;
+    // }
+
+    // public void setPingClass(String cl)
+    // {
+    //     this.pingClass = cl;
+    // }
+
+    // public String getPingClass()
+    // {
+    //     return this.pingClass;
+    // }
+
+    // public void setActivate(boolean activate)
+    // {
+    //     this.activate = activate;
+    // }
+
+    // public boolean getActivate()
+    // {
+    //     return activate;
+    // }
 
 	public long getFriendly() {
 		return friendly;
@@ -81,9 +102,7 @@ public class ServiceModifyEvent
 
 	@Override
 	public String toString() {
-		return "ServiceModifyEvent [friendly=" + friendly + ", user=" + user + ", instances=" + instances 
-            + ", autostart=" + autostart + ", activate=" + activate
-            + "]";
+		return "ServiceModifyEvent [friendly=" + friendly + ", user=" + user + "]";
 	}
 	
 

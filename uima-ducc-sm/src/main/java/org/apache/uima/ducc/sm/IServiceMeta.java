@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.sm;
 
 import org.apache.uima.ducc.common.IServiceStatistics;
+import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 
 
 
@@ -28,4 +29,5 @@ interface IServiceMeta
     IServiceStatistics getServiceStatistics();
     public void run();
     public void stop();
+    public ServiceState getServiceState();
 }

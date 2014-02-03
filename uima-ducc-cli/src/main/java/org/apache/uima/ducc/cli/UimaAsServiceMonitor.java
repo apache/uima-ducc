@@ -44,7 +44,8 @@ public class UimaAsServiceMonitor
     private QueueViewMBean monitoredQueue;
     private IServiceStatistics qstats;
 
-    double enqueueTime ; 
+
+	double enqueueTime ; 
     long consumerCount ;
     long producerCount ;
     long queueSize     ;
@@ -64,11 +65,6 @@ public class UimaAsServiceMonitor
     boolean gmfail = false;
 
     String jmxFailure = null;
-
-    public long getQueueSize()
-    {
-        return queueSize;
-    }
 
     public UimaAsServiceMonitor(String qname, String broker_host, int broker_port)
     {
@@ -151,6 +147,22 @@ public class UimaAsServiceMonitor
             brokerMBean.removeQueue(qname);
         }
         stop();
+    }
+
+    public void resetStatistics()
+    {
+        try {
+            init(null);
+            
+            if ( monitoredQueue != null ) {
+                monitoredQueue.resetStatistics();
+            }
+            stop();
+        } catch (Throwable t) {
+            // Nothing .. we don't care if this fails; this is just
+            // prophylaxis.  If there is really a problem it will show
+            // up later.
+        }
     }
 
     public void stop()
@@ -254,8 +266,105 @@ public class UimaAsServiceMonitor
             expiredCount   = 0;
         }
 
+        monitoredQueue.resetStatistics();
         stop();
     }
+
+    public long getQueueSize()
+    {
+        return queueSize;
+    }
+
+    /**
+	 * @return the enqueueTime
+	 */
+	public double getEnqueueTime() {
+		return enqueueTime;
+	}
+
+	/**
+	 * @return the consumerCount
+	 */
+	public long getConsumerCount() {
+		return consumerCount;
+	}
+
+	/**
+	 * @return the producerCount
+	 */
+	public long getProducerCount() {
+		return producerCount;
+	}
+
+	/**
+	 * @return the minEnqueueTime
+	 */
+	public long getMinEnqueueTime() {
+		return minEnqueueTime;
+	}
+
+	/**
+	 * @return the maxEnqueueTime
+	 */
+	public long getMaxEnqueueTime() {
+		return maxEnqueueTime;
+	}
+
+	/**
+	 * @return the inFlightCount
+	 */
+	public long getInFlightCount() {
+		return inFlightCount;
+	}
+
+	/**
+	 * @return the dequeueCount
+	 */
+	public long getDequeueCount() {
+		return dequeueCount;
+	}
+
+	/**
+	 * @return the enqueueCount
+	 */
+	public long getEnqueueCount() {
+		return enqueueCount;
+	}
+
+	/**
+	 * @return the dispatchCount
+	 */
+	public long getDispatchCount() {
+		return dispatchCount;
+	}
+
+	/**
+	 * @return the expiredCount
+	 */
+	public long getExpiredCount() {
+		return expiredCount;
+	}
+
+	/**
+	 * @return the healthy
+	 */
+	public boolean isHealthy() {
+		return healthy;
+	}
+
+	/**
+	 * @return the gmfail
+	 */
+	public boolean isGmfail() {
+		return gmfail;
+	}
+
+	/**
+	 * @return the jmxFailure
+	 */
+	public String getJmxFailure() {
+		return jmxFailure;
+	}
 
     public static void main(String[] args)
     {

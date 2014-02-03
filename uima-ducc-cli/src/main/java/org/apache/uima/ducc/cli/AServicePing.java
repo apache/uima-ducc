@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.cli;
 
+import java.util.Properties;
+
 import org.apache.uima.ducc.common.IServiceStatistics;
 
 /**
@@ -27,9 +29,7 @@ import org.apache.uima.ducc.common.IServiceStatistics;
 public abstract class AServicePing
 {
 
-    int implementors = 0;
-    int references = 0;
-    int runFailures = 0;
+    protected Properties smState;
 
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.
@@ -54,44 +54,25 @@ public abstract class AServicePing
      */
     public abstract IServiceStatistics getStatistics();
     
-    public int countAdditions()
+
+    public void setSmState(Properties props)
+    {
+        smState = props;
+    }
+
+    public Properties getSmState() 
+    {
+        return smState;
+    }
+
+    public int getAdditions()
     {
         return 0;
     }
 
-    public int countDeletions()
+    public int getDeletions()
     {
         return 0;
-    }
-
-    public int countImplementors()
-    {
-    	return implementors;
-    }
-
-    public int countReferences()
-    {
-    	return references;
-    }
-
-    public void setImplementors(int imp)
-    {
-        this.implementors = imp;
-    }
-
-    public void setReferences(int ref)
-    {
-        this.references = ref;
-    }
-
-    public void setRunFailures(int e)
-    {
-        this.runFailures = e;
-    }
-
-    public int getRunFailures()
-    {
-        return this.runFailures;
     }
 
     public boolean isExcessiveFailures()

@@ -20,20 +20,16 @@ package org.apache.uima.ducc.sm;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.cli.AServicePing;
 import org.apache.uima.ducc.cli.ServiceStatistics;
 import org.apache.uima.ducc.common.IServiceStatistics;
+import org.apache.uima.ducc.common.utils.DuccProperties;
 
 
 /**
@@ -56,49 +52,28 @@ public class ServicePingMain
     int error_max = 10;
     int error_count = 0;
 
+    DuccProperties clioptions = new DuccProperties();
+
     public ServicePingMain()
     {
-    	
+    	clioptions.put("--class", clioptions);
+    	clioptions.put("--endpoint", clioptions);
+    	clioptions.put("--port", clioptions);
+    	clioptions.put("--arguments", clioptions);
     }
 
-	@SuppressWarnings("static-access")
-	private void addOptions(Options options) 
+    static void usage()
     {
-        //
-        // Verbs here
-        //
-		options.addOption(OptionBuilder
-                          .withLongOpt    (ServicePing.Class.decode())
-                          .withDescription(ServicePing.Class.description())
-                          .withArgName    (ServicePing.Class.argname())
-                          .hasOptionalArg ()
-                          .create         ()
-                          );
 
-		options.addOption(OptionBuilder
-                          .withLongOpt    (ServicePing.Endpoint.decode())
-                          .withDescription(ServicePing.Endpoint.description())
-                          .withArgName    (ServicePing.Endpoint.argname())
-                          .hasArg         (true)
-                          .create         ()
-                          );
-
-		options.addOption(OptionBuilder
-                          .withLongOpt    (ServicePing.Port.decode())
-                          .withDescription(ServicePing.Port.description())
-                          .withArgName    (ServicePing.Port.argname())
-                          .hasArg         (true)
-                          .create         ()
-                          );
-
-		options.addOption(OptionBuilder
-                          .withLongOpt    (ServicePing.Port.decode())
-                          .withDescription(ServicePing.Port.description())
-                          .withArgName    (ServicePing.Port.argname())
-                          .hasArg         (true)
-                          .create         ()
-                          );
-
+        System.out.println("Usage:");
+        System.out.println("   java org.apache.uima.ducc.smnew.ServicePingMain <args>");
+        System.out.println("Where args are:");
+        System.out.println("   --class     classname       This is the class implementing the pinger.");
+        System.out.println("   --endpoint  ep              This is the endpoint specified in the registration.");
+        System.out.println("   --port      port            This is the listen port the SM is listening on.");
+        System.out.println("   --arguments classname       These are the arguments for the pinger, supplied in the registration.");
+        
+        System.exit(1);
     }
 
     static void appendStackTrace(StringBuffer s, Throwable t)
@@ -151,12 +126,52 @@ public class ServicePingMain
         return pinger;
     }
 
-    void handleError(Throwable t)
+    void handleError(AServicePing custom, Throwable t)
     {
         t.printStackTrace();
         if ( ++error_count >= error_max ) {
+            custom.stop();
             System.out.println("Exceeded error count. Exiting.");
             System.exit(1);
+        }
+    }
+
+    /**
+     * Simple argument parser for this class.  It is spawned only by SM so even though we do
+     * validity checking, we assume the args are correct and complete, and just crash hard if not as
+     * it's an internal error that should not occur.
+     */
+    void parseOptions(String[] args)
+    {
+        // First read them all in
+        if ( debug ) {
+            for ( int i = 0; i < args.length; i++ ) {
+                System.out.println("Args[" + i + "] = " + args[i]);
+            }
+        }
+
+        for ( int i = 0; i < args.length; ) {
+            if ( clioptions.containsKey(args[i]) ) {
+                if ( clioptions.get(args[i]) != clioptions ) {
+                    System.out.println("Duplicate argument, not allowed: " + args[i]);
+                    System.exit(1);
+                }
+                System.out.println("Put " + args[i] + ", " + args[i+1]);
+                clioptions.put(args[i], args[i+1]);
+                i += 2;
+            } else {
+                System.out.println("Invalid argument: " + args[i]);
+                System.exit(1);
+            }
+        }
+
+        // Now make sure they all exist
+        for ( Object o : clioptions.keySet() ) {
+            String k = (String) o;
+            if ( clioptions.get(k) == clioptions ) {
+                System.out.println("Missing argument: " + k);
+                System.exit(1);
+            }
         }
     }
 
@@ -168,42 +183,34 @@ public class ServicePingMain
     // The ServiceManager must start this process as the user.  It monitors stdout for success
     // or failute of the ping and reacts accordingly.
     //
-    protected void start(String[] args)
+	protected int start(String[] args)
     {
 
 
-        Options options = new Options();
-        addOptions(options);
-
-        CommandLineParser parser = new PosixParser();
-        CommandLine commandLine = null;
         IServiceStatistics default_statistics = new ServiceStatistics(false, false, "<N/A>");
 
-		try {
-			commandLine = parser.parse(options, args);
-		} catch (ParseException e) {
-            print("Cannot parse command line:", e);
-            return;
-		}
-
-        String arguments = commandLine.getOptionValue(ServicePing.Arguments.decode());
-        String pingClass = commandLine.getOptionValue(ServicePing.Class.decode());
-        String endpoint  = commandLine.getOptionValue(ServicePing.Endpoint.decode());
-        String port      = commandLine.getOptionValue(ServicePing.Port.decode());
+        parseOptions(args);
+        String arguments = clioptions.getStringProperty("--arguments");
+        String pingClass = clioptions.getStringProperty("--class");
+        String endpoint  = clioptions.getStringProperty("--endpoint");
+        int port         = clioptions.getIntProperty("--port");
 
         Socket sock = null;
+
 		try {
-			sock = new Socket("localhost", Integer.parseInt(port));
+			sock = new Socket("localhost", port);
 		} catch (NumberFormatException e2) {
 			e2.printStackTrace();
-			return;
+			return 1;
 		} catch (UnknownHostException e2) {
 			e2.printStackTrace();
-			return;
+			return 1;
 		} catch (IOException e2) {
 			e2.printStackTrace();
-			return;
-		}        
+			return 1;
+		} finally {
+			try {sock.close();} catch ( Throwable t) {}
+		}
         print ("ServicePingMain listens on port", sock.getLocalPort());
         InputStream sock_in = null;
 		OutputStream sock_out = null;
@@ -212,7 +219,7 @@ public class ServicePingMain
 			sock_out = sock.getOutputStream();
 		} catch (IOException e2) {
 			e2.printStackTrace();
-			return;
+			return 1;
 		}
 
         ObjectOutputStream oos;
@@ -221,42 +228,66 @@ public class ServicePingMain
 			oos.flush();
 		} catch (IOException e1) {
 			e1.printStackTrace();
-			return;
+			return 1;
+		}        
+
+        ObjectInputStream ois;
+		try {
+			ois = new ObjectInputStream(sock_in);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return 1;
 		}        
 
         AServicePing custom = resolve(pingClass, arguments, endpoint);
         if ( custom == null ) {
             print("bad_pinger:", pingClass, endpoint);
-            return;
+            return 1;
         }
 
         while ( true ) {  
         	if ( debug ) print("ServicePingMeta starts ping.");
-        	
-            byte[] cmd = new byte[1];
-            cmd[0] = 0;
-            int eof = 0;
-			try {
-				eof = sock_in.read(cmd);
-			} catch (IOException e) {
-                handleError(e);
-			}
-            if ( debug ) print("Read cmd", new String(cmd), "eof", eof);
 
-            if ( eof == -1 ) {
-                print("EOF on input pipe.  Exiting");
-                custom.stop();
-                return;
-            }
+            Ping ping = null;
+			try {
+                ping = (Ping) ois.readObject();
+                if ( debug ) {
+                    print("Implementors:", ping.getInstances());
+                    print("References:"  , ping.getReferences());
+                }
+			} catch (IOException e) {
+                handleError(custom, e);
+			} catch ( ClassNotFoundException e) {
+				handleError(custom, e);
+			}
+            
+            boolean quit = ping.isQuit();
+            if ( debug ) print("Read ping: ", quit);
 
             try {
-				if ( cmd[0] == 'P' ) {
+				if ( quit ) {
+                    if ( debug ) System.out.println("Calling custom.stop");
+				    custom.stop();                
+                    oos.close();
+                    ois.close();
+                    sock.close();
+                    if ( debug ) System.out.println("Custom.stop returns");
+				    return 0;
+                } else {
+                    Pong pr = new Pong();
+                    custom.setSmState(ping.getSmState());
                     IServiceStatistics ss = custom.getStatistics();
                     if ( ss == null ) {
                         ss = default_statistics;
                     }
-                    // print("Is alive: " + ss.isAlive());
-                    oos.writeObject(ss);
+
+                    pr.setStatistics     (ss);
+                    pr.setAdditions      (custom.getAdditions());
+                    pr.setDeletions      (custom.getDeletions());
+                    pr.setExcessiveFailures(custom.isExcessiveFailures());
+
+
+                    oos.writeObject(pr);
                     oos.flush();
 
                     // The ObjectOutputStream will cache instances and if all you do is change a
@@ -265,14 +296,9 @@ public class ServicePingMain
                     // clone() here also if you want, but this is simplest and safest since we have
                     // no control over what the external pinger gives us.
                     oos.reset();
-				} else if ( cmd[0] == 'Q' ) {
-				    custom.stop();                
-				    return;
-				} else {
-				    System.err.println("Invalid command recieved: " +  Byte.toString(cmd[0]));
-				}
-			} catch (Throwable e) {
-                handleError(e);
+				} 
+            } catch (Throwable e) {
+                handleError(custom, e);
 			}            
         }
     }
@@ -280,7 +306,9 @@ public class ServicePingMain
     public static void main(String[] args)
     {
         ServicePingMain wrapper = new ServicePingMain();
-        wrapper.start(args);
+        int rc = wrapper.start(args);
+        System.exit(rc);
     }
     
 }
+

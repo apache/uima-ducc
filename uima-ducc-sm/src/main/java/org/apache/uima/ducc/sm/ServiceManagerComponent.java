@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.cli.UimaAsPing;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
@@ -59,7 +59,6 @@ import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.SmStateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
-import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
@@ -112,6 +111,7 @@ public class ServiceManagerComponent
     private boolean testmode = false;
 
     Map<String, String> administrators = new HashMap<String, String>();
+    String version = "1.1.0";
 
 	public ServiceManagerComponent(CamelContext context) 
     {
@@ -120,9 +120,7 @@ public class ServiceManagerComponent
         handler = new ServiceHandler(this);
 	}
 
-    public DuccLogger getLogger() {
-        return logger; 
-    }
+
     /**
      * Initialization tasks:
      * - read all the service descriptors
@@ -154,14 +152,7 @@ public class ServiceManagerComponent
                     
                     DuccProperties metaprops = new DuccProperties();
                     String meta_filename = serviceFileKey(stem + ".meta");
-                    metaprops.load(meta_filename);
-                    
-                    String sc = metaprops.getProperty("service-class");
-                    if ( (sc != null) && ( sc.equals("Implicit") || sc.equals("Submitted") ) ) {
-                        logger.info(methodName, null, "Scrubbing", sc, "service", stem);
-                        deleteProperties(stem, meta_filename, metaprops, props_filename, props);
-                        continue;
-                    }
+                    metaprops.load(meta_filename);                    
                     
                     int friendly = 0;
 					String uuid = "";
@@ -261,11 +252,11 @@ public class ServiceManagerComponent
 		super.start(service, args);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ServiceManager,getProcessJmxUrl());
 
-        // (UIMA-3397) failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.max", failure_max);
+        failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.max", failure_max);
         meta_ping_rate = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate", meta_ping_rate);
         meta_ping_timeout = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout", meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability", meta_ping_stability);
-        default_ping_class = SystemPropertyResolver.getStringProperty("ducc.sm.default.uima-as.ping.class", UimaAsPing.class.getName());
+        default_ping_class = SystemPropertyResolver.getStringProperty("ducc.sm.default.monitor.class", UimaAsPing.class.getName());
         String rm = SystemPropertyResolver.getStringProperty("ducc.runmode", "");
         if ( rm.equals("Test") ) testmode = true;
 
@@ -278,7 +269,7 @@ public class ServiceManagerComponent
             logger.warn(methodName, null, "Incorrect value for property ducc.signature.required: " + sig + ". Setting to default of \"on\"");
         }
 
-        logger.info(methodName, null, "------------------------------------------------------------------------------------");
+        logger.info(methodName, null, "---------------------------- NEW -----------------------------------------------------");
         logger.info(methodName, null, "Service Manager starting:");
         logger.info(methodName, null, "    DUCC home               : ", System.getProperty("DUCC_HOME"));
         logger.info(methodName, null, "    ActiveMQ URL            : ", System.getProperty("ducc.broker.url"));
@@ -295,6 +286,7 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "    Service ping stability  : ", meta_ping_stability);
         logger.info(methodName, null, "    Instance Failure Max    : ", failure_max);
         logger.info(methodName, null, "    DUCC Version            : ", Version.version());
+        logger.info(methodName, null, "    SM Version              : ", version);
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
 
         readAdministrators();
@@ -334,16 +326,16 @@ public class ServiceManagerComponent
      * At boot only ... pass in the set of all known active services to each service so it can update
      * internal state with current published state.
      */
-    public synchronized void synchronizeHandler(DuccWorkMap work) 
+    public synchronized void bootHandler(DuccWorkMap work) 
     {
-        Map<DuccId, JobState> ids = new HashMap<DuccId, JobState>();
+        Map<DuccId, DuccWorkJob> services = new HashMap<DuccId, DuccWorkJob>();
         for ( IDuccWork w : work.values() ) {
             if ( w.getDuccType() != DuccType.Service ) continue;
             DuccWorkJob j = (DuccWorkJob) w;
             if ( !j.isActive() ) continue;
-            ids.put(j.getDuccId(), j.getJobState());
+            services.put(j.getDuccId(), j);
         }
-        handler.synchronizeImplementors(ids);
+        handler.bootImplementors(services);
     }
 	
     /**
@@ -368,7 +360,7 @@ public class ServiceManagerComponent
         HashMap<DuccId, IDuccWork> modifiedJobs = new HashMap<DuccId, IDuccWork>();
         HashMap<DuccId, IDuccWork> modifiedServices = new HashMap<DuccId, IDuccWork>();
 
-		logger.debug(methodName, null, "---Processing Orchestrator State---");
+		logger.info(methodName, null, "===== Orchestrator State Arrives =====");
 
         if ( workMap.size() == 0 ) {
             logger.debug(methodName, null, "OR state is empty");
@@ -379,8 +371,7 @@ public class ServiceManagerComponent
 		DuccMapDifference<DuccId, IDuccWork> diffmap = DuccCollectionUtils.difference(workMap, localMap);        
 
         for ( IDuccWork w : workMap.values() ) {
-        	//IDuccWork j = (IDuccWork) w;
-            logger.debug(methodName, w.getDuccId(), w.getDuccType(), "Arrives in state =", w.getStateObject());
+            logger.trace(methodName, w.getDuccId(), w.getDuccType(), "Arrives in state =", w.getStateObject());
         }
 
         // Stuff on the left is new
@@ -426,7 +417,7 @@ public class ServiceManagerComponent
         for ( IDuccWork w : work.values() ) {
             if ( w.getDuccType() == DuccType.Reservation ) continue;
 
-            logger.debug(methodName, w.getDuccId(), "Reconciling, deleting", w.getDuccType());
+            logger.debug(methodName, w.getDuccId(), "Reconciling, deleting instance of type ", w.getDuccType());
 			switch(w.getDuccType()) {
               case Job:
                   localMap.removeDuccWork(w.getDuccId());
@@ -460,7 +451,25 @@ public class ServiceManagerComponent
 
             if ( l.getDuccType() == DuccType.Reservation ) continue;
 
-            logger.debug(methodName, l.getDuccId(), "Reconciling, incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
+            if ( l.getStateObject() != r.getStateObject() ) {
+                String serviceType = "/ Job";
+                switch ( l.getDuccType() ) {
+                  case Service:
+                      switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                          {
+                          case uima:
+                          case custom:
+                              serviceType = "/ Service";
+                              break;
+                          case other:
+                              serviceType = "/ ManagedReservation";
+                              break;
+                          }
+                      break;
+                      
+                }
+                logger.debug(methodName, l.getDuccId(), "Reconciling", l.getDuccType(), serviceType, "incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
+            }
 
             // Update our own state by replacing the old (right) object with the new (left)
 			switch(l.getDuccType()) {
@@ -506,9 +515,9 @@ public class ServiceManagerComponent
         String methodName = "publish";
         try {
             SmStateDuccEvent ev = new SmStateDuccEvent();
-            logger.info(methodName, null, "Publishing State, active job count =", map.size());
+            logger.trace(methodName, null, "Publishing State, active job count =", map.size());
             if (logger.isDebug()) {
-                logger.debug(methodName, null, map.toPrint());
+                logger.info(methodName, null, map.toPrint());
             }
             ev.setServiceMap(map);
             eventDispatcher.dispatch(stateEndpoint, ev, "");  // tell the world what is scheduled (note empty string)
@@ -540,7 +549,7 @@ public class ServiceManagerComponent
             
             try {
                 if ( first_update ) {
-                    synchronizeHandler(incomingMap);
+                    bootHandler(incomingMap);
                     first_update = false;
                 }
                 processIncoming(incomingMap);
@@ -594,7 +603,7 @@ public class ServiceManagerComponent
             userHome = LinuxUtils.getUserHome(user);
         }
         
-        Crypto crypto = new Crypto(user,userHome,AccessType.READER);
+        Crypto crypto = new Crypto(user, userHome,AccessType.READER);
         String signature = (String)crypto.decrypt(auth_block);
         
         return user.equals(signature);

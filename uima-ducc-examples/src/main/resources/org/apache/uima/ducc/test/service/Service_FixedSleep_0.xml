@@ -34,7 +34,7 @@
       <analysisEngine async="false">
         <scaleout numberOfInstances="25"/>
         <asyncPrimitiveErrorConfiguration>
-          <processCasErrors thresholdCount="0" thresholdWindow="0" thresholdAction="terminate"/>
+          <processCasErrors maxRetries="2" timeout="180000" thresholdCount="0" thresholdWindow="0" thresholdAction="terminate"/>
           <collectionProcessCompleteErrors timeout="0" additionalErrorAction="terminate"/>
         </asyncPrimitiveErrorConfiguration>
       </analysisEngine>

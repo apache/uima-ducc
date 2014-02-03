@@ -61,8 +61,7 @@ public class ServiceRegisterEvent
 	@Override
 	public String toString() {
 		return "ServiceRegisterEvent [ninstances=" + ninstances + ", autostart=" + autostart + ", endpoint="
-				+ endpoint + ", user=" + user + ", service_descriptor="
-				+ descriptor + "]";
+				+ endpoint + ", user=" + user + "]";
 	}
 
 }

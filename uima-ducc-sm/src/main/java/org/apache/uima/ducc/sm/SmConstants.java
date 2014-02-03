@@ -29,6 +29,20 @@ public interface SmConstants
     // TODO: fold this into IService if we don't find anything else that belongs here.
     public final static String COMPONENT_NAME = "SM";
 
+
+//     public enum ServiceEvent
+//     {
+//         Started,           // A service instance started
+//         StartFailure,      // A service instance failed to start (from OR)
+//         Initializing,      // OR has recognized it but it's not yet Running
+//         Running,           // A service instance is successfuly running, according to OR
+//         RunFailure,        // A service instances failed after successful start
+//         PingSuccess,       // The service has been happily pung
+//         PingFailure,       // The pinger is reporting trouble
+//         Stopping,          // This service is requested to stop but still has active instances or pringer
+//         Stopped,           // A service instance is fully stopped
+//     };
+
     //
     // decode() mean convert the enum into the string the user uses
     // encode() means take the user's string and turn it into th enum

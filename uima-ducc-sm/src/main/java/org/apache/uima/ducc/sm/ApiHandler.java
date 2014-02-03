@@ -49,6 +49,8 @@ class ApiHandler
     boolean update;
     boolean activate;
 
+    ServiceModifyEvent modifyEvent;
+
     ApiHandler(ServiceUnregisterEvent event, ServiceHandler serviceHandler)
     {
         this.cmd = UiOption.Unregister;
@@ -80,12 +82,15 @@ class ApiHandler
     ApiHandler(ServiceModifyEvent event, ServiceHandler serviceHandler)
     {
         this.cmd = UiOption.Modify;
-        this.friendly = event.getFriendly();
-        this.endpoint = event.getEndpoint();
-        this.instances = event.getInstances();
-        this.autostart = event.getAutostart();
-        this.activate = event.getActivate();
+        this.modifyEvent = (ServiceModifyEvent) event;
         this.serviceHandler = serviceHandler;
+
+        // this.friendly = event.getFriendly();
+        // this.endpoint = event.getEndpoint();
+        // this.instances = event.getInstances();
+        // this.autostart = event.getAutostart();
+        // this.activate = event.getActivate();
+        // this.serviceHandler = serviceHandler;
     }
 
     public void run()
@@ -104,7 +109,8 @@ class ApiHandler
                break;
 
            case Modify:
-               serviceHandler.doModify(friendly, endpoint, instances, autostart, activate);
+               // serviceHandler.doModify(friendly, endpoint, instances, autostart, activate);
+               serviceHandler.doModify(modifyEvent);
                break;
         }
     }

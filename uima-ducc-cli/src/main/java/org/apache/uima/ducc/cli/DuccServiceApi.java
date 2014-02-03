@@ -117,6 +117,12 @@ public class DuccServiceApi
         UiOption.Instances,
         UiOption.Autostart,
         UiOption.Activate,
+        UiOption.ServicePingArguments,
+        UiOption.ServicePingClass,
+        UiOption.ServicePingClasspath,
+        UiOption.ServicePingJvmArgs,
+        UiOption.ServicePingTimeout,
+        UiOption.ServicePingDoLog,
     }; 
 
     UiOption[] query_options = {
@@ -187,6 +193,7 @@ public class DuccServiceApi
 
         return instances;
     }
+
 
     private boolean getActivate()
     {
@@ -426,21 +433,45 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
+
         init (this.getClass().getName(), modify_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Modify);
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), auth_block);
+        DuccProperties mods = new DuccProperties();        
+        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), mods, auth_block);
         int instances = getInstances(-1);
         Trinary autostart = getAutostart();
         boolean activate = getActivate();
+        String  pingArguments = cli_props.getProperty(UiOption.ServicePingArguments.pname());
+        String  pingClass     = cli_props.getProperty(UiOption.ServicePingClass.pname());
+        String  pingClasspath = cli_props.getProperty(UiOption.ServicePingClasspath.pname());
+        String  pingJvmArgs   = cli_props.getProperty(UiOption.ServicePingJvmArgs.pname());
+        String  pingTimeout   = cli_props.getProperty(UiOption.ServicePingTimeout.pname());
+        String  pingDoLog     = cli_props.getProperty(UiOption.ServicePingDoLog.pname());
 
-        ev.setInstances(instances);
-        ev.setAutostart(autostart);
-        ev.setActivate(activate);
+        // modify: if something is modified, indicate the new value.  if no value, then it's not modified.
         
+        if ( instances > 0 ) mods.setProperty("instances", Integer.toString(instances));
+        switch ( autostart ) {
+            case True:  mods.setProperty("autostart", "true"); break;
+            case False: mods.setProperty("autostart", "false"); break;
+            default:
+                break;
+        }
+        if ( activate ) mods.setProperty("activate", "true");
+        else            mods.setProperty("activate", "false");
+
+        if ( pingArguments != null ) mods.setProperty("service_ping_arguments", pingArguments);
+        if ( pingClass     != null ) mods.setProperty("service_ping_class"    , pingClass);
+        if ( pingClasspath != null ) mods.setProperty("service_ping_classpath", pingClasspath);
+        if ( pingJvmArgs   != null ) mods.setProperty("service_ping_jvm_args" , pingJvmArgs);
+        if ( pingTimeout   != null ) mods.setProperty("service_ping_timeout"  , pingTimeout);
+        if ( pingDoLog     != null ) mods.setProperty("service_ping_dolog"    , pingDoLog);
+        
+
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
         } finally {
