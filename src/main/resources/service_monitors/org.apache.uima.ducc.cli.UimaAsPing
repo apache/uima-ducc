@@ -1,0 +1,10 @@
+service_ping_class = org.apache.uima.ducc.cli.UimaAsPing
+service_ping_arguments=meta_timeout=15000,broker_jmx_port=${ducc.broker.jmx.port},queue_threshold=0,window=3,enable_log=false
+#service_ping_jvmargs = whatever
+#service_ping_classpath= whatever stuff, in addition to the defaults supplied by the sm
+service_ping_dolog=False
+
+internal = true
+
+
+
