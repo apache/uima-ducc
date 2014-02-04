@@ -765,7 +765,7 @@ public class ServiceHandler
 
         String url = meta.getProperty("endpoint");
         if ( serviceStateHandler.getServiceByUrl(url) != null ) {
-            return new ServiceReplyEvent(false, "Duplicate service: " + url + ".  Registration fails", url, id.getFriendly());
+            return new ServiceReplyEvent(false, "Duplicate." + url + ".  Registration fails", url, id.getFriendly());
         }
 
         ServiceSet sset = null;
@@ -808,7 +808,7 @@ public class ServiceHandler
 
         if ( error == null ) {
             serviceStateHandler.registerService(id.getFriendly(), url, sset);
-            return new ServiceReplyEvent(true, "Registered service.", url, id.getFriendly());
+            return new ServiceReplyEvent(true, "Registered.", url, id.getFriendly());
         } else {
             File mf = new File(meta_filename);
             mf.delete();
