@@ -30,9 +30,9 @@ class Ping
 {
 	private static final long serialVersionUID = 1L;
 	boolean quit = false;
-    int instances= 0;
-    int references = 0;
-    int runFailures = 0;
+//     int instances= 0;
+//     int references = 0;
+//     int runFailures = 0;
     Properties smState;
 
     public Ping(boolean quit, Properties props)
@@ -41,17 +41,17 @@ class Ping
         this.smState = props;
     }
 
-    public Ping(boolean quit, int instances, int references, int runFailures)
-    {
-        this.quit = quit;
-        this.instances= instances;
-        this.references = references;
-        this.runFailures = runFailures;
-    }
+//     public Ping(boolean quit, int instances, int references, int runFailures)
+//     {
+//         this.quit = quit;
+//         this.instances= instances;
+//         this.references = references;
+//         this.runFailures = runFailures;
+//     }
 
     public boolean isQuit()          { return quit; }
-    public int     getInstances()    { return instances; }
-    public int     getReferences()   { return references; }
-    public int     getRunFailures()  { return runFailures; }
+//     public int     getInstances()    { return instances; }
+//     public int     getReferences()   { return references; }
+//     public int     getRunFailures()  { return runFailures; }
     public Properties getSmState  () { return smState; }
 }

@@ -252,8 +252,10 @@ public class ServicePingMain
 			try {
                 ping = (Ping) ois.readObject();
                 if ( debug ) {
-                    print("Implementors:", ping.getInstances());
-                    print("References:"  , ping.getReferences());
+                    print("Total instances:" , ping.getSmState().getProperty("total-instances"));
+                    print("Active instances:", ping.getSmState().getProperty("active-instances"));
+                    print("References:"      , ping.getSmState().getProperty("references"));
+                    print("Run Failures:"    , ping.getSmState().getProperty("runfailures"));
                 }
 			} catch (IOException e) {
                 handleError(custom, e);
