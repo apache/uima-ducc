@@ -215,7 +215,7 @@ class PingDriver
     protected boolean resolveBooleanProperty(String prop, DuccProperties ping_props, DuccProperties job_props, boolean deflt)
     {
         String val = resolveStringProperty(prop, ping_props, job_props, Boolean.toString(deflt));
-        return ( val.equalsIgnoreCase("t") ||             // must be t T true TRUE - all else is false
+        return ( val.equalsIgnoreCase("True") ||
                  val.equalsIgnoreCase("true") );
     }
 
@@ -339,23 +339,23 @@ class PingDriver
     {
         if ( classpath == null ) {
             @SuppressWarnings("unchecked")
-			Class<AServicePing> cl = (Class<AServicePing>) Class.forName(ping_class);
+                Class<AServicePing> cl = (Class<AServicePing>) Class.forName(ping_class);
             return (AServicePing) cl.newInstance();
         } else {
-             String[] cp_elems = classpath.split(":");
-             URL[]    cp_urls = new URL[cp_elems.length];
+            String[] cp_elems = classpath.split(":");
+            URL[]    cp_urls = new URL[cp_elems.length];
             
-             for ( int i = 0; i < cp_elems.length; i++ ) {
-                 cp_urls[i] = new URL("file://" + cp_elems[i]);                
-             }
-             @SuppressWarnings("resource")
-			URLClassLoader l = new URLClassLoader(cp_urls);
-             @SuppressWarnings("rawtypes")
-			Class loaded_class = l.loadClass(ping_class);
-             l = null;
-             return (AServicePing) loaded_class.newInstance();
+            for ( int i = 0; i < cp_elems.length; i++ ) {
+                cp_urls[i] = new URL("file://" + cp_elems[i]);                
+            }
+            @SuppressWarnings("resource")
+                URLClassLoader l = new URLClassLoader(cp_urls);
+            @SuppressWarnings("rawtypes")
+                Class loaded_class = l.loadClass(ping_class);
+            l = null;
+            return (AServicePing) loaded_class.newInstance();
         }
-        }
+    }
 
     void runAsThread()
     {
@@ -382,13 +382,15 @@ class PingDriver
 		}
 
         try {
-            pinger.init(ping_arguments, endpoint);
             props.setProperty("total-instances", "" + sset.countImplementors());
             props.setProperty("active-instances", "" + sset.getActiveInstances());
             props.setProperty("references", "" + sset.countReferences());
-            props.setProperty("runfailures", "" + sset.getRunFailures());
+            props.setProperty("run-failures", "" + sset.getRunFailures());
+            props.setProperty("monitor-rate", "" + meta_ping_rate);
+            props.setProperty("service-id", "" + sset.getId().getFriendly());
 
             pinger.setSmState(props);
+            pinger.init(ping_arguments, endpoint);
             while ( ! shutdown ) {
                 
                 Pong pr = new Pong();
@@ -480,7 +482,7 @@ class PingDriver
         arglist.add(cp);
         //arglist.add("-Xmx100M");
         arglist.add("-Dcom.sun.management.jmxremote");
-        arglist.add("org.apache.uima.ducc.smnew.ServicePingMain");
+        arglist.add("org.apache.uima.ducc.sm.ServicePingMain");
         arglist.add("--class");
         arglist.add(ping_class);
         arglist.add("--endpoint");
@@ -645,10 +647,13 @@ class PingDriver
                     // Ask for the ping
                     try {
                         logger.info(methodName, sset.getId(), "ExtrnPingDriver: ping OUT");
-                        props.setProperty("total-instances", "" + sset.countImplementors());
+                        props.setProperty("total-instances" , "" + sset.countImplementors());
                         props.setProperty("active-instances", "" + sset.getActiveInstances());
-                        props.setProperty("references", "" + sset.countReferences());
-                        props.setProperty("runfailures", "" + sset.getRunFailures());
+                        props.setProperty("references"      , "" + sset.countReferences());
+                        props.setProperty("run-failures"    , "" + sset.getRunFailures());
+                        props.setProperty("monitor-rate"    , "" + meta_ping_rate);
+                        props.setProperty("service-id"      , "" + sset.getId().getFriendly());
+
                         oos.writeObject(new Ping(false, props));
                         oos.flush();
                         oos.reset();

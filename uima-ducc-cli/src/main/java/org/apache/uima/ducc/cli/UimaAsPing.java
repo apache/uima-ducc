@@ -30,6 +30,7 @@ import org.apache.uima.UIMAFramework;
 import org.apache.uima.aae.client.UimaASProcessStatus;
 import org.apache.uima.aae.client.UimaAsBaseCallbackListener;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
+import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngineCommon_impl;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.EntityProcessStatus;
@@ -39,15 +40,24 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;
 
-// 'q_thresh=nn,window=mm,broker_jmx=1100,meta_timeout=10000'
 public class UimaAsPing
     extends AServicePing
 {
-    int window = 3;
-    int queue_threshold = 0;
-
     String ep;
 
+    int failure_max = 5;            // max consecutive run failures before reporting excessive failures
+                                    // which prevents restart of instances
+    int current_failures = 0;       // current consecutive run failures
+    int consecutive_failures = 0;   // n failures in consecutive pings
+    int failure_window_size = 15;   // 15 minutes
+    int monitor_rate = 1;           // ping rate, in minutes, min 1 used for calculations
+    int fail_index = 0;
+    int[] failure_window = null;    // tracks consecutive failures within a window
+    int failure_cursor = 0;
+    long service_id = 0;
+    
+    boolean excessive_failures = false;
+    
     String endpoint;
     String broker;
     int    meta_timeout;
@@ -64,7 +74,7 @@ public class UimaAsPing
     String pid;
     boolean gmfail = false;
     boolean enable_log = false;
-
+    
     public UimaAsPing()
     {
     }
@@ -94,16 +104,14 @@ public class UimaAsPing
         // not needed here fyi broker_port = url.getPort();
 
                 
-        //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
-        //UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
+        UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
+        UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
         // there are a couple junky messages that slip by the above configurations.  turn the whole danged thing off.
         UIMAFramework.getLogger().setLevel(Level.INFO);
 
         if ( args == null ) {
             meta_timeout = 5000;
             broker_jmx_port = 1099;
-            queue_threshold = 0;
-            window = 3;
         } else {
             // 'q_thresh=nn,window=mm,broker_jmx_port=1100,meta_timeout=10000'
             // turn the argument string into properties
@@ -118,15 +126,16 @@ public class UimaAsPing
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            meta_timeout = props.getIntProperty("meta_timeout", 5000);
-            broker_jmx_port = props.getIntProperty("broker_jmx_port", 1099);
-            queue_threshold = props.getIntProperty("queue_threshold", 0);
-            window = props.getIntProperty("window", 3);
-            enable_log = props.getBooleanProperty("enable_log", false);
-
+            meta_timeout         = props.getIntProperty    ("meta-timeout"   , 5000);
+            broker_jmx_port      = props.getIntProperty    ("broker-jmx-port", 1099);
+            enable_log           = props.getBooleanProperty("enable-log"     , false);
+            failure_max          = props.getIntProperty    ("max-failures"   , failure_max);
+            failure_window_size  = props.getIntProperty    ("failure-window" , failure_window_size);
+            failure_window = new int[failure_window_size];
+            failure_cursor = 0;
         }
-        queueSizeWindow = new int[window];
-        doLog("<ctr>", null, "INIT: meta_timeout", meta_timeout, "broker_jmx_port", broker_jmx_port, "queue_threshold", queue_threshold, "window", window);
+
+        doLog("<ctr>", null, "INIT: meta_timeout", meta_timeout, "broker-jmx-port", broker_jmx_port);
 
         this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
     }
@@ -150,36 +159,76 @@ public class UimaAsPing
             }
         }
         System.out.println(buf);
-
     }
 
-    void evaluateBrokerStatistics(IServiceStatistics stats)
+    private String fmtArray(int[] array)
+    {
+        Object[] vals = new Object[array.length];
+        StringBuffer sb = new StringBuffer();
+        
+        for ( int i = 0; i < array.length; i++ ) {
+            sb.append("%3s ");
+            vals[i] = Integer.toString(array[i]);
+        }
+        return String.format(sb.toString(), vals);
+    }
+
+    void evaluateService(IServiceStatistics stats)
     {
     	String methodName = "evaluatePing";
         // Note that this particular pinger considers 'health' to be a function of whether
         // the get-mata worked AND the queue statistics.
         try {
             monitor.collect();
+            stats.setHealthy(true);       // this pinger defines 'healthy' as
+                                          // 'service responds to get-meta and broker returns jmx stats'
 
-            if ( queue_threshold > 0 ) {         // only do this if a threshold is set
-                // if the last 'n' q depths are > threshold, mark the service unhealthy
-                // primitive, but maybe an OK first guess
-                queueSizeWindow[queueCursor++ % window] = (int)monitor.getQueueSize();
-                int sum = 0;
-                for ( int i = 0; i < window; i++ ) {
-                    sum += queueSizeWindow[i];
+
+            monitor_rate = Integer.parseInt(smState.getProperty("monitor-rate") ) / 60000;       // convert to minutes
+            service_id   = Long.parseLong(smState.getProperty("service-id"));            
+            if (monitor_rate <= 0 ) monitor_rate = 1;                                            // minimum 1 minute allowed
+
+            // Calculate total instance failures within some configured window.  If we get a cluster
+            // of failures, signal excessive failures so SM stops spawning new ones.
+            int failures = Integer.parseInt(smState.getProperty("run-failures"));
+            doLog(methodName, "run-failures:", failures);
+            if ( (failure_window != null) && (failures > 0) ) {
+                int diff = failures - current_failures;  // nfailures since last update
+                current_failures = failures;
+
+                if ( diff > 0 ) {
+                    failure_window[failure_cursor++] = diff;
+                } else {
+                    failure_window[failure_cursor++] = 0;                    
                 }
-                sum = sum / window;
-                stats.setHealthy( sum < queue_threshold ? true : false );
-                doLog(methodName, null, "EVAL: Q depth", monitor.getQueueSize(), "window", sum, "health", stats.isHealthy());
-            } else {
-                stats.setHealthy(true);
+
+                doLog(methodName, "failures", failures, "current_failures", current_failures, 
+                      "failure_window", fmtArray(failure_window), "failure_cursor", failure_cursor);
+
+                failure_cursor = failure_cursor % failure_window_size;
+
+
+
+                int windowed_failures = 0;
+                excessive_failures = false;
+                for ( int i = 0; i < failure_window_size; i++ ) {
+                    windowed_failures += failure_window[i];                    
+                }
+                if ( windowed_failures >= failure_max ) {
+                    excessive_failures = true;
+                }
+                doLog(methodName, "windowed_failures", windowed_failures, "excessive_failures", excessive_failures);
             }
 
         } catch ( Throwable t ) {
             stats.setHealthy(false);
             monitor.setJmxFailure(t.getMessage());
         }
+    }
+
+    public boolean isExcessiveFailures()
+    {
+        return excessive_failures;
     }
 
     public IServiceStatistics getStatistics()
@@ -189,7 +238,7 @@ public class UimaAsPing
         nodeIp = "N/A";
         pid = "N/A";
 
-        evaluateBrokerStatistics(statistics);       // if we get here, the get-meta worked well enough
+        evaluateService(statistics);       // if we get here, the get-meta worked well enough
 
         // Instantiate Uima AS Client
         BaseUIMAAsynchronousEngine_impl uimaAsEngine = new BaseUIMAAsynchronousEngine_impl();

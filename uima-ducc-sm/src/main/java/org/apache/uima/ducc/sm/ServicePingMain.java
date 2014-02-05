@@ -208,9 +208,8 @@ public class ServicePingMain
 		} catch (IOException e2) {
 			e2.printStackTrace();
 			return 1;
-		} finally {
-			try {sock.close();} catch ( Throwable t) {}
-		}
+		} 
+
         print ("ServicePingMain listens on port", sock.getLocalPort());
         InputStream sock_in = null;
 		OutputStream sock_out = null;

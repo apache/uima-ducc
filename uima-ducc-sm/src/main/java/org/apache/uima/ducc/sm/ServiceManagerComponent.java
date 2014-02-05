@@ -111,7 +111,7 @@ public class ServiceManagerComponent
     private boolean testmode = false;
 
     Map<String, String> administrators = new HashMap<String, String>();
-    String version = "1.1.0";
+    String version = "1.1.0+";
 
 	public ServiceManagerComponent(CamelContext context) 
     {

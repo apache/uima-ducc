@@ -170,13 +170,6 @@ public class ServiceSet
 
         parseIndependentServices();
 
-        if ( ! job_props.containsKey("service_ping_dolog")) {
-            job_props.put("service_ping_dolog", "false");
-        }        
-        if ( !job_props.containsKey("service_ping_timeout") ) {
-            job_props.put("service_ping_timeout", ""+ServiceManagerComponent.meta_ping_timeout);
-        }
-
         meta_props.remove("references");          // Will get refreshred in upcoming OR state messages
         meta_props.put("service-class", ""+service_class.decode());
         meta_props.put("service-type", ""+service_type.decode());
@@ -514,8 +507,6 @@ public class ServiceSet
         reference_start = false;
         started = true;
         init_failures = 0;
-        run_failures = 0;
-        excessiveRunFailures = false;
     }
 
     /**
@@ -976,6 +967,7 @@ public class ServiceSet
                                         "Excessive initialization failures. Total failures[" + init_failures + "]",
                                         "allowed [" + init_failures_max + "], not restarting.");
                         }
+                        setAutostart(false);
                     } else {
                         logger.warn(methodName, id, "Instance", inst_id + ": Uunsolicited termination, not yet excessive.  Restarting instance.");
                         start(1);
