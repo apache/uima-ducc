@@ -36,9 +36,6 @@ import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.OrchestratorComponent;
 import org.apache.uima.ducc.orchestrator.event.OrchestratorEventListener;
-import org.apache.uima.ducc.orchestrator.monitor.Xmon;
-import org.apache.uima.ducc.orchestrator.monitor.Xmon.ExchangeType;
-import org.apache.uima.ducc.orchestrator.monitor.Xmon.LifeStatus;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelJobReplyDuccEvent;
@@ -85,14 +82,8 @@ public class OrchestratorConfiguration {
 		return new RouteBuilder() {
 			
             public void configure() {
-    			Xmon xmStart = new Xmon(LifeStatus.Start, ExchangeType.Receive);
-    			Xmon xmEnded = new Xmon(LifeStatus.Ended, ExchangeType.Receive);
-    			Xmon xmError = new Xmon(LifeStatus.Error, ExchangeType.Receive);
-            	onException(Exception.class).handled(true).process(xmError);
             	from(endpoint)
-            	.process(xmStart)
             	.bean(delegate)
-            	.process(xmEnded)
             	;
             }
         };
@@ -129,8 +120,6 @@ public class OrchestratorConfiguration {
             
             JettyHttpComponent jettyComponent = new JettyHttpComponent();
             
-			Xmon xmStart = new Xmon(LifeStatus.Start, ExchangeType.Receive);
-			Xmon xmEnded = new Xmon(LifeStatus.Ended, ExchangeType.Reply);
 			//ExchangeMonitor xmError = new ExchangeMonitor(LifeStatus.Error, ExchangeType.Receive);
 			
             context.addComponent("jetty", jettyComponent);
@@ -139,10 +128,8 @@ public class OrchestratorConfiguration {
             from("jetty://http://0.0.0.0:"+common.duccORHttpPort+"/or")
             .unmarshal().xstream()
             
-            .process(xmStart)
             .bean(delegate)
             .process(new OrchestratorReplyProcessor())   // inject reply object
-            .process(xmEnded)
             .process(new Processor() {
               
               public void process(Exchange exchange) throws Exception {
