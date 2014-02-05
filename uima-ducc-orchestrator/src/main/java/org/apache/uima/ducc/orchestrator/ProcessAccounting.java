@@ -139,7 +139,7 @@ public class ProcessAccounting {
 				logger.info(methodName, jobId, processId, messages.fetch("removed"));
 			}
 			else {
-				logger.info(methodName, null, processId, messages.fetch("not found"));
+				logger.warn(methodName, null, processId, messages.fetch("not found"));
 			}
 		}
 		long t1 = System.currentTimeMillis();
@@ -316,12 +316,12 @@ public class ProcessAccounting {
 				millis = process.getTimeWindowInit().getStart();
 				if(millis != null) {
 					ts = TimeStamp.simpleFormat(millis);
-					logger.info(methodName, jobId, processId, messages.fetchLabel("initialization start")+ts);
+					logger.trace(methodName, jobId, processId, messages.fetchLabel("initialization start")+ts);
 				}
 				millis = process.getTimeWindowInit().getEnd();
 				if(millis != null) {
 					ts = TimeStamp.simpleFormat(millis);
-					logger.info(methodName, jobId, processId, messages.fetchLabel("initialization end")+ts);
+					logger.trace(methodName, jobId, processId, messages.fetchLabel("initialization end")+ts);
 				}
 			}
 		}
@@ -364,12 +364,12 @@ public class ProcessAccounting {
 				millis = process.getTimeWindowRun().getStart();
 				if(millis != null) {
 					ts = TimeStamp.simpleFormat(millis);
-					logger.info(methodName, jobId, processId, messages.fetchLabel("run start")+ts);
+					logger.trace(methodName, jobId, processId, messages.fetchLabel("run start")+ts);
 				}
 				millis = process.getTimeWindowRun().getEnd();
 				if(millis != null) {
 					ts = TimeStamp.simpleFormat(millis);
-					logger.info(methodName, jobId, processId, messages.fetchLabel("run end")+ts);
+					logger.trace(methodName, jobId, processId, messages.fetchLabel("run end")+ts);
 				}
 			}
 		}
@@ -448,7 +448,7 @@ public class ProcessAccounting {
 			//	break;
 			default:
 				process.advanceProcessState(inventoryProcess.getProcessState());
-				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
+				logger.trace(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+process.getProcessState());
 				if ( inventoryProcess.getProcessJmxUrl() != null && process.getProcessJmxUrl() == null) {
 					process.setProcessJmxUrl(inventoryProcess.getProcessJmxUrl());
 				}
