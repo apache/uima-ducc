@@ -1221,6 +1221,8 @@ public class JobDriver extends Thread implements IJobDriver {
 	public void start(WorkItem workItem) {
 		String location = "start";
 		try {
+			String casId = workItem.getCasId();
+			callbackUnregister(casId);
 			registerCasPendingLocation(this, ""+workItem.getSeqNo(), workItem.getCasId());
 			casWorkItemMap.put(workItem.getCasId(), workItem);
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
@@ -1518,12 +1520,14 @@ public class JobDriver extends Thread implements IJobDriver {
 	}
 
 	public boolean callbackRegister(String casId, String name) {
+		String location = "callbackRegister";
 		boolean retVal = false;
 		synchronized(this) {
 			if(casId != null) {
 				if(name != null) {
 					if(!callbackMap.containsKey(casId)) {
 						callbackMap.put(casId, name);
+						duccOut.trace(location, jobid, casId);
 						retVal = true;
 					}
 				}
@@ -1533,9 +1537,11 @@ public class JobDriver extends Thread implements IJobDriver {
 	}
 	
 	public void callbackUnregister(String casId) {
+		String location = "callbackUnregister";
 		synchronized(this) {
 			if(casId != null) {
 				callbackMap.remove(casId);
+				duccOut.trace(location, jobid, casId);
 			}
 		}
 	}
