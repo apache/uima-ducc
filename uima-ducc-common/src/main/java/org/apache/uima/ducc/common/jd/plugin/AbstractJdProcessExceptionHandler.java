@@ -81,7 +81,18 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 		return s1.equals(s2);
 	}
 	
-	private enum AnalysisOfCause {
+	protected boolean contains(String s1, String s2) {
+		if(s1 == null) {
+			return false;
+		}
+		if(s2 == null) {
+			return false;
+		}
+		return s1.contains(s2);
+	}
+	
+	protected enum AnalysisOfCause {
+		WireFormatTimeout,
 		RemoteTimeout,
 		LocalTimeout,
 		Other
@@ -94,8 +105,17 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 			int level = 0;
 			while( nextCause != null ) {
 				String sCause = nextCause.toString();
+				String sMessage = nextCause.getLocalizedMessage();
 				record(sCause);
-				if(isEqual(sCause,"org.apache.uima.aae.error.UimaASProcessCasTimeout")) {
+				if(contains(sCause,"Wire format negotiation timeout")) {
+					retVal = AnalysisOfCause.WireFormatTimeout;
+					break;
+				}
+				else if(contains(sMessage,"Wire format negotiation timeout")) {
+					retVal = AnalysisOfCause.WireFormatTimeout;
+					break;
+				}
+				else if(isEqual(sCause,"org.apache.uima.aae.error.UimaASProcessCasTimeout")) {
 					if(level > 0) {
 						retVal = AnalysisOfCause.RemoteTimeout;
 					}
@@ -104,6 +124,7 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 					}
 					break;
         		}
+				
         		nextCause = nextCause.getCause();
         		level++;
 			}
@@ -123,14 +144,36 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 		return retVal;
 	}
 	
+	protected boolean isTransportIssue(AnalysisOfCause analysisOfCause) {
+		boolean retVal = false;
+		if(analysisOfCause != null) {
+			switch(analysisOfCause) {
+			case WireFormatTimeout:
+				retVal = true;
+				break;
+			}
+		}
+		return retVal;
+	}
+	
 	protected Directive handleRetry(String processId, CAS cas, Throwable t, Properties properties) {
 		Directive directive = null;
+		String casId = (String) properties.get(JdProperties.SequenceNumber);
 		AnalysisOfCause analysisOfCause = getAnalysisOfCause(t);
-		if(isLocalTimeout(analysisOfCause)) {
+		if(isTransportIssue(analysisOfCause)) {
+			directive = Directive.ProcessContinue_CasRetry;
+			directive.setReason("WireFormatTimeout");
+			// record to log
+			StringBuffer message = new StringBuffer();
+			message.append("directive="+directive);
+			message.append(", ");
+			message.append("["+casId+"]");
+			record(message);
+		}
+		else if(isLocalTimeout(analysisOfCause)) {
 			// if the maximum number of CAS timeouts is exceeded
 			//   then do not retry CAS
 			AtomicInteger casTimeoutCounter;
-			String casId = (String) properties.get(JdProperties.SequenceNumber);
 			synchronized(mapCasTimeoutCounts) {
 				if(!mapCasTimeoutCounts.containsKey(casId)) {
 					casTimeoutCounter = new AtomicInteger(0);
