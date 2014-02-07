@@ -257,6 +257,7 @@ public class JobFactory {
 	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
 		String methodName = "createDriver";
+		DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
 		// java command
 		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
 		// broker & queue
@@ -266,18 +267,36 @@ public class JobFactory {
 		String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
 		String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
 		// getMeta
-		String meta_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
+		String meta_time = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.default_process_get_meta_time_max);
 		// lost
-		String lost_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_queue_timeout_minutes);
+		String lost_time = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_jd_queue_timeout_minutes);
 		// process_per_item_time_max
 		String wi_time = jobRequestProperties.getProperty(JobRequestProperties.key_process_per_item_time_max);
 		if(wi_time == null) {
-			wi_time = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
+			wi_time = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
 		}
 		// Exception handler
 		String processExceptionHandler = jobRequestProperties.getProperty(JobRequestProperties.key_driver_exception_handler);
+		// ProcessStatusMaxWaitMillis
+		long processStatusMaxWaitMillis = -1;
+		try {
+			String ducc_orchestrator_abbreviated_state_publish_rate = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_orchestrator_abbreviated_state_publish_rate);
+			String ducc_rm_state_publish_rate = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_rm_state_publish_rate);
+			String ducc_agent_node_metrics_publish_rate = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_agent_node_metrics_publish_rate);
+			String ducc_rm_node_stability = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_rm_node_stability);
+			long orMillisRate = Long.parseLong(ducc_orchestrator_abbreviated_state_publish_rate);
+			long rmMillisRate = Long.parseLong(ducc_rm_state_publish_rate);
+			long metricsMillisRate = Long.parseLong(ducc_agent_node_metrics_publish_rate);
+			long stabilityCount = Long.parseLong(ducc_rm_node_stability);
+			long fudgeMillis = 10 * 1000;
+			processStatusMaxWaitMillis = metricsMillisRate*stabilityCount+(orMillisRate+rmMillisRate+fudgeMillis);
+			logger.debug(methodName, job.getDuccId(), "driver:processStatusMaxWaitMillis="+processStatusMaxWaitMillis);
+		}
+		catch(Exception e) {
+			logger.error(methodName, job.getDuccId(), e);
+		}
 		// Command line
-		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, lost_time, wi_time, processExceptionHandler);
+		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, lost_time, wi_time, processExceptionHandler, processStatusMaxWaitMillis);
 		JavaCommandLine driverCommandLine = new JavaCommandLine(javaCmd);
 		driverCommandLine.setClassName(IDuccCommand.main);
 		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_configruation);
