@@ -45,18 +45,6 @@ public class UimaAsPing
 {
     String ep;
 
-    int failure_max = 5;            // max consecutive run failures before reporting excessive failures
-                                    // which prevents restart of instances
-    int current_failures = 0;       // current consecutive run failures
-    int consecutive_failures = 0;   // n failures in consecutive pings
-    int failure_window_size = 15;   // 15 minutes
-    int monitor_rate = 1;           // ping rate, in minutes, min 1 used for calculations
-    int fail_index = 0;
-    int[] failure_window = null;    // tracks consecutive failures within a window
-    int failure_cursor = 0;
-    long service_id = 0;
-    
-    boolean excessive_failures = false;
     
     String endpoint;
     String broker;
@@ -73,7 +61,6 @@ public class UimaAsPing
     String nodeIp;
     String pid;
     boolean gmfail = false;
-    boolean enable_log = false;
     
     public UimaAsPing()
     {
@@ -128,14 +115,7 @@ public class UimaAsPing
             }
             meta_timeout         = props.getIntProperty    ("meta-timeout"   , 5000);
             broker_jmx_port      = props.getIntProperty    ("broker-jmx-port", 1099);
-            enable_log           = props.getBooleanProperty("enable-log"     , false);
-            failure_max          = props.getIntProperty    ("max-failures"   , failure_max);
-            failure_window_size  = props.getIntProperty    ("failure-window" , failure_window_size);
-            failure_window = new int[failure_window_size];
-            failure_cursor = 0;
         }
-
-        doLog("<ctr>", null, "INIT: meta_timeout", meta_timeout, "broker-jmx-port", broker_jmx_port);
 
         this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
     }
@@ -146,8 +126,8 @@ public class UimaAsPing
     }
 
     private void doLog(String methodName, Object ... msg)
-    {
-        if ( ! enable_log ) return;
+    {        
+        if ( !log_enabled ) return;
 
         StringBuffer buf = new StringBuffer(methodName);
         for ( Object o : msg ) {
@@ -161,17 +141,6 @@ public class UimaAsPing
         System.out.println(buf);
     }
 
-    private String fmtArray(int[] array)
-    {
-        Object[] vals = new Object[array.length];
-        StringBuffer sb = new StringBuffer();
-        
-        for ( int i = 0; i < array.length; i++ ) {
-            sb.append("%3s ");
-            vals[i] = Integer.toString(array[i]);
-        }
-        return String.format(sb.toString(), vals);
-    }
 
     void evaluateService(IServiceStatistics stats)
     {
@@ -182,53 +151,10 @@ public class UimaAsPing
             monitor.collect();
             stats.setHealthy(true);       // this pinger defines 'healthy' as
                                           // 'service responds to get-meta and broker returns jmx stats'
-
-
-            monitor_rate = Integer.parseInt(smState.getProperty("monitor-rate") ) / 60000;       // convert to minutes
-            service_id   = Long.parseLong(smState.getProperty("service-id"));            
-            if (monitor_rate <= 0 ) monitor_rate = 1;                                            // minimum 1 minute allowed
-
-            // Calculate total instance failures within some configured window.  If we get a cluster
-            // of failures, signal excessive failures so SM stops spawning new ones.
-            int failures = Integer.parseInt(smState.getProperty("run-failures"));
-            doLog(methodName, "run-failures:", failures);
-            if ( (failure_window != null) && (failures > 0) ) {
-                int diff = failures - current_failures;  // nfailures since last update
-                current_failures = failures;
-
-                if ( diff > 0 ) {
-                    failure_window[failure_cursor++] = diff;
-                } else {
-                    failure_window[failure_cursor++] = 0;                    
-                }
-
-                doLog(methodName, "failures", failures, "current_failures", current_failures, 
-                      "failure_window", fmtArray(failure_window), "failure_cursor", failure_cursor);
-
-                failure_cursor = failure_cursor % failure_window_size;
-
-
-
-                int windowed_failures = 0;
-                excessive_failures = false;
-                for ( int i = 0; i < failure_window_size; i++ ) {
-                    windowed_failures += failure_window[i];                    
-                }
-                if ( windowed_failures >= failure_max ) {
-                    excessive_failures = true;
-                }
-                doLog(methodName, "windowed_failures", windowed_failures, "excessive_failures", excessive_failures);
-            }
-
         } catch ( Throwable t ) {
             stats.setHealthy(false);
             monitor.setJmxFailure(t.getMessage());
         }
-    }
-
-    public boolean isExcessiveFailures()
-    {
-        return excessive_failures;
     }
 
     public IServiceStatistics getStatistics()

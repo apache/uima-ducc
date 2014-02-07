@@ -145,6 +145,7 @@ class PingDriver
 
         this.log_directory     = resolveStringProperty ("log_directory", ping_props, job_props, null);     // cli always puts this int job props, no default 
 
+
         jvm_args_str = jvm_args_str.trim();
         if ( jvm_args_str.equals("") ) {
             jvm_args = null;
@@ -357,12 +358,30 @@ class PingDriver
         }
     }
 
+    void setCommonInitProperties(Properties props)
+    {
+        props.setProperty("monitor-rate"    , "" + meta_ping_rate);
+        props.setProperty("service-id"      , "" + sset.getId().getFriendly());
+        props.setProperty("failure-max"     , "" + ServiceManagerComponent.failure_max);
+        props.setProperty("failure-window"  , "" + ServiceManagerComponent.failure_window);
+        props.setProperty("do-log"          , "" + do_log);
+    }
+
+    void setCommonProperties(Properties props)
+    {
+        props.setProperty("total-instances" , "" + sset.countImplementors());
+        props.setProperty("active-instances", "" + sset.getActiveInstances());
+        props.setProperty("references"      , "" + sset.countReferences());
+        props.setProperty("run-failures"    , "" + sset.getRunFailures());
+    }
+
     void runAsThread()
     {
         long tid = Thread.currentThread().getId();
 
     	String methodName = "runAsThread[" + tid + "]";
         AServicePing pinger = null;
+        Properties initProps = new Properties();
         Properties props = new Properties();
 
 		try {
@@ -381,18 +400,14 @@ class PingDriver
             return;		
 		}
 
-        try {
-            props.setProperty("total-instances", "" + sset.countImplementors());
-            props.setProperty("active-instances", "" + sset.getActiveInstances());
-            props.setProperty("references", "" + sset.countReferences());
-            props.setProperty("run-failures", "" + sset.getRunFailures());
-            props.setProperty("monitor-rate", "" + meta_ping_rate);
-            props.setProperty("service-id", "" + sset.getId().getFriendly());
-
-            pinger.setSmState(props);
-            pinger.init(ping_arguments, endpoint);
-            while ( ! shutdown ) {
-                
+        try {            
+            setCommonInitProperties(initProps);
+            pinger.setLogger(logger);
+            pinger.init(ping_arguments, endpoint, initProps);
+            
+            while ( ! shutdown ) {                
+                setCommonProperties(props);
+                pinger.setSmState(props);
                 Pong pr = new Pong();
 
                 pr.setStatistics(pinger.getStatistics());
@@ -647,13 +662,7 @@ class PingDriver
                     // Ask for the ping
                     try {
                         logger.info(methodName, sset.getId(), "ExtrnPingDriver: ping OUT");
-                        props.setProperty("total-instances" , "" + sset.countImplementors());
-                        props.setProperty("active-instances", "" + sset.getActiveInstances());
-                        props.setProperty("references"      , "" + sset.countReferences());
-                        props.setProperty("run-failures"    , "" + sset.getRunFailures());
-                        props.setProperty("monitor-rate"    , "" + meta_ping_rate);
-                        props.setProperty("service-id"      , "" + sset.getId().getFriendly());
-
+                        setCommonProperties(props);
                         oos.writeObject(new Ping(false, props));
                         oos.flush();
                         oos.reset();

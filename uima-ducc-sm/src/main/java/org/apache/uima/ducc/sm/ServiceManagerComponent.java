@@ -98,6 +98,7 @@ public class ServiceManagerComponent
     static String default_ping_class;
 
     static int failure_max = 5;
+    static int failure_window = 30;
 
     private String state_dir = null;
     private String state_file = null;
@@ -253,6 +254,7 @@ public class ServiceManagerComponent
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ServiceManager,getProcessJmxUrl());
 
         failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.max", failure_max);
+        failure_window = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.window", failure_window);
         meta_ping_rate = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate", meta_ping_rate);
         meta_ping_timeout = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout", meta_ping_timeout);
         meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability", meta_ping_stability);

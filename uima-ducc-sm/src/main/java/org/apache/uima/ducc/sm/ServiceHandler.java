@@ -688,8 +688,9 @@ public class ServiceHandler
             wanted = instances;
         }
 
+        sset.setNInstances(running + instances);
+        sset.resetRuntimeErrors();
         if ( update ) {
-            sset.setNInstances(running + instances);
             sset.saveMetaProperties();
         }
 
@@ -743,8 +744,8 @@ public class ServiceHandler
             tolose = Math.min(instances, running);
         }
 
+        sset.setNInstances(Math.max(0, running - instances)); // never persist < 0 registered instance
         if ( update ) {
-            sset.setNInstances(Math.max(0, running - instances)); // never persist < 0 registered instance
             sset.saveMetaProperties();
         }
         

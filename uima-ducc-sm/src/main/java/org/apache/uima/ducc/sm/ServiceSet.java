@@ -470,6 +470,12 @@ public class ServiceSet
         return ping_only;
     }
 
+    synchronized void resetRuntimeErrors()
+    {
+        run_failures = 0;
+        excessiveRunFailures = false;
+    }
+
     synchronized void setAutostart(boolean auto)
     {
         cancelLinger();
