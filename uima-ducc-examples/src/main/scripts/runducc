@@ -304,7 +304,7 @@ class ServiceStarter(DuccUtil):
         props.put('environment', 'AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path')
         props.put('scheduling_class', 'fixed')
         props.put('working_directory', os.getcwd())
-        props.put('service_ping_arguments', 'broker_jmx_port=' + self.broker_jmx_port)
+        props.put('service_ping_arguments', 'broker-jmx-port=' + self.broker_jmx_port)
 
         svcfile = svcid + '.gen.svc'
         props.write(svcfile)

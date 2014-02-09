@@ -41,7 +41,8 @@ public abstract class AServicePing
 
     protected Properties smState;
 
-    private org.apache.uima.ducc.common.utils.DuccLogger duccLogger = null;
+    protected org.apache.uima.ducc.common.utils.DuccLogger duccLogger = 
+        org.apache.uima.ducc.common.utils.DuccLogger.getLogger(this.getClass().getName(), "PING");	
 
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.
@@ -182,6 +183,17 @@ public abstract class AServicePing
         }
     }
 
+    private void resetFailureWindow()
+    {
+        // This indicates an instance was restarted, which forces a cleaning of
+        // failure conditions.
+        total_failures = 0;
+        failure_cursor = 0;
+        for ( int i = 0; i < failure_window_size; i++ ) {
+            failure_window[i] = 0;
+        }
+    }
+
     /**
      * This determines if there have been excessive service instance failures by tracking the 
      * number of failures, not consecutive, but rather within a window of time.  It may be
@@ -200,24 +212,20 @@ public abstract class AServicePing
             int diff = Math.max(0, failures - total_failures);  // nfailures since last update
             if ( diff < 0 ) {
                 // This indicates an instance was restarted, which forces a cleaning of
-                // failure conditions.
-                total_failures = 0;
-                failure_cursor = 0;
-                for ( int i = 0; i < failure_window_size; i++ ) {
-                    failure_window[i] = 0;
-                }
+                // failure conditions.  Here, it was restarted, and maybe yet another
+                // error occurred.  To avoid complication let's just reset and let the
+                // next ping actually do something about it.
+                resetFailureWindow();
             } else if ( diff > 0 ) {
                 total_failures += diff;
+                failure_window[failure_cursor++] += diff;
+            } else {
+                failure_window[failure_cursor++] = 0;
             }
-
-            if ( diff >= 0 ) {
-                failure_window[failure_cursor++] = diff;
-            }
+            failure_cursor = failure_cursor % failure_window_size;
 
             doLog(methodName, "failures", failures, "total_failures", total_failures, 
                   "failure_window", fmtArray(failure_window), "failure_cursor", failure_cursor);
-
-            failure_cursor = failure_cursor % failure_window_size;
 
             int windowed_failures = 0;
             excessive_failures = false;
@@ -228,6 +236,9 @@ public abstract class AServicePing
                 excessive_failures = true;
             }
             doLog(methodName, "windowed_failures", windowed_failures, "excessive_failures", excessive_failures);
+        } else if (total_failures > 0 ) {
+            // we used to have failures bot not any more, something was restarted, let's reset the window
+            resetFailureWindow();
         }
         return excessive_failures;
     }

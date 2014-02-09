@@ -75,6 +75,8 @@ class PingDriver
     String classpath;
     boolean ping_ok;
 
+    int max_instances;
+
     int missed_pings = 0;            // didn't ping in specified time, but no error thrown
     int errors = 0;                  // error, no good
     int error_threshold = 5;         // max errors before we die
@@ -93,7 +95,7 @@ class PingDriver
     long meta_ping_timeout;          // how long we wait for pinger to return when requesing a ping
     Thread ping_thread;              // thread to manage external process pingers
     boolean internal_ping = true;    // if true, use default UIMA-AS pinger in thread inside SM propert
-
+    
     IServiceStatistics service_statistics = null;
 
     String user;
@@ -106,12 +108,13 @@ class PingDriver
     Timer timer = null;
     
     ServiceState pingState = ServiceState.Waiting;
+    DuccProperties meta_props;
     
     PingDriver(ServiceSet sset)
     {        
         this.sset = sset;
         DuccProperties job_props = sset.getJobProperties();
-        DuccProperties meta_props = sset.getMetaProperties();
+        meta_props = sset.getMetaProperties();
 
         // establish the default pinger, then see if another pinger is specified and set it.        
         this.ping_class        = System.getProperty("ducc.sm.default.monitor.class", "org.apache.uima.ducc.cli.UimaAsPing");
@@ -124,7 +127,7 @@ class PingDriver
         } else {
             this.internal_ping = ping_props.getBooleanProperty("internal", false);
 
-            // One more resolution, in case the class name is actually the name of a registered pinger
+            // One more resolution, in case the class name is not actually the name of a registered pinger
             String real_class  = ping_props.getProperty("service_ping_class");
             if ( real_class != null ) {
                 this.ping_class = real_class;
@@ -134,6 +137,7 @@ class PingDriver
         
         this.endpoint          = meta_props.getStringProperty("endpoint");
         this.user              = meta_props.getStringProperty("user");
+        this.max_instances     = Integer.parseInt(System.getProperty("ducc.sm.max.instances", "10"));
 
         this.ping_arguments    = resolveStringProperty("service_ping_arguments", ping_props, job_props, null);
         String jvm_args_str    = resolveStringProperty("service_ping_jvm_args" , ping_props, job_props, "");
@@ -144,7 +148,6 @@ class PingDriver
         this.working_directory = resolveStringProperty ("working_directory", ping_props, job_props, null); // cli always puts this int job props, no default 
 
         this.log_directory     = resolveStringProperty ("log_directory", ping_props, job_props, null);     // cli always puts this int job props, no default 
-
 
         jvm_args_str = jvm_args_str.trim();
         if ( jvm_args_str.equals("") ) {
@@ -328,8 +331,33 @@ class PingDriver
                 }
             }
         }
-        
-        sset.signalRebalance(response.getAdditions(), response.getDeletions(), response.isExcessiveFailures());
+
+        //
+        // Must cap additions and deletions at some reasonable value in case the monitor is too agressive or in error.
+        // -- additions capped at global installation max from ducc.sm.instance.max
+        // -- deletions capped at registered value IFF the service is autostarted
+        //
+        int additions = response.getAdditions();
+        int instances = sset.countImplementors();
+        if ( additions + instances > max_instances ) {
+            additions = max_instances - instances;
+            logger.warn(methodName, sset.getId(), "Maximum services instances capped by installation limit of", max_instances, "at", additions);
+        }
+
+        int deletions = response.getDeletions();
+        if ( sset.isAutostart() && (deletions > 0) ) {
+            int reg_instances = meta_props.getIntProperty("instances", 1);
+            if ( instances - deletions < reg_instances ) {
+                deletions = Math.max(0, instances - reg_instances); 
+                logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", deletions);
+            }            
+        } else if ( deletions > instances ) {
+            // don't delete more instances than exist
+            logger.warn(methodName, sset.getId(), "Service shrink capped to maximum active instances.");
+            deletions = instances;
+        }
+
+        sset.signalRebalance(additions, deletions, response.isExcessiveFailures());
     }
     
     AServicePing loadInternalMonitor()
@@ -349,8 +377,7 @@ class PingDriver
             for ( int i = 0; i < cp_elems.length; i++ ) {
                 cp_urls[i] = new URL("file://" + cp_elems[i]);                
             }
-            @SuppressWarnings("resource")
-                URLClassLoader l = new URLClassLoader(cp_urls);
+            URLClassLoader l = new URLClassLoader(cp_urls);
             @SuppressWarnings("rawtypes")
                 Class loaded_class = l.loadClass(ping_class);
             l = null;

@@ -486,8 +486,7 @@ public class ServiceSet
             // by definition, an autostarted services is NOT reference started
             reference_start = false;
             init_failures = 0;
-            run_failures = 0;
-            excessiveRunFailures = false;
+            resetRuntimeErrors();
         }
     }
 
@@ -496,6 +495,7 @@ public class ServiceSet
         String methodName = "restartPinger";
         logger.info(methodName, id, "Modify pinger:", pingClass, pingArguments, pingClasspath, pingJvmArgs, pingTimeout, pingDolog);
         stopPingThread(); 
+        resetRuntimeErrors();
         // to Implemnt: 
         //   Replace non-null properties in the registration progerties file, save the props, then stop and restart the pinger.
         //   May only have to stop the pinger, and state machine will restart it for us.
@@ -537,8 +537,7 @@ public class ServiceSet
             this.stopped = false;
             this.reference_start = true;
             init_failures = 0;
-            run_failures = 0;
-            excessiveRunFailures = false;
+            resetRuntimeErrors();
         } else {
             this.reference_start = false;
         }
@@ -606,6 +605,14 @@ public class ServiceSet
     synchronized void saveMetaProperties()
     {
         String methodName = "saveMetaProperties";
+
+        try {
+            if ( !meta_props.get("instances").equals("2") ) {
+                throw new IllegalStateException();
+            }
+        } catch ( Exception e ) {
+            logger.info(methodName, id, e);
+        }
 
         if ( isDeregistered() ) return;
 
@@ -685,6 +692,12 @@ public class ServiceSet
 
     synchronized void setNInstances(int n)
     {
+    	String methodName = "setNInstances";
+        try {
+            throw new IllegalStateException();
+        } catch ( Exception e ) {
+            logger.info(methodName, id, e);
+        }
         if ( n != meta_props.getIntProperty("instances") ) {
             meta_props.setProperty("instances", Integer.toString(n));
             this.instances = n;
@@ -861,7 +874,7 @@ public class ServiceSet
             if ( ndeletions > 0 ) {
 
                 if ( (countReferences() > 0) && (countImplementors() <= ndeletions) ) {
-                    logger.info(methodName, id, "Bypass deletions because of active references");
+                    logger.info(methodName, id, "Bypass deletion to 0 because of active references");
                     break;
                 }
                 stop(ndeletions);

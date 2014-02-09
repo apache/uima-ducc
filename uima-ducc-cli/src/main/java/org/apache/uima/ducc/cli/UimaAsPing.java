@@ -94,7 +94,7 @@ public class UimaAsPing
         UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
         UIMAFramework.getLogger(BaseUIMAAsynchronousEngine_impl.class).setLevel(Level.OFF);
         // there are a couple junky messages that slip by the above configurations.  turn the whole danged thing off.
-        UIMAFramework.getLogger().setLevel(Level.INFO);
+        UIMAFramework.getLogger().setLevel(Level.OFF);
 
         if ( args == null ) {
             meta_timeout = 5000;
