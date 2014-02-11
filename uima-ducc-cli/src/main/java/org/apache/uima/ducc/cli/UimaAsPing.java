@@ -144,7 +144,7 @@ public class UimaAsPing
 
     void evaluateService(IServiceStatistics stats)
     {
-    	String methodName = "evaluatePing";
+    	//String methodName = "evaluatePing";
         // Note that this particular pinger considers 'health' to be a function of whether
         // the get-mata worked AND the queue statistics.
         try {

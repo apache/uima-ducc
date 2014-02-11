@@ -19,7 +19,7 @@
 package org.apache.uima.ducc.sm;
 
 import java.io.Serializable;
-import java.util.Properties;
+import java.util.Map;
 
 /**
  * This is the packet sent to the external pinger soliciting a response.
@@ -30,28 +30,14 @@ class Ping
 {
 	private static final long serialVersionUID = 1L;
 	boolean quit = false;
-//     int instances= 0;
-//     int references = 0;
-//     int runFailures = 0;
-    Properties smState;
+    Map<String, Object> smState;
 
-    public Ping(boolean quit, Properties props)
+    public Ping(boolean quit, Map<String, Object> props)
     {
         this.quit = quit;
         this.smState = props;
     }
 
-//     public Ping(boolean quit, int instances, int references, int runFailures)
-//     {
-//         this.quit = quit;
-//         this.instances= instances;
-//         this.references = references;
-//         this.runFailures = runFailures;
-//     }
-
     public boolean isQuit()          { return quit; }
-//     public int     getInstances()    { return instances; }
-//     public int     getReferences()   { return references; }
-//     public int     getRunFailures()  { return runFailures; }
-    public Properties getSmState  () { return smState; }
+    public Map<String, Object> getSmState  () { return smState; }
 }

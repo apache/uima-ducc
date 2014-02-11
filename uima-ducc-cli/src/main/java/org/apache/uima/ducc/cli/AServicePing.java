@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.cli;
 
-import java.util.Properties;
+import java.util.Map;
 
 import org.apache.uima.ducc.common.IServiceStatistics;
 
@@ -39,7 +39,8 @@ public abstract class AServicePing
     protected boolean log_enabled = false;
     protected long service_id = 0;    
 
-    protected Properties smState;
+    protected Map<String, Object> smState;
+    protected Map<String, Object> initializationState;
 
     protected org.apache.uima.ducc.common.utils.DuccLogger duccLogger = 
         org.apache.uima.ducc.common.utils.DuccLogger.getLogger(this.getClass().getName(), "PING");	
@@ -72,22 +73,10 @@ public abstract class AServicePing
      * @param initProps Properties file with static data about the service and 
      *                  pinger.
      */
-    public void init(String arguments, String endpoint, Properties initProps)
+    public void init(String arguments, String endpoint, Map<String, Object> initState)
         throws Exception
     {
-        failure_window_size = Integer.parseInt(initProps.getProperty("failure-window"));
-        failure_window = new int[failure_window_size];
-        failure_cursor = 0;
-        
-        monitor_rate = Integer.parseInt(initProps.getProperty("monitor-rate") ) / 60000;       // convert to minutes
-        if (monitor_rate <= 0 ) monitor_rate = 1;                                                // minimum 1 minute allowed
-        
-        service_id = Long.parseLong(initProps.getProperty("service-id") );
-        
-        log_enabled = Boolean.parseBoolean(initProps.getProperty("do-log"));
-        
-        failure_max = Integer.parseInt(initProps.getProperty("failure-max"));                                            
-
+        this.initializationState = initState;
         init(arguments, endpoint);
     }
 
@@ -107,7 +96,7 @@ public abstract class AServicePing
     /**
      * Current state of the monitored service is passed in here.
      */    
-    public void setSmState(Properties props)
+    public void setSmState(Map<String, Object> props)
     {
         smState = props;
     }
@@ -115,7 +104,7 @@ public abstract class AServicePing
     /**
      * Getter of the service state;  Implementors may just access it directly if they want.
      */
-    public Properties getSmState() 
+    public Map<String, Object> getSmState() 
     {
         return smState;
     }
@@ -131,9 +120,9 @@ public abstract class AServicePing
     /**
      * Called by the service manager to query the number of service insances to dump.
      */
-    public int getDeletions()
+    public Long[] getDeletions()
     {
-        return 0;
+        return null;
     }
 
     private String fmtArray(int[] array)
@@ -204,9 +193,23 @@ public abstract class AServicePing
         String methodName = "isExcessiveFailures";
         boolean excessive_failures = false;
 
+        if ( failure_window == null ) {
+            // first time, init the failure analysis state from the static init properties
+            failure_window_size = (Integer) initializationState.get("failure-window");
+            failure_window = new int[failure_window_size];
+            failure_cursor = 0;
+        
+            monitor_rate = (Integer) initializationState.get("monitor-rate") / 60000;       // convert to minutes
+            if (monitor_rate <= 0 ) monitor_rate = 1;                                                // minimum 1 minute allowed
+        
+            service_id  = (Long) initializationState.get("service-id") ;       
+            log_enabled = (Boolean) initializationState.get("do-log");        
+            failure_max = (Integer) initializationState.get("failure-max");                                            
+        }
+
         // Calculate total instance failures within some configured window.  If we get a cluster
         // of failures, signal excessive failures so SM stops spawning new ones.
-        int failures = Integer.parseInt(smState.getProperty("run-failures"));
+        int failures = (Integer) smState.get("run-failures");
         doLog(methodName, "failures:", failures, "total_failures", total_failures);
         if ( failures > 0 ) {
             int diff = Math.max(0, failures - total_failures);  // nfailures since last update

@@ -1,10 +1,9 @@
-service_ping_class = org.apache.uima.ducc.cli.UimaAsPing
-service_ping_arguments=meta_timeout=15000,broker_jmx_port=${ducc.broker.jmx.port},max-failures=5,failure-window=10,enable_log=false
-#service_ping_jvmargs = whatever
-#service_ping_classpath= whatever stuff, in addition to the defaults supplied by the sm
-service_ping_dolog=False
+service_ping_class      = org.apache.uima.ducc.cli.UimaAsPing
+service_ping_arguments  = meta-timeout=15000,broker-jmx-port=${ducc.broker.jmx.port},max-failures=5,failure-window=10,enable-log=false
+#service_ping_classpath = whatever, in addition to the defaults supplied by the sm
+service_ping_dolog      = False
 
-internal = true
+internal                = true
 
 
 

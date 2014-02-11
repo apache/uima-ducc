@@ -776,13 +776,13 @@ public class ServiceSet
         return references.size();
     }
 
-    public synchronized int getActiveInstances()
+    public synchronized Long[] getActiveInstances()
     {
-        int t = 0;
+        ArrayList<Long> instIds = new ArrayList<Long>();
         for ( ServiceInstance inst : implementors.values() ) {
-            if ( inst.getState() == JobState.Running ) t++;
+            instIds.add(inst.getId());
         }
-        return t;
+        return instIds.toArray(new Long[instIds.size()]);
     }
 
     synchronized void cancelLinger()
@@ -845,7 +845,7 @@ public class ServiceSet
         return implementors.containsKey(id.getFriendly());
     }
     
-    synchronized void signalRebalance(int nadditions, int ndeletions, boolean isExcessiveFailures)
+    synchronized void signalRebalance(int nadditions, Long[] deletions, int ndeletions, boolean isExcessiveFailures)
     {
         String methodName = "signalRebalance";
         logger.info(methodName, id, 
@@ -865,20 +865,18 @@ public class ServiceSet
             }
             
             this.excessiveRunFailures = isExcessiveFailures;
-            if ( nadditions == ndeletions ) break;
-            
+
+            // Note that nadditions could == ndeletions.  This is ok, because the monitor may want
+            // to 'reboot' an instance by killing a specific one and also starting up a new one.
+
             if ( nadditions > 0) {
                 start(nadditions);
             }
             
-            if ( ndeletions > 0 ) {
-
-                if ( (countReferences() > 0) && (countImplementors() <= ndeletions) ) {
-                    logger.info(methodName, id, "Bypass deletion to 0 because of active references");
-                    break;
-                }
-                stop(ndeletions);
+            for ( int i = 0; i < ndeletions; i++ ) {
+                stop(deletions[i]);
             }
+
             break;   // required break
         }
     }
@@ -1532,6 +1530,24 @@ public class ServiceSet
         }    
 
         saveMetaProperties();
+    }
+
+    /**
+     * Stop a specific instance.
+     */
+    synchronized void stop(Long iid)
+    {
+        String methodName = "stop(id)";
+
+        logger.info(methodName, id, "Stopping specific instance", iid);
+
+        ServiceInstance si = implementors.get(iid);
+        if ( si == null ) {
+            logger.warn(methodName, id, "Can't find instance", iid, ", perhaps it's already gone.");
+        } else {
+            si.stop();
+            signal(si);
+        }
     }
 
     /**

@@ -32,7 +32,7 @@ public class Pong
 
 	IServiceStatistics statistics;
     int additions;
-    int deletions;
+    Long[] deletions;
     boolean excessiveFailures = false;
 
     public Pong()
@@ -59,12 +59,12 @@ public class Pong
 		this.additions = additions;
 	}
     
-	public int getDeletions() 
+	public Long[] getDeletions() 
     {
 		return deletions;
 	}
     
-	public void setDeletions(int deletions) 
+	public void setDeletions(Long[] deletions) 
     {
 		this.deletions = deletions;
 	}

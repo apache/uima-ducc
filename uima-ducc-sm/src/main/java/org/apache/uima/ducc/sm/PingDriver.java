@@ -32,7 +32,8 @@ import java.net.Socket;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Properties;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,6 +41,7 @@ import org.apache.uima.ducc.cli.AServicePing;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 
 
@@ -95,7 +97,10 @@ class PingDriver
     long meta_ping_timeout;          // how long we wait for pinger to return when requesing a ping
     Thread ping_thread;              // thread to manage external process pingers
     boolean internal_ping = true;    // if true, use default UIMA-AS pinger in thread inside SM propert
-    
+
+    int failure_max;
+    int failure_window;
+
     IServiceStatistics service_statistics = null;
 
     String user;
@@ -139,15 +144,17 @@ class PingDriver
         this.user              = meta_props.getStringProperty("user");
         this.max_instances     = Integer.parseInt(System.getProperty("ducc.sm.max.instances", "10"));
 
-        this.ping_arguments    = resolveStringProperty("service_ping_arguments", ping_props, job_props, null);
-        String jvm_args_str    = resolveStringProperty("service_ping_jvm_args" , ping_props, job_props, "");
+        this.ping_arguments    = resolveStringProperty ("service_ping_arguments", ping_props, job_props, null);
+        String jvm_args_str    = resolveStringProperty ("service_ping_jvm_args" , ping_props, job_props, "");
         
-        this.meta_ping_timeout = resolveIntProperty    ("service_ping_timeout", ping_props, job_props, ServiceManagerComponent.meta_ping_timeout);
-        this.do_log            = resolveBooleanProperty("service_ping_dolog", ping_props, job_props, false);
+        this.meta_ping_timeout = resolveIntProperty    ("service_ping_timeout"  , ping_props, job_props, ServiceManagerComponent.meta_ping_timeout);
+        this.do_log            = resolveBooleanProperty("service_ping_dolog"    , ping_props, job_props, false);
         this.classpath         = resolveStringProperty ("service_ping_classpath", ping_props, job_props, System.getProperty("java.class.path"));
-        this.working_directory = resolveStringProperty ("working_directory", ping_props, job_props, null); // cli always puts this int job props, no default 
+        this.working_directory = resolveStringProperty ("working_directory"     , ping_props, job_props, null); // cli always puts this int job props, no default 
 
-        this.log_directory     = resolveStringProperty ("log_directory", ping_props, job_props, null);     // cli always puts this int job props, no default 
+        this.log_directory     = resolveStringProperty ("log_directory"         , ping_props, job_props, null);     // cli always puts this int job props, no default 
+        this.failure_window    = resolveIntProperty    ("service_failure_window", ping_props, job_props, ServiceManagerComponent.failure_window);
+        this.failure_max       = resolveIntProperty    ("service_failure_max"   , ping_props, job_props, ServiceManagerComponent.failure_max);
 
         jvm_args_str = jvm_args_str.trim();
         if ( jvm_args_str.equals("") ) {
@@ -344,20 +351,20 @@ class PingDriver
             logger.warn(methodName, sset.getId(), "Maximum services instances capped by installation limit of", max_instances, "at", additions);
         }
 
-        int deletions = response.getDeletions();
-        if ( sset.isAutostart() && (deletions > 0) ) {
-            int reg_instances = meta_props.getIntProperty("instances", 1);
-            if ( instances - deletions < reg_instances ) {
-                deletions = Math.max(0, instances - reg_instances); 
-                logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", deletions);
-            }            
-        } else if ( deletions > instances ) {
-            // don't delete more instances than exist
-            logger.warn(methodName, sset.getId(), "Service shrink capped to maximum active instances.");
-            deletions = instances;
+        Long[] deletions = response.getDeletions();
+        int ndeletions = 0;
+        if ( deletions != null ) {
+            ndeletions = deletions.length;
+            if ( sset.isAutostart() && (ndeletions > 0) ) {
+                int reg_instances = meta_props.getIntProperty("instances", 1);
+                if ( instances - ndeletions < reg_instances ) {
+                    ndeletions = Math.max(0, instances - reg_instances); 
+                    logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", ndeletions);
+                }            
+            } 
         }
 
-        sset.signalRebalance(additions, deletions, response.isExcessiveFailures());
+        sset.signalRebalance(additions, deletions, ndeletions, response.isExcessiveFailures());
     }
     
     AServicePing loadInternalMonitor()
@@ -385,21 +392,43 @@ class PingDriver
         }
     }
 
-    void setCommonInitProperties(Properties props)
+    /**
+     * Process the initialization properties in two forms:
+     * a)  into a map for use by internal pingers which won't have to parse anything.
+     * b)  into a serialized properties string to pass as an argument to the ping main
+     *     for external pingers.
+     */
+    String setCommonInitProperties(Map<String, Object>  props)
     {
-        props.setProperty("monitor-rate"    , "" + meta_ping_rate);
-        props.setProperty("service-id"      , "" + sset.getId().getFriendly());
-        props.setProperty("failure-max"     , "" + ServiceManagerComponent.failure_max);
-        props.setProperty("failure-window"  , "" + ServiceManagerComponent.failure_window);
-        props.setProperty("do-log"          , "" + do_log);
+        props.put("monitor-rate"    , meta_ping_rate);
+        props.put("service-id"      , sset.getId().getFriendly());
+        props.put("failure-max"     , failure_max);
+        props.put("failure-window"  , failure_window);
+        props.put("do-log"          , do_log);
+
+        StringBuffer buf = new StringBuffer();
+        buf.append("monitor-rate="  ); buf.append(Integer.toString (meta_ping_rate));             buf.append(",");
+        buf.append("service-id="    ); buf.append(Long.toString    (sset.getId().getFriendly())); buf.append(",");
+        buf.append("failure-max="   ); buf.append(Integer.toString (failure_max));                buf.append(",");
+        buf.append("failure-window="); buf.append(Integer.toString (failure_window));             buf.append(",");
+        buf.append("do-log=");         buf.append(Boolean.toString (do_log)); 
+
+        return buf.toString();
     }
 
-    void setCommonProperties(Properties props)
+    void setCommonProperties(Map<String, Object> props)
     {
-        props.setProperty("total-instances" , "" + sset.countImplementors());
-        props.setProperty("active-instances", "" + sset.getActiveInstances());
-        props.setProperty("references"      , "" + sset.countReferences());
-        props.setProperty("run-failures"    , "" + sset.getRunFailures());
+        props.put("all-instances"   , sset.getImplementors());
+        props.put("active-instances", sset.getActiveInstances());
+
+        DuccId[] references = sset.getReferences();
+        Long[]   refs = new Long[references.length];
+        for ( int i = 0; i < refs.length; i++ ) {
+            refs[i] = references[i].getFriendly();
+        }
+
+        props.put("references"      , refs);
+        props.put("run-failures"    , sset.getRunFailures());
     }
 
     void runAsThread()
@@ -408,8 +437,8 @@ class PingDriver
 
     	String methodName = "runAsThread[" + tid + "]";
         AServicePing pinger = null;
-        Properties initProps = new Properties();
-        Properties props = new Properties();
+        Map<String, Object> initProps = new HashMap<String, Object>();
+        Map<String, Object> props     = new HashMap<String, Object>();
 
 		try {
 			pinger = loadInternalMonitor();
@@ -500,6 +529,8 @@ class PingDriver
         ping_thread = new Thread(pinger);
         ping_thread.start();                            // sets up the listener, before we start the the external process
 
+        Map<String, Object> initProps = new HashMap<String, Object>();
+        String serprops = setCommonInitProperties(initProps);
         ArrayList<String> arglist = new ArrayList<String>();
         if ( ! test_mode ) {
             arglist.add(System.getProperty("ducc.agent.launcher.ducc_spawn_path"));
@@ -531,6 +562,8 @@ class PingDriver
         arglist.add(endpoint);
         arglist.add("--port");
         arglist.add(Integer.toString(port));
+        arglist.add("--initprops");
+        arglist.add(serprops);
 
         if( ping_arguments != null ) {
             arglist.add("--arguments");
@@ -661,7 +694,7 @@ class PingDriver
                 InputStream  in =  sock.getInputStream();
                 ObjectInputStream ois = new ObjectInputStream(in);
                 ObjectOutputStream oos = new ObjectOutputStream(outs);
-                Properties props = new Properties();
+                Map<String, Object>props = new HashMap<String, Object>();
 
                 ping_ok = false;         // we expect the callback to change this
 				while ( true ) {

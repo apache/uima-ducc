@@ -23,8 +23,12 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.uima.ducc.cli.AServicePing;
 import org.apache.uima.ducc.cli.ServiceStatistics;
@@ -60,6 +64,7 @@ public class ServicePingMain
     	clioptions.put("--endpoint", clioptions);
     	clioptions.put("--port", clioptions);
     	clioptions.put("--arguments", clioptions);
+    	clioptions.put("--initprops", clioptions);
     }
 
     static void usage()
@@ -72,6 +77,7 @@ public class ServicePingMain
         System.out.println("   --endpoint  ep              This is the endpoint specified in the registration.");
         System.out.println("   --port      port            This is the listen port the SM is listening on.");
         System.out.println("   --arguments classname       These are the arguments for the pinger, supplied in the registration.");
+        System.out.println("   --initprops props           These are initialization properties passed from SM, in serialized properties format.");
         
         System.exit(1);
     }
@@ -110,7 +116,7 @@ public class ServicePingMain
     //
     // resolve the customMeta string inta a class if we can
     //
-    AServicePing resolve(String cl, String args, String ep)
+    AServicePing resolve(String cl, String args, String ep, Map<String, Object> initprops)
     {
     	print("ServicePingMain.resolve:", cl, "ep", ep);
     	AServicePing pinger = null;
@@ -118,7 +124,7 @@ public class ServicePingMain
 			@SuppressWarnings("rawtypes")
 			Class cls = Class.forName(cl);
 			pinger = (AServicePing) cls.newInstance();
-			pinger.init(args, ep);
+			pinger.init(args, ep, initprops);
 		} catch (Exception e) {
             //print(e);         // To the logs
             e.printStackTrace();
@@ -146,7 +152,7 @@ public class ServicePingMain
         // First read them all in
         if ( debug ) {
             for ( int i = 0; i < args.length; i++ ) {
-                System.out.println("Args[" + i + "] = " + args[i]);
+                print("Args[" + i + "] = ", args[i]);
             }
         }
 
@@ -175,6 +181,62 @@ public class ServicePingMain
         }
     }
 
+    /**
+     * Convert the initialization props into a map<string, object>
+     *
+     * It seems perhaps dumb at first, why not just use properties?
+     *
+     * It's because the internal pinger can use the map directly without lots of conversion and
+     * parsing, and that's by far the most common case.  To insure common code all around we
+     * jump through this tiny hoop for external pingers.
+     */
+    protected Map<String, Object> stringToProperties(String prop_string)
+    {
+        String[] as = prop_string.split(",");
+        StringWriter sw = new StringWriter();
+        for ( String s : as ) sw.write(s + "\n");
+        StringReader sr = new StringReader(sw.toString());            
+        DuccProperties props = new DuccProperties();
+        try {
+            props.load(sr);
+        } catch (IOException e) {
+            // nastery internal error if this occurs
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        Map<String, Object> ret = new HashMap<String, Object>();
+        int     v_int;
+        long    v_long;
+        boolean v_bool;
+        String k;
+
+        k = "failure-window";
+        v_int = props.getIntProperty(k);
+        ret.put(k, v_int);
+
+        k = "failure-max";
+        v_int = props.getIntProperty(k);
+        ret.put(k, v_int);
+
+        k = "monitor-rate";
+        v_int = props.getIntProperty(k);
+        ret.put(k, v_int);
+
+        k = "service-id";
+        v_long = props.getLongProperty(k);
+        ret.put(k, v_long);
+
+        k = "do-log";
+        v_bool = props.getBooleanProperty(k, false);
+        ret.put(k, v_bool);
+
+        for ( String rk : ret.keySet() ) {
+            print("init:", rk, "=", ret.get(rk));
+        }
+        return ret;
+    }
+
     //
     // 1. Instantiate the pinger if possible.
     // 2. Read ducc.proeprties to find the ping interval
@@ -193,7 +255,9 @@ public class ServicePingMain
         String arguments = clioptions.getStringProperty("--arguments");
         String pingClass = clioptions.getStringProperty("--class");
         String endpoint  = clioptions.getStringProperty("--endpoint");
-        int port         = clioptions.getIntProperty("--port");
+        int port         = clioptions.getIntProperty   ("--port");
+        String initters  = clioptions.getStringProperty("--initprops");
+        Map<String, Object> initprops = stringToProperties(initters);
 
         Socket sock = null;
 
@@ -238,7 +302,7 @@ public class ServicePingMain
 			return 1;
 		}        
 
-        AServicePing custom = resolve(pingClass, arguments, endpoint);
+        AServicePing custom = resolve(pingClass, arguments, endpoint, initprops);
         if ( custom == null ) {
             print("bad_pinger:", pingClass, endpoint);
             return 1;
@@ -251,10 +315,10 @@ public class ServicePingMain
 			try {
                 ping = (Ping) ois.readObject();
                 if ( debug ) {
-                    print("Total instances:" , ping.getSmState().getProperty("total-instances"));
-                    print("Active instances:", ping.getSmState().getProperty("active-instances"));
-                    print("References:"      , ping.getSmState().getProperty("references"));
-                    print("Run Failures:"    , ping.getSmState().getProperty("runfailures"));
+                    print("Total instances:" , ping.getSmState().get("total-instances"));
+                    print("Active instances:", ping.getSmState().get("active-instances"));
+                    print("References:"      , ping.getSmState().get("references"));
+                    print("Run Failures:"    , ping.getSmState().get("runfailures"));
                 }
 			} catch (IOException e) {
                 handleError(custom, e);

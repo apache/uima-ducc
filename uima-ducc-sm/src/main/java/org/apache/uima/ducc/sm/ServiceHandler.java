@@ -1262,7 +1262,7 @@ public class ServiceHandler
              // The registeredServices need to have been removed during unregister which is the only way
              // to get rid of a service.
              Long[] implids = sset.getImplementors();
-             for ( Long l : implids ) {
+             for ( long l : implids ) {
                  servicesByImplementor.remove(l);
              }
 
