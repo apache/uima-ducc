@@ -139,7 +139,9 @@ public class WorkItem implements Runnable {
 				duccOut.debug(methodName, jobId, duccMsg.fetchLabel("CAS.size")+cas.size());
 				callbackState.statePendingQueued();
 				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+callbackState.getState());
+				duccOut.info(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive begins...");
 				client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
+				duccOut.info(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
 				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
 				// <for testing only!!!>
 				if(injectRandom) {
@@ -156,6 +158,7 @@ public class WorkItem implements Runnable {
 					duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"lost+ended");
 				}
 			} catch(Exception e) {
+				duccOut.error(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive exception");
 				if(!isLost.get()) {
 					exception(e);
 				}

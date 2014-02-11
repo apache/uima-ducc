@@ -53,6 +53,10 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	public void onBeforeMessageSend(UimaASProcessStatus status) {
 		String methodName = "onBeforeMessageSend";
 		try {
+			String casId = ""+status.getCAS().hashCode();
+			WorkItem wi = jobDriver.getWorkItem(casId);
+			int seqNo = wi.getSeqNo();
+			duccOut.info(methodName, jobid, "seqNo:"+seqNo+" "+"casId:"+casId);
 			Thread thread = new OnBeforeMessageSendHandler(status);
 			if(asynchronous) {
 				thread.start();
@@ -136,6 +140,10 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	public void onBeforeProcessCAS(UimaASProcessStatus status, String nodeIP, String pid) {
 		String methodName = "onBeforeProcessCAS";
 		try {
+			String casId = ""+status.getCAS().hashCode();
+			WorkItem wi = jobDriver.getWorkItem(casId);
+			int seqNo = wi.getSeqNo();
+			duccOut.info(methodName, jobid, "seqNo:"+seqNo+" "+"casId:"+casId);
 			Thread thread = new OnBeforeProcessCASHandler(status, nodeIP, pid);
 			if(asynchronous) {
 				thread.start();
