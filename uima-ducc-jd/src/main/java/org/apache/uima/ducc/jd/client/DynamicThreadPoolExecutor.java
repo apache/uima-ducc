@@ -103,7 +103,7 @@ public class DynamicThreadPoolExecutor extends ThreadPoolExecutor {
 			int delta = getMaximumPoolSize() - size;
 			if(delta != 0) {
 				String message = duccMsg.fetch("changing core pool size to")+" "+size+" "+duccMsg.fetch("from")+" "+getMaximumPoolSize();
-				duccOut.debug(methodName, duccId, message);
+				duccOut.info(methodName, duccId, message);
 				super.setCorePoolSize(size);
 				super.setMaximumPoolSize(size);
 			}

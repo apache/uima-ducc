@@ -157,7 +157,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			// Prepare UIMA-AS client instance and multiple threads
 			ClientThreadFactory factory = new ClientThreadFactory("UimaASClientThread");
 			queue = new LinkedBlockingQueue<Runnable>();
-			executor = new DynamicThreadPoolExecutor(1, 1, 10, TimeUnit.MICROSECONDS, queue, factory, null);
+			executor = new DynamicThreadPoolExecutor(1, 1, 10, TimeUnit.MICROSECONDS, queue, factory, job.getDuccId());
 			client = new BaseUIMAAsynchronousEngine_impl();
 			workItemListener = new WorkItemListener(this);
 			client.addStatusCallbackListener(workItemListener);
