@@ -42,7 +42,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "1.0.0"
+#define VERSION "1.0.1"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -69,6 +69,7 @@
  * 2013-09-15 0.8.9 Common logging and -q option. jrc
  * 2013-10-03 0.8.10 DUCC_CONSOLE_LISTENER=suppress means direct stdin/stderr to /dev/null jrc
  * 2013-11-21 0.8.10 Update version to 1.0.0 for release jrc
+ * 2014-02-14 1.0.1 Use initgroups to fully initalize usergrouops.  jrc
  */
 
 /**
