@@ -626,12 +626,12 @@ int main(int argc, char **argv, char **envp)
             exit(1);
         }
 
-        if ( setgid(pwd->pw_gid) != 0 ) {
-            snprintf(buf, STRLEN,  "1100 Unable to switch to group id %d.",pwd->pw_gid);
+        if ( initgroups(userid, pwd->pw_gid) != 0 ) {
+            snprintf(buf, STRLEN,  "1100 Unable to initialize groups for %s.", userid);
             buf[STRLEN] = '\0';
             perror(buf);
         } else {
-            log_stdout("830 Switched to group %d.\n", pwd-> pw_gid);
+            log_stdout("830 User grouops are initialized for %s.\n", userid);
         }
 
         if ( setuid(pwd->pw_uid) != 0 ) {
