@@ -62,6 +62,9 @@ public class WorkItem implements Runnable {
 	
 	public AtomicBoolean isLost = new AtomicBoolean(false);
 	
+	private String keyUimaAsClientTracking = "UimaAsClientTracking";
+	private boolean uimaAsClientTracking = false;
+	
 	// <for testing only!!!>
 	private final static boolean injectRandom = false;
 	// </for testing only!!!>
@@ -77,6 +80,9 @@ public class WorkItem implements Runnable {
 		this.casTuple = casTuple;
 		this.jobId = jobId;
 		this.workItemMonitor = workItemMonitor;
+		if(System.getProperty(keyUimaAsClientTracking) != null) {
+			uimaAsClientTracking = true;
+		}
 		duccOut.debug(methodName, jobId, duccMsg.fetchLabel("seqNo")+casTuple.getSeqno());
 		duccOut.trace(methodName, jobId, duccMsg.fetch("exit"));
 	}
@@ -138,9 +144,13 @@ public class WorkItem implements Runnable {
 				CAS cas = this.casTuple.getCas();
 				duccOut.debug(methodName, jobId, duccMsg.fetchLabel("CAS.size")+cas.size());
 				callbackState.statePendingQueued();
-				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+callbackState.getState());
+				if(uimaAsClientTracking) {
+					duccOut.info(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive begins...");
+				}
 				client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
-				duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
+				if(uimaAsClientTracking) {
+					duccOut.info(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
+				}
 				// <for testing only!!!>
 				if(injectRandom) {
 					Random random = new Random();
@@ -156,6 +166,9 @@ public class WorkItem implements Runnable {
 					duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"lost+ended");
 				}
 			} catch(Exception e) {
+				if(uimaAsClientTracking) {
+					duccOut.error(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive exception");
+				}
 				if(!isLost.get()) {
 					exception(e);
 				}

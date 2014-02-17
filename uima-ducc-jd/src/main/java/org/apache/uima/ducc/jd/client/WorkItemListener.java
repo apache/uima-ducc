@@ -36,6 +36,9 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	private IJobDriver jobDriver;
 	private DuccId jobid;
 	
+	private String keyUimaAsClientTracking = "UimaAsClientTracking";
+	private boolean uimaAsClientTracking = false;
+	
 	// <for testing only!!!>
 	private final static boolean asynchronous = false;
 	private final static boolean injectLost1 = false;
@@ -47,12 +50,21 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 		super();
 		this.jobDriver = jobDriver;
 		this.jobid = jobDriver.getJob().getDuccId();
+		if(System.getProperty(keyUimaAsClientTracking) != null) {
+			uimaAsClientTracking = true;
+		}
 	}
 	
 	@Override
 	public void onBeforeMessageSend(UimaASProcessStatus status) {
 		String methodName = "onBeforeMessageSend";
 		try {
+			String casId = ""+status.getCAS().hashCode();
+			WorkItem wi = jobDriver.getWorkItem(casId);
+			int seqNo = wi.getSeqNo();
+			if(uimaAsClientTracking) {
+				duccOut.info(methodName, jobid, "seqNo:"+seqNo+" "+"casId:"+casId+" "+"refId:"+status.getCasReferenceId());
+			}
 			Thread thread = new OnBeforeMessageSendHandler(status);
 			if(asynchronous) {
 				thread.start();
@@ -136,6 +148,12 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	public void onBeforeProcessCAS(UimaASProcessStatus status, String nodeIP, String pid) {
 		String methodName = "onBeforeProcessCAS";
 		try {
+			String casId = ""+status.getCAS().hashCode();
+			WorkItem wi = jobDriver.getWorkItem(casId);
+			int seqNo = wi.getSeqNo();
+			if(uimaAsClientTracking) {
+				duccOut.info(methodName, jobid, "seqNo:"+seqNo+" "+"casId:"+casId+" "+"refId:"+status.getCasReferenceId());
+			}
 			Thread thread = new OnBeforeProcessCASHandler(status, nodeIP, pid);
 			if(asynchronous) {
 				thread.start();
