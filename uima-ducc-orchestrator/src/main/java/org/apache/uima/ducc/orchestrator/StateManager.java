@@ -577,12 +577,19 @@ public class StateManager {
 			long error = jdStatusReport.getWorkItemsProcessingError();
 			long lost = jdStatusReport.getWorkItemsLost();
 			long todo = total - (done + error + lost);
+			long tps = job.getSchedulingInfo().getIntThreadsPerShare();
+			long numShares = 0;
+			if(todo%tps > 0) {
+				numShares = 1;
+			}
+			numShares += todo / tps;
+			long adjTodo = numShares * tps;
 			if(capacity > 0) {
-				if(todo < capacity) {
-				retVal = true;
+				if(adjTodo < capacity) {
+					retVal = true;
 				}
 			}
-			logger.info(methodName, job.getDuccId(), "todo:"+todo+" "+"capacity:"+capacity+" "+"excess:"+retVal);
+			logger.info(methodName, job.getDuccId(), "todo:"+todo+" "+"adjTodo:"+adjTodo+" "+"capacity:"+capacity+" "+"excess:"+retVal);
 		}
 		else {
 			logger.info(methodName, job.getDuccId(), "todo:"+"?"+" "+"capacity:"+"?"+" "+"excess:"+retVal);
