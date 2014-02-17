@@ -343,7 +343,9 @@ class StartSim(DuccUtil):
         self.ducc = Ducc()
 
         if ( not self.verify_jvm() ):
-            return        
+            return  
+
+        self.get_duccling_version()
         self.verify_duccling(True)
 
         if ( os.path.exists('sim.pids') ):
