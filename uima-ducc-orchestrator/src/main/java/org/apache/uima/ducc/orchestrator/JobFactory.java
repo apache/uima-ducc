@@ -315,7 +315,7 @@ public class JobFactory {
 			}
 		}
 		// Add any site-provided JVM args, but not -Xmx if the user has provided one
-		String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_driver_jvm_args);
+		String siteJvmArgs = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_driver_jvm_args);
 		dTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
 		for (String token : dTokens) {
 		    if (!haveXmx || !token.startsWith("-Xmx")) {
@@ -541,7 +541,7 @@ public class JobFactory {
 				pipelineCommandLine.addOption(token);
 			}
 		    // Add any site-provided JVM args
-	        String siteJvmArgs = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_process_jvm_args);
+	        String siteJvmArgs = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_process_jvm_args);
 	        pTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);   // a null arg is acceptable
 	        for(String token : pTokens) {
 	            pipelineCommandLine.addOption(token);
