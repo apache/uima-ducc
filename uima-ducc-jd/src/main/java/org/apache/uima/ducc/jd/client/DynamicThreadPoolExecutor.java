@@ -44,7 +44,10 @@ public class DynamicThreadPoolExecutor extends ThreadPoolExecutor {
 	
 	private DuccId duccId;
 	private Semaphore terminations = new Semaphore(0);
-
+	
+	private String keyUimaAsClientTracking = "UimaAsClientTracking";
+	private boolean uimaAsClientTracking = false;
+	
 	public DynamicThreadPoolExecutor(int corePoolSize, 
 			int maximumPoolSize,
 			long keepAliveTime, 
@@ -57,6 +60,9 @@ public class DynamicThreadPoolExecutor extends ThreadPoolExecutor {
 		String methodName = "DynamicThreadPoolExecutor";
 		this.duccId = duccId;
 		duccOut.trace(methodName, duccId, duccMsg.fetch("enter"));
+		if(System.getProperty(keyUimaAsClientTracking) != null) {
+			uimaAsClientTracking = true;
+		}
 		duccOut.trace(methodName, duccId, duccMsg.fetch("exit"));
 	}
     /**
@@ -103,7 +109,9 @@ public class DynamicThreadPoolExecutor extends ThreadPoolExecutor {
 			int delta = getMaximumPoolSize() - size;
 			if(delta != 0) {
 				String message = duccMsg.fetch("changing core pool size to")+" "+size+" "+duccMsg.fetch("from")+" "+getMaximumPoolSize();
-				duccOut.info(methodName, duccId, message);
+				if(uimaAsClientTracking) {
+					duccOut.info(methodName, duccId, message);
+				}
 				super.setCorePoolSize(size);
 				super.setMaximumPoolSize(size);
 			}
