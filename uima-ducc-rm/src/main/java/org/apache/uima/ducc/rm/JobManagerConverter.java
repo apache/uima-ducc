@@ -169,9 +169,7 @@ public class JobManagerConverter
             int max_shares     = toInt(si.getSharesMax(), Integer.MAX_VALUE);
             int existing_max_shares = j.getMaxShares();
 
-            // we need at least 1 if the job isn't reported complete, in case the user forgot to set the
-            // work item count.  the job will run, but slowly in that case.
-            int remaining_work = Math.max(total_work - completed_work, 1);
+            int remaining_work = Math.max(total_work - completed_work, 0);
 
             double arith_mean = Double.NaN;
             IDuccPerWorkItemStatistics stats = si.getPerWorkItemStatistics();        
