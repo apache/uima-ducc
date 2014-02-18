@@ -69,6 +69,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccUimaDeployableConfigurat
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsMap;
@@ -154,9 +155,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			workItemStateManager = new WorkItemStateManager(logsjobdir);
 			synchronizedStats = new SynchronizedStats();
 			// Prepare UIMA-AS client instance and multiple threads
-			ClientThreadFactory factory = new ClientThreadFactory("UimaASClientThread");
-			queue = new LinkedBlockingQueue<Runnable>();
-			executor = new DynamicThreadPoolExecutor(1, 1, 10, TimeUnit.MICROSECONDS, queue, factory, job.getDuccId());
+			initThreadPool();
 			client = new BaseUIMAAsynchronousEngine_impl();
 			workItemListener = new WorkItemListener(this);
 			client.addStatusCallbackListener(workItemListener);
@@ -205,6 +204,15 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 	
+	private void initThreadPool() {
+		if(executor != null) {
+			executor.shutdown();
+		}
+		ClientThreadFactory factory = new ClientThreadFactory("UimaASClientThread");
+		queue = new LinkedBlockingQueue<Runnable>();
+		executor = new DynamicThreadPoolExecutor(1, 1, 10, TimeUnit.MICROSECONDS, queue, factory, job.getDuccId());
+	}
+	
 	public String summarize(Exception e) {
 		return ExceptionHelper.summarize(e);
 	}
@@ -247,7 +255,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	private void missingCallbackReaper() {
 		String location = "missingCallbackReaper";
 		try {
-			if(casSource.isEmpty()) {
+			if(casSource.isExhaustedReader()) {
 				IDuccWorkJob job = getJob();
 				DriverStatusReport driverStatusReport = getDriverStatusReportLive();
 				long todo = driverStatusReport.getWorkItemsToDo();
@@ -261,13 +269,14 @@ public class JobDriver extends Thread implements IJobDriver {
 								WorkItem workItem = workItems.nextElement();
 								int seqNo = workItem.getSeqNo();
 								String casId = workItem.getCasId();
+								duccOut.debug(location, jobid, "seqNo:"+seqNo+" "+"state:"+workItem.getCallbackState().getState().name());
 								if(workItem.getCallbackState().isPendingCallback()) {
 									long sTime = workItem.getTimeWindow().getStartLong();
 									long cTime = System.currentTimeMillis();
 									long mTime = 1000*60*lostTimeout;
 									long tdiff = cTime - sTime;
 									if(tdiff > mTime) {
-										duccOut.warn(location, null, "reaping (no callback) seqNo:"+seqNo+" "+"casId:"+casId+" "+"tdiff:"+tdiff);
+										duccOut.debug(location, jobid, "reaping (no callback) seqNo:"+seqNo+" "+"casId:"+casId+" "+"tdiff:"+tdiff);
 										registerLostCas(workItem.getCasId(), getCasDispatchMap().get(casId));
 										workItem.lost();
 									}
@@ -284,6 +293,67 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 	
+	private void requeue() throws JobDriverTerminateException {
+		String location = "requeue";
+		if(casSource.hasDelayed()) {
+			if(!job.isProcessReady()) {
+				initThreadPool();
+				ArrayList<CasTuple> list = casSource.releaseLimbo();
+				int released = list.size();
+				if(released > 0) {
+					duccOut.debug(location, jobid, "released:"+released);
+					driverStatusReport.decrementWorkItemsLost(released);
+					driverStatusReport.incrementWorkItemsRetry(released);
+					for(CasTuple casTuple : list) {
+						int seqNo = casTuple.getSeqno();
+						duccOut.info(location, jobid, "seqNo:"+seqNo);
+					}
+				}
+				waitForEligibility();
+			}
+		}
+	}
+	
+	private void queue() throws JobDriverTerminateException {
+		String location = "queue";
+		int threadCount = calculateThreadCount();
+		driverStatusReport.setThreadCount(threadCount);
+		executor.changeCorePoolSize(threadCount);
+		if(threadCount > 0) {
+			int poolSize = executor.getCorePoolSize();
+			duccOut.debug(location, jobid, "pool size:"+poolSize);
+			int queueCount = 0;
+			while(isQueueDeficit(threadCount)) {
+				if(!casSource.isExhaustedReader()) {
+					duccOut.debug(location, jobid, "not exhausted reader");
+					queueCASes(1,queue,workItemFactory);
+					queueCount++;
+					continue;
+				}
+				else {
+					duccOut.trace(location, jobid, "exhausted reader");
+					duccOut.debug(location, jobid, "exhausted reader");
+				}
+				if(!casSource.isLimboEmpty()) {
+					if(casSource.hasLimboAvailable()) {
+						duccOut.debug(location, jobid, "limbo available size:"+casSource.getLimboSize());
+						queueCASes(1,queue,workItemFactory);
+						queueCount++;
+						continue;
+					}
+					else {
+						duccOut.debug(location, jobid, "limbo unavailable size:"+casSource.getLimboSize());
+					}
+				}
+				else {
+					duccOut.debug(location, jobid, "limbo empty size:"+casSource.getLimboSize());
+				}
+				break;
+			}
+			duccOut.debug(location, jobid, "newly queued:"+queueCount);
+		}
+	}
+	
 	private void process() throws JobDriverTerminateException {
 		String location = "process";
 		try {
@@ -291,7 +361,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			if(getJob().isRunnable()) {
 				uimaAsClientInitialize();
 				duccOut.info(location, jobid, "jd.step:"+location);
-				executor.prestartAllCoreThreads();
+				//executor.prestartAllCoreThreads();
 				workItemFactory = new WorkItemFactory(client, jobid, this);
 				queueCASes(1, queue, workItemFactory);
 				boolean run = true;
@@ -317,44 +387,15 @@ public class JobDriver extends Thread implements IJobDriver {
 					}
 					logState(getJob());
 					interrupter();
-					int threadCount = calculateThreadCount();
-					driverStatusReport.setThreadCount(threadCount);
-					if(threadCount > 0) {
-						executor.changeCorePoolSize(threadCount);
-					}
-					int poolSize = executor.getCorePoolSize();
-					duccOut.debug(location, jobid, "pool size:"+poolSize);
-					while(isQueueDeficit(threadCount)) {
-						if(!casSource.isExhaustedReader()) {
-							duccOut.debug(location, jobid, "not exhausted reader");
-							queueCASes(1,queue,workItemFactory);
-							continue;
-						}
-						else {
-							duccOut.trace(location, jobid, "exhausted reader");
-						}
-						if(!casSource.isLimboEmpty()) {
-							if(casSource.hasLimboAvailable()) {
-								duccOut.debug(location, jobid, "limbo available size:"+casSource.getLimboSize());
-								queueCASes(1,queue,workItemFactory);
-								continue;
-							}
-							else {
-								duccOut.debug(location, jobid, "limbo unavailable size:"+casSource.getLimboSize());
-							}
-						}
-						else {
-							duccOut.debug(location, jobid, "limbo empty size:"+casSource.getLimboSize());
-						}
-						break;
-					}
+					requeue();
+					queue();
+					missingCallbackReaper();
 					value = driverStatusReport.isComplete();
 					if(value) {
 						duccOut.info(location, jobid, "DriverComplete:"+value+" "+"DriverState:"+driverStatusReport.getDriverState());
 						run = false;
 						continue;
 					}
-					missingCallbackReaper();
 					try {
 						Thread.sleep(10000);
 					} 
@@ -483,8 +524,9 @@ public class JobDriver extends Thread implements IJobDriver {
 				CasTuple casTuple = casSource.pop();
 				driverStatusReport.setWorkItemsFetched(casSource.getSeqNo());
 				if(casTuple == null) {
-					if(casSource.isEmpty()) {
+					if(casSource.isExhaustedReader()) {
 						driverStatusReport.resetWorkItemsPending();
+						duccOut.debug(location, jobid, "resetWorkItemsPending");
 					}
 					break;
 				}
@@ -536,17 +578,19 @@ public class JobDriver extends Thread implements IJobDriver {
 	private void interrupter() {
 		String location = "interrupter";
 		CasDispatchMap casDispatchMap = getCasDispatchMap();
-		IDuccProcessMap processMap = (IDuccProcessMap) getJob().getProcessMap().deepCopy();
-		Iterator<DuccId> iterator = processMap.keySet().iterator();
-		while(iterator.hasNext()) {
-			DuccId duccId = iterator.next();
-			IDuccProcess duccProcess = processMap.get(duccId);
-			boolean statusComplete = duccProcess.isComplete();
-			boolean statusDeallocated = duccProcess.isDeallocated();
-			boolean statusProcessFailed = duccProcess.isFailed();
-			if(statusComplete || statusDeallocated || statusProcessFailed) {
-				duccOut.debug(location, jobid, duccProcess.getDuccId(), "isComplete:"+statusComplete+" "+"isDeallocated:"+statusDeallocated+" "+"isProcessFailed:"+statusProcessFailed);
-				casDispatchMap.interrupt(getJob(), duccProcess);
+		if(casDispatchMap.size() > 0) {
+			IDuccProcessMap processMap = (IDuccProcessMap) getJob().getProcessMap().deepCopy();
+			Iterator<DuccId> iterator = processMap.keySet().iterator();
+			while(iterator.hasNext()) {
+				DuccId duccId = iterator.next();
+				IDuccProcess duccProcess = processMap.get(duccId);
+				boolean statusComplete = duccProcess.isComplete();
+				boolean statusDeallocated = duccProcess.isDeallocated();
+				boolean statusProcessFailed = duccProcess.isFailed();
+				if(statusComplete || statusDeallocated || statusProcessFailed) {
+					duccOut.debug(location, jobid, duccProcess.getDuccId(), "isComplete:"+statusComplete+" "+"isDeallocated:"+statusDeallocated+" "+"isProcessFailed:"+statusProcessFailed);
+					casDispatchMap.interrupt(getJob(), duccProcess);
+				}
 			}
 		}
 	}
@@ -701,6 +745,21 @@ public class JobDriver extends Thread implements IJobDriver {
 		casWorkItemMap.remove(workItem.getCasId());
 	}
 	
+	private void delayedRetry(WorkItem workItem) {
+		String location = "delayedRetry";
+		duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
+		duccOut.debug(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText()+" "+"casId:"+workItem.getCAS().hashCode());
+		remove(workItem);
+		duccOut.debug(location, workItem.getJobId(), workItem.getProcessId(), "size:"+casDispatchMap.size());
+		CasTuple casTuple = workItem.getCasTuple();
+		casTuple.setDelayedRetry();
+		casTuple.setDuccId(new DuccId(-1));
+		casSource.push(casTuple);
+		workItemStateManager.retry(workItem.getSeqNo());
+		workItemInactive();
+		return;
+	}
+	
 	private void retry(WorkItem workItem) {
 		String location = "retry";
 		duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
@@ -715,6 +774,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		workItemStateManager.retry(workItem.getSeqNo());
 		return;
 	}
+	
 	// presume retry if registration info not found
 	
 	private boolean isRetry(WorkItem workItem) {
@@ -996,6 +1056,90 @@ public class JobDriver extends Thread implements IJobDriver {
 		return;
 	}
 	
+	// <UIMA-3600>
+	
+	private IDuccProcess getProcess(WorkItem workItem) {
+		IDuccProcess process = null;
+		if(workItem != null) {
+			DuccProcessMap duccProcessMap = (DuccProcessMap)getJob().getProcessMap();
+			process = duccProcessMap.get(workItem.getProcessId());
+		}
+		return process;
+	}
+	
+	private boolean isUserFailure(IDuccProcess process) {
+		boolean retVal = false;
+		return retVal;
+	}
+	
+	private boolean isNodeFailure(WorkItem workItem) {
+		return isNodeFailure(getProcess(workItem));
+	}
+	
+	private boolean isNodeFailure(IDuccProcess process) {
+		boolean retVal = false;
+		if(process != null) {
+			ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
+			if(deallocationType != null) {
+				switch(deallocationType) {
+				case Purged:
+					retVal = true;
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		return retVal;
+	}
+	
+	private int ProcessStatusMaxWaitSeconds = 5 * 60;
+	private long MillisPerSecond = 1000;
+	
+	private void waitForProcessStatus(IJobDriver jobDriver, WorkItem workItem) {
+		String location = "waitForProcessStatus";
+		try {
+			String casId = workItem.getCasId();
+			String seqNo = ""+workItem.getSeqNo();
+			IDuccWorkJob job = jobDriver.getJob();
+			DuccId jobDuccId = job.getDuccId();
+			DuccId processDuccId = null;
+			IDuccProcess process = getProcess(workItem);
+			if(process != null) {
+				processDuccId = process.getDuccId();
+				duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"wiId:"+workItem.getCasDocumentText()+" "+"casId:"+casId+" process status: pending");
+				long expiry = System.currentTimeMillis() + ProcessStatusMaxWaitSeconds * MillisPerSecond;
+				duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"wiId:"+workItem.getCasDocumentText()+" "+"casId:"+casId+" max wait millis: "+expiry);
+				long now = System.currentTimeMillis();
+				while(now < expiry) {
+					try {
+						Thread.sleep(1000);
+					}
+					catch(InterruptedException e) {
+					}
+					if(isNodeFailure(process)) {
+						duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"wiId:"+workItem.getCasDocumentText()+" "+"casId:"+casId+" process status: node failure");
+						break;
+					}
+					if(isUserFailure(process)) {
+						duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"wiId:"+workItem.getCasDocumentText()+" "+"casId:"+casId+" process status: user failure");
+						break;
+					}
+					now = System.currentTimeMillis();
+				}
+				duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"wiId:"+workItem.getCasDocumentText()+" "+"casId:"+casId+" process status: expired");
+			}
+			else {
+				duccOut.debug(location, jobDuccId, processDuccId, "seqNo:"+seqNo+" "+"wiId:"+workItem.getCasDocumentText()+" "+"casId:"+casId+" process status: not found");
+			}
+		}
+		catch(Exception e) {
+			duccOut.error(location, null, "process status error?", e);
+		}
+	}
+	
+	// </UIMA-3600>
+	
 	public void waitForLocation(IJobDriver jobDriver, WorkItem workItem) {
 		String location = "waitForLocation";
 		try {
@@ -1244,49 +1388,54 @@ public class JobDriver extends Thread implements IJobDriver {
 	public void ended(WorkItem workItem) {
 		String location = "ended";
 		try {
-			waitForLocation(this, workItem);
-			workItemInactive();
-			duccOut.debug(location, jobid, "action:ended "+getThreadLocationInfo(workItem));
-			driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
-			driverStatusReport.workItemOperatingEnd(workItem.getCasId());
-			if(driverStatusReport.isKillJob()) {
-				duccOut.debug(location, jobid, "action:kill-job "+getThreadLocationInfo(workItem));
-				// killing job - don't add bother with retry
-			}
-			else if(driverStatusReport.isKillProcess(workItem.getProcessId())) {
-				duccOut.debug(location, jobid, "action:kill-process "+getThreadLocationInfo(workItem));
-				retry(workItem);
-				// killing process - don't add another work item to queue
-			}
-			else if(isRetry(workItem)) {
-				duccOut.debug(location, jobid, "action:shrink "+getThreadLocationInfo(workItem));
-				retry(workItem);
-				// must be shrinking - don't add another work item to queue
+			if(!casDispatchMap.containsKey(workItem.getCasId())) {
+				duccOut.warn(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"not dispatched");
 			}
 			else {
-				duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
-				duccOut.debug(location, jobid, "action:completed "+getThreadLocationInfo(workItem));
-				workItemStateManager.ended(workItem.getSeqNo());
-				driverStatusReport.countWorkItemsProcessingCompleted();
-				workItem.getTimeWindow().setEnd(TimeStamp.getCurrentMillis());
-				long time = workItem.getTimeWindow().getElapsedMillis();
-				synchronizedStats.addValue(time);
-				DuccPerWorkItemStatistics perWorkItemStatistics = new DuccPerWorkItemStatistics(
-						synchronizedStats.getMax(),
-						synchronizedStats.getMin(),
-						synchronizedStats.getMean(),
-						synchronizedStats.getStandardDeviation()
-						);
-				driverStatusReport.setPerWorkItemStatistics(perWorkItemStatistics);
-				performanceSummaryWriter.getSummaryMap().update(duccOut, workItem.getAnalysisEnginePerformanceMetricsList());
-				int casCount = performanceSummaryWriter.getSummaryMap().casCount();
-				int endCount = driverStatusReport.getWorkItemsProcessingCompleted();
-				String message = "casCount:"+casCount+" "+"endCount:"+endCount;
-				duccOut.debug(location, jobid, message);
-				remove(workItem);
-				recycleCAS(workItem);
-				accountingWorkItemIsDone(workItem.getProcessId(),time);
-				queueCASes(1,queue,workItemFactory);
+				waitForLocation(this, workItem);
+				workItemInactive();
+				duccOut.debug(location, jobid, "action:ended "+getThreadLocationInfo(workItem));
+				driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
+				driverStatusReport.workItemOperatingEnd(workItem.getCasId());
+				if(driverStatusReport.isKillJob()) {
+					duccOut.debug(location, jobid, "action:kill-job "+getThreadLocationInfo(workItem));
+					// killing job - don't add bother with retry
+				}
+				else if(driverStatusReport.isKillProcess(workItem.getProcessId())) {
+					duccOut.debug(location, jobid, "action:kill-process "+getThreadLocationInfo(workItem));
+					retry(workItem);
+					// killing process - don't add another work item to queue
+				}
+				else if(isRetry(workItem)) {
+					duccOut.debug(location, jobid, "action:shrink "+getThreadLocationInfo(workItem));
+					retry(workItem);
+					// must be shrinking - don't add another work item to queue
+				}
+				else {
+					duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
+					duccOut.debug(location, jobid, "action:completed "+getThreadLocationInfo(workItem));
+					workItemStateManager.ended(workItem.getSeqNo());
+					driverStatusReport.countWorkItemsProcessingCompleted();
+					workItem.getTimeWindow().setEnd(TimeStamp.getCurrentMillis());
+					long time = workItem.getTimeWindow().getElapsedMillis();
+					synchronizedStats.addValue(time);
+					DuccPerWorkItemStatistics perWorkItemStatistics = new DuccPerWorkItemStatistics(
+							synchronizedStats.getMax(),
+							synchronizedStats.getMin(),
+							synchronizedStats.getMean(),
+							synchronizedStats.getStandardDeviation()
+							);
+					driverStatusReport.setPerWorkItemStatistics(perWorkItemStatistics);
+					performanceSummaryWriter.getSummaryMap().update(duccOut, workItem.getAnalysisEnginePerformanceMetricsList());
+					int casCount = performanceSummaryWriter.getSummaryMap().casCount();
+					int endCount = driverStatusReport.getWorkItemsProcessingCompleted();
+					String message = "casCount:"+casCount+" "+"endCount:"+endCount;
+					duccOut.debug(location, jobid, message);
+					remove(workItem);
+					recycleCAS(workItem);
+					accountingWorkItemIsDone(workItem.getProcessId(),time);
+					queueCASes(1,queue,workItemFactory);
+				}
 			}
 		}
 		catch(Exception e) {
@@ -1354,6 +1503,22 @@ public class JobDriver extends Thread implements IJobDriver {
 		String location = "lost";
 		try {
 			duccOut.info(location, workItem.getJobId(), "seqNo:"+workItem.getSeqNo());
+			driverStatusReport.workItemDequeued(workItem.getCasId());
+			driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
+			driverStatusReport.workItemOperatingEnd(workItem.getCasId());
+			driverStatusReport.incrementWorkItemsLost();
+			delayedRetry(workItem);
+		}
+		catch(Exception exception) {
+			duccOut.error(location, jobid, "processing error?", exception);
+		}
+	}
+	
+	/*
+	public void lost(WorkItem workItem) {
+		String location = "lost";
+		try {
+			duccOut.info(location, workItem.getJobId(), "seqNo:"+workItem.getSeqNo());
 			workItemInactive();
 			driverStatusReport.workItemDequeued(workItem.getCasId());
 			driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
@@ -1369,74 +1534,91 @@ public class JobDriver extends Thread implements IJobDriver {
 			duccOut.error(location, jobid, "processing error?", exception);
 		}
 	}
+	*/
 	
 	public void exception(WorkItem workItem, Exception e) {
 		String location = "exception";
 		try {
-			duccOut.debug(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
-			duccOut.debug(location, jobid, "action:exception "+getThreadLocationInfo(workItem), e);
-			boolean timeout = false;
-			if(ExceptionClassifier.isTimeout(e)) {
-				ArrayList<WorkItem> removalsList = new ArrayList<WorkItem>();
-				removalsList.add(workItem);
-				removeLocations(removalsList);
-				timeout = true;
+			if(!casDispatchMap.containsKey(workItem.getCasId())) {
+				duccOut.warn(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"not dispatched");
 			}
 			else {
-				duccOut.debug(location, jobid, "action:location-wait "+getThreadLocationInfo(workItem), e);
-				waitForLocation(this, workItem);
-			}
-			workItemInactive();
-			driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
-			driverStatusReport.workItemOperatingEnd(workItem.getCasId());
-			if(driverStatusReport.isKillJob()) {
-				duccOut.debug(location, jobid, "action:kill-job "+getThreadLocationInfo(workItem), e);
-				// killing job - don't add bother with retry
-			}
-			else if(timeout) {
-				duccOut.debug(location, jobid, "action:timeout "+getThreadLocationInfo(workItem), e);
-				employPluginExceptionHandler(workItem, e);
-			}
-			else if(isUnknownProcess(workItem)) {
-				duccOut.debug(location, jobid, "action:unknown-process "+getThreadLocationInfo(workItem), e);
-				retry(workItem);
-				// unknown process (no callbacks) - don't add another work item to queue
-			}
-			else if(driverStatusReport.isKillProcess(workItem.getProcessId())) {
-				duccOut.debug(location, jobid, "action:kill-process "+getThreadLocationInfo(workItem), e);
-				retry(workItem);
-				// killing process - don't add another work item to queue
-			}
-			else if(isFailedProcess(workItem)) {
-				if(ExceptionClassifier.isInterrupted(e)) {
-					duccOut.debug(location, jobid, "action:fail-process-retry "+getThreadLocationInfo(workItem), e);
-					retry(workItem);
-					// process failed, work item interrupted - don't add another work item to queue
+				duccOut.debug(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
+				duccOut.debug(location, jobid, "action:exception "+getThreadLocationInfo(workItem), e);
+				boolean timeout = false;
+				if(ExceptionClassifier.isTimeout(e)) {
+					ArrayList<WorkItem> removalsList = new ArrayList<WorkItem>();
+					removalsList.add(workItem);
+					removeLocations(removalsList);
+					timeout = true;
 				}
 				else {
-					duccOut.debug(location, jobid, "action:fail-process-handler "+getThreadLocationInfo(workItem), e);
-					employPluginExceptionHandler(workItem, e);
+					duccOut.debug(location, jobid, "action:location-wait "+getThreadLocationInfo(workItem), e);
+					waitForLocation(this, workItem);
 				}
-			}
-			else if(isRetry(workItem)) {
-				duccOut.debug(location, jobid, "action:shrink "+getThreadLocationInfo(workItem), e);
-				retry(workItem);
-				// must be shrinking - don't add another work item to queue
-			}
-			else if(isError(workItem, e)) {
-				duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
-				duccOut.debug(location, jobid, "action:error "+getThreadLocationInfo(workItem), e);
-				workItemStateManager.error(workItem.getSeqNo());
-				workItemError(workItem, e);
-				remove(workItem);
-				recycleCAS(workItem);
-				accountingWorkItemIsError(workItem.getProcessId());
-				queueCASes(1,queue,workItemFactory);
-			}
-			else {
-				duccOut.debug(location, jobid, "action:retry "+getThreadLocationInfo(workItem), e);
-				retry(workItem);
-				queueCASes(1,queue,workItemFactory);
+				workItemInactive();
+				driverStatusReport.workItemPendingProcessAssignmentRemove(workItem.getCasId());
+				driverStatusReport.workItemOperatingEnd(workItem.getCasId());
+				if(driverStatusReport.isKillJob()) {
+					duccOut.debug(location, jobid, "action:kill-job "+getThreadLocationInfo(workItem), e);
+					// killing job - don't add bother with retry
+				}
+				else if(timeout) {
+					duccOut.debug(location, jobid, "action:timeout "+getThreadLocationInfo(workItem), e);
+					// <UIMA-3600>
+					waitForProcessStatus(this, workItem);
+					if(isNodeFailure(workItem)) {
+						duccOut.debug(location, jobid, "action:timeout-node-failure-retry "+getThreadLocationInfo(workItem), e);
+						retry(workItem);
+						// node failed, work item interrupted - don't add another work item to queue
+					}
+					else {
+						duccOut.debug(location, jobid, "action:timeout-handler "+getThreadLocationInfo(workItem), e);
+						employPluginExceptionHandler(workItem, e);
+					}
+					// </UIMA-3600>
+				}
+				else if(isUnknownProcess(workItem)) {
+					duccOut.debug(location, jobid, "action:unknown-process "+getThreadLocationInfo(workItem), e);
+					retry(workItem);
+					// unknown process (no callbacks) - don't add another work item to queue
+				}
+				else if(driverStatusReport.isKillProcess(workItem.getProcessId())) {
+					duccOut.debug(location, jobid, "action:kill-process "+getThreadLocationInfo(workItem), e);
+					retry(workItem);
+					// killing process - don't add another work item to queue
+				}
+				else if(isFailedProcess(workItem)) {
+					if(ExceptionClassifier.isInterrupted(e)) {
+						duccOut.debug(location, jobid, "action:fail-process-retry "+getThreadLocationInfo(workItem), e);
+						retry(workItem);
+						// process failed, work item interrupted - don't add another work item to queue
+					}
+					else {
+						duccOut.debug(location, jobid, "action:fail-process-handler "+getThreadLocationInfo(workItem), e);
+						employPluginExceptionHandler(workItem, e);
+					}
+				}
+				else if(isRetry(workItem)) {
+					duccOut.debug(location, jobid, "action:shrink "+getThreadLocationInfo(workItem), e);
+					retry(workItem);
+					// must be shrinking - don't add another work item to queue
+				}
+				else if(isError(workItem, e)) {
+					duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
+					duccOut.debug(location, jobid, "action:error "+getThreadLocationInfo(workItem), e);
+					workItemStateManager.error(workItem.getSeqNo());
+					workItemError(workItem, e);
+					remove(workItem);
+					recycleCAS(workItem);
+					accountingWorkItemIsError(workItem.getProcessId());
+					queueCASes(1,queue,workItemFactory);
+				}
+				else {
+					duccOut.debug(location, jobid, "action:retry "+getThreadLocationInfo(workItem), e);
+					retry(workItem);
+					queueCASes(1,queue,workItemFactory);
+				}
 			}
 		}
 		catch(Exception exception) {
@@ -1463,11 +1645,13 @@ public class JobDriver extends Thread implements IJobDriver {
 		return;
 	}
 	
+	/*
 	private void workItemLost(WorkItem workItem) {
 		String location = "workItemLost";
 		driverStatusReport.countWorkItemsLost();
 		duccOut.error(location, workItem.getJobId(), "seqNo:"+workItem.getSeqNo());
 	}
+	*/
 	
 	private void workItemError(WorkItem workItem, Throwable t) {
 		workItemError(workItem, t, null);

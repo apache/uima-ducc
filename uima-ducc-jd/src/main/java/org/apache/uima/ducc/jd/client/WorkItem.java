@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.jd.client;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
@@ -64,10 +63,6 @@ public class WorkItem implements Runnable {
 	
 	private String keyUimaAsClientTracking = "UimaAsClientTracking";
 	private boolean uimaAsClientTracking = false;
-	
-	// <for testing only!!!>
-	private final static boolean injectRandom = false;
-	// </for testing only!!!>
 	
 	public WorkItem(UimaAsynchronousEngine client, CasTuple casTuple, DuccId duccId, IWorkItemMonitor workItemMonitor) {
 		init(client, casTuple, duccId, workItemMonitor);
@@ -149,16 +144,8 @@ public class WorkItem implements Runnable {
 				}
 				client.sendAndReceiveCAS(cas, analysisEnginePerformanceMetricsList);
 				if(uimaAsClientTracking) {
-					duccOut.info(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
+					duccOut.debug(methodName, null, "seqNo:"+getSeqNo()+" "+"send and receive returned");
 				}
-				// <for testing only!!!>
-				if(injectRandom) {
-					Random random = new Random();
-					if(random.nextBoolean()) {
-						throw new Throwable("just testing Throwable handler");
-					}
-				}
-				// </for testing only!!!>
 				if(!isLost.get()) {
 					ended();
 				}

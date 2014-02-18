@@ -22,7 +22,10 @@ public class CallbackState {
 	
 	public static enum State { PendingQueued, PendingAssigned, NotPending };
 	
-	public State state = State.NotPending;
+	private State state = State.NotPending;
+	
+	public CallbackState() {
+	}
 	
 	private void setState(State value) {
 		synchronized(state) {

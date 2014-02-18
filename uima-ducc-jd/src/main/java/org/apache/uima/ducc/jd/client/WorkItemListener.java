@@ -26,6 +26,9 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.jd.IJobDriver;
+import org.apache.uima.ducc.jd.client.ThreadLocation;
+import org.apache.uima.ducc.jd.client.WorkItem;
+import org.apache.uima.ducc.jd.reliability.FaultInjector;
 
 
 public class WorkItemListener extends UimaAsBaseCallbackListener {
@@ -41,12 +44,10 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 	
 	private String keyUimaAsClientTracking = "UimaAsClientTracking";
 	private boolean uimaAsClientTracking = false;
-	
+
 	// <for testing only!!!>
 	private final static boolean asynchronous = false;
-	private final static boolean injectLost1 = false;
-	private final static boolean injectLost2 = false;
-	private final static boolean injectDelay3 = false;
+	private final static FaultInjector faultInjector = FaultInjector.getInstance();
 	// </for testing only!!!>
 	
 	public WorkItemListener(IJobDriver jobDriver) {
@@ -96,17 +97,8 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			String methodName = "OnBeforeMessageSendHandler";
 			try {
 				// <for testing only!!!>
-				if(injectLost1) {
-					String casId = null;
-					casId = ""+status.getCAS().hashCode();
-					WorkItem wi = jobDriver.getWorkItem(casId);
-					wi.getCallbackState().statePendingAssigned();
-					duccOut.warn(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
-					int seqNo = wi.getSeqNo();
-					if(seqNo == 1) {
-						duccOut.warn(methodName, jobid, "callback #1 discarded seqNo:"+seqNo+" "+"casId:"+casId);
-						return;
-					}
+				if(faultInjector.isFaultCallBack1(status, jobDriver)) {
+					return;
 				}
 				// </for testing only!!!>
 				String casId = ""+status.getCAS().hashCode();
@@ -192,31 +184,8 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 			String methodName = "OnBeforeProcessCASHandler";
 			try {
 				// <for testing only!!!>
-				if(injectLost2) {
-					String casId = null;
-					casId = ""+status.getCAS().hashCode();
-					WorkItem wi = jobDriver.getWorkItem(casId);
-					wi.getCallbackState().statePendingAssigned();
-					duccOut.warn(methodName, jobid, "seqNo:"+wi.getSeqNo()+" "+wi.getCallbackState().getState());
-					int seqNo = wi.getSeqNo();
-					if(seqNo == 2) {
-						duccOut.warn(methodName, jobid, "callback #2 discarded seqNo:"+seqNo+" "+"casId:"+casId);
-						return;
-					}
-				}
-				if(injectDelay3) {
-					String casId = null;
-					casId = ""+status.getCAS().hashCode();
-					WorkItem wi = jobDriver.getWorkItem(casId);
-					int seqNo = wi.getSeqNo();
-					if(seqNo == 3) {
-						duccOut.warn(methodName, jobid, "callback delayed seqNo:"+seqNo+" "+"casId:"+casId);
-						try {
-							Thread.sleep(70*1000);
-						}
-						catch(Exception e) {
-						}
-					}
+				if(faultInjector.isFaultCallBack2(status, jobDriver)) {
+					return;
 				}
 				// </for testing only!!!>
 				String casId = ""+status.getCAS().hashCode();

@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.jd.client;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -115,13 +116,13 @@ public class CasLimbo {
 		String location = "use";
 		DuccId pDuccId = casTuple.getDuccId();
 		if(pDuccId == null) {
-			duccOut.warn(location, getJobId(), casTuple.getDuccId(), "process ID null");
+			duccOut.debug(location, getJobId(), casTuple.getDuccId(), "process ID null");
 		}
 		else {
 			IDuccProcessMap processMap = getProcessMap();
 			IDuccProcess process = processMap.getProcess(pDuccId);
 			if(process == null) {
-				duccOut.warn(location, getJobId(), casTuple.getDuccId(), "process is null");
+				duccOut.debug(location, getJobId(), casTuple.getDuccId(), "process is null");
 			}
 			else {
 				if(process.isPreempted()) {
@@ -142,16 +143,19 @@ public class CasLimbo {
 		String location = "isAvailable";
 		boolean retVal = false;
 		DuccId pDuccId = casTuple.getDuccId();
-		if(pDuccId == null) {
+		if(casTuple.isDelayedRetry()) {
+			//retVal = false;
+		}
+		else if(pDuccId == null) {
 			retVal = true;
-			duccOut.warn(location, getJobId(), casTuple.getDuccId(), "process ID is null");
+			duccOut.debug(location, getJobId(), casTuple.getDuccId(), "process ID is null");
 		}
 		else {
 			IDuccProcessMap processMap = getProcessMap();
 			IDuccProcess process = processMap.getProcess(pDuccId);
 			if(process == null) {
 				retVal = true;
-				duccOut.warn(location, getJobId(), casTuple.getDuccId(), "process is null");
+				duccOut.debug(location, getJobId(), casTuple.getDuccId(), "process is null");
 			}
 			else {	
 				if(process.isDefunct()) {
@@ -173,6 +177,34 @@ public class CasLimbo {
 			}
 		}
 		return retVal;
+	}
+	
+	public ArrayList<CasTuple> release() {
+		String location = "release";
+		ArrayList<CasTuple> retVal = new ArrayList<CasTuple>();
+		Iterator<CasTuple> iterator = tupleQueue.iterator();
+		while(iterator.hasNext()) {
+			CasTuple casTuple = iterator.next();
+			boolean released = casTuple.undelay();
+			if(released) {
+				duccOut.debug(location, getJobId(), "seqNo:"+casTuple.getSeqno());
+				casTuple.setRetry();
+				retVal.add(casTuple);
+			}
+		}
+		return retVal;
+	}
+	
+	public int delayedSize() {
+		Iterator<CasTuple> iterator = tupleQueue.iterator();
+		int count = 0;
+		while(iterator.hasNext()) {
+			CasTuple casTuple = iterator.next();
+			if(casTuple.isDelayedRetry()) {
+				count++;
+			}
+		}
+		return count;
 	}
 	
 	public int size() {
