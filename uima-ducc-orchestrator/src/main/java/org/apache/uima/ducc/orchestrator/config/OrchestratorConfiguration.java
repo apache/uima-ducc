@@ -31,7 +31,6 @@ import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
-import org.apache.uima.ducc.orchestrator.ORTracer;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.OrchestratorComponent;
@@ -211,31 +210,18 @@ public class OrchestratorConfiguration {
 		
 		return new RouteBuilder() {
 		      public void configure() {		            
-				//Xmon xmStart = new Xmon(LifeStatus.Start, ExchangeType.Send, OrchestratorStateDuccEvent.class);
-				//Xmon xmEnded = new Xmon(LifeStatus.Ended, ExchangeType.Send, OrchestratorStateDuccEvent.class);
-				//Xmon xmError = new Xmon(LifeStatus.Error, ExchangeType.Send, OrchestratorStateDuccEvent.class);
-				//onException(Exception.class).handled(true).process(xmError);
-		        String route = "StatePost";
-		    	ORTracer ort1 = new ORTracer(route+":error");
-		    	ORTracer ort2 = new ORTracer(route+":begin");
-		    	ORTracer ort3 = new ORTracer(route+":done:orchestratorp");
-		    	ORTracer ort4 = new ORTracer(route+":done:to");
 		    	
 		    	final Predicate blastFilter = new DuccBlastGuardPredicate(duccLogger);
 		    	
-				onException(Exception.class).handled(true).process(ort1);
 		        from("timer:orchestratorStateDumpTimer?fixedRate=true&period=" + statePublishRate)
 		              // This route uses a filter to prevent sudden bursts of messages which
 		        	  // may flood DUCC daemons causing chaos. The filter disposes any event
 		        	  // that appears in a window of 1 sec or less.
 		        	  .filter(blastFilter)	
 		              //.process(xmStart)
-		        	  .process(ort2)
 		        	  .process(orchestratorp)
 		        	  //.process(xmEnded)
-		        	  .process(ort3)
 		        	  .to(targetEndpointToReceiveOrchestratorStateUpdate)
-		        	  .process(ort4)
 		        	  ;
 		      }
 		    };
@@ -274,31 +260,18 @@ public class OrchestratorConfiguration {
 		
 		return new RouteBuilder() {
 		      public void configure() {  
-				//Xmon xmStart = new Xmon(LifeStatus.Start, ExchangeType.Send, OrchestratorAbbreviatedStateDuccEvent.class);
-				//Xmon xmEnded = new Xmon(LifeStatus.Ended, ExchangeType.Send, OrchestratorAbbreviatedStateDuccEvent.class);
-				//Xmon xmError = new Xmon(LifeStatus.Error, ExchangeType.Send, OrchestratorAbbreviatedStateDuccEvent.class);
-				//onException(Exception.class).handled(true).process(xmError);
-		    	String route = "AbbreviatedStatePost";
-		    	ORTracer ort1 = new ORTracer(route+":error");
-		    	ORTracer ort2 = new ORTracer(route+":begin");
-		    	ORTracer ort3 = new ORTracer(route+":done:orchestratorp");
-		    	ORTracer ort4 = new ORTracer(route+":done:to");
-		    	
+
 		    	final Predicate blastFilter = new DuccBlastGuardPredicate(duccLogger);
 		    	
-				onException(Exception.class).handled(true).process(ort1);
 		        from("timer:orchestratorAbbreviatedStateDumpTimer?fixedRate=true&period=" + statePublishRate)
 		        	// This route uses a filter to prevent sudden bursts of messages which
 		        	// may flood DUCC daemons causing chaos. The filter disposes any event
 		        	// that appears in a window of 1 sec or less.
 		        	.filter(blastFilter)		
 		        	//.process(xmStart)
-		        	.process(ort2)
 		        	.process(orchestratorp)
 		        	//.process(xmEnded)
-                    .process(ort3)
                     .to(targetEndpointToReceiveOrchestratorAbbreviatedStateUpdate)
-                    .process(ort4)
 		        	;
 		      }
 		    };
