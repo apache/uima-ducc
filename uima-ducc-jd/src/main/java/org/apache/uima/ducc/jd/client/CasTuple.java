@@ -26,6 +26,7 @@ public class CasTuple {
 	private CAS cas;
 	private int seqno;
 	private boolean retry = false;
+	private boolean delayedRetry = false;
 	private DuccId pDuccId= null;
 	
 	public CasTuple(CAS cas, int seqno) {
@@ -35,6 +36,10 @@ public class CasTuple {
 	private void init(CAS cas, int seqno) {
 		this.cas = cas;
 		this.seqno = seqno;
+	}
+	
+	public void setCas(CAS value) {
+		cas = value;
 	}
 	
 	public CAS getCas() {
@@ -55,6 +60,23 @@ public class CasTuple {
 	
 	public boolean isRetry() {
 		return retry;
+	}
+	
+	public void setDelayedRetry() {
+		delayedRetry = true;
+	}
+	
+	public boolean isDelayedRetry() {
+		return delayedRetry;
+	}
+	
+	public boolean undelay() {
+		boolean retVal = delayedRetry;
+		if(delayedRetry) {
+			retry = true;
+			delayedRetry = false;
+		}
+		return retVal;
 	}
 	
 	public DuccId getDuccId() {

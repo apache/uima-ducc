@@ -47,6 +47,7 @@ import org.apache.uima.resource.metadata.ConfigurationParameterSettings;
 import org.apache.uima.resource.metadata.FsIndexDescription;
 import org.apache.uima.resource.metadata.TypePriorities;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
+import org.apache.uima.util.CasCopier;
 import org.apache.uima.util.CasCreationUtils;
 import org.apache.uima.util.InvalidXMLException;
 import org.apache.uima.util.Progress;
@@ -146,6 +147,14 @@ public class CasSource {
     	initTotal();
     }
 	
+    private CAS clone(CAS casOriginal, int seqNo) throws ResourceInitializationException {
+    	String location = "clone";
+		CAS casClone = getEmptyCas(seqNo);
+		CasCopier.copyCas(casOriginal, casClone, true);
+		duccOut.debug(location, null, "seqNo:"+seqNo+" "+"casId:"+casOriginal.hashCode()+" "+"casId:"+casClone.hashCode());
+		return casClone;
+    }
+    
 	private CAS getEmptyCas(int seqNo) throws ResourceInitializationException {
 		String location = "getEmptyCas";
 		CAS cas = getRecycledCas();
@@ -220,6 +229,14 @@ public class CasSource {
 		return casLimbo.hasAvailable();
 	}
 	
+	public ArrayList<CasTuple> releaseLimbo() {
+		return casLimbo.release();
+	}
+	
+	public boolean hasDelayed() {
+		return casLimbo.delayedSize() > 0;
+	}
+	
 	public boolean isEmpty() {
 		boolean retVal = false;
 		if(isExhaustedReader()) {
@@ -233,7 +250,13 @@ public class CasSource {
 	public CasTuple pop() throws Exception {
 		String location = "pop";
 		CasTuple casTuple = casLimbo.get();
-		if(casTuple == null) {
+		if(casTuple != null) {
+			CAS casOriginal = casTuple.getCas();
+			int seqNo = casTuple.getSeqno();
+			CAS casClone = clone(casOriginal, seqNo);
+			casTuple.setCas(casClone);
+		}
+		else {
 			try {
 				synchronized(cr) {
 					if((total > 0) && (total == seqNo.get())) {

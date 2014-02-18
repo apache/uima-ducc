@@ -370,8 +370,21 @@ public class DriverStatusReport implements Serializable {
 		return workItemsProcessingError.get();
 	}
 	
-	public void countWorkItemsLost() {
+	public void incrementWorkItemsLost() {
 		workItemsLost.incrementAndGet();
+		calculateState();
+		logReport();
+	}
+	
+	public void decrementWorkItemsLost() {
+		workItemsLost.decrementAndGet();
+		calculateState();
+		logReport();
+	}
+	
+	public void decrementWorkItemsLost(int value) {
+		int delta = 0 - value;
+		workItemsLost.addAndGet(delta);
 		calculateState();
 		logReport();
 	}
@@ -380,8 +393,19 @@ public class DriverStatusReport implements Serializable {
 		return workItemsLost.get();
 	}
 	
+	
+	public boolean isWorkItemsLost() {
+		return workItemsLost.get() > 0;
+	}
+	
 	public void countWorkItemsRetry() {
 		workItemsRetry.incrementAndGet();
+		calculateState();
+		logReport();
+	}
+	
+	public void incrementWorkItemsRetry(int value) {
+		workItemsRetry.addAndGet(value);
 		calculateState();
 		logReport();
 	}
@@ -622,6 +646,9 @@ public class DriverStatusReport implements Serializable {
 			else if(isPending()) {
 				setDriverState(DriverState.Idle);
 			}
+			else if(isWorkItemsLost()) {
+				setDriverState(DriverState.Idle);
+			}
 			else {
 				setDriverState(DriverState.Completing);
 			}
@@ -629,6 +656,9 @@ public class DriverStatusReport implements Serializable {
 		case Running:
 			if(!isProcessing()) {
 				if(isPending()) {
+					setDriverState(DriverState.Idle);
+				}
+				else if(isWorkItemsLost()) {
 					setDriverState(DriverState.Idle);
 				}
 				else {
