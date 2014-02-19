@@ -286,9 +286,10 @@ class DuccUtil(DuccBase):
             print tag, 'Clock skew[', skew, '] on', os.uname()[1], ". Remote time is", time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.localtime())
         return ok or bypass
 
-    def get_duccling_version(self):
+    def set_duccling_version(self):
         CMD = self.duccling + ' -v >' + self.DUCC_HOME + '/state/duccling.version'
         os.system(CMD)
+        print 'Set ducc_ling version from', self.localhost, ':', CMD
 
     def verify_limits(self):
         ret = True
@@ -396,8 +397,8 @@ class DuccUtil(DuccBase):
                 line = ' '.join(toks[0:4])
                 if ( line != version_from_head ):
                     print "Mismatched ducc_ling versions:"
-                    print "ALERT: Version on Ducc Head:", version_from_head
-                    print "ALERT: Version on Agent node:", line
+                    print "ALERT: Version on Agent Node:", version_from_head
+                    print "ALERT: Version on Ducc  Head:", line
                     return False
             verfile.close()
         else:
@@ -691,6 +692,9 @@ class DuccUtil(DuccBase):
         self.broker_port = '61616'
         self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
+
+	if ( self.localhost == self.ducc_properties.get("ducc.head")):
+            self.is_ducc_head = True
 
         os.environ['NodeName'] = self.localhost    # to match java code's implicit propery so script and java match
 

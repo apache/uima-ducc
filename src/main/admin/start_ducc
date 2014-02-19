@@ -227,7 +227,7 @@ class StartDucc(DuccUtil):
         if ( not self.verify_jvm() ):
             sys.exit(1);
 
-        self.get_duccling_version();
+        self.set_duccling_version()
 
         nodefiles = []
         components = []

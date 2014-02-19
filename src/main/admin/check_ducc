@@ -217,12 +217,13 @@ class CheckDucc(DuccUtil):
                 print 'badarg', a
                 usage('bad arg: ' + a)               
 
-        self.get_duccling_version();
 
         if ( do_validate ):
             # if validating, ONLY validate, called via ssh usually
             self.validate(checkdate)
             return
+
+        self.set_duccling_version()
 
         os.system('cat ' + self.DUCC_HOME + '/state/duccling.version')
         # not -x option, do this only on local node
