@@ -1112,8 +1112,7 @@ public class NodepoolScheduler
                     continue;
                 }
 
-                if ( j.isCompleted() ) {             // been here already?
-                    schedulingUpdate.refuse(j, "Non-preemptable, previouly scheduled job has shrunk to 0 processes and cannot be expanded.");
+                if ( j.isCompleted() ) {                        // been here already? nothing more to do                    
                     continue;
                 }
 

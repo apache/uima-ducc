@@ -795,13 +795,23 @@ public class JobManagerConverter
 
         // otherwise, if the shares it has allocated is < the number it wants, it is in fact
         // pending but not complete.
-        logger.info(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances(), "isComplete", j.isCompleted());
+        logger.trace(methodName, j.getId(), "countNShares", j.countNShares(), "countInstances", j.countInstances(), "isComplete", j.isCompleted());
 
         if ( j.isCompleted() ) {
             return false;
         }
 
-        if ( j.countNShares() == j.countInstances() ) {
+        // 2014-02-18 - countTotalAssignments is the total nodes this job ever got - we're not allowed to
+        //              add more.  But if a node dies and the share is canceled, countNShares() CAN return 
+        //              0, preventing this cutoff check from working, and the job looks "refused" when in
+        //              fact it's just hungy.  Hence, the change from countNShares to countTotalAssignments. 
+        //                
+        //              Note: The NodePool code that detects dead nodes is responsible for removing dead shares
+        //              from jobs and should not remove shares from reservations, but it can remove shares
+        //              from non-preemptables that aren't reservations.        
+        //              UIMA-3613 jrc
+        //if ( j.countNShares() == j.countInstances() ) {
+        if ( j.countTotalAssignments() == j.countInstances() ) {
             j.markComplete();                  // non-preemptable, remember it finally got it's max
             return false;
         }

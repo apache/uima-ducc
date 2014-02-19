@@ -83,6 +83,8 @@ public class RmJob
     protected HashMap<Share, Share> pendingRemoves;      // job is scheduled to remove these but not confirmed
     protected HashMap<Share, Share> recoveredShares;     // recovery after bounce, need to reconnect these
 
+    protected int total_assigned = 0;                    // non-preemptable only, total shares every assigned
+
     // track shares by machine, and machines, to help when we have to give stuff away
     Map<Machine, Map<Share, Share>> sharesByMachine = new HashMap<Machine, Map<Share, Share>>();
     Map<Machine, Machine> machineList = new HashMap<Machine, Machine>();
@@ -468,6 +470,16 @@ public class RmJob
     public void assignShare(Share s)
     {
         pendingShares.put(s, s);
+        total_assigned++;
+    }
+
+    /**
+     * Non-preemptable, need to know total every assigned, in case one of them dies, must be careful
+     * not to reassign it.
+     */
+    public int countTotalAssignments()
+    {
+        return total_assigned;
     }
 
     /**

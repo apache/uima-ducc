@@ -119,6 +119,11 @@ public interface IRmJob
     public void assignShare(Share s);
 
     /**
+     * Track total number of shares ever given to this job.
+     */
+    public int countTotalAssignments();
+
+    /**
      * Set a share for recovery.
      */
     public void recoverShare(Share s);

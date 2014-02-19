@@ -30,6 +30,7 @@ import java.util.Map;
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 
 
 class NodePool
@@ -741,6 +742,7 @@ class NodePool
 
     void nodeLeaves(Machine m)
     {
+        String methodName = "nodeLeaves";
         if ( allMachines.containsKey(m.key()) ) {
             int order = m.getShareOrder();
             String name = m.getId();
@@ -748,13 +750,15 @@ class NodePool
 
             HashMap<Share, Share> shares = m.getActiveShares();
             for (Share s : shares.values()) {
-                if ( s.isFixed() ) {
-                    // a job cannot have both fixed and non-fixed shares
-                    // a fixed share is forever - this is either a full or a partial machine, either
-                    //    way, the job has to hang around.
+                IRmJob j = s.getJob();
+
+                if ( j.getDuccType() == DuccType.Reservation ) {
+                    // UIMA-3614.  Only actual reservation is left intact
+                    logger.info(methodName, j.getId(), "Not purging job on dead node, job type:", j.getDuccType());
                     break;
                 }
-                IRmJob j = s.getJob();
+
+                logger.info(methodName, j.getId(), "Purging job on dead node, job type:", j.getDuccType());
                 j.shrinkByOne(s);
                 nPendingByOrder[order]++;
                 s.purge();          // This bet tells OR not to wait for confirmation from the agent
@@ -1220,7 +1224,7 @@ class NodePool
         int order = j.getShareOrder();
         int given = 0;        
 
-        logger.info(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
+        logger.trace(methodName, j.getId(), "counted", counted, "current", current, "needed", needed, "order", order, "given", given);
 
         if ( needed > 0 ) {
             whatof: {
