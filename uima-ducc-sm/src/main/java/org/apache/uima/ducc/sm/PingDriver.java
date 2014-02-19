@@ -361,7 +361,13 @@ class PingDriver
                     ndeletions = Math.max(0, instances - reg_instances); 
                     logger.warn(methodName, sset.getId(), "Service shrink value capped by registered min of", reg_instances, "at", ndeletions);
                 }            
-            } 
+            }
+            int refs = sset.countReferences();
+            int impls = sset.countImplementors();
+            if ( (impls <= ndeletions) && (refs > 0) ) {
+                ndeletions = impls - 1;
+                logger.warn(methodName, sset.getId(), "Service shrink value capped at", ndeletions, "because there are still", refs, "references.");
+            }
         }
 
         sset.signalRebalance(additions, deletions, ndeletions, response.isExcessiveFailures());

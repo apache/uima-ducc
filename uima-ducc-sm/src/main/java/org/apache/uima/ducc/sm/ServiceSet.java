@@ -606,14 +606,6 @@ public class ServiceSet
     {
         String methodName = "saveMetaProperties";
 
-        try {
-            if ( !meta_props.get("instances").equals("2") ) {
-                throw new IllegalStateException();
-            }
-        } catch ( Exception e ) {
-            logger.info(methodName, id, e);
-        }
-
         if ( isDeregistered() ) return;
 
         if ( meta_filename == null ) {
@@ -845,6 +837,17 @@ public class ServiceSet
         return implementors.containsKey(id.getFriendly());
     }
     
+    /**
+     * Called by the PingDriver to return ping/monitor results, and to act on the results.
+     *
+     * @param nadditions           This is the number of new instances to start.
+     * @param deletions            These are the specific instances to stop.
+     * @param ndeleteions          This is the number of instances to stop.  This may well be smaller than
+     *                             the size of the 'deletions' array because PingDriver caps deletions to
+     *                             prevent over-agressive or buggy monitors from killing a service.
+     * @param isExcessiveFailuress This is set to 'true' if the ping/monitor decides there have been
+     *                             too many instance failures and SM should stop trying to restart them.
+     */
     synchronized void signalRebalance(int nadditions, Long[] deletions, int ndeletions, boolean isExcessiveFailures)
     {
         String methodName = "signalRebalance";
