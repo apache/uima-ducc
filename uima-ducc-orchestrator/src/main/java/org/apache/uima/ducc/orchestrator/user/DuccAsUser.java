@@ -48,7 +48,7 @@ public class DuccAsUser {
 			Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
 		
-		duccLogger.debug(methodName, null, messages.fetchLabel("the duckling launcher")+c_launcher_path);
+		duccLogger.trace(methodName, null, messages.fetchLabel("the duckling launcher")+c_launcher_path);
 		
 		ArrayList<String> cmd = new ArrayList<String>();
 		
@@ -61,13 +61,9 @@ public class DuccAsUser {
 		cmd.add(file);
 		cmd.add(text);
 		
-		StringBuffer sbInfo  = new StringBuffer();
 		StringBuffer sbDebug = new StringBuffer();
 
-		duccLogger.info(methodName, null, "plist: "+sbInfo.toString().trim());
-		duccLogger.debug(methodName, null, "plist: "+sbDebug.toString().trim());
-		
-		duccLogger.info(methodName, null, "cmd: "+cmd);
+		duccLogger.trace(methodName, null, "plist: "+sbDebug.toString().trim());
 		duccLogger.trace(methodName, null, "cmd: "+cmd);
 		
 		ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -84,7 +80,7 @@ public class DuccAsUser {
 			boolean trigger = false;
 			duccLogger.trace(methodName, null, "read stdout: start");
 			while ((line = bri.readLine()) != null) {
-				duccLogger.info(methodName, null, "stdout: "+line);
+				duccLogger.trace(methodName, null, "stdout: "+line);
 				if(trigger) {
 					retVal.append(line+"\n");
 				}
@@ -107,7 +103,7 @@ public class DuccAsUser {
 			duccLogger.trace(methodName, null, "process waitfor: end");
 		}
 		catch(Exception e) {
-			duccLogger.info(methodName, null, e);
+			duccLogger.warn(methodName, null, e);
 		}
 		
 		return retVal.toString();
