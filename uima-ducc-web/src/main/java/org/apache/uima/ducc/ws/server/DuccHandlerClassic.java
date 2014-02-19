@@ -1680,7 +1680,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sumSharesInuse += Integer.parseInt(facts.sharesInuse);
 				}
 				catch(Exception e) {
-					duccLogger.error(methodName, jobid, e);
+					duccLogger.trace(methodName, jobid, e);
 				}
 			}
 			row = new StringBuffer();
