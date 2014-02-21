@@ -139,32 +139,46 @@ public class CGroupsManager {
 							+ "/cgroup.procs");
 					//	collect all pids
 					String[] pids = readPids(f);
+					int zombieCount=0;
 					// kill each runnig process via -9
 					if (pids != null && pids.length > 0) {
 						for (String pid : pids) {
 							// Got cgroup processes still running. Kill them
 							for (NodeProcessInfo proc : processes) {
-								if (proc.getPid().equals(pid)) {
-									
+								// Dont kill zombie process as it is already dead. Just increment how many of them we have
+								if ( proc.isZombie() ) {
+									zombieCount++;
+								} else	if (proc.getPid().equals(pid)) {
+									// kill process hard via -9
 									kill( proc.getUserid(), proc.getPid());
 								}
 							}
 						}
+						long logCount = 0;
 						// it may take some time for the cgroups to udate accounting. Just cycle until
 						// the procs file becomes empty under a given cgroup
 						while( true ) {
 							pids = readPids(f);
-							if ( pids == null || pids.length == 0) {
+							// if the cgroup contains no pids or there are only zombie processes dont wait 
+							// for cgroup accounting. These processes will never terminate. The idea
+							// is not to enter into an infinite loop due to zombies
+							if ( pids == null || pids.length == 0 || (zombieCount == pids.length)) {
 								break;
 							} else {
 								try {
 									synchronized(this) {
-										agentLogger.info("cleanupOnStartup", null,
-												"--- CGroup:" + cgroupFolder+ " procs file still showing processes running. Wait until CGroups updates acccounting");
+										// log every ~30 minutes (10000 * 200), where 200 is a wait time in ms between tries
+										if ( logCount  % 10000 == 0) {
+											agentLogger.info("cleanupOnStartup", null,
+													"--- CGroup:" + cgroupFolder+ " procs file still showing processes running. Wait until CGroups updates acccounting");
+										}
+										logCount++;
 										wait(200);
 										
 									}
-								} catch( InterruptedException ee) {}
+								} catch( InterruptedException ee) {
+									break;
+								}
 							}
 						}
 					}
@@ -546,7 +560,7 @@ public class CGroupsManager {
 		try {
 
 			ProcessBuilder pb = new ProcessBuilder("ps", "-Ao",
-					"user:12,pid,ppid,args", "--no-heading");
+					"user:12,pid,ppid,args,stat", "--no-heading");
 			pb.redirectErrorStream(true);
 			java.lang.Process proc = pb.start();
 			// spawn ps command and scrape the output
@@ -563,10 +577,11 @@ public class CGroupsManager {
 				String user = tokens[0];
 				String pid = tokens[1];
 				String ppid = tokens[2];
-
+                String stat = tokens[4];
+                
 				if (tokens.length > 0) {
 
-					processList.add(new NodeProcessInfo(pid, ppid, user));
+					processList.add(new NodeProcessInfo(pid, ppid, user, stat));
 				}
 			}
 		} catch (Exception e) {
@@ -588,13 +603,18 @@ public class CGroupsManager {
 		private String pid;
 		private String ppid;
 		private String userid;
-
-		NodeProcessInfo(String pid, String ppid, String uid) {
+        private String stat;
+        
+		NodeProcessInfo(String pid, String ppid, String uid, String stat) {
 			this.pid = pid;
 			this.ppid = ppid;
-			userid = uid;
+			this.userid = uid;
+			this.stat = stat;
 		}
 
+		public boolean isZombie() {
+			return (stat == "Z") ? true : false;
+		}
 		public String getPid() {
 			return pid;
 		}
