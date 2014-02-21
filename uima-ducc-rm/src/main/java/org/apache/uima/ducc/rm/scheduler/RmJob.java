@@ -572,7 +572,7 @@ public class RmJob
     }
 
     /**
-     * Used by Fixed Share and by Reservations
+     * Remove a process from this job
      */
     public void shrinkByOne(Share share)
     {

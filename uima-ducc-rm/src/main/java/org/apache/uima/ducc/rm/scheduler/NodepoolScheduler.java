@@ -1098,22 +1098,25 @@ public class NodepoolScheduler
 
             for ( IRmJob j : jobs ) {
 
-                int n_instances = Math.max(j.countInstances(), 1);  // n-shrares; virtual shares - API treats this as a reservation
+                int n_instances = j.countInstances();               // n-shrares; virtual shares - API treats this as a reservation
                                                                     // and we overload the n-machines field for the count.
                 if ( j.countNShares() > 0 ) {
                     // already accounted for as well, since it is a non-preemptable share
-                    logger.info(methodName, j.getId(), "[stable]", j.countNShares(), "proc, ", 
+                    logger.info(methodName, j.getId(), "[stable]", "requested", n_instances, "assigned", j.countNShares(), "processes, ", 
                                 (j.countNShares() * j.getShareOrder()), "QS");
-                    // j.addQShares(j.countNShares() * j.getShareOrder());
                     int[] gbo = NodePool.makeArray();
-                    //gbo[j.getShareOrder()] = j.countNShares();       // must set the allocation so eviction works right
-                    gbo[j.getShareOrder()] = n_instances;       // must set the allocation so eviction works right
+
+                    gbo[j.getShareOrder()] = j.countNShares();    // must set the allocation so eviction works right
+
+                    // If node dies n_instances may be > countNShares() so we don't do it this way any more.  UIMA-3614
+                    // gbo[j.getShareOrder()] = n_instances;       // must set the allocation so eviction works right 
+
                     j.setGivenByOrder(gbo);
                     continue;
                 }
 
-                if ( j.isCompleted() ) {                        // been here already? nothing more to do                    
-                    continue;
+                if ( j.isCompleted() ) {                        // allocation once filled? then we're done
+                    continue;                                   // UIMA-3614, don't refuse, just stop allocating 
                 }
 
                 int order = j.getShareOrder();
@@ -1182,6 +1185,10 @@ public class NodepoolScheduler
             for ( IRmJob j : jobs ) {
 
                 if ( j.countNShares() > 0 ) {               // all or nothing - if we have any, we're fully satisfied
+                    continue;
+                }
+
+                if ( j.isCompleted() ) {                    // UIMA-3614 - may have bene purged, don't give it more
                     continue;
                 }
 
@@ -1263,11 +1270,18 @@ public class NodepoolScheduler
                 int nshares = j.countNShares();         // for reservation each share is one full machine
                 if ( nshares > 0 ) {                    // if it has any, it has all of them, so take off list
                     int[] gbo = NodePool.makeArray();   // needed to for defrag 
-                    gbo[j.getShareOrder()] = j.countInstances();
+                    // gbo[j.getShareOrder()] = j.countInstances();
+                    gbo[j.getShareOrder()] = j.countNShares();  // UIMA-3614 - may be < Instances if machine is purged
                     j.setGivenByOrder(gbo);
                     
                     machines_given_out += nshares;
                     jlist.remove();
+                    continue;
+                } 
+
+                if ( j.isCompleted() ) {                // maybe nothibng left, but it once had stuff
+                    jlist.remove();                     // don't try to reallocate.  UIMA-3614
+                    continue;
                 }
             }
 
@@ -1372,6 +1386,10 @@ public class NodepoolScheduler
                 }
 
                 if ( j.countNShares() > 0 ) {            // shares already allocated, nothing to do (all-or-nothing policy in effect)
+                    continue;
+                }
+
+                if ( j.isCompleted() ) {                    // UIMA-3614 - may have bene purged, don't give it more
                     continue;
                 }
 
