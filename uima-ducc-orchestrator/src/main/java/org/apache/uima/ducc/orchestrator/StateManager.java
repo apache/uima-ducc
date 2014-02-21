@@ -807,7 +807,7 @@ public class StateManager {
 					case Service:
 						logger.debug(methodName, duccId, messages.fetch("processing service..."));
 						DuccWorkJob duccWorkService = (DuccWorkJob) duccWork;
-						processPurger(duccWorkService,rmResourceState.getResources());
+						int processPurged = processPurger(duccWorkService,rmResourceState.getResources());
 						changes += processMapResourcesAdd(duccWorkService,rmResourceState.getPendingAdditions());
 						changes += processMapResourcesDel(duccWorkService,rmResourceState.getPendingRemovals());
 						JobState serviceState = duccWorkService.getJobState();
@@ -835,12 +835,34 @@ public class StateManager {
 								changes += stateChange(duccWorkService,JobState.Initializing);
 								logger.info(methodName, duccId, messages.fetchLabel("resources count")+duccWorkService.getProcessMap().size());
 							}
+							if((processPurged > 0) && allProcessesTerminated(duccWorkService)) {
+								duccWorkService.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+								duccWorkService.setCompletionType(JobCompletionType.ResourcesUnavailable);
+								duccWorkService.setCompletionRationale(new Rationale("resource manager purged allocation: "+rmResourceState.getReason()));
+								changes += stateChange(duccWorkService,JobState.Completed);
+								logger.warn(methodName, duccId, messages.fetchLabel("purged")+rmResourceState.getReason());
+								String userName = duccWorkService.getStandardInfo().getUser();
+								String userLogDir = duccWorkService.getUserLogsDir()+duccWorkService.getDuccId().getFriendly()+File.separator;;
+								String text = rmResourceState.getReason();
+								UserLogging.record(userName, userLogDir, text);
+							}
 							break;
 						case Initializing:
 						case Running:
 							if(duccWorkService.getProcessMap().size() == 0) {
 								changes += stateChange(duccWorkService,JobState.WaitingForResources);
 								logger.info(methodName, duccId, messages.fetchLabel("resources count")+duccWorkService.getProcessMap().size());
+							}
+							if((processPurged > 0) && allProcessesTerminated(duccWorkService)) {
+								duccWorkService.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
+								duccWorkService.setCompletionType(JobCompletionType.ResourcesUnavailable);
+								duccWorkService.setCompletionRationale(new Rationale("resource manager purged allocation: "+rmResourceState.getReason()));
+								changes += stateChange(duccWorkService,JobState.Completed);
+								logger.warn(methodName, duccId, messages.fetchLabel("purged")+rmResourceState.getReason());
+								String userName = duccWorkService.getStandardInfo().getUser();
+								String userLogDir = duccWorkService.getUserLogsDir()+duccWorkService.getDuccId().getFriendly()+File.separator;;
+								String text = rmResourceState.getReason();
+								UserLogging.record(userName, userLogDir, text);
 							}
 							break;
 						case Completing:
@@ -881,10 +903,11 @@ public class StateManager {
 						if(!process.isDefunct()) {
 							String rState = process.getResourceState().toString();
 							String pState = process.getProcessState().toString();
-							logger.info(methodName, job.getDuccId(), duccId, "rState:"+rState+" "+"pState"+pState);
+							logger.info(methodName, job.getDuccId(), duccId, "rState:"+rState+" "+"pState:"+pState);
 							process.setResourceState(ResourceState.Deallocated);
 							process.setProcessDeallocationType(ProcessDeallocationType.Purged);
 							process.advanceProcessState(ProcessState.Stopped);
+							changes++;
 						}
 					}
 				}
