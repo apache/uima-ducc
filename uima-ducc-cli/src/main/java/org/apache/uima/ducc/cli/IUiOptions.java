@@ -194,14 +194,30 @@ public interface IUiOptions
             public String label()       { return name(); }
         },
         
-        InstanceFailuresLimit { 
+        InstanceFailureLimit { 
             public String pname()       { return "instance_failures_limit"; }
             public String description() { return "Number of consecutive instance failures that will cause the service to be stopped."; }
             public String argname()     { return "integer"; }
             public String example()     { return null; }
-            public String deflt()       { return "2"; }
-            public String label()       { return "InstanceFailuresLimit"; }
+            public String label()       { return name(); }
         },   
+
+        InstanceInitFailureLimit { 
+            public String pname()       { return "instance_init_failures_limit"; }
+            public String description() { return "Number of consecutive instance initialization failures that will cause SM to cease starting the service."; }
+            public String argname()     { return "integer"; }
+            public String example()     { return null; }
+            public String label()       { return name(); }
+        },   
+
+        InstanceFailureWindow { 
+            public String pname()       { return "instance_failures_window"; }
+            public String argname()     { return "integer"; }
+            public String description() { return "Size of the window (in minutes) used to manage service instance runtime failures."; }
+            public String example()     { return "30"; }
+            public String label()       { return name(); }
+        },            
+
         JobId { 
             public String pname()       { return JobRequestProperties.key_id; }
             public String argname()     { return "string"; }

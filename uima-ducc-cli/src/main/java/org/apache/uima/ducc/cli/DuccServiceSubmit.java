@@ -57,18 +57,23 @@ public class DuccServiceSubmit
         UiOption.ProcessDD,
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
-        UiOption.InstanceFailuresLimit,
+        UiOption.InstanceFailureLimit,
         UiOption.ClasspathOrder,
         UiOption.Specification,
         UiOption.ServiceDependency,
         UiOption.ServiceRequestEndpoint,
         UiOption.ServiceLinger,
+
         UiOption.ServicePingArguments,
         UiOption.ServicePingClass,
         UiOption.ServicePingClasspath,
         UiOption.ServicePingJvmArgs,
         UiOption.ServicePingTimeout,
         UiOption.ServicePingDoLog,
+
+        UiOption.InstanceFailureWindow,
+        UiOption.InstanceFailureLimit,
+        UiOption.InstanceInitFailureLimit,
     };
    
     /**

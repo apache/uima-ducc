@@ -153,8 +153,8 @@ class PingDriver
         this.working_directory = resolveStringProperty ("working_directory"     , ping_props, job_props, null); // cli always puts this int job props, no default 
 
         this.log_directory     = resolveStringProperty ("log_directory"         , ping_props, job_props, null);     // cli always puts this int job props, no default 
-        this.failure_window    = resolveIntProperty    ("service_failure_window", ping_props, job_props, ServiceManagerComponent.failure_window);
-        this.failure_max       = resolveIntProperty    ("service_failure_max"   , ping_props, job_props, ServiceManagerComponent.failure_max);
+        this.failure_window    = resolveIntProperty    ("instance_failures_window", ping_props, job_props, ServiceManagerComponent.failure_window);
+        this.failure_max       = resolveIntProperty    ("instance_failures_limit" , ping_props, job_props, ServiceManagerComponent.failure_max);
 
         jvm_args_str = jvm_args_str.trim();
         if ( jvm_args_str.equals("") ) {

@@ -133,10 +133,10 @@ public class ServiceSet
     LingerTask linger = null;
     long linger_time = 60000;
 
-    int init_failures_max = ServiceManagerComponent.failure_max;
+    int init_failure_max = ServiceManagerComponent.init_failure_max;
     int init_failures = 0;                   // max allowed consecutive failures, current failure count
     
-    int ping_failures_max = ServiceManagerComponent.failure_max;
+    int ping_failure_max = ServiceManagerComponent.failure_max;
     int ping_failures = 0;                   // for ping-only services, if the external pinger throws errors we
                                              // need to govern it
 
@@ -157,7 +157,6 @@ public class ServiceSet
         this.service_state = ServiceState.Stopped;
         this.linger_time = props.getLongProperty(RegistrationOption.ServiceLinger.decode(), linger_time);
         this.key = meta.getProperty("endpoint");
-        this.init_failures_max = props.getIntProperty(UiOption.InstanceFailuresLimit.pname(), ServiceManagerComponent.failure_max);
 
         parseEndpoint(key);
 
@@ -167,6 +166,7 @@ public class ServiceSet
         this.ping_only = meta.getBooleanProperty("ping-only", false);
         this.stopped   = meta.getBooleanProperty("stopped", stopped);
         this.service_class = ServiceClass.Registered;
+        this.init_failure_max = props.getIntProperty("instance_init_failures_limit", init_failure_max);
 
         parseIndependentServices();
 
@@ -429,7 +429,7 @@ public class ServiceSet
          String methodName = "enforceAutostart";
          if ( ! autostart ) return;                           // not doing auto, nothing to do
          if ( stopped     ) return;                           // doing auto, but we've been manually stopped
-         if ( init_failures >= init_failures_max ) return;    // too many init failures, no more enforcement
+         if ( init_failures >= init_failure_max ) return;    // too many init failures, no more enforcement
 
          // if ( (isPingOnly()) && (serviceMeta == null) ) {    // ping-only and monitor / pinger not alive
          //     logger.info(methodName, id, "Autostarting 1 ping-only instance.");
@@ -985,7 +985,7 @@ public class ServiceSet
                         } else {
                             logger.warn(methodName, id, "Instance", inst_id,
                                         "Excessive initialization failures. Total failures[" + init_failures + "]",
-                                        "allowed [" + init_failures_max + "], not restarting.");
+                                        "allowed [" + init_failure_max + "], not restarting.");
                         }
                         setAutostart(false);
                     } else {
@@ -1365,7 +1365,7 @@ public class ServiceSet
     synchronized boolean excessiveFailures()
     {
         String methodName = "excessiveFailures";
-        if ( init_failures >= init_failures_max ) {
+        if ( init_failures >= init_failure_max ) {
             logger.trace(methodName, id, "INIT FAILURES EXCEEDED");
             return true;
         } 
@@ -1406,8 +1406,8 @@ public class ServiceSet
         } // otherwise, it was already removed by some intrepid unit
 
         if ( isPingOnly() && (rc != 0) ) {
-            if ( ++ping_failures > ping_failures_max ) {
-                logger.info(methodName, id, "Stopping pinger due to excessive falutes:", ping_failures_max);
+            if ( ++ping_failures > ping_failure_max ) {
+                logger.info(methodName, id, "Stopping pinger due to excessive falutes:", ping_failure_max);
                 // stop();
             } else {
                 logger.info(methodName, id, "Ping-only pinger exits with error rc", rc, "total errors:", ping_failures);

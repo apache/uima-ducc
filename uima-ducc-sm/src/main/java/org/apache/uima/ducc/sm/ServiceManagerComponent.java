@@ -97,8 +97,9 @@ public class ServiceManagerComponent
     static int meta_ping_timeout = 500;      // timeout on ping 
     static String default_ping_class;
 
-    static int failure_max = 5;
-    static int failure_window = 30;
+    static int init_failure_max = 1;       // total
+    static int failure_max = 5;              // total in window
+    static int failure_window = 30;          // window size in minutes
 
     private String state_dir = null;
     private String state_file = null;
@@ -112,7 +113,7 @@ public class ServiceManagerComponent
     private boolean testmode = false;
 
     Map<String, String> administrators = new HashMap<String, String>();
-    String version = "1.1.1";
+    String version = "1.1.2";
 
 	public ServiceManagerComponent(CamelContext context) 
     {
@@ -253,16 +254,18 @@ public class ServiceManagerComponent
 		super.start(service, args);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.ServiceManager,getProcessJmxUrl());
 
-        failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.max", failure_max);
-        failure_window = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.window", failure_window);
-        meta_ping_rate = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate", meta_ping_rate);
-        meta_ping_timeout = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout", meta_ping_timeout);
-        meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability", meta_ping_stability);
-        default_ping_class = SystemPropertyResolver.getStringProperty("ducc.sm.default.monitor.class", UimaAsPing.class.getName());
+        init_failure_max = SystemPropertyResolver.getIntProperty("ducc.sm.init.failure.limit"         , init_failure_max);
+        failure_max      = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.limit"     , failure_max);
+        failure_window   = SystemPropertyResolver.getIntProperty("ducc.sm.instance.failure.window"    , failure_window);
+
+        meta_ping_rate      = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.rate"          , meta_ping_rate);
+        meta_ping_timeout   = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.timeout"       , meta_ping_timeout);
+        meta_ping_stability = SystemPropertyResolver.getIntProperty("ducc.sm.meta.ping.stability"     , meta_ping_stability);
+        default_ping_class  = SystemPropertyResolver.getStringProperty("ducc.sm.default.monitor.class", UimaAsPing.class.getName());
+
         String rm = SystemPropertyResolver.getStringProperty("ducc.runmode", "");
         if ( rm.equals("Test") ) testmode = true;
 
-        // yuck
         String sig = SystemPropertyResolver.getStringProperty("ducc.signature.required", "on");
         signature_required = true;
         if      ( sig.equals("on")  ) signature_required = true;
@@ -275,18 +278,27 @@ public class ServiceManagerComponent
         logger.info(methodName, null, "Service Manager starting:");
         logger.info(methodName, null, "    DUCC home               : ", System.getProperty("DUCC_HOME"));
         logger.info(methodName, null, "    ActiveMQ URL            : ", System.getProperty("ducc.broker.url"));
+        logger.info(methodName, null, "");
         logger.info(methodName, null, "    JVM                     : ", System.getProperty("java.vendor") +
                                                                    " "+ System.getProperty("java.version"));
         logger.info(methodName, null, "    JAVA_HOME               : ", System.getProperty("java.home"));
         logger.info(methodName, null, "    JVM Path                : ", System.getProperty("ducc.jvm"));
         logger.info(methodName, null, "    JMX URL                 : ", System.getProperty("ducc.jmx.url"));
+        logger.info(methodName, null, "");
         logger.info(methodName, null, "    OS Architecture         : ", System.getProperty("os.arch"));
         logger.info(methodName, null, "    Crypto enabled          : ", signature_required);
+        logger.info(methodName, null, "");
         logger.info(methodName, null, "    Test mode enabled       : ", testmode);
+        logger.info(methodName, null, "");
         logger.info(methodName, null, "    Service ping rate       : ", meta_ping_rate);
         logger.info(methodName, null, "    Service ping timeout    : ", meta_ping_timeout);
         logger.info(methodName, null, "    Service ping stability  : ", meta_ping_stability);
+        logger.info(methodName, null, "    Default ping class      : ", default_ping_class);
+        logger.info(methodName, null, "");
+        logger.info(methodName, null, "    Init Failure Max        : ", init_failure_max);
         logger.info(methodName, null, "    Instance Failure Max    : ", failure_max);
+        logger.info(methodName, null, "    Instance Failure Window : ", failure_window);
+        logger.info(methodName, null, "");
         logger.info(methodName, null, "    DUCC Version            : ", Version.version());
         logger.info(methodName, null, "    SM Version              : ", version);
         logger.info(methodName, null, "------------------------------------------------------------------------------------");

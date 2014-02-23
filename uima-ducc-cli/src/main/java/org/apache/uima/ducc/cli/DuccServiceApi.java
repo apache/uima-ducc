@@ -66,18 +66,22 @@ public class DuccServiceApi
         UiOption.ProcessDD,
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
-        UiOption.InstanceFailuresLimit,
         UiOption.ClasspathOrder,
         // UiOption.Specification          // not used for registration
         UiOption.ServiceDependency,
         UiOption.ServiceRequestEndpoint,
         UiOption.ServiceLinger,
+
         UiOption.ServicePingArguments,
         UiOption.ServicePingClass,
         UiOption.ServicePingClasspath,
         UiOption.ServicePingJvmArgs,
         UiOption.ServicePingTimeout,
         UiOption.ServicePingDoLog,
+
+        UiOption.InstanceFailureWindow,
+        UiOption.InstanceFailureLimit,
+        UiOption.InstanceInitFailureLimit,
 
         UiOption.Register,
         UiOption.Autostart,
@@ -117,12 +121,17 @@ public class DuccServiceApi
         UiOption.Instances,
         UiOption.Autostart,
         UiOption.Activate,
+
         UiOption.ServicePingArguments,
         UiOption.ServicePingClass,
         UiOption.ServicePingClasspath,
         UiOption.ServicePingJvmArgs,
         UiOption.ServicePingTimeout,
         UiOption.ServicePingDoLog,
+
+        UiOption.InstanceFailureWindow,
+        UiOption.InstanceFailureLimit,
+        UiOption.InstanceInitFailureLimit,
     }; 
 
     UiOption[] query_options = {
