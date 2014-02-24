@@ -37,7 +37,7 @@ public class ProcessEventListener implements DuccEventDelegateListener{
 		//this.eventDispatcher = eventDispatcher;
 	}
 	public void onProcessStop(@Body ProcessStopDuccEvent event) {
-		service.killService();
+		service.stopService();
 	}
 
 }
