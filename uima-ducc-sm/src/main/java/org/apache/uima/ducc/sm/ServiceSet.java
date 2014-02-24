@@ -429,7 +429,8 @@ public class ServiceSet
          String methodName = "enforceAutostart";
          if ( ! autostart ) return;                           // not doing auto, nothing to do
          if ( stopped     ) return;                           // doing auto, but we've been manually stopped
-         if ( init_failures >= init_failure_max ) return;    // too many init failures, no more enforcement
+         if ( init_failures >= init_failure_max ) return;     // too many init failures, no more enforcement
+         if ( ping_failures >= ping_failure_max ) return;     // ping-only 
 
          // if ( (isPingOnly()) && (serviceMeta == null) ) {    // ping-only and monitor / pinger not alive
          //     logger.info(methodName, id, "Autostarting 1 ping-only instance.");
@@ -473,6 +474,7 @@ public class ServiceSet
     synchronized void resetRuntimeErrors()
     {
         run_failures = 0;
+        ping_failures = 0;
         excessiveRunFailures = false;
     }
 
@@ -1408,7 +1410,8 @@ public class ServiceSet
         if ( isPingOnly() && (rc != 0) ) {
             if ( ++ping_failures > ping_failure_max ) {
                 logger.info(methodName, id, "Stopping pinger due to excessive falutes:", ping_failure_max);
-                // stop();
+                stop(-1L);        // must be -lL Long to get the right overload
+                implementors.remove(-1L);
             } else {
                 logger.info(methodName, id, "Ping-only pinger exits with error rc", rc, "total errors:", ping_failures);
             }
@@ -1506,7 +1509,7 @@ public class ServiceSet
             }
 
             ServiceInstance si = new PingOnlyServiceInstance(this);
-            si.setId(-1);
+            si.setId(-1L);
             si.setUser(this.user);
             implementors.put(-1l, si);
             handler.addInstance(this, si);
@@ -1516,7 +1519,7 @@ public class ServiceSet
 
             for ( int i = 0; i < ninstances; i++ ) {
                 ServiceInstance si = new ServiceInstance(this);
-                long instid = -1;
+                long instid = -1L;
                 logger.info(methodName, id, "Starting instance", i);
                 if ( (instid = si.start(props_filename, meta_props)) >= 0 ) {
                     logger.info(methodName, id, "Instance[", i, "] id ", instid);

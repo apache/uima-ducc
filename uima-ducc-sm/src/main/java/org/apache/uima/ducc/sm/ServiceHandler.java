@@ -882,7 +882,7 @@ public class ServiceHandler
         
         if ( pingArguments != null ) sset.setJobProperty("service_ping_arguments", pingArguments);
         if ( pingClass     != null ) sset.setJobProperty("service_ping_class"    , pingClass);
-        if ( pingClasspath != null ) sset.setJobProperty("servcie_ping_classpath", pingClasspath);
+        if ( pingClasspath != null ) sset.setJobProperty("service_ping_classpath", pingClasspath);
         if ( pingJvmArgs   != null ) sset.setJobProperty("service_jvm_args"      , pingJvmArgs);
         if ( pingTimeout   != null ) sset.setJobProperty("service_ping_timeout"  , pingTimeout);
         if ( pingDolog     != null ) sset.setJobProperty("service_ping_dolog"    , pingDolog);
