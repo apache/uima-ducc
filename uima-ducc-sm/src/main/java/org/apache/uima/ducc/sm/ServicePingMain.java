@@ -51,7 +51,6 @@ public class ServicePingMain
     /**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
 	boolean debug = false;
     int error_max = 10;
     int error_count = 0;

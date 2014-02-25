@@ -21,7 +21,6 @@ package org.apache.uima.ducc.cli;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
 import org.apache.uima.ducc.transport.event.cli.ServiceRequestProperties;
@@ -121,7 +120,7 @@ public class DuccServiceSubmit
         String uimaDD = cli_props.getStringProperty(UiOption.ProcessDD.pname(), null);
         String customCmd = cli_props.getStringProperty(UiOption.ProcessExecutable.pname(), null);
         
-        String endpoint = requestProperties.getProperty(RegistrationOption.ServiceRequestEndpoint.decode());
+        String endpoint = requestProperties.getProperty(UiOption.ServiceRequestEndpoint.pname());
         
         if (endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode())) {
             requestProperties.put(UiOption.ServiceTypeUima.pname(), "");

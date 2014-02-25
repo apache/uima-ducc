@@ -34,7 +34,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.uima.UIMAFramework;
-import org.apache.uima.ducc.cli.IServiceApi.RegistrationOption;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.cli.UimaAsPing;
 import org.apache.uima.ducc.cli.UimaAsServiceMonitor;
@@ -47,6 +46,9 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.sm.IService.ServiceClass;
+import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
+import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceDescription;
 import org.apache.uima.util.Level;
@@ -56,7 +58,6 @@ import org.apache.uima.util.Level;
  * Represents the collection of process, jobs, and such that implement a given service.
  */
 
-@SuppressWarnings("serial")
 public class ServiceSet
 	implements SmConstants
 {
@@ -155,7 +156,7 @@ public class ServiceSet
         this.props_filename = props_filename;
         this.meta_filename = meta_filename;
         this.service_state = ServiceState.Stopped;
-        this.linger_time = props.getLongProperty(RegistrationOption.ServiceLinger.decode(), linger_time);
+        this.linger_time = props.getLongProperty(UiOption.ServiceLinger.pname(), linger_time);
         this.key = meta.getProperty("endpoint");
 
         parseEndpoint(key);
@@ -180,7 +181,7 @@ public class ServiceSet
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
 
-        if ( (!job_props.containsKey("process_executable")) && (service_type != ServiceType.UimaAs) ) {
+        if ( (!job_props.containsKey(UiOption.ProcessExecutable.pname())) && (service_type != ServiceType.UimaAs) ) {
             meta_props.put("ping-only", "true");
             this.ping_only = true;
         } else {
@@ -334,7 +335,7 @@ public class ServiceSet
 
     private void parseIndependentServices()
     {
-        String depstr = job_props.getProperty(RegistrationOption.ServiceDependency.decode());
+        String depstr = job_props.getProperty(UiOption.ServiceDependency.pname());
         String[] result = null;
 
         if ( depstr != null ) {
@@ -741,7 +742,7 @@ public class ServiceSet
             return;
         }
 
-        String pingclass = job_props.getStringProperty("service_ping_class", UimaAsPing.class.getName());
+        String pingclass = job_props.getStringProperty(UiOption.ServicePingClass.pname(), UimaAsPing.class.getName());
         if ( !pingclass.equals(UimaAsPing.class.getName()) ) {
             logger.info(methodName, id, "Deleting unregistered service: not clearing queue because not using the default UIMA-AS pinger:", pingclass, "(", key, ")");
             return;

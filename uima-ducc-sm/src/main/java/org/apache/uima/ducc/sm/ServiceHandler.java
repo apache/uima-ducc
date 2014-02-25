@@ -37,13 +37,14 @@ import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
 import org.apache.uima.ducc.transport.event.sm.ServiceDependency;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 
 
-@SuppressWarnings("serial")
+
 public class ServiceHandler
     implements SmConstants, 
                Runnable

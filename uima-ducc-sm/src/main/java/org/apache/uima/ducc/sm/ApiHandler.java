@@ -23,6 +23,7 @@ import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
+import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
 
 
 /**
@@ -38,7 +39,6 @@ class ApiHandler
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
 	UiOption cmd;
     ServiceHandler serviceHandler;
 

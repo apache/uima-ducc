@@ -33,7 +33,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 *
 * This is a simple class, mostly just a container for the state machine.
 */
-@SuppressWarnings("serial")
+
 class ServiceInstance
 	implements SmConstants
 {

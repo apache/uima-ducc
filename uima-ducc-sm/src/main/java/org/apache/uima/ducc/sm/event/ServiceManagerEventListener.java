@@ -21,7 +21,6 @@ package org.apache.uima.ducc.sm.event;
 import org.apache.camel.Body;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.sm.IServiceManager;
-import org.apache.uima.ducc.sm.SmConstants;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
@@ -40,21 +39,17 @@ import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
  *
  */
 public class ServiceManagerEventListener 
-    implements DuccEventDelegateListener,
-               SmConstants
+    implements DuccEventDelegateListener
 {
 /**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
-
-
 	//	private DuccEventDispatcher eventDispatcher;
 //	private String targetEndpoint;
 	private IServiceManager serviceManager;
 	
 
-	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerEventListener.class.getName(), COMPONENT_NAME);	
+	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerEventListener.class.getName(), "SM");	
 
 	public ServiceManagerEventListener(IServiceManager serviceManager) 
     {

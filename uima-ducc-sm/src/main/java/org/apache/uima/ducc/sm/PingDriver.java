@@ -38,11 +38,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 
 
 /**
@@ -66,7 +68,6 @@ class PingDriver
     /**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
 
 	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
 
@@ -123,7 +124,7 @@ class PingDriver
 
         // establish the default pinger, then see if another pinger is specified and set it.        
         this.ping_class        = System.getProperty("ducc.sm.default.monitor.class", "org.apache.uima.ducc.cli.UimaAsPing");
-        this.ping_class        = job_props.getStringProperty("service_ping_class", this.ping_class);
+        this.ping_class        = job_props.getStringProperty(UiOption.ServicePingClass.pname(),  this.ping_class);
 
         // If the pinger is registered with us we can pick up (and trust) the registered defaults.  Read the registration now.
         DuccProperties ping_props = findRegisteredPinger(this.ping_class);
@@ -144,17 +145,17 @@ class PingDriver
         this.user              = meta_props.getStringProperty("user");
         this.max_instances     = Integer.parseInt(System.getProperty("ducc.sm.max.instances", "10"));
 
-        this.ping_arguments    = resolveStringProperty ("service_ping_arguments", ping_props, job_props, null);
-        String jvm_args_str    = resolveStringProperty ("service_ping_jvm_args" , ping_props, job_props, "");
+        this.ping_arguments    = resolveStringProperty (UiOption.ServicePingArguments.pname() , ping_props, job_props, null);
+        String jvm_args_str    = resolveStringProperty (UiOption.ServicePingJvmArgs.pname()   , ping_props, job_props, "");
         
-        this.meta_ping_timeout = resolveIntProperty    ("service_ping_timeout"  , ping_props, job_props, ServiceManagerComponent.meta_ping_timeout);
-        this.do_log            = resolveBooleanProperty("service_ping_dolog"    , ping_props, job_props, false);
-        this.classpath         = resolveStringProperty ("service_ping_classpath", ping_props, job_props, System.getProperty("java.class.path"));
-        this.working_directory = resolveStringProperty ("working_directory"     , ping_props, job_props, null); // cli always puts this int job props, no default 
+        this.meta_ping_timeout = resolveIntProperty    (UiOption.ServicePingTimeout.pname()   , ping_props, job_props, ServiceManagerComponent.meta_ping_timeout);
+        this.do_log            = resolveBooleanProperty(UiOption.ServicePingDoLog.pname()     , ping_props, job_props, false);
+        this.classpath         = resolveStringProperty (UiOption.ServicePingClasspath.pname() , ping_props, job_props, System.getProperty("java.class.path"));
+        this.working_directory = resolveStringProperty (UiOption.WorkingDirectory.pname()     , ping_props, job_props, null); // cli always puts this int job props, no default 
 
-        this.log_directory     = resolveStringProperty ("log_directory"         , ping_props, job_props, null);     // cli always puts this int job props, no default 
-        this.failure_window    = resolveIntProperty    ("instance_failures_window", ping_props, job_props, ServiceManagerComponent.failure_window);
-        this.failure_max       = resolveIntProperty    ("instance_failures_limit" , ping_props, job_props, ServiceManagerComponent.failure_max);
+        this.log_directory     = resolveStringProperty (UiOption.LogDirectory.pname()         , ping_props, job_props, null);     // cli always puts this int job props, no default 
+        this.failure_window    = resolveIntProperty    (UiOption.InstanceFailureWindow.pname(), ping_props, job_props, ServiceManagerComponent.failure_window);
+        this.failure_max       = resolveIntProperty    (UiOption.InstanceFailureLimit.pname( ), ping_props, job_props, ServiceManagerComponent.failure_max);
 
         jvm_args_str = jvm_args_str.trim();
         if ( jvm_args_str.equals("") ) {
@@ -230,26 +231,26 @@ class PingDriver
                  val.equalsIgnoreCase("true") );
     }
 
-    /**
-     * Test from main only
-     */
-    PingDriver(String props)
-    {        
-        DuccProperties dp = new DuccProperties();
-        try {
-			dp.load(props);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+    // /**
+    //  * Test from main only
+    //  */
+    // PingDriver(String props)
+    // {        
+    //     DuccProperties dp = new DuccProperties();
+    //     try {
+	// 		dp.load(props);
+	// 	} catch (Exception e) {
+	// 		// TODO Auto-generated catch block
+	// 		e.printStackTrace();
+	// 	}
 
-        this.endpoint = dp.getStringProperty("endpoint");
-        String jvm_args_str = dp.getStringProperty("service_ping_jvm_args", "");
-        this.ping_class = dp.getStringProperty("service_ping_class");
-        this.classpath = dp.getStringProperty("service_ping_classpath");
-        jvm_args = jvm_args_str.split(" ");
-        this.test_mode = true;
-    }
+    //     this.endpoint = dp.getStringProperty("endpoint");
+    //     String jvm_args_str = dp.getStringProperty("service_ping_jvm_args", "");
+    //     this.ping_class = dp.getStringProperty("service_ping_class");
+    //     this.classpath = dp.getStringProperty("service_ping_classpath");
+    //     jvm_args = jvm_args_str.split(" ");
+    //     this.test_mode = true;
+    // }
 
 
     /**
@@ -822,14 +823,14 @@ class PingDriver
         }
     }
 
-    public static void main(String[] args)
-    {
-        // arg0 = amqurl = put into -Dbroker.url
-        // arg1 = endpoint - pass to ServicePingMain
-        // call ServicePingMain --class org.apache.uima.ducc.sm.PingTester --endpoint FixedSleepAE_1
-        //    make sure test.jar is in the classpath
-        PingDriver csm = new PingDriver(args[0]);
-        csm.run();
-    }
+    // public static void main(String[] args)
+    // {
+    //     // arg0 = amqurl = put into -Dbroker.url
+    //     // arg1 = endpoint - pass to ServicePingMain
+    //     // call ServicePingMain --class org.apache.uima.ducc.sm.PingTester --endpoint FixedSleepAE_1
+    //     //    make sure test.jar is in the classpath
+    //     PingDriver csm = new PingDriver(args[0]);
+    //     csm.run();
+    // }
 
 }

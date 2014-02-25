@@ -62,6 +62,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
+import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 
 
@@ -80,7 +81,6 @@ public class ServiceManagerComponent
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 1L;
 	private static DuccLogger logger = DuccLogger.getLogger(ServiceManagerComponent.class.getName(), COMPONENT_NAME);	
     DuccWorkMap localMap = null;
 
