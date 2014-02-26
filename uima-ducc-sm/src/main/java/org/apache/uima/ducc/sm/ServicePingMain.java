@@ -27,6 +27,7 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,13 +57,14 @@ public class ServicePingMain
     int error_count = 0;
 
     DuccProperties clioptions = new DuccProperties();
+    static final String None = "None";
 
     public ServicePingMain()
     {
     	clioptions.put("--class", clioptions);
     	clioptions.put("--endpoint", clioptions);
     	clioptions.put("--port", clioptions);
-    	clioptions.put("--arguments", clioptions);
+    	clioptions.put("--arguments", None);
     	clioptions.put("--initprops", clioptions);
     }
 
@@ -171,12 +173,20 @@ public class ServicePingMain
         }
 
         // Now make sure they all exist
-        for ( Object o : clioptions.keySet() ) {
+        ArrayList<String> toRemove = new ArrayList<String>();
+        for ( Object o : clioptions.keySet()) {
             String k = (String) o;
-            if ( clioptions.get(k) == clioptions ) {
+            Object v = clioptions.get(k);
+            if ( v == clioptions ) {
                 System.out.println("Missing argument: " + k);
                 System.exit(1);
             }
+            if ( v == None ) {             // optional arg, we want fetches to return null if it wasn't set 
+                toRemove.add(k);
+            }
+        }
+        for ( String k : toRemove ) {
+            clioptions.remove(k);
         }
     }
 
@@ -235,7 +245,7 @@ public class ServicePingMain
         }
         return ret;
     }
-
+    
     //
     // 1. Instantiate the pinger if possible.
     // 2. Read ducc.proeprties to find the ping interval
@@ -251,7 +261,7 @@ public class ServicePingMain
         IServiceStatistics default_statistics = new ServiceStatistics(false, false, "<N/A>");
 
         parseOptions(args);
-        String arguments = clioptions.getStringProperty("--arguments");
+        String arguments = clioptions.getProperty("--arguments");
         String pingClass = clioptions.getStringProperty("--class");
         String endpoint  = clioptions.getStringProperty("--endpoint");
         int port         = clioptions.getIntProperty   ("--port");

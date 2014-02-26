@@ -33,7 +33,8 @@ public abstract class AServicePing
     protected int total_failures = 0;           // current total run failures. usually monotonically increasing.
     protected int failure_max = 3;              // max allowed failures within any given window
 
-    protected int failure_window_size = 30;     // 30 minutes. overridden at first ping
+    protected int failure_window_period = 30;   // 30 minutes. overridden at first ping
+    protected int failure_window_size = failure_window_period;  // assume 1 ping per minute
     protected int monitor_rate = 1;             // ping rate, in minutes, min 1 used for calculations
 
     protected boolean log_enabled = false;
@@ -53,7 +54,7 @@ public abstract class AServicePing
      * @param endpoint This is the name of the service endpoint, as passed in
      *                 at service registration.
      */
-    public abstract void init(String arguments, String endpoint)  throws Exception;
+    public abstract void init(String arguments, String endpoint) throws Exception;
 
     /**
      * Called by the ping driver to initialize static information about the service and
@@ -77,6 +78,18 @@ public abstract class AServicePing
         throws Exception
     {
         this.initializationState = initState;
+
+        monitor_rate          = (Integer) initializationState.get("monitor-rate");        
+        service_id            = (Long)    initializationState.get("service-id") ;       
+        log_enabled           = (Boolean) initializationState.get("do-log");        
+        failure_max           = (Integer) initializationState.get("failure-max");        
+        failure_window_period = (Integer) initializationState.get("failure-window");
+
+        double  calls_per_minute = 60000.00 / monitor_rate;
+        failure_window_size = (int) ( ((double)failure_window_period) * calls_per_minute);
+
+        failure_window = new int[failure_window_size];
+        failure_cursor = 0;
         init(arguments, endpoint);
     }
 
@@ -192,20 +205,6 @@ public abstract class AServicePing
     {
         String methodName = "isExcessiveFailures";
         boolean excessive_failures = false;
-
-        if ( failure_window == null ) {
-            // first time, init the failure analysis state from the static init properties
-            failure_window_size = (Integer) initializationState.get("failure-window");
-            failure_window = new int[failure_window_size];
-            failure_cursor = 0;
-        
-            monitor_rate = (Integer) initializationState.get("monitor-rate") / 60000;       // convert to minutes
-            if (monitor_rate <= 0 ) monitor_rate = 1;                                                // minimum 1 minute allowed
-        
-            service_id  = (Long) initializationState.get("service-id") ;       
-            log_enabled = (Boolean) initializationState.get("do-log");        
-            failure_max = (Integer) initializationState.get("failure-max");                                            
-        }
 
         // Calculate total instance failures within some configured window.  If we get a cluster
         // of failures, signal excessive failures so SM stops spawning new ones.
