@@ -1,5 +1,5 @@
 service_ping_class     = org.apache.uima.ducc.cli.UimaAsPing
-service_ping_arguments = meta-timeout-15000,broker-jmx-port=${ducc.broker.jmx.port},enable-log=true
+service_ping_arguments = meta-timeout-15000,broker-jmx-port=1099,enable-log=true
 #service_ping_jvmargs  = any jvm args you need for standalone execution
 service_ping_classpath = ${DUCC_HOME}/lib/uima/*:${DUCC_HOME}/activemq/*:${DUCC_HOME}/lib//springframework/*
 service_ping_dolog     = true
