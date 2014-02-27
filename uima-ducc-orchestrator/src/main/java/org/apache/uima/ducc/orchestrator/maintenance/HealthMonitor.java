@@ -30,6 +30,7 @@ import org.apache.uima.ducc.orchestrator.Constants;
 import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.StateManager;
+import org.apache.uima.ducc.orchestrator.WorkMapHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -201,7 +202,7 @@ public class HealthMonitor {
 			boolean ckpt = false;
 			for(DuccId jobId : jobKeySet) {
 				try {
-					IDuccWorkJob job = (IDuccWorkJob) workMap.findDuccWork(jobId);
+					IDuccWorkJob job = (IDuccWorkJob) WorkMapHelper.findDuccWork(workMap, jobId, this, methodName);
 					if(isDriverCompleted(job)) {
 						ckpt = true;
 					}
@@ -254,7 +255,7 @@ public class HealthMonitor {
 			boolean ckpt = false;
 			for(DuccId serviceId : serviceKeySet) {
 				try {
-					IDuccWorkJob service = (IDuccWorkJob) workMap.findDuccWork(serviceId);
+					IDuccWorkJob service = (IDuccWorkJob) WorkMapHelper.findDuccWork(workMap, serviceId, this, methodName);
 					if(isCancelJobExcessiveProcessFailures(service)) {
 						ckpt = true;
 					}

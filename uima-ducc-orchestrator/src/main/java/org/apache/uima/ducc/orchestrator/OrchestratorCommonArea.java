@@ -36,6 +36,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
 import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
+import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
@@ -180,24 +181,25 @@ public class OrchestratorCommonArea {
 		String methodName = "getCheckpointable";
 		DuccWorkMap ckptWorkMap;
 		ConcurrentHashMap<DuccId,DuccId> ckptProcessToJobMap;
-		long t0 = System.currentTimeMillis();
+		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
+			ts.using();
 			ckptWorkMap = (DuccWorkMap)SerializationUtils.clone(workMap);
 			ckptProcessToJobMap = (ConcurrentHashMap<DuccId,DuccId>)SerializationUtils.clone(processAccounting.getProcessToJobMap());
 		}
-		long t1 = System.currentTimeMillis();
-		long elapsed = t1 - t0;
-		if(elapsed > Constants.SYNC_LIMIT) {
-			logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-		}
+		ts.ended();
 		return new Checkpointable(ckptWorkMap,ckptProcessToJobMap);
 	}
 	
 	public void setCheckpointable(Checkpointable checkpointable) {
+		String methodName = "setCheckpointable";
+		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
+			ts.using();
 			workMap = checkpointable.getWorkMap();
 			processAccounting = new ProcessAccounting(checkpointable.getProcessToJobMap());
 		}
+		ts.ended();
 	}
 	
 	// **********

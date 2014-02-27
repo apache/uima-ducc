@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IOHelper;
 import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
+import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 
 
@@ -146,8 +147,9 @@ public class OrchestratorCheckpoint {
 		boolean retVal = false;
 		if(saveEnabled) {
 			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-			long t0 = System.currentTimeMillis();
+			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 			synchronized(workMap) {
+				ts.using();
 				try
 				{
 					logger.info(methodName, null, messages.fetchLabel("saving to")+fileName);
@@ -166,11 +168,7 @@ public class OrchestratorCheckpoint {
 					logger.error(methodName, null, e);
 				}
 			}
-			long t1 = System.currentTimeMillis();
-			long elapsed = t1 - t0;
-			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-			}
+			ts.ended();
 		}
 		else {
 			logger.debug(methodName, null, messages.fetchLabel("bypass saving to")+fileName);
@@ -185,8 +183,9 @@ public class OrchestratorCheckpoint {
 		boolean retVal = false;
 		if(saveEnabled) {
 			DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-			long t0 = System.currentTimeMillis();
+			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 			synchronized(workMap) {
+				ts.using();
 				try
 				{
 					logger.info(methodName, null, messages.fetchLabel("restoring from")+fileName);
@@ -209,11 +208,7 @@ public class OrchestratorCheckpoint {
 					logger.error(methodName, null, e);
 				}
 			}
-			long t1 = System.currentTimeMillis();
-			long elapsed = t1 - t0;
-			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-			}
+			ts.ended();
 		}
 		else {
 			logger.info(methodName, null, messages.fetchLabel("bypass restoring from")+fileName);

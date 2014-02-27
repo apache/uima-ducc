@@ -156,7 +156,7 @@ public class JobDriverHostManager {
 		reservationRequestProperties.put(ReservationSpecificationProperties.key_user, jdHostUser);
 		duccWorkReservation = ReservationFactory.getInstance().create(commonConfiguration, reservationRequestProperties);
 		DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-		workMap.addDuccWork(duccWorkReservation);
+		WorkMapHelper.addDuccWork(workMap, duccWorkReservation, this, methodName);
 		// state: Received
 		duccWorkReservation.stateChange(ReservationState.Received);
 		OrchestratorCheckpoint.getInstance().saveState();

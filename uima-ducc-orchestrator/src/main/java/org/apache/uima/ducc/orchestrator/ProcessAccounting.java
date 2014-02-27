@@ -29,6 +29,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
@@ -76,30 +77,24 @@ public class ProcessAccounting {
 	public DuccId getJobId(DuccId processId) {
 		String methodName = "getJobId";
 		DuccId retVal;
-		long t0 = System.currentTimeMillis();
+		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
+			ts.using();
 			retVal = processToJobMap.get(processId);
 		}
-		long t1 = System.currentTimeMillis();
-		long elapsed = t1 - t0;
-		if(elapsed > Constants.SYNC_LIMIT) {
-			logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-		}
+		ts.ended();
 		return retVal;
 	}
 	
 	public int processCount() {
 		String methodName = "processCount";
 		int retVal;
-		long t0 = System.currentTimeMillis();
+		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
+			ts.using();
 			retVal = processToJobMap.size();
 		}
-		long t1 = System.currentTimeMillis();
-		long elapsed = t1 - t0;
-		if(elapsed > Constants.SYNC_LIMIT) {
-			logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-		}
+		ts.ended();
 		return retVal;
 	}
 	
@@ -107,8 +102,9 @@ public class ProcessAccounting {
 		String methodName = "addProcess";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
-		long t0 = System.currentTimeMillis();
+		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
+			ts.using();
 			if(!processToJobMap.containsKey(processId)) {
 				processToJobMap.put(processId, jobId);
 				retVal = true;
@@ -118,11 +114,7 @@ public class ProcessAccounting {
 				logger.warn(methodName, jobId, processId, messages.fetch("exists"));
 			}
 		}
-		long t1 = System.currentTimeMillis();
-		long elapsed = t1 - t0;
-		if(elapsed > Constants.SYNC_LIMIT) {
-			logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-		}
+		ts.ended();
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
@@ -131,8 +123,9 @@ public class ProcessAccounting {
 		String methodName = "removeProcess";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
-		long t0 = System.currentTimeMillis();
+		TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 		synchronized(workMap) {
+			ts.using();
 			if(processToJobMap.containsKey(processId)) {
 				DuccId jobId = processToJobMap.remove(processId);
 				retVal = true;
@@ -142,11 +135,7 @@ public class ProcessAccounting {
 				logger.warn(methodName, null, processId, messages.fetch("not found"));
 			}
 		}
-		long t1 = System.currentTimeMillis();
-		long elapsed = t1 - t0;
-		if(elapsed > Constants.SYNC_LIMIT) {
-			logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-		}
+		ts.ended();
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
@@ -653,11 +642,12 @@ public class ProcessAccounting {
 		try {
 			DuccId processId = inventoryProcess.getDuccId();
 			logger.debug(methodName, null, processId, messages.fetchLabel("node")+inventoryProcess.getNodeIdentity().getName()+" "+messages.fetchLabel("PID")+inventoryProcess.getPID());
-			long t0 = System.currentTimeMillis();
+			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 			synchronized(workMap) {
+				ts.using();
 				if(processToJobMap.containsKey(processId)) {
 					DuccId jobId = getJobId(processId);
-					IDuccWork duccWork = workMap.findDuccWork(jobId);
+					IDuccWork duccWork = WorkMapHelper.findDuccWork(workMap, jobId, this, methodName);
 					if(duccWork != null) {
 						if(duccWork instanceof IDuccWorkExecutable) {
 							IDuccWorkExecutable duccWorkExecutable = (IDuccWorkExecutable) duccWork;
@@ -730,11 +720,7 @@ public class ProcessAccounting {
 					logger.warn(methodName, null, processId, messages.fetch("ID not found in process map"));
 				}
 			}
-			long t1 = System.currentTimeMillis();
-			long elapsed = t1 - t0;
-			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-			}
+			ts.ended();
 		}
 		catch(Throwable t) {
 			logger.error(methodName, null, t);

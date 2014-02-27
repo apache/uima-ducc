@@ -47,6 +47,7 @@ import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.orchestrator.maintenance.MaintenanceThread;
 import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
+import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
@@ -275,8 +276,9 @@ implements Orchestrator {
 			boolean saveState = false;
 			DuccPropertiesResolver dpr = DuccPropertiesResolver.getInstance();
 			String jdHostClass = dpr.getCachedProperty(DuccPropertiesResolver.ducc_jd_host_class);
-			long t0 = System.currentTimeMillis();
+			TrackSync ts = TrackSync.await(workMap, this.getClass(), methodName);
 			synchronized(workMap) {
+				ts.using();
 				Iterator<IDuccWork> iterator = workMap.values().iterator();
 				while(iterator.hasNext()) {
 					IDuccWork duccWork = iterator.next();
@@ -326,11 +328,7 @@ implements Orchestrator {
 					}
 				}
 			}
-			long t1 = System.currentTimeMillis();
-			long elapsed = t1 - t0;
-			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-			}
+			ts.ended();
 			if(saveState) {
 				OrchestratorCheckpoint.getInstance().saveState();
 			}
@@ -423,13 +421,7 @@ implements Orchestrator {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		OrchestratorStateDuccEvent orchestratorStateDuccEvent = new OrchestratorStateDuccEvent();
 		try {
-			long t0 = System.currentTimeMillis();
-			DuccWorkMap workMapCopy = workMap.deepCopy();
-			long t1 = System.currentTimeMillis();
-			long elapsed = t1 - t0;
-			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-			}
+			DuccWorkMap workMapCopy = WorkMapHelper.deepCopy(workMap, this, methodName);
 			int activeJobs = workMapCopy.getJobCount();
 			int activeReservations = workMapCopy.getReservationCount();
 			int activeServices = workMapCopy.getServiceCount();
@@ -462,13 +454,7 @@ implements Orchestrator {
 		logger.trace(methodName, null, messages.fetch("enter"));
 		OrchestratorAbbreviatedStateDuccEvent orchestratorAbbreviatedStateDuccEvent = new OrchestratorAbbreviatedStateDuccEvent();
 		try {
-			long t0 = System.currentTimeMillis();
-			DuccWorkMap workMapCopy = workMap.deepCopy();
-			long t1 = System.currentTimeMillis();
-			long elapsed = t1 - t0;
-			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-			}
+			DuccWorkMap workMapCopy = WorkMapHelper.deepCopy(workMap, this, methodName);
 			int activeJobs = workMapCopy.getJobCount();
 			int activeReservations = workMapCopy.getReservationCount();
 			int activeServices = workMapCopy.getServiceCount();
@@ -481,13 +467,7 @@ implements Orchestrator {
 											);
 			int jobDriverNodeCount = hostManager.nodes();
 			workMapCopy.setJobDriverNodeCount(jobDriverNodeCount);
-			long t2 = System.currentTimeMillis();
 			orchestratorAbbreviatedStateDuccEvent.setWorkMap(workMapCopy);
-			long t3 = System.currentTimeMillis();
-			long elapsed2 = t3 - t2;
-			if(elapsed > Constants.SYNC_LIMIT) {
-				logger.debug(methodName, null, "elapsed msecs: "+elapsed2);
-			}
 			//stateManager.prune(workMapCopy);
 			//healthMonitor.cancelNonViableJobs();
 			//mqReaper.removeUnusedJdQueues(workMapCopy);
@@ -611,13 +591,7 @@ implements Orchestrator {
 			else {
 				if(Validate.request(duccEvent)) {
 					DuccWorkJob duccWorkJob = jobFactory.create(common,properties);
-					long t0 = System.currentTimeMillis();
-					workMap.addDuccWork(duccWorkJob);
-					long t1 = System.currentTimeMillis();
-					long elapsed = t1 - t0;
-					if(elapsed > Constants.SYNC_LIMIT) {
-						logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-					}
+					WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
 					// state: Received
 					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
 					OrchestratorCheckpoint.getInstance().saveState();
@@ -658,7 +632,7 @@ implements Orchestrator {
 		else if(Validate.request(duccEvent)) {
 			String jobId = properties.getProperty(JobRequestProperties.key_id);
 			long t0 = System.currentTimeMillis();
-			DuccWorkJob duccWorkJob = (DuccWorkJob) workMap.findDuccWork(DuccType.Job,jobId);
+			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, DuccType.Job, jobId, this, methodName);
 			long t1 = System.currentTimeMillis();
 			long elapsed = t1 - t0;
 			if(elapsed > Constants.SYNC_LIMIT) {
@@ -726,7 +700,7 @@ implements Orchestrator {
 		else if(Validate.request(duccEvent)) {
 			String dpid = null;
 			String jobId = properties.getProperty(JobRequestProperties.key_id);
-			DuccWorkJob duccWorkJob = (DuccWorkJob) workMap.findDuccWork(DuccType.Job,jobId);
+			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, DuccType.Job, jobId, this, methodName);
 			if(duccWorkJob != null) {
 				dwid = duccWorkJob.getDuccId();
 				String reqUser = properties.getProperty(JobRequestProperties.key_user).trim();
@@ -825,13 +799,7 @@ implements Orchestrator {
 			}
 			else if(Validate.request(duccEvent)) {
 				DuccWorkReservation duccWorkReservation = reservationFactory.create(common,(ReservationRequestProperties)properties);
-				long t0 = System.currentTimeMillis();
-				workMap.addDuccWork(duccWorkReservation);
-				long t1 = System.currentTimeMillis();
-				long elapsed = t1 - t0;
-				if(elapsed > Constants.SYNC_LIMIT) {
-					logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-				}
+				WorkMapHelper.addDuccWork(workMap, duccWorkReservation, this, methodName);
 				// state: Received
 				duccWorkReservation.stateChange(ReservationState.Received);
 				OrchestratorCheckpoint.getInstance().saveState();
@@ -898,7 +866,7 @@ implements Orchestrator {
 		else {
 			String id = properties.getProperty(ReservationRequestProperties.key_id);
 			long t0 = System.currentTimeMillis();
-			DuccWorkReservation duccWorkReservation = (DuccWorkReservation) workMap.findDuccWork(DuccType.Reservation,id);
+			DuccWorkReservation duccWorkReservation = (DuccWorkReservation) WorkMapHelper.findDuccWork(workMap, DuccType.Reservation, id, this, methodName);
 			long t1 = System.currentTimeMillis();
 			long elapsed = t1 - t0;
 			if(elapsed > Constants.SYNC_LIMIT) {
@@ -985,13 +953,7 @@ implements Orchestrator {
 				logger.debug(methodName, null, messages.fetch("job driver host")+" "+messages.fetchLabel("IP")+nodeIdentity.getIp()+" "+messages.fetchLabel("name")+nodeIdentity.getName());
 				if(Validate.request(duccEvent)) {
 					DuccWorkJob duccWorkJob = jobFactory.create(common,properties);
-					long t0 = System.currentTimeMillis();
-					workMap.addDuccWork(duccWorkJob);
-					long t1 = System.currentTimeMillis();
-					long elapsed = t1 - t0;
-					if(elapsed > Constants.SYNC_LIMIT) {
-						logger.debug(methodName, null, "elapsed msecs: "+elapsed);
-					}
+					WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
 					// state: Received
 					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
 					OrchestratorCheckpoint.getInstance().saveState();
@@ -1040,7 +1002,7 @@ implements Orchestrator {
 			// update state
 			String jobId = properties.getProperty(JobRequestProperties.key_id);
 			long t0 = System.currentTimeMillis();
-			DuccWorkJob duccWorkJob = (DuccWorkJob) workMap.findDuccWork(DuccType.Service,jobId);
+			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, DuccType.Service, jobId, this, methodName);
 			long t1 = System.currentTimeMillis();
 			long elapsed = t1 - t0;
 			if(elapsed > Constants.SYNC_LIMIT) {
