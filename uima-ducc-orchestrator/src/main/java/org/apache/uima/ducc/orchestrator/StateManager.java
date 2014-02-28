@@ -683,27 +683,42 @@ public class StateManager {
 			while(rmResourceStateIterator.hasNext()) {
 				DuccId duccId = rmResourceStateIterator.next();
 				IRmJobState rmResourceState = rmResourceStateMap.get(duccId);
-				if(rmResourceState.getPendingAdditions() != null) {
-					logger.debug(methodName, duccId, messages.fetchLabel("pending additions")+rmResourceState.getPendingAdditions().size());
+				Map<DuccId, IResource> mapAdditions = rmResourceState.getPendingAdditions();
+				if(mapAdditions != null) {
+					int mapSize = mapAdditions.size();
+					if(mapSize > 0) {
+						logger.info(methodName, duccId, messages.fetchLabel("pending additions")+mapSize);
+					}
+					else {
+						logger.trace(methodName, duccId, messages.fetchLabel("pending additions")+mapSize);
+					}
+					
 				}
-				if(rmResourceState.getPendingRemovals() != null) {
-					logger.debug(methodName, duccId, messages.fetchLabel("pending removals")+rmResourceState.getPendingRemovals().size());
+				Map<DuccId, IResource> mapRemovals = rmResourceState.getPendingRemovals();
+				if(mapRemovals != null) {
+					int mapSize = mapRemovals.size();
+					if(mapSize > 0) {
+						logger.info(methodName, duccId, messages.fetchLabel("pending removals")+mapSize);
+					}
+					else {
+						logger.trace(methodName, duccId, messages.fetchLabel("pending removals")+mapSize);
+					}
 				}
 				IDuccWork duccWork = WorkMapHelper.findDuccWork(workMap, duccId, this, methodName);
 				if(duccWork== null) {
 					logger.debug(methodName, duccId, messages.fetch("not found"));
 				}
 				else {
-					logger.debug(methodName, duccId, messages.fetchLabel("type")+duccWork.getDuccType());
+					logger.trace(methodName, duccId, messages.fetchLabel("type")+duccWork.getDuccType());
 					switch(duccWork.getDuccType()) {
 					case Job:
-						logger.debug(methodName, duccId, messages.fetch("processing job..."));
+						logger.trace(methodName, duccId, messages.fetch("processing job..."));
 						DuccWorkJob duccWorkJob = (DuccWorkJob) duccWork;
 						processPurger(duccWorkJob,rmResourceState.getResources());
 						changes += processMapResourcesAdd(duccWorkJob,rmResourceState.getPendingAdditions());
 						changes += processMapResourcesDel(duccWorkJob,rmResourceState.getPendingRemovals());
 						JobState jobState = duccWorkJob.getJobState();
-						logger.debug(methodName, duccId, messages.fetchLabel("job state")+jobState);
+						logger.trace(methodName, duccId, messages.fetchLabel("job state")+jobState);
 						switch(jobState) {
 						case Received:
 						case WaitingForDriver:
@@ -746,11 +761,12 @@ public class StateManager {
 						}
 						break;
 					case Reservation:
-						logger.debug(methodName, duccId, messages.fetch("processing reservation..."));
+						logger.trace(methodName, duccId, messages.fetch("processing reservation..."));
 						DuccWorkReservation duccWorkReservation = (DuccWorkReservation) duccWork;
 						changes += reservationMapResourcesAdd(duccWorkReservation,rmResourceState.getPendingAdditions());
 						changes += reservationMapResourcesDel(duccWorkReservation,rmResourceState.getPendingRemovals());
 						ReservationState reservationState = duccWorkReservation.getReservationState();
+						logger.trace(methodName, duccId, messages.fetchLabel("reservation state")+reservationState);
 						switch(reservationState) {
 						case Received:
 							logger.warn(methodName, duccId, messages.fetchLabel("unexpected state")+reservationState);
@@ -804,13 +820,13 @@ public class StateManager {
 						}
 						break;
 					case Service:
-						logger.debug(methodName, duccId, messages.fetch("processing service..."));
+						logger.trace(methodName, duccId, messages.fetch("processing service..."));
 						DuccWorkJob duccWorkService = (DuccWorkJob) duccWork;
 						int processPurged = processPurger(duccWorkService,rmResourceState.getResources());
 						changes += processMapResourcesAdd(duccWorkService,rmResourceState.getPendingAdditions());
 						changes += processMapResourcesDel(duccWorkService,rmResourceState.getPendingRemovals());
 						JobState serviceState = duccWorkService.getJobState();
-						logger.debug(methodName, duccId, messages.fetchLabel("service state")+serviceState);
+						logger.trace(methodName, duccId, messages.fetchLabel("service state")+serviceState);
 						switch(serviceState) {
 						case Received:
 							logger.warn(methodName, duccId, messages.fetchLabel("unexpected state")+serviceState);
