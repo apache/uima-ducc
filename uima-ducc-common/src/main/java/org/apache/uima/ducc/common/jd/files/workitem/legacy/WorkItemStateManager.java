@@ -16,33 +16,40 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.jd.files;
+package org.apache.uima.ducc.common.jd.files.workitem.legacy;
 
-import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.uima.ducc.common.jd.files.IWorkItemState;
+@Deprecated
 public class WorkItemStateManager {
 
 	private ConcurrentSkipListMap<Long,IWorkItemState> map = new ConcurrentSkipListMap<Long,IWorkItemState>();
 	
-	@SuppressWarnings("deprecation")
 	private WorkItemStateSerializedObjects pSer;
-	@SuppressWarnings("deprecation")
 	private WorkItemStateJson pJson;
 	private WorkItemStateJsonGz pJsonGz;
 	
-	@SuppressWarnings("deprecation")
-	public WorkItemStateManager(String dirname) {
+	private String user = null;
+	
+	public WorkItemStateManager(String component, String dirname, String user) {
+		setUser(user);
 		pSer = new WorkItemStateSerializedObjects(dirname);
 		pJson = new WorkItemStateJson(dirname);
 		pJsonGz = new WorkItemStateJsonGz(dirname);
 	}
 	
+	private void setUser(String value) {
+		user = value;
+	}
+	
 	public ConcurrentSkipListMap<Long,IWorkItemState> getMap() {
+		importData();
 		return map;
 	}
 	
+	/*
 	@SuppressWarnings("deprecation")
 	public void exportData() throws IOException {
 		try {
@@ -59,16 +66,11 @@ public class WorkItemStateManager {
 		}
 		pSer.exportData(map);
 	}
+	*/
 	
-	public void importData() throws IOException, ClassNotFoundException {
-		String userId = null;
-		importData(userId);
-	}
-	
-	@SuppressWarnings("deprecation")
-	public void importData(String userId) throws IOException, ClassNotFoundException {
+	private void importData() {
 		try {
-			map = pJsonGz.importData(userId);
+			map = pJsonGz.importData(user);
 			return;
 		}
 		catch(Exception e) {
@@ -79,73 +81,12 @@ public class WorkItemStateManager {
 		}
 		catch(Exception e) {
 		}
-		map = pSer.importData();
-	}
-	
-	public void start(int seqNo, String wiId) {
-		IWorkItemState wis = new WorkItemState(seqNo);
-		Long key = new Long(seqNo);
-		map.put(key, wis);
-		wis.setWiId(wiId);
-		wis.stateStart();
-	}
-	
-	public void queued(String seqNo) {
-		Long key = new Long(seqNo);
-		queued(key.intValue());
-	}
-	
-	public void queued(int seqNo) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = map.get(key);
-		wis.stateQueued();
-	}
-	
-	public void operating(String seqNo) {
-		Long key = new Long(seqNo);
-		operating(key.intValue());
-	}
-	
-	public void operating(int seqNo) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = map.get(key);
-		wis.stateOperating();
-	}
-	
-	public void ended(int seqNo) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = map.get(key);
-		wis.stateEnded();
-	}
-	
-	public void error(int seqNo) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = map.get(key);
-		wis.stateError();
-	}
-	
-	public void lost(int seqNo) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = map.get(key);
-		wis.stateLost();
-	}
-	
-	public void retry(int seqNo) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = map.get(key);
-		wis.stateRetry();
-	}
-	
-	public void location(String seqNo, String node, String pid) {
-		Long key = new Long(seqNo);
-		location(key.intValue(), node, pid);
-	}
-	
-	public void location(int seqNo, String node, String pid) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = map.get(key);
-		wis.setNode(node);
-		wis.setPid(pid);
+		try {
+			map = pSer.importData();
+			return;
+		}
+		catch(Exception e) {
+		}
 	}
 	
 	public double getMin() {

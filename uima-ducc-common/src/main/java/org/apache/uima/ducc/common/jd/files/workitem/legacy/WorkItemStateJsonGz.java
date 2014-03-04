@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.jd.files;
+package org.apache.uima.ducc.common.jd.files.workitem.legacy;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -31,13 +31,16 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.uima.ducc.common.jd.files.IPersistenceWorkItemState;
+import org.apache.uima.ducc.common.jd.files.IWorkItemState;
+import org.apache.uima.ducc.common.jd.files.WorkItemState;
 import org.apache.uima.ducc.common.utils.AlienFile;
 import org.apache.uima.ducc.common.utils.IOHelper;
 import org.apache.uima.ducc.common.utils.Utils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
+@Deprecated
 public class WorkItemStateJsonGz implements IPersistenceWorkItemState {
 	
 	public static final String work_item_status_json_gz = "work-item-status.json.gz";

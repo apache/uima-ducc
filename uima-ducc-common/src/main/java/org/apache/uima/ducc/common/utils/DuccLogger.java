@@ -115,6 +115,10 @@ public class DuccLogger
         this(claz, null);
     }
     
+    public String getComponent() {
+    	return component;
+    }
+    
     public void setLevel(Level l)
     {
         this.logger.setLevel(l);

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.jd.files;
+package org.apache.uima.ducc.common.jd.files.workitem.legacy;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.uima.ducc.common.jd.files.IPersistenceWorkItemState;
+import org.apache.uima.ducc.common.jd.files.IWorkItemState;
+import org.apache.uima.ducc.common.jd.files.WorkItemState;
 import org.apache.uima.ducc.common.utils.IOHelper;
 
 import com.google.gson.Gson;

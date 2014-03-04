@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.jd.files;
+package org.apache.uima.ducc.common.jd.files.workitem.legacy;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,6 +25,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.uima.ducc.common.jd.files.IPersistenceWorkItemState;
+import org.apache.uima.ducc.common.jd.files.IWorkItemState;
 import org.apache.uima.ducc.common.utils.IOHelper;
 
 @Deprecated
