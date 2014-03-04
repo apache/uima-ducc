@@ -78,6 +78,12 @@ public class DriverStatusReport implements Serializable {
 	private AtomicInteger workItemsRetry = new AtomicInteger(0);
 	private AtomicInteger workItemsPreempted = new AtomicInteger(0);
 	
+	private long wiMillisMax = 0;
+	private long wiMillisMin = 0;
+	private long wiMillisAvg = 0;
+	private long wiMillisOperatingLeast = 0;
+	private long wiMillisCompletedMost = 0;
+	
 	private AtomicInteger threadCount = new AtomicInteger(0);
 	
 	private ConcurrentHashMap<String,DuccId> casQueuedMap = new ConcurrentHashMap<String,DuccId>();
@@ -725,5 +731,45 @@ public class DriverStatusReport implements Serializable {
 	
 	public void setUimaDeploymentDescriptor(IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor) {
 		this.uimaDeploymentDescriptor = uimaDeploymentDescriptor;
+	}
+	
+	public long getWiMillisMin() {
+		return wiMillisMin;
+	}
+
+	public void setWiMillisMin(long value) {
+		wiMillisMin = value;
+	}
+
+	public long getWiMillisMax() {
+		return wiMillisMax;
+	}
+
+	public void setWiMillisMax(long value) {
+		wiMillisMax = value;
+	}
+
+	public long getWiMillisAvg() {
+		return wiMillisAvg;
+	}
+
+	public void setWiMillisAvg(long value) {
+		wiMillisAvg = value;
+	}
+
+	public long getWiMillisOperatingLeast() {
+		return wiMillisOperatingLeast;
+	}
+
+	public void setWiMillisOperatingLeast(long value) {
+		wiMillisOperatingLeast = value;
+	}
+
+	public long getWiMillisCompletedMost() {
+		return wiMillisCompletedMost;
+	}
+
+	public void setWiMillisCompletedMost(long value) {
+		wiMillisCompletedMost = value;
 	}
 }

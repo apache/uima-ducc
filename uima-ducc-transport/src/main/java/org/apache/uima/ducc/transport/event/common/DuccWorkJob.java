@@ -51,6 +51,13 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	
 	private IRationale completionRationale = null;
 
+	private long wiVersion = 1;
+	private long wiMillisMax = 0;
+	private long wiMillisMin = 0;
+	private long wiMillisAvg = 0;
+	private long wiMillisOperatingLeast = 0;
+	private long wiMillisCompletedMost = 0;
+	
 	public DuccWorkJob() {
 		init(null);
 	}
@@ -84,7 +91,6 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	public void setDriver(DuccWorkPopDriver driver) {
 		this.driver = driver;
 	}
-
 
 	
 	public String getjobBroker() {
@@ -463,7 +469,68 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		}
 		return retVal;
 	}
+
+	@Override
+	public long getWiVersion() {
+		long retVal = 0;
+		try {
+			retVal = wiVersion;
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
 	
+	@Override
+	public long getWiMillisMin() {
+		return wiMillisMin;
+	}
+
+	@Override
+	public void setWiMillisMin(long value) {
+		wiMillisMin = value;
+	}
+
+	@Override
+	public long getWiMillisMax() {
+		return wiMillisMax;
+	}
+
+	@Override
+	public void setWiMillisMax(long value) {
+		wiMillisMax = value;
+	}
+
+	@Override
+	public long getWiMillisAvg() {
+		return wiMillisAvg;
+	}
+
+	@Override
+	public void setWiMillisAvg(long value) {
+		wiMillisAvg = value;
+	}
+
+	@Override
+	public long getWiMillisOperatingLeast() {
+		return wiMillisOperatingLeast;
+	}
+
+	@Override
+	public void setWiMillisOperatingLeast(long value) {
+		wiMillisOperatingLeast = value;
+	}
+
+	@Override
+	public long getWiMillisCompletedMost() {
+		return wiMillisCompletedMost;
+	}
+
+	@Override
+	public void setWiMillisCompletedMost(long value) {
+		wiMillisCompletedMost = value;
+	}
+
 	// **********
 	
 	

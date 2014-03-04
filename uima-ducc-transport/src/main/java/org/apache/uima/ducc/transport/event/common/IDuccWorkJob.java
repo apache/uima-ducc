@@ -86,4 +86,21 @@ public interface IDuccWorkJob extends Identifiable, IDuccWorkService, IDuccWorkE
 	public long getPgInCount();
 	public double getSwapUsageGb();
 	public double getSwapUsageGbMax();
+	
+	public long getWiVersion();
+	
+	public long getWiMillisMin();
+	public void setWiMillisMin(long value);
+	
+	public long getWiMillisMax();
+	public void setWiMillisMax(long value);
+	
+	public long getWiMillisAvg();
+	public void setWiMillisAvg(long value);
+	
+	public long getWiMillisOperatingLeast();
+	public void setWiMillisOperatingLeast(long value);
+	
+	public long getWiMillisCompletedMost();
+	public void setWiMillisCompletedMost(long value);
 }
