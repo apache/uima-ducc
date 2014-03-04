@@ -34,6 +34,7 @@ public class User
     private int share_wealth;      // defrag, how many relevent Q shares do i really have?
     private int[] given_by_order =  null;
     private int[] wanted_by_order = null;
+    private int totalWantedByOrder = 0;   // transient, calculated for each schedule
 
     private static Comparator<IEntity> apportionmentSorter = new ApportionmentSorterCl();
     public User(String name)
@@ -128,6 +129,7 @@ public class User
             wanted_by_order[o] = countNSharesWanted(o, rc);
             wanted_by_order[0] +=  wanted_by_order[o];
         }
+        totalWantedByOrder = wanted_by_order[0]; // needed for sorting later as the counter changes the array
     }
 
     public void setPureFairShare(int pfs)
@@ -305,8 +307,17 @@ public class User
     {
         public int compare(IEntity e1, IEntity e2)
         {
+            // Order the users by smallest wanted first.  The counter will 
+            // round up for really small jobs so they don't get buried in
+            // round-off errors.
+            //
+            // Note that wanted_by_order must be precomputed before this is called, and
+            // that botn wanted_ and given_ by_order are modified by the counter, which
+            // is ok. 
             if ( e1 == e2 ) return 0;
-            return e1.getName().compareTo(e2.getName());
+            User u1 = (User) e1;
+            User u2 = (User) e2;
+            return u1.totalWantedByOrder = u2.totalWantedByOrder;
         }
     }
 }

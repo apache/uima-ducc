@@ -992,7 +992,7 @@ public class RmJob
      */
     public void initJobCap()
     {    	
-		String methodName = "getJobCap";
+		String methodName = "initJobCap";
 
         if ( isRefused() ) {
             job_cap = 0;
@@ -1381,8 +1381,12 @@ public class RmJob
     {
         public int compare(IEntity e1, IEntity e2)
         {
+            // Order by smallest first.  The counter will round up for really
+            // small jobs so they don't get buried in the round-off errors.
+            //
+            // Note that getJobCap() is (must be) pre-computed before this sorter is called.
             if ( e1.equals(e2) ) return 0;
-            return (int) (e1.getTimestamp() - e2.getTimestamp());
+            return (int) (((RmJob)e1).getJobCap() - ((RmJob)e2).getJobCap());
         }
     }
 

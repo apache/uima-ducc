@@ -415,11 +415,18 @@ public class NodepoolScheduler
                     int    des = deserved.get(e);                                                    // total deserved this round QShares
                     int    gpr = given_per_round.get(e);                                             // total given this round
                     int    mpr = Math.max(0, des-gpr);                                               // max this round, deserved less what I aleady was given
-                    int    given = Math.min(mpr, (int) Math.floor(dgiven));                          // what is calculated, capped by what I alreay have
+                    int    tgiven = Math.min(mpr, (int) Math.floor(dgiven));                         // what is calculated, capped by what I alreay have
                     int    cap = e.calculateCap(o, total_shares);                                    // get caps, if any
-                    logger.trace(methodName, null, descr, "O", o, ":", e.getName(), "Before caps, given", given, "cap", cap);
+                    logger.trace(methodName, null, descr, "O", o, ":", e.getName(), "Before caps, given", tgiven, "cap", cap);
 
-                    given = given / o;                                                               // back to NShares rounding down
+                    int    given = tgiven / o;                                                       // tentatively given, back to NShares
+                    int    rgiven = tgiven % o;                                                      // residual - remainder
+                    int    twanted = wbo[0] + gbo[0];                                                // actual wanted: still wanted plus alredy given
+                    if ( twanted <= fragmentationThreshold ) {                                       // if under the defrag limit, round up
+                        if ( rgiven > 0 ) {
+                            given = Math.min( ++given, nshares[o] );                                 // UIMA-3664
+                        }
+                    }                                                                                // if not under the defrag limit, round down
 
                     if ( given + gbo[0] > cap ) {                                                    // adjust for caps
                         given = Math.max(0, cap - gbo[0]);
