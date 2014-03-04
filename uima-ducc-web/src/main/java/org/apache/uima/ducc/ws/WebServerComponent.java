@@ -133,7 +133,6 @@ implements IWebServer {
 		DuccData.getInstance().put(wm);
 		DuccPlugins.getInstance().update(wm);
 		DuccListeners.getInstance().update(duccEvent);
-		CacheManager.getInstance().update(wm);
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 

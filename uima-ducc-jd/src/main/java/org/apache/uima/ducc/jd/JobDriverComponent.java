@@ -29,7 +29,6 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.JdConstants;
-import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.ExceptionHelper;
@@ -39,8 +38,8 @@ import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEven
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
-import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
+import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
 import org.apache.uima.ducc.transport.json.jp.JobProcessCollection;
@@ -195,20 +194,6 @@ implements IJobDriverComponent {
 		else {
 			performanceSummaryWriter.writeSummary();
 		}
-		WorkItemStateManager workItemStateManager = thread.getWorkItemStateManager();
-		if(workItemStateManager == null) {
-			duccOut.debug(methodName, null, duccMsg.fetch("workItemStateManager is null"));
-		}
-		else {
-			try {
-				workItemStateManager.exportData();
-			}
-			catch(Exception e) {
-				duccOut.error(methodName, null, e);
-			}
-			
-		}
-		
 	}
 	
 	public JdStateDuccEvent getState() {

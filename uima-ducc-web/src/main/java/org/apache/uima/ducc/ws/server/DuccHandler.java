@@ -51,13 +51,14 @@ import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
-import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
+import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateReader;
 import org.apache.uima.ducc.common.system.SystemState;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
@@ -102,6 +103,8 @@ import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandler extends DuccAbstractHandler {
+	
+	private static String component = IDuccLoggerComponents.abbrv_webServer;
 	
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandler.class.getName());
 	private static Messages messages = Messages.getInstance();
@@ -1192,10 +1195,11 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
+				String directory = job.getLogDirectory()+jobNo;
 				String userId = duccWebSessionManager.getUserId(request);
-				WorkItemStateManager workItemStateManager = new WorkItemStateManager(job.getLogDirectory()+jobNo);
-				workItemStateManager.importData(userId);
-				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateManager.getMap();
+				long wiVersion = job.getWiVersion();
+				WorkItemStateReader workItemStateReader = new WorkItemStateReader(component, directory, userId, wiVersion);
+				ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateReader.getMap();
 			    if( (map == null) || (map.size() == 0) ) {
 			    	sb.append("no data (map empty?)");
 			    }
@@ -1335,9 +1339,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
+				String directory = job.getLogDirectory()+jobNo;
 				String userId = duccWebSessionManager.getUserId(request);
-				WorkItemStateManager workItemStateManager = new WorkItemStateManager(job.getLogDirectory()+jobNo);
-				workItemStateManager.importData(userId);
+				long wiVersion = job.getWiVersion();
+				WorkItemStateReader workItemStateReader = new WorkItemStateReader(component, directory, userId, wiVersion);
 				PerformanceSummary performanceSummary = new PerformanceSummary(job.getLogDirectory()+jobNo);
 			    PerformanceMetricsSummaryMap performanceMetricsSummaryMap = performanceSummary.readSummary(userId);
 			    if( (performanceMetricsSummaryMap == null) || (performanceMetricsSummaryMap.size() == 0) ) {
@@ -1419,19 +1424,34 @@ public class DuccHandler extends DuccAbstractHandler {
 					// Avg
 					sb.append("<td align=\"right\">");
 					sb.append("<span class=\"health_purple\" title=\"average processing time per completed work item\">");
-					ltime = (long)workItemStateManager.getAvg();
+					try {
+						ltime = job.getWiMillisAvg();
+					}
+					catch(Exception e) {
+						ltime = (long)workItemStateReader.getMin();
+					}
 					sb.append(FormatHelper.duration(ltime));
 					sb.append("</span>");
 					// Min
 					sb.append("<td align=\"right\">");
 					sb.append("<span class=\"health_purple\" title=\"minimum processing time for any completed work item\">");
-					ltime = (long)workItemStateManager.getMin();
+					try {
+						ltime = job.getWiMillisMin();
+					}
+					catch(Exception e) {
+						ltime = (long)workItemStateReader.getMin();
+					}
 					sb.append(FormatHelper.duration(ltime));
 					sb.append("</span>");
 					// Max
 					sb.append("<td align=\"right\">");
 					sb.append("<span class=\"health_purple\" title=\"maximum processing time for any completed work item\">");
-					ltime = (long)workItemStateManager.getMax();
+					try {
+						ltime = job.getWiMillisMax();
+					}
+					catch(Exception e) {
+						ltime = (long)workItemStateReader.getMin();
+					}
 					sb.append(FormatHelper.duration(ltime));
 					sb.append("</span>");
 				    // pass 2

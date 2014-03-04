@@ -136,7 +136,7 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 				threadLocation = jobDriver.getCasDispatchMap().get(casId);
 				duccOut.debug(methodName, jobid, "action:send "+threadLocation.getInfo());
 				jobDriver.getDriverStatusReportLive().workItemQueued(casId,jobid);
-				jobDriver.getWorkItemStateManager().queued(threadLocation.getSeqNo());
+				jobDriver.getWorkItemStateKeeper().queued(threadLocation.getSeqNo());
 				duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId);
 			}
 		}
@@ -232,8 +232,8 @@ public class WorkItemListener extends UimaAsBaseCallbackListener {
 				duccOut.debug(methodName, jobid, "seqNo:"+threadLocation.getSeqNo()+" "+"casId:"+casId+" "+"node:"+nodeIP+" "+"PID:"+pid);
 				jobDriver.getCasDispatchMap().update(casId, nodeIP, pid);
 				jobDriver.getDriverStatusReportLive().workItemPendingProcessAssignmentRemove(casId);
-				jobDriver.getWorkItemStateManager().operating(threadLocation.getSeqNo());
-				jobDriver.getWorkItemStateManager().location(threadLocation.getSeqNo(),nodeIP, PID);
+				jobDriver.getWorkItemStateKeeper().operating(threadLocation.getSeqNo());
+				jobDriver.getWorkItemStateKeeper().location(threadLocation.getSeqNo(),nodeIP, PID);
 			}
 		}
 		catch(Exception e) {

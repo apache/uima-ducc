@@ -37,7 +37,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
-import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
+import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateReader;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -467,65 +467,66 @@ public class DuccPerfStats
         }
     }
 
-    protected void formatWorkItems()
+    protected void formatWorkItems(String job)
     {
-        WorkItemStateManager workItemStateManager = new WorkItemStateManager(dir);
-        try {
-        	workItemStateManager.importData();
-        }
-        catch(Exception e) {
-        	e.printStackTrace();
-        	return;
-        }
-        ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateManager.getMap();
-        int namemax = 0;
-        int nodemax = 0; 
+    	try {
+        	IDuccWorkJob dwj = readJob(job);
+        	String user = dwj.getStandardInfo().getUser();
+        	long wiVersion = dwj.getWiVersion();
+        	WorkItemStateReader workItemStateReader = new WorkItemStateReader(null,dir,user,wiVersion);
+            ConcurrentSkipListMap<Long,IWorkItemState> map = workItemStateReader.getMap();
+            int namemax = 0;
+            int nodemax = 0; 
 
-        ArrayList<IWorkItemState> items = new ArrayList<IWorkItemState>();
-        for ( Long k: map.keySet() ) {
-            IWorkItemState iws = map.get(k);
-            String id   = iws.getWiId();
-            String node = iws.getNode();            
-            if ( node == null ) node = "<unassigned>";
-            namemax = Math.max(namemax, id.length());
-            nodemax = Math.max(nodemax, node.length());
-            items.add(iws);
-        }
+            ArrayList<IWorkItemState> items = new ArrayList<IWorkItemState>();
+            for ( Long k: map.keySet() ) {
+                IWorkItemState iws = map.get(k);
+                String id   = iws.getWiId();
+                String node = iws.getNode();            
+                if ( node == null ) node = "<unassigned>";
+                namemax = Math.max(namemax, id.length());
+                nodemax = Math.max(nodemax, node.length());
+                items.add(iws);
+            }
 
-        String fmt;
-        if ( csv ) {
-            // seq,id,state,overhead,proc,node,pid
-            fmt = "%s\t%s\t%s\t%s\t%s\t%s\t%s";
-        } else {
-            fmt = "%5s %" + namemax + "s %10s %16s %16s %" + nodemax + "s %5s";
-            System.out.println(String.format(fmt, "Seq", "Id", "State", "QTime", "ProcTime", "Node", "PID"));
-            System.out.println(String.format(fmt, "-----", dup("-", namemax), "----------", "----------------", "----------------", dup("-", nodemax), "-----"));
-        }
+            String fmt;
+            if ( csv ) {
+                // seq,id,state,overhead,proc,node,pid
+                fmt = "%s\t%s\t%s\t%s\t%s\t%s\t%s";
+            } else {
+                fmt = "%5s %" + namemax + "s %10s %16s %16s %" + nodemax + "s %5s";
+                System.out.println(String.format(fmt, "Seq", "Id", "State", "QTime", "ProcTime", "Node", "PID"));
+                System.out.println(String.format(fmt, "-----", dup("-", namemax), "----------", "----------------", "----------------", dup("-", nodemax), "-----"));
+            }
 
-        Comparator<IWorkItemState> sorter = null;
-        switch (workItemSort) {
-            case Seq:         sorter = new WorkItemSequenceSorter();    break;
-            case Id:          sorter = new WorkItemIdSorter();          break;
-            case State:       sorter = new WorkItemStateSorter();       break;
-            case QTime:       sorter = new WorkItemQTimeSorter();       break;
-            case ProcessTime: sorter = new WorkItemProcessTimeSorter(); break;
-            case Node:        sorter = new WorkItemNodeSorter();        break;
-            case Pid:         sorter = new WorkItemPidSorter();         break;
-        }
-        Collections.sort(items, sorter);
-        for ( IWorkItemState iws : items ) {
-            String seq  = iws.getSeqNo();
-            String id   = iws.getWiId();
-            String node = iws.getNode();
-            if ( node == null ) node = "<unassigned>";
-            String pid  = iws.getPid();
-            if ( pid == null ) pid = "<n/a>";
-            State state = iws.getState();
-            long  proctime = iws.getMillisProcessing();
-            long  overhead = iws.getMillisOverhead();
+            Comparator<IWorkItemState> sorter = null;
+            switch (workItemSort) {
+                case Seq:         sorter = new WorkItemSequenceSorter();    break;
+                case Id:          sorter = new WorkItemIdSorter();          break;
+                case State:       sorter = new WorkItemStateSorter();       break;
+                case QTime:       sorter = new WorkItemQTimeSorter();       break;
+                case ProcessTime: sorter = new WorkItemProcessTimeSorter(); break;
+                case Node:        sorter = new WorkItemNodeSorter();        break;
+                case Pid:         sorter = new WorkItemPidSorter();         break;
+            }
+            Collections.sort(items, sorter);
+            for ( IWorkItemState iws : items ) {
+                String seq  = iws.getSeqNo();
+                String id   = iws.getWiId();
+                String node = iws.getNode();
+                if ( node == null ) node = "<unassigned>";
+                String pid  = iws.getPid();
+                if ( pid == null ) pid = "<n/a>";
+                State state = iws.getState();
+                long  proctime = iws.getMillisProcessing();
+                long  overhead = iws.getMillisOverhead();
 
-            System.out.println(String.format(fmt, seq, id, state, overhead, proctime, node, pid));
-        }
+                System.out.println(String.format(fmt, seq, id, state, overhead, proctime, node, pid));
+            }
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    	}
     }
 
     void run(String[] args)
@@ -602,7 +603,7 @@ public class DuccPerfStats
             formatSummary();
         }
         if ( workitems ) {
-            formatWorkItems();
+            formatWorkItems(job);
         }
         if ( processes ) {
             formatProcesses(job);

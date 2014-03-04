@@ -766,7 +766,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		String methodName = "getProjection";
 		String retVal = "";
 		try {
-			WorkItemStateHelper workItemStateHelper = new WorkItemStateHelper(job);
 			IDuccSchedulingInfo schedulingInfo = job.getSchedulingInfo();
 			IDuccPerWorkItemStatistics perWorkItemStatistics = schedulingInfo.getPerWorkItemStatistics();
 			if (perWorkItemStatistics == null) {
@@ -784,8 +783,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						int totalThreads = usableProcessCount * threadsPerProcess;
 						double remainingIterations = remainingWorkItems / totalThreads;
 						double avgMillis = perWorkItemStatistics.getMean();
-						double leastOperatingMillis = workItemStateHelper.getLeastOperatingMillis(job);
-						double mostCompletedMillis = workItemStateHelper.getMostCompletedMillis(job);
+						double leastOperatingMillis = job.getWiMillisOperatingLeast();
+						double mostCompletedMillis = job.getWiMillisCompletedMost();
 						double projectedTime = (avgMillis * remainingIterations) + (mostCompletedMillis - leastOperatingMillis);
 						duccLogger.trace(methodName, job.getDuccId(), "avgMillis:"+avgMillis+" "+"remainingIterations:"+remainingIterations+" "+"mostCompleteMillis:"+mostCompletedMillis+" "+"leastOperatingMillis:"+leastOperatingMillis);
 						if(projectedTime > 0) {

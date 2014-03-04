@@ -358,6 +358,11 @@ public class StateManager {
 					logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 				}
 			}
+			job.setWiMillisMin(jdStatusReport.getWiMillisMin());
+			job.setWiMillisMax(jdStatusReport.getWiMillisMax());
+			job.setWiMillisAvg(jdStatusReport.getWiMillisAvg());
+			job.setWiMillisOperatingLeast(jdStatusReport.getWiMillisOperatingLeast());
+			job.setWiMillisCompletedMost(jdStatusReport.getWiMillisCompletedMost());
 		}
 		catch(Throwable t) {
 			logger.error(methodName, job.getDuccId(), t);

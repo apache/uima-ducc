@@ -35,7 +35,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
-import org.apache.uima.ducc.common.jd.files.WorkItemStateManager;
+import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateKeeper;
+import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStatistics;
 import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler;
 import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler.Directive;
 import org.apache.uima.ducc.common.jd.plugin.IJdProcessExceptionHandler.JdProperties;
@@ -45,6 +46,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.ExceptionHelper;
+import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.jd.client.CasDispatchMap;
@@ -82,6 +84,8 @@ import org.apache.uima.util.Progress;
 
 public class JobDriver extends Thread implements IJobDriver {
 
+	private static String component = IDuccLoggerComponents.abbrv_jobDriver;
+	
 	private static DuccLogger duccOut = DuccLoggerComponents.getJdOut(JobDriver.class.getName());
 	private static DuccLogger duccErr = DuccLoggerComponents.getJdErr(JobDriver.class.getName());
 	
@@ -91,7 +95,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	private String jdJmxUrl = null;
 	
 	private DriverStatusReport driverStatusReport = null;
-	private WorkItemStateManager workItemStateManager = null;
+	private WorkItemStateKeeper workItemStateKeeper = null;
 	private PerformanceSummaryWriter performanceSummaryWriter = null;
 	private SynchronizedStats synchronizedStats = null;
 	
@@ -152,7 +156,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			// Prepare for gathering of UIMA performance statistics
 			String logsjobdir = job.getLogDirectory()+job.getDuccId().getFriendly()+File.separator;
 			performanceSummaryWriter = new PerformanceSummaryWriter(logsjobdir);
-			workItemStateManager = new WorkItemStateManager(logsjobdir);
+			workItemStateKeeper = new WorkItemStateKeeper(component,logsjobdir);
 			synchronizedStats = new SynchronizedStats();
 			// Prepare UIMA-AS client instance and multiple threads
 			initThreadPool();
@@ -430,6 +434,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			catch(Exception e) {
 				duccOut.error(location, jobid, e);
 			}
+			workitems();
 			statistics();
 			terminate();
 		}
@@ -613,6 +618,15 @@ public class JobDriver extends Thread implements IJobDriver {
 		return retVal;
 	}
 	
+	
+	private void workitems() {
+		String location = "workitems";
+		duccOut.debug(location, jobid, "");
+		if(workItemStateKeeper != null) {
+			workItemStateKeeper.zip();
+		}
+	}
+	
 	private void statistics() {
 		String location = "statistics";
 		PerformanceMetricsSummaryMap map = performanceSummaryWriter.getSummaryMap();
@@ -755,7 +769,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		casTuple.setDelayedRetry();
 		casTuple.setDuccId(new DuccId(-1));
 		casSource.push(casTuple);
-		workItemStateManager.retry(workItem.getSeqNo());
+		workItemStateKeeper.retry(workItem.getSeqNo());
 		workItemInactive();
 		return;
 	}
@@ -771,7 +785,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		casTuple.setDuccId(workItem.getProcessId());
 		casSource.push(casTuple);
 		driverStatusReport.setWorkItemsPending();
-		workItemStateManager.retry(workItem.getSeqNo());
+		workItemStateKeeper.retry(workItem.getSeqNo());
 		return;
 	}
 	
@@ -941,12 +955,6 @@ public class JobDriver extends Thread implements IJobDriver {
 			return driverStatusReport.deepCopy();
 		//}
 	}
-	
-	
-	public WorkItemStateManager getWorkItemStateManager() {
-		return workItemStateManager;
-	}
-	
 	
 	public PerformanceSummaryWriter getPerformanceSummaryWriter() {
 		return performanceSummaryWriter;
@@ -1370,7 +1378,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			registerCasPendingLocation(this, ""+workItem.getSeqNo(), workItem.getCasId());
 			casWorkItemMap.put(workItem.getCasId(), workItem);
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
-			workItemStateManager.start(workItem.getSeqNo(),workItem.getCasDocumentText());
+			workItemStateKeeper.start(workItem.getSeqNo(),workItem.getCasDocumentText());
 			driverStatusReport.workItemPendingProcessAssignmentAdd(workItem.getCasId());
 			if(!workItem.isRetry()) {
 				driverStatusReport.countWorkItemsProcessingStarted();
@@ -1414,7 +1422,7 @@ public class JobDriver extends Thread implements IJobDriver {
 				else {
 					duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
 					duccOut.debug(location, jobid, "action:completed "+getThreadLocationInfo(workItem));
-					workItemStateManager.ended(workItem.getSeqNo());
+					workItemStateKeeper.ended(workItem.getSeqNo());
 					driverStatusReport.countWorkItemsProcessingCompleted();
 					workItem.getTimeWindow().setEnd(TimeStamp.getCurrentMillis());
 					long time = workItem.getTimeWindow().getElapsedMillis();
@@ -1452,7 +1460,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		switch(directive) {
 		case ProcessContinue_CasNoRetry:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
-			workItemStateManager.error(workItem.getSeqNo());
+			workItemStateKeeper.error(workItem.getSeqNo());
 			workItemError(workItem, e, directive);
 			remove(workItem);
 			recycleCAS(workItem);
@@ -1469,7 +1477,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			break;
 		case ProcessStop_CasNoRetry:
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), message);
-			workItemStateManager.error(workItem.getSeqNo());
+			workItemStateKeeper.error(workItem.getSeqNo());
 			workItemError(workItem, e, directive);
 			remove(workItem);
 			recycleCAS(workItem);
@@ -1607,7 +1615,7 @@ public class JobDriver extends Thread implements IJobDriver {
 				else if(isError(workItem, e)) {
 					duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
 					duccOut.debug(location, jobid, "action:error "+getThreadLocationInfo(workItem), e);
-					workItemStateManager.error(workItem.getSeqNo());
+					workItemStateKeeper.error(workItem.getSeqNo());
 					workItemError(workItem, e);
 					remove(workItem);
 					recycleCAS(workItem);
@@ -1632,7 +1640,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		try {
 			duccOut.info(location, workItem.getJobId(), workItem.getProcessId(), "seqNo:"+workItem.getSeqNo()+" "+"wiId:"+workItem.getCasDocumentText());
 			duccOut.debug(location, jobid, "action:error "+getThreadLocationInfo(workItem), t);
-			workItemStateManager.error(workItem.getSeqNo());
+			workItemStateKeeper.error(workItem.getSeqNo());
 			workItemError(workItem, t);
 			remove(workItem);
 			recycleCAS(workItem);
@@ -1701,6 +1709,12 @@ public class JobDriver extends Thread implements IJobDriver {
 		if(casSource != null) {
 			casSource.rectifyStatus();
 		}
+		WorkItemStatistics stats = workItemStateKeeper.getStatistics();
+		driverStatusReport.setWiMillisMin(stats.millisMin);
+		driverStatusReport.setWiMillisMax(stats.millisMax);
+		driverStatusReport.setWiMillisAvg(stats.millisAvg);
+		driverStatusReport.setWiMillisOperatingLeast(stats.millisOperatingLeast);
+		driverStatusReport.setWiMillisCompletedMost(stats.millisCompletedMost);
 	}
 
 	public boolean callbackRegister(String casId, String name) {
@@ -1757,5 +1771,10 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 		return retVal;
 	}
-	
+
+	@Override
+	public WorkItemStateKeeper getWorkItemStateKeeper() {
+		return workItemStateKeeper;
+	}
+
 }
