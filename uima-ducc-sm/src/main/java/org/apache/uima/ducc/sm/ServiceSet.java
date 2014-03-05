@@ -775,7 +775,9 @@ public class ServiceSet
     {
         ArrayList<Long> instIds = new ArrayList<Long>();
         for ( ServiceInstance inst : implementors.values() ) {
-            instIds.add(inst.getId());
+            if ( inst.isRunning() ) {
+                instIds.add(inst.getId());
+            }
         }
         return instIds.toArray(new Long[instIds.size()]);
     }

@@ -162,7 +162,7 @@ public abstract class AServicePing
         this.duccLogger = logger;
     }
 
-    private void doLog(String methodName, Object ... msg)
+    protected void doLog(String methodName, Object ... msg)
     {        
         if ( !log_enabled ) return;
 

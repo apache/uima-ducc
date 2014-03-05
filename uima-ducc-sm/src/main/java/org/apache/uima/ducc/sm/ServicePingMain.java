@@ -159,7 +159,8 @@ public class ServicePingMain
 
         for ( int i = 0; i < args.length; ) {
             if ( clioptions.containsKey(args[i]) ) {
-                if ( clioptions.get(args[i]) != clioptions ) {
+                Object o = clioptions.get(args[i]);
+                if ( (o != clioptions) && ( o != None ) ) {
                     System.out.println("Duplicate argument, not allowed: " + args[i]);
                     System.exit(1);
                 }

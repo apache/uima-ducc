@@ -125,23 +125,6 @@ public class UimaAsPing
         if ( monitor != null ) monitor.stop();
     }
 
-    private void doLog(String methodName, Object ... msg)
-    {        
-        if ( !log_enabled ) return;
-
-        StringBuffer buf = new StringBuffer(methodName);
-        for ( Object o : msg ) {
-            buf.append(" ");
-            if ( o == null ) {
-                buf.append("<null>");
-            } else {
-                buf.append(o.toString());
-            }
-        }
-        System.out.println(buf);
-    }
-
-
     void evaluateService(IServiceStatistics stats)
     {
     	//String methodName = "evaluatePing";
