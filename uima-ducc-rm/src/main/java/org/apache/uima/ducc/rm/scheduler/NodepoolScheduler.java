@@ -422,11 +422,11 @@ public class NodepoolScheduler
                     int    given = tgiven / o;                                                       // tentatively given, back to NShares
                     int    rgiven = tgiven % o;                                                      // residual - remainder
                     int    twanted = wbo[0] + gbo[0];                                                // actual wanted: still wanted plus alredy given
-                    if ( twanted <= fragmentationThreshold ) {                                       // if under the defrag limit, round up
-                        if ( rgiven > 0 ) {
-                            given = Math.min( ++given, nshares[o] );                                 // UIMA-3664
-                        }
-                    }                                                                                // if not under the defrag limit, round down
+                    // if ( twanted <= fragmentationThreshold ) {                                       // if under the defrag limit, round up
+                    if ( rgiven > 0 ) {
+                        given = Math.min( ++given, nshares[o] );                                     // UIMA-3664
+                    }
+                    // }                                                                                // if not under the defrag limit, round down
 
                     if ( given + gbo[0] > cap ) {                                                    // adjust for caps
                         given = Math.max(0, cap - gbo[0]);

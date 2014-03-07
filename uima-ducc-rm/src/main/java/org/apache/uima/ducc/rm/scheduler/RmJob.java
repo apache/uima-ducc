@@ -1386,7 +1386,9 @@ public class RmJob
             //
             // Note that getJobCap() is (must be) pre-computed before this sorter is called.
             if ( e1.equals(e2) ) return 0;
-            return (int) (((RmJob)e1).getJobCap() - ((RmJob)e2).getJobCap());
+            return (int) (e1.getTimestamp() - e2.getTimestamp());
+
+            // return (int) (((RmJob)e1).getJobCap() - ((RmJob)e2).getJobCap());
         }
     }
 

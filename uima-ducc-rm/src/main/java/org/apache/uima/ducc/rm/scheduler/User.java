@@ -315,6 +315,8 @@ public class User
             // that botn wanted_ and given_ by_order are modified by the counter, which
             // is ok. 
             if ( e1 == e2 ) return 0;
+            //return e1.getName().compareTo(e2.getName());
+
             User u1 = (User) e1;
             User u2 = (User) e2;
             return u1.totalWantedByOrder = u2.totalWantedByOrder;
