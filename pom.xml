@@ -438,6 +438,7 @@
 		<module>uima-ducc-duccdocs</module>
 		<module>uima-ducc-web</module>
 		<module>uima-ducc-examples</module>
+		<module>uima-ducc-db</module>
 		<module>uima-ducc-spawn</module>
 	</modules>
 </project>
