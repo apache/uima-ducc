@@ -165,7 +165,7 @@
 		<jetty.version>7.4.4.v20110707</jetty.version>
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
-		
+		<derby.version>10.10.1.1</derby.version>
         <!-- Needed for NOTICE file packaged in each jar under META-INF -->
         <projectTimeSpan>2012</projectTimeSpan>
         
@@ -590,6 +590,7 @@ ${uimaDUCCNoticeText}
 				<version>${commons.httpclient.version}</version>
 			</dependency>
 
+		    
 		
 		</dependencies>
 	</dependencyManagement>
