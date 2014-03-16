@@ -34,6 +34,11 @@ public class DuccLoggerComponents implements IDuccLoggerComponents {
         return makeLogger("org.apache.uima.ducc.user.err", abbrv_jobDriver);
     }
 	
+	static public DuccLogger getDbLogger(String claz)
+    {
+        return makeLogger(claz, abbrv_db);
+    }
+	
 	static public DuccLogger getOrLogger(String claz)
     {
         return makeLogger(claz, abbrv_orchestrator);

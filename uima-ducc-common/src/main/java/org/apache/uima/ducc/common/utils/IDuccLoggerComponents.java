@@ -21,6 +21,7 @@ package org.apache.uima.ducc.common.utils;
 public interface IDuccLoggerComponents {
 
 	public final String abbrv_jobDriver = "JD";
+	public final String abbrv_db = "DB";
 	public final String abbrv_orchestrator = "OR";
 	public final String abbrv_transport = "TR";
 	public final String abbrv_servicesManager = "SM";
