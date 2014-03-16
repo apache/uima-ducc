@@ -47,6 +47,14 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.broker.name'] }")
 	public String brokerName;
 	
+	//	fetch the rate at which the Db Component should post its state
+	@Value("#{ systemProperties['ducc.db.state.publish.rate'] }")
+	public String dbComponentStatePublishRate;
+	
+	//	fetch the name of an endpoint where the Db Component should post state updates
+	@Value("#{ systemProperties['ducc.db.state.update.endpoint'] }")
+	public String dbComponentStateUpdateEndpoint;
+	
 	//	fetch the signature required switch (on/off)
 	@Value("#{ systemProperties['ducc.signature.required'] }")
 	public String signatureRequired;
