@@ -81,6 +81,7 @@ under the License.
         <include>org.apache.uima:uima-ducc-sm</include>
         <include>org.apache.uima:uima-ducc-orchestrator</include>
         <include>org.apache.uima:uima-ducc-web</include>
+        <include>org.apache.uima:uima-ducc-db</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
       <outputDirectory>lib/uima-ducc</outputDirectory>
@@ -175,6 +176,18 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>org.apache.derby:derby</include>
+      </includes>      
+      <outputDirectory>lib/derby</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+    
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>

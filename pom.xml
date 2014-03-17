@@ -124,6 +124,11 @@
 			<artifactId>uima-ducc-examples</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-db</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -171,6 +176,10 @@
 		<dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-examples</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-db</artifactId>
 		</dependency>
 	</dependencies>
 	<build>
