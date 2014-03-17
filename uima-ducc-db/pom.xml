@@ -79,6 +79,40 @@
 	        <artifactId>derby</artifactId>
         </dependency>
             
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uimaj-as-activemq</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>jetty-webapp</artifactId>
+					<groupId>org.eclipse.jetty</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>josql</artifactId>
+					<groupId>net.sf.josql</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>gentlyweb-utils</artifactId>
+					<groupId>net.sf.josql</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-camel</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.camel</groupId>
+			<artifactId>camel-xstream</artifactId>
+		</dependency>
+            
   </dependencies>
   
 </project>
