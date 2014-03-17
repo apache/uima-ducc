@@ -538,6 +538,18 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 				duccLogger.debug(methodName, null, t);
 			}
 			break;
+		case DbManager:
+			String db_rate = properties.getProperty("ducc.db.state.publish.rate");
+			String db_ratio = "1";
+			try {
+				long rate = Long.parseLong(db_rate.trim());
+				long ratio = Long.parseLong(db_ratio .trim());
+				secondsMIA = 3 * rate * ratio;
+			}
+			catch(Throwable t) {
+				duccLogger.debug(methodName, null, t);
+			}
+			break;
 		case ResourceManager:
 			String rm_rate = properties.getProperty("ducc.orchestrator.state.publish.rate");
 			String rm_ratio = "1";

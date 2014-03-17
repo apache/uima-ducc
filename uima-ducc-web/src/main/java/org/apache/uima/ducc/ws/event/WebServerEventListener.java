@@ -24,6 +24,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.DbComponentStateEvent;
 import org.apache.uima.ducc.transport.event.NodeMetricsUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
@@ -52,6 +53,17 @@ public class WebServerEventListener implements DuccEventDelegateListener {
 	
 	public void onOrchestratorStateDuccEvent(@Body OrchestratorStateDuccEvent duccEvent, @Header("pubSize")Long pubSize) {
 		String location = "onOrchestratorStateDuccEvent";
+		try {
+			duccEvent.setEventSize(pubSize);
+			webServer.update(duccEvent);
+		}
+		catch(Throwable t) {
+			duccLogger.error(location, jobid, t);
+		}
+	}
+	
+	public void onDbComponentStateEvent(@Body DbComponentStateEvent duccEvent, @Header("pubSize")Long pubSize) {
+		String location = "onDbComponentStateEvent";
 		try {
 			duccEvent.setEventSize(pubSize);
 			webServer.update(duccEvent);

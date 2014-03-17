@@ -65,6 +65,11 @@ public class DuccDaemonsData {
 			putHeartbeat(key);
 			putEventSize(key, duccEvent);
 			break;
+		case DB_DAEMON_STATE:
+			key = DaemonName.DbManager;
+			putHeartbeat(key);
+			putEventSize(key, duccEvent);
+			break;
 		}
 	}
 	
