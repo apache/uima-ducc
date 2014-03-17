@@ -21,6 +21,8 @@ package org.apache.uima.ducc.db;
 import java.util.Properties;
 
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
+import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.main.DuccService;
@@ -47,14 +49,17 @@ implements IDbComponent {
 	public DbComponent(CamelContext context) {
 		super("DB Daemon", context);
 	}
+	
 	@Override
 	public void start(DuccService service) throws Exception {
 		super.start(service);
+		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.DbManager,getProcessJmxUrl());
 	}
 	
 	@Override
 	public void start(DuccService service, String[] args) throws Exception {
 		super.start(service, args);
+		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.DbManager,getProcessJmxUrl());
 	}
 	
 	@Override

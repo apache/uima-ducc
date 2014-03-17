@@ -99,7 +99,7 @@ class StartSim(DuccUtil):
         #self.spawn(' '.join(CMDPARMS))
 
     #
-    # Start admin components rm pm sm ws or, on local node using Ducc.py
+    # Start admin components rm pm sm ws db or, on local node using Ducc.py
     #        
     def startComponent(self, args):
 

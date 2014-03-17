@@ -39,6 +39,7 @@ public class DuccDaemonRuntimeProperties {
 		ResourceManager,
 		ProcessManager,
 		ServiceManager,
+		DbManager,
 		Webserver,
 	}
 	
@@ -47,6 +48,7 @@ public class DuccDaemonRuntimeProperties {
 									DaemonName.ProcessManager, 
 									DaemonName.ResourceManager, 
 									DaemonName.ServiceManager, 
+									DaemonName.DbManager, 
 									DaemonName.Webserver, 
 									};
 	
