@@ -64,7 +64,7 @@ class Ducc(DuccUtil):
     def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate, single_user):
 
         if ( component == 'all' ):
-            component = 'rm,sm,pm,ws,orchestrator'
+            component = 'rm,sm,pm,ws,db,orchestrator'
     
         complist = component.split(',')
         args = None
@@ -159,7 +159,11 @@ class Ducc(DuccUtil):
             if ( c == 'pm' ):
                 if ( self.pm_jvm_args != None ):
                     jvm_opts.append(self.pm_jvm_args)
-
+                    
+            if ( c == 'db' ):
+                if ( self.db_jvm_args != None ):
+                    jvm_opts.append(self.db_jvm_args)
+                    
             if ( c == 'sm' ):
                 if ( self.sm_jvm_args != None ):
                     jvm_opts.append(self.sm_jvm_args)
@@ -218,9 +222,9 @@ class Ducc(DuccUtil):
         print '   ducc.py -k'
         print 'Where:'
         print '   -c <component> is the name of the comp[onent to start, currently one of'
-        print '                agent rm sm pm ws orchestrator broker'
+        print '                agent rm sm pm db ws orchestrator broker'
         print '                      -- or --'
-        print '                all - to start rm sm pm ws orchestrator'
+        print '                all - to start rm sm pm db ws orchestrator'
         print '        NOTE -- that agents should be started separately'
         print '   -d date is the data on the caller, for startup verification'
         print '   -b uses nohup and places the process into the background'

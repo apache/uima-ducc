@@ -135,6 +135,7 @@ class DuccUtil(DuccBase):
         self.pm_jvm_args       = self.ducc_properties.get('ducc.pm.jvm.args')
         self.rm_jvm_args       = self.ducc_properties.get('ducc.rm.jvm.args')
         self.sm_jvm_args       = self.ducc_properties.get('ducc.sm.jvm.args')
+        self.db_jvm_args       = self.ducc_properties.get('ducc.db.jvm.args')
         self.or_jvm_args       = self.ducc_properties.get('ducc.orchestrator.jvm.args')
 
 
@@ -690,7 +691,7 @@ class DuccUtil(DuccBase):
         self.broker_protocol = 'tcp'
         self.broker_host = 'localhost'
         self.broker_port = '61616'
-        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
+        self.default_components = ['rm', 'pm', 'sm', 'db', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
 
 	if ( self.localhost == self.ducc_properties.get("ducc.head")):
