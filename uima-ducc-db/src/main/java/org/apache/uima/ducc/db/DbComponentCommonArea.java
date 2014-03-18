@@ -4,7 +4,7 @@ import java.util.Properties;
 
 public class DbComponentCommonArea {
 
-	private DbProperties dbProperties = new DbProperties();
+	private Properties dbComponentProperties = new Properties();
 	
 	private static DbComponentCommonArea instance = new DbComponentCommonArea();
 	
@@ -12,11 +12,22 @@ public class DbComponentCommonArea {
 		return instance;
 	}
 	
-	public Properties getPropertiesCopy() {
+	public Properties getDbComponentPropertiesCopy() {
 		Properties retVal = new Properties();
-		retVal.putAll(dbProperties);
+		retVal.putAll(dbComponentProperties);
 		return retVal;
 	}
 	
+	public Properties getDbComponentProperties() {
+		return dbComponentProperties;
+	}
+	
+	public String getDbComponentProperty(String key) {
+		return dbComponentProperties.getProperty(key);
+	}
+	
+	public void setDbComponentProperty(String key, String value) {
+		dbComponentProperties.setProperty(key, value);
+	}
 	
 }

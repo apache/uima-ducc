@@ -186,6 +186,14 @@ public class DuccHandlerUtils {
 		return sb.toString();
 	}
 	
+	public static String disabled() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("<span class=\"health_black\""+">");
+		sb.append("disabled");
+		sb.append("</span>");
+		return sb.toString();
+	}
+	
 	public static String up_provisional(String text) {
 		StringBuffer sb = new StringBuffer();
 		sb.append("<span class=\"health_black\""+">");

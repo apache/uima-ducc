@@ -18,11 +18,13 @@
 */
 package org.apache.uima.ducc.ws;
 
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.transport.event.AbstractDuccEvent;
+import org.apache.uima.ducc.transport.event.DbComponentStateEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent.EventType;
 
 
@@ -31,11 +33,13 @@ public class DuccDaemonsData {
 	private static DuccDaemonsData duccDaemonsData = new DuccDaemonsData();
 	private static ConcurrentHashMap<DaemonName,String> mapCurr = new ConcurrentHashMap<DaemonName,String>();
 	private static ConcurrentHashMap<DaemonName,String> mapPrev = new ConcurrentHashMap<DaemonName,String>();
-	private static ConcurrentHashMap<DaemonName,String> mapMax  = new ConcurrentHashMap<DaemonName,String>();
-	private static ConcurrentHashMap<DaemonName,String> mapMaxTOD  = new ConcurrentHashMap<DaemonName,String>();
-	private static ConcurrentHashMap<DaemonName,Long> eventSize  = new ConcurrentHashMap<DaemonName,Long>();
-	private static ConcurrentHashMap<DaemonName,Long> eventSizeMax  = new ConcurrentHashMap<DaemonName,Long>();
-	private static ConcurrentHashMap<DaemonName,String> eventSizeMaxTOD  = new ConcurrentHashMap<DaemonName,String>();
+	private static ConcurrentHashMap<DaemonName,String> mapMax = new ConcurrentHashMap<DaemonName,String>();
+	private static ConcurrentHashMap<DaemonName,String> mapMaxTOD = new ConcurrentHashMap<DaemonName,String>();
+	private static ConcurrentHashMap<DaemonName,Long> eventSize = new ConcurrentHashMap<DaemonName,Long>();
+	private static ConcurrentHashMap<DaemonName,Long> eventSizeMax = new ConcurrentHashMap<DaemonName,Long>();
+	private static ConcurrentHashMap<DaemonName,String> eventSizeMaxTOD = new ConcurrentHashMap<DaemonName,String>();
+	
+	private static ConcurrentHashMap<DaemonName,Properties> daemonProperties = new ConcurrentHashMap<DaemonName,Properties>();
 	
 	public static DuccDaemonsData getInstance() {
 		return duccDaemonsData;
@@ -69,6 +73,11 @@ public class DuccDaemonsData {
 			key = DaemonName.DbManager;
 			putHeartbeat(key);
 			putEventSize(key, duccEvent);
+			DbComponentStateEvent dbComponentStateEvent = (DbComponentStateEvent)duccEvent;
+			Properties value = dbComponentStateEvent.getProperties();
+			if(value != null) {
+				daemonProperties.put(key, value);
+			}
 			break;
 		}
 	}
@@ -161,7 +170,15 @@ public class DuccDaemonsData {
 	public String getMaxHeartbeatTOD(DaemonName key) {
 		String retVal = "";
 		if(mapMaxTOD.containsKey(key)) {
-			retVal =  mapMaxTOD.get(key);
+			retVal = mapMaxTOD.get(key);
+		}
+		return retVal;
+	}
+	
+	public Properties getProperties(DaemonName key) {
+		Properties retVal = new Properties();
+		if(daemonProperties.containsKey(key)) {
+			retVal = daemonProperties.get(key);
 		}
 		return retVal;
 	}

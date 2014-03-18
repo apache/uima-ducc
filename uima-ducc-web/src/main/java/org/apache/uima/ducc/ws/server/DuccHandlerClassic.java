@@ -52,6 +52,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.DbComponentPropertiesHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
@@ -1452,6 +1453,15 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 						}
 						else {
 							status = DuccHandlerUtils.up();
+							if(daemonName.equals(DaemonName.DbManager)) {
+								properties = DuccDaemonsData.getInstance().getProperties(daemonName);
+								if(properties != null) {
+									DbComponentPropertiesHelper dcph = new DbComponentPropertiesHelper(properties);
+									if(dcph.isDisabled()) {
+										status = DuccHandlerUtils.disabled();
+									}
+								} 
+							}
 							if(daemonName.equals(DaemonName.Orchestrator)) {
 								int jdCount = DuccData.getInstance().getLive().getJobDriverNodeCount();
 								if(jdCount == 0) {

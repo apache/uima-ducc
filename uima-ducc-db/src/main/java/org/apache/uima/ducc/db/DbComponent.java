@@ -29,7 +29,10 @@ import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.db.portal.DbPortal;
 import org.apache.uima.ducc.transport.event.DbComponentStateEvent;
+import org.apache.uima.ducc.transport.event.IDbComponentProperties;
+import org.apache.uima.ducc.transport.event.IDbComponentProperties.ConfigurationStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -46,8 +49,35 @@ implements IDbComponent {
 	
 	private static DuccId jobid = null;
 	
+	private DbPortal dbPortal = null;
+	
 	public DbComponent(CamelContext context) {
 		super("DB Daemon", context);
+		initialize();
+	}
+	
+	public DbPortal getDbPortal() {
+		return dbPortal;
+	}
+	
+	private void initialize() {
+		String location = "initialize";
+		try {
+			dbPortal = new DbPortal();
+			switch(dbPortal.getDbMode()) {
+			case Enabled:
+				DbComponentCommonArea.getInstance().setDbComponentProperty(IDbComponentProperties.keyConfigurationStatus, ConfigurationStatus.Enabled.name());
+				break;
+			case Disabled:
+				DbComponentCommonArea.getInstance().setDbComponentProperty(IDbComponentProperties.keyConfigurationStatus, ConfigurationStatus.Disabled.name());
+				break;
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+			int code = -1;
+			System.exit(code);
+		}
 	}
 	
 	@Override
@@ -67,7 +97,7 @@ implements IDbComponent {
 		String location = "getState";
 		DbComponentStateEvent retVal = new DbComponentStateEvent();
 		try {
-			Properties properties = DbComponentCommonArea.getInstance().getPropertiesCopy();
+			Properties properties = DbComponentCommonArea.getInstance().getDbComponentPropertiesCopy();
 			retVal.setProperties(properties);
 			logger.info(location, jobid, properties.size());
 		}
