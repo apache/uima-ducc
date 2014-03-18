@@ -257,10 +257,8 @@ public class ServiceHandler
             for ( ServiceSet sset : jobServices.values() ) {
                 // If service is unregistered and then rerigistered while the job is running it may have lost
                 // its connections, which we insure we always have here.
-                if ( serviceStateHandler.getServicesForJob(w.getDuccId()) == null ) {  
-                    sset.reference(id);     // might start it if it's not running
-                    serviceStateHandler.putServiceForJob(w.getDuccId(), sset);
-                }
+                serviceStateHandler.putServiceForJob(w.getDuccId(), sset);
+                sset.reference(id);     // might start it if it's not running
             }
         }
         return jobServices;
