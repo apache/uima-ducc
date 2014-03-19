@@ -269,7 +269,6 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         String pid = tokens[1];
         String ppid = tokens[2];
         String cmd = tokens[3];
-
         
         if ( tokens.length > 0 ) {
 //        	RunningProcess p = 
@@ -298,9 +297,9 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
           }
           if ( agent != null ) {
             // check if this process is in any of the cgroups. If so, this process is not rogue
-            if ( ((NodeAgent)agent).useCgroups && ((NodeAgent)agent).cgroupsManager.isPidInCGroup(pid) ) {
-              continue; // not rogue, this process is in a cgroup
-            }
+            //if ( ((NodeAgent)agent).useCgroups && ((NodeAgent)agent).cgroupsManager.isPidInCGroup(pid) ) {
+              //continue; // not rogue, this process is in a cgroup
+            //}
             NodeUsersInfo nui = null; 
             //  Check if user record is already in the map. May have been done above in
             //  copyAllUserReservations().

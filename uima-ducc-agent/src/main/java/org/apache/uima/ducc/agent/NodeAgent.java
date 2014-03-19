@@ -1336,6 +1336,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             break;
           }
           String dppid = deployedProcess.getDuccProcess().getPID();
+          // process in inventory, not rogue
           if (dppid != null && dppid.equals(String.valueOf(cpi.getPid()))) {
             return false;
           }
@@ -1344,11 +1345,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       // not found
       if (foundDeployedProcessWithNoPID) {
         return false;
-      } else {
-        return isParentProcessRogue(processList, cpi);
+      } else if ( cpi.getPPid() == 1) {   // Any process owned by init is rogue
+    	  return true;
+      }  else {
+    	  return isParentProcessRogue(processList, cpi);
       }
     }
-    // return false;
+    //return false;
   }
 
   private boolean isParentProcessRogue(Set<NodeUsersCollector.ProcessInfo> processList,
