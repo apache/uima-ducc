@@ -143,25 +143,6 @@ public class DuccService extends AbstractDuccComponent {
 			logger.info(methodName, null, "... Component started: ", duccComponent.getKey());
 		}
 		
-		Runtime.getRuntime().addShutdownHook( 
-            new Thread(
-                    new Runnable() {
-                            public void run() {
-                                    System.out.println( "Shutdown hook running" );
-                                    for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
-                                      try {
-                                        duccComponent.getValue().stop();
-                                      } catch ( Exception e) {
-                                        logger.warn("ShutdownHook.run", null, e);
-                                      }
-                                      logger.info("ShutdownHook.run", null, "... Stopping Component: ", duccComponent.getKey());
-                                    }
-                            }       
-                    }
-            )
-    );
-		
-		
     // run until you terminate the JVM
     logger.info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
     main.run();
