@@ -327,6 +327,7 @@ class PingDriver
         if ( service_statistics == null ) {
             logger.error(methodName, sset.getId(), "Service statics are null!");
             errors++;
+            return;         // always a pinger error, don't let pinger affect anything
         } else {
             if ( service_statistics.isAlive() ) {
                 pingState = ServiceState.Available;
@@ -339,6 +340,12 @@ class PingDriver
                 }
             }
         }
+
+        // maybe it was turned off
+        sset.setAutostart( response.isAutostart() );
+
+        // when was the service last used?
+        sset.setLastUse( response.getLastUse() );
 
         //
         // Must cap additions and deletions at some reasonable value in case the monitor is too agressive or in error.
@@ -407,19 +414,22 @@ class PingDriver
      */
     String setCommonInitProperties(Map<String, Object>  props)
     {
-        props.put("monitor-rate"    , meta_ping_rate);
-        props.put("service-id"      , sset.getId().getFriendly());
-        props.put("failure-max"     , failure_max);
-        props.put("failure-window"  , failure_window);
-        props.put("do-log"          , do_log);
+        props.put("monitor-rate"      , meta_ping_rate);
+        props.put("service-id"        , sset.getId().getFriendly());
+        props.put("failure-max"       , failure_max);
+        props.put("failure-window"    , failure_window);
+        props.put("do-log"            , do_log);
+        props.put("autostart-enabled" , sset.isAutostart());
+        props.put("last-use"          , sset.getLastUse());
 
         StringBuffer buf = new StringBuffer();
-        buf.append("monitor-rate="  ); buf.append(Integer.toString (meta_ping_rate));             buf.append(",");
-        buf.append("service-id="    ); buf.append(Long.toString    (sset.getId().getFriendly())); buf.append(",");
-        buf.append("failure-max="   ); buf.append(Integer.toString (failure_max));                buf.append(",");
-        buf.append("failure-window="); buf.append(Integer.toString (failure_window));             buf.append(",");
-        buf.append("do-log=");         buf.append(Boolean.toString (do_log)); 
-
+        buf.append("monitor-rate="     ); buf.append(Integer.toString (meta_ping_rate));             buf.append(",");
+        buf.append("service-id="       ); buf.append(Long.toString    (sset.getId().getFriendly())); buf.append(",");
+        buf.append("failure-max="      ); buf.append(Integer.toString (failure_max));                buf.append(",");
+        buf.append("failure-window="   ); buf.append(Integer.toString (failure_window));             buf.append(",");
+        buf.append("do-log="           ); buf.append(Boolean.toString (do_log));                     buf.append(",");
+        buf.append("autostart-enabled="); buf.append(Boolean.toString (sset.isAutostart()));         buf.append(",");
+        buf.append("last-use="         ); buf.append(Long.toString    (sset.getLastUse()));
         return buf.toString();
     }
 
@@ -473,10 +483,12 @@ class PingDriver
                 pinger.setSmState(props);
                 Pong pr = new Pong();
 
-                pr.setStatistics(pinger.getStatistics());
-                pr.setAdditions (pinger.getAdditions());
-                pr.setDeletions (pinger.getDeletions());
-                pr.setExcessiveFailures(pinger.isExcessiveFailures());
+                pr.setStatistics       ( pinger.getStatistics()       );
+                pr.setAdditions        ( pinger.getAdditions()        );
+                pr.setDeletions        ( pinger.getDeletions()        );
+                pr.setExcessiveFailures( pinger.isExcessiveFailures() );
+                pr.setAutostart        ( pinger.isAutostart()         );
+                pr.setLastUse          ( pinger.getLastUse()          );
 
                 handleResponse(pr);
                 if ( errors > error_threshold ) {
@@ -553,6 +565,8 @@ class PingDriver
         }
 
         arglist.add(System.getProperty("ducc.jvm"));
+        arglist.add("-DSM_MONITOR=T");
+
         if ( jvm_args != null ) {
             for ( String s : jvm_args) {
                 arglist.add(s);

@@ -241,6 +241,14 @@ public class ServicePingMain
         v_bool = props.getBooleanProperty(k, false);
         ret.put(k, v_bool);
 
+        k = "autostart-enabled";
+        v_bool = props.getBooleanProperty(k, false);
+        ret.put(k, v_bool);
+
+        k = "last-use";
+        v_long = props.getLongProperty(k, 0L);
+        ret.put(k, v_bool);
+
         for ( String rk : ret.keySet() ) {
             print("init:", rk, "=", ret.get(rk));
         }
@@ -360,7 +368,8 @@ public class ServicePingMain
                     pr.setAdditions      (custom.getAdditions());
                     pr.setDeletions      (custom.getDeletions());
                     pr.setExcessiveFailures(custom.isExcessiveFailures());
-
+                    pr.setAutostart      (custom.isAutostart());
+                    pr.setLastUse        (custom.getLastUse());
 
                     oos.writeObject(pr);
                     oos.flush();

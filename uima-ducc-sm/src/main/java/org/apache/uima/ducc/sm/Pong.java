@@ -34,6 +34,8 @@ public class Pong
     int additions;
     Long[] deletions;
     boolean excessiveFailures = false;
+    boolean autostart = true;
+    long last_use = 0l;
 
     public Pong()
     {
@@ -77,5 +79,25 @@ public class Pong
     public boolean isExcessiveFailures()
     {
     	return this.excessiveFailures;
+    }
+
+    public void setAutostart(boolean a)
+    {
+        this.autostart = a;
+    }
+
+    public boolean isAutostart()
+    {
+        return autostart;
+    }
+
+    public void setLastUse(Long lu)
+    {
+        this.last_use = lu;
+    }
+
+    public long getLastUse()
+    {
+        return this.last_use;
     }
 }

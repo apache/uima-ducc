@@ -36,12 +36,18 @@ public abstract class AServicePing
     protected int failure_window_period = 30;   // 30 minutes. overridden at first ping
     protected int failure_window_size = failure_window_period;  // assume 1 ping per minute
     protected int monitor_rate = 1;             // ping rate, in minutes, min 1 used for calculations
+    protected boolean autostart_enabled;        // indicates whether autostart is currently enable for this pinger
+    protected long last_use = 0;                // From SM on init, the last known usage of this service
+                                                // according to the meta file.  During runtime, implementors
+                                                // may update update it which causes the meta to be updated.
 
     protected boolean log_enabled = false;
     protected long service_id = 0;    
 
     protected Map<String, Object> smState;
     protected Map<String, Object> initializationState;
+
+    private boolean autostart = true;
 
     protected org.apache.uima.ducc.common.utils.DuccLogger duccLogger = 
         org.apache.uima.ducc.common.utils.DuccLogger.getLogger(this.getClass().getName(), "PING");	
@@ -84,6 +90,8 @@ public abstract class AServicePing
         log_enabled           = (Boolean) initializationState.get("do-log");        
         failure_max           = (Integer) initializationState.get("failure-max");        
         failure_window_period = (Integer) initializationState.get("failure-window");
+        autostart_enabled     = (Boolean) initializationState.get("autostart-enabled");
+        last_use              = (Long)    initializationState.get("last-use");
 
         double  calls_per_minute = 60000.00 / monitor_rate;
         failure_window_size = (int) ( ((double)failure_window_period) * calls_per_minute);
@@ -135,8 +143,44 @@ public abstract class AServicePing
      */
     public Long[] getDeletions()
     {
-        return null;
+        return null;   
     }
+
+    /**
+     * Pingers may disable autostart which will allow instances to shrink to 0.
+     */
+    public final void disableAutostart()
+    {
+        this.autostart = false;
+    }
+    
+    /**
+     * Pingers may enable autostart which will prevent instances from going to 0.
+     *
+     * Note that if the instances went to 0 before this is set the pinger is about to
+     * be stopped.  The service will have to be started to get the pinger restarted.
+     */
+    public final void enableAutostart()
+    {
+        this.autostart = true;
+    }
+    
+    public final boolean isAutostart()
+    {
+        return this.autostart;
+    }
+
+    /**
+     * Pingers may track when a service was last used.  If set to
+     * non-zero this is the time and date of last use, converted to
+     * milliseconds, as returned by System.getTimeMillis().  Its value is always 
+     * set into the meta file for the pinger on each ping.
+     */
+    public long getLastUse()
+    {
+        return 0;
+    }
+
 
     private String fmtArray(int[] array)
     {

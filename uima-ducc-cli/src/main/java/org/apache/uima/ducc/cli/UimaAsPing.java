@@ -61,7 +61,7 @@ public class UimaAsPing
     String nodeIp;
     String pid;
     boolean gmfail = false;
-    
+
     public UimaAsPing()
     {
     }
@@ -134,10 +134,24 @@ public class UimaAsPing
             monitor.collect();
             stats.setHealthy(true);       // this pinger defines 'healthy' as
                                           // 'service responds to get-meta and broker returns jmx stats'
+
+            long cc = monitor.getProducerCount();
+            if ( cc > 0 ) {
+                last_use = System.currentTimeMillis();
+            }
+
         } catch ( Throwable t ) {
             stats.setHealthy(false);
             monitor.setJmxFailure(t.getMessage());
         }
+    }
+
+    /**
+     * Override from AServicePing
+     */
+    public long getLastUse()
+    {
+        return last_use;
     }
 
     public IServiceStatistics getStatistics()

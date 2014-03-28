@@ -111,6 +111,9 @@ public class ServiceSet
     boolean reference_start = false;
     // is it ping-only?
     boolean ping_only = false;
+    
+    // Date of last known use of the service.  0 means "I don't know"
+    long last_use = 0;
 
     // The number of instances to maintain live.
     int instances = 1;
@@ -181,25 +184,18 @@ public class ServiceSet
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
 
+        last_use = meta_props.getLongProperty("last-use", 0L);
+        if ( last_use == 0 ) {
+            meta_props.put("last-use", "0");
+            meta_props.put("last-use-readable", "Unknown");
+        }
+
         if ( (!job_props.containsKey(UiOption.ProcessExecutable.pname())) && (service_type != ServiceType.UimaAs) ) {
             meta_props.put("ping-only", "true");
             this.ping_only = true;
         } else {
             meta_props.put("ping-only", "false");
             this.ping_only = false;
-            // implementors.clear();                   // will fill in later if this is hot restart
-            // String idprop  = meta.getProperty("implementors", null);
-            // if ( idprop != null ) {                        // recover implementors on restart, possibly
-            //     String[] ids = idprop.split("\\s");
-            //     for ( String i : ids ) {
-            //         long lid = Long.parseLong(i);
-            //         ServiceInstance si = new ServiceInstance(this);
-            //         implementors.put(lid, si);
-            //         si.setId(lid);
-            //         si.setUser(this.user);
-            //         handler.addInstance(this, si);
-            //     }
-            // }            
         }
         // caller will save the meta props, **if** the rest of registration is ok.
 
@@ -470,6 +466,20 @@ public class ServiceSet
     boolean isPingOnly()
     {
         return ping_only;
+    }
+
+    long getLastUse()
+    {
+        return last_use;
+    }
+
+    synchronized void setLastUse(long lu)
+    {
+        this.last_use = lu;
+        meta_props.put("last-use", Long.toString(lu));
+        if ( last_use != 0 ) {
+            meta_props.put("last-use-readable", (new Date(lu)).toString());
+        }
     }
 
     synchronized void resetRuntimeErrors()
