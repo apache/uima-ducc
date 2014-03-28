@@ -72,7 +72,7 @@ implements IWebServer {
 	
 	public void start(DuccService service, String[] args) throws Exception {
 		super.start(service, args);
-		 DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.Webserver,getProcessJmxUrl());
+		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.Webserver,getProcessJmxUrl());
 	}
 	public DuccLogger getLogger() {
 	    return duccLogger;

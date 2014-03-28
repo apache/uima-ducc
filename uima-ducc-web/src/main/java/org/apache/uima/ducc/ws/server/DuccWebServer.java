@@ -205,7 +205,7 @@ public class DuccWebServer {
 			logger.debug(methodName, null, "path:"+$runmodeFile.getAbsolutePath());
 			$runmodeFile.delete();
 			String text;
-			if(ducc_runmode.equals("Test")) {
+			if(ducc_runmode.equalsIgnoreCase("Test")) {
 				text = "<html><%@ include file=\"$runmode.test.jsp\" %></html>";
 			}
 			else {
