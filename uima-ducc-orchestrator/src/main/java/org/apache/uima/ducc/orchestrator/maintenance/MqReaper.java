@@ -25,7 +25,6 @@ import java.util.Iterator;
 import javax.management.MalformedObjectNameException;
 
 import org.apache.uima.ducc.common.exception.DuccConfigurationException;
-import org.apache.uima.ducc.common.mq.MqHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesHelper;
