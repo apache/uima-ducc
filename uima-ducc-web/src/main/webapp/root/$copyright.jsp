@@ -16,4 +16,4 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<i><small>Copyrights: &copy 2012-2013 The Apache Software Foundation and &copy 2011-2012 IBM</small></i>
+<i><small>Copyrights: &copy 2012-2014 The Apache Software Foundation and &copy 2011-2012 IBM</small></i>
