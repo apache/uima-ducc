@@ -156,17 +156,11 @@ implements ProcessManager {
 	            addArgument(((DuccUimaDeploymentDescriptor)dcj.getUimaDeployableConfiguration()).getDeploymentDescriptorPath());
 	        }
 	        
-	        
-	        //  Calculate Process memory allocation including a fudge factor (if one is defined). The
-	        //  returned value is in terms of Megs.
-//	        long processAdjustedMemorySize = 
-//	                calculateProcessMemoryAssignment(dcj.getSchedulingInfo().getShareMemorySize(), 
-//	                        dcj.getSchedulingInfo().getShareMemoryUnits());
 	        //  add fudge factor (5% default)  to adjust memory computed above 
 	        processAdjustedMemorySize += (processAdjustedMemorySize * ((double)fudgeFactor/100));
 	        pma.setMaxMemoryWithFudge(processAdjustedMemorySize);
 	        
-	        logger.info(methodName,dcj.getDuccId(),"--------------- User Requested Memory For Process:"+dcj.getSchedulingInfo().getShareMemorySize()+dcj.getSchedulingInfo().getShareMemoryUnits()+" PM Calculated Memory Assignment of:"+processAdjustedMemorySize);
+	        logger.debug(methodName,dcj.getDuccId(),"--------------- User Requested Memory For Process:"+dcj.getSchedulingInfo().getShareMemorySize()+dcj.getSchedulingInfo().getShareMemoryUnits()+" PM Calculated Memory Assignment of:"+processAdjustedMemorySize);
 	        
 	        ICommandLine driverCmdLine = null;
 	        IDuccProcess driverProcess = null;
@@ -198,14 +192,14 @@ implements ProcessManager {
 	          IDuccReservationMap reservationMap = 
 	                  ((DuccWorkReservation) entry.getValue()).getReservationMap();
 	          reservationList.add(new DuccUserReservation(userId, ((DuccWorkReservation) entry.getValue()).getDuccId(), reservationMap));
-	          logger.info(methodName,null,"---------------  Added reservation for user:"+userId);
+	          logger.debug(methodName,null,"---------------  Added reservation for user:"+userId);
 	        }
         }
 	    }
       logger.info(methodName, null , "---- PM Dispatching DuccJobsStateEvent request to Agent(s) - State Map Size:"+jobDeploymentList.size()+" Reservation List:"+reservationList.size());
 	    //  Dispatch state update to agents
       eventDispatcher.dispatch(new DuccJobsStateEvent(DuccEvent.EventType.PM_STATE, jobDeploymentList, reservationList));
-      logger.info(methodName, null , "+++++ PM Dispatched State To Agent(s)");
+      logger.debug(methodName, null , "+++++ PM Dispatched State To Agent(s)");
 	  } catch( Throwable t ) {
       logger.error(methodName,null,t);
 	  }
