@@ -73,6 +73,7 @@ public class ServiceHandler
     public ServiceHandler(IServiceManager serviceManager)
     {
         this.serviceManager = serviceManager;        
+        Runtime.getRuntime().addShutdownHook(new ServiceShutdown());
     }
 
     public synchronized void run()
@@ -1118,6 +1119,27 @@ public class ServiceHandler
 //             }
 //         }
 //     }
+
+    /**
+     * This is the shutdown hook that stops all the pingers.
+     */
+    class ServiceShutdown
+        extends Thread
+    {
+        ServiceShutdown() 
+        {
+        }
+
+        public void run()
+        {
+            String methodName = "ServiceShutdown.run";
+            List<ServiceSet> allServices = serviceStateHandler.getServices();
+            for (ServiceSet sset : allServices) {
+                sset.stopMonitor();
+            }            
+        }
+
+    }
 
      class ServiceStateHandler
      {

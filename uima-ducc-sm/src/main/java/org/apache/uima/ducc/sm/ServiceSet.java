@@ -147,6 +147,8 @@ public class ServiceSet
     int run_failures = 0;
     boolean excessiveRunFailures = false;       // signalled by monitor / pinger if we have too many
 
+    boolean inShutdown = false;
+
     //
     // Constructor for a registered service
     //
@@ -1397,6 +1399,7 @@ public class ServiceSet
     {
     	String methodName = "startPingThread";
         if ( serviceMeta != null ) return;         // don't start multiple times.
+        if ( inShutdown ) return;              // in shutdown, don't restart
 
         try {
             logger.info(methodName, id, "Starting service monitor.");
@@ -1431,6 +1434,14 @@ public class ServiceSet
         }
     }
 
+    synchronized void stopMonitor()
+    {
+        String methodName = "stopMonitor";
+        logger.info(methodName, id, "Stopping pinger due to shutdown");
+        inShutdown = true;
+        stopPingThread();
+    }
+
     public synchronized void stopPingThread()
     {
         String methodName = "stopPingThread";
@@ -1441,7 +1452,10 @@ public class ServiceSet
             serviceMeta = null;
         }
 
-        saveMetaProperties();
+        if ( ! inShutdown ) {
+            saveMetaProperties();         // no i/o during shutdown, it has to be fast and clean
+                                          // things will be cleaned up and resynced on restart
+        }
     }
 
     void log_text(String logdir, String text)
