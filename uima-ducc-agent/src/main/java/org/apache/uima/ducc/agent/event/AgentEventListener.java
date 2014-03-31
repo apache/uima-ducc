@@ -20,6 +20,7 @@ package org.apache.uima.ducc.agent.event;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.Body;
 import org.apache.uima.ducc.agent.Agent;
@@ -51,6 +52,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	// On startup of the Agent we may need to do cleanup of cgroups.
 	// This cleanup will happen once right after processing of the first OR publication.
 	private boolean cleanupPhase = true;  
+	private AtomicLong lastSequence = new AtomicLong();
 	
 	private NodeAgent agent;
 	public AgentEventListener(NodeAgent agent, ProcessLifecycleController lifecycleController) {
@@ -65,19 +67,18 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	}
 	private void reportIncomingStateForThisNode(DuccJobsStateEvent duccEvent) throws Exception {
     StringBuffer sb = new StringBuffer();
-    
-	  for( IDuccJobDeployment jobDeployment : duccEvent.getJobList()) {
-      if ( isTargetNodeForProcess(jobDeployment.getJdProcess()) ) {
-        IDuccProcess process = jobDeployment.getJdProcess();
-        sb.append("\nJD--> JobId:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
-      }
-      for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
-        if ( isTargetNodeForProcess(process) ) {
-          sb.append("\n\tJob ID:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
-        }
-      }
-    }
-    logger.info("reportIncomingStateForThisNode",null,sb.toString());
+    for( IDuccJobDeployment jobDeployment : duccEvent.getJobList()) {
+  	      if ( isTargetNodeForProcess(jobDeployment.getJdProcess()) ) {
+  	        IDuccProcess process = jobDeployment.getJdProcess();
+  	        sb.append("\nJD--> JobId:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
+  	      }
+  	      for( IDuccProcess process : jobDeployment.getJpProcessList() ) {
+  	        if ( isTargetNodeForProcess(process) ) {
+  	          sb.append("\n\tJob ID:"+jobDeployment.getJobId()+" ProcessId:"+process.getDuccId()+" PID:"+process.getPID()+" Status:"+process.getProcessState() + " Resource State:"+process.getResourceState()+" isDeallocated:"+process.isDeallocated());
+  	        }
+  	      }
+  	    }
+  	    logger.info("reportIncomingStateForThisNode",null,sb.toString());
 	}
 	/**
 	 * This method is called by Camel when PM sends DUCC state to agent's queue. It 
@@ -87,7 +88,7 @@ public class AgentEventListener implements DuccEventDelegateListener {
 	 * @throws Exception
 	 */
 	public void onDuccJobsStateEvent(@Body DuccJobsStateEvent duccEvent) throws Exception {
-
+	    long sequence = duccEvent.getSequence();
 	  // Recv'd ducc state update, restart process reaper task which detects missing
 	  // OR state due to a network problem. 
 //	  try {
@@ -99,7 +100,18 @@ public class AgentEventListener implements DuccEventDelegateListener {
 		try {
 
 		  synchronized( this ) {
-				//  typically lifecycleController is null and the agent assumes the role. For jUnit testing though, 
+			  // check for out of band messages. Expecting a message with a sequence number
+			  // larger than the previous message.
+			    if ( sequence > lastSequence.get() ) {
+			    	lastSequence.set(sequence);
+			    	logger.info("reportIncomingStateForThisNode", null, "Received OR Sequence:"+sequence+" Thread ID:"+Thread.currentThread().getId());
+			    } else {
+			    	// Out of band message. Expected message with sequence larger than a previous message
+			    	logger.warn("reportIncomingStateForThisNode",null,"Received Out of Band Message. Expected Sequence Greater Than "+lastSequence+" Received "+sequence+" Instead");
+			  	    return;
+			    } 
+
+			  //  typically lifecycleController is null and the agent assumes the role. For jUnit testing though, 
 			  //  a different lifecycleController is injected to facilitate black box testing
 			  if ( lifecycleController == null ) {
 					lifecycleController = agent;

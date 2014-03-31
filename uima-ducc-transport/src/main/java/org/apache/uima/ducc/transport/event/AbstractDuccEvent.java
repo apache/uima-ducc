@@ -23,6 +23,8 @@ implements DuccEvent {
 
 	private static final long serialVersionUID = -7200942245772203009L;
 
+	private long sequence=0;
+	
 	private Long eventSize = new Long(0);
 	private EventType eventType;
 	
@@ -37,6 +39,14 @@ implements DuccEvent {
 	}
 	public void setEventSize(Long value) {
 		eventSize = value;
+	}
+	
+	public long getSequence() {
+		return sequence;
+	}
+
+	public void setSequence(long sequence) {
+		this.sequence = sequence;
 	}
 
 }

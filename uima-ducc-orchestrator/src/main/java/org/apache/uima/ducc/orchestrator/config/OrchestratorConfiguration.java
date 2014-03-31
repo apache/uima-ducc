@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.orchestrator.config;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 import org.apache.camel.Body;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -233,6 +235,7 @@ public class OrchestratorConfiguration {
 	 */
 	private class OrchestratorStateProcessor implements Processor {
 		private Orchestrator orchestrator;
+		private   AtomicLong sequence = new AtomicLong();
 		
 		private OrchestratorStateProcessor(Orchestrator orchestrator) {
 			this.orchestrator = orchestrator;
@@ -240,6 +243,10 @@ public class OrchestratorConfiguration {
 		public void process(Exchange exchange) throws Exception {
 			// Fetch new state from Orchestrator
 			OrchestratorStateDuccEvent jse = orchestrator.getState();
+			//	add sequence number to the outgoing message. This should be used to manage
+			//  processing order in the consumer
+			jse.setSequence(sequence.addAndGet(1));
+
 			//	Add the state object to the Message
 			exchange.getIn().setBody(jse);
 		}
@@ -283,6 +290,7 @@ public class OrchestratorConfiguration {
 	 */
 	private class OrchestratorAbbreviatedStateProcessor implements Processor {
 		private Orchestrator orchestrator;
+		private   AtomicLong sequence = new AtomicLong();
 		
 		private OrchestratorAbbreviatedStateProcessor(Orchestrator orchestrator) {
 			this.orchestrator = orchestrator;
@@ -290,6 +298,9 @@ public class OrchestratorConfiguration {
 		public void process(Exchange exchange) throws Exception {
 			// Fetch new state from Orchestrator
 			OrchestratorAbbreviatedStateDuccEvent jse = orchestrator.getAbbreviatedState();
+			//	add sequence number to the outgoing message. This should be used to manage
+			//  processing order in the consumer
+			jse.setSequence(sequence.addAndGet(1));
 			//	Add the state object to the Message
 			exchange.getIn().setBody(jse);
 		}

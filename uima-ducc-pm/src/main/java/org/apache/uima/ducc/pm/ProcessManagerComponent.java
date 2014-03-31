@@ -33,6 +33,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.AbstractDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
@@ -119,7 +120,7 @@ implements ProcessManager {
 	    return shares;
 	}
 
-	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap) {
+	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap, long sequence) {
     String methodName="dispatchStateUpdateToAgents";
 	  try {
 	    dumpState(workMap);
@@ -197,8 +198,10 @@ implements ProcessManager {
         }
 	    }
       logger.info(methodName, null , "---- PM Dispatching DuccJobsStateEvent request to Agent(s) - State Map Size:"+jobDeploymentList.size()+" Reservation List:"+reservationList.size());
-	    //  Dispatch state update to agents
-      eventDispatcher.dispatch(new DuccJobsStateEvent(DuccEvent.EventType.PM_STATE, jobDeploymentList, reservationList));
+      DuccJobsStateEvent ev =  new DuccJobsStateEvent(DuccEvent.EventType.PM_STATE, jobDeploymentList, reservationList);
+      ev.setSequence(sequence);
+      //  Dispatch state update to agents
+      eventDispatcher.dispatch(ev);
       logger.debug(methodName, null , "+++++ PM Dispatched State To Agent(s)");
 	  } catch( Throwable t ) {
       logger.error(methodName,null,t);

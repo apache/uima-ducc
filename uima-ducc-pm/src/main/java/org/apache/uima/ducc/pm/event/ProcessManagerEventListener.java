@@ -57,6 +57,6 @@ implements DuccEventDelegateListener {
 			((ProcessManagerComponent)processManager).logger.info("onJobManagerStateUpdate", null, "Orchestrator JD node not assigned. Ignoring Orchestrator state update");
 			return;
 		}
-		processManager.dispatchStateUpdateToAgents(duccEvent.getWorkMap().getMap());
+		processManager.dispatchStateUpdateToAgents(duccEvent.getWorkMap().getMap(), duccEvent.getSequence());
 	}
 }

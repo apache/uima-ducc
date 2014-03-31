@@ -28,6 +28,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccWork;
 public interface ProcessManager {
 	public static final String DuccComponent = "ProcessManager";
 	//public void reconcileJobManagersState(ConcurrentHashMap<DuccId, IDuccWork> jobMap);
-	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap);
+	public void dispatchStateUpdateToAgents(ConcurrentHashMap<DuccId, IDuccWork> workMap, long sequence);
 	public PmStateDuccEvent getState();
 }
