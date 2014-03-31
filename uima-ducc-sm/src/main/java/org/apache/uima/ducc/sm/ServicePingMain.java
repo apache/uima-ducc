@@ -247,7 +247,7 @@ public class ServicePingMain
 
         k = "last-use";
         v_long = props.getLongProperty(k, 0L);
-        ret.put(k, v_bool);
+        ret.put(k, v_long);
 
         for ( String rk : ret.keySet() ) {
             print("init:", rk, "=", ret.get(rk));
