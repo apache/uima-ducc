@@ -91,17 +91,17 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 		return s1.contains(s2);
 	}
 	
-	protected enum AnalysisOfCause {
+	public enum AnalysisOfCause {
 		WireFormatTimeout,
 		RemoteTimeout,
 		LocalTimeout,
 		Other
 	}
 	
-	protected AnalysisOfCause getAnalysisOfCause(Throwable t) {
+	public AnalysisOfCause getAnalysisOfCause(Throwable t) {
 		AnalysisOfCause retVal = AnalysisOfCause.Other;
 		if(t != null) {
-			Throwable nextCause = t.getCause();
+			Throwable nextCause = t;
 			int level = 0;
 			while( nextCause != null ) {
 				String sCause = nextCause.toString();
