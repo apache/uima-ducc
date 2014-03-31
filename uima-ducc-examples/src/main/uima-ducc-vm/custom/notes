@@ -1,0 +1,24 @@
+- customer pinger must extend AServicePing
+  void init(endpoint);
+  boolean ping();
+  void stop();
+  ServiceStatistics getStatistics();
+       TODO - make ServiceStatics an interface
+              String getServiceType();      - a label so ws can group like services together
+
+           These two are parallel arrays.
+              String[] getHeaders();        - gives meaning to the statistics
+              long  [] getStatistics();     - up to 12 longs.  
+
+
+   Uima - needs averageEnqueueTime from AMQ
+          need average service time from UIMA-AS bean
+          should circulate a cas to get serializatin and processing times
+
+- Standard or custom numbers for non-UIMA service? 
+
+
+The interface consists of:
+- is the service up
+- is it in trouble ?
+- Arbitrary string o' info

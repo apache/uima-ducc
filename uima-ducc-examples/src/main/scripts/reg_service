@@ -43,7 +43,7 @@ class RegService(DuccUtil):
         print ''
         print 'Usage:'
         print ''
-        print '   define_service --id <id> [--file <descriptor file>] [--instances <num instances>]'
+        print '   define_service --id <id> [--file <descriptor file>] [--instances <num instances>] [--description "text"]'
         print '   define_service   -i <id> [ -f    <descriptor file>] [ -n         <num instances>]'
         print ''
         print 'Where:'
@@ -61,6 +61,8 @@ class RegService(DuccUtil):
         print '            The number of instances is optional.  If not given, one instance'
         print '            is registered. This may be modified with ducc_services --instances <n> later.'  
         print ''
+        print '    --description "text" If given, specifies the description for this service.'
+        print ''
         print 'Notes:'
         print '   This is not a replacement or substitute for the "ducc_services" CLI. This script'
         print '   is intended only to build a service descriptor for one of the predefined sample'
@@ -74,11 +76,12 @@ class RegService(DuccUtil):
         outfile = None
         instances = 1
         props = DuccProperties()
+        description = None
 
         if ( len(argv) == 0 ):
             self.usage(None)
 
-        opts, args  = getopt.getopt(argv, 'i:f:n:?h', ['id=', 'file=', 'instances=', 'help'])   
+        opts, args  = getopt.getopt(argv, 'i:f:n:?h', ['id=', 'file=', 'instances=', 'description=', 'help'])   
         for ( o, a ) in opts:
             if o in ('-i', '--id'):
                 svcid = a
@@ -87,18 +90,23 @@ class RegService(DuccUtil):
                 props = DuccProperties()
             elif o in ('-n', '--instances'):
                 instances = int(a)
+            elif o in ('--description'):
+                description = a
             elif o in ('-h', '--help'):
                 self.usage()
 
         if ( svcid == None ):
             self.usage("Missing service id")
 
+        if ( description == None ):
+            description = "Test Service "+svcid
+            
         self.examples_classpath = self.DUCC_HOME + '/lib/uima-ducc/examples/*'
         self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/lib/uima/*'
         self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/examples/simple/resources/service'
 
         plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
-        props.put('description', "Test Service " + svcid)
+        props.put('description', description)
         props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
         props.put('classpath', self.examples_classpath);

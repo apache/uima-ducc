@@ -120,7 +120,7 @@ class RunJob(Thread,Config):
         spArgs.append(self.helper.getWorkDir(self.user, self.tid))
         if(randint(0,1) > 0):
             spArgs.append('--service_dependency')
-            spArgs.append(self.helper.getService())
+            spArgs.append(self.helper.getServiceSet())
         spArgs.append('-f')
         jobFileName = self.helper.getJobFileName()
         job = self.jobs+'/'+jobFileName

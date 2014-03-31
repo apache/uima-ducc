@@ -32,7 +32,14 @@ presently all in /tmp
 Use crontab command to deploy.
 
 
-3. driver
+3. custom
+========================================
+
+This folder contains c and Java components comprising a custom service.
+Issue make to build.  Issue customsvc to install.
+
+
+4. driver
 ========================================
 
 This folder contains python scripts used to exercise the ducc simulated cluster.
@@ -41,7 +48,7 @@ Issue driver_start to start the script.
 Also, the convenience script installer is provided to copy config files.
 
 
-4. jobs
+5. jobs
 ========================================
 
 This folder comprises jobs and inputs employed by the driver (see above).
@@ -56,14 +63,14 @@ reg_service 4
 reg_service_5
 
 
-5. reservations
+6. reservations
 ========================================
 
 This folder comprises managed and unmanaged reservations employed by the driver 
 (see above).
 
 
-6. tools
+7. tools
 ========================================
 
 This folder contains misc. tools.

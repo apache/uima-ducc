@@ -8,22 +8,30 @@ class Prep():
     def __init__(self):
         pass
     
+    def getServiceType(self, id):
+        if(id == 1):
+            return 'auto-start'
+        return 'on-demand'
+        
     def run(self):
         file_home = os.path.dirname(os.path.realpath(sys.argv[0]))
         ducc_home = file_home.rsplit('/',3)[0]
         #
-        script = ducc_home+'/examples/systemtest/reg_service'
-        for i in range(1,6):
-            service = str(i)
-            command = script+' '+'-i'+' '+service
+        for i in range(0,5):
+            script = ducc_home+'/examples/systemtest/reg_service'
+            service_id = str(i)
+            service_type = self.getServiceType(i)
+            description = '"'+'Test Service'+' '+service_id+' '+'Type'+' '+service_type+'"'
+            command = script+' '+'-i'+' '+service_id+' '+'--description'+' '+description
+            print 'cmd: '+command
             os.system(command)
-            print 'registered service: '+service
-        
-        service = str(1)
-        script = ducc_home+'/bin/ducc_services'
-        command = script+' '+'--autostart'+' '+'true'+' '+'--modify'+' '+service
-        os.system(command)
-        print 'autostart service: '+service
+            print 'registered service: '+service_id
+            if(service_type == 'auto-start'):
+                script = ducc_home+'/bin/ducc_services'
+                command = script+' '+'--autostart'+' '+'true'+' '+'--modify'+' '+service_id
+                print 'cmd: '+command
+                os.system(command)
+                print 'autostart service: '+service_id
         
 if __name__ == '__main__':
 

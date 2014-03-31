@@ -9,7 +9,7 @@ class Helper():
     
     #####
     
-    userDict = {  
+    dictUser = {  
         1:'albatross', 2:'bonobo', 3:'chinchilla', 4:'dodo', 5:'eagle', 
         6:'frog', 7:'guppy', 8:'hummingbird', 9:'iguana', 10:'jellyfish',
        11:'kiwi', 12:'lemming', 13:'moose', 14:'nuthatch', 15:'oyster',
@@ -62,18 +62,30 @@ class Helper():
     
     #####
     
-    serviceDict = {
+    dictService = {
         1:'UIMA-AS:FixedSleepAE_1:tcp://localhost:61617',
         2:'UIMA-AS:FixedSleepAE_4:tcp://localhost:61617',
-        3:'UIMA-AS:FixedSleepAE_1:tcp://localhost:61617 UIMA-AS:FixedSleepAE_4:tcp://localhost:61617',
+        3:'CUSTOM:localhost:7175',
     }
+    
+    dictServiceSets = {
+        1:dictService.get(1),
+        2:dictService.get(1)+' '+dictService.get(2),
+        3:dictService.get(1)+' '+dictService.get(3),
+        4:dictService.get(1)+' '+dictService.get(2)+' '+dictService.get(3),
+        5:dictService.get(2),
+        6:dictService.get(2)+' '+dictService.get(3),
+        7:dictService.get(3),
+    }
+    
+    #####
     
     def __init__(self):
         pass
     
     def getUser(self):
-        key = random.randint(1, len(self.userDict))
-        value = self.userDict.get(key)
+        key = random.randint(1, len(self.dictUser))
+        value = self.dictUser.get(key)
         return value
     
     def getClass(self):
@@ -144,8 +156,13 @@ class Helper():
         return value
             
     def getService(self):
-        key = random.randint(1, len(self.serviceDict))
-        value = self.serviceDict.get(key)
+        key = random.randint(1, len(self.dictService))
+        value = self.dictService.get(key)
+        return value
+                
+    def getServiceSet(self):
+        key = random.randint(1, len(self.dictServiceSets))
+        value = self.dictServiceSets.get(key)
         return value
     
     def getLogDir(self,user,tid):
