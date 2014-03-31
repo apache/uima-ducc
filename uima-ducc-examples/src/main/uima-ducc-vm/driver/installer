@@ -1,0 +1,39 @@
+#! /usr/bin/env python
+
+import os
+import sys
+
+class Installer():
+        
+    def __init__(self):
+        pass
+    
+    def run(self):
+        file_home = os.path.dirname(os.path.realpath(sys.argv[0]))
+        ducc_home = file_home.rsplit('/',3)[0]
+        #
+        file = 'ducc.properties'
+        src = ducc_home+'/examples/uima-ducc-vm/config/resources/'+file
+        tgt = ducc_home+'/resources/'+file
+        command = 'cp -p'+' '+src+' '+tgt
+        os.system(command)
+        print 'installed: '+tgt
+        #
+        file = 'ducc.administrators'
+        src = ducc_home+'/examples/uima-ducc-vm/config/resources/'+file
+        tgt = ducc_home+'/resources/'+file
+        command = 'cp -p'+' '+src+' '+tgt
+        os.system(command)
+        print 'installed: '+tgt
+        #
+        file = 'ducc.nodes'
+        src = ducc_home+'/examples/uima-ducc-vm/config/examples/systemtest/'+file
+        tgt = ducc_home+'/examples/systemtest/'+file
+        command = 'cp -p'+' '+src+' '+tgt
+        os.system(command)
+        print 'installed: '+tgt
+                
+if __name__ == '__main__':
+
+    function = Installer()
+    function.run()

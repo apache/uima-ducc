@@ -1,0 +1,19 @@
+#! /usr/bin/env python
+
+import os
+
+class DriverStart():
+        
+    def __init__(self):
+        pass
+    
+    def run(self):
+        command = 'python -u ./driver_stop'
+        os.system(command)
+        command = 'nohup python -u ./driver.py &'
+        os.system(command)
+        
+if __name__ == '__main__':
+
+    function = DriverStart()
+    function.run()

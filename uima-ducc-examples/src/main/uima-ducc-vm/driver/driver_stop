@@ -1,0 +1,42 @@
+#! /usr/bin/env python
+
+import subprocess
+
+class DriverStop():
+        
+    def __init__(self):
+        pass
+    
+    def run(self):
+        spArgs = []
+        spArgs.append('ps')
+        spArgs.append('-elf')
+        sp = subprocess.Popen(spArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = sp.communicate()
+        for row in out.split('\n'):
+            cols = row.split()
+            if(len(cols) > 16):
+                pid = cols[3]
+                cmd = cols[14]
+                arg1 = cols[15]
+                arg2 = cols[16]
+                if(cmd == 'python'):
+                    if(arg1 == '-u'):
+                        if(arg2 == './driver.py'):
+                            spArgs = []
+                            spArgs.append('kill')
+                            spArgs.append('-9')
+                            spArgs.append(pid)
+                            print spArgs[0]+' '+spArgs[2]
+                            #print spArgs
+                            sp = subprocess.Popen(spArgs, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                            out, err = sp.communicate()
+                            if out:
+                                print out
+                            if err:
+                                print err
+    
+if __name__ == '__main__':
+
+    function = DriverStop()
+    function.run()
