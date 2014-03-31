@@ -63,10 +63,10 @@ implements ManagedService {
 
 	public void initialize() throws Exception {
 		
-		ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this);
+//		ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this);
 		// serviceDeployer);
-		Runtime.getRuntime().addShutdownHook(shutdownHook);
-		System.out.println("Managed Service Wrapper Registered Shutdown Hook");
+//		Runtime.getRuntime().addShutdownHook(shutdownHook);
+//		System.out.println("Managed Service Wrapper Registered Shutdown Hook");
 	}
 
 	public void notifyAgentWithStatus(ProcessState state) {
@@ -101,6 +101,9 @@ implements ManagedService {
 		}
 	}
 	public void stop() {
+		if ( super.isStopping() ) {
+			return;  // already stopping - nothing to do
+		}
 		try {
 			System.out.println("... AbstractManagedService - Stopping Service Adapter");
 			serviceAdapter.stop();
