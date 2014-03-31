@@ -324,6 +324,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   }
 
   public void stop() throws Exception {
+	    synchronized (monitor) {
+	        if (stopping) {
+	          return;
+	        }
+	        stopping = true;
+	      }
     if (getLogger() != null) {
       logger = getLogger();
     }
@@ -332,74 +338,78 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     } else {
       logger.info("stop", null, "----------stop() called");
     }
-    synchronized (monitor) {
-      if (stopping) {
-        return;
-      }
-      stopping = true;
-    }
-    Thread th = new Thread(new Runnable() {
-      public void run() {
-        try {
-          if (logger == null) {
-            System.out.println("Stopping Camel Routes");
-          } else {
-            logger.info("stop", null, "Stopping Camel Routes");
-          }
-
-          List<Route> routes = context.getRoutes();
-          for (Route route : routes) {
-            route.getConsumer().stop();
-            route.getEndpoint().stop();
-          }
-
-          ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
-          amqc.stop();
-          amqc.shutdown();
-
-          if (logger == null) {
-            System.out.println("Stopping Camel Context");
-          } else {
-            logger.info("stop", null, "Stopping Camel Context");
-          }
-          context.stop();
-          if (logger == null) {
-            System.out.println("Camel Context Stopped");
-          } else {
-            logger.info("stop", null, "Camel Context Stopped");
-          }
-
-          ObjectName name = new ObjectName(
-                  "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
-                          + getClass().getSimpleName());
-          MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-          Set<?> set = mbs.queryMBeans(name, null);
-          if (set.size() > 0) {
-            mbs.unregisterMBean(name);
-          }
-
-          if (jmxConnector != null) {
-            jmxConnector.stop();
-          }
-
-          if (service != null) {
-            service.stop();
-          }
-          if (logger == null) {
-            System.out.println("Component cleanup completed - terminating process");
-          } else {
-            logger.info("stop", null, "Component cleanup completed - terminating process");
-          }
-
-        } catch (Exception e) {
-          e.printStackTrace();
+ 
+    try {
+        if (logger == null) {
+          System.out.println("Stopping Camel Routes");
+        } else {
+          logger.info("stop", null, "Stopping Camel Routes");
         }
-      }
-    });
-    th.start();
 
-    th.join(5000); // Give a few seconds for the thread to work, but not much more
-    System.exit(1);
+        List<Route> routes = context.getRoutes();
+        for (Route route : routes) {
+          route.getConsumer().stop();
+          route.getEndpoint().stop();
+        }
+
+        ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
+        amqc.stop();
+        amqc.shutdown();
+
+        if (logger == null) {
+          System.out.println("Stopping Camel Context");
+        } else {
+          logger.info("stop", null, "Stopping Camel Context");
+        }
+        context.stop();
+        if (logger == null) {
+          System.out.println("Camel Context Stopped");
+        } else {
+          logger.info("stop", null, "Camel Context Stopped");
+        }
+
+        ObjectName name = new ObjectName(
+                "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
+                        + getClass().getSimpleName());
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        Set<?> set = mbs.queryMBeans(name, null);
+        if (set.size() > 0) {
+          mbs.unregisterMBean(name);
+        }
+
+        if (jmxConnector != null) {
+          jmxConnector.stop();
+        }
+
+        if (service != null) {
+          service.stop();
+        }
+        if (logger == null) {
+          System.out.println("Component cleanup completed - terminating process");
+        } else {
+          logger.info("stop", null, "Component cleanup completed - terminating process");
+        }
+
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    
+    
+    long waitTime=0;
+   if ( System.getProperty("WaitTime") != null) {
+	   try {
+		   synchronized( this ) {
+			   waitTime = Long.valueOf(System.getProperty("WaitTime"));
+			   if ( waitTime > 0) {
+				   wait(waitTime);
+			   }
+		   }
+	   } catch( Exception e) {
+		   
+	   }
+	   
+   }
+   //  System.exit(0);
   }
 
   public void handleUncaughtException(Exception e) {
