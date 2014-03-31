@@ -117,10 +117,13 @@ public class ManagedUimaService extends AbstractManagedService implements
 							.undeploy(SpringContainerDeployer.QUIESCE_AND_STOP);
 				}
 			}
-			stop();
+			//super.stop();
+		
+			
 		} catch (Exception e) {
-
+			e.printStackTrace();
 		}
+
 	}
 
 	public void terminate() {
@@ -153,22 +156,9 @@ public class ManagedUimaService extends AbstractManagedService implements
 	}
 
 	public void stopService() {
-		System.out
-				.println("UIMA AS process received STOP event. Proceeding to STOP in quiesce mode");
-
-		if (serviceDeployer != null) {
-			// Use top level controller to stop all components. This method
-			// blocks until
-			// ALL in flight CASes are processed.
-			serviceDeployer.getTopLevelController().quiesceAndStop();
-		}
-		System.out.println("UIMA AS Service quiesceAndStop() Finished");
+		quiesceAndStop();
 		currentState = ProcessState.Stopped;
-		try {
-			super.stop();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		System.exit(0);
 	}
 
 	/**
