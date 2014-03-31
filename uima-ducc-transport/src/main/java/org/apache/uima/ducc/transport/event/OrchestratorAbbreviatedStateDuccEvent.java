@@ -32,6 +32,7 @@ public class OrchestratorAbbreviatedStateDuccEvent extends AbstractDuccEvent  {
 
 	private DuccWorkMap workMap;
 	
+	
 	public OrchestratorAbbreviatedStateDuccEvent() {
 		super(EventType.ORCHESTRATOR_STATE);
 	}
