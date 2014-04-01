@@ -70,29 +70,17 @@ public class DuccGarbageStatsCollector {
 		      String gcCollectorName = gcObject.getObjectName().getCanonicalKeyPropertyListString();
 		      ObjectName memoryManagerMXBean = 
 		              new ObjectName("java.lang:" + gcCollectorName);
-		      totalCollectionCount =+ (Long) connection.getAttribute(memoryManagerMXBean,"CollectionCount");
-		      totalCollectionTime =+ (Long) connection.getAttribute(memoryManagerMXBean,"CollectionTime");
+		      totalCollectionCount += (Long) connection.getAttribute(memoryManagerMXBean,"CollectionCount");
+		      totalCollectionTime += (Long) connection.getAttribute(memoryManagerMXBean,"CollectionTime");
 		    }
 	      // Returns the total number of collections that have occurred.
 	      gcStats.setCollectionCount(totalCollectionCount);
 	      // Returns the approximate accumulated collection elapsed time in milliseconds.
 	      gcStats.setCollectionTime(totalCollectionTime);
 
-		    
 		  } catch( Exception e) {
 		    logger.error("", null, "Failed to Fetch JMX GC Stats From PID:"+process.getPID()+" Reason:\n"+e);
 		  }
-		  
-		  
-//		   List<GarbageCollectorMXBean> gcmb = ManagementFactory.getGarbageCollectorMXBeans();
-//		   for( GarbageCollectorMXBean gcBean : gcmb ) {
-//			  gcStats.setMemoryManagerName(gcBean.getName());
-//			  // Returns the total number of collections that have occurred.
-//			  gcStats.setCollectionCount(gcBean.getCollectionCount());
-//			  // Returns the approximate accumulated collection elapsed time in milliseconds.
-//			  gcStats.setCollectionTime(gcBean.getCollectionTime());
-		  //}
-    	
     }
 	  return gcStats;
 	}
