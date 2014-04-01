@@ -519,7 +519,12 @@ class PingDriver
         String cp = classpath;
         String dh = System.getProperty("DUCC_HOME");
 
-        // we need the sm jar and the cli jar ... dig around in the runtime to try to find them
+        // We need the sm jar and the cli jar.  The cli jar is the one with the manifest to insure
+        // the common and transport stuff is picked. up.  We have to dig around for the right sm
+        // jar because of versioning on the jar names.
+        cp = cp + ":" + dh + "/lib/uima-ducc-cli.jar";
+
+
         File libdir = new File(dh + "/lib/uima-ducc");
         String[] jars = libdir.list();
         for ( String j : jars ) {
@@ -527,14 +532,7 @@ class PingDriver
                 cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
                 continue;
             }
-            if ( j.contains("ducc-cli") ) {
-                cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
-                continue;
-            }
-
         }
-        //cp = cp + ":" + dh + "/lib/uima-ducc/ducc-sm.jar";
-        //''cp = cp + ":" + dh + "/lib/uima-ducc/uima-ducc-cli-1.0.0-SNAPSHOT.jar";
 
         try {
             pinger =  new PingThread();
@@ -756,9 +754,9 @@ class PingDriver
                     // Try to read the response
                     try {
                         Pong resp = (Pong) ois.readObject();
-                        logger.info(methodName, sset.getId(), "ExtrnPingDriver: ping RECEIVED");
+                        logger.trace(methodName, sset.getId(), "ExtrnPingDriver: ping RECEIVED");
                         handleResponse(resp);
-                        logger.info(methodName, sset.getId(), "ExtrnPingDriver: ping HANDLED");
+                        logger.trace(methodName, sset.getId(), "ExtrnPingDriver: ping HANDLED");
                     } catch (IOException e1) {
                         logger.warn(methodName, sset.getId(), "ExtrnPingDriver: Error receiving ping:", e1);
                         errors++;
@@ -767,9 +765,9 @@ class PingDriver
 
                     // Wait a bit for the next one
                     try {
-                        logger.info(methodName, sset.getId(), "ExtrnPingDriver: SLEEPING", meta_ping_rate, "ms", sset.toString());
+                        logger.trace(methodName, sset.getId(), "ExtrnPingDriver: SLEEPING", meta_ping_rate, "ms", sset.toString());
                         Thread.sleep(meta_ping_rate);
-                        logger.info(methodName, sset.getId(), "ExtrnPingDriver: SLEEP returns", sset.toString());
+                        logger.trace(methodName, sset.getId(), "ExtrnPingDriver: SLEEP returns", sset.toString());
                     } catch (InterruptedException e) {
                         logger.info(methodName, sset.getId(), e);
                     }

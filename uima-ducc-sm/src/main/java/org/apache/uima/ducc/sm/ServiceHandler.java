@@ -1132,7 +1132,6 @@ public class ServiceHandler
 
         public void run()
         {
-            String methodName = "ServiceShutdown.run";
             List<ServiceSet> allServices = serviceStateHandler.getServices();
             for (ServiceSet sset : allServices) {
                 sset.stopMonitor();

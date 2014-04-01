@@ -509,6 +509,7 @@ public class ServiceSet
     {
         String methodName = "restartPinger";
         logger.info(methodName, id, "Modify pinger:", pingClass, pingArguments, pingClasspath, pingJvmArgs, pingTimeout, pingDolog);
+
         stopPingThread(); 
         resetRuntimeErrors();
         // to Implemnt: 
@@ -879,10 +880,7 @@ public class ServiceSet
         while ( true ) {      
             // Kids, don't try this at home! 
             // All paths MUST lead to break or we loop forever - using while/break as goto mechanism
-            if ( isPingOnly() ) {
-                ping_failures = 0;   // ping only signals, we know it's functioning
-                break;
-            }
+            ping_failures = 0;   
             
             this.excessiveRunFailures = isExcessiveFailures;
 
@@ -1401,6 +1399,11 @@ public class ServiceSet
         if ( serviceMeta != null ) return;         // don't start multiple times.
         if ( inShutdown ) return;              // in shutdown, don't restart
 
+        if ( ping_failures > ping_failure_max ) {
+            logger.warn(methodName, id, "Not restarting pinger due to excessiver errors:", ping_failures);
+            return;
+        }
+
         try {
             logger.info(methodName, id, "Starting service monitor.");
             serviceMeta = new PingDriver(this);
@@ -1423,15 +1426,17 @@ public class ServiceSet
             serviceMeta = null;
         } // otherwise, it was already removed by some intrepid unit
 
-        if ( isPingOnly() && (rc != 0) ) {
-            if ( ++ping_failures > ping_failure_max ) {
-                logger.info(methodName, id, "Stopping pinger due to excessive falutes:", ping_failure_max);
+        if ( rc != 0 ) {
+            ++ping_failures;
+            logger.warn(methodName, id, "Ping exited with failure, total failures:", ping_failures);
+
+            if ( isPingOnly() && (ping_failures > ping_failure_max) ) {
+                logger.warn(methodName, id, "Stopping ping-only service due to excessive falutes:", ping_failure_max);
                 stop(-1L);        // must be -lL Long to get the right overload
                 implementors.remove(-1L);
-            } else {
-                logger.info(methodName, id, "Ping-only pinger exits with error rc", rc, "total errors:", ping_failures);
-            }
+            } 
         }
+
     }
 
     synchronized void stopMonitor()

@@ -113,7 +113,11 @@ public class ServiceManagerComponent
     private boolean testmode = false;
 
     Map<String, String> administrators = new HashMap<String, String>();
-    String version = "1.1.2";
+
+    // Local SM version
+    //    1.1.0 - reworked SM
+    //    1.1.3 - added shutdown hook, pinger last-use, pinger disable autostart
+    String version = "1.1.3";
 
 	public ServiceManagerComponent(CamelContext context) 
     {
