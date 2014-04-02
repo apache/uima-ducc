@@ -111,6 +111,7 @@ public class ServiceManagerComponent
     private boolean signature_required = true;
     private boolean initialized = false;
     private boolean testmode = false;
+    private boolean orchestrator_alive = false;
 
     Map<String, String> administrators = new HashMap<String, String>();
 
@@ -591,6 +592,7 @@ public class ServiceManagerComponent
             return;
         }
 
+        orchestrator_alive = true;
         epochCounter++;
         incomingMap = map;
         notify();
@@ -644,10 +646,20 @@ public class ServiceManagerComponent
 
         if ( ! validated ) {
             logger.warn(methodName, null, "User", user, "cannot be validated.", action, "rejected.");
-            req.setReply(new ServiceReplyEvent(false, "User " + user + " cannot be validated. " + action + " rejected.", "NONE", -1));
+            req.setReply(new ServiceReplyEvent(false, "User " + user + " cannot be validated. " + action + " rejected.", action, -1));
             return false;
         }
         return true;
+    }
+
+    public boolean orchestratorAlive(String action, AServiceRequest req)
+    {
+    	String methodName = "orchestratorAlive";
+        if (  orchestrator_alive ) return true;
+
+        logger.warn(methodName, null, action, "rejected: orchestrator is not yet active");
+        req.setReply(new ServiceReplyEvent(false, action + " rejected, DUCC is still initializing.", action, -1));
+        return false;
     }
 
     public synchronized void register(ServiceRegisterEvent ev)
@@ -660,6 +672,7 @@ public class ServiceManagerComponent
         String user = ev.getUser();        
         
         if ( ! validate_user("Register", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Register", ev) ) return;
 
         DuccId id = null;
         try {
@@ -709,6 +722,7 @@ public class ServiceManagerComponent
         long id = ev.getFriendly();
 
         if ( ! validate_user("Unregister", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Unregister", ev) ) return;
 
         logger.info(methodName, null, "De-registering service", id);
         ServiceReplyEvent reply = handler.unregister(ev);
@@ -720,6 +734,7 @@ public class ServiceManagerComponent
         String methodName = "startService";
 
         if ( ! validate_user("Start", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Start", ev) ) return;
 
         logger.info(methodName, null, "Starting service", ev.toString());
         ServiceReplyEvent reply = handler.start(ev);
@@ -732,6 +747,7 @@ public class ServiceManagerComponent
         String methodName = "stopService";
 
         if ( ! validate_user("Stop", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Stop", ev) ) return;
 
         logger.info(methodName, null, "Stopping service", ev.toString());
         ServiceReplyEvent reply = handler.stop(ev);
@@ -744,6 +760,7 @@ public class ServiceManagerComponent
         String methodName = "query";
 
         if ( ! validate_user("Query", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Query", ev) ) return;
 
         logger.info(methodName, null, "Query", ev.toString());
         ServiceQueryReplyEvent reply = handler.query(ev);
@@ -756,6 +773,7 @@ public class ServiceManagerComponent
         String methodName = "modify";
 
         if ( ! validate_user("Modify", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Modify", ev) ) return;
 
         logger.info(methodName, null, "Modify", ev.toString());
         ServiceReplyEvent reply = handler.modify(ev);
