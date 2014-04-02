@@ -47,8 +47,6 @@ public abstract class AServicePing
     protected Map<String, Object> smState;
     protected Map<String, Object> initializationState;
 
-    private boolean autostart = true;
-
     protected org.apache.uima.ducc.common.utils.DuccLogger duccLogger = 
         org.apache.uima.ducc.common.utils.DuccLogger.getLogger(this.getClass().getName(), "PING");	
 
@@ -147,27 +145,21 @@ public abstract class AServicePing
     }
 
     /**
-     * Pingers may disable autostart which will allow instances to shrink to 0.
-     */
-    public final void disableAutostart()
-    {
-        this.autostart = false;
-    }
-    
-    /**
-     * Pingers may enable autostart which will prevent instances from going to 0.
+     * The SM queries the ping/monitors autostart on each pong.  The default is
+     * to return the same value that came in on the ping.  Pingers may override
+     * this behaviour to dynanically enable or disable autostart.
      *
-     * Note that if the instances went to 0 before this is set the pinger is about to
-     * be stopped.  The service will have to be started to get the pinger restarted.
+     * It is useful to disable autostart if a pinger detects that a service has been
+     * idle for a long time and it wants to shrink the number of live instances
+     * below the autostart value.
      */
-    public final void enableAutostart()
+    public boolean isAutostart()
     {
-        this.autostart = true;
-    }
-    
-    public final boolean isAutostart()
-    {
-        return this.autostart;
+        if ( smState== null ) {
+            return (Boolean) initializationState.get("autostart-enabled");   // no ping yet, return the initial value
+        } else {
+            return (Boolean) smState.get("autostart-enabled");               // been pung, return that value
+        }
     }
 
     /**
