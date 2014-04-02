@@ -457,6 +457,7 @@ public class AgentConfiguration {
       RoutesDefinition rsd = metricsRouteBuilder.getRouteCollection();
       for (RouteDefinition rd : rsd.getRoutes()) {
         camelContext.stopRoute(rd.getId());
+        camelContext.removeRoute(rd.getId());
         logger.error(methodName, null, ">>>> Agent Stopped Metrics Publishing");
       }
 

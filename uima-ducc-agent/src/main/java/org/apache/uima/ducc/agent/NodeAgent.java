@@ -42,6 +42,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Processor;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.RouteDefinition;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.agent.config.AgentConfiguration;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
@@ -959,6 +960,16 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             RouteBuilder rb = new ProcessMemoryUsageRoute(this, processEntry.getValue(),
                     deployedProcess);
             super.getContext().addRoutes(rb);
+            StringBuffer sb = new StringBuffer();
+            
+            for ( Route route : super.getContext().getRoutes() ) {
+            	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
+            }
+            logger.info(
+                    methodName,
+                    null,
+                    sb.toString());
+            
             logger.info(
                     methodName,
                     null,
@@ -968,6 +979,24 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   || duccEvent.getState().equals(ProcessState.Failed)
                   || duccEvent.getState().equals(ProcessState.Killed)) {
             super.getContext().stopRoute(duccEvent.getPid());
+            
+            // remove route from context, otherwise the routes accumulate over time causing memory leak
+            super.getContext().removeRoute(duccEvent.getPid());
+            StringBuffer sb = new StringBuffer();
+            logger.info(
+                    methodName,
+                    null,
+                    "Removed Camel Route from Context for PID:"+duccEvent.getPid());
+            
+            for ( Route route : super.getContext().getRoutes() ) {
+            	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
+            }
+            logger.info(
+                    methodName,
+                    null,
+                    sb.toString());
+            
+            
             if ( deployedProcess.getMetricsProcessor() != null ) {
             	deployedProcess.getMetricsProcessor().close();  // close open fds (stat and statm files)
             }
@@ -1180,14 +1209,26 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       ProcessStateUpdate processStateUpdate = new ProcessStateUpdate(process.getProcessState(),
               process.getPID(), process.getDuccId().getUnique());
       ProcessStateUpdateDuccEvent event = new ProcessStateUpdateDuccEvent(processStateUpdate);
-      /*
-      if (process != null) {
-        ITimeWindow tw = process.getTimeWindowInit();
-        if (tw.getEnd() == null) {
-          tw.setEnd(TimeStamp.getCurrentMillis());
-        }
+      // cleanup Camel route associated with a process that just stopped
+      if ( process.getPID() != null && super.getContext().getRoute(process.getPID()) != null ) {
+          super.getContext().stopRoute(process.getPID());
+          
+          // remove route from context, otherwise the routes accumulate over time causing memory leak
+          super.getContext().removeRoute(process.getPID());
+          StringBuffer sb = new StringBuffer("\n");
+          logger.info(
+                  methodName,
+                  null,
+                  "Removed Camel Route from Context for PID:"+process.getPID());
+          
+          for ( Route route : super.getContext().getRoutes() ) {
+          	sb.append("Camel Context - RouteId:"+route.getId()+"\n");
+          }
+          logger.info(
+                  methodName,
+                  null,
+                  sb.toString());
       }
-*/
       updateProcessStatus(event);
     } catch (Exception e) {
       logger.error(methodName, null, e);
