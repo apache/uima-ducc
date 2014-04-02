@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
@@ -1705,16 +1706,30 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 	}
 
+	public AtomicBoolean rectifyErrorLogged = new AtomicBoolean(false);
+	
 	public void rectifyStatus() {
-		if(casSource != null) {
-			casSource.rectifyStatus();
+		String location = "rectifyStatus";
+		DuccId djid = null;
+		try {
+			if(casSource != null) {
+				casSource.rectifyStatus();
+			}
+			if(workItemStateKeeper != null) {
+				WorkItemStatistics stats = workItemStateKeeper.getStatistics();
+				driverStatusReport.setWiMillisMin(stats.millisMin);
+				driverStatusReport.setWiMillisMax(stats.millisMax);
+				driverStatusReport.setWiMillisAvg(stats.millisAvg);
+				driverStatusReport.setWiMillisOperatingLeast(stats.millisOperatingLeast);
+				driverStatusReport.setWiMillisCompletedMost(stats.millisCompletedMost);
+			}
 		}
-		WorkItemStatistics stats = workItemStateKeeper.getStatistics();
-		driverStatusReport.setWiMillisMin(stats.millisMin);
-		driverStatusReport.setWiMillisMax(stats.millisMax);
-		driverStatusReport.setWiMillisAvg(stats.millisAvg);
-		driverStatusReport.setWiMillisOperatingLeast(stats.millisOperatingLeast);
-		driverStatusReport.setWiMillisCompletedMost(stats.millisCompletedMost);
+		catch(Exception e) {
+			if(!rectifyErrorLogged.get()) {
+				duccOut.error(location, djid, e);
+				rectifyErrorLogged.set(true);
+			}
+		}
 	}
 
 	public boolean callbackRegister(String casId, String name) {
