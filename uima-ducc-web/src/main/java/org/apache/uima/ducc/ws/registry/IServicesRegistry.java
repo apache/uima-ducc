@@ -36,6 +36,7 @@ public class IServicesRegistry {
 	public static final String service_class = IStateServices.service_class;
 	public static final String service_healthy = IStateServices.service_healthy;
 	public static final String service_state = IStateServices.service_state;
+	public static final String last_use = IStateServices.last_use;
 	public static final String service_statistics = IStateServices.service_statistics;
 	public static final String service_type = IStateServices.service_type;
 	public static final String submit_error = IStateServices.submit_error;

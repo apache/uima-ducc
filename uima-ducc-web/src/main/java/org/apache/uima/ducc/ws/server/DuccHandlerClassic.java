@@ -940,6 +940,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				String state = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.service_state);
 				sb.append(state);
 				sb.append("</td>");
+				// Last Used
+				sb.append("<td>");
+				String lastUse = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.last_use);
+				duccLogger.info(methodName, jobid, "last use: "+lastUse);
+				sb.append(getTimeStamp(request, jobid, lastUse));
+				sb.append("</td>");
 				// Pinging
 				sb.append("<td>");
 				String pinging = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.ping_active);

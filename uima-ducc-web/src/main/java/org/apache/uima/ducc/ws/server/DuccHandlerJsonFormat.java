@@ -1084,6 +1084,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					}
 				}
 				row.add(new JsonPrimitive(s0+s1+s2));
+				// Last Used
+				String lastUse = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.last_use);
+				String time = getTimeStamp(request, jobid, lastUse);
+				row.add(new JsonPrimitive(time));
 				// Pinging
 				String pinging = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.ping_active);
 				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging);
