@@ -435,8 +435,9 @@ class PingDriver
 
     void setCommonProperties(Map<String, Object> props)
     {
-        props.put("all-instances"   , sset.getImplementors());
-        props.put("active-instances", sset.getActiveInstances());
+        props.put("all-instances"    , sset.getImplementors());
+        props.put("active-instances" , sset.getActiveInstances());
+        props.put("autostart-enabled", sset.isAutostart());
 
         DuccId[] references = sset.getReferences();
         Long[]   refs = new Long[references.length];
@@ -444,8 +445,8 @@ class PingDriver
             refs[i] = references[i].getFriendly();
         }
 
-        props.put("references"      , refs);
-        props.put("run-failures"    , sset.getRunFailures());
+        props.put("references"       , refs);
+        props.put("run-failures"     , sset.getRunFailures());
     }
 
     void runAsThread()

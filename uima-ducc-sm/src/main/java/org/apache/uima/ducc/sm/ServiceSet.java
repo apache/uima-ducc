@@ -493,12 +493,12 @@ public class ServiceSet
 
     synchronized void setAutostart(boolean auto)
     {
-        cancelLinger();
         meta_props.setProperty("autostart", auto ? "true" : "false");
         this.autostart = auto;
         if ( auto ) {
             // turning this on gives benefit of the doubt on failure management
             // by definition, an autostarted services is NOT reference started
+            cancelLinger();
             reference_start = false;
             init_failures = 0;
             resetRuntimeErrors();
