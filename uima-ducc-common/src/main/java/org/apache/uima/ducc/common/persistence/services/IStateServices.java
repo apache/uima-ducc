@@ -41,6 +41,7 @@ public interface IStateServices {
 	public static final String service_class = "service-class";
 	public static final String service_healthy = "service-healthy";
 	public static final String service_state = "service-state";
+	public static final String last_use = "last-use";
 	public static final String service_statistics = "service-statistics";
 	public static final String service_type = "service-type";
 	public static final String submit_error = "submit_error";
