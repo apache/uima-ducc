@@ -943,7 +943,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				// Last Used
 				sb.append("<td>");
 				String lastUse = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.last_use);
-				duccLogger.info(methodName, jobid, "last use: "+lastUse);
 				sb.append(getTimeStamp(request, jobid, lastUse));
 				sb.append("</td>");
 				// Pinging
