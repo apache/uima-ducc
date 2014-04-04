@@ -943,7 +943,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				// Last Used
 				sb.append("<td>");
 				String lastUse = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.last_use);
-				sb.append(getTimeStamp(request, jobid, lastUse));
+				try {
+					long value = Long.parseLong(lastUse);
+					if(value > 0) {
+						sb.append(getTimeStamp(request, jobid, lastUse));
+					}
+				}
+				catch(Exception e) {
+				}
 				sb.append("</td>");
 				// Pinging
 				sb.append("<td>");
