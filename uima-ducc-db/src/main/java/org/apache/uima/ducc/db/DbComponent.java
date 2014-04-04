@@ -51,6 +51,8 @@ implements IDbComponent {
 	
 	private DbPortal dbPortal = null;
 	
+	private String description = "Database Services";
+	
 	public DbComponent(CamelContext context) {
 		super("DB Daemon", context);
 		initialize();
@@ -80,16 +82,29 @@ implements IDbComponent {
 		}
 	}
 	
+	/*
 	@Override
 	public void start(DuccService service) throws Exception {
+		String location = "start";
 		super.start(service);
+		logger.info(location, jobid, description);
+		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.DbManager,getProcessJmxUrl());
+	}
+	*/
+	
+	@Override
+	public void start(DuccService service, String[] args) throws Exception {
+		String location = "start";
+		super.start(service, args);
+		logger.info(location, jobid, description);
 		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.DbManager,getProcessJmxUrl());
 	}
 	
 	@Override
-	public void start(DuccService service, String[] args) throws Exception {
-		super.start(service, args);
-		DuccDaemonRuntimeProperties.getInstance().boot(DaemonName.DbManager,getProcessJmxUrl());
+	public void stop() throws Exception {
+		String location = "stop";
+		logger.info(location, jobid, description);
+		super.stop();
 	}
 	
 	@Override
@@ -106,4 +121,5 @@ implements IDbComponent {
 		}
 		return retVal;
 	}
+
 }
