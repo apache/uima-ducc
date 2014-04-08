@@ -66,6 +66,8 @@ public class DuccServiceApi
         UiOption.ProcessDD,
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
+        UiOption.ProcessInitializationTimeMax,
+
         UiOption.ClasspathOrder,
         // UiOption.Specification          // not used for registration
         UiOption.ServiceDependency,
