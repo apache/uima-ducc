@@ -207,6 +207,9 @@ public class JobDriver extends Thread implements IJobDriver {
 			terminate();
 			throw new JobDriverTerminateException("initialize failed", e);
 		}
+		catch(Throwable t) {
+			throw new JobDriverTerminateException(t);
+		}
 	}
 	
 	private void initThreadPool() {
