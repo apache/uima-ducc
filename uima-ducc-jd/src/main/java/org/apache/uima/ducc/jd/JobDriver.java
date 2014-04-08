@@ -208,7 +208,11 @@ public class JobDriver extends Thread implements IJobDriver {
 			throw new JobDriverTerminateException("initialize failed", e);
 		}
 		catch(Throwable t) {
-			throw new JobDriverTerminateException(t);
+			duccOut.error(location, jobid, t);
+			duccErr.error(location, jobid, t);
+			driverStatusReport.setInitializingFailed(new Rationale("job driver exception occurred: "+summarize(t)));
+			terminate();
+			throw new JobDriverTerminateException("initialize failed", t);
 		}
 	}
 	
@@ -220,9 +224,9 @@ public class JobDriver extends Thread implements IJobDriver {
 		queue = new LinkedBlockingQueue<Runnable>();
 		executor = new DynamicThreadPoolExecutor(1, 1, 10, TimeUnit.MICROSECONDS, queue, factory, job.getDuccId());
 	}
-	
-	public String summarize(Exception e) {
-		return ExceptionHelper.summarize(e);
+
+	public String summarize(Throwable t) {
+		return ExceptionHelper.summarize(t);
 	}
 	
 	public void run() {

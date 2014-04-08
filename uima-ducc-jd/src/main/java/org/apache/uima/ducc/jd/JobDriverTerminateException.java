@@ -22,12 +22,8 @@ public class JobDriverTerminateException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	public JobDriverTerminateException(Throwable t) {
-		super(t);
-	}
-	
-	public JobDriverTerminateException(String reason, Exception e) {
-		super(reason, e);
+	public JobDriverTerminateException(String reason, Throwable t) {
+		super(reason, t);
 	}
 	
 	public JobDriverTerminateException(String reason) {
