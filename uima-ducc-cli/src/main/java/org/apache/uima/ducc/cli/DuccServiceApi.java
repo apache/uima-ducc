@@ -116,13 +116,16 @@ public class DuccServiceApi
         UiOption.Update,
     }; 
 
-    UiOption[] modify_options = {
+    // For use by SM, final to insure no accidental modification
+    final UiOption[] modify_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Modify,
         UiOption.Instances,
         UiOption.Autostart,
         UiOption.Activate,
+
+        UiOption.ProcessInitializationTimeMax,
 
         UiOption.ServicePingArguments,
         UiOption.ServicePingClass,
@@ -236,6 +239,11 @@ public class DuccServiceApi
             System.out.println("Service endpoint resolves to " + endpoint);
         }
         return endpoint;
+    }
+
+    public UiOption[] getModifyOptions()
+    {
+        return modify_options;
     }
 
     /**

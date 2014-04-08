@@ -24,7 +24,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.uima.ducc.cli.DuccServiceApi;
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
+import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -70,10 +74,20 @@ public class ServiceHandler
     private List<ApiHandler> pendingRequests = new LinkedList<ApiHandler>();
     private Object stateUpdateLock = new Object();
 
+    private Map<String, UiOption> optionMap;    // for modify()
+
     public ServiceHandler(IServiceManager serviceManager)
     {
         this.serviceManager = serviceManager;        
         Runtime.getRuntime().addShutdownHook(new ServiceShutdown());
+
+        DuccServiceApi dsi = new DuccServiceApi(null);           // instantiate this to access the modify options
+        UiOption[] options = dsi.getModifyOptions();
+
+        optionMap = new HashMap<String, UiOption>();
+        for ( UiOption o : options ) {
+            optionMap.put(o.pname(), o);
+        }
     }
 
     public synchronized void run()
@@ -202,8 +216,11 @@ public class ServiceHandler
             pendingRequests.clear();
         }
         logger.info(methodName, null, "Running", tmp.size(), "API Tasks.");
-        for ( ApiHandler apih : tmp ) {
-            apih.run();
+        
+        synchronized(this) {
+            for ( ApiHandler apih : tmp ) {
+                apih.run();
+            }
         }
     }
 
@@ -689,13 +706,12 @@ public class ServiceHandler
         }
 
         if ( update ) {
-            sset.setNInstances(running + wanted);
             sset.saveMetaProperties();
         }
 
         sset.resetRuntimeErrors();
-        sset.setStarted();                  // manual start overrides, if there's still a problem
-        sset.start(wanted);
+        sset.setStarted();                              // manual start overrides, if there's still a problem
+        sset.updateInstances(running + wanted, update); // pass in target instances
     }
 
     ServiceReplyEvent stop(ServiceStopEvent ev)
@@ -738,23 +754,15 @@ public class ServiceHandler
 
         int running    = sset.countImplementors();
         int tolose;
-        if ( instances == -1 ) {
+        
+        // CLI/API prevents instances < -1
+        if ( instances == -1 ) {                             // figure out n to lose
             tolose = running;
         } else {
             tolose = Math.min(instances, running);
         }
 
-        if ( update ) {
-            sset.setNInstances(Math.max(0, running - tolose)); // never persist < 0 registered instance
-            sset.saveMetaProperties();
-        }
-        
-        if ( tolose == running ) {
-            sset.stop();                                  // blind stop
-        } else {
-            sset.stop(tolose);                            // selective stop 
-        }
-
+        sset.updateInstances(Math.max(0, running - tolose), update); // pass in target intances running
     }
 
     ServiceReplyEvent register(DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
@@ -841,8 +849,114 @@ public class ServiceHandler
         return new ServiceReplyEvent(true, "Service " + serviceIdString + " modify request accepted.", sset.getKey(), sset.getId().getFriendly());
     }
 
+
+    Pair<Boolean, Boolean> modifyRegistration(ServiceSet sset, UiOption option, String value)
+    {
+        boolean restart_pinger = false;
+        boolean restart_service = false;
+
+        int     intval = 0;
+        boolean boolval = false;
+
+        // TODO: this case covers ALL service options, but note that only those in the modify list
+        //       in the CLI are actually used.  Eventually we will cover them all.
+        switch ( option ) {
+            case Instances:
+                intval = Integer.parseInt(value);                
+                sset.updateRegisteredInstances(intval);
+                break;
+
+            case Autostart:
+                boolval = Boolean.parseBoolean(value);
+                sset.setAutostart(boolval);
+                break;
+
+            // For the moment, these all update the registration but don't change internal 
+            // operation.
+            case Description:
+            case LogDirectory:
+            case Jvm:
+            case ProcessJvmArgs:
+            case Classpath:
+            case SchedulingClass:
+            case Environment:
+            case ProcessMemorySize:           
+            case ProcessDD:
+            case ProcessExecutable:
+            case ProcessExecutableArgs:
+            case ClasspathOrder:
+            case ServiceDependency:
+            case ServiceRequestEndpoint:
+            case ServiceLinger:
+            case ProcessInitializationTimeMax:
+            case InstanceInitFailureLimit:
+                sset.setJobProperty(option.pname(), value);
+                break;
+                
+            case ServicePingArguments:
+            case ServicePingClasspath:
+            case ServicePingJvmArgs:
+            case ServicePingTimeout:
+            case ServicePingDoLog:
+            case ServicePingClass:
+            case InstanceFailureWindow:
+            case InstanceFailureLimit:
+                sset.setJobProperty(option.pname(), value);
+                restart_pinger = true;
+                break;
+
+        }
+
+        return new Pair<Boolean, Boolean>(restart_pinger, restart_service);
+    }
+
     //void doModify(long id, String url, int instances, Trinary autostart, boolean activate)
     void doModify(ServiceModifyEvent sme)
+    {
+        String methodName = "doModify";
+
+        long id = sme.getFriendly();
+        String url = sme.getEndpoint();
+        ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
+
+        DuccProperties mods  = sme.getProperties();
+        boolean restart_pinger = false;
+        boolean restart_service = false;
+
+        Set<String> keys = mods.stringPropertyNames();        
+
+        for (String kk : keys ) {
+            UiOption k = optionMap.get(kk);
+
+            switch ( k ) {
+                case Help:
+                case Debug:
+                case Modify:
+                    // used by CLI only, won't even be passed in
+                    continue;
+                case Activate:
+                    // TODO: I don't think this is ever used.  Maybe just drop it?
+                    continue;
+            }
+
+            String v = (String) mods.get(kk);
+            Pair<Boolean, Boolean> update = null;           
+            try {
+                update = modifyRegistration(sset, k, v);
+            } catch ( Throwable t ) {
+                logger.error(methodName, sset.getId(), "Modify", kk, "to", v, "Failed:", t);
+                continue;
+            }
+
+            restart_service |= update.first();
+            restart_pinger  |= update.second();
+
+            logger.info(methodName, sset.getId(), "Modify", kk, "to", v, "restart_service[" + restart_service + "]", "restart_pinger[" + restart_pinger + "]");
+        }
+    }
+
+    //void doModify(long id, String url, int instances, Trinary autostart, boolean activate)
+    void doModifyOld(ServiceModifyEvent sme)
     {
         String methodName = "doModify";
 
@@ -863,7 +977,7 @@ public class ServiceHandler
         boolean activate     = mods.getBooleanProperty("activate", true);
 
         if ( instances > 0 ) {
-            sset.setNInstances(instances);                // also persists instances
+            // old sset.setNInstances(instances);                // also persists instances
             if ( activate ) {
                 int running    = sset.countImplementors();
                 int diff       = instances - running;

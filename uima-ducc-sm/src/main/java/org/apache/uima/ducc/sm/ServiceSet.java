@@ -331,6 +331,11 @@ public class ServiceSet
         job_props.put(k, v);
     }
 
+    void setMetaProperty(String k, String v)
+    {
+        meta_props.put(k, v);
+    }
+
     private void parseIndependentServices()
     {
         String depstr = job_props.getProperty(UiOption.ServiceDependency.pname());
@@ -698,17 +703,35 @@ public class ServiceSet
         return;
     }
 
-    synchronized void setNInstances(int n)
+    synchronized void updateRegisteredInstances(int n)
+    {
+        meta_props.setProperty("instances", Integer.toString(n));
+        saveMetaProperties();
+    }
+
+    /**
+     * @param n      is the target number of instances we want running
+     * @param update indicates whether tp match registration to the target
+     */
+    synchronized void updateInstances(int n, boolean update)
     {
     	String methodName = "setNInstances";
-        try {
-            throw new IllegalStateException();
-        } catch ( Exception e ) {
-            logger.info(methodName, id, e);
-        }
-        if ( n != meta_props.getIntProperty("instances") ) {
-            meta_props.setProperty("instances", Integer.toString(n));
-            this.instances = n;
+
+        if ( n >= 0 ) {
+     
+            instances = n;
+            if ( update ) {
+                updateRegisteredInstances(n);
+            }
+
+            int running    = countImplementors();
+            int diff       = n - running;
+                
+            if ( diff > 0 ) {
+                start(diff);
+            } else if ( diff < 0 ) {
+                stop(-diff);
+            }
         }
     }
 
