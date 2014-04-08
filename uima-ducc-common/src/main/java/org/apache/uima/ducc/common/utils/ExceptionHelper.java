@@ -20,11 +20,11 @@ package org.apache.uima.ducc.common.utils;
 
 public class ExceptionHelper {
 
-	public static String summarize(Exception e) {
+	public static String summarize(Throwable t) {
 		StringBuffer sb = new StringBuffer();
-		if(e != null) {
-			sb.append(e.getClass().getCanonicalName());
-			StackTraceElement[] steArray = e.getStackTrace();
+		if(t != null) {
+			sb.append(t.getClass().getCanonicalName());
+			StackTraceElement[] steArray = t.getStackTrace();
 			if (steArray != null) {
 				if(steArray.length > 0) {
 					StackTraceElement ste = steArray[0];
@@ -37,9 +37,9 @@ public class ExceptionHelper {
 					sb.append(":");
 					sb.append(ste.getLineNumber());
 					sb.append(")");
-					if (e.getCause() != null) {
+					if (t.getCause() != null) {
 					    sb.append(" cause: ");
-					    sb.append(e.getCause());
+					    sb.append(t.getCause());
 					}
 				}
 				
