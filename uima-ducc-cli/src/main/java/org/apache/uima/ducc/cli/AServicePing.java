@@ -52,6 +52,7 @@ public abstract class AServicePing
 
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.
+     *
      * @param arguments This is passed in from the service specification's
      *                  service_ping_arguments string.
      *
@@ -61,13 +62,31 @@ public abstract class AServicePing
     public abstract void init(String arguments, String endpoint) throws Exception;
 
     /**
+     * <p>
      * Called by the ping driver to initialize static information about the service and
-     * pinger.  This guy calls the public init() method and is not intended for public
+     * pinger.  This method calls the public init() method and is not intended for public
      * consumption.
+     * </p>
      *
-     * This guy initializes the default failure monitor, service id, whether the
-     * service log is enabled, and the monitor (ping) rate, all of which are
-     * free to be used by derived classes.
+     * <p>
+     * This method initializes the following state prior to invoking init(String, String):
+     * </p>
+     *
+     * <xmp>
+     * VAR NAME               TYPE         MEANING
+     * ------------------     --------     ---------------------------------------------
+     * monitor_rate           int          Ping period, in minutes.
+     * service_id             long         DUCC ID of the service being monitored
+     * log_enabled            boolean      Is the service registered with log enabled?
+     * failure_max            int          Registered max consecutive failures
+     * failure_window_size    int          The window, in terms of minutes, in which
+     *                                     'failure-max' errors indicates excessive
+     *                                     instance failures.
+     * autostart_enabled      boolean      Is the service registered with autostart on?
+     * last_use               long         When was the last known use of this service
+     *                                     before it was (re)started?
+     *
+     * </xmp>
      *
      * @param arguments This is passed in from the service specification's
      *                  service_ping_arguments string.
@@ -81,6 +100,7 @@ public abstract class AServicePing
     public void init(String arguments, String endpoint, Map<String, Object> initState)
         throws Exception
     {
+
         this.initializationState = initState;
 
         monitor_rate          = (Integer) initializationState.get("monitor-rate");        
@@ -107,13 +127,15 @@ public abstract class AServicePing
 
     /**
      * Returns the object with application-derived health and statistics.
-     * @return This object contains the informaton the service manager and web server require
-     *     for correct management and display of the service.
+     *
+     * @return an object that implements {@link org.apache.uima.ducc.common.IServiceStatistics} containing the basic
+     *         service health information for use by SM and display in the Web Server.
      */
     public abstract IServiceStatistics getStatistics();
 
     /**
      * Current state of the monitored service is passed in here.
+     * NOTE: Used for SM to Ping/Monitor communicaiton only.
      */    
     public void setSmState(Map<String, Object> props)
     {
@@ -122,6 +144,20 @@ public abstract class AServicePing
 
     /**
      * Getter of the service state;  Implementors may just access it directly if they want.
+     * Access the state passed to the ping/monitor from SM:
+     *
+     * @eturn A Map<String, Object> of string-key to Object containing dynamic information from the SM.  Callers
+     *        must cast the value to the correct type as shown below.
+     * <xmp>
+     * KEY                  Object Type       MEANING
+     * ----------------     -------------     ------------------------------------------------------------------
+     * all-instances        Long[]            DUCC Ids of all running instances (may not all be in Runing state)
+     * active-instances     Long[]            DUCC Ids of all instances that are Running
+     * autostart-enabled    Boolean           Current state of service autostart
+     * references           Long[]            DUCC Ids of all jobs referencing this service
+     * run-failures         Integer           Total run failures since the service was started
+     * </xmp>
+     *
      */
     public Map<String, Object> getSmState() 
     {
@@ -129,7 +165,15 @@ public abstract class AServicePing
     }
 
     /**
+     * <p>
      * Called by the service manager to query the number of additional needed service instances.
+     * </p>
+     *
+     * <p>
+     * Implementing ping/monitors override this method to request additional instances.
+     * </p>
+     *
+     * @return the number of new instances of the service to start.
      */
     public int getAdditions()
     {
@@ -137,7 +181,17 @@ public abstract class AServicePing
     }
 
     /**
+     * <p>
      * Called by the service manager to query the number of service insances to dump.
+     * </p>
+     *
+     * <p>
+     * Implementing ping/monitors return the specific IDs of service processes to
+     * be terminated by DUCC.  The IDs are a subset of the IDS found in the
+     * 'all-instances' map from getSmState();
+     * </p>
+     *
+     * @return a Long[] array of service instance IDs to terminate.
      */
     public Long[] getDeletions()
     {
@@ -145,13 +199,24 @@ public abstract class AServicePing
     }
 
     /**
+     * <p>
      * The SM queries the ping/monitors autostart on each pong.  The default is
-     * to return the same value that came in on the ping.  Pingers may override
-     * this behaviour to dynanically enable or disable autostart.
+     * to return the same value that came in on the ping.  
+     * </p>
      *
+     * <p>
+     * Implementing ping/monitors may override
+     * this behaviour to dynanically enable or disable autostart.
+     * </p>
+     *
+     * <p>
      * It is useful to disable autostart if a pinger detects that a service has been
      * idle for a long time and it wants to shrink the number of live instances
-     * below the autostart value.
+     * below the autostart value.  If autostart is not disabled it the number of
+     * instances will not be allowed to shrink to 0.
+     * </p>
+     *
+     * @return true if the service should be marked for autostart, and false otherwise.
      */
     public boolean isAutostart()
     {
@@ -163,10 +228,20 @@ public abstract class AServicePing
     }
 
     /**
+     * <p>
      * Pingers may track when a service was last used.  If set to
      * non-zero this is the time and date of last use, converted to
      * milliseconds, as returned by System.getTimeMillis().  Its value is always 
      * set into the meta file for the pinger on each ping.
+     * </p>
+     *
+     * <p>
+     * Implementing ping/monitors may return a datestamp to indicate when the
+     * service was last used by a job.
+     * </p>
+     *
+     * @return A Long, representing the time of last known use of the service,
+     *         as returned by System.getTimeMillis().
      */
     public long getLastUse()
     {
@@ -187,18 +262,38 @@ public abstract class AServicePing
     }
 
     /**
-     * This is intended for use by the SM when it drives a pinger in an internal thread.  External
-     * pingers won't have this set.  
+     * <p>
+     * This is used by the SM for running pingers internally as SM threads, to direct
+     * the ping log into the SM log.
+     *</p>
      *
-     * However, external pinger's stdout is picked up by DUCC so the logger will still print
-     * stuff to the service log without the use of the ducc logger.
+     * <p>
+     * External an custom pingers should generally not invoke this method unless the
+     * intention is to fully manage their own logs.
+     * </p>
+     *
+     * <p>
+     * In all cases, the use of the {@link org.apache.uima.ducc.cli.AServicePing#doLog(String, Object...) }
+     * method is strongly encouraged as it insures messages are logged into a
+     * well-known and managed location.
+     * </p>
      */
     public void setLogger(org.apache.uima.ducc.common.utils.DuccLogger logger)
     {
         this.duccLogger = logger;
     }
 
-    protected void doLog(String methodName, Object ... msg)
+    /**
+     * This is a convenience method for logging which enforces the use of the calling
+     * method name and permits use of commas to separate fields in the message.  The
+     * fields are converted via toString() and joined on a single space ' '. The composed
+     * string is then written to the loger if it exists, and System.out otherwise.
+     *
+     * @param methodName This should be the named of the method calling doLog.
+     * @param msg        This is a variable length parameter list which gets joined
+     *                   on ' ' and emitted to the logger.
+     */
+    public void doLog(String methodName, Object ... msg)
     {        
         if ( !log_enabled ) return;
 
@@ -233,9 +328,35 @@ public abstract class AServicePing
     }
 
     /**
+     * <p>
      * This determines if there have been excessive service instance failures by tracking the 
      * number of failures, not consecutive, but rather within a window of time.  It may be
      * overridden by extending monitors.
+     * </p>
+     *
+     * <p>
+     * This default implementation uses a time window to determine if exessive failures
+     * have occurred in a short period of time.  It operates off the two failure parameters
+     * from the service registration:
+     * <xmp>
+     *     instance_failure_window  [time-in-minutes]
+     *     instance_failure_limit   [number of failures]
+     * </xmp>
+     * </p>
+     * <p>
+     * If more than 'instance_failure_limit' failures occure within the preceding 
+     * 'time-in-minutes' this method returns 'true' and the SM disables automatic
+     * restart of instances.  Restart may be resumed by manually issuing a CLI start
+     * to the service one the problem is resolved.
+     * </p>
+     *
+     * <p>
+     * Implementing ping/monitors may override this with custom logic to determine if a
+     * service has had excessive failures.
+     * </p>
+     *
+     * @return true if too many failures have been observed, false otherwise.  If 'true'
+     * is returned, the SM no longer restarts failed instances.
      */
     public boolean isExcessiveFailures()
     {
