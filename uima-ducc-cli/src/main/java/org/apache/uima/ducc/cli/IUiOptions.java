@@ -399,6 +399,14 @@ public interface IUiOptions
             public String label()       { return "ProcessDebug"; }
         },            
 
+        ProcessDebugHost {              // inserted by service registration so we can remember where to call home
+            public String pname()       { return "process_debug_host"; }
+            public String argname()     { return "debugger-host-name"; }
+            public String description() { return "Nodename where java debugger is listening for connection.  Only valid for services."; }
+            public String example()     { return "gallifrey"; }
+            public String label()       { return "ProcessDebugHost"; }
+        },            
+
         ProcessDescriptorAE { 
             public String pname()       { return JobSpecificationProperties.key_process_descriptor_AE; }
             public String description() { return "Process Analysis Enginefor aggregate."; }
