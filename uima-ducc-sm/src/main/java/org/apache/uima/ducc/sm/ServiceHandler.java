@@ -626,7 +626,7 @@ public class ServiceHandler
         } else {
             ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
             if ( sset == null ) {
-                reply.setMessage("Unknown service: ID[" + id + "] Endpoint[" + url + "]");
+                reply.setMessage("Unknown service");
                 reply.setEndpoint(url);
                 reply.setReturnCode(false);
             } else {
@@ -645,17 +645,16 @@ public class ServiceHandler
         
         long   id  = ev.getFriendly();
         String url = ev.getEndpoint();
-        String serviceIdString = extractId(id, url);
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.", null, id);
+            return new ServiceReplyEvent(false, "Unknown service", url, id);
         }
 
         String userin  = ev.getUser();
         String userout = sset.getUser();
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Start declined: not owner.",  serviceIdString, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
         }
 
         int running    = sset.countImplementors();
@@ -670,7 +669,7 @@ public class ServiceHandler
         }
         if ( wanted == 0 ) {
             return new ServiceReplyEvent(true, 
-                                         "Service " + serviceIdString + " instances[" + running + "], no additional instances started. ", 
+                                         "Already has instances[" + running + "] - no additional instances started", 
                                          sset.getKey(), 
                                          sset.getId().getFriendly());
         }
@@ -678,7 +677,7 @@ public class ServiceHandler
         pendingRequests.add(new ApiHandler(ev, this));
         
         return new ServiceReplyEvent(true, 
-                                     "Service " + serviceIdString + " start request accepted, new instances[" + wanted + "]", 
+                                     "New instances[" + wanted + "]", 
                                      sset.getKey(), 
                                      sset.getId().getFriendly());
     }
@@ -718,25 +717,24 @@ public class ServiceHandler
     {
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
-        String serviceIdString = extractId(id, url);
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.", null, id);
+            return new ServiceReplyEvent(false, "Unknown service", url, id);
         }
 
         String userin = ev.getUser();
         String userout = sset.getUser();
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Start declined: not owner.",  serviceIdString, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
         }
 
         if ( sset.isStopped() ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " is already stopped.", sset.getKey(), sset.getId().getFriendly());
+            return new ServiceReplyEvent(false, "Already stopped", sset.getKey(), sset.getId().getFriendly());
         }
 
         pendingRequests.add(new ApiHandler(ev, this));
-        return new ServiceReplyEvent(true, "Service " + serviceIdString + " stop request accepted.", sset.getKey(), sset.getId().getFriendly());
+        return new ServiceReplyEvent(true, "Stopping", sset.getKey(), sset.getId().getFriendly());
     }
 
     //
@@ -773,23 +771,24 @@ public class ServiceHandler
         boolean must_deregister = false;
 
         String url = meta.getProperty("endpoint");
-        if ( serviceStateHandler.getServiceByUrl(url) != null ) {
-            return new ServiceReplyEvent(false, "Duplicate." + url + ".  Registration fails", url, id.getFriendly());
+        ServiceSet sset = serviceStateHandler.getServiceByUrl(url);
+        if (sset != null ) {
+            error = "Duplicate registered by " + sset.getUser();
+            return new ServiceReplyEvent(false, error, url, id.getFriendly());
         }
 
-        ServiceSet sset = null;
         try {
             sset = new ServiceSet(this, id, props_filename, meta_filename, props, meta);
         } catch (Throwable t) {
             // throws because endpoint is not parsable
             error = t.getMessage();
-            return new ServiceReplyEvent(false, t.getMessage(), url, id.getFriendly());            
+            return new ServiceReplyEvent(false, error, url, id.getFriendly());            
         }
 
         try {
             sset.saveServiceProperties();
         } catch ( Exception e ) {
-            error = ("Internal error; unable to store service descriptor. " + url);
+            error = ("Internal error; unable to store service descriptor. " + url); 
             logger.error(methodName, id, e);
             must_deregister = true;
         }
@@ -817,7 +816,7 @@ public class ServiceHandler
 
         if ( error == null ) {
             serviceStateHandler.registerService(id.getFriendly(), url, sset);
-            return new ServiceReplyEvent(true, "Registered.", url, id.getFriendly());
+            return new ServiceReplyEvent(true, "Registered", url, id.getFriendly());
         } else {
             File mf = new File(meta_filename);
             mf.delete();
@@ -832,21 +831,20 @@ public class ServiceHandler
     {
         long  id   = ev.getFriendly();
         String url = ev.getEndpoint();
-        String serviceIdString = extractId(id, url);
     	ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Unrecognized service ID[" + id + "] Endpoint[" + ((url == null) ? "N/A" : url) + "]", "?", id);
+            return new ServiceReplyEvent(false, "Unknown service", url, id);
         }
 
         String userin = ev.getUser();
         String userout = sset.getUser();
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Start declined: not owner.",  serviceIdString, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
         }
         
         pendingRequests.add(new ApiHandler(ev, this));
-        return new ServiceReplyEvent(true, "Service " + serviceIdString + " modify request accepted.", sset.getKey(), sset.getId().getFriendly());
+        return new ServiceReplyEvent(true, "Modifying", sset.getKey(), sset.getId().getFriendly());
     }
 
 
@@ -1025,10 +1023,9 @@ public class ServiceHandler
         String methodName = "unregister";
         long id = ev.getFriendly();
         String url = ev.getEndpoint();
-        String serviceIdString = extractId(id, url);
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
         if ( sset == null ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " does not exist.",  serviceIdString, id);
+            return new ServiceReplyEvent(false, "Unknown service",  url, id);
         }
 
         id = sset.getId().getFriendly();           // must insure the ev has the numeric id because we work entirely with that from now ow
@@ -1042,13 +1039,13 @@ public class ServiceHandler
         logger.info(methodName, sset.getId(), "Unregister received from", userin);
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Service " + serviceIdString + " Unregister declined: not owner.",  serviceIdString, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
         }
         
         serviceStateHandler.unregister(sset);
         sset.deregister();          // just sets a flag so we know how to handle it when it starts to die
         pendingRequests.add(new ApiHandler(ev, this));
-        return new ServiceReplyEvent(true, "Service " + serviceIdString + " unregistered. Shutting down implementors.", sset.getKey(), sset.getId().getFriendly());
+        return new ServiceReplyEvent(true, "Shutting down implementors", sset.getKey(), sset.getId().getFriendly());
     }
 
     //
@@ -1076,14 +1073,6 @@ public class ServiceHandler
             sset.clearQueue();       // will call removeServices if everything looks ok
         }
 
-    }
-
-    /**
-     * This is used only to convert the user's provided ID into a string for messages.
-     */
-    String extractId(long friendly, String epname)
-    {
-        return ((epname == null) ? Long.toString(friendly) : epname);
     }
 
     void addInstance(ServiceSet sset, ServiceInstance inst)
