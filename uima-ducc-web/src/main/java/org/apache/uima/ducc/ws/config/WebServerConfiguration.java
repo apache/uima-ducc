@@ -116,7 +116,13 @@ public class WebServerConfiguration {
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.rmStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.smStateUpdateEndpoint, delegateListener));
 			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.pmStateUpdateEndpoint, delegateListener));
-			ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.dbComponentStateUpdateEndpoint, delegateListener));
+			String dbEndpoint = common.dbComponentStateUpdateEndpoint;
+			if(dbEndpoint != null) {
+				ws.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.dbComponentStateUpdateEndpoint, delegateListener));
+			}
+			else {
+				duccLogger.warn(methodName, jobid, "db endpoint not configured");
+			}
 		}
 		catch(Throwable t) {
 			duccLogger.error(methodName, jobid, t);
