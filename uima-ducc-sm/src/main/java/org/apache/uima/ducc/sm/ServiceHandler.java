@@ -659,7 +659,7 @@ public class ServiceHandler
 
         int running    = sset.countImplementors();
         int instances  = ev.getInstances();
-        int registered = sset.getNInstances();
+        int registered = sset.getNInstancesRegistered();
         int wanted     = 0;
         
         if ( instances == -1 ) {
@@ -695,17 +695,13 @@ public class ServiceHandler
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
 
         int running    = sset.countImplementors();
-        int registered = sset.getNInstances();
+        int registered = sset.getNInstancesRegistered();
         int wanted     = 0;
 
         if ( instances == -1 ) {
             wanted = Math.max(0, registered - running);
         } else {
             wanted = instances;
-        }
-
-        if ( update ) {
-            sset.saveMetaProperties();
         }
 
         sset.resetRuntimeErrors();

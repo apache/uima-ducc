@@ -117,6 +117,7 @@ public class ServiceSet
 
     // The number of instances to maintain live.
     int instances = 1;
+    int registered_instances;
 
     // Service monitor / pinger 
     IServiceMeta serviceMeta = null;
@@ -168,6 +169,7 @@ public class ServiceSet
 
         this.user = meta.getProperty("user");
         this.instances = meta.getIntProperty("instances", 1);
+        this.registered_instances = this.instances;
         this.autostart = meta.getBooleanProperty("autostart", false);
         this.ping_only = meta.getBooleanProperty("ping-only", false);
         this.stopped   = meta.getBooleanProperty("stopped", stopped);
@@ -618,9 +620,20 @@ public class ServiceSet
         return props_filename;
     }
 
-    synchronized int getNInstances()
+    // /**
+    //  * Returns the number of currently running instances
+    //  */
+    // synchronized int getNInstances()
+    // {
+    //     return instances;
+    // }
+
+    /**
+     * Returns the number of registered instances.
+     */
+    synchronized int getNInstancesRegistered()
     {
-        return instances;
+        return registered_instances;
     }
 
     synchronized void saveMetaProperties()
@@ -706,6 +719,7 @@ public class ServiceSet
     synchronized void updateRegisteredInstances(int n)
     {
         meta_props.setProperty("instances", Integer.toString(n));
+        registered_instances = n;
         saveMetaProperties();
     }
 
@@ -1694,7 +1708,7 @@ public class ServiceSet
         }
         sd.setReferences(ref);
 
-        sd.setInstances(getNInstances());
+        sd.setInstances(getNInstancesRegistered());
 
         sd.setType(service_type);
         sd.setSubclass(service_class);
