@@ -58,6 +58,9 @@ public class DuccServiceSubmit
         UiOption.ProcessExecutableArgs,
         UiOption.ProcessInitializationTimeMax,
 
+        UiOption.ProcessDebug,
+        UiOption.ProcessDebugHost,
+
         UiOption.InstanceFailureLimit,
         UiOption.ClasspathOrder,
         UiOption.Specification,
@@ -106,6 +109,49 @@ public class DuccServiceSubmit
     {
         init (this.getClass().getName(), opts, props, requestProperties, null);
     }
+
+    private void set_debug_parms(Properties props, int port)
+    {
+    }
+    
+    protected void enrich_parameters_for_debug(Properties props)
+        throws Exception
+    {
+        try {        
+            int debug_port = -1;
+            String debug_host = null;
+            
+            // we allow both jd and jp to debug, but the ports have to differ
+            String do_debug = UiOption.ProcessDebug.pname();
+            if ( props.containsKey(do_debug) ) {
+                String port_s = props.getProperty(do_debug);
+                if ( port_s == null ) {
+                    throw new IllegalArgumentException("Missing port for " + do_debug);
+                }
+                debug_port = Integer.parseInt(port_s);
+                debug_host = props.getProperty(UiOption.ProcessDebugHost.pname());
+                if ( debug_host == null ) {
+                    throw new IllegalArgumentException("Debug is requested but process_debug_host is missing");
+                }
+
+                String debug_jvmargs = "-Xdebug -Xrunjdwp:transport=dt_socket,address=" + debug_host + ":" + debug_port;
+                String jvmargs = props.getProperty(UiOption.ProcessJvmArgs.pname());
+                if (jvmargs == null) {
+                    jvmargs = debug_jvmargs;
+                } else {
+                    jvmargs += " " + debug_jvmargs;
+                }
+                props.put(UiOption.ProcessJvmArgs.pname(), jvmargs);
+                
+                // For debugging, if the JP is being debugged, insure these are conservative
+                props.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");
+                props.setProperty(UiOption.ProcessFailuresLimit.pname(), "1");
+            }
+
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid debug port (not numeric)");
+        }
+    }
     
     /**
      * Execute collects the service parameters, does basic error and correctness checking, and sends
@@ -124,6 +170,8 @@ public class DuccServiceSubmit
         
         String endpoint = requestProperties.getProperty(UiOption.ServiceRequestEndpoint.pname());
         
+        boolean isUimaAs = true;
+
         if (endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode())) {
             requestProperties.put(UiOption.ServiceTypeUima.pname(), "");
             if (uimaDD == null) {
@@ -167,6 +215,7 @@ public class DuccServiceSubmit
             }
 
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
+            isUimaAs = false;
             if (uimaDD != null) {
                 message("WARN: --process_DD is ignored for CUSTOM endpoints");
             }
@@ -183,7 +232,11 @@ public class DuccServiceSubmit
         if ( debug ) {
             requestProperties.dump();
         }
-    
+
+        if ( isUimaAs ) {
+            enrich_parameters_for_debug(requestProperties);
+        }
+
         requestProperties.put(UiOption.ProcessThreadCount.pname(), "1");         // enforce this - OR will complain if it's missing
 
         SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties);

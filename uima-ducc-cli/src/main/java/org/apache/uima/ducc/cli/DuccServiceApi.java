@@ -67,6 +67,7 @@ public class DuccServiceApi
         UiOption.ProcessExecutable,
         UiOption.ProcessExecutableArgs,
         UiOption.ProcessInitializationTimeMax,
+        UiOption.ProcessDebug,
 
         UiOption.ClasspathOrder,
         // UiOption.Specification          // not used for registration
@@ -116,28 +117,30 @@ public class DuccServiceApi
         UiOption.Update,
     }; 
 
-    // For use by SM, final to insure no accidental modification
-    final UiOption[] modify_options = {
-        UiOption.Help,
-        UiOption.Debug,
-        UiOption.Modify,
-        UiOption.Instances,
-        UiOption.Autostart,
-        UiOption.Activate,
+    // This gets generated from the registratoin_options.
+    UiOption[] modify_options;
+    // // For use by SM, final to insure no accidental modification
+    // UiOption[] modify_options = {
+    //     UiOption.Help,
+    //     UiOption.Debug,
+    //     UiOption.Modify,
+    //     UiOption.Instances,
+    //     UiOption.Autostart,
+    //     UiOption.Activate,
 
-        UiOption.ProcessInitializationTimeMax,
+    //     UiOption.ProcessInitializationTimeMax,
 
-        UiOption.ServicePingArguments,
-        UiOption.ServicePingClass,
-        UiOption.ServicePingClasspath,
-        UiOption.ServicePingJvmArgs,
-        UiOption.ServicePingTimeout,
-        UiOption.ServicePingDoLog,
+    //     UiOption.ServicePingArguments,
+    //     UiOption.ServicePingClass,
+    //     UiOption.ServicePingClasspath,
+    //     UiOption.ServicePingJvmArgs,
+    //     UiOption.ServicePingTimeout,
+    //     UiOption.ServicePingDoLog,
 
-        UiOption.InstanceFailureWindow,
-        UiOption.InstanceFailureLimit,
-        UiOption.InstanceInitFailureLimit,
-    }; 
+    //     UiOption.InstanceFailureWindow,
+    //     UiOption.InstanceFailureLimit,
+    //     UiOption.InstanceInitFailureLimit,
+    // }; 
 
     UiOption[] query_options = {
         UiOption.Help,
@@ -148,6 +151,17 @@ public class DuccServiceApi
     public DuccServiceApi(IDuccCallback cb)
     {
         this.callback = cb;
+
+        // generate modify options, same as registration options, only with the verb
+        // Modify insteady of Register, and on extra option, Activate.
+        modify_options = new UiOption[registration_options.length + 1];
+        int i = 0;
+        for ( ; i < registration_options.length; i++ ) {
+            UiOption o = registration_options[i];
+            if ( o == UiOption.Register ) o = UiOption.Modify;
+            modify_options[i] = o;
+        }
+        modify_options[i++] = UiOption.Activate;
     }
 
     private Pair<Integer, String> getId(UiOption opt)
@@ -230,6 +244,27 @@ public class DuccServiceApi
         }
     }
 
+    /**
+     * Attempt a fast-fail if a bad debug port is specified.
+     */
+    private void enrichPropertiesForDebug()
+    {
+        String debug_port = cli_props.getProperty(UiOption.ProcessDebug.pname());
+        if ( debug_port == null ) return; 
+        
+        try {
+            int port = Integer.parseInt(debug_port);
+        } catch ( NumberFormatException e ) {
+            throw new IllegalArgumentException("Invalid debug port specified, not numeric: " + debug_port);
+        }
+
+        String debug_host = cli_props.getProperty(UiOption.ProcessDebugHost.pname());
+        if ( debug_host == null ) {
+            cli_props.put(UiOption.ProcessDebugHost.pname(), host_address);
+        }
+
+    }
+
     String extractEndpoint(String jvmargs)
     {
         String dd = cli_props.getStringProperty(UiOption.ProcessDD.pname()); // will throw if can't find the prop
@@ -299,6 +334,8 @@ public class DuccServiceApi
                                                    + "\n --service_request_endpoint: " + endpoint 
                                                    + "\n                  extracted: " + inferred_endpoint );
             }
+
+            enrichPropertiesForDebug();
             
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
 
