@@ -111,7 +111,9 @@ public class ServiceSet
     boolean reference_start = false;
     // is it ping-only?
     boolean ping_only = false;
-    
+    // debug specified in the registration?
+    boolean process_debug = false;
+
     // Date of last known use of the service.  0 means "I don't know"
     long last_use = 0;
 
@@ -175,6 +177,10 @@ public class ServiceSet
         this.stopped   = meta.getBooleanProperty("stopped", stopped);
         this.service_class = ServiceClass.Registered;
         this.init_failure_max = props.getIntProperty("instance_init_failures_limit", init_failure_max);
+
+        if ( props.containsKey(UiOption.ProcessDebug.pname()) ) {
+            this.process_debug = true;
+        }
 
         parseIndependentServices();
 
@@ -336,6 +342,11 @@ public class ServiceSet
     void setMetaProperty(String k, String v)
     {
         meta_props.put(k, v);
+    }
+
+    boolean isDebug()
+    {
+        return process_debug;
     }
 
     private void parseIndependentServices()
@@ -1585,6 +1596,18 @@ public class ServiceSet
             si.start(null, null);
             signal(si);
         } else {
+
+            if ( isDebug() ) {
+                if ( countImplementors() > 0 ) {
+                    logger.warn(methodName, id, "Ignoring start of additional instances because process_debug is set.");
+                    return;         // only one, in debug
+                }
+
+                if ( ninstances > 1 ) {
+                    ninstances = 1;                                  // and alter the number here.
+                    logger.warn(methodName, id, "Adjusting instances to one(1) because process_debug is set.");
+                }
+            }
 
             for ( int i = 0; i < ninstances; i++ ) {
                 ServiceInstance si = new ServiceInstance(this);

@@ -659,6 +659,16 @@ public class ServiceHandler
 
         int running    = sset.countImplementors();
         int instances  = ev.getInstances();
+
+        if ( sset.isDebug() ) {
+            if ( sset.countImplementors() > 0 ) {
+                return new ServiceReplyEvent(true, 
+                                             "Already has instances[" + running + "] and service has process_debug set - no additional instances started", 
+                                             sset.getKey(), 
+                                             sset.getId().getFriendly());
+            }
+        }
+
         int registered = sset.getNInstancesRegistered();
         int wanted     = 0;
         
@@ -667,6 +677,7 @@ public class ServiceHandler
         } else {
             wanted = instances;
         }
+        
         if ( wanted == 0 ) {
             return new ServiceReplyEvent(true, 
                                          "Already has instances[" + running + "] - no additional instances started", 
@@ -675,11 +686,18 @@ public class ServiceHandler
         }
         
         pendingRequests.add(new ApiHandler(ev, this));
-        
-        return new ServiceReplyEvent(true, 
-                                     "New instances[" + wanted + "]", 
-                                     sset.getKey(), 
-                                     sset.getId().getFriendly());
+
+        if ( sset.isDebug() && (wanted > 1) ) {
+            return new ServiceReplyEvent(true, 
+                                         "Instances adjusted to [1] because process_debug is set",
+                                         sset.getKey(), 
+                                         sset.getId().getFriendly());
+        } else {
+            return new ServiceReplyEvent(true, 
+                                         "New instances[" + wanted + "]", 
+                                         sset.getKey(), 
+                                         sset.getId().getFriendly());
+        }
     }
 
     //
@@ -691,12 +709,24 @@ public class ServiceHandler
     //
     void doStart(long friendly, String epname, int instances, boolean update)
     {
-    	//String methodName = "doStart";
+    	String methodName = "doStart";
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
 
         int running    = sset.countImplementors();
         int registered = sset.getNInstancesRegistered();
         int wanted     = 0;
+
+        if ( sset.isDebug() ) {
+            if ( sset.countImplementors() > 0  ) {
+                logger.warn(methodName, sset.getId(), "Not starting additional instances because process_debug is set.");
+                return;
+            }
+            
+            if ( instances > 1 ) {
+                logger.warn(methodName, sset.getId(), "Adjusting instances to [1] because process_debug is set.");
+                instances = 1;
+            }
+        }
 
         if ( instances == -1 ) {
             wanted = Math.max(0, registered - running);
