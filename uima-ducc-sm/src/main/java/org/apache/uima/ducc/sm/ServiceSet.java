@@ -523,17 +523,10 @@ public class ServiceSet
         }
     }
 
-    synchronized void restartPinger(String pingClass, String pingArguments, String pingClasspath, String pingJvmArgs, String pingTimeout, String pingDolog)
+    synchronized void restartPinger()
     {
-        String methodName = "restartPinger";
-        logger.info(methodName, id, "Modify pinger:", pingClass, pingArguments, pingClasspath, pingJvmArgs, pingTimeout, pingDolog);
-
         stopPingThread(); 
         resetRuntimeErrors();
-        // to Implemnt: 
-        //   Replace non-null properties in the registration progerties file, save the props, then stop and restart the pinger.
-        //   May only have to stop the pinger, and state machine will restart it for us.
-        //   TODO: Deal with pingOnly, if it turns out to be a special case.
     }
 
     /**
@@ -731,7 +724,6 @@ public class ServiceSet
     {
         meta_props.setProperty("instances", Integer.toString(n));
         registered_instances = n;
-        saveMetaProperties();
     }
 
     /**
@@ -740,8 +732,6 @@ public class ServiceSet
      */
     synchronized void updateInstances(int n, boolean update)
     {
-    	String methodName = "setNInstances";
-
         if ( n >= 0 ) {
      
             instances = n;
@@ -759,6 +749,38 @@ public class ServiceSet
             }
         }
     }
+
+    synchronized void updateDebug(String val)
+    {
+        if ( val.equals("off") ) {
+            job_props.remove(UiOption.ProcessDebug.pname());
+            this.process_debug = false;
+        } else {
+            job_props.put(UiOption.ProcessDebug.pname(), val);
+            this.process_debug = true;
+        }
+    }
+
+    synchronized void updateLinger(String val)
+    {
+    	String methodName = "updateLinger";
+        try {
+            this.linger_time = Long.parseLong(val);
+        } catch( NumberFormatException e ) {
+            logger.error(methodName, id, "Cannot update linger, not numeric:", val);
+        }
+    }
+
+    synchronized void updateInitFailureLimit(String val)
+    {
+    	String methodName = "updateInitFailureLimit";
+        try {
+            this.init_failure_max = Integer.parseInt(val);
+        } catch( NumberFormatException e ) {
+            logger.error(methodName, id, "Cannot update init failure max, not numeric:", val);
+        }
+    }
+
 
     synchronized void persistReferences()
     {

@@ -56,7 +56,6 @@ public class DuccServiceApi
         UiOption.Description,
         UiOption.SchedulingClass,
         UiOption.LogDirectory,
-        UiOption.SuppressConsoleLog,
         UiOption.WorkingDirectory,
         UiOption.Jvm,
         UiOption.ProcessJvmArgs,
@@ -158,7 +157,12 @@ public class DuccServiceApi
         int i = 0;
         for ( ; i < registration_options.length; i++ ) {
             UiOption o = registration_options[i];
+
+            if ( o == UiOption.ProcessDD ) continue;                     // disallowed for modify
+            if ( o == UiOption.ServiceRequestEndpoint) continue;         // disallowed for modify
+
             if ( o == UiOption.Register ) o = UiOption.Modify;
+
             modify_options[i] = o;
         }
         modify_options[i++] = UiOption.Activate;
@@ -245,24 +249,45 @@ public class DuccServiceApi
     }
 
     /**
-     * Attempt a fast-fail if a bad debug port is specified.
+     * Attempt a fast-fail if a bad debug port is specified.  Fill in the host if not supplied.
      */
-    private void enrichPropertiesForDebug()
+    private void enrichPropertiesForDebug(UiOption verb)
     {
+
         String debug_port = cli_props.getProperty(UiOption.ProcessDebug.pname());
-        if ( debug_port == null ) return; 
-        
+        String debug_host = host_address;
+        if ( debug_port == null )       return; 
+
+        if ( debug_port.equals("off") ) {
+            switch (verb ) {
+                case Register:
+                    System.out.println("Note: 'process_debug = off' removed; 'off' is valid only for --modify");
+                    cli_props.remove(UiOption.ProcessDebug.pname());     // 'off' invalid for registration
+                    return;
+                case Modify:
+                    return;
+            }
+        }
+
+        if ( debug_port.contains(":") ) {
+            String[] parts = debug_port.split(":");
+            if ( parts.length != 2 ) {
+                throw new IllegalArgumentException("Error: " + 
+                                                   UiOption.ProcessDebug.pname() + 
+                                                   " process_debug must be a single numeric port, or else of the form 'host:port'");
+            }
+
+            debug_host = parts[0];
+            debug_port = parts[1];
+        }
+
         try {
-            int port = Integer.parseInt(debug_port);
+			Integer.parseInt(debug_port);
         } catch ( NumberFormatException e ) {
             throw new IllegalArgumentException("Invalid debug port specified, not numeric: " + debug_port);
         }
 
-        String debug_host = cli_props.getProperty(UiOption.ProcessDebugHost.pname());
-        if ( debug_host == null ) {
-            cli_props.put(UiOption.ProcessDebugHost.pname(), host_address);
-        }
-
+        cli_props.setProperty(UiOption.ProcessDebug.pname(), debug_host + ":" + debug_port);
     }
 
     String extractEndpoint(String jvmargs)
@@ -335,7 +360,7 @@ public class DuccServiceApi
                                                    + "\n                  extracted: " + inferred_endpoint );
             }
 
-            enrichPropertiesForDebug();
+            enrichPropertiesForDebug(UiOption.Register);
             
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
 
@@ -486,6 +511,36 @@ public class DuccServiceApi
      * @return {@link IServiceReply IServiceReply} object with modify status.
      */
     public IServiceReply modify(String[] args)
+        throws Exception
+    {
+        DuccProperties dp = new DuccProperties();
+
+        inhibitDefaults();
+        init (this.getClass().getName(), modify_options, args, null, dp, callback, "sm");
+
+        enrichPropertiesForDebug(UiOption.Modify);
+
+        Pair<Integer, String> id = getId(UiOption.Modify);
+        String user = dp.getProperty(UiOption.User.pname());
+        byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+
+        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), dp, auth_block);        
+
+        try {
+            return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
+        } finally {
+            dispatcher.close();
+        }
+    }
+
+    /**
+     * The service 'modify' command is used to change various aspects of a registered service
+     * without the need to reregister it.
+     *
+     * @param args String array of arguments as described in the <a href="/doc/duccbook.html#DUCC_CLI_SERVICES">DUCC CLI reference.</a>
+     * @return {@link IServiceReply IServiceReply} object with modify status.
+     */
+    public IServiceReply modifyX(String[] args)
         throws Exception
     {
         DuccProperties dp = new DuccProperties();

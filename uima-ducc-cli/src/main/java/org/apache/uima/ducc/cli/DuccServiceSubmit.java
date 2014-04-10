@@ -59,7 +59,6 @@ public class DuccServiceSubmit
         UiOption.ProcessInitializationTimeMax,
 
         UiOption.ProcessDebug,
-        UiOption.ProcessDebugHost,
 
         UiOption.InstanceFailureLimit,
         UiOption.ClasspathOrder,
@@ -109,10 +108,6 @@ public class DuccServiceSubmit
     {
         init (this.getClass().getName(), opts, props, requestProperties, null);
     }
-
-    private void set_debug_parms(Properties props, int port)
-    {
-    }
     
     protected void enrich_parameters_for_debug(Properties props)
         throws Exception
@@ -124,15 +119,24 @@ public class DuccServiceSubmit
             // we allow both jd and jp to debug, but the ports have to differ
             String do_debug = UiOption.ProcessDebug.pname();
             if ( props.containsKey(do_debug) ) {
-                String port_s = props.getProperty(do_debug);
-                if ( port_s == null ) {
+                String deb = props.getProperty(do_debug);
+                if ( deb == null ) {
                     throw new IllegalArgumentException("Missing port for " + do_debug);
                 }
-                debug_port = Integer.parseInt(port_s);
-                debug_host = props.getProperty(UiOption.ProcessDebugHost.pname());
-                if ( debug_host == null ) {
-                    throw new IllegalArgumentException("Debug is requested but process_debug_host is missing");
+
+                if ( deb.equals("off") ) {
+                    System.out.println("Note: Ignoring process_debug = off");
+                    return;
                 }
+
+                String[] parts = deb.split(":");
+                if ( parts.length != 2 ) {
+                    System.out.println("Warning: process_debug must be of the form host: port.  Found '" + deb + "'.  Ignoring debug.");
+                    return;
+                }
+
+                debug_host = parts[0];
+                debug_port = Integer.parseInt(parts[1]);
 
                 String debug_jvmargs = "-Xdebug -Xrunjdwp:transport=dt_socket,address=" + debug_host + ":" + debug_port;
                 String jvmargs = props.getProperty(UiOption.ProcessJvmArgs.pname());

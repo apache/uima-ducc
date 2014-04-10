@@ -76,6 +76,7 @@ public abstract class CliBase
     protected ArrayList<String> messages = new ArrayList<String>();
 
     protected boolean debug;
+    private   boolean load_defaults = true;
 
     protected ConsoleListener  console_listener = null;
     protected boolean suppress_console_log;
@@ -84,7 +85,7 @@ public abstract class CliBase
     protected IDuccCallback consoleCb = null;
 
     protected MonitorListener monitor_listener = null;
-
+    
     CountDownLatch waiter = null;
 
     protected Properties userSpecifiedProperties;
@@ -100,6 +101,11 @@ public abstract class CliBase
      * @throws java.lang.Exception The specific exception is a function of the implementor.
      */
     public abstract boolean execute() throws Exception;
+
+    protected void inhibitDefaults()
+    {
+        this.load_defaults = false;
+    }
 
     /*
      * Get log directory or employ default log directory if not specified
@@ -325,11 +331,14 @@ public abstract class CliBase
         suppress_console_log = cli_props.containsKey(UiOption.SuppressConsoleLog.pname());
         
         // Apply defaults for and fixup the environment if needed
-        setDefaults(uiOpts, suppress_console_log);
+        //   -- unless default loading is inhibited, as it must be for modify operations
+        if ( load_defaults ) {
+            setDefaults(uiOpts, suppress_console_log);
+        }
         
         cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
-        if ( getLogDirectory() == null ) {
+        if ( load_defaults && (getLogDirectory() == null) ) {
             throw new IllegalArgumentException("Cannot access log directory.");
         }
         setWorkingDirectory();

@@ -28,7 +28,6 @@ import java.util.Set;
 
 import org.apache.uima.ducc.cli.DuccServiceApi;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
-import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -873,11 +872,13 @@ public class ServiceHandler
         return new ServiceReplyEvent(true, "Modifying", sset.getKey(), sset.getId().getFriendly());
     }
 
+    boolean dirty_meta_props = false;
+    boolean dirty_job_props = false;
+    boolean restart_pinger = false;
+    boolean restart_service = false;
 
-    Pair<Boolean, Boolean> modifyRegistration(ServiceSet sset, UiOption option, String value)
+    void modifyRegistration(ServiceSet sset, UiOption option, String value)
     {
-        boolean restart_pinger = false;
-        boolean restart_service = false;
 
         int     intval = 0;
         boolean boolval = false;
@@ -888,11 +889,13 @@ public class ServiceHandler
             case Instances:
                 intval = Integer.parseInt(value);                
                 sset.updateRegisteredInstances(intval);
+                dirty_meta_props = true;
                 break;
 
             case Autostart:
                 boolval = Boolean.parseBoolean(value);
                 sset.setAutostart(boolval);
+                dirty_meta_props = true;
                 break;
 
             // For the moment, these all update the registration but don't change internal 
@@ -911,12 +914,30 @@ public class ServiceHandler
             case ClasspathOrder:
             case ServiceDependency:
             case ServiceRequestEndpoint:
-            case ServiceLinger:
             case ProcessInitializationTimeMax:
-            case InstanceInitFailureLimit:
+            case WorkingDirectory:
                 sset.setJobProperty(option.pname(), value);
+                dirty_job_props = true;
                 break;
-                
+
+            case InstanceInitFailureLimit:
+                sset.updateInitFailureLimit(value);
+                sset.setJobProperty(option.pname(), value);
+                dirty_job_props = true;
+                break;
+
+            case ServiceLinger:
+                sset.updateLinger(value);
+                sset.setJobProperty(option.pname(), value);
+                dirty_job_props = true;
+                break;
+
+            case ProcessDebug:
+                // Note this guy updates the props differently based on the value
+                sset.updateDebug(value);      // value may be numeric, or "off" 
+                dirty_job_props = true;
+                break;
+
             case ServicePingArguments:
             case ServicePingClasspath:
             case ServicePingJvmArgs:
@@ -927,11 +948,10 @@ public class ServiceHandler
             case InstanceFailureLimit:
                 sset.setJobProperty(option.pname(), value);
                 restart_pinger = true;
+                dirty_job_props = true;
                 break;
 
         }
-
-        return new Pair<Boolean, Boolean>(restart_pinger, restart_service);
     }
 
     //void doModify(long id, String url, int instances, Trinary autostart, boolean activate)
@@ -944,14 +964,18 @@ public class ServiceHandler
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
 
         DuccProperties mods  = sme.getProperties();
-        boolean restart_pinger = false;
-        boolean restart_service = false;
-
+        restart_pinger = false;
+        restart_service = false;
         Set<String> keys = mods.stringPropertyNames();        
 
         for (String kk : keys ) {
             UiOption k = optionMap.get(kk);
 
+            if ( k == null ) {
+            	logger.debug(methodName, sset.getId(), "Bypass property", kk);
+            	continue;
+            }
+            
             switch ( k ) {
                 case Help:
                 case Debug:
@@ -964,19 +988,31 @@ public class ServiceHandler
             }
 
             String v = (String) mods.get(kk);
-            Pair<Boolean, Boolean> update = null;           
             try {
-                update = modifyRegistration(sset, k, v);
+            	modifyRegistration(sset, k, v);
             } catch ( Throwable t ) {
                 logger.error(methodName, sset.getId(), "Modify", kk, "to", v, "Failed:", t);
                 continue;
             }
 
-            restart_service |= update.first();
-            restart_pinger  |= update.second();
-
             logger.info(methodName, sset.getId(), "Modify", kk, "to", v, "restart_service[" + restart_service + "]", "restart_pinger[" + restart_pinger + "]");
         }
+        
+        if ( dirty_job_props ) {
+            sset.saveServiceProperties();
+            dirty_job_props = false;
+        }
+        if ( dirty_meta_props ) {
+            sset.saveMetaProperties();
+            dirty_meta_props = false;
+        }
+
+        if ( restart_pinger ) {
+            sset.restartPinger();
+            restart_pinger = false;
+        }
+
+        // restart_service - not yet
     }
 
     //void doModify(long id, String url, int instances, Trinary autostart, boolean activate)
@@ -1039,7 +1075,7 @@ public class ServiceHandler
              (pingJvmArgs   != null) ||
              (pingTimeout   != null) ||
              (pingDolog     != null) ) {
-            sset.restartPinger(pingClass, pingArguments, pingClasspath, pingJvmArgs, pingTimeout, pingDolog);
+            // sset.restartPinger(pingClass, pingArguments, pingClasspath, pingJvmArgs, pingTimeout, pingDolog);
         }
 
     }
