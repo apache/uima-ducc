@@ -342,6 +342,7 @@ public class CGroupsManager {
 			boolean useDuccSpawn) throws Exception {
 
 		try {
+			agentLogger.info("createContainer", null, "Creating CGroup Container:" + containerId);
 			
 			String[] command = new String[] { cgroupUtilsDir+"/cgcreate", "-t",
 					"ducc", "-a", "ducc", "-g",
@@ -460,21 +461,33 @@ public class CGroupsManager {
 			String c_launcher_path = Utils.resolvePlaceholderIfExists(
 					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),
 					System.getProperties());
-
+			StringBuffer sb = new StringBuffer();
+			
 			if (useDuccSpawn && c_launcher_path != null) {
 				commandLine = new String[4 + command.length];
 				commandLine[0] = c_launcher_path;
+				sb.append(c_launcher_path).append(" ");
 				commandLine[1] = "-u";
+				sb.append("-u ");
 				commandLine[2] = userId;
+				sb.append(userId);
 				commandLine[3] = "--";
-
+				sb.append(" -- ");
 				int j = 0;
 				for (int i = 4; i < commandLine.length; i++) {
+					sb.append(command[j]).append(" ");
 					commandLine[i] = command[j++];
 				}
 			} else {
 				commandLine = command;
+				if ( command != null ) {
+   				    for (int i = 0; i < command.length; i++) {
+					    sb.append(command[i]).append(" ");
+				    }
+				}
 			}
+			agentLogger.info("launchCommand", null, "Launching Process - Commandline:"+sb.toString());
+			
 			ProcessBuilder processLauncher = new ProcessBuilder();
 			processLauncher.command(commandLine);
 			processLauncher.redirectErrorStream();
@@ -485,9 +498,12 @@ public class CGroupsManager {
 					process.getInputStream());
 			reader = new BufferedReader(in);
 			String line;
+			agentLogger.info("launchCommand", null, "Consuming Process Streams");
 			while ((line = reader.readLine()) != null) {
 				agentLogger.info("launchCommand", null, ">>>>" + line);
 			}
+			agentLogger.info("launchCommand", null, "Waiting for Process to Exit");
+
 			int retCode = process.waitFor();
 			return retCode;
 

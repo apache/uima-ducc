@@ -143,8 +143,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 						//  is created for the reservation and we co-locate as many JDs as we can fit in it.
 						//String containerId = ((ManagedProcess) managedProcess).getWorkDuccId()+"."+duccProcess.getCGroup().getId().getFriendly();
 						String containerId = getContainerId();
-						logger.info(methodName, null, "Creating CGroup with ID:"+containerId);					
+						logger.info(methodName, null, "Checking for CGroup Existance with ID:"+containerId);					
 						if ( !agent.cgroupsManager.cgroupExists(agent.cgroupsManager.getDuccCGroupBaseDir()+"/"+containerId) ) {
+							logger.info(methodName, null, "No CGroup with ID:"+containerId+" Found");
 							boolean failed = false;
 							// create cgroup container for JDs
 							try {
