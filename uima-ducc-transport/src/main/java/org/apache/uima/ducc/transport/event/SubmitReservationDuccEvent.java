@@ -23,8 +23,9 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 @SuppressWarnings("serial")
 public class SubmitReservationDuccEvent extends AbstractDuccReservationEvent {
 
-	public SubmitReservationDuccEvent(DuccProperties props) {
+	public SubmitReservationDuccEvent(DuccProperties props, int cli_version) {
 		super(EventType.SUBMIT_RESERVATION);
 		setProperties(props);
+		setCliVersion(cli_version);
 	}
 }

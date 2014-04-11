@@ -633,6 +633,16 @@ public class ServiceManagerComponent
     private boolean validate_user(String action, AServiceRequest req)
     {
     	String methodName = "validate_user";
+        
+        // First check that request is from a compatible cli
+        if (req.getCliVersion() != CliVersion.getVersion()) {
+            String reason = "Incompatible CLI request using version " + req.getCliVersion()
+                            + " while DUCC expects version " + CliVersion.getVersion();
+            logger.warn(methodName, null, action + " rejected. " + reason);
+            req.setReply(new ServiceReplyEvent(false, reason, action, -1));
+            return false;
+        }
+        
         String user = req.getUser();                
         byte[] auth_block= req.getAuth();
         boolean validated = false;

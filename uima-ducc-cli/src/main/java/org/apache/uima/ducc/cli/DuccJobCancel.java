@@ -112,7 +112,7 @@ public class DuccJobCancel
         throws Exception 
     {
 
-        CancelJobDuccEvent      cancelJobDuccEvent      = new CancelJobDuccEvent(jobRequestProperties);
+        CancelJobDuccEvent      cancelJobDuccEvent      = new CancelJobDuccEvent(jobRequestProperties, CliVersion.getVersion());
         CancelJobReplyDuccEvent cancelJobReplyDuccEvent = null;
         try {
             cancelJobReplyDuccEvent = (CancelJobReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelJobDuccEvent);

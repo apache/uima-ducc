@@ -23,8 +23,9 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 @SuppressWarnings("serial")
 public class CancelJobDuccEvent extends AbstractDuccJobEvent {
 	
-	public CancelJobDuccEvent(DuccProperties props) {
+	public CancelJobDuccEvent(DuccProperties props, int cli_version) {
 		super(EventType.CANCEL_JOB);
 		setProperties(props);
+		setCliVersion(cli_version);
 	}
 }

@@ -16,21 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event;
 
-import org.apache.uima.ducc.common.utils.DuccProperties;
+package org.apache.uima.ducc.sm;
 
-@SuppressWarnings("serial")
-public class SubmitServiceDuccEvent extends AbstractDuccJobEvent {
+import org.apache.uima.ducc.common.utils.Version;
 
-	public SubmitServiceDuccEvent() {
-		super(EventType.SUBMIT_SERVICE);
-	}
-	
-	public SubmitServiceDuccEvent(DuccProperties props, int cli_version)
-	{
-		super(EventType.SUBMIT_SERVICE);
-		setProperties(props);
-		setCliVersion(cli_version);
-	}
+public class CliVersion {
+    
+    static private final int cliVersion = Version.cliVersion;
+
+    /*
+     * Return copy of the current CLI version number
+     */
+    static public int getVersion() {
+        return cliVersion;
+    }
 }

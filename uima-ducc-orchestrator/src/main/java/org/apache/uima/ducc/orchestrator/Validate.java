@@ -26,6 +26,8 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.orchestrator.utilities.MemorySpecification;
+import org.apache.uima.ducc.orchestrator.utilities.CliVersion;
+import org.apache.uima.ducc.transport.event.AbstractDuccOrchestratorEvent;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelReservationDuccEvent;
 import org.apache.uima.ducc.transport.event.CancelServiceDuccEvent;
@@ -110,6 +112,9 @@ public class Validate {
 	}
 	public static boolean request(SubmitJobDuccEvent duccEvent) {
 		boolean retVal = true;
+		if (!validate_cli_version(duccEvent)) {
+			return false;
+		}	
 		JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
 		String key;
 		String value;
@@ -132,6 +137,9 @@ public class Validate {
 	}
 	
 	public static boolean request(CancelJobDuccEvent duccEvent) {
+		if (!validate_cli_version(duccEvent)) {
+			return false;
+		}		
 		boolean retVal = true;
 		//TODO
 		return retVal;
@@ -145,6 +153,9 @@ public class Validate {
 		
 	public static boolean request(SubmitReservationDuccEvent duccEvent) {
 		boolean retVal = true;
+		if (!validate_cli_version(duccEvent)) {
+			return false;
+		}	
 		ReservationRequestProperties properties = (ReservationRequestProperties) duccEvent.getProperties();
 		String key;
 		String value;
@@ -180,6 +191,9 @@ public class Validate {
 	public static boolean request(CancelReservationDuccEvent duccEvent, DuccWorkReservation duccWorkReservation) {
 		String location = "request";
 		boolean retVal = false;
+		if (!validate_cli_version(duccEvent)) {
+			return false;
+		}
 		Properties properties = duccEvent.getProperties();
 		String userid = properties.getProperty(JobSpecificationProperties.key_user);
 		String ownerid = duccWorkReservation.getStandardInfo().getUser();
@@ -205,6 +219,9 @@ public class Validate {
 	
 	public static boolean request(SubmitServiceDuccEvent duccEvent) {
 		boolean retVal = true;
+		if (!validate_cli_version(duccEvent)) {
+			return false;
+		}		
 		JobRequestProperties properties = (JobRequestProperties) duccEvent.getProperties();
 		String key;
 		String value;
@@ -228,7 +245,20 @@ public class Validate {
 	
 	public static boolean request(CancelServiceDuccEvent duccEvent) {
 		boolean retVal = true;
+		if (!validate_cli_version(duccEvent)) {
+			return false;
+		}
 		//TODO
 		return retVal;
+	}
+	
+	private static boolean validate_cli_version(AbstractDuccOrchestratorEvent ev) {
+		if (ev.getCliVersion() == CliVersion.getVersion()) {
+			return true;
+		}
+		String reason = ev.getEventType() + " rejected. Incompatible CLI request using version " + ev.getCliVersion() + " while DUCC expects version " + CliVersion.getVersion() ;
+		addError(ev.getProperties(),reason);
+		logger.warn("validate_cli_request", null, reason);
+		return false;
 	}
 }

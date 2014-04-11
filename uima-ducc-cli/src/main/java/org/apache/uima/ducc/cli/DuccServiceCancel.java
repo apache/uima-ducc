@@ -100,7 +100,8 @@ public class DuccServiceCancel
         throws Exception 
     {
 
-        CancelServiceDuccEvent      cancelServiceDuccEvent      = new CancelServiceDuccEvent(requestProperties, DuccContext.Service);
+        CancelServiceDuccEvent cancelServiceDuccEvent = new CancelServiceDuccEvent(
+                        requestProperties, DuccContext.Service, CliVersion.getVersion());
         CancelServiceReplyDuccEvent cancelServiceReplyDuccEvent = null;
         try {
             cancelServiceReplyDuccEvent = (CancelServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelServiceDuccEvent);

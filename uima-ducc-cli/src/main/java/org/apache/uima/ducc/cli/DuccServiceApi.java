@@ -343,10 +343,10 @@ public class DuccServiceApi
             if (customCmd != null) {
                 message("WARN", "--process_executable is ignored for UIMA-AS services");
             }
-            // Infer the classpath (DuccProperties will return the default if the value isn't found.)
-            // Note: only used for UIMA-AS services
-            if (fixupClasspath(UiOption.Classpath.pname()) == null) {
-                throw new IllegalArgumentException("Specified classpath contains only DUCC jars");
+            // Set default classpath if not specified - only used for UIMA-AS services
+            String key_cp = UiOption.Classpath.pname();
+            if (!cli_props.containsKey(key_cp)) {
+                cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
             }
 
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
@@ -376,7 +376,10 @@ public class DuccServiceApi
             if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
                 throw new IllegalArgumentException("Custom service is missing ping class name.");
             }
-            fixupClasspath(UiOption.ServicePingClasspath.pname());
+            String key_cp = UiOption.ServicePingClasspath.pname();
+            if (!cli_props.containsKey(key_cp)) {
+                cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
+            }
         
         } else {
             throw new IllegalArgumentException("Invalid service endpoint: " + endpoint);
@@ -406,7 +409,7 @@ public class DuccServiceApi
         cli_props.remove(UiOption.Instances.pname());
         cli_props.remove(UiOption.Autostart.pname());
 
-        ServiceRegisterEvent ev = new ServiceRegisterEvent(user, instances, autostart, endpoint, cli_props, auth_block);
+        ServiceRegisterEvent ev = new ServiceRegisterEvent(user, instances, autostart, endpoint, cli_props, auth_block, CliVersion.getVersion());
 
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
@@ -433,7 +436,7 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        ServiceUnregisterEvent ev = new ServiceUnregisterEvent(user, id.first(), id.second(), auth_block);
+        ServiceUnregisterEvent ev = new ServiceUnregisterEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
         
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
@@ -459,7 +462,7 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        ServiceStartEvent ev = new ServiceStartEvent(user, id.first(), id.second(), auth_block);
+        ServiceStartEvent ev = new ServiceStartEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
 
         int instances = getInstances(-1);
         boolean update = getUpdate();
@@ -491,7 +494,7 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        ServiceStopEvent ev = new ServiceStopEvent(user, id.first(), id.second(), auth_block);
+        ServiceStopEvent ev = new ServiceStopEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
 
         int instances = getInstances(-1);
         boolean update = getUpdate();
@@ -527,7 +530,7 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), dp, auth_block);        
+        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), dp, auth_block, CliVersion.getVersion());        
 
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
@@ -555,7 +558,7 @@ public class DuccServiceApi
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
         DuccProperties mods = new DuccProperties();        
-        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), mods, auth_block);
+        ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), mods, auth_block, CliVersion.getVersion());
         int instances = getInstances(-1);
         Trinary autostart = getAutostart();
         boolean activate = getActivate();
@@ -616,7 +619,7 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        ServiceQueryEvent ev = new ServiceQueryEvent(user, id.first(), id.second(), auth_block);
+        ServiceQueryEvent ev = new ServiceQueryEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
 
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);

@@ -23,7 +23,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -336,8 +335,6 @@ public abstract class CliBase
             setDefaults(uiOpts, suppress_console_log);
         }
         
-        cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
-
         if ( load_defaults && (getLogDirectory() == null) ) {
             throw new IllegalArgumentException("Cannot access log directory.");
         }
@@ -435,7 +432,7 @@ public abstract class CliBase
             } else {
                 Option opt = cliOptions.getOption(key);
                 if (opt == null) {
-                    throw new IllegalArgumentException("Invalid option " + key + " in specification file");
+                    throw new IllegalArgumentException("Invalid option '" + key + "' in specification file");
                 }
                 if (!opt.hasArg()) {
                     String val = props.getProperty(key);
@@ -805,30 +802,6 @@ public abstract class CliBase
             }
         }
         return args;
-    }
-    
-    /*
-     * Get specified class path (or the default) and remove any DUCC jars (except examples) 
-     * so they cannot accidentally replace any in the user's class path.
-     * But if it has only DUCC jars return null as this must be an error.
-     */
-    protected String fixupClasspath(String key_cp) {
-        String classpath = cli_props.getStringProperty(key_cp,
-                        System.getProperty("java.class.path"));
-        StringBuilder sb = new StringBuilder();
-        String duccPrefix = ducc_home + "/lib";
-        for (String jar : classpath.split(":")) {
-            if (!jar.startsWith(duccPrefix) || jar.contains("examples")) {
-                sb.append(":").append(jar);
-            }
-        }
-        if (sb.length() > 0) {
-            classpath = sb.substring(1);
-            cli_props.setProperty(key_cp, classpath);
-            return classpath;
-        } else {
-            return null;
-        }
     }
     
 }

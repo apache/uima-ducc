@@ -27,9 +27,9 @@ public class ServiceStartEvent
     private int instances;
     private boolean update;
 
-	public ServiceStartEvent(String user, int friendly, String epname, byte[] auth_block)
+	public ServiceStartEvent(String user, int friendly, String epname, byte[] auth_block, int cli_version)
     {
-		super(EventType.SERVICE_START, user, auth_block);
+		super(EventType.SERVICE_START, user, auth_block, cli_version);
         this.friendly = friendly;
         this.epname = epname;
         this.instances = -1;         // default, don't change number of instances

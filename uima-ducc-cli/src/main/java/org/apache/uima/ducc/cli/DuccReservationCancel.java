@@ -98,7 +98,7 @@ public class DuccReservationCancel
         throws Exception 
     {
 
-        CancelReservationDuccEvent      cancelReservationDuccEvent      = new CancelReservationDuccEvent(requestProperties);
+        CancelReservationDuccEvent      cancelReservationDuccEvent      = new CancelReservationDuccEvent(requestProperties, CliVersion.getVersion());
         CancelReservationReplyDuccEvent cancelReservationReplyDuccEvent = null;
         try {
             cancelReservationReplyDuccEvent = (CancelReservationReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelReservationDuccEvent);

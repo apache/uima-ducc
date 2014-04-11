@@ -28,6 +28,8 @@ implements DuccEvent {
 	private Long eventSize = new Long(0);
 	private EventType eventType;
 	
+	private int cliVersion;
+	
 	public AbstractDuccEvent(EventType eventType) {
 		this.eventType = eventType;
 	}
@@ -48,5 +50,12 @@ implements DuccEvent {
 	public void setSequence(long sequence) {
 		this.sequence = sequence;
 	}
+	
+	public int getCliVersion() {
+	    return cliVersion;
+	}
 
+	public void setCliVersion(int version) {
+	    cliVersion = version;
+	}
 }

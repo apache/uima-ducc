@@ -674,7 +674,7 @@ public class ServiceHandler
         String userout = sset.getUser();
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
 
         int running    = sset.countImplementors();
@@ -772,7 +772,7 @@ public class ServiceHandler
         String userout = sset.getUser();
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
 
         if ( sset.isStopped() ) {
@@ -820,7 +820,7 @@ public class ServiceHandler
         ServiceSet sset = serviceStateHandler.getServiceByUrl(url);
         if (sset != null ) {
             error = "Duplicate registered by " + sset.getUser();
-            return new ServiceReplyEvent(false, error, url, id.getFriendly());
+            return new ServiceReplyEvent(false, error, url, sset.getId().getFriendly());
         }
 
         try {
@@ -886,7 +886,7 @@ public class ServiceHandler
         String userout = sset.getUser();
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
         
         pendingRequests.add(new ApiHandler(ev, this));
@@ -1120,7 +1120,7 @@ public class ServiceHandler
         logger.info(methodName, sset.getId(), "Unregister received from", userin);
 
         if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, id);
+            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
         
         serviceStateHandler.unregister(sset);

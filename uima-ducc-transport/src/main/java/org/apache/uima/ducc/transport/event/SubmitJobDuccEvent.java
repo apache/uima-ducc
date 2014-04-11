@@ -23,8 +23,9 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 @SuppressWarnings("serial")
 public class SubmitJobDuccEvent extends AbstractDuccJobEvent {
 
-	public SubmitJobDuccEvent(DuccProperties props) {
+	public SubmitJobDuccEvent(DuccProperties props, int cli_version) {
 		super(EventType.SUBMIT_JOB);
         setProperties(props);
+        setCliVersion(cli_version);
 	}
 }

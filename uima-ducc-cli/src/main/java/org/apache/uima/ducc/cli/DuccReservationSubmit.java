@@ -92,7 +92,7 @@ public class DuccReservationSubmit
      */
 	public boolean execute()
     {		
-        SubmitReservationDuccEvent      ev    = new SubmitReservationDuccEvent(requestProperties);
+        SubmitReservationDuccEvent      ev    = new SubmitReservationDuccEvent(requestProperties, CliVersion.getVersion());
         SubmitReservationReplyDuccEvent reply = null;
         
         try {

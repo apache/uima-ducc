@@ -33,9 +33,9 @@ public class ServiceModifyEvent
 
     private DuccProperties props;
 
-	public ServiceModifyEvent(String user, long friendly, String epname, DuccProperties props, byte[] auth_block)
+	public ServiceModifyEvent(String user, long friendly, String epname, DuccProperties props, byte[] auth_block, int cli_version)
     {
-		super(EventType.SERVICE_STOP, user, auth_block);
+		super(EventType.SERVICE_STOP, user, auth_block, cli_version);
         this.friendly = friendly;
         this.epname = epname;
         this.props = props;

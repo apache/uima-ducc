@@ -105,7 +105,7 @@ public class DuccEventHttpDispatcher {
     try {
       DuccEventHttpDispatcher dispatcher = 
               new DuccEventHttpDispatcher("http://"+args[0]+":19988/or",1000*4);
-      SubmitJobDuccEvent duccEvent = new SubmitJobDuccEvent(null);
+      SubmitJobDuccEvent duccEvent = new SubmitJobDuccEvent(null, 1);
       DuccEvent event = dispatcher.dispatchAndWaitForDuccReply(duccEvent);
       if ( event instanceof SubmitJobReplyDuccEvent ) {
         System.out.println("Client received SubmitJobReplyDuccEvent");

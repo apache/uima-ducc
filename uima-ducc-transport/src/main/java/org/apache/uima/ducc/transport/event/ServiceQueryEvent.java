@@ -25,9 +25,9 @@ public class ServiceQueryEvent
     long friendly;
     String epname;
 
-	public ServiceQueryEvent(String user, long friendly, String epname, byte[] auth_block)
+	public ServiceQueryEvent(String user, long friendly, String epname, byte[] auth_block, int cli_version)
     {
-        super(EventType.SERVICE_QUERY, user, auth_block);
+        super(EventType.SERVICE_QUERY, user, auth_block, cli_version);
         this.friendly = friendly;
         this.epname = epname;
 	}

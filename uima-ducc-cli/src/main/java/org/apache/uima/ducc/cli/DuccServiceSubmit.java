@@ -187,9 +187,9 @@ public class DuccServiceSubmit
             }
             
             // This should have already been done when registered, but perhaps not in old services.
-            if (fixupClasspath(UiOption.Classpath.pname()) == null){
-                message("Classpath contains only DUCC jars");
-                return false;
+            String key_cp = UiOption.Classpath.pname();
+            if (!cli_props.containsKey(key_cp)) {
+                cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
             }
             
             //
@@ -243,7 +243,7 @@ public class DuccServiceSubmit
 
         requestProperties.put(UiOption.ProcessThreadCount.pname(), "1");         // enforce this - OR will complain if it's missing
 
-        SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties);
+        SubmitServiceDuccEvent      ev    = new SubmitServiceDuccEvent(requestProperties, CliVersion.getVersion());
         SubmitServiceReplyDuccEvent reply = null;
         
         try {

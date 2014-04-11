@@ -28,9 +28,9 @@ public class ServiceStopEvent
     private int instances;
     private boolean update;
 
-	public ServiceStopEvent(String user, long friendly, String epname, byte[] auth_block)
+	public ServiceStopEvent(String user, long friendly, String epname, byte[] auth_block, int cli_version)
     {
-		super(EventType.SERVICE_STOP, user, auth_block);
+		super(EventType.SERVICE_STOP, user, auth_block, cli_version);
         this.friendly = friendly;
         this.epname = epname;
         this.instances = -1;

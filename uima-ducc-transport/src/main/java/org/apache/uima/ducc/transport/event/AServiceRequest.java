@@ -31,12 +31,15 @@ public abstract class AServiceRequest
     byte[] auth_block;
 
     ServiceReplyEvent reply;
-	public AServiceRequest(EventType eventType, String user, byte[] auth_block)
-	{
-		super(eventType);
+    private int cli_version;
+    
+    public AServiceRequest(EventType eventType, String user, byte[] auth_block, int cli_version)
+    {
+        super(eventType);
         this.user = user;
         this.auth_block = auth_block;
-	}
+        this.cli_version = cli_version;
+    }
 
     public ServiceReplyEvent getReply()
     {
@@ -58,8 +61,13 @@ public abstract class AServiceRequest
         return auth_block;
     }
 
-	@Override
-	public String toString() {
-		return "AServiceRequest [reply=" + reply + "]";
-	}
+    public int getCliVersion()
+    {
+        return cli_version;
+    }
+    
+    @Override
+    public String toString() {
+        return "AServiceRequest [reply=" + reply + "]";
+    }
 };

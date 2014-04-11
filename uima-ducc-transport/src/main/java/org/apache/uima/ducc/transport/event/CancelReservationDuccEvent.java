@@ -23,8 +23,9 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 @SuppressWarnings("serial")
 public class CancelReservationDuccEvent extends AbstractDuccReservationEvent {
 	
-	public CancelReservationDuccEvent(DuccProperties props) {
+	public CancelReservationDuccEvent(DuccProperties props, int cli_version) {
 		super(EventType.CANCEL_RESERVATION);
 		setProperties(props);
+		setCliVersion(cli_version);
 	}
 }

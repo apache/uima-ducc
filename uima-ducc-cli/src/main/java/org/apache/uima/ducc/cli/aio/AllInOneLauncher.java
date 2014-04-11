@@ -309,9 +309,9 @@ public class AllInOneLauncher extends CliBase {
         String mid = "examine_classpath";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.Classpath.pname();
-        classpath = fixupClasspath(pname);
+        classpath = jobRequestProperties.getProperty(pname);
         if (classpath == null) {
-            throw new IllegalArgumentException("Specified classpath contains only DUCC jars");
+            classpath = System.getProperty("java.class.path");
         }
         used(pname);
         String message = classpath;

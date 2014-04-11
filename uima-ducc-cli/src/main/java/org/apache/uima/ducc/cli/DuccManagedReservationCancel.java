@@ -88,15 +88,16 @@ public class DuccManagedReservationCancel extends CliBase {
 	}
 
     /**
-     * Execute collects the parameters for job cancelation and sends them to the DUCC Orchestrator
-     * to effect the cancelation.
+     * Execute collects the parameters for job cancellation and sends them to the DUCC Orchestrator
+     * to effect the cancellation.
      *
-     * @return True if the orchestrator accepts the job cancelation.
+     * @return True if the orchestrator accepts the job cancellation.
      */
 	public boolean execute() 
         throws Exception 
     {
-        CancelServiceDuccEvent      cancelServiceDuccEvent      = new CancelServiceDuccEvent(requestProperties, DuccContext.ManagedReservation);
+        CancelServiceDuccEvent cancelServiceDuccEvent = new CancelServiceDuccEvent(
+                        requestProperties, DuccContext.ManagedReservation, CliVersion.getVersion());
         CancelServiceReplyDuccEvent cancelServiceReplyDuccEvent = null;
         try {
             cancelServiceReplyDuccEvent = (CancelServiceReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(cancelServiceDuccEvent);

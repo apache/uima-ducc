@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.cli;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -278,21 +277,16 @@ public class DuccJobSubmit
         }
 
         /*
-         * Set default classpath if not specified & remove DUCC jars
+         * Set default classpath if not specified
          */
-        if (fixupClasspath(UiOption.Classpath.pname()) == null){
-            message("Classpath contains only DUCC jars");
-            return false;
+        String key_cp = UiOption.Classpath.pname();
+        if (!jobRequestProperties.containsKey(key_cp)) {
+            jobRequestProperties.setProperty(key_cp, System.getProperty("java.class.path"));
         }
 
         if (jobRequestProperties.containsKey(UiOption.Debug.pname())) {
             jobRequestProperties.dump();
         }
-
-        /*
-         * identify invoker
-         */
-        jobRequestProperties.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
 
         /*
          * resolve ${defaultBrokerURL} in service dependencies - must fail if resolution needed but can't resolve
@@ -301,7 +295,7 @@ public class DuccJobSubmit
             return false;
         }
 
-        SubmitJobDuccEvent      submitJobDuccEvent      = new SubmitJobDuccEvent(jobRequestProperties);
+        SubmitJobDuccEvent      submitJobDuccEvent      = new SubmitJobDuccEvent(jobRequestProperties, CliVersion.getVersion());
         SubmitJobReplyDuccEvent submitJobReplyDuccEvent = null;
         try {
             submitJobReplyDuccEvent = (SubmitJobReplyDuccEvent) dispatcher.dispatchAndWaitForDuccReply(submitJobDuccEvent);

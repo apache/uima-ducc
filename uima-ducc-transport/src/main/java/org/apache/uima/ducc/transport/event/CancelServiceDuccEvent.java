@@ -31,9 +31,10 @@ public class CancelServiceDuccEvent extends AbstractDuccCancelEvent {
 	}
 	*/
 	
-	public CancelServiceDuccEvent(DuccProperties props, DuccContext context) {
+	public CancelServiceDuccEvent(DuccProperties props, DuccContext context, int cli_version) {
 		super(EventType.CANCEL_SERVICE);
 		setProperties(props);
 		setContext(context);
+		setCliVersion(cli_version);
 	}
 }

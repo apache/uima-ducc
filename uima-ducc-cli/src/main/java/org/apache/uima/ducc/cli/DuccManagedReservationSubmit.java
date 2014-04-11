@@ -152,7 +152,7 @@ public class DuccManagedReservationSubmit
         serviceRequestProperties.setProperty(UiOption.ProcessDeploymentsMax.pname(), "1");     
         serviceRequestProperties.setProperty(UiOption.ServiceTypeOther.pname(), "");
         
-        SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties);
+        SubmitServiceDuccEvent ev = new SubmitServiceDuccEvent(serviceRequestProperties, CliVersion.getVersion());
         SubmitServiceReplyDuccEvent reply = null;
         
         try {

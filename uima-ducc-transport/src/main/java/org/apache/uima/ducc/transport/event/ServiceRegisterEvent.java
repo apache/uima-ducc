@@ -31,9 +31,10 @@ public class ServiceRegisterEvent
     private String endpoint;
     private DuccProperties descriptor;
 
-	public ServiceRegisterEvent(String user, int ninstances, Trinary autostart, String endpoint, DuccProperties descriptor, byte[] auth_block)
+	public ServiceRegisterEvent(String user, int ninstances, Trinary autostart, String endpoint, DuccProperties descriptor, byte[] auth_block, 
+	                int cli_version)
     {
-		super(EventType.SERVICE_REGISTER, user, auth_block);
+		super(EventType.SERVICE_REGISTER, user, auth_block, cli_version);
         this.ninstances = ninstances;
         this.autostart = autostart;
         this.endpoint = endpoint;
