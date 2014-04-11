@@ -79,6 +79,7 @@ public class CustomPing
                             "] S4[" + stat4 +
                             "]"
                             );
+            sock.close();
         } catch ( Throwable t) {
         	t.printStackTrace();
             stats.setInfo(t.getMessage());
