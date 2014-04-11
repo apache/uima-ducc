@@ -435,7 +435,18 @@ class PingDriver
 
     void setCommonProperties(Map<String, Object> props)
     {
-        props.put("all-instances"    , sset.getImplementors());
+        Long[] instances = sset.getImplementors();
+        props.put("all-instances"    , instances);
+        
+        String[] hosts  = new String[instances.length];
+        Long[] shares   = new Long[instances.length];
+        for ( int i = 0; i < instances.length; i++ ) {
+            hosts[i]  = sset.getHostFor(instances[i]);
+            shares[i] = sset.getShareFor(instances[i]);
+        }
+        props.put("all-hosts"        , hosts);
+        props.put("all-shares"       , shares);
+
         props.put("active-instances" , sset.getActiveInstances());
         props.put("autostart-enabled", sset.isAutostart());
 

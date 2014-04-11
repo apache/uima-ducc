@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.apache.uima.ducc.cli.DuccServiceApi;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -39,6 +40,8 @@ import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.transport.event.sm.IServiceDescription;
@@ -513,7 +516,22 @@ public class ServiceHandler
         for ( DuccId id : work.keySet() ) {
             DuccWorkJob w = (DuccWorkJob) work.get(id);
             String url = w.getServiceEndpoint();
-
+            
+            IDuccProcessMap pm = w.getProcessMap();
+            String node = "<unknown>";
+            Long share_id = -1L;
+            if ( pm.size() > 1 ) {
+                logger.warn(methodName, id, "Process map is too large, should be size 1.  Size:", pm.size(), "Cannot determine node or share_id for service.");
+            } else if ( pm.size() < 1 ) {
+                logger.warn(methodName, id, "Process map is empty but we are expecting exactly one entry. Cannot determine node or share id for service.");
+            } else {
+                for ( DuccId pid : pm.keySet() ) {
+                    NodeIdentity ni = pm.get(pid).getNodeIdentity();
+                    node = ni.getName();
+                    share_id = pid.getFriendly();
+                }               
+            }         
+            
             if (url == null ) {              // probably impossible but lets not chance NPE
                 logger.warn(methodName, id, "Missing service endpoint/url, ignoring.");
                 continue;
@@ -539,6 +557,9 @@ public class ServiceHandler
                 continue;      // we don't care any more, he's gone
             }
         
+            if ( share_id != -1 ) {
+                sset.updateInstance(id.getFriendly(), share_id, node);
+            }
             ServiceDependency s = serviceMap.get(id);
             if ( w.isFinished() ) {              // nothing more, just dereference and maybe stop stuff I'm dependent upon
                 // state Completing or Completed

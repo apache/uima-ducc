@@ -39,7 +39,10 @@ class ServiceInstance
 {
 	private DuccLogger logger = DuccLogger.getLogger(this.getClass().getName(), COMPONENT_NAME);	
 
-    long numeric_id;                               // unique numeric ducc-assigned id
+    long   numeric_id;                             // unique numeric ducc-assigned id
+    long   share_id;                               // RM's share ID for this instance
+    String host;                                   // Where the instance is scheduled
+
     ServiceSet sset;                               // handle to the service definitiopn
 
     JobState state = JobState.Undefined;           // orchestartor state
@@ -56,6 +59,8 @@ class ServiceInstance
         this.numeric_id = -1;
         this.sset = sset;
         this.stopped = true;
+        this.share_id = -1;
+        this.host = "<unknown>";
     }
 
     public long getId() {
@@ -64,6 +69,16 @@ class ServiceInstance
 
     void setId(long id) {
         this.numeric_id = id;
+    }
+
+    public long getShareId()
+    {
+        return share_id;
+    }
+
+    public String getHost()
+    {
+        return host;
     }
 
     void setUser(String user)
@@ -112,6 +127,12 @@ class ServiceInstance
             default:
                 return !isStopped();                
         }
+    }
+
+    synchronized void update(long share_id, String host)
+    {
+        this.share_id = share_id;
+        this.host = host;
     }
 
     synchronized void setStopped(boolean s)

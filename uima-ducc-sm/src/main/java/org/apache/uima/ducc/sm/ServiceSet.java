@@ -272,6 +272,16 @@ public class ServiceSet
         return implementors.keySet().toArray(new Long[implementors.size()]);
     }
 
+    synchronized String getHostFor(Long implid)
+    {
+        return implementors.get(implid).getHost();
+    }
+
+    synchronized long getShareFor(Long implid)
+    {
+        return implementors.get(implid).getShareId();
+    }
+
     synchronized DuccId[] getReferences()
     {
         return references.keySet().toArray(new DuccId[references.size()]);
@@ -718,6 +728,17 @@ public class ServiceSet
 			}
         }
         return;
+    }
+
+    synchronized void updateInstance(long iid, long share_id, String host)
+    {
+    	String methodName = "updateInstance";
+        ServiceInstance inst = implementors.get(iid);
+        if ( inst == null ) {
+            logger.warn(methodName, id, "Cannot find instance", iid, "for update:", host + ":" + share_id);
+            return;
+        }
+        inst.update(share_id, host);
     }
 
     synchronized void updateRegisteredInstances(int n)
