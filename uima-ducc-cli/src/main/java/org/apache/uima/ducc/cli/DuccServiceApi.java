@@ -153,17 +153,20 @@ public class DuccServiceApi
 
         // generate modify options, same as registration options, only with the verb
         // Modify insteady of Register, and on extra option, Activate.
-        modify_options = new UiOption[registration_options.length + 1];
+        // The length here: same as registration options, 
+        //     plus 1 for Activate, 
+        //     minus 1 for ProcessDD
+        //     minus 1 for ServiceRequestEndpoint
+        modify_options = new UiOption[registration_options.length - 1];
         int i = 0;
-        for ( ; i < registration_options.length; i++ ) {
-            UiOption o = registration_options[i];
+        for ( UiOption o : registration_options ) {
 
             if ( o == UiOption.ProcessDD ) continue;                     // disallowed for modify
             if ( o == UiOption.ServiceRequestEndpoint) continue;         // disallowed for modify
 
             if ( o == UiOption.Register ) o = UiOption.Modify;
 
-            modify_options[i] = o;
+            modify_options[i++] = o;
         }
         modify_options[i++] = UiOption.Activate;
     }

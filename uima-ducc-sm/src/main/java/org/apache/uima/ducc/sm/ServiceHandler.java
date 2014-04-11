@@ -908,12 +908,10 @@ public class ServiceHandler
             case SchedulingClass:
             case Environment:
             case ProcessMemorySize:           
-            case ProcessDD:
             case ProcessExecutable:
             case ProcessExecutableArgs:
             case ClasspathOrder:
             case ServiceDependency:
-            case ServiceRequestEndpoint:
             case ProcessInitializationTimeMax:
             case WorkingDirectory:
                 sset.setJobProperty(option.pname(), value);
