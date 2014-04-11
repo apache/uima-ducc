@@ -42,7 +42,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Processor;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.RouteDefinition;
 import org.apache.commons.lang.SerializationUtils;
 import org.apache.uima.ducc.agent.config.AgentConfiguration;
 import org.apache.uima.ducc.agent.event.ProcessLifecycleObserver;
@@ -911,7 +910,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           if (processEntry.getValue().isDeallocated()) {
             // stop collecting process stats from /proc/<pid>/statm
             if (duccEvent.getPid() != null) {
-              super.getContext().stopRoute(duccEvent.getPid());
+            	try {
+                    super.getContext().stopRoute(duccEvent.getPid());
+            	} catch( Exception e) {
+            		logger.error(methodName, null, "Unable to stop Camel route for PID:"+duccEvent.getPid());
+            	}
             }
             return;
           }
@@ -978,7 +981,14 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           } else if (duccEvent.getState().equals(ProcessState.Stopped)
                   || duccEvent.getState().equals(ProcessState.Failed)
                   || duccEvent.getState().equals(ProcessState.Killed)) {
-            super.getContext().stopRoute(duccEvent.getPid());
+            	try {
+              	  // stop collecting process stats from /proc/<pid>/statm
+                    super.getContext().stopRoute(duccEvent.getPid());
+            	} catch( Exception e) {
+                    logger.error(methodName, null, "....Unable to stop Camel route for PID:" + duccEvent.getPid());
+            	}
+
+//            super.getContext().stopRoute(duccEvent.getPid());
             
             // remove route from context, otherwise the routes accumulate over time causing memory leak
             super.getContext().removeRoute(duccEvent.getPid());
@@ -1011,7 +1021,11 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             deployedProcess.kill();
             logger.info(methodName, null, ">>>> Agent Handling Process FailedInitialization. PID:"
                     + duccEvent.getPid() + " Killing Process");
-            super.getContext().stopRoute(duccEvent.getPid());
+           try {
+               super.getContext().stopRoute(duccEvent.getPid());
+           } catch( Exception e) {
+        	   logger.error(methodName, null, "Unable to stop Camel route for PID:"+duccEvent.getPid());
+           }
             logger.info(methodName, null,
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid() + ". Process Failed Initialization");
@@ -1025,7 +1039,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
             deployedProcess.kill();
             logger.info(methodName, null, ">>>> Agent Handling Process InitializationTimeout. PID:"
                     + duccEvent.getPid() + " Killing Process");
-            super.getContext().stopRoute(duccEvent.getPid());
+          
             logger.info(methodName, null,
                     "----------- Agent Stopped ProcessMemoryUsagePollingRouter for Process:"
                             + duccEvent.getPid()
@@ -1134,6 +1148,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
                   + " PID:" + pid);
           if (pid != null) {
+        	try {
+          	  // stop collecting process stats from /proc/<pid>/statm
+                super.getContext().stopRoute(pid);
+                logger.info(methodName, null, "Stopped Camel Route Collecting Metrics For PID:"+pid);
+        	} catch( Exception e) {
+                logger.error(methodName, null, "....Unable to stop Camel route for PID:" + pid);
+        	}
             // Mark the process as stopping. When the process exits,
             // the agent can determine
             // if the process died on its own (due to say, user code
@@ -1211,8 +1232,13 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       ProcessStateUpdateDuccEvent event = new ProcessStateUpdateDuccEvent(processStateUpdate);
       // cleanup Camel route associated with a process that just stopped
       if ( process.getPID() != null && super.getContext().getRoute(process.getPID()) != null ) {
-          super.getContext().stopRoute(process.getPID());
-          
+//          super.getContext().stopRoute(process.getPID());
+      	try {
+        	  // stop collecting process stats from /proc/<pid>/statm
+              super.getContext().stopRoute(process.getPID());
+      	} catch( Exception e) {
+              logger.error(methodName, null, "....Unable to stop Camel route for PID:" + process.getPID());
+      	}
           // remove route from context, otherwise the routes accumulate over time causing memory leak
           super.getContext().removeRoute(process.getPID());
           StringBuffer sb = new StringBuffer("\n");

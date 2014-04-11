@@ -130,11 +130,33 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
     }
   }
 
+  private boolean collectStats(ProcessState state) {
+	    if (process.getProcessState().equals(ProcessState.Stopped)
+	            || process.getProcessState().equals(ProcessState.Killed)
+	            || process.getProcessState().equals(ProcessState.Failed)
+	            || process.getProcessState().equals(ProcessState.Stopping)  ) {
+	    	return false;  // dont collect stats
+	    }
+	  return true;
+  }
   public void process(Exchange e) {
 	  if ( closed ) { // files closed 
 		  return;
 	  }
-    if (process.getProcessState().equals(ProcessState.Initializing)
+	  // if process is stopping or already dead dont collect metrics. The Camel
+	  // route has just been stopped.
+	  if ( !collectStats(process.getProcessState() ) ) {
+		  return;
+	  }
+//	    if (process.getProcessState().equals(ProcessState.Stopped)
+//	            || process.getProcessState().equals(ProcessState.Killed)
+//	            || process.getProcessState().equals(ProcessState.Failed)
+//	            || process.getProcessState().equals(ProcessState.Stopping)  ) {
+//	    	return;  // dont collect stats
+//	    }
+
+	  
+	  if (process.getProcessState().equals(ProcessState.Initializing)
             || process.getProcessState().equals(ProcessState.Running))
       try {
 
@@ -163,6 +185,11 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                 
                 ProcessMajorFaultCollector processMajorFaultUsageCollector = 
                 		new ProcessMajorFaultCollector(logger, pid);
+          	  // if process is stopping or already dead dont collect metrics. The Camel
+          	  // route has just been stopped.
+          	  if ( !collectStats(process.getProcessState() ) ) {
+          		  return;
+          	  }
 
                 processMajorFaultUsage = pool
                         .submit(processMajorFaultUsageCollector);
@@ -171,6 +198,12 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                 ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(logger,
                         pid, processStatFile, 42, 0);
 
+          	  // if process is stopping or already dead dont collect metrics. The Camel
+          	  // route has just been stopped.
+          	  if ( !collectStats(process.getProcessState() ) ) {
+          		  return;
+          	  }
+
                 processCpuUsage = pool.submit(processCpuUsageCollector);
                 totalCpuUsage += (processCpuUsage.get().getTotalJiffies()/ agent.cpuClockRate);
                 
@@ -178,6 +211,12 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                         new RandomAccessFile("/proc/" + pid + "/statm", "r");
                 ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(rStatmFile, 2,
                         0);
+          	  // if process is stopping or already dead dont collect metrics. The Camel
+          	  // route has just been stopped.
+          	  if ( !collectStats(process.getProcessState() ) ) {
+          		  return;
+          	  }
+
                 Future<ProcessResidentMemory> prm = pool.submit(collector);
                
                 totalRss += prm.get().get();
@@ -193,6 +232,11 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
              ProcessMajorFaultCollector processMajorFaultUsageCollector = 
             		 new ProcessMajorFaultCollector(logger, process.getPID());
 
+       	  // if process is stopping or already dead dont collect metrics. The Camel
+       	  // route has just been stopped.
+       	  if ( !collectStats(process.getProcessState() ) ) {
+       		  return;
+       	  }
              processMajorFaultUsage = pool
                      .submit(processMajorFaultUsageCollector);
              totalFaults = processMajorFaultUsage.get().getMajorFaults();
@@ -200,11 +244,22 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
              ProcessCpuUsageCollector processCpuUsageCollector = new ProcessCpuUsageCollector(logger,
                      process.getPID(), processStatFile, 42, 0);
 
+       	  // if process is stopping or already dead dont collect metrics. The Camel
+       	  // route has just been stopped.
+       	  if ( !collectStats(process.getProcessState() ) ) {
+       		  return;
+       	  }
              processCpuUsage = pool.submit(processCpuUsageCollector);
              totalCpuUsage = processCpuUsage.get().getTotalJiffies()/ agent.cpuClockRate;
              
              ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(statmFile, 2,
                      0);
+       	  // if process is stopping or already dead dont collect metrics. The Camel
+       	  // route has just been stopped.
+       	  if ( !collectStats(process.getProcessState() ) ) {
+       		  return;
+       	  }
+
              Future<ProcessResidentMemory> prm = pool.submit(collector);
              
              totalRss = prm.get().get();
