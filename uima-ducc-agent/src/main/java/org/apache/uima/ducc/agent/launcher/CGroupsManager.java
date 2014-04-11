@@ -182,10 +182,15 @@ public class CGroupsManager {
 							}
 						}
 					}
-					
-					destroyContainer(cgroupFolder);
-					agentLogger.info("cleanupOnStartup", null,
-							"--- Agent Removed Empty CGroup:" + cgroupFolder);
+					// Don't remove CGroups if there are zombie processes there. Otherwise, attempt
+					// to remove the CGroup may hang a thread.
+					if ( zombieCount == 0 )  {  // no zombies in the container
+	 					destroyContainer(cgroupFolder);
+						agentLogger.info("cleanupOnStartup", null,
+								"--- Agent Removed Empty CGroup:" + cgroupFolder);
+					} else {
+						agentLogger.info("cleanupOnStartup", null,"CGroup "+cgroupFolder+" Contains Zombie Processing. Not Removing the Container");
+					}
 				} catch (Exception e) {
 					agentLogger.error("cleanupOnStartup", null, e);
 				}
