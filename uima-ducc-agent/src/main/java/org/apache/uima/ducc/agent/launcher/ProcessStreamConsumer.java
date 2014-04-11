@@ -67,6 +67,13 @@ public class ProcessStreamConsumer extends Thread {
 					logger.info("ProcessStreamConsumer.run()", workDuccId, line.trim());
 					os.print("OUT>>>"+line);
 				}
+				// Check if duccling redirected its output streams to a log. If so, it would put
+				// out a marker that starts with "1200 Redirecting stdout". This is a clue to
+				// stop consuming from the process streams. Just close streams and
+				// return.
+				if (line.trim().startsWith("1200 Redirecting stdout")) {
+					break;
+				}
 			}
 		} catch (Exception x) {
 		} finally {
