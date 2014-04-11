@@ -12,6 +12,13 @@ class Installer():
         file_home = os.path.dirname(os.path.realpath(sys.argv[0]))
         ducc_home = file_home.rsplit('/',3)[0]
         #
+        file = 'activemq-ducc.xml'
+        src = ducc_home+'/examples/uima-ducc-vm/config/activemq/conf/'+file
+        tgt = ducc_home+'/activemq/conf/'+file
+        command = 'cp -p'+' '+src+' '+tgt
+        os.system(command)
+        print 'installed: '+tgt
+        #
         file = 'ducc.properties'
         src = ducc_home+'/examples/uima-ducc-vm/config/resources/'+file
         tgt = ducc_home+'/resources/'+file
