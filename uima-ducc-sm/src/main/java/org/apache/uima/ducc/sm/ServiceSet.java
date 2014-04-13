@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.sm;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -125,10 +126,18 @@ public class ServiceSet
     IServiceMeta serviceMeta = null;
 
     // registered services state files
-    DuccProperties job_props  = null;
-    DuccProperties meta_props = null;
+    private DuccProperties job_props  = null;
     String props_filename = null;
+    String props_filename_temp = null;
+    File props_file;
+    File props_file_temp;
+
+    private DuccProperties meta_props = null;
+
     String meta_filename = null;
+    String meta_filename_temp = null;
+    File meta_file;
+    File meta_file_temp;
     boolean deregistered = false;
 
     ServiceType  service_type  = ServiceType.Undefined;
@@ -161,8 +170,17 @@ public class ServiceSet
         this.job_props = props;
         this.meta_props = meta;
         this.id = id;
+
         this.props_filename = props_filename;
+        this.props_filename_temp = props_filename + ".tmp";
+        this.props_file = new File(props_filename);
+        this.props_file_temp = new File(props_filename_temp);
+
         this.meta_filename = meta_filename;
+        this.meta_filename_temp = meta_filename + ".tmp";
+        this.meta_file = new File(meta_filename);
+        this.meta_file_temp = new File(meta_filename_temp);
+
         this.service_state = ServiceState.Stopped;
         this.linger_time = props.getLongProperty(UiOption.ServiceLinger.pname(), linger_time);
         this.key = meta.getProperty("endpoint");
@@ -468,8 +486,10 @@ public class ServiceSet
          
          // could have more implementors than instances if some were started dynamically but the count not persisted
          int needed = Math.max(0, instances - countImplementors());
-         logger.info(methodName, id, "Autostarting", needed, "instance" + ((needed > 1) ? "s" : ""), "already have", countImplementors());
-         start(needed);
+         if ( needed > 0 ) {
+             logger.info(methodName, id, "Autostarting", needed, "instance" + ((needed > 1) ? "s" : ""), "already have", countImplementors());
+             start(needed);
+         }
     }
 
 
@@ -650,10 +670,47 @@ public class ServiceSet
         return registered_instances;
     }
 
+    private void saveProperties(DuccProperties props, File pfile, File pfile_tmp, String type)
+    {
+    	
+    	String methodName = "saveMetaProperties";
+        FileOutputStream fos = null;
+        try {
+            if ( (!pfile.exists()) || pfile.renameTo(pfile_tmp) ) {
+                fos = new FileOutputStream(pfile);
+                props.store(fos, type + " Descriptor");
+            } else {
+                logger.warn(methodName, id, "Cannot save", type, "properties, rename of", pfile, "to", pfile_tmp, "fails.");
+                if ( (!pfile.exists()) && pfile_tmp.exists() ) {
+                    if ( !pfile_tmp.renameTo(pfile) ) {
+                        logger.error(methodName, id, "Cannot restore", pfile_tmp, "to", pfile, "after failed update.");
+                    }
+                }
+            }
+		} catch (FileNotFoundException e) {
+            logger.warn(methodName, id, "Cannot save", type, "properties, file does not exist.");
+		} catch (IOException e) {
+            logger.warn(methodName, id, "I/O Error saving", type, "service properties:", e);
+		} finally {
+            try {
+				if ( fos != null ) fos.close();
+                pfile_tmp.delete();
+			} catch (IOException e) {
+                logger.error(methodName, id, "Cannot close", type, "properties:", e);
+			}
+        }
+    }
+
     synchronized void saveMetaProperties()
     {
         String methodName = "saveMetaProperties";
-
+        
+        try {
+            throw new IllegalStateException("Saving meta properties");
+        } catch ( Throwable t) {
+            t.printStackTrace();
+        }
+        
         if ( isDeregistered() ) return;
 
         if ( meta_filename == null ) {
@@ -690,44 +747,15 @@ public class ServiceSet
                 meta_props.put("service-statistics", "" + ss.getInfo());
             }
         }
-        
-        FileOutputStream fos = null;
-        try {            
-			fos = new FileOutputStream(meta_filename);            
-			meta_props.store(fos, "Meta descriptor");
-		} catch (FileNotFoundException e) {
-            if ( !isDeregistered() ) {
-                logger.warn(methodName, id, "Cannot save meta properties, file does not exist.");
-            }
-		} catch (IOException e) {
-            logger.warn(methodName, id, "I/O Error saving meta properties:", e);
-		} finally {
-            try {
-				if ( fos != null ) fos.close();
-			} catch (IOException e) {
-			}
-        }
+
+        saveProperties(meta_props, meta_file, meta_file_temp, "Meta");
+                
         return;
     }
 
     void saveServiceProperties()
     {
-        String methodName = "saveServiceProperties";
-        FileOutputStream fos = null;
-        try {
-        	fos = new FileOutputStream(props_filename);
-			job_props.store(fos, "Service descriptor");
-		} catch (FileNotFoundException e) {
-            logger.warn(methodName, id, "Cannot save service properties, file does not exist.");
-		} catch (IOException e) {
-            logger.warn(methodName, id, "I/O Error saving service properties:", e);
-		} finally {
-            try {
-				if ( fos != null ) fos.close();
-			} catch (IOException e) {
-			}
-        }
-        return;
+        saveProperties(job_props, props_file, props_file_temp, "Service");
     }
 
     synchronized void updateInstance(long iid, long share_id, String host)
@@ -988,6 +1016,7 @@ public class ServiceSet
 
             break;   // required break
         }
+        saveMetaProperties();
     }
 
     /**
@@ -1189,8 +1218,8 @@ public class ServiceSet
         this.service_state = new_state;
         if ( prev != new_state ) {
             logger.info(methodName, id, "State update from[" + prev + "] to[" + new_state + "] via[" + cumulative + "] Inst[" + tail + "]" );
+            saveMetaProperties();
         }
-        saveMetaProperties();
 
         // Execute actions that must always occur based on the new state
         // These are all idempotent actions, call them as often as you want and no harm.
