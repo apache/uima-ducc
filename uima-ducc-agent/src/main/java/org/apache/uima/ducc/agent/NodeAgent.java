@@ -665,7 +665,21 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       stopProcess(biggestProcess);
     }
   }
-
+	public void interruptThreadInWaitFor(String pid) throws Exception {
+	    String methodName="interruptZombieProcess";
+ 	    synchronized (monitor) {
+		    for (ManagedProcess dProcess : deployedProcesses) {
+			    if ( dProcess.getPid() != null && dProcess.getPid().equals(pid) ) {
+			    	Future<?> future = dProcess.getFuture();
+			    	if ( future != null && !future.isDone() && !future.isCancelled()) {
+			    		future.cancel(true);  // interrupt the thread blocked on waitFor()
+			    		logger.info(methodName, dProcess.getDuccProcess().getDuccId(), "Interrupted Thread - Zombie Process with PID:"+dProcess.getPid());
+			    	}
+			    	break;
+			    }
+		    }
+		}
+	}
   /**
    * Called when Agent receives request to start a process.
    * 
@@ -1369,17 +1383,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     return false;
   }
 
-  // public boolean isRogueProcess(String uid, String pid, String cmd ) throws
-  // Exception {
   public boolean isRogueProcess(String uid, Set<NodeUsersCollector.ProcessInfo> processList,
           NodeUsersCollector.ProcessInfo cpi) throws Exception {
 
-    // if ( cmd != null ) {
-    // extract first token which should be a command (exe)
-    // String cmdPart = cmd.substring(0, cmd.indexOf(" "));
-    // if ( cmd.endsWith("java")) {
-    // }
-    // }
     synchronized (monitor) {
       // Agent adds a process to its inventory before launching it. So it
       // is
@@ -1412,7 +1418,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       // not found
       if (foundDeployedProcessWithNoPID) {
         return false;
-      } else if ( cpi.getPPid() == 1) {   // Any process owned by init is rogue
+      } else if ( cpi.getPPid() == 1 ) {   // Any process owned by init is rogue
+    	  // interrupt agent's thread blocking in waitFor() awaiting process termination. 
+    	  // This process is a zombie and there is no need to waste the thread. 
+    	  interruptThreadInWaitFor(String.valueOf(cpi.getPid()));
     	  return true;
       }  else {
     	  return isParentProcessRogue(processList, cpi);
