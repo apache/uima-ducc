@@ -720,6 +720,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
   private boolean isAlive(IDuccProcess invProcess) {
     return invProcess.getProcessState().equals(ProcessState.Initializing)
             || invProcess.getProcessState().equals(ProcessState.Running)
+            || invProcess.getProcessState().equals(ProcessState.Stopping)
             || invProcess.getProcessState().equals(ProcessState.Starting);
   }
 
