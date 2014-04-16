@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ws;
 
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -30,6 +31,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
 import org.apache.uima.ducc.transport.event.common.history.IHistoryPersistenceManager;
@@ -370,6 +372,23 @@ public class DuccData {
 				}
 			}
 		}
+	}
+	
+	public IDuccWorkJob getJob(DuccId duccId) {
+		IDuccWorkJob retVal = null;
+		ConcurrentSkipListMap<JobInfo,JobInfo> sortedJobs = getSortedJobs();
+		if(sortedJobs.size()> 0) {
+			Iterator<Entry<JobInfo, JobInfo>> iterator = sortedJobs.entrySet().iterator();
+			while(iterator.hasNext()) {
+				JobInfo jobInfo = iterator.next().getValue();
+				DuccWorkJob job = jobInfo.getJob();
+				if(job.getDuccId().getFriendly() == duccId.getFriendly()) {
+					retVal = job;
+					break;
+				}
+			}
+		}
+		return retVal;
 	}
 	
 	public ConcurrentSkipListMap<JobInfo,JobInfo> getSortedJobs() {
