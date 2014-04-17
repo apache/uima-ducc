@@ -1182,10 +1182,14 @@ public class Scheduler
                     logger.info(methodName, j.getId(), "Set fixed bit for FIXED job");
                     s.setShareOrder(share_order);
                     s.setFixed();
+                    j.markComplete();            // in recovery: if there are any shares at all for this job
+                                                 // we know it once had all its shares so its allocation is complete
                     break;
                 case RESERVE:
                     logger.info(methodName, j.getId(), "Set fixed bit for RESERVE job");
                     s.setFixed();
+                    j.markComplete();            // in recovery: if there are any shares at all for this job
+                                                 // we know it once had all its shares so its allocation is complete
                     break;
             }
 

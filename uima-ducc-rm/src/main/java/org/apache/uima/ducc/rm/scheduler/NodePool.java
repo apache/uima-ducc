@@ -743,7 +743,11 @@ class NodePool
     void nodeLeaves(Machine m)
     {
         String methodName = "nodeLeaves";
+
+        logger.info(methodName, null, "Node leaves:", m.getId());
         if ( allMachines.containsKey(m.key()) ) {
+            logger.info(methodName, null, "Looking for shares to clear", m.getId());
+
             int order = m.getShareOrder();
             String name = m.getId();
             String ip   = m .getIp();
