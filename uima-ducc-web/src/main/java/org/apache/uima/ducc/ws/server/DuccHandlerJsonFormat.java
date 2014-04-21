@@ -1396,7 +1396,14 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					sb.append(aliens);
 				}
 				else {
-					sb.append("<span class=\"health_red\">");
+					StringBuffer title = new StringBuffer();
+					title.append("title=");
+					title.append("\"");
+					for(String pid : facts.aliens) {
+						title.append(pid+" ");
+					}
+					title.append("\"");
+					sb.append("<span class=\"health_red\" "+title+">");
 					sb.append(aliens);
 					sb.append("</span>");
 				}
