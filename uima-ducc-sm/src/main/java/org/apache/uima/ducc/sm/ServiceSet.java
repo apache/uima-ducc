@@ -705,11 +705,11 @@ public class ServiceSet
     {
         String methodName = "saveMetaProperties";
         
-        try {
-            throw new IllegalStateException("Saving meta properties");
-        } catch ( Throwable t) {
-            t.printStackTrace();
-        }
+        // try {
+        //     throw new IllegalStateException("Saving meta properties");
+        // } catch ( Throwable t) {
+        //     t.printStackTrace();
+        // }
         
         if ( isDeregistered() ) return;
 
