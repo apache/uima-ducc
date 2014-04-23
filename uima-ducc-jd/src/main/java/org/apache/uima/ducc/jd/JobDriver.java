@@ -1729,6 +1729,7 @@ public class JobDriver extends Thread implements IJobDriver {
 				driverStatusReport.setWiMillisAvg(stats.millisAvg);
 				driverStatusReport.setWiMillisOperatingLeast(stats.millisOperatingLeast);
 				driverStatusReport.setWiMillisCompletedMost(stats.millisCompletedMost);
+				driverStatusReport.setOperatingMillisMap(workItemStateKeeper.getOperatingMillisMap(duccOut));
 			}
 		}
 		catch(Exception e) {

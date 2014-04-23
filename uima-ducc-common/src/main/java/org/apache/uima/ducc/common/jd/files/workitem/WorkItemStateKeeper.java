@@ -50,6 +50,11 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		initialize(directory);
 	}
 	
+	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap() {
+		DuccLogger logger = null;
+		return getOperatingMillisMap(logger);
+	}
+	
 	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap(DuccLogger logger) {
 		String location = "getOperatingMillisMap";
 		ConcurrentHashMap<RemoteLocation, Long> map = new ConcurrentHashMap<RemoteLocation, Long>();
