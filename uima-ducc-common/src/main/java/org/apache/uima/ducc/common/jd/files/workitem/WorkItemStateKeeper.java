@@ -30,6 +30,7 @@ import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
@@ -47,6 +48,46 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 	public WorkItemStateKeeper(String component, String directory) {
 		logger = DuccLogger.getLogger(WorkItemStateKeeper.class, component);
 		initialize(directory);
+	}
+	
+	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap(DuccLogger logger) {
+		String location = "getOperatingMillisMap";
+		ConcurrentHashMap<RemoteLocation, Long> map = new ConcurrentHashMap<RemoteLocation, Long>();
+		if(logger!= null) {
+			logger.trace(location, jobid, "size: "+activeMap.size());
+		}
+		for(Entry<Long, IWorkItemState> entry : activeMap.entrySet()) {
+			IWorkItemState wis = entry.getValue();
+			State state = wis.getState();
+			String pid = wis.getPid();
+			String node = wis.getNode();
+			switch(state) {
+			case operating:
+				RemoteLocation key = new RemoteLocation(node, pid);
+				if(key != null) {
+					Long value = new Long(wis.getMillisProcessing());
+					if(logger != null) {
+						logger.trace(location, jobid, "node: "+node+" "+"pid: "+pid+" "+"time: "+value);
+					}
+					if(map.contains(key)) {
+						value += map.get(key);
+					}
+					map.put(key,value);
+				}
+				break;
+			}
+			
+		}
+		if(logger != null) {
+			for(Entry<RemoteLocation, Long> entry : map.entrySet()) {
+				RemoteLocation key = entry.getKey();
+				String nodeIP = key.getNodeIP();
+				String pid = key.getPid();
+				Long time = map.get(key);
+				logger.trace(location, jobid, "nodeIP: "+nodeIP+" "+"pid: "+pid+" "+"time: "+time);
+			}
+		}
+		return map;
 	}
 	
 	public synchronized void zip() {
