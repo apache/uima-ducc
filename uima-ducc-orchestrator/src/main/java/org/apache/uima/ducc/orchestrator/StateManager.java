@@ -24,12 +24,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.internationalization.Messages;
+import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -322,6 +324,31 @@ public class StateManager {
 		}
 	}
 	
+	private void copyInvestmentReport(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+		String methodName = "copyInvestmentReport";
+		try {
+			ConcurrentHashMap<RemoteLocation, Long> omMap = jdStatusReport.getOperatingMillisMap();
+			IDuccProcessMap processMap = job.getProcessMap();
+			for(Entry<DuccId, IDuccProcess> entry : processMap.entrySet()) {
+				IDuccProcess process = entry.getValue();
+				Node node = process.getNode();
+				NodeIdentity nodeIdentity = node.getNodeIdentity();
+				String nodeIP = nodeIdentity.getIp();
+				String pid = process.getPID();
+				RemoteLocation remoteLocation = new RemoteLocation(nodeIP, pid);
+				long investment = 0;
+				if(omMap.containsKey(remoteLocation)) {
+					investment = omMap.get(remoteLocation).longValue();
+				}
+				process.setWiMillisInvestment(investment);
+				logger.debug(methodName, job.getDuccId(), process.getDuccId(), "investment:"+investment+" "+"node(IP): "+nodeIP+" "+"pid: "+pid);
+			}
+		}
+		catch(Throwable t) {
+			logger.error(methodName, job.getDuccId(), t);
+		}
+	}
+	
 	private void copyProcessWorkItemsReport(DuccWorkJob job, DriverStatusReport jdStatusReport) {
 		String methodName = "copyProcessWorkItemsReport";
 		try {
@@ -438,6 +465,7 @@ public class StateManager {
 					}
 				}
 				//
+				copyInvestmentReport(duccWorkJob, jdStatusReport);
 				copyProcessWorkItemsReport(duccWorkJob, jdStatusReport);
 				copyDriverWorkItemsReport(duccWorkJob, jdStatusReport);
 				//
