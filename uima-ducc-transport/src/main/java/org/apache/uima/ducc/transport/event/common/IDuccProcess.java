@@ -137,4 +137,7 @@ public interface IDuccProcess extends Serializable {
 
 	public void setSwapUsageMax(long susage);
 	public long getSwapUsageMax();
+	
+	public void setWiMillisInvestment(long value);
+	public long getWiMillisInvestment();
 }

@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -107,6 +108,8 @@ public class DriverStatusReport implements Serializable {
 	private IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = null;
 	
 	private DuccProcessWorkItemsMap duccProcessWorkItemsMap = new DuccProcessWorkItemsMap();
+	
+	private ConcurrentHashMap<RemoteLocation,Long> operatingMillisMap = new ConcurrentHashMap<RemoteLocation,Long>();
 	
 	public DriverStatusReport(DuccId duccId, String jdJmxUrl) {
 		setJdJmxUrl(jdJmxUrl);
@@ -771,5 +774,13 @@ public class DriverStatusReport implements Serializable {
 
 	public void setWiMillisCompletedMost(long value) {
 		wiMillisCompletedMost = value;
+	}
+
+	public ConcurrentHashMap<RemoteLocation,Long> getOperatingMillisMap() {
+		return operatingMillisMap;
+	}
+
+	public void setOperatingMillisMap(ConcurrentHashMap<RemoteLocation,Long> value) {
+		operatingMillisMap = value;
 	}
 }

@@ -64,6 +64,7 @@ public class DuccProcess implements IDuccProcess {
 	private long majorFaults;
 	private long swapUsage;
 	private long swapUsageMax;
+	private long wiMillisInvestment;
 	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity) {
 		setDuccId(duccId);
@@ -580,5 +581,15 @@ public class DuccProcess implements IDuccProcess {
 	
 	public long getSwapUsageMax() {
 		return swapUsageMax;
+	}
+
+	
+	public void setWiMillisInvestment(long value) {
+		this.wiMillisInvestment = value;
+	}
+
+	
+	public long getWiMillisInvestment() {
+		return wiMillisInvestment;
 	}
 }
