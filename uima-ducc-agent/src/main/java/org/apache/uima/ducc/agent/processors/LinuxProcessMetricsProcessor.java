@@ -76,6 +76,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
   
   private long percentCPU=0;
   
+  private long previousPercentCPU=0;
+  
   // private int logCounter=0;
   public LinuxProcessMetricsProcessor(DuccLogger logger, IDuccProcess process, NodeAgent agent,
           String statmFilePath, String nodeStatFilePath, String processStatFilePath,
@@ -287,8 +289,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
             //  used during initialization
             percentCPU = 100* ( totalCpuUsage - totalCpuInitUsage )/timeSinceRunningInSeconds;
             
-            logger.info("process", null, "----------- PID:" + process.getPID()
-                    + " CPU Time:" + percentCPU+"%");
             // Publish cumulative CPU usage
             process.setCpuTime(percentCPU);
           } else {
@@ -305,6 +305,12 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         else {
           //   if process is not dead, report the last known percentCPU
           process.setCpuTime(percentCPU);
+        }
+        if ( percentCPU > 0 ) {
+        	process.setCurrentCPU(previousPercentCPU - percentCPU);
+            logger.info("process", null, "----------- PID:" + process.getPID()
+                    + " Average CPU Time:" + percentCPU+"% Current CPU Time:"+process.getCurrentCPU());
+        	previousPercentCPU = percentCPU;
         }
        // long majorFaults = processMajorFaultUsage.get().getMajorFaults();
         // collects process Major faults (swap in memory)

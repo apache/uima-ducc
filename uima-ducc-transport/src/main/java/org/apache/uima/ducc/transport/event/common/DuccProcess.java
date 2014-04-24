@@ -65,6 +65,7 @@ public class DuccProcess implements IDuccProcess {
 	private long swapUsage;
 	private long swapUsageMax;
 	private long wiMillisInvestment;
+	private long currentCPU;
 	
 	public DuccProcess(DuccId duccId, NodeIdentity nodeIdentity) {
 		setDuccId(duccId);
@@ -591,5 +592,12 @@ public class DuccProcess implements IDuccProcess {
 	
 	public long getWiMillisInvestment() {
 		return wiMillisInvestment;
+	}
+	
+	public void setCurrentCPU(long cpu) {
+		currentCPU = cpu;
+	}
+	public long getCurrentCPU() {
+		return currentCPU;
 	}
 }

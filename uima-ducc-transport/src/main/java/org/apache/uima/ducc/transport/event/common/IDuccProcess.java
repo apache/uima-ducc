@@ -140,4 +140,8 @@ public interface IDuccProcess extends Serializable {
 	
 	public void setWiMillisInvestment(long value);
 	public long getWiMillisInvestment();
+	
+	public void setCurrentCPU(long cpu);
+	public long getCurrentCPU();
+	
 }
