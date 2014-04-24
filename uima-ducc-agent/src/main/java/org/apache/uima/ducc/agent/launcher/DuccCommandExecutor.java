@@ -53,6 +53,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 			NodeAgent.COMPONENT_NAME);
 	@SuppressWarnings("unused")
 	private static AtomicInteger nextPort = new AtomicInteger(30000);
+	private static int SIGTERM_KILL_EXITCODE = 143;
 	
 	public DuccCommandExecutor(NodeAgent agent, ICommandLine cmdLine,String host, String ip, Process managedProcess)
 			throws Exception {
@@ -395,8 +396,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 				}
 			}
      		// if DUCC kills a process, its exitCode should be reset to 0
-			if ( ((ManagedProcess)super.managedProcess).doKill() || isKillCmd || 
-				 ((ManagedProcess)super.managedProcess).isStopping()) {  // always true when undeploying process
+			if ( exitCode != SIGTERM_KILL_EXITCODE && 
+					( ((ManagedProcess)super.managedProcess).doKill() || isKillCmd || 
+				 ((ManagedProcess)super.managedProcess).isStopping()) ) {  // always true when undeploying process
 				exitCode = 0;
 			}
 			
