@@ -16,7 +16,7 @@
 # specific language governing permissions and limitations
 # under the License.
 # 
-description                    type #2 item count "medium", expected errors "none" 
+description                    type #2 item count "medium" 
 
 driver_descriptor_CR           org.apache.uima.ducc.test.randomsleep.FixedSleepCR
 driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/examples/uima-ducc-vm/jobs/middle.inputs compression=1 error_rate=0.0
