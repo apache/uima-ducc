@@ -286,7 +286,9 @@ public class ProcessAccounting {
 		String methodName = "copyInventoryCpuTime";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		process.setCpuTime(inventoryProcess.getCpuTime());
-		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time:"+process.getCpuTime());
+		process.setCurrentCPU(inventoryProcess.getCurrentCPU());
+		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (overall):"+process.getCpuTime());
+		logger.trace(methodName, dw.getDuccId(), process.getDuccId(), "Cpu Time (current):"+process.getCurrentCPU());
 		logger.trace(methodName, null, messages.fetch("exit"));
 		return;
 	}
