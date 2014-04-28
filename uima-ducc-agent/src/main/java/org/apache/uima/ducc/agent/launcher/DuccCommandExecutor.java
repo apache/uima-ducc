@@ -395,13 +395,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 					logger.info(methodName, null, "Removed CGroup Container with ID:"+containerId);
 				}
 			}
-     		// if DUCC kills a process, its exitCode should be reset to 0
-			if ( exitCode != SIGTERM_KILL_EXITCODE && 
-					( ((ManagedProcess)super.managedProcess).doKill() || isKillCmd || 
-				 ((ManagedProcess)super.managedProcess).isStopping()) ) {  // always true when undeploying process
-				exitCode = 0;
-			}
-			
+
 		} catch( NullPointerException ex) {
 			((ManagedProcess)super.managedProcess).getDuccProcess().setProcessState(ProcessState.Failed);
 			StringBuffer sb = new StringBuffer();
