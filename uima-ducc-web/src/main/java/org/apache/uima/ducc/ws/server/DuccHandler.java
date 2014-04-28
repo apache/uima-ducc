@@ -728,8 +728,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		// %cpu
 		index++; // jp.15
 		cbList[index].append("<td align=\"right\">");
-		double pctCPU = 0;
-		String displayCPU = formatter.format(pctCPU);
+		double pctCPU_overall = 0;
+		double pctCPU_current = 0;
+		String displayCPU = formatter.format(pctCPU_overall);
 		if(process.getDataVersion() < 1) {
 			boolean rt = false;
 			if(runTime != null) {
@@ -761,14 +762,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					double secsRun = (msecsRun*1.0)/1000.0;
 					double timeCPU = secsCPU;
 					double timeRun = secsRun;
-					pctCPU = 100*(timeCPU/timeRun);
-					if(!Double.isNaN(pctCPU)) {
+					pctCPU_overall = 100*(timeCPU/timeRun);
+					if(!Double.isNaN(pctCPU_overall)) {
 						StringBuffer tb = new StringBuffer();
 						String fmtsecsCPU = formatter.format(secsCPU);
 						String fmtsecsRun = formatter.format(secsRun);
 						String title = "title="+"\""+"seconds"+" "+"CPU:"+fmtsecsCPU+" "+"run:"+fmtsecsRun+"\"";
 						tb.append("<span "+title+">");
-						String fmtPctCPU = formatter.format(pctCPU);
+						String fmtPctCPU = formatter.format(pctCPU_overall);
 						tb.append(fmtPctCPU);
 						tb.append("</span>");
 						displayCPU = tb.toString();
@@ -779,12 +780,25 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 		}
 		else {
-			pctCPU = process.getCpuTime();
-			String fmtPctCPU = formatter.format(pctCPU);
 			StringBuffer tb = new StringBuffer();
-			tb.append("<span>");
-			tb.append(fmtPctCPU);
-			tb.append("</span>");
+			pctCPU_overall = process.getCpuTime();
+			pctCPU_current = process.getCurrentCPU();
+			switch(process.getProcessState()) {
+			case Running:
+				String title = "title="+"\"lifetime: "+formatter.format(pctCPU_overall)+"\"";
+				tb.append("<span "+title+" class=\"health_green\">");
+				tb.append(formatter.format(pctCPU_current));
+				tb.append("</span>");
+				break;
+			default:
+				tb.append("<span>");
+				tb.append(formatter.format(pctCPU_overall));
+				tb.append("</span>");
+				break;
+			}
+			
+			
+			
 			displayCPU = tb.toString();
 		}
 		cbList[index].append(displayCPU);

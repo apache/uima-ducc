@@ -40,7 +40,7 @@ under the License.
 	<th title="Process total time spent performing garbage collections, hh:mm:ss">Time<br>GC</th>
 	<th title="Process count of major faults which required loading a memory page from disk">PgIn</th>
 	<th title="Process GB swapped out to disk, current if state=running or maximum if state=completed">Swap</th>
-	<th title="%CPU time, as percentage of process lifetime">%CPU</th>
+	<th title="%CPU time, as percentage of process (over last reporting interval if active, else over lifetime)">%CPU</th>
 	<th title="Resident Storage Size in GB, current if state=running or maximum if state=completed">RSS</th>
 	<th title="Average seconds per work item">Time<br>Avg</th>
 	<th title="Maximum seconds for any work item">Time<br>Max</th>
