@@ -510,28 +510,38 @@ public class DuccHandler extends DuccAbstractHandler {
 		// Exit
 		index++; // jp.09
 		cbList[index].append("<td>");
-		switch(process.getProcessState()) {
-		case Stopped:
-		case Failed:
-		case FailedInitialization:
-		case InitializationTimeout:
-		case Killed:
-			int code = process.getProcessExitCode();
-			if(LinuxSignals.isSignal(code)) {
-				Signal signal = LinuxSignals.lookup(code);
-				if(signal != null) {
-					cbList[index].append(signal.name()+"("+signal.number()+")");
+		boolean suppressExitCode = false;
+		ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
+		switch(deallocationType) {
+		case Forced:
+		case Voluntary:
+			suppressExitCode = true;
+			break;
+		}
+		if(!suppressExitCode) {
+			switch(process.getProcessState()) {
+			case Stopped:
+			case Failed:
+			case FailedInitialization:
+			case InitializationTimeout:
+			case Killed:
+				int code = process.getProcessExitCode();
+				if(LinuxSignals.isSignal(code)) {
+					Signal signal = LinuxSignals.lookup(code);
+					if(signal != null) {
+						cbList[index].append(signal.name()+"("+signal.number()+")");
+					}
+					else {
+						cbList[index].append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
+					}
 				}
 				else {
-					cbList[index].append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
+					cbList[index].append("ExitCode"+"="+code);
 				}
+				break;
+			default:
+				break;
 			}
-			else {
-				cbList[index].append("ExitCode"+"="+code);
-			}
-			break;
-		default:
-			break;
 		}
 		cbList[index].append("</td>");	
 		// Time:init
