@@ -515,6 +515,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		switch(deallocationType) {
 		case Forced:
 		case Voluntary:
+		case Stopped:
 			suppressExitCode = true;
 			break;
 		}
