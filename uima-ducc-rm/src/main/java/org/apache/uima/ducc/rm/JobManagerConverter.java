@@ -238,10 +238,10 @@ public class JobManagerConverter
                     DuccId id = proc.getDuccId();
                     Share   s = new Share(id, m, j, m.getShareOrder());        // guess share order; scheduler will reset when it recovers job
                     long mem = proc.getResidentMemory();
-
+                    long investment = proc.getWiMillisInvestment();
                     logger.info(methodName, j.getId(), "Assigning share in state", state, "pid", pid, "for recovery", s.toString());
                     j.recoverShare(s);
-                    s.update(j.getId(), mem, state, proc.getTimeWindowInit(), proc.getTimeWindowRun(), pid);                    
+                    s.update(j.getId(), mem, investment, state, proc.getTimeWindowInit(), proc.getTimeWindowRun(), pid);                    
                 }
             }
             logger.info(methodName, j.getId(), "Scheduling for recovery.");
@@ -512,11 +512,12 @@ public class JobManagerConverter
 
             Share s = scheduler.getShare(p.getDuccId());
             long mem = p.getResidentMemory();
+            long investment = p.getWiMillisInvestment();
             ProcessState state = p.getProcessState();
             String pid = p.getPID();
 
             logger.info(methodName, jobid, "New process ", s.toString(), mem, state, pid);
-            if ( ! s.update(jobid, mem, state, p.getTimeWindowInit(), p.getTimeWindowRun(), pid) ) {
+            if ( ! s.update(jobid, mem, investment, state, p.getTimeWindowInit(), p.getTimeWindowRun(), pid) ) {
                 // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
                 throw new SchedulingException(jobid, "Process assignemnt arrives for share " + s.toString() +
                                               " but jobid " + jobid + " does not match share " + s.getJob().getId());
@@ -561,18 +562,22 @@ public class JobManagerConverter
             /** extreme debugging only*/
             if ( logger.isTrace() ) {
                 logger.trace(methodName, jobid, 
-                             "\n\tReconciling. incoming.(pid, mem, state, share, initTime)", 
+                             "\n\tReconciling. incoming.(did, pid, mem, state, share, initTime, investment)", 
+                             pl.getDuccId(),
                              pl.getPID(),
                              pl.getResidentMemory(),
                              pl.getProcessState(),
                              shareL,
                              init_timeL,
-                             "\n\tReconciling. existing.(pid, mem, state, share, initTime)", 
+                             pl.getWiMillisInvestment(),
+                             "\n\tReconciling. existing.(did, pid, mem, state, share, initTime, investment)", 
+                             pr.getDuccId(),
                              pr.getPID(),
                              pr.getResidentMemory(),
                              pr.getProcessState(),
                              shareR,
-                             init_timeR
+                             init_timeR,
+                             pr.getWiMillisInvestment()
                              );
             } else {
                 if ( (pr.getPID() == null) && (pl.getPID() != null) ) {
@@ -589,6 +594,7 @@ public class JobManagerConverter
             }
 
             long mem = pl.getResidentMemory();
+            long investment = pl.getWiMillisInvestment();
             ProcessState state = pl.getProcessState();
             String pid = pl.getPID();                        
             Share s = scheduler.getShare(pl.getDuccId());
@@ -606,7 +612,7 @@ public class JobManagerConverter
                     logger.info(methodName, jobid, "Process", pl.getPID(), "marked complete because it is purged. State:", state);
                 }
 
-                if ( ! s.update(jobid, mem, state, pl.getTimeWindowInit(), pl.getTimeWindowRun(), pid) ) {
+                if ( ! s.update(jobid, mem, investment, state, pl.getTimeWindowInit(), pl.getTimeWindowRun(), pid) ) {
                     // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
                     throw new SchedulingException(jobid, "Process update arrives for share " + s.toString() +
                                                   " but jobid " + jobid + " does not match job in share " + s.getJob().getId());

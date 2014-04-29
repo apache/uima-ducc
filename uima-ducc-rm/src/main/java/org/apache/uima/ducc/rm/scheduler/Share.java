@@ -53,6 +53,8 @@ public class Share
     private boolean purged = false;       // share is forcibly removed because it's machine died
     private boolean fixed = false;        // if true, can't be preempted
 
+    private long investment = 0;          // Current time for all ACTIVE work items in the process
+
      @SuppressWarnings("unused")
  	private long resident_memory = 0;
      @SuppressWarnings("unused")
@@ -211,11 +213,12 @@ public class Share
         // so we don't end up counting this job more than it deserves.
     }
 
-    public boolean update(DuccId jobid, long mem, ProcessState state, ITimeWindow init_time, ITimeWindow run_time, String pid)
+    public boolean update(DuccId jobid, long mem, long investment, ProcessState state, ITimeWindow init_time, ITimeWindow run_time, String pid)
     {
         if ( ! jobid.equals(job.getId()) ) return false;      // something has gone horribly wrong
         
         this.resident_memory = mem;
+        this.investment = investment;
         this.state = state;
         this.pid = pid;
         this.init_time = init_time;
@@ -254,8 +257,7 @@ public class Share
      */
     long getInvestment()
     {
-        if ( init_time == null ) return 0;
-        return init_time.getElapsedMillis();
+        return investment;
     }
 
     /**

@@ -1330,18 +1330,32 @@ public class RmJob
     	public int compare(Share s1, Share s2)
         {
             if ( s1.equals(s2) ) return 0;
-            // First divide them into two pools: 
-            // not-initialized shares always sort LESS than initialized shares
-            if ( ! s1.isInitialized() ) {
-                if ( s2.isInitialized() ) return -1;
-                // both not initialized. sort on less time spent initializing so far (fall through)
-            } else {
-                if ( ! s2.isInitialized() ) return 1;                
-                // bot initialized.  Again sort on less time spent ever in init. (fall through)
+
+            int mask = 0;
+            if ( s1.isInitialized() ) mask |= 0x02;
+            if ( s2.isInitialized() ) mask |= 0x01;
+
+            switch ( mask ) {
+                case 0:        // neither is initialized
+                    return ( (int) (s1.getInitializationTime() - s2.getInitializationTime()) );
+                case 1:        // s1 not initialized, s2 is
+                    return -1;
+                case 2:        // s2 initialized, s1 not
+                    return  1; 
+                default:       // both initialized, compare investments
             }
 
-            return ( (int) (s1.getInvestment() - s2.getInvestment()) );
-        }
+            long i1 = s1.getInvestment();
+            long i2 = s2.getInvestment();
+            if (i1 == i2 ) {
+                // Maybe splitting hairs.  Neither share has investment but both are initialized.  Apparently
+                // we're waiting for the data to arrive. Choose the most recently assigned as it probably has the least
+                // actual progress. 
+                return (int) (s2.getId().getFriendly() - s1.getId().getFriendly());
+            } else {
+                return (int) (i1 - i2);
+            }
+    }
     }
 
     @Override
