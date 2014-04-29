@@ -1413,14 +1413,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					sb.append("</tr>");
 					ArrayList <UimaStatistic> uimaStats = new ArrayList<UimaStatistic>();
 				    uimaStats.clear();
-				    //long analysisTime = 0;
+				    long analysisTime = 0;
 				    for (Entry<String, PerformanceMetricsSummaryItem> entry : performanceMetricsSummaryMap.entrySet()) {
 				    	PerformanceMetricsSummaryItem item = entry.getValue();
 				    	String shortname = item.getDisplayName();
 				    	long anTime = item.getAnalysisTime();
 				    	long anMinTime = item.getAnalysisTimeMin();
 				    	long anMaxTime = item.getAnalysisTimeMax();
-				    	//analysisTime += anTime;
+				    	analysisTime += anTime;
 				    	UimaStatistic stat = new UimaStatistic(shortname, entry.getKey(), anTime, anMinTime, anMaxTime);
 				    	uimaStats.add(stat);
 				    }
@@ -1448,8 +1448,13 @@ public class DuccHandler extends DuccAbstractHandler {
 					// Avg
 					sb.append("<td align=\"right\">");
 					sb.append("<span class=\"health_purple\" title=\"average processing time per completed work item\">");
+					long avgMillis = 0;
+					if(casCount > 0) {
+						avgMillis = (long) (analysisTime  / (1.0 * casCount));
+					}
 					try {
-						ltime = job.getWiMillisAvg();
+						//ltime = job.getWiMillisAvg();
+						ltime = avgMillis;
 					}
 					catch(Exception e) {
 						ltime = (long)workItemStateReader.getMin();
