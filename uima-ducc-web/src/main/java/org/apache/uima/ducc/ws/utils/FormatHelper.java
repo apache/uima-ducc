@@ -18,7 +18,16 @@
 */
 package org.apache.uima.ducc.ws.utils;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+
 public class FormatHelper {
+	
+	private static DecimalFormat df = new DecimalFormat("#.0");
+	
+	static {
+		df.setRoundingMode(RoundingMode.DOWN);
+	}
 	
 	public static String duration(final long millis) {
 		long seconds = millis / 1000;
@@ -36,6 +45,9 @@ public class FormatHelper {
 				}
 			}
 		}
+		double subseconds = (millis%1000.0)/1000;
+		String frac = df.format(subseconds);
+		text = text+frac;
 		return text;
 	}
 }
