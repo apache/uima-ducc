@@ -511,6 +511,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		index++; // jp.09
 		cbList[index].append("<td>");
 		boolean suppressExitCode = false;
+		/*
 		ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
 		switch(deallocationType) {
 		case Forced:
@@ -519,6 +520,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			suppressExitCode = true;
 			break;
 		}
+		*/
 		if(!suppressExitCode) {
 			switch(process.getProcessState()) {
 			case Stopped:
