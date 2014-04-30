@@ -988,6 +988,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private void thSep(StringBuffer sb) {
+		sb.append("<th>");
+		sb.append("&nbsp");
+		sb.append("&nbsp");
+		sb.append("</th>");
+	}
+	
 	private void handleDuccServletJobWorkitemsCountData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1002,9 +1009,26 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("Id: ");
 		String jobId = request.getParameter("id");
 		sb.append(jobId);
-		sb.append("&nbsp");
-		// workitems
+		sb.append("</th>");
+		thSep(sb);
+		//
 		IDuccWorkJob job = findJob(jobId);
+		// job state
+		sb.append("<th title=\"The current state of this job\">");
+		sb.append("State: ");
+		String state = job.getStateObject().toString();
+		sb.append(state);
+		sb.append("</th>");
+		thSep(sb);
+		// job reason
+		if(job.isCompleted()) {
+			sb.append("<th title=\"The reason for the final state of this job, normally EndOfJob\">");
+			sb.append("Reason: ");
+			String reason = getReason(job, DuccType.Job).toString();
+			sb.append(reason);
+			thSep(sb);
+		}
+		// workitems
 		String jobWorkitemsCount = "?";
 		if(job != null) {
 			jobWorkitemsCount = job.getSchedulingInfo().getWorkItemsTotal();
@@ -1012,7 +1036,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<th title=\"The total number of work items for this job\">");
 		sb.append("Workitems: ");
 		sb.append(jobWorkitemsCount);
-		sb.append("&nbsp");
+		sb.append("</th>");
+		thSep(sb);
 		// done
 		sb.append("<th title=\"The number of work items that completed successfully\">");
 		sb.append("Done: ");
@@ -1023,7 +1048,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		catch(Exception e) {
 		}
 		sb.append(done);
-		sb.append("&nbsp");
+		sb.append("</th>");
+		thSep(sb);
 		// error & lost
 		int eCount = 0;
 		int lCount = 0;
@@ -1037,15 +1063,17 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<th title=\"The number of work items that failed to complete successfully\">");
 		sb.append("Error: ");
 		sb.append(error);
+		sb.append("</th>");
 		if(lCount > 0) {
-			sb.append("&nbsp");
+			thSep(sb);
 			String lost = ""+lCount;
 			sb.append("<th title=\"The number of work items that were lost\">");
 			sb.append("Lost: ");
 			sb.append(lost);
+			sb.append("</th>");
 		}
 		// extended info live jobs
-		sb.append("&nbsp");
+		thSep(sb);
 		JobState jobState = JobState.Undefined;
 		try {
 			jobState = job.getJobState();
@@ -1069,17 +1097,20 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("<th title=\"The number of work items currently dispatched\">");
 			sb.append("Dispatch: ");
 			sb.append(dispatch);
-			sb.append("&nbsp");
+			sb.append("</th>");
+			thSep(sb);
 			// unassigned
 			sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
 			sb.append("Unassigned: ");
 			sb.append(unassigned);
-			sb.append("&nbsp");
+			sb.append("</th>");
+			thSep(sb);
 			// limbo
 			sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
 			sb.append("Limbo: ");
 			sb.append(limbo);
-			sb.append("&nbsp");
+			sb.append("</th>");
+			thSep(sb);
 			break;
 		}
 		sb.append("</table>");
