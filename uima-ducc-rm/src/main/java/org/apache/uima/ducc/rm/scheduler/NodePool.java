@@ -51,6 +51,7 @@ class NodePool
 
     HashMap<Node, Machine> allMachines                       = new HashMap<Node, Machine>();                   // all active machines in the system
     HashMap<Node, Machine> unresponsiveMachines              = new HashMap<Node, Machine>();                   // machines with excessive missed heartbeats
+    HashMap<Node, Machine> offlineMachines                   = new HashMap<Node, Machine>();
     HashMap<Integer, HashMap<Node, Machine>> machinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>(); // Schedulable, not necessarily fee
     HashMap<String, Machine>                 machinesByName  = new HashMap<String, Machine>();                 // by name, for nodepool support
     HashMap<String, Machine>                 machinesByIp    = new HashMap<String, Machine>();                 // by IP, for nodepool support
@@ -696,6 +697,12 @@ class NodePool
             return m;
         }
 
+        if ( offlineMachines.containsKey(node) ) {               // if it's offline it can't be restored like this.
+            Machine m = offlineMachines.get(node);
+            logger.trace(methodName, null, "Node ", m.getId(), " is offline, not activating.");
+            return m;
+        }
+
         if ( unresponsiveMachines.containsKey(node) ) {          // reactive the node
             Machine m = unresponsiveMachines.remove(node);
 
@@ -740,7 +747,7 @@ class NodePool
         return machine;
     }
 
-    void nodeLeaves(Machine m)
+    void disable(Machine m, HashMap<Node, Machine> disableMap)
     {
         String methodName = "nodeLeaves";
 
@@ -758,18 +765,18 @@ class NodePool
 
                 if ( j.getDuccType() == DuccType.Reservation ) {
                     // UIMA-3614.  Only actual reservation is left intact
-                    logger.info(methodName, j.getId(), "Not purging job on dead node, job type:", j.getDuccType());
+                    logger.info(methodName, j.getId(), "Not purging job on dead/offline node, job type:", j.getDuccType());
                     break;
                 }
 
-                logger.info(methodName, j.getId(), "Purging job on dead node, job type:", j.getDuccType());
+                logger.info(methodName, j.getId(), "Purging job on dead/offline node, job type:", j.getDuccType());
                 j.shrinkByOne(s);
                 nPendingByOrder[order]++;
                 s.purge();          // This bet tells OR not to wait for confirmation from the agent
             }
 
             allMachines.remove(m.key());
-            unresponsiveMachines.put(m.key(), m);
+            disableMap.put(m.key(), m);
 
             HashMap<Node, Machine> machs = machinesByOrder.get(order);
             machs.remove(m.key());
@@ -785,6 +792,72 @@ class NodePool
         }
     }
 
+    void nodeLeaves(Machine m)
+    {
+        disable(m, unresponsiveMachines);
+    }
+
+    String varyoff(String node)
+    {
+        Machine m = machinesByName.get(node);
+        if ( m == null ) {
+            // ok, maybe it's already offline or maybe dead
+            // relatively rare, cleaner to search than to make yet another index
+
+            for ( Machine mm : offlineMachines.values() ) {
+                if ( mm.getId().equals(node) ) {
+                    return "VaryOff: Nodepool " + id + " - Already offline: " + node;
+                }
+            }
+
+            Iterator<Machine> iter = unresponsiveMachines.values().iterator();
+            while ( iter.hasNext() ) {
+                Machine mm = iter.next();                
+                if ( mm.getId().equals(node) ) {
+                    Node key = mm.key();
+                    iter.remove();
+                    offlineMachines.put(key, mm);
+                    return "VaryOff: Nodepool " + id + " - Unresponsive machine, marked offline: " + node;
+                }
+            }
+
+            return "VaryOff: Nodepool " + id + " - Cannot find machine: " + node;
+        }
+
+        disable(m, offlineMachines);
+        return "VaryOff: " + node + " - OK.";
+    }
+
+    /**
+     * We're going to just take it off the offline list and if it happens to come back, fine, it will get picked up
+     * in nodeArrives as a new machine.
+     */
+    String varyon(String node)
+    {        
+        if ( machinesByName.containsKey(node) ) {
+            return "VaryOn: Nodepool " + id + " - Already online: " + node;
+        }
+
+        Iterator<Machine> iter = offlineMachines.values().iterator();
+        while ( iter.hasNext() ) {
+            Machine mm = iter.next();
+            if ( mm.getId().equals(node) ) {
+                iter.remove();
+                return "VaryOn: Nodepool " + id + " - Machine marked online: " + node;
+            }
+        }
+
+        iter = unresponsiveMachines.values().iterator();
+        while ( iter.hasNext() ) {
+            Machine mm = iter.next();
+            if ( mm.getId().equals(node) ) {
+                return "VaryOn: Nodepool " + id + " - Machine is online but not responsive: " + node;
+            }
+        }
+        
+        return "VaryOn: Nodepool " + id + " - Cannot find machine: " + node;
+    }
+
     /**
      * ------------------------------------------------------------------------------------------
      * Routines used during the counting phase
@@ -792,7 +865,7 @@ class NodePool
      */
 
     /**
-     * Adjust counts for something that takes full machiens, like a reservation.
+     * Adjust counts for something that takes full machines, like a reservation.
      * If "enforce" is set the machine order must match, otherwise we just do best effort to match.
      *
      * This is intended for use by reservations only; as such it does NOT recurse into child nodepools.
@@ -931,7 +1004,7 @@ class NodePool
     }
 
     /**
-     * We need to make enough space for 'cnt' full machines.  If enforce is true the machiens need
+     * We need to make enough space for 'cnt' full machines.  If enforce is true the machines need
      * to be of the indicated order; otherwise we just nuke any old thing.
      *
      * Returns number of machines that are freeable, up to 'needed', or 0, if we can't get enough.

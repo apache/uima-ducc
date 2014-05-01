@@ -22,6 +22,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
+import org.apache.uima.ducc.common.admin.event.RmAdminReply;
+import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
+import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
@@ -83,9 +90,69 @@ public class ResourceManagerComponent
     public DuccLogger getLogger() {
         return logger; 
     }
+
+
+    /**
+     * Creates Camel Router for Ducc RM admin events.
+     * 
+     * @param endpoint
+     *          - ducc admin endpoint
+     * @param delegate
+     *          - who to call when admin event arrives
+     * @throws Exception
+     */
+    private void startRmAdminChannel(final String endpoint, final AbstractDuccComponent delegate)
+        throws Exception 
+    {
+        getContext().addRoutes(new RouteBuilder() {
+                public void configure() {
+                    System.out.println("Configuring RM Admin Channel on Endpoint:" + endpoint);
+                    onException(Exception.class).handled(true).process(new ErrorProcessor());
+                    
+                    from(endpoint).routeId("RMAdminRoute").unmarshal().xstream()
+                         .process(new RmAdminEventProcessor(delegate));
+                }
+            });
+        
+        if (logger != null) {
+            logger.info("startRMAdminChannel", null, "Admin Channel Activated on endpoint:" + endpoint);
+        }
+    }
+
+    class RmAdminEventProcessor implements Processor 
+    {
+        final AbstractDuccComponent delegate;
+
+        public RmAdminEventProcessor(final AbstractDuccComponent delegate) 
+        {
+            this.delegate = delegate;
+        }
+
+        public void process(final Exchange exchange) 
+            throws Exception 
+        {            
+            String methodName = "RmAdminEventProcessor.process";
+            Object body = exchange.getIn().getBody();
+            logger.info(methodName, null, "Received Admin Message of Type:",  body.getClass().getName());
+
+            DuccAdminEvent reply = null;
+            if (body instanceof RmAdminVaryOff) {
+             	RmAdminVaryOff vo = (RmAdminVaryOff) body;
+                reply = new RmAdminReply(scheduler.varyoff(vo.getNodes()));
+            } else
+            if (body instanceof RmAdminVaryOn) {
+            	RmAdminVaryOn vo = (RmAdminVaryOn) body;            	 
+                reply = new RmAdminReply(scheduler.varyon(vo.getNodes()));
+            }
+
+            exchange.getIn().setBody(reply);
+        }
+    }
+
     public void start(DuccService service, String[] args)
         throws Exception
     {
+    	String methodName = "start";
         converter = new JobManagerConverter(scheduler, stabilityManager);
 
         super.start(service, args);
@@ -96,7 +163,13 @@ public class ResourceManagerComponent
         nodeMetricsUpdateRate = SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", DEFAULT_NODE_METRICS_RATE);
         schedulingRatio       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.ratio", DEFAULT_SCHEDULING_RATIO);
         schedulingEpoch       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", DEFAULT_SCHEDULING_RATE);
-
+        
+        String adminEndpoint         = System.getProperty("ducc.rm.admin.endpoint");
+        if ( adminEndpoint == null ) {
+            logger.warn(methodName, null, "No admin endpoint configured.  Not starting admin channel.");
+        } else {
+            startRmAdminChannel(adminEndpoint, this);
+        }
         
         scheduler.init();
         
@@ -234,6 +307,5 @@ public class ResourceManagerComponent
             logger.error(methodName, null, "Excepton processing Orchestrator event:", e);
         }
     }
-
 
 }

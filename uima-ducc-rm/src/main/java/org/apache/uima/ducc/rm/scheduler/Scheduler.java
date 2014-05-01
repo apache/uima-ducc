@@ -80,6 +80,7 @@ public class Scheduler
     Map<Node, Node> deadNodes      = new HashMap<Node, Node>();           // missed too many heartbeats
     // HashMap<Node, Node> allNodes       = new HashMap<Node, Node>();           // the guys we know
     Map<String, NodePool>    nodepoolsByNode = new HashMap<String, NodePool>(); // all nodes, and their associated pool
+    Map<String, String>      shortToLongNode = new HashMap<String, String>();   // 
 
     Map<String, User>    users     = new HashMap<String, User>();         // Active users - has a job in the system
     //HashMap<DuccId, IRmJob>    runningJobs = new HashMap<DuccId, IRmJob>();
@@ -451,7 +452,7 @@ public class Scheduler
         if ( nodes == null ) return;
 
         for ( String s : nodes.keySet() ) {
-             nodepoolsByNode.put(s, pool);
+            updateNodepoolsByNode(s, pool);        // maps from both the fully-qualified name and th shortnmae
         }
     }
 
@@ -956,6 +957,27 @@ public class Scheduler
 //         }
 //     }
 
+
+    /**
+     * maps from both the fully-qualified name and th shortnmae
+     */
+    void updateNodepoolsByNode(String longname, NodePool np)
+    {
+    	String methodName = "updateNodepoolsByNode";
+        String shortname = longname;
+        int ndx = longname.indexOf(".");
+
+        logger.info(methodName, null, "Map", longname, "to", np.getId());
+        nodepoolsByNode.put(longname, np);
+
+        if ( ndx >=0 ) {
+            shortname = longname.substring(0, ndx);
+            nodepoolsByNode.put(shortname, np);
+            shortToLongNode.put(shortname, longname);
+            logger.info(methodName, null, "Map", shortname, "to", np.getId());
+        }
+    }
+
     //
     // Return a nodepool by Node.  If the node can't be associated with a nodepool, return the
     // default nodepool, which is always the first one defined in the config file.
@@ -968,39 +990,38 @@ public class Scheduler
         }
         if ( np == null ) {
             np = nodepools[0];
-            nodepoolsByNode.put( ni.getName(), np);          // assign this guy to the default np
+            updateNodepoolsByNode(ni.getName(), np);     // assign this guy to the default np
+            // nodepoolsByNode.put( ni.getName(), np);          // assign this guy to the default np
         }
         return np;
     }
 
     private int total_arrivals = 0;
-    public void nodeArrives(Node node)
+    public synchronized void nodeArrives(Node node)
     {        
     	// String methodName = "nodeArrives";
         // The first block insures the node is in the scheduler's records as soon as possible
 
         total_arrivals++;       // report these in the main schedule loop
-        synchronized(this) {
-            // the amount of memory available for shares, adjusted with configured overhead
-
-            NodePool np = getNodepoolByName(node.getNodeIdentity());
-            Machine m = np.getMachine(node);
-            int share_order = 0;
-
-            if ( m == null ) {
-                // allNodes.put(node, node);
-                long allocatable_mem =  node.getNodeMetrics().getNodeMemory().getMemTotal() - share_free_dram;
-                if ( dramOverride > 0 ) {
-                    allocatable_mem = dramOverride;
-                }
-                share_order = (int) (allocatable_mem / share_quantum);           // conservative - rounds down (this will always cast ok)                
-            } else {
-                share_order = m.getShareOrder();
+        // the amount of memory available for shares, adjusted with configured overhead
+        
+        NodePool np = getNodepoolByName(node.getNodeIdentity());
+        Machine m = np.getMachine(node);
+        int share_order = 0;
+        
+        if ( m == null ) {
+            // allNodes.put(node, node);
+            long allocatable_mem =  node.getNodeMetrics().getNodeMemory().getMemTotal() - share_free_dram;
+            if ( dramOverride > 0 ) {
+                allocatable_mem = dramOverride;
             }
-            
-            max_order = Math.max(share_order, max_order);
-            m = np.nodeArrives(node, share_order);                         // announce to the nodepools
+            share_order = (int) (allocatable_mem / share_quantum);           // conservative - rounds down (this will always cast ok)                
+        } else {
+            share_order = m.getShareOrder();
         }
+        
+        max_order = Math.max(share_order, max_order);
+        m = np.nodeArrives(node, share_order);                         // announce to the nodepools
     }
 
     public void nodeDeath(Map<Node, Node> nodes)
@@ -1008,6 +1029,50 @@ public class Scheduler
         synchronized(deadNodes) {
             deadNodes.putAll(nodes);
         }
+    }
+
+    public synchronized String varyon(String[] nodes)
+    {
+        StringBuffer reply = new StringBuffer();
+        for (String n : nodes ) {
+
+            if ( shortToLongNode.containsKey(n) ) {         // internally everything is by 'long'
+                n = shortToLongNode.get(n);
+            }
+
+            NodePool np = nodepoolsByNode.get(n);
+            if ( np == null ) {
+                reply.append("No nodepool found for node ");
+                reply.append(n);
+                reply.append("\n");
+            } else {                
+                reply.append(np.varyon(n));
+                reply.append("\n");
+            }
+        }
+    	return reply.toString();
+    }
+
+    public synchronized String varyoff(String[] nodes)
+    {
+        StringBuffer reply = new StringBuffer();
+        for (String n : nodes ) {
+
+            if ( shortToLongNode.containsKey(n) ) {         // internally everything is by 'long'
+                n = shortToLongNode.get(n);
+            }
+
+            NodePool np = nodepoolsByNode.get(n);
+            if ( np == null ) {
+                reply.append("No nodepool found for node ");
+                reply.append(n);
+                reply.append("\n");
+            } else {                
+                reply.append(np.varyoff(n));
+                reply.append("\n");
+            }
+        }
+    	return reply.toString();
     }
 
     /**

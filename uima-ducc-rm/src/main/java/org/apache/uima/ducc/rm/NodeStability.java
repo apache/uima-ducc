@@ -65,9 +65,12 @@ public class NodeStability
             logger.warn(methodName, null, "Ignoring node update, scheduler is still booting.");
             return;
         } else {
-            // logger.info(methodName, null, n.getNodeIdentity().getName());
-            scheduler.nodeArrives(n);          // tell RM
-            super.nodeArrives(n);              // tell heartbeat monitor
+            try {
+                scheduler.nodeArrives(n);          // tell RM
+                super.nodeArrives(n);              // tell heartbeat monitor
+            } catch ( Throwable t ) {
+                logger.error(methodName, null, t);
+            }
         }
     }
 }

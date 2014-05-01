@@ -70,4 +70,7 @@ public interface ISchedulerMain
 
     // once both initialized() and ready() occur, the RM scaffolding will enable scheduling by calling start
     void start();
+
+    String varyoff(String[] nodes);
+    String varyon(String[] nodes);
 }
