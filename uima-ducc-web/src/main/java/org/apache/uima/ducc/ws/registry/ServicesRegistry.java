@@ -35,6 +35,7 @@ import org.springframework.util.StringUtils;
 public class ServicesRegistry {
 	
 	private static DuccLogger logger = DuccLoggerComponents.getWsLogger(ServicesRegistry.class.getName());
+	private static DuccId jobid = null;
 	
 	private static ServicesRegistry instance = new ServicesRegistry();
 
@@ -69,6 +70,7 @@ public class ServicesRegistry {
 	}
 	
 	public void refreshCache() {
+		String location = "refreshCache";
 		try {
 			ServicesRegistryMap mapRevised = new ServicesRegistryMap();
 			IStateServices iss = StateServices.getInstance();
@@ -80,12 +82,15 @@ public class ServicesRegistry {
 					Properties propertiesMeta = entry.get(IServicesRegistry.meta);
 					ServicesRegistryMapPayload value = new ServicesRegistryMapPayload(propertiesSvc, propertiesMeta);
 					mapRevised.put(key, value);
+					String endpoint = propertiesMeta.getProperty(IServicesRegistry.endpoint);
+					logger.debug(location, jobid, "key: "+key+" "+"endpoint: "+endpoint);
 				}
 			}
 			map = mapRevised;
+			logger.debug(location, jobid, "size: "+map.size());
 		}
 		catch(IOException e) {
-			e.printStackTrace();
+			logger.error(location, jobid, e);
 		}
 	}
 	
@@ -117,16 +122,38 @@ public class ServicesRegistry {
 		return retVal;
 	}
 	
+	private boolean compareEndpoints(String e0, String e1) {
+		boolean retVal = false;
+		if(e0 != null) {
+			if(e1 != null) {
+				String s0 = e0;
+				String s1 = e1;
+				if(s0.contains("?")) {
+					s0 = s0.substring(0, s0.indexOf("?"));
+				}
+				if(s1.contains("?")) {
+					s1 = s1.substring(0, s1.indexOf("?"));
+				}
+				retVal = s0.equals(s1);
+			}
+		}
+		return retVal;
+	}
+	
 	public ServicesRegistryMapPayload findService(String name) {
+		String location = "findService";
 		ServicesRegistryMapPayload retVal = null;
 		try {
+			logger.debug(location, jobid, "size: "+map.size());
+			logger.debug(location, jobid, "search: "+name);
 			for(Integer key : map.keySet()) {
 				ServicesRegistryMapPayload payload = map.get(key);
 				Properties meta = payload.meta;
 				if(meta != null) {
 					if(meta.containsKey(IServicesRegistry.endpoint)) {
 						String endpoint = meta.getProperty(IServicesRegistry.endpoint);
-						if(name.equals(endpoint)) {
+						logger.debug(location, jobid, "key: "+key+" "+"compare: "+endpoint);
+						if(compareEndpoints(name,endpoint)) {
 							retVal = payload;
 							break;
 						}
@@ -135,7 +162,10 @@ public class ServicesRegistry {
 			}
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			logger.error(location, jobid, e);
+		}
+		if(retVal == null) {
+			logger.warn(location, jobid, "not found: "+name);
 		}
 		return retVal;
 	}
