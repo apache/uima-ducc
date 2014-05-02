@@ -2420,14 +2420,27 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<tr>");
 		
 		String name = request.getParameter("name");
-		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
-		ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
-		Properties properties;
-		properties = payload.meta;
+		String id = "?";
+		String autostart = "?";
+		String instances = "?";
+		
+		try {
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
+			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
+			Properties properties;
+			properties = payload.meta;
+			id = properties.getProperty(IServicesRegistry.numeric_id, "?");
+			autostart = properties.getProperty(IServicesRegistry.autostart, "?");
+			instances = properties.getProperty(IServicesRegistry.instances, "?");
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+		
 		// serviceid
 		sb.append("<th title=\"The system assigned id for this service\">");
 		sb.append("Id: ");
-		sb.append(properties.getProperty(IServicesRegistry.numeric_id, "?"));
+		sb.append(id);
 		sb.append("&nbsp");
 		// name
 		sb.append("<th title=\"The name for this service\">");
@@ -2437,12 +2450,12 @@ public class DuccHandler extends DuccAbstractHandler {
 		// autostart
 		sb.append("<th title=\"The configured autostart value for this service\">");
 		sb.append("Autostart: ");
-		sb.append(properties.getProperty(IServicesRegistry.autostart, "?"));
+		sb.append(autostart);
 		sb.append("&nbsp");
 		// instances
 		sb.append("<th title=\"The configured number of instances for this service\">");
 		sb.append("Instances: ");
-		sb.append(properties.getProperty(IServicesRegistry.instances, "?"));
+		sb.append(instances);
 		sb.append("&nbsp");
 		
 		sb.append("</table>");
