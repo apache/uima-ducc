@@ -46,12 +46,12 @@ if (table_style.equals("scroll")) {
 			"aoColumnDefs": [ { "bSortable": false, "aTargets": [ 0, 1 ] } ],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
                              		$('td:eq(2)', nRow).css( "text-align", "right" );
-                             		$('td:eq(8)', nRow).css( "text-align", "right" );
-                             		$('td:eq(9)', nRow).css( "text-align", "right" );
+                             		$('td:eq(6)', nRow).css( "text-align", "right" );
+                             		$('td:eq(7)', nRow).css( "text-align", "right" );
+                             		$('td:eq(10)', nRow).css( "text-align", "right" );
+                             		$('td:eq(11)', nRow).css( "text-align", "right" );
                              		$('td:eq(12)', nRow).css( "text-align", "right" );
                              		$('td:eq(13)', nRow).css( "text-align", "right" );
-                             		$('td:eq(14)', nRow).css( "text-align", "right" );
-                             		$('td:eq(15)', nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -106,11 +106,8 @@ if (table_style.equals("scroll")) {
 		<th class="ducc-col-button"></th>
 		<th title="The service Id">Id</th>
 		<th title="The service name">Name</th>
-		<th title="The service type">Type</th>
 		<th title="The service state">State</th>
 		<th title="The time this service was last used">Last Use</th>
-		<th title="The service pinger">Pinger</th>
-		<th title="The service health">Health</th>
 		<th title="The service number of instances">Instances</th>
 		<th title="The service number of deployments">Deployments</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
@@ -142,11 +139,8 @@ if (table_style.equals("classic")) {
 		<th class="ducc-col-button"></th>
 		<th title="The service Id">Id</th>
 		<th title="The service name">Name</th>
-		<th title="The service type">Type</th>
 		<th title="The service state">State</th>
 		<th title="The time this service was last used">Last Use</th>
-		<th title="The service pinger">Pinger</th>
-		<th title="The service health">Health</th>
 		<th title="The service number of instances">Instances</th>
 		<th title="The service number of deployments">Deployments</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>

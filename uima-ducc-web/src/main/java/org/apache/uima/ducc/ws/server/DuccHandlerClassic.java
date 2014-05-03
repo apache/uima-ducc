@@ -931,18 +931,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("<td>");
 				sb.append(name);
 				sb.append("</td>");
-				// Type
-				sb.append("<td>");
-				sb.append(type);
-				sb.append("</td>");
 				// State
 				sb.append("<td>");
-				String state = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.service_state);
+				String state = DuccServicesState.getServiceState(propertiesMeta);
 				sb.append(state);
 				sb.append("</td>");
 				// Last Used
 				sb.append("<td>");
-				String lastUse = DuccHandlerUtils.getUninterpreted(propertiesMeta, IServicesRegistry.last_use);
+				String lastUse = DuccServicesState.getUninterpreted(propertiesMeta, IServicesRegistry.last_use);
 				try {
 					long value = Long.parseLong(lastUse);
 					if(value > 0) {
@@ -950,31 +946,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					}
 				}
 				catch(Exception e) {
-				}
-				sb.append("</td>");
-				// Pinging
-				sb.append("<td>");
-				String pinging = DuccHandlerUtils.getInterpretedUpDown(state, propertiesMeta, IServicesRegistry.ping_active);
-				String decoratedPinging = DuccHandlerUtils.getDecorated(pinging,null);
-				sb.append(decoratedPinging);
-				sb.append("</td>");
-				// Health
-				sb.append("<td>");
-				if(propertiesMeta.containsKey(IServicesRegistry.submit_error)) {
-					String decoratedHealth = DuccHandlerUtils.getDecorated("Error",propertiesMeta.getProperty(IServicesRegistry.submit_error));
-					sb.append(decoratedHealth);
-				}
-				else {
-					String health = DuccHandlerUtils.getInterpretedGoodPoor(state, propertiesMeta, IServicesRegistry.service_healthy);
-					String statistics = null;
-					if(state.equalsIgnoreCase(IServicesRegistry.constant_Available)) {
-						statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
-						if(statistics != null) {
-							statistics = statistics.trim();
-						}
-					}
-					String decoratedHealth = DuccHandlerUtils.getDecorated(health,statistics);
-					sb.append(decoratedHealth);
 				}
 				sb.append("</td>");
 				// No. of Instances
