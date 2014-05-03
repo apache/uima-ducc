@@ -80,6 +80,7 @@ import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServiceName;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
@@ -985,7 +986,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				nac++;
 				Properties propertiesSvc = entry.get(IStateServices.svc);
 				Properties propertiesMeta = entry.get(IStateServices.meta);
-				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");
+				ServiceName serviceName = new ServiceName(getValue(propertiesMeta,IServicesRegistry.endpoint,""));
+				String name = serviceName.toString();
 				String user = getValue(propertiesMeta,IServicesRegistry.user,"");
 				String sid = getValue(propertiesMeta,IServicesRegistry.numeric_id,"");
 				String instances = getValue(propertiesMeta,IStateServices.instances,"");

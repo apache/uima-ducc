@@ -72,6 +72,7 @@ import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServiceName;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
@@ -850,7 +851,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				nac++;
 				Properties propertiesSvc = entry.get(IServicesRegistry.svc);
 				Properties propertiesMeta = entry.get(IServicesRegistry.meta);
-				String name = getValue(propertiesMeta,IServicesRegistry.endpoint,"");
+				ServiceName serviceName = new ServiceName(getValue(propertiesMeta,IServicesRegistry.endpoint,""));
+				String name = serviceName.toString();
 				String user = getValue(propertiesMeta,IServicesRegistry.user,"");
 				String sid = getValue(propertiesMeta,IServicesRegistry.numeric_id,"");
 				String instances = getValue(propertiesMeta,IStateServices.instances,"");
