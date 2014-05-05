@@ -34,6 +34,7 @@ public class IServicesRegistry {
 	public static final String ping_active = IStateServices.ping_active;
 	public static final String ping_only = IStateServices.ping_only;
 	public static final String service_class = IStateServices.service_class;
+	public static final String service_dependency = IStateServices.service_dependency;
 	public static final String service_healthy = IStateServices.service_healthy;
 	public static final String service_state = IStateServices.service_state;
 	public static final String last_use = IStateServices.last_use;

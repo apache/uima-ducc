@@ -250,4 +250,31 @@ public class ServicesRegistry {
 		}
 		return retVal;
 	}
+	
+	public ArrayList<String> getServiceDependencies(String name) {
+		String location = "getServiceDependencies";
+		ArrayList<String> retVal = new ArrayList<String>();
+		try {
+			ServicesRegistryMapPayload payload = findService(name);
+			Properties properties = payload.svc;
+			if(properties != null) {
+				String service_dependency = properties.getProperty(IServicesRegistry.service_dependency);
+				logger.debug(location, jobid, "name: "+name+" "+"service_dependency: "+service_dependency);
+				if(service_dependency != null) {
+					String[] dependencies = service_dependency.split(" ");
+					for(String dependency : dependencies) {
+						String value = dependency.trim();
+						if(value.length() > 0) {
+							ServiceName serviceName = new ServiceName(dependency);
+							retVal.add(serviceName.toString());
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return retVal;
+	}
 }
