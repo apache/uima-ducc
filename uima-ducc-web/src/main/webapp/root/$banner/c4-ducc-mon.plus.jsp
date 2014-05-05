@@ -32,7 +32,7 @@ under the License.
 <span class="title_acronym">C</span><span class="title">omputing</span>
 <span class="title_acronym">Mon</span><span class="title">itor</span>
 <br>
-<i>Version: <span class="version" id="version"></span></i>
+<i>Version: <span class="version" id="version"></span><sup>+</sup></i>
 <br>
 <table>
 <tr>
