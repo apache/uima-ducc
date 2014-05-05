@@ -35,6 +35,7 @@ import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
@@ -114,6 +115,14 @@ public class DuccWebMonitorManagedReservation {
 				duccLogger.info(location, duccId, "state: "+state);
 				stateSequence.add(state);
 			}
+			
+            IRationale rationale = dwr.getCompletionRationale();
+            if (rationale != null && rationale.isSpecified()) {
+                String text = rationale.getText();
+                if (text != null) {
+                    monitorInfo.rationale = text;
+                }
+            }
 		}
 		
 		iterator = gone.iterator();
@@ -296,11 +305,9 @@ public class DuccWebMonitorManagedReservation {
 		return retVal;
 	}
 
-	protected void cancel(DuccId duccId) {
+	protected void cancel(DuccId duccId, String userId) {
 		String location = "cancel";
 		duccLogger.trace(location, jobid, "enter");
-		
-		String userId = System.getProperty("user.name");
 		
 		duccLogger.info(location, duccId, userId);
 		
@@ -311,10 +318,9 @@ public class DuccWebMonitorManagedReservation {
 		String arg1 = "--"+JobRequestProperties.key_id;
 		String arg2 = ""+duccId;
 		String arg3 = "--"+SpecificationProperties.key_reason;
-		String arg4 = "\"submitter terminated, therefore canceled automatically\"";
-		String arg5 = "--"+SpecificationProperties.key_role_administrator;
+		String arg4 = "\"Canceled by monitor (submitter terminated)\"";
 		
-		String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5 };
+		String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4 };
 		String result = DuccAsUser.duckling(userId, arglistUser);
 		duccLogger.warn(location, duccId, result);
 		
@@ -335,7 +341,7 @@ public class DuccWebMonitorManagedReservation {
 			long expiryMillis = ti.time;
 			if(nowMillis > expiryMillis) {
 				if(isCancelable(duccId)) {
-					cancel(duccId);
+					cancel(duccId, ti.user);
 				}
 				else {
 					duccLogger.debug(location, duccId, "not cancelable");

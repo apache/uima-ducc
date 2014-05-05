@@ -548,15 +548,6 @@ implements Orchestrator {
 						logger.info(methodName, duccId, reqUser+" is "+SpecificationProperties.key_role_administrator);
 						retVal = true;
 					}
-					else {
-					    // JIRA 3796 - assume this and other daemons are administrators 
-					    if (reqUser.equals(System.getProperty("user.name"))) {
-					        logger.info(methodName, duccId, reqUser+" is "+SpecificationProperties.key_role_administrator + " (implicitly}");
-					        retVal = true;
-					    } else {
-					        logger.info(methodName, duccId, reqUser+" is not "+SpecificationProperties.key_role_administrator);
-					    }
-					}
 				}
 				else {
 					logger.info(methodName, duccId, "role"+" is not "+SpecificationProperties.key_role_administrator);

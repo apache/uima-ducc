@@ -299,11 +299,9 @@ public class DuccWebMonitorJob {
 		return retVal;
 	}
 
-	protected void cancel(DuccId duccId) {
+	protected void cancel(DuccId duccId, String userId) {
 		String location = "cancel";
 		duccLogger.trace(location, jobid, "enter");
-		
-		String userId = System.getProperty("user.name");
 		
 		duccLogger.info(location, duccId, userId);
 		
@@ -314,10 +312,9 @@ public class DuccWebMonitorJob {
 		String arg1 = "--"+JobRequestProperties.key_id;
 		String arg2 = ""+duccId;
 		String arg3 = "--"+SpecificationProperties.key_reason;
-		String arg4 = "\"submitter terminated, therefore canceled automatically\"";
-		String arg5 = "--"+SpecificationProperties.key_role_administrator;
+		String arg4 = "\"Canceled by monitor (submitter terminated)\"";
 		
-		String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5 };
+		String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4 };
 		String result = DuccAsUser.duckling(userId, arglistUser);
 		duccLogger.warn(location, duccId, result);
 		
@@ -338,7 +335,7 @@ public class DuccWebMonitorJob {
 			long expiryMillis = ti.time;
 			if(nowMillis > expiryMillis) {
 				if(isCancelable(duccId)) {
-					cancel(duccId);
+					cancel(duccId, ti.user);
 				}
 				else {
 					duccLogger.debug(location, duccId, "not cancelable");
