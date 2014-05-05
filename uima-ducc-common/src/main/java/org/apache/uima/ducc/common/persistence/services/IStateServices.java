@@ -39,6 +39,7 @@ public interface IStateServices {
 	public static final String ping_active = "ping-active";
 	public static final String ping_only = "ping-only";
 	public static final String service_class = "service-class";
+	public static final String service_dependency = "service_dependency";
 	public static final String service_healthy = "service-healthy";
 	public static final String service_state = "service-state";
 	public static final String last_use = "last-use";
