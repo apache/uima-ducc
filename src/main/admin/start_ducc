@@ -262,6 +262,10 @@ class StartDucc(DuccUtil):
             else:
                 self.invalid('bad args: ', ' '.join(argv))
 
+        if not self.installed():
+            print "Head node is not initialized.  Have you run ducc_post_install?"
+            return
+
         environ = self.show_ducc_environment()
         for e in environ:
             print e

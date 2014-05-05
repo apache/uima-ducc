@@ -683,6 +683,12 @@ class DuccUtil(DuccBase):
         global use_threading
         use_threading = False
 
+    def installed(self):
+        head = self.ducc_properties.get('ducc.head')
+        if ( head == '<head-node>' ):
+            return False
+        return True
+
     def __init__(self):
         global use_threading
         DuccBase.__init__(self)

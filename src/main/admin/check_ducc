@@ -111,12 +111,6 @@ class CheckDucc(DuccUtil):
 
         return messages
 
-    def installed(self):
-        head = self.ducc_properties.get('ducc.head')
-        if ( head == '<head-node>' ):
-            return False
-        return True
-
     def usage(self, msg):
         if ( msg != None ):
             print msg
