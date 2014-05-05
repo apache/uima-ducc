@@ -832,7 +832,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		
 		DuccDataHelper duccDataHelper = DuccDataHelper.getInstance();
 		TreeMap<String, ArrayList<DuccId>> serviceToJobsMap = duccDataHelper.getServiceToJobsUsageMap();
-		TreeMap<String, ArrayList<String>> serviceToServicesMap = duccDataHelper.getServiceToServicesUsageMap();
+		//TreeMap<String, ArrayList<String>> serviceToServicesMap = duccDataHelper.getServiceToServicesUsageMap();
 		TreeMap<String, ArrayList<DuccId>> serviceToReservationsMap = duccDataHelper.getServiceToReservationsUsageMap();
 		
 		int maxRecords = getServicesMax(request);
@@ -1010,20 +1010,15 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				// Services
 				sb.append("<td align=\"right\">");
 				String services = "0";
-				if(serviceToServicesMap.containsKey(name)) {
-					ArrayList<String> duccIds = serviceToServicesMap.get(name);
-					int size = duccIds.size();
-					if(size > 0) {
-						StringBuffer idList = new StringBuffer();
-						for(String duccId : duccIds) {
-							if(idList.length() > 0) {
-								idList.append(",");
-							}
-							idList.append(duccId);
-						}
-						String title = "active Service Id list: "+idList;
-						services = "<span title=\""+title+"\">"+size+"</span>";
+				ArrayList<String> serviceDependencies = servicesRegistry.getServiceDependencies(name);
+				int ssize = serviceDependencies.size();
+				if(ssize > 0) {
+					StringBuffer sdList = new StringBuffer();
+					for(String serviceDependency : serviceDependencies) {
+						sdList.append(serviceDependency+" ");
 					}
+					String title = sdList.toString().trim();
+					services = "<span title=\""+title+"\">"+ssize+"</span>";
 				}
 				sb.append(services);
 				sb.append("</td>");
