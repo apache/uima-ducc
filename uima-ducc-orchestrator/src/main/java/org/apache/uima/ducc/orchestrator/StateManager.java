@@ -479,7 +479,7 @@ public class StateManager {
 				}
 				//
 				if(jdStatusReport.getWorkItemsTotal() == 0) {
-					jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, new Rationale("no work items to process"), ProcessDeallocationType.JobCanceled);
+					jobTerminate(duccWorkJob, JobCompletionType.NoWorkItemsFound, new Rationale("job driver had no work items to process"), ProcessDeallocationType.JobCanceled);
 				}
 				else {
 					switch(jdStatusReport.getDriverState()) {
