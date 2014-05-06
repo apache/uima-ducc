@@ -158,17 +158,23 @@ public class DuccUiUtilities {
         // locate the <inputQueue node within the xml - should only be one such node, and it MUST exist
         // then construct an endpoint and resolve any placeholders against the process JVM args
         // just as is done by Spring in a UIMA-AS Deployment Descriptor
+        // Ignore any decorations on the broker URL as they are not part of the service name
         NodeList nodes = doc.getElementsByTagName("inputQueue");
         if (nodes.getLength() > 0) {
             Element element = (Element) nodes.item(0);
             String endpoint = element.getAttribute("endpoint");
             String broker = element.getAttribute("brokerURL");
-            String ep = "UIMA-AS:" + endpoint + ":" + broker;
-            if (ep.contains("${")) {
+            if (endpoint.contains("${") || broker.contains("${")) {
                 ArrayList<String> jvmargList = QuotedOptions.tokenizeList(jvmargs, true); // Strip quotes
                 Map<String, String> jvmargMap = QuotedOptions.parseAssignments(jvmargList, true); // only -D entries
-                ep = resolvePlaceholders(ep, jvmargMap);
+                endpoint = resolvePlaceholders(endpoint, jvmargMap);
+                broker = resolvePlaceholders(broker, jvmargMap);
             }
+            int i = broker.indexOf('?');
+            if (i > 0) {
+            	broker = broker.substring(0, i);
+            }
+            String ep = "UIMA-AS:" + endpoint + ":" + broker;
             return ep;
         } else {
             throw new IllegalArgumentException("Invalid DD:" + process_DD + ". Missing required element <inputQueue ...");
