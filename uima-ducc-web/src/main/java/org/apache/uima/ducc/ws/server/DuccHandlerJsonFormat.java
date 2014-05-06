@@ -373,7 +373,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		row.add(new JsonPrimitive(sb.toString()));
 		// Dispatch
 		sb = new StringBuffer();
-		sb.append("<span>");
+		String d0 = "<span>";
+		String d1 = "0";
+		String d2 = "</span>";
 		if(duccData.isLive(duccId)) {
 			int dispatch = 0;
 			int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
@@ -382,12 +384,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			}
 			catch(Exception e) {
 			}
-			sb.append(dispatch);
+			if(dispatch < 0) {
+				d0 = "<span class=\"health_red\""+" title=\"unassigned location count: "+(0-dispatch)+"\">";
+				//d1 = "0";
+			}
+			else {
+				d1 = ""+dispatch;
+			}
 		}
-		else {
-			sb.append("0");
-		}
-		sb.append("</span>");
+		sb.append(d0);
+		sb.append(d1);
+		sb.append(d2);
 		row.add(new JsonPrimitive(sb.toString()));
 		// Retry
 		sb = new StringBuffer();
