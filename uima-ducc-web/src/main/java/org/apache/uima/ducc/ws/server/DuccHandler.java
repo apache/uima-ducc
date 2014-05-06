@@ -342,6 +342,12 @@ public class DuccHandler extends DuccAbstractHandler {
 			break;
 		case JD:
 			retVal = "jd.out.log";
+			// <UIMA-3802>
+			// {jobid}-JD-{node}-{PID}.log
+			String node = process.getNodeIdentity().getName();
+			String pid = process.getPID();
+			retVal = job.getDuccId()+"-"+"JD"+"-"+node+"-"+pid+".log";
+			// </UIMA-3802>
 			break;
 		}
 		return retVal;
@@ -938,9 +944,10 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		rb.append("</tr>");
 		pb.append(rb.toString());
-		// jd.err.log
+		// additional job driver related log files
 		switch(sType) {
 		case JD:
+			// jd.err.log
 			if(fileExists(logsjobdir+errfile)) {
 				rb = new StringBuffer();
 				cbList = new StringBuffer[COLS];
