@@ -222,7 +222,6 @@ class CheckDucc(DuccUtil):
             print "Head node is not initialized.  Have you run ducc_post_install?"
             return
 
-        return
         if ( do_validate ):
             # if validating, ONLY validate, called via ssh usually
             self.validate(checkdate)
