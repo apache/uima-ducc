@@ -28,10 +28,10 @@ src.dir                     = jobs.in   # where the jobs are
 dest.dir                    = jobs      # where to put prepared jobs
 
 
-scheduling.classes        = normal normal-all normal-P7         # classes
+scheduling.classes        = normal normal-all normal-p7         # classes
 scheduling.classes.normal     = 33
 scheduling.classes.normal-all = 33
-scheduling.classes.normal-P7  = 34
+scheduling.classes.normal-p7  = 34
 
 job.services                 = 0 1 2 3 4 5 
 job.services.0               = 25

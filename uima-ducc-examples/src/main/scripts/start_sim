@@ -196,12 +196,21 @@ class StartSim(DuccUtil):
         allnodes = []
         ndx = 1
         for node in nodes:
+            # allow the index to be reset by-node so you can vary the number of
+            # pseudo nodes on a real node without changing the indexes of others
+            # if desired, e.g. to manage a custom ducc.nodes
+            key = 'index.' + node
+            if ( props.has_key(key) ):
+                ndx = int(props.get(key))
+
+            # generate node names and associate simulated memory
             for mem in mems:
                 count = props.get(node + '.' + mem)
                 if ( count != None ):
                     for i in range(0, int(count)):
                         allnodes.append( (str(ndx), node, mem) )
                         ndx = ndx + 1
+                            
 
         here = os.getcwd()
         cmd = os.path.abspath(sys.argv[0])   
