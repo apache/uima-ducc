@@ -58,6 +58,7 @@ import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
+import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 public abstract class DuccAbstractHandler extends AbstractHandler {
@@ -234,139 +235,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		catch(Throwable t) {
 			duccLogger.debug(methodName, jobId, "millis:"+millis);
 		}
-		return retVal;
-	}
-	
-	private boolean match(String s1, String s2) {
-		String methodName = "match";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		boolean retVal = false;
-		if(s1 != null) {
-			if(s2 != null) {
-				if(s1.trim().equals(s2.trim())) {
-					retVal = true;
-				}
-			}
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-		return retVal;
-	}
-	
-	public enum AuthorizationStatus { LoggedInOwner, LoggedInAdministrator, LoggedInNotOwner, LoggedInNotAdministrator, NotLoggedIn };
-	
-	public AuthorizationStatus getAuthorizationStatus(HttpServletRequest request, String resourceOwnerUserid) {
-		String methodName = "getAuthorizationStatus";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		AuthorizationStatus retVal = AuthorizationStatus.NotLoggedIn;
-		try {
-			String text = "";
-			boolean authenticated = duccWebSessionManager.isAuthentic(request);
-			String userId = duccWebSessionManager.getUserId(request);
-			if(authenticated) {
-				if(match(resourceOwnerUserid,userId)) {
-					text = "user "+userId+" is resource owner";
-					retVal = AuthorizationStatus.LoggedInOwner;
-				}
-				else {
-					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
-					switch(requestRole) {
-					case User:
-						text = "user "+userId+" is not resource owner "+resourceOwnerUserid;
-						retVal = AuthorizationStatus.LoggedInNotOwner;
-						break;
-					case Administrator:
-						if(duccWebAdministrators.isAdministrator(userId)) {
-							text = "user "+userId+" is administrator";
-							retVal = AuthorizationStatus.LoggedInAdministrator;
-						}
-						else {
-							text = "user "+userId+" is not administrator ";
-							retVal = AuthorizationStatus.LoggedInNotAdministrator;
-						}
-						break;
-					}
-				}
-			}
-			else {
-				text = "user "+userId+" is not authenticated";
-				retVal = AuthorizationStatus.NotLoggedIn;
-			}
-			duccLogger.debug(methodName, null, messages.fetch(text));
-		}
-		catch(Exception e) {
-			duccLogger.error(methodName, null, e);
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-		return retVal;
-	}
-	
-	public boolean isUserAuthorized(HttpServletRequest request, String resourceOwnerUserid) {
-		String methodName = "isUserAuthorized";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		boolean retVal = false;
-		try {
-			AuthorizationStatus authorizationStatus = getAuthorizationStatus(request, resourceOwnerUserid);
-			switch(authorizationStatus) {
-			case LoggedInOwner:
-			case LoggedInAdministrator:
-				retVal = true;
-				break;
-			case LoggedInNotOwner:
-			case LoggedInNotAdministrator:
-			case NotLoggedIn:
-				break;
-			default:
-				break;
-			}
-		}
-		catch(Exception e) {
-			duccLogger.error(methodName, null, e);
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
-		return retVal;
-	}
-	
-	@Deprecated
-	public boolean isAuthorized(HttpServletRequest request, String resourceOwnerUserid) {
-		String methodName = "isAuthorized";
-		duccLogger.trace(methodName, null, messages.fetch("enter"));
-		boolean retVal = false;
-		try {
-			String text = "";
-			boolean authenticated = duccWebSessionManager.isAuthentic(request);
-			String userId = duccWebSessionManager.getUserId(request);
-			if(authenticated) {
-				if(match(resourceOwnerUserid,userId)) {
-					text = "user "+userId+" is resource owner";
-					retVal = true;
-				}
-				else {
-					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
-					switch(requestRole) {
-					case User:
-						text = "user "+userId+" is not resource owner "+resourceOwnerUserid;
-						break;
-					case Administrator:
-						if(duccWebAdministrators.isAdministrator(userId)) {
-							text = "user "+userId+" is administrator";
-							retVal = true;
-						}
-						else {
-							text = "user "+userId+" is not administrator ";
-						}
-						break;
-					}
-				}
-			}
-			else {
-				text = "user "+userId+" is not authenticated";
-			}
-			duccLogger.debug(methodName, null, messages.fetch(text));
-		}
-		catch(Exception e) {
-			duccLogger.error(methodName, null, e);
-		}
-		duccLogger.trace(methodName, null, messages.fetch("exit"));
 		return retVal;
 	}
 	
@@ -888,21 +756,6 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		}
 		return retVal;
 	}
-
-	@Deprecated
-	public String getDisabled(HttpServletRequest request, IDuccWork duccWork) {
-		String resourceOwnerUserId = duccWork.getStandardInfo().getUser();
-		return getDisabled(request, resourceOwnerUserId);
-	}
-
-	@Deprecated
-	public String getDisabled(HttpServletRequest request, String resourceOwnerUserId) {
-		String disabled = "disabled=\"disabled\"";
-		if(isAuthorized(request, resourceOwnerUserId)) {
-			disabled = "";
-		}
-		return disabled;
-	}
 	
 	public String getDisabledWithHover(HttpServletRequest request, IDuccWork duccWork) {
 		String resourceOwnerUserId = duccWork.getStandardInfo().getUser();
@@ -912,7 +765,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public String getDisabledWithHover(HttpServletRequest request, String resourceOwnerUserId) {
 		String disabled = "disabled=\"disabled\"";
 		String hover = "";
-		AuthorizationStatus authorizationStatus = getAuthorizationStatus(request, resourceOwnerUserId);
+		HandlersHelper.AuthorizationStatus authorizationStatus = HandlersHelper.getAuthorizationStatus(request, resourceOwnerUserId);
 		switch(authorizationStatus) {
 		case LoggedInOwner:
 			disabled = "";
