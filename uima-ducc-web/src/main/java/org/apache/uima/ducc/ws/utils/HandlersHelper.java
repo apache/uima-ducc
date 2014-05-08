@@ -25,7 +25,6 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
-import org.apache.uima.ducc.ws.server.DuccAbstractHandler;
 import org.apache.uima.ducc.ws.server.DuccCookies;
 import org.apache.uima.ducc.ws.server.DuccWebSessionManager;
 
