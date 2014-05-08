@@ -39,7 +39,6 @@ import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.Utils;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
 
 public class DuccRmAdmin 
     extends AbstractDuccComponent 
@@ -116,22 +115,22 @@ public class DuccRmAdmin
         return xStream.toXML(duccEvent);
     }
     
-    private RmAdminReply unmarshallEvent(Object targetToUnmarshall) 
-        throws Exception 
-    {
-        XStream xStream = new XStream(new DomDriver());
-        String claz = targetToUnmarshall.getClass().getName();
+    // private RmAdminReply unmarshallEvent(Object targetToUnmarshall) 
+    //     throws Exception 
+    // {
+    //     XStream xStream = new XStream(new DomDriver());
+    //     String claz = targetToUnmarshall.getClass().getName();
 
-        if (targetToUnmarshall instanceof byte[]) {
-            Object reply = xStream.fromXML(new String((byte[]) targetToUnmarshall));
-            if (reply instanceof RmAdminReply) {
-                return (RmAdminReply) reply;
-            } else {
-                claz = (reply == null) ? "NULL" : reply.getClass().getName();
-            }
-        }
-        throw new Exception( "Unexpected Reply type received from Ducc Component. Expected DuccEvent, instead received: " + claz);        
-    }
+    //     if (targetToUnmarshall instanceof byte[]) {
+    //         Object reply = xStream.fromXML(new String((byte[]) targetToUnmarshall));
+    //         if (reply instanceof RmAdminReply) {
+    //             return (RmAdminReply) reply;
+    //         } else {
+    //             claz = (reply == null) ? "NULL" : reply.getClass().getName();
+    //         }
+    //     }
+    //     throw new Exception( "Unexpected Reply type received from Ducc Component. Expected DuccEvent, instead received: " + claz);        
+    // }
 
     public RmAdminReply dispatchAndWaitForReply(DuccAdminEvent duccEvent) 
         throws Exception 
