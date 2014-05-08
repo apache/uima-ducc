@@ -23,6 +23,7 @@ import os
 import sys
 from time import time
 import getopt
+import signal
 
 from ducc_util import DuccUtil
 from ducc_base  import DuccProperties
@@ -33,6 +34,11 @@ from local_hooks import verify_master_node
 from ducc_util import ThreadPool
 
 class CheckDucc(DuccUtil):
+
+
+    def __init__(self):
+        DuccUtil.__init__(self)
+        self.badnodes = []
 
     def validate(self, checkdate):
         verify_slave_node(checkdate, self.ducc_properties)
@@ -97,19 +103,33 @@ class CheckDucc(DuccUtil):
             messages.append((spacer, 'no processes found.'))
 
         if ( self.kill_signal == None ):                    
+            response = "Node health checks return."
             if ( self.single_user ) :
                 lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-s", "-x", str(int(time())))
             else:
                 lines = self.ssh(node, True, self.DUCC_HOME + "/admin/check_ducc", "-x", str(int(time())))
             while 1:
                 line = lines.readline()
+                if ( 'signal' in line ):
+                    response = "Node health did not complete: " + line
+                    self.badnodes.append(node)
                 if ( not line ):
                     break
                 line = line.strip()
                 messages.append((spacer, line))
                 #messages.append((spacer, '[]', line))
+            messages.append((spacer, response))
 
         return messages
+
+    def signalHandler(self, signum, frame):
+        print "-------- Caught signal", signum, "--------"
+        if ( len(self.badnodes) != 0 ):
+            print "Health checks on these nodes did not return:"
+            for n in self.badnodes:
+                print n,
+                print ''
+        sys.exit(1)
 
     def usage(self, msg):
         if ( msg != None ):
@@ -296,6 +316,8 @@ class CheckDucc(DuccUtil):
         print "Checking", n_nodes, "nodes"
         self.threadpool = ThreadPool(n_nodes + 5)    # more for the head processes
         checked = {}
+
+        signal.signal(signal.SIGINT, self.signalHandler)
 
         try:
             for (nodefile, nodelist) in nodes.items():

@@ -411,37 +411,38 @@ class DuccUtil(DuccBase):
 
     def ssh_ok(self, node, line):
         spacer = '   '
+        messages = []
         if ( line.startswith("Permission denied") ):
-            print ' '
-            print spacer, "ALERT: Passwordless SSH is not configured correctly for node", node
-            print spacer, "ALERT: SSH returns '" + line + "'"
-            return False
+            messages.append(' ')
+            messages.append(spacer + "ALERT: Passwordless SSH is not configured correctly for node " + node)
+            messages.append(spacer + "ALERT: SSH returns '" + line + "'")
+            return messages
 
         if ( line.startswith("Host key verification failed") ):
-            print ' '
-            print spacer, "ALERT: Passwordless SSH is not configured correctly for node", node
-            print spacer, "ALERT: SSH returns '" + line + "'"
-            return False
+            messages.append(' ')
+            messages.append(spacer + "ALERT: Passwordless SSH is not configured correctly for node " + node)
+            messages.append(spacer + "ALERT: SSH returns '" + line + "'")
+            return messages
 
         if ( line.find("Connection refused") >= 0 ):
-            print ' '
-            print spacer, "ALERT: SSH is not not enabled on node", node
-            print spacer, "ALERT: SSH returns '" + line + "'"
-            return False
+            messages.append(' ')
+            messages.append(spacer + "ALERT: SSH is not not enabled on node " + node)
+            messages.append(spacer + "ALERT: SSH returns '" + line + "'")
+            return messages
         
         if ( line.find("Connection timed") >= 0 ):
-            print ' '
-            print spacer, "\nALERT: SSH did not respond with timeout of 10 secnds", node
-            print spacer, "ALERT: SSH returns '" + line + "'"
-            return False
+            messages.append(' ')
+            messages.append(spacer + "\nALERT: SSH did not respond with timeout of 10 secnds " + node)
+            messages.append(spacer + "ALERT: SSH returns '" + line + "'")
+            return messages
         
         if ( line.find("No route")  >= 0 ):
-            print ' '
-            print spacer, 'ALERT: SSH cannot connect to host.'
-            print spacer, "ALERT: SSH returns '" + line + "'"
-            return False
+            messages.append(' ')
+            messages.append(spacer + 'ALERT: SSH cannot connect to host.')
+            messages.append(spacer + "ALERT: SSH returns '" + line + "'")
+            return messages
 
-        return True
+        return None
         
     #
     # Input is array lines from ps command looking for ducc processes owned this user.
@@ -466,7 +467,10 @@ class DuccUtil(DuccBase):
             if ( line.startswith('PID')):
                 continue
 
-            if ( not self.ssh_ok(line, node) ):
+            ssh_errors = self.ssh_ok(line, node)
+            if ( ssh_errors != None ):
+                for m in ssh_errors:
+                    print m
                 ok = False
                 continue
 
