@@ -129,9 +129,11 @@ public class Scheduler
     // Bring up to speed with rest of ducc version. 2013-03-06 jrc
     //
     // 1.0.1 - RM can purge non-preemptables except for Unmanaged Reservations.  UIMA-3614
+    // 1.0.2 - vary-on, vary-off
+    // 1.0.3 - fix bad check in recursion in NodepoolScheduler.doEvictions
     final static int rmversion_major = 1;
     final static int rmversion_minor = 0;
-    final static int rmversion_ptf   = 1;  
+    final static int rmversion_ptf   = 3;  
     final static String rmversion_string = null;
 
     boolean initialized = false;           // we refuse nodeupdates until this is true
