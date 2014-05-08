@@ -423,7 +423,7 @@ public class NodepoolScheduler
                     int    rgiven = tgiven % o;                                                      // residual - remainder
                     int    twanted = wbo[0] + gbo[0];                                                // actual wanted: still wanted plus alredy given
                     // if ( twanted <= fragmentationThreshold ) {                                       // if under the defrag limit, round up
-                    if ( rgiven > 0 ) {
+                    if ( (rgiven > 0) && ( given == 0) ) {
                         given = Math.min( ++given, nshares[o] );                                     // UIMA-3664
                     }
                     // }                                                                                // if not under the defrag limit, round down
@@ -472,7 +472,7 @@ public class NodepoolScheduler
             while ( iter.hasNext() ) {
                 IEntity e = iter.next();
                 if ( e.getWantedByOrder()[0] == 0 ) {
-                    logger.info(methodName, null, descr, e.getName(), "reaped, nothing more wanted:", fmtArray(e.getWantedByOrder()));
+                    // logger.info(methodName, null, descr, e.getName(), "reaped, nothing more wanted:", fmtArray(e.getWantedByOrder()));
                     iter.remove();
                 }
             }
@@ -492,8 +492,8 @@ public class NodepoolScheduler
                     }
                 }
                 if ( purge ) {
-                    logger.info(methodName, null, descr, e.getName(), "reaped, nothing more usablee:", fmtArray(e.getWantedByOrder()), "usable:",
-                                fmtArray(nshares));
+                    //logger.info(methodName, null, descr, e.getName(), "reaped, nothing more usablee:", fmtArray(e.getWantedByOrder()), "usable:",
+                    //            fmtArray(nshares));
                     iter.remove();
                 }
             }
@@ -523,7 +523,7 @@ public class NodepoolScheduler
         // entity weights, but we're not doing that (assuming all weights are 1).
         //
         boolean given = true;
-        int     bonus = 0;
+        //int     bonus = 0;
         while ( (nshares[1] > 0) && (given)) {
             given = false;
             for ( IEntity e : entities ) {
@@ -534,7 +534,7 @@ public class NodepoolScheduler
                     int canuse = wbo[o] - gbo[o];
                     while ( (canuse > 0 ) && (vshares[o] > 0) ) {
                         gbo[o]++;
-                        bonus++;
+                        //bonus++;
                         canuse = wbo[o] - gbo[o];
                         removeSharesByOrder(vshares, nshares, 1, o);
                         given = true;
@@ -543,18 +543,26 @@ public class NodepoolScheduler
                 }
             }
         } 
-        
-        if ( bonus > 0 ) {
-            logger.debug(methodName, null, descr, "Final after bonus:");
-            for ( IEntity e : entities ) {
-                int[] gbo = e.getGivenByOrder();          // nshares
-                logger.debug(methodName, null, descr, String.format("%12s %s", e.getName(), fmtArray(gbo)));                
-            }
-            logger.debug(methodName, null, descr, "vshares", fmtArray(vshares));
-            logger.debug(methodName, null, descr, "nshares", fmtArray(nshares));
-        } else {
-            logger.debug(methodName, null, descr, "No bonus to give.");
+
+        logger.debug(methodName, null, descr, "Final apportionment:");
+        for ( IEntity e : entities ) {
+            int[] gbo = e.getGivenByOrder();          // nshares
+            logger.debug(methodName, null, descr, String.format("%12s gbo%s", e.getName(), fmtArray(gbo)));                
         }
+        logger.debug(methodName, null, descr, "vshares", fmtArray(vshares));
+        logger.debug(methodName, null, descr, "nshares", fmtArray(nshares));
+          
+        // if ( bonus > 0 ) {
+        //     logger.debug(methodName, null, descr, "Final after bonus:");
+        //     for ( IEntity e : entities ) {
+        //         int[] gbo = e.getGivenByOrder();          // nshares
+        //         logger.debug(methodName, null, descr, String.format("%12s %s", e.getName(), fmtArray(gbo)));                
+        //     }
+        //     logger.debug(methodName, null, descr, "vshares", fmtArray(vshares));
+        //     logger.debug(methodName, null, descr, "nshares", fmtArray(nshares));
+        // } else {
+        //     logger.debug(methodName, null, descr, "No bonus to give.");
+        // }
     }
 
 
@@ -1500,18 +1508,18 @@ public class NodepoolScheduler
      * 1.  Evict shares for jobs that originate in each node pool
      * 2.  Evict shares that have spilled into lower-level pools.
      */
-    private static int stop_here_de = 0;
+    // private static int stop_here_de = 0;
     protected void doEvictions(NodePool nodepool)
     {
     	String methodName = "doEvictions";
     	
-        logger.info(methodName, null, "--- stop_here_de", stop_here_de);
-        if ( stop_here_de == 7 ) {
-            @SuppressWarnings("unused")
-			int stophere;
-            stophere=1;
-        }
-        stop_here_de++;
+        // logger.info(methodName, null, "--- stop_here_de", stop_here_de);
+        // if ( stop_here_de == 7 ) {
+        //     @SuppressWarnings("unused")
+		// 	int stophere;
+        //     stophere=1;
+        // }
+        // stop_here_de++;
 
         for ( NodePool np : nodepool.getChildrenDescending() ) {   // recurse down the tree
             doEvictions(np);                                      // depth-first traversal
@@ -1531,6 +1539,11 @@ public class NodepoolScheduler
                     int current = j.countNShares();           // currently allocated, plus pending, less those removed by earlier preemption
                     int needed = (counted - current);
                     int order = j.getShareOrder();
+
+                    // if ( needed < 0 ) {
+                    //     int stophere = 1;
+                    //     stophere++;
+                    // }
          
                     logger.info(methodName, j.getId(), String.format("%12s %7d %7d %6d %5d", npn, counted, current, needed, order));
                     needed = Math.abs(needed);
@@ -1542,7 +1555,7 @@ public class NodepoolScheduler
     
         }
         logger.debug(methodName, null, nodepool.getId(),  "NeededByOrder before any eviction:", Arrays.toString(neededByOrder));        
-        if ( (nodepool.countShares() > 0) && (total_needed > 0) ) {
+        if ( (nodepool.countOccupiedShares() > 0) && (total_needed > 0) ) {
             nodepool.doEvictionsByMachine(neededByOrder, false);
         }
     }

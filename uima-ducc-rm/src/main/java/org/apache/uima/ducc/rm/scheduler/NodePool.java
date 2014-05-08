@@ -102,9 +102,14 @@ class NodePool
 
     NodePool(NodePool parent, String id, Map<String, String> nodes, EvictionPolicy ep, int depth, int order)
     {
+    	String methodName = "NodePool.<init>";
         this.parent = parent;
         this.id = id;
         this.subpoolNames = nodes;
+        if ( nodes == null ) {            // unlikely, but not illegal
+            this.subpoolNames = new HashMap<String, String>();
+            logger.warn(methodName, null, "Nodepool", id, ": no nodes in node list");
+        }
         this.evictionPolicy = ep;
         this.depth = depth;
         this.order = order;
@@ -128,6 +133,15 @@ class NodePool
     int countShares()
     {
         return allShares.size();
+    }
+
+    int countOccupiedShares()
+    {
+        int count = allShares.size();
+        for ( NodePool np : children.values() ) {
+            count += np.countOccupiedShares();
+        }
+        return count;
     }
 
     void removeShare(Share s)

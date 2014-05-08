@@ -152,7 +152,7 @@ public class JobManagerConverter
      */
     void jobUpdate(Object state, IDuccWork job)
     {
-    	String methodName = "jobUpate";
+    	String methodName = "jobUpdate";
         IDuccSchedulingInfo si = job.getSchedulingInfo();
 
         DuccId jobid = job.getDuccId();
