@@ -188,12 +188,23 @@
 			<version>${servlet-api.version}</version>
 		</dependency>
 
+        <dependency>
+	       <groupId>net.java.dev.jna</groupId>
+	       <artifactId>jna</artifactId>
+	       <version>4.0.0</version>
+        </dependency>
+            
 		</dependencies>
 	</dependencyManagement>
 
 
 
 	<dependencies>
+
+       <dependency>
+	       <groupId>net.java.dev.jna</groupId>
+	       <artifactId>jna</artifactId>
+        </dependency>
 
 		<!-- Dependencies on other DUCC projects -->
 		<dependency>
