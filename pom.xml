@@ -271,6 +271,50 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
+				    <execution>
+                      <!-- use the dependency:unpack goal to unpack the 
+                         base binary uimaj sdk distribution -->
+                      <id>unpack Uimaj Bin</id>
+                      <phase>prepare-package</phase>
+                      <goals><goal>unpack</goal></goals>
+                      <configuration>
+                        <overWriteIfNewer>true</overWriteIfNewer>
+                        <artifactItems>
+                          <artifactItem>
+                            <groupId>org.apache.uima</groupId>
+                            <artifactId>uimaj</artifactId>
+                            <version>${org.apache.uima.version}</version>
+                            <type>zip</type>
+                            <classifier>bin</classifier>
+                            <outputDirectory>${project.build.directory}/uimaj</outputDirectory>
+                          </artifactItem>
+                        </artifactItems>
+                      </configuration>
+                    </execution>
+          
+                    <execution>
+                      <!-- use the dependency:unpack goal to unpack the 
+                         base binary uima-as distribution -->
+                      <id>unpack uima-as Bin</id>
+                      <phase>prepare-package</phase>
+                      <goals><goal>unpack</goal></goals>
+                      <configuration>
+                        <overWriteIfNewer>true</overWriteIfNewer>
+                        <artifactItems>
+                          <artifactItem>
+                            <groupId>org.apache.uima</groupId>
+                            <artifactId>uima-as</artifactId>
+                            <version>${org.apache.uima.as.version}</version>
+                            <type>tar.gz</type>
+                            <classifier>bin</classifier>
+                            <outputDirectory>${project.build.directory}/uima-as</outputDirectory>
+                          </artifactItem>
+                        </artifactItems>
+                      </configuration>
+                    </execution>
+                    
+                    
+          
 					<execution>
 						<!-- use the dependency:unpack goal to unpack the AMQ binary release -->
 						<id>unpack-activemq-distro</id>
