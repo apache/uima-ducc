@@ -123,7 +123,6 @@
 
 	</pluginRepositories>
 
-
 	<!-- Declare version numbers for all dependencies -->
 	<properties>
 	    <uima.ducc>Apache UIMA DUCC:</uima.ducc>
@@ -146,7 +145,7 @@
 		<commons.lang.version>2.6</commons.lang.version>
 		<commons.math.version>2.0</commons.math.version>
 		<log4j.version>1.2.16</log4j.version>
-		<slf4j.version>1.5.11</slf4j.version>
+		<slf4j.version>1.6.4</slf4j.version>
 		<xmlbeans.version>2.5.0</xmlbeans.version>
 		<junit.version>4.8.2</junit.version>
 		<servlet.api.version>2.5</servlet.api.version>
