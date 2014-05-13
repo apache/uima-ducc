@@ -265,9 +265,40 @@
 				</executions>
 
 			</plugin>
+		    <!-- Ducc includes the base UIMA binary distribution
+                 We get an unzipped version of that and unpack it into
+                 target/uimaj -->
 
+            <!--  must come before the unpack -->      
+			
+            <plugin>
+               <groupId>org.apache.uima</groupId>
+               <artifactId>uima-build-helper-maven-plugin</artifactId>
+               <executions>
+               <execution>
+                  <id>foo</id>
+                  <phase>prepare-package</phase>
+                  <goals><goal>copy-from-apache-dist</goal></goals>
+                  <configuration>
+                     <version>${org.apache.uima.version}</version>
+                     <artifactId>uimaj</artifactId>
+                  </configuration>
+               </execution>
+               <execution>
+                  <id>bar</id>
+                  <phase>prepare-package</phase>
+                  <goals><goal>copy-from-apache-dist</goal></goals>
+                  <configuration>
+                     <version>${org.apache.uima.as.version}</version>
+                     <artifactId>uima-as</artifactId>
+                     <type>tar.gz</type>
+                  </configuration>
+               </execution>
+               </executions> 
+            </plugin>
+			
 			<plugin>
-			    <!-- This plugin is needed to fetch Apache ActiveMQ and Jetty from maven repo -->
+			
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
