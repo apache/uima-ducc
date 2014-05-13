@@ -186,8 +186,12 @@ class DuccProcess(Thread):
             dd = 'org.apache.uima.ducc.test.randomsleep.DDSleepDescriptor'
         else:
             ae = 'UimaAsFailAgg_' + services
-        
-        plain_broker_url = self.runner.broker_protocol + '://' + self.runner.broker_host + ':' + self.runner.broker_port
+
+        if ( self.runner.use_http ):
+            plain_broker_url = 'http://' + self.runner.broker_host + ':8081'
+        else:
+            plain_broker_url = self.runner.broker_protocol + '://' + self.runner.broker_host + ':' + self.runner.broker_port
+
         cr_parms         = '"jobfile=' + self.jobfile + ' compression=' + self.runner.compression + ' error_rate=' + str(self.runner.error_rate) + '"'
         process_args.append(process_xmx)
         process_args.append('-DdefaultBrokerURL=' + plain_broker_url )
@@ -292,7 +296,10 @@ class ServiceStarter(DuccUtil):
     def gen_service(self, svcid):
         os.environ['USER'] = os.environ['LOGNAME']        # make sure I'm me - after submit may not be
 
-        plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
+        if ( self.runner.use_http ):
+            plain_broker_url = 'http://' + self.broker_host + ':8081'
+        else:
+            plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
 
         props = DuccProperties()
         props.put('description', 'Test Service ' + svcid)
@@ -477,6 +484,9 @@ class RunDucc(DuccUtil):
         print '  --SE service-startup-config'
         print '       Specifies to run this with the AE as a delegate service.  The required parameter specifies'
         print '       a service startup script.'
+        print ''
+        print '  --http'
+        print '       Use HTTP instead of tcp for services'
         print '' 
         print '   -d, --directory dir'
         print '       This is the directory with the test files and configuration. Required'
@@ -554,12 +564,14 @@ class RunDucc(DuccUtil):
         self.jp_uima_log = None
         self.submit_package = 'org.apache.uima.ducc'
         self.max_machines = 0
+        self.use_http = False
 
         try:
             opts, args  = getopt.getopt(argv, 'b:d:i:r:m:n:p:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                         'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
                                                                         'init_timeout=','watch',
-                                                                        'jd_uima_log=', 'jp_uima_log='
+                                                                        'jd_uima_log=', 'jp_uima_log=',
+                                                                        'http'
                                                                       ])
         except:
             print "Unknown option"
@@ -598,6 +610,8 @@ class RunDucc(DuccUtil):
                 self.style = 'SE'
                 self.service_startup = a
                 self.watch = True
+            elif o in ('--http'):
+                self.use_http = True
             elif o in ('--IB'):
                 self.init_bloat = a
             elif o in ('--PB'):
@@ -621,6 +635,7 @@ class RunDucc(DuccUtil):
         print '    test_dir           :', self.test_dir
         print '    batchfile          :', self.batchfile
         print '    style              :', self.style
+        print '    http               :', self.use_http
         print '    init-time          :', self.init_time / 1000
         print '    init-range         :', self.init_range / 1000
         print '    init-timeout       :', self.init_timeout
@@ -638,10 +653,14 @@ class RunDucc(DuccUtil):
 
         self.submit_package = 'org.apache.uima.ducc'
 
-        self.examples_classpath = self.DUCC_HOME + '/lib/uima-ducc/examples/*'
-        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/lib/uima/*'
-        self.examples_classpath = self.examples_classpath + ':' + self.DUCC_HOME + '/examples/simple/resources/service'
-
+        cp = []
+        cp.append(self.DUCC_HOME + '/lib/uima-ducc/examples/*')
+        cp.append(self.DUCC_HOME + '/apache-uima/lib/*')
+        cp.append(self.DUCC_HOME + '/apache-uima/apache-activemq/lib/*')
+        cp.append(self.DUCC_HOME + '/apache-uima/apache-activemq/lib/optional/*')
+        cp.append(self.DUCC_HOME + '/examples/simple/resources/service')
+        self.examples_classpath = ':'.join(cp)
+        
         if ( self.style == 'SE' ):
             if ( self.service_startup == None ):
                 usage("Missing service startup file")

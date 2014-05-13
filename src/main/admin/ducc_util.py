@@ -233,39 +233,41 @@ class DuccUtil(DuccBase):
             extra_jars = local_jars.split()
             for j in extra_jars:
                 CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
-           
-        # Drop slf4j dir as its jars also in springframeork 
+
+        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/apache-activemq/lib/*'           
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/guava/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/google-gson/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-log4j/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/uima/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-camel/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-collections/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/joda-time/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/slf4j/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/springframework/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/xmlbeans/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-activemq/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/jna/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/libpam4j/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/derby/*'
-        # orchestrator http needs codecs
-        CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
-       
-        # explicitly NOT ducc_test.jar
-        CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/*'
-        CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/jsp/*'
-
-        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/apache-activemq/lib/*'
-        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/apache-activemq/lib/optional*'
 
         CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc/*'
 
+
+
         CLASSPATH = CLASSPATH + ':' + RESOURCES
     
+        # these things are added component-wise in ducc.py, not here
+        #    db: derby 
+        #    sm: uima
+        #        activemq/optional
+        #        jetty from ws lib
+        #        http client
+        #    ws:
+        #        http client
+        #        jetty
+        #        jsp
+        #    agent:
+        #        uima
+        #   
         os.environ['CLASSPATH'] = CLASSPATH
 
     def format_classpath(self, cp):

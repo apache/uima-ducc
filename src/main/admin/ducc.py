@@ -61,6 +61,9 @@ class Ducc(DuccUtil):
         
         print "Started AMQ broker"
 
+    def add_to_classpath(self, lib):
+        os.environ['CLASSPATH'] = os.environ['CLASSPATH'] + ":" + lib
+
     def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate, single_user):
 
         if ( component == 'all' ):
@@ -72,6 +75,8 @@ class Ducc(DuccUtil):
         # ducc-head needs to be in system properties before the ducc daemon reads ducc.properties
         # to insure it can be substituted properly
         ducc_head = self.ducc_properties.get('ducc.head')
+        ducc_home = self.DUCC_HOME
+        CLASSPATH = os.environ['CLASSPATH']
 
         jvm_opts = []
         jvm_opts.append('-Dos.page.size=' + self.os_pagesize)
@@ -124,6 +129,8 @@ class Ducc(DuccUtil):
                 else:
                     ducc_component = '-Dducc.deploy.components=agent'
 
+                self.add_to_classpath(ducc_home + '/apache-uima/lib/*')
+
             if ( c == 'rm' ):
                 if ( int(rmoverride) > 0 ):
                     jvm_opts.append("-Dducc.rm.override.dram=" + rmoverride)
@@ -144,6 +151,11 @@ class Ducc(DuccUtil):
                 if ( self.ws_jvm_args != None ):
                     jvm_opts.append(self.ws_jvm_args)
 
+                self.add_to_classpath(ducc_home + '/lib/http-client/*')
+                self.add_to_classpath(ducc_home + '/webserver/lib/*')
+                self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
+
+
             if ( c == 'viz' ):
                 here = os.getcwd()
                 os.chdir(self.DUCC_HOME + '/vizserver')
@@ -155,6 +167,8 @@ class Ducc(DuccUtil):
                     args = '-' + or_parms
                 if ( self.or_jvm_args != None ):
                     jvm_opts.append(self.or_jvm_args)
+                self.add_to_classpath(ducc_home + '/lib/http-client/*')
+                self.add_to_classpath(ducc_home + '/webserver/lib/*')       
 
             if ( c == 'pm' ):
                 if ( self.pm_jvm_args != None ):
@@ -163,12 +177,17 @@ class Ducc(DuccUtil):
             if ( c == 'db' ):
                 if ( self.db_jvm_args != None ):
                     jvm_opts.append(self.db_jvm_args)
+                self.add_to_classpath(ducc_home + '/lib/derby/*')
+
                     
             if ( c == 'sm' ):
                 if ( self.sm_jvm_args != None ):
                     jvm_opts.append(self.sm_jvm_args)
+                self.add_to_classpath(ducc_home + '/apache-uima/lib/*')
+                self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
+                self.add_to_classpath(ducc_home + '/lib/http-client/*')
+                self.add_to_classpath(ducc_home + '/webserver/lib/*')       
 
-                                        
         if (component != 'agent'):
             service = 'org.apache.uima.ducc.common.main.DuccService'
             ducc_component = '-Dducc.deploy.components=' + component
