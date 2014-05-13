@@ -254,10 +254,14 @@ class DuccUtil(DuccBase):
         CLASSPATH = CLASSPATH + ":" + LIB + '/derby/*'
         # orchestrator http needs codecs
         CLASSPATH = CLASSPATH + ":" + LIB + '/http-client/*'
-
+       
         # explicitly NOT ducc_test.jar
         CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/*'
         CLASSPATH = CLASSPATH + ':' + ducc_home + '/webserver/lib/jsp/*'
+
+        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/apache-activemq/lib/*'
+        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/apache-activemq/lib/optional*'
+
         CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc/*'
 
         CLASSPATH = CLASSPATH + ':' + RESOURCES

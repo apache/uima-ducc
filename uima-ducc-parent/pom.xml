@@ -166,6 +166,13 @@
 		<orbit-org-apache-jasper.version>2.1.0.v201110031002</orbit-org-apache-jasper.version>
 		<servlet-api.version>2.5</servlet-api.version>
 		<derby.version>10.10.1.1</derby.version>
+        
+        <xpp3.version>1.1.4c</xpp3.version>
+		
+		<http.commons.client.version>4.2.1</http.commons.client.version>
+		
+		<http.commons.core.version>4.2.1</http.commons.core.version>
+        
         <!-- Needed for NOTICE file packaged in each jar under META-INF -->
         <projectTimeSpan>2012</projectTimeSpan>
         
@@ -206,6 +213,32 @@ ${uimaDUCCNoticeText}
 	<!-- depends on. -->
 	<dependencyManagement>
 		<dependencies>
+
+            <dependency>
+				<groupId>org.eclipse.jetty.aggregate</groupId>
+				<artifactId>jetty-all-server</artifactId>
+				<version>${jetty.version}</version>
+			</dependency>
+			
+		    <dependency>
+              <groupId>xpp3</groupId>
+              <artifactId>xpp3</artifactId>
+              <version>${xpp3.version}</version>
+            </dependency>
+
+
+            <dependency>
+              <groupId>org.apache.httpcomponents</groupId>
+              <artifactId>httpclient</artifactId>
+              <version>${http.commons.client.version}</version>
+            </dependency>
+        
+            <dependency>
+               <groupId>org.apache.httpcomponents</groupId>
+               <artifactId>httpcore</artifactId>
+               <version>${http.commons.core.version}</version>
+             </dependency>
+
 
              <dependency>
 			    <groupId>org.apache.uima</groupId>
@@ -598,6 +631,31 @@ ${uimaDUCCNoticeText}
 	<!-- runtime dependencies that must be included in the build -->
 
 	<dependencies>
+
+        <dependency>
+				<groupId>org.eclipse.jetty.aggregate</groupId>
+				<artifactId>jetty-all-server</artifactId>
+		</dependency>
+			
+        <dependency>
+           <groupId>xpp3</groupId>
+           <artifactId>xpp3</artifactId>
+          
+        </dependency>
+
+
+        <dependency>
+           <groupId>org.apache.httpcomponents</groupId>
+           <artifactId>httpclient</artifactId>
+          
+        </dependency>
+        
+        <dependency>
+           <groupId>org.apache.httpcomponents</groupId>
+           <artifactId>httpcore</artifactId>
+          
+        </dependency>
+
 
 		<dependency>
 			<groupId>org.slf4j</groupId>

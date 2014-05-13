@@ -115,8 +115,37 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
     
-    <!-- UIMA-AS -->   
+    <!-- HTTP Support for the broker -->
     <dependencySet>
+			<includes>
+				<include>org.apache.httpcomponents:httpclient</include>
+				<include>org.apache.httpcomponents:httpcore</include>
+				<include>xpp3:xpp3</include>
+			</includes>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<outputDirectory>apache-uima/apache-activemq/lib/optional</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+			<fileMode>644</fileMode>
+			<directoryMode>755</directoryMode>
+    </dependencySet>
+    
+    <!-- HTTP Support For DUCC Services -->
+    <dependencySet>
+			<includes>
+				<include>org.eclipse.jetty.aggregate:jetty-all-server</include>
+				<include>xpp3:xpp3</include>
+				<include>org.apache.httpcomponents:httpclient</include>
+				<include>org.apache.httpcomponents:httpcore</include>
+			</includes>
+			<useTransitiveDependencies>false</useTransitiveDependencies>
+			<outputDirectory>lib/apache-activemq</outputDirectory>
+			<useProjectArtifact>false</useProjectArtifact>
+			<fileMode>644</fileMode>
+			<directoryMode>755</directoryMode>
+    </dependencySet>
+
+    <!-- UIMA-AS -->   
+    <!-- dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uimaj-as-core</include>
@@ -124,14 +153,14 @@ under the License.
         <include>org.apache.uima:uimaj-as-activemq</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>lib/uima</outputDirectory>
+      <outputDirectory>apache-uima/lib</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
-    </dependencySet>
+    </dependencySet -->
 
     <!-- UIMA Core -->
-    <dependencySet>
+    <!--dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.apache.uima:uimaj-core</include>
@@ -141,7 +170,7 @@ under the License.
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
-    </dependencySet>
+    </dependencySet -->
 
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
@@ -273,7 +302,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-    <dependencySet>
+    <!--dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-logging:commons-logging</include>
@@ -300,7 +329,7 @@ under the License.
         <include>org.springframework:spring-core</include>
         <include>org.springframework:spring-expression</include>
         <include>org.springframework:spring-beans</include>
-        <!-- include>org.springframework:spring-aop</include -->
+       
         <include>org.springframework:spring-tx</include>
         <include>org.springframework:spring-asm</include>
         <include>org.springframework:spring-jms</include>
@@ -312,7 +341,6 @@ under the License.
         
         <include>log4j:log4j</include>
         
-        <!-- include>aopalliance:aopalliance</include -->
 
         <include>xpp3:xpp3</include>
 
@@ -320,6 +348,21 @@ under the License.
       </includes>      
 
       <outputDirectory>activemq/lib</outputDirectory>
+      <useTransitiveDependencies>false</useTransitiveDependencies>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet-->
+
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>org.apache.activemq:activemq-pool</include>
+        <include>org.apache.activemq:activemq-jaas</include>
+        <include>commons-pool:commons-pool</include>
+      </includes>      
+
+      <outputDirectory>apache-uima/apache-activemq/lib</outputDirectory>
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -392,10 +435,25 @@ under the License.
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
 
+    <!--              UIMA SDK                 -->
+    <fileSet>
+      <directory>target/uimaj/apache-uima</directory>
+      <outputDirectory>apache-uima</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
+    
+        <!--              UIMA-AS                 -->
+    <fileSet>
+      <directory>target/uima-as/apache-uima-as-${org.apache.uima.as.version}</directory>
+      <outputDirectory>apache-uima</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
    
     <!--          ACTIVEMQ               -->
     
-    <fileSet>
+    <!--fileSet>
       <directory>target/apache-activemq/apache-activemq-${org.apache.activemq.version}</directory>
       <outputDirectory>activemq</outputDirectory>
       <includes>
@@ -420,11 +478,12 @@ under the License.
       </excludes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
-    </fileSet>
+    </fileSet -->
 
     <fileSet>
       <directory>src/main/config/</directory>
-      <outputDirectory>activemq/conf</outputDirectory>
+      <!-- outputDirectory>activemq/conf</outputDirectory -->
+      <outputDirectory>apache-uima/apache-activemq/conf</outputDirectory>
       <includes>
         <include>activemq-ducc.xml</include>
         <include>ducc-broker-credentials.properties</include>
@@ -748,11 +807,11 @@ under the License.
     </file>
     
 
-    <file>
+    <!--file>
       <source>src/main/config/README.txt</source>
       <outputDirectory>activemq</outputDirectory>
       <fileMode>644</fileMode>
-    </file>
+    </file -->
     
 
     
