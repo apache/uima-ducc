@@ -256,16 +256,13 @@ class DuccUtil(DuccBase):
     
         # these things are added component-wise in ducc.py, not here
         #    db: derby 
-        #    sm: uima
-        #        activemq/optional
+        #    sm: activemq/lib/optional
         #        jetty from ws lib
         #        http client
         #    ws:
         #        http client
         #        jetty
         #        jsp
-        #    agent:
-        #        uima
         #   
         os.environ['CLASSPATH'] = CLASSPATH
 
