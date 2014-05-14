@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
+import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
 public class DuccManagedReservationMonitor extends DuccMonitor implements IDuccMonitor {
@@ -68,7 +69,8 @@ public class DuccManagedReservationMonitor extends DuccMonitor implements IDuccM
        		arrayList.add("--"+UiOption.ManagedReservationId.pname());
        		arrayList.add(getId());
        		arrayList.add("--"+UiOption.Reason.pname());
-       		arrayList.add("\"submitter was terminated via interrupt\"");
+       		String reason = CancelReason.MonitorEnded.getText();
+       		arrayList.add("\""+reason+"\"");
        		String[] argList = arrayList.toArray(new String[0]);
     		DuccManagedReservationCancel managedReservationCancel = new DuccManagedReservationCancel(argList);
     		boolean retVal = managedReservationCancel.execute();
