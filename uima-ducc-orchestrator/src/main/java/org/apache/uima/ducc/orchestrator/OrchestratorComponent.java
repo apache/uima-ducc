@@ -642,14 +642,9 @@ implements Orchestrator {
 				String tgtUser = duccWorkJob.getStandardInfo().getUser().trim();
 				if(isAuthorized(dwid, reqUser, tgtUser, reqRole)) {
 					logger.debug(methodName, dwid, "reqUser:"+reqUser+" "+"reqRole:"+reqRole+" "+"tgtUser:"+tgtUser);
-					String message = "job canceled by userid "+reqUser;
-					if(properties.containsKey(SpecificationProperties.key_reason)) {
-						String reason = properties.getProperty(SpecificationProperties.key_reason);
-						if(reason != null) {
-							message += ": "+reason;
-						}
-					}
-					IRationale rationale = new Rationale(message);
+					String givenReason = properties.getProperty(SpecificationProperties.key_reason);
+					Reason reason = new Reason(dwid, reqUser, reqRole, givenReason);
+					IRationale rationale = new Rationale(reason.toString());
 					JobCompletionType jobCompletionType = JobCompletionType.CanceledByUser;
 					if(reqRole.equals(SpecificationProperties.key_role_administrator)) {
 						jobCompletionType = JobCompletionType.CanceledByAdministrator;
@@ -1022,7 +1017,9 @@ implements Orchestrator {
 						type = "service";
 						break;
 					}
-					IRationale rationale = new Rationale(type+" canceled by "+reqUser);
+					String givenReason = properties.getProperty(SpecificationProperties.key_reason);
+					Reason reason = new Reason(dwid, reqUser, reqRole, givenReason);
+					IRationale rationale = new Rationale(reason.toString());
 					JobCompletionType jobCompletionType = JobCompletionType.CanceledByUser;
 					if(reqRole.equals(SpecificationProperties.key_role_administrator)) {
 						jobCompletionType = JobCompletionType.CanceledByAdministrator;
