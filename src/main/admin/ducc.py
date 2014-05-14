@@ -129,8 +129,6 @@ class Ducc(DuccUtil):
                 else:
                     ducc_component = '-Dducc.deploy.components=agent'
 
-                self.add_to_classpath(ducc_home + '/apache-uima/lib/*')
-
             if ( c == 'rm' ):
                 if ( int(rmoverride) > 0 ):
                     jvm_opts.append("-Dducc.rm.override.dram=" + rmoverride)
@@ -154,7 +152,6 @@ class Ducc(DuccUtil):
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
-
 
             if ( c == 'viz' ):
                 here = os.getcwd()
@@ -183,7 +180,6 @@ class Ducc(DuccUtil):
             if ( c == 'sm' ):
                 if ( self.sm_jvm_args != None ):
                     jvm_opts.append(self.sm_jvm_args)
-                self.add_to_classpath(ducc_home + '/apache-uima/lib/*')
                 self.add_to_classpath(ducc_home + '/apache-uima/apache-activemq/lib/optional/*')
                 self.add_to_classpath(ducc_home + '/lib/http-client/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')       

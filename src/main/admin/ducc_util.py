@@ -234,6 +234,7 @@ class DuccUtil(DuccBase):
             for j in extra_jars:
                 CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
 
+        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/lib/*'           
         CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/apache-activemq/lib/*'           
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
         CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
@@ -250,8 +251,6 @@ class DuccUtil(DuccBase):
         CLASSPATH = CLASSPATH + ":" + LIB + '/libpam4j/*'
 
         CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc/*'
-
-
 
         CLASSPATH = CLASSPATH + ':' + RESOURCES
     
