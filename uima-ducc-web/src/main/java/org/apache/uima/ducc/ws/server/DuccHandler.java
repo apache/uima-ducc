@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
+import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
@@ -3515,6 +3516,9 @@ public class DuccHandler extends DuccAbstractHandler {
 				if(HandlersHelper.isUserAuthorized(request,resourceOwnerUserId)) {
 					String arg1 = "-"+name;
 					String arg2 = value;
+					String arg3 = "--"+SpecificationProperties.key_reason;
+					String reason = CancelReason.TerminateButtonPressed.getText();
+			   		String arg4 = "\""+reason+"\"";
 					String userId = duccWebSessionManager.getUserId(request);
 					String cp = System.getProperty("java.class.path");
 					String java = "/bin/java";
@@ -3523,14 +3527,14 @@ public class DuccHandler extends DuccAbstractHandler {
 					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
 					case Administrator:
-						String arg3 = "--"+SpecificationProperties.key_role_administrator;
-						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
+						String arg5 = "--"+SpecificationProperties.key_role_administrator;
+						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4, arg5 };
 						result = DuccAsUser.duckling(userId, arglistAdministrator);
 						response.getWriter().println(result);
 						break;
 					case User:
 					default:
-						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
+						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4 };
 						result = DuccAsUser.duckling(userId, arglistUser);
 						response.getWriter().println(result);
 						break;	

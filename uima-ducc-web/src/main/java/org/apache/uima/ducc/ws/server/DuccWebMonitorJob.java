@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -312,7 +313,8 @@ public class DuccWebMonitorJob {
 		String arg1 = "--"+JobRequestProperties.key_id;
 		String arg2 = ""+duccId;
 		String arg3 = "--"+SpecificationProperties.key_reason;
-		String arg4 = "\"Canceled by monitor (submitter terminated)\"";
+		String reason = CancelReason.MonitorPingOverdue.getText();
+   		String arg4 = "\""+reason+"\"";
 		
 		String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3, arg4 };
 		String result = DuccAsUser.duckling(userId, arglistUser);
