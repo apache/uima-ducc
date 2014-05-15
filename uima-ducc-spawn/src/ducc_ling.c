@@ -42,7 +42,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "1.0.1"
+#define VERSION "1.1.0"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -70,6 +70,7 @@
  * 2013-10-03 0.8.10 DUCC_CONSOLE_LISTENER=suppress means direct stdin/stderr to /dev/null jrc
  * 2013-11-21 0.8.10 Update version to 1.0.0 for release jrc
  * 2014-02-14 1.0.1 Use initgroups to fully initalize usergrouops.  jrc
+ * 2014-02-14 1.1.0 Support DUCC_UMASK to give user control over umask.  jrc
  */
 
 /**
@@ -344,6 +345,10 @@ void renice()
     if ( nicestr != NULL ) {
         char *en = 0;
         niceval = strtol(nicestr, &en, 10);
+        if (*en) {
+            log_stderr("4070 NICE: %s is not numeric; nice not set.\n", nicestr);
+            return;
+        }
     }
     log_stdout("4050 Nice: Using %d\n", niceval);
     int rc = nice(niceval);
@@ -357,6 +362,23 @@ void renice()
     // mac seems to have no 'nice' syscall but we don't care since its only for test and devel anyway
 }
 #endif
+
+void set_umask()
+{
+    char *umaskstr = getenv("DUCC_UMASK");
+    mode_t umaskval = 0;
+    mode_t oldval = 0;
+    if ( umaskstr != NULL ) {
+        char *en = 0;
+        umaskval = strtol(umaskstr, &en, 8);   // note octal is what we support
+        if (*en) {
+            log_stderr("4080 UMASK: %s is not numeric/octal; umask not set.\n", umaskstr);
+            return;
+        }
+        oldval = umask(umaskval);
+        log_stdout("4090 Umask set to O%O.  Old value: O%O\n", umaskval, oldval);
+    }
+}
 
 void redirect_to_file(char *filepath)
 {
@@ -655,6 +677,7 @@ int main(int argc, char **argv, char **envp)
     }
 
     set_limits();         // AFTER the switch, set soft and limits if needed
+    set_umask();         
 
     query_limits();       // Once, for the agent
     renice();
