@@ -376,7 +376,7 @@ void set_umask()
             return;
         }
         oldval = umask(umaskval);
-        log_stdout("4090 Umask set to O%O.  Old value: O%O\n", umaskval, oldval);
+        log_stdout("4090 Umask set to O%o.  Old value: O%o\n", umaskval, oldval);
     }
 }
 
