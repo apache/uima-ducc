@@ -168,6 +168,29 @@ class NodePool
         }
         return count;
     }
+     /**
+     * How many do I have, including recusring down the children?
+     */
+    int countUnresponsiveMachines()
+    {
+        int count = unresponsiveMachines.size();
+        for ( NodePool np : children.values() ) {
+            count += np.countUnresponsiveMachines();
+        }
+        return count;
+    }
+
+    /**
+     * How many do I have, including recusring down the children?
+     */
+    int countOfflineMachines()
+    {
+        int count = offlineMachines.size();
+        for ( NodePool np : children.values() ) {
+            count += np.countOfflineMachines();
+        }
+        return count;
+    }
 
     /**
      * Non-recursive machine count.
@@ -185,6 +208,9 @@ class NodePool
         return total_shares;
     }
     
+    /**
+     * Counts just local, for reservations.
+     */
     int countFreeMachines(int order, boolean enforce)
     {
         int cnt = 0;
@@ -204,6 +230,18 @@ class NodePool
         return cnt;
     }
 
+    /**
+     * Counts all known machines, for queries.
+     */
+    int countAllFreeMachines()
+    {
+        int count = countFreeMachines(0, false);  // don't care about the order
+        for ( NodePool np : children.values() ) {
+            count += np.countAllFreeMachines();
+        }
+        return count;
+    }
+
     int countTotalShares()
     {
         int answer = total_shares;
@@ -214,7 +252,7 @@ class NodePool
     }
 
     /**
-     * Total Q shares in the nodepool that are not yet give away in the scheduling cycle.
+     * Total Q shares in the nodepool that are not yet given away in the scheduling cycle.
      */ 
     int countQShares()
     {
@@ -790,6 +828,7 @@ class NodePool
             }
 
             allMachines.remove(m.key());
+            total_shares -= order; 
             disableMap.put(m.key(), m);
 
             HashMap<Node, Machine> machs = machinesByOrder.get(order);

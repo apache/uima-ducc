@@ -29,6 +29,7 @@ import org.apache.camel.dataformat.xstream.XStreamDataFormat;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.impl.DefaultClassResolver;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
+import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
@@ -204,6 +205,20 @@ public class DuccRmAdmin
 		System.out.println(reply.getResponse());
 	}
 
+	/**
+	 * Query load.
+	 * 
+	 * @throws Exception
+	 */
+	public void qload()
+		throws Exception 
+    {
+
+        RmAdminQLoad ql = new RmAdminQLoad();
+		RmAdminReply reply = dispatchAndWaitForReply(ql);
+		System.out.println(reply.toString());
+	}
+
     
     public void run(String[] args)
     	throws Exception
@@ -219,6 +234,12 @@ public class DuccRmAdmin
             varyon(args);
             return;
         }
+
+        if ( args[0].equals("--qload")) {
+            if ( args.length != 1 ) usage("Query load takes no arguments.");
+            qload();
+            return;
+        }
     }
 
     public static void usage(String msg)
@@ -230,6 +251,7 @@ public class DuccRmAdmin
         System.out.println("Where verbs are:");
         System.out.println("   --varyoff string-delimeted-nodes");
         System.out.println("   --varyon  string-delimeted-nodes");
+        System.out.println("   --qload");
 
         System.exit(1);
     }

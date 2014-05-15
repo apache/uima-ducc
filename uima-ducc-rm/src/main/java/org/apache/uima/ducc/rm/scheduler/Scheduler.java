@@ -29,6 +29,7 @@ import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.Pair;
+import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -104,6 +105,9 @@ public class Scheduler
     long share_quantum    = 16;             // 16 GB in KB - smallest share size
     long share_free_dram  = 0;              // 0  GB in KB  - minim memory after shares are allocated
     long dramOverride     = 0;              // if > 0, use this instead of amount reported by agents (modeling and testing)
+
+    int pending_evictions = 0;                    // for queries
+    int pending_expansions = 0;                  // for queries
 
     EvictionPolicy evictionPolicy = EvictionPolicy.SHRINK_BY_MACHINE;
 
@@ -579,6 +583,9 @@ public class Scheduler
         String methodName = "dispatch";
         HashMap<IRmJob, IRmJob> jobs;
 
+        pending_evictions = 0;                    // for queries
+        pending_expansions = 0;                  // for queries
+
         // Go through shrunken jobs - if they are shrunken to 0, move to dormant
         jobs = upd.getShrunkenJobs();
         for (IRmJob j : jobs.values()) {
@@ -588,6 +595,7 @@ public class Scheduler
             HashMap<Share, Share> sharesE = j.getAssignedShares();
             HashMap<Share, Share> sharesR = j.getPendingRemoves();
             logger.trace(methodName, j.getId(), "removing", sharesR.size(), "of existing", sharesE.size(), "shares.");
+            pending_evictions += (sharesR.size() * j.getShareOrder());
 
             for ( Share s : sharesE.values() ) {
                 logger.trace(methodName, j.getId(), "    current", s.toString());
@@ -613,6 +621,7 @@ public class Scheduler
 
             logger.trace(methodName, j.getId(), "<<<<<<<<<<  EXPAND");
             logger.trace(methodName, j.getId(), "adding", sharesN.size(), "new shares to existing", sharesE.size(), "shares.");
+            pending_expansions += (sharesN.size() * j.getShareOrder());
 
             for ( Share s : sharesE.values()) {
                 logger.trace(methodName, j.getId(), "    existing ", s.toString());
@@ -1075,6 +1084,43 @@ public class Scheduler
             }
         }
     	return reply.toString();
+    }
+
+    public synchronized RmAdminQLoadReply queryLoad()
+    {
+        RmAdminQLoadReply reply = new RmAdminQLoadReply();
+        /**
+        int nodesOnline;      // number of schedulable nodes
+        int nodesDead;        // number of nodes marked dead
+        int nodesOffline;     // number of nodes varied off
+        int nodesFree;        // number of nodes with nothing on them
+        */
+        int online = 0;
+        int dead = 0;
+        int offline = 0;
+        int free = 0;
+        int shares_available = 0;
+        int shares_free = 0;
+
+        for ( NodePool np : nodepools ) {
+            online += np.countMachines();
+            dead += np.countUnresponsiveMachines();
+            offline += np.countOfflineMachines();
+            free += np.countAllFreeMachines();
+            
+            shares_available += np.countTotalShares();
+            shares_free += np.countQShares();
+        }
+        reply.setNodesOnline(online);
+        reply.setNodesDead(dead);
+        reply.setNodesOffline(offline);
+        reply.setNodesFree(free);
+        reply.setSharesAvailable(shares_available);
+        reply.setSharesFree(shares_free);
+        reply.setPendingExpansions(pending_expansions);
+        reply.setPendingEvictions(pending_evictions);
+        
+        return reply;
     }
 
     /**

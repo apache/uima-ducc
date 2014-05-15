@@ -26,6 +26,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
+import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
@@ -143,6 +144,9 @@ public class ResourceManagerComponent
             if (body instanceof RmAdminVaryOn) {
             	RmAdminVaryOn vo = (RmAdminVaryOn) body;            	 
                 reply = new RmAdminReply(scheduler.varyon(vo.getNodes()));
+            } else
+            if (body instanceof RmAdminQLoad) {
+                reply = scheduler.queryLoad();
             }
 
             exchange.getIn().setBody(reply);

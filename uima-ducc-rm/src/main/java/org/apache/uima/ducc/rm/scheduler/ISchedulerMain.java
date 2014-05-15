@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
@@ -73,4 +74,5 @@ public interface ISchedulerMain
 
     String varyoff(String[] nodes);
     String varyon(String[] nodes);
+    RmAdminQLoadReply queryLoad();
 }
