@@ -80,6 +80,16 @@ public class MachineFactsTest {
 		return swap;
 	}
 	
+	private String createFree() {
+		String free = "";
+		int type = random.nextInt(10);
+		if(type > 2) {
+			int index = random.nextInt(10);
+			free = ""+index;
+		}
+		return free;
+	}
+	
 	private List<String> createAliens() {
 		List<String> aliens = new ArrayList<String>();
 		int count = random.nextInt(10);
@@ -135,11 +145,12 @@ public class MachineFactsTest {
 		String reserve = createMemory();
 		String memory = createMemory();
 		String swap = createSwap();
+		String free = createFree();
 		List<String> aliens = createAliens();
 		String sharesTotal = createSharesTotal(memory);
 		String sharesInuse = createSharesInuse(sharesTotal);
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, aliens, sharesTotal, sharesInuse, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, free, aliens, sharesTotal, sharesInuse, heartbeat);
 		return machineFacts;
 	}
 	
@@ -163,7 +174,8 @@ public class MachineFactsTest {
 			&& m1.sharesInuse.equals(m2.sharesInuse) 
 			&& m1.sharesTotal.equals(m2.sharesTotal)
 			&& m1.status.equals(m2.status) 
-			&& m1.swap.equals(m2.swap) 
+			&& m1.swapInuse.equals(m2.swapInuse) 
+			&& m1.swapFree.equals(m2.swapFree) 
 			) {
 				retVal = true;
 			}
