@@ -2487,7 +2487,8 @@ public class DuccHandler extends DuccAbstractHandler {
 		// pass 1
 		iterator = sortedMachines.keySet().iterator();
 		long memTotal = 0;
-		long memSwap = 0;
+		long swapInuse = 0;
+		long swapFree = 0;
 		long alienPids = 0;
 		long sharesTotal = 0;
 		long sharesInuse = 0;
@@ -2497,8 +2498,10 @@ public class DuccHandler extends DuccAbstractHandler {
 				memTotal += Long.parseLong(machineInfo.getMemTotal());
 			}
 			catch(Exception e) {};
-			try {
-				memSwap += Long.parseLong(machineInfo.getMemSwap());
+			try {swapInuse += Long.parseLong(machineInfo.getSwapInuse());
+			}
+			catch(Exception e) {};
+			try {swapFree += Long.parseLong(machineInfo.getSwapFree());
 			}
 			catch(Exception e) {};
 			try {
@@ -2530,7 +2533,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(",");
 		sb.append(quote(""+memTotal));
 		sb.append(",");
-		sb.append(quote(""+memSwap));
+		sb.append(quote(""+swapInuse));
+		sb.append(",");
+		sb.append(quote(""+swapFree));
 		sb.append(",");
 		sb.append(quote(""+alienPids));
 		sb.append(",");
@@ -2555,7 +2560,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append(",");
 			sb.append(quote(machineInfo.getMemTotal()));
 			sb.append(",");
-			sb.append(quote(machineInfo.getMemSwap()));
+			sb.append(quote(machineInfo.getSwapInuse()));
+			sb.append(",");
+			sb.append(quote(machineInfo.getSwapFree()));
 			sb.append(",");
 			List<ProcessInfo> alienPidsList = machineInfo.getAlienPids();
 			String alienPidsDisplay = "";

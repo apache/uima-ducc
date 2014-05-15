@@ -67,7 +67,8 @@ public class DuccMachinesData {
 	private static ConcurrentSkipListMap<String,MachineSummaryInfo> summaryMachines = new ConcurrentSkipListMap<String,MachineSummaryInfo>();
 	
 	private static AtomicLong memoryTotal = new AtomicLong(0);
-	private static AtomicLong memorySwapped = new AtomicLong(0);
+	private static AtomicLong swapInuse = new AtomicLong(0);
+	private static AtomicLong swapFree = new AtomicLong(0);
 	private static AtomicLong sharesTotal = new AtomicLong(0);
 	private static AtomicLong sharesInuse = new AtomicLong(0);
 	
@@ -122,7 +123,7 @@ public class DuccMachinesData {
 			Iterator<String> iterator = nodes.iterator();
 			while(iterator.hasNext()) {
 				String nodeName = (String) iterator.next();
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, "", "", null, "", "", -1, 0);
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, "", "", "", null, "", "", -1, 0);
 				unsortedMachines.put(machineInfo.getName(),machineInfo);
 			}
 		}
@@ -159,7 +160,8 @@ public class DuccMachinesData {
 	public MachineSummaryInfo getTotals() {
 		MachineSummaryInfo totals = new MachineSummaryInfo();
 		totals.memoryTotal = memoryTotal.get();
-		totals.memorySwapped = memorySwapped.get();
+		totals.swapInuse = swapInuse.get();
+		totals.swapFree = swapFree.get();
 		totals.sharesTotal = sharesTotal.get();
 		totals.sharesInuse = sharesInuse.get();
 		return totals;
@@ -170,14 +172,16 @@ public class DuccMachinesData {
 			MachineSummaryInfo oldInfo = summaryMachines.get(ip.toString());
 			summaryMachines.put(ip.toString(), newInfo);
 			memoryTotal.addAndGet(newInfo.memoryTotal-oldInfo.memoryTotal);
-			memorySwapped.addAndGet(newInfo.memorySwapped-oldInfo.memorySwapped);
+			swapInuse.addAndGet(newInfo.swapInuse-oldInfo.swapInuse);
+			swapFree.addAndGet(newInfo.swapFree-oldInfo.swapFree);
 			sharesTotal.addAndGet(newInfo.sharesTotal-oldInfo.sharesTotal);
 			sharesInuse.addAndGet(newInfo.sharesInuse-oldInfo.sharesInuse);
 		}
 		else {
 			summaryMachines.put(ip.toString(), newInfo);
 			memoryTotal.addAndGet(newInfo.memoryTotal);
-			memorySwapped.addAndGet(newInfo.memorySwapped);
+			swapInuse.addAndGet(newInfo.swapInuse);
+			swapFree.addAndGet(newInfo.swapFree);
 			sharesTotal.addAndGet(newInfo.sharesTotal);
 			sharesInuse.addAndGet(newInfo.sharesInuse);
 		}
@@ -228,19 +232,24 @@ public class DuccMachinesData {
 		// swap: in-use
 		double dvalT = nodeMetrics.getNodeMemory().getSwapTotal();
 		long lvalT = (long) (dvalT/(1024*1024)+0.5);
-		double dvalF= nodeMetrics.getNodeMemory().getSwapFree();
+		double dvalF = nodeMetrics.getNodeMemory().getSwapFree();
 		long lvalF = (long) (dvalF/(1024*1024)+0.5);
+		
 		lval = lvalT - lvalF;
-		String memSwap = ""+lval/*+memUnits*/;
-		msi.memorySwapped = lval;
+		String swapInuse = ""+lval/*+memUnits*/;
+		msi.swapInuse = lval;
 		String swapKey = ip.toString();
-		String swapVal = ip.toString();
-		if(msi.memorySwapped > 0) {
+		String swapVal = swapInuse;
+		if(msi.swapInuse > 0) {
 			isSwapping.put(swapKey, swapVal);
 		}
 		else {
 			isSwapping.remove(swapKey);
 		}
+		lval = lvalF;
+		//String swapFree = ""+lval/*+memUnits*/;
+		msi.swapFree = lval;
+		String swapFree = ""+lval/*+memUnits*/;
 		String sharesInuse = "0";
 		Properties shareMap = getShareMap(shareSize);
 		try {
@@ -253,7 +262,7 @@ public class DuccMachinesData {
 			logger.warn(location, jobid, t);
 		}
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memSwap, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, ""+swapInuse, ""+swapFree, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
 		String key = normalizeMachineName(machineName);
 		MachineInfo previous = unsortedMachines.get(key);
 		if(previous != null) {
@@ -542,12 +551,13 @@ public class DuccMachinesData {
 			String name = machineInfo.getName();
 			String reserve = getReserveSize(machineInfo);
 			String memory = machineInfo.getMemTotal();
-			String swap = machineInfo.getMemSwap();
+			String swapInuse = machineInfo.getSwapInuse();
+			String swapFree = machineInfo.getSwapFree();
 			List<String> aliens = machineInfo.getAliensPidsOnly();
 			String sharesTotal = machineInfo.getSharesTotal();
 			String sharesInuse = machineInfo.getSharesInuse();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swap,aliens,sharesTotal,sharesInuse,heartbeat);
+			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swapInuse,swapFree,aliens,sharesTotal,sharesInuse,heartbeat);
 			factsList.add(facts);
 		}
 		return factsList;

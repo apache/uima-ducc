@@ -42,7 +42,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private String ip;
 	private String name;
 	private String memTotal;
-	private String memSwap;
+	private String swapInuse;
+	private String swapFree;
 	private List<ProcessInfo> alienPids;
 	private String sharesTotal;
 	private String sharesInuse;
@@ -52,12 +53,13 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private long pubSize;
 	private long pubSizeMax;
 	
-	public MachineInfo(String fileDef, String ip, String name, String memTotal, String memSwap, List<ProcessInfo> alienPids, String sharesTotal, String sharesInuse, long heartbeat, long pubSize) {
+	public MachineInfo(String fileDef, String ip, String name, String memTotal, String swapInuse, String swapFree, List<ProcessInfo> alienPids, String sharesTotal, String sharesInuse, long heartbeat, long pubSize) {
 		this.fileDef = fileDef;
 		this.ip = ip;
 		this.name = name;
 		this.memTotal = memTotal;
-		this.memSwap = memSwap;
+		this.swapInuse = swapInuse;
+		this.swapFree = swapFree;
 		this.alienPids = alienPids;
 		if(this.alienPids == null) {
 			this.alienPids = new ArrayList<ProcessInfo>();
@@ -122,8 +124,12 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.memTotal;
 	}
 	
-	public String getMemSwap() {
-		return this.memSwap;
+	public String getSwapInuse() {
+		return this.swapInuse;
+	}
+	
+	public String getSwapFree() {
+		return this.swapFree;
 	}
 	
 	public List<ProcessInfo> getAlienPids() {
@@ -311,8 +317,8 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private int compareSwapInuse(MachineInfo m1, MachineInfo m2) {
 		int retVal = 0;
 		try {
-			long v1 = Long.parseLong(m1.getMemSwap());
-			long v2 = Long.parseLong(m2.getMemSwap());
+			long v1 = Long.parseLong(m1.getSwapInuse());
+			long v2 = Long.parseLong(m2.getSwapInuse());
 			if(v1 > v2) {
 				return -1;
 			}

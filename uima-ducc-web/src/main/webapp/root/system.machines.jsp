@@ -45,20 +45,8 @@ under the License.
                             $('td:eq(7)' , nRow).css( "text-align", "right" );
                             $('td:eq(8)' , nRow).css( "text-align", "right" );
                             $('td:eq(9)' , nRow).css( "text-align", "right" );
-                            $('td:eq(10)' , nRow).css( "text-align", "right" );                            
-                            if ( aData[0] == "up" ) {
-                    			jQuery('td:eq(0)', nRow).addClass('health_green');
-                			}
-                			if ( aData[0] == "down" ) {
-                    			jQuery('td:eq(0)', nRow).addClass('health_red');
-                			}
-                			try {
-                				if( parseInt(aData[4]) > 0) {
-                					jQuery('td:eq(4)', nRow).addClass('health_red');
-                				}
-                			}
-                			catch(err) {
-							}
+                            $('td:eq(10)' , nRow).css( "text-align", "right" );      
+                            $('td:eq(11)' , nRow).css( "text-align", "right" );                                 
                             return nRow;
 			},
 		} );
@@ -119,6 +107,7 @@ if (table_style.equals("scroll")) {
 	<th align="left" title="The host reservation size (hint: specify this size to reserve entire machine), in GB" >Reserve(GB):size</th>
 	<th align="left" title="The host memory size, in GB" >Memory(GB):total</th>
 	<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
+	<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 	<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
 	<th align="left" title="The number of system shares" >Shares:total</th>
 	<th align="left" title="The number of system shares inuse" >Shares:inuse</th>
@@ -148,6 +137,7 @@ if (table_style.equals("classic")) {
 		<th align="left" title="The host reservation size (hint: specify this size to reserve entire machine), in GB" >Reserve(GB):size</th>
         <th align="left" title="The host memory size, in GB" >Memory(GB):total</th>	
 		<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
+		<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 		<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
 		<th align="left" title="The number of system shares" >Shares:total</th>
 		<th align="left" title="The number of system shares inuse" >Shares:inuse</th>

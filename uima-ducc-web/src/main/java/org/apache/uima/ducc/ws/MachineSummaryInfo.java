@@ -21,7 +21,8 @@ package org.apache.uima.ducc.ws;
 public class MachineSummaryInfo {
 
 	public long memoryTotal = 0;
-	public long memorySwapped = 0;
+	public long swapInuse = 0;
+	public long swapFree = 0;
 	public long sharesTotal = 0;
 	public long sharesInuse = 0;
 }
