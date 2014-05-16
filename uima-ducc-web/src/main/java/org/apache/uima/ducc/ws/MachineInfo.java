@@ -132,6 +132,19 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.swapFree;
 	}
 	
+	public List<String> getAliens() {
+		ArrayList<String> list = new ArrayList<String>();
+		Iterator<ProcessInfo> iterator = alienPids.iterator();
+		while(iterator.hasNext()) {
+			ProcessInfo processInfo = iterator.next();
+			String uid = processInfo.getUid();
+			String pid = processInfo.getPid();
+			String alien = uid+":"+pid;
+			list.add(alien);
+		}
+		return list;
+	}
+	
 	public List<ProcessInfo> getAlienPids() {
 		return this.alienPids;
 	}

@@ -553,7 +553,7 @@ public class DuccMachinesData {
 			String memory = machineInfo.getMemTotal();
 			String swapInuse = machineInfo.getSwapInuse();
 			String swapFree = machineInfo.getSwapFree();
-			List<String> aliens = machineInfo.getAliensPidsOnly();
+			List<String> aliens = machineInfo.getAliens();
 			String sharesTotal = machineInfo.getSharesTotal();
 			String sharesInuse = machineInfo.getSharesInuse();
 			String heartbeat = ""+machineInfo.getElapsed();
