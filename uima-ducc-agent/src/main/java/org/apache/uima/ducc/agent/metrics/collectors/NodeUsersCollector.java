@@ -205,9 +205,9 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
 
       ProcessBuilder pb;
       if ( Utils.isMac() ) {
-        pb = new ProcessBuilder("ps","-Ao","user=,pid=,ppid=,args=");
+        pb = new ProcessBuilder("ps","-Ao","user=,pid=,ppid=,args=,uid=");
       } else {
-        pb = new ProcessBuilder("ps","-Ao","user:12,pid,ppid,args", "--no-heading");
+        pb = new ProcessBuilder("ps","-Ao","user:12,pid,ppid,args,uid", "--no-heading");
       }
       pb.redirectErrorStream(true);
       Process proc = pb.start();
@@ -269,12 +269,18 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         String pid = tokens[1];
         String ppid = tokens[2];
         String cmd = tokens[3];
+        String uid = tokens[4];
         
         if ( tokens.length > 0 ) {
-//        	RunningProcess p = 
-//                    new RunningProcess(pid,ppid,user);
-//            tempProcessList.add(p);
-            //	walk up the tree of ancestor processes to check if any is owned by ducc. If so, this
+        	try {
+        		// by convention processes owned by uid < 500 are system processes thus not rogue
+        		if ( Integer.valueOf(uid) < 500 ) {
+        			continue;    
+        		}
+        	} catch( NumberFormatException nfe) {
+        		
+        	}
+        	//	walk up the tree of ancestor processes to check if any is owned by ducc. If so, this
             //  process is not rogue.
             if ( processAncestorIsOwnedByDucc(pid, tempProcessList)) {
             	continue;  // skip as this is not a rogue process
