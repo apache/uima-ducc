@@ -158,6 +158,8 @@ class Ducc(DuccUtil):
                 os.chdir(self.DUCC_HOME + '/vizserver')
                 if ( self.ws_jvm_args != None ):
                     jvm_opts.append(self.ws_jvm_args)
+                self.add_to_classpath(ducc_home + '/lib/http-client/*')
+                self.add_to_classpath(ducc_home + '/vizserver/lib/*')
 
             if ( c == 'orchestrator' ):
                 if ( or_parms != None ):
