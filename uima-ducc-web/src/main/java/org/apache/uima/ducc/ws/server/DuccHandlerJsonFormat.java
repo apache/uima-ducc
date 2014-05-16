@@ -682,7 +682,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					else {							
 						IRationale rationale = reservation.getCompletionRationale();
 						if(rationale != null) {
-							sb.append("<span title=\""+rationale+"\">");
+							sb.append("<span title=\""+rationale.getTextQuoted()+"\">");
 							sb.append(duccwork.getCompletionTypeObject().toString());
 							sb.append("</span>");
 						}
