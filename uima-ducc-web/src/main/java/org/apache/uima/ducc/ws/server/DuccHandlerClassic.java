@@ -591,7 +591,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					else {							
 						IRationale rationale = reservation.getCompletionRationale();
 						if(rationale != null) {
-							sb.append("<span title=\""+rationale.getTextQuoted()+"\">");
+							sb.append("<span title="+rationale.getTextQuoted()+">");
 							sb.append(duccwork.getCompletionTypeObject().toString());
 							sb.append("</span>");
 						}
@@ -604,7 +604,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				catch(Exception e) {
 					IRationale rationale = reservation.getCompletionRationale();
 					if(rationale != null) {
-						sb.append("<span title=\""+rationale+"\">");
+						sb.append("<span title="+rationale.getTextQuoted()+">");
 						sb.append(duccwork.getCompletionTypeObject().toString());
 						sb.append("</span>");
 					}
@@ -616,7 +616,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			default:
 				IRationale rationale = reservation.getCompletionRationale();
 				if(rationale != null) {
-					sb.append("<span title=\""+rationale+"\">");
+					sb.append("<span title="+rationale.getTextQuoted()+">");
 					sb.append(duccwork.getCompletionTypeObject().toString());
 					sb.append("</span>");
 				}
