@@ -1383,10 +1383,30 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					sb.append("</span>");
 				}
 				row.add(new JsonPrimitive(sb.toString()));
+				// Shares
+				int sharesTotal = 0;
+				int sharesInuse = 0;
+				try {
+					int total = Integer.parseInt(facts.sharesTotal);
+					int inuse = Integer.parseInt(facts.sharesInuse);
+					sharesTotal = total;
+					sharesInuse = inuse;
+				}
+				catch(Exception e) {
+				}
 				// Shares: total
 				row.add(new JsonPrimitive(facts.sharesTotal));
-				// Shares:inuse
-				row.add(new JsonPrimitive(facts.sharesInuse));
+				// Shares: inuse
+				sb = new StringBuffer();
+				String span0 = "<span class=\"health_black\">";
+				String span1 = "</span>";
+				if(sharesInuse > sharesTotal) {
+					span0 = "<span class=\"health_red\">";
+				}
+				sb.append(span0);
+				sb.append(facts.sharesInuse);
+				sb.append(span1);
+				row.add(new JsonPrimitive(sb.toString()));
 				// Heartbeat: last
 				row.add(new JsonPrimitive(facts.heartbeat));
 				data.add(row);

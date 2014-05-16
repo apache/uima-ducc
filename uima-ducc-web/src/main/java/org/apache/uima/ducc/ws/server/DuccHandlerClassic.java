@@ -1822,13 +1822,31 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append("<td align=\"right\">");
 				row.append(sb);
 				row.append("</td>");
+				// Shares
+				int sharesTotal = 0;
+				int sharesInuse = 0;
+				try {
+					int total = Integer.parseInt(facts.sharesTotal);
+					int inuse = Integer.parseInt(facts.sharesInuse);
+					sharesTotal = total;
+					sharesInuse = inuse;
+				}
+				catch(Exception e) {
+				}
 				// Shares: total
 				row.append("<td align=\"right\">");
 				row.append(facts.sharesTotal);
 				row.append("</td>");
-				// Shares:inuse
+				// Shares: inuse
 				row.append("<td align=\"right\">");
+				String span0 = "<span class=\"health_black\">";
+				String span1 = "</span>";
+				if(sharesInuse > sharesTotal) {
+					span0 = "<span class=\"health_red\">";
+				}
+				row.append(span0);
 				row.append(facts.sharesInuse);
+				row.append(span1);
 				row.append("</td>");
 				// Heartbeat: last
 				row.append("<td align=\"right\">");
