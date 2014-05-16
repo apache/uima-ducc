@@ -22,6 +22,7 @@ import java.io.Serializable;
 
 public interface IRationale extends Serializable {
 	public String getText();
+	public String getTextQuoted();
 	public boolean isSpecified();
 	public boolean isUnspecified();
 }

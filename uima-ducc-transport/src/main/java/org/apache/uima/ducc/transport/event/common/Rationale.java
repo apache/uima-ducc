@@ -34,9 +34,18 @@ public class Rationale implements IRationale {
 		setText(text);
 	}
 	
-	
 	public String getText() {
 		return text;
+	}
+	
+	public String getTextQuoted() {
+		String retVal = "";
+		if(text != null) {
+			retVal = text.trim();
+			retVal.replace("\"", "");
+			retVal = "\""+retVal+"\"";
+		}
+		return retVal;
 	}
 	
 	private void setText(String text) {
