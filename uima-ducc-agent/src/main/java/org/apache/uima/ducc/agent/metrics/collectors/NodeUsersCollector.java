@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.uima.ducc.agent.Agent;
-import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo;
 import org.apache.uima.ducc.common.node.metrics.NodeUsersInfo.NodeProcess;
 import org.apache.uima.ducc.common.utils.DuccLogger;
