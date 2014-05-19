@@ -49,10 +49,21 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
   
   DuccLogger logger;
   Agent agent;
+  int gidMax = 500;
   
   public NodeUsersCollector(Agent agent, DuccLogger logger) {
     this.agent = agent;
     this.logger = logger;
+    String tmp;
+	// SYSTEM_GID_MAX
+	if ((tmp = System
+			.getProperty("ducc.agent.node.metrics.sys.gid.max")) != null) {
+		try {
+			gidMax = Integer.valueOf(tmp);
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
+	}
   }
   /**
    * Returns true if a given userId belongs to an exclusion list defined in ducc.properties.
@@ -273,8 +284,8 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         
         if ( tokens.length > 0 ) {
         	try {
-        		// by convention processes owned by uid < 500 are system processes thus not rogue
-        		if ( Integer.valueOf(uid) < 500 ) {
+        		// by convention processes owned by uid < gidMax are system processes thus not rogue
+        		if ( Integer.valueOf(uid) < gidMax ) {
         			continue;    
         		}
         	} catch( NumberFormatException nfe) {
