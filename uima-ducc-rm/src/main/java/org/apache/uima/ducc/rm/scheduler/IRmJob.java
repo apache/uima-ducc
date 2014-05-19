@@ -79,6 +79,11 @@ public interface IRmJob
     public int countNSharesLost();
 
     /**
+     * For queries - how many processes do I want in a perfect world?
+     */
+    public int queryDemand();
+
+    /**
      * Eviction policies, configurable.
      */
     public int shrinkByOrderByMachine(int shares, int order, boolean force, NodePool np); // shrink by largest machine first, minimize fragmentation

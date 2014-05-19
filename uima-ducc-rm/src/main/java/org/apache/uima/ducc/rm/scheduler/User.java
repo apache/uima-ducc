@@ -33,7 +33,7 @@ public class User
     private int pure_fair_share;   // uncapped un-bonused counts
     private int share_wealth;      // defrag, how many relevent Q shares do i really have?
     private int[] given_by_order =  null;
-    private int[] wanted_by_order = null;
+    private int[] wanted_by_order = null; // transient and not immutable, can't use for queries
     private int totalWantedByOrder = 0;   // transient, calculated for each schedule
 
     private static Comparator<IEntity> apportionmentSorter = new ApportionmentSorterCl();

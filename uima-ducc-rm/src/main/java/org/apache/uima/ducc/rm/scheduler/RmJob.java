@@ -262,6 +262,12 @@ public class RmJob
         return machineList;
     }
 
+    public int queryDemand()
+    {
+        if ( getSchedulingPolicy() == Policy.FAIR_SHARE ) return getJobCap();
+        return countInstances();
+    }
+
     /**
      * There are a fair number of piddling little methods to manage shares.  This high granularity is
      * needed in order to manage bits and pieces of the bookkeeping from different threads and queues

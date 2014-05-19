@@ -137,7 +137,7 @@ public class Scheduler
     // 1.0.3 - fix bad check in recursion in NodepoolScheduler.doEvictions
     final static int rmversion_major = 1;
     final static int rmversion_minor = 0;
-    final static int rmversion_ptf   = 3;  
+    final static int rmversion_ptf   = 4;  
     final static String rmversion_string = null;
 
     boolean initialized = false;           // we refuse nodeupdates until this is true
@@ -1089,18 +1089,16 @@ public class Scheduler
     public synchronized RmAdminQLoadReply queryLoad()
     {
         RmAdminQLoadReply reply = new RmAdminQLoadReply();
-        /**
-        int nodesOnline;      // number of schedulable nodes
-        int nodesDead;        // number of nodes marked dead
-        int nodesOffline;     // number of nodes varied off
-        int nodesFree;        // number of nodes with nothing on them
-        */
+
         int online = 0;
         int dead = 0;
         int offline = 0;
         int free = 0;
         int shares_available = 0;
         int shares_free = 0;
+        int[] onlineMachines = NodePool.makeArray();
+        int[] freeMachines = NodePool.makeArray();
+        int[] virtualMachines = NodePool.makeArray();
 
         for ( NodePool np : nodepools ) {
             online += np.countMachines();
@@ -1110,7 +1108,26 @@ public class Scheduler
             
             shares_available += np.countTotalShares();
             shares_free += np.countQShares();
+            np.getOnlineByOrder(onlineMachines);
+
+            for ( int i = 1; i < freeMachines.length; i++ ) {
+                freeMachines[i] += np.countFreeMachines(i, true);
+            }
+            
+            int[] t = np.cloneVMachinesByOrder();
+            for ( int i = 1; i < virtualMachines.length; i++ ) {
+                virtualMachines[i] += t[i];
+            }
         }
+
+        int[] demanded = NodePool.makeArray();
+        int[] awarded  = NodePool.makeArray();
+        for ( IRmJob j : allJobs.values() ) {
+            int o = j.getShareOrder();
+            demanded[o] += j.queryDemand();
+            awarded[o]  += j.countNShares();
+        }
+
         reply.setNodesOnline(online);
         reply.setNodesDead(dead);
         reply.setNodesOffline(offline);
@@ -1119,6 +1136,11 @@ public class Scheduler
         reply.setSharesFree(shares_free);
         reply.setPendingExpansions(pending_expansions);
         reply.setPendingEvictions(pending_evictions);
+        reply.setSharesDemanded(demanded);
+        reply.setSharesAwarded(awarded);
+        reply.setMachinesOnline(onlineMachines);
+        reply.setMachinesFree(freeMachines);
+        reply.setMachinesVirtual(virtualMachines);
         
         return reply;
     }

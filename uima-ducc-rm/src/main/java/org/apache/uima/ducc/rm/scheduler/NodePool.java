@@ -86,7 +86,7 @@ class NodePool
     //int neededByOrder[];         // for each order, how many N-shares do I want to add?
 
     //     int shareExpansion[]; 
-    int machineExpansion[]; 
+    Map<Integer, Integer> onlineMachinesByOrder = new HashMap<Integer, Integer>();  // all online machines
 
     HashMap<Integer, HashMap<Node, Machine>> virtualMachinesByOrder;
     static int maxorder = 0;
@@ -113,6 +113,7 @@ class NodePool
         this.evictionPolicy = ep;
         this.depth = depth;
         this.order = order;
+
     }
 
     NodePool getParent()
@@ -221,6 +222,8 @@ class NodePool
         } else {
             mlist = allMachines;
         }
+
+        if ( mlist == null ) return 0;
 
         for ( Machine m : mlist.values() ) {
             if ( m.isFree() ) {
@@ -621,8 +624,6 @@ class NodePool
         nPendingByOrder = new int[maxorder + 1];
 
         machinesToPreempt  = new int[maxorder + 1];
-        //        shareExpansion     = new int[maxorder + 1];
-        machineExpansion   = new int[maxorder + 1];
 
         virtualMachinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>();
         for ( Integer i : machinesByOrder.keySet() ) {
@@ -726,6 +727,30 @@ class NodePool
         return np;
     }
 
+    private synchronized void incrementOnlineByOrder(int order)
+    {
+        if ( ! onlineMachinesByOrder.containsKey(order) ) {
+            onlineMachinesByOrder.put(order, 1);
+        } else {
+            onlineMachinesByOrder.put(order, onlineMachinesByOrder.get(order) + 1);
+        }
+    }
+
+    private synchronized void decrementOnlineByOrder(int order)
+    {
+        onlineMachinesByOrder.put(order, onlineMachinesByOrder.get(order) - 1);
+    }
+
+    synchronized void getOnlineByOrder(int[] ret)         // for queries
+    {
+        for ( int o: onlineMachinesByOrder.keySet() ) {
+            ret[o] += onlineMachinesByOrder.get(o);
+        }
+        for ( NodePool child : children.values() ) {
+            child.getOnlineByOrder(ret);
+        }
+    }
+
     /**
      * Handle a new node update.
      */
@@ -762,10 +787,12 @@ class NodePool
                 m.setShareOrder(order);                          //    hardware changes.
             }
 
+            // TODO soon ... can I just combine this with the code directly below:
             allMachines.put(node, m);
             machinesByName.put(m.getId(), m);
             machinesByIp.put(m.getIp(), m);
             HashMap<Node, Machine> mlist = machinesByOrder.get(order);
+            incrementOnlineByOrder(order);
             if ( mlist == null ) {
                 mlist = new HashMap<Node, Machine>();
                 machinesByOrder.put(order, mlist);
@@ -781,6 +808,7 @@ class NodePool
         allMachines.put(machine.key(), machine);                 // global list
         machinesByName.put(machine.getId(), machine);
         machinesByIp.put(machine.getIp(), machine);
+        incrementOnlineByOrder(order);
         machine.setNodepool(this);
 
         total_shares += order;     
@@ -828,6 +856,7 @@ class NodePool
             }
 
             allMachines.remove(m.key());
+            decrementOnlineByOrder(order);
             total_shares -= order; 
             disableMap.put(m.key(), m);
 
@@ -1435,17 +1464,6 @@ class NodePool
         }
         logger.info(methodName, null, sb.toString());
         return expansions;
-    }
-
-//     void setShareExpansion(int count, int order)
-//     {
-//         shareExpansion[order] += count;
-//     }
-
-
-    void setMachineExpansion(int count, int order)
-    {
-        machineExpansion[order] += count;
     }
 
     /**
