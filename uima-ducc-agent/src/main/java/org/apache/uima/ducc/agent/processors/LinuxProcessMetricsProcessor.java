@@ -19,7 +19,10 @@
 package org.apache.uima.ducc.agent.processors;
 
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,10 +79,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
   
   private long percentCPU=0;
   
-  private long previousPercentCPU=0;
-  
-  // private int logCounter=0;
-  public LinuxProcessMetricsProcessor(DuccLogger logger, IDuccProcess process, NodeAgent agent,
+    public LinuxProcessMetricsProcessor(DuccLogger logger, IDuccProcess process, NodeAgent agent,
           String statmFilePath, String nodeStatFilePath, String processStatFilePath,
           ManagedProcess managedProcess) throws FileNotFoundException {
     this.logger = logger;
@@ -150,14 +150,6 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
 	  if ( !collectStats(process.getProcessState() ) ) {
 		  return;
 	  }
-//	    if (process.getProcessState().equals(ProcessState.Stopped)
-//	            || process.getProcessState().equals(ProcessState.Killed)
-//	            || process.getProcessState().equals(ProcessState.Failed)
-//	            || process.getProcessState().equals(ProcessState.Stopping)  ) {
-//	    	return;  // dont collect stats
-//	    }
-
-	  
 	  if (process.getProcessState().equals(ProcessState.Initializing)
             || process.getProcessState().equals(ProcessState.Running))
       try {
@@ -169,6 +161,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         long totalFaults = 0;
         long totalCpuUsage = 0;
         long totalRss = 0;
+        int currentCpuUsage =0;
         Future<ProcessMemoryPageLoadUsage> processMajorFaultUsage = null;
         Future<ProcessCpuUsage> processCpuUsage = null;
         String[] cgroupPids = new String[0];
@@ -208,6 +201,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
 
                 processCpuUsage = pool.submit(processCpuUsageCollector);
                 totalCpuUsage += (processCpuUsage.get().getTotalJiffies()/ agent.cpuClockRate);
+                
+                currentCpuUsage += collectProcessCurrentCPU(pid);
                 
                 RandomAccessFile rStatmFile =
                         new RandomAccessFile("/proc/" + pid + "/statm", "r");
@@ -253,6 +248,8 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
        	  }
              processCpuUsage = pool.submit(processCpuUsageCollector);
              totalCpuUsage = processCpuUsage.get().getTotalJiffies()/ agent.cpuClockRate;
+             
+             currentCpuUsage = collectProcessCurrentCPU(process.getPID());
              
              ProcessResidentMemoryCollector collector = new ProcessResidentMemoryCollector(statmFile, 2,
                      0);
@@ -307,29 +304,24 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
           process.setCpuTime(percentCPU);
         }
         if ( percentCPU > 0 ) {
-        	process.setCurrentCPU(previousPercentCPU - percentCPU);
+        	process.setCurrentCPU(currentCpuUsage);
+        	 
             logger.info("process", null, "----------- PID:" + process.getPID()
                     + " Average CPU Time:" + percentCPU+"% Current CPU Time:"+process.getCurrentCPU());
-        	previousPercentCPU = percentCPU;
         }
        // long majorFaults = processMajorFaultUsage.get().getMajorFaults();
         // collects process Major faults (swap in memory)
         process.setMajorFaults(totalFaults);
         // Current Process Swap Usage in bytes
         long st = System.currentTimeMillis();
-//        long processSwapUsage = processSwapSpaceUsage.getSwapUsage() * 1024;
         long processSwapUsage = totalSwapUsage * 1024;
         // collects swap usage from /proc/<PID>/smaps file via a script
         // DUCC_HOME/admin/collect_process_swap_usage.sh
         process.setSwapUsage(processSwapUsage);
-        // if ( (logCounter % 2 ) == 0 ) {
         logger.info("process", null, "----------- PID:" + process.getPID() + " Major Faults:"
                 + totalFaults + " Process Swap Usage:" + processSwapUsage
                 + " Max Swap Usage Allowed:" + managedProcess.getMaxSwapThreshold()
                 + " Time to Collect Swap Usage:" + (System.currentTimeMillis() - st));
-        // }
-        // logCounter++;
-        
         if (processSwapUsage > 0 && processSwapUsage > managedProcess.getMaxSwapThreshold()) {
         /*
             // Disable code that kill a process if it exceeds its swap allocation. Per JIRA 
@@ -434,6 +426,32 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         ex.printStackTrace();
       }
 
+  }
+  private int  collectProcessCurrentCPU(String pid) throws Exception {
+		InputStream stream = null;
+	    BufferedReader reader = null;
+	    String cpuTime = "";
+	     ProcessBuilder pb;
+	     // run top in batch mode and filter just the CPU
+	     pb = new ProcessBuilder("/bin/sh", "-c", "top -b -n 1 -p "+pid+" | tail -n 2 | head -n 1 | awk '{print $9}'");
+
+	      pb.redirectErrorStream(true);
+	      Process proc = pb.start();
+	      proc.waitFor();
+	      //  spawn ps command and scrape the output
+	      stream = proc.getInputStream();
+	      reader = new BufferedReader(new InputStreamReader(stream));
+	      String line;
+	      String regex = "\\s+";
+	      // read the next line from ps output
+	      while ((line = reader.readLine()) != null) {
+	          String tokens[] = line.split(regex);
+	          if ( tokens.length > 0 ) {
+	        	  cpuTime = tokens[0];
+	          }
+	      }	
+	      stream.close();
+	      return Integer.valueOf(cpuTime);
   }
   private void killChildProcess(final String pid, final String signal) {
     // spawn a thread that will do kill -15, wait for 1 minute and kill the process
