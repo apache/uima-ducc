@@ -95,9 +95,14 @@ public class NodeMemInfoCollector implements CallableMemoryCollector {
 		} finally {
 			fileReader.close();
 		}
-		// sum up memory of all processes owned by UIDs < gidMax 
-		long memUsed = collectRSSFromPSCommand();
-		//System.out.println("Total:"+memInfoValues[0] + " Available:"+memInfoValues[1] +" Calculated:"+(memInfoValues[0] - memUsed)+" Priviledged Memory:"+memUsed);
+		long memUsed = 0;
+		// if running ducc in simulation mode skip memory adjustment. Report free memory = fakeMemorySize
+		if ( fakeMemorySize > -1 ) {
+			// sum up memory of all processes owned by UIDs < gidMax 
+			memUsed = collectRSSFromPSCommand();
+			//System.out.println("Total:"+memInfoValues[0] + " Available:"+memInfoValues[1] +" Calculated:"+(memInfoValues[0] - memUsed)+" Priviledged Memory:"+memUsed);
+		}
+		
 		memInfoValues[1] = memInfoValues[0] - memUsed;
 		return new NodeMemoryInfo(memInfoValues, fakeMemorySize);
 	}

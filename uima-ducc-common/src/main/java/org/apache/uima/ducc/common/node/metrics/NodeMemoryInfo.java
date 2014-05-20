@@ -45,6 +45,9 @@ implements NodeMemory {
 	  return memInfoValues[0]; 
   }
   public long getMemFree() {
+	  if ( memTotal > 0 ) { // this should be true only for testing
+		  return memTotal;
+	  } 
 	  return memInfoValues[1]; 
   }
   public long getBuffers() {
