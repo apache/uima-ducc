@@ -1,8 +1,9 @@
 
 nodes = uima-ducc-vm
 
-memory = 15 30 45
+memory = 15 30 45 60
 
 uima-ducc-vm.15  = 4
 uima-ducc-vm.30  = 3
 uima-ducc-vm.45  = 2
+uima-ducc-vm.60  = 1
