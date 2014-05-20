@@ -42,9 +42,6 @@ public class Share
     private int share_order;               // may not be same as machine's order
 
     private ITimeWindow init_time = null;  // how much time this process spends initializing
-    @SuppressWarnings("unused")
-	private ITimeWindow run_time = null;   // how much time this process spends initializing
-
 
     // private HashMap<Integer, Long> activeQuestions = new HashMap<Integer, Long>();
 
@@ -213,7 +210,7 @@ public class Share
         // so we don't end up counting this job more than it deserves.
     }
 
-    public boolean update(DuccId jobid, long mem, long investment, ProcessState state, ITimeWindow init_time, ITimeWindow run_time, String pid)
+    public boolean update(DuccId jobid, long mem, long investment, ProcessState state, ITimeWindow init_time, String pid)
     {
         if ( ! jobid.equals(job.getId()) ) return false;      // something has gone horribly wrong
         
@@ -222,7 +219,6 @@ public class Share
         this.state = state;
         this.pid = pid;
         this.init_time = init_time;
-        this.run_time = run_time;
         return true;
     }
 

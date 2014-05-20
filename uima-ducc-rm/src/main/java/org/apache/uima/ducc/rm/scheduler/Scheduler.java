@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -30,6 +31,7 @@ import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
+import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -1143,6 +1145,48 @@ public class Scheduler
         reply.setMachinesVirtual(virtualMachines);
         
         return reply;
+    }
+
+    private void collectMachinesForQuery(NodePool np, RmAdminQOccupancyReply ret)
+    {
+        Collection<Machine> machs = np.getAllMachines().values();
+        for ( Machine m : machs ) {
+            ret.addMachine(m.queryMachine());
+        }
+    }
+
+    public synchronized RmAdminQOccupancyReply queryOccupancy()
+    {
+        RmAdminQOccupancyReply ret = new RmAdminQOccupancyReply();
+
+        //
+        // iterate top-level nodepools to get all their subpools
+        //   iterate the subpools to get all their machines
+        //      iterage the machines and request a query object
+        //         add query object to ret
+        // return ret
+
+        // We want to be dependent on common project, not the other way around, so
+        // we keep the query objects in common and put knowledge of how to construc
+        // them into rm's Machine class.
+        //
+        // The alternative, passing RM's Machine to the query object creates a circular
+        // dependency with RM depending on common and common depending on RM.
+        //
+        
+        //
+        // Not a cheap query, by the way.
+        //
+        for ( NodePool np : nodepools ) {
+            collectMachinesForQuery(np, ret);
+
+            Collection<NodePool> pools = np.getChildren().values();
+            for ( NodePool npp : pools ) {
+                collectMachinesForQuery(npp, ret);
+            }
+        }
+
+        return ret;
     }
 
     /**

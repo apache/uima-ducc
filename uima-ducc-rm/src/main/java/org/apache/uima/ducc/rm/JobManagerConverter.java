@@ -241,7 +241,7 @@ public class JobManagerConverter
                     long investment = proc.getWiMillisInvestment();
                     logger.info(methodName, j.getId(), "Assigning share in state", state, "pid", pid, "for recovery", s.toString());
                     j.recoverShare(s);
-                    s.update(j.getId(), mem, investment, state, proc.getTimeWindowInit(), proc.getTimeWindowRun(), pid);                    
+                    s.update(j.getId(), mem, investment, state, proc.getTimeWindowInit(), pid);                    
                 }
             }
             logger.info(methodName, j.getId(), "Scheduling for recovery.");
@@ -517,7 +517,7 @@ public class JobManagerConverter
             String pid = p.getPID();
 
             logger.info(methodName, jobid, "New process ", s.toString(), mem, state, pid);
-            if ( ! s.update(jobid, mem, investment, state, p.getTimeWindowInit(), p.getTimeWindowRun(), pid) ) {
+            if ( ! s.update(jobid, mem, investment, state, p.getTimeWindowInit(), pid) ) {
                 // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
                 throw new SchedulingException(jobid, "Process assignemnt arrives for share " + s.toString() +
                                               " but jobid " + jobid + " does not match share " + s.getJob().getId());
@@ -612,7 +612,7 @@ public class JobManagerConverter
                     logger.info(methodName, jobid, "Process", pl.getPID(), "marked complete because it is purged. State:", state);
                 }
 
-                if ( ! s.update(jobid, mem, investment, state, pl.getTimeWindowInit(), pl.getTimeWindowRun(), pid) ) {
+                if ( ! s.update(jobid, mem, investment, state, pl.getTimeWindowInit(), pid) ) {
                     // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
                     throw new SchedulingException(jobid, "Process update arrives for share " + s.toString() +
                                                   " but jobid " + jobid + " does not match job in share " + s.getJob().getId());

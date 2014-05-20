@@ -22,6 +22,8 @@ import java.util.HashMap;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
+import org.apache.uima.ducc.common.admin.event.RmQueriedShare;
 
 
 
@@ -246,6 +248,24 @@ public class Machine
         return cnt;
     }
 
+    RmQueriedMachine queryMachine()
+    {
+        RmQueriedMachine ret = new RmQueriedMachine(id, nodepool.getId(), memory, share_order);
+        for ( Share s : activeShares.values() ) {
+            RmQueriedShare rqs = new RmQueriedShare(s.getJob().getId().getFriendly(),
+                                                    s.getId().getFriendly(),
+                                                    s.getShareOrder(),
+                                                    s.getInitializationTime(), 
+                                                    s.getInvestment());
+            rqs.setFixed(s.isFixed());
+            rqs.setPurged(s.isPurged());
+            rqs.setEvicted(s.isEvicted());
+            rqs.setInitialized(s.isInitialized());
+            ret.addShare(rqs);
+        }
+        return ret;
+    }
+
     /**
      * A machine's investment is the sum of it's share's investments.
      */
@@ -257,7 +277,7 @@ public class Machine
         }
         return answer;
     }
-
+    
     public static String getDashes()
     {
         return String.format("%20s %5s %13s %13s %11s %s", "--------------------", "-----", "-------------", "-------------", "-----------", "------ ...");

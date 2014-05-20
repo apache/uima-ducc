@@ -27,6 +27,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
+import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancy;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
@@ -147,6 +148,9 @@ public class ResourceManagerComponent
             } else
             if (body instanceof RmAdminQLoad) {
                 reply = scheduler.queryLoad();
+            } else
+            if (body instanceof RmAdminQOccupancy) {
+                reply = scheduler.queryOccupancy();
             }
 
             exchange.getIn().setBody(reply);
