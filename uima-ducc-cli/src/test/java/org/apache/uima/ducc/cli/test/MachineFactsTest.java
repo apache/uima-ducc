@@ -168,9 +168,9 @@ public class MachineFactsTest {
 			if(true
 			&& m1.heartbeat.equals(m2.heartbeat) 
 			&& m1.ip.equals(m2.ip) 
-			&& m1.memory.equals(m2.memory) 
+			&& m1.memoryTotal.equals(m2.memoryTotal) 
 			&& m1.name.equals(m2.name) 
-			&& m1.reserve.equals(m2.reserve) 
+			&& m1.memoryEffective.equals(m2.memoryEffective) 
 			&& m1.sharesInuse.equals(m2.sharesInuse) 
 			&& m1.sharesTotal.equals(m2.sharesTotal)
 			&& m1.status.equals(m2.status) 

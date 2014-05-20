@@ -1651,8 +1651,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		
 		int counter = 0;
 		
-		int sumReserve = 0;
-		int sumMemory = 0;
+		int susMemoryEffective = 0;
+		int sumMemoryTotal = 0;
 		int sumSwapInuse = 0;
 		int sumSwapFree = 0;
 		int sumAliens = 0;
@@ -1672,8 +1672,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				try {
-					sumReserve += Integer.parseInt(facts.reserve);
-					sumMemory += Integer.parseInt(facts.memory);
+					susMemoryEffective += Integer.parseInt(facts.memoryEffective);
+					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
@@ -1705,11 +1705,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("</td>");
 			// Reserve: total
 			row.append("<td align=\"right\">");
-			row.append(""+sumReserve);
+			row.append(""+susMemoryEffective);
 			row.append("</td>");
 			// Memory: total
 			row.append("<td align=\"right\">");
-			row.append(""+sumMemory);
+			row.append(""+sumMemoryTotal);
 			row.append("</td>");
 			// Swap: inuse
 			row.append("<td align=\"right\">");
@@ -1775,13 +1775,13 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append("<td>");
 				row.append(facts.name);
 				row.append("</td>");
-				// Reserve
+				// Memory: effective
 				row.append("<td align=\"right\">");
-				row.append(facts.reserve);
+				row.append(facts.memoryEffective);
 				row.append("</td>");
 				// Memory: total
 				row.append("<td align=\"right\">");
-				row.append(facts.memory);
+				row.append(facts.memoryTotal);
 				row.append("</td>");
 				// Swap: inuse
 				sb = new StringBuffer();

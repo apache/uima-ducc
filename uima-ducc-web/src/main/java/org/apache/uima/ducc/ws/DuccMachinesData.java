@@ -123,7 +123,11 @@ public class DuccMachinesData {
 			Iterator<String> iterator = nodes.iterator();
 			while(iterator.hasNext()) {
 				String nodeName = (String) iterator.next();
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, "", "", "", null, "", "", -1, 0);
+				String memTotal = "";
+				String memFree = "";
+				String swapInuse = "";
+				String swapFree = "";
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, null, "", "", -1, 0);
 				unsortedMachines.put(machineInfo.getName(),machineInfo);
 			}
 		}
@@ -223,21 +227,28 @@ public class DuccMachinesData {
 		String machineName = nodeMetrics.getNodeIdentity().getName().trim();
 		ipToNameMap.put(ip.toString(),machineName);
 		nameToIpMap.put(machineName,ip.toString());
-		double dval = nodeMetrics.getNodeMemory().getMemTotal();
-		long lval = (long) (dval/(1024*1024)+0.5);
-		msi.memoryTotal = lval;
-		msi.sharesTotal = lval/shareSize;
-		String memTotal = ""+lval/*+memUnits*/;
-		String sharesTotal = ""+lval/shareSize;
-		// swap: in-use
-		double dvalT = nodeMetrics.getNodeMemory().getSwapTotal();
-		long lvalT = (long) (dvalT/(1024*1024)+0.5);
-		double dvalF = nodeMetrics.getNodeMemory().getSwapFree();
-		long lvalF = (long) (dvalF/(1024*1024)+0.5);
-		
-		lval = lvalT - lvalF;
-		String swapInuse = ""+lval/*+memUnits*/;
-		msi.swapInuse = lval;
+		// mem: total
+		long nodeMemTotal = nodeMetrics.getNodeMemory().getMemTotal();
+		logger.info(location, jobid, "node: "+machineName+" "+"memTotal: "+nodeMemTotal);
+		long lvalMemTotal = (long) ((1.0*nodeMemTotal)/(1024*1024)+0.5);
+		msi.memoryTotal = lvalMemTotal;
+		String memTotal = ""+lvalMemTotal/*+memUnits*/;
+		// mem: free
+		long nodeMemFree = nodeMetrics.getNodeMemory().getMemFree();
+		logger.info(location, jobid, "node: "+machineName+" "+"memFree: "+nodeMemFree);
+		long lvalMemFree = (long) ((1.0*nodeMemFree)/(1024*1024)+0.5);
+		String memFree = ""+lvalMemFree/*+memUnits*/;
+		// shares: total
+		msi.sharesTotal = lvalMemFree/shareSize;
+		String sharesTotal = ""+lvalMemFree/shareSize;
+		// swap: in-usewell
+		double dvalSwapTotal = nodeMetrics.getNodeMemory().getSwapTotal();
+		long lvalSwapTotal = (long) (dvalSwapTotal/(1024*1024)+0.5);
+		double dvalSwapFree = nodeMetrics.getNodeMemory().getSwapFree();
+		long lvalSwapFree = (long) (dvalSwapFree/(1024*1024)+0.5);
+		long lvalSwapInuse = lvalSwapTotal - lvalSwapFree;
+		String swapInuse = ""+lvalSwapInuse/*+memUnits*/;
+		msi.swapInuse = lvalSwapInuse;
 		String swapKey = ip.toString();
 		String swapVal = swapInuse;
 		if(msi.swapInuse > 0) {
@@ -246,10 +257,9 @@ public class DuccMachinesData {
 		else {
 			isSwapping.remove(swapKey);
 		}
-		lval = lvalF;
 		//String swapFree = ""+lval/*+memUnits*/;
-		msi.swapFree = lval;
-		String swapFree = ""+lval/*+memUnits*/;
+		msi.swapFree = lvalSwapFree;
+		String swapFree = ""+lvalSwapFree/*+memUnits*/;
 		String sharesInuse = "0";
 		Properties shareMap = getShareMap(shareSize);
 		try {
@@ -262,7 +272,7 @@ public class DuccMachinesData {
 			logger.warn(location, jobid, t);
 		}
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, ""+swapInuse, ""+swapFree, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
 		String key = normalizeMachineName(machineName);
 		MachineInfo previous = unsortedMachines.get(key);
 		if(previous != null) {

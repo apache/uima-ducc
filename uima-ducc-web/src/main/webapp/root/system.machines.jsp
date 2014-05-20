@@ -104,8 +104,8 @@ if (table_style.equals("scroll")) {
 	<th align="left" title="The current status">Status</th>
 	<th align="left" title="The host IP">IP</th>
 	<th align="left" title="The host name">Name</th>
-	<th align="left" title="The host reservation size (hint: specify this size to reserve entire machine), in GB" >Reserve(GB):size</th>
-	<th align="left" title="The host memory size, in GB" >Memory(GB):total</th>
+	<th align="left" title="The host effective memory size, in GB (hint: specify this size to reserve entire machine)" >Memory(GB):usable</th>
+	<th align="left" title="The host actual memory size, in GB" >Memory(GB):total</th>
 	<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 	<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 	<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
@@ -134,8 +134,8 @@ if (table_style.equals("classic")) {
 		<th align="left" title="The current status">Status</th>
 		<th align="left" title="The host IP">IP</th>
 		<th align="left" title="The host name">Name</th>
-		<th align="left" title="The host reservation size (hint: specify this size to reserve entire machine), in GB" >Reserve(GB):size</th>
-        <th align="left" title="The host memory size, in GB" >Memory(GB):total</th>	
+		<th align="left" title="The host effective memory size, in GB (hint: specify this size to reserve entire machine)" >Memory(GB):usable</th>
+		<th align="left" title="The host actual memory size, in GB" >Memory(GB):total</th>
 		<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
 		<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
 		<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>

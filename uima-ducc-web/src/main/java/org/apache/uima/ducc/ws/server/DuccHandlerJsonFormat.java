@@ -1257,8 +1257,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		JsonObject jsonResponse = new JsonObject();
 		JsonArray data = new JsonArray();
 		
-		int sumReserve = 0;
-		int sumMemory = 0;
+		int sumMemoryEffective = 0;
+		int sumMemoryTotal = 0;
 		int sumSwapInuse = 0;
 		int sumSwapFree = 0;
 		int sumAliens = 0;
@@ -1278,8 +1278,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			while(listIterator.hasNext()) {
 				MachineFacts facts = listIterator.next();
 				try {
-					sumReserve += Integer.parseInt(facts.reserve);
-					sumMemory += Integer.parseInt(facts.memory);
+					sumMemoryEffective += Integer.parseInt(facts.memoryEffective);
+					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
@@ -1300,10 +1300,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Name
 			row.add(new JsonPrimitive(""));
-			// Reserve: total
-			row.add(new JsonPrimitive(sumReserve));
+			// Memory: effective
+			row.add(new JsonPrimitive(sumMemoryEffective));
 			// Memory: total
-			row.add(new JsonPrimitive(sumMemory));
+			row.add(new JsonPrimitive(sumMemoryTotal));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
 			// Swap: free
@@ -1346,10 +1346,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(facts.ip));
 				// Name
 				row.add(new JsonPrimitive(facts.name));
-				// Reserve
-				row.add(new JsonPrimitive(facts.reserve));
+				// Memory: effective
+				row.add(new JsonPrimitive(facts.memoryEffective));
 				// Memory: total
-				row.add(new JsonPrimitive(facts.memory));
+				row.add(new JsonPrimitive(facts.memoryTotal));
 				// Swap: inuse
 				sb = new StringBuffer();
 				String swapping = facts.swapInuse;
