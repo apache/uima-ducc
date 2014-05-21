@@ -229,13 +229,13 @@ public class DuccMachinesData {
 		nameToIpMap.put(machineName,ip.toString());
 		// mem: total
 		long nodeMemTotal = nodeMetrics.getNodeMemory().getMemTotal();
-		logger.info(location, jobid, "node: "+machineName+" "+"memTotal: "+nodeMemTotal);
+		logger.debug(location, jobid, "node: "+machineName+" "+"memTotal: "+nodeMemTotal);
 		long lvalMemTotal = (long) ((1.0*nodeMemTotal)/(1024*1024)+0.5);
 		msi.memoryTotal = lvalMemTotal;
 		String memTotal = ""+lvalMemTotal/*+memUnits*/;
 		// mem: free
 		long nodeMemFree = nodeMetrics.getNodeMemory().getMemFree();
-		logger.info(location, jobid, "node: "+machineName+" "+"memFree: "+nodeMemFree);
+		logger.debug(location, jobid, "node: "+machineName+" "+"memFree: "+nodeMemFree);
 		long lvalMemFree = (long) ((1.0*nodeMemFree)/(1024*1024)+0.5);
 		String memFree = ""+lvalMemFree/*+memUnits*/;
 		// shares: total
