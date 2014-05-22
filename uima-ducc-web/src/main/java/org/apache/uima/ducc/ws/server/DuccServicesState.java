@@ -82,6 +82,10 @@ public class DuccServicesState {
 						String health = getUninterpreted(propertiesMeta, IServicesRegistry.service_healthy);
 						value = health.trim();
 						String popupStats = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
+						if(popupStats == null) {
+							popupStats = "";
+						}
+						popupStats = popupStats.replaceAll("\"", "");
 						if(value.equalsIgnoreCase(valueTrue)) {
 							// Available (Good)
 							retVal = makeDisplayValue(State.Available, Health.health_green, popupStats);
