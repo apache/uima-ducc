@@ -129,21 +129,6 @@ under the License.
 			<directoryMode>755</directoryMode>
     </dependencySet>
     
-    <!-- HTTP Support For DUCC Services -->
-    <dependencySet>
-			<includes>
-				<include>org.eclipse.jetty.aggregate:jetty-all-server</include>
-				<include>xpp3:xpp3</include>
-				<include>org.apache.httpcomponents:httpclient</include>
-				<include>org.apache.httpcomponents:httpcore</include>
-			</includes>
-			<useTransitiveDependencies>false</useTransitiveDependencies>
-			<outputDirectory>lib/apache-activemq</outputDirectory>
-			<useProjectArtifact>false</useProjectArtifact>
-			<fileMode>644</fileMode>
-			<directoryMode>755</directoryMode>
-    </dependencySet>
-
     <!-- UIMA-AS -->   
     <!-- dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
@@ -278,25 +263,6 @@ under the License.
         <include>commons-lang:commons-lang</include>
       </includes>      
       <outputDirectory>lib/apache-commons-lang</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>org.apache.activemq:activemq-core</include>
-        <include>org.apache.activemq:activemq-camel</include>
-        <include>org.apache.activemq:activemq-pool</include>
-        <include>org.apache.activemq:activemq-jaas</include>
-        <include>commons-pool:commons-pool</include>
-        <include>org.apache.geronimo.specs:geronimo-servlet_2.5_spec</include>
-        <include>org.apache.geronimo.specs:geronimo-j2ee-management_1.1_spec</include>
-        <include>org.apache.geronimo.specs:geronimo-jms_1.1_spec</include>
-        <include>xpp3:xpp3</include>
-      </includes>      
-      <outputDirectory>lib/apache-activemq</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
