@@ -1046,6 +1046,7 @@ public class Scheduler
 
     public synchronized String varyon(String[] nodes)
     {
+        String methodName = "varyon";
         StringBuffer reply = new StringBuffer();
         for (String n : nodes ) {
 
@@ -1059,7 +1060,9 @@ public class Scheduler
                 reply.append(n);
                 reply.append("\n");
             } else {                
-                reply.append(np.varyon(n));
+                String repl = np.varyon(n);
+                logger.info(methodName, null, repl);
+                reply.append(repl);
                 reply.append("\n");
             }
         }
@@ -1068,6 +1071,7 @@ public class Scheduler
 
     public synchronized String varyoff(String[] nodes)
     {
+        String methodName = "varyoff";
         StringBuffer reply = new StringBuffer();
         for (String n : nodes ) {
 
@@ -1081,7 +1085,9 @@ public class Scheduler
                 reply.append(n);
                 reply.append("\n");
             } else {                
-                reply.append(np.varyoff(n));
+                String repl = np.varyoff(n);
+                logger.info(methodName, null, repl);
+                reply.append(repl);
                 reply.append("\n");
             }
         }
@@ -1147,14 +1153,6 @@ public class Scheduler
         return reply;
     }
 
-    private void collectMachinesForQuery(NodePool np, RmAdminQOccupancyReply ret)
-    {
-        Collection<Machine> machs = np.getAllMachines().values();
-        for ( Machine m : machs ) {
-            ret.addMachine(m.queryMachine());
-        }
-    }
-
     public synchronized RmAdminQOccupancyReply queryOccupancy()
     {
         RmAdminQOccupancyReply ret = new RmAdminQOccupancyReply();
@@ -1178,11 +1176,9 @@ public class Scheduler
         // Not a cheap query, by the way.
         //
         for ( NodePool np : nodepools ) {
-            collectMachinesForQuery(np, ret);
-
-            Collection<NodePool> pools = np.getChildren().values();
-            for ( NodePool npp : pools ) {
-                collectMachinesForQuery(npp, ret);
+            Collection<Machine> machs = np.getAllMachines().values();        
+            for ( Machine m : machs ) {            
+                ret.addMachine(m.queryMachine());
             }
         }
 

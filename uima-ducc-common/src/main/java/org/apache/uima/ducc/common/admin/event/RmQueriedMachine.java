@@ -51,8 +51,8 @@ public class RmQueriedMachine
     public long getMemory()    { return memory; }
     public int getShareOrder() { return order; }
 
-    static String fmt_s = "%12s %10s %10s %5s %4s %s";
-    String        fmt_d = "%12s %10s %10d %5d %4d" ;
+    static String fmt_s = "%14s %14s %10s %5s %4s %s";
+    String        fmt_d = "%14s %14s %10d %5d %4d" ;
     public static String header()
     {
         return String.format(fmt_s, "Node", "Nodepool", "Memory", "Order", "Free", "Shares\n");
@@ -73,7 +73,7 @@ public class RmQueriedMachine
             sb.append(String.format(fmt_d, name, nodepoolId, memory, order, order - used));
 
             String spacer = " ";
-            String altSpacer = "\n" + String.format(fmt_s, " ", " ", " ", " ", " ", " "); // yes, blank, of exactly the right size
+            String altSpacer = "\n" + String.format(fmt_s, "", "", "", "", "", ""); // yes, blank, of exactly the right size
             for ( RmQueriedShare s : shares ) {                
                 sb.append(spacer);
                 sb.append(s.toConsole());
@@ -97,14 +97,14 @@ public class RmQueriedMachine
         sb.append(Integer.toString(order));
         
         if ( shares == null ) {
-            sb.append(Integer.toString(order));
-            sb.append(", None");
+            sb.append(" 0, None");
         } else {
             int used = 0;
             for ( RmQueriedShare s : shares ) {                
                 used += s.getShareOrder();
             }
 
+            sb.append(" ");
             sb.append(Integer.toString(order - used));
             for ( RmQueriedShare s : shares ) {
                 sb.append(",");
@@ -116,6 +116,6 @@ public class RmQueriedMachine
 
     public String toString()
     {
-        return String.format("%10s %10d %3d %3d", name, memory, order, shares == null ? 0 : shares.size());
+        return String.format("%14s %12d %3d %3d", name, memory, order, shares == null ? 0 : shares.size());
     }
 }

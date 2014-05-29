@@ -21,6 +21,7 @@
 
 import os
 import sys
+import getopt
 
 from ducc_util  import DuccUtil
 
@@ -35,20 +36,38 @@ class DuccRmQLoad(DuccUtil):
         print ''
         print 'Example:'
         print '   rm_qload'
+        sys.exit(1)
     
-    def main(self):
+    def main(self, argv):
 
+        format = None
+
+        try:
+            opts, args = getopt.getopt(argv, 'h?', ['console', 'compact'])
+        except:
+            self.usage("Invalid arguments " + ' '.join(argv))
+            
+        for ( o, a ) in opts:
+            if o in ('--console'):
+                format = o
+            if o in ('--compact'):
+                format = o
+            elif o in ('-h', '?'):
+                self.usage(None)
+
+        if ( format == None ):
+            self.usage("Must specify --console or --compact")
        
         DUCC_JVM_OPTS = ' -Dducc.deploy.configuration=' + self.DUCC_HOME + "/resources/ducc.properties "
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -DDUCC_HOME=' + self.DUCC_HOME
         DUCC_JVM_OPTS = DUCC_JVM_OPTS + ' -Dducc.head=' + self.ducc_properties.get('ducc.head')
 
-        self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qload') 
+        self.spawn(self.java(), DUCC_JVM_OPTS, 'org.apache.uima.ducc.common.main.DuccRmAdmin', '--qload', format) 
         
         return
 
 if __name__ == "__main__":
-    stopper = DuccRmQLoad()
-    stopper.main()
+    query = DuccRmQLoad()
+    query.main(sys.argv[1:])
 
     

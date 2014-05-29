@@ -30,6 +30,7 @@ import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.impl.DefaultClassResolver;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
+import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancy;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
@@ -212,12 +213,12 @@ public class DuccRmAdmin
 	 * 
 	 * @throws Exception
 	 */
-	public RmAdminReply qload()
+	public RmAdminQLoadReply qload()
 		throws Exception 
     {
 
         RmAdminQLoad ql = new RmAdminQLoad();
-		return dispatchAndWaitForReply(ql);
+		return (RmAdminQLoadReply) dispatchAndWaitForReply(ql);
 	}
 
 	/**
@@ -248,10 +249,18 @@ public class DuccRmAdmin
             return;
         }
 
-        if ( args[0].equals("--qload")) {
-            if ( args.length != 1 ) usage("Query load takes no arguments.");
-            RmAdminReply ret = qload();
-            System.out.println(ret.toString());
+        if ( args[0].equals("--qload")) { 
+            if ( args.length != 2 ) usage("Query load: specify --console or --compact");
+            if ( !args[1].equals("--console") && !args[1].equals("--compact") ) {
+                usage("Invalid argument: " + args[1] + " - specify --console or --compact");
+            }
+
+            RmAdminQLoadReply ret = qload();
+            if ( args[1].equals("--console") ) {
+                System.out.println(ret.toConsole());
+            } else {
+                System.out.println(ret.toCompact());
+            }
             return;
         }
 
@@ -280,8 +289,8 @@ public class DuccRmAdmin
         System.out.println("Where verbs are:");
         System.out.println("   --varyoff string-delimeted-nodes");
         System.out.println("   --varyon  string-delimeted-nodes");
-        System.out.println("   --qload");
-        System.out.println("   --qoccupancy");
+        System.out.println("   --qload --console|--compact");
+        System.out.println("   --qoccupancy --console|--compact");
 
         System.exit(1);
     }

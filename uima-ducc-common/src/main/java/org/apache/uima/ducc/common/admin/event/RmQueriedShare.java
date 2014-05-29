@@ -63,7 +63,7 @@ public class RmQueriedShare
 
     public String toCompact()
     {
-        return String.format("%d %d %d %d %d %s %s %s", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
+        return String.format("%d %d %d %d %d %s %s %s %s", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
     }
 
     public String toConsole()

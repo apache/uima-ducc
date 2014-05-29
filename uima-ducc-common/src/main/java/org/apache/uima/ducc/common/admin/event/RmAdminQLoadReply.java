@@ -175,7 +175,32 @@ public class RmAdminQLoadReply
         return String.format(sb.toString(), vals);
     }
 
-    public String toString()
+    public String toCompact()
+    {
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("OnlineHosts ");
+        sb.append(fmtArray(machinesOnline));
+
+        sb.append("\nFreeHosts ");
+        sb.append(fmtArray(machinesFree));
+
+        sb.append("\nFreeShares ");
+        sb.append(fmtArray(machinesVirtual));
+
+        sb.append("\nVirtualShares ");
+        sb.append(fmtArray(getVirtualMachinesFree()));
+
+        sb.append("\nWantedShares ");
+        sb.append(fmtArray(sharesDemanded));
+
+        sb.append("\nGivenShares ");
+        sb.append(fmtArray(sharesAwarded));
+        
+        return sb.toString();
+    }
+
+    public String toConsole()
     {
         StringBuffer sb = new StringBuffer();
 
@@ -189,22 +214,22 @@ public class RmAdminQLoadReply
                   sharesAvailable, sharesFree, 
                   pendingEvictions, pendingExpansions));
 
-        sb.append("\nOnline Hosts By Order:\n");
+        sb.append("\nOnline Hosts:\n");
         sb.append(fmtArray(machinesOnline));
 
-        sb.append("\nFree Hosts By Order:\n");
+        sb.append("\nFree Hosts:\n");
         sb.append(fmtArray(machinesFree));
 
-        sb.append("\nFree Shares By Order:\n");
+        sb.append("\nFree Shares:\n");
         sb.append(fmtArray(machinesVirtual));
 
-        sb.append("\nFree Virtual Shares By Order:\n");
+        sb.append("\nVirtual Shares:\n");
         sb.append(fmtArray(getVirtualMachinesFree()));
 
-        sb.append("\nWanted Shares By Order:\n");
+        sb.append("\nWanted Shares:\n");
         sb.append(fmtArray(sharesDemanded));
 
-        sb.append("\nAwarded Shares By Order:\n");
+        sb.append("\nGivenS hares:\n");
         sb.append(fmtArray(sharesAwarded));
         return sb.toString();
     }
