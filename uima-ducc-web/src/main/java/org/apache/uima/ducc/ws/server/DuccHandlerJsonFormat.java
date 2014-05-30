@@ -1300,7 +1300,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Name
 			row.add(new JsonPrimitive(""));
-			// Memory: effective
+			// Memory: usable
 			row.add(new JsonPrimitive(sumMemoryEffective));
 			// Memory: total
 			row.add(new JsonPrimitive(sumMemoryTotal));
@@ -1346,7 +1346,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(facts.ip));
 				// Name
 				row.add(new JsonPrimitive(facts.name));
-				// Memory: effective
+				// Memory: usable
 				row.add(new JsonPrimitive(facts.memoryEffective));
 				// Memory: total
 				row.add(new JsonPrimitive(facts.memoryTotal));
