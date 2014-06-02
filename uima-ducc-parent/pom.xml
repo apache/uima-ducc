@@ -166,8 +166,6 @@
 		<servlet-api.version>2.5</servlet-api.version>
 		<derby.version>10.10.1.1</derby.version>
         
-        <xpp3.version>1.1.4c</xpp3.version>
-		
 		<http.commons.client.version>4.2.1</http.commons.client.version>
 		
 		<http.commons.core.version>4.2.1</http.commons.core.version>

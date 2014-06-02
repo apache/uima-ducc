@@ -534,19 +534,6 @@ under the License.
        -->      
     </fileSet>
 
-    <!--  The following creates an empty dir. Not sure if this is the
-          best way to achieve this but seems to work.
-     -->
-    <fileSet>
-      <directory>src/main/assembly</directory>
-      <outputDirectory>state</outputDirectory>
-      <excludes>
-        <exclude>*</exclude>
-      </excludes>
-      <directoryMode>755</directoryMode>
-    </fileSet>
-
-
     <fileSet>
       <directory>src/main/scripts</directory>
       <outputDirectory>bin</outputDirectory>
