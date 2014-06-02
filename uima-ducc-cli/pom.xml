@@ -50,14 +50,10 @@
   </scm>
 
   <properties>
-    <!-- This is for the "private" uima-ducc-cli-VERSION.jar that goes in lib/uima-ducc -->
+    <!-- This is for the manifest-only public uima-ducc-cli.jar that goes directly in lib -->
     <DUCC_CP>
-uima-ducc-common-${ducc.version}.jar uima-ducc-transport-${ducc.version}.jar ../../resources/ ../slf4j/jcl-over-slf4j-1.6.4.jar ../slf4j/slf4j-api-1.6.4.jar ../slf4j/slf4j-log4j12-1.6.4.jar ../xstream/xstream.jar ../http-client/commons-codec-${commons.codec.version}.jar ../http-client/commons-httpclient-${commons.httpclient.version}.jar ../google-gson/gson-${google.gson.version}.jar ../apache-log4j/log4j-${log4j.version}.jar ../apache-commons-cli/commons-cli-${commons.cli.version}.jar ../../apache-uima/lib/uima-core.jar ../../apache-uima/lib/uimaj-as-core.jar
+uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar ../resources/ slf4j/jcl-over-slf4j-1.6.4.jar slf4j/slf4j-api-1.6.4.jar slf4j/slf4j-log4j12-1.6.4.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar ../apache-uima/lib/uima-core.jar ../apache-uima/lib/uimaj-as-activemq.jar ../apache-uima/lib/uimaj-as-jms.jar ../apache-uima/lib/uimaj-as-core.jar 
     </DUCC_CP>
-    <!-- This is for the public uima-ducc-cli.jar that goes directly in lib -->
-    <DUCC_CP2>
-uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar ../resources/ slf4j/jcl-over-slf4j-1.6.4.jar slf4j/slf4j-api-1.6.4.jar slf4j/slf4j-log4j12-1.6.4.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar ../apache-uima/lib/uima-core.jar ../apache-uima/lib/uimaj-as-core.jar 
-    </DUCC_CP2>
   </properties>
 
   <dependencies>
@@ -123,24 +119,6 @@ uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.ve
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
 
-        <configuration>
-          <archive>
-            <!-- Only create an index if it indexes ALL classes used in all the classpath jars -->
-            <index>false</index>
-            <manifest>
-              <addClasspath>false</addClasspath>
-            </manifest>
-            <manifestEntries>
-              <class-path>${DUCC_CP}</class-path>
-              <Ducc-Version>${project.version}</Ducc-Version>
-              <Ducc-OS-Id>${os.name} ${os.arch} ${os.version}</Ducc-OS-Id>
-              <Ducc-Bassedir>${basedir}</Ducc-Bassedir>
-              <Ducc-Java-Vendor>${java.vendor}</Ducc-Java-Vendor>
-              <Project-Title>Apache UIMA DUCC</Project-Title>
-            </manifestEntries>
-          </archive>
-        </configuration>
-
         <executions>
 
 		  <!-- Create a manifest-only jar that will be placed up one level under <ducc-home>/lib -->
@@ -155,7 +133,7 @@ uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.ve
 				  <addClasspath>false</addClasspath>
 				</manifest>
 				<manifestEntries>
-				  <class-path>${DUCC_CP2}</class-path>
+				  <class-path>${DUCC_CP}</class-path>
 				</manifestEntries>
 			  </archive>
               <excludes>
