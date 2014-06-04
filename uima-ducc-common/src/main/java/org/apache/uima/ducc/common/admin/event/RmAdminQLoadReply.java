@@ -229,7 +229,7 @@ public class RmAdminQLoadReply
         sb.append("\nWanted Shares:\n");
         sb.append(fmtArray(sharesDemanded));
 
-        sb.append("\nGivenS hares:\n");
+        sb.append("\nGiven Shares:\n");
         sb.append(fmtArray(sharesAwarded));
         return sb.toString();
     }
