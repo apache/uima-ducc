@@ -44,7 +44,7 @@ class DuccStateListener(DuccUtil):
         fi = open(self.output + '.json')
         fo = open(self.output + '.json.pretty', 'w')
         obj = json.load(fi)
-        print "Pretty-printing ..."
+        print "Pretty-printing to", self.output
         json.dump(obj, fo, indent=3)
         fi.close()
         fo.close()
@@ -155,6 +155,6 @@ class DuccStateListener(DuccUtil):
 
 if __name__ == "__main__":
     dsl = DuccStateListener()
-    CLASSPATH = os.environ['CLASSPATH'] + ':' + os.environ['DUCC_HOME'] + '/examples/lib/uima-ducc-examples.jar'
+    CLASSPATH = os.environ['CLASSPATH'] + ':' + dsl.DUCC_HOME + '/examples/lib/uima-ducc-examples.jar'
     os.environ['CLASSPATH'] = CLASSPATH
     dsl.main(sys.argv[1:])
