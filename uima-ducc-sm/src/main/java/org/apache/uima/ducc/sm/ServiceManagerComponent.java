@@ -21,6 +21,7 @@ package org.apache.uima.ducc.sm;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -156,8 +157,7 @@ public class ServiceManagerComponent
                     DuccProperties props = new DuccProperties();
                     String props_filename = serviceFileKey(d);
                     props.load(props_filename);
-
-                    
+                                        
                     DuccProperties metaprops = new DuccProperties();
                     String meta_filename = serviceFileKey(stem + ".meta");
                     metaprops.load(meta_filename);                    
@@ -681,7 +681,9 @@ public class ServiceManagerComponent
         int instances = ev.getNinstances();
         Trinary autostart = ev.getAutostart();
         String user = ev.getUser();        
-        
+        long regdate = System.currentTimeMillis();
+        String regdate_readable = (new Date(regdate)).toString();
+
         if ( ! validate_user("Register", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Register", ev) ) return;
 
@@ -708,6 +710,9 @@ public class ServiceManagerComponent
         meta.setProperty("endpoint", endpoint);
         meta.setProperty("numeric_id", id.toString());
         meta.setProperty("uuid", id.getUnique());
+        meta.setProperty("registration-date-millis", Long.toString(regdate));
+        meta.setProperty("registration-date", regdate_readable);
+
         if ( autostart == Trinary.True ) {            
             meta.setProperty("autostart", "true");
         } else {
