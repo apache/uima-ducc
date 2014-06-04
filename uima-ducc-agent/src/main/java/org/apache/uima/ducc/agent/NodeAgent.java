@@ -1544,7 +1544,12 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
     }
     logger.info("stop", null, "Agent managed processes have stopped");
-
+    
+    // Delay this thread to make sure that at least one last node inventory publish occurs before Agent goes away. Add extra 30 secs 
+    // to the delay to make sure the publish happens.
+    synchronized (this) {
+        wait(configurationFactory.getNodeInventoryPublishDelay() +30000);
+    }
     super.stop();
 
   }

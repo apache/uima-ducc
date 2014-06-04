@@ -380,6 +380,9 @@ public class AgentConfiguration {
     return agentTransport.duccEventDispatcher(logger, common.managedServiceEndpoint, camelContext);
   }
 
+  public int getNodeInventoryPublishDelay() {
+	  return Integer.parseInt(common.nodeInventoryPublishRate);
+  }
   @Bean
   public NodeAgent nodeAgent() throws Exception {
     try {
