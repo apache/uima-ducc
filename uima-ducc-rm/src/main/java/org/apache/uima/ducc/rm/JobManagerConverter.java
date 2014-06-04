@@ -605,12 +605,13 @@ public class JobManagerConverter
                     logger.warn(methodName, jobid, "Update for share from process", pl.getPID(), pl.getDuccId(), "but cannot find share.");
                     continue;
                 }
-                
-                if ( s.isPurged() ) {
-                    IRmJob j = scheduler.getJob(jobid);
-                    scheduler.signalCompletion(j, s);
-                    logger.info(methodName, jobid, "Process", pl.getPID(), "marked complete because it is purged. State:", state);
-                }
+
+                // UIMA-3856 Can't do anything or else OR bugs will lose the state :(
+                // if ( s.isPurged() ) {
+                //     IRmJob j = scheduler.getJob(jobid);
+                //     scheduler.signalCompletion(j, s);
+                //     logger.info(methodName, jobid, "Process", pl.getPID(), "marked complete because it is purged. State:", state);
+                // }
 
                 if ( ! s.update(jobid, mem, investment, state, pl.getTimeWindowInit(), pid) ) {
                     // TODO: probably change to just a warning and cancel the job - for now I want an attention-getter
