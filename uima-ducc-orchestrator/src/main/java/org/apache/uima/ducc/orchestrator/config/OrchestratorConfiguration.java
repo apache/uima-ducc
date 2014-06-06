@@ -18,8 +18,6 @@
 */
 package org.apache.uima.ducc.orchestrator.config;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.camel.Body;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -33,9 +31,11 @@ import org.apache.uima.ducc.common.exception.DuccRuntimeException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.Orchestrator;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.OrchestratorComponent;
+import org.apache.uima.ducc.orchestrator.OrchestratorState;
 import org.apache.uima.ducc.orchestrator.event.OrchestratorEventListener;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.event.CancelJobDuccEvent;
@@ -68,6 +68,7 @@ public class OrchestratorConfiguration {
 	@Autowired DuccTransportConfiguration orchestratorTransport;
 
 	private DuccLogger duccLogger = DuccLoggerComponents.getOrLogger(OrchestratorConfiguration.class.getName());
+	private DuccId jobid = null;
 	
 	/**
 	 * Creates Camel router that will handle incoming request messages. Each message will
@@ -235,18 +236,20 @@ public class OrchestratorConfiguration {
 	 */
 	private class OrchestratorStateProcessor implements Processor {
 		private Orchestrator orchestrator;
-		private   AtomicLong sequence = new AtomicLong();
 		
 		private OrchestratorStateProcessor(Orchestrator orchestrator) {
 			this.orchestrator = orchestrator;
 		}
 		public void process(Exchange exchange) throws Exception {
+			String location = "OrchestratorStateProcessor.process";
 			// Fetch new state from Orchestrator
 			OrchestratorStateDuccEvent jse = orchestrator.getState();
 			//	add sequence number to the outgoing message. This should be used to manage
 			//  processing order in the consumer
-			jse.setSequence(sequence.addAndGet(1));
-
+			OrchestratorState orchestratorState = OrchestratorState.getInstance();
+			long seqNo = orchestratorState.getNextSequenceNumberState();
+			duccLogger.debug(location, jobid, ""+seqNo);
+			jse.setSequence(seqNo);
 			//	Add the state object to the Message
 			exchange.getIn().setBody(jse);
 		}
@@ -290,17 +293,20 @@ public class OrchestratorConfiguration {
 	 */
 	private class OrchestratorAbbreviatedStateProcessor implements Processor {
 		private Orchestrator orchestrator;
-		private   AtomicLong sequence = new AtomicLong();
 		
 		private OrchestratorAbbreviatedStateProcessor(Orchestrator orchestrator) {
 			this.orchestrator = orchestrator;
 		}
 		public void process(Exchange exchange) throws Exception {
+			String location = "OrchestratorAbbreviatedStateProcessor.process";
 			// Fetch new state from Orchestrator
 			OrchestratorAbbreviatedStateDuccEvent jse = orchestrator.getAbbreviatedState();
 			//	add sequence number to the outgoing message. This should be used to manage
 			//  processing order in the consumer
-			jse.setSequence(sequence.addAndGet(1));
+			OrchestratorState orchestratorState = OrchestratorState.getInstance();
+			long seqNo = orchestratorState.getNextSequenceNumberStateAbbreviated();
+			duccLogger.debug(location, jobid, ""+seqNo);
+			jse.setSequence(seqNo);
 			//	Add the state object to the Message
 			exchange.getIn().setBody(jse);
 		}
