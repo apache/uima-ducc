@@ -47,6 +47,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 	
 	public WorkItemStateKeeper(String component, String directory) {
 		logger = DuccLogger.getLogger(WorkItemStateKeeper.class, component);
+		activeMap = new ActiveMap(component);
 		initialize(directory);
 	}
 	
@@ -313,6 +314,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 	}
 	
 	public WorkItemStatistics getStatistics() {
+		stats.millisOperatingLeast = activeMap.getOperatingLeast();
 		return stats;
 	}
 	
@@ -338,14 +340,6 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 				}
 				break;
 			default:
-				long operatingLeast = wiMillis;
-				for(Entry<Long, IWorkItemState> entry : activeMap.entrySet()) {
-					long candidate = entry.getValue().getMillisProcessing();
-					if(candidate < operatingLeast) {
-						operatingLeast = candidate;
-					}
-				}
-				stats.millisOperatingLeast = operatingLeast;
 				break;
 			}
 		}
@@ -358,11 +352,9 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 			case ended:
 			case error:
 				stats.millisCompletedMost = wiMillis;
-				stats.millisOperatingLeast = 0;
 				break;
 			default:
 				stats.millisCompletedMost = 0;
-				stats.millisOperatingLeast = wiMillis;
 				break;
 			}
 		}

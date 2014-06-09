@@ -18,9 +18,6 @@
 */
 package org.apache.uima.ducc.common.jd.files.workitem;
 
-import java.util.concurrent.ConcurrentSkipListMap;
-
-import org.apache.uima.ducc.common.jd.files.IWorkItemState;
 import org.apache.uima.ducc.common.utils.IOHelper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
@@ -46,8 +43,8 @@ public abstract class WorkItemStateAbstract {
 	protected String fnJson = null;
 	protected String fnJsonGz = null;
 	protected String fnActiveJson = null;
-	
-	protected ConcurrentSkipListMap<Long, IWorkItemState> activeMap = new ConcurrentSkipListMap<Long, IWorkItemState>();
+
+	protected ActiveMap activeMap = null;
 	
 	protected WorkItemStatistics stats = new WorkItemStatistics();
 	

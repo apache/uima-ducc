@@ -48,6 +48,7 @@ public class ComponentHelper {
 				logger.error(methodName, null, "found file "+filename);
 				BufferedReader in = new BufferedReader(new FileReader(file));
 				String hostname = in.readLine();
+				in.close();
 				logger.error(methodName, null, "already running on host "+hostname);
 				System.exit(-1);
 			}
