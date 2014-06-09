@@ -234,7 +234,12 @@ implements IJobDriverComponent {
 		duccOut.trace(methodName, null, duccMsg.fetch("enter"));
 		duccOut.debug(methodName, null, duccMsg.fetchLabel("received")+"OrchestratorStateEvent");
 		if(active.get()) {
-			process(duccEvent);
+			try {
+				process(duccEvent);
+			}
+			catch(Throwable t) {
+				duccOut.error(methodName, duccId, t);
+			}
 		}
 		duccOut.trace(methodName, null, duccMsg.fetch("exit"));
 	}
