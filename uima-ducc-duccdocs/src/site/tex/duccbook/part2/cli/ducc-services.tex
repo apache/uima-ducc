@@ -37,15 +37,13 @@
 
               The registration consists primarily of a service specification, similar
               to a job specification. This specification is
-              used when the Service Manager needs to start a service instance.  A second properties
-              file, the {\em meta properties} for the service, contains additional state and
-              management properties.  The registered properties for a service are made available for
+              used when the Service Manager needs to start a service instance.  
+              The registered properties for a service are made available for
               viewing from the DUCC Web Server's \hyperref[sec:ws-service-details]{service details}
               page.
               
             \item[Unregister] This unregisters a service with the Service Manager. When a service is
-              unregistered DUCC optionally stops the service instance, if any, and discard the
-              saved specification.
+              unregistered DUCC stops the service instance and moves the specification to history.
               
             \item[Start] The start function instructs DUCC to allocate resources for a service and to
               start it in those resources. The service remains running until explicitly stopped. DUCC
@@ -57,9 +55,9 @@
             \item[Query] The query function returns detailed information about all known services, both
               registered and otherwise.
               
-            \item[Modify] The modify function allows some aspects of a registered service to be updated
-              without reregistereing the service. It optionally alters the running service instances to
-              conform with the updates.    
+            \item[Modify] The modify function allows most aspects of a registered service to be updated
+              without reregistering the service.  Where feasible the modification takes place
+              immediately; otherwise the service must be stopped and restarted.
         \end{description}
             
 
@@ -69,8 +67,8 @@
           \item[Java Main]      java -cp \ducchome/lib/uima-ducc-cli.jar org.apache.uima.ducc.cli.DuccServiceApi {\em options}
           \end{description}
           
-          The ducc\_services CLI requires one of the verbs listed above as the first argument. Other arguments are determined
-          by the verb.
+          The ducc\_services CLI requires one of the verbs ``register'', ``unregister'', ``start'', ``stop'', ``query'',
+          or ``modify''.  Other arguments are determined by the verb as described below.
 
     \paragraph{Options:}
 
@@ -83,33 +81,23 @@
              Prints the usage text to the console. 
         \end{description}
         
-    \subsection{ducc\_services --register Options}
+    \subsection{ducc\_services --register [specification file] [options]}
     \label{subsec:cli.ducc-services.register}
        The {\em register} function submits a service specification to DUCC.  DUCC stores this 
        information until it is {\em unregistered}.  Once registered, a service may be
        started, stopped, etc.
 
-       The {\em register} options are logically divided into two classes:
-       \begin{enumerate}
-         \item ``Meta'' options which define how the Service Manager manages the service, and
-         \item Options which describe the service itself.  These optinos are analagous to
-           those used to submit a job.
-       \end{enumerate}
-
-       The ``meta'' options include:
-       \begin{description}
-           \item[$--$register {[specification file] [options]}] The specification file is optional.
-
-           \item[$--$autostart {[true or false]}] This indicates whether to register the service as
-             an autostarted service.  If not specified, the default is {\em false}.
-             
-           \item[$--$instances {[n]}] This specifies the number of instances to start when the service
-             is started.  If not specified, the default is 1.
-                         
-       \end{description}
-
+       The {\em specification file} is optional.  If designated, it is a Java properties file
+       containing other registration options, minus the leading ``--''.  If both a specification
+       file and command-line options are designated, the command-line options override those in
+       the specification.
+                                     
        The options describing the service include:
+
     \begin{description}
+
+        \item[$--$autostart {[true or false]}] This indicates whether to register the service as
+          an autostarted service.  If not specified, the default is {\em false}.
 
         \item[$--$classpath] The CLASSPATH used for the service, if the service is a
           \hyperref[sec:services.types]{UIMA-AS services}.  If not specified, the CLASSPATH used
@@ -146,6 +134,40 @@
           quoted to protect it from the shell.
           
         \item[$--$help ] This prints the usage text to the console.
+
+         \item[$--$instances {[n]}] This specifies the number of instances to start when the service
+           is started.  If not specified, the default is 1.
+
+        \item[$--$instance\_failures\_window {[time-in-minutes]}]
+          This specifies the time in minutes that service instance failures are tracked.   If
+          there are more service instance failures within this time period than are allowed
+          by {\em$--$instance\_failures\_limit} the service's {\em autostart} flag is set to
+          {\em false} and the Service Manager no longer starts instances for the service.
+          The instance failures may be reset by resetting the autostart flag with
+          the {\em $--$modify} option, or if no subsequent failures occur within the window.
+
+          This option pertains only to failures which occur after the service is initialized.
+
+          The instance failure options are passed to the Service's pinger.  Service owners
+          may create custom pingers that override this behaviour.
+
+        \item[$--$instance\_failures\_limit {[number of allowable failures]}]
+          This specifies the maximum number of service failures which may occur with the
+          time specified by {\em $--$instance\_failures\_window} before the Service Manager
+          disables the service's {\em autostart} flag.  The accounting of failures may be
+          reset by resetting the autostart flag with the {\em$--$modify} option or if
+          no subsequent failures occur within the time window.
+
+          This option pertains only to failures which occur after the service is initialized.
+
+          The instance failure options are passed to the Service's pinger.  Service owners
+          may create custom pingers that override this behaviour.
+
+        \item[$--$instance\_init\_failures\_limit {[number of allowable failures]}]
+          This specifies the number of consecutive failures allowed while a service is in
+          initialization state.   If the maximum is reached, the service's {\em autostart}
+          flag is turned off.  The accounting may be reset by reeenabling {\em autostart}, or
+          if a successful initialization occurs.
 
         \item[$--$jvm {[path-to-java]}] This specifies the JVM to use for 
           \hyperref[sec:services.types]{UIMA-AS services}. If not
@@ -187,6 +209,16 @@
       \item[$--$process\_DD {[DD descriptor]}] 
         This specifies the UIMA Deployment Descriptor for \hyperref[sec:services.types]{UIMA-AS services}.
 
+      \item[$--$process\_debug {[host:port]}]        
+        The specifies a debug port that a service instance connects to when it is started.  If specified,
+        only a single service instance is started by the Service Manager regardless of the number of
+        instances specified.  The service instance's JVM options are enhanced so the service instance
+        starts in debug mode with the correct call-back host and port.  The host and port are used
+        for the callback.
+
+        To disable debugging, user the {\em $--$modify} service option to set the host:port to
+        the string ``off''.
+
       \item[$--$process\_executable {[program-name]}] For \hyperref[sec:services.types]{CUSTOM
           services}, this specifies the full path of the program to execute.
 
@@ -197,12 +229,6 @@
         allocated to each Job Process.  This value is used by the Resource Manager to allocate
         resources. 
 
-      \item[$--$instance\_failures\_limit {[integer]}] 
-        This specifies the maximum number of consecutive individual service instance failures that are to be 
-        tolerated before stopping the service. The default is five (5). If the instance is successfully
-        restarted, the count is reset to zero (0), so that the occasional process failure does not cause
-        the entire service to be terminated.
-        
       \item[$--$scheduling\_class {[classname]}] This specifies the name of the scheuling class the RM
         will use to determine the resource allocation for each process. The names of the classes are
         installation dependent. If not specified, the default is taken from the global DUCC
@@ -238,12 +264,6 @@
         
         The keywords in the string have the following meaning:
         \begin{description}
-          \item[queue\_threshold=nn] If the depth of the ActiveMQ queue for the service exceeds
-            this value for some period of time, the health of the service is marked ``poor''.
-            If omitted, the value is 0, and no quality measurement is made.
-          \item[window=ww] This defines a ``window'' over which the queue threshold is measured.
-            the value is the number of consecutive measurements over which the queue depth must
-            exceed the threshold.  If omitted, the window size is 0.
           \item[broker\_jmx\_port=pppp] This is the JMX port for the service's broker.  If not
             specified, the default of 1099 is used.  This is used to gather ActiveMQ statistics
             for the service.
@@ -293,29 +313,6 @@
 
         If the service is CUSTOM, the endpoint is required, and must be of the form
         {\tt CUSTOM:string} where the contents of the string are determined by the service.
-
-      \item[$--$specification, $-$f {[file]}] All the parameters used to register a service may be placed in a
-        standard Java properties file.  This file may then be used to register the service (rather than
-        providing all the parameters directly).
-        For example, 
-
-\begin{verbatim}
-ducc_services --register svc.props 
-\end{verbatim}
-        
-        where the svc.props contains: 
-
-\begin{verbatim}
-environment         = AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0
-description         = Test Service 3
-process_jvm_args    = -DdefaultBrokerURL=tcp://agent86:61616
-classpath           = /home/bob/lib/app.jar
-process_memory_size = 15
-working_directory   = /home/bob/services
-process_DD          = /home/bob/services/service.xml
-scheduling_class    = fixed
-service_dependency  =  UIMA-AS:FixedSleepAE_4:tcp://agent86:61616
-\end{verbatim}
         
         \item[$--$working\_directory {[directory-name]}]
           This specifies the working directory to be set for the service processes. 
@@ -323,7 +320,7 @@ service_dependency  =  UIMA-AS:FixedSleepAE_4:tcp://agent86:61616
     \end{description}
 
 
-    \subsection{ducc\_services --start Options}
+    \subsection{ducc\_services --start options}
 
     The start function instructs DUCC to allocate resources for a service and to start it in those
     resources. The service remains running until explicitly stopped. DUCC will attempt to keep the
@@ -363,7 +360,7 @@ ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --upda
 \end{verbatim}
        \end{description}
 
-    \subsection{ducc\_services --stop Options}
+    \subsection{ducc\_services --stop options}
     The stop function instructs DUCC to stop some number of service instances. If no specific number
     is specified, all instances are stopped.
 
@@ -403,53 +400,47 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --updat
 
     \end{description}
 
-    \subsection{ducc\_services --modify Options}
-    The modify function dynamically updates some of the attributes of a registered service. 
+    \subsection{ducc\_services --modify options}
+    The modify function dynamically updates some of the attributes of a registered service.  All
+    service options as described under {\em $--$register} other than the {\em service\_endpoint} 
+    and {\em process\_DD} may be modified wihtout re-registering the service.  In most cases the
+    service will need to be stopped and restarted for the update to apply. 
     
+    The modify option is of the following form:
     \begin{description}
+
         \item[$--$modify {[service-id or endpoint]}]  This identifies the service to modify. The service id is either
           the numeric ID assigned by DUCC when the service is registered, or the service endpoint
           string.  Example:
 \begin{verbatim}
 ducc_services --modify 23 --instances 3 
 ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --intances 2 
-\end{verbatim}
+\end{verbatim}    
+    \end{description}
 
-        \item[ --instances {[integer]}] This updates the number of services instances that are
-          started when the service is started.  Only the registration is updated. If the {\em $--$activate}
-          option is also specified, running instances are stopped or started as needed to match the
-          new number.
-
-          Example: 
-\begin{verbatim}
-ducc_services --modify 23 --intances 5 
-ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --activate 
-\end{verbatim}
-
-        \item[ --activate {[integer]}] When specified, the number of running service instances is
-          increased or decreased to match the newly specified number.
-
-          Example: 
-\begin{verbatim}
-ducc_services --modify 23 --intances 5 
-ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --activate 
-\end{verbatim}
-
-        \item[ --autostart {["true" or "false"]}] This changes the autostart property for the
-          registered services. When set to "true", the service is started automatically when the
-          DUCC system is started.  If the service is not currently started, it will now start
-          with the registered number of instances.  If the service is running, the instances
-          remain running.
-
-          One way to think of this is: if {\em autostart} is true, DUCC will attempt to keep
-          the registered number of instances running at all times.  If {\em autostart} is
-          false, all instance start and stop is manual.
-          Example: 
-\begin{verbatim}
-ducc_services --modify UIMA-AS:Service23:tcp://bob.com:12345 --autostart false 
-\end{verbatim}
-        \end{description}
-
+    The following modifications take place immediately without the need to restart the service:
+    \begin{itemize}
+      \item instances
+      \item autostart
+      \item service\_linger
+      \item process\_debug
+      \item instance\_init\_failures\_limit
+    \end{itemize}
+      
+    Modifying the following registration options causes the service pinger to be stopped and
+    started, without affecting any of the service instances themselves.  The pinger is restarted
+    even if the modification value is the same as the old value. (A good way to restart
+    a possibly errant pinger is to modify it's {\em service\_ping\_dolog} from ``true'' to ``true'' or
+    from ``false'' to ``false''.)
+    \begin{itemize}
+      \item service\_ping\_arguments
+      \item service\_ping\_class
+      \item service\_ping\_classpath
+      \item service\_ping\_jvmargs
+      \item service\_ping\_timeout
+      \item service\_ping\_dolog
+    \end{itemize}
+    
     \subsection{ducc\_services --query Options}
     The query function returns details about all known services of all types and classes, including 
     the DUCC ids of the service instances (for submitted and registered services), the DUCC ids of 
