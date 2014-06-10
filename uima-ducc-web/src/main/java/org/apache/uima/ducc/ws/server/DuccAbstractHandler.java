@@ -58,6 +58,7 @@ import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.server.DuccCookies.DateStyle;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
+import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
@@ -204,14 +205,14 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return sb.toString();
 	}
 	
-	public String getDuration(DuccId jobId, String millisV2, String millisV1) {
+	public String getDuration(DuccId jobId, String millisV2, String millisV1, Precision precision) {
 		String methodName = "getDuration";
 		String retVal = "";
 		try {
 			long d2 = Long.parseLong(millisV2);
 			long d1 = Long.parseLong(millisV1);
 			long diff = d2 - d1;
-			retVal = FormatHelper.duration(diff);
+			retVal = FormatHelper.duration(diff, precision);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, null, "no worries", e);
@@ -606,14 +607,14 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
-	public String getDuration(HttpServletRequest request, IDuccWork dw) {
+	public String getDuration(HttpServletRequest request, IDuccWork dw, Precision precision) {
 		String methodName = "getDuration";
 		String retVal = "";
 		try {
 			String v2 = dw.getStandardInfo().getDateOfCompletion();
 			String v1 = dw.getStandardInfo().getDateOfSubmission();
 			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
-			retVal = getDuration(dw.getDuccId(),v2,v1);
+			retVal = getDuration(dw.getDuccId(),v2,v1,precision);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, null, "no worries", e);
@@ -624,14 +625,14 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
-	public String getDuration(HttpServletRequest request, IDuccWork dw, long now) {
+	public String getDuration(HttpServletRequest request, IDuccWork dw, long now, Precision precision) {
 		String methodName = "getDuration";
 		String retVal = "";
 		try {
 			String v2 = ""+now;
 			String v1 = dw.getStandardInfo().getDateOfSubmission();
 			duccLogger.trace(methodName, null, "v2:"+v2+" v1:"+v1);
-			retVal = getDuration(dw.getDuccId(),v2,v1);
+			retVal = getDuration(dw.getDuccId(),v2,v1,precision);
 		}
 		catch(Exception e) {
 			duccLogger.trace(methodName, null, "no worries", e);
@@ -642,7 +643,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return retVal;
 	}
 	
-	public String getProjection(HttpServletRequest request, IDuccWorkJob job) {
+	public String getProjection(HttpServletRequest request, IDuccWorkJob job, Precision precision) {
 		String methodName = "getProjection";
 		String retVal = "";
 		try {
@@ -670,7 +671,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						if(projectedTime > 0) {
 							long millis = Math.round(projectedTime);
 							if(millis > 1000) {
-								String projection = FormatHelper.duration(millis);
+								String projection = FormatHelper.duration(millis,precision);
 								String health = "class=\"health_yellow\"";
 								String title = "title=\"Time (ddd:hh:mm:ss) until projected completion\"";
 								retVal = "+"+"<span "+health+" "+title+"><i>"+projection+"</i></span>";
@@ -680,7 +681,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 						else {
 							long millis = Math.round(0-projectedTime);
 							if(millis > 1000) {
-								String projection = FormatHelper.duration(millis);
+								String projection = FormatHelper.duration(millis,precision);
 								String health = "class=\"health_purple\"";
 								String title = "title=\"Time (ddd:hh:mm:ss) past-due projected completion\"";
 								retVal = "-"+"<span "+health+" "+title+"><i>"+projection+"</i></span>";
@@ -707,7 +708,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 		return avgMillis;
 	}
 	
-	public String decorateDuration(HttpServletRequest request, IDuccWorkJob job, String duration) {
+	public String decorateDuration(HttpServletRequest request, IDuccWorkJob job, String duration, Precision precision) {
 		String location = "decorateDuration";
 		String retVal = duration;
 		DuccId duccId = job.getDuccId();
@@ -724,7 +725,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 				if(title.length() > 0) {
 					title.append("; ");
 				}
-				title.append("Time (ddd:hh:mm:ss) elapsed for job, average processing time per work item="+FormatHelper.duration(iAvgMillisPerWorkItem));
+				title.append("Time (ddd:hh:mm:ss) elapsed for job, average processing time per work item="+FormatHelper.duration(iAvgMillisPerWorkItem,precision));
 			}
 			String cVal = getCompletion(request,job);
 			if(cVal != null) {

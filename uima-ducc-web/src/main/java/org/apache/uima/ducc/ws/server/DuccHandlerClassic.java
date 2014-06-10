@@ -78,6 +78,7 @@ import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
+import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandlerClassic extends DuccAbstractHandler {
@@ -127,19 +128,19 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		// Duration
 		sb.append("<td valign=\"bottom\" align=\"right\">");
 		if(job.isCompleted()) {
-			String duration = getDuration(request,job);
-			String decoratedDuration = decorateDuration(request,job, duration);
+			String duration = getDuration(request,job, Precision.Whole);
+			String decoratedDuration = decorateDuration(request,job,duration,Precision.Whole);
 			sb.append("<span>");
 			sb.append(decoratedDuration);
 			sb.append("</span>");
 		}
 		else {
-			String duration = getDuration(request,job,now);
-			String decoratedDuration = decorateDuration(request,job, duration);
+			String duration = getDuration(request,job,now,Precision.Whole);
+			String decoratedDuration = decorateDuration(request,job,duration,Precision.Whole);
 			sb.append("<span class=\"health_green\""+">");
 			sb.append(decoratedDuration);
 			sb.append("</span>");
-			String projection = getProjection(request,job);
+			String projection = getProjection(request,job,Precision.Whole);
 			sb.append(projection);
 		}
 		sb.append("</td>");
@@ -502,14 +503,14 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			switch(reservation.getReservationState()) {
 			case Completed:
 				sb.append("<span>");
-				duration = getDuration(request,reservation);
+				duration = getDuration(request,reservation,Precision.Whole);
 				decoratedDuration = decorateDuration(request,reservation, duration);
 				sb.append(decoratedDuration);
 				sb.append("</span>");
 				break;
 			default:
 				sb.append("<span class=\"health_green\""+">");
-				duration = getDuration(request,reservation,now);
+				duration = getDuration(request,reservation,now,Precision.Whole);
 				decoratedDuration = decorateDuration(request,reservation, duration);
 				sb.append(decoratedDuration);
 				sb.append("</span>");
@@ -521,15 +522,15 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			switch(job.getJobState()) {
 			case Completed:
 				sb.append("<span>");
-				String duration = getDuration(request,job);
-				String decoratedDuration = decorateDuration(request,job, duration);
+				String duration = getDuration(request,job,Precision.Whole);
+				String decoratedDuration = decorateDuration(request,job,duration,Precision.Whole);
 				sb.append(decoratedDuration);
 				sb.append("</span>");
 				break;
 			default:
 				sb.append("<span class=\"health_green\""+">");
-				duration = getDuration(request,job,now);
-				decoratedDuration = decorateDuration(request,job, duration);
+				duration = getDuration(request,job,now,Precision.Whole);
+				decoratedDuration = decorateDuration(request,job,duration,Precision.Whole);
 				sb.append(decoratedDuration);
 				sb.append("</span>");
 				break;

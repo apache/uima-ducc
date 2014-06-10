@@ -99,6 +99,7 @@ import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
+import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
 import org.apache.uima.ducc.ws.utils.LinuxSignals;
 import org.apache.uima.ducc.ws.utils.LinuxSignals.Signal;
@@ -573,7 +574,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						long now = System.currentTimeMillis();
 						String tS = t.getStart(""+now);
 						String tE = t.getEnd(""+now);
-						initTime = getDuration(jobid,tE,tS);
+						initTime = getDuration(jobid,tE,tS,Precision.Whole);
 						if(t.isEstimated()) {
 							isp0 = "<span title=\"estimated\" class=\"health_green\">";
 						}
@@ -610,7 +611,7 @@ public class DuccHandler extends DuccAbstractHandler {
 									IUimaPipelineAEComponent upc = upcIterator.next();
 									String iName = upc.getAeName();
 									String iState = upc.getAeState().toString();
-									String iTime = FormatHelper.duration(upc.getInitializationTime());
+									String iTime = FormatHelper.duration(upc.getInitializationTime(),Precision.Whole);
 									loadme.append("<tr>");
 									loadme.append("<td>"+iName);
 									loadme.append("<td>"+iState);
@@ -670,7 +671,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					long now = System.currentTimeMillis();
 					String tS = t.getStart(""+now);
 					String tE = t.getEnd(""+now);
-					runTime = getDuration(jobid,tE,tS);
+					runTime = getDuration(jobid,tE,tS,Precision.Whole);
 					if(t.isEstimated()) {
 						rsp0 = "<span title=\"estimated\" class=\"health_green\">";
 					}
@@ -1484,7 +1485,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					// Total
 					sb.append("<td align=\"right\">");
 					ltime = (long)time_total;
-					sb.append(FormatHelper.duration(ltime));
+					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					// % of Total
 					sb.append("<td align=\"right\">");
 					sb.append(formatter.format(100));
@@ -1502,7 +1503,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					catch(Exception e) {
 						ltime = (long)workItemStateReader.getMin();
 					}
-					sb.append(FormatHelper.duration(ltime));
+					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					sb.append("</span>");
 					// Min
 					sb.append("<td align=\"right\">");
@@ -1513,7 +1514,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					catch(Exception e) {
 						ltime = (long)workItemStateReader.getMin();
 					}
-					sb.append(FormatHelper.duration(ltime));
+					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					sb.append("</span>");
 					// Max
 					sb.append("<td align=\"right\">");
@@ -1524,7 +1525,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					catch(Exception e) {
 						ltime = (long)workItemStateReader.getMin();
 					}
-					sb.append(FormatHelper.duration(ltime));
+					sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					sb.append("</span>");
 				    // pass 2
 				    for (int i = 0; i < numstats; ++i) {
@@ -1536,7 +1537,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						sb.append("<td align=\"right\">");
 						time = uimaStats.get(i).getAnalysisTime();
 						ltime = (long)time;
-						sb.append(FormatHelper.duration(ltime));
+						sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 						// % of Total
 						sb.append("<td align=\"right\">");
 						double dtime = (time/time_total)*100;
@@ -1545,17 +1546,17 @@ public class DuccHandler extends DuccAbstractHandler {
 						sb.append("<td align=\"right\">");
 						time = time/casCount;
 						ltime = (long)time;
-						sb.append(FormatHelper.duration(ltime));
+						sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 						// Min
 						sb.append("<td align=\"right\">");
 						time = uimaStats.get(i).getAnalysisMinTime();
 						ltime = (long)time;
-						sb.append(FormatHelper.duration(ltime));
+						sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 						// Max
 						sb.append("<td align=\"right\">");
 						time = uimaStats.get(i).getAnalysisMaxTime();
 						ltime = (long)time;
-						sb.append(FormatHelper.duration(ltime));
+						sb.append(FormatHelper.duration(ltime,Precision.Tenths));
 					}
 					sb.append("</table>");
 			    }
@@ -3431,7 +3432,7 @@ public class DuccHandler extends DuccAbstractHandler {
 							IUimaPipelineAEComponent upc = upcIterator.next();
 							String iName = upc.getAeName();
 							String iState = upc.getAeState().toString();
-							String iTime = FormatHelper.duration(upc.getInitializationTime());
+							String iTime = FormatHelper.duration(upc.getInitializationTime(),Precision.Whole);
 							sb.append("<tr>");
 							sb.append("<td>"+iName);
 							sb.append("<td>"+iState);

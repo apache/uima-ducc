@@ -23,13 +23,15 @@ import java.text.DecimalFormat;
 
 public class FormatHelper {
 	
+	public enum Precision { Whole, Tenths };
+	
 	private static DecimalFormat df = new DecimalFormat("#.0");
 	
 	static {
 		df.setRoundingMode(RoundingMode.DOWN);
 	}
 	
-	public static String duration(final long millis) {
+	public static String duration(final long millis, Precision precision) {
 		long seconds = millis / 1000;
 		long dd =   seconds / 86400;
 		long hh =  (seconds % 86400) / 3600;
@@ -45,9 +47,16 @@ public class FormatHelper {
 				}
 			}
 		}
-		double subseconds = (millis%1000.0)/1000;
-		String frac = df.format(subseconds);
-		text = text+frac;
+		switch(precision) {
+		case Tenths:
+			double subseconds = (millis%1000.0)/1000;
+			String frac = df.format(subseconds);
+			text = text+frac;
+			break;
+		case Whole:
+		default:
+			break;
+		}
 		return text;
 	}
 }
