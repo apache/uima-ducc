@@ -23,6 +23,7 @@ import java.util.List;
 
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -118,34 +119,36 @@ public class DuccServiceApi
 
     // This gets generated from the registratoin_options.
     UiOption[] modify_options;
-    // // For use by SM, final to insure no accidental modification
-    // UiOption[] modify_options = {
-    //     UiOption.Help,
-    //     UiOption.Debug,
-    //     UiOption.Modify,
-    //     UiOption.Instances,
-    //     UiOption.Autostart,
-    //     UiOption.Activate,
-
-    //     UiOption.ProcessInitializationTimeMax,
-
-    //     UiOption.ServicePingArguments,
-    //     UiOption.ServicePingClass,
-    //     UiOption.ServicePingClasspath,
-    //     UiOption.ServicePingJvmArgs,
-    //     UiOption.ServicePingTimeout,
-    //     UiOption.ServicePingDoLog,
-
-    //     UiOption.InstanceFailureWindow,
-    //     UiOption.InstanceFailureLimit,
-    //     UiOption.InstanceInitFailureLimit,
-    // }; 
 
     UiOption[] query_options = {
         UiOption.Help,
         UiOption.Debug,
         UiOption.Query,
     }; 
+
+    // These options are only valid for CUSTOM services
+    UiOption[] custom_only_options = {
+            UiOption.ProcessExecutable,
+            UiOption.ProcessExecutableArgs,
+    }; 
+       
+    // These options are only valid for UIMA-AS services
+    UiOption[] uimaas_only_options = {
+            UiOption.ProcessDD,
+            UiOption.Jvm,
+            UiOption.ProcessJvmArgs,
+            UiOption.ProcessDebug,
+            UiOption.Classpath,
+            UiOption.ClasspathOrder,
+    }; 
+    
+    // These options are only valid for services with an explicit pinger
+    UiOption[] pinger_only_options = {
+            UiOption.ServicePingClasspath,
+            UiOption.ServicePingJvmArgs,
+            UiOption.ServicePingTimeout,
+            UiOption.ServicePingDoLog,
+    };
 
     public DuccServiceApi(IDuccCallback cb)
     {
@@ -293,7 +296,7 @@ public class DuccServiceApi
         cli_props.setProperty(UiOption.ProcessDebug.pname(), debug_host + ":" + debug_port);
     }
 
-    String extractEndpoint(String jvmargs)
+    private String extractEndpoint(String jvmargs)
     {
         String dd = cli_props.getStringProperty(UiOption.ProcessDD.pname()); // will throw if can't find the prop
         String working_dir = cli_props.getStringProperty(UiOption.WorkingDirectory.pname());
@@ -304,6 +307,17 @@ public class DuccServiceApi
         return endpoint;
     }
 
+    private void discardOptions(UiOption[] ignored_options, String type) {
+        for (UiOption opt : ignored_options) {
+            if (cli_props.containsKey(opt.pname())) {
+                message("WARNING - Option --" + opt.pname() + " is ignored for " + type + " services");
+                cli_props.remove(opt.pname());
+            }
+        }
+    }
+
+    
+    
     public UiOption[] getModifyOptions()
     {
         return modify_options;
@@ -325,24 +339,21 @@ public class DuccServiceApi
         
         setLinger();
 
-        //
-        // Check if the mutually exclusive UIMA-AS DD and the Custom executable are specified
-        //
-        String uimaDD = cli_props.getStringProperty(UiOption.ProcessDD.pname(), null);
-        String customCmd = cli_props.getStringProperty(UiOption.ProcessExecutable.pname(), null);
+        // Determine service type based on the endpoint (default is UIMA-AS)
+        // For each type check for required options; also warn and drop any inappropriate options
         
-        //
-        // Establish my endpoint
-        //
         String  endpoint = cli_props.getStringProperty(UiOption.ServiceRequestEndpoint.pname(), null);
         if ( endpoint == null || endpoint.startsWith(ServiceType.UimaAs.decode()) ) {
 
+            String uimaDD = cli_props.getStringProperty(UiOption.ProcessDD.pname(), null);
             if (uimaDD == null) {
-                throw new IllegalArgumentException("Must specify --process_DD for UIMA-AS services");
+                throw new IllegalArgumentException("Option --process_DD is required for UIMA-AS services");
             }
-            if (customCmd != null) {
-                message("WARN", "--process_executable is ignored for UIMA-AS services");
+            discardOptions(custom_only_options, ServiceType.UimaAs.decode());
+            if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
+                discardOptions(pinger_only_options, "pinger-less UIMA-AS");
             }
+            
             // Set default classpath if not specified - only used for UIMA-AS services
             String key_cp = UiOption.Classpath.pname();
             if (!cli_props.containsKey(key_cp)) {
@@ -371,15 +382,14 @@ public class DuccServiceApi
             
         } else if (endpoint.startsWith(ServiceType.Custom.decode())) {
 
-            if (uimaDD != null) {
-                message("WARN", "--process_DD is ignored for CUSTOM endpoints");
-            }
             // Custom services must have a pinger, but the process_executable (& args) 
             // options may be omitted for a ping-only service.
             // When omitted other options such as autostart are irrelevant.
             if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {
-                throw new IllegalArgumentException("Custom service is missing ping class name.");
+                throw new IllegalArgumentException("Option --service_ping_class is required for CUSTOM services");
             }
+            discardOptions(uimaas_only_options, ServiceType.Custom.decode());
+            
             String key_cp = UiOption.ServicePingClasspath.pname();
             if (!cli_props.containsKey(key_cp)) {
                 cli_props.setProperty(key_cp, System.getProperty("java.class.path"));
