@@ -188,24 +188,20 @@ public class DuccUiUtilities {
      *
      * @param endpoint This is the endpoint of the caller itself, for resolution ( to make sure it can resolve.).  For
      *                 jobs this must be null.
-     * @param dependency_string This is the comma-delimited string of service ids "I" am dependent upon.
+     * @param dependency_string This is the whitespace-delimited string of service ids "I" am dependent upon.
+     * 
+     * @return (possibly) corrected list of dependencies
      */
-    public static void check_service_dependencies(String endpoint, String dependency_string) 
+    public static String check_service_dependencies(String endpoint, String dependency_string) 
     {
         if ( dependency_string == null ) {         // no dependencies to worry about
-            return;
+            return null;
         }
 
+        StringBuilder deps = new StringBuilder();
         for (String d : dependency_string.split("\\s+")) {
-            if (d.equals(endpoint)) {
-                throw new IllegalArgumentException("A service cannot depend on itself: " + d);
-            }
             String[] parts = d.split(":", 3);
             String type = parts[0];
-            if (!type.equals(ServiceType.UimaAs.decode()) && !type.equals(ServiceType.Custom.decode())) {
-                throw new IllegalArgumentException(
-                                "Ill-formed or unsupported service type in dependency: '" + d + "'");
-            }
 
             if (type.equals(ServiceType.UimaAs.decode())) {
                 // MUST have 2 ":" in it, and the broker must be a valid url
@@ -224,10 +220,26 @@ public class DuccUiUtilities {
                 try {
                     url = new URL(null, broker, new TcpStreamHandler());
                 } catch (MalformedURLException e) {
-                    throw new IllegalArgumentException("Invalid broker URL in service ID: " + broker);
+                    throw new IllegalArgumentException("Invalid broker URL '" + broker + "' in service ID '" + d + "'");
                 }
+                // Finally strip the decorations as they are not part of a service name
+                // (Could check with url.getQuery() but cannot easily rebuild without it)
+                int ix = broker.indexOf('?');
+                if ( ix > 0) {
+                    System.out.println("WARNING: Ignoring URL decorations on service ID " + d);
+                    d = parts[0] + ":" + parts[1] + ":" + broker.substring(0, ix); 
+                }
+            }  else if (!type.equals(ServiceType.Custom.decode())) {
+                throw new IllegalArgumentException(
+                        "Ill-formed or unsupported service type in dependency: '" + d + "'");
             }
+            
+            if (d.equals(endpoint)) {
+                throw new IllegalArgumentException("A service cannot depend on itself: " + d);
+            }
+            deps.append(d).append(" ");
         }
+        return deps.substring(0, deps.length()-1);
     }
 
     /*

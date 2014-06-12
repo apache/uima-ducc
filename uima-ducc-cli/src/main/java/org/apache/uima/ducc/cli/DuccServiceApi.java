@@ -299,7 +299,7 @@ public class DuccServiceApi
         String working_dir = cli_props.getStringProperty(UiOption.WorkingDirectory.pname());
         endpoint = DuccUiUtilities.getEndpoint(working_dir, dd, jvmargs);
         if ( debug ) {
-            System.out.println("Service endpoint resolves to " + endpoint);
+            System.out.println("DD service endpoint resolves to " + endpoint);
         }
         return endpoint;
     }
@@ -352,15 +352,19 @@ public class DuccServiceApi
             // Given ep must match inferred ep. Use case: an application is wrapping DuccServiceApi and has to construct
             // the endpoint as well.  The app passes it in and we insure that the constructed endpoint matches the one
             // we extract from the DD - the job will fail otherwise, so we catch this early.
-            //
             String jvmarg_string = cli_props.getProperty(UiOption.ProcessJvmArgs.pname());
             String inferred_endpoint = extractEndpoint(jvmarg_string);
             if (endpoint == null) {
                 endpoint = inferred_endpoint;
-            } else if ( !inferred_endpoint.equals(endpoint) ) {
-                throw new IllegalArgumentException("Specified endpoint does not match endpoint extracted from UIMA DD" 
-                                                   + "\n --service_request_endpoint: " + endpoint 
-                                                   + "\n                  extracted: " + inferred_endpoint );
+            } else {
+                // Check & strip any broker URL decorations on the endpoint
+                endpoint = DuccUiUtilities.check_service_dependencies(null, endpoint);
+                cli_props.setProperty(UiOption.ServiceRequestEndpoint.pname(), endpoint);    // SM uses both endpoint definitions !!!
+                if ( !inferred_endpoint.equals(endpoint) ) {
+                    throw new IllegalArgumentException("Specified endpoint does not match endpoint extracted from UIMA DD" 
+                                                     + "\n --service_request_endpoint: " + endpoint 
+                                                     + "\n                  extracted: " + inferred_endpoint );
+                }
             }
 
             enrichPropertiesForDebug(UiOption.Register);

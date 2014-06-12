@@ -178,12 +178,16 @@ public abstract class CliBase
 
     /*
      * Check the syntax & if a service refers to itself -- place-holders already resolved
+     * Strip any broker URL decorations
      */
     boolean check_service_dependencies(String endpoint)
     {
         String deps = cli_props.getProperty(UiOption.ServiceDependency.pname());
         try {
-            DuccUiUtilities.check_service_dependencies(endpoint, deps);                
+            String dependencies = DuccUiUtilities.check_service_dependencies(endpoint, deps);
+            if (dependencies != null) {
+                cli_props.setProperty(UiOption.ServiceDependency.pname(), dependencies);
+            }
             return true;
         } catch ( Throwable t ) {
             message("ERROR:", t.toString());
