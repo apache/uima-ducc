@@ -108,7 +108,10 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 		//  passed since the last broadcast. This is configured in ducc.properties with
 		//  property ducc.agent.node.inventory.publish.rate.skip
 		try {
-			if ( inventory.size() > 0 && (inventoryChanged || ( counter > 0 && (counter % forceInventoryUpdateMaxThreshold ) == 0)) )  {
+			if ( inventory.size() > 0 && 
+					( inventoryChanged || // if there is inventory change, publish
+					  forceInventoryUpdateMaxThreshold == 0 ||  // skip rate in ducc.properties is zero, publish		
+					  ( counter > 0 && (counter % forceInventoryUpdateMaxThreshold ) == 0)) )  { // if reached skip rate, publish
 				
 				outgoingMessage.getIn().setBody(new NodeInventoryUpdateDuccEvent(inventory));
 				StringBuffer sb = new StringBuffer("Node Inventory ("+inventory.size()+")");
