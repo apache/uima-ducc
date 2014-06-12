@@ -38,7 +38,7 @@ public class DefaultNodeInventoryProcessor implements NodeInventoryProcessor {
 	boolean inventoryChanged=true;
 	private NodeAgent agent;
 	private HashMap<DuccId, IDuccProcess> previousInventory;	
-	private int forceInventoryUpdateMaxThreshold=1;
+	private int forceInventoryUpdateMaxThreshold=0;
 	private long counter=0;
 	
 	public  DefaultNodeInventoryProcessor(NodeAgent agent,String inventoryPublishRateSkipCount) {
