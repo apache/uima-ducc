@@ -217,7 +217,7 @@
 							</sourcepath>
 
                             <show>
-                              public
+                              package
                             </show>
 
 							<subpackages>org.apache.uima</subpackages>
