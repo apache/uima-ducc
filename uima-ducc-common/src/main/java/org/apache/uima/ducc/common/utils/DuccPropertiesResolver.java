@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.apache.uima.ducc.common.IDuccEnv;
@@ -160,6 +161,37 @@ public class DuccPropertiesResolver {
         catch (IOException e) {
             System.out.println("Error reading file: "+IDuccEnv.DUCC_PROPERTIES_FILE);
         }
+        enrich(properties);
+    }
+    
+    private void enrich(Properties properties) {
+    	String location = "enrich";
+    	// add or override with ducc.private.properties
+        Properties privateProperties = getPrivateProperties();
+        for(Entry<Object, Object> entry : privateProperties.entrySet()) {
+        	System.out.println(location+": "+entry.getKey()+"="+entry.getValue());
+        	properties.put(entry.getKey(), entry.getValue());
+        }
+    }
+    
+    private Properties getPrivateProperties() {
+    	//String methodName = "getPrivateProperties";
+    	Properties privateProperties = new Properties();
+    	String fileName = IDuccEnv.DUCC_PRIVATE_PROPERTIES_FILE;
+    	try {
+            File file = new File(fileName);
+            FileInputStream fis;
+            fis = new FileInputStream(file);
+            privateProperties.load(fis);
+            fis.close();
+        } 
+        catch (FileNotFoundException e) {
+            //System.out.println(methodName+" "+"File not found: "+fileName);
+        } 
+        catch (IOException e) {
+            //System.out.println(methodName+" "+"Error reading file: "+fileName);
+        }
+    	return privateProperties;
     }
     
     public String getProperty(String key) {
