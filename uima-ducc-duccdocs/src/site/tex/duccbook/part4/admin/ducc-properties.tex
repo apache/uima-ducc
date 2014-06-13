@@ -16,11 +16,20 @@
 % specific language governing permissions and limitations
 % under the License.
 % 
-\section{ducc.properties}
-\label{sec:ducc.properties}
-    The primary configuration file is called ducc.properties and always resides in the directory
+
+\section{Properties}
+ 	
+ 	Public properties are in a primary configuration file is called ducc.properties 
+	and always resides in the directory
     ducc\_runtime/resources.
 
+	Private properties are in a secondary configuration file call ducc.private.properties
+	and always resides in the directory
+    ducc\_runtime/resources/private.
+    
+\section{ducc.properties}
+\label{sec:ducc.properties}
+   
     Some of the properties in ducc.properties are intended as the "glue" that brings the various 
     DUCC components together and lets then run as a coherent whole. These types of properties should 
     be modified only by developers of DUCC itself. In the description below these properties are 
@@ -36,6 +45,8 @@
     broker, the location of the Java JRE, port numbers, etc. These should be modified by the DUCC
     administrators to configure DUCC to each individual installation. In the description below these
     properties are classified as "Local".
+    
+    See also 
     
 \subsection{General DUCC Properties}
     \begin{description}
@@ -424,14 +435,6 @@
           \begin{description}
             \item[Default Value] 42155 
             \item[Type] Local 
-          \end{description}
-
-        \item[ducc.ws.port.ssl.pw] \hfill \\
-          This is the password used to generate the Web Server's keystore used for HTTPS requests.  Usually
-          this keystore is created at initial installation time using \hyperref[subsec:install.single-user]{ducc\_post\_install.}
-          \begin{description}
-            \item[Default Value] quackquack 
-            \item[Type] Local
           \end{description}
                     
         \item[ducc.ws.session.minutes] \hfill \\
@@ -1390,3 +1393,19 @@
         \end{description}
       \end{description}
       
+
+\section{ducc.private.properties}
+\label{sec:ducc.private.properties}
+
+\subsection{Web Server Properties}
+
+    \begin{description}
+    
+        \item[ducc.ws.port.ssl.pw] \hfill \\
+          This is the password used to generate the Web Server's keystore used for HTTPS requests.  Usually
+          this keystore is created at initial installation time using \hyperref[subsec:install.single-user]{ducc\_post\_install.}
+          \begin{description}
+            \item[Default Value] quackquack 
+            \item[Type] Local
+          \end{description}
+    
