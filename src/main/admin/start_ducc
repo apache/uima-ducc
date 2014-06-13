@@ -321,7 +321,7 @@ class StartDucc(DuccUtil):
         if ( self.is_amq_active() ):
             print 'ActiveMQ broker is found on configured host and port:', self.broker_host + ':' + self.broker_port
         else:
-            print 'ActiveMQ broker cannot be found on', self.broker_host + ':' + self.broker_port, 'check', self.DUCC_HOME+'/activemq/data/activemq.log'
+            print 'ActiveMQ broker cannot be found on', self.broker_host + ':' + self.broker_port
             sys.exit(1)
 
         ducc = Ducc()
