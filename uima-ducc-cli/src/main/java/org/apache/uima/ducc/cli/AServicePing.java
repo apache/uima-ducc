@@ -30,23 +30,71 @@ public abstract class AServicePing
 {
     protected int[] failure_window = null;      // tracks consecutive failures within a window
     protected int failure_cursor = 0;           // cursor to track failures within the current window
+
+    /**
+     *  This is the total number of instance failures since the SM or pinger was last started.
+     */
     protected int total_failures = 0;           // current total run failures. usually monotonically increasing.
+    /**
+     * This is the total number of instance failures allowed within the failure window.
+     */
     protected int failure_max = 3;              // max allowed failures within any given window
 
+    /**
+     * This is the time, in minutes, over which the failure window is implemented.
+     */
     protected int failure_window_period = 30;   // 30 minutes. overridden at first ping
+
     protected int failure_window_size = failure_window_period;  // assume 1 ping per minute
+
+    /**
+     * This is the time between pings, in minutes.
+     */
     protected int monitor_rate = 1;             // ping rate, in minutes, min 1 used for calculations
+
+    /**
+     * This indicates whether the service's autostart flag is enabled or disabled.
+     */
     protected boolean autostart_enabled;        // indicates whether autostart is currently enable for this pinger
+
+    /**
+     * This is the time/date the service was last used.  If 0, the time is either unknown or the service has
+     * never been used by clients.  It is persisted by the SM over restarts.
+     */
     protected long last_use = 0;                // From SM on init, the last known usage of this service
                                                 // according to the meta file.  During runtime, implementors
                                                 // may update update it which causes the meta to be updated.
 
+    /**
+     * This specifies whether the service log is requested to be enabled.
+     */
     protected boolean log_enabled = false;
+
+    /**
+     * This is the unique DUCC_assigned ID of the service.
+     */
     protected long service_id = 0;    
 
+    /**
+     * This is a map containing current service state, passed in from the SM on every ping.  
+     * See {@link org.apache.uima.ducc.cli.AServicePing#getSmState()} for details of the map.
+     */
     protected Map<String, Object> smState;
+
+    /**
+     * This is a map containing the initialization state for the service, passed in only
+     * once, during pinger initialization.  Its fields are set into primitive fields
+     * in this class.  The map itself isn't directly used by implementors.
+     */
     protected Map<String, Object> initializationState;
 
+    /**
+     * When the pinger is run as a thread inside the SM, this logger is used to
+     * join the ping log with the SM log.  When run as a process, 
+     # the {@link org.apache.uima.ducc.cli.AServicePing#doLog(String, Object...) } method
+     * writes to stdout which is directed to
+     * the declared service log directory by the infrastructore.
+     */
     protected org.apache.uima.ducc.common.utils.DuccLogger duccLogger = 
         org.apache.uima.ducc.common.utils.DuccLogger.getLogger(this.getClass().getName(), "PING");	
 
@@ -143,11 +191,10 @@ public abstract class AServicePing
     }
 
     /**
+     * <p>
      * Getter of the service state;  Implementors may just access it directly if they want.
      * Access the state passed to the ping/monitor from SM:
-     *
-     * @eturn A Map<String, Object> of string-key to Object containing dynamic information from the SM.  Callers
-     *        must cast the value to the correct type as shown below.
+     * </p>
      * <xmp>
      * KEY                  Object Type       MEANING
      * ----------------     -------------     ------------------------------------------------------------------
@@ -158,6 +205,8 @@ public abstract class AServicePing
      * run-failures         Integer           Total run failures since the service was started
      * </xmp>
      *
+     * @eturn A Map<String, Object> of string-key to Object containing dynamic information from the SM.  Callers
+     *        must cast the value to the correct type as shown below.
      */
     public Map<String, Object> getSmState() 
     {
@@ -182,7 +231,8 @@ public abstract class AServicePing
 
     /**
      * <p>
-     * Called by the service manager to query the number of service insances to dump.
+     * Called by the service manager to retrieve the specific service instances
+     * to stop.
      * </p>
      *
      * <p>
@@ -200,7 +250,7 @@ public abstract class AServicePing
 
     /**
      * <p>
-     * The SM queries the ping/monitors autostart on each pong.  The default is
+     * The SM queries the ping/monitors autostart on return from each ping.  The default is
      * to return the same value that came in on the ping.  
      * </p>
      *
@@ -287,7 +337,7 @@ public abstract class AServicePing
      * This is a convenience method for logging which enforces the use of the calling
      * method name and permits use of commas to separate fields in the message.  The
      * fields are converted via toString() and joined on a single space ' '. The composed
-     * string is then written to the loger if it exists, and System.out otherwise.
+     * string is then written to the logger if it exists, and System.out otherwise.
      *
      * @param methodName This should be the named of the method calling doLog.
      * @param msg        This is a variable length parameter list which gets joined
