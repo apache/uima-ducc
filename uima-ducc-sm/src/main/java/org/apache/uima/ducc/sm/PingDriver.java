@@ -33,6 +33,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -381,6 +382,19 @@ class PingDriver
         sset.signalRebalance(additions, deletions, ndeletions, response.isExcessiveFailures());
     }
     
+    void expand_wildcards(List<URL> in, String cp_entry)
+    	throws MalformedURLException
+    {
+        int ndx = cp_entry.lastIndexOf("/");
+        File dir = new File(cp_entry.substring(0, ndx));
+        File[] files = dir.listFiles();
+        for ( File f : files ) {
+            if ( f.isFile() ) {
+                in.add(new URL("file://" + f.getPath()));
+            }
+        }
+    }
+
     AServicePing loadInternalMonitor()
      	throws ClassNotFoundException,
                 IllegalAccessException,
@@ -393,12 +407,18 @@ class PingDriver
             return (AServicePing) cl.newInstance();
         } else {
             String[] cp_elems = classpath.split(":");
-            URL[]    cp_urls = new URL[cp_elems.length];
-            
+            List<URL> cp_urls = new ArrayList<URL>();
+
+
             for ( int i = 0; i < cp_elems.length; i++ ) {
-                cp_urls[i] = new URL("file://" + cp_elems[i]);                
+                if ( cp_elems[i].endsWith("*") ) {
+                    expand_wildcards(cp_urls, cp_elems[i]);
+                } else {
+                    cp_urls.add(new URL("file://" + cp_elems[i]));
+                }
             }
-            URLClassLoader l = new URLClassLoader(cp_urls);
+            
+            URLClassLoader l = new URLClassLoader(cp_urls.toArray(new URL[cp_urls.size()]));
             @SuppressWarnings("rawtypes")
                 Class loaded_class = l.loadClass(ping_class);
             l = null;
