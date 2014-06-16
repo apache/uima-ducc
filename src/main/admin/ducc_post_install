@@ -91,7 +91,7 @@ class PostInstall(DuccUtil):
         cmd = 'rm ' + keystore
         os.system(cmd);
 
-        pw  = self.ducc_properties.get('ducc.ws.port.ssl.pw')
+        pw  = self.ducc_private_properties.get('ducc.ws.port.ssl.pw')
         if ( pw == 'quackquack' ):
             print self.warn('The default ssl pw of ', pw, ' is configured. For security, change the property \n\tducc.ws.port.ssl.pw to a secure password in ducc.properties and rerun ducc_post_install.')
 
@@ -225,6 +225,9 @@ class PostInstall(DuccUtil):
 
         print 'Python version:'
         print sys.version
+
+        self.ducc_private_properties = DuccProperties()
+        self.ducc_private_properties.load(self.DUCC_HOME + '/resources/private/ducc.private.properties')
 
         py_version = sys.version_info
         if ( (py_version[0] != 2) or (py_version[1] < 4) ):
