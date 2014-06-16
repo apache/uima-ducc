@@ -47,6 +47,9 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
     one nodepool.  During system start-up the consistency of nodepool definition is checked
     and the system will refuse to start if the configuration is incorrect.
 
+    NOTE: The administrative command {\em check\_ducc -c} may be used to verify and validate
+    you class configration before attemping to start DUCC.
+
     For example, the diagram below is an abstract representation of all the nodes in a
     system.  There are five nodepools defined:
     \begin{itemize}
@@ -111,7 +114,8 @@ ducc.classes and is specified by the property {\em ducc.rm.class.definitions}.
     form independent scheduling groups.  Specifically,
     \begin{itemize}
         \item Fair-share allocations over any nodepool in one top-level pool do NOT affect the
-          fair-share allocations for jobs in any other top-level nodepool. 
+          fair-share allocations for jobs in any other top-level nodepool.  Top-level nodepools
+          define independently scheduled of resources within a single DUCC cluster.
 
         \item Work submitted to classes under one top-level nodepool do NOT get expanded to
           nodes under another top-level nodepool, even is there is sufficient capacity.

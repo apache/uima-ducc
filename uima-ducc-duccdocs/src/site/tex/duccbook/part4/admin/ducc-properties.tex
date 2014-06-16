@@ -623,6 +623,29 @@
           \item[Default Value] org.apache.uima.ducc.sm.config.JobDriverConfiguration 
           \item[Type] Private 
         \end{description}
+
+      \item[ducc.sm.default.monitor.class] \hfill \\
+        This is the name of the default UIMA-AS ping/monitor class.  The default class issues
+        {\em get-meta} to a service and uses JMX to fetch queue statistics for presentation in
+        the web server.
+
+        This name is either
+        \begin{enumerate}
+          \item The fully qualified name of the class to use as the default UIMA-AS pinger. It may
+            be necessary to include the class or jar file in the classpath used to start the SM.
+            (The reccomended way to do this is add an entry to the {\em ducc.local.jars} property
+            in {\em ducc.properties.}
+
+          \item The name of a pinger registration file.  This is the reccomended way to 
+            provide installation-customized pingers.  See the \hyperref[chap:sm]{Service Management}
+            chapter for details of setting up this file.  In short, it resides in {\em ducc.properties}
+            and contains the full set of ping-related properties needed to run a pinger.
+        \end{enumerate}
+        
+        \begin{description}
+          \item[Default Value] org.apache.uima.ducc.cli.UimaAsPing
+          \item[Type] Tuning 
+        \end{description}
         
       \item[ducc.sm.state.update.endpoint] \hfill \\
         This is the JMS endpoint name used for state messages sent by the Service Manager. 
@@ -658,7 +681,7 @@
         This is the time in milliseconds the SM waits for a response to a ping. If the service does 
         not respond within this time the ping is accounted for as a "missed" ping. 
         \begin{description}
-          \item[Default Value] 5000 
+          \item[Default Value] 15000 
           \item[Type] Tuning 
         \end{description}
         
@@ -686,16 +709,51 @@
           \item[Type] Tuning 
         \end{description}
         
-      \item[ducc.sm.instance.failure.max] \hfill \\
+      \item[ducc.sm.init.failure.limit] \hfill \\
         This is the maximum number of consecutive failures of service instance initialization 
         permitted before DUCC stops creating new instances.  When this cap is hit the SM
         will disable autostart for the service.  It may be overridden by the service
         registration's {\em instance\_failures\_limit} parameter.
+
+        NOTE: This was {\em ducc.sm.instance.failure.max} which is now deprecated.
         \begin{description}
           \item[Default Value] 2
           \item[Type] Tuning 
         \end{description}
-        
+
+      \item[ducc.sm.instance.failure.limit] \hfill \\
+        This is the maximum number of instance failures allowed within some period of
+        time before the Service Manger disables {\em autostart} and ceases to restart
+        instances automatically.  The time window for failures is defined with the
+        property {\em ducc.sm.instance.failure.window}.
+
+        This may be overridden by individual service pingers using the registration
+        property {\em instance\_failures\_limit}. See the
+        \hyperref[subsec:cli.ducc-services.register]{service registration options}
+        for details.
+
+        \begin{description}
+          \item[Default Value] 5
+          \item[Type] Tuning 
+        \end{description}
+
+      \item[ducc.sm.instance.failure.window] \hfill \\
+        This specifies a window of time in minutes over which some number of service instance
+        failures are tolerated.  If the maximum number of tolerated failures is
+        exceeded within this time window the Service Manager ceases to restart
+        instances automatically.  The maximum tolerated failures is defined in
+        {\em ducc.sm.instance.failure.limit}.
+
+        This may be overridden by individual service pingers using the registration
+        property {\em instance\_failures\_window}. See the
+        \hyperref[subsec:cli.ducc-services.register]{service registration options}
+        for details.
+
+        \begin{description}
+          \item[Default Value] 30 (minutes)
+          \item[Type] Tuning 
+        \end{description}
+       
       \end{description}
       
 
@@ -910,8 +968,7 @@
           The eviction.policy is a heuristic to choose which processes of a job to preempt because of 
           competition from other jobs. 
           
-          The SHRINK\_BY\_INVESTMENT policy attempts to preempt processes such that the 
-          
+          The SHRINK\_BY\_INVESTMENT policy attempts to preempt processes such that the           
           least amount of work is lost. It chooses candidates for eviction in order of: 
           \begin{enumerate}
             \item Processes still initializing, with the smallest time spent in the initializing step. 
@@ -1012,11 +1069,26 @@
           This property allows installations to customize the value used to determine if a
           job is ``needy''.  Jobs with fewer processes than this are potentially needed, and
           jobs with more processes are never needy.
+
           \begin{description}
-          \item[Default Value] 2
+          \item[Default Value] 8
           \item[Type] Tuning 
           \end{description}
           
+        \item[ducc.rm.admin.endpoint] \hfill \\
+          This JMS endpoint used for RM administrative requests.
+          \begin{description}
+          \item[Default Value] ducc.rm.admin.channe.
+          \item[Type] Private
+          \end{description}
+
+        \item[ducc.rm.admin.type] \hfill \\
+          This is the JMS endpoint type used for RM administrative requests.
+          \begin{description}
+          \item[Default Value] ducc.rm.admin.channe.
+          \item[Type] Private
+          \end{description}
+
 
         \end{description}
       
@@ -1408,4 +1480,5 @@
             \item[Default Value] quackquack 
             \item[Type] Local
           \end{description}
-    
+    \end{description}    
+        

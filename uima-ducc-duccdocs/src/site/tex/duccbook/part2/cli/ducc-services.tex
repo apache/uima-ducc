@@ -148,8 +148,8 @@
 
           This option pertains only to failures which occur after the service is initialized.
 
-          The instance failure options are passed to the Service's pinger.  Service owners
-          may create custom pingers that override this behaviour.
+          This value is managed the a services ping/monitor.  Thus if it is dynamnically changed
+          with the {\em $--$modify} option it takes effect immediately.
 
         \item[$--$instance\_failures\_limit {[number of allowable failures]}]
           This specifies the maximum number of service failures which may occur with the
@@ -160,8 +160,9 @@
 
           This option pertains only to failures which occur after the service is initialized.
 
-          The instance failure options are passed to the Service's pinger.  Service owners
-          may create custom pingers that override this behaviour.
+          This value is managed the a services ping/monitor.  Thus if it is dynamnically changed
+          with the {\em $--$modify} option the current failure counter is reset and the 
+          new value takes effect immediately.
 
         \item[$--$instance\_init\_failures\_limit {[number of allowable failures]}]
           This specifies the number of consecutive failures allowed while a service is in
