@@ -237,6 +237,16 @@ class PostInstall(DuccUtil):
         self.check_nodes()
         self.check_activemq()
 
+        statedir = self.DUCC_HOME + "/state"
+        logdir = self.DUCC_HOME + "/logs"
+        historydir = self.DUCC_HOME + "/history"
+        if ( not os.path.exists(statedir) ):
+            os.mkdir(statedir)
+        if ( not os.path.exists(logdir) ):
+            os.mkdir(logdir)
+        if ( not os.path.exists(historydir) ):
+            os.mkdir(historydir)
+
         # insure java is configured and installed
         self.java_bindir = self.get_java_bindir()
         self.keytool = self.get_java_keytool(self.java_bindir)
