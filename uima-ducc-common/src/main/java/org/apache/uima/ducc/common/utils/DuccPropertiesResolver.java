@@ -112,6 +112,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_ws_port = "ducc.ws.port";
     public static final String ducc_ws_max_history_entries = "ducc.ws.max.history.entries";
     public static final String ducc_ws_login_enabled = "ducc.ws.login.enabled";
+    public static final String ducc_ws_precalculate_machines = "ducc.ws.precalculate.machines";
    
     public static final String ducc_rm_node_stability = "ducc.rm.node.stability";
     public static final String ducc_agent_node_metrics_publish_rate = "ducc.agent.node.metrics.publish.rate";
@@ -137,6 +138,7 @@ public class DuccPropertiesResolver {
         defaultProperties.put(ducc_orchestrator_unmanaged_reservations_accepted,"true");
         defaultProperties.put(ducc_orchestrator_use_lock_file,"false");
         defaultProperties.put(ducc_ws_login_enabled,"true");
+        defaultProperties.put(ducc_ws_precalculate_machines,"true");
         defaultProperties.put(ducc_authentication_implementer,"org.apache.uima.ducc.ws.authentication.LinuxAuthenticationManager");
         defaultProperties.put(ducc_jd_queue_timeout_minutes,"5");
         defaultProperties.put(ducc_jd_queue_prefix,"ducc.jd.queue.");
