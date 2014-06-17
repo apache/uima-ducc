@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -41,7 +42,6 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.Parser;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDucc;
-import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -345,8 +345,8 @@ public abstract class CliBase
         setWorkingDirectory();
         setUser();
 
-        NodeIdentity ni = new NodeIdentity();
-        host_address = ni.getIp();
+        //NodeIdentity ni = new NodeIdentity(); UIMA-3899, use getHostAddress() directly.  jrc
+        host_address = InetAddress.getLocalHost().getHostAddress();
         
         initConsoleListener();
 
