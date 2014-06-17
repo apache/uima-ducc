@@ -189,9 +189,6 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.ws.port.ssl'] }")
 	public String wsPortSsl;	
 	
-	@Value("#{ systemProperties['ducc.ws.port.ssl.pw'] }")
-	public String wsPortSslPw;	
-	
 	@Value("#{ systemProperties['ducc.agent.launcher.process.stop.timeout'] }")
 	public String processStopTimeout;	
 

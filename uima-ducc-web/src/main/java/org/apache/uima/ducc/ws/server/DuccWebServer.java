@@ -29,6 +29,7 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.DuccPlugins;
 import org.eclipse.jetty.http.ssl.SslContextFactory;
@@ -134,9 +135,9 @@ public class DuccWebServer {
 		if(commonConfiguration.wsPortSsl != null) {
 			this.portSsl = Integer.parseInt(commonConfiguration.wsPortSsl);
 			logger.info(methodName, null, messages.fetchLabel("SSL port")+portSsl);
-			if(commonConfiguration.wsPortSslPw != null) {
-				this.portSslPw = commonConfiguration.wsPortSslPw;
-				logger.debug(methodName, null, messages.fetchLabel("SSL pw")+portSslPw);
+            String psp = DuccPropertiesResolver.get("ducc.ws.port.ssl.pw");
+			if (psp != null) {
+				this.portSslPw = psp;
 			}
 		}
 		try {
