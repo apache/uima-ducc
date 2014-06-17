@@ -462,7 +462,17 @@
             \item[Default Value] true
             \item[Type] Tuning
           \end{description}
-
+        
+        \item[ducc.ws.precalculate.machines] \hfill \\
+          This is a choice between updating the sorted internal representation of the 
+          Machines page as each Agent publication arrives (true, somewhat CPU intensive
+          in a large cluster but fast browser response time) and updating only upon viewer 
+          demand (false, CPU intensive for each browser request with slower response time).
+          \begin{description}
+            \item[Default Value] true
+            \item[Type] Tuning
+          \end{description}
+            
         \item[ducc.ws.automatic.cancel.minutes] \hfill \ Optionally configure the webserver job
           automatic cancel timeout. To disable this feature specify 0.  This is employed when a user
           specifies {\em$--$wait\_for\_completion} flag on job submission, in which case the job
