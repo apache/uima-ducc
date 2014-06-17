@@ -387,7 +387,15 @@ class PingDriver
     {
         int ndx = cp_entry.lastIndexOf("/");
         File dir = new File(cp_entry.substring(0, ndx));
+        if ( ! dir.exists() ) {
+            return;
+        }
+
         File[] files = dir.listFiles();
+        if ( files.length == 0 ) {
+            return;
+        }
+
         for ( File f : files ) {
             if ( f.isFile() ) {
                 in.add(new URL("file://" + f.getPath()));
@@ -401,6 +409,8 @@ class PingDriver
                 InstantiationException,
                 MalformedURLException
     {
+    	String methodName = "loadInternalMonitor";
+    
         if ( classpath == null ) {
             @SuppressWarnings("unchecked")
                 Class<AServicePing> cl = (Class<AServicePing>) Class.forName(ping_class);
@@ -417,7 +427,15 @@ class PingDriver
                     cp_urls.add(new URL("file://" + cp_elems[i]));
                 }
             }
-            
+
+            if ( logger.isTrace () ) {
+                logger.trace(methodName, sset.getId(), "Loading internally with classpath:");
+
+                for ( URL u : cp_urls ) {
+                    logger.trace(methodName, sset.getId(), "    ", u.toString());
+                }
+            }
+
             URLClassLoader l = new URLClassLoader(cp_urls.toArray(new URL[cp_urls.size()]));
             @SuppressWarnings("rawtypes")
                 Class loaded_class = l.loadClass(ping_class);
@@ -503,7 +521,10 @@ class PingDriver
 		} catch ( MalformedURLException e1) {
             logger.error(methodName, sset.getId(), "Cannot load pinger: Cannot form URLs from classpath entries(", ping_class, ")");
             return;		
-		}
+		} catch ( Throwable t ) {
+            logger.error(methodName, sset.getId(), "Cannot load pinger for unknown reason:", ping_class, t);
+            return;		
+        }
 
         try {            
             setCommonInitProperties(initProps);
@@ -534,6 +555,7 @@ class PingDriver
                 } catch (InterruptedException e) {
                     // nothing, if we were shutdown we'll exit anyway, otherwise who cares
                 }                
+ 
             }
         } catch ( Throwable t ) {
             logger.warn(methodName, sset.getId(), t);
