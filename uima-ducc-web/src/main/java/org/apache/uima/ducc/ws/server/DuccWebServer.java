@@ -227,6 +227,7 @@ public class DuccWebServer {
 		DuccHandlerClassic duccHandlerClassic = new DuccHandlerClassic(this);
 		DuccHandlerJsonFormat duccHandlerJson = new DuccHandlerJsonFormat(this);
 		DuccHandlerProxy duccHandlerProxy = new DuccHandlerProxy();
+		DuccHandlerViz duccHandlerViz = new DuccHandlerViz();
 		DuccHandlerUserAuthentication duccHandlerUserAuthentication = new DuccHandlerUserAuthentication();
 		SessionHandler sessionHandler = new SessionHandler();
 		handlers.addHandler(sessionHandler);
@@ -237,6 +238,7 @@ public class DuccWebServer {
 		handlers.addHandler(duccHandlerJson);
 		handlers.addHandler(duccHandlerProxy);
 		handlers.addHandler(duccHandlerClassic);
+		handlers.addHandler(duccHandlerViz);
 		handlers.addHandler(duccHandler);
 		handlers.addHandler(jspHandler);
 		handlers.addHandler(resourceHandler);

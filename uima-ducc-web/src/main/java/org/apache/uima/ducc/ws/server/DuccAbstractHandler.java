@@ -85,6 +85,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public final String duccContextUser       = duccContext+"/user";
 	public final String duccContextClassic    = duccContext+"/classic";
 	public final String duccContextProxy      = duccContext+"/proxy";
+	public final String duccContextViz        = duccContext+"/viz";
 	
 	public final String duccjConsoleLink	  = duccContext+"/jconsole-link.jnlp";
 	
