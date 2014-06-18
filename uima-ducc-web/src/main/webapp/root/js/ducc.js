@@ -1708,6 +1708,10 @@ function ducc_init(type)
 		ducc_version();
 		ducc_links();
 		ducc_cookies();
+		if(type == "viz") {
+			ducc_init_common();
+			ducc_load_common();
+		}
 		if(type == "jobs") {
 			$(document).keypress(function(e) {
   			if(e.which == 13) {
