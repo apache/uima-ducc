@@ -941,7 +941,7 @@ public class ServiceSet
 
         // Nothing running, so we do referenced start.
         setReferencedStart(true);
-        start(instances);
+        start(registered_instances);
 
     }
 
