@@ -171,7 +171,7 @@ public class DuccPropertiesResolver {
     	// add or override with ducc.private.properties
         Properties privateProperties = getPrivateProperties();
         for(Entry<Object, Object> entry : privateProperties.entrySet()) {
-        	System.out.println(location+": "+entry.getKey()+"="+entry.getValue());
+        	//System.out.println(location+": "+entry.getKey()+"="+entry.getValue());
         	properties.put(entry.getKey(), entry.getValue());
         }
     }
