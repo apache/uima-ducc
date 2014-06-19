@@ -452,7 +452,6 @@ under the License.
       <outputDirectory>apache-uima/apache-activemq/conf</outputDirectory>
       <includes>
         <include>activemq-ducc.xml</include>
-        <include>ducc-broker-credentials.properties</include>
       </includes>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
