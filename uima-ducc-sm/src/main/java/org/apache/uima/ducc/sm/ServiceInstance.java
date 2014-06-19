@@ -259,10 +259,10 @@ class ServiceInstance
 
         if ( ! started ) {
             logger.warn(methodName, null, "Request to start service " + sset.getId().toString() + " failed.");
-            meta_props.put("submit_error", submit_buffer.toString());
+            meta_props.put("submit-error", submit_buffer.toString());
             sset.log_errors(stdout_lines, stderr_lines);
         } else {
-            meta_props.remove("submit_error");
+            meta_props.remove("submit-error");
             state = JobState.Received;
         }
         logger.info(methodName, sset.getId(), "START INSTANCE COMPLETE");

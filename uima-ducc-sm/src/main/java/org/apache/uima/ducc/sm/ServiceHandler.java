@@ -40,7 +40,6 @@ import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
-import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
@@ -256,12 +255,12 @@ public class ServiceHandler
                 sset = serviceStateHandler.getUnregisteredServiceByUrl(dep);
                 if ( sset == null ) {
                     // Still null, never h'oid of de guy
-                    s.addMessage(dep, "Independent registered service [" + dep + "] is unknown.");
+                    s.addMessage(dep, "Service is unknown.");
                     s.setState(ServiceState.NotAvailable);
                 } else {
                     // The service is deregistered but not yet purged, may as well tell him. It can
                     // take a while for these guys to go away.
-                    s.addMessage(dep, "Independent registered service [" + dep + "] has been deregistered and is terminating.");
+                    s.addMessage(dep, "Service has been deregistered and is terminating.");
                     s.setState(ServiceState.NotAvailable);
                 }
                 fatal = true;
@@ -311,6 +310,9 @@ public class ServiceHandler
         for ( ServiceSet sset : services.values() ) {
             if ( sset.getState().ordinality() < state.ordinality() ) state = sset.getState();
              dep.setIndividualState(sset.getKey(), sset.getState());
+             if ( sset.excessiveFailures() ) {
+                 dep.addMessage(sset.getKey(), sset.getErrorString());
+             }
              // logger.debug(methodName, id, "Set individual state", sset.getState());
         }
         dep.setState(state);
@@ -384,6 +386,8 @@ public class ServiceHandler
 
             resolveState(id, s);
             logger.info(methodName, id, "Added job to map, with service dependency state.", s.getState());
+
+            logger.info(methodName, id, s.getMessages());
         }
 
         serviceMap.putAll(updates);
@@ -893,8 +897,6 @@ public class ServiceHandler
         return new ServiceReplyEvent(true, "Modifying", sset.getKey(), sset.getId().getFriendly());
     }
 
-    boolean dirty_meta_props = false;
-    boolean dirty_job_props = false;
     boolean restart_pinger = false;
     boolean restart_service = false;
 
@@ -910,13 +912,11 @@ public class ServiceHandler
             case Instances:
                 intval = Integer.parseInt(value);                
                 sset.updateRegisteredInstances(intval);
-                dirty_meta_props = true;
                 break;
 
             case Autostart:
                 boolval = Boolean.parseBoolean(value);
                 sset.setAutostart(boolval);
-                dirty_meta_props = true;
                 break;
 
             // For the moment, these all update the registration but don't change internal 
@@ -936,25 +936,21 @@ public class ServiceHandler
             case ProcessInitializationTimeMax:
             case WorkingDirectory:
                 sset.setJobProperty(option.pname(), value);
-                dirty_job_props = true;
                 break;
 
             case InstanceInitFailureLimit:
                 sset.updateInitFailureLimit(value);
                 sset.setJobProperty(option.pname(), value);
-                dirty_job_props = true;
                 break;
 
             case ServiceLinger:
                 sset.updateLinger(value);
                 sset.setJobProperty(option.pname(), value);
-                dirty_job_props = true;
                 break;
 
             case ProcessDebug:
                 // Note this guy updates the props differently based on the value
                 sset.updateDebug(value);      // value may be numeric, or "off" 
-                dirty_job_props = true;
                 break;
 
             case ServicePingArguments:
@@ -967,7 +963,6 @@ public class ServiceHandler
             case InstanceFailureLimit:
                 sset.setJobProperty(option.pname(), value);
                 restart_pinger = true;
-                dirty_job_props = true;
                 break;
 
         }
@@ -1017,14 +1012,9 @@ public class ServiceHandler
             logger.info(methodName, sset.getId(), "Modify", kk, "to", v, "restart_service[" + restart_service + "]", "restart_pinger[" + restart_pinger + "]");
         }
         
-        if ( dirty_job_props ) {
-            sset.saveServiceProperties();
-            dirty_job_props = false;
-        }
-        if ( dirty_meta_props ) {
-            sset.saveMetaProperties();
-            dirty_meta_props = false;
-        }
+        sset.resetRuntimeErrors();
+        sset.saveServiceProperties();
+        sset.saveMetaProperties();
 
         if ( restart_pinger ) {
             sset.restartPinger();

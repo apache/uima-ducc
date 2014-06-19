@@ -31,10 +31,12 @@ public class ServiceDependency implements Serializable {
 	private ServiceState state = ServiceState.Undefined;  // this is the cumulative service state for all the job's services
     private Map<String, String> messages = null;          // if anything needs more info we put strings into here
                                                           // one per service, keyed on service endpoint
+    private Map<String, ServiceState> individualState = null;
 
 	public ServiceDependency() 
 	{
-        this.messages = new HashMap<String, String>();
+        this.messages    = new HashMap<String, String>();
+        this.individualState = new HashMap<String, ServiceState>();
 	}
 	
     /*
@@ -55,14 +57,16 @@ public class ServiceDependency implements Serializable {
      */
     public void setIndividualState(String endpoint, ServiceState state)
     {
-        messages.put(endpoint, state.decode());
+        individualState.put(endpoint, state);
     }
 
     /**
-     * Set an error message about the individual services.  
+     * Build up message string for service.
      */
     public void addMessage(String endpoint, String message)
     {
+        if ( message == null || message.equals("") ) return;
+
         messages.put(endpoint, message);
     }
 
@@ -76,7 +80,20 @@ public class ServiceDependency implements Serializable {
 
     public Map<String, String> getMessages()
     {
-        return messages;
+        HashMap<String, String> ret = new HashMap<String, String>();
+        for ( String ep : individualState.keySet() ) {
+            String msg = messages.get(ep);
+            String dec = individualState.get(ep).decode();
+            if ( msg == null ) {
+                ret.put(ep, dec);
+            } else {
+                msg = dec + "; " + msg;
+                ret.put(ep, msg);
+            }
+        }
+            
+        return ret;
     }
 
 }
+

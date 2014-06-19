@@ -211,6 +211,7 @@ public class ServiceSet
         meta_props.put("service-alive",      "false");
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
+        meta_props.remove("submit-error");
 
         last_use = meta_props.getLongProperty("last-use", 0L);
         if ( last_use == 0 ) {
@@ -536,6 +537,8 @@ public class ServiceSet
     {
         run_failures = 0;
         ping_failures = 0;
+        init_failures = 0;
+        meta_props.remove("submit-error");
         excessiveRunFailures = false;
     }
 
@@ -737,7 +740,12 @@ public class ServiceSet
         meta_props.put("ping-active", "" + (serviceMeta != null));
         meta_props.put("service-alive",      "false");
         meta_props.put("service-healthy",    "false");
-        meta_props.put("service-statistics", "N/A");
+
+        if ( excessiveFailures() ) {
+            meta_props.put("submit-error", "Service stopped by exessive failures.  Initialization failures[" + init_failures + "], Runtime failures[" + run_failures + "]");
+        } else {
+            meta_props.put("service-statistics", "N/A");
+        }
         
         if ( serviceMeta != null ) {
             IServiceStatistics ss = serviceMeta.getServiceStatistics();
@@ -924,9 +932,19 @@ public class ServiceSet
         }
     }
 
+    public String getErrorString()
+    {
+        return meta_props.getProperty("submit-error"); 
+    }
+
     public synchronized void reference(DuccId id)
     {
         String methodName = "reference";
+
+        if ( excessiveFailures() ) {
+            logger.warn(methodName, this.id, "Reference start fails, excessive failures: init[" + init_failures + "], run[" + run_failures + "]");
+            return;
+        }
 
         cancelLinger();
         references.put(id, id);
