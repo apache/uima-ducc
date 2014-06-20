@@ -1655,7 +1655,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		int sumMemoryEffective = 0;
 		int sumMemoryTotal = 0;
 		int sumSwapInuse = 0;
+/*
 		int sumSwapDelta = 0;
+*/
 		int sumSwapFree = 0;
 		int sumAliens = 0;
 		int sumSharesTotal = 0;
@@ -1677,7 +1679,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sumMemoryEffective += Integer.parseInt(facts.memoryEffective);
 					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
+/*
 					sumSwapDelta += Integer.parseInt(facts.swapDelta);
+*/
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
 					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
@@ -1718,10 +1722,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("<td align=\"right\">");
 			row.append(""+sumSwapInuse);
 			row.append("</td>");
+/*
 			// Swap: delta
 			row.append("<td align=\"right\">");
 			row.append(""+sumSwapDelta);
 			row.append("</td>");
+*/
 			// Swap: free
 			row.append("<td align=\"right\">");
 			row.append(""+sumSwapFree);
@@ -1808,6 +1814,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					row.append(sb);
 				}
 				row.append("</td>");
+/*
 				// Swap: delta
 				sb = new StringBuffer();
 				String delta = facts.swapDelta;
@@ -1824,6 +1831,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					row.append(sb);
 				}
 				row.append("</td>");
+*/
 				// Swap: free
 				row.append("<td align=\"right\">");
 				if(!status.equals("defined")) {

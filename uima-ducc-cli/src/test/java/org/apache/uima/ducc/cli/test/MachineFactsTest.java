@@ -145,12 +145,13 @@ public class MachineFactsTest {
 		String reserve = createMemory();
 		String memory = createMemory();
 		String swap = createSwap();
+		String delta = createSwap();
 		String free = createFree();
 		List<String> aliens = createAliens();
 		String sharesTotal = createSharesTotal(memory);
 		String sharesInuse = createSharesInuse(sharesTotal);
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, free, aliens, sharesTotal, sharesInuse, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, delta, free, aliens, sharesTotal, sharesInuse, heartbeat);
 		return machineFacts;
 	}
 	
@@ -175,6 +176,7 @@ public class MachineFactsTest {
 			&& m1.sharesTotal.equals(m2.sharesTotal)
 			&& m1.status.equals(m2.status) 
 			&& m1.swapInuse.equals(m2.swapInuse) 
+			&& m1.swapDelta.equals(m2.swapDelta) 
 			&& m1.swapFree.equals(m2.swapFree) 
 			) {
 				retVal = true;

@@ -1261,7 +1261,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		int sumMemoryEffective = 0;
 		int sumMemoryTotal = 0;
 		int sumSwapInuse = 0;
+/*
 		int sumSwapDelta = 0;
+*/
 		int sumSwapFree = 0;
 		int sumAliens = 0;
 		int sumSharesTotal = 0;
@@ -1283,7 +1285,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					sumMemoryEffective += Integer.parseInt(facts.memoryEffective);
 					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
+/*
 					sumSwapDelta += Integer.parseInt(facts.swapDelta);
+*/
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
 					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
@@ -1309,8 +1313,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(sumMemoryTotal));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
+/*
 			// Swap: delta
 			row.add(new JsonPrimitive(sumSwapDelta));
+*/
 			// Swap: free
 			row.add(new JsonPrimitive(sumSwapFree));
 			// Alien PIDs
@@ -1377,6 +1383,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				else {
 					row.add(new JsonPrimitive(""));
 				}
+/*
 				// Swap: delta
 				sb = new StringBuffer();
 				String delta = facts.swapDelta;
@@ -1394,6 +1401,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				else {
 					row.add(new JsonPrimitive(""));
 				}
+*/
 				// Swap: free
 				if(!status.equals("defined")) {
 					row.add(new JsonPrimitive(facts.swapFree));
