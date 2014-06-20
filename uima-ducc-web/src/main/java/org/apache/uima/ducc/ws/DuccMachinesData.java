@@ -339,6 +339,14 @@ public class DuccMachinesData {
 		String key = normalizeMachineName(machineName);
 		MachineInfo previous = unsortedMachines.get(key);
 		if(previous != null) {
+			try {
+				long swapPrev = Long.parseLong(previous.getSwapInuse());
+				long swapCurr = Long.parseLong(current.getSwapInuse());
+				long swapDelta = swapCurr - swapPrev;
+				current.setSwapDelta(swapDelta);;
+			}
+			catch(Exception e) {
+			}
 			long pHbMax = previous.getHeartbeatMax();
 			long tod = previous.getHeartbeatMaxTOD();
 			long pHbElapsed = previous.getElapsedSeconds();
@@ -626,12 +634,13 @@ public class DuccMachinesData {
 			String reserve = getReserveSize(machineInfo);
 			String memory = machineInfo.getMemTotal();
 			String swapInuse = machineInfo.getSwapInuse();
+			String swapDelta = ""+machineInfo.getSwapDelta();
 			String swapFree = machineInfo.getSwapFree();
 			List<String> aliens = machineInfo.getAliens();
 			String sharesTotal = machineInfo.getSharesTotal();
 			String sharesInuse = machineInfo.getSharesInuse();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swapInuse,swapFree,aliens,sharesTotal,sharesInuse,heartbeat);
+			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swapInuse,swapDelta,swapFree,aliens,sharesTotal,sharesInuse,heartbeat);
 			factsList.add(facts);
 		}
 		return factsList;

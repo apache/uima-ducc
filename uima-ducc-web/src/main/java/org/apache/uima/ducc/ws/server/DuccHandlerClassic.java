@@ -1655,6 +1655,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		int sumMemoryEffective = 0;
 		int sumMemoryTotal = 0;
 		int sumSwapInuse = 0;
+		int sumSwapDelta = 0;
 		int sumSwapFree = 0;
 		int sumAliens = 0;
 		int sumSharesTotal = 0;
@@ -1676,6 +1677,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sumMemoryEffective += Integer.parseInt(facts.memoryEffective);
 					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
+					sumSwapDelta += Integer.parseInt(facts.swapDelta);
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
 					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
@@ -1715,6 +1717,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			// Swap: inuse
 			row.append("<td align=\"right\">");
 			row.append(""+sumSwapInuse);
+			row.append("</td>");
+			// Swap: delta
+			row.append("<td align=\"right\">");
+			row.append(""+sumSwapDelta);
 			row.append("</td>");
 			// Swap: free
 			row.append("<td align=\"right\">");
@@ -1782,7 +1788,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append("</td>");
 				// Memory: total
 				row.append("<td align=\"right\">");
-				row.append(facts.memoryTotal);
+				if(!status.equals("defined")) {
+					row.append(facts.memoryTotal);
+				}
 				row.append("</td>");
 				// Swap: inuse
 				sb = new StringBuffer();
@@ -1796,11 +1804,31 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sb.append("</span>");
 				}
 				row.append("<td align=\"right\">");
-				row.append(sb);
+				if(!status.equals("defined")) {
+					row.append(sb);
+				}
+				row.append("</td>");
+				// Swap: delta
+				sb = new StringBuffer();
+				String delta = facts.swapDelta;
+				if(delta.equals("0")) {
+					sb.append(delta);
+				}
+				else {
+					sb.append("<span class=\"health_red\">");
+					sb.append(delta);
+					sb.append("</span>");
+				}
+				row.append("<td align=\"right\">");
+				if(!status.equals("defined")) {
+					row.append(sb);
+				}
 				row.append("</td>");
 				// Swap: free
 				row.append("<td align=\"right\">");
-				row.append(facts.swapFree);
+				if(!status.equals("defined")) {
+					row.append(facts.swapFree);
+				}
 				row.append("</td>");
 				// Alien PIDs
 				sb = new StringBuffer();
@@ -1821,7 +1849,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sb.append("</span>");
 				}
 				row.append("<td align=\"right\">");
-				row.append(sb);
+				if(!status.equals("defined")) {
+					row.append(sb);
+				}
 				row.append("</td>");
 				// Shares
 				int sharesTotal = 0;
@@ -1836,7 +1866,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				}
 				// Shares: total
 				row.append("<td align=\"right\">");
-				row.append(facts.sharesTotal);
+				if(!status.equals("defined")) {
+					row.append(facts.sharesTotal);
+				}
 				row.append("</td>");
 				// Shares: inuse
 				row.append("<td align=\"right\">");
@@ -1845,13 +1877,17 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				if(sharesInuse > sharesTotal) {
 					span0 = "<span class=\"health_red\">";
 				}
-				row.append(span0);
-				row.append(facts.sharesInuse);
-				row.append(span1);
+				if(!status.equals("defined")) {
+					row.append(span0);
+					row.append(facts.sharesInuse);
+					row.append(span1);
+				}
 				row.append("</td>");
 				// Heartbeat: last
 				row.append("<td align=\"right\">");
-				row.append(facts.heartbeat);
+				if(!status.equals("defined")) {
+					row.append(facts.heartbeat);
+				}
 				row.append("</td>");
 				row.append("</tr>");
 				data.append(row);

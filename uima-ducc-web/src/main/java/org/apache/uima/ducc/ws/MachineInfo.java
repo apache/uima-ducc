@@ -48,6 +48,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 	private List<ProcessInfo> alienPids;
 	private String sharesTotal;
 	private String sharesInuse;
+	private long swapDelta;
 	private long heartbeat;
 	private long heartbeatMax;
 	private long heartbeatMaxTOD;
@@ -67,6 +68,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		}
 		this.sharesTotal = sharesTotal;
 		this.sharesInuse = sharesInuse;
+		this.swapDelta = 0;
 		this.heartbeat = heartbeat;
 		this.heartbeatMax = 0;
 		this.heartbeatMaxTOD = 0;
@@ -180,6 +182,14 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		return this.sharesInuse;
 	}
 	
+	public long getSwapDelta() {
+		return this.swapDelta;
+	}
+	
+	public void setSwapDelta(long value) {
+		this.swapDelta = value;
+	}
+	
 	public long getHeartbeat() {
 		return this.heartbeat;
 	}
@@ -275,6 +285,10 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		if(retVal != 0) {
 			return retVal;
 		}
+		retVal = compareSwapDelta(m1, m2);
+		if(retVal != 0) {
+			return retVal;
+		}
 		retVal = compareAlienPids(m1, m2);
 		if(retVal != 0) {
 			return retVal;
@@ -337,6 +351,23 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		try {
 			long v1 = Long.parseLong(m1.getSwapInuse());
 			long v2 = Long.parseLong(m2.getSwapInuse());
+			if(v1 > v2) {
+				return -1;
+			}
+			if(v1 < v2) {
+				return 1;
+			}
+		}
+		catch(Throwable t) {
+		}
+		return retVal;
+	}
+	
+	private int compareSwapDelta(MachineInfo m1, MachineInfo m2) {
+		int retVal = 0;
+		try {
+			long v1 = m1.getSwapDelta();
+			long v2 = m2.getSwapDelta();
 			if(v1 > v2) {
 				return -1;
 			}

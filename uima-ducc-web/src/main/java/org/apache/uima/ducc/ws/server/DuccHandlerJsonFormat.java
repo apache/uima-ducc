@@ -1261,6 +1261,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		int sumMemoryEffective = 0;
 		int sumMemoryTotal = 0;
 		int sumSwapInuse = 0;
+		int sumSwapDelta = 0;
 		int sumSwapFree = 0;
 		int sumAliens = 0;
 		int sumSharesTotal = 0;
@@ -1282,6 +1283,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					sumMemoryEffective += Integer.parseInt(facts.memoryEffective);
 					sumMemoryTotal += Integer.parseInt(facts.memoryTotal);
 					sumSwapInuse += Integer.parseInt(facts.swapInuse);
+					sumSwapDelta += Integer.parseInt(facts.swapDelta);
 					sumSwapFree += Integer.parseInt(facts.swapFree);
 					sumAliens += facts.aliens.size();
 					sumSharesTotal += Integer.parseInt(facts.sharesTotal);
@@ -1307,6 +1309,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(sumMemoryTotal));
 			// Swap: inuse
 			row.add(new JsonPrimitive(sumSwapInuse));
+			// Swap: delta
+			row.add(new JsonPrimitive(sumSwapDelta));
 			// Swap: free
 			row.add(new JsonPrimitive(sumSwapFree));
 			// Alien PIDs
@@ -1350,7 +1354,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Memory: usable
 				row.add(new JsonPrimitive(facts.memoryEffective));
 				// Memory: total
-				row.add(new JsonPrimitive(facts.memoryTotal));
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(facts.memoryTotal));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
 				// Swap: inuse
 				sb = new StringBuffer();
 				String swapping = facts.swapInuse;
@@ -1362,9 +1371,36 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					sb.append(swapping);
 					sb.append("</span>");
 				}
-				row.add(new JsonPrimitive(sb.toString()));
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(sb.toString()));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
+				// Swap: delta
+				sb = new StringBuffer();
+				String delta = facts.swapDelta;
+				if(delta.equals("0")) {
+					sb.append(delta);
+				}
+				else {
+					sb.append("<span class=\"health_red\">");
+					sb.append(delta);
+					sb.append("</span>");
+				}
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(sb.toString()));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
 				// Swap: free
-				row.add(new JsonPrimitive(facts.swapFree));
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(facts.swapFree));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
 				// Alien PIDs
 				sb = new StringBuffer();
 				long aliens = facts.aliens.size();
@@ -1383,7 +1419,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 					sb.append(aliens);
 					sb.append("</span>");
 				}
-				row.add(new JsonPrimitive(sb.toString()));
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(sb.toString()));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
 				// Shares
 				int sharesTotal = 0;
 				int sharesInuse = 0;
@@ -1396,7 +1437,12 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				catch(Exception e) {
 				}
 				// Shares: total
-				row.add(new JsonPrimitive(facts.sharesTotal));
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(facts.sharesTotal));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
 				// Shares: inuse
 				sb = new StringBuffer();
 				String span0 = "<span class=\"health_black\">";
@@ -1407,9 +1453,19 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				sb.append(span0);
 				sb.append(facts.sharesInuse);
 				sb.append(span1);
-				row.add(new JsonPrimitive(sb.toString()));
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(sb.toString()));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
 				// Heartbeat: last
-				row.add(new JsonPrimitive(facts.heartbeat));
+				if(!status.equals("defined")) {
+					row.add(new JsonPrimitive(facts.heartbeat));
+				}
+				else {
+					row.add(new JsonPrimitive(""));
+				}
 				data.add(row);
 			}
 		}
