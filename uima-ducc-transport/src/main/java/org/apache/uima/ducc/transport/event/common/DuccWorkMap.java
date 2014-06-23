@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.transport.event.common;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -117,6 +118,25 @@ public class DuccWorkMap implements IDuccWorkMap, Serializable, Map {
 			}
 		}
 		return retVal;
+	}
+	
+	public ArrayList<DuccWorkJob> getServices(ArrayList<String> implementors) {
+		ArrayList<DuccWorkJob> servicesList = new ArrayList<DuccWorkJob>();
+		if(implementors != null) {
+			if(getServiceKeySet().size()> 0) {
+				Iterator<DuccId> iterator = null;
+				iterator = getServiceKeySet().iterator();
+				while(iterator.hasNext()) {
+					DuccId serviceId = iterator.next();
+					String fid = ""+serviceId.getFriendly();
+					if(implementors.contains(fid)) {
+						DuccWorkJob service = (DuccWorkJob) findDuccWork(serviceId);
+						servicesList.add(service);
+					}
+				}
+			}
+		}
+		return servicesList;
 	}
 	
 	public Set<DuccId> getManagedReservationKeySet() {
