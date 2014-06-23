@@ -22,4 +22,8 @@ public class DuccAdminEventKill extends DuccAdminEvent {
 
 	private static final long serialVersionUID = -8101741014979144426L;
 
+	public DuccAdminEventKill(String user, byte[] auth)
+	{
+		super(user, auth);
+	}
 }

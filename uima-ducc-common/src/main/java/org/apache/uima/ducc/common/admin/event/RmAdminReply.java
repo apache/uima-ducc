@@ -18,8 +18,10 @@
 */
 package org.apache.uima.ducc.common.admin.event;
 
+import java.io.Serializable;
+
 public class RmAdminReply
-    extends DuccAdminEvent 
+	implements Serializable
 {
 	private static final long serialVersionUID = -8101741014979144426L;
     String response;

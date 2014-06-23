@@ -45,7 +45,6 @@ import org.apache.uima.ducc.cli.ServiceStatistics;
 import org.apache.uima.ducc.cli.UimaAsServiceMonitor;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.TcpStreamHandler;
-import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.util.Level;

@@ -159,7 +159,7 @@ public class ProcessManagerConfiguration {
 		return new RouteBuilder() {
 		      public void configure() {
 		    	String methodName = "configure";
-          final Predicate blastGuard = new DuccBlastGuardPredicate(pm.logger);
+          final Predicate blastGuard = new DuccBlastGuardPredicate(pm.getLogger());
 
 		    	logger.trace(methodName, null,"timer:pmStateDumpTimer?fixedRate=true&period=" + statePublishRate);
 		    	logger.trace(methodName, null,"endpoint=" + targetEndpointToReceiveProcessManagerStateUpdate);

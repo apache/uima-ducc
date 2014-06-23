@@ -85,7 +85,7 @@ import org.apache.uima.ducc.transport.event.common.ProcessMemoryAssignment;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
 
 public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLifecycleObserver {
-  public DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
+  public static DuccLogger logger = DuccLogger.getLogger(NodeAgent.class, COMPONENT_NAME);
 
   public static final String ProcessStateUpdatePort = "ducc.agent.process.state.update.port";
 
@@ -1548,7 +1548,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     // Delay this thread to make sure that at least one last node inventory publish occurs before Agent goes away. Add extra 30 secs 
     // to the delay to make sure the publish happens.
     synchronized (this) {
-        wait(configurationFactory.getNodeInventoryPublishDelay() +30000);
+        long waittime = configurationFactory.getNodeInventoryPublishDelay() +30000;
+        logger.info("stop", null, "Waiting", waittime, "ms to send final NodeInventory.");
+        wait(waittime);
     }
     super.stop();
 

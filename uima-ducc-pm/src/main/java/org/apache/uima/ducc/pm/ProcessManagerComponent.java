@@ -33,7 +33,6 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
-import org.apache.uima.ducc.transport.event.AbstractDuccEvent;
 import org.apache.uima.ducc.transport.event.DuccEvent;
 import org.apache.uima.ducc.transport.event.DuccJobsStateEvent;
 import org.apache.uima.ducc.transport.event.PmStateDuccEvent;
@@ -64,7 +63,7 @@ implements ProcessManager {
 	
 	private static String header;
 	private static String tbl=String.format("%1$-158s"," ").replace(" ", "-");
-	public DuccLogger logger = new DuccLogger(this.getClass(), DuccComponent);
+	public static DuccLogger logger = new DuccLogger(ProcessManagerComponent.class, DuccComponent);
 	//	Dispatch component used to send messages to remote Agents
 	private DuccEventDispatcher eventDispatcher;
   private int shareQuantum;

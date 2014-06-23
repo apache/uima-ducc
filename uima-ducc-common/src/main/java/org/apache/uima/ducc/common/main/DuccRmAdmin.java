@@ -39,7 +39,9 @@ import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials.Credentials;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.exception.DuccRuntimeException;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 
 import com.thoughtworks.xstream.XStream;
@@ -53,6 +55,9 @@ public class DuccRmAdmin
 	private String brokerUrl;
 	private ProducerTemplate pt;
 	private String targetEndpoint;
+
+    String user;
+    byte[] cypheredMessage;
 
 	public DuccRmAdmin(CamelContext context, String epname)
     {
@@ -110,6 +115,11 @@ public class DuccRmAdmin
 			System.exit(-1);
 		}
 	}
+
+    public DuccLogger getLogger()
+    {
+        return new DuccLogger("Admin");
+    }
 
     private String marshallEvent(DuccAdminEvent duccEvent) 
         throws Exception 
@@ -187,7 +197,7 @@ public class DuccRmAdmin
         String[] nodes = new String[args.length - 1];
         for ( int i = 1; i < args.length; i++) nodes[i-1] = args[i];  // take a slice of the array
 
-        RmAdminVaryOff vo = new RmAdminVaryOff(nodes);
+        RmAdminVaryOff vo = new RmAdminVaryOff(nodes, user, cypheredMessage);
 		RmAdminReply reply = dispatchAndWaitForReply(vo);
 		System.out.println(reply.getResponse());
 	}
@@ -203,7 +213,7 @@ public class DuccRmAdmin
         String[] nodes = new String[args.length - 1];
         for ( int i = 1; i < args.length; i++) nodes[i-1] = args[i];  // take a slice of the array
 
-        RmAdminVaryOn vo = new RmAdminVaryOn(nodes);
+        RmAdminVaryOn vo = new RmAdminVaryOn(nodes, user, cypheredMessage);
 		RmAdminReply reply = dispatchAndWaitForReply(vo);
 		System.out.println(reply.getResponse());
 	}
@@ -216,8 +226,7 @@ public class DuccRmAdmin
 	public RmAdminQLoadReply qload()
 		throws Exception 
     {
-
-        RmAdminQLoad ql = new RmAdminQLoad();
+        RmAdminQLoad ql = new RmAdminQLoad(user, cypheredMessage);
 		return (RmAdminQLoadReply) dispatchAndWaitForReply(ql);
 	}
 
@@ -229,7 +238,7 @@ public class DuccRmAdmin
 	public RmAdminQOccupancyReply qoccupancy()
 		throws Exception 
     {
-        RmAdminQOccupancy qo = new RmAdminQOccupancy();
+        RmAdminQOccupancy qo = new RmAdminQOccupancy(user, cypheredMessage);
 		return (RmAdminQOccupancyReply) dispatchAndWaitForReply(qo);
 	}
 
@@ -237,6 +246,11 @@ public class DuccRmAdmin
     public void run(String[] args)
     	throws Exception
     {
+
+        user = System.getProperty("user.name");
+    	Crypto crypto = new Crypto(user,System.getProperty("user.home"));
+        cypheredMessage = crypto.encrypt(user);
+
         if ( args[0].equals("--varyoff")) {
             if ( args.length < 2 ) usage("Missing node list");
             varyoff(args);

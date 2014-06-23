@@ -68,7 +68,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 	private String saxonJarPath;
 	private String dd2SpringXslPath;
 	private String processJmxUrl = null;
-	protected DuccLogger logger;
+	protected static DuccLogger logger;
 	private String agentStateUpdateEndpoint = "";
 
 	public static void main(String[] args) {
@@ -94,9 +94,13 @@ public class ManagedUimaService extends AbstractManagedService implements
 		// ConsoleHandler ch = new ConsoleHandler();
 		// ch.setFormatter(new UIMALogFormatter());
 		// l.addHandler(ch);
-		logger = new DuccLogger(DuccService.class);
 	}
 
+	public DuccLogger getLogger()
+	{
+		return new DuccLogger(DuccService.class);
+	}
+	
 	public void onServiceStateChange(ProcessState state) {
 		super.notifyAgentWithStatus(state);
 	}
@@ -428,7 +432,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 								componentsToDelete.add(aeState);
 							}
 						}
-						service.logger.debug(
+						DuccService.getDuccLogger().debug(
 								"UimaAEJmxMonitor.run()",
 								null,
 								"---- AE Name:" + proxy.getName()
@@ -443,7 +447,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 				}
 				howManySeenSoFar = 1; // reset error counter
 				if (updateAgent) {
-					service.logger.debug("UimaAEJmxMonitor.run()", null,
+					DuccService.getDuccLogger().debug("UimaAEJmxMonitor.run()", null,
 							"---- Publishing UimaPipelineAEComponent List - size="
 									+ aeStateList.size());
 					try {
@@ -462,7 +466,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 				if (!(e.getCause() instanceof InstanceNotFoundException)) {
 					if (howManySeenSoFar > 3) { // allow up three errors of this
 												// kind
-						service.logger.info("UimaAEJmxMonitor.run()", null, e);
+						DuccService.getDuccLogger().info("UimaAEJmxMonitor.run()", null, e);
 						howManySeenSoFar = 1;
 						throw e;
 					}
@@ -472,7 +476,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 				}
 			} catch (Throwable e) {
 				howManySeenSoFar = 1;
-				service.logger.info("UimaAEJmxMonitor.run()", null, e);
+				DuccService.getDuccLogger().info("UimaAEJmxMonitor.run()", null, e);
 			}
 		}
 	}

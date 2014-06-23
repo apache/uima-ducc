@@ -56,21 +56,36 @@ public class DuccService extends AbstractDuccComponent {
 	public static final String DUCC_DEPLOY_COMPONENTS="ducc.deploy.components";
 
 	private Main main;
-  private DuccLogger logger;
-  private ApplicationContext context;
-  Map<String,AbstractDuccComponent> duccComponents = null;
+    private static DuccLogger globalLogger = null;
+    private ApplicationContext context;
+    Map<String,AbstractDuccComponent> duccComponents = null;
 	public DuccService() {
 		super("");
-
-        /**
-         * Initialize the DuccLogger AFTER the properties are set.
-         */
-        logger = new DuccLogger(DuccService.class);		
         
         //	Plugin UncaughtExceptionHandler to handle OOM and any 
         //  unhandled runtime exceptions 
         Thread.currentThread().setUncaughtExceptionHandler(this);
 	}
+
+    public static DuccLogger getDuccLogger()
+    {
+        return globalLogger;
+    }
+
+    public static void setDuccLogger(DuccLogger l)
+    {
+        globalLogger = l;
+    }
+
+    public DuccLogger getLogger()
+    {
+        if ( getDuccLogger() == null ) {
+            return new DuccLogger(DuccService.class);
+        } else {
+            return getDuccLogger();
+        }
+    }
+
 	/**
 	 * Exits process if given configuration class is either null or not set (empty).
 	 *  
@@ -134,17 +149,17 @@ public class DuccService extends AbstractDuccComponent {
 			context.getBeansOfType(AbstractDuccComponent.class);
 		//	Start all components
 		for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
-			logger.info(methodName, null, "... Starting Component: ", duccComponent.getKey());
+			getDuccLogger().info(methodName, null, "... Starting Component: ", duccComponent.getKey());
 			if ( args != null && args.length > 0 ) {
 				duccComponent.getValue().start(this,args);
 			} else {
 				duccComponent.getValue().start(this);
 			}
-			logger.info(methodName, null, "... Component started: ", duccComponent.getKey());
+			getDuccLogger().info(methodName, null, "... Component started: ", duccComponent.getKey());
 		}
 		
     // run until you terminate the JVM
-    logger.info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
+    getDuccLogger().info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
     main.run();
        
   }
@@ -166,7 +181,7 @@ public class DuccService extends AbstractDuccComponent {
 				ctx.stop();
 			}
 			main.stop();
-			logger.shutdown();
+			getDuccLogger().shutdown();
 		}
 	}
 	

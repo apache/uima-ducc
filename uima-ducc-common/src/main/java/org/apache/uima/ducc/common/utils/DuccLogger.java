@@ -80,6 +80,7 @@ public class DuccLogger
         //
         // If all else fails, set it to "DUCC"
         //
+    	System.out.println("Creating logger '" + claz + "' with component " + component);
         if ( component == null ) {
             component = (String) MDC.get("COMPONENT");
             if ( component == null ) {

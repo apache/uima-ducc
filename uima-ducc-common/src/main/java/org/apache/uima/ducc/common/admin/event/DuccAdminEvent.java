@@ -20,10 +20,36 @@ package org.apache.uima.ducc.common.admin.event;
 
 import java.io.Serializable;
 
-public abstract class DuccAdminEvent implements Serializable {
+public abstract class DuccAdminEvent implements Serializable 
+{
 	private static final long serialVersionUID = 1753129558912646806L;
-	
-	public String toString() {
+
+    String user;
+    byte[] auth_block;
+
+    @SuppressWarnings("unused")
+	private DuccAdminEvent()  // prevent use of this, only the form with user and auth_block is allowed
+    {
+    }
+
+    protected DuccAdminEvent(String user, byte[] auth_block)
+    {
+        this.user = user;
+        this.auth_block = auth_block;
+    }
+
+    public String getUser()
+    {
+        return user;
+    }
+
+    public byte[] getAuthBlock()
+    {
+        return auth_block;
+    }
+
+	public String toString() 
+    {
 		return this.getClass().getName();
 	}
 }

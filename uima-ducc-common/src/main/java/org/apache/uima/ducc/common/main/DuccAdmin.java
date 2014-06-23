@@ -49,9 +49,11 @@ import org.apache.uima.ducc.common.admin.event.DuccAdminEventStopMetrics;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials;
 import org.apache.uima.ducc.common.authentication.BrokerCredentials.Credentials;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.launcher.ssh.DuccRemoteLauncher;
 import org.apache.uima.ducc.common.launcher.ssh.DuccRemoteLauncher.ProcessCompletionCallback;
 import org.apache.uima.ducc.common.launcher.ssh.DuccRemoteLauncher.ProcessCompletionResult;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 
 import com.thoughtworks.xstream.XStream;
@@ -63,6 +65,7 @@ import com.thoughtworks.xstream.XStream;
  * DuccAdmin -killAll - stops all Ducc components
  * DuccAdmin -quiesceAgents <node1,node2..>- quiesces named nodes
  */
+
 public class DuccAdmin extends AbstractDuccComponent implements
 		ProcessCompletionCallback {
 	public static final String FileSeparator = System
@@ -133,6 +136,11 @@ public class DuccAdmin extends AbstractDuccComponent implements
 			System.exit(-1);
 		}
 	}
+
+    public DuccLogger getLogger()
+    {
+        return new DuccLogger("Admin");
+    }
 
 	/**
 	 * Sends the DuccAdminEvent (serialized as String) to the admin endpoint
@@ -208,12 +216,20 @@ public class DuccAdmin extends AbstractDuccComponent implements
 		// send kill event to all Ducc components via Ducc Admin Channel. This
 		// call is
 		// non-blocking
-		dispatch(serializeAdminEvent(new DuccAdminEventKill()));
+        String user = System.getProperty("user.name");
+    	Crypto crypto = new Crypto(user,System.getProperty("user.home"));
+        byte[] cypheredMessage = crypto.encrypt(user);
+
+		dispatch(serializeAdminEvent(new DuccAdminEventKill(user, cypheredMessage)));
 		System.out.println("DuccAdmin sent Kill to all Ducc processes ...");
 	}
 
 	private void quiesceAgents(String nodes) throws Exception {
-    dispatch(serializeAdminEvent(new DuccAdminEventStopMetrics(nodes)));
+        String user = System.getProperty("user.name");
+    	Crypto crypto = new Crypto(user,System.getProperty("user.home"));
+        byte[] cypheredMessage = crypto.encrypt(user);
+
+	dispatch(serializeAdminEvent(new DuccAdminEventStopMetrics(nodes, user, cypheredMessage)));
     System.out.println("DuccAdmin sent Quiesce request to Ducc Agents ...");
 	}
 	/**

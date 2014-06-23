@@ -24,7 +24,9 @@ public class DuccAdminEventStopMetrics extends DuccAdminEvent  {
 	private String targetNodes = new String();
 
 	
-	public DuccAdminEventStopMetrics(String nodes) {
+	public DuccAdminEventStopMetrics(String nodes, String user, byte[] auth) 
+	{
+		super(user, auth);
 		this.targetNodes = nodes;
 	}
 	/**

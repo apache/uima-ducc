@@ -57,7 +57,12 @@ implements IDbComponent {
 		super("DB Daemon", context);
 		initialize();
 	}
-	
+
+    public DuccLogger getLogger()
+    {
+        return logger;
+    }
+
 	public DbPortal getDbPortal() {
 		return dbPortal;
 	}

@@ -136,7 +136,7 @@ public class AgentConfiguration {
           final String targetEndpointToReceiveNodeMetricsUpdate, final int nodeMetricsPublishRate)
           throws Exception {
     final Processor nmp = nodeMetricsProcessor(agent);
-    final Predicate blastFilter = new DuccBlastGuardPredicate(agent.logger);
+    final Predicate blastFilter = new DuccBlastGuardPredicate(agent.getLogger());
     final Processor cp = new ConfirmProcessor();
     return new RouteBuilder() {
       public void configure() {
@@ -172,7 +172,7 @@ public class AgentConfiguration {
       public void configure() {
         final Predicate bodyNotNull = body().isNotNull();
 
-        final Predicate blastGuard = new DuccBlastGuardPredicate(agent.logger);
+        final Predicate blastGuard = new DuccBlastGuardPredicate(agent.getLogger());
         onException(Exception.class).maximumRedeliveries(0).handled(true)
                 .process(new ErrorProcessor());
 

@@ -24,8 +24,9 @@ public class RmAdminVaryOn
 	private static final long serialVersionUID = -8101741014979144426L;
     String[] nodes;
     
-    public RmAdminVaryOn(String[] nodes)
+    public RmAdminVaryOn(String[] nodes, String user, byte[] auth)
     {
+        super(user, auth);
         this.nodes = nodes;
     }
 

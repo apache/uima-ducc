@@ -25,7 +25,6 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancy;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
@@ -137,7 +136,7 @@ public class ResourceManagerComponent
             Object body = exchange.getIn().getBody();
             logger.info(methodName, null, "Received Admin Message of Type:",  body.getClass().getName());
 
-            DuccAdminEvent reply = null;
+            RmAdminReply reply = null;
             if (body instanceof RmAdminVaryOff) {
              	RmAdminVaryOff vo = (RmAdminVaryOff) body;
                 reply = new RmAdminReply(scheduler.varyoff(vo.getNodes()));

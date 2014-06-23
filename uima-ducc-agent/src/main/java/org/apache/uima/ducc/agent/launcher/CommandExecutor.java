@@ -130,7 +130,7 @@ public abstract class CommandExecutor implements Callable<Process> {
 						maxInitTime = processInfo
 								.getProcessInitializationTimeMax();
 					}
-					agent.logger.info("CommandExecutor.call",
+					agent.getLogger().info("CommandExecutor.call",
 							((ManagedProcess) managedProcess).getWorkDuccId(),
 							"Starting Process Initialization Monitor with Max Process Initialization Time:" + maxInitTime);
 					((ManagedProcess) managedProcess)

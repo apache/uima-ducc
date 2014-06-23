@@ -19,10 +19,12 @@
 package org.apache.uima.ducc.common.component;
 
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 
 public interface DuccComponent extends DuccLifecycle {
 	public void setContext( CamelContext context);
 	public CamelContext getContext();
 	public void cleanup(Throwable reason);
 	public void handleUncaughtException(Exception e);
+    public DuccLogger getLogger();
 }

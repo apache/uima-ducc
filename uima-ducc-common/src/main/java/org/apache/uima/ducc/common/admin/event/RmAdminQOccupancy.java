@@ -23,8 +23,9 @@ public class RmAdminQOccupancy
 {
 	private static final long serialVersionUID = -8101741014979144426L;
     
-    public RmAdminQOccupancy()
+    public RmAdminQOccupancy(String user, byte[] auth)
     {
+        super(user, auth);
 
     }
     

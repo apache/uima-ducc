@@ -23,8 +23,9 @@ public class RmAdminQLoad
 {
 	private static final long serialVersionUID = -8101741014979144426L;
     
-    public RmAdminQLoad()
+    public RmAdminQLoad(String user, byte[] auth)
     {
+        super(user, auth);
 
     }
 

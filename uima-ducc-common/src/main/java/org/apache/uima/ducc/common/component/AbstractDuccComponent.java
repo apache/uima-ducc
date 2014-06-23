@@ -42,11 +42,14 @@ import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
+import org.apache.uima.ducc.common.crypto.Crypto;
+import org.apache.uima.ducc.common.crypto.Crypto.AccessType;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.exception.DuccConfigurationException;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
+import org.apache.uima.ducc.common.utils.LinuxUtils;
 import org.apache.uima.ducc.common.utils.Utils;
 
 /**
@@ -79,7 +82,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   public AbstractDuccComponent(String componentName, CamelContext context) {
     this.componentName = componentName;
     setContext(context);
-    logger = getLogger();
+    logger = getLogger();           // local to avoid global references
+    if ( logger == null ) {
+        System.out.println("Component '" + componentName + "' returned null logger; cannot boot.");
+        System.exit(1);
+    }
+    DuccService.setDuccLogger(logger);          // sets the global logger
   }
 
   /**
@@ -96,34 +104,26 @@ public abstract class AbstractDuccComponent implements DuccComponent,
           throws Exception {
     context.addRoutes(new RouteBuilder() {
       public void configure() {
-        System.out.println("Configuring Admin Channel on Endpoint:" + endpoint);
-        onException(Exception.class).handled(true).process(new ErrorProcessor());
-
-        from(endpoint).routeId("AdminRoute").unmarshal().xstream()
-                .process(new AdminEventProcessor(delegate));
+          logger.info("configure", null, "Configuring Admin Channel on Endpoint:" + endpoint);
+          onException(Exception.class).handled(true).process(new ErrorProcessor());
+          
+          from(endpoint).routeId("AdminRoute").unmarshal().xstream()
+              .process(new AdminEventProcessor(delegate));
       }
     });
     
-    if (logger != null) {
-      logger.info("startAdminChannel", null, "Admin Channel Activated on endpoint:" + endpoint);
-    }
-  }
-
-  public DuccLogger getLogger() {
-    return null; // ducc components can override this
+    logger.info("startAdminChannel", null, "Admin Channel Activated on endpoint:" + endpoint);
   }
 
   public class ErrorProcessor implements Processor {
 
-    public void process(Exchange exchange) throws Exception {
-      // the caused by exception is stored in a property on the exchange
-      Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
-      caused.printStackTrace();
-      if (logger != null) {
-        logger.error("ErrorProcessor.process()", null, caused);
-
+      public void process(Exchange exchange) throws Exception {
+          // the caused by exception is stored in a property on the exchange
+          Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
+          caused.printStackTrace();
+          logger.error("ErrorProcessor.process()", null, caused);
+          
       }
-    }
   }
 
   /**
@@ -204,9 +204,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     if (duccBrokerUrlDecoration != null && duccBrokerUrlDecoration.trim().length() > 0) {
       burl.append("?").append(duccBrokerUrlDecoration);
     }
-    if (logger != null) {
-      logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
-    }
+    logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
     System.setProperty("ducc.broker.url", burl.toString());
   }
 
@@ -244,64 +242,94 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     return context;
   }
 
+    /**
+     * Is the event apparently issue by a DUCC registered admin or not?
+     */
+    private boolean validateAdministrator(DuccAdminEvent event)
+    {
+    	String methodName = "validate_user";
+                
+        String user = event.getUser();                
+        byte[] auth_block= event.getAuthBlock();
+
+        try {
+            String userHome = null;
+            userHome = LinuxUtils.getUserHome(user);
+            
+            Crypto crypto = new Crypto(user, userHome,AccessType.READER);
+            String signature = (String)crypto.decrypt(auth_block);
+        
+            if ( ! user.equals(signature ))  {
+                return false;
+            }
+
+        } catch ( Throwable t ) {
+            logger.error(methodName, null, "Crypto failure:", t.toString());
+            return false;
+        }
+       
+        if ( ! user.equals(System.getProperty("user.name")) ) {
+            logger.warn(methodName, null, user, "is not DUCC process owner.");
+            return false;
+        }
+
+        return true;
+    }
+
   /**
    * Called when DuccAdminEvent is received on the Ducc Admin Channel
    * 
    * @param event
    *          - admin event
    */
-  public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception {
-    if (logger != null) {
-      logger.info("onDuccAdminKillEvent", null,"\n\tDucc Process:" + componentName
-              + " Received Kill Event - Cleaning Up and Stopping\n");
-    }
-    stop();
-    System.exit(2);
+  public void onDuccAdminKillEvent(DuccAdminEvent event) throws Exception 
+    {
+	  String methodName = "onDuccAdminKillEvent";
+        logger.info("onDuccAdminKillEvent", null,"\n\tDucc Process:" + componentName);
+        if ( ! validateAdministrator(event) ) {
+            logger.info(methodName, null, "Failed authentication/authorization Ignoring shutdown event.");
+            return;
+        }
+        logger.info(methodName, null, "Received Kill Event - Cleaning Up and Stopping");
+        stop();
+        System.exit(2);
   }
 
   public void start(DuccService service) throws Exception {
     start(service, null);
   }
-
+ 
   public void start(DuccService service, String[] args) throws Exception {
 	    String endpoint = null;
 	    this.service = service;
 	    if (System.getProperty("ducc.deploy.components") != null
 	            && !System.getProperty("ducc.deploy.components").equals("uima-as")
 	            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
-	      if (logger != null) {
 	        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
-	      }
-	      startAdminChannel(endpoint, this);
-	      System.out.println(".....Starting Admin Channel on endpoint:" + endpoint);
+            startAdminChannel(endpoint, this);
+            logger.info("start", null, "Admin Channel started on endpoint:" + endpoint);
 	    }
-	    if (logger != null) {
-	      logger.info("start",null, ".....Starting Camel Context");
-	    }
+        logger.info("start",null, ".....Starting Camel Context");
 	    // Start Camel
 	    context.start();
 	    List<Route> routes  = context.getRoutes();
 	   
 	    for( Route route : routes ) {
 	    	 context.startRoute(route.getId());
-	    	 if (logger != null) {
-	    	      logger.info("start",null, "---OR Route in Camel Context-"+route.getEndpoint().getEndpointUri()+" Route State:"+context.getRouteStatus(route.getId()));
-	    	    }
+             logger.info("start",null, "---OR Route in Camel Context-"+route.getEndpoint().getEndpointUri()+" Route State:"+context.getRouteStatus(route.getId()));
 	    }
-	    if (logger != null) {
-	      logger.info("start",null, "..... Camel Initialized and Started");
-	    }
+        logger.info("start",null, "..... Camel Initialized and Started");
+
 	    // Instrument this process with JMX Agent. The Agent will
 	    // find an open port and start JMX Connector allowing
 	    // jmx clients to connect to this jvm using standard
 	    // jmx connect url. This process does not require typical
 	    // -D<jmx params> properties. Currently the JMX does not
 	    // use security allowing all clients to connect.
-	    if (logger != null) {
-	        logger.info("start",null, "..... Starting JMX Agent");
-	      }
+
+        logger.info("start",null, "..... Starting JMX Agent");
 	    processJmxUrl = startJmxAgent();
-	    if (logger != null && processJmxUrl != null && processJmxUrl.trim().length() > 0 ) {
+	    if (processJmxUrl != null && processJmxUrl.trim().length() > 0 ) {
 	        logger.info("start",null, "..... JMX Agent Ready");
 	        logger.info("start",null, "Connect jConsole to this process using JMX URL:" + processJmxUrl);
 	      }
@@ -323,94 +351,77 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     return processJmxUrl;
   }
 
-  public void stop() throws Exception {
+    public void stop() 
+        throws Exception 
+    {
+        String methodName = "stop";
+
 	    synchronized (monitor) {
 	        if (stopping) {
-	          return;
+                return;
 	        }
 	        stopping = true;
-	      }
-    if (getLogger() != null) {
-      logger = getLogger();
-    }
-    if (logger == null) {
-      System.out.println("----------stop() called");
-    } else {
-      logger.info("stop", null, "----------stop() called");
-    }
+        }
+        logger.info(methodName, null, "----------stop() called");
  
-    try {
-        if (logger == null) {
-          System.out.println("Stopping Camel Routes");
-        } else {
-          logger.info("stop", null, "Stopping Camel Routes");
-        }
+        try {
+            logger.info(methodName, null, "Stopping Camel Routes");
+            List<Route> routes = context.getRoutes();
+            for (Route route : routes) {
+                route.getConsumer().stop();
+                route.getEndpoint().stop();
+            }
 
-        List<Route> routes = context.getRoutes();
-        for (Route route : routes) {
-          route.getConsumer().stop();
-          route.getEndpoint().stop();
-        }
+            ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
+            amqc.stop();
+            amqc.shutdown();
 
-        ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
-        amqc.stop();
-        amqc.shutdown();
+            logger.info(methodName, null, "Stopping Camel Context");
+            context.stop();
+            logger.info(methodName, null, "Camel Context Stopped");
 
-        if (logger == null) {
-          System.out.println("Stopping Camel Context");
-        } else {
-          logger.info("stop", null, "Stopping Camel Context");
-        }
-        context.stop();
-        if (logger == null) {
-          System.out.println("Camel Context Stopped");
-        } else {
-          logger.info("stop", null, "Camel Context Stopped");
-        }
+            ObjectName name = new ObjectName(
+                                             "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
+                                             + getClass().getSimpleName());
+            MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+            Set<?> set = mbs.queryMBeans(name, null);
+            if (set.size() > 0) {
+                mbs.unregisterMBean(name);
+            }
 
-        ObjectName name = new ObjectName(
-                "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
-                        + getClass().getSimpleName());
-        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        Set<?> set = mbs.queryMBeans(name, null);
-        if (set.size() > 0) {
-          mbs.unregisterMBean(name);
-        }
+            if (jmxConnector != null) {
+                jmxConnector.stop();
+            }
 
-        if (jmxConnector != null) {
-          jmxConnector.stop();
-        }
+            if (service != null) {
+                service.stop();
+            }
+            logger.info(methodName, null, "Component cleanup completed - terminating process");
 
-        if (service != null) {
-          service.stop();
+        } catch (Exception e) {
+            // It's a sensitive time, let's emit twice just for luck
+            System.out.println("----------------------------------------------------------------------------------------------------");
+            e.printStackTrace();
+            System.out.println("----------------------------------------------------------------------------------------------------");
+            logger.error(methodName, null, e);
         }
-        if (logger == null) {
-          System.out.println("Component cleanup completed - terminating process");
-        } else {
-          logger.info("stop", null, "Component cleanup completed - terminating process");
-        }
-
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    
-    
-    long waitTime=0;
-   if ( System.getProperty("WaitTime") != null) {
-	   try {
-		   synchronized( this ) {
-			   waitTime = Long.valueOf(System.getProperty("WaitTime"));
-			   if ( waitTime > 0) {
-				   wait(waitTime);
-			   }
-		   }
-	   } catch( Exception e) {
+        
+        long waitTime=0;
+        if ( System.getProperty("WaitTime") != null) {
+            try {
+                synchronized( this ) {
+                    waitTime = Long.valueOf(System.getProperty("WaitTime"));
+                    if ( waitTime > 0) {
+                        wait(waitTime);
+                    }
+                }
+            } catch( Exception e) {
 		   
-	   }
+            }
 	   
-   }
-   //  System.exit(0);
-  }
+        }
+        //  System.exit(0);
+    }
 
   public void handleUncaughtException(Exception e) {
     e.printStackTrace();
@@ -460,9 +471,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
             jmxConnector.start();
         } catch (Exception e) {
         	url = null;
-        	if ( logger != null ) {
-        		logger.error("startJmxAgent", null, "Unable to Start JMX Connector. Running with *No* JMX Connectivity");
-        	}
+            logger.error("startJmxAgent", null, "Unable to Start JMX Connector. Running with *No* JMX Connectivity");
         }
       if ( url == null ) {
     	  return "";    // empty string
@@ -488,15 +497,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
 
     public void process(final Exchange exchange) throws Exception {
-    	System.out.println("Component: Received Admin Message of type:"+exchange.getIn().getBody().getClass().getName());
-
-    	if (logger != null) {
-
         logger.info("AdminEventProcessor.process()", null, "Received Admin Message of Type:"
-                + exchange.getIn().getBody().getClass().getName());
-      }
-      if (exchange.getIn().getBody() instanceof DuccAdminEventKill) {
-        // start a new thread to process the admin kill event. Need to do this
+                    + exchange.getIn().getBody().getClass().getName());
+        
+        if (exchange.getIn().getBody() instanceof DuccAdminEventKill) {
+            // start a new thread to process the admin kill event. Need to do this
         // so that Camel thread associated with admin channel can go back to
         // its pool. Otherwise, we will not be able to stop the admin channel.
         Thread th = new Thread(new Runnable() {
@@ -532,9 +537,8 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
     public void run() {
       try {
-        if (logger != null) {
           logger.info("start",null, "DUCC Service Caught Kill Signal - Registering Killer Task and Stopping ...");
-        }
+
         // schedule a kill task which will kill this process after 1 minute
         Timer killTimer = new Timer();
         killTimer.schedule(new KillerThreadTask(logger), 60 * 1000);
@@ -555,9 +559,8 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     }
     public void run() {
       try {
-        if (logger != null) {
           logger.info("start",null,"Process is about to kill itself via Runtime.getRuntime().halt()");
-        }
+
         // Take the jvm down hard. This call will not
         // invoke registered ShutdownHooks and just
         // terminates the jvm.

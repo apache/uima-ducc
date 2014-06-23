@@ -130,7 +130,11 @@ public class ServiceManagerComponent
         handler = new ServiceHandler(this);
 	}
 
-
+	public DuccLogger getLogger()
+	{
+		return logger;
+	}
+	
     /**
      * Initialization tasks:
      * - read all the service descriptors
