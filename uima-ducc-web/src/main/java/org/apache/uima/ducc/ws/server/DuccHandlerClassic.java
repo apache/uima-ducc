@@ -52,6 +52,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.DbComponentPropertiesHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
@@ -73,6 +74,7 @@ import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceName;
+import org.apache.uima.ducc.ws.registry.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
@@ -86,7 +88,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerClassic.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
-
+	
+	private static ServicesHelper servicesHelper = ServicesHelper.getInstance();
+	
 	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
 	public final String classicJobs 				= duccContextClassic+"-jobs-data";
@@ -866,7 +870,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				String user = getValue(propertiesMeta,IServicesRegistry.user,"");
 				String sid = getValue(propertiesMeta,IServicesRegistry.numeric_id,"");
 				String instances = getValue(propertiesMeta,IStateServices.instances,"");
-				String deployments = getDeployments(servicesRegistry,propertiesMeta);
+				String deployments = ""+servicesHelper.getDeployments(servicesRegistry,propertiesMeta);
 				sb.append(trGet(++counter));
 				
 				boolean ping_only = false;
@@ -989,6 +993,23 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 					sb.append(getValue(propertiesSvc,IServicesRegistry.scheduling_class,""));
 				}
 				sb.append("</td>");
+				// Pgin
+				sb.append("<td align=\"right\">");
+				long pgin = servicesHelper.getPgin(servicesRegistry, propertiesMeta);
+				sb.append(pgin);
+				sb.append("</td>");
+				// Swap
+				sb.append("<td align=\"right\">");
+				DecimalFormat formatter = new DecimalFormat("##0.0");
+				double rawSwap = servicesHelper.getSwap(servicesRegistry, propertiesMeta);
+				rawSwap = rawSwap/Constants.GB;
+				String swap = formatter.format(rawSwap);
+				double rawSwapMax = servicesHelper.getSwapMax(servicesRegistry, propertiesMeta);
+				rawSwapMax = rawSwapMax/Constants.GB;
+				String swapMax = formatter.format(rawSwap);
+				sb.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
+				sb.append(swap);
+				sb.append("</span>");
 				// Process Memory Size
 				sb.append("<td align=\"right\">");
 				if(ping_only) {

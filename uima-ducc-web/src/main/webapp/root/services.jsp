@@ -52,6 +52,8 @@ if (table_style.equals("scroll")) {
                              		$('td:eq(11)', nRow).css( "text-align", "right" );
                              		$('td:eq(12)', nRow).css( "text-align", "right" );
                              		$('td:eq(13)', nRow).css( "text-align", "right" );
+                             		$('td:eq(14)', nRow).css( "text-align", "right" );
+                             		$('td:eq(15)', nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -112,6 +114,8 @@ if (table_style.equals("scroll")) {
 		<th title="The service number of deployments">Deployments</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
 		<th title="The service scheduling class">Class</th>
+		<th title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
+		<th title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
 		<th title="The service process memory size (GB)">Size</th>
 		<th title="The number of active Jobs that depend on this service">Jobs</th>
 		<th title="The number of active Services that depend on this service">Ser-<br>vices</th>
@@ -145,6 +149,8 @@ if (table_style.equals("classic")) {
 		<th title="The service number of deployments">Deployments</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
 		<th title="The service scheduling class">Class</th>
+		<th title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
+		<th title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
 		<th title="The service process memory size (GB)">Size</th>
 		<th title="The number of active Jobs that depend on this service">Jobs</th>
 		<th title="The number of active Services that depend on this service">Ser-<br>vices</th>

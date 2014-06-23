@@ -58,6 +58,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.Constants;
 import org.apache.uima.ducc.transport.event.DbComponentPropertiesHelper;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkReservation;
@@ -81,6 +82,7 @@ import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceName;
+import org.apache.uima.ducc.ws.registry.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
@@ -97,7 +99,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerJsonFormat.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
-
+	
+	private static ServicesHelper servicesHelper = ServicesHelper.getInstance();
+	
 	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
 	private final String jsonFormatJobsAaData					= duccContextJsonFormat+"-aaData-jobs";
@@ -999,7 +1003,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String user = getValue(propertiesMeta,IServicesRegistry.user,"");
 				String sid = getValue(propertiesMeta,IServicesRegistry.numeric_id,"");
 				String instances = getValue(propertiesMeta,IStateServices.instances,"");
-				String deployments = getDeployments(servicesRegistry,propertiesMeta);
+				String deployments = ""+servicesHelper.getDeployments(servicesRegistry,propertiesMeta);
 				JsonArray row = new JsonArray();
 				
 				boolean ping_only = false;
@@ -1115,6 +1119,22 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				else {
 					row.add(new JsonPrimitive(getValue(propertiesSvc,IStateServices.scheduling_class,"")));
 				}
+				// Pgin
+				long pgin = servicesHelper.getPgin(servicesRegistry, propertiesMeta);
+				row.add(new JsonPrimitive(""+pgin));
+				// Swap
+				DecimalFormat formatter = new DecimalFormat("##0.0");
+				double rawSwap = servicesHelper.getSwap(servicesRegistry, propertiesMeta);
+				rawSwap = rawSwap/Constants.GB;
+				String swap = formatter.format(rawSwap);
+				double rawSwapMax = servicesHelper.getSwapMax(servicesRegistry, propertiesMeta);
+				rawSwapMax = rawSwapMax/Constants.GB;
+				String swapMax = formatter.format(rawSwap);
+				StringBuffer sd = new StringBuffer();
+				sd.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
+				sd.append(swap);
+				sd.append("</span>");
+				row.add(new JsonPrimitive(sd.toString()));
 				// Size
 				if(ping_only) {
 					row.add(new JsonPrimitive(""));
@@ -1226,6 +1246,10 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 			row.add(new JsonPrimitive(""));
 			// Class
 			row.add(new JsonPrimitive(""));
+			// Pgin
+			row.add(new JsonPrimitive(""));
+			// Swap
+			row.add(new JsonPrimitive(""));			
 			// Size
 			row.add(new JsonPrimitive(""));
 			// Jobs

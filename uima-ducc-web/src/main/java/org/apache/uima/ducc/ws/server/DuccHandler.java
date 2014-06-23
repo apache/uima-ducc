@@ -726,7 +726,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			cbList[index].append("</td>");
 			// Swap
 			index++; // jp.14
-			if(process.isComplete()) {
+			if(!process.isActive()) {
 				double swap = process.getSwapUsageMax();
 				swap = swap/Constants.GB;
 				String displaySwap = formatter.format(swap);
@@ -2217,30 +2217,21 @@ public class DuccHandler extends DuccAbstractHandler {
 			
 			ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
 			
-			DuccWorkJob service = null;
 			DuccWorkMap duccWorkMap = DuccData.getInstance().get();
-			if(duccWorkMap.getServiceKeySet().size()> 0) {
-				Iterator<DuccId> iterator = null;
-				iterator = duccWorkMap.getServiceKeySet().iterator();
-				int counter = 0;
-				ShareType type = ShareType.SPU;
-				String service_type = properties.getProperty(IServicesRegistry.service_type);
-				if(service_type != null) {
-					if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
-						type = ShareType.SPC;
-					}
+			ArrayList<DuccWorkJob> servicesList = duccWorkMap.getServices(implementors);
+			int counter = 0;
+			ShareType type = ShareType.SPU;
+			String service_type = properties.getProperty(IServicesRegistry.service_type);
+			if(service_type != null) {
+				if(service_type.equalsIgnoreCase(IServicesRegistry.service_type_CUSTOM)) {
+					type = ShareType.SPC;
 				}
-				while(iterator.hasNext()) {
-					DuccId serviceId = iterator.next();
-					String fid = ""+serviceId.getFriendly();
-					if(implementors.contains(fid)) {
-						service = (DuccWorkJob) duccWorkMap.findDuccWork(serviceId);
-						IDuccProcessMap map = service.getProcessMap();
-						for(DuccId key : map.keySet()) {
-							IDuccProcess process = map.get(key);
-							buildServiceProcessListEntry(sb, service, process, DetailsType.Service, type, ++counter);
-						}
-					}
+			}
+			for(DuccWorkJob service : servicesList) {
+				IDuccProcessMap map = service.getProcessMap();
+				for(DuccId key : map.keySet()) {
+					IDuccProcess process = map.get(key);
+					buildServiceProcessListEntry(sb, service, process, DetailsType.Service, type, ++counter);
 				}
 			}
 		}
