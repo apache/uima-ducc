@@ -245,7 +245,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     /**
      * Is the event apparently issue by a DUCC registered admin or not?
      */
-    private boolean validateAdministrator(DuccAdminEvent event)
+    public boolean validateAdministrator(DuccAdminEvent event)
     {
     	String methodName = "validate_user";
                 

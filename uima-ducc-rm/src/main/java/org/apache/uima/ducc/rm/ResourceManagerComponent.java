@@ -25,6 +25,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancy;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
@@ -137,21 +138,35 @@ public class ResourceManagerComponent
             logger.info(methodName, null, "Received Admin Message of Type:",  body.getClass().getName());
 
             RmAdminReply reply = null;
-            if (body instanceof RmAdminVaryOff) {
-             	RmAdminVaryOff vo = (RmAdminVaryOff) body;
-                reply = new RmAdminReply(scheduler.varyoff(vo.getNodes()));
-            } else
-            if (body instanceof RmAdminVaryOn) {
-            	RmAdminVaryOn vo = (RmAdminVaryOn) body;            	 
-                reply = new RmAdminReply(scheduler.varyon(vo.getNodes()));
-            } else
-            if (body instanceof RmAdminQLoad) {
-                reply = scheduler.queryLoad();
-            } else
-            if (body instanceof RmAdminQOccupancy) {
-                reply = scheduler.queryOccupancy();
+            if ( body instanceof DuccAdminEvent ) {
+                DuccAdminEvent dae = (DuccAdminEvent) body;
+                if (body instanceof RmAdminVaryOff) {
+                    if ( ! validateAdministrator(dae) ) {
+                        reply = new RmAdminReply("Not authorized");
+                    } else {
+                        RmAdminVaryOff vo = (RmAdminVaryOff) body;
+                        reply = new RmAdminReply(scheduler.varyoff(vo.getNodes()));
+                    }
+                } else
+                if (body instanceof RmAdminVaryOn) {
+                    if ( ! validateAdministrator(dae) ) {
+                        reply = new RmAdminReply("Not authorized");
+                    } else {
+                        RmAdminVaryOn vo = (RmAdminVaryOn) body;            	 
+                        reply = new RmAdminReply(scheduler.varyon(vo.getNodes()));
+                    }
+                } else
+                if (body instanceof RmAdminQLoad) {
+                    // not priveleged
+                    reply = scheduler.queryLoad();
+                } else
+                if (body instanceof RmAdminQOccupancy) {
+                    // not priveleged
+                    reply = scheduler.queryOccupancy();
+                }
+            } else {
+                reply = new RmAdminReply("Unrecognized RM admin request.");
             }
-
             exchange.getIn().setBody(reply);
         }
     }
