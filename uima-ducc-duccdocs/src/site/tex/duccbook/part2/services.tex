@@ -24,7 +24,7 @@
             and return something in response. 
           \item A service that is managed by DUCC is accompanied by a small program called a
             ``pinger'' that the DUCC Service Manager uses to gauge the availability and health of
-            the service.  This pinger must always be be present. However, DUCC will supply a default
+            the service.  This pinger must always be be present. DUCC will supply a default
             pinger for UIMA-AS services if none is specified.
             
             Users may supply their own ``pingers'' by supplying a Java class that implements
@@ -58,7 +58,7 @@
           \item Run service pingers and respond to the pinger API as needed.
        \end{itemize}
 
-       DUCC provides a ``fast-fail'' for work which reference services.  Incoming work which
+       DUCC provides a ``fast-fail'' for work which references services.  Incoming work which
        references a service is canceled by the system under the following conditions:
        \begin{itemize}
          \item The service is not registered.
@@ -120,6 +120,8 @@
       A service is registered with DUCC using the \hyperref[sec:cli.ducc-services]{ducc\_services}
       API/CLI. Service registrations are persisted by DUCC and last over DUCC and cluster restarts.
 
+      \section{Service Management Policies}
+
       The Service Manager implements three policies for managing services:
       \begin{description}
 
@@ -132,12 +134,12 @@
            failures within that window of time is excessive DUCC will disable the autostart flag.
            The autostart flag may then be manually reset once the problem is resolved.
 
-           The default failure policy is implemented in the service pingers; therefore, service
+           The default failure policy is implemented in the service pingers. Service
            owners may redefine the policy by supplying their own pingers for a service.
           
          \item[Reference-started Services] A reference-started service is a registered service that
            is started only when referenced by another job or service. If the service is already
-           started, the dependent job/service is marked ready to schedule as indicated above. If
+           started, the dependent job/service is marked ``Services Available'' and can be scheduled.. If
            not, the service registry is checked and if a matching service is found, it is 
            started by DUCC.  While the service is being started, jobs are held ``Waiting For Services''
            to ensure the service is viable. Once the service has completed initialization and the pinger 
@@ -170,7 +172,7 @@
       \begin{itemize}
         \item Determine if the service is responsive by issuing a UIMA-AS ``get-meta'' call 
           to the service.
-        \item Determine the health of the service by issuing a JMS call to the UIMA-AS broker
+        \item Determine the health of the service by issuing a JMX call to the UIMA-AS broker
           to collect queueing statistics.
         \item Manages the failure window of the service.
         \item Returns a string with basic ActiveMQ statistics about the service, or
@@ -179,17 +181,18 @@
           absence of service producers attached to the service queue).
       \end{itemize}
 
-      Users may supply their own pingers.  The following functions are available for
+      Users may supply their own pingers.  The following additional functions are available for
       pingers.  Note that a ``custom'' pinger MAY be supplied for UIMA-AS services, and
       MUST be supplied for CUSTOM services.  Custom pingers use the Service Manager's
       ``pinger'' API to perform the following tasks:
       \begin{itemize}
-        \item Inform the Service Manager if the service is responsive.
+        \item Inform the Service Manager if the service is viable.
         \item Inform the Service Manager if the service is ``healthy''.  Service ``health''
-          is a heuristic used in the DUCC Web server as an alert that a service may
+          is a heuristic used in the DUCC Web server as an alert that a service 
+          is responding but may
           not be performing well.
-        \item Manage service failure policies. The default failure-window policy is
-          provided by default to all pingers by the DUCC API handler (optional).
+        \item Manage service failure policies. Default failure-window policy is
+          provided to all pingers by the DUCC API handler (optional).
         \item Return a string describing current service status, for use by the
           web server.
         \item Instruct the service manager to increase the number of instances (optional).
@@ -202,10 +205,10 @@
 
       \subsection{The Pinger API}
 
-      Pingers are provided static  information about the service at pinger-initialization
+      Pingers are passed static information about the service at pinger-initialization
       time, and subsequently, current state of the service is provided on each call (ping).
 
-      Information provided at initialization consists of the following.  Most of this is
+      Information provided at initialization follows.  Most of this is
       provided in fields in the {\em AServicePing} base class.  See the Javadoc for 
       specific field names and types.
 
@@ -220,7 +223,7 @@
           the SM, as provided in DUCC's configuration.
         \item[Service ID] This is the unique numeric service ID assigned to the service
           by DUCC.
-        \item[Log Enabled] Whether the service log is enable, as specified by the
+        \item[Log Enabled] Whether the service log is enabled, as specified by the
           {\em service\_ping\_dolog} registration parameter.
         \item[Maximum Allowed Failures] This is the value of the {\em instance\_failures\_limit}
           parameter, provided by DUCC configuration and optionally overridden by the
@@ -241,12 +244,12 @@
       \begin{description}
         \item[All Instance Information] This is an array consisting of the unique integer
           IDS of all running proceses implementing the service.  This includes instances
-          which may not be viable for some reason (still initializing, for example).
+          which may not be currently viable for some reason (still initializing, for example).
 
         \item[Active Instance Information] This is an array consisting of the unique integer
           IDS of all running proceses implementing the service.  This is a subset of 
-          {\em All Instance Information} and includes only the service instance that are advanced
-          to Running state, and are thus fully viable.
+          ``All Instance Information'' and includes only the service instances that are advanced
+          to Running state.
 
         \item[Reference Information] This is an array consisting of the unique integer
           IDS of all DUCC work (Jobs, other Services, etc) currently referencing the
@@ -258,15 +261,7 @@
           service since the last start of the SM.
       \end{description}
 
-      {\em NOTE:} Numeric DUCC IDs are assigned in a monotonically increasing
-      order.  It is therefore possible to determine the relative age of instances by
-      ordering the IDs.
-
-
-      Only a Java API is supported.  Pinters must extend the abstract class,
-\begin{verbatim}
-      org.apache.uima.ducc.common.AServicePing
-\end{verbatim}
+      Only a Java API is supported.
 
       \subsection{Declaring a Pinger in A Service}
 
@@ -291,7 +286,9 @@
       Javadoc for the details of this class.
 
       Below is a sample CUSTOM pinger for a hypothetical service that returns four integers in
-      response to a ping.
+      response to a ping.  It illustrates simple use of the three required methods, {\em init()},
+      {\em stop()}, and {\em getStatistics()}.
+
       \begin{figure}[H]
 \begin{verbatim}
 import java.io.DataInputStream;
@@ -350,9 +347,9 @@ public class CustomPing
       This section provides the information needed to use the pinger API and build a
       custom pinger. 
 
-      \paragraph{1. Establish compile CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
+      \paragraph{1. Establish a compiation CLASSPATH} One DUCC jar is required in the CLASSPATH to build your pinger:
 \begin{verbatim}
-     $DUCC_HOME/lib/uima-ducc-cli.jar
+      DUCC_HOME/lib/uima-ducc-cli.jar
 \end{verbatim}      
       This provides the definition for the {\em AServicePing} and {\em ServiceStatistics} classes.
 
@@ -374,7 +371,8 @@ public class CustomPing
       
       A sample service registration may look something like the following.  Note that you do not need
       to include any of the DUCC jars in the classpath for the pinger.  DUCC will add the jars it
-      requires to interact with the pinger automatically.
+      requires to interact with the pinger automatically.  (However you may need other jars to
+      provide UIMA, UIMA-AS, ActiveMQ, Spring, or other services.)
 \begin{verbatim}
      bash-3.2$ cat myping.svc
 
@@ -394,7 +392,7 @@ public class CustomPing
       the registration for the pinger with the registration for the service.
 
       That's it!  Check the web server to make sure the service ``comes alive''.  Check your pinger's
-      debugging log if it doesn't.  Once registered, you can modify and restart the pinger at any time without
+      debugging log if it doesn't.  Once registered, you can dynamically modify and restart the pinger at any time without
       reregistering the service or restarting the service by use of the {\tt $--$modify} option of the
       ducc\_services CLI:
 \begin{verbatim}
@@ -434,39 +432,379 @@ public class CustomPing
 
     The default UIMA-AS pinger is permanently registered as an {\em internal} pinger.
 
-    Details of registering global pingers is found in the 
+    Globally registered pingers use a special boolean property, not suppored by the
+    {\em ducc\_services} API/CLI, ``internal'', to determine whether the pinger is
+    to be run internally to SM or as an external process.
+
+    More Details of registering global pingers is found in the 
     \hyperref[chap:sm]{\em Administration section} of this document.
 
-    \subsection{Example}
+\section{Sample Pinger}
     
     A sample custom UIMA-AS pinger is provided in the Examples directory shipped 
     with DUCC in
 \begin{verbatim}
-     examples/src/org/apache/uima/ducc/ping
+     DUCC_HOME/examples/src/org/apache/uima/ducc/ping
 \end{verbatim}
     
     This pinger increases or decreases the number of service instances based
     on the queue statistics found by querying ActiveMQ.  The goal of this
     pinger is to maintain the ActiveMQ ``enqueued time'' to be no more than
-    some multiple of the average service time for a single item.  The multiple
+    some multiple of the average service time for a single item.  The factor
     used is a parameter passed in with the argument string.
 
-    The best way to understand this pinger is to examine the code itself in the
-    Examples directory.  A summary of the essential methods follows.
+    \subsection{Using the Sample Pinger}
+    The following arguments may be specified to use the sample pinger with any UIMA-AS service.  The
+    {\em service\_ping\_arguemnts} are specific to this pinger.
+\begin{verbatim}
+    service_ping_class=org.apache.uima.ducc.ping.SamplePing
+    service_ping_arguments=meta-timeout=15010,broker-jmx-port=1099,window=5,min=1,
+                           max=20,max-growth=3,fast-shrink=true,goal=2.5
+    service_ping_classpath = ${DUCC_HOME}/lib/uima-ducc/examples/*:
+                             ${DUCC_HOME}/apache-uima/lib/*:
+                             ${DUCC_HOME}/apache-uima/apache-activemq/lib/*:
+                             ${DUCC_HOME}/lib//springframework/*
+    service_ping_dolog=True
+    service_ping_timeout=10000
 
-    \paragraph{void init(String args, String ep)}
-    This method examines the service arguments and endpoint and establishes a monitor
-    to issue {\em get-meta} calls to the service and {\em JMS} calls to the 
-    ActiveMq broker.  The following argument string is a single comma-delimeted
+    instance_failures_window = ${ducc.sm.instance.failure.window}
+    instance_failures_limit  = ${ducc.sm.instance.failure.max}    
+\end{verbatim}
+
+    The pinger may optionally registered as a ``global'' pinger with the Service Manager by placing
+    one or both of the ping registrations by copying the two files
+\begin{verbatim}
+    org.apache.uima.ducc.ping.SamplePing
+    org.apache.uima.ducc.ping.SamplePing.external
+\end{verbatim}
+    from
+\begin{verbatim}
+    DUCC_HOME/examples/ping
+\end{verbatim}
+    to
+\begin{verbatim}
+    DUCC_HOME/resources/service_monitors
+\end{verbatim}
+    
+    If these ping registrations are set up, the pinger may be run as either an
+    internal thread in the SM by specifying {\em org.apache.uima.ducc.ping.SamplePing}
+    in a service registration, or as an external process to the SM by
+    specifying {\em org.apache.uima.ducc.ping.SamplePing.external}. 
+
+    If run as an internal thread, the {\em service\_ping\_arguments} may be overridden
+    by any referencing service.  If run as an external process, any of the
+    pre-registered arguments may be overridden by reference services.
+
+    The following arguments are specified in a single single comma-delimeted
     string containing the following initializaton parameters:
     \begin{description}
-      \item[meta-timeout]
-      \item[broker-jmx-port]
-      \item[window]
-      \item[enable-log]
-      \item[min]
-      \item[max]
-      \item[max-growth]
-      \item[goal]
+      \item[meta-timeout] Defines how long to wait for {\em get\_meta} to return.
+      \item[broker-jmx-port] Defines the JMX port of the service's broker.
+      \item[window] Defines the shrinkage/growth window size, in minutes.
+      \item[enable-log] Enable extra logging.
+      \item[min] The minimum number of service instances to maintain.
+      \item[max] The maximum number of service instances to allow.
+      \item[max-growth] The maximum number of instances to grow in a
+        single request.
+      \item[fast-shrink] If set, allow services to shrink if the
+        queue depth is 0, even if consumer are connected.  Otherwise
+        we do not shrink if consumers are attached to the queue.
+      \item[goal] The multiplier of the ActiveMQ Broker's {\em average enqeue}
+        time to attemp to maintain by managing the number of instances.
     \end{description}
+
     
+    \subsection{Understanding  Sample Pinger}
+
+    The best way to understand this pinger is to examine the code itself in the
+    Examples directory.  Here we provide a brief line-by-line synopsis of the code.
+
+    \paragraph{void init(String args, String ep)}
+    This required method examines the service arguments and endpoint and establishes a monitor
+    to issue {\em get-meta} calls to the service and {\em JMS} calls to the 
+    ActiveMq broker.  The argument string {\em args} is described above.  The
+    endpoint {\em ep} is the service endpoint used to register the service.
+
+    \paragraph{Lines 100-119}
+    These lines parse the endpoint {\em ep} its components comprising the
+    UIMA-AS queue name and the URL to the service broker.
+
+    \paragraph{Lines 121-125}
+    These lines disable most UIMA-AS logging as these messages can be quite
+    numerous.  However, during debugging it may be desired to change the logging
+    levels here.
+
+    \paragraph{Lines 130-172}
+    These lines parse the service argument string {\em args} into its constituent
+    parts and places the values in variables.  They initialize the expansion
+    and deletion window and normalize it to one slot per minute, regardless of
+    the actual ping rate.
+
+    The window normalization uses the DUCC-supplied value {\em monitor\_rate}
+    to determine the number of slots in the windows.
+   
+    \paragraph{Lines 176-177}
+    These lines initialze the DUCC-supplied {\em UimaAsServiceMonitor} that
+    queries the UIMA-AS queues, and it resets the queue statistics via JMX so the
+    monitor can make accurate measurements.
+
+    \paragraph{Lines 181-187}
+    These lines implement the required {\em stop} method which is invoked when
+    the Service Manager needs to stop the pinger for any reason.  They stop the
+    ActiveMQ queue monitor and emit a shutdown message.
+
+    \paragraph{Lines 191-240}
+    These lines define the required {\em getStatistics} method.  This 
+    method collelcts ActiveMQ statistics, issue {\em get-meta} to the
+    service to see if it is responding, sets the formatted information
+    string into the ping reply, and invokes the code to calculate a
+    potential redeployment of service instances.
+
+    \paragraph{Lines 245-248}
+    These lines override the optional {\em getLastUse} method which
+    simply returns the time of last known use of the service.  The actual
+    value is calcultated in the pinger-specific {\em calculateNewDeployment}
+    method, described below.
+
+    \paragraph{Lines 253-298}
+    These lines define the pinger-specific {\em calculateNewDeployment}
+    method.  This is invoked after {\em get-meta} is called and after the
+    UIMA-AS queue has been queried in ActiveMQ.  This is the key method of
+    this pinger.  It uses information passed in on the last ping from the
+    Service Manager in conjunction with information in the ActiveMQ queue
+    to determine if more, or fewer service instances are needed to meet the
+    performance goals.  If fewer instances are needed, it selects specific
+    instances to stop.  The method is 
+    \hyperref[subsec:services.calculate-new]{\em described in detail} below.
+
+    \paragraph{Lines 407-410}
+    These lines override the optional {\em getAdditions} method.  The method
+    returns the number of new service intances required to meet performance
+    goals, as calculated in
+    \hyperref[subsec:services.calculate-new]{\em calculateNewDeployment}.
+
+    Regardless of what this method returns, the Service Manager may choose
+    not to start new instances, based on its configured maximum,
+    {\em ducc.sm.max.instances} as defined in {\em ducc.properties}.
+
+    \paragraph{Lines 416-419}
+    These lines override the optional {\em getDeletions} method.  This
+    method returns the specific service instances to be stopped, if any.
+    
+    The DUCC-assigned unique IDs of all service instances are passed in to
+    the pinger on each ping.  These instances are monotonically increasing
+    over time so pingers may assume that lower numbers represent older
+    instances.
+
+
+    \paragraph{Lines 429-480}
+    These lines define a class used as a call-back on the UIMA-AS
+    {\em get-meta} requests to determine the host and PID of the
+    service instance responding to the {\em get-meta}.   If the
+    {\em get-meta} request should timeout, this information can be used to
+    help identify ailing or overloaded service instances.
+    
+    \subsection{Calculating New Deployments in the Pinger}
+    \label{subsec:services.calculate-new}
+
+    his section details the use of ActiveMQ queue statistics
+    in conjunction with the Service Monitor data to calculate the number
+    of service instances to increase or decrease.
+
+    It is important that this code be very careful about ``smoothing'' the
+    performance statistics to keep growth and shrinkage stable.  Things
+    to take into consideration include:
+    \begin{enumerate}
+      \item Immediately after a new service instance becomes available to
+        serve, if there is demand for this service, the ActiveMQ statistics
+        will fluctuate for a few minutes until traffic stabilizes.  Thus
+        decisions based on these statistics must reflect history as well as
+        current information.
+
+      \item Immediately after a client begins to use a service, the statistics
+        will also fluctuate, again requiring smoothing.
+
+      \item The DUCC work dispatching model will not over-dispatch work to the
+        job processes.  Thus actual demand on a service is a function of the
+        number of actively deployed and initialized JPs.  If the number of
+        JPs decreases due to preemption, demand on the service by that job
+        will decrease proportionally.  Similarly, demand can increase as the
+        job expands.  
+
+        It is common for demand on a service to ramp up slowly as
+        a job enters the system, and increase rapidly as a job completes its
+        initialization phase and starts to double.  Thus, the ActiveMQ statistics
+        can be quite erratic for a while, until the job stabilizes.
+
+        This again requires some sort of smoothing of the data when making
+        decisions about service growth and shrinkage.
+    \end{enumerate}
+    
+    To handle this data smoothing, the SamplePing classes uses two time-based {\em windows}, one for
+    growth, and one for shrinkage, to keep growth and shrinkage stable.  The window size is defined
+    in the service ping argument {\em window}.
+    Each window period, if more
+    services are needed, a mark is made in the current slot of the {\em expansion window}; otherwise
+    the current slot is cleared.  Similarly, each period, if fewer services are needed, a mark is
+    made in the {\em shrinkage window}; otherwise, the current slot is cleared.
+
+    After the marks are made, if the {\em expansion window} has all slots filled,
+    a request for new processes is made; thus, a short period of increased does not
+    destabilize the system with a request for services that may be of little use.  
+    Additionally, when a request is made, the number of new processes requested is
+    capped by the ping argument {\em max-growth} to insure that the service
+    grows smoothly.  And finally, if the service is already at some configured maximum
+    number of instances, defined by the {\em max} parameter, no additional instances
+    are requested.
+
+    Similarly, the {\em shrinkage window} is used to govern shrinkage.  All slots must be
+    filled, indicating the service has been over-provisioned for a while, before a request
+    is made to delete instances.  The number of instnaces is never reduced below the
+    configured {\em min} value.  As well, this particular pinger never shrinks by more than
+    a single instance at a time, on the reasoning that it is more costly to start a new
+    service than to maintain one for too long.  Only if there is no long-term use of 
+    the extra instances are they reduced (as
+    determined by the window).
+
+    Given this introduction, we describe the key method in detail.
+
+    \paragraph{Lines 262-277}
+    These lines extract four quantities from the ActiveMQ statistics:
+    \begin{enumerate}
+      \item Average enqueue time, {\em eT}
+      \item Current queue depth, {\em Q}
+      \item The current number of service consumers {\em cc}
+      \item The current number of service producers {\em pc}
+    \end{enumerate}
+
+    The code then gets the DUCC IDs of all the currently started service
+    instances, and the number of instances that are started but still in
+    their ``initialization'' phase.  This is important because instances that
+    are still initializing are not servicing the queue, but will soon start
+    to do so.  The current ActiveMQ statistics reflect do NOT yet reflect
+    this however, they reflect only the instances that are actually serving.
+
+    Finally, if there are service producers, we note the time of day to
+    return to the SM as the last known use of this service by some process.
+
+    \paragraph{Lines 267}
+    This line calculates the number of Java threads per service instance, needed to calclate the
+    maxium capacity of the service in its current deployment.
+
+    (Note that in each UIMA-AS service, UIMA-AS itself occupies one thread, used to
+    manage the service, and this thread manifests itself as a consumer
+    on the queue.)
+
+    \paragraph{Line 301}
+    This declares {\em new\_ni}, the number of additional instances, if any.
+    At the end of this method, new\_ni will either be 0 or $>$0.
+
+    \paragraph{Lines 303-312}
+    If the current queue depth is 0 (Q $==$ 0), we know a number of things:
+    \begin{enumerate}
+      \item The service is not over-provisioned; there is no work queued and
+        waiting for some service.  We therefor do not need to expand.
+      \item If there are no consumers, i.e. no clients that need work done,
+        we are potentially over-provisioned, so we fill in a slot in the
+        expansion window.  
+        
+        If there {\em are} consumers, we may not want to
+        shrink because it is possible that one of the service instances is
+        busy; we cannot tell.  So we allow the {\em fast-shrink} 
+        ping argument to govern whether or not connected consumers may
+        prevent service shrinkage.
+    \end{enumerate}
+
+    There is nothing else that can be said about a service if its 
+    current queue depth is 0.
+
+    \paragraph{Lines 312-360}
+
+    If the queue depth is non-zero we are able to calculate the total
+    service capacity and the amount each instance contributes to the
+    total capacity.  From this we can determine 
+    \begin{enumerate}
+      \item whether the service is performing at or near its goal, 
+      \item if the service is performing worse than its goal, how many
+        new instances are needed to meet the goal, and
+      \item if the service is performing better than its goal, how many
+        instances can be given up and still meet the goal.
+   \end{enumerate}
+
+   Details follow.
+
+   \paragraph{Lines 314 and 315}
+   The average time a single instance takes to serve a single request, {\em Ti}  is given
+   by the simple formula \( Ti = (eT / Q) * active \) where
+   \begin{description}
+     \item[eT] is the average time an item stays in queue (from AMQ),
+     \item[Q] is the current queue depth (from AMQ),
+     \item[active] is the current number of service instances (from SM)
+   \end{description}
+
+   Therefore the time taken by a single thread {\em Ti} is given by 
+   \( Tt = Ti * nthreads \).
+     
+   \paragraph{Lines 319 and 320}
+   We want {\em Tt} to become close to the current
+   \(Tt * goal\) where {\em goal} is given by the ping arguments.  The 
+   current ratio of actual service time to desired is then given by
+   \( r = eT / g \)
+
+   Because we know that the DUCC job driver will never over-commit; that is,
+   we know the current demand will remain constant unless the jobs using the
+   service expand or contract (which are relatively rare events), we can state
+   that the number of service instances required is directly proportional
+   to {\em r}.  
+
+   If \( r > 1\) we may need more instances to meet our {\em goal} and if
+   \( r < 1 \) we may be over-provisioned.
+
+   \paragraph{Lines 325-347}
+   If \( r > 1\) we may be over-provisioned.  We calculate the number of required
+   instances by multiplying the current instances by {\em r} and rounding down.
+   We account for instances that we know are starting but not yet started,
+   cap on max instances per service, and again on max growth per cycle.
+
+   If we still require additions, we make a mark in the expansion window, 
+   otherwise we clear the expansion window.
+
+   \paragraph{Lines 349-360}
+   If \( r < 1 \) we need to calculate shrinkage.  Because starting instances
+   is expensive we conservatively use \(r < .5\) instead and make a mark
+   in the shrinkage window.  
+
+   Otherwise we clear the mark in the shinkage window.
+
+   \paragraph{Lines 367-396}
+   Finally we sum across the shrinkage and expansion windows.  If either
+   window is full, we schedule growth (line 375, set the variable {\em additions})
+   or shrinkage (line 388, set {\em deletions}).
+
+   Note that to schedule shrinkage, we must choose a specific instance.  In this
+   case we choose the {\em newest} instance, i.e. the one with the largest
+   DUCC ID, as it is most likely not to have initialized, or perhaps not to
+   have ``warmed up'' (i.e. caches filled, etc.).  We could choose more than
+   one but this pinger is conservative and only shrinks by one instance
+   each time.
+
+   \subsection{Summary of Sample Pinger}
+   This pinger illustrates these functions over-and above the functions provided
+   by the default UIMA-AS pinger:
+   \begin{enumerate}
+     \item Use of pinger-specific arguments
+     \item Use of information provided by SM on each ping (service instances
+       active, total service instances,
+     \item Use of performance information acquired from ActiveMQ
+     \item Requesting new service instances of the SM
+     \item Requesting that instances be removed by SM,
+     \item Setting of last-use of a service
+   \end{enumerate}
+
+   It illustrates one mechanism for smoothing growth and shrinkage of a service
+   to prevent thrashing in your system.
+
+   It illustrates one mechanism for determining the actual performance of
+   a service by analyzing ActiveMQ queueing statistics.
+     
+   It illustrates the use of ``globally registered pingers.''

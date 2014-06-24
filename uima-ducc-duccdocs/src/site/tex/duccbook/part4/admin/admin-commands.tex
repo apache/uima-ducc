@@ -141,6 +141,7 @@ start\_ducc -c sm -c pm -c rm -c or@bj22 -c agent@n1 -c agent@n2
       
 
 \subsection{stop\_ducc}
+\label{subsec:admin.stop-ducc}
 
     \subsubsection{{\em Description:}}
     Stop\_ducc is used to stop DUCC processes. If run with no parameters it takes the following 
@@ -283,9 +284,57 @@ check_ducc -n nlist1 -n nlist2
 
             \item[-s, --single\_user] \hfill \\
               Bypass the multi-user permission checks normally done on the ducc\_ling utility.
+              
+            \item[--nothreading] If specified, the command does not run in multi-threaded mode
+              even if it is supported on the local platform.
 
-          \item[--nothreading] If specified, the command does not run in multi-threaded mode
-            even if it is supported on the local platform.
+            \item[-v, --verboase] \hfill \\
+              When specified with {\em -c} to check the configuration, this emits a formatted version
+              of the node list showing the full structure of the scheduling classes.
+              
 
            \end{description}               
+       
+\subsection{vary\_off}
+\label{subsec:admin.vary-off}
+    \subsubsection{{\em Description:}}
+
+    Vary\_off is used to remove a host from scheduling and to evict the work that is running on it.
+    This allows for graceful clearance of a host so the host can be take offline for maintenance,
+    or any other purpose (such as sharing the host with other applications.)  The DUCC agent
+    is NOT stoppped; use 
+    \hyperref[subsec:admin.stop-ducc]{stop\_ducc} to stop the agent.  Reservations are not 
+    canceled by {\em vary\_off}.
+    
+    Only the userid that started DUCC may issue {\em vary\_off}; attempts from other userids
+    are rejected.
+
+    \subsubsection{\em{Usage: }}
+
+        \begin{description} 
+          \item[vary\_off list-of-hosts]
+            The {\em list-of-nodes} is a space delimeted list of host to be removed from
+              scheduling in the DUCC cluster.
+        \end{description}
+            
+\subsection{vary\_on}
+\label{subsec:admin.vary-on}
+    \subsubsection{{\em Description:}}
+
+    Vary\_on is used to restore a host to scheduling by DUCC.  If the agent is still
+    alive the host becomes immediately available.  The agent is not started by
+    {\em vary\_on}; use use 
+    \hyperref[subsec:admin.start-ducc]{start\_ducc} to start the agent if needed.
+
+    Only the userid that started DUCC may issue {\em vary\_on}; attempts from other userids
+    are rejected.
+    
+    \subsubsection{\em{Usage: }}
+
+        \begin{description} 
+          \item[vary\_on list-of-hosts]
+            The {\em list-of-nodes} is a space delimeted list of host to be restored for
+              scheduling in the DUCC cluster.
+        \end{description}
+            
        
