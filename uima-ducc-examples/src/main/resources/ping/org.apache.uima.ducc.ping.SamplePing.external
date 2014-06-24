@@ -1,0 +1,11 @@
+
+service_ping_class=org.apache.uima.ducc.ping.SamplePing
+service_ping_arguments=meta-timeout=15010,broker-jmx-port=1099,window=5,min=1,max=20,max-growth=3,fast-shrink=true,goal=2.5
+service_ping_classpath = ${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*:${DUCC_HOME}/apache-uima/apache-activemq/lib/*:${DUCC_HOME}/lib//springframework/*
+service_ping_dolog=True
+service_ping_timeout=10000
+
+instance_failures_window = ${ducc.sm.instance.failure.window}
+instance_failures_limit  = ${ducc.sm.instance.failure.max}
+
+internal = false

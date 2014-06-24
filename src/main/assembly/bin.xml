@@ -618,10 +618,16 @@ under the License.
       <directory>uima-ducc-examples/src/main/resources/org/apache/uima/ducc/sampleapps</directory>
       <outputDirectory>examples/sampleapps/descriptors</outputDirectory>
       <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-      
+      <directoryMode>755</directoryMode>             
     </fileSet>
     
+    <fileSet>
+      <!--  Set up sample pinger registrations   -->
+      <directory>uima-ducc-examples/src/main/resources/ping</directory>
+      <outputDirectory>examples/ping</outputDirectory>
+      <fileMode>644</fileMode>
+      <directoryMode>755</directoryMode>              
+    </fileSet>
 
 
 
