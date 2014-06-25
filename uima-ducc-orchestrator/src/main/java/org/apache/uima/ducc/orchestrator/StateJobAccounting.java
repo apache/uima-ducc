@@ -101,6 +101,9 @@ public class StateJobAccounting {
 			}
 			retVal = stateChangeFromCompleted(prev, next);
 			break;
+		case Assigned:
+			retVal = stateChangeFromAssigned(prev, next);
+			break;	
 		case Initializing:
 			retVal = stateChangeFromInitializing(prev, next);
 			break;
@@ -159,6 +162,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:							break;
 		case Completed:				retVal = true;	break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:								break;
 		case Running:								break;
@@ -175,9 +179,27 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:							break;
 		case Completed:								break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:								break;
 		case Running:								break;
+		case Undefined:								break;
+		case WaitingForDriver:						break;
+		case WaitingForResources:					break;
+		case WaitingForServices:					break;
+		}
+		return retVal;
+	}
+	
+	private boolean stateChangeFromAssigned(JobState prev, JobState next) {
+		boolean retVal = false;
+		switch(next) {
+		case Completing:			retVal = true;	break;
+		case Completed:				retVal = true;	break;
+		case Assigned:								break;
+		case Initializing:			retVal = true;	break;
+		case Received:								break;
+		case Running:				retVal = true;	break;
 		case Undefined:								break;
 		case WaitingForDriver:						break;
 		case WaitingForResources:					break;
@@ -191,6 +213,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:			retVal = true;	break;
 		case Completed:				retVal = true;	break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:								break;
 		case Running:				retVal = true;	break;
@@ -207,6 +230,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:			retVal = true;	break;
 		case Completed:				retVal = true;	break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:								break;
 		case Running:								break;
@@ -223,6 +247,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:			retVal = true;	break;
 		case Completed:				retVal = true;	break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:								break;
 		case Running:								break;
@@ -239,6 +264,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:							break;
 		case Completed:								break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:				retVal = true;	break;
 		case Running:								break;
@@ -255,6 +281,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:			retVal = true;	break;
 		case Completed:				retVal = true;	break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:								break;
 		case Running:								break;
@@ -271,6 +298,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:			retVal = true;	break;
 		case Completed:				retVal = true;	break;
+		case Assigned:				retVal = true;	break;
 		case Initializing:			retVal = true;	break;
 		case Received:								break;
 		case Running:								break;
@@ -287,6 +315,7 @@ public class StateJobAccounting {
 		switch(next) {
 		case Completing:			retVal = true;	break;
 		case Completed:				retVal = true;	break;
+		case Assigned:								break;
 		case Initializing:							break;
 		case Received:								break;
 		case Running:								break;

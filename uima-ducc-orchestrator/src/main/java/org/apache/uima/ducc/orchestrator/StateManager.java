@@ -496,6 +496,9 @@ public class StateManager {
 							}
 							stateJobAccounting.stateChange(duccWorkJob, nextState);
 							break;
+						case Assigned:	
+							stateJobAccounting.stateChange(duccWorkJob, JobState.Initializing);
+							break;
 						case Initializing:
 							break;
 						}
@@ -529,6 +532,7 @@ public class StateManager {
 						case WaitingForDriver:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.WaitingForServices);
 							break;
+						case Assigned:	
 						case Initializing:
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Running);
 							break;
@@ -773,10 +777,11 @@ public class StateManager {
 								UserLogging.record(userName, userLogDir, text);
 							}
 							if(duccWorkJob.getProcessMap().size() > 0) {
-								changes += stateChange(duccWorkJob,JobState.Initializing);
+								changes += stateChange(duccWorkJob,JobState.Assigned);
 								logger.info(methodName, duccId, messages.fetchLabel("resources count")+duccWorkJob.getProcessMap().size());
 							}
 							break;
+						case Assigned:	
 						case Initializing:
 						case Running:
 							if(duccWorkJob.getProcessMap().size() == 0) {
@@ -895,6 +900,7 @@ public class StateManager {
 								UserLogging.record(userName, userLogDir, text);
 							}
 							break;
+						case Assigned:	
 						case Initializing:
 						case Running:
 							if(duccWorkService.getProcessMap().size() == 0) {
@@ -1227,6 +1233,7 @@ public class StateManager {
 					case WaitingForResources:
 						logger.debug(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
 						break;
+					case Assigned:
 					case Initializing:
 					case Running:
 						logger.debug(methodName, duccId, messages.fetchLabel("job state")+jobState+" "+messages.fetchLabel("services state")+serviceState);
