@@ -27,6 +27,7 @@ public interface IDuccState extends Serializable {
 		WaitingForDriver,		// Process Manager is launching Job Driver
 		WaitingForServices,		// Service Manager is checking/starting services for Job
 		WaitingForResources,	// Scheduler is assigning resources to Job
+		Assigned,				// Scheduler has assigned resources to Job
 		Initializing,			// Process Agents are initializing pipelines
 		Running,				// At least one Process Agent has reported process initialization complete
 		Completing,				// Job processing is completing

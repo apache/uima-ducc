@@ -166,6 +166,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		case WaitingForDriver:
 		case WaitingForServices:
 		case WaitingForResources:
+		case Assigned:
 		case Initializing:
 		case Running:
 			retVal = true;	
@@ -178,6 +179,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		boolean retVal = false;
 		switch(getJobState()) {
 		case WaitingForResources:
+		case Assigned:
 		case Initializing:
 		case Running:
 			retVal = true;	
