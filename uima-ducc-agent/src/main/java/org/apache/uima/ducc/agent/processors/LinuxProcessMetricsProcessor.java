@@ -430,7 +430,7 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
   private int  collectProcessCurrentCPU(String pid) throws Exception {
 		InputStream stream = null;
 	    BufferedReader reader = null;
-	    String cpuTime = "";
+	    String cpuTime = "0";
 	     ProcessBuilder pb;
 	     // run top in batch mode and filter just the CPU
 	     pb = new ProcessBuilder("/bin/sh", "-c", "top -b -n 1 -p "+pid+" | tail -n 2 | head -n 1 | awk '{print $9}'");
@@ -447,9 +447,13 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
 	      while ((line = reader.readLine()) != null) {
 	          String tokens[] = line.split(regex);
 	          if ( tokens.length > 0 ) {
+	        	  logger.info("collectProcessCurrentCPU",null, line+" == CPUTIME:"+tokens[0]);
 	        	  cpuTime = tokens[0];
 	          }
 	      }	
+	      if ( cpuTime.indexOf(".") > -1) {
+	    	  cpuTime = cpuTime.substring(0, cpuTime.indexOf("."));
+	      }
 	      stream.close();
 	      return Integer.valueOf(cpuTime);
   }
