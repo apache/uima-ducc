@@ -1047,6 +1047,7 @@ public class ServiceSet
 		// WaitingForDriver,		// Process Manager is launching Job Driver
 		// WaitingForServices,		// Service Manager is checking/starting services for Job
 		// WaitingForResources,	// Scheduler is assigning resources to Job
+        // Assigned                 // passed basic tests, dispatched, not yet started to initialize
 		// Initializing,			// Process Agents are initializing pipelines
 		// Running,				// At least one Process Agent has reported process initialization complete
 		// Completing,				// Job processing is completing
@@ -1120,6 +1121,7 @@ public class ServiceSet
                     
                     switch ( old_state ) {
                         case Initializing:
+                        case Assigned:
                             init_failures++;
                             logger.info(methodName, id, "Tally initialization failure:", init_failures);
                             break;
@@ -1161,6 +1163,7 @@ public class ServiceSet
 		    case WaitingForDriver:		// Process Manager is launching Job Driver
 		    case WaitingForServices:	// Service Manager is checking/starting services for Job
 		    case WaitingForResources:	// Scheduler is assigning resources to Job
+            case Assigned:
                 return ServiceState.Starting;
 		    case Initializing:			// Process Agents are initializing pipelines
                 return ServiceState.Initializing;
@@ -1890,6 +1893,7 @@ public class ServiceSet
 		WaitingForDriver,		// Process Manager is launching Job Driver
 		WaitingForServices,		// Service Manager is checking/starting services for Job
 		WaitingForResources,	// Scheduler is assigning resources to Job
+        Assigned,               // Resources assgned, job not yet started.
 		Initializing,			// Process Agents are initializing pipelines
 		Running,				// At least one Process Agent has reported process initialization complete
 		Completing,				// Job processing is completing
