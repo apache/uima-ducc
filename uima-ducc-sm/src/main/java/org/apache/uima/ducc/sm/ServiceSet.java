@@ -1120,6 +1120,8 @@ public class ServiceSet
                     // An instance stopped and we (SM) didn't ask it to - by definition this is failure no matter how it exits.
                     
                     switch ( old_state ) {
+                        case WaitingForServices:
+                        case WaitingForResources:
                         case Initializing:
                         case Assigned:
                             init_failures++;
@@ -1131,6 +1133,7 @@ public class ServiceSet
                             break;
                         default:
                             // other states we blow off - we can enter this place a bunch of time a things wind down
+                            logger.info(methodName, id, "Instance stopped unexpectedly: prior state[", old_state, " completion[", jct, "]");
                             break;
                     }
 
