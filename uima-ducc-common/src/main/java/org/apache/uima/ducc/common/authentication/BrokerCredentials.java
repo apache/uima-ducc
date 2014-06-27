@@ -18,10 +18,13 @@
 */
 package org.apache.uima.ducc.common.authentication;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
+
+import org.apache.uima.ducc.common.utils.DuccLogger;
 
 public class BrokerCredentials {
 	public static Credentials get(String brokerCredentialsFile) throws FileNotFoundException{
@@ -29,6 +32,12 @@ public class BrokerCredentials {
 		Properties properties = new Properties();
 		if ( brokerCredentialsFile != null ) {
 			try {
+			    if (!(new File(brokerCredentialsFile)).canRead()) {
+			        DuccLogger logger = DuccLogger.getLogger(BrokerCredentials.class.getName(), null);
+			        // Default of no name & password => anonymous access
+			        logger.info("BrokerCredentials.get", null, "Cannot access broker credentials file so will have restricted access");
+			        return cr;
+			    }
 				properties.load(new FileInputStream(brokerCredentialsFile));
 						//Utils.findDuccHome()+File.separator+"activemq"+File.separator+"credentials.properties"));
 				cr.setUsername(properties.getProperty("ducc.broker.admin.username"));

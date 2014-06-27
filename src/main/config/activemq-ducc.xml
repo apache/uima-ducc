@@ -88,6 +88,7 @@
 
         <!--  Configure authorization  -->
         <!--  Creating and writing to Topics is restricted to users in ducc-admin group -->
+        <!--  But access to the topic used by the JDs (user code) must be unrestricted  -->
         <!--  Everyone can read from, write to, and create queues                       -->
         <authorizationPlugin>
           <map>
@@ -96,16 +97,14 @@
                 <authorizationEntry topic=">" read="anonymous,ducc-admin" write="ducc-admin" admin="ducc-admin" />
                 <authorizationEntry queue=">" read="anonymous,ducc-admin" write="anonymous,ducc-admin" admin="anonymous,ducc-admin" />
                 <authorizationEntry topic="ActiveMQ.Advisory.>" read="anonymous,ducc-admin" write="anonymous,ducc-admin" admin="anonymous,ducc-admin"/>
+                <authorizationEntry topic="ducc.jd.state" read="anonymous,ducc-admin" write="anonymous,ducc-admin" admin="anonymous,ducc-admin"/>
               </authorizationEntries>
             </authorizationMap>
           </map>
         </authorizationPlugin>
       </plugins>
                 
-		  
-		  
-		  
-		  
+          
         <transportConnectors>
             <transportConnector name="openwire" uri="tcp://0.0.0.0:${DUCC_AMQ_PORT}?${DUCC_AMQ_DECORATION}"/>
         </transportConnectors>
