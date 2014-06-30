@@ -34,14 +34,65 @@ public class JobDetailsProcesses implements Comparable<JobDetailsProcesses> {
 		return _process;
 	}
 	
-	private boolean isOperational() {
+	private boolean isRunning() {
+		boolean retVal = false;
+		try {
+			ProcessState processState = getProcess().getProcessState();
+			switch(processState) {
+			case Running:
+				retVal = true;
+				break;
+			default:
+				//retVal = false;
+				break;
+			}
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	
+	private boolean isInitializing() {
 		boolean retVal = false;
 		try {
 			ProcessState processState = getProcess().getProcessState();
 			switch(processState) {
 			case Initializing:
-			case Running:
+				retVal = true;
+				break;
+			default:
+				//retVal = false;
+				break;
+			}
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	
+	private boolean isStarting() {
+		boolean retVal = false;
+		try {
+			ProcessState processState = getProcess().getProcessState();
+			switch(processState) {
 			case Starting:
+				retVal = true;
+				break;
+			default:
+				//retVal = false;
+				break;
+			}
+		}
+		catch(Exception e) {
+		}
+		return retVal;
+	}
+	
+	private boolean isStopping() {
+		boolean retVal = false;
+		try {
+			ProcessState processState = getProcess().getProcessState();
+			switch(processState) {
 			case Stopping:
 				retVal = true;
 				break;
@@ -103,10 +154,28 @@ public class JobDetailsProcesses implements Comparable<JobDetailsProcesses> {
 			long f1 = p1.getDuccId().getFriendly();
 			long f2 = p2.getDuccId().getFriendly();
 			if(f1 != f2) {
-				if(!j1.isOperational() && j2.isOperational()) {
+				if(!j1.isRunning() && j2.isRunning()) {
 					retVal = 1;
 				}
-				else if(j1.isOperational() && !j2.isOperational()) {
+				else if(j1.isRunning() && !j2.isRunning()) {
+					retVal = -1;
+				}
+				else if(!j1.isInitializing() && j2.isInitializing()) {
+					retVal = 1;
+				}
+				else if(j1.isInitializing() && !j2.isInitializing()) {
+					retVal = -1;
+				}
+				else if(!j1.isStarting() && j2.isStarting()) {
+					retVal = 1;
+				}
+				else if(j1.isStarting() && !j2.isStarting()) {
+					retVal = -1;
+				}
+				else if(!j1.isStopping() && j2.isStopping()) {
+					retVal = 1;
+				}
+				else if(j1.isStopping() && !j2.isStopping()) {
 					retVal = -1;
 				}
 				else if(!j1.isFailed() && j2.isFailed()) {
