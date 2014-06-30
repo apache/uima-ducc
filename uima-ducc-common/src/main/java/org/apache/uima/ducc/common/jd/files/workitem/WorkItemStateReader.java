@@ -110,7 +110,7 @@ public class WorkItemStateReader extends WorkItemStateAbstract {
 				}
 			}
 			catch(Exception e) {
-				logger.error(location, jobid, e);
+				logger.debug(location, jobid, e);
 			}
 		}
 		return map;
@@ -245,7 +245,7 @@ public class WorkItemStateReader extends WorkItemStateAbstract {
 			jr.endArray();
 		}
 		catch(Exception e) {
-			logger.error(location, jobid, e);
+			logger.debug(location, jobid, e);
 		}
 		finally {
 			if(jr != null) {
