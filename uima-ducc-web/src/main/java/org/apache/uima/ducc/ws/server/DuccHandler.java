@@ -98,6 +98,7 @@ import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
+import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
 import org.apache.uima.ducc.ws.utils.HandlersHelper;
@@ -1181,10 +1182,18 @@ public class DuccHandler extends DuccAbstractHandler {
 					counter++;
 				}
 			}
+			TreeMap<JobDetailsProcesses,JobDetailsProcesses> map = new TreeMap<JobDetailsProcesses,JobDetailsProcesses>();
 			iterator = job.getProcessMap().keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
 				IDuccProcess process = job.getProcessMap().get(processId);
+				JobDetailsProcesses jdp = new JobDetailsProcesses(process);
+				map.put(jdp, jdp);
+			}
+			Iterator<JobDetailsProcesses> sortedIterator = map.keySet().iterator();
+			while(sortedIterator.hasNext()) {
+				JobDetailsProcesses jdp = sortedIterator.next();
+				IDuccProcess process = jdp.getProcess();
 				StringBuffer bb = new StringBuffer();
 				buildJobProcessListEntry(bb, job, process, DetailsType.Job, ShareType.UIMA, counter);
 				if(bb.length() > 0) {
