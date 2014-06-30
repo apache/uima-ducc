@@ -1288,10 +1288,10 @@ public class StateManager {
 							DuccType jobType = duccWork.getDuccType();
 							switch(jobType) {
 							case Job:
+								DuccWorkJob job = (DuccWorkJob) duccWork;
 								switch(processType) {
 								case Pop:
 									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
-									DuccWorkJob job = (DuccWorkJob) duccWork;
 									switch(inventoryProcess.getProcessState()) {
 									case Failed:
 										if(inventoryProcess.getDuccId().getFriendly() == 0) {
@@ -1330,6 +1330,9 @@ public class StateManager {
 									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
 									break;
 								}
+								// <UIMA-3923>
+								advanceToCompleted(job);
+								// </UIMA-3923>
 								break;
 							case Service:
 								DuccWorkJob service = (DuccWorkJob) duccWork;
@@ -1362,6 +1365,9 @@ public class StateManager {
 									}
 									break;
 								}
+								// <UIMA-3923>
+								advanceToCompleted(service);
+								// </UIMA-3923>
 								break;
 							}
 						}
@@ -1404,6 +1410,18 @@ public class StateManager {
 	private void advanceToCompleted(DuccWorkJob job) {
 		switch(job.getJobState()) {
 		case Completing:
+			if(job.getProcessMap().getAliveProcessCount() == 0) {
+				stateJobAccounting.stateChange(job, JobState.Completed);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	
+	private void advanceToCompleting(DuccWorkJob job) {
+		switch(job.getJobState()) {
+		case Completing:
 		case Completed:
 			break;
 		default:
@@ -1437,7 +1455,7 @@ public class StateManager {
 						service.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 						break;
 					}
-					advanceToCompleted(service);
+					advanceToCompleting(service);
 					break;
 				}
 			}
@@ -1463,7 +1481,7 @@ public class StateManager {
 			setCompletionIfNotAlreadySet(service, JobCompletionType.EndOfJob, rationale);
 			logger.debug(location, jobid, service.getCompletionRationale().getText()+", "+"no failures");
 		}
-		advanceToCompleted(service);
+		advanceToCompleting(service);
 	}
 	
 	private void completeJob(DuccWorkJob job, IRationale rationale) {
@@ -1498,7 +1516,7 @@ public class StateManager {
 		default:
 			break;
 		}
-		advanceToCompleted(job);
+		advanceToCompleting(job);
 	}
 	
 	public void jobTerminate(IDuccWorkJob job, JobCompletionType jobCompletionType, IRationale rationale, ProcessDeallocationType processDeallocationType) {
