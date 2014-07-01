@@ -298,12 +298,13 @@ public abstract class AbstractDuccComponent implements DuccComponent,
   public void start(DuccService service) throws Exception {
     start(service, null);
   }
- 
-  public void start(DuccService service, String[] args) throws Exception {
+  
+    public void start(DuccService service, String[] args) throws Exception {
 	    String endpoint = null;
 	    this.service = service;
 	    if (System.getProperty("ducc.deploy.components") != null
 	            && !System.getProperty("ducc.deploy.components").equals("uima-as")
+	             && !System.getProperty("ducc.deploy.components").equals("jd")
 	            && (endpoint = System.getProperty("ducc.admin.endpoint")) != null) {
 	        logger.info("start", null, ".....Starting Admin Channel on endpoint:" + endpoint);
             startAdminChannel(endpoint, this);
