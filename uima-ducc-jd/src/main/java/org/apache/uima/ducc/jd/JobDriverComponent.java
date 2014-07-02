@@ -63,6 +63,7 @@ implements IJobDriverComponent {
 	private DuccId duccId = null;
 	private String jobId = String.valueOf(-1);
 	protected JobDriver thread = null;
+	protected DriverStatusReport driverStatusReport = null;
 	private String jdBrokerUrl;
 	private String jdQueue;
 	
@@ -141,7 +142,8 @@ implements IJobDriverComponent {
 					try {
 						thread = new JobDriver();
 						duccOut.trace(methodName, job.getDuccId(), "thread:"+thread);
-						thread.initialize(job, getProcessJmxUrl());
+						driverStatusReport = new DriverStatusReport(job.getDuccId(),getProcessJmxUrl());
+						thread.initialize(job, driverStatusReport);
 						thread.start();
 						jpc = new JobProcessCollection(job);
 					}
@@ -204,22 +206,26 @@ implements IJobDriverComponent {
 			publicationCounter.addAndGet(1);
 			try {
 				duccOut.debug(methodName, null, duccMsg.fetch("publishing state"));
-				if(thread != null) {
-					thread.rectifyStatus();
-					DriverStatusReport dsr = thread.getDriverStatusReportCopy();
-					if(dsr == null) {
-						duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));
+				try {
+					if(thread != null) {
+						thread.rectifyStatus();
 					}
 					else {
-						duccOut.debug(methodName, null, "driverState:"+dsr.getDriverState());
-						duccOut.debug(methodName, dsr.getDuccId(), dsr.getLogReport());
-						jdStateDuccEvent.setState(dsr);
+						duccOut.debug(methodName, null, duccMsg.fetch("thread is null"));
 					}
-					publisher();
+				}
+				catch(Throwable t) {
+				}
+				DriverStatusReport dsr = driverStatusReport;
+				if(dsr == null) {
+					duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));
 				}
 				else {
-					duccOut.debug(methodName, null, duccMsg.fetch("thread is null"));
+					duccOut.debug(methodName, null, "driverState:"+dsr.getDriverState());
+					duccOut.debug(methodName, dsr.getDuccId(), dsr.getLogReport());
+					jdStateDuccEvent.setState(dsr);
 				}
+				publisher();
 			}
 			catch(Exception e) {
 				duccOut.error(methodName, null, e);

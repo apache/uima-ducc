@@ -93,7 +93,6 @@ public class JobDriver extends Thread implements IJobDriver {
 	private DuccId jobid = null;
 	
 	private IDuccWorkJob job = null;
-	private String jdJmxUrl = null;
 	
 	private DriverStatusReport driverStatusReport = null;
 	private WorkItemStateKeeper workItemStateKeeper = null;
@@ -132,7 +131,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		super();
 	}
 
-	public void initialize(IDuccWorkJob job, String jdJmxUrl) throws JobDriverTerminateException {
+	public void initialize(IDuccWorkJob job, DriverStatusReport driverStatusReport) throws JobDriverTerminateException {
 		String location = "initialize";
 		duccOut.info(location, jobid, "jd.step:"+location);
 		try {
@@ -143,8 +142,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			//
 			setJobid(job.getDuccId());
 			setDuccWorkJob(job);
-			setJdJmxUrl(jdJmxUrl);
-			driverStatusReport = new DriverStatusReport(job.getDuccId(),getJdJmxUrl());
+			setDriverStatusReport(driverStatusReport);
 			driverStatusReport.setInitializing();
 			duccOut.debug(location, jobid, "driverState:"+driverStatusReport.getDriverState());
 			// Handle UIMA deployment descriptor
@@ -239,11 +237,17 @@ public class JobDriver extends Thread implements IJobDriver {
 				duccOut.warn(location, jobid, "no work items to process");
 			}
 		} 
-		catch (JobDriverTerminateException e) {
+		catch (Exception e) {
+			duccErr.error(location, jobid, e);
 			duccOut.error(location, jobid, e);
+			IRationale rationale = new Rationale("Exception occurred");
+			driverStatusReport.setFailed(rationale);
 		}
 		catch(Throwable t) {
+			duccErr.error(location, jobid, t);
 			duccOut.error(location, jobid, t);
+			IRationale rationale = new Rationale("Error occurred");
+			driverStatusReport.setFailed(rationale);
 		}
 		duccOut.debug(location, jobid, "thread processing complete");
 	}
@@ -256,14 +260,10 @@ public class JobDriver extends Thread implements IJobDriver {
 		setJob(value);
 	}
 	
-	private void setJdJmxUrl(String value) {
-		jdJmxUrl = value;
+	private void setDriverStatusReport(DriverStatusReport value) {
+		driverStatusReport = value;
 	}
 	
-	private String getJdJmxUrl() {
-		return jdJmxUrl;
-	}
-
 	private void missingCallbackReaper() {
 		String location = "missingCallbackReaper";
 		try {
