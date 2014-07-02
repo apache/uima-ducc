@@ -27,6 +27,7 @@ public interface IDriverState {
 		Running,				// CAS processing active
 		Completing,				// Driver processing is completing
 		Completed,				// Driver processing is completed
+		Failed,					// Driver failed
 		Undefined				// None of the above
 	};
 	

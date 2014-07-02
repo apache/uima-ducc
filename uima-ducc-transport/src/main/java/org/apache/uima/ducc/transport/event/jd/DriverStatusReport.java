@@ -259,6 +259,13 @@ public class DriverStatusReport implements Serializable {
 		logReport();
 	}
 
+	public void setFailed(IRationale rationale) {
+		setClientInitEnd(System.currentTimeMillis());
+		setDriverState(DriverState.Failed);
+		setJobCompletion(JobCompletionType.CanceledByDriver, rationale);
+		logReport();
+	}
+	
 	public void setInitializingFailed(IRationale rationale) {
 		setClientInitEnd(System.currentTimeMillis());
 		setDriverState(DriverState.Completed);
@@ -643,6 +650,8 @@ public class DriverStatusReport implements Serializable {
 	private void calculateState() {
 		String methodName = "calculateState";
 		switch(getDriverState()) {
+		case Failed:
+			break;
 		case Initializing:
 			if(getAtLeastOneService()) {
 				setDriverState(DriverState.Running);
