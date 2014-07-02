@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.server.nodeviz.NodeViz;
 import org.eclipse.jetty.server.Request;
 
 public class DuccHandlerViz extends DuccAbstractHandler {
@@ -38,13 +39,22 @@ public class DuccHandlerViz extends DuccAbstractHandler {
 	
 	public final String vizNodes 				= duccContextViz+"-nodes";
 	
+	NodeViz viz = null;
+	
+	DuccHandlerViz()
+	{
+		viz = new NodeViz();
+	}
+	
 	private void handleServletVizNodes(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
 		String methodName = "handleServletVizNodes";
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		
-		String data = "<html><p>"+methodName+" not yet implemented</p></html>";
+		
+		//String data = "<html><p>"+methodName+" not yet implemented</p></html>";
+		String data = viz.getVisualization();
 		
 		duccLogger.debug(methodName, jobid, data);
 		response.getWriter().println(data);
