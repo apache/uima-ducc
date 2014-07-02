@@ -455,6 +455,7 @@ public class StateManager {
 			DuccId duccId = jdStatusReport.getDuccId();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, duccId, this, methodName);
 			if(duccWorkJob != null) {
+				IRationale rationale;
 				String jdJmxUrl = jdStatusReport.getJdJmxUrl();
 				setJdJmxUrl(duccWorkJob, jdJmxUrl);
 				IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = jdStatusReport.getUimaDeploymentDescriptor();
@@ -483,6 +484,10 @@ public class StateManager {
 				}
 				else {
 					switch(jdStatusReport.getDriverState()) {
+					case Failed:
+						rationale = jdStatusReport.getJobCompletionRationale();
+						jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, rationale, ProcessDeallocationType.JobFailure);
+						break;
 					case NotRunning:
 						break;
 					case Initializing:	
@@ -506,7 +511,7 @@ public class StateManager {
 					case Running:
 					case Idle:	
 						if(jdStatusReport.isKillJob()) {
-							IRationale rationale = jdStatusReport.getJobCompletionRationale();
+							rationale = jdStatusReport.getJobCompletionRationale();
 							switch(duccWorkJob.getJobState()) {
 							case WaitingForServices:
 								if(rationale == null) {
