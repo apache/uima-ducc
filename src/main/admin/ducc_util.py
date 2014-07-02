@@ -221,9 +221,8 @@ class DuccUtil(DuccBase):
 
 
     def set_classpath(self):
-        ducc_home = self.DUCC_HOME
-        LIB       = ducc_home + '/lib'
-        RESOURCES = ducc_home + '/resources'
+        DH        = self.DUCC_HOME + '/'
+        LIB       = DH + 'lib/'
 
         local_jars  = self.ducc_properties.get('ducc.local.jars')   #local mods
     
@@ -232,27 +231,22 @@ class DuccUtil(DuccBase):
         if ( local_jars != None ):
             extra_jars = local_jars.split()
             for j in extra_jars:
-                CLASSPATH = CLASSPATH + ':' + LIB + '/' + j
+                CLASSPATH = CLASSPATH + ':' + LIB + j
 
-        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/lib/*'           
-        CLASSPATH = CLASSPATH + ":" + ducc_home + '/apache-uima/apache-activemq/lib/*'           
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-lang/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-cli/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/guava/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/google-gson/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-log4j/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-camel/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/apache-commons-collections/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/joda-time/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/springframework/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/xmlbeans/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/jna/*'
-        CLASSPATH = CLASSPATH + ":" + LIB + '/libpam4j/*'
+        CLASSPATH = CLASSPATH + ':' + DH  + 'apache-uima/lib/*'           
+        CLASSPATH = CLASSPATH + ':' + DH  + 'apache-uima/apache-activemq/lib/*'           
+        CLASSPATH = CLASSPATH + ':' + LIB + 'apache-commons/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'guava/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'google-gson/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'apache-log4j/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'apache-camel/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'joda-time/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'springframework/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'jna/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'libpam4j/*'
+        CLASSPATH = CLASSPATH + ':' + LIB + 'uima-ducc/*'
 
-        CLASSPATH = CLASSPATH + ':' + LIB + '/uima-ducc/*'
-
-        CLASSPATH = CLASSPATH + ':' + RESOURCES
+        CLASSPATH = CLASSPATH + ':' + DH  + 'resources'
     
         # these things are added component-wise in ducc.py, not here
         #    db: derby 

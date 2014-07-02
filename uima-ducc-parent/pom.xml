@@ -102,7 +102,6 @@
 			</releases>
 		</repository>
 
-
 	</repositories>
 
 	<pluginRepositories>
@@ -130,11 +129,11 @@
 		<jiraVersion>12324398</jiraVersion>
 		<maven.build.timestamp.format>MM-dd-yyyy HH:mm</maven.build.timestamp.format>
 		<ducc.version>${project.version}</ducc.version>
-		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
-		<org.apache.activemq.version>5.6.0</org.apache.activemq.version>
+		<org.springframework.version>3.0.7.RELEASE</org.springframework.version>
+		<org.apache.activemq.version>5.7.0</org.apache.activemq.version>
 		<org.apache.camel.version>2.10.1</org.apache.camel.version>
-		<org.apache.uima.version>2.4.2</org.apache.uima.version>
-		<org.apache.uima.as.version>2.4.2</org.apache.uima.as.version>
+		<org.apache.uima.version>2.6.0</org.apache.uima.version>
+		<org.apache.uima.as.version>2.6.0</org.apache.uima.as.version>
 		<com.google.guava.version>r09</com.google.guava.version>
 		<commons.cli.version>1.2</commons.cli.version>
 		<joda.time.version>2.1</joda.time.version>
@@ -153,7 +152,7 @@
 		<commons.pool.version>1.5.4</commons.pool.version>
 		<geronimo.servlet-spec.version>1.2</geronimo.servlet-spec.version>
 		<xpp3.version>1.1.4c</xpp3.version>
-		<xstream.version>1.3.1</xstream.version>
+		<xstream.version>1.3.1</xstream.version>   <!-- 1.4.3 requires xmlpull ?? -->
 		<mina.core.version>1.1.7</mina.core.version>
 		<aopalliance.version>1.0</aopalliance.version>
 		<google.gson.version>2.2.2</google.gson.version>
@@ -354,17 +353,11 @@ ${uimaDUCCNoticeText}
 				<version>${commons.codec.version}</version>
 			</dependency>
 
-
 			<dependency>
 				<groupId>commons-cli</groupId>
 				<artifactId>commons-cli</artifactId>
 				<version>${commons.cli.version}</version>
 			</dependency>
-
-			<!-- dependency> <groupId>org.fusesource.commonman</groupId> <artifactId>commons-management</artifactId> 
-				<version>${commons.management.version}</version> </dependency -->
-
-
 
 			<dependency>
 				<groupId>com.google.guava</groupId>
@@ -372,6 +365,11 @@ ${uimaDUCCNoticeText}
 				<version>${com.google.guava.version}</version>
 			</dependency>
 
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>${joda.time.version}</version>
+			</dependency>
 
 			<dependency>
 				<groupId>org.apache.uima</groupId>
@@ -407,12 +405,6 @@ ${uimaDUCCNoticeText}
 				<groupId>org.apache.activemq</groupId>
 				<artifactId>activemq-web</artifactId>
 				<version>${org.apache.activemq.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>joda-time</groupId>
-				<artifactId>joda-time</artifactId>
-				<version>${joda.time.version}</version>
 			</dependency>
 
 			<dependency>
@@ -518,65 +510,6 @@ ${uimaDUCCNoticeText}
 			</dependency>
 
 			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-core</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-expression</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-beans</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-aop</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-tx</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-asm</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-jms</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-context</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-context-support</artifactId>
-				<version>${org.springframework.version}</version>
-			</dependency>
-
-			<!-- dependency> <groupId>org.fusesource.commonman</groupId> <artifactId>commons-management</artifactId> 
-				</dependency -->
-
-
-			<dependency>
 				<groupId>commons-pool</groupId>
 				<artifactId>commons-pool</artifactId>
 				<version>${commons.pool.version}</version>
@@ -631,20 +564,16 @@ ${uimaDUCCNoticeText}
         <dependency>
            <groupId>xpp3</groupId>
            <artifactId>xpp3</artifactId>
-          
         </dependency>
-
 
         <dependency>
            <groupId>org.apache.httpcomponents</groupId>
            <artifactId>httpclient</artifactId>
-          
         </dependency>
         
         <dependency>
            <groupId>org.apache.httpcomponents</groupId>
            <artifactId>httpcore</artifactId>
-          
         </dependency>
 
 
@@ -707,11 +636,6 @@ ${uimaDUCCNoticeText}
 			<groupId>org.apache.camel</groupId>
 			<artifactId>camel-stream</artifactId>
 			<scope>runtime</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-aop</artifactId>
 		</dependency>
 
 	</dependencies>

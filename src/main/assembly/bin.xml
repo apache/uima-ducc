@@ -31,24 +31,13 @@ under the License.
    
    <dependencySets>
     
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>com.thoughtworks.xstream:xstream</include>
-      </includes>
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>lib/xstream</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
+	<!-- xstream is in lib/apache-camel --> 
 
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>org.kohsuke:libpam4j</include>
       </includes>
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>lib/libpam4j</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -60,7 +49,6 @@ under the License.
       <includes>
         <include>net.java.dev.jna:jna</include>
       </includes>
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
       <outputDirectory>lib/jna</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
@@ -114,60 +102,10 @@ under the License.
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
-    
-    <!-- HTTP Support for the broker -->
-    <dependencySet>
-			<includes>
-				<include>org.apache.httpcomponents:httpclient</include>
-				<include>org.apache.httpcomponents:httpcore</include>
-				<include>xpp3:xpp3</include>
-			</includes>
-			<useTransitiveDependencies>false</useTransitiveDependencies>
-			<outputDirectory>apache-uima/apache-activemq/lib/optional</outputDirectory>
-			<useProjectArtifact>false</useProjectArtifact>
-			<fileMode>644</fileMode>
-			<directoryMode>755</directoryMode>
-    </dependencySet>
-    
-    <!-- UIMA-AS -->   
-    <!-- dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>org.apache.uima:uimaj-as-core</include>
-        <include>org.apache.uima:uimaj-as-jms</include>
-        <include>org.apache.uima:uimaj-as-activemq</include>
-      </includes>      
-      <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
-      <outputDirectory>apache-uima/lib</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet -->
 
-    <!-- UIMA Core -->
-    <!--dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>org.apache.uima:uimaj-core</include>
-      </includes>      
-      <outputFileNameMapping>uima-core.jar</outputFileNameMapping>
-      <outputDirectory>lib/uima</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet -->
+    <!-- HTTP Support for the broker is now in the UIMA-AS 2.6.0 package -->
 
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>commons-cli:commons-cli</include>
-      </includes>      
-      <outputDirectory>lib/apache-commons-cli</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
+    <!-- log4j is also in apache-uima/apache-activemq/lib/optional but that is not in all classpaths -->
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
@@ -179,17 +117,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>org.apache.xmlbeans:xmlbeans</include>
-      </includes>      
-      <outputDirectory>lib/xmlbeans</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
+	<!-- xmlbeans is in UIMA-AS 2.6.0 package -->
 
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
@@ -224,20 +152,11 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+	<!-- Only used by some daemons -->
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
         <include>commons-httpclient:commons-httpclient</include>
-      </includes>      
-      <outputDirectory>lib/http-client</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
         <include>commons-codec:commons-codec</include>
       </includes>      
       <outputDirectory>lib/http-client</outputDirectory>
@@ -246,95 +165,35 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+	<!-- Combine the shared common jars -->
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
+        <include>commons-cli:commons-cli</include>
         <include>commons-collections:commons-collections</include>
-      </includes>      
-      <outputDirectory>lib/apache-commons-collections</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
         <include>commons-lang:commons-lang</include>
-      </includes>      
-      <outputDirectory>lib/apache-commons-lang</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
-
-    <!--dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>commons-logging:commons-logging</include>
-        <include>commons-httpclient:commons-httpclient</include>
-        <include>commons-codec:commons-codec</include>
-
-        <include>org.eclipse.jetty.aggregate:jetty-all-server</include>
-        <include>com.thoughtworks.xstream:xstream</include>
-        
-        <include>org.apache.activemq:activemq-camel</include>
-        <include>org.apache.activemq:activemq-console</include>
-        <include>org.apache.activemq:activemq-core</include>
-        <include>org.apache.activemq:activemq-spring</include>
-        <include>org.apache.activemq:activemq-pool</include>
-        <include>org.apache.activemq:activemq-optional</include>
-        <include>org.apache.activemq:activemq-jaas</include>
-        
-        <include>org.apache.geronimo.specs:geronimo-jms_1.1_spec</include>
-        <include>org.apache.geronimo.specs:geronimo-j2ee-management_1.1_spec</include>
-        <include>org.apache.geronimo.specs:geronimo-servlet_2.5_spec</include>
-        
-        <include>org.apache.xbean:xbean-spring</include>
-        
-        <include>org.springframework:spring-core</include>
-        <include>org.springframework:spring-expression</include>
-        <include>org.springframework:spring-beans</include>
-       
-        <include>org.springframework:spring-tx</include>
-        <include>org.springframework:spring-asm</include>
-        <include>org.springframework:spring-jms</include>
-        <include>org.springframework:spring-context</include>
-
-        <include>org.slf4j:jcl-over-slf4j</include>
-        <include>org.slf4j:slf4j-log4j12</include>
-        <include>org.slf4j:slf4j-api</include>
-        
-        <include>log4j:log4j</include>
-        
-
-        <include>xpp3:xpp3</include>
-
-
-      </includes>      
-
-      <outputDirectory>activemq/lib</outputDirectory>
-      <useTransitiveDependencies>false</useTransitiveDependencies>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet-->
-
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>org.apache.activemq:activemq-pool</include>
-        <include>org.apache.activemq:activemq-jaas</include>
         <include>commons-pool:commons-pool</include>
       </includes>      
+      <outputDirectory>lib/apache-commons</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
 
+	<!-- Not part of the UIMA-AS package, but are not used by DUCC?
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>org.apache.activemq:activemq-pool</include>
+        <include>org.apache.activemq:activemq-jaas</include>
+      </includes>      
       <outputDirectory>apache-uima/apache-activemq/lib</outputDirectory>
       <useTransitiveDependencies>false</useTransitiveDependencies>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
-
+	-->
 
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
@@ -365,90 +224,24 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-    <dependencySet>
-      <useStrictFiltering>true</useStrictFiltering>
-      <includes>
-        <include>org.springframework:spring-core</include>
-        <include>org.springframework:spring-expression</include>
-        <include>org.springframework:spring-beans</include>
-        <include>org.springframework:spring-aop</include>
-        <include>org.springframework:spring-tx</include>
-        <include>org.springframework:spring-asm</include>
-        <include>org.springframework:spring-jms</include>
-        <include>org.springframework:spring-context</include>
-        <include>org.springframework:spring-context-support</include>
-      </includes>      
-      <outputDirectory>lib/springframework</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>
+	<!-- springframework and slf4j are now part of the UIMA-AS package -->
 
-    <dependencySet>
-      <includes>
-        <include>org.slf4j:slf4j-log4j12</include>
-        <include>org.slf4j:jcl-over-slf4j</include>
-        <include>org.slf4j:slf4j-api</include>
-      </includes>
-      <outputDirectory>lib/slf4j</outputDirectory>
-      <useProjectArtifact>false</useProjectArtifact>
-      <fileMode>644</fileMode> 
-      <directoryMode>755</directoryMode>        
-    </dependencySet>  
-    
    </dependencySets>
 
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
 
-    <!--              UIMA SDK                 -->
-    <fileSet>
-      <directory>target/uimaj/apache-uima</directory>
-      <outputDirectory>apache-uima</outputDirectory>
-      <fileMode>755</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-    
-        <!--              UIMA-AS                 -->
+    <!-- UIMA-AS (includes UIMA SDK & ActiveMQ) -->
     <fileSet>
       <directory>target/uima-as/apache-uima-as-${org.apache.uima.as.version}</directory>
       <outputDirectory>apache-uima</outputDirectory>
       <fileMode>755</fileMode>
       <directoryMode>755</directoryMode>        
     </fileSet>
-   
-    <!--          ACTIVEMQ               -->
-    
-    <!--fileSet>
-      <directory>target/apache-activemq/apache-activemq-${org.apache.activemq.version}</directory>
-      <outputDirectory>activemq</outputDirectory>
-      <includes>
-        <include>bin/*</include>
-        <include>bin/**/*</include>
-        <include>**/conf/credentials-enc.properties</include>
-        <include>**/conf/credentials.properties</include>
-        <include>**/conf/log4j.properties</include>
-        <include>**/conf/logging.properties</include>
-        <include>activemq-all-${org.apache.activemq.version}.jar</include>
-      </includes>
-      <excludes>
-        <exclude>LICENSE</exclude>
-        <exclude>NOTICE</exclude>
-        <exclude>README.txt</exclude>
-        <exclude>user-guide.html</exclude>
-        <exclude>WebConsole-README.txt</exclude>
-        <exclude>**/example/*</exclude>
-        <exclude>**/example/**/*</exclude>
-        <exclude>**/webapps/*</exclude>
-        <exclude>**/docs/*</exclude>
-      </excludes>
-      <fileMode>755</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet -->
 
+	<!-- Put the DUCC broker configuration file in ACTIVEMQ -->
     <fileSet>
       <directory>src/main/config/</directory>
-      <!-- outputDirectory>activemq/conf</outputDirectory -->
       <outputDirectory>apache-uima/apache-activemq/conf</outputDirectory>
       <includes>
         <include>activemq-ducc.xml</include>
@@ -575,14 +368,6 @@ under the License.
       <excludes />
     </fileSet>
 
-    <fileSet>
-      <directory>src/main/saxon</directory>
-      <outputDirectory>lib/saxon</outputDirectory>
-      <fileMode>644</fileMode>
-      <directoryMode>755</directoryMode>        
-    </fileSet>
-
-        
     <fileSet>
       <directory>uima-ducc-web/src/main/webapp/etc</directory>
       <outputDirectory>webserver/etc</outputDirectory>
@@ -773,15 +558,6 @@ under the License.
       <outputDirectory>resources</outputDirectory>
       <destName>Messages.properties</destName>
     </file>
-    
-
-    <!--file>
-      <source>src/main/config/README.txt</source>
-      <outputDirectory>activemq</outputDirectory>
-      <fileMode>644</fileMode>
-    </file -->
-    
-
     
    </files>
 </assembly>

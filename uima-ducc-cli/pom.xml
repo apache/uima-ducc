@@ -52,7 +52,7 @@
   <properties>
     <!-- This is for the manifest-only public uima-ducc-cli.jar that goes directly in lib -->
     <DUCC_CP>
-uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar ../resources/ slf4j/jcl-over-slf4j-1.6.4.jar slf4j/slf4j-api-1.6.4.jar slf4j/slf4j-log4j12-1.6.4.jar xstream/xstream.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons-cli/commons-cli-${commons.cli.version}.jar ../apache-uima/lib/uima-core.jar ../apache-uima/lib/uimaj-as-activemq.jar ../apache-uima/lib/uimaj-as-jms.jar ../apache-uima/lib/uimaj-as-core.jar 
+uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar ../resources/ ../apache-uima/apache-activemq/lib/jcl-over-slf4j-${slf4j.version}.jar ../apache-uima/apache-activemq/lib/slf4j-api-${slf4j.version}.jar ../apache-uima/apache-activemq/lib/slf4j-log4j12-${slf4j.version}.jar apache-camel/xstream-${xstream.version}.jar http-client/commons-codec-${commons.codec.version}.jar http-client/commons-httpclient-${commons.httpclient.version}.jar google-gson/gson-${google.gson.version}.jar apache-log4j/log4j-${log4j.version}.jar apache-commons/commons-cli-${commons.cli.version}.jar ../apache-uima/lib/uima-core.jar ../apache-uima/lib/uimaj-as-activemq.jar ../apache-uima/lib/uimaj-as-jms.jar ../apache-uima/lib/uimaj-as-core.jar 
     </DUCC_CP>
   </properties>
 
