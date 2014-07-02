@@ -38,7 +38,7 @@ public class NodeViz
 
     private DuccMachinesData machineData;              // handle to static machine information
 
-    private long lastUpdate = 0;                       // time of last orchestrator state
+    //private long lastUpdate = 0;                       // time of last orchestrator state
     private String visualization;                      // cached visualization
     private long update_interval = 60000;              // Only gen a new viz every 'this long'
 
@@ -263,7 +263,7 @@ public class NodeViz
             "</table>" +
             page + 
             "</html>";
-        logger.info(methodName, null, "Size of node visualization:", visualization.length());
+        // logger.info(methodName, null, "Size of node visualization:", visualization.length());
         hosts = null;
 	}
 
@@ -271,15 +271,16 @@ public class NodeViz
     {
         String methodName = "update";
         logger.debug(methodName, null, "Received Orchestrator Event");
-        long currentUpdate = System.currentTimeMillis();
+        //long currentUpdate = System.currentTimeMillis();
 
         // if ( currentUpdate - lastUpdate > update_interval ) {
         if ( true ) {          // for debug, never skip
             generateVisualization(ev);
-            lastUpdate = currentUpdate;
-        } else {
-            logger.debug(methodName, null, "Skipping visualization");
-        }
+            //lastUpdate = currentUpdate;
+        } 
+        //else {
+            //logger.debug(methodName, null, "Skipping visualization");
+        //}
     }
 
     private static class HostSorter

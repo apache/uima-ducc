@@ -159,7 +159,7 @@ class VisualizedHost
              *   </a>
              */
             if ( top > size ) {
-                logger.warn(methodName, null, name, "Box overflow. Size", size, "top", top);
+                logger.debug(methodName, null, name, "Box overflow. Size", size, "top", top);
             }
 
             float height = j.qshares * height_one_share;
