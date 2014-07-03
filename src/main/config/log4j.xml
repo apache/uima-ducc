@@ -197,11 +197,6 @@
      <appender-ref ref="wslog" /> 
    </category>
 
-   <category name="org.apache.uima.ducc.ws.server.nodeviz" additivity="true">
-     <priority value="info"/>
-     <appender-ref ref="wslog" /> 
-   </category>
-
    <category name="org.apache.uima.ducc.viz" additivity="true">
      <priority value="debug"/>
      <appender-ref ref="vizlog" /> 

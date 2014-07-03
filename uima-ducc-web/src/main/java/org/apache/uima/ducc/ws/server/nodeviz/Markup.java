@@ -72,6 +72,20 @@ public class Markup
 				+ "/> ");
 	}
     
+	void nodeLabel(float x, float y, String label)
+    {
+		out.append(
+				"<text x=\"" 
+						+ (x*XSCALE) 
+						+ "\" y=\""
+						+ (y*YSCALE) 
+						+ "\" font-family=\"helvetica\" font-size=\"10\" font-weight=\"bold\"" 
+						+ " fill=\"black\">" 
+						+ label
+						+ "</text>"
+				);
+	}
+
 	void text(float x, float y, String label, String color, float fontsize, String newAttr) 
     {
 		if (newAttr == null) { 
@@ -99,11 +113,7 @@ public class Markup
         switch ( j.type ) {
             case Job:
                 out.append(
-                           "<a xlink:href=http://" +
-                           NodeViz.wshost +
-                           ":" +
-                           NodeViz.wsport + 
-                           "/job.details.jsp?id=" +
+                           "<a xlink:href=job.details.jsp?id=" +
                            j.id + 
                            ">"
                            );
@@ -111,11 +121,7 @@ public class Markup
                 break;
             case Service:
                 out.append(
-                           "<a xlink:href=http://" +
-                           NodeViz.wshost +
-                           ":" +
-                           NodeViz.wsport + 
-                           "/service.details.jsp?name=" +
+                           "<a xlink:href=/service.details.jsp?name=" +
                            j.service_endpoint +
                            ">"
                            );
@@ -123,11 +129,7 @@ public class Markup
                 break;
             case Pop:
                 out.append(
-                           "<a xlink:href=http://" +
-                           NodeViz.wshost +
-                           ":" +
-                           NodeViz.wsport + 
-                           "/reservations.details.jsp?id=" +
+                           "<a xlink:href=/reservations.details.jsp?id=" +
                            j.id + 
                            ">"
                            );
@@ -135,11 +137,7 @@ public class Markup
                 break;
             case Reservation:
                 out.append(
-                           "<a xlink:href=http://" +
-                           NodeViz.wshost +
-                           ":" +
-                           NodeViz.wsport + 
-                           "/reservations.jsp>"
+                           "<a xlink:href=/reservations.jsp>"
                           );
                 break;
             case Undefined:
@@ -213,7 +211,7 @@ public class Markup
 
     String patternedFill(JobFragment j)
     {
-        String color = "rgb(" +	SpectrumColorMap.neverDarkColorAlmostLight(j.user + " ")+")";
+        String color = j.fillColor;
 
         switch ( j.type ) {
             case Job:

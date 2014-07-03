@@ -17,6 +17,9 @@ class JobFragment
     String   color;            // color to draw this
     DuccType type;             // Job, Service, Reservation, Pop. 
 
+    String textColor = "white";
+    String fillColor = "black";
+
     JobFragment(String user, DuccType type, String id, int mem, int qshares, String service_endpoint)
     {
         this.user             = user;
@@ -26,6 +29,7 @@ class JobFragment
         this.mem              = mem;
         this.nprocesses       = 1;
         this.service_endpoint = service_endpoint;
+        setColors();
     }
 
     void addShares(int qshares)
@@ -37,6 +41,36 @@ class JobFragment
     boolean matches(String id)
     {
         return this.id.equals(id);
+    }
+
+    /**
+     * Set the fill and text color based on a hash of the user.
+     */
+    void setColors ()
+    {
+        if ( type == DuccType.Undefined ) {
+            fillColor = "0,0,0";
+            textColor = "256,256,256";
+        } else {
+            int color_index = (user + " ").hashCode();  // we add " " because orginal viz did and this keeps the colors consistent.
+
+            color_index = Math.abs(color_index) % 512;
+            int r = (color_index % 8)        * 28 + 44;
+            int g = ((color_index / 8) % 8)  * 28 + 44;
+            int b = ((color_index / 64) % 8) * 28 + 44;
+            if (r + g + b < 60) {
+                r *=2 ; g *=2; b *=2;
+            }
+
+            int brightness = (int)Math.sqrt(
+                              r * r * .241 + 
+                              g * g * .691 + 
+                              b * b * .068);
+
+            fillColor = "rgb(" + r + "," + g + "," + b + ")";
+            textColor = ( brightness < 130 ? "white" : "black" );
+        }
+//    
     }
 
     String getTitle() { 

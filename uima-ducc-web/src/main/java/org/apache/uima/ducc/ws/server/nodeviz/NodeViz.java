@@ -46,6 +46,7 @@ public class NodeViz
     static int quantum = 4;
     static String wshost = "";
     static String wsport = "42133";
+    static boolean strip_domain = true;
 
 	public NodeViz()
 	{
@@ -55,18 +56,18 @@ public class NodeViz
         quantum         = SystemPropertyResolver.getIntProperty("ducc.rm.share.quantum", quantum);
 
         wshost          = SystemPropertyResolver.getStringProperty("ducc.ws.node", System.getProperty("ducc.head"));
-        wshost          = SystemPropertyResolver.getStringProperty("ducc.viz.public.hostname", wshost);
-
         wsport          = SystemPropertyResolver.getStringProperty("ducc.ws.port", wsport);
+        strip_domain   = SystemPropertyResolver.getBooleanProperty("ducc.ws.visualization.strip.domain", true);
         
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
-        logger.info(methodName, null, "Nodeviz starting:");
+        logger.info(methodName, null, "Node Visualization starting:");
         logger.info(methodName, null, "    DUCC home               : ", System.getProperty("DUCC_HOME"));
         logger.info(methodName, null, "    ActiveMQ URL            : ", System.getProperty("ducc.broker.url"));
         logger.info(methodName, null, "Using Share Quantum         : ", quantum);
         logger.info(methodName, null, "Viz update Interval         : ", update_interval);
         logger.info(methodName, null, "Web Server Host             : ", wshost);
         logger.info(methodName, null, "Web Server Port             : ", wsport);
+        logger.info(methodName, null, "Strip Domains               : ", strip_domain);
         logger.info(methodName, null, "");
         logger.info(methodName, null, "    JVM                     : ", System.getProperty("java.vendor") +
                                                                    " "+ System.getProperty("java.version"));
@@ -77,7 +78,7 @@ public class NodeViz
         logger.info(methodName, null, "    OS Architecture         : ", System.getProperty("os.arch"));
         logger.info(methodName, null, "");
         logger.info(methodName, null, "    DUCC Version            : ", Version.version());
-        logger.info(methodName, null, "    Viz Version             : ", version);
+        logger.info(methodName, null, "    Vizualization Version   : ", version);
         logger.info(methodName, null, "------------------------------------------------------------------------------------");
 
         DuccListeners.getInstance().register(this);
@@ -283,14 +284,20 @@ public class NodeViz
         //}
     }
 
+    /**
+     * The contract:
+     * - when equals returns true,  compare must return 0
+     * - when equals returns false, compare must return 1 or -1
+     */
     private static class HostSorter
         implements Comparator<VisualizedHost>
     {
         public int compare(VisualizedHost h1, VisualizedHost h2)
         {
+            if ( h1 == h2 ) return 0;
             if ( h1.equals(h2) ) return 0;       
-            if ( h2.shares == h1.shares ) return h2.name.compareTo(h1.name);
-            return h2.shares - h1.shares;
+            if ( h2.mem == h1.mem ) return h1.name.compareTo(h2.name);
+            return h2.mem - h1.mem;
         }
     }
 

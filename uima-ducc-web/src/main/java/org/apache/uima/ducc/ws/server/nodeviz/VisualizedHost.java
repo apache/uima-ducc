@@ -37,7 +37,7 @@ class VisualizedHost
     VisualizedHost(Node n, int quantum)
     {
         this.quantum = quantum;
-        this.name = n.getNodeIdentity().getName();
+        this.name = strip(n.getNodeIdentity().getName());
         this.ip = n.getNodeIdentity().getIp();            
         
         // mem from OR pub is in KB.  must convert to GB
@@ -55,7 +55,7 @@ class VisualizedHost
     {
         this.quantum = quantum;
 
-        this.name = info.getName();
+        this.name = strip(info.getName());
         this.ip = info.getIp();
 
         String ns = info.getSharesTotal();
@@ -70,6 +70,18 @@ class VisualizedHost
         }
 
         this.shares_free = shares;        
+    }
+
+    /**
+     * Possibly strip domain name from hostname
+     */
+    String strip(String n)
+    {
+        if ( NodeViz.strip_domain ) {
+            int ndx = n.indexOf(".");
+            n = n.substring(0, ndx);
+        }
+        return n;
     }
 
     int countShares()
@@ -131,22 +143,29 @@ class VisualizedHost
         if ( shares_free > 0 ) addWork(DuccType.Undefined, "", "", 0, shares_free, null);
 
         float size = (float) Math.sqrt(mem);
-        logger.debug(methodName, null, name, "size =", size);
+        logger.debug(methodName, null, name, "mem =", mem, "size =", size);
             
+        // here set a div that is TITLE_ADJUSTMENT higher and .2 wider than the actual node
         m.divStart();
         m.svgStart(size + TITLE_ADJUSTMENT, size + .2f);       // a bit taller than needed to make room for label
         // a bit wider, for horizontal spacing
 
+        // here draw the box for the node, offset by TITLE_ADJUSTMENT from the top of the div
         m.rect(0f, TITLE_ADJUSTMENT, size, size, "white", "none", .1f, "");
         
+        // here draw the node name just above the node box, including the hover
         m.tooltipStart(name + " (" + mem + "GB)");
-        m.text(0f, TITLE_ADJUSTMENT - .1f, name, "black", 10, "");
+        m.nodeLabel(0f, TITLE_ADJUSTMENT - .1f, name);
         m.tooltipEnd();
         
         Collections.sort(fragments, sorter);
-        float height_one_share = size / shares;
+        float height_one_share = (float) Math.sqrt(shares * NodeViz.quantum) / shares;
+        float foo = (float) Math.sqrt(mem) / shares;
+        logger.debug(methodName, null, name, "shares", shares, "height-one-share", height_one_share, "foo", foo);
         float top = 0f + TITLE_ADJUSTMENT;                   // the top of the box
         logger.debug(methodName, null, name, "Draw", fragments.size(), "rectangles, box size", size, "share height", height_one_share);
+
+
         for (JobFragment j : fragments ) {
 
             /**
@@ -158,26 +177,33 @@ class VisualizedHost
              *       <text>  text for job fragment (job id) </text>
              *   </a>
              */
-            if ( top > size ) {
-                logger.debug(methodName, null, name, "Box overflow. Size", size, "top", top);
+            float height = j.qshares * height_one_share;
+            logger.debug(methodName, null, name, "Draw box at", top, "of width", size, "height", height,  "at (0, " + top +") for", j.type, j.id, "shares", j.qshares);
+
+            if ( top > (size + TITLE_ADJUSTMENT) ) {
+                logger.warn(methodName, null, name, "Box overflow. Size", size, "top", top);
             }
 
-            float height = j.qshares * height_one_share;
-            logger.debug(methodName, null, name, "Draw box of height", height, "for", j.type, j.id, "shares", j.qshares);
-
+            // generate the fill patern for reservations, services, MR, jobs
 			String fill = m.patternedFill(j);
 
+            // establish the link into the ws proper for each work type
             m.hyperlinkStart(this, j);
 
+            // establish the tooltip for each fragment
             m.titleForFragment(this, j);
 
+            // draw the share block for each fragment
             if ( j.type == DuccType.Undefined ) {
                 m.rect(0, top, size, height, "", "black", .1f, "");
             } else {
                 m.rect(0, top, size, height, fill, "black", .1f, "");
             }
-            m.text(.1f, top + 1.5f, j.id, "white", 12, "");
 
+            // draw the work duccid in the fragment
+            m.text(.1f, top + 1.5f, j.id, j.textColor, 12, "");
+
+            // close off the markup elements
             m.hyperlinkEnd();
 
             top += height;
