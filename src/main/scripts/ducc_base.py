@@ -198,7 +198,7 @@ class DuccBase:
         return self.jvm_home
         
     def version(self):
-        lines = self.popen(self.jvm, ' org.apache.uima.ducc.utils.Version')
+        lines = self.popen(self.jvm, ' org.apache.uima.ducc.common.utils.Version')
         line = lines.readline().strip()
         return "DUCC Version", line
         

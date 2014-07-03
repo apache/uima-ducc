@@ -63,11 +63,7 @@ class StopSim(DuccUtil):
         print ""
         print "Options:"
         print "   -c --component compenent name"
-        print "        The name is one of", self.default_components, "or an ID from sim.pids or the nodelist"
-        print "        that was used to start DUCC"
-        print ""
-        print "   -i --instance instancid"  
-        print "        Sends SIGINT to the indicated process, enabling orderly shutdown."
+        print "        The name is one of", self.default_components, "or an ID from sim.pids"
         print ""
         print "   -k --kill"
         print "        Sends SIGKILL to the indicated process"
@@ -83,6 +79,9 @@ class StopSim(DuccUtil):
         print ""
         print "   -v, --version"
         print "        Print the current DUCC version"
+        print ""
+        print "   -?,  -h, --help,"
+        print "        Print this"
         print ""
         sys.exit(1) 
             
@@ -102,16 +101,15 @@ class StopSim(DuccUtil):
         components = []
         instances = []
         signal = '-INT'
+        stopbroker = False
 
         try:
-            opts, args = getopt.getopt(argv, 'c:i:kprvh?', ['component=', 'instance=', 'kill' 'pause', 'resume','nothreading', 'version'])
+            opts, args = getopt.getopt(argv, 'c:kprvh?', ['component=', 'kill' 'pause', 'resume', 'nothreading', 'version', 'help'])
         except:
             self.invalid('Invalid arguments', ' '.join(argv))
                   
         for ( o, a ) in opts:
-            if o in ( '-i', '--instance' ):
-                instances.append(a)
-            elif o in ( '-c', '--component' ):
+            if o in ( '-c', '--component' ):
                 instances.append(a)
             elif o in ( '-k', '--kill' ):
                 signal = '-KILL'
@@ -143,14 +141,21 @@ class StopSim(DuccUtil):
                     time.sleep(.1)
                     if ( signal in ('-KILL', '-INT') ):
                         pids.delete(inst)
+                        stopbroker = True
     
             else:
                 for inst in instances:
                     data = pids.get(inst)
-                    self.threadpool.invoke(self.signal_process, inst, pids.get(inst), signal)
-                    time.sleep(.1)
-                    if ( signal in ('-KILL', '-INT') ):
-                        pids.delete(inst)
+                    if ( data == None ):
+                        if ( inst == 'broker' and signal in ('-KILL', '-INT') ):
+                            stopbroker = True
+                        else:
+                            print "WARNING - No PID found for instance", inst
+                    else:
+                        self.threadpool.invoke(self.signal_process, inst, pids.get(inst), signal)
+                        time.sleep(.1)
+                        if ( signal in ('-KILL', '-INT') ):
+                            pids.delete(inst)
         except:
             self.threadpool.quit()
             print sys.exc_info()[0], "Exiting, simulator may not be properly stopped."
@@ -164,7 +169,7 @@ class StopSim(DuccUtil):
         print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
         time.sleep(sleeptime)
 
-        if ( ('broker' in components) and self.automanage ):
+        if ( stopbroker and self.automanage ):
             print "Stopping broker"
             self.stop_broker()                
 
