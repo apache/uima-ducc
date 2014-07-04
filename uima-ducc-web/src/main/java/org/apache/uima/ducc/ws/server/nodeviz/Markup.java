@@ -1,6 +1,7 @@
 package org.apache.uima.ducc.ws.server.nodeviz;
 
 
+
 public class Markup
 {
 
@@ -19,7 +20,7 @@ public class Markup
     	return out.toString();
     }
     
-    void svgStart(float height, float width)
+    void svgStart(float width, float height)
     {
         out.append("<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"" + (height * YSCALE) + "\" width=\"" + (width * XSCALE) + "\">" );
     }
@@ -32,6 +33,7 @@ public class Markup
     void divStart()
     {
         // out.append("<div style=\"border: 1px solid red;display:inline-block\">");
+        // out.append("<div style=\"border: 1px solid red;display:inline-block;vertical-align:baseline\">");
         out.append("<div style=\"display:inline-block\">");
     }
 
@@ -53,93 +55,78 @@ public class Markup
 		if (newAttr == null) { 
 			newAttr = "";
 		}
-		out.append("<rect x=\""
-				+ (x*XSCALE) 
-				+ "\" y=\""
-				+ (y*YSCALE)
-				+ "\" width=\""
-				+ (width*XSCALE)
-				+ "\" height=\""
-				+ (height*YSCALE)
-				+ "\"  fill=\"" 
-				+ color 
-				+ "\" stroke=\"" 
-				+ borderColor 
-				+ "\" stroke-width=\"" 
-				+ (strokeWidth*XSCALE) 
-				+ "\"" 
-				+ newAttr
-				+ "/> ");
+		out.append("<rect x=\"");
+        out.append((x*XSCALE) );
+        out.append("\" y=\"");
+        out.append((y*YSCALE));
+        out.append("\" width=\"");
+        out.append((width*XSCALE));
+        out.append("\" height=\"");
+        out.append((height*YSCALE));
+        out.append("\"  fill=\"" );
+        out.append(color );
+        out.append("\" stroke=\"" );
+        out.append(borderColor );
+        out.append("\" stroke-width=\"" );
+        out.append((strokeWidth*XSCALE) );
+        out.append("\"" );
+        out.append(newAttr);
+        out.append("/> ");
 	}
     
 	void nodeLabel(float x, float y, String label)
     {
-		out.append(
-				"<text x=\"" 
-						+ (x*XSCALE) 
-						+ "\" y=\""
-						+ (y*YSCALE) 
-						+ "\" font-family=\"helvetica\" font-size=\"10\" font-weight=\"bold\"" 
-						+ " fill=\"black\">" 
-						+ label
-						+ "</text>"
-				);
+		out.append("<text x=\"");
+        out.append((x*XSCALE));
+        out.append("\" y=\"");
+        out.append((y*YSCALE) );
+        out.append("\" font-family=\"helvetica\" font-size=\"10\" font-weight=\"bold\"" );
+        out.append(" fill=\"black\">" );
+        out.append(label);
+        out.append("</text>");
 	}
 
-	void text(float x, float y, String label, String color, float fontsize, String newAttr) 
+	void text(float x, float y, String label, String color, int fontsize)
     {
-		if (newAttr == null) { 
-			newAttr = "";
-		}
-		out.append(
-				"<text x=\"" 
-						+ (x*XSCALE) 
-						+ "\" y=\""
-						+ (y*YSCALE) 
-						+ "\" font-family=\"verdana\" font-size=\"" 
-						+ fontsize
-						+ "\"  fill=\"" 
-						+ color 
-						+ "\"" 
-						+ newAttr
-						+ ">"
-						+ label
-						+ "</text>"
-				);
+		out.append("<text x=\"");
+        out.append(Float.toString(x * XSCALE));
+        out.append("\" y=\"");
+        out.append(Float.toString(y * YSCALE));
+        out.append("\" font-family=\"verdana\" font-size=\"");
+        out.append(Integer.toString(fontsize));
+        out.append("\"  fill=\"");
+        out.append(color);
+        out.append("\"");
+        out.append(">");
+        out.append(label);
+        out.append("</text>");
 	}
 
     void hyperlinkStart(VisualizedHost host, JobFragment j)
     {
         switch ( j.type ) {
             case Job:
-                out.append(
-                           "<a xlink:href=job.details.jsp?id=" +
-                           j.id + 
-                           ">"
-                           );
-
+                out.append("<a xlink:href=job.details.jsp?id=");
+                out.append(j.id);
+                out.append(">");
                 break;
+
             case Service:
-                out.append(
-                           "<a xlink:href=/service.details.jsp?name=" +
-                           j.service_endpoint +
-                           ">"
-                           );
-
+                out.append("<a xlink:href=/service.details.jsp?name=");
+                out.append(j.service_endpoint);
+                out.append(">");
                 break;
+
             case Pop:
-                out.append(
-                           "<a xlink:href=/reservations.details.jsp?id=" +
-                           j.id + 
-                           ">"
-                           );
+                out.append("<a xlink:href=/reservations.details.jsp?id=");
+                out.append(j.id);
+                out.append(">");
 
                 break;
             case Reservation:
-                out.append(
-                           "<a xlink:href=/reservations.jsp>"
-                          );
+                out.append("<a xlink:href=/reservations.jsp>");
                 break;
+
             case Undefined:
                 out.append("<a>");
                 break;
@@ -160,51 +147,45 @@ public class Markup
             case Job:
             case Service:
 
-                out.append(
-                           "<title>" +
-                           jobtype +
-                           " " +
-                           j.user +
-                           ":" +
-                           j.id +
-                           " runs " +
-                           j.nprocesses +
-                           " process(es) of " +
-                           j.mem +
-                           "GB on host " +
-                           h.name + 
-                           "(" +
-                           h.mem + 
-                           "GB)</title>" 
-                           );
+                out.append("<title>");
+                out.append(jobtype);
+                out.append(" ");
+                out.append(j.user);
+                out.append(":");
+                out.append(j.id);
+                out.append(" runs ");
+                out.append(j.nprocesses);
+                out.append(" process(es) of ");
+                out.append(j.mem);
+                out.append("GB on host ");
+                out.append(h.name); 
+                out.append("(");
+                out.append(h.mem); 
+                out.append("GB)</title>");
                 break;
             case Reservation:
-                out.append(
-                           "<title>" +
-                           jobtype +
-                           " " +
-                           j.user +
-                           ":" +
-                           j.id +                           
-                           " on host " +
-                           h.name +
-                           "(" +
-                           j.mem +
-                           "GB)</title>"
-                          );
+                out.append("<title>");
+                out.append(jobtype);
+                out.append(" ");
+                out.append(j.user);
+                out.append(":");
+                out.append(j.id);                           
+                out.append(" on host ");
+                out.append(h.name);
+                out.append("(");
+                out.append(j.mem);
+                out.append("GB)</title>");
                 break;
             case Undefined:
-                out.append(
-                           "<title>" +
-                           j.qshares + 
-                           " unused shares (" +
-                           (j.qshares * NodeViz.quantum) +
-                           "GB) on " +
-                           h.name + 
-                           "(" +
-                           h.mem +
-                           "GB)</title>"
-                           );
+                out.append("<title>");
+                out.append(j.qshares); 
+                out.append(" unused shares (");
+                out.append((j.qshares * NodeViz.quantum));
+                out.append("GB) on ");
+                out.append(h.name); 
+                out.append("(");
+                out.append(h.mem);
+                out.append("GB)</title>");
                 break;
         }
     }

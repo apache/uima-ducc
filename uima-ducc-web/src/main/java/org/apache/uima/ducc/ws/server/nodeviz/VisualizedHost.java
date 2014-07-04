@@ -79,7 +79,9 @@ class VisualizedHost
     {
         if ( NodeViz.strip_domain ) {
             int ndx = n.indexOf(".");
-            n = n.substring(0, ndx);
+            if ( ndx >= 0) {
+            	n = n.substring(0, ndx);
+            }
         }
         return n;
     }
@@ -147,15 +149,15 @@ class VisualizedHost
             
         // here set a div that is TITLE_ADJUSTMENT higher and .2 wider than the actual node
         m.divStart();
-        m.svgStart(size + TITLE_ADJUSTMENT, size + .2f);       // a bit taller than needed to make room for label
+        m.svgStart(size + .2f, (size + TITLE_ADJUSTMENT));       // a bit taller than needed to make room for label
         // a bit wider, for horizontal spacing
 
         // here draw the box for the node, offset by TITLE_ADJUSTMENT from the top of the div
-        m.rect(0f, TITLE_ADJUSTMENT, size, size, "white", "none", .1f, "");
+        m.rect(0f, TITLE_ADJUSTMENT, size, size, "black", "none", .1f, "");
         
         // here draw the node name just above the node box, including the hover
         m.tooltipStart(name + " (" + mem + "GB)");
-        m.nodeLabel(0f, TITLE_ADJUSTMENT - .1f, name);
+        m.nodeLabel(0f, TITLE_ADJUSTMENT - .3f, name);
         m.tooltipEnd();
         
         Collections.sort(fragments, sorter);
@@ -201,7 +203,8 @@ class VisualizedHost
             }
 
             // draw the work duccid in the fragment
-            m.text(.1f, top + 1.5f, j.id, j.textColor, 12, "");
+            m.rect(.1f, top, size, 1.2f, j.fillColor, j.fillColor, .1f, "");
+            m.text(.1f, top + 1.2f, j.id + " " + j.user, j.textColor, 10);
 
             // close off the markup elements
             m.hyperlinkEnd();
