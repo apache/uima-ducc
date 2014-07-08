@@ -23,6 +23,7 @@ under the License.
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
   <%@ include file="$imports.jsp" %>	
+  <script src="js/nodeviz.js"></script>
 </head>
 <body onload="ducc_init('viz');">
 <!-- ####################### common ######################## -->

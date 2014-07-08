@@ -148,7 +148,7 @@ class VisualizedHost
         logger.debug(methodName, null, name, "mem =", mem, "size =", size);
             
         // here set a div that is TITLE_ADJUSTMENT higher and .2 wider than the actual node
-        m.divStart();
+        m.divStart(name, mem);
         m.svgStart(size + .2f, (size + TITLE_ADJUSTMENT));       // a bit taller than needed to make room for label
         // a bit wider, for horizontal spacing
 
@@ -203,7 +203,7 @@ class VisualizedHost
             }
 
             // draw the work duccid in the fragment
-            m.rect(.1f, top, size, 1.2f, j.fillColor, j.fillColor, .1f, "");
+            m.rect(.1f, top, size-.1f, 1.2f, j.fillColor, j.fillColor, .1f, "");
             m.text(.1f, top + 1.2f, j.id + " " + j.user, j.textColor, 10);
 
             // close off the markup elements

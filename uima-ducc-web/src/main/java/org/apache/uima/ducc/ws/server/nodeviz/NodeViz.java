@@ -244,8 +244,11 @@ public class NodeViz
 
 		visualization = 
             "<html>" + 
-            "<table width=\"100%\">" +
-            "<caption>" +
+            "<div id=\"viz-header\" style=\"text-align:center\">" +
+            "Sort By " +
+            "<i onclick=\"ducc_viz_node_sorter('size')\" id=\"ducc-viz-sort-size\" style=\"color:red\">Size </i>" +
+            "<i onclick=\"ducc_viz_node_sorter('name')\" id=\"ducc-viz-sort-name\"\">Name</i>" +
+            "</br>" +
             "<b>Shares of size " + quantum + "GB: </b>" + total_shares + 
             ", <b>Jobs: </b>" + job_shares +
             ", <b>Services: </b>" + service_shares +
@@ -260,9 +263,16 @@ public class NodeViz
             "GB, <b>Managed Reservations:</b> " + (pop_shares * quantum) +
             "GB, <b>Reservations:</b> " + (reservation_shares * quantum) +
             "GB, <b>Unoccupied:</b> " + (unoccupied_shares * quantum) +
-            "</small></i></caption>" +
-            "</table>" +
-            page + 
+            "</small></i>" +
+            "</div>" +
+            "<br>" +
+            //"<div id=\"nodelist\" style=\"background-color:e5e5e5\">" +
+            "<div id=\"nodelist\" style=\"background-color:eeeeee\">" +
+            page +
+            "</div>" +
+            "<script>" +
+            "ducc_viz_onreload();" +
+            "</script>" +
             "</html>";
         // logger.info(methodName, null, "Size of node visualization:", visualization.length());
         hosts = null;

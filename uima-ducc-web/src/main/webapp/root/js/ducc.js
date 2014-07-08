@@ -290,6 +290,57 @@ function ducc_load_common()
 	}
 }
 
+function ducc_init_viz_data()
+{
+	try {
+		data = "...?"
+		$("#timestamp_area").html(data);
+		data = "...?"
+		$("#authentication_area").html(data);
+	}
+	catch(err) {
+		ducc_error("ducc_init_viz_data",err);
+	}	
+}
+
+function ducc_load_viz_head()
+{
+	try {
+		
+	}
+	catch(err) {
+		ducc_error("ducc_load_viz_head",err);
+	}	
+}
+
+var ms_load_viz_data = +new Date() - ms_reload_min;
+
+function ducc_load_viz_data()
+{
+	try {
+		var ms_now = +new Date();
+		if(ms_now < ms_load_viz_data + ms_reload_min) {
+			return;
+		}
+		ms_load_viz_data = ms_now;
+		$.ajax(
+		{
+			url : "/ducc-servlet/viz-nodes",
+			success : function (data) 
+			{
+				$("#viz-nodes").html(data);
+				ducc_timestamp();
+				ducc_authentication();
+				ducc_utilization();
+			}
+		});
+        // ducc_viz_onreload();
+	}
+	catch(err) {
+		ducc_error("ducc_load_viz_data",err);
+	}	
+}
+
 function ducc_load_jobs_head()
 {
 	ducc_jobs_max_records();
@@ -1709,8 +1760,9 @@ function ducc_init(type)
 		ducc_links();
 		ducc_cookies();
 		if(type == "viz") {
-			ducc_init_common();
-			ducc_load_common();
+			ducc_init_viz_data();
+			ducc_load_viz_head();
+			ducc_load_viz_data();
 		}
 		if(type == "jobs") {
 			$(document).keypress(function(e) {
@@ -2194,6 +2246,10 @@ function ducc_refresh_page(type)
 function ducc_update_page(type)
 {
 	try {
+		if(type == "viz") {
+			ducc_load_viz_head();
+			ducc_load_viz_data();
+		}
 		if(type == "jobs") {
 			ducc_load_jobs_head();
 			ducc_load_jobs_data();

@@ -30,11 +30,11 @@ public class Markup
         out.append("</svg>");
     }
 
-    void divStart()
+    void divStart(String id, int mem)
     {
         // out.append("<div style=\"border: 1px solid red;display:inline-block\">");
         // out.append("<div style=\"border: 1px solid red;display:inline-block;vertical-align:baseline\">");
-        out.append("<div style=\"display:inline-block\">");
+        out.append("<div style=\"display:inline-block\" id=\"" + id + "\" mem=\"" + mem + "\">");
     }
 
     void divEnd()
@@ -92,7 +92,7 @@ public class Markup
         out.append(Float.toString(x * XSCALE));
         out.append("\" y=\"");
         out.append(Float.toString(y * YSCALE));
-        out.append("\" font-family=\"verdana\" font-size=\"");
+        out.append("\" font-family=\"helvetica\" font-size=\"");
         out.append(Integer.toString(fontsize));
         out.append("\"  fill=\"");
         out.append(color);
