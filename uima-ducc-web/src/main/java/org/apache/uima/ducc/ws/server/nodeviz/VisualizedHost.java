@@ -196,11 +196,24 @@ class VisualizedHost
             m.titleForFragment(this, j);
 
             // draw the share block for each fragment
-            if ( j.type == DuccType.Undefined ) {
-                m.rect(0, top, size, height, "", "black", .1f, "");
-            } else {
-                m.rect(0, top, size, height, fill, "black", .1f, "");
+            switch ( j.type ) {
+                case Undefined:
+                    m.rect(0, top, size, height, "", "black", .1f, "");
+                    break;
+                case Job:
+                    m.rect(0, top, size, height, fill, "black", .1f, "");
+                    break;
+                default:
+                    m.rect(0, top, size, height, j.textColor, "black", .1f, "");
+                    m.rect(0, top, size, height, fill, "black", .1f, "");
+                    break;
             }
+
+            // if ( j.type == DuccType.Undefined ) {
+            //     m.rect(0, top, size, height, "", "black", .1f, "");
+            // } else {
+            //     m.rect(0, top, size, height, fill, "black", .1f, "");
+            // }
 
             // draw the work duccid in the fragment
             m.rect(.1f, top, size-.1f, 1.2f, j.fillColor, j.fillColor, .1f, "");

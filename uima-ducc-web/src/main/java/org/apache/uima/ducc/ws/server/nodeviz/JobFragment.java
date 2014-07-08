@@ -83,6 +83,5 @@ class JobFragment
                 return id + " " + nprocesses + " processes"; 
         }
     }
-    String getUser() { return user; }
 }
 
