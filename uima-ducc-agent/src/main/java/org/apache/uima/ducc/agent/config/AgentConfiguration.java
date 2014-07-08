@@ -76,6 +76,8 @@ public class AgentConfiguration {
   private CamelContext camelContext;
 
   private RouteBuilder metricsRouteBuilder;
+  
+  private RouteBuilder inventoryRouteBuilder;
 
   // public static String agentPingEnpoint = "activemq:topic:agent.ping.endpoint";
   // public static String agentPingSelectorName="agent_ip";
@@ -175,7 +177,7 @@ public class AgentConfiguration {
         final Predicate blastGuard = new DuccBlastGuardPredicate(agent.getLogger());
         onException(Exception.class).maximumRedeliveries(0).handled(true)
                 .process(new ErrorProcessor());
-
+        
         from("timer:nodeInventoryTimer?fixedRate=true&period=" + nodeInventoryPublishRate)
                 .routeId("NodeInventoryPostRoute")
                 // This route uses a filter to prevent sudden bursts of messages which
@@ -206,7 +208,8 @@ public class AgentConfiguration {
           final AgentEventListener delegate) {
     return new RouteBuilder() {
       public void configure() {
-        onException(Throwable.class).maximumRedeliveries(0).handled(false)
+        onException(Throwable.class).maximumRedeliveries(0)
+                .handled(false)
                 .process(new ErrorProcessor());
         from(common.agentRequestEndpoint).routeId("IncomingRequestsRoute")
         // .process(new DebugProcessor())
@@ -380,6 +383,10 @@ public class AgentConfiguration {
     return agentTransport.duccEventDispatcher(logger, common.managedServiceEndpoint, camelContext);
   }
 
+  public DuccEventDispatcher getORDispatcher(CamelContext camelContext) throws Exception {
+	    return agentTransport.duccEventDispatcher(logger, common.nodeInventoryEndpoint, camelContext);
+  }
+
   public int getNodeInventoryPublishDelay() {
 	  return Integer.parseInt(common.nodeInventoryPublishRate);
   }
@@ -411,8 +418,12 @@ public class AgentConfiguration {
       camelContext
               .addRoutes(this.routeBuilderForManagedProcessStateUpdate(agent, delegateListener));
       camelContext.addRoutes(this.routeBuilderForIncomingRequests(agent, delegateListener));
-      camelContext.addRoutes(this.routeBuilderForNodeInventoryPost(agent,
-              common.nodeInventoryEndpoint, Integer.parseInt(common.nodeInventoryPublishRate)));
+      
+      inventoryRouteBuilder = 
+    		  (this.routeBuilderForNodeInventoryPost(agent,
+    	              common.nodeInventoryEndpoint, Integer.parseInt(common.nodeInventoryPublishRate)));
+      
+      camelContext.addRoutes(inventoryRouteBuilder);
       metricsRouteBuilder = this.routeBuilderForNodeMetricsPost(agent, common.nodeMetricsEndpoint,
               Integer.parseInt(common.nodeMetricsPublishRate));
       camelContext.addRoutes(metricsRouteBuilder);
@@ -454,20 +465,38 @@ public class AgentConfiguration {
     return new DefaultNodeInventoryProcessor(agent, inventoryPublishRateSkipCount);
   }
 
-  public void stopMetricsRoute() {
-    String methodName = "stopMetricsRoute";
-    try {
-      RoutesDefinition rsd = metricsRouteBuilder.getRouteCollection();
-      for (RouteDefinition rd : rsd.getRoutes()) {
-        camelContext.stopRoute(rd.getId());
-        camelContext.removeRoute(rd.getId());
-        logger.error(methodName, null, ">>>> Agent Stopped Metrics Publishing");
-      }
-
-    } catch (Exception e) {
-      logger.error(methodName, null, e);
-    }
+  public void stopInventoryRoute() {
+	    stopRoute(inventoryRouteBuilder.getRouteCollection(),">>>> Agent Stopped Publishing Inventory");
   }
+  
+  public void stopMetricsRoute() {
+    stopRoute(metricsRouteBuilder.getRouteCollection(),">>>> Agent Stopped Publishing Metrics");
+//    try {
+//      RoutesDefinition rsd = metricsRouteBuilder.getRouteCollection();
+//      for (RouteDefinition rd : rsd.getRoutes()) {
+//        camelContext.stopRoute(rd.getId());
+//        camelContext.removeRoute(rd.getId());
+//        logger.error(methodName, null, ">>>> Agent Stopped Metrics Publishing");
+//      }
+//
+//    } catch (Exception e) {
+//      logger.error(methodName, null, e);
+//    }
+  }
+
+  public void stopRoute(RoutesDefinition rsd, String logMsg) {
+	    String methodName = "stopRoute";
+	    try {
+	      for (RouteDefinition rd : rsd.getRoutes()) {
+	        camelContext.stopRoute(rd.getId());
+	        camelContext.removeRoute(rd.getId());
+	        logger.info(methodName, null, logMsg); 
+	      }
+
+	    } catch (Exception e) {
+	      logger.error(methodName, null, e);
+	    }
+	  }
 
   private class DuccNodeFilter implements Predicate {
     private NodeAgent agent = null;

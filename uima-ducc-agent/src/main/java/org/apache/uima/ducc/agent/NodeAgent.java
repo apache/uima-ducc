@@ -67,6 +67,8 @@ import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
 import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
+import org.apache.uima.ducc.transport.event.DuccEvent;
+import org.apache.uima.ducc.transport.event.NodeInventoryUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.ProcessStateUpdateDuccEvent;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccReservation;
@@ -113,6 +115,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   private DuccEventDispatcher commonProcessDispatcher;
 
+  private DuccEventDispatcher inventoryDispatcher;
+  
   private Object monitor = new Object();
 
   boolean duccLingExists = false;
@@ -187,7 +191,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     this.launcher = launcher;
     this.configurationFactory = factory;
     this.commonProcessDispatcher = factory.getCommonProcessDispatcher(context);
-
+    this.inventoryDispatcher = factory.getORDispatcher(context);
+    
     // fetch Page Size from the OS and cache it
     pageSize = getOSPageSize();
     logger.info("NodeAgent", null, "OS Page Size:" + pageSize);
@@ -1544,14 +1549,24 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
       }
     }
     logger.info("stop", null, "Agent managed processes have stopped");
+    // Stop publishing inventory. Once the route is down the agent forces last publication
+    // sending an empty process map.
+    configurationFactory.stopInventoryRoute();
+    
+    // Send an empty process map as the final inventory 
+    HashMap<DuccId, IDuccProcess> emptyMap = 
+    		new HashMap<DuccId, IDuccProcess>();
+    DuccEvent duccEvent = new NodeInventoryUpdateDuccEvent(emptyMap);
+    inventoryDispatcher.dispatch(duccEvent);
+    logger.info("stop", null, "Agent published final inventory");
     
     // Delay this thread to make sure that at least one last node inventory publish occurs before Agent goes away. Add extra 30 secs 
     // to the delay to make sure the publish happens.
-    synchronized (this) {
-        long waittime = configurationFactory.getNodeInventoryPublishDelay() +30000;
-        logger.info("stop", null, "Waiting", waittime, "ms to send final NodeInventory.");
-        wait(waittime);
-    }
+//    synchronized (this) {
+//        long waittime = configurationFactory.getNodeInventoryPublishDelay() +30000;
+//        logger.info("stop", null, "Waiting", waittime, "ms to send final NodeInventory.");
+//        wait(waittime);
+//    }
     super.stop();
 
   }
