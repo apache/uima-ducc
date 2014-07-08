@@ -2,23 +2,20 @@
 
 function ducc_viz_node_sorter(what) 
 {
-    console.log("sort by " + what);
-    console.log(document);
+    //console.log("sort by " + what);
+    //console.log(document);
 
     var s = document.getElementById("ducc-viz-sort-size");
     var n = document.getElementById("ducc-viz-sort-name");
 
     if ( (n == null) || (s == null ) ) {
-        console.log("Returning because the nodes aren't loaded yet.");
+        //console.log("Returning because the nodes aren't loaded yet.");
         return;             // Waiting for stuff to finish loading still
-    } else {
-        console.log("Starting sort.");
-    }
+    } 
+    //console.log("Starting sort.");
 
     var comparator;
 
-    console.log("s is " + s);
-    console.log("n is " + n);
     if ( what == 'size' ) {
         ducc_put_cookie('viz-sort-order', 'size');
 
@@ -81,10 +78,10 @@ function ducc_viz_node_sorter(what)
 
 function ducc_viz_onreload()
 {
-    console.log("Node visualization starts"); 
+    //console.log("Node visualization starts"); 
 
     var vizsort = ducc_get_cookie('viz-sort-order');
-    console.log('viz-sort-order: ' + vizsort);
+    //console.log('viz-sort-order: ' + vizsort);
     if ( vizsort == null ) {
         ducc_viz_node_sorter('size');
     } else {
