@@ -282,9 +282,11 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
             }
             // normalize time in running state into seconds
             long timeSinceRunningInSeconds = (System.currentTimeMillis() - clockAtStartOfRun)/1000;
-            //  normalize cpu % usage to report in seconds. Also subtract how much cpu was
-            //  used during initialization
-            percentCPU = 100* ( totalCpuUsage - totalCpuInitUsage )/timeSinceRunningInSeconds;
+            if ( timeSinceRunningInSeconds > 0) { // prevent division by zero
+                //  normalize cpu % usage to report in seconds. Also subtract how much cpu was
+                //  used during initialization
+                percentCPU = 100* ( totalCpuUsage - totalCpuInitUsage )/timeSinceRunningInSeconds;
+            }
             
             // Publish cumulative CPU usage
             process.setCpuTime(percentCPU);
