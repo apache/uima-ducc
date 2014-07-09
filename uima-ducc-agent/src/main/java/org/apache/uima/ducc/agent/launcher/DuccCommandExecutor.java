@@ -53,7 +53,6 @@ public class DuccCommandExecutor extends CommandExecutor {
 			NodeAgent.COMPONENT_NAME);
 	@SuppressWarnings("unused")
 	private static AtomicInteger nextPort = new AtomicInteger(30000);
-	private static int SIGTERM_KILL_EXITCODE = 143;
 	
 	public DuccCommandExecutor(NodeAgent agent, ICommandLine cmdLine,String host, String ip, Process managedProcess)
 			throws Exception {
@@ -470,7 +469,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	      switch( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType() ) {
 	        case Pop:
 	          // Both JD and POP arbitrary process are POPs. Assume this is an arbitrary process
-            processType = "-POP-";  
+	          processType = "-POP-";  
 	          if ( cmdLine instanceof JavaCommandLine ) {
 	            List<String> options = ((JavaCommandLine)cmdLine).getOptions();
 	            for(String option : options ) {
@@ -485,13 +484,12 @@ public class DuccCommandExecutor extends CommandExecutor {
 	          }
 	          break;
 	        case Service:
-            //processType = "-AP-";
+              //processType = "-AP-";
 	          break;
 	        case Job_Uima_AS_Process:
-            processType = "-UIMA-";
-            ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=uima-as");
-            ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
-            
+              processType = "-UIMA-";
+              ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=uima-as");
+              ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
 	          break;
 	      }
 //	      if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
@@ -532,6 +530,7 @@ public class DuccCommandExecutor extends CommandExecutor {
 	            operationalProperties.add("-D"+NodeAgent.ProcessStateUpdatePort+"="+System.getProperty(NodeAgent.ProcessStateUpdatePort));
 	          }
 	        }
+	        // NOTE - These are redundant since the information is also in the environment for both Java and non-Java processes
 	        operationalProperties.add("-Dducc.process.log.dir="+processLogDir);
 	        operationalProperties.add("-Dducc.process.log.basename="+processLogFile); //((ManagedProcess)super.managedProcess).getWorkDuccId()+ processType+host);
 	        operationalProperties.add("-Dducc.job.id="+((ManagedProcess)super.managedProcess).getWorkDuccId());
@@ -544,10 +543,9 @@ public class DuccCommandExecutor extends CommandExecutor {
 	      } else {
 	        cmd = Utils.concatAllArrays(new String[] {executable}, operationalProperties.toArray(operationalPropertiesArray), cmdLine.getCommandLine());
 	      }
-	      // add JobId to the env
-	      if ( processEnv != null ) {
-	        processEnv.put("JobId", String.valueOf(((ManagedProcess)super.managedProcess).getWorkDuccId().getFriendly()));
-	      }
+	      // add JobId and the log prefix to the env so additional similarly-named log files can be created
+	      processEnv.put("JobId", String.valueOf(((ManagedProcess)super.managedProcess).getWorkDuccId().getFriendly()));
+	      processEnv.put("DUCC_PROCESS_LOG_PREFIX", processLogDir + processLogFile);
 	    }
 	    return cmd;
 	  } catch( Exception ex) {
