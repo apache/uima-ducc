@@ -50,7 +50,7 @@ class JobFragment
     {
         if ( type == DuccType.Undefined ) {
             fillColor = "0,0,0";
-            textColor = "256,256,256";
+            textColor = "255,255,255";
         } else {
             int color_index = (user + " ").hashCode();  // we add " " because orginal viz did and this keeps the colors consistent.
 

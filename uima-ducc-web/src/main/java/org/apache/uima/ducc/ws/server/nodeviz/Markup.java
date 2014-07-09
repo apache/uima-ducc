@@ -81,7 +81,25 @@ public class Markup
         out.append("\" y=\"");
         out.append((y*YSCALE) );
         out.append("\" font-family=\"helvetica\" font-size=\"10\" font-weight=\"bold\"" );
+        out.append(" text-anchor=\"middle\"");
         out.append(" fill=\"black\">" );
+        out.append(label);
+        out.append("</text>");
+	}
+
+	void centeredText(float x, float y, String label, String color, int fontsize)
+    {
+		out.append("<text x=\"");
+        out.append(Float.toString(x * XSCALE));
+        out.append("\" y=\"");
+        out.append(Float.toString(y * YSCALE));
+        out.append("\" font-family=\"helvetica\" font-size=\"");
+        out.append(Integer.toString(fontsize));
+        out.append("\"  fill=\"");
+        out.append(color);
+        out.append("\"");
+        out.append(" text-anchor=\"middle\"");
+        out.append(">");
         out.append(label);
         out.append("</text>");
 	}

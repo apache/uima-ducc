@@ -157,7 +157,7 @@ class VisualizedHost
         
         // here draw the node name just above the node box, including the hover
         m.tooltipStart(name + " (" + mem + "GB)");
-        m.nodeLabel(0f, TITLE_ADJUSTMENT - .3f, name);
+        m.nodeLabel((size/2), TITLE_ADJUSTMENT - .3f, name);
         m.tooltipEnd();
         
         Collections.sort(fragments, sorter);
@@ -209,15 +209,9 @@ class VisualizedHost
                     break;
             }
 
-            // if ( j.type == DuccType.Undefined ) {
-            //     m.rect(0, top, size, height, "", "black", .1f, "");
-            // } else {
-            //     m.rect(0, top, size, height, fill, "black", .1f, "");
-            // }
-
             // draw the work duccid in the fragment
             m.rect(.1f, top, size-.1f, 1.2f, j.fillColor, j.fillColor, .1f, "");
-            m.text(.1f, top + 1.2f, j.id + " " + j.user, j.textColor, 10);
+            m.centeredText((size/2), top + 1.2f, j.id + " " + j.user, j.textColor, 10);
 
             // close off the markup elements
             m.hyperlinkEnd();

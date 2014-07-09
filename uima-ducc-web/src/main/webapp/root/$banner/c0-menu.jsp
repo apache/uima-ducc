@@ -32,6 +32,7 @@ under the License.
 <li><a href="doc/duccbook.html" target="_duccbook">DuccBook</a></li>
 <li><a href="system.machines.html">Machines</a></li>
 </ul>
+<li><a href="viz.html">Viz</a></li>
 <%@ include file="../site.jsp" %>
 </ul>
 </div> 

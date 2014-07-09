@@ -245,6 +245,7 @@ public class NodeViz
 		visualization = 
             "<html>" + 
             "<div id=\"viz-header\" style=\"text-align:center\">" +
+
             "Sort By " +
             "<i onclick=\"ducc_viz_node_sorter('size')\" id=\"ducc-viz-sort-size\" style=\"color:red\">Size </i>" +
             "<i onclick=\"ducc_viz_node_sorter('name')\" id=\"ducc-viz-sort-name\"\">Name</i>" +
@@ -267,7 +268,7 @@ public class NodeViz
             "</div>" +
             "<br>" +
             //"<div id=\"nodelist\" style=\"background-color:e5e5e5\">" +
-            "<div id=\"nodelist\" style=\"background-color:eeeeee\">" +
+            "<div id=\"nodelist\" style=\"background-color:eeeeee;padding:3\">" +
             page +
             "</div>" +
             "<script>" +
