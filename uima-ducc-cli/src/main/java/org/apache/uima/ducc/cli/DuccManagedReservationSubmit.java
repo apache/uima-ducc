@@ -55,6 +55,7 @@ public class DuccManagedReservationSubmit
         UiOption.WorkingDirectory,
         UiOption.WaitForCompletion,
         UiOption.CancelOnInterrupt,
+        UiOption.ServiceDependency,
     };
 
     /**
