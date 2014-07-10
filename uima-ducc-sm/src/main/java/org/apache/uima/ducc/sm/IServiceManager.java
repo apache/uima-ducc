@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.sm;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
@@ -57,5 +58,5 @@ public interface IServiceManager
 
     public DuccId newId() throws Exception;
 
-    public boolean isAdministrator(String user);
+    public boolean isAdministrator(AServiceRequest user);
 }

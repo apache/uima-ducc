@@ -665,7 +665,7 @@ public class ServiceHandler
 
     ServiceReplyEvent start(ServiceStartEvent ev)
     {
-        //String methodName = "start";
+        String methodName = "start";
         
         long   id  = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -676,8 +676,9 @@ public class ServiceHandler
 
         String userin  = ev.getUser();
         String userout = sset.getUser();
+        logger.info(methodName, sset.getId(), "userin", userin, "userout", userout, "ev.asAdministrator", ev.asAdministrator(), "ok", serviceManager.isAdministrator(ev));
 
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
             return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
 
@@ -775,7 +776,7 @@ public class ServiceHandler
         String userin = ev.getUser();
         String userout = sset.getUser();
 
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
             return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
 
@@ -889,7 +890,7 @@ public class ServiceHandler
         String userin = ev.getUser();
         String userout = sset.getUser();
 
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
             return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
         
@@ -1109,7 +1110,7 @@ public class ServiceHandler
 
         logger.info(methodName, sset.getId(), "Unregister received from", userin);
 
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(userin) ) {
+        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
             return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
         }
         

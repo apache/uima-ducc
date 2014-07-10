@@ -342,9 +342,10 @@ public class ServiceManagerComponent
     	logger.info(methodName, null, "Service Manger returns.");
     }
 
-    public boolean isAdministrator(String user)
+    public boolean isAdministrator(AServiceRequest ev)
     {
-        return administrators.containsKey(user);
+        // must be in the list, and have asked nicely as well
+        return administrators.containsKey(ev.getUser()) && (ev.asAdministrator());
     }
 
     /**

@@ -94,6 +94,7 @@ public class DuccServiceApi
         UiOption.Help,
         UiOption.Debug,
         UiOption.Unregister,
+        UiOption.RoleAdministrator,
     }; 
 
 
@@ -106,6 +107,7 @@ public class DuccServiceApi
         UiOption.Start,
         UiOption.Instances,
         UiOption.Update,
+        UiOption.RoleAdministrator,
     }; 
 
     UiOption[] stop_options = {
@@ -114,6 +116,7 @@ public class DuccServiceApi
         UiOption.Stop,
         UiOption.Instances,
         UiOption.Update,
+        UiOption.RoleAdministrator,
     }; 
 
     // This gets generated from the registratoin_options.
@@ -153,13 +156,17 @@ public class DuccServiceApi
     {
         this.callback = cb;
 
+        //
         // generate modify options, same as registration options, only with the verb
         // Modify insteady of Register, and on extra option, Activate.
         // The length here: same as registration options, 
         //     plus 1 for Activate, 
         //     minus 1 for ProcessDD
         //     minus 1 for ServiceRequestEndpoint
-        modify_options = new UiOption[registration_options.length - 1];
+        //     plus 1 for RoleAdministrator
+        //     ==> no lengh admustments
+        //
+        modify_options = new UiOption[registration_options.length];
         int i = 0;
         for ( UiOption o : registration_options ) {
 
@@ -170,6 +177,7 @@ public class DuccServiceApi
 
             modify_options[i++] = o;
         }
+        modify_options[i++] = UiOption.RoleAdministrator;
         modify_options[i++] = UiOption.Activate;
     }
 
@@ -448,8 +456,10 @@ public class DuccServiceApi
         Pair<Integer, String> id = getId(UiOption.Unregister);
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
 
         ServiceUnregisterEvent ev = new ServiceUnregisterEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
+        ev.setAdministrative(asAdministrator);
         
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
@@ -469,13 +479,15 @@ public class DuccServiceApi
         throws Exception
     {
         DuccProperties dp = new DuccProperties();
-        init(this.getClass().getName(), start_options, args, null, dp, callback, "sm");
+        init(this.getClass().getName(), start_options, args, null, dp, callback, "sm");        
 
         Pair<Integer, String> id = getId(UiOption.Start);
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
 
         ServiceStartEvent ev = new ServiceStartEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
+        ev.setAdministrative(asAdministrator);
 
         int instances = getInstances(-1);
         boolean update = getUpdate();
@@ -506,8 +518,10 @@ public class DuccServiceApi
         Pair<Integer, String> id = getId(UiOption.Stop);
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
 
         ServiceStopEvent ev = new ServiceStopEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
+        ev.setAdministrative(asAdministrator);
 
         int instances = getInstances(-1);
         boolean update = getUpdate();
@@ -542,8 +556,11 @@ public class DuccServiceApi
         Pair<Integer, String> id = getId(UiOption.Modify);
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
+        dp.remove(UiOption.RoleAdministrator.pname()); 
 
         ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), dp, auth_block, CliVersion.getVersion());        
+        ev.setAdministrative(asAdministrator);
 
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);

@@ -29,6 +29,7 @@ public abstract class AServiceRequest
 
     String user;
     byte[] auth_block;
+    boolean as_administrator;
 
     ServiceReplyEvent reply;
     private int cli_version;
@@ -37,6 +38,7 @@ public abstract class AServiceRequest
     {
         super(eventType);
         this.user = user;
+        this.as_administrator = false;
         this.auth_block = auth_block;
         this.cli_version = cli_version;
     }
@@ -44,6 +46,11 @@ public abstract class AServiceRequest
     public ServiceReplyEvent getReply()
     {
         return reply;
+    }
+
+    public void setAdministrative(boolean val) 
+    {
+        this.as_administrator = val;
     }
 
     public void setReply(ServiceReplyEvent reply)
@@ -54,6 +61,11 @@ public abstract class AServiceRequest
     public String getUser()
     {
         return user;
+    }
+
+    public boolean asAdministrator()
+    {
+        return as_administrator;
     }
 
     public byte[] getAuth()
