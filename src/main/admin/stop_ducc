@@ -222,7 +222,8 @@ class StopDucc(DuccUtil):
             if ( not force ) :
                 self.clean_shutdown()
 
-                sleeptime = 30
+                # Agents may wait up to 60 secs for processes to quiesce
+                sleeptime = 60
                 print "Waiting " + str(sleeptime) + " seconds to broadcast agent shutdown."
                 time.sleep(sleeptime)
 
