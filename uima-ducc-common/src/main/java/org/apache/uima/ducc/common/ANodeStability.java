@@ -93,8 +93,8 @@ public abstract class ANodeStability
                 for ( Node n : heartbeats.keySet() ) {
                     int c = heartbeats.get(n);
                     
-                    if ( c++ > nodeStability )  deadNodes.put(n,n);
-                    if ( c > 1 )                missedNode(n, c);    // tell implementor if he cares
+                    if ( ++c >= nodeStability )  deadNodes.put(n,n);
+                    if ( c > 1 )                 missedNode(n, c);    // tell implementor if he cares
                                                                      // note that first miss is "free"
                                                                      // because of timing, it may not be
                                                                      // a real miss
