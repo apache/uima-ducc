@@ -797,9 +797,11 @@ class NodePool
                 mlist = new HashMap<Node, Machine>();
                 machinesByOrder.put(order, mlist);
             }
-            mlist.put(m.key(), m);        
+            mlist.put(m.key(), m);     
+   
+            total_shares += order;     //      UIMA-3939
 
-            logger.info(methodName, null, "Node ", m.getId(), " was unresponsive. Reactivating.");
+            logger.info(methodName, null, "Nodepool:", id, "Host reactivated ", m.getId(), String.format("shares %2d total %4d:", order, total_shares), m.toString());
             return m;
         }
 
@@ -821,7 +823,7 @@ class NodePool
         }
         mlist.put(machine.key(), machine);        
 
-        logger.info(methodName, null, "Machine added to nodepool", id, ": ", machine.getId(), String.format("shares %2d total %4d:", order, total_shares), machine.toString());
+        logger.info(methodName, null, "Nodepool:", id, "Host added:", id, ": ", machine.getId(), String.format("shares %2d total %4d:", order, total_shares), machine.toString());
         updated++;
         
         return machine;
@@ -831,9 +833,8 @@ class NodePool
     {
         String methodName = "nodeLeaves";
 
-        logger.info(methodName, null, "Node leaves:", m.getId());
         if ( allMachines.containsKey(m.key()) ) {
-            logger.info(methodName, null, "Looking for shares to clear", m.getId());
+            logger.info(methodName, null, "Nodepool:", id, "Host disabled:", m.getId(), "Looking for shares to clear");
 
             int order = m.getShareOrder();
             String name = m.getId();
@@ -845,13 +846,14 @@ class NodePool
 
                 if ( j.getDuccType() == DuccType.Reservation ) {
                     // UIMA-3614.  Only actual reservation is left intact
-                    logger.info(methodName, j.getId(), "Not purging job on dead/offline node, job type:", j.getDuccType());
+                    logger.info(methodName, null, "Nodepool:", id, "Host dead/offline:", m.getId(), "Not purging", j.getDuccType());
                     break;
                 }
 
-                logger.info(methodName, j.getId(), "Purging job on dead/offline node, job type:", j.getDuccType());
+                logger.info(methodName, j.getId(), "Nodepool:", id, "Purge", j.getDuccType(), "on dead/offline:", m.getId());
                 j.shrinkByOne(s);
                 nPendingByOrder[order]++;
+
                 s.purge();          // This bet tells OR not to wait for confirmation from the agent
             }
 
@@ -867,6 +869,7 @@ class NodePool
             }
             machinesByName.remove(name);
             machinesByIp.remove(ip);
+            logger.info(methodName, null, "Nodepool:", id, "Node leaves:", m.getId(), "total shares:", total_shares);
         } else {
             for ( NodePool np : children.values() ) {
                 np.nodeLeaves(m);
