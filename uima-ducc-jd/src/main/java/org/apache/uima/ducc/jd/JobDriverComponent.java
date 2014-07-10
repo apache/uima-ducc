@@ -189,12 +189,17 @@ implements IJobDriverComponent {
 	
 	protected void publisher() {
 		String methodName = "publisher";
-		PerformanceSummaryWriter performanceSummaryWriter = thread.getPerformanceSummaryWriter();
-		if(performanceSummaryWriter == null) {
-			duccOut.debug(methodName, null, duccMsg.fetch("performanceSummaryWriter is null"));
+		if(thread != null) {
+			PerformanceSummaryWriter performanceSummaryWriter = thread.getPerformanceSummaryWriter();
+			if(performanceSummaryWriter == null) {
+				duccOut.debug(methodName, null, duccMsg.fetch("performanceSummaryWriter is null"));
+			}
+			else {
+				performanceSummaryWriter.writeSummary();
+			}
 		}
 		else {
-			performanceSummaryWriter.writeSummary();
+			duccOut.debug(methodName, null, "thread is null");
 		}
 	}
 	
@@ -202,34 +207,35 @@ implements IJobDriverComponent {
 		String methodName = "getState";
 		duccOut.trace(methodName, null, duccMsg.fetch("enter"));
 		JdStateDuccEvent jdStateDuccEvent = new JdStateDuccEvent();
-		if(active.get()) {
-			publicationCounter.addAndGet(1);
-			try {
-				duccOut.debug(methodName, null, duccMsg.fetch("publishing state"));
+		if(thread != null) {
+			if(active.get()) {
+				publicationCounter.addAndGet(1);
 				try {
-					if(thread != null) {
+					duccOut.debug(methodName, null, duccMsg.fetch("publishing state"));
+					try {
 						thread.rectifyStatus();
 					}
-					else {
-						duccOut.debug(methodName, null, duccMsg.fetch("thread is null"));
+					catch(Throwable t) {
+						duccOut.warn(methodName, null, t);
 					}
+					DriverStatusReport dsr = driverStatusReport;
+					if(dsr == null) {
+						duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));
+					}
+					else {
+						duccOut.debug(methodName, null, "driverState:"+dsr.getDriverState());
+						duccOut.debug(methodName, dsr.getDuccId(), dsr.getLogReport());
+						jdStateDuccEvent.setState(dsr);
+					}
+					publisher();
 				}
-				catch(Throwable t) {
+				catch(Exception e) {
+					duccOut.error(methodName, null, e);
 				}
-				DriverStatusReport dsr = driverStatusReport;
-				if(dsr == null) {
-					duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));
-				}
-				else {
-					duccOut.debug(methodName, null, "driverState:"+dsr.getDriverState());
-					duccOut.debug(methodName, dsr.getDuccId(), dsr.getLogReport());
-					jdStateDuccEvent.setState(dsr);
-				}
-				publisher();
 			}
-			catch(Exception e) {
-				duccOut.error(methodName, null, e);
-			}
+		}
+		else {
+			duccOut.debug(methodName, null, "thread is null");
 		}
 		duccOut.trace(methodName, null, duccMsg.fetch("exit"));
 		return jdStateDuccEvent;
