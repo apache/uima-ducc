@@ -539,14 +539,6 @@ under the License.
   <files>
   
     
-  <file>
-      <source>src/main/scripts/dd2spring.xsl</source>
-      <outputDirectory>resources</outputDirectory>
-      <destName>dd2spring.xsl</destName>
-      <fileMode>755</fileMode>
-    </file>
-
-        
       <file>
       <source>src/main/cglib/com.springsource.net.sf.cglib-${cglib.version}.jar</source>
       <outputDirectory>lib/springframework</outputDirectory>
