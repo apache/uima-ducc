@@ -46,8 +46,8 @@
   <appender name="rmlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/rm.log"/>
-    <param name="maxBackupIndex" value="50" />
-    <param name="maxFileSize" value="20MB" />
+    <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -56,8 +56,8 @@
   <appender name="dblog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/db.log"/>
-    <param name="maxBackupIndex" value="20" />
-    <param name="maxFileSize" value="20MB" />
+    <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -66,8 +66,8 @@
   <appender name="orlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/or.log"/>
-    <param name="maxBackupIndex" value="20" />
-    <param name="maxFileSize" value="20MB" />
+    <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -77,6 +77,7 @@
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/sm.log"/>
     <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -86,6 +87,7 @@
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/pm.log"/>
     <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -95,6 +97,7 @@
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/ws.${NodeName}.log"/>
     <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %X{TID} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -104,6 +107,7 @@
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/viz.${NodeName}.log"/>
     <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %X{TID} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -112,8 +116,8 @@
   <appender name="jdout" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
     <param name="file" value="${ducc.process.log.dir}/jd.out.log"/>
-    <param name="maxBackupIndex" value="20" />
-    <param name="maxFileSize" value="20MB" />
+    <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %X{TID} %5p %c{2} %m%n"/> 
     </layout> 
@@ -123,6 +127,7 @@
     <param name="append" value="true"/>
     <param name="file" value="${ducc.process.log.dir}/jd.err.log"/>
     <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %X{TID} %5p %c{2} %m%n"/> 
     </layout> 
@@ -132,6 +137,7 @@
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/${NodeName}.${ducc.deploy.components}.log"/>
     <param name="maxBackupIndex" value="5" />
+    <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%d{DATE} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
     </layout> 
@@ -143,7 +149,7 @@
    </category>
 
    <category name="org.apache.uima.ducc.rm.JobManagerConverter" additivity="true">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="rmlog" /> 
    </category>
 
@@ -153,7 +159,7 @@
    </category>
 
    <category name="org.apache.uima.ducc.rm.ResourceManagerComponent" additivity="true">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="rmlog" /> 
    </category>
 
@@ -218,16 +224,20 @@
    </category>
    
    <category name="org.apache.uima.ducc.user.err" additivity="true">
-     <priority value="debug"/>
+     <priority value="info"/>
      <appender-ref ref="jderr" /> 
    </category>
 
    <category name="org.springframework.beans.factory">
-     <priority value="off"/>
+     <priority value="warn"/>
+   </category>
+   
+   <category name="org.apache.camel.impl.converter">
+     <priority value="error"/>
    </category>
 
    <category name="org.apache.camel">
-     <priority value="off"/>
+     <priority value="warn"/>
    </category>
 
    <category name="org.apache.uima.ducc.cli" additivity="false">
