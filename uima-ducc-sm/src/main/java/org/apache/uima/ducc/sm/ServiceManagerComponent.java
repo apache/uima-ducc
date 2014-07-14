@@ -363,6 +363,64 @@ public class ServiceManagerComponent
         }
         handler.bootImplementors(services);
     }
+
+    void diffCommon(IDuccWork l, IDuccWork r, HashMap<DuccId, IDuccWork> modifiedJobs, HashMap<DuccId, IDuccWork> modifiedServices) 
+    {
+    	String methodName = "diffCommon";
+        if ( l.getDuccType() == DuccType.Reservation ) return;
+        
+        if ( l.getDuccType() == DuccType.Pop ) {
+            logger.info(methodName, l.getDuccId(), "BOTH: GOT A POP:", l.getDuccId());
+        }
+        
+        if ( l.getStateObject() != r.getStateObject() ) {
+            String serviceType = "/ Job";
+            switch ( l.getDuccType() ) {
+                case Service:
+                case Pop:
+                    switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                        {
+                        case uima:
+                        case custom:
+                            serviceType = "/ Service";
+                            break;
+                        case other:
+                            serviceType = "/ ManagedReservation";
+                            break;
+                        }
+                    break;
+                default:
+                    break;                    
+            }
+            logger.debug(methodName, l.getDuccId(), "Reconciling", l.getDuccType(), serviceType, "incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
+        }
+        
+        // Update our own state by replacing the old (right) object with the new (left)
+        switch(l.getDuccType()) {
+            case Job:
+                modifiedJobs.put(l.getDuccId(), l);
+                localMap.addDuccWork(l);
+                break;
+  
+            case Service:
+                localMap.addDuccWork(l);
+                switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
+                    {
+                    case uima:
+                    case custom:
+                        modifiedServices.put(l.getDuccId(), l);
+                        break;
+                    case other:
+                        modifiedJobs.put(l.getDuccId(), l);
+                        break;
+                    }
+                break;
+                
+            default:
+                break;
+        }
+    }
+
 	
     /**
      * Split the incoming work into new, deleted, and needs update.  This runs under the
@@ -393,18 +451,39 @@ public class ServiceManagerComponent
             return;
         }
 
-        @SuppressWarnings("unchecked")
+
+        // try {
+        //     ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("/home/challngr/for/jerry/working/incomingWorkMap.obj"));    
+        //     oos.writeObject(workMap);
+        //     oos.close();
+
+        //     oos = new ObjectOutputStream(new FileOutputStream("/home/challngr/for/jerry/working/existingWorkMap.obj"));    
+        //     oos.writeObject(localMap);
+        //     oos.close();
+        // } catch ( Throwable t ) {
+        //     logger.error(methodName, null, t);
+        // }
+
 		DuccMapDifference<DuccId, IDuccWork> diffmap = DuccCollectionUtils.difference(workMap, localMap);        
 
         for ( IDuccWork w : workMap.values() ) {
             logger.trace(methodName, w.getDuccId(), w.getDuccType(), "Arrives in state =", w.getStateObject());
+            // if ( w.getDuccId().getFriendly() == 204 ) {
+            // 	int a = 1;
+            // 	a++;
+            // }
         }
 
         // Stuff on the left is new
         Map<DuccId, IDuccWork> work = diffmap.getLeft();
         for ( IDuccWork w : work.values() ) {
 
+        	logger.debug(methodName, w.getDuccId(), "Calculating diffs on left side.", w.getDuccId());
             if ( w.getDuccType() == DuccType.Reservation ) continue;
+
+            if ( w.getDuccType() == DuccType.Pop ) {
+                logger.trace(methodName, w.getDuccId(), "NEW: GOT A POP:", w.getDuccId());
+            }
 
             if ( !((DuccWorkJob)w).isActive() ) continue;         // not active, we don't care about it. likely after restart.
 
@@ -441,7 +520,12 @@ public class ServiceManagerComponent
         // Stuff on the right is stuff we have but OR doesn't
         work = diffmap.getRight();
         for ( IDuccWork w : work.values() ) {
+        	logger.debug(methodName, w.getDuccId(), "Doing diffs on right");
             if ( w.getDuccType() == DuccType.Reservation ) continue;
+
+            if ( w.getDuccType() == DuccType.Pop ) {
+                logger.trace(methodName, w.getDuccId(), "DELETED: GOT A POP:", w.getDuccId());
+            }
 
             logger.debug(methodName, w.getDuccId(), "Reconciling, deleting instance of type ", w.getDuccType());
 			switch(w.getDuccType()) {
@@ -469,60 +553,39 @@ public class ServiceManagerComponent
             }
         }
 
-        // Now: stuff we both know about
+        // NOTE: 2014-07-14 There is some sort of bug in the equals() method on DuccWork so it incorrectly
+        //       identifies work as having difference when it doesn't.  As a result this code was originnaly
+        //       written under mistaken assumptions of what the map difference returns.  Untkl the owner of
+        //       the DuccWork object have worked out a correct equals(), we run the intersection on ALL
+        //       intersecting objects, whether they differ in state or do not; hence the two
+        //       loops below on the diffmap iterator and on diffmap.getCommon()
+        //
+        //
+        // Now: stuff we both know about. Here is stuff that is in both maps the the map diff identifies as
+        // having state differences.
+        //
         for( DuccMapValueDifference<IDuccWork> jd: diffmap ) {
-
             IDuccWork r = jd.getRight();
             IDuccWork l = jd.getLeft();
-
-            if ( l.getDuccType() == DuccType.Reservation ) continue;
-
-            if ( l.getStateObject() != r.getStateObject() ) {
-                String serviceType = "/ Job";
-                switch ( l.getDuccType() ) {
-                  case Service:
-                      switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
-                          {
-                          case uima:
-                          case custom:
-                              serviceType = "/ Service";
-                              break;
-                          case other:
-                              serviceType = "/ ManagedReservation";
-                              break;
-                          }
-                      break;
-                      
-                }
-                logger.debug(methodName, l.getDuccId(), "Reconciling", l.getDuccType(), serviceType, "incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
-            }
-
-            // Update our own state by replacing the old (right) object with the new (left)
-			switch(l.getDuccType()) {
-              case Job:
-                  modifiedJobs.put(l.getDuccId(), l);
-                  localMap.addDuccWork(l);
-                  break;
-
-              case Service:
-                  localMap.addDuccWork(l);
-                  switch ( ((IDuccWorkService)l).getServiceDeploymentType() ) 
-                  {
-                      case uima:
-                      case custom:
-                          modifiedServices.put(l.getDuccId(), l);
-                          break;
-                      case other:
-                          modifiedJobs.put(l.getDuccId(), l);
-                          break;
-                  }
-                  break;
-
-              default:
-                  break;
-            }
+            
+        	logger.debug(methodName, r.getDuccId(), "Doing diffs on middle A:", r.getDuccId(), l.getDuccId());
+            
+            diffCommon(l, r, modifiedJobs, modifiedServices);
         }
-
+        
+        // 
+        // Common stuff - in both maps the the state diff identifies as haveing no state differences.
+        //
+        work = diffmap.getCommon();
+        for( DuccId k : work.keySet()) {
+            IDuccWork r = (IDuccWork) localMap.get(k);
+            IDuccWork l = (IDuccWork) workMap.get(k);
+            
+         	logger.debug(methodName, r.getDuccId(), "Doing diffs on middle B:", r.getDuccId(), l.getDuccId());
+            
+            diffCommon(l, r, modifiedJobs, modifiedServices);
+        }
+        
         handler.signalUpdates(
                               newJobs, 
                               newServices,                               
