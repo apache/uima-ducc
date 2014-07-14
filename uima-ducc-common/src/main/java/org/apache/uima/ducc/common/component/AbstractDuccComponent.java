@@ -140,16 +140,17 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     enrichSystemPropertiesWith(duccProperties);
     // Compose Broker URL from parts defined in ducc.properties
     composeBrokerUrl();
-    adjustEndpointsForSelectedTransport();
   }
 
   /**
    * Resolve any placeholders in property values in provided DuccProperties
+   * Adjust the *endpoint ones before copying to the System properties
    * 
    * @param duccProperties
    *          - properties to resolve
+   * @throws Exception 
    */
-  public void enrichSystemPropertiesWith(DuccProperties duccProperties) {
+  private void enrichSystemPropertiesWith(DuccProperties duccProperties) throws Exception {
     Properties props = System.getProperties();
     for (Map.Entry<Object, Object> entry : duccProperties.entrySet()) {
       String key = ((String) entry.getKey()).trim();
@@ -157,6 +158,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         String value = (String) entry.getValue();
         value = Utils.resolvePlaceholderIfExists(value, duccProperties).trim();
         value = Utils.resolvePlaceholderIfExists(value, props).trim();
+        if (key.endsWith(".endpoint")) {
+          value = adjustTransportEndpoint(value, duccProperties.getProperty(key + ".type"));
+        }
         System.setProperty(key, value);
       }
     }
@@ -208,30 +212,24 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     System.setProperty("ducc.broker.url", burl.toString());
   }
 
-  private void adjustEndpointsForSelectedTransport() throws Exception {
-    for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
-      if (((String) entry.getKey()).endsWith("endpoint")) {
-        String endpointValue = (String) entry.getValue();
-        String endpointType = (String) System.getProperty((String) entry.getKey() + ".type");
-        if (endpointType == null) {
-          throw new DuccComponentInitializationException(
-                  "Endpoint type not specified in component properties. Specify vm, queue, or topic type value for endpoint: "
-                          + endpointValue);
-        } else if (endpointType.equals("vm")) {
-          endpointValue = "vm:" + endpointValue;
-          System.setProperty((String) entry.getKey(), endpointValue);
-        } else if (endpointType.equals("topic") || endpointType.equals("queue")) {
-          endpointValue = "activemq:" + endpointType + ":" + endpointValue;
-          System.setProperty((String) entry.getKey(), endpointValue);
-        } else if (endpointType.equals("socket")) {
-          System.setProperty((String) entry.getKey(), "mina:tcp://localhost:");
-        } else {
-          throw new DuccComponentInitializationException("Provided Endpoint type is invalid:"
-                  + endpointType + ". Specify vm, queue, or topic type value for endpoint: "
-                  + endpointValue);
-        }
-      }
+  // Jira 3943 - Adjust endpoints only on those in ducc.properties
+  public String adjustTransportEndpoint(String endpointValue, String endpointType) throws Exception {
+    if (endpointType == null) {
+      throw new DuccComponentInitializationException(
+              "Endpoint type not specified in component properties. Specify vm, queue, or topic type value for endpoint: "
+                      + endpointValue);
+    } else if (endpointType.equals("vm")) {
+      endpointValue = "vm:" + endpointValue;
+    } else if (endpointType.equals("topic") || endpointType.equals("queue")) {
+      endpointValue = "activemq:" + endpointType + ":" + endpointValue;
+    } else if (endpointType.equals("socket")) {
+      endpointValue = "mina:tcp://localhost:";
+    } else {
+      throw new DuccComponentInitializationException("Provided Endpoint type is invalid:"
+              + endpointType + ". Specify vm, queue, or topic type value for endpoint: "
+              + endpointValue);
     }
+    return endpointValue;
   }
 
   public void setContext(CamelContext context) {
