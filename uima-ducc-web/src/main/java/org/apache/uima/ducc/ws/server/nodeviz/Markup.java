@@ -136,7 +136,7 @@ public class Markup
                 break;
 
             case Pop:
-                out.append("<a xlink:href=/reservations.details.jsp?id=");
+                out.append("<a xlink:href=/reservation.details.jsp?id=");
                 out.append(j.id);
                 out.append(">");
 
