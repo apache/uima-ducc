@@ -46,18 +46,26 @@ public class DuccTransportConfiguration {
 //	      duccAMQComponent = ActiveMQComponent.activeMQComponent(brokerUrl);
 	      duccAMQComponent = new ActiveMQComponent(context);
 	      
-			// Split decoration from the broker uri. The code below enforces failover which
-			// has syntax: failover(<broker uri>)?<decoration>
-			int pos = brokerUrl.indexOf("?");
-			String decoration = "";
-			if (pos > -1) {
-				decoration = brokerUrl.substring(pos);
+			String connectURL = "";
+			// if provided broker url is tcp based, enforce the failover to enable recovery after
+			// switch/network failures
+			if ( brokerUrl.trim().startsWith("tcp://")) {
+				// Split decoration from the broker uri. The code below enforces failover which
+				// has syntax: failover(<broker uri>)?<decoration>
+				int pos = brokerUrl.indexOf("?");
+				String decoration = "";
+				if (pos > -1) {
+					decoration = brokerUrl.substring(pos);
+				}
+
+				brokerUrl = brokerUrl.substring(0, pos);
+				connectURL = "failover:(" + brokerUrl + ")" + decoration;
+			} else {
+				connectURL = brokerUrl;
 			}
-			brokerUrl = brokerUrl.substring(0, pos);
-			duccAMQComponent.setBrokerURL("failover:(" + brokerUrl + ")"
-					+ decoration);
-			logger.info("configureJMSTransport", null, "broker URL:"
-					+ "failover:(" + brokerUrl + ")" + decoration);
+			duccAMQComponent.setBrokerURL(connectURL);
+
+			logger.info("configureJMSTransport", null, "Broker URL: "+connectURL);
 	      
 	      logger.info("configureJMSTransport", null, "brokerCredentialsFile:"+brokerCredentialsFile);
 	      if ( brokerCredentialsFile != null ) {
