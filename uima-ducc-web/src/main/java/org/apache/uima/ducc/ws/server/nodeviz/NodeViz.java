@@ -173,9 +173,10 @@ public class NodeViz
                         }
 
                         if ( n != null ) {
-                            String key = n.getNodeIdentity().getName();
+                            String key = strip(n.getNodeIdentity().getName());
                             VisualizedHost vh = hosts.get(key);
                             if ( vh == null ) {
+                                // System.out.println("Set host from OR with key:" + key + ":");
                                 vh = new VisualizedHost(n, quantum);
                                 hosts.put(key, vh);
                             }
@@ -199,11 +200,12 @@ public class NodeViz
                         if ( n == null ) {
                             logger.debug(methodName, w.getDuccId(),  "Node [N/A] mem[N/A");
                         } else {
-                            String key = n.getNodeIdentity().getName();
+                            String key = strip(n.getNodeIdentity().getName());
                             VisualizedHost vh = hosts.get(key);
                             if ( vh == null ) {
                                 vh = new VisualizedHost(n, quantum);
                                 hosts.put(key, vh);
+                                //  System.out.println("Set host from OR with key:" + key + ":");
                             }
                             vh.addWork(type, user, duccid, jobmem, qshares, null);
                         }
@@ -223,8 +225,9 @@ public class NodeViz
 
         for (String s : m.keySet()) {
             if ( ! hosts.containsKey(s) ) {
+                // System.out.println("Set host from MachineInfo with key :" + s + ":");
                 VisualizedHost vh = new VisualizedHost(m.get(s), quantum);
-                hosts.put(s, vh);
+                hosts.put(strip(s), vh);
             }
         }
 
@@ -278,6 +281,20 @@ public class NodeViz
         // logger.info(methodName, null, "Size of node visualization:", visualization.length());
         hosts = null;
 	}
+
+    /**
+     * Possibly strip domain name from hostname
+     */
+    static String strip(String n)
+    {
+        if ( strip_domain ) {
+            int ndx = n.indexOf(".");
+            if ( ndx >= 0) {
+            	n = n.substring(0, ndx);
+            }
+        }
+        return n;
+    }
 
 	public void update(OrchestratorStateDuccEvent ev)
     {

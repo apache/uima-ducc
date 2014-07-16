@@ -37,7 +37,7 @@ class VisualizedHost
     VisualizedHost(Node n, int quantum)
     {
         this.quantum = quantum;
-        this.name = strip(n.getNodeIdentity().getName());
+        this.name = NodeViz.strip(n.getNodeIdentity().getName());
         this.ip = n.getNodeIdentity().getIp();            
         
         // mem from OR pub is in KB.  must convert to GB
@@ -53,9 +53,9 @@ class VisualizedHost
      */
     VisualizedHost(MachineInfo info, int quantum)
     {
-        this.quantum = quantum;
 
-        this.name = strip(info.getName());
+        this.quantum = quantum;
+        this.name = NodeViz.strip(info.getName());
         this.ip = info.getIp();
 
         String ns = info.getSharesTotal();
@@ -70,20 +70,6 @@ class VisualizedHost
         }
 
         this.shares_free = shares;        
-    }
-
-    /**
-     * Possibly strip domain name from hostname
-     */
-    String strip(String n)
-    {
-        if ( NodeViz.strip_domain ) {
-            int ndx = n.indexOf(".");
-            if ( ndx >= 0) {
-            	n = n.substring(0, ndx);
-            }
-        }
-        return n;
     }
 
     int countShares()
