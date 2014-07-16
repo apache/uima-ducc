@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <grp.h>
 #include <pwd.h>
 #include <errno.h>
 #include <string.h>
@@ -42,7 +43,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "1.1.0"
+#define VERSION "1.1.1"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -71,6 +72,7 @@
  * 2013-11-21 0.8.10 Update version to 1.0.0 for release jrc
  * 2014-02-14 1.0.1 Use initgroups to fully initalize usergrouops.  jrc
  * 2014-02-14 1.1.0 Support DUCC_UMASK to give user control over umask.  jrc
+ * 2014-07-16 1.1.1 Bug in group switching; show IDS the process is to run with. jrc
  */
 
 /**
@@ -510,6 +512,28 @@ int do_append(char *filepath, int argc, char **argv)
     return(0);
 }
 
+void show_ids(char *userid)
+{
+    int size = getgroups(0, NULL);
+    gid_t groups[size];
+    getgroups(size, groups);
+
+    fprintf(stdout, "1103 Groups:");
+    int i = 0;
+    for ( i = 0; i < size; i++ ) {
+        struct group* gr = getgrgid(groups[i]);
+        fprintf(stdout, " %d(%s)", groups[i], gr -> gr_name);
+    }
+    fprintf(stdout, "\n");
+
+    gid_t my_group = getgid();
+    gid_t my_effective_group = getegid();
+    uid_t my_id = getuid();
+    uid_t my_effective_id = geteuid();
+    fprintf(stdout, "1104 Running with user and group: id %d gid %d eid %d egid %d\n", my_id, my_group, my_effective_id, my_effective_group);
+
+}
+
 /**
  * Proposed calling conventtion:
  *    ducc_ling <duccling args> -- executable_name <executable args>
@@ -654,17 +678,26 @@ int main(int argc, char **argv, char **envp)
             buf[STRLEN] = '\0';
             perror(buf);
         } else {
-            log_stdout("830 User grouops are initialized for %s.\n", userid);
+            log_stdout("830 User groups are initialized for %s.\n", userid);
         }
 
-        if ( setuid(pwd->pw_uid) != 0 ) {
-            snprintf(buf, STRLEN,  "1100 Unable to switch to user id %s.",userid);
+        if ( setgid(pwd->pw_gid) != 0 ) {
+            snprintf(buf, STRLEN,  "1101 Unable to switch group for %s.",userid);
             buf[STRLEN] = '\0';
             perror(buf);
         } else {
-            log_stdout("840 Switched to user %d.\n", pwd-> pw_uid);
+            log_stdout("840 Switched to group %d.\n", pwd-> pw_gid);
+        }
+
+        if ( setuid(pwd->pw_uid) != 0 ) {
+            snprintf(buf, STRLEN,  "1102 Unable to switch to user id %s.",userid);
+            buf[STRLEN] = '\0';
+            perror(buf);
+        } else {
+            log_stdout("850 Switched to user %d.\n", pwd-> pw_uid);
         }
     }
+    show_ids(userid);
 
     if ( redirect && ( filepath != NULL) ) {
         logfile = mklogfile(filepath);
