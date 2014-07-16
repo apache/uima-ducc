@@ -1027,102 +1027,117 @@ public class DuccHandler extends DuccAbstractHandler {
 		// job state
 		sb.append("<th title=\"The current state of this job\">");
 		sb.append("State: ");
-		String state = job.getStateObject().toString();
-		sb.append(state);
-		sb.append("</th>");
-		thSep(sb);
-		// job reason
-		if(job.isCompleted()) {
-			sb.append("<th title=\"The reason for the final state of this job, normally EndOfJob\">");
-			sb.append("Reason: ");
-			String reason = getReason(job, DuccType.Job).toString();
-			sb.append(reason);
-			thSep(sb);
-		}
-		// workitems
-		String jobWorkitemsCount = "?";
 		if(job != null) {
-			jobWorkitemsCount = job.getSchedulingInfo().getWorkItemsTotal();
-		}
-		sb.append("<th title=\"The total number of work items for this job\">");
-		sb.append("Workitems: ");
-		sb.append(jobWorkitemsCount);
-		sb.append("</th>");
-		thSep(sb);
-		// done
-		sb.append("<th title=\"The number of work items that completed successfully\">");
-		sb.append("Done: ");
-		String done = "0";
-		try {
-			done = ""+job.getSchedulingInfo().getIntWorkItemsCompleted();
-		}
-		catch(Exception e) {
-		}
-		sb.append(done);
-		sb.append("</th>");
-		thSep(sb);
-		// error & lost
-		int eCount = 0;
-		int lCount = 0;
-		try {
-			eCount = job.getSchedulingInfo().getIntWorkItemsError();
-			lCount = job.getSchedulingInfo().getIntWorkItemsLost();
-		}
-		catch(Exception e) {
-		}
-		String error = ""+eCount;
-		sb.append("<th title=\"The number of work items that failed to complete successfully\">");
-		sb.append("Error: ");
-		sb.append(error);
-		sb.append("</th>");
-		if(lCount > 0) {
-			thSep(sb);
-			String lost = ""+lCount;
-			sb.append("<th title=\"The number of work items that were lost\">");
-			sb.append("Lost: ");
-			sb.append(lost);
+			Object stateObject = job.getStateObject();
+			if(stateObject != null) {
+				String state = stateObject.toString();
+				sb.append(state);
+			}
+			else {
+				String state = JobState.Undefined.name();
+				sb.append(state);
+				duccLogger.warn(methodName, job.getDuccId(), state);
+			}
 			sb.append("</th>");
-		}
-		// extended info live jobs
-		thSep(sb);
-		JobState jobState = JobState.Undefined;
-		try {
-			jobState = job.getJobState();
-		}
-		catch(Exception e) {
-		}
-		switch(jobState) {
-		case Completed:
-		case Undefined:
-			break;
-		default:
-			int dispatch = 0;
-			int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
-			int limbo = job.getSchedulingInfo().getLimboMap().size();
+			thSep(sb);
+			// job reason
+			if(job.isCompleted()) {
+				sb.append("<th title=\"The reason for the final state of this job, normally EndOfJob\">");
+				sb.append("Reason: ");
+				String reason = getReason(job, DuccType.Job).toString();
+				sb.append(reason);
+				thSep(sb);
+			}
+			// workitems
+			String jobWorkitemsCount = "?";
+			if(job != null) {
+				jobWorkitemsCount = job.getSchedulingInfo().getWorkItemsTotal();
+			}
+			sb.append("<th title=\"The total number of work items for this job\">");
+			sb.append("Workitems: ");
+			sb.append(jobWorkitemsCount);
+			sb.append("</th>");
+			thSep(sb);
+			// done
+			sb.append("<th title=\"The number of work items that completed successfully\">");
+			sb.append("Done: ");
+			String done = "0";
 			try {
-				dispatch = Integer.parseInt(job.getSchedulingInfo().getWorkItemsDispatched())-unassigned;
+				done = ""+job.getSchedulingInfo().getIntWorkItemsCompleted();
 			}
 			catch(Exception e) {
 			}
-			// dispatch
-			sb.append("<th title=\"The number of work items currently dispatched\">");
-			sb.append("Dispatch: ");
-			sb.append(dispatch);
+			sb.append(done);
 			sb.append("</th>");
 			thSep(sb);
-			// unassigned
-			sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
-			sb.append("Unassigned: ");
-			sb.append(unassigned);
+			// error & lost
+			int eCount = 0;
+			int lCount = 0;
+			try {
+				eCount = job.getSchedulingInfo().getIntWorkItemsError();
+				lCount = job.getSchedulingInfo().getIntWorkItemsLost();
+			}
+			catch(Exception e) {
+			}
+			String error = ""+eCount;
+			sb.append("<th title=\"The number of work items that failed to complete successfully\">");
+			sb.append("Error: ");
+			sb.append(error);
 			sb.append("</th>");
+			if(lCount > 0) {
+				thSep(sb);
+				String lost = ""+lCount;
+				sb.append("<th title=\"The number of work items that were lost\">");
+				sb.append("Lost: ");
+				sb.append(lost);
+				sb.append("</th>");
+			}
+			// extended info live jobs
 			thSep(sb);
-			// limbo
-			sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
-			sb.append("Limbo: ");
-			sb.append(limbo);
-			sb.append("</th>");
-			thSep(sb);
-			break;
+			JobState jobState = JobState.Undefined;
+			try {
+				jobState = job.getJobState();
+			}
+			catch(Exception e) {
+			}
+			switch(jobState) {
+			case Completed:
+			case Undefined:
+				break;
+			default:
+				int dispatch = 0;
+				int unassigned = job.getSchedulingInfo().getCasQueuedMap().size();
+				int limbo = job.getSchedulingInfo().getLimboMap().size();
+				try {
+					dispatch = Integer.parseInt(job.getSchedulingInfo().getWorkItemsDispatched())-unassigned;
+				}
+				catch(Exception e) {
+				}
+				// dispatch
+				sb.append("<th title=\"The number of work items currently dispatched\">");
+				sb.append("Dispatch: ");
+				sb.append(dispatch);
+				sb.append("</th>");
+				thSep(sb);
+				// unassigned
+				sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
+				sb.append("Unassigned: ");
+				sb.append(unassigned);
+				sb.append("</th>");
+				thSep(sb);
+				// limbo
+				sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
+				sb.append("Limbo: ");
+				sb.append(limbo);
+				sb.append("</th>");
+				thSep(sb);
+				break;
+			}
+		}
+		else {
+			String state = "NotFound";
+			sb.append(state);
+			duccLogger.warn(methodName, jobid, jobId);
 		}
 		sb.append("</table>");
 		response.getWriter().println(sb);
