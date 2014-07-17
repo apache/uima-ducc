@@ -44,15 +44,15 @@ public class DuccLoggerComponents implements IDuccLoggerComponents {
         return makeLogger(claz, abbrv_orchestrator);
     }
 	
-	static public DuccLogger getTrLogger(String claz)
-    {
-        return makeLogger(claz, abbrv_transport);
-    }
+//	static public DuccLogger getTrLogger(String claz)
+//    {
+//        return makeLogger(claz, abbrv_transport);
+//    }
 	
-	static public DuccLogger getSmLogger(String claz)
-    {
-        return makeLogger(claz, abbrv_servicesManager);
-    }
+// 	static public DuccLogger getSmLogger(String claz)
+//     {
+//         return makeLogger(claz, abbrv_servicesManager);
+//     }
 	
 	static public DuccLogger getWsLogger(String claz)
     {

@@ -18,11 +18,15 @@
 */
 package org.apache.uima.ducc.common.utils;
 
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Appender;
+import org.apache.log4j.Category;
 import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.apache.log4j.spi.ErrorHandler;
@@ -31,6 +35,11 @@ import org.apache.uima.InternationalizedException;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
+//
+// Note: there are some System.out.printlns here for debugging purposes.  These things will only
+// be invoked during boot of the ducc component and are invaluable for debug when we use
+// ducc.py so they are left here intentionally.
+//
 public class DuccLogger
 {
     private Logger logger;
@@ -39,6 +48,9 @@ public class DuccLogger
     private static DuccLoggingThread log_thread = null;
     private static LinkedBlockingQueue<DuccLoggingEvent> events = null;
     private static boolean threaded = false;
+
+    private final static String DEFAULT_COMPONENT = "DUCC";
+    private static List<Logger> nonDuccLoggers = new ArrayList<Logger>();
 
     static protected void initLogger()
     {
@@ -84,7 +96,17 @@ public class DuccLogger
         if ( component == null ) {
             component = (String) MDC.get("COMPONENT");
             if ( component == null ) {
-                component = "DUCC";
+                component = DEFAULT_COMPONENT;
+            }
+            Enumeration all_loggers = LogManager.getCurrentLoggers();
+            while (all_loggers.hasMoreElements() ) {
+                Logger l = (Logger) all_loggers.nextElement();
+                String n = l.getName();
+                System.out.println(" ===> Configured loggers " + n);
+                if ( ! n.startsWith("org.apache.uima.ducc" ) ) {
+                    System.out.println("      Special logger: " + n);
+                    nonDuccLoggers.add(l);
+                }
             }
         }
 
@@ -115,7 +137,50 @@ public class DuccLogger
     {
         this(claz, null);
     }
-    
+
+    public boolean isDefaultLogger()
+    {
+        return this.component.equals(DEFAULT_COMPONENT);
+    }
+
+    public void setAdditionalAppenders()
+    {
+        // if ( true) return;
+    	System.out.println("============ Looking for appenders -----------");
+        if ( isDefaultLogger() ) {
+            System.out.println(" ---> Skipping appender search for default component");
+            return;
+        }
+
+        Category l = logger;
+        List<Appender> appenders= new ArrayList<Appender>();
+        while ( l != null ) {
+        	Enumeration apps = l.getAllAppenders();                        
+            if ( apps.hasMoreElements() ) {
+                
+                while (apps.hasMoreElements() ) {
+                    Appender app = (Appender) apps.nextElement();
+                    appenders.add(app);
+                    if ( l.getName().startsWith("org.apache.uima.ducc") ) {
+                        System.out.println(" ---> Found appender " + app.getName() + " on logger " + l.getName());
+                        for ( Logger ll : nonDuccLoggers ) {     // put the appender on the non-Ducc logger
+                            System.out.println(" ---> Add appender " + app.getName() + " to logger " + ll.getName());
+                            ll.addAppender(app);
+                        }
+                    } else {
+                        System.out.println(" ---> Skipping non-DUCC appender " + app.getName() + " on logger " + l.getName());
+                    }
+                }
+
+                break;
+            } else {
+                System.out.println(" ---> No appenders on logger " + l.getName());
+                l = l.getParent();
+            }
+        }
+
+    }
+
     public String getComponent() {
     	return component;
     }

@@ -28,8 +28,8 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 
 import org.apache.uima.ducc.common.IDuccEnv;
+import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.IOHelper;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -46,7 +46,8 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 		return instance;
 	}
 	
-	private static final DuccLogger logger = DuccLoggerComponents.getTrLogger(HistoryPersistenceManager.class.getName());
+	// private static final DuccLogger logger = DuccLoggerComponents.getTrLogger(HistoryPersistenceManager.class.getName());
+	private static final DuccLogger logger = DuccService.getDuccLogger();
 	
 	private String historyDirectory_jobs = IDuccEnv.DUCC_HISTORY_JOBS_DIR;
 	private String historyDirectory_reservations = IDuccEnv.DUCC_HISTORY_RESERVATIONS_DIR;

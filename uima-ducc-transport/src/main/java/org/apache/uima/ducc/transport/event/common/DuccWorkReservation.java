@@ -21,8 +21,8 @@ package org.apache.uima.ducc.transport.event.common;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.ReservationCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
@@ -35,7 +35,8 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(DuccWorkReservation.class.getName());
+	// private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(DuccWorkReservation.class.getName());
+	private static final DuccLogger logger = DuccService.getDuccLogger();
 	
 	private IDuccReservationMap duccReservationMap = new DuccReservationMap();
 	

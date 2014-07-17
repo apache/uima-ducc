@@ -88,6 +88,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         System.exit(1);
     }
     DuccService.setDuccLogger(logger);          // sets the global logger
+    logger.setAdditionalAppenders();           // add appenders to the non-ducc stuff in log4j.config
   }
 
   /**

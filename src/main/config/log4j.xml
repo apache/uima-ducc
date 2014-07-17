@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
@@ -228,16 +229,20 @@
      <appender-ref ref="jderr" /> 
    </category>
 
-   <category name="org.springframework.beans.factory">
+   <category name="org.apache.activemq">
+     <priority value="warn"/>
+   </category>
+
+   <category name="org.springframework">
+     <priority value="warn"/>
+   </category>
+
+   <category name="org.apache.camel">
      <priority value="warn"/>
    </category>
    
    <category name="org.apache.camel.impl.converter">
      <priority value="error"/>
-   </category>
-
-   <category name="org.apache.camel">
-     <priority value="warn"/>
    </category>
 
    <category name="org.apache.uima.ducc.cli" additivity="false">
