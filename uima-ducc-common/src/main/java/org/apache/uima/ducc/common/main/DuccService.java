@@ -72,6 +72,16 @@ public class DuccService extends AbstractDuccComponent {
         return globalLogger;
     }
 
+    public static DuccLogger getDuccLogger(String claz)
+    {
+        return globalLogger.getLoggerFor(claz);
+    }
+
+    public static DuccLogger getDuccLogger(@SuppressWarnings("rawtypes") Class claz)
+    {
+        return getDuccLogger(claz.getName());
+    }
+
     public static void setDuccLogger(DuccLogger l)
     {
         globalLogger = l;

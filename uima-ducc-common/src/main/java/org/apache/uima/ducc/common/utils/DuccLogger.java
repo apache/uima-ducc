@@ -73,6 +73,58 @@ public class DuccLogger
         return new DuccLogger(claz, component);
     }
 
+    // Usually just called by DuccService, with the global component logger as base
+    // This constructs a logger for the given class, and then add all the appenders
+    // from 'this'. Be careful configuring log4j.xml, you probably don't want any
+    // appenders on the class 'claz' or you'll get unexpected extra log files.
+    public DuccLogger getLoggerFor(String claz)
+    {
+        if ( logger == null ) {
+            System.out.println("DuccLogger is not initialized, cannot create logger for(" + claz + ").");
+            return this;
+        }
+
+        if ( claz == null ) {
+            throw new IllegalArgumentException("New log name must not be null");
+        }
+
+        DuccLogger ret = getLogger(claz, this.getComponent());
+
+        Category l = logger;
+        // List<Appender> appenders= new ArrayList<Appender>();
+        while ( l != null ) {
+        	@SuppressWarnings("rawtypes")
+			Enumeration apps = l.getAllAppenders();                        
+            if ( apps.hasMoreElements() ) {                
+                while (apps.hasMoreElements() ) {
+                    Appender app = (Appender) apps.nextElement();
+                    if ( ret.getAppender(app.getName()) == null ) {
+                        ret.addAppender(app);
+                    }
+                }
+            } 
+            l = l.getParent();
+        }
+        return ret;
+    }
+
+    // PACKAGE protection
+    void removeAllAppenders()
+    {
+        this.logger.removeAllAppenders();
+    }
+
+    // PACKAGE protection
+    void addAppender(Appender app)
+    {
+        this.logger.addAppender(app);
+    }
+
+    Appender getAppender(String name)
+    {
+        return this.logger.getAppender(name);
+    }
+
     static public void setUnthreaded()
     {
         threaded = false;
@@ -98,7 +150,8 @@ public class DuccLogger
             if ( component == null ) {
                 component = DEFAULT_COMPONENT;
             }
-            Enumeration all_loggers = LogManager.getCurrentLoggers();
+            @SuppressWarnings("rawtypes")
+			Enumeration all_loggers = LogManager.getCurrentLoggers();
             while (all_loggers.hasMoreElements() ) {
                 Logger l = (Logger) all_loggers.nextElement();
                 String n = l.getName();
@@ -153,30 +206,31 @@ public class DuccLogger
         }
 
         Category l = logger;
-        List<Appender> appenders= new ArrayList<Appender>();
+        // List<Appender> appenders= new ArrayList<Appender>();
         while ( l != null ) {
-        	Enumeration apps = l.getAllAppenders();                        
+        	@SuppressWarnings("rawtypes")
+			Enumeration apps = l.getAllAppenders();                        
             if ( apps.hasMoreElements() ) {
                 
                 while (apps.hasMoreElements() ) {
                     Appender app = (Appender) apps.nextElement();
-                    appenders.add(app);
+                    // appenders.add(app);
                     if ( l.getName().startsWith("org.apache.uima.ducc") ) {
                         System.out.println(" ---> Found appender " + app.getName() + " on logger " + l.getName());
                         for ( Logger ll : nonDuccLoggers ) {     // put the appender on the non-Ducc logger
                             System.out.println(" ---> Add appender " + app.getName() + " to logger " + ll.getName());
-                            ll.addAppender(app);
+                            if ( ll.getAppender(app.getName() ) == null ) {
+                                ll.addAppender(app);
+                            }
                         }
                     } else {
                         System.out.println(" ---> Skipping non-DUCC appender " + app.getName() + " on logger " + l.getName());
                     }
                 }
-
-                break;
             } else {
                 System.out.println(" ---> No appenders on logger " + l.getName());
-                l = l.getParent();
             }
+            l = l.getParent();
         }
 
     }

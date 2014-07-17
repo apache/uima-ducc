@@ -432,7 +432,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 								componentsToDelete.add(aeState);
 							}
 						}
-						DuccService.getDuccLogger().debug(
+						DuccService.getDuccLogger(this.getClass().getName()).debug(
 								"UimaAEJmxMonitor.run()",
 								null,
 								"---- AE Name:" + proxy.getName()
@@ -447,7 +447,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 				}
 				howManySeenSoFar = 1; // reset error counter
 				if (updateAgent) {
-					DuccService.getDuccLogger().debug("UimaAEJmxMonitor.run()", null,
+					DuccService.getDuccLogger(this.getClass().getName()).debug("UimaAEJmxMonitor.run()", null,
 							"---- Publishing UimaPipelineAEComponent List - size="
 									+ aeStateList.size());
 					try {
@@ -466,7 +466,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 				if (!(e.getCause() instanceof InstanceNotFoundException)) {
 					if (howManySeenSoFar > 3) { // allow up three errors of this
 												// kind
-						DuccService.getDuccLogger().info("UimaAEJmxMonitor.run()", null, e);
+						DuccService.getDuccLogger(this.getClass().getName()).info("UimaAEJmxMonitor.run()", null, e);
 						howManySeenSoFar = 1;
 						throw e;
 					}
@@ -476,7 +476,7 @@ public class ManagedUimaService extends AbstractManagedService implements
 				}
 			} catch (Throwable e) {
 				howManySeenSoFar = 1;
-				DuccService.getDuccLogger().info("UimaAEJmxMonitor.run()", null, e);
+				DuccService.getDuccLogger(this.getClass().getName()).info("UimaAEJmxMonitor.run()", null, e);
 			}
 		}
 	}

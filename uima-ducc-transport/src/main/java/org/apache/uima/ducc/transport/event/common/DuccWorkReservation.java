@@ -36,7 +36,7 @@ public class DuccWorkReservation extends ADuccWork implements IDuccWorkReservati
 	private static final long serialVersionUID = 1L;
 
 	// private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(DuccWorkReservation.class.getName());
-	private static final DuccLogger logger = DuccService.getDuccLogger();
+	private static final DuccLogger logger = DuccService.getDuccLogger(DuccWorkReservation.class.getName());
 	
 	private IDuccReservationMap duccReservationMap = new DuccReservationMap();
 	

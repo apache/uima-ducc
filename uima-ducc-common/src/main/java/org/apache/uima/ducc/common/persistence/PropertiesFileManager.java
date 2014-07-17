@@ -27,7 +27,6 @@ import java.util.Properties;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 
 
 public class PropertiesFileManager implements IPropertiesFileManager {
@@ -43,7 +42,7 @@ public class PropertiesFileManager implements IPropertiesFileManager {
 	private boolean storeOnSet = true;
 	
 	public PropertiesFileManager(String componentId, String basedir, String propertiesFileName) {
-		this.logger = DuccLoggerComponents.makeLogger(PropertiesFileManager.class.getName(),componentId);
+		this.logger = DuccService.getDuccLogger(this.getClass().getName());
 		this.basedir = basedir;
 		this.propertiesFileName = propertiesFileName;
 		init();
@@ -51,7 +50,7 @@ public class PropertiesFileManager implements IPropertiesFileManager {
 	
 	public PropertiesFileManager(String componentId, String basedir, String propertiesFileName, boolean loadOnGet, boolean storeOnSet) {
 		// this.logger = DuccLoggerComponents.makeLogger(PropertiesFileManager.class.getName(),componentId);
-		this.logger = DuccService.getDuccLogger();
+		this.logger = DuccService.getDuccLogger(this.getClass().getName());
 		this.basedir = basedir;
 		this.propertiesFileName = propertiesFileName;
 		this.loadOnGet = loadOnGet;

@@ -47,7 +47,7 @@ public class HistoryPersistenceManager implements IHistoryPersistenceManager {
 	}
 	
 	// private static final DuccLogger logger = DuccLoggerComponents.getTrLogger(HistoryPersistenceManager.class.getName());
-	private static final DuccLogger logger = DuccService.getDuccLogger();
+	private static final DuccLogger logger = DuccService.getDuccLogger(HistoryPersistenceManager.class.getName());
 	
 	private String historyDirectory_jobs = IDuccEnv.DUCC_HISTORY_JOBS_DIR;
 	private String historyDirectory_reservations = IDuccEnv.DUCC_HISTORY_RESERVATIONS_DIR;
