@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <!--
@@ -34,13 +33,6 @@
     <param name="Target" value="System.out"/> 
     <layout class="org.apache.log4j.PatternLayout"> 
       <param name="ConversionPattern" value="%m%n"/> 
-    </layout> 
-  </appender>
-  
-  <appender name="cli-console-ts" class="org.apache.log4j.ConsoleAppender"> 
-    <param name="Target" value="System.out"/> 
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %m%n"/> 
     </layout> 
   </appender>
   
@@ -97,16 +89,6 @@
   <appender name="wslog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
     <param name="append" value="true"/>
     <param name="file" value="${DUCC_HOME}/logs/ws.${NodeName}.log"/>
-    <param name="maxBackupIndex" value="5" />
-    <param name="maxFileSize" value="10MB" />
-    <layout class="org.apache.log4j.PatternLayout"> 
-      <param name="ConversionPattern" value="%d{DATE} %X{TID} %5p %X{COMPONENT}.%c{1} - %m%n"/> 
-    </layout> 
-  </appender> 
-  
-  <appender name="vizlog" class="org.apache.uima.ducc.common.utils.DeferredOpenRollingAppender"> 
-    <param name="append" value="true"/>
-    <param name="file" value="${DUCC_HOME}/logs/viz.${NodeName}.log"/>
     <param name="maxBackupIndex" value="5" />
     <param name="maxFileSize" value="10MB" />
     <layout class="org.apache.log4j.PatternLayout"> 
@@ -204,26 +186,6 @@
      <appender-ref ref="wslog" /> 
    </category>
 
-   <category name="org.apache.uima.ducc.viz" additivity="true">
-     <priority value="debug"/>
-     <appender-ref ref="vizlog" /> 
-   </category>
-
-   <category name="org.apache.uima.ducc.duccsight" additivity="true">
-     <priority value="debug"/>
-     <appender-ref ref="vizlog" /> 
-   </category>
-
-   <category name="org.apache.uima.ducc.user.logs" additivity="true">
-     <priority value="info"/>
-     <appender-ref ref="jdout" /> 
-   </category>
-   
-   <category name="org.apache.uima.ducc.user.out" additivity="true">
-     <priority value="info"/>
-     <appender-ref ref="jdout" /> 
-   </category>
-   
    <category name="org.apache.uima.ducc.user.err" additivity="true">
      <priority value="info"/>
      <appender-ref ref="jderr" /> 
@@ -248,11 +210,6 @@
    <category name="org.apache.uima.ducc.cli" additivity="false">
      <priority value="info"/>
      <appender-ref ref="cli-console" />
-   </category>
-   
-   <category name="org.apache.uima.ducc.cli-ts" additivity="false">
-     <priority value="info"/>
-     <appender-ref ref="cli-console-ts" />
    </category>
    
   <root> 
