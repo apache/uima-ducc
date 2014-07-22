@@ -52,6 +52,8 @@ public class DuccLogger
     private final static String DEFAULT_COMPONENT = "DUCC";
     private static List<Logger> nonDuccLoggers = new ArrayList<Logger>();
 
+    private boolean debug = false;
+
     static protected void initLogger()
     {
         if ( log_thread == null ) {
@@ -144,7 +146,7 @@ public class DuccLogger
         //
         // If all else fails, set it to "DUCC"
         //
-    	System.out.println("Creating logger '" + claz + "' with component " + component);
+    	if ( debug) System.out.println("Creating logger '" + claz + "' with component " + component);
         if ( component == null ) {
             component = (String) MDC.get("COMPONENT");
             if ( component == null ) {
@@ -155,9 +157,9 @@ public class DuccLogger
             while (all_loggers.hasMoreElements() ) {
                 Logger l = (Logger) all_loggers.nextElement();
                 String n = l.getName();
-                System.out.println(" ===> Configured loggers " + n);
+                if ( debug ) System.out.println(" ===> Configured loggers " + n);
                 if ( ! n.startsWith("org.apache.uima.ducc" ) ) {
-                    System.out.println("      Special logger: " + n);
+                    if ( debug ) System.out.println("      Special logger: " + n);
                     nonDuccLoggers.add(l);
                 }
             }
@@ -198,10 +200,9 @@ public class DuccLogger
 
     public void setAdditionalAppenders()
     {
-        // if ( true) return;
-    	System.out.println("============ Looking for appenders -----------");
+    	if ( debug ) System.out.println("============ Looking for appenders -----------");
         if ( isDefaultLogger() ) {
-            System.out.println(" ---> Skipping appender search for default component");
+            if ( debug ) System.out.println(" ---> Skipping appender search for default component");
             return;
         }
 
@@ -216,19 +217,19 @@ public class DuccLogger
                     Appender app = (Appender) apps.nextElement();
                     // appenders.add(app);
                     if ( l.getName().startsWith("org.apache.uima.ducc") ) {
-                        System.out.println(" ---> Found appender " + app.getName() + " on logger " + l.getName());
+                        if ( debug ) System.out.println(" ---> Found appender " + app.getName() + " on logger " + l.getName());
                         for ( Logger ll : nonDuccLoggers ) {     // put the appender on the non-Ducc logger
-                            System.out.println(" ---> Add appender " + app.getName() + " to logger " + ll.getName());
+                            if ( debug ) System.out.println(" ---> Add appender " + app.getName() + " to logger " + ll.getName());
                             if ( ll.getAppender(app.getName() ) == null ) {
                                 ll.addAppender(app);
                             }
                         }
                     } else {
-                        System.out.println(" ---> Skipping non-DUCC appender " + app.getName() + " on logger " + l.getName());
+                        if ( debug ) System.out.println(" ---> Skipping non-DUCC appender " + app.getName() + " on logger " + l.getName());
                     }
                 }
             } else {
-                System.out.println(" ---> No appenders on logger " + l.getName());
+                if ( debug ) System.out.println(" ---> No appenders on logger " + l.getName());
             }
             l = l.getParent();
         }
