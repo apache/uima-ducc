@@ -370,7 +370,7 @@ public class ServiceManagerComponent
         if ( l.getDuccType() == DuccType.Reservation ) return;
         
         if ( l.getDuccType() == DuccType.Pop ) {
-            logger.info(methodName, l.getDuccId(), "BOTH: GOT A POP:", l.getDuccId());
+            logger.trace(methodName, l.getDuccId(), "BOTH: GOT A POP:", l.getDuccId());
         }
         
         if ( l.getStateObject() != r.getStateObject() ) {
@@ -392,7 +392,7 @@ public class ServiceManagerComponent
                 default:
                     break;                    
             }
-            logger.debug(methodName, l.getDuccId(), "Reconciling", l.getDuccType(), serviceType, "incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
+            logger.trace(methodName, l.getDuccId(), "Reconciling", l.getDuccType(), serviceType, "incoming state = ", l.getStateObject(), " my state = ", r.getStateObject());
         }
         
         // Update our own state by replacing the old (right) object with the new (left)
@@ -464,6 +464,7 @@ public class ServiceManagerComponent
         //     logger.error(methodName, null, t);
         // }
 
+		@SuppressWarnings("unchecked")
 		DuccMapDifference<DuccId, IDuccWork> diffmap = DuccCollectionUtils.difference(workMap, localMap);        
 
         for ( IDuccWork w : workMap.values() ) {
@@ -478,7 +479,7 @@ public class ServiceManagerComponent
         Map<DuccId, IDuccWork> work = diffmap.getLeft();
         for ( IDuccWork w : work.values() ) {
 
-        	logger.debug(methodName, w.getDuccId(), "Calculating diffs on left side.", w.getDuccId());
+        	logger.trace(methodName, w.getDuccId(), "Calculating diffs on left side.", w.getDuccId());
             if ( w.getDuccType() == DuccType.Reservation ) continue;
 
             if ( w.getDuccType() == DuccType.Pop ) {
@@ -487,7 +488,7 @@ public class ServiceManagerComponent
 
             if ( !((DuccWorkJob)w).isActive() ) continue;         // not active, we don't care about it. likely after restart.
 
-            logger.debug(methodName, w.getDuccId(), "Reconciling, adding", w.getDuccType());
+            logger.trace(methodName, w.getDuccId(), "Reconciling, adding", w.getDuccType());
 			switch(w.getDuccType()) {
               case Job:
                   localMap.addDuccWork(w);
@@ -520,7 +521,7 @@ public class ServiceManagerComponent
         // Stuff on the right is stuff we have but OR doesn't
         work = diffmap.getRight();
         for ( IDuccWork w : work.values() ) {
-        	logger.debug(methodName, w.getDuccId(), "Doing diffs on right");
+        	logger.trace(methodName, w.getDuccId(), "Doing diffs on right");
             if ( w.getDuccType() == DuccType.Reservation ) continue;
 
             if ( w.getDuccType() == DuccType.Pop ) {
@@ -568,7 +569,7 @@ public class ServiceManagerComponent
             IDuccWork r = jd.getRight();
             IDuccWork l = jd.getLeft();
             
-        	logger.debug(methodName, r.getDuccId(), "Doing diffs on middle A:", r.getDuccId(), l.getDuccId());
+        	logger.trace(methodName, r.getDuccId(), "Doing diffs on middle A:", r.getDuccId(), l.getDuccId());
             
             diffCommon(l, r, modifiedJobs, modifiedServices);
         }
@@ -581,7 +582,7 @@ public class ServiceManagerComponent
             IDuccWork r = (IDuccWork) localMap.get(k);
             IDuccWork l = (IDuccWork) workMap.get(k);
             
-         	logger.debug(methodName, r.getDuccId(), "Doing diffs on middle B:", r.getDuccId(), l.getDuccId());
+         	logger.trace(methodName, r.getDuccId(), "Doing diffs on middle B:", r.getDuccId(), l.getDuccId());
             
             diffCommon(l, r, modifiedJobs, modifiedServices);
         }
@@ -604,7 +605,7 @@ public class ServiceManagerComponent
         String methodName = "publish";
         try {
             SmStateDuccEvent ev = new SmStateDuccEvent();
-            logger.trace(methodName, null, "Publishing State, active job count =", map.size());
+            logger.info(methodName, null, "Publishing State, active job count =", map.size());
             if (logger.isDebug()) {
                 logger.info(methodName, null, map.toPrint());
             }
