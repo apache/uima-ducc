@@ -21,11 +21,12 @@ under the License.
   <link rel="shortcut icon" href="uima.ico" />
   <title>ducc-mon</title>
   <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
-  <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>
-  <script src="opensources/jgrowl/jquery.jgrowl.js" type="text/javascript"></script>
-  <link rel="stylesheet" href="opensources/jgrowl/jquery.jgrowl.css" type="text/css"/>
-  <link href="opensources/jquery-ui-1.8.4/gallery/jquery-ui-themes-1.8.4/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <script src="opensources/jquery-ui-1.8.4/ui/minified/jquery-ui.min.js"></script>
+  <script src="opensources/jquery-2.0.3.min.js" type="text/javascript"></script>
+  <script src="opensources/jgrowl-1.3/jquery.jgrowl.js" type="text/javascript"></script>
+  <link rel="stylesheet" href="opensources/jgrowl-1.3/jquery.jgrowl.css" type="text/css"/>
+  <link href="opensources/jquery-ui-1.11.0.custom/jquery-ui.theme.min.css" rel="stylesheet" type="text/css"/>
+  <link href="opensources/jquery-ui-1.11.0.custom/jquery-ui.structure.min.css" rel="stylesheet" type="text/css"/>
+  <script src="opensources/jquery-ui-1.11.0.custom/jquery-ui.min.js"></script>
   <link href="opensources/navigation/menu.css" rel="stylesheet" type="text/css">
   <script src="js/ducc.js"></script>
   <script type="text/javascript" src="opensources/sorttable.js"></script>

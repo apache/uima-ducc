@@ -16,14 +16,15 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-  <script src="opensources/jquery-1.4.2.js" type="text/javascript"></script>
+  <script src="opensources/jquery-2.0.3.min.js" type="text/javascript"></script>
   <script src="opensources/cluetip/jquery.cluetip.js" type="text/javascript"></script>
   <link href="opensources/cluetip/jquery.cluetip.css" rel="stylesheet" type="text/css">
   <script type="text/javascript" src="opensources/sorttable.js"></script>
-  <script src="opensources/jgrowl/jquery.jgrowl.js" type="text/javascript"></script>
-  <link rel="stylesheet" href="opensources/jgrowl/jquery.jgrowl.css" type="text/css"/>
-  <link href="opensources/jquery-ui-1.8.4/gallery/jquery-ui-themes-1.8.4/themes/redmond/jquery-ui.css" rel="stylesheet" type="text/css"/>
-  <script src="opensources/jquery-ui-1.8.4/ui/minified/jquery-ui.min.js"></script>
+  <script src="opensources/jgrowl-1.3/jquery.jgrowl.js" type="text/javascript"></script>
+  <link rel="stylesheet" href="opensources/jgrowl-1.3/jquery.jgrowl.css" type="text/css"/>
+  <link href="opensources/jquery-ui-1.11.0.custom/jquery-ui.theme.min.css" rel="stylesheet" type="text/css"/>
+  <link href="opensources/jquery-ui-1.11.0.custom/jquery-ui.structure.min.css" rel="stylesheet" type="text/css"/>
+  <script src="opensources/jquery-ui-1.11.0.custom/jquery-ui.min.js"></script>
   <link href="opensources/navigation/menu.css" rel="stylesheet" type="text/css">
   <script src="js/ducc.js"></script>
   <link href="ducc.css" rel="stylesheet" type="text/css">
