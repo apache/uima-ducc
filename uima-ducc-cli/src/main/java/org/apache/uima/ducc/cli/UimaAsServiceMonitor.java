@@ -63,6 +63,7 @@ public class UimaAsServiceMonitor
     String nodeId;
     String pid;
     boolean gmfail = false;
+    String  failure_reason = null;
 
     String jmxFailure = null;
 
@@ -182,11 +183,20 @@ public class UimaAsServiceMonitor
         this.jmxFailure = msg;
     }
 
+    public void setSource(String nodeId, String pid, boolean gmfail, String failure_reason)
+    {
+        this.nodeId = nodeId;
+        this.pid = pid;
+        this.gmfail = gmfail;
+        this.failure_reason = failure_reason;
+    }
+
     public void setSource(String nodeId, String pid, boolean gmfail)
     {
         this.nodeId = nodeId;
         this.pid = pid;
         this.gmfail = gmfail;
+        this.failure_reason = null;
     }
 
     public IServiceStatistics getStatistics()
@@ -206,16 +216,16 @@ public class UimaAsServiceMonitor
 
     public String format()
     {
+        String answer = null;
         if ( jmxFailure != null ) {
-            return "JMX Failure[" 
+            answer = "JMX Failure[" 
                 + jmxFailure + "]" 
                 +  "] MetaNode[" + nodeId
                 +  "] MetaPid[" + pid
-                +  (gmfail ? "(F)" : "")
-                + "]"
                 ;
+
         } else {
-            return "QDEPTH[" + queueSize
+            answer = "QDEPTH[" + queueSize
                 +  "] AveNQ[" + new DecimalFormat("####.##").format(enqueueTime)
                 +  "] Consum[" + consumerCount
                 +  "] Prod[" + producerCount
@@ -227,12 +237,18 @@ public class UimaAsServiceMonitor
                 +  "] NQ[" + enqueueCount
                 +  "] NDisp[" + dispatchCount
                 +  "] MetaNode[" + nodeId
-                +  "] MetaPid[" + pid
-                +  (gmfail ? "(F)" : "")
-                + "]"
+                +  "] MetaPid[" + pid;
                 ;
         }
 
+        if ( gmfail ) {
+            if ( failure_reason == null ) {
+                answer = answer + "; getMeta failure to service.";
+            } else {
+                answer = answer + ": " + failure_reason;
+            }
+        }
+        return answer;
     }
 
     public void collect()

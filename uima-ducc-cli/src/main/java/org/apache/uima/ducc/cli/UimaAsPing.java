@@ -113,11 +113,17 @@ public class UimaAsPing
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-            meta_timeout         = props.getIntProperty    ("meta-timeout"   , 5000);
-            broker_jmx_port      = props.getIntProperty    ("broker-jmx-port", 1099);
+            meta_timeout          = props.getIntProperty    ("meta-timeout"   , 5000);
+            String broker_tmp_jmx = props.getProperty       ("broker-jmx-port");
+            if ( broker_tmp_jmx.equals("none") ) {
+                broker_jmx_port = -1;
+                this.monitor = null;
+            } else {
+                broker_jmx_port = props.getIntProperty("broker-jmx-port", 1099);
+                this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
+            }
         }
 
-        this.monitor = new UimaAsServiceMonitor(endpoint, broker_host, broker_jmx_port);
     }
 
     public void stop()
@@ -131,15 +137,15 @@ public class UimaAsPing
         // Note that this particular pinger considers 'health' to be a function of whether
         // the get-mata worked AND the queue statistics.
         try {
-            monitor.collect();
+            if ( monitor != null ) {
+                monitor.collect();
+                long cc = monitor.getProducerCount();
+                if ( cc > 0 ) {
+                    last_use = System.currentTimeMillis();
+                }                
+            }
             stats.setHealthy(true);       // this pinger defines 'healthy' as
                                           // 'service responds to get-meta and broker returns jmx stats'
-
-            long cc = monitor.getProducerCount();
-            if ( cc > 0 ) {
-                last_use = System.currentTimeMillis();
-            }
-
         } catch ( Throwable t ) {
             stats.setHealthy(false);
             monitor.setJmxFailure(t.getMessage());
@@ -158,6 +164,8 @@ public class UimaAsPing
     {
         String methodName = "getStatistics";
         IServiceStatistics statistics = new ServiceStatistics(false, false, "<NA>");
+        String failure_reason = null;
+
         nodeIp = "N/A";
         pid = "N/A";
 
@@ -172,26 +180,48 @@ public class UimaAsPing
         appCtx.put(UimaAsynchronousEngine.ENDPOINT, endpoint);
         appCtx.put(UimaAsynchronousEngine.GetMetaTimeout, meta_timeout);
 
+        ResourceInitializationException excp = null;
+        gmfail = false;
         try {
             uimaAsEngine.initialize(appCtx);
             statistics.setAlive(true);
             statistics.setHealthy(true && statistics.isHealthy());
             listener.ok();
-        } catch( ResourceInitializationException e) {
+        } catch( ResourceInitializationException e ) {
+            excp = e;
             listener.timeout();
-            doLog(methodName, "Cannot issue getMeta to: " + endpoint + ":" + broker);
             statistics.setHealthy(false);
             statistics.setAlive(false);
         } finally {
             try {
 				uimaAsEngine.stop();
 			} catch (Throwable e) {
-				doLog(methodName, "Exception on UIMA-AS connection stop:" + e.toString());
+				doLog(methodName, "Exception on UIMA-AS connection stop: " + e.toString());
 			}
         }
 
-        monitor.setSource(nodeIp, pid, gmfail);
-        statistics.setInfo(monitor.format());
+        if ( gmfail || excp != null ) {
+            failure_reason = "Cannot issue getMeta to: " + endpoint + ":" + broker; 
+            if ( excp != null ) {
+                if (excp.getCause() == null ) {
+                    failure_reason = failure_reason + ": " + excp.toString();
+                } else {
+                    failure_reason = failure_reason + ": " + excp.getCause();
+                }
+            }
+            doLog(methodName, failure_reason);
+        }
+
+        if ( monitor == null ) {                   // no jmx active
+            if ( failure_reason != null ) {
+                statistics.setInfo(failure_reason);
+            } else {
+                statistics.setInfo("Ping to " + nodeIp + ": " + pid + " ok. (JMX disabled.)");
+            }
+        } else {
+            monitor.setSource(nodeIp, pid, gmfail, failure_reason);
+            statistics.setInfo(monitor.format());
+        }
 
         return statistics;
     }
