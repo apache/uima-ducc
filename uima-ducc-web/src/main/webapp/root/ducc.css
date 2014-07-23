@@ -19,6 +19,18 @@
 body {
 }
 
+.log-display-top {
+    background-color:#ddddff;
+    padding-right: 10px;
+    padding-left: 10px;
+} 
+
+.log-display-bot {
+    background-color:#eeeeff;
+    padding-right: 10px;
+    padding-left: 10px;
+} 
+
 div.flex-page {
 	width: 100%;
 }
