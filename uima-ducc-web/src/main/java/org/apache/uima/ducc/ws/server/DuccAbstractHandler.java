@@ -77,6 +77,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public final String duccContext = "/ducc-servlet";
 	
 	public final String duccLogData			  = duccContext+"/log-data";
+	public final String duccFilePager 		  = "file.pager.html";
 	
 	public final String duccJpInitSummary	  = duccContext+"/uima-initialization-report-summary";
 	public final String duccJpInitData		  = duccContext+"/uima-initialization-report-data";
@@ -816,7 +817,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			}
 			String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 			String logfile = "jd.err.log";
-			String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+name+"</a>";
+			String href = "<a href=\""+duccFilePager+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+name+"</a>";
 			retVal = href;
 		}
 		return retVal;

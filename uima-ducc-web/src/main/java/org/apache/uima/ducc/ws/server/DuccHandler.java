@@ -417,8 +417,17 @@ public class DuccHandler extends DuccAbstractHandler {
 		}
 		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
 		String logfile = buildLogFileName(job, process, sType);
+		
+		String user = job.getStandardInfo().getUser();
+		String file_name = logsjobdir+logfile;
+		String ducc_ling = null;
+		
+		AlienTextFile atf = new AlienTextFile(user, file_name, ducc_ling);
+		int pages = atf.getPageCount();
+		String parms = "?"+"fname="+file_name+"&"+"pages="+pages;
+		String url=duccFilePager+parms;
 		String errfile = "jd.err.log";
-		String href = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
+		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
 		String tr = trGet(counter);
 		rb.append(tr);
 		int index = -1;
@@ -964,7 +973,7 @@ public class DuccHandler extends DuccAbstractHandler {
 				index = 0;
 				// Log
 				index = 1;
-				String href2 = "<a href=\""+duccLogData+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
+				String href2 = "<a href=\""+duccFilePager+"?"+"fname="+logsjobdir+errfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+errfile+"</a>";
 				cbList[index] = new StringBuffer();
 				cbList[index].append("<td>");
 				cbList[index].append(href2);
@@ -1743,7 +1752,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String href = "<a href=\""+duccFileContents+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					String href = "<a href=\""+duccFilePager+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
@@ -1797,7 +1806,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					*/
 					// name
 					row.append("<td>");
-					String href = "<a href=\""+duccFileContents+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					String href = "<a href=\""+duccFilePager+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
@@ -1847,7 +1856,7 @@ public class DuccHandler extends DuccAbstractHandler {
 					row.append("</td>");
 					// name
 					row.append("<td>");
-					String href = "<a href=\""+duccFileContents+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
+					String href = "<a href=\""+duccFilePager+"?"+"fname="+file.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+file.getName()+"</a>";
 					row.append(href);
 					row.append("</td>");
 					// size
@@ -1965,7 +1974,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						row.append("</td>");
 						// name
 						row.append("<td>");
-						String href = "<a href=\""+duccFileContents+"?"+"fname="+historyFile.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+historyFile.getName()+"</a>";
+						String href = "<a href=\""+duccFilePager+"?"+"fname="+historyFile.getAbsolutePath()+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+historyFile.getName()+"</a>";
 						row.append(href);
 						row.append("</td>");
 						// size
@@ -2049,7 +2058,7 @@ public class DuccHandler extends DuccAbstractHandler {
 								link = logfile+":"+reason;
 							}
 						}
-						String href = "<a href=\""+duccLogData+"?"+"loc=bot&"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
+						String href = "<a href=\""+duccFilePager+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
 					data.append("</table>");
@@ -2097,7 +2106,7 @@ public class DuccHandler extends DuccAbstractHandler {
 								link = logfile+":"+reason;
 							}
 						}
-						String href = "<a href=\""+duccLogData+"?"+"loc=bot&"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
+						String href = "<a href=\""+duccFilePager+"?"+"fname="+logsjobdir+logfile+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}
 					data.append("</table>");
@@ -3293,39 +3302,82 @@ public class DuccHandler extends DuccAbstractHandler {
 		String methodName = "handleDuccServletFileContents";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
 		String fname = request.getParameter("fname");
+		String page = request.getParameter("page");
 		StringBuffer sb = new StringBuffer();
-		InputStreamReader isr = null;
-		BufferedReader br = null;
+		String userId = duccWebSessionManager.getUserId(request);	
+		String newline = "\n";
+		String colon = ":";
 		try {
-			String userId = duccWebSessionManager.getUserId(request);
-			isr = DuccFile.getInputStreamReader(fname, userId);
-			br = new BufferedReader(isr);
-			String logLine;
-			while ((logLine = br.readLine()) != null)   {
-				if(fname.endsWith(".xml")) {
-					logLine = logLine.replace("<", "&lt");
-					logLine = logLine.replace(">", "&gt");
+			String user = userId;
+			String file_name = fname;
+			String ducc_ling = null;
+			AlienTextFile atf = new AlienTextFile(user, file_name, ducc_ling);
+			int pageCount = atf.getPageCount();
+			int pageNo = 0;
+			try {
+				pageNo = Integer.parseInt(page);
+			}
+			catch(Exception e) {
+			}
+			if(pageNo == 0) {
+				pageNo = pageCount;
+			}
+			pageNo = pageNo - 1;
+			if(pageNo < 0) {
+				pageNo = 0;
+			}
+			String prepend = "";
+			String chunk = atf.getPage(pageNo);
+			String postpend = "";
+			if(pageNo > 0) {
+				String previous = atf.getPage(pageNo-1);
+				if(previous.contains(newline)) {
+					String[] lines = previous.split(newline);
+					int index = lines.length - 1;
+					prepend = lines[index];
 				}
-				sb.append(logLine+"<br>");
+				else if(previous.contains(colon)) {
+					String[] lines = previous.split(colon);
+					int index = lines.length - 1;
+					prepend = lines[index];
+				}
 			}
+			if(pageNo < (pageCount - 1)) {
+				String next = atf.getPage(pageNo+1);
+				if(next.contains(newline)) {
+					String[] lines = next.split(newline);
+					int index = 0;
+					postpend = lines[index];
+				}
+				if(next.contains(colon)) {
+					String[] lines = next.split(colon);
+					int index = 0;
+					postpend = lines[index];
+				}
+			}
+			String aggregate = prepend + chunk + postpend;
+			
+			if(fname.endsWith(".xml")) {
+				aggregate = aggregate.replace("<", "&lt");
+				aggregate = aggregate.replace(">", "&gt");
+			}
+			
+			//if(!aggregate.trim().contains("\n")) {
+			//	if(aggregate.trim().contains(":")) {
+			//		String[] lines = aggregate.trim().split(":");
+			//		aggregate = "";
+			//		for(String line : lines) {
+			//			aggregate += line+"\n";
+			//		}
+			//	}
+			//}
+			
+			sb.append(aggregate);
 		}
-		catch(FileNotFoundException e) {
-			sb.append("File not found");
-		}
-		catch(Throwable t) {
-			sb.append("Error accessing file");
-		}
-		finally {
-			try {
-				br.close();
-			}
-			catch(Throwable t) {
-			}
-			try {
-				isr.close();
-			}
-			catch(Throwable t) {
-			}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+			sb = new StringBuffer();
+			sb.append("Error processing file");
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
