@@ -243,10 +243,12 @@ public class NodeViz
 
 
         for (String s : m.keySet()) {
+            if ( !m.get(s).getStatus().equals("up") ) continue;
+            s = strip(s);
             if ( ! hosts.containsKey(s) ) {
                 // System.out.println("Set host from MachineInfo with key :" + s + ":");
                 VisualizedHost vh = new VisualizedHost(m.get(s), quantum);
-                hosts.put(strip(s), vh);
+                hosts.put(s, vh);
             }
         }
 
