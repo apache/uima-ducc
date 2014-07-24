@@ -260,15 +260,15 @@
         The build-in default UIMA-AS pinger supports an argument string of the following form
         (with NO embedded blanks):
 \begin{verbatim}
-     queue_threshold=nn,window=mm,broker_jmx_port=pppp,meta_timeout=tttt
+     queue_threshold=nn,window=mm,broker-jmx-port=pppp,meta-timeout=tttt
 \end{verbatim}
         
         The keywords in the string have the following meaning:
         \begin{description}
-          \item[broker\_jmx\_port=pppp] This is the JMX port for the service's broker.  If not
+          \item[broker-jmx-port=pppp] This is the JMX port for the service's broker.  If not
             specified, the default of 1099 is used.  This is used to gather ActiveMQ statistics
             for the service.
-          \item[meta\_timeout=tttt] This is the time, in milliseconds, to wait for a response
+          \item[meta-timeout=tttt] This is the time, in milliseconds, to wait for a response
             to UIMA-AS {\em get-meta}.  If not specified, the default is 5000 milliseconds.
         \end{description}
       
