@@ -101,8 +101,10 @@ if (table_style.equals("scroll")) {
 <%
 if (table_style.equals("scroll")) {
 %>
-	<table id="system-daemons" width="100%">
+	<table width="100%">
 	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Daemons List</b><br><i><small>click column heading to sort</small></i></caption>
+	</table>
+	<table id="system-daemons" width="100%">
 	<thead>
 	<tr class="ducc-header">
 	<th align="left" style="width: 75px;" title="The current status">Status</th>

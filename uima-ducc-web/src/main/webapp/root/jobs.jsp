@@ -102,8 +102,10 @@ if (table_style.equals("scroll")) {
 <%
 if (table_style.equals("scroll")) {
 %>
-	<table id="jobs-table" width="100%">
+	<table width="100%">
 	<caption title="Hint: use Preferences -> Table Style to alter format"><b>Jobs List</b><br><i><small>click column heading to sort</small></i></caption>
+	</table>
+	<table id="jobs-table" width="100%">
 	<thead>
 	<tr class="ducc-header">
 	<th class="ducc-col-terminate"></th>
