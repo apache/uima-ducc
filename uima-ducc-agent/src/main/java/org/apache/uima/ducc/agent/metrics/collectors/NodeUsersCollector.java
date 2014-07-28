@@ -215,9 +215,9 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
 
       ProcessBuilder pb;
       if ( Utils.isMac() ) {
-        pb = new ProcessBuilder("ps","-Ao","user=,pid=,ppid=,args=,uid=");
+        pb = new ProcessBuilder("ps","-Ao","user=,pid=,ppid=,uid=,args=");
       } else {
-        pb = new ProcessBuilder("ps","-Ao","user:12,pid,ppid,args,uid", "--no-heading");
+        pb = new ProcessBuilder("ps","-Ao","user:12,pid,ppid,uid,args", "--no-heading");
       }
       pb.redirectErrorStream(true);
       Process proc = pb.start();
@@ -278,8 +278,8 @@ public class NodeUsersCollector implements CallableNodeUsersCollector {
         String user = tokens[0];
         String pid = tokens[1];
         String ppid = tokens[2];
-        String cmd = tokens[3];
-        String uid = tokens[4];
+        String uid = tokens[3];
+        String cmd = tokens[4];
         
         if ( tokens.length > 0 ) {
         	try {
