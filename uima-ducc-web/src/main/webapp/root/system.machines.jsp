@@ -136,14 +136,14 @@ if (table_style.equals("classic")) {
 		<th align="left" title="The current status">Status</th>
 		<th align="left" title="The host IP">IP</th>
 		<th align="left" title="The host name">Name</th>
-		<th align="left" title="The host effective memory size, in GB (hint: specify this size to reserve entire machine)" >Memory(GB):usable</th>
-		<th align="left" title="The host actual memory size, in GB" >Memory(GB):total</th>
-		<th align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
-		<th align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
-		<th align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
-		<th align="left" title="The number of system shares" >Shares:total</th>
-		<th align="left" title="The number of system shares inuse" >Shares:inuse</th>
-		<th align="left" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>
+		<th class="sorttable_numeric" align="left" title="The host effective memory size, in GB (hint: specify this size to reserve entire machine)" >Memory(GB):usable</th>
+		<th class="sorttable_numeric" align="left" title="The host actual memory size, in GB" >Memory(GB):total</th>
+		<th class="sorttable_numeric" align="left" title="The host inuse swap size, in GB" >Swap(GB):inuse</th>
+		<th class="sorttable_numeric" align="left" title="The host free swap size, in GB" >Swap(GB):free</th>
+		<th class="sorttable_numeric" align="left" title="The number of alien PIDs (those processes not associated with a user running jobs or having a reservation)" >Alien PIDs</th>
+		<th class="sorttable_numeric" align="left" title="The number of system shares" >Shares:total</th>
+		<th class="sorttable_numeric" align="left" title="The number of system shares inuse" >Shares:inuse</th>
+		<th class="sorttable_numeric" align="left" title="The elapsed time (in seconds) since the last heartbeat" >Heartbeat (last)</th>
 		</tr>
 		</thead>
 		<tbody id="machines_list_area">
