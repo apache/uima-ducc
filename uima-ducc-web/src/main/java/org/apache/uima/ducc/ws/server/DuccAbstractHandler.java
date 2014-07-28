@@ -214,6 +214,9 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 			long d2 = Long.parseLong(millisV2);
 			long d1 = Long.parseLong(millisV1);
 			long diff = d2 - d1;
+			if(diff < 0) {
+				diff = 0;
+			}
 			retVal = FormatHelper.duration(diff, precision);
 		}
 		catch(Exception e) {
