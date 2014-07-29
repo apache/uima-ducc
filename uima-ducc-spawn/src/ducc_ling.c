@@ -43,7 +43,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#define VERSION "1.1.1"
+#define VERSION "1.1.2"
 
 /**
  * 2012-05-04 Support -w <workingdir>.  jrc.
@@ -73,6 +73,7 @@
  * 2014-02-14 1.0.1 Use initgroups to fully initalize usergrouops.  jrc
  * 2014-02-14 1.1.0 Support DUCC_UMASK to give user control over umask.  jrc
  * 2014-07-16 1.1.1 Bug in group switching; show IDS the process is to run with. jrc
+ * 2014-07-16 1.1.2 Send group switching msgs to log_stdout so they get covered by -q option. jrc
  */
 
 /**
@@ -518,19 +519,19 @@ void show_ids(char *userid)
     gid_t groups[size];
     getgroups(size, groups);
 
-    fprintf(stdout, "1103 Groups:");
+    log_stdout("1103 Groups:");
     int i = 0;
     for ( i = 0; i < size; i++ ) {
         struct group* gr = getgrgid(groups[i]);
-        fprintf(stdout, " %d(%s)", groups[i], gr -> gr_name);
+        log_stdout(" %d(%s)", groups[i], gr -> gr_name);
     }
-    fprintf(stdout, "\n");
+    log_stdout("\n");
 
     gid_t my_group = getgid();
     gid_t my_effective_group = getegid();
     uid_t my_id = getuid();
     uid_t my_effective_id = geteuid();
-    fprintf(stdout, "1104 Running with user and group: id %d gid %d eid %d egid %d\n", my_id, my_group, my_effective_id, my_effective_group);
+    log_stdout("1104 Running with user and group: id %d gid %d eid %d egid %d\n", my_id, my_group, my_effective_id, my_effective_group);
 
 }
 
