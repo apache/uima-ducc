@@ -363,6 +363,10 @@ public class ServiceSet
         this.independentServices = ind;
     }
 
+    void deleteJobProperty(String k) {
+        job_props.remove(k);
+    }
+
     void setJobProperty(String k, String v)
     {
         job_props.put(k, v);
@@ -941,6 +945,7 @@ public class ServiceSet
     {
         String methodName = "reference";
 
+        logger.info(methodName, this.id, "Reference start requested by ", id);
         if ( excessiveFailures() ) {
             logger.warn(methodName, this.id, "Reference start fails, excessive failures: init[" + init_failures + "], run[" + run_failures + "]");
             return;
@@ -959,7 +964,10 @@ public class ServiceSet
 
         // Nothing running, so we do referenced start.
         setReferencedStart(true);
-        start(registered_instances);
+
+        if ( ! isStopped() ) {
+            start(registered_instances);
+        }
 
     }
 
