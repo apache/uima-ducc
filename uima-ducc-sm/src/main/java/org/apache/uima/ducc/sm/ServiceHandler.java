@@ -962,7 +962,11 @@ public class ServiceHandler
             case ServicePingClass:
             case InstanceFailureWindow:
             case InstanceFailureLimit:
-                sset.setJobProperty(option.pname(), value);
+                if ( value.equals("delete") ) {
+                    sset.deleteJobProperty(option.pname());
+                } else {
+                    sset.setJobProperty(option.pname(), value);
+                }
                 restart_pinger = true;
                 break;
 
