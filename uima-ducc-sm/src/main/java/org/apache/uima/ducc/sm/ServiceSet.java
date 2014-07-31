@@ -161,6 +161,7 @@ public class ServiceSet
 
     boolean inShutdown = false;
 
+    String[] coOwners = null;
     //
     // Constructor for a registered service
     //
@@ -174,8 +175,8 @@ public class ServiceSet
         this.props_filename = props_filename;
         this.props_filename_temp = props_filename + ".tmp";
         this.props_file = new File(props_filename);
-        this.props_file_temp = new File(props_filename_temp);
-
+        this.props_file_temp = new File(props_filename_temp);        
+        
         this.meta_filename = meta_filename;
         this.meta_filename_temp = meta_filename + ".tmp";
         this.meta_file = new File(meta_filename);
@@ -195,9 +196,17 @@ public class ServiceSet
         this.stopped   = meta.getBooleanProperty("stopped", stopped);
         this.service_class = ServiceClass.Registered;
         this.init_failure_max = props.getIntProperty("instance_init_failures_limit", init_failure_max);
-
+        
+        
         if ( props.containsKey(UiOption.ProcessDebug.pname()) ) {
             this.process_debug = true;
+        }
+
+        if ( props.containsKey(UiOption.Administrators.pname()) ) {
+            String adm = props.getProperty(UiOption.Administrators.pname());
+            if ( adm != null ) {
+                coOwners = adm.split("\\s+");
+            }
         }
 
         parseIndependentServices();
@@ -382,13 +391,32 @@ public class ServiceSet
         return process_debug;
     }
 
+    /**
+     * Is 'user' a registered co-owner?
+     */
+    boolean isAuthorized(String user)
+    {
+        if ( coOwners == null ) return false;
+        for ( String s : coOwners ) {
+            if ( s.equals(user) ) return true;
+        }
+        return false;
+    }
+
+    void parseAdministrators(String admins)
+    {
+        if ( admins != null ) {
+            coOwners = admins.split("\\s+");
+        }
+    }
+
     private void parseIndependentServices()
     {
         String depstr = job_props.getProperty(UiOption.ServiceDependency.pname());
         String[] result = null;
 
         if ( depstr != null ) {
-            result = depstr.split("\\s");
+            result = depstr.split("\\s+");
             for ( int i = 0; i < result.length; i++ ) {
                 result[i] = result[i].trim();
             }
@@ -963,10 +991,13 @@ public class ServiceSet
         }
 
         // Nothing running, so we do referenced start.
-        setReferencedStart(true);
 
         if ( ! isStopped() ) {
+            logger.info(methodName, this.id, "Reference starting new service instances.");
+            setReferencedStart(true);
             start(registered_instances);
+        } else {
+            logger.info(methodName, this.id, "Not reference starting new service instances because service is stopped.");
         }
 
     }
