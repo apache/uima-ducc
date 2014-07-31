@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryReplyEvent;
@@ -663,9 +664,36 @@ public class ServiceHandler
         return reply;
     }
 
+    boolean authorized(String operation, ServiceSet sset, AServiceRequest req)
+    {
+        String methodName = "authorized";
+
+        String userin  = req.getUser();
+        String userout = sset.getUser();
+
+        if ( userin.equals(userout) ) {                  // owner is always authorized
+            logger.info(methodName, sset.getId(), operation, "request from", userin, "allowed.");
+            return true;
+        }
+
+        if ( serviceManager.isAdministrator(req) ) {      // global admin is always authorized
+            logger.info(methodName, sset.getId(), operation, "request from", userin, "allowed as DUCC administrator. Service owner:", userout);
+            return true;
+        }
+
+        if ( sset.isAuthorized(userin) ) {                  // registered co-owner is always authorized
+            logger.info(methodName, sset.getId(), operation, "request from", userin, "alloed as co-ownder.  Service owner:", userout);
+            return true;
+        }
+
+        logger.info(methodName, sset.getId(), operation, "request from", userin, "not authorized.  Service owner:", userout);
+        return false;
+
+    }
+
     ServiceReplyEvent start(ServiceStartEvent ev)
     {
-        String methodName = "start";
+        // String methodName = "start";
         
         long   id  = ev.getFriendly();
         String url = ev.getEndpoint();
@@ -674,12 +702,8 @@ public class ServiceHandler
             return new ServiceReplyEvent(false, "Unknown service", url, id);
         }
 
-        String userin  = ev.getUser();
-        String userout = sset.getUser();
-        logger.info(methodName, sset.getId(), "userin", userin, "userout", userout, "ev.asAdministrator", ev.asAdministrator(), "ok", serviceManager.isAdministrator(ev));
-
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
+        if ( ! authorized("start", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
         int running    = sset.countImplementors();
@@ -773,12 +797,10 @@ public class ServiceHandler
             return new ServiceReplyEvent(false, "Unknown service", url, id);
         }
 
-        String userin = ev.getUser();
-        String userout = sset.getUser();
-
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
+        if ( ! authorized("stop", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
+
 
         if ( sset.isStopped() ) {
             return new ServiceReplyEvent(false, "Already stopped", sset.getKey(), sset.getId().getFriendly());
@@ -887,11 +909,8 @@ public class ServiceHandler
             return new ServiceReplyEvent(false, "Unknown service", url, id);
         }
 
-        String userin = ev.getUser();
-        String userout = sset.getUser();
-
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
+        if ( ! authorized("modify", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
         
         pendingRequests.add(new ApiHandler(ev, this));
@@ -918,6 +937,11 @@ public class ServiceHandler
             case Autostart:
                 boolval = Boolean.parseBoolean(value);
                 sset.setAutostart(boolval);
+                break;
+
+            case Administrators:
+                sset.setJobProperty(option.pname(), value);
+                sset.parseAdministrators(value);
                 break;
 
             // For the moment, these all update the registration but don't change internal 
@@ -1029,71 +1053,6 @@ public class ServiceHandler
         // restart_service - not yet
     }
 
-    //void doModify(long id, String url, int instances, Trinary autostart, boolean activate)
-    void doModifyOld(ServiceModifyEvent sme)
-    {
-        String methodName = "doModify";
-
-        long id = sme.getFriendly();
-        String url = sme.getEndpoint();
-        ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
-
-        DuccProperties mods  = sme.getProperties();
-
-        String pingArguments = mods.getStringProperty("service_ping_arguments", null);
-        String pingClass     = mods.getStringProperty("service_ping_class"    , null);
-        String pingClasspath = mods.getStringProperty("service_ping_classpath", null);
-        String pingJvmArgs   = mods.getStringProperty("service_ping_jvm_args" , null);
-        String pingTimeout   = mods.getStringProperty("service_ping_timeout"  , null);
-        String pingDolog     = mods.getStringProperty("service_ping_dolog"    , null);
-
-        int    instances     = mods.getIntProperty("instances", -1);
-        boolean activate     = mods.getBooleanProperty("activate", true);
-
-        if ( instances > 0 ) {
-            // old sset.setNInstances(instances);                // also persists instances
-            if ( activate ) {
-                int running    = sset.countImplementors();
-                int diff       = instances - running;
-                
-                if ( diff > 0 ) {
-                    sset.start(diff);
-                } else if ( diff < 0 ) {
-                    sset.stop(-diff);
-                }
-            }          
-        }
-
-        if ( mods.containsKey("autostart" ) ) {        	
-            sset.setAutostart(mods.getBooleanProperty("autostart", true));
-        }        
-        
-        if ( pingArguments != null ) sset.setJobProperty("service_ping_arguments", pingArguments);
-        if ( pingClass     != null ) sset.setJobProperty("service_ping_class"    , pingClass);
-        if ( pingClasspath != null ) sset.setJobProperty("service_ping_classpath", pingClasspath);
-        if ( pingJvmArgs   != null ) sset.setJobProperty("service_jvm_args"      , pingJvmArgs);
-        if ( pingTimeout   != null ) sset.setJobProperty("service_ping_timeout"  , pingTimeout);
-        if ( pingDolog     != null ) sset.setJobProperty("service_ping_dolog"    , pingDolog);
-
-        try {
-            sset.saveServiceProperties();
-            sset.saveMetaProperties();
-        } catch ( Exception e ) {
-            logger.error(methodName, null, "Service", id, ": Internal error, unable to store service descriptor. " + url);
-        }
-
-        // Must restart pinger if anything about it changed.
-        if ( (pingClass     != null) ||
-             (pingArguments != null) ||
-             (pingClasspath != null) ||
-             (pingJvmArgs   != null) ||
-             (pingTimeout   != null) ||
-             (pingDolog     != null) ) {
-            // sset.restartPinger(pingClass, pingArguments, pingClasspath, pingJvmArgs, pingTimeout, pingDolog);
-        }
-
-    }
-
     public ServiceReplyEvent unregister(ServiceUnregisterEvent ev)
     {
         String methodName = "unregister";
@@ -1109,13 +1068,8 @@ public class ServiceHandler
         ev.setEndpoint(url);
         ev.setFriendly(id);
 
-        String userin = ev.getUser();
-        String userout = sset.getUser();
-
-        logger.info(methodName, sset.getId(), "Unregister received from", userin);
-
-        if ( !userin.equals(userout) && !serviceManager.isAdministrator(ev) ) {
-            return new ServiceReplyEvent(false, "Owned by " + userout,  url, sset.getId().getFriendly());
+        if ( ! authorized("unregister", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
         
         serviceStateHandler.unregister(sset);

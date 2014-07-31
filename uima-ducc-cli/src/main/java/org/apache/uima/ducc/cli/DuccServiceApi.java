@@ -54,6 +54,7 @@ public class DuccServiceApi
         UiOption.Help,
         UiOption.Debug,
         UiOption.Description,
+        UiOption.Administrators,
         UiOption.SchedulingClass,
         UiOption.LogDirectory,
         UiOption.WorkingDirectory,

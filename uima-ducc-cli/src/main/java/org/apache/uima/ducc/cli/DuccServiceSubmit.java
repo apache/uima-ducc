@@ -45,6 +45,8 @@ public class DuccServiceSubmit
         UiOption.Help,
         UiOption.Debug, 
         UiOption.Description,
+        UiOption.Administrators,      // ( not used directly here, but is allowed in registration )
+
         UiOption.SchedulingClass,
         UiOption.LogDirectory,
         UiOption.WorkingDirectory,

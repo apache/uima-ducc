@@ -186,6 +186,14 @@ public interface IUiOptions
             public String label()       { return null; }
         },            
 
+        Administrators { 
+            public String pname()       { return "administrators"; } 
+            public String argname()     { return "list of ids"; } 
+            public String description() { return "Blank-delimited list of userids allowed to manage this service."; } 
+            public String example()     { return "bob mary jimbo"; }
+            public String label()       { return name(); }
+        },
+        
         Instances   { 
             public String pname()       { return "instances"; } 
             public String argname()     { return "integer"; } 
