@@ -237,7 +237,8 @@ public class UimaAsServiceMonitor
                 +  "] NQ[" + enqueueCount
                 +  "] NDisp[" + dispatchCount
                 +  "] MetaNode[" + nodeId
-                +  "] MetaPid[" + pid;
+                +  "] MetaPid[" + pid 
+                +  "]"
                 ;
         }
 
