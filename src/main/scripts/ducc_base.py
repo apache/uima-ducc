@@ -37,6 +37,30 @@ class DuccPropertiesException(Exception):
 class DuccProperties:
     def __init__(self):
         self.props = {}
+        self.builtin = {}
+
+        #
+        # Create builtins corresponding to some of the java properties.
+        #
+        # We allow expansion on java system properties.  It's obviously not possible to
+        # do most of them but these guys may have a use e.g. to put ducc_ling into
+        # architecture-specific places.
+        #
+        # is there a better way?  these three platforms have totally different views of
+        # who they are.  
+        #
+        (system, node, release, version, machine, processor) = platform.uname()
+        if ( system == 'Darwin' ):
+            self.builtin['os.arch'] = 'x86_64'
+            self.builtin['os.name'] = 'Mac OS X'
+        elif ( system == 'Linux' ):
+            if ( machine == 'ppc64' ):
+                self.builtin['os.arch'] = 'ppc64'
+                self.builtin['os.name'] = 'Linux'
+            elif ( machine == 'x86_64' ):
+                self.builtin['os.arch'] = 'amd64'
+                self.builtin['os.name'] = 'Linux'
+
 
     #
     # Expand all ${} values from env or from this properties file itself
@@ -56,6 +80,8 @@ class DuccProperties:
             val = None
             if ( self.has_key(key) ):
                 val = self.get(key)
+            elif (self.builtin.has_key(key) ):
+                val = self.builtin[key]
 
             if ( val != None ):    
                 response = string.replace(response, m.group() , val)
