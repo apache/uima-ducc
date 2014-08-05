@@ -247,8 +247,15 @@ public class NodeViz
             s = strip(s);
             if ( ! hosts.containsKey(s) ) {
                 // System.out.println("Set host from MachineInfo with key :" + s + ":");
-                VisualizedHost vh = new VisualizedHost(m.get(s), quantum);
-                hosts.put(s, vh);
+
+                // NOTE: the map changes all the time so the value may be gone.  This situation
+                //       will be fixed one day but for now just forget the node, it will show up 
+                //       next time we get here.
+                MachineInfo mi = m.get(s);
+                if ( mi != null ) {
+                    VisualizedHost vh = new VisualizedHost(mi, quantum);
+                    hosts.put(s, vh);
+                }
             }
         }
 
