@@ -43,3 +43,9 @@ we bundle in a jar.
 The source tarball includes com.springsource.net.sf.cglib-2.2.0.jar which 
 is licensed Apache 2.0. No notice file is available for it.
 
+The JSON.org license has the famous restriction of use clause: 
+"The Software shall be used for Good, not Evil."
+Checked DUCC code for use of JSON and it looks like we use GSON from google
+which has ASF 2.0 license. The above clause does not apply.
+
+
