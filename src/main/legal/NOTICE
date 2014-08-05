@@ -186,10 +186,9 @@ under the CDDL license.
 The original source for this javax.mail bundle is available on
 the Glassfish website at 
     https://glassfish.dev.java.net/downloads/v2-b58g.html
-----------------------
 
+---------------------- Apache Geronimo Notice
 
-Apache Geronimo
 The plug-in includes the open-source implementation of the Java Transaction API specification developed by The Apache Software Foundation as part of the Geronimo project.
 
 
@@ -200,6 +199,11 @@ whole, not all sections might apply to the particular jar packaged in this bundl
 
 Source code and further information about Apache Geronimo is available at 
  http://geronimo.apache.org/.
+
+-------------------- Joda library Notice
+
+This product includes software developed by
+Joda.org (http://www.joda.org/).
 
 
 -------- Derby library Notice
