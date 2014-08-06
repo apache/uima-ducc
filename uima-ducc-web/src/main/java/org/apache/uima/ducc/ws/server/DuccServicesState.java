@@ -14,36 +14,36 @@ public class DuccServicesState {
 	private static DuccId duccId = null;
 	
 	private static String valueTrue = "True";
-
+	
 	private static enum Health { health_black, health_red, health_green };
-	
-	private static enum State { Starting, Initializing, WaitingForPinger, WaitingForService, Available, AvailablePoor, AvailableNotPinging, Stopping, Stopped, Error };
-	
-	private static String popupStopped = "The service is stopped";
-	private static String popupStopping = "The service is stopping";
-	private static String popupPingerDown = "The service pinger is not reporting";
-	private static String popupStarting = "The service is starting";
-	private static String popupInitializing = "The service has started and is now initializing";
-	private static String popupInitialized = "The service has initialized";
-	
-	private static String makeDisplayValue(State state, Health health, String popupText) {
-		return makeDisplayValue(state.name(), health.name(), popupText);
-	}
 	
 	private static String makeDisplayValue(String state, String health, String popupText) {
 		String location = "makeDisplayValue";
 		String retVal = "?";
 		try {
 			StringBuffer sb = new StringBuffer();
-			sb.append("<span title=\"");
-			sb.append(popupText);
-			sb.append("\"");
-			sb.append(" ");
+			sb.append("<span ");
+			if(popupText != null) {
+				sb.append("title=\"");
+				sb.append(popupText);
+				sb.append("\"");
+				sb.append(" ");
+			}
 			sb.append("class=\"");
-			sb.append(health);
+			if(health != null) {
+				sb.append(health);
+			}
+			else {
+				sb.append(Health.health_black);
+			}
 			sb.append("\"");
 			sb.append(">");
-			sb.append(state);
+			if(state != null) {
+				sb.append(state);
+			}
+			else {
+				sb.append("?");
+			}
 			sb.append("</span>");
 			retVal = sb.toString();
 		}
@@ -53,72 +53,159 @@ public class DuccServicesState {
 		return retVal;
 	}
 	
+	private enum PingerStatus { PingerInactive };
+	private enum HealthStatus { HealthPoor };
+	
+	private static boolean isPingerActive(Properties propertiesMeta) {
+		boolean retVal = false;
+		String pinger = getUninterpreted(propertiesMeta, IServicesRegistry.ping_active);
+		String value = pinger.trim();
+		if(value.equalsIgnoreCase(valueTrue)) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
+	private static void getHealthStatus(StringBuffer sb, Properties propertiesMeta) {
+		String location = "getHealthStatus";
+		try {
+			String health = getUninterpreted(propertiesMeta, IServicesRegistry.service_healthy);
+			String value = health.trim();
+			if(!value.equalsIgnoreCase(valueTrue)) {
+				sb.append(HealthStatus.HealthPoor.name()+"\n");
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, duccId, e);
+		}
+	}
+	
+	private static void getErrorsStatus(StringBuffer sb, Properties propertiesMeta) {
+		String location = "getErrorsStatus";
+		try {
+			String error = getUninterpreted(propertiesMeta, IServicesRegistry.submit_error);
+			String value = error.trim();
+			if(value.length() > 0) {
+				sb.append(value+"\n");
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, duccId, e);
+		}
+	}
+	
+	private static void getStatistics(StringBuffer sb, Properties propertiesMeta) {
+		String location = "getErrorsStatus";
+		try {
+			String statistics = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
+			String value = statistics.trim();
+			if(value.length() > 0) {
+				sb.append(value.replaceAll("\"", "")+"\n");
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, duccId, e);
+		}
+	}
+	
+	private static String getAlerts(Properties propertiesMeta) {
+		StringBuffer sb = new StringBuffer();
+		getHealthStatus(sb, propertiesMeta);
+		getErrorsStatus(sb, propertiesMeta);
+		String retVal = sb.toString();
+		return retVal;
+	}
+	
+	private static String getErrors(Properties propertiesMeta) {
+		StringBuffer sb = new StringBuffer();
+		getErrorsStatus(sb, propertiesMeta);
+		String retVal = sb.toString();
+		return retVal;
+	}
+	
+	private static String getStatistics(Properties propertiesMeta) {
+		StringBuffer sb = new StringBuffer();
+		getStatistics(sb, propertiesMeta);
+		String retVal = sb.toString();
+		return retVal;
+	}
+	
+	private static boolean isHealthIrrelevant(String state) {
+		boolean retVal = false;
+		if(state.equalsIgnoreCase(ServiceState.Starting.name())) {
+			retVal = true;
+		}
+		else if(state.equalsIgnoreCase(ServiceState.Waiting.name())) {
+			retVal = true;
+		}
+		else if(state.equalsIgnoreCase(ServiceState.Initializing.name())) {
+			retVal = true;
+		}
+		else if(state.equalsIgnoreCase(ServiceState.Stopped.name())) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
+	private static String getPopup(String state, Properties propertiesMeta) {
+		String retVal = "The service is "+state;
+		if(state.equalsIgnoreCase(ServiceState.Waiting.name())) {
+			retVal = "Pinger is starting";
+			/*
+			String type = getUninterpreted(propertiesMeta, IServicesRegistry.service_type);
+			type = type.trim();
+			if(type.equalsIgnoreCase("CUSTOM")) {
+				retVal = "Pinger is starting";
+			}
+			else {
+				retVal = "Pinger and Service are starting";
+			}
+			*/
+		}
+		return retVal;
+	}
+	
 	public static String getServiceState(Properties propertiesMeta) {
 		String location = "getServiceState";
 		String retVal = "?";
 		String value = "?";
-		try {
-			// Error
-			if(propertiesMeta.containsKey(IServicesRegistry.submit_error)) {
-				String popup = propertiesMeta.getProperty(IServicesRegistry.submit_error);
-				retVal = makeDisplayValue(State.Error, Health.health_red, popup);
-			}
-			else {
-				String state = getUninterpreted(propertiesMeta, IServicesRegistry.service_state);
-				value = state.trim();
-				// Stopped
-				if(value.equalsIgnoreCase(ServiceState.Stopped.name())) {
-					retVal = makeDisplayValue(State.Stopped, Health.health_black, popupStopped);
-				}
-				// Stopping
-				else if(value.equalsIgnoreCase(ServiceState.Stopping.name())) {
-					retVal = makeDisplayValue(State.Stopping, Health.health_black, popupStopping);
-				}
-				// Available
-				else if(value.equalsIgnoreCase(ServiceState.Available.name())) {
-					String pinger = getUninterpreted(propertiesMeta, IServicesRegistry.ping_active);
-					value = pinger.trim();
-					if(value.equalsIgnoreCase(valueTrue)) {
-						String health = getUninterpreted(propertiesMeta, IServicesRegistry.service_healthy);
-						value = health.trim();
-						String popupStats = propertiesMeta.getProperty(IServicesRegistry.service_statistics);
-						if(popupStats == null) {
-							popupStats = "";
-						}
-						popupStats = popupStats.replaceAll("\"", "");
-						if(value.equalsIgnoreCase(valueTrue)) {
-							// Available (Good)
-							retVal = makeDisplayValue(State.Available, Health.health_green, popupStats);
-						}
-						else {
-							// AvailablePoor
-							retVal = makeDisplayValue(State.AvailablePoor, Health.health_red, popupStats);
-						}
-					}
-					else {
-						// AvailableNotPinging
-						retVal = makeDisplayValue(State.AvailableNotPinging, Health.health_red, popupPingerDown);
-					}
-				}
-				// Waiting
-				else if(value.equalsIgnoreCase(ServiceState.Waiting.name())) {
-					String pinger = getUninterpreted(propertiesMeta, IServicesRegistry.ping_active);
-					value = pinger.trim();
-					if(value.equalsIgnoreCase(valueTrue)) {
-						retVal = makeDisplayValue(State.WaitingForService, Health.health_black, popupInitialized);
-					}
-					else {
-						retVal = makeDisplayValue(State.WaitingForPinger, Health.health_black, popupInitialized);
-					}
-				}
-				else if(value.equalsIgnoreCase(ServiceState.Initializing.name())) {
-					retVal = makeDisplayValue(State.Initializing, Health.health_black, popupInitializing);
-				}
-				else if(value.equalsIgnoreCase(ServiceState.Starting.name())) {
-					retVal = makeDisplayValue(State.Starting, Health.health_black, popupStarting);
+		try {	
+			String state = getUninterpreted(propertiesMeta, IServicesRegistry.service_state);
+			value = state.trim();
+			// Stopped
+			if(isHealthIrrelevant(value)) {
+				String errors = getErrors(propertiesMeta);
+				if(errors.length() > 0) {
+					String popup = errors;
+					retVal = makeDisplayValue(value+"+Alert", Health.health_red.toString(), popup);
 				}
 				else {
-					retVal = makeDisplayValue(value, Health.health_red.name(), "?");
+					String popup = getPopup(state, propertiesMeta);
+					retVal = makeDisplayValue(value, Health.health_black.toString(), popup);
+				}
+			}
+			// PingerInactive
+			else if(!isPingerActive(propertiesMeta)) {
+				String popup = PingerStatus.PingerInactive.name()+"\n";
+				retVal = makeDisplayValue(value+"+Alert", Health.health_red.toString(), popup);
+			}
+			else {
+				String alerts = getAlerts(propertiesMeta);
+				String statistics = getStatistics(propertiesMeta);
+				String popup = alerts+statistics;
+				// Alert (other than PingerInactive)
+				if(alerts.length() > 0) {
+					retVal = makeDisplayValue(value+"+Alert", Health.health_red.toString(), popup);
+				}
+				else {
+					// Available
+					if(value.equalsIgnoreCase(ServiceState.Available.name())) {
+						retVal = makeDisplayValue(value, Health.health_green.toString(), popup);
+					}
+					// Transient state (to/from Available)
+					else {
+						retVal = makeDisplayValue(value, Health.health_black.toString(), popup);
+					}
 				}
 			}
 		}
