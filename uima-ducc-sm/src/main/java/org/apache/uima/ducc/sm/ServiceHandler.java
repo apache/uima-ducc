@@ -986,7 +986,7 @@ public class ServiceHandler
             case ServicePingClass:
             case InstanceFailureWindow:
             case InstanceFailureLimit:
-                if ( value.equals("delete") ) {
+                if ( value.equals("default") ) {
                     sset.deleteJobProperty(option.pname());
                 } else {
                     sset.setJobProperty(option.pname(), value);
