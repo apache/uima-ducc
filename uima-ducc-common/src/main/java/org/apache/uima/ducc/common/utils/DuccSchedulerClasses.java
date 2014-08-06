@@ -98,19 +98,20 @@ public class DuccSchedulerClasses {
         return nodeConfiguration.getClasses();
     }
 
-	public boolean isPreemptable(String class_name)
-		throws Exception
-	{
-		boolean retVal = false;
-        readConfiguration();
+  public boolean isPreemptable(String class_name) throws Exception {
+    boolean retVal = false;
+    readConfiguration();
 
-        DuccProperties properties = nodeConfiguration.getClass(class_name);
-		String policy = getProperty(properties, "policy");
-		if(policy.equals(FAIR_SHARE)) {
-			retVal = true;
-		}
-		return retVal;
-	}
+    DuccProperties properties = nodeConfiguration.getClass(class_name);
+    if (properties == null) {
+      throw new IllegalArgumentException("Invalid scheduling_class: " + class_name);
+    }
+    String policy = getProperty(properties, "policy");
+    if (policy.equals(FAIR_SHARE)) {
+      retVal = true;
+    }
+    return retVal;
+  }
 	
 	public String getDefaultClassName() 
 	    throws Exception
