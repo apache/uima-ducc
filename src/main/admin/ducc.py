@@ -67,7 +67,7 @@ class Ducc(DuccUtil):
     def run_component(self, component, or_parms, numagents, rmoverride, background, nodup, localdate, single_user):
 
         if ( component == 'all' ):
-            component = 'rm,sm,pm,ws,db,orchestrator'
+            component = 'rm,sm,pm,ws,orchestrator'
     
         complist = component.split(',')
         args = None
@@ -153,14 +153,6 @@ class Ducc(DuccUtil):
                 self.add_to_classpath(ducc_home + '/webserver/lib/*')
                 self.add_to_classpath(ducc_home + '/webserver/lib/jsp/*')
 
-            if ( c == 'viz' ):
-                here = os.getcwd()
-                os.chdir(self.DUCC_HOME + '/vizserver')
-                if ( self.ws_jvm_args != None ):
-                    jvm_opts.append(self.ws_jvm_args)
-                self.add_to_classpath(ducc_home + '/lib/http-client/*')
-                self.add_to_classpath(ducc_home + '/vizserver/lib/*')
-
             if ( c == 'orchestrator' ):
                 if ( or_parms != None ):
                     args = '-' + or_parms
@@ -227,7 +219,7 @@ class Ducc(DuccUtil):
                 print 'PID ' + str(pid) # nohup will print this from the (twice) forked process if background
                                         # hard for us to access it here in nohup
 
-        if ( (c == 'ws') or ( c == 'viz') ):
+        if ( c == 'ws' ):
             os.chdir(here)
 
         return
@@ -239,9 +231,9 @@ class Ducc(DuccUtil):
         print '   ducc.py -k'
         print 'Where:'
         print '   -c <component> is the name of the comp[onent to start, currently one of'
-        print '                agent rm sm pm db ws orchestrator broker'
+        print '                agent rm sm pm ws orchestrator broker'
         print '                      -- or --'
-        print '                all - to start rm sm pm db ws orchestrator'
+        print '                all - to start all but the agents'
         print '        NOTE -- that agents should be started separately'
         print '   -d date is the data on the caller, for startup verification'
         print '   -b uses nohup and places the process into the background'

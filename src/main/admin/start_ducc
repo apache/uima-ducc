@@ -68,7 +68,7 @@ class StartDucc(DuccUtil):
         if ( com.find('@') >= 0 ):            
             com, node = com.split('@')
 
-        if ( ((com == 'ws') or (com == 'viz')) and ( node == 'local' ) and ( self.webserver_node != 'localhost' )):
+        if ( ( com == 'ws' ) and ( node == 'local' ) and ( self.webserver_node != 'localhost' )):
             if ( self.webserver_node != None ):
                 node = self.webserver_node
                 component = com + '@' + node
@@ -195,7 +195,6 @@ class StartDucc(DuccUtil):
         print "          pm - process manager"
         print "          sm - services manager"
         print "          ws - web server"
-        print "          viz - visualization server"
         print "          agent - node agent"        
         print ""
         print "    --nothreading"

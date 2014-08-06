@@ -248,15 +248,8 @@ class DuccUtil(DuccBase):
 
         CLASSPATH = CLASSPATH + ':' + DH  + 'resources'
     
-        # these things are added component-wise in ducc.py, not here
-        #    db: derby 
-        #    sm: activemq/lib/optional
-        #        jetty from ws lib
-        #        http client
-        #    ws:
-        #        http client
-        #        jetty
-        #        jsp
+        # more are added to some components in ducc.py, e.g.
+        #    derby, apache-activemq/lib/optional, jetty from ws lib, jsp, http- client
         #   
         os.environ['CLASSPATH'] = CLASSPATH
 
@@ -697,7 +690,7 @@ class DuccUtil(DuccBase):
         self.broker_protocol = 'tcp'
         self.broker_host = 'localhost'
         self.broker_port = '61616'
-        self.default_components = ['rm', 'pm', 'sm', 'db', 'or', 'ws', 'broker']
+        self.default_components = ['rm', 'pm', 'sm', 'or', 'ws', 'broker']
         self.default_nodefiles = [self.DUCC_HOME + '/resources/ducc.nodes']
 
 	if ( self.localhost == self.ducc_properties.get("ducc.head")):
