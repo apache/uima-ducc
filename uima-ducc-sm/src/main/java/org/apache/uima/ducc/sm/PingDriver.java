@@ -471,10 +471,14 @@ class PingDriver
         return buf.toString();
     }
 
+    /**
+     * Common per-ping data: anything that can change since the last ping.
+     */
     void setCommonProperties(Map<String, Object> props)
     {
         Long[] instances = sset.getImplementors();
-        props.put("all-instances"    , instances);
+        props.put("all-instances"       , instances);
+        props.put("registered-instances", sset.getNInstancesRegistered());
         
         String[] hosts  = new String[instances.length];
         Long[] shares   = new Long[instances.length];
