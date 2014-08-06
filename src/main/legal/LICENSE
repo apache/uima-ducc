@@ -289,6 +289,15 @@
 ===-BSD Style License =============
    xstream-1.4.3.jar
    SVG Icons
+   mina-core-1.1.7.jar
+   
+===-BSD - INRIA, France Telecom License 
+   com.springsource.net.sf.cglib-2.2.0.jar   
+   org.objectweb.asm_3.1.0.v200803061910.jar
+   (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
+      ASM
+   RelaxNG Object Model/Parser
+   (webserver) org.objectweb.asm_3.1.0.v200803061910.jar       	
    
 ===-Ben Nolan License =============
    behaviour.js   
@@ -325,10 +334,6 @@
    (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
       Dojo   
    
-===-JSON.org License =============
-   (Webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
-      JSON
-
 ===-jGuru.com (MageLang Institute) License =============   
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
       ANTLR
@@ -344,13 +349,6 @@
 ===-Daisuke Okajima and Kohsuke Kawaguchi License =============
    (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
        RelaxNGCC   
-	
-===-INRIA, France Telecom License =============
-   com.springsource.net.sf.cglib-2.2.0.jar   
-   (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
-      ASM
-   RelaxNG Object Model/Parser
-   (webserver) org.objectweb.asm_3.1.0.v200803061910.jar       	
 	
 ===-Jean-loup Gailly and Mark Adler License =============
     (webserver)javax.mail.glassfish_1.4.1.v201005082020.jar
@@ -795,7 +793,37 @@ BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
 WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
+
 =========================================================================
+mina-core-1.1.7 (ZLib package) BSD License
+
+Copyright (c) 2000,2001,2002,2003 ymnk, JCraft,Inc. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
+     the documentation and/or other materials provided with the distribution.
+
+  3. The names of the authors may not be used to endorse or promote products
+     derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JCRAFT,
+INC. OR ANY CONTRIBUTORS TO THIS SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+=========================================================================
+
 SVG BSD License
 
                                   BSD License
@@ -1679,29 +1707,6 @@ permission of its copyright owner.
 
 =========================================================================
 
-Copyright (c) 2002 JSON.org
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-The Software shall be used for Good, not Evil.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-=========================================================================
-
 ANTLR 1989-2000 Developed by jGuru.com (MageLang Institute), 
 http://www.ANTLR.org  and http://www.jGuru.com
 
@@ -1926,6 +1931,8 @@ OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================
+
+BSD License
 
 Copyright (c) 2000-2005 INRIA, France Telecom
 All rights reserved.
