@@ -941,6 +941,16 @@ public class RmJob
     {
     	String methodName = "getPrjCap";                      // want this to line up with getJobCap in logs
 
+        if ( init_wait || Double.isNaN(time_per_item) || (time_per_item == 0.0)) {   // no cap if not initialized, or no per-itme time yet
+            logger.info(methodName, getId(), username, "Cannot predict cap: init_wait", init_wait, "|| time_per_item", time_per_item);
+            return Integer.MAX_VALUE;
+        }
+
+        // jrc
+        // First problem - only get avg if the process has initialized
+        //               - if nothing has finished initializing just return
+        //                 the configured init cap
+
         // Get average init time
         int count = 0;
         long total_init = 0;
@@ -978,15 +988,15 @@ public class RmJob
 
         int answer = 0;
 
-        if ( init_wait || Double.isNaN(time_per_item) ) {   // no cap if not initialized, or no per-itme time yet
-            // (We could exit sooner but for debugging purposes we very much want that log statement just above even
-            //  if there's some junk in it.)
-            answer = Integer.MAX_VALUE;
-        } else {            
-            answer = (int) future / threads;
-            if ( (future % threads ) > 0 ) answer++;
-        }
+        answer = (int) future / threads;
+        if ( (future % threads ) > 0 ) answer++;
 
+        // jrc
+        // Second problem 
+        // if future cap is 0, then the future cap is the current number of processes
+        if ( answer == 0 ) {
+            answer = countNShares();
+        }
         return answer;                                                                     // number of processes we expect to need
                                                                                            // in the future
         
@@ -999,6 +1009,11 @@ public class RmJob
     public void initJobCap()
     {    	
 		String methodName = "initJobCap";
+
+        if ( getId().getFriendly() == 190605 ) {
+            int x;
+            x = 0;
+        }
 
         if ( isRefused() ) {
             job_cap = 0;
@@ -1013,7 +1028,7 @@ public class RmJob
             c++;
         }
 
-        int currentResources = assignedShares.size() - pendingRemoves.size();
+        int currentResources = countNShares();
         c = Math.max(c, currentResources);  // if job is ending we could be fragmented and have to be
                                             // careful not to underestimate, or we end up possibly
                                             // evicting something that should be left alone.
@@ -1027,17 +1042,17 @@ public class RmJob
         //
         
         int base_cap = Math.min(getMaxShares(), c);
-        if ( base_cap < 0 ) base_cap = 0;          // capped by OR
+        if ( base_cap < 0 ) base_cap = 0;             // getMaxShares comes from OR - protect in case
+                                                      // it's messed up
 
         int projected_cap = getProjectedCap();      
-        if ( projected_cap == 0 ) {
+        if ( projected_cap == 0 ) {                   // we know nothing, this is best guess
         	projected_cap = base_cap;
         }
 
         int potential_cap = base_cap;
         int actual_cap = 0;
 
-        
         if ( resource_class.isUsePrediction() ) {
             if (projected_cap < base_cap ) {                     // If we project less need, revise the estimate down
                 potential_cap = Math.max(projected_cap, currentResources);
@@ -1048,7 +1063,7 @@ public class RmJob
             actual_cap = Math.min(potential_cap, (resource_class.getInitializationCap()));
         } else {
 
-            if ( init_wait ) {                                 // ugly, but true, if not using initialization caps
+            if ( init_wait ) {                                                         // ugly, but true, if not using initialization caps
                 actual_cap =  potential_cap;
             } else  if ( resource_class.isExpandByDoubling() ) {
                 if ( currentResources == 0 ) {
