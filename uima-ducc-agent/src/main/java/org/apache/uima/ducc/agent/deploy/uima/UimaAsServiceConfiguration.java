@@ -24,7 +24,9 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
+import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.RouteDefinition;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.deploy.ManagedService;
 import org.apache.uima.ducc.agent.deploy.ServiceAdapter;
@@ -49,6 +51,9 @@ public class UimaAsServiceConfiguration {
 	@Autowired
 	CommonConfiguration common;
 	
+	RouteBuilder routeBuilder;
+	CamelContext camelContext;
+	
 	/**
 	 * Creates Camel Router to handle incoming messages 
 	 * 
@@ -68,9 +73,11 @@ public class UimaAsServiceConfiguration {
          onException(Exception.class).handled(true).process(new ErrorProcessor()).end();
 
 			  from(common.managedServiceEndpoint)
+			 
 				.choice().when(filter)
 						.bean(delegate)
-				.end();
+				.end()
+				.setId(common.managedServiceEndpoint);
 	
 			}
 		};
@@ -108,7 +115,7 @@ public class UimaAsServiceConfiguration {
 			//  responsible for providing the IP in this process environment.
 			String thisNodeIP = 
 			(System.getenv("IP") == null) ? InetAddress.getLocalHost().getHostAddress() : System.getenv("IP");
-	    CamelContext camelContext = common.camelContext();
+	    camelContext = common.camelContext();
 	    int serviceSocketPort = 0;
 	    String agentSocketParams="";
       String jpSocketParams="";
@@ -141,8 +148,10 @@ public class UimaAsServiceConfiguration {
 			
 	    
 			ManagedUimaService service = 
-	        	new ManagedUimaService(common.saxonJarPath,common.dd2SpringXslPath, serviceAdapter(eventDispatcher,common.managedServiceEndpoint), camelContext);
-	    
+	        	new ManagedUimaService(common.saxonJarPath,
+	        			common.dd2SpringXslPath, 
+	        			serviceAdapter(eventDispatcher,common.managedServiceEndpoint), camelContext);
+	    service.setConfigFactory(this);
 	    service.setAgentStateUpdateEndpoint(common.managedProcessStateUpdateEndpoint);
 
 	     System.out.println("#######################################################");
@@ -152,7 +161,8 @@ public class UimaAsServiceConfiguration {
 	    
 			ProcessEventListener delegateListener = processDelegateListener(service);
 			delegateListener.setDuccEventDispatcher(eventDispatcher);
-			camelContext.addRoutes(this.routeBuilderForIncomingRequests(thisNodeIP, delegateListener));
+			routeBuilder = this.routeBuilderForIncomingRequests(thisNodeIP, delegateListener);
+			camelContext.addRoutes(routeBuilder);
 		
 			return service;
 			
@@ -160,6 +170,16 @@ public class UimaAsServiceConfiguration {
 			e.printStackTrace();
 			throw e;
 		}
+	}
+	public void stop() throws Exception {
+		if ( camelContext != null ) {
+			for( Route route : camelContext.getRoutes() ) {
+
+				route.getConsumer().stop();
+				System.out.println(">>> configFactory.stop() - stopped route:"+route.getId());
+			}
+		}
+		//camelContext.stop();
 	}
 	private class DuccProcessFilter implements Predicate {
 		String thisNodeIP;
