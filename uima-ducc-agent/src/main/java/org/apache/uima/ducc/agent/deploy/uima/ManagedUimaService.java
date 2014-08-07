@@ -70,7 +70,8 @@ public class ManagedUimaService extends AbstractManagedService implements
 	private String processJmxUrl = null;
 	protected static DuccLogger logger;
 	private String agentStateUpdateEndpoint = "";
-
+    private UimaAsServiceConfiguration  configFactory;
+    
 	public static void main(String[] args) {
 		try {
 			ManagedUimaService ms = new ManagedUimaService(
@@ -104,15 +105,19 @@ public class ManagedUimaService extends AbstractManagedService implements
 	public void onServiceStateChange(ProcessState state) {
 		super.notifyAgentWithStatus(state);
 	}
-
+    public void setConfigFactory(UimaAsServiceConfiguration  configFactory) {
+    	this.configFactory = configFactory;
+    }
 	public void setAgentStateUpdateEndpoint(String agentUpdateEndpoint) {
 		this.agentStateUpdateEndpoint = agentUpdateEndpoint;
 	}
 
 	public void quiesceAndStop() {
 		try {
+			if ( configFactory != null ) {
+				configFactory.stop();  // stop Camel Routes
+			}
 			if (serviceDeployer != null) {
-				serviceDeployer.getTopLevelController().quiesceAndStop();
 				AnalysisEngineController topLevelController = serviceDeployer
 						.getTopLevelController();
 				if (topLevelController != null
@@ -121,9 +126,6 @@ public class ManagedUimaService extends AbstractManagedService implements
 							.undeploy(SpringContainerDeployer.QUIESCE_AND_STOP);
 				}
 			}
-			//super.stop();
-		
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -134,6 +136,10 @@ public class ManagedUimaService extends AbstractManagedService implements
 		currentState = ProcessState.Stopped;
 		System.out.println("Service STOPPED");
 		try {
+			if ( configFactory != null ) {
+				configFactory.stop();  // stop Camel Routes
+			}
+
 			super.notifyAgentWithStatus(currentState);
 			if (serviceDeployer != null) {
 				// Use top level controller to stop all components
