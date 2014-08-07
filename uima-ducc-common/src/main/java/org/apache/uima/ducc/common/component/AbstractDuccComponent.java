@@ -39,6 +39,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.Route;
+import org.apache.camel.Service;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEventKill;
@@ -335,9 +336,11 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 	      }
 	    System.getProperties().setProperty("ducc.jmx.url", processJmxUrl);
 
-	    ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this, logger);
-	    // serviceDeployer);
-	    Runtime.getRuntime().addShutdownHook(shutdownHook);
+	    if ( !System.getProperty("ducc.deploy.components").equals("uima-as")
+	             && !System.getProperty("ducc.deploy.components").equals("jd")) {
+		    ServiceShutdownHook shutdownHook = new ServiceShutdownHook(this, logger);
+		    Runtime.getRuntime().addShutdownHook(shutdownHook);
+	    }
 	    // Register Ducc Component MBean with JMX.
 	    MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
 
@@ -378,6 +381,7 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
             logger.info(methodName, null, "Stopping Camel Context");
             context.stop();
+            
             logger.info(methodName, null, "Camel Context Stopped");
 
             ObjectName name = new ObjectName(
