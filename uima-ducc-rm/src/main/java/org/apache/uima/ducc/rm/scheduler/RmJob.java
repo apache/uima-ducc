@@ -947,26 +947,19 @@ public class RmJob
             return Integer.MAX_VALUE;
         }
 
-        if ( initialization_time == 0 ) {
-            // NOTE what's going on here. This will be calculed only once, the FIRST time the job haas any init time
-            //      recorded.  This mens init_wait is false so the processes have fully or mostly completed init.  If
-            //      we keep accumulating after this the numbers get skewed because they include log init times for the
-            //      new processes.
-
-            // Get average init time
-            int count = 0;
-            for ( Share s : assignedShares.values() ) {
-                long t = s.getInitializationTime();
-                if ( t > 0 ) {
-                    count++;
-                    initialization_time += t;
-                }
+        // Get average init time
+        int count = 0;
+        for ( Share s : assignedShares.values() ) {
+            long t = s.getInitializationTime();
+            if ( s.isInitialized() && ( t > 0) ) {
+                count++;
+                initialization_time += t;
             }
-            if ( initialization_time > 0 ) {
-                initialization_time = initialization_time / count;  // (to seconds)
-            } else {
-                logger.warn(methodName, getId(), username, "Initialization time is 0, project cap and investment will be inaccurate.");
-            }
+        }
+        if ( initialization_time > 0 ) {
+            initialization_time = initialization_time / count;  // (to seconds)
+        } else {
+            logger.warn(methodName, getId(), username, "Initialization time is 0, project cap and investment will be inaccurate.");
         }
 
         // When in the future we want to estimate the amount of remaining work.
