@@ -4,13 +4,6 @@ Copyright 2012 The Apache Software Foundation
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
 
-Portions of UIMA-AS were originally developed by
-International Business Machines Corporation and are
-licensed to the Apache Software Foundation under the
-"Software Grant License Agreement", informally known as the 
-"IBM UIMA-EE License Agreement".
-Copyright (c) 2007, 2008 IBM Corporation
-
 Portions of Apache UIMA were originally developed by
 International Business Machines Corporation and are
 licensed to the Apache Software Foundation under the
@@ -18,25 +11,199 @@ licensed to the Apache Software Foundation under the
 "IBM UIMA License Agreement".
 Copyright (c) 2003, 2006 IBM Corporation.
 
-Includes software from other Apache Software Foundation projects:
- - Apache ActiveMQ
+Portions of UIMA-DUCC were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-DUCC License Agreement".
+Copyright (c) 2012 IBM Corporation
+
+Portions of UIMA-AS were originally developed by
+International Business Machines Corporation and are
+licensed to the Apache Software Foundation under the
+"Software Grant License Agreement", informally known as the 
+"IBM UIMA-EE License Agreement".
+Copyright (c) 2007, 2008 IBM Corporation
+
+------------------ Saxon Notice
+
+This product includes software known as 
+"The Saxon XSLT and XQuery Processor from Saxonica Limited", whose
+home page URL is http://www.saxonica.com/ 
+
+Saxon includes the org.apache.xerces.util.XMLChar module from the Apache 
+Xerces product, renamed as net.sf.saxon.om.XMLChar but otherwise unchanged. 
+See the copyright statements included in the source code of that module for
+conditions of use.
+
+Saxon includes code for performing Unicode normalization that is derived 
+from the sample code published for this purpose by the Unicode consortium. 
+For the terms of use of this code, see http://www.unicode.org/terms_of_use.html, 
+which should be regarded as forming part of these conditions of use, and part 
+of the Saxon documentation. 
+
+------------------ SVG Notice
+
+This product contains icons developed by the SVG Icons project 
+(http://sourceforge.net/projects/svgicons), licensed under the 
+BSD license (see LICENSE file).
+
+------------------ 
+
+This product includes image 
+120px-Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg,
+which is licensed under the Creative Commons license CC-BY-2.0. The license can 
+be downloaded from 
+http://creativecommons.org/licenses/by/2.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg#metadata
+jans canon / Wikimedia Commons / CC-BY-2.0
+
+------------------ 
+
+This product includes image 120px-Ducks_eating.jpg, which is licensed under 
+the Creative Commons license CC-BY-2.0. The license can be downloaded from 
+http://creativecommons.org/licenses/by/2.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Ducks_eating.jpg
+Neil Phillips / Wikimedia Commons / CC-BY-2.0
+
+------------------ 
+
+This product includes image 120px-Rubber_duckies_So_many_ducks.jpg, which is licensed 
+under the Creative Commons  license CC-BY-2.0. The license can be downloaded from 
+http://creativecommons.org/licenses/by/2.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Rubber_duckies_So_many_ducks.jpg
+Gaetan Lee / Wikimedia Commons / CC-BY-2.0  
+
+------------------ 
+
+This product includes image Ducklings_in_Shaw_Creek.jpg, 
+which is licensed  under the Creative Commons  license CC-BY-2.0. The license 
+can be downloaded from 
+http://creativecommons.org/licenses/by/2.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Ducklings_in_Shaw_Creek.jpg
+Author:Peggy2012CREATIVELENZ / Wikimedia Commons / CC-BY-2.0 
+
+------------------ 
+
+This product includes image 120px-Head_of_a_white_domesticated_duck.jpg, which is licensed 
+under the Creative Commons  license CC-BY-SA-2.0. The license can be downloaded from 
+http://creativecommons.org/licenses/by-sa/2.0/legalcode.Source:
+http://commons.wikimedia.org/wiki/File:Head_of_a_white_domesticated_duck.jpg
+Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0 
+
+------------------ 
+
+This product includes image 90px-Mallards_nest_Culwatty_-_geograph.org.uk_-_813413.jpg, 
+which is licensed  under the Creative Commons  license CC-BY-SA-2.0. The license 
+can be downloaded from 
+http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Mallard%27s_nest,_Culwatty_-_geograph.org.uk_-_813413.jpg
+Author:wfmillar / Wikimedia Commons / CC-BY-SA-2.0
+
+------------------ 
+
+This product includes image 90px-Swimming_white_domesticated_ducks.jpg, 
+which is licensed  under the Creative Commons  license CC-BY-SA-2.0. The license 
+can be downloaded from 
+http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Swimming_white_domesticated_ducks.jpg
+Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0
+
+------------------ 
+
+This product includes image Delena-cancerides-huntsman-spider.jpg, 
+which is licensed  under the Creative Commons  license CC-BY-SA-2.0. The license 
+can be downloaded from 
+http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Delena-cancerides-huntsman-spider.jpg
+Bryce McQuillan / Wikimedia Commons / CC-BY-SA-2.0
+
+------------------ 
+
+This product includes image refresh.png, which is licensed 
+under the Creative Commons  license CC BY-SA 2.5. The license can be downloaded from 
+http://creativecommons.org/licenses/by-sa/2.5/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Human-gnome-session-reboot.svg
+Pander / Wikimedia Commons / CC BY-SA 2.5
+
+------------------ 
+
+This product includes image 144x144Stick_figure_-_choosing.jpg, which is licensed 
+under the Creative Commons  license CC-BY-SA-3.0. The license can be downloaded from 
+http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Stick_figure_-_choosing.jpg
+User:Obsidian Soul / Wikimedia Commons / CC-BY-SA-3.0 
+
+------------------ 
+
+This product includes image 12x1.33in-Bariken_kid.JPG, which is licensed 
+under the Creative Commons  license CC-BY-SA-3.0. The license can be downloaded from 
+http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Bariken_kid.JPG
+User:Materialscientist / Wikimedia Commons / CC-BY-SA-3.0 
+
+------------------ 
+
+This product includes image 800px-Leg_Of_White_Duck.2x1.6.jpg, which is licensed 
+under the Creative Commons  license CC-BY-SA-3.0. The license can be downloaded from 
+http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Leg_Of_White_Duck.jpg
+User:Ezhuttukari / Wikimedia Commons / CC-BY-SA-3.0  
+
+------------------ 
+
+This product includes image Flying_mallard_duck_-_female_2.0x1.4.jpg, 
+which is licensed  under the Creative Commons  license CC-BY-SA-3.0. The license 
+can be downloaded from 
+http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
+http://commons.wikimedia.org/wiki/File:Flying_mallard_duck_-_female.jpg
+Author:Martin Correns / Wikimedia Commons / CC-BY-SA-3.0  
+
+------------------ 
+
+This product includes image 800px-Duck_crossing_Louisiana.2x1.4.jpg, which is in 
+public domain in the United States. Source:
+http://commons.wikimedia.org/wiki/File:Duck_crossing_Louisiana_2010-10-15.JPG
+Richard David Ramsey
+
+------------------ 
+
+This product includes image indicator.gif, which is in 
+public domain in the United States. Source:
+http://commons.wikimedia.org/wiki/File:Birdleft.gif
+Author:Pigpen  
+
+------------------ 
+
+This product includes image 120px-BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg, 
+which is in public domain in the United States. Source:
+http://commons.wikimedia.org/wiki/File:BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
+Author:Duncan, Patricia D.
+
+------------------ 
+
+This product includes image 800px-Duck_crossing_Louisiana.2x1.4.jpg 
+which is in public domain in the United States. Source:
+http://commons.wikimedia.org/wiki/File:Duck_crossing_Louisiana_2010-10-15.JPG
+Author:Richard David Ramsey
  
- - XBean::Spring
- 
- - javax.servlet
- 
- - Java Servlet API 2.5 as part of the Tomcat project.
+------------------ servlet api 2.5 Notice
+
    The names "Tomcat" and "Apache Software Foundation" must not be used to endorse
    or promote products derived from this software without prior written permission.
    For written permission, please contact apache@apache.org.
  
- - Jetty (originally developed by Mort Bay Consulting Pty Ltd)
-   Some portions of the code are Copyright:
-     2006 Tim Vernum
-     1999 Jason Gilbert
-  
-    
+------------------ Jetty (jetty-util) Notice
+
+The UnixCrypt.java code implements the one way cryptography used by
+Unix systems for simple password protection.  Copyright 1996 Aki Yoshida,
+modified April 2001  by Iris Van den Broeke, Daniel Deville.
+Permission to use, copy, modify and distribute UnixCrypt
+for non-commercial or commercial purposes and without fee is
+granted provided that the copyright notice appears in all copies.
+
 ------------------- www.ibatis.com Notice -------
+
 This product also includes software developed by
 Clinton Begin (http://www.ibatis.com).
 
@@ -71,22 +238,6 @@ rod.johnson@interface21.com or juergen.hoeller@interface21.com.
 This product includes software, QDox, developed by
 ThoughtWorks, Inc (http://www.thoughtworks.com/).
 
----------- Saxon Notice --------
-This product includes software known as 
-"The Saxon XSLT and XQuery Processor from Saxonica Limited", whose
-home page URL is http://www.saxonica.com/ 
-
-Saxon includes the org.apache.xerces.util.XMLChar module from the Apache 
-Xerces product, renamed as net.sf.saxon.om.XMLChar but otherwise unchanged. 
-See the copyright statements included in the source code of that module for
-conditions of use.
-
-Saxon includes code for performing Unicode normalization that is derived 
-from the sample code published for this purpose by the Unicode consortium. 
-For the terms of use of this code, see http://www.unicode.org/terms_of_use.html, 
-which should be regarded as forming part of these conditions of use, and part 
-of the Saxon documentation. 
-
 ------- jaxb-api, jaxb-impl Package Notice ----------
 The jaxb-api, jaxb-impl,javax.servlet is distributed under the 
 Common Development and Distribution License v1.0.
@@ -95,12 +246,6 @@ You can obtain a copy of the license at
 https://glassfish.dev.java.net/public/CDDLv1.0.html.
 
 Source code for jaxb-api, jaxb-impl is at http://jaxb.java.net/
-
--------SVG Icons Notice ------------------------
-
-This product contains icons developed by the SVG Icons project 
-(http://sourceforge.net/projects/svgicons), licensed under the 
-BSD license (see LICENSE file).
 
 ----- httpclient, httpcore Notice ----------------
 This project contains annotations derived from JCIP-ANNOTATIONS
@@ -122,23 +267,7 @@ http://www.w3.org/Consortium/Legal/
 
 -------- ASM 3.1 library Notice
 
-The Content includes items that have been sourced from third parties as set out below. If you
-did not receive this Content directly from the Eclipse Foundation, the following is provided
-for informational purposes only, and you should look to the Redistributor's license for
-terms and conditions of use.
-
-The plug-in includes ASM 3.1 ("ASM") developed by ObjectWeb.  Therefore:
-
-The ASM binary code is included with no modifications except post processing
-(pack200 conditioning and signing). 
-
-ASM is:
-
-Copyright (c) 2000-2005 INRIA, France Telecom.Your use of the ASM code is subject to the terms and conditions of the BSD License.  
-http://asm.ow2.org/license.html.
-
-Your use of the ASM code is subject to the terms and conditions of the BSD License.
-A copy of the license is available here: http://asm.ow2.org/license.html
+Copyright (c) 2000-2005 INRIA, France Telecom.
 
 -------- JavaServer Pages Expression Language 2.1 library Notice
 
@@ -167,7 +296,6 @@ Original binaries and source are available from the Glassfish website http://gla
 
 -------- JavaServer Pages Standard Tag Library library Notice
 
-
 JavaServer Pages Standard Tag Library Implementation for the 1.2 version of the JSTL spec
 
 The plug-in includes software developed by Sun as part of the Glassfish project.
@@ -179,9 +307,7 @@ A copy of the Common Development and Distribution License is available at http:/
 
 Original binaries and source are available from the Glassfish website http://glassfish.dev.java.net
 
-
 -------- Java Mail 1.4.1 library Notice
-
 
 Your use of the Java Mail code is subject to the terms and
 conditions of the Common Development and Distribution License (CDDL) Version 1.0. A
@@ -203,29 +329,12 @@ by JCraft.  The original software is available from
 
    http://www.jcraft.com/jzlib/
    
-
----------------------- Apache Geronimo Notice
-
-The plug-in includes the open-source implementation of the Java Transaction API specification developed by The Apache Software Foundation as part of the Geronimo project.
-
-
-Your use of the Geronimo code is subject to the terms and conditions of the Apache License, Version 2.0. A copy of the license
-is available at http://www.apache.org/licenses/LICENSE-2.0.html
-
-whole, not all sections might apply to the particular jar packaged in this bundle.
-
-Source code and further information about Apache Geronimo is available at 
- http://geronimo.apache.org/.
-
 -------------------- Joda library Notice
 
 This product includes software developed by
 Joda.org (http://www.joda.org/).
 
-
 -------- Derby library Notice
-
-Derby
 
 Portions of Derby were originally developed by
 International Business Machines Corporation and are
@@ -242,102 +351,3 @@ and are placed here unaltered.
 
 =========================================================================
 
-This product includes image 
-120px-Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg,
-which is licensed under the Creative Commons license CC-BY-2.0. The license can 
-be downloaded from 
-http://creativecommons.org/licenses/by/2.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg#metadata
-jans canon / Wikimedia Commons / CC-BY-2.0
-
-This product includes image 120px-Ducks_eating.jpg, which is licensed under 
-the Creative Commons license CC-BY-2.0. The license can be downloaded from 
-http://creativecommons.org/licenses/by/2.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Ducks_eating.jpg
-Neil Phillips / Wikimedia Commons / CC-BY-2.0
-
-This product includes image 120px-Rubber_duckies_So_many_ducks.jpg, which is licensed 
-under the Creative Commons  license CC-BY-2.0. The license can be downloaded from 
-http://creativecommons.org/licenses/by/2.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Rubber_duckies_So_many_ducks.jpg
-Gaetan Lee / Wikimedia Commons / CC-BY-2.0  
-
-This product includes image Ducklings_in_Shaw_Creek.jpg, 
-which is licensed  under the Creative Commons  license CC-BY-2.0. The license 
-can be downloaded from 
-http://creativecommons.org/licenses/by/2.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Ducklings_in_Shaw_Creek.jpg
-Author:Peggy2012CREATIVELENZ / Wikimedia Commons / CC-BY-2.0 
-
-
-This product includes image 120px-Head_of_a_white_domesticated_duck.jpg, which is licensed 
-under the Creative Commons  license CC-BY-SA-2.0. The license can be downloaded from 
-http://creativecommons.org/licenses/by-sa/2.0/legalcode.Source:
-http://commons.wikimedia.org/wiki/File:Head_of_a_white_domesticated_duck.jpg
-Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0 
-
-This product includes image 90px-Mallards_nest_Culwatty_-_geograph.org.uk_-_813413.jpg, 
-which is licensed  under the Creative Commons  license CC-BY-SA-2.0. The license 
-can be downloaded from 
-http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Mallard%27s_nest,_Culwatty_-_geograph.org.uk_-_813413.jpg
-Author:wfmillar / Wikimedia Commons / CC-BY-SA-2.0
-
-This product includes image 90px-Swimming_white_domesticated_ducks.jpg, 
-which is licensed  under the Creative Commons  license CC-BY-SA-2.0. The license 
-can be downloaded from 
-http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Swimming_white_domesticated_ducks.jpg
-Ernst Vikne / Wikimedia Commons / CC-BY-SA-2.0
-
-This product includes image Delena-cancerides-huntsman-spider.jpg, 
-which is licensed  under the Creative Commons  license CC-BY-SA-2.0. The license 
-can be downloaded from 
-http://creativecommons.org/licenses/by-sa/2.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Delena-cancerides-huntsman-spider.jpg
-Bryce McQuillan / Wikimedia Commons / CC-BY-SA-2.0
-
-This product includes image refresh.png, which is licensed 
-under the Creative Commons  license CC BY-SA 2.5. The license can be downloaded from 
-http://creativecommons.org/licenses/by-sa/2.5/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Human-gnome-session-reboot.svg
-Pander / Wikimedia Commons / CC BY-SA 2.5
-
-This product includes image 144x144Stick_figure_-_choosing.jpg, which is licensed 
-under the Creative Commons  license CC-BY-SA-3.0. The license can be downloaded from 
-http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Stick_figure_-_choosing.jpg
-User:Obsidian Soul / Wikimedia Commons / CC-BY-SA-3.0 
-
-This product includes image 12x1.33in-Bariken_kid.JPG, which is licensed 
-under the Creative Commons  license CC-BY-SA-3.0. The license can be downloaded from 
-http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Bariken_kid.JPG
-User:Materialscientist / Wikimedia Commons / CC-BY-SA-3.0 
-
-This product includes image 800px-Leg_Of_White_Duck.2x1.6.jpg, which is licensed 
-under the Creative Commons  license CC-BY-SA-3.0. The license can be downloaded from 
-http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Leg_Of_White_Duck.jpg
-User:Ezhuttukari / Wikimedia Commons / CC-BY-SA-3.0  
-
-This product includes image Flying_mallard_duck_-_female_2.0x1.4.jpg, 
-which is licensed  under the Creative Commons  license CC-BY-SA-3.0. The license 
-can be downloaded from 
-http://creativecommons.org/licenses/by-sa/3.0/legalcode. Source:
-http://commons.wikimedia.org/wiki/File:Flying_mallard_duck_-_female.jpg
-Author:Martin Correns / Wikimedia Commons / CC-BY-SA-3.0  
-
-This product includes image 800px-Duck_crossing_Louisiana.2x1.4.jpg and
-BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
-which are in public domain in the United States. Sources:
-http://commons.wikimedia.org/wiki/File:Duck_crossing_Louisiana_2010-10-15.JPG
-Author:Richard David Ramsey
-
-http://commons.wikimedia.org/wiki/File:BURROUGH_AUDUBON_SOCIETY_MEMBERS_USE_BINOCULARS_TO_IDENTIFY_MIGRATORY_SHORE_BIRDS_DURING_A_SCHEDULED_OUTING_AT_THE..._-_NARA_-_557179.jpg
-Author:Duncan, Patricia D.
-
-  
-
-
-  
