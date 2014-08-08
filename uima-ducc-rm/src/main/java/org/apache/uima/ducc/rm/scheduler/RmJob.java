@@ -60,7 +60,6 @@ public class RmJob
     protected int nquestions;                         // number of work-items in total
     protected int nquestions_remaining;               // number of uncompleted work items
     protected double time_per_item = Double.NaN;      // from OR - mean time per work item
-    protected long initialization_time = 0;           // from OR - 
 
     protected int share_order = 0;                    // How many shares per process this job requires (calculated on submission)
 
@@ -949,6 +948,7 @@ public class RmJob
 
         // Get average init time
         int count = 0;
+        long initialization_time = 0;           // from OR - 
         for ( Share s : assignedShares.values() ) {
             long t = s.getInitializationTime();
             if ( s.isInitialized() && ( t > 0) ) {
