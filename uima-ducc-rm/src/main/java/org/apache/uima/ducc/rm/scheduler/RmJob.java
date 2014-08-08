@@ -59,7 +59,8 @@ public class RmJob
     protected int memory;                             // estimated memory usage
     protected int nquestions;                         // number of work-items in total
     protected int nquestions_remaining;               // number of uncompleted work items
-    protected double time_per_item = Double.NaN;             // from OR - mean time per work item
+    protected double time_per_item = Double.NaN;      // from OR - mean time per work item
+    protected long initialization_time = 0;           // from OR - 
 
     protected int share_order = 0;                    // How many shares per process this job requires (calculated on submission)
 
@@ -946,30 +947,30 @@ public class RmJob
             return Integer.MAX_VALUE;
         }
 
-        // jrc
-        // First problem - only get avg if the process has initialized
-        //               - if nothing has finished initializing just return
-        //                 the configured init cap
+        if ( initialization_time == 0 ) {
+            // NOTE what's going on here. This will be calculed only once, the FIRST time the job haas any init time
+            //      recorded.  This mens init_wait is false so the processes have fully or mostly completed init.  If
+            //      we keep accumulating after this the numbers get skewed because they include log init times for the
+            //      new processes.
 
-        // Get average init time
-        int count = 0;
-        long total_init = 0;
-        for ( Share s : assignedShares.values() ) {
-            long t = s.getInitializationTime();
-            if ( t > 0 ) {
-                count++;
-                total_init += t;
+            // Get average init time
+            int count = 0;
+            for ( Share s : assignedShares.values() ) {
+                long t = s.getInitializationTime();
+                if ( t > 0 ) {
+                    count++;
+                    initialization_time += t;
+                }
             }
-        }
-        long avg_init = 0;
-        if ( total_init > 0 ) {
-            avg_init = total_init / count;  // (to seconds)
-        } else {
-            logger.warn(methodName, getId(), username, "Initialization time is 0, project cap and investment will be inaccurate.");
+            if ( initialization_time > 0 ) {
+                initialization_time = initialization_time / count;  // (to seconds)
+            } else {
+                logger.warn(methodName, getId(), username, "Initialization time is 0, project cap and investment will be inaccurate.");
+            }
         }
 
         // When in the future we want to estimate the amount of remaining work.
-        long target = avg_init + ducc_epoch + resource_class.getPredictionFudge();               
+        long target = initialization_time + ducc_epoch + resource_class.getPredictionFudge();               
 
         int nprocesses = countNShares();
         double rate = ((double) (nprocesses * threads)) / time_per_item;                   // number of work items per second
@@ -978,13 +979,6 @@ public class RmJob
                                                                                            // process gets started
 
         long future = Math.max(nquestions_remaining - projected, 0);                        // work still to do after doubling
-
-        logger.info(methodName, getId(), username, "O", getShareOrder(),"T", target, "NTh", (nprocesses * threads), "TI", avg_init, 
-                    "TR", time_per_item,
-                    "R", String.format("%.4e", rate),
-                    "QR", nquestions_remaining, "P", projected, "F", future, 
-                    "ST", submit_time,
-                     "return", (future / threads));
 
         int answer = 0;
 
@@ -997,6 +991,13 @@ public class RmJob
         if ( answer == 0 ) {
             answer = countNShares();
         }
+        logger.info(methodName, getId(), username, "O", getShareOrder(),"T", target, "NTh", (nprocesses * threads), "TI", initialization_time, 
+                    "TR", time_per_item,
+                    "R", String.format("%.4e", rate),
+                    "QR", nquestions_remaining, "P", projected, "F", future, 
+                    "ST", submit_time,
+                    "return", answer);
+
         return answer;                                                                     // number of processes we expect to need
                                                                                            // in the future
         
