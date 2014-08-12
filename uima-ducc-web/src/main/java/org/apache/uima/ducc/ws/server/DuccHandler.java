@@ -3841,35 +3841,30 @@ public class DuccHandler extends DuccAbstractHandler {
 						String jclass = "org.apache.uima.ducc.cli.DuccServiceApi";
 						String jhome = System.getProperty("java.home");
 						DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
+						ArrayList<String> arglist = new ArrayList<String>();
+						arglist.add("-u");
+						arglist.add(userId);
+						arglist.add("--");
+						arglist.add(jhome+java);
+						arglist.add("-cp");
+						arglist.add(cp);
+						arglist.add(jclass);
 						switch(requestRole) {
-						/*
 						case Administrator:
-							String arg3 = "--"+SpecificationProperties.key_role_administrator;
-							String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
-							result = DuccAsUser.duckling(userId, arglistAdministrator);
-							response.getWriter().println(result);
+							String arg0 = "--"+SpecificationProperties.key_role_administrator;
+							arglist.add(arg0);
 							break;
-						case User:
-						*/
 						default:
-							ArrayList<String> arglist = new ArrayList<String>();
-							arglist.add("-u");
-							arglist.add(userId);
-							arglist.add("--");
-							arglist.add(jhome+java);
-							arglist.add("-cp");
-							arglist.add(cp);
-							arglist.add(jclass);
-							arglist.add(arg1);
-							arglist.add(arg2);
-							for(String parm : parms) {
-								arglist.add(parm);
-							}
-							String[] arglistUser = arglist.toArray(new String[0]);
-							result = DuccAsUser.duckling(userId, arglistUser);
-							response.getWriter().println(result);
-							break;	
+							break;
 						}
+						arglist.add(arg1);
+						arglist.add(arg2);
+						for(String parm : parms) {
+							arglist.add(parm);
+						}
+						String[] arglistUser = arglist.toArray(new String[0]);
+						result = DuccAsUser.duckling(userId, arglistUser);
+						response.getWriter().println(result);
 					}
 				}
 				else {
