@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
+import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 
 public class DuccWebUtil {
 
@@ -123,6 +124,11 @@ public class DuccWebUtil {
 			retVal = false;
 		}
 		return retVal;
+	}
+	
+	public static final boolean isListable(HttpServletRequest request, ArrayList<String> users, int maxRecords, int counter, IServiceAdapter serviceAdapter) {
+		Properties propertiesMeta = serviceAdapter.getMeta();
+		return isListable(request, users, maxRecords, counter, propertiesMeta);
 	}
 	
 	public static final boolean isListable(HttpServletRequest request, ArrayList<String> users, int maxRecords, int counter, ServicesRegistryMapPayload entry) {

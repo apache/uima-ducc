@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.springframework.util.StringUtils;
 
 public class ServicesRegistry {
@@ -88,6 +89,7 @@ public class ServicesRegistry {
 			}
 			map = mapRevised;
 			logger.debug(location, jobid, "size: "+map.size());
+			ServicesSortCache.getInstance().update(map);
 		}
 		catch(IOException e) {
 			logger.error(location, jobid, e);

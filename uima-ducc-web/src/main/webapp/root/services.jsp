@@ -143,20 +143,20 @@ if (table_style.equals("classic")) {
 		<tr class="ducc-head">
 		<th class="ducc-col-button"></th>
 		<th class="ducc-col-button"></th>
-		<th title="The service Id">Id</th>
+		<th class="sorttable_numeric" title="The service Id">Id</th>
 		<th title="The service name">Name</th>
 		<th title="The service state">State</th>
 		<th title="The time this service was last used">Last Use</th>
-		<th title="The service number of instances">Instances</th>
-		<th title="The service number of deployments">Deployments</th>
+		<th class="sorttable_numeric" title="The service number of instances">Instances</th>
+		<th class="sorttable_numeric" title="The service number of deployments">Deployments</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
 		<th title="The service scheduling class">Class</th>
-		<th title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
-		<th title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
-		<th title="The service process memory size (GB)">Size</th>
-		<th title="The number of active Jobs that depend on this service">Jobs</th>
-		<th title="The number of active Services that depend on this service">Ser-<br>vices</th>
-		<th title="The number of active Reservations that depend on this service">Reser-<br>vations</th>
+		<th class="sorttable_numeric" title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
+		<th class="sorttable_numeric" title="The GB swapped out to disk for all initializing/running service processes">Swap</th>
+		<th class="sorttable_numeric" title="The service process memory size (GB)">Size</th>
+		<th class="sorttable_numeric" title="The number of active Jobs that depend on this service">Jobs</th>
+		<th class="sorttable_numeric" title="The number of active Services that depend on this service">Ser-<br>vices</th>
+		<th class="sorttable_numeric" title="The number of active Reservations that depend on this service">Reser-<br>vations</th>
 		<th title="The service description">Description</th>
 		</tr>
 		</thead>

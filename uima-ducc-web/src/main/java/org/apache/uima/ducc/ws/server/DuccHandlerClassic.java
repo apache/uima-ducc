@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -43,7 +44,6 @@ import org.apache.uima.ducc.common.NodeConfiguration;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties.DaemonName;
 import org.apache.uima.ducc.common.internationalization.Messages;
-import org.apache.uima.ducc.common.persistence.services.IStateServices;
 import org.apache.uima.ducc.common.utils.ComponentHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -67,17 +67,14 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
 import org.apache.uima.ducc.ws.DuccData;
-import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
-import org.apache.uima.ducc.ws.registry.IServicesRegistry;
-import org.apache.uima.ducc.ws.registry.ServiceName;
-import org.apache.uima.ducc.ws.registry.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
-import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
-import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
+import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
+import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
+import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.types.NodeId;
 import org.apache.uima.ducc.ws.types.UserId;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -88,10 +85,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(DuccHandlerClassic.class.getName());
 	private static Messages messages = Messages.getInstance();
 	private static DuccId jobid = null;
-	
-	private static ServicesHelper servicesHelper = ServicesHelper.getInstance();
-	
-	//private static PagingObserver pagingObserver = PagingObserver.getInstance();
 	
 	public final String classicJobs 				= duccContextClassic+"-jobs-data";
 	public final String classicReservations 		= duccContextClassic+"-reservations-data";
@@ -837,6 +830,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}	
 	
+	private static DecimalFormat formatter = new DecimalFormat("##0.0");
+	
 	private void handleServletClassicServices(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -844,74 +839,36 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
 		StringBuffer sb = new StringBuffer();
 		
-		DuccDataHelper duccDataHelper = DuccDataHelper.getInstance();
-		TreeMap<String, ArrayList<DuccId>> serviceToJobsMap = duccDataHelper.getServiceToJobsUsageMap();
-		//TreeMap<String, ArrayList<String>> serviceToServicesMap = duccDataHelper.getServiceToServicesUsageMap();
-		TreeMap<String, ArrayList<DuccId>> serviceToReservationsMap = duccDataHelper.getServiceToReservationsUsageMap();
-		
-		int maxRecords = getServicesMax(request);
-		ArrayList<String> users = getServicesUsers(request);
-		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
-		ServicesRegistryMap map = servicesRegistry.getMap();
-		if(!map.isEmpty()) {
+		ServicesSortCache servicesSortCache = ServicesSortCache.getInstance();
+		Collection<IServiceAdapter> servicesSortedCollection = servicesSortCache.getSortedCollection();
+		if(!servicesSortedCollection.isEmpty()) {
+			int maxRecords = getServicesMax(request);
+			ArrayList<String> users = getServicesUsers(request);
 			int counter = 0;
-			int nac = 0;
-			for(Integer key : map.getDescendingKeySet()) {
-				ServicesRegistryMapPayload entry = map.get(key);
-				boolean list = DuccWebUtil.isListable(request, users, maxRecords, nac, entry);
+			for(IServiceAdapter service : servicesSortedCollection) {
+				boolean list = DuccWebUtil.isListable(request, users, maxRecords, counter, service);
 				if(!list) {
 					continue;
 				}
-				nac++;
-				Properties propertiesSvc = entry.get(IServicesRegistry.svc);
-				Properties propertiesMeta = entry.get(IServicesRegistry.meta);
-				ServiceName serviceName = new ServiceName(getValue(propertiesMeta,IServicesRegistry.endpoint,""));
-				String name = serviceName.toString();
-				String user = getValue(propertiesMeta,IServicesRegistry.user,"");
-				String sid = getValue(propertiesMeta,IServicesRegistry.numeric_id,"");
-				String instances = getValue(propertiesMeta,IStateServices.instances,"");
-				String deployments = ""+servicesHelper.getDeployments(servicesRegistry,propertiesMeta);
-				sb.append(trGet(++counter));
-				
-				boolean ping_only = false;
-				boolean ping_active = false;
-				
-				String typeRegistered = "Registered";
-				
-				String type = "";
-				if(propertiesMeta != null) {
-					if(propertiesMeta.containsKey(IServicesRegistry.service_class)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.service_class);
-						if(value != null) {
-							type = value.trim();
-						}
-					}
-					if(propertiesMeta.containsKey(IServicesRegistry.ping_only)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.ping_only);
-						if(value != null) {
-							ping_only = Boolean.valueOf(value.trim());
-						}
-					}
-					if(propertiesMeta.containsKey(IServicesRegistry.ping_active)) {
-						String value = propertiesMeta.getProperty(IServicesRegistry.ping_active);
-						if(value != null) {
-							ping_active = Boolean.valueOf(value.trim());
-						}
-					}
-				}
-				
+				counter++;
+				// Row Begin
+				sb.append("<tr>");
+				int sid = service.getId();
+				String user = service.getUser();
+				long deployments = service.getDeployments();
+				long instances = service.getInstances();
 				// Start
 				sb.append("<td valign=\"bottom\" class=\"ducc-col-start\">");
-				if(type.equals(typeRegistered)) {
+				if(service.isRegistered()) {
 					if(buttonsEnabled) {
-						if(ping_only) {
-							if(!ping_active) {
+						if(service.isPingOnly()) {
+							if(!service.isPingActive()) {
 								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
 							}
 						}
 						else {
 							try {
-								if(Long.parseLong(deployments) < Long.parseLong(instances)) {
+								if(deployments < instances) {
 									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
 								}
 							}
@@ -923,181 +880,163 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("</td>");
 				// Stop
 				sb.append("<td valign=\"bottom\" class=\"ducc-col-stop\">");
-				if(type.equals(typeRegistered)) {
+				if(service.isRegistered()) {
 					if(buttonsEnabled) {
-						if(ping_only) {
-							if(ping_active) {
+						if(service.isPingOnly()) {
+							if(service.isPingActive()) {
 								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
 							}
 						}
 						else {
-							if(!deployments.equals("0")) {
+							if(deployments != 0) {
 								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_stop("+sid+")\" value=\"Stop\" "+getDisabledWithHover(request,user)+"/>");
 							}
 						}
 					}
 				}
 				sb.append("</td>");
-				// Service Id
+				// Id
+				String name = service.getName();
 				sb.append("<td align=\"right\">");
-				String id = "<a href=\"service.details.html?name="+name+"\">"+key+"</a>";
-				sb.append(id);
+				String id = "<a href=\"service.details.html?name="+name+"\">"+sid+"</a>";
+				sb.append(""+id);
 				sb.append("</td>");
-				// Endpoint
+				// Name
 				sb.append("<td>");
 				sb.append(name);
 				sb.append("</td>");
 				// State
 				sb.append("<td>");
-				String state = DuccServicesState.getServiceState(propertiesMeta);
+				String state = service.getState();
+				boolean alert = service.isAlert();
+				boolean viable = service.isViable();
+				if(alert) {
+					state += "+Alert";
+				}
+				String style = "class=\"health_black\";";
+				if(alert) {
+					style = "class=\"health_red\"";
+				}
+				else if(viable) {
+					style = "class=\"health_green\"";
+				}
+				String stateHover = ServicesHelper.getInstance().getStateHover(service);
+				if(stateHover.length() > 0) {
+					stateHover = "title="+"\""+stateHover+"\"";
+				}
+				sb.append("<span "+style+" "+stateHover+">");
 				sb.append(state);
+				sb.append("</span>");
 				sb.append("</td>");
-				// Last Used
+				// Last Use
 				sb.append("<td>");
-				String lastUse = DuccServicesState.getUninterpreted(propertiesMeta, IServicesRegistry.last_use);
-				try {
-					long value = Long.parseLong(lastUse);
-					if(value > 0) {
-						sb.append(getTimeStamp(request, jobid, lastUse));
-					}
-				}
-				catch(Exception e) {
+				long lastUse = service.getLastUse();
+				if(lastUse > 0) {
+					sb.append(getTimeStamp(request, jobid, ""+lastUse));
 				}
 				sb.append("</td>");
-				// No. of Instances
+				// Instances
 				sb.append("<td align=\"right\">");
-				if(ping_only) {
-				}
-				else {
-					sb.append(instances);
-				}
+				sb.append(instances);
 				sb.append("</td>");
-				// No. of Deployments
+				// Deployments
 				sb.append("<td align=\"right\">");
-				if(ping_only) {
-				}
-				else {
-					sb.append(deployments);
-				}
+				sb.append(deployments);
 				sb.append("</td>");
-				// Owning User
+				// User
 				sb.append("<td>");
-				sb.append(getValue(propertiesMeta,IServicesRegistry.user,""));
+				sb.append(user);
 				sb.append("</td>");
-				// Scheduling Class
+				// Share Class
 				sb.append("<td>");
-				if(ping_only) {
-					sb.append("["+IServicesRegistry.ping_only+"]");
-				}
-				else {
-					sb.append(getValue(propertiesSvc,IServicesRegistry.scheduling_class,""));
-				}
+				String shareClass = service.getShareClass();
+				sb.append(shareClass);
 				sb.append("</td>");
-				// Pgin
+				// PgIn
 				sb.append("<td align=\"right\">");
-				long pgin = servicesHelper.getPgin(servicesRegistry, propertiesMeta);
-				sb.append(pgin);
+				long pgIn = service.getPgIn();
+				sb.append(pgIn);
 				sb.append("</td>");
 				// Swap
 				sb.append("<td align=\"right\">");
-				DecimalFormat formatter = new DecimalFormat("##0.0");
-				double rawSwap = servicesHelper.getSwap(servicesRegistry, propertiesMeta);
+				double rawSwap = service.getSwap();
 				rawSwap = rawSwap/Constants.GB;
 				String swap = formatter.format(rawSwap);
-				double rawSwapMax = servicesHelper.getSwapMax(servicesRegistry, propertiesMeta);
+				double rawSwapMax = service.getSwapMax();
 				rawSwapMax = rawSwapMax/Constants.GB;
 				String swapMax = formatter.format(rawSwap);
 				sb.append("<span title=\"max="+swapMax+"\" align=\"right\" "+">");
 				sb.append(swap);
 				sb.append("</span>");
-				// Process Memory Size
-				sb.append("<td align=\"right\">");
-				if(ping_only) {
-				}
-				else {
-					sb.append(getValue(propertiesSvc,IServicesRegistry.process_memory_size,""));
-				}
 				sb.append("</td>");
-				// Jobs			
+				// Size
 				sb.append("<td align=\"right\">");
-				String jobs = "0";
-				if(serviceToJobsMap.containsKey(name)) {
-					ArrayList<DuccId> duccIds = serviceToJobsMap.get(name);
-					int size = duccIds.size();
-					if(size > 0) {
-						StringBuffer idList = new StringBuffer();
-						for(DuccId duccId : duccIds) {
-							if(idList.length() > 0) {
-								idList.append(",");
-							}
-							idList.append(duccId);
-						}
-						String title = "active Job Id list: "+idList;
-						jobs = "<span title=\""+title+"\">"+size+"</span>";
-					}
+				long size = service.getSize();
+				if(size < 0) {
+					size = 0;
 				}
+				sb.append(size);
+				sb.append("</td>");
+				// Jobs
+				sb.append("<td align=\"right\">");
+				ArrayList<String> dependentJobs = service.getDependentJobs();
+				int countDependentJobs = dependentJobs.size();
+				String titleJobs = "";
+				if(countDependentJobs > 0) {
+					StringBuffer idList = new StringBuffer();
+					for(String duccId : dependentJobs) {
+						if(idList.length() > 0) {
+							idList.append(",");
+						}
+						idList.append(duccId);
+					}
+					titleJobs = "dependent Job Id list: "+idList;
+				}
+				String jobs = "<span title=\""+titleJobs+"\">"+countDependentJobs+"</span>";
 				sb.append(jobs);
 				sb.append("</td>");
 				// Services
 				sb.append("<td align=\"right\">");
-				String services = "0";
-				ArrayList<String> serviceDependencies = servicesRegistry.getServiceDependencies(name);
-				int ssize = serviceDependencies.size();
-				if(ssize > 0) {
-					StringBuffer sdList = new StringBuffer();
-					for(String serviceDependency : serviceDependencies) {
-						sdList.append(serviceDependency+" ");
+				ArrayList<String> dependentServices = service.getDependentServices();
+				int countDependentServices = dependentServices.size();
+				String titleServices = "";
+				if(countDependentServices > 0) {
+					StringBuffer idList = new StringBuffer();
+					for(String duccId : dependentServices) {
+						if(idList.length() > 0) {
+							idList.append(",");
+						}
+						idList.append(duccId);
 					}
-					String title = sdList.toString().trim();
-					services = "<span title=\""+title+"\">"+ssize+"</span>";
+					titleServices = "dependent Service Name list: "+idList;
 				}
+				String services = "<span title=\""+titleServices+"\">"+countDependentServices+"</span>";
 				sb.append(services);
 				sb.append("</td>");
 				// Reservations
 				sb.append("<td align=\"right\">");
-				String reservations = "0";
-				if(serviceToReservationsMap.containsKey(name)) {
-					ArrayList<DuccId> duccIds = serviceToReservationsMap.get(name);
-					int size = duccIds.size();
-					if(size > 0) {
-						StringBuffer idList = new StringBuffer();
-						for(DuccId duccId : duccIds) {
-							if(idList.length() > 0) {
-								idList.append(",");
-							}
-							idList.append(duccId);
+				ArrayList<String> dependentReservations = service.getDependentReservations();
+				int countDependentReservations = dependentReservations.size();
+				String titleReservations = "";
+				if(countDependentReservations > 0) {
+					StringBuffer idList = new StringBuffer();
+					for(String duccId : dependentReservations) {
+						if(idList.length() > 0) {
+							idList.append(",");
 						}
-						String title = "active Reservation Id list: "+idList;
-						reservations = "<span title=\""+title+"\">"+size+"</span>";
+						idList.append(duccId);
 					}
+					titleReservations = "dependent Reservation Id list: "+idList;
 				}
+				String reservations = "<span title=\""+titleReservations+"\">"+countDependentReservations+"</span>";
 				sb.append(reservations);
 				sb.append("</td>");
 				// Description
 				sb.append("<td>");
-				String description = getValue(propertiesSvc,IServicesRegistry.description,"");
-				switch(DuccCookies.getDescriptionStyle(request)) {
-				case Long:
-				default:
-					sb.append("<span title=\""+DuccConstants.hintPreferencesDescriptionStyleShort+"\">");
-					sb.append(description);
-					sb.append("</span>");
-					break;
-				case Short:
-					String shortDescription = getShortDescription(description);
-					if(shortDescription == null) {
-						sb.append("<span>");
-						sb.append(description);
-						sb.append("</span>");
-					}
-					else {
-						sb.append("<span title=\""+description+"\">");
-						sb.append(shortDescription);
-						sb.append("</span>");
-					}
-					break;
-				}
+				String description = service.getDescription();
+				sb.append(description);
 				sb.append("</td>");
+				// Row End
 				sb.append("</tr>");
 			}
 		}
@@ -1269,154 +1208,6 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
-
-	// private void handleServletClassicSystemClassesX(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
-	// throws IOException, ServletException
-	// {
-	// 	String methodName = "handleServletClassicSystemClasses";
-	// 	duccLogger.trace(methodName, jobid, messages.fetch("enter"));
-	// 	StringBuffer sb = new StringBuffer();
-		
-	// 	DuccSchedulerClasses schedulerClasses = new DuccSchedulerClasses();
-	// 	DuccProperties properties = schedulerClasses.getClasses();
-	// 	String class_set = properties.getProperty("scheduling.class_set");
-	// 	class_set.trim();
-	// 	if(class_set != null) {
-	// 		String[] class_array = StringUtils.split(class_set);
-	// 		for(int i=0; i<class_array.length; i++) {
-	// 			String class_name = class_array[i].trim();
-	// 			sb.append(trGet(i+1));
-	// 			sb.append("<td>");
-	// 			sb.append(class_name);
-	// 			sb.append("</td>");	
-	// 			sb.append("<td>");
-
-    //             String policy = properties.getStringProperty("scheduling.class."+class_name+".policy");
-	// 			sb.append(policy);
-	// 			sb.append("</td>");	
-	// 			sb.append("<td align=\"right\">");
-	// 			sb.append(properties.getStringProperty("scheduling.class."+class_name+".share_weight", "100"));
-	// 			sb.append("</td>");	
-	// 			sb.append("<td align=\"right\">");
-	// 			sb.append(properties.getStringProperty("scheduling.class."+class_name+".priority"));
-	// 			sb.append("</td>");	
-
-    //             // cap is either absolute or proportional.  if proprotional, it ends with '%'.  It's always
-    //             // either-or so at least one of these columns will have N/A
-	// 			String val = properties.getStringProperty("scheduling.class."+class_name+".cap", "0");
-	// 			if( (val == null) || val.equals("0") ) {
-    //                 sb.append("<td align=\"right\">");
-    //                 sb.append("-");
-    //                 sb.append("</td>");
-    //                 sb.append("<td align=\"right\">");
-    //                 sb.append("-");
-    //                 sb.append("</td>");
-	// 			} else if ( val.endsWith("%") ) {
-    //                 sb.append("<td align=\"right\">");
-    //                 sb.append(val);
-    //                 sb.append("</td>");
-
-    //                 sb.append("<td align=\"right\">");
-    //                 sb.append("-");
-    //                 sb.append("</td>");
-    //             } else {
-    //                 sb.append("<td align=\"right\">");
-    //                 sb.append("-");
-    //                 sb.append("</td>");
-
-    //                 sb.append("<td align=\"right\">");
-    //                 sb.append(val);
-    //                 sb.append("</td>");
-    //             }
-
-	// 			sb.append("<td align=\"right\">");
-	// 			val = properties.getStringProperty("scheduling.class."+class_name+".initialization.cap", 
-    //                                                System.getProperty("ducc.rm.initialization.cap"));
-    //             if ( val == null ) {
-    //                 val = "2";
-    //             }
-
-	// 			sb.append(val);
-	// 			sb.append("</td>");	
-
-	// 			sb.append("<td align=\"right\">");
-	// 			boolean bval = properties.getBooleanProperty("scheduling.class."+class_name+".expand.by.doubling", true);
-    //             sb.append(bval);
-	// 			sb.append("</td>");	
-
-	// 			sb.append("<td align=\"right\">");
-	// 			val = properties.getStringProperty("scheduling.class."+class_name+".prediction", 
-    //                                                System.getProperty("ducc.rm.prediction"));
-    //             if ( val == null ) {
-    //                 val = "true";
-    //             }
-    //             sb.append(val);
-	// 			sb.append("</td>");	
-
-	// 			sb.append("<td align=\"right\">");
-	// 			val = properties.getStringProperty("scheduling.class."+class_name+".prediction.fudge",
-    //                                                System.getProperty("ducc.rm.prediction.fudge"));
-    //             if ( val == null ) {
-    //                 val = "10000";
-    //             }
-    //             sb.append(val);
-	// 			sb.append("</td>");	
-
-    //             // max for reserve in in machines.  For fixed is in processes.  No max on fair-share. So slightly
-    //             // ugly code here.
- 	// 			sb.append("<td align=\"right\">");
-    //             if ( policy.equals("RESERVE") ) {
-    //                 val = properties.getStringProperty("scheduling.class."+class_name+".max_machines", "0");
-    //                 if( val == null || val.equals("0")) {
-    //                     val = "-";
-    //                 }
-    //             } else if ( policy.equals("FIXED_SHARE") ) {
-    //                 val = properties.getStringProperty("scheduling.class."+class_name+".max_processes", "0");
-    //                 if( val == null || val.equals("0")) {
-    //                     val = "-";
-    //                 }
-    //             } else {
-	// 				val = "-";
-    //             }
-
-	// 			val = properties.getStringProperty("scheduling.class."+class_name+".max_shares", "0");
-	// 			if( val == null || val.equals("0")) {
-	// 				val = "-";
-	// 			}
-	// 			sb.append(val);
-	// 			sb.append("</td>");	
-
-	// 			sb.append("<td align=\"right\">");
-	// 			val = properties.getStringProperty("scheduling.class."+class_name+".nodepool", "--global--");
-    //             sb.append(val);
-	// 			sb.append("</td>");	
-				
-	// 			// Debug
-	// 			sb.append("<td align=\"right\">");
-	// 			val = "-";
-	// 			if(schedulerClasses.isPreemptable(class_name)) {
-	// 				String v1 = properties.getStringProperty("scheduling.class."+class_name+".debug", "");
-	// 				if(!v1.equals("")) {
-	// 					val = v1;
-	// 				}
-	// 				else {
-	// 					String v2 = properties.getStringProperty("scheduling.default.name.debug", "");
-	// 					if(!v2.equals("")) {
-	// 						val = "["+v2+"]";
-	// 					}
-	// 				}
-	// 			}
-	// 			sb.append(val);
-	// 			sb.append("</td>");	
-
-	// 			sb.append("</tr>");
-	// 		}
-	// 	}
-		
-	// 	duccLogger.debug(methodName, jobid, sb);
-	// 	response.getWriter().println(sb);
-	// 	duccLogger.trace(methodName, jobid, messages.fetch("exit"));
-	// }		
 
 	private void handleServletClassicSystemDaemons(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
