@@ -72,6 +72,8 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public static DuccWebAdministrators duccWebAdministrators = DuccWebAdministrators.getInstance();
 	public static DuccWebSessionManager duccWebSessionManager = DuccWebSessionManager.getInstance();
 	
+	public final String version110 = "1.1.0";
+	
 	public final String duccUimaInitializationReport		  = "uima-initialization-report.html";
 	
 	public final String duccContext = "/ducc-servlet";
