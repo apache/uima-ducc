@@ -2290,6 +2290,7 @@ function ducc_update_page(type)
 				ducc_load_service_files_data();
 				ducc_load_service_registry_data();
 				ducc_load_service_deployments_data();
+				ducc_load_service_summary_data();
 				ducc_service_update_form_button();
 			}
 			if(type == "system-machines") {
