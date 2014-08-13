@@ -1040,11 +1040,16 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 					switch(jobCompletionType) {
 					case EndOfJob:
 						try {
-							int total = job.getSchedulingInfo().getIntWorkItemsTotal();
-							int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
-							int error = job.getSchedulingInfo().getIntWorkItemsError();
-							if(total != (done+error)) {
-								jobCompletionType = JobCompletionType.Premature;
+							if(job.getDriver().getProcessMap().getAbnormalDeallocationCount() > 0) {
+								jobCompletionType = JobCompletionType.DriverProcessFailed;
+							}
+							else {
+								int total = job.getSchedulingInfo().getIntWorkItemsTotal();
+								int done = job.getSchedulingInfo().getIntWorkItemsCompleted();
+								int error = job.getSchedulingInfo().getIntWorkItemsError();
+								if(total != (done+error)) {
+									jobCompletionType = JobCompletionType.Premature;
+								}
 							}
 						}
 						catch(Exception e) {
