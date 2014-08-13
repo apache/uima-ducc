@@ -319,6 +319,28 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return list.size();
 	}
 	
+	public ArrayList<DuccId> getAbnormalDeallocations() {
+		ArrayList<DuccId> list = new ArrayList<DuccId>();
+		synchronized(this) {
+			Iterator<IDuccProcess> iterator = this.values().iterator();
+			while(iterator.hasNext()) {
+				IDuccProcess process = iterator.next();
+				if(!process.isDeallocationNormal()) {
+					list.add(process.getDuccId());
+				}
+				else {
+					// Nevermind
+				}
+			}
+		}
+		return list;
+	}
+	
+	public int getAbnormalDeallocationCount() {
+		ArrayList<DuccId> list = getAbnormalDeallocations();
+		return list.size();
+	}
+	
 	public long getPgInCount() {
 		long retVal = 0;
 		synchronized(this) {

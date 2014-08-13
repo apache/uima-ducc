@@ -388,6 +388,32 @@ public class DuccProcess implements IDuccProcess {
 		return retVal;
 	}
 	
+	public boolean isDeallocationNormal() {
+		boolean retVal = true;
+		switch(deallocationType) {
+		case Voluntary:
+		case Forced:
+		case JobCanceled:
+		case JobFailure:
+		case JobCompleted:
+		case Stopped:
+		case Canceled:
+			retVal = true;
+			break;
+		case Exception:
+		case AutonomousStop:
+		case Failed:
+		case FailedInitialization:
+		case InitializationTimeout:
+		case Killed:
+		case Purged:
+		case Undefined:
+			retVal = false;
+			break;
+		}
+		return retVal;
+	}
+	
 	// **********
 	
 	

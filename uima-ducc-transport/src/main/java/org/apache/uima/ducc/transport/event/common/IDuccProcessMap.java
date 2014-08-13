@@ -44,6 +44,8 @@ public interface IDuccProcessMap extends Map<DuccId,IDuccProcess>, Serializable 
 	public int getFailedInitializationCount();
 	public int getFailedNotInitializationCount();
 	
+	public int getAbnormalDeallocationCount();
+	
 	public Map<DuccId,IDuccProcess> getMap();
 	public IDuccProcessMap deepCopy();
 	

@@ -80,6 +80,8 @@ public interface IDuccProcess extends Serializable {
 	public boolean isDeallocated();
 	public boolean isDefunct();
 	
+	public boolean isDeallocationNormal();
+	
 	public void setResidentMemory(long residentMemory);
 	public long getResidentMemory();
 	public long getResidentMemoryMax();
