@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.event.sm;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,6 +67,7 @@ public class ServiceDescription
 
     // enabled?
     private boolean enabled = true;
+    private String  disable_reason = null;
 
     // for submitted service, the registered service id
     private ADuccId id;
@@ -79,6 +81,12 @@ public class ServiceDescription
     private Map<String, String> dependencies;
 
     private IServiceStatistics qstats;
+
+    private String error_string = null;
+    private long last_use = 0;
+
+    private String registration_date = null;
+    private boolean reference_start = true;
 
 	public ADuccId getId() {
 		return id;
@@ -201,6 +209,65 @@ public class ServiceDescription
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
+
+    public String getDisableReason()
+    {
+        return disable_reason;
+    }
+
+    public void setDisableReason(String s)
+    {
+        this.disable_reason = s;
+    }
+
+    public void setErrorString(String s)
+    {
+        this.error_string = s;
+    }
+
+    public String getErrorString()
+    {
+        return error_string;
+    }
+
+    public void setLastUse(long l)
+    {
+        this.last_use = l;
+    }
+
+    public long getLastUse()
+    {
+        return this.last_use;
+    }
+
+    public String getLastUseString()
+    {
+        if ( last_use == 0) {
+            return "N/A";
+        }  else {
+            return (new Date(last_use)).toString();
+        }
+    }
+
+    public void setRegistrationDate(String s)
+    {
+        this.registration_date = s;
+    }
+
+    public String getRegistrationDate()
+    {
+        return this.registration_date;
+    }
+
+    public void setReferenceStart(boolean b)
+    {
+        this.reference_start = b;
+    }
+
+    public boolean isReferenceStart()
+    {
+        return this.reference_start;
+    }
 
 	public IServiceStatistics getQstats() {
 		return qstats;
@@ -325,13 +392,32 @@ public class ServiceDescription
         sb.append(active);
         sb.append("\n");
 
-        sb.append("   Autostart       : ");
-        sb.append(autostart);
-        sb.append("\n");
+        sb.append("   Start Mode      : ");
+        if ( autostart )            { sb.append("autostart"); }
+        else if ( reference_start ) { sb.append("reference"); }
+        else                        { sb.append("manual"); }
         
-        sb.append("   Enabled         : ");
-        sb.append(enabled);
+        if ( enabled ) {
+            sb.append(", Enabled");
+        } else {
+            sb.append(", Disabled; reason: ");
+            sb.append(disable_reason);
+        }
         sb.append("\n");
+
+        sb.append("   Last Use          : ");
+        sb.append(getLastUseString());
+        sb.append("\n");
+
+        sb.append("   Registration Date : ");
+        sb.append(registration_date);
+        sb.append("\n");
+
+        if ( error_string != null ) {
+            sb.append("   Errors       : ");
+            sb.append(error_string);
+            sb.append("\n");
+        }
 
         sb.append("   Service Statistics: ");
         if ( qstats == null ) {
@@ -339,6 +425,7 @@ public class ServiceDescription
         } else {
             sb.append("\n       ");            
             sb.append(qstats.toString());
+            sb.append("\n");
         }
         return sb.toString();
     }

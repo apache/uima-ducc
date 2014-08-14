@@ -1938,6 +1938,11 @@ public class ServiceSet
         sd.setLinger(linger_time);
         sd.setId(id);
         sd.setUser(user);
+        sd.setDisableReason(meta_props.getStringProperty("disable-reason", null));
+        sd.setLastUse(last_use);
+        sd.setRegistrationDate(meta_props.getStringProperty("registration-date", ""));
+        sd.setReferenceStart(reference_start);
+        sd.setErrorString(meta_props.getStringProperty("submit-error", null));
 
         if ( serviceMeta != null ) {
             sd.setQueueStatistics(serviceMeta.getServiceStatistics());

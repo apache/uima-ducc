@@ -127,8 +127,25 @@ public interface IServiceDescription
      * Internal to DUCC.
      */
     public void setAutostart(boolean autostart);
+    public boolean isAutostart();
+
+    public void setReferenceStart(boolean ref);
+    public boolean isReferenceStart();
 
 	public boolean isEnabled();
+    public void   setDisableReason(String r);
+    public String getDisableReason();
+
+    public void setLastUse(long last_use);
+    public long getLastUse();
+    public String getLastUseString();
+
+    public void setRegistrationDate(String d);
+    public String getRegistrationDate();
+
+    public String getErrorString();
+    public void   setErrorString(String s);
+
     /**
      * Internal to DUCC.
      */
