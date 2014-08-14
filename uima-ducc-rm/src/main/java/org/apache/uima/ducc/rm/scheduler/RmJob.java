@@ -1004,11 +1004,6 @@ public class RmJob
     {    	
 		String methodName = "initJobCap";
 
-        if ( getId().getFriendly() == 190605 ) {
-            int x;
-            x = 0;
-        }
-
         if ( isRefused() ) {
             job_cap = 0;
             return;
