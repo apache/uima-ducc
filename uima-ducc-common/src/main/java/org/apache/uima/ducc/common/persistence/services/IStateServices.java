@@ -34,6 +34,9 @@ public interface IStateServices {
 	public static final String endpoint = "endpoint";
 	public static final String instances = "instances";
 	public static final String autostart = "autostart";
+	public static final String reference = "reference";
+	public static final String enabled = "enabled";
+	public static final String disable_reason = "disable-reason";
 	public static final String implementors = "implementors";
 	public static final String numeric_id = "numeric_id";
 	public static final String ping_active = "ping-active";
