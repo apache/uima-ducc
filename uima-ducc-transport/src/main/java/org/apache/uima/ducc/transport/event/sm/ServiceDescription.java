@@ -64,8 +64,8 @@ public class ServiceDescription
     // current autorstart state
     private boolean autostart = true;
 
-    // manual stop?
-    private boolean stopped = false;
+    // enabled?
+    private boolean enabled = true;
 
     // for submitted service, the registered service id
     private ADuccId id;
@@ -194,12 +194,12 @@ public class ServiceDescription
 		this.autostart = autostart;
 	}
 
-	public boolean isStopped() {
-		return stopped;
+	public boolean isEnabled() {
+		return enabled;
 	}
 
-	public void setStopped(boolean stopped) {
-		this.stopped = stopped;
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 
 	public IServiceStatistics getQstats() {
@@ -329,8 +329,8 @@ public class ServiceDescription
         sb.append(autostart);
         sb.append("\n");
         
-        sb.append("   Manual Stop     : ");
-        sb.append(stopped);
+        sb.append("   Enabled         : ");
+        sb.append(enabled);
         sb.append("\n");
 
         sb.append("   Service Statistics: ");

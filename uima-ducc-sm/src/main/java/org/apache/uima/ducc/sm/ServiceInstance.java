@@ -208,8 +208,9 @@ class ServiceInstance
 			}
 
 		} catch (Throwable t) {
-			// TODO Auto-generated catch block
-            logger.error(methodName, null, t);
+            logger.error(methodName, sset.getId(), t);
+            sset.setErrorString(t.toString());
+            return -1;
 		}
 
         for ( String s : stderr_lines ) {
@@ -251,6 +252,7 @@ class ServiceInstance
                     started = true;
                     logger.info(methodName, null, "Request to start service " + sset.getId().toString() + " accepted as service instance ", numeric_id);
                 } catch ( NumberFormatException e ) {
+                    sset.setErrorString("Request to start service " + sset.getId().toString() + " failed, can't interpret submit response.: " + s);
                     logger.warn(methodName, null,  "Request to start service " + sset.getId().toString() + " failed, can't interpret response.: " + s);
                 }
 
@@ -258,7 +260,7 @@ class ServiceInstance
         }
 
         if ( ! started ) {
-            logger.warn(methodName, null, "Request to start service " + sset.getId().toString() + " failed.");
+            logger.warn(methodName, sset.getId(), "Request to start service " + sset.getId().toString() + " failed.");
             meta_props.put("submit-error", submit_buffer.toString());
             sset.log_errors(stdout_lines, stderr_lines);
         } else {

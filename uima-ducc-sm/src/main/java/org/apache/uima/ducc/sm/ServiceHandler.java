@@ -33,7 +33,11 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
+import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
+import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
+import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
+import org.apache.uima.ducc.transport.event.ServiceObserveEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryReplyEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
@@ -688,7 +692,6 @@ public class ServiceHandler
 
         logger.info(methodName, sset.getId(), operation, "request from", userin, "not authorized.  Service owner:", userout);
         return false;
-
     }
 
     ServiceReplyEvent start(ServiceStartEvent ev)
@@ -706,8 +709,15 @@ public class ServiceHandler
             return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
+
         int running    = sset.countImplementors();
         int instances  = ev.getInstances();
+
+        if ( (instances == -1) && !sset.enabled() ) {    // no args always enables
+            sset.enable();
+        } else if ( ! sset.enabled() ) {
+            return new ServiceReplyEvent(false, "Service is disabled, cannot start (" + sset.getDisableReason() + ")", url, sset.getId().getFriendly());
+        }
 
         if ( sset.isDebug() ) {
             if ( sset.countImplementors() > 0 ) {
@@ -756,9 +766,13 @@ public class ServiceHandler
     // Start with some instances says: start exactly this many
     // If the --save option is included, also update the registration
     //
-    void doStart(long friendly, String epname, int instances, boolean update)
+    void doStart(ServiceStartEvent ev)
     {
     	String methodName = "doStart";
+
+        long friendly = ev.getFriendly();
+        String epname = ev.getEndpoint();
+        int instances = ev.getInstances();
         ServiceSet sset = serviceStateHandler.getServiceForApi(friendly, epname);
 
         int running    = sset.countImplementors();
@@ -785,11 +799,13 @@ public class ServiceHandler
 
         sset.resetRuntimeErrors();
         sset.setStarted();                              // manual start overrides, if there's still a problem
-        sset.updateInstances(running + wanted, update); // pass in target instances
+        sset.updateInstances(running + wanted); // pass in target instances
     }
 
     ServiceReplyEvent stop(ServiceStopEvent ev)
     {
+        String methodName = "stop";
+
         long   id = ev.getFriendly();
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
@@ -801,13 +817,26 @@ public class ServiceHandler
             return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
         }
 
-
         if ( sset.isStopped() ) {
             return new ServiceReplyEvent(false, "Already stopped", sset.getKey(), sset.getId().getFriendly());
         }
 
+        int running    = sset.countImplementors();
+        int instances  = ev.getInstances();
+        int tolose;
+        String msg;
+        // CLI/API prevents instances < -1
+        if ( instances == -1 ) {                             // figure out n to lose
+            tolose = running;
+            msg = "Stopping all deployments.";
+        } else {
+            tolose = Math.min(instances, running);
+            msg = "Stopping " + tolose + " deployments.";
+        }
+
+        logger.info(methodName, sset.getId(), msg);
         pendingRequests.add(new ApiHandler(ev, this));
-        return new ServiceReplyEvent(true, "Stopping", sset.getKey(), sset.getId().getFriendly());
+        return new ServiceReplyEvent(true, msg, sset.getKey(), sset.getId().getFriendly());
     }
 
     //
@@ -817,10 +846,14 @@ public class ServiceHandler
     // Otherwise we just stop the number asked for
     // If --save is insicated we update the registry
     //
-    void doStop(long id, String url, int instances, boolean update)
+    void doStop(ServiceStopEvent event)
+    //long id, String url, int instances)
     {
         //String methodName = "doStop";
 
+        int instances = event.getInstances();
+        long id = event.getFriendly();
+        String url = event.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
 
         int running    = sset.countImplementors();
@@ -828,12 +861,105 @@ public class ServiceHandler
         
         // CLI/API prevents instances < -1
         if ( instances == -1 ) {                             // figure out n to lose
-            tolose = running;
+            sset.disableAndStop("Disabled by stop from id " + event.getUser());
         } else {
             tolose = Math.min(instances, running);
+            sset.updateInstances(Math.max(0, running - tolose)); // pass in target intances running
         }
 
-        sset.updateInstances(Math.max(0, running - tolose), update); // pass in target intances running
+    }
+
+    ServiceReplyEvent disable(ServiceDisableEvent ev)
+    {
+        long   id = ev.getFriendly();
+        String url = ev.getEndpoint();
+        ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
+        if ( sset == null ) {
+            return new ServiceReplyEvent(false, "Unknown service", url, id);
+        }
+
+        if ( ! authorized("disable", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+        }
+
+        if ( !sset.enabled() ) {
+            return new ServiceReplyEvent(true, "Service is already disabled", sset.getKey(), sset.getId().getFriendly());
+        }
+
+        sset.disable("Disabled by owner or administrator " + ev.getUser());
+        sset.saveMetaProperties();
+        return new ServiceReplyEvent(true, "Disabled", sset.getKey(), sset.getId().getFriendly());
+    }
+
+    ServiceReplyEvent enable(ServiceEnableEvent ev)
+    {
+        long   id = ev.getFriendly();
+        String url = ev.getEndpoint();
+        ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
+        if ( sset == null ) {
+            return new ServiceReplyEvent(false, "Unknown service", url, id);
+        }
+
+        if ( ! authorized("enable", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+        }
+
+        if ( sset.enabled() ) {
+            return new ServiceReplyEvent(true, "Service is already enabled", sset.getKey(), sset.getId().getFriendly());
+        }
+
+        sset.enable();
+        sset.saveMetaProperties();
+        return new ServiceReplyEvent(true, "Enabled.", sset.getKey(), sset.getId().getFriendly());
+    }
+
+
+    ServiceReplyEvent ignore(ServiceIgnoreEvent ev)
+    {
+        long   id = ev.getFriendly();
+        String url = ev.getEndpoint();
+        ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
+        if ( sset == null ) {
+            return new ServiceReplyEvent(false, "Unknown service", url, id);
+        }
+
+        if ( ! authorized("ignore", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+        }
+
+        if ( sset.isAutostart() ) {
+            return new ServiceReplyEvent(false, "Service is autostarted, ignore-references not applied.", sset.getKey(), sset.getId().getFriendly());
+        }
+
+        if ( !sset.isReferencedStart() ) {
+            return new ServiceReplyEvent(true, "Service is already ignoring references", sset.getKey(), sset.getId().getFriendly());
+        }
+
+        
+        sset.ignoreReferences();
+        return new ServiceReplyEvent(true, "References now being ignored.", sset.getKey(), sset.getId().getFriendly());
+    }
+
+    ServiceReplyEvent observe(ServiceObserveEvent ev)
+    {
+        long   id = ev.getFriendly();
+        String url = ev.getEndpoint();
+        ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
+        if ( sset == null ) {
+            return new ServiceReplyEvent(false, "Unknown service", url, id);
+        }
+
+        if ( ! authorized("observe", sset, ev) ) {
+            return new ServiceReplyEvent(false, "Owned by " + sset.getUser(),  url, sset.getId().getFriendly());
+        }
+
+        if ( sset.isAutostart() ) {
+            return new ServiceReplyEvent(false, "Must set autostart off before enabling reference-starts.", sset.getKey(), sset.getId().getFriendly());
+        }
+        
+        sset.enable();
+        sset.observeReferences();
+        return new ServiceReplyEvent(true, "Observing references.", sset.getKey(), sset.getId().getFriendly());
     }
 
     ServiceReplyEvent register(DuccId id, String props_filename, String meta_filename, DuccProperties props, DuccProperties meta)
@@ -1055,7 +1181,7 @@ public class ServiceHandler
 
     public ServiceReplyEvent unregister(ServiceUnregisterEvent ev)
     {
-        String methodName = "unregister";
+        //String methodName = "unregister";
         long id = ev.getFriendly();
         String url = ev.getEndpoint();
         ServiceSet sset = serviceStateHandler.getServiceForApi(id, url);
@@ -1081,23 +1207,25 @@ public class ServiceHandler
     //
     // Everything to do this must be vetted before it is called. Run in a new thread to not hold up the API.
     //
-    void doUnregister(long friendly, String url)
+    void doUnregister(ServiceUnregisterEvent ev)
     {
     	String methodName = "doUnregister";
+        long friendly = ev.getFriendly();
+        String url = ev.getEndpoint();
+
         ServiceSet sset = serviceStateHandler.getUnregisteredService(friendly);
         if ( sset == null ) {
             logger.error(methodName, null, "Service", friendly, "(" + url + ") is not a known, unregistereed service. No action taken.");
             return;
         }
 
+        sset.disableAndStop("Disabled by unregister from id " + ev.getUser());
         if ( sset.isPingOnly() ) {
             logger.info(methodName, sset.getId(), "Unregister ping-only setvice:", friendly, url);
-            sset.stop();
             serviceStateHandler.removeService(sset);
             sset.deleteProperties();
         } else if ( sset.countImplementors() > 0 ) {
             logger.debug(methodName, sset.getId(), "Stopping implementors:", friendly, url);
-            sset.stop();             // will call removeServices once everything is stopped
         } else {
             logger.debug(methodName, sset.getId(), "Removing from map:", friendly, url);
             sset.clearQueue();       // will call removeServices if everything looks ok

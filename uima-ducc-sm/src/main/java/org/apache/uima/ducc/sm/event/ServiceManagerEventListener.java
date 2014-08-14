@@ -24,7 +24,11 @@ import org.apache.uima.ducc.sm.IServiceManager;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorStateDuccEvent;
+import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
+import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
+import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
+import org.apache.uima.ducc.transport.event.ServiceObserveEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
 import org.apache.uima.ducc.transport.event.ServiceReplyEvent;
@@ -126,6 +130,54 @@ public class ServiceManagerEventListener
 		String methodName = "onServiceStopEvent";
         try {
             serviceManager.stop(duccEvent);
+        } catch ( Throwable t ) {
+            duccEvent.setReply(failureEvent());
+            logger.error(methodName, null, t);
+        }
+	}
+
+    // Incoming API requests
+	public void onServiceEnableEvent(@Body ServiceEnableEvent duccEvent) throws Exception 
+    {
+		String methodName = "onServiceEnableEvent";
+        try {
+            serviceManager.enable(duccEvent);
+        } catch ( Throwable t ) {
+            duccEvent.setReply(failureEvent());
+            logger.error(methodName, null, t);
+        }
+	}
+
+    // Incoming API requests
+	public void onServiceDisableEvent(@Body ServiceDisableEvent duccEvent) throws Exception 
+    {
+		String methodName = "onServiceDisableEvent";
+        try {
+            serviceManager.disable(duccEvent);
+        } catch ( Throwable t ) {
+            duccEvent.setReply(failureEvent());
+            logger.error(methodName, null, t);
+        }
+	}
+
+    // Incoming API requests
+	public void onServiceIgnoreEvent(@Body ServiceIgnoreEvent duccEvent) throws Exception 
+    {
+		String methodName = "onServiceIgnoreEvent";
+        try {
+            serviceManager.ignore(duccEvent);
+        } catch ( Throwable t ) {
+            duccEvent.setReply(failureEvent());
+            logger.error(methodName, null, t);
+        }
+	}
+
+    // Incoming API requests
+	public void onServiceObserveEvent(@Body ServiceObserveEvent duccEvent) throws Exception 
+    {
+		String methodName = "onServiceObserveEvent";
+        try {
+            serviceManager.observe(duccEvent);
         } catch ( Throwable t ) {
             duccEvent.setReply(failureEvent());
             logger.error(methodName, null, t);

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.sm;
 
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
+import org.apache.uima.ducc.transport.event.AServiceRequest;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
@@ -46,71 +47,54 @@ class ApiHandler
     String endpoint;
     int instances;
     Trinary autostart;
-    boolean update;
-    boolean activate;
 
-    ServiceModifyEvent modifyEvent;
+    AServiceRequest event;
 
     ApiHandler(ServiceUnregisterEvent event, ServiceHandler serviceHandler)
     {
         this.cmd = UiOption.Unregister;
-        this.friendly = event.getFriendly();
-        this.endpoint = event.getEndpoint();
+        this.event = event;
         this.serviceHandler = serviceHandler;
     }
 
     ApiHandler(ServiceStartEvent event, ServiceHandler serviceHandler)
     {
         this.cmd = UiOption.Start;
-        this.friendly = event.getFriendly();
-        this.endpoint = event.getEndpoint();
-        this.instances = event.getInstances();
-        this.update = event.getUpdate();
+        this.event = event;
         this.serviceHandler = serviceHandler;
     }
 
     ApiHandler(ServiceStopEvent event, ServiceHandler serviceHandler)
     {
         this.cmd = UiOption.Stop;
-        this.friendly = event.getFriendly();
-        this.endpoint = event.getEndpoint();
-        this.instances = event.getInstances();
-        this.update = event.getUpdate();
+        this.event = event;
         this.serviceHandler = serviceHandler;
     }
 
     ApiHandler(ServiceModifyEvent event, ServiceHandler serviceHandler)
     {
         this.cmd = UiOption.Modify;
-        this.modifyEvent = (ServiceModifyEvent) event;
+        this.event = event;
         this.serviceHandler = serviceHandler;
-
-        // this.friendly = event.getFriendly();
-        // this.endpoint = event.getEndpoint();
-        // this.instances = event.getInstances();
-        // this.autostart = event.getAutostart();
-        // this.activate = event.getActivate();
-        // this.serviceHandler = serviceHandler;
     }
 
     public void run()
     {
         switch ( cmd ) {
            case Start: 
-               serviceHandler.doStart(friendly, endpoint, instances, update);
+               serviceHandler.doStart((ServiceStartEvent) event);
                break;
 
            case Stop:
-               serviceHandler.doStop(friendly, endpoint, instances, update);
+               serviceHandler.doStop((ServiceStopEvent) event);
                break;
 
            case Unregister:
-               serviceHandler.doUnregister(friendly, endpoint);
+               serviceHandler.doUnregister((ServiceUnregisterEvent) event);
                break;
 
            case Modify:
-               // serviceHandler.doModify(friendly, endpoint, instances, autostart, activate);
-               serviceHandler.doModify(modifyEvent);
+               serviceHandler.doModify((ServiceModifyEvent) event);
                break;
         }
     }

@@ -49,7 +49,11 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
+import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
+import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
+import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
+import org.apache.uima.ducc.transport.event.ServiceObserveEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryReplyEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
@@ -817,7 +821,7 @@ public class ServiceManagerComponent
 
     public synchronized void start(ServiceStartEvent ev)
     {
-        String methodName = "startService";
+        String methodName = "start";
 
         if ( ! validate_user("Start", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Start", ev) ) return;
@@ -830,13 +834,65 @@ public class ServiceManagerComponent
 
     public synchronized void stop(ServiceStopEvent ev)
     {
-        String methodName = "stopService";
+        String methodName = "stop";
 
         if ( ! validate_user("Stop", ev) ) return;   // necessary messages emitted in here
         if ( ! orchestratorAlive("Stop", ev) ) return;
 
         logger.info(methodName, null, "Stopping service", ev.toString());
         ServiceReplyEvent reply = handler.stop(ev);
+        ev.setReply(reply);
+        //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
+    }
+
+    public synchronized void enable(ServiceEnableEvent ev)
+    {
+        String methodName = "enable";
+
+        if ( ! validate_user("Enable", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Enable", ev) ) return;
+
+        logger.info(methodName, null, "Enabling service", ev.toString());
+        ServiceReplyEvent reply = handler.enable(ev);
+        ev.setReply(reply);
+        //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
+    }
+
+    public synchronized void disable(ServiceDisableEvent ev)
+    {
+        String methodName = "disable";
+
+        if ( ! validate_user("Disable", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Disable", ev) ) return;
+
+        logger.info(methodName, null, "Disabling service", ev.toString());
+        ServiceReplyEvent reply = handler.disable(ev);
+        ev.setReply(reply);
+        //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
+    }
+
+    public synchronized void observe(ServiceObserveEvent ev)
+    {
+        String methodName = "observe";
+
+        if ( ! validate_user("Observe", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Observe", ev) ) return;
+
+        logger.info(methodName, null, "Observing references for service", ev.toString());
+        ServiceReplyEvent reply = handler.observe(ev);
+        ev.setReply(reply);
+        //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
+    }
+
+    public synchronized void ignore(ServiceIgnoreEvent ev)
+    {
+        String methodName = "ignore";
+
+        if ( ! validate_user("Ignore", ev) ) return;   // necessary messages emitted in here
+        if ( ! orchestratorAlive("Ignore", ev) ) return;
+
+        logger.info(methodName, null, "Ignoring references for service", ev.toString());
+        ServiceReplyEvent reply = handler.ignore(ev);
         ev.setReply(reply);
         //ev.setReply(ServiceCode.OK, "Service not implemented.", "no-endpoint", null);
     }

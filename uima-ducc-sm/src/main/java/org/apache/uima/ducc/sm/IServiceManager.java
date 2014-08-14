@@ -20,7 +20,11 @@ package org.apache.uima.ducc.sm;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.AServiceRequest;
+import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
+import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
+import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
+import org.apache.uima.ducc.transport.event.ServiceObserveEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
@@ -47,6 +51,14 @@ public interface IServiceManager
     public void start(ServiceStartEvent ev);
 
     public void stop(ServiceStopEvent ev);
+
+    public void enable(ServiceEnableEvent ev);
+
+    public void disable(ServiceDisableEvent ev);
+
+    public void observe(ServiceObserveEvent ev);
+
+    public void ignore(ServiceIgnoreEvent ev);
 
     public void query(ServiceQueryEvent ev);
 

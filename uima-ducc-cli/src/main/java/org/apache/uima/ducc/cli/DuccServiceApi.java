@@ -27,7 +27,11 @@ import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
+import org.apache.uima.ducc.transport.event.ServiceDisableEvent;
+import org.apache.uima.ducc.transport.event.ServiceEnableEvent;
+import org.apache.uima.ducc.transport.event.ServiceIgnoreEvent;
 import org.apache.uima.ducc.transport.event.ServiceModifyEvent;
+import org.apache.uima.ducc.transport.event.ServiceObserveEvent;
 import org.apache.uima.ducc.transport.event.ServiceQueryEvent;
 import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
@@ -117,6 +121,34 @@ public class DuccServiceApi
         UiOption.Stop,
         UiOption.Instances,
         UiOption.Update,
+        UiOption.RoleAdministrator,
+    }; 
+
+    UiOption[] enable_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Enable,
+        UiOption.RoleAdministrator,
+    }; 
+
+    UiOption[] disable_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Disable,
+        UiOption.RoleAdministrator,
+    }; 
+
+    UiOption[] observe_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Observe,
+        UiOption.RoleAdministrator,
+    }; 
+
+    UiOption[] ignore_options = {
+        UiOption.Help,
+        UiOption.Debug,
+        UiOption.Ignore,
         UiOption.RoleAdministrator,
     }; 
 
@@ -659,6 +691,90 @@ public class DuccServiceApi
         }
     }
 
+    public IServiceReply observeReferences(String[] args)
+        throws Exception
+    {
+        DuccProperties dp = new DuccProperties();
+        init(this.getClass().getName(), observe_options, args, null, dp, callback, "sm");
+
+        Pair<Integer, String> id = getId(UiOption.Observe);
+        String user = dp.getProperty(UiOption.User.pname());
+        byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
+
+        ServiceObserveEvent ev = new ServiceObserveEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
+        ev.setAdministrative(asAdministrator);
+
+        try {
+            return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
+        } finally {
+            dispatcher.close();
+        }        
+    }
+
+    public IServiceReply ignoreReferences(String[] args)
+        throws Exception
+    {
+        DuccProperties dp = new DuccProperties();
+        init(this.getClass().getName(), ignore_options, args, null, dp, callback, "sm");
+
+        Pair<Integer, String> id = getId(UiOption.Ignore);
+        String user = dp.getProperty(UiOption.User.pname());
+        byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
+
+        ServiceIgnoreEvent ev = new ServiceIgnoreEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
+        ev.setAdministrative(asAdministrator);
+
+        try {
+            return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
+        } finally {
+            dispatcher.close();
+        }        
+    }
+
+    public IServiceReply enable(String[] args)
+        throws Exception
+    {
+        DuccProperties dp = new DuccProperties();
+        init(this.getClass().getName(), enable_options, args, null, dp, callback, "sm");
+
+        Pair<Integer, String> id = getId(UiOption.Enable);
+        String user = dp.getProperty(UiOption.User.pname());
+        byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
+
+        ServiceEnableEvent ev = new ServiceEnableEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
+        ev.setAdministrative(asAdministrator);
+
+        try {
+            return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
+        } finally {
+            dispatcher.close();
+        }        
+    }
+
+    public IServiceReply disable(String[] args)    
+        throws Exception
+    {
+        DuccProperties dp = new DuccProperties();
+        init(this.getClass().getName(), disable_options, args, null, dp, callback, "sm");
+
+        Pair<Integer, String> id = getId(UiOption.Disable);
+        String user = dp.getProperty(UiOption.User.pname());
+        byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
+        boolean asAdministrator = dp.containsKey(UiOption.RoleAdministrator.pname());
+
+        ServiceDisableEvent ev = new ServiceDisableEvent(user, id.first(), id.second(), auth_block, CliVersion.getVersion());
+        ev.setAdministrative(asAdministrator);
+
+        try {
+            return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
+        } finally {
+            dispatcher.close();
+        }        
+    }
+
     void help()
     {
         HelpFormatter formatter = new HelpFormatter();
@@ -708,6 +824,10 @@ public class DuccServiceApi
            case Start:
            case Stop:
            case Modify:
+           case Disable:
+           case Enable:
+           case Ignore:
+           case Observe:
                System.out.println(msg);
                break;
            case Query:
@@ -762,6 +882,38 @@ public class DuccServiceApi
         return format_reply(UiOption.Modify, reply);
     }
 
+    static boolean Enable(String[] args)
+        throws Exception
+    {
+        DuccServiceApi api = new DuccServiceApi(null);
+        IServiceReply reply = api.enable(args);
+        return format_reply(UiOption.Enable, reply);
+    }
+
+    static boolean Disable(String[] args)
+        throws Exception
+    {
+        DuccServiceApi api = new DuccServiceApi(null);
+        IServiceReply reply = api.disable(args);
+        return format_reply(UiOption.Disable, reply);
+    }
+
+    static boolean ObserveReferences(String[] args)
+        throws Exception
+    {
+        DuccServiceApi api = new DuccServiceApi(null);
+        IServiceReply reply = api.observeReferences(args);
+        return format_reply(UiOption.Observe, reply);
+    }
+
+    static boolean IgnoreReferences(String[] args)
+        throws Exception
+    {
+        DuccServiceApi api = new DuccServiceApi(null);
+        IServiceReply reply = api.ignoreReferences(args);
+        return format_reply(UiOption.Ignore, reply);
+    }
+
     static boolean Query(String[] args)
         throws Exception
     {
@@ -786,7 +938,11 @@ public class DuccServiceApi
             UiOption.Start, 
             UiOption.Stop, 
             UiOption.Query, 
-            UiOption.Unregister
+            UiOption.Unregister,
+            UiOption.Observe,
+            UiOption.Ignore,
+            UiOption.Enable,
+            UiOption.Disable
         };        
         List<UiOption> check = new ArrayList<UiOption>();
         UiOption reply = UiOption.Help;
@@ -863,6 +1019,18 @@ public class DuccServiceApi
                     break;
                 case Stop:
                     rc = Stop(args);
+                    break;
+                case Observe:
+                    rc = ObserveReferences(args);
+                    break;
+                case Ignore:
+                    rc = IgnoreReferences(args);
+                    break;
+                case Enable:
+                    rc = Enable(args);
+                    break;
+                case Disable:
+                    rc = Disable(args);
                     break;
                 case Modify:
                     rc = Modify(args);

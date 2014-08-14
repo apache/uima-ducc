@@ -128,11 +128,11 @@ public interface IServiceDescription
      */
     public void setAutostart(boolean autostart);
 
-	public boolean isStopped();
+	public boolean isEnabled();
     /**
      * Internal to DUCC.
      */
-	public void setStopped(boolean stopped);
+	public void setEnabled(boolean enable);
 
 	public IServiceStatistics getQstats();
     /**

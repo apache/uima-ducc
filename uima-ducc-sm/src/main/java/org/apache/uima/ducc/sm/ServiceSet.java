@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -105,7 +106,9 @@ public class ServiceSet
     // Automatically start at boot, and keep implementors alive
     boolean autostart = false;
     // We've been stopped, which is used to override autostart
-    boolean stopped   = false;
+    // boolean stopped   = false;     // TODO Must get rid of this entirely
+    boolean enabled   = true;
+
     // We've been started, so we know to enforce instance count even if not autostarted
     boolean started   = false;
     // Remember if was started by reference only so we can stop when refs die
@@ -193,9 +196,11 @@ public class ServiceSet
         this.registered_instances = this.instances;
         this.autostart = meta.getBooleanProperty("autostart", false);
         this.ping_only = meta.getBooleanProperty("ping-only", false);
-        this.stopped   = meta.getBooleanProperty("stopped", stopped);
+        this.enabled   = meta.getBooleanProperty("enabled", enabled);
         this.service_class = ServiceClass.Registered;
         this.init_failure_max = props.getIntProperty("instance_init_failures_limit", init_failure_max);
+        this.reference_start = meta.getBooleanProperty("reference", this.reference_start);
+
         
         
         if ( props.containsKey(UiOption.ProcessDebug.pname()) ) {
@@ -214,12 +219,13 @@ public class ServiceSet
         meta_props.remove("references");          // Will get refreshred in upcoming OR state messages
         meta_props.put("service-class", ""+service_class.decode());
         meta_props.put("service-type", ""+service_type.decode());
-        meta_props.put("stopped", ""+stopped);
+        meta_props.put("enabled", "" + enabled);         // may not have been there in the first place
         meta_props.put("service-state", ""+getState());
         meta_props.put("ping-active", "false");
         meta_props.put("service-alive",      "false");
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
+        setReferenced(this.reference_start);
         meta_props.remove("submit-error");
 
         last_use = meta_props.getLongProperty("last-use", 0L);
@@ -454,7 +460,7 @@ public class ServiceSet
         // remove stuff that didn't come in.
         //
 
-        if ( isPingOnly() && ! stopped) {
+        if ( isPingOnly() && enabled() ) {
             start(1);   // nothing to recover but we need the pseudo service to run
             return;   
         }
@@ -503,28 +509,21 @@ public class ServiceSet
      *
      */
     synchronized void enforceAutostart()
-     {
-         String methodName = "enforceAutostart";
-         if ( ! autostart ) return;                           // not doing auto, nothing to do
-         if ( stopped     ) return;                           // doing auto, but we've been manually stopped
-         if ( init_failures >= init_failure_max ) return;     // too many init failures, no more enforcement
-         if ( ping_failures >= ping_failure_max ) return;     // ping-only 
-
-         // if ( (isPingOnly()) && (serviceMeta == null) ) {    // ping-only and monitor / pinger not alive
-         //     logger.info(methodName, id, "Autostarting 1 ping-only instance.");
-
-         //     start(1);                                       // ... then it needs to be started
-         //     return;
-         // }
-         
-         // could have more implementors than instances if some were started dynamically but the count not persisted
-         int needed = Math.max(0, instances - countImplementors());
-         if ( needed > 0 ) {
-             logger.info(methodName, id, "Autostarting", needed, "instance" + ((needed > 1) ? "s" : ""), "already have", countImplementors());
-             start(needed);
-         }
+    {
+        String methodName = "enforceAutostart";
+        if ( ! autostart ) return;                           // not doing auto, nothing to do
+        if ( ! enabled() ) return;                           // doing auto, but we are disabled
+        if ( init_failures >= init_failure_max ) return;     // too many init failures, no more enforcement
+        if ( ping_failures >= ping_failure_max ) return;     // not pinging, let's not start more stuff
+        
+        // could have more implementors than instances if some were started dynamically but the count not persisted
+        int needed = Math.max(0, instances - countImplementors());
+        if ( needed > 0 ) {
+            logger.info(methodName, id, "Autostarting", needed, "instance" + ((needed > 1) ? "s" : ""), "already have", countImplementors());
+            start(needed);
+        }
     }
-
+    
 
     boolean isUimaAs()
     {
@@ -582,7 +581,7 @@ public class ServiceSet
             // turning this on gives benefit of the doubt on failure management
             // by definition, an autostarted services is NOT reference started
             cancelLinger();
-            reference_start = false;
+            setReferenced(false);
             init_failures = 0;
             resetRuntimeErrors();
         }
@@ -601,8 +600,6 @@ public class ServiceSet
      */
     synchronized void setStarted()
     {
-        stopped = false;
-        reference_start = false;
         started = true;
         init_failures = 0;
     }
@@ -611,36 +608,77 @@ public class ServiceSet
      * Manual stop: override reference_start and manual start.
      *              remember 'stopped' so enforceAutostart doesn't restart
      */
-    synchronized void setStopped()
-    {
-        reference_start = false;
-        started = false;
-        stopped = true;
-    }
+    // synchronized void setStopped()
+    // {
+    //     started = false;
+    //     stopped = true;
+    // }
 
     /**
      * Start by reference: if autostarted or already manually started, don't change anything
      *                     else remember we're ref started and not stopped
      */
-    synchronized void setReferencedStart(boolean is_start)
-    {
-        if ( is_start ) {
-            if ( isAutostart() || isStarted() ) return;
-            this.stopped = false;
-            this.reference_start = true;
-            init_failures = 0;
-            resetRuntimeErrors();
-        } else {
-            this.reference_start = false;
-        }
-    }
+    // synchronized void xsetReferencedStart(boolean is_start)
+    // {
+    //     if ( is_start ) {
+    //         if ( isAutostart() || isStarted() ) return;
+    //         this.stopped = false;
+    //         this.reference_start = true;
+    //         init_failures = 0;
+    //         resetRuntimeErrors();
+    //     } else {
+    //         this.reference_start = false;
+    //     }
+    // }
 
     /**
-     * "Manually" stopped.
+     * Is the service stopped or about to stop?
      */
     synchronized boolean isStopped()
     {
-        return this.stopped;
+        switch ( service_state ) {
+            case Stopping:
+            case Stopped:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    synchronized void ignoreReferences()
+    {
+        setReferenced(false);
+        cancelLinger();
+    }
+
+    synchronized void observeReferences()
+    {
+        setReferenced(true);
+        if ( countReferences() == 0 ) {
+            lingeringStop();
+        }
+    }
+
+    synchronized void disable(String reason)
+    {
+        meta_props.put("disable-reason", reason);
+        this.enabled = false;
+    }
+
+    synchronized void enable()
+    {
+        meta_props.remove("disable-reason");
+        this.enabled = true;
+    }
+
+    synchronized boolean enabled()
+    {
+        return this.enabled;
+    }
+
+    synchronized String getDisableReason()
+    {
+        return meta_props.getStringProperty("disable-reason", "Unknown");
     }
 
     /**
@@ -708,7 +746,7 @@ public class ServiceSet
     private void saveProperties(DuccProperties props, File pfile, File pfile_tmp, String type)
     {
     	
-    	String methodName = "saveMetaProperties";
+    	String methodName = "saveProperties";
         FileOutputStream fos = null;
         try {
             if ( (!pfile.exists()) || pfile.renameTo(pfile_tmp) ) {
@@ -767,7 +805,8 @@ public class ServiceSet
             meta_props.setProperty(implementors_key, s);
         }
 
-        meta_props.put("stopped", ""+stopped);
+        
+        meta_props.put("enabled", ""+enabled);
         meta_props.put("service-state", ""+ getState());
         meta_props.put("ping-active", "" + (serviceMeta != null));
         meta_props.put("service-alive",      "false");
@@ -819,22 +858,19 @@ public class ServiceSet
      * @param n      is the target number of instances we want running
      * @param update indicates whether tp match registration to the target
      */
-    synchronized void updateInstances(int n, boolean update)
+    synchronized void updateInstances(int n)
     {
         if ( n >= 0 ) {
      
             instances = n;
-            if ( update ) {
-                updateRegisteredInstances(n);
-            }
-
+            
             int running    = countImplementors();
             int diff       = n - running;
                 
             if ( diff > 0 ) {
                 start(diff);
             } else if ( diff < 0 ) {
-                stop(-diff);
+                stop(-diff); // TODO: no good, fix when changeTo is ready
             }
         }
     }
@@ -964,9 +1000,21 @@ public class ServiceSet
         }
     }
 
+    public void setErrorString(String s)
+    {
+        meta_props.put("submit-error", s);
+        saveMetaProperties();
+    }
+
     public String getErrorString()
     {
         return meta_props.getProperty("submit-error"); 
+    }
+
+    void setReferenced(boolean r)
+    {
+        this.reference_start = r;
+        meta_props.put("reference", Boolean.toString(this.reference_start));
     }
 
     public synchronized void reference(DuccId id)
@@ -983,23 +1031,27 @@ public class ServiceSet
         references.put(id, id);
         logger.info(methodName, this.id, " References job/service", id, "count[" + references.size() + "] implementors [" + implementors.size() + "]");
 
-        persistReferences();
-
+        boolean idle = true;
         for (ServiceInstance si : implementors.values() ) {     // see if anything is running
             logger.debug(methodName, this.id, "Implementor", si.getId(), "state:", si.getState());
-            if ( si.isRunning() ) return;                      // and if so, no need to start anything
+            if ( si.isRunning() ) {                             // and if so, no need to start anything
+                idle = false;
+                break;
+            }
         }
 
         // Nothing running, so we do referenced start.
-
-        if ( ! isStopped() ) {
+        if ( enabled() && idle ) {
             logger.info(methodName, this.id, "Reference starting new service instances.");
-            setReferencedStart(true);
+            init_failures = 0;
+            resetRuntimeErrors();
+            setReferenced(true);
             start(registered_instances);
         } else {
-            logger.info(methodName, this.id, "Not reference starting new service instances because service is stopped.");
+            logger.info(methodName, this.id, "Not reference starting new service instances because service is disabled.");
         }
 
+        persistReferences();
     }
 
     public synchronized void dereference(DuccId id)
@@ -1053,26 +1105,21 @@ public class ServiceSet
                     "references", countReferences()
                     );
 
-        while ( true ) {      
-            // Kids, don't try this at home! 
-            // All paths MUST lead to break or we loop forever - using while/break as goto mechanism
-            ping_failures = 0;   
-            
-            this.excessiveRunFailures = isExcessiveFailures;
-
-            // Note that nadditions could == ndeletions.  This is ok, because the monitor may want
-            // to 'reboot' an instance by killing a specific one and also starting up a new one.
-
-            if ( nadditions > 0) {
-                start(nadditions);
-            }
-            
-            for ( int i = 0; i < ndeletions; i++ ) {
-                stop(deletions[i]);
-            }
-
-            break;   // required break
+        ping_failures = 0;   
+        
+        this.excessiveRunFailures = isExcessiveFailures;
+        
+        // Note that nadditions could == ndeletions.  This is ok, because the monitor may want
+        // to 'reboot' an instance by killing a specific one and also starting up a new one.
+        
+        if ( nadditions > 0) {
+            start(nadditions);
         }
+        
+        for ( int i = 0; i < ndeletions; i++ ) {
+            stop(deletions[i]);
+        }
+        
         saveMetaProperties();
     }
 
@@ -1127,7 +1174,8 @@ public class ServiceSet
             logger.info(methodName, id, "Resetting init error counter from", init_failures, "to 0 on transition from", old_state, "to", state);
             init_failures = 0;
         }
-                
+
+        boolean save_meta = false;
         if ( canDeleteInstance(dwj) ) {
             // State Completed or Completing
             JobCompletionType jct = dwj.getCompletionType();
@@ -1140,9 +1188,9 @@ public class ServiceSet
             String history = meta_props.getStringProperty(history_key, "");
             history = history + " " + fid;
             meta_props.put(history_key, history);
-            saveMetaProperties();
+            save_meta = true;
 
-            logger.info(methodName, id, "Removing stopped instance",  inst_id, "from maps: state[", state, "] completion[", jct, "] isStopped", isStopped());
+            logger.info(methodName, id, "Removing stopped instance",  inst_id, "from maps: state[", state, "] completion[", jct, "] service-enabled", enabled());
 
             clearQueue();        // this won't do anything if it looks like the service is still active somehow
 
@@ -1176,15 +1224,19 @@ public class ServiceSet
                             break;
                     }
 
-                    if ( excessiveFailures() ) {
+                    if ( excessiveFailures() ) { 
+                        String disable_reason = null;
                         if ( excessiveRunFailures ) {
                             logger.warn(methodName, id, "Instance", inst_id, "Monitor signals excessive terminations. Not restarting.");
+                            disable_reason = "Excessive runtime errors";
                         } else {
                             logger.warn(methodName, id, "Instance", inst_id,
                                         "Excessive initialization failures. Total failures[" + init_failures + "]",
                                         "allowed [" + init_failure_max + "], not restarting.");
+                            disable_reason = "Excessive initialization errors";
                         }
-                        setAutostart(false);
+                        disable(disable_reason);
+                        save_meta = true;
                     } else {
                         logger.warn(methodName, id, "Instance", inst_id + ": Uunsolicited termination, not yet excessive.  Restarting instance.");
                         start(1);
@@ -1194,6 +1246,7 @@ public class ServiceSet
             }
         } 
 
+        if ( save_meta ) saveMetaProperties();
         inst.setState(state);            
         signal(inst);
     }
@@ -1250,14 +1303,6 @@ public class ServiceSet
             if ( serviceMeta.getServiceState().ordinality() <= response.ordinality() ) response = serviceMeta.getServiceState();
         }
 
-        // It can take a while for instance state to catch up with stopping, so we override it here if needed
-        if ( isStopped() ) {
-            if ( ServiceState.Stopping.ordinality() < response.ordinality() ) {
-                logger.info(methodName, id, "Adjust state to", ServiceState.Stopping, "from", response, "because of service stop.");
-                response = ServiceState.Stopping;
-            }
-        }
-
         return response;
     }
 
@@ -1301,6 +1346,7 @@ public class ServiceSet
                 stopPingThread();
                 break;
             case Stopped:
+                setReferenced(false);
                 stopPingThread();
                 break;
             default:
@@ -1755,7 +1801,7 @@ public class ServiceSet
                     signal(si);
                 } else {
                     logger.info(methodName, id, "Instance[", i, "] id ", instid, "Failed to start.");
-                    setAutostart(false);
+                    disable("Cannot submit service process");
                     signal(si);
                     break;
                 }
@@ -1792,28 +1838,40 @@ public class ServiceSet
 
         logger.info(methodName, id, "Stopping", count, "implementors");
 
-        if ( count >= implementors.size() ) {
-            stopPingThread();
-            setStopped();
-        }
-
-        for ( ServiceInstance si: implementors.values() ) {
-            if ( (count--) > 0 ) {
-                si.stop();
-                signal(si);
-            } else {
-                break;
-            }
+        Long[] keys = implementors.keySet().toArray(new Long[implementors.size()]);
+        Arrays.sort(keys);
+        for ( int i = 0, j = keys.length-1; i < count; i++, j-- ) {
+            Stopper s = new Stopper(implementors.get(keys[j]));
+            new Thread(s).start();
         }
     }
 
-    /**
-     * Stop everything
-     */
-    synchronized void stop()
+    synchronized void stopAll()
     {
         stop(implementors.size());
     }
+
+    /**
+     * Make the thing stop and not restart.
+     */
+    synchronized void disableAndStop(String reason)
+    {
+        disable(reason);
+        stopAll();
+    }
+
+    // /**
+    //  * Stop everything
+    //  */
+    // synchronized void stop()
+    // {
+    //     // TODO
+    //     // change state to Stopping and spawn stop threads for all implementors
+    //     for ( ServiceInstance si : implementors.values() ) {
+    //         Stopper s = new Stopper(si);
+    //         new Thread(s).start();
+    //     }
+    // }
 
     private class LingerTask
         extends TimerTask
@@ -1833,7 +1891,8 @@ public class ServiceSet
             logger.debug(methodName, id, "Lingering stop completes.");
             // doesn't matter how its started i think, we have to set this flag off when we stop
             linger = null;
-            stop();
+            setReferenced(false);
+            stopAll();
         }
     }
 
@@ -1874,8 +1933,8 @@ public class ServiceSet
         sd.setBroker(broker);
         sd.setServiceState(getState());
         sd.setActive(serviceMeta != null);
-        sd.setStopped(stopped);
-        sd.setAutostart(autostart);
+        sd.setEnabled(enabled());
+        sd.setAutostart(isAutostart());
         sd.setLinger(linger_time);
         sd.setId(id);
         sd.setUser(user);

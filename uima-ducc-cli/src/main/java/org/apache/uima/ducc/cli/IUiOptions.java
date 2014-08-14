@@ -390,6 +390,38 @@ public interface IUiOptions
             public String label()       { return null; }
         },
 
+        Enable      { 
+            public String pname()       { return "enable"; } 
+            public String description() { return "Allow deployment starts for this service" ; } 
+            public String argname()     { return "service-id-or-endpoint" ; } 
+            public String example()     { return null; }
+            public String label()       { return null; }
+        },
+
+        Disable      { 
+            public String pname()       { return "disable"; } 
+            public String description() { return "Disable deployment starts for this service." ; }
+            public String argname()     { return "service-id-or-endpoint" ; } 
+            public String example()     { return null; }
+            public String label()       { return null; }
+        },
+
+        Observe      { 
+            public String pname()       { return "observe_references"; } 
+            public String description() { return "Enable reference-started control for a manually-started service." ; } 
+            public String argname()     { return "service-id-or-endpoint" ; } 
+            public String example()     { return null; }
+            public String label()       { return null; }
+        },
+
+        Ignore      { 
+            public String pname()       { return "ignore_references"; } 
+            public String description() { return "Disable reference-started control of service and revert to manual control." ; }
+            public String argname()     { return "service-id-or-endpoint" ; } 
+            public String example()     { return null; }
+            public String label()       { return null; }
+        },
+
         SubmitPid { 
             // generated
             public String pname()       { return JobRequestProperties.key_submitter_pid_at_host; }
