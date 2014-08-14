@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.ws.registry.sort;
+package org.apache.uima.ducc.ws.registry;
 
 import java.util.ArrayList;
 import java.util.Properties;
@@ -25,8 +25,6 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
-import org.apache.uima.ducc.ws.registry.IServicesRegistry;
-import org.apache.uima.ducc.ws.registry.ServiceName;
 import org.springframework.util.StringUtils;
 
 public class ServiceInterpreter {
@@ -354,6 +352,101 @@ public class ServiceInterpreter {
 		}
 		catch(Exception e) {
 			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+
+	private Boolean getAutostart() {
+		String location = "getAutostart";
+		Boolean retVal = new Boolean(false);
+		try {
+			String value = getValue(meta,IServicesRegistry.autostart,"false");
+			retVal = Boolean.valueOf(value);
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	private Boolean getReference() {
+		String location = "getReference";
+		Boolean retVal = new Boolean(true);
+		try {
+			String value = getValue(meta,IServicesRegistry.reference,"true");
+			retVal = Boolean.valueOf(value);
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	private Boolean getEnabled() {
+		String location = "getEnabled";
+		Boolean retVal = new Boolean(true);
+		try {
+			String value = getValue(meta,IServicesRegistry.enabled,"true");
+			retVal = Boolean.valueOf(value);
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	private String placeholderDisableReason = "";
+	
+	public String getDisableReason() {
+		String location = "getDisableReason";
+		String retVal = placeholderDisableReason;
+		try {
+			String value = getValue(svc,IServicesRegistry.disable_reason,"");
+			retVal = value;
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	public enum StartMode { 
+		Immediate("definition: New instances are automatically started at system boot time and at initial regsitration time."), 
+		Reference("definition: New instances are automatically started on-demand, unused instances are automatically stopped after linger period."), 
+		Manual("definition: Instances are not automatically started or stopped.");
+		
+		private String description;
+		
+		private StartMode(String value) {
+			description = value;
+		}
+		
+		public String getDescription() {
+			return description;
+		}
+	}
+	
+	public StartMode getStartMode() {
+		StartMode retVal = StartMode.Reference;
+		Boolean autostart = getAutostart();
+		Boolean reference = getReference();
+		if(autostart) {
+			retVal = StartMode.Immediate;
+		}
+		else if(reference) {
+			retVal = StartMode.Reference;
+		}
+		else {
+			retVal = StartMode.Manual;
+		}
+		return retVal;
+	}
+	
+	public boolean isDisabled() {
+		Boolean enabled = getEnabled();
+		boolean retVal = true;
+		if(enabled) {
+			retVal = false;
 		}
 		return retVal;
 	}

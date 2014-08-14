@@ -78,6 +78,7 @@ import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
@@ -1075,6 +1076,20 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				// Deployments
 				col = new StringBuffer();
 				col.append(""+deployments);
+				row.add(new JsonPrimitive(col.toString()));
+				// Start-Mode
+				col = new StringBuffer();
+				StartMode startMode = service.getStartMode();
+				StringBuffer startModeHover = new StringBuffer();
+				String startModeColor = "class=\"health_black\"";
+				if(service.isDisabled()) {
+					startModeHover.append("Disabled, no further starts will occur\n");
+					startModeColor = "class=\"health_red\"";
+				}
+				startModeHover.append(startMode.getDescription());
+				col.append("<span "+startModeColor+" title=\""+startModeHover+"\">");
+				col.append(startMode.name());
+				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
 				// User
 				col = new StringBuffer();

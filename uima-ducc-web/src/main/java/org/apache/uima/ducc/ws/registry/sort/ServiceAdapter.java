@@ -25,6 +25,8 @@ import java.util.TreeMap;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.ws.DuccDataHelper;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 
 public class ServiceAdapter implements IServiceAdapter {
@@ -223,6 +225,12 @@ public class ServiceAdapter implements IServiceAdapter {
 	}
 	
 	@Override
+	public boolean isDisabled() {
+		boolean retVal = si.isDisabled();
+		return retVal;
+	}
+	
+	@Override
 	public boolean getHealth() {
 		boolean value = si.getHealth();
 		return value;
@@ -278,6 +286,12 @@ public class ServiceAdapter implements IServiceAdapter {
 	@Override
 	public String getDescription() {
 		String value = si.getDescription();
+		return value;
+	}
+
+	@Override
+	public StartMode getStartMode() {
+		StartMode value = si.getStartMode();
 		return value;
 	}
 	

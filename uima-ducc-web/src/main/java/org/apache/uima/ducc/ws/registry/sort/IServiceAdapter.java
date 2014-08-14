@@ -21,6 +21,8 @@ package org.apache.uima.ducc.ws.registry.sort;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
+
 public interface IServiceAdapter {
 	
 	public Properties getSvc();
@@ -41,6 +43,7 @@ public interface IServiceAdapter {
 	public boolean isRegistered();
 	public boolean isViable();
 	public boolean isAlert();
+	public boolean isDisabled();
 	public boolean getHealth();
 	
 	public String getPopup();
@@ -51,6 +54,8 @@ public interface IServiceAdapter {
 	public String getUser();
 	public String getShareClass();
 	public String getDescription();
+	
+	public StartMode getStartMode();
 	
 	public ArrayList<String> getImplementors();
 	

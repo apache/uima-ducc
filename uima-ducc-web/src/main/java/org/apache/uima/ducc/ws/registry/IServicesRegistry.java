@@ -27,6 +27,9 @@ public class IServicesRegistry {
 	
 	// meta
 	public static final String autostart = IStateServices.autostart;
+	public static final String reference = IStateServices.reference;
+	public static final String enabled = IStateServices.enabled;
+	public static final String disable_reason = IStateServices.disable_reason;
 	public static final String endpoint = IStateServices.endpoint;
 	public static final String implementors = IStateServices.implementors;
 	public static final String instances = IStateServices.instances;

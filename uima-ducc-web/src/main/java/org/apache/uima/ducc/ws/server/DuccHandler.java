@@ -96,6 +96,8 @@ import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
@@ -2453,19 +2455,26 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("<table>");
 		sb.append("<tr>");
 		
-		String name = request.getParameter("name");
 		String id = "?";
-		String autostart = "?";
+		String name = request.getParameter("name");
 		String instances = "?";
+		String deployments = "?";
+		StartMode startMode = StartMode.Reference;
+		boolean disabled = false;
+		String disableReason = "";
 		
 		try {
 			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
-			Properties properties;
-			properties = payload.meta;
-			id = properties.getProperty(IServicesRegistry.numeric_id, "?");
-			autostart = properties.getProperty(IServicesRegistry.autostart, "?");
-			instances = properties.getProperty(IServicesRegistry.instances, "?");
+			Properties meta = payload.meta;
+			Properties svc = payload.svc;
+			ServiceInterpreter si = new ServiceInterpreter(svc, meta);
+			id = ""+si.getId();
+			instances = ""+si.getInstances();
+			deployments = ""+si.getDeployments();
+			startMode = si.getStartMode();
+			disabled = si.isDisabled();
+			disableReason = si.getDisableReason();
 		}
 		catch(Exception e) {
 			duccLogger.error(methodName, jobid, e);
@@ -2481,16 +2490,28 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append("Name: ");
 		sb.append(name);
 		sb.append("&nbsp");
-		// autostart
-		sb.append("<th title=\"The configured autostart value for this service\">");
-		sb.append("Autostart: ");
-		sb.append(autostart);
-		sb.append("&nbsp");
 		// instances
 		sb.append("<th title=\"The configured number of instances for this service\">");
 		sb.append("Instances: ");
 		sb.append(instances);
 		sb.append("&nbsp");
+		// deployments
+		sb.append("<th title=\"The number of active deployments for this service\">");
+		sb.append("Deployments: ");
+		sb.append(deployments);
+		sb.append("&nbsp");
+		// start-mode
+		sb.append("<th title=\""+startMode.getDescription()+"\">");
+		sb.append("StartMode: ");
+		sb.append(startMode.name());
+		sb.append("&nbsp");
+		// disabled
+		if(disabled) {
+			sb.append("<th title=\""+disableReason+"\">");
+			sb.append("StartControl: ");
+			sb.append("disabled");
+			sb.append("&nbsp");
+		}
 		
 		sb.append("</table>");
 		

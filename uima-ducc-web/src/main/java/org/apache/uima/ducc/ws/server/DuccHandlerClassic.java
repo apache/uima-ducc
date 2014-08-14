@@ -72,6 +72,7 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
@@ -943,6 +944,20 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				// Deployments
 				sb.append("<td align=\"right\">");
 				sb.append(deployments);
+				sb.append("</td>");
+				// Start-Mode
+				StartMode startMode = service.getStartMode();
+				sb.append("<td align=\"right\">");
+				StringBuffer startModeHover = new StringBuffer();
+				String startModeColor = "class=\"health_black\"";
+				if(service.isDisabled()) {
+					startModeHover.append("Disabled, no further starts will occur\n");
+					startModeColor = "class=\"health_red\"";
+				}
+				startModeHover.append(startMode.getDescription());
+				sb.append("<span "+startModeColor+" title=\""+startModeHover+"\">");
+				sb.append(startMode.name());
+				sb.append("</span>");
 				sb.append("</td>");
 				// User
 				sb.append("<td>");
