@@ -328,7 +328,7 @@ public class ServiceDescription
         }
         sb.append("\n");
 
-        sb.append("   Service Class   : ");
+        sb.append("   Service Class     : ");
         sb.append(subclass.decode());
         switch ( subclass ) {
             case Registered:
@@ -348,7 +348,7 @@ public class ServiceDescription
         }
         sb.append("\n");
 
-        sb.append("   Implementors    : ");
+        sb.append("   Implementors      : ");
         if ( implementors.size() > 0 ) {
             for (ADuccId id : implementors) {
                 sb.append(id);
@@ -359,7 +359,7 @@ public class ServiceDescription
         }
         sb.append("\n");
 
-        sb.append("   References      : ");
+        sb.append("   References        : ");
         if ( references.size() > 0 ) {
             for ( ADuccId id : references ) {
                 sb.append(id);
@@ -370,7 +370,7 @@ public class ServiceDescription
         }
         sb.append("\n");
 
-        sb.append("   Dependencies    : ");
+        sb.append("   Dependencies      : ");
         if ( dependencies == null ) {
             sb.append("none\n");
         } else {
@@ -384,15 +384,15 @@ public class ServiceDescription
             }
         }
 
-        sb.append("   Service State   : ");
+        sb.append("   Service State     : ");
         sb.append(serviceState);
         sb.append("\n");
 
-        sb.append("   Ping Active     : ");
+        sb.append("   Ping Active       : ");
         sb.append(active);
         sb.append("\n");
 
-        sb.append("   Start Mode      : ");
+        sb.append("   Start Mode        : ");
         if ( autostart )            { sb.append("autostart"); }
         else if ( reference_start ) { sb.append("reference"); }
         else                        { sb.append("manual"); }
