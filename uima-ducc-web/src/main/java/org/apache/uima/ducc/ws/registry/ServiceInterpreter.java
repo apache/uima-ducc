@@ -401,7 +401,7 @@ public class ServiceInterpreter {
 		String location = "getDisableReason";
 		String retVal = placeholderDisableReason;
 		try {
-			String value = getValue(svc,IServicesRegistry.disable_reason,"");
+			String value = getValue(meta,IServicesRegistry.disable_reason,"");
 			retVal = value;
 		}
 		catch(Exception e) {
