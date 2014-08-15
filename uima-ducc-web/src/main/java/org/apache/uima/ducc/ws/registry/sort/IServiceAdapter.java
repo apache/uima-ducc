@@ -54,6 +54,7 @@ public interface IServiceAdapter {
 	public String getUser();
 	public String getShareClass();
 	public String getDescription();
+	public String getDisableReason();
 	
 	public StartMode getStartMode();
 	

@@ -951,6 +951,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				StringBuffer startModeHover = new StringBuffer();
 				String startModeColor = "class=\"health_black\"";
 				if(service.isDisabled()) {
+					String disableReason = service.getDisableReason();
+					if(disableReason.length() > 0) {
+						startModeHover.append(disableReason+"\n");
+					}
 					startModeHover.append("Disabled, no further starts will occur\n");
 					startModeColor = "class=\"health_red\"";
 				}

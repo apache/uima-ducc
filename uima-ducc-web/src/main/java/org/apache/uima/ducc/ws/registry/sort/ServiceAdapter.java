@@ -290,6 +290,12 @@ public class ServiceAdapter implements IServiceAdapter {
 	}
 
 	@Override
+	public String getDisableReason() {
+		String value = si.getDisableReason();
+		return value;
+	}
+	
+	@Override
 	public StartMode getStartMode() {
 		StartMode value = si.getStartMode();
 		return value;
