@@ -3928,7 +3928,6 @@ public class DuccHandler extends DuccAbstractHandler {
 					String jhome = System.getProperty("java.home");
 					DuccCookies.RequestRole requestRole = DuccCookies.getRole(request);
 					switch(requestRole) {
-					/*
 					case Administrator:
 						String arg3 = "--"+SpecificationProperties.key_role_administrator;
 						String[] arglistAdministrator = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2, arg3 };
@@ -3936,7 +3935,6 @@ public class DuccHandler extends DuccAbstractHandler {
 						response.getWriter().println(result);
 						break;
 					case User:
-					*/
 					default:
 						String[] arglistUser = { "-u", userId, "--", jhome+java, "-cp", cp, jclass, arg1, arg2 };
 						result = DuccAsUser.duckling(userId, arglistUser);
