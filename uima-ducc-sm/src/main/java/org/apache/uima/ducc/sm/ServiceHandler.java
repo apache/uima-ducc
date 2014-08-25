@@ -861,7 +861,11 @@ public class ServiceHandler
         
         // CLI/API prevents instances < -1
         if ( instances == -1 ) {                             // figure out n to lose
-            sset.disableAndStop("Disabled by stop from id " + event.getUser());
+            if ( sset.isAutostart() || sset.isReferencedStart() ) {
+                sset.disableAndStop("Disabled by stop from id " + event.getUser());
+            } else {
+                sset.stop(running);
+            }
         } else {
             tolose = Math.min(instances, running);
             sset.updateInstances(Math.max(0, running - tolose)); // pass in target intances running

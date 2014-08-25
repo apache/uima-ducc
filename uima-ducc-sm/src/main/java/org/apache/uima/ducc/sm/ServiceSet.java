@@ -217,6 +217,8 @@ public class ServiceSet
         parseIndependentServices();
 
         meta_props.remove("references");          // Will get refreshred in upcoming OR state messages
+        meta_props.remove("stopped");             // obsolete flag, clean out of older registrations
+
         meta_props.put("service-class", ""+service_class.decode());
         meta_props.put("service-type", ""+service_type.decode());
         meta_props.put("enabled", "" + enabled);         // may not have been there in the first place
@@ -500,6 +502,12 @@ public class ServiceSet
                 }
                 meta_props.setProperty(history_key, sb.toString().trim());
             }
+        }
+
+        // on restart, if we think we were ref started when we crashed, but there are no
+        // implementors, we can't actually be ref started, so clean that up.
+        if ( isReferencedStart() && (countImplementors() == 0 ) ) {
+            this.reference_start = false;
         }
         saveMetaProperties();
     }
@@ -806,6 +814,9 @@ public class ServiceSet
         }
 
         
+        meta_props.put("reference", isReferencedStart() ? "true" : "false");
+        meta_props.put("autostart", isAutostart()       ? "true" : "false");
+
         meta_props.put("enabled", ""+enabled);
         meta_props.put("service-state", ""+ getState());
         meta_props.put("ping-active", "" + (serviceMeta != null));

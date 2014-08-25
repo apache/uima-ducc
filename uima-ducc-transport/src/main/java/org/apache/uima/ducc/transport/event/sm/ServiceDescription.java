@@ -395,7 +395,13 @@ public class ServiceDescription
         sb.append("   Start Mode        : ");
         if ( autostart )            { sb.append("autostart"); }
         else if ( reference_start ) { sb.append("reference"); }
-        else                        { sb.append("manual"); }
+        else {
+            if ( references.size() > 0 ) {
+                sb.append("manual"); 
+            } else {
+                sb.append("stopped");
+            }
+        }
         
         if ( enabled ) {
             sb.append(", Enabled");
@@ -414,7 +420,7 @@ public class ServiceDescription
         sb.append("\n");
 
         if ( error_string != null ) {
-            sb.append("   Errors       : ");
+            sb.append("   Errors            : ");
             sb.append(error_string);
             sb.append("\n");
         }
