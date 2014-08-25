@@ -375,6 +375,29 @@ public class ServiceInterpreter {
 		try {
 			String value = getValue(meta,IServicesRegistry.reference,"true");
 			retVal = Boolean.valueOf(value);
+			if(!retVal) {
+				// Override "Manual" whenever implementors == 0
+				Boolean implementors = isImplementers();
+				if(!implementors) {
+					retVal = new Boolean(true);
+				}
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	private Boolean isImplementers() {
+		String location = "isImplementers";
+		Boolean retVal = new Boolean(false);
+		try {
+			String value = getValue(meta,IServicesRegistry.implementors,"");
+			String implementors = value.trim();
+			if(implementors.length() > 0) {
+				retVal = new Boolean(true);
+			}
 		}
 		catch(Exception e) {
 			duccLogger.error(location, jobid, e);
