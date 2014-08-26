@@ -861,11 +861,7 @@ public class ServiceHandler
         
         // CLI/API prevents instances < -1
         if ( instances == -1 ) {                             // figure out n to lose
-            if ( sset.isAutostart() || sset.isReferencedStart() ) {
-                sset.disableAndStop("Disabled by stop from id " + event.getUser());
-            } else {
-                sset.stop(running);
-            }
+            sset.disableAndStop("Disabled by stop from id " + event.getUser());
         } else {
             tolose = Math.min(instances, running);
             sset.updateInstances(Math.max(0, running - tolose)); // pass in target intances running
@@ -939,6 +935,9 @@ public class ServiceHandler
             return new ServiceReplyEvent(true, "Service is already ignoring references", sset.getKey(), sset.getId().getFriendly());
         }
 
+        if ( sset.countImplementors() == 0 ) {
+            return new ServiceReplyEvent(false, "Cannot ignore references, service is not running.", sset.getKey(), sset.getId().getFriendly());
+        }
         
         sset.ignoreReferences();
         return new ServiceReplyEvent(true, "References now being ignored.", sset.getKey(), sset.getId().getFriendly());
@@ -961,7 +960,10 @@ public class ServiceHandler
             return new ServiceReplyEvent(false, "Must set autostart off before enabling reference-starts.", sset.getKey(), sset.getId().getFriendly());
         }
         
-        sset.enable();
+        if ( sset.countImplementors() == 0 ) {
+            return new ServiceReplyEvent(false, "Cannot observe references, service is not running.", sset.getKey(), sset.getId().getFriendly());
+        }
+
         sset.observeReferences();
         return new ServiceReplyEvent(true, "Observing references.", sset.getKey(), sset.getId().getFriendly());
     }
