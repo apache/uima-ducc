@@ -121,18 +121,21 @@
       API/CLI. Service registrations are persisted by DUCC and last over DUCC and cluster restarts.
 
       \section{Service Management Policies}
+      \label{sec:service.management-policy}
 
-      The Service Manager implements three policies for managing services:
+      The Service Manager implements these policies for managing services:
       \begin{description}
 
          \item[Autostarted Services] An autostarted service is automatically started when the DUCC
            system is first booted.  If an instance should die, DUCC automatically restarts the
            instance and continually maintains the registered number of service instances.
 
-           To handle fatal errors in Autostarted Services, The Service Manager maintans a time
+           To handle fatal errors in {\em autostarted} services, The Service Manager maintains a time
            window in which only a specific number of instance failures may occur.  If the number of
-           failures within that window of time is excessive DUCC will disable the autostart flag.
-           The autostart flag may then be manually reset once the problem is resolved.
+           failures within that window of time is excessive DUCC will set a {\em disabled} flag and
+           no longer restart instances.  Instance which do not fail are left running.  The {\em
+             disabled} flag must be manually reset once the problem is resolved before new instances
+           can be started.
 
            The default failure policy is implemented in the service pingers. Service
            owners may redefine the policy by supplying their own pingers for a service.
@@ -140,17 +143,32 @@
          \item[Reference-started Services] A reference-started service is a registered service that
            is started only when referenced by another job or service. If the service is already
            started, the dependent job/service is marked ``Services Available'' and can be scheduled.. If
-           not, the service registry is checked and if a matching service is found, it is 
+           not, the service registry is checked and if a matching enabled service is found, it is 
            started by DUCC.  While the service is being started, jobs are held ``Waiting For Services''
            to ensure the service is viable. Once the service has completed initialization and the pinger 
            indicates it is viable, all work waiting on it are then marked ``Services Available'' and
            started.  
           
+           To handle fatal errors in {\em reference-started} services, The Service Manager maintains
+           a time window in which only a specific number of instance failures may occur.  If the
+           number of failures within that window of time is excessive DUCC will set a {\em disabled}
+           flag and no longer restart instances.  Instance which do not fail are left running. The
+           {\em disabled} flag must be manually reset once the problem is resolved before new
+           instances can be started.
+           
            When the last job or service that references the on-demand service exits, a timer is
            established to keep the service alive for a while, in anticipation that it will be needed
            again soon.  When the keep-alive timer expires, and there are no more dependent jobs or
            services, the reference-started service is automatically stopped to free up its resources
            for other work.
+
+        \item[Manually started services] A service may be started via the CLI if it is not
+          already running and in the absence of references by other work.  A service which is
+          manually stared by the CLI can only be stopped manually by the CLI.
+
+          As is the case for {\em autostarted} and {\em reference-started} services, failed 
+          instances will be restarted unless the number of failures within the failure window
+          is exceeded and the {\em disable} flag is set.  
 
         \item[Ping-Only Services] 
           \phantomsection\label{subsub:services.ping-only}
@@ -164,6 +182,55 @@
 
       \end{description}
 
+      A service may be {\em stopped}; that is, no instances are running.  This state can occur
+      if the service has experienced too many errors within its failure window, in which case
+      the service is {\em disabled}, or because the service is not {\em autostarted} or {\em referenced} by
+      other work. 
+
+      If a manual {\em stop} is issued the service will be automatically {\em disabled} to insure it
+      cannot be restarted (by {\em reference} or at boot with {\em autostart}) without manual
+      intervention.
+
+      In all cases, if a service is {\em disabled}, it must be manually {\em enabled} using the CLI.
+
+      It is possible, via the CLI, to dynamically switch any service from any management policy
+      to any other policy, as shown in the following table.
+
+      See the \hyperref[sec:cli.ducc-services]{\em Service CLI } reference for details on the various 
+      commands described in this section.
+
+      \begin{tabular}{| l | l | p{6cm} | p{6cm} |}
+        \hline
+        Current Mode & Desired Mode & Action & Notes \\
+        \hline
+        \hline
+        Autostart    & Manual       & Use CLI to modify registration to {\em autstart false}. & Service does not stop until requested by CLI. Service will not start at DUCC boot.\\
+        \hline
+        Autostart    & Reference    & Use CLI to modify registration to {\em autostart false} and {\em observe references}. & Service stops  after last reference exits, plus {\em linger} time.\\
+        \hline
+        Autostart    & {\em Stopped} & Use CLI to stop the service. & The CLI stop will by necessity {\em disable} the service to insure it remains stopped. \\
+        \hline
+        Reference    & Autostart    & Use CLI to modify registration to {\em autostart true}. & Service continues to run after last reference exits.  Service always started at DUCC boot. \\
+        \hline
+        Reference    & Manual       & Use CLI to {\em ignore references}. & Service continues to run after last reference exits. \\
+        \hline
+        Reference    & {\em Stopped} & Use CLI to stop the service. & The CLI stop will by necessity {\em disable} the service to insure it remains stopped. \\
+        \hline
+        Manual       & Autostart    & Use CLI to modify registraiton to {\em autostart true}. & Service will be started on DUCC boots. \\
+        \hline
+        Manual       & Reference    & Use CLI to {\em observe references}. & Service will stop after last referencing job exits, plus {\em linger} time.. \\
+        \hline
+        Manual      & {\em Stopped} & Use CLI to stop the service. & The CLI stop will by necessity {\em disable} the service to insure it remains stopped. \\
+        \hline
+        {\em Stopped} & Autostart    & Use CLI to modify registration to {\em autostart true}. & Service will start immediately. It may be necessary to {\em enable} the service as well.\\
+        \hline
+        {\em Stopped} & Reference    & Submit a job or service that references the service. & It may be necessary to {\em enable} the service as well. 
+                                       The service will stop after the last referencing work exits, plus {\em linger}.  \\
+        \hline
+        {\em Stopped} & Manual       & Use CLI to start the service. &  The CLI start will also {\em enable} the service if necessary. \\
+        \hline
+      \end{tabular}
+      
       \section{Service Pingers}
       \label{sec:service.pingers}
       A service pinger is a small program that queries a service on behalf of the DUCC Service

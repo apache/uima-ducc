@@ -51,13 +51,27 @@
               is also used to increase the number of running service instances if desired.
               
             \item[Stop] The stop function stops some or all service instances.
-              
+                            
+            \item[Modify] The modify function allows most aspects of a registered service to be updated
+              without re-registering the service.  Where feasible the modification takes place
+              immediately; otherwise the service must be stopped and restarted.
+
+            \item[Disable] This prevents additional instances of a service from being spawned.  Existing
+              instances are not affected.  
+
+            \item[Enable] This reverses the effect of a manual {\em disable} command or an automatic
+              disable of the service due to excessive errors.
+
+            \item[Ignore References] A reference started service no longer exits after the last work
+              referencing the service exits.  It remains running until a manual stop is performed.
+
+            \item[Observe References] A manually started service is made to behave like a
+              reference-started service and will terminate after the last work referencing the service has
+              exited (plus the configured linger time).
+
             \item[Query] The query function returns detailed information about all known services, both
               registered and otherwise.
-              
-            \item[Modify] The modify function allows most aspects of a registered service to be updated
-              without reregistering the service.  Where feasible the modification takes place
-              immediately; otherwise the service must be stopped and restarted.
+
         \end{description}
             
 
@@ -347,18 +361,12 @@ ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345
          ducc_services --start 33 --instances 5
 \end{verbatim}
          is issued, five more service instances are started for service 33 for a total of ten,
-         regardless of the number specified in the registration. The registry is updated if the
-         {\em --update} option is also specified. Examples:
+         regardless of the number specified in the registration. 
 \begin{verbatim}
 ducc_services --start 23 --intances 5 
-ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --update 
+ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 
 \end{verbatim}
 
-       \item[$--$update]If specified, the registry is updated to the total number of started
-         instances.  Example:
-\begin{verbatim}
-ducc_services --start UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --update 
-\end{verbatim}
        \end{description}
 
     \subsection{ducc\_services --stop options}
@@ -383,8 +391,7 @@ ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345
 ducc_services --stop 33 --instances 5
 \end{verbatim}
          is issued, five (randomly selected) service instances are stopped for
-         service 33, leaving five running.  The registry is updated if the {\em --update} option is
-         specified. The registered number of instances is never reduced to zero even if the number of
+         service 33, leaving five running. The registered number of instances is never reduced to zero even if the number of
          running instances is reduced to zero.
 
          Example: 
@@ -393,13 +400,72 @@ ducc_services --stop 23 --intances 5
 ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3  
 \end{verbatim}
 
-       \item[$--$update] If specified, the registry is updated to the total number of instances
-         remaining, but is never reduced below one (1). Example: 
-\begin{verbatim}
-ducc_services --stop UIMA-AS:Service23:tcp://bob.com:12345 --instances 3 --update
-\end{verbatim}
-
     \end{description}
+
+
+    \subsection{ducc\_services --enable options}
+
+    The enable function removes the {\em disabled} flag and allows a service to resume spawning
+    new instances according to its \hyperref[sec:service.management-policy]{management policy.}
+    
+       \begin{description}
+       \item[$--$enable {[service-id or endpoint]}] Removes the {\em disabled} status, if any. Example:
+\begin{verbatim}
+ducc_services --enable 23 
+ducc_services --enable UIMA-AS:Service23:tcp://bob.com:12345 
+\end{verbatim}
+         
+       \end{description}
+
+    \subsection{ducc\_services --disable options}
+
+    The disable function prevents the service from starting new instances.  Existing instances are not affected.
+    Use the {\em ducc\_services --enable} command to reset.
+    
+       \begin{description}
+       \item[$--$disable {[service-id or endpoint]}] sets the {\em disabled} status. Example:
+\begin{verbatim}
+ducc_services --disable 23 
+ducc_services --disable UIMA-AS:Service23:tcp://bob.com:12345 
+\end{verbatim}
+         
+       \end{description}
+
+
+    \subsection{ducc\_services --observe\_references  options}
+
+    If the service is not autostarted and has active instances, this instructs the Service Manager
+    to track references to the service, and when the last referencing service exits, stop all
+    instances.  The registered {\em linger} time is observed after the last reference exits before
+    stopping the service.  See the \hyperref[sec:service.management-policy]{management policy} section for
+    more information. 
+
+       \begin{description}
+       \item[$--$observe\_references {[service-id or endpoint]}] Instructs the SM to manage the
+         service as a {\em reference-started} service. Example:
+\begin{verbatim}
+ducc_services --observe_references 23 
+ducc_services --observe_references UIMA-AS:Service23:tcp://bob.com:12345 
+\end{verbatim}
+         
+       \end{description}
+
+    \subsection{ducc\_services --ignore\_references  options}
+
+    If the service is manually started and has active instances, this instructs the Service Manager
+    to NOT stop the service when the last referencing job has exited.  It transforms a {\em manually-started}
+    service into a {\em reference-started} service. See the \hyperref[sec:service.management-policy]{management policy} section for
+    more information. 
+       \begin{description}
+       \item[$--$ignore\_references {[service-id or endpoint]}] Instructs the SM to manage the
+         service as a {\em reference-started} service. Example:
+\begin{verbatim}
+ducc_services --igmore_references 23 
+ducc_services --ignore_references UIMA-AS:Service23:tcp://bob.com:12345 
+\end{verbatim}
+         
+       \end{description}
+
 
     \subsection{ducc\_services --modify options}
     The modify function dynamically updates some of the attributes of a registered service.  All
