@@ -17,23 +17,17 @@ specific language governing permissions and limitations
 under the License.
 -->
 <div>
-<ul id="accordion">
-<li><a href="jobs.html">Jobs</a></li>
-<ul></ul>
-<li><a href="reservations.html">Reservations</a></li>
-<ul></ul>
-<li><a href="services.html">Services</a></li>
-<ul></ul>
-<li>System</li>
-<ul>
-<li><a href="system.administration.html">Administration</a></li>
-<li><a href="system.broker.html">Broker</a></li>
-<li><a href="system.classes.html">Classes</a></li>
-<li><a href="system.daemons.html">Daemons</a></li>
-<li><a href="doc/duccbook.html" target="_duccbook">DuccBook</a></li>
-<li><a href="system.machines.html">Machines</a></li>
-</ul>
-<li><a href="viz.html">Viz</a></li>
-<%@ include file="../site.jsp" %>
-</ul>
+<b><big><span class="idtitle" id="identity"></span></big></b>
+<form name="form_selectors" style="margin-bottom:0;">
+<table>
+<tr>
+<td valign="top" align="right" title="The time of last Orchestrator publication">Updated:&nbsp
+<td valign="top"><span class="timestamptitle" id="timestamp_area"></span>
+</tr>
+<tr>
+<td valign="top" align="right" title="The percentage of shares inuse">Utilization:&nbsp
+<td valign="top"><span class="utilizationtitle" id="utilization_area">?</span>
+</tr>
+</table>
+</form>
 </div> 

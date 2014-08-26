@@ -17,23 +17,7 @@ specific language governing permissions and limitations
 under the License.
 -->
 <div>
-<ul id="accordion">
-<li><a href="jobs.html">Jobs</a></li>
-<ul></ul>
-<li><a href="reservations.html">Reservations</a></li>
-<ul></ul>
-<li><a href="services.html">Services</a></li>
-<ul></ul>
-<li>System</li>
-<ul>
-<li><a href="system.administration.html">Administration</a></li>
-<li><a href="system.broker.html">Broker</a></li>
-<li><a href="system.classes.html">Classes</a></li>
-<li><a href="system.daemons.html">Daemons</a></li>
-<li><a href="doc/duccbook.html" target="_duccbook">DuccBook</a></li>
-<li><a href="system.machines.html">Machines</a></li>
-</ul>
-<li><a href="viz.html">Viz</a></li>
-<%@ include file="../site.jsp" %>
-</ul>
+<b><big><span class="subtitle">System Broker</span></big></b>
+<br>
+<img src="opensources/images/Cygnet_in_Hyde_Park.jpg" height="64" style="border:3px solid #ffff7a" alt="logo">
 </div> 

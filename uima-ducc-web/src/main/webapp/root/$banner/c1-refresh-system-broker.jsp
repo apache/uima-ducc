@@ -17,23 +17,28 @@ specific language governing permissions and limitations
 under the License.
 -->
 <div>
-<ul id="accordion">
-<li><a href="jobs.html">Jobs</a></li>
-<ul></ul>
-<li><a href="reservations.html">Reservations</a></li>
-<ul></ul>
-<li><a href="services.html">Services</a></li>
-<ul></ul>
-<li>System</li>
-<ul>
-<li><a href="system.administration.html">Administration</a></li>
-<li><a href="system.broker.html">Broker</a></li>
-<li><a href="system.classes.html">Classes</a></li>
-<li><a href="system.daemons.html">Daemons</a></li>
-<li><a href="doc/duccbook.html" target="_duccbook">DuccBook</a></li>
-<li><a href="system.machines.html">Machines</a></li>
-</ul>
-<li><a href="viz.html">Viz</a></li>
-<%@ include file="../site.jsp" %>
-</ul>
+<table>
+<tr>
+<td>
+<span id="refreshbutton">
+<input type="image" onclick="ducc_refresh('system-broker');" title="Refresh" alt="Refresh" src="opensources/images/refresh.png">
+</span>
+<span id="loading" style="display:none;">
+<img title="loading" src="opensources/images/indicator.gif" style="border:1px solid #000000" alt="Loading...">
+</span>
+<td>
+<table>
+<tr>
+<td align="left">
+<form name="duccform" style="margin-bottom:0;">
+<fieldset>
+<legend>Refresh</legend>
+<input type="radio" name="refresh" value="manual"            onclick="ducc_put_cookie('ducc:refreshmode','manual'   )" /> Manual
+<br>
+<input type="radio" name="refresh" value="automatic" checked onclick="ducc_put_cookie('ducc:refreshmode','automatic')" /> Automatic
+</fieldset>
+</form>
+</table>
+</tr>
+</table>
 </div> 
