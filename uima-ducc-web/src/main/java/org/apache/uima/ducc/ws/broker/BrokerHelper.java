@@ -195,8 +195,8 @@ public class BrokerHelper {
 	
 	/////
 	
-	private boolean isFrameworkTopic(ObjectName objectName) {
-		String location = "isFrameworkTopic";
+	private boolean isFrameworkEntity(ObjectName objectName) {
+		String location = "isFrameworkEntity";
 		boolean retVal = false;
 		String key = "Destination";
 	    String value = objectName.getKeyProperty(key);
@@ -212,6 +212,14 @@ public class BrokerHelper {
 	private String getName(ObjectName objectName) {
 		String retVal = "";
 		String key = "Destination";
+	    String value = objectName.getKeyProperty(key);
+	    retVal = value;
+		return retVal;
+	}
+	
+	private String getType(ObjectName objectName) {
+		String retVal = "";
+		String key = "Type";
 	    String value = objectName.getKeyProperty(key);
 	    retVal = value;
 		return retVal;
@@ -279,16 +287,20 @@ public class BrokerHelper {
 		return retVal;
 	}
 
-	public ArrayList<String> getFrameworkTopicNames() {
+	public ArrayList<EntityInfo> getFrameworkEntities() {
 		String location = "getFrameworkTopicNames";
-		ArrayList<String> retVal = new ArrayList<String>();
+		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<EntityInfo> retVal = new ArrayList<EntityInfo>();
 		try {
 			Set<ObjectName> objectNames = new TreeSet<ObjectName>(mbsc.queryNames(null, null));
 			for (ObjectName objectName : objectNames) {
-			    if(isFrameworkTopic(objectName)) {
+			    if(isFrameworkEntity(objectName)) {
 			    	String name = getName(objectName);
-			    	if(!retVal.contains(name)) {
-			    		retVal.add(name);
+			    	String type = getType(objectName);
+			    	EntityInfo entityInfo = new EntityInfo(name,type);
+			    	String key = entityInfo.getKey();
+			    	if(!list.contains(key)) {
+			    		retVal.add(entityInfo);
 			    	}
 			    }
 			}

@@ -74,6 +74,7 @@ import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.broker.BrokerHelper;
 import org.apache.uima.ducc.ws.broker.BrokerHelper.FrameworkAttribute;
+import org.apache.uima.ducc.ws.broker.EntityInfo;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -1813,7 +1814,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 
 		BrokerHelper brokerHelper = BrokerHelper.getInstance();
 
-		ArrayList<String> topicNameList = brokerHelper.getFrameworkTopicNames();
+		ArrayList<EntityInfo> entityInfoList = brokerHelper.getFrameworkEntities();
 		
 		String[] attrNames = { 
 				FrameworkAttribute.ConsumerCount.name(), 
@@ -1822,15 +1823,21 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				FrameworkAttribute.MemoryPercentUsage.name(),
 				};
 		
-		if(topicNameList.size() > 0) {
-			for(String topicName : topicNameList) {
-				TreeMap<String,String> map = brokerHelper.getAttributes(topicName, attrNames);
+		if(entityInfoList.size() > 0) {
+			for(EntityInfo entityInfo : entityInfoList) {
+				String name = entityInfo.getName();
+				String type = entityInfo.getType();
+				TreeMap<String,String> map = brokerHelper.getAttributes(name, attrNames);
 				String attrValue = "";
 				StringBuffer row = new StringBuffer();
 				row.append(messages.fetch("<tr>"));
 				// name
 				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"left\">"));
-				row.append(messages.fetch(topicName));
+				row.append(messages.fetch(name));
+				row.append(messages.fetch("</td>"));
+				// type
+				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"left\">"));
+				row.append(messages.fetch(type));
 				row.append(messages.fetch("</td>"));
 				// ConsumerCount
 				attrValue = map.get(FrameworkAttribute.ConsumerCount.name());

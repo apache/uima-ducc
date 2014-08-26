@@ -39,10 +39,10 @@ if (table_style.equals("scroll")) {
 			"sAjaxSource": "/ducc-servlet/json-format-aaData-broker",
 			aaSorting: [],
 			"fnRowCallback"  : function(nRow,aData,iDisplayIndex) {
-			                        $('td:eq(1)' , nRow).css( "text-align", "right" );
 			                        $('td:eq(2)' , nRow).css( "text-align", "right" );
                                     $('td:eq(3)' , nRow).css( "text-align", "right" );
                                     $('td:eq(4)' , nRow).css( "text-align", "right" );
+                                    $('td:eq(5)' , nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -106,6 +106,7 @@ if (table_style.equals("scroll")) {
 	<thead>
 	<tr class="ducc-header">
 	    <th align="center" >Name</th>
+	    <th align="center" >Type</th>
         <th align="center" >ConsumerCount</th>
         <th align="center" >MaxEnqueueTime</th>
         <th align="center" >AverageEnqueueTime</th>
@@ -129,6 +130,7 @@ if (table_style.equals("classic")) {
 		<thead>
 		<tr class="ducc-head">
 		<th align="center" >Name</th>
+		<th align="center" >Type</th>
         <th align="center" >ConsumerCount</th>
         <th align="center" >MaxEnqueueTime</th>
         <th align="center" >AverageEnqueueTime</th>
