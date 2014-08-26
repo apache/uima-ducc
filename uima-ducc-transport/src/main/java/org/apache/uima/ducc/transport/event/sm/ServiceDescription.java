@@ -396,7 +396,7 @@ public class ServiceDescription
         if ( autostart )            { sb.append("autostart"); }
         else if ( reference_start ) { sb.append("reference"); }
         else {
-            if ( references.size() > 0 ) {
+            if ( implementors.size() > 0 ) {
                 sb.append("manual"); 
             } else {
                 sb.append("stopped");
