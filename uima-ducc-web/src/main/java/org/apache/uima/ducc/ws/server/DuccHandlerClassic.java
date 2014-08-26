@@ -72,6 +72,8 @@ import org.apache.uima.ducc.ws.DuccMachinesData;
 import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
+import org.apache.uima.ducc.ws.broker.BrokerHelper;
+import org.apache.uima.ducc.ws.broker.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -94,6 +96,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	public final String classicSystemClasses	 	= duccContextClassic+"-system-classes-data";
 	public final String classicSystemDaemons	 	= duccContextClassic+"-system-daemons-data";
 	public final String classicSystemMachines	 	= duccContextClassic+"-system-machines-data";
+	public final String classicSystemBroker		 	= duccContextClassic+"-system-broker-data";
 	
 	public DuccHandlerClassic(DuccWebServer duccWebServer) {
 		super.init(duccWebServer);
@@ -1799,6 +1802,101 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}
 	
+	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
+	
+	private void handleServletClassicSystemBroker(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleServletClassicBroker";
+		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+
+		BrokerHelper brokerHelper = BrokerHelper.getInstance();
+
+		ArrayList<String> topicNameList = brokerHelper.getFrameworkTopicNames();
+		
+		String[] attrNames = { 
+				FrameworkAttribute.ConsumerCount.name(), 
+				FrameworkAttribute.MaxEnqueueTime.name(),  
+				FrameworkAttribute.AverageEnqueueTime.name(),
+				FrameworkAttribute.MemoryPercentUsage.name(),
+				};
+		
+		if(topicNameList.size() > 0) {
+			for(String topicName : topicNameList) {
+				TreeMap<String,String> map = brokerHelper.getAttributes(topicName, attrNames);
+				String attrValue = "";
+				StringBuffer row = new StringBuffer();
+				row.append(messages.fetch("<tr>"));
+				// name
+				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"left\">"));
+				row.append(messages.fetch(topicName));
+				row.append(messages.fetch("</td>"));
+				// ConsumerCount
+				attrValue = map.get(FrameworkAttribute.ConsumerCount.name());
+				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"right\">"));
+				row.append(messages.fetch(attrValue));
+				row.append(messages.fetch("</td>"));
+				// MaxEnqueueTime
+				attrValue = map.get(FrameworkAttribute.MaxEnqueueTime.name());
+				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"right\">"));
+				row.append(messages.fetch(attrValue));
+				row.append(messages.fetch("</td>"));
+				// AverageEnqueueTime
+				attrValue = map.get(FrameworkAttribute.AverageEnqueueTime.name());
+				try {
+					Double d = Double.valueOf(attrValue);
+					attrValue = formatter3.format(d);
+				}
+				catch(Exception e) {
+					
+				}
+				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"right\">"));
+				row.append(messages.fetch(attrValue));
+				row.append(messages.fetch("</td>"));
+				// MemoryPercentUsage
+				attrValue = map.get(FrameworkAttribute.MemoryPercentUsage.name());
+				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"right\">"));
+				row.append(messages.fetch(attrValue));
+				row.append(messages.fetch("</td>"));
+				//
+				row.append(messages.fetch("</tr>"));
+				sb.append(row);
+			}
+		}
+		else {
+			StringBuffer row = new StringBuffer();
+			row.append(messages.fetch("<tr>"));
+			// name
+			row.append(messages.fetch("<td>"));
+			row.append(messages.fetch("no data"));
+			row.append(messages.fetch("</td>"));
+			// ConsumerCount
+			row.append(messages.fetch("<td>"));
+			row.append(messages.fetch(""));
+			row.append(messages.fetch("</td>"));
+			// MaxEnqueueTime
+			row.append(messages.fetch("<td>"));
+			row.append(messages.fetch(""));
+			row.append(messages.fetch("</td>"));
+			// AverageEnqueueTime
+			row.append(messages.fetch("<td>"));
+			row.append(messages.fetch(""));
+			row.append(messages.fetch("</td>"));
+			// MemoryPercentUsage
+			row.append(messages.fetch("<td>"));
+			row.append(messages.fetch(""));
+			row.append(messages.fetch("</td>"));
+			//
+			row.append(messages.fetch("</tr>"));
+			sb.append(row);
+		}
+		
+		duccLogger.debug(methodName, jobid, sb);
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+	}	
+	
 	private void handleServletUnknown(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1833,6 +1931,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		}
 		else if(reqURI.startsWith(classicSystemMachines)) {
 			handleServletClassicSystemMachines(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(classicSystemBroker)) {
+			handleServletClassicSystemBroker(target, baseRequest, request, response);
 		}
 		else {
 			handleServletUnknown(target, baseRequest, request, response);

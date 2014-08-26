@@ -77,6 +77,8 @@ import org.apache.uima.ducc.ws.Info;
 import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
+import org.apache.uima.ducc.ws.broker.BrokerHelper;
+import org.apache.uima.ducc.ws.broker.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
@@ -104,6 +106,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	private final String jsonFormatReservationsAaData			= duccContextJsonFormat+"-aaData-reservations";
 	private final String jsonFormatServicesAaData				= duccContextJsonFormat+"-aaData-services";
 	private final String jsonFormatMachinesAaData				= duccContextJsonFormat+"-aaData-machines";
+	private final String jsonFormatBrokerAaData					= duccContextJsonFormat+"-aaData-broker";
 	private final String jsonFormatClassesAaData				= duccContextJsonFormat+"-aaData-classes";
 	private final String jsonFormatDaemonsAaData				= duccContextJsonFormat+"-aaData-daemons";
 	
@@ -1517,6 +1520,71 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
 	}		
 	
+	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
+	
+	private void handleServletJsonFormatBrokerAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws Exception
+	{
+		String methodName = "handleServletJsonFormatBrokerAaData";
+		duccLogger.trace(methodName, jobid, messages.fetch("enter"));
+		
+		JsonObject jsonResponse = new JsonObject();
+		JsonArray data = new JsonArray();
+		JsonArray row;
+
+		BrokerHelper brokerHelper = BrokerHelper.getInstance();
+
+		ArrayList<String> topicNameList = brokerHelper.getFrameworkTopicNames();
+		
+		String[] attrNames = { 
+				FrameworkAttribute.ConsumerCount.name(), 
+				FrameworkAttribute.MaxEnqueueTime.name(),  
+				FrameworkAttribute.AverageEnqueueTime.name(),
+				FrameworkAttribute.MemoryPercentUsage.name(),
+				};
+		
+		if(topicNameList.size() > 0) {
+			for(String topicName : topicNameList) {
+				TreeMap<String,String> map = brokerHelper.getAttributes(topicName, attrNames);
+				String attrValue = "";
+				row = new JsonArray();
+				// Name
+				String name = topicName;
+				row.add(new JsonPrimitive(name));
+				// ConsumerCount
+				attrValue = map.get(FrameworkAttribute.ConsumerCount.name());
+				row.add(new JsonPrimitive(attrValue));
+				// MaxEnqueueTime
+				attrValue = map.get(FrameworkAttribute.MaxEnqueueTime.name());
+				row.add(new JsonPrimitive(attrValue));
+				// AverageEnqueueTime
+				attrValue = map.get(FrameworkAttribute.AverageEnqueueTime.name());
+				try {
+					Double d = Double.valueOf(attrValue);
+					attrValue = formatter3.format(d);
+				}
+				catch(Exception e) {
+					
+				}
+				row.add(new JsonPrimitive(attrValue));
+				// MemoryPercentUsage
+				attrValue = map.get(FrameworkAttribute.MemoryPercentUsage.name());
+				row.add(new JsonPrimitive(attrValue));
+				// Row
+				data.add(row);
+			}
+		}
+		
+		jsonResponse.add("aaData", data);
+		
+		String json = jsonResponse.toString();
+		duccLogger.debug(methodName, jobid, json);
+		response.getWriter().println(json);
+		response.setContentType("application/json");
+		
+		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
+	}	
+	
 	private void handleServletJsonFormatClassesAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws Exception
 	{
@@ -2005,6 +2073,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		}
 		else if(reqURI.startsWith(jsonFormatMachinesAaData)) {
 			handleServletJsonFormatMachinesAaData(target, baseRequest, request, response);
+		}
+		else if(reqURI.startsWith(jsonFormatBrokerAaData)) {
+			handleServletJsonFormatBrokerAaData(target, baseRequest, request, response);
 		}
 		else if(reqURI.startsWith(jsonFormatClassesAaData)) {
 			handleServletJsonFormatClassesAaData(target, baseRequest, request, response);

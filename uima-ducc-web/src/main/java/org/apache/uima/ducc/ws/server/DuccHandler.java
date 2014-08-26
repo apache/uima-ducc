@@ -95,6 +95,8 @@ import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.MachineSummaryInfo;
 import org.apache.uima.ducc.ws.authentication.DuccAsUser;
 import org.apache.uima.ducc.ws.authentication.DuccAuthenticator;
+import org.apache.uima.ducc.ws.broker.BrokerHelper;
+import org.apache.uima.ducc.ws.broker.BrokerHelper.BrokerAttribute;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
@@ -151,6 +153,8 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccServiceFilesData 			= duccContext+"/service-files-data";
 	private String duccServiceHistoryData 			= duccContext+"/service-history-data";
 	private String duccServiceSummaryData			= duccContext+"/service-summary-data";
+	
+	private String duccBrokerSummaryData			= duccContext+"/broker-summary-data";
 	
 	private String duccSystemAdminAdminData 		= duccContext+"/system-admin-admin-data";
 	private String duccSystemAdminControlData 		= duccContext+"/system-admin-control-data";
@@ -2444,7 +2448,6 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 
-	
 	private void handleDuccServletServiceSummaryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -2512,6 +2515,167 @@ public class DuccHandler extends DuccAbstractHandler {
 			sb.append("disabled");
 			sb.append("&nbsp");
 		}
+		
+		sb.append("</table>");
+		
+		response.getWriter().println(sb);
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+	}
+	
+	private void handleDuccServletBrokerSummaryData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletBrokerSummaryData";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		StringBuffer sb = new StringBuffer();
+		
+		int MB = 1024 * 1024;
+		
+		String brokerHost = "?";
+		String brokerPort = "?";
+		
+		String brokerVersion = "?";
+		String uptime = "?";
+		
+		Long memoryUsed = new Long(0);
+		Long memoryMax = new Long(0);
+		
+		int threadsLive = 0;
+		int threadsPeak = 0;
+		
+		double systemLoadAverage = 0;
+		
+		try {
+			BrokerHelper brokerHelper = BrokerHelper.getInstance();
+			systemLoadAverage = brokerHelper.getSystemLoadAverage();
+			threadsLive = brokerHelper.getThreadsLive();
+			threadsPeak = brokerHelper.getThreadsPeak();
+			memoryMax = brokerHelper.getMemoryMax();
+			memoryUsed = brokerHelper.getMemoryUsed();
+			uptime = brokerHelper.getAttribute(BrokerAttribute.Uptime);
+			brokerVersion = brokerHelper.getAttribute(BrokerAttribute.BrokerVersion);
+			brokerPort = ""+brokerHelper.getPort();
+			brokerHost = brokerHelper.getHost();
+		}
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+		
+		sb.append("<table>");
+		
+		//
+		
+		StringBuffer row1 = new StringBuffer();
+		StringBuffer row2 = new StringBuffer();
+		StringBuffer row3 = new StringBuffer();
+		
+		row1.append("<tr>");
+		row2.append("<tr>");
+		row3.append("<tr>");
+		
+		String thl = "<th align=\"left\"  style=\"font-family: monospace;\">";
+		String thr = "<th align=\"right\" style=\"font-family: monospace;\">";
+		
+		// Host
+		row1.append(thl);
+		row1.append("Host: ");
+		row1.append(thl);
+		row1.append(brokerHost);
+		row1.append("&nbsp");
+		// Post
+		row2.append(thl);
+		row2.append("Port: ");
+		row2.append(thl);
+		row2.append(brokerPort);
+		row2.append("&nbsp");
+		// 
+		row3.append(thl);
+		row3.append("");
+		row3.append(thl);
+		row3.append("");
+		row3.append("&nbsp");
+		
+		// BrokerVersion
+		row1.append(thl);
+		row1.append("BrokerVersion: ");
+		row1.append(thl);
+		row1.append(brokerVersion);
+		row1.append("&nbsp");
+		// Uptime
+		row2.append(thl);
+		row2.append("Uptime: ");
+		row2.append(thl);
+		row2.append(uptime);
+		row2.append("&nbsp");
+		// 
+		row3.append(thl);
+		row3.append("");
+		row3.append(thl);
+		row3.append("");
+		row3.append("&nbsp");
+		
+		// MemoryUsed
+		row1.append(thl);
+		row1.append("MemoryUsed(MB): ");
+		row1.append(thr);
+		row1.append(memoryUsed/MB);
+		row1.append("&nbsp");
+		// MemoryMax
+		row2.append(thl);
+		row2.append("MemoryMax(MB): ");
+		row2.append(thr);
+		row2.append(memoryMax/MB);
+		row2.append("&nbsp");
+		// 
+		row3.append(thl);
+		row3.append("");
+		row3.append(thl);
+		row3.append("");
+		row3.append("&nbsp");
+				
+		// ThreadsLive
+		row1.append(thl);
+		row1.append("ThreadsLive: ");
+		row1.append(thr);
+		row1.append(threadsLive);
+		row1.append("&nbsp");
+		// ThreadsPeak
+		row2.append(thl);
+		row2.append("ThreadsPeak: ");
+		row2.append(thr);
+		row2.append(threadsPeak);
+		row2.append("&nbsp");
+		// 
+		row3.append(thl);
+		row3.append("");
+		row3.append(thl);
+		row3.append("");
+		row3.append("&nbsp");
+		
+		// System Load Average
+		row1.append(thl);
+		row1.append("SystemLoadAverage: ");
+		row1.append(thr);
+		row1.append(systemLoadAverage);
+		row1.append("&nbsp");
+		//
+		row2.append(thl);
+		row2.append("");
+		row2.append(thr);
+		row2.append("");
+		row2.append("&nbsp");
+		// 
+		row3.append(thl);
+		row3.append("");
+		row3.append(thl);
+		row3.append("");
+		row3.append("&nbsp");	
+		
+		//
+		
+		sb.append(row1);
+		sb.append(row2);
+		sb.append(row3);
 		
 		sb.append("</table>");
 		
@@ -4197,6 +4361,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			else if(reqURI.startsWith(duccServiceSummaryData)) {
 				handleDuccServletServiceSummaryData(target, baseRequest, request, response);
+			}
+			else if(reqURI.startsWith(duccBrokerSummaryData)) {
+				handleDuccServletBrokerSummaryData(target, baseRequest, request, response);
 			}
 			else if(reqURI.startsWith(jsonMachinesData)) {
 				handleServletJsonMachinesData(target, baseRequest, request, response);
