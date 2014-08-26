@@ -512,7 +512,7 @@ function ducc_init_service_summary_data()
 {
 	try {
 		data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
-		$("#job_workitems_count_area").html(data);
+		$("#service_summary_area").html(data);
 	}
 	catch(err) {
 		ducc_error("ducc_init_service_summary_data",err);
@@ -536,6 +536,36 @@ function ducc_load_service_summary_data()
 	catch(err) {
 		ducc_error("ducc_load_service_summary_data",err);
 	}	
+}
+
+function ducc_init_broker_summary_data()
+{
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+        $("#broker_summary_area").html(data);
+    }
+    catch(err) {
+        ducc_error("ducc_init_broker_summary_data",err);
+    }
+}
+
+function ducc_load_broker_summary_data()
+{
+    try {
+        server_url= "/ducc-servlet/broker-summary-data"+location.search;
+        $.ajax(
+        {
+            url : server_url,
+            success : function (data) 
+            {
+                $("#broker_summary_area").html(data);
+                hide_show();
+            }
+        });
+    }
+    catch(err) {
+        ducc_error("ducc_load_broker_summary_data",err);
+    }   
 }
 
 function ducc_init_job_workitems_count_data()
@@ -1752,6 +1782,84 @@ function ducc_init_system_daemons_data()
 	}
 }
 
+var ms_load_system_broker_data = +new Date() - ms_reload_min;
+
+function ducc_load_system_broker_data()
+{
+    var ms_now = +new Date();
+    if(ms_now < ms_load_system_broker_data + ms_reload_min) {
+        return;
+    }
+    ms_load_system_broker_data = ms_now;
+    var table_style = ducc_preferences_get("table_style");
+    if(table_style == "scroll") {
+        ducc_load_scroll_system_broker_data()
+    }
+    else {
+        ducc_load_classic_system_broker_data()
+    }
+}
+
+function ducc_load_classic_system_broker_data()
+{
+    try {
+        $.ajax(
+        {
+            url : "/ducc-servlet/classic-system-broker-data",
+            success : function (data) 
+            {
+                $("#system_broker_list_area").html(data);
+                ducc_timestamp();
+                ducc_authentication();
+                ducc_utilization();
+                ducc_cluetips();
+            }
+        });
+    }
+    catch(err) {
+        ducc_error("ducc_load_classic_system_broker_data",err);
+    }   
+}
+
+function ducc_load_scroll_system_broker_data()
+{
+    try {
+        oTable.fnReloadAjax("/ducc-servlet/json-format-aaData-broker",ducc_load_scroll_system_broker_callback);
+    }
+    catch(err) {
+        ducc_error("ducc_load_scroll_system_broker_data",err);
+    }   
+}
+
+function ducc_load_scroll_system_broker_callback() 
+{
+    try {
+        ducc_timestamp();
+        ducc_authentication();
+        ducc_utilization();
+        ducc_cluetips();
+        oTable.fnAdjustColumnSizing();
+    }
+    catch(err) {
+        ducc_error("ducc_load_scroll_system_broker_callback",err);
+    }   
+}
+
+function ducc_init_system_broker_data()
+{
+    try {
+        data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">"
+        $("#system_broker_list_area").html(data);
+        data = "...?"
+        $("#timestamp_area").html(data);
+        data = "...?"
+        $("#authentication_area").html(data);
+    }
+    catch(err) {
+        ducc_error("ducc_init_system_broker_data",err);
+    }
+}
+
 function ducc_init(type)
 {
 	try {
@@ -1855,6 +1963,12 @@ function ducc_init(type)
 			ducc_init_system_daemons_data();
 			ducc_load_system_daemons_data();
 		}
+		if(type == "system-broker") {
+			ducc_init_broker_summary_data();
+            ducc_init_system_broker_data();
+            ducc_load_broker_summary_data();
+            ducc_load_system_broker_data();
+        }
 		if(type == "authentication-login") {
 			ducc_init_common();
 			ducc_load_common();
@@ -2302,6 +2416,10 @@ function ducc_update_page(type)
 			if(type == "system-daemons") {
 				ducc_load_system_daemons_data();
 			}
+			if(type == "system-broker") {
+				ducc_load_broker_summary_data();
+                ducc_load_system_broker_data();
+            }
 			if(type == "system-classes") {
 				ducc_load_system_classes_data();
 			}
