@@ -14,7 +14,7 @@ class Installer():
         #
         file = 'activemq-ducc.xml'
         src = ducc_home+'/examples/uima-ducc-vm/config/activemq/conf/'+file
-        tgt = ducc_home+'/activemq/conf/'+file
+        tgt = ducc_home+'/apache-uima/apache-activemq/conf/'+file
         command = 'cp -p'+' '+src+' '+tgt
         os.system(command)
         print 'installed: '+tgt
