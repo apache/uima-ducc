@@ -46,6 +46,9 @@ if (table_style.equals("scroll")) {
 %>
   <script type="text/javascript" language="javascript" src="opensources/DataTables-1.10.1/media/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript" language="javascript" src="opensources/DataTables-plugins/fnReloadAjax.js"></script>
+  <script type="text/javascript" language="javascript" src="opensources//DataTables-1.10.1/extensions/ColVis/js/dataTables.colVis.min.js"></script>
+  <link href="opensources/DataTables-1.10.1/extensions/ColVis/css/dataTables.colvis.jqueryui.css" rel="stylesheet" type="text/css">
+  <link href="opensources/DataTables-1.10.1/extensions/ColVis/css/dataTables.colVis.min.css" rel="stylesheet" type="text/css">
   <link href="ducc.scroll.css" rel="stylesheet" type="text/css">
 <%
 }

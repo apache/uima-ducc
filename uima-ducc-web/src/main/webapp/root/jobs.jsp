@@ -30,6 +30,7 @@ if (table_style.equals("scroll")) {
 	var oTable;
 	$(document).ready(function() {
 		oTable = $('#jobs-table').dataTable( {
+		 dom: 'C<"clear">lfrtip',
 			"bProcessing": true,
 			"bPaginate": false,
 			"bFilter": true,
