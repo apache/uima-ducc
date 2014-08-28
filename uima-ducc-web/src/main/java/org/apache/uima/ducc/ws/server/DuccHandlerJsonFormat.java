@@ -1523,6 +1523,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 	
 	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
 	
+	private static String Topic = "Topic";
+	
 	private void handleServletJsonFormatBrokerAaData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws Exception
 	{
@@ -1544,6 +1546,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				FrameworkAttribute.AverageEnqueueTime.name(),
 				FrameworkAttribute.MemoryPercentUsage.name(),
 				};
+		
+		JsonArray topics = new JsonArray();
+		JsonArray queues = new JsonArray();
 		
 		if(entityInfoList.size() > 0) {
 			for(EntityInfo entityInfo : entityInfoList) {
@@ -1579,8 +1584,15 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				attrValue = map.get(FrameworkAttribute.MemoryPercentUsage.name());
 				row.add(new JsonPrimitive(attrValue));
 				// Row
-				data.add(row);
+				if(type.equals(Topic)) {
+					topics.add(row);
+				}
+				else {
+					queues.add(row);
+				}
 			}
+			data.addAll(topics);
+			data.addAll(queues);
 		}
 		
 		jsonResponse.add("aaData", data);

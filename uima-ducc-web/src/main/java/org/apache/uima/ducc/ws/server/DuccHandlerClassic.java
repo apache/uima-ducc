@@ -1805,6 +1805,8 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 	
 	private static DecimalFormat formatter3 = new DecimalFormat("##0.000");
 	
+	private static String Topic = "Topic";
+	
 	private void handleServletClassicSystemBroker(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
 	throws IOException, ServletException
 	{
@@ -1823,6 +1825,9 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				FrameworkAttribute.AverageEnqueueTime.name(),
 				FrameworkAttribute.MemoryPercentUsage.name(),
 				};
+		
+		StringBuffer topics = new StringBuffer();
+		StringBuffer queues = new StringBuffer();
 		
 		if(entityInfoList.size() > 0) {
 			for(EntityInfo entityInfo : entityInfoList) {
@@ -1874,8 +1879,15 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append(messages.fetch("</td>"));
 				//
 				row.append(messages.fetch("</tr>"));
-				sb.append(row);
+				if(type.equals(Topic)) {
+					topics.append(row);
+				}
+				else {
+					queues.append(row);
+				}
 			}
+			sb.append(topics);
+			sb.append(queues);
 		}
 		else {
 			StringBuffer row = new StringBuffer();
