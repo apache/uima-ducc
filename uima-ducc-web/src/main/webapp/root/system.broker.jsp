@@ -43,6 +43,7 @@ if (table_style.equals("scroll")) {
                                     $('td:eq(3)' , nRow).css( "text-align", "right" );
                                     $('td:eq(4)' , nRow).css( "text-align", "right" );
                                     $('td:eq(5)' , nRow).css( "text-align", "right" );
+                                    $('td:eq(6)' , nRow).css( "text-align", "right" );
                              		return nRow;
 			},
 		} );
@@ -108,6 +109,7 @@ if (table_style.equals("scroll")) {
 	    <th align="center" >Name</th>
 	    <th align="center" >Type</th>
         <th align="center" >ConsumerCount</th>
+        <th align="center" >QueueSize</th>
         <th align="center" >MaxEnqueueTime</th>
         <th align="center" >AverageEnqueueTime</th>
         <th align="center" >MemoryPercentUsage</th>
@@ -132,6 +134,7 @@ if (table_style.equals("classic")) {
 		<th align="center" >Name</th>
 		<th align="center" >Type</th>
         <th align="center" >ConsumerCount</th>
+        <th align="center" >QueueSize</th>
         <th align="center" >MaxEnqueueTime</th>
         <th align="center" >AverageEnqueueTime</th>
         <th align="center" >MemoryPercentUsage</th>

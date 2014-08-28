@@ -1818,6 +1818,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 		
 		String[] attrNames = { 
 				FrameworkAttribute.ConsumerCount.name(), 
+				FrameworkAttribute.QueueSize.name(), 
 				FrameworkAttribute.MaxEnqueueTime.name(),  
 				FrameworkAttribute.AverageEnqueueTime.name(),
 				FrameworkAttribute.MemoryPercentUsage.name(),
@@ -1841,6 +1842,11 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				row.append(messages.fetch("</td>"));
 				// ConsumerCount
 				attrValue = map.get(FrameworkAttribute.ConsumerCount.name());
+				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"right\">"));
+				row.append(messages.fetch(attrValue));
+				row.append(messages.fetch("</td>"));
+				// QueueSize
+				attrValue = map.get(FrameworkAttribute.QueueSize.name());
 				row.append(messages.fetch("<td style=\"font-family: monospace;\" align=\"right\">"));
 				row.append(messages.fetch(attrValue));
 				row.append(messages.fetch("</td>"));

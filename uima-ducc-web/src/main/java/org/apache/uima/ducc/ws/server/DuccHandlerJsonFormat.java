@@ -1539,6 +1539,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 		
 		String[] attrNames = { 
 				FrameworkAttribute.ConsumerCount.name(), 
+				FrameworkAttribute.QueueSize.name(),
 				FrameworkAttribute.MaxEnqueueTime.name(),  
 				FrameworkAttribute.AverageEnqueueTime.name(),
 				FrameworkAttribute.MemoryPercentUsage.name(),
@@ -1557,6 +1558,9 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(type));
 				// ConsumerCount
 				attrValue = map.get(FrameworkAttribute.ConsumerCount.name());
+				row.add(new JsonPrimitive(attrValue));
+				// QueueSize
+				attrValue = map.get(FrameworkAttribute.QueueSize.name());
 				row.add(new JsonPrimitive(attrValue));
 				// MaxEnqueueTime
 				attrValue = map.get(FrameworkAttribute.MaxEnqueueTime.name());

@@ -52,7 +52,7 @@ public class BrokerHelper {
 	}
 	
 	public enum BrokerAttribute { BrokerVersion, MemoryPercentUsage, Uptime };
-	public enum FrameworkAttribute { ConsumerCount, MaxEnqueueTime, AverageEnqueueTime, MemoryPercentUsage };
+	public enum FrameworkAttribute { ConsumerCount, QueueSize, MaxEnqueueTime, AverageEnqueueTime, MemoryPercentUsage };
 
 	private String host = "?";
 	private int port = 1100;
@@ -275,6 +275,7 @@ public class BrokerHelper {
 					    	String attrName = attribute.getName();
 							String attrValue = ""+attribute.getValue();
 							retVal.put(attrName, attrValue);
+							duccLogger.debug(location, jobid, attrName+"="+attrValue);
 					   	}
 					    break;
 					}
