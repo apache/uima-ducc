@@ -253,23 +253,22 @@ public class Crypto implements ICrypto {
 			String fileName = filePub;
 			ObjectInputStream ois = null;
 			DataInputStream dis = null;
-			if(isReadablePublic()) {
-				ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fileName)));
-			}
-			else {
-				String ducc_ling = 
-						Utils.resolvePlaceholderIfExists(
-								System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
-				
-				AlienFile alienFile = new AlienFile(user,fileName,ducc_ling);
-				dis = alienFile.getDataInputStream();
-				ois = new ObjectInputStream(new BufferedInputStream(dis));
-			}
 			try {
+				if(isReadablePublic()) {
+					ois = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fileName)));
+				}
+				else {
+					String ducc_ling = 
+							Utils.resolvePlaceholderIfExists(
+									System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
+					
+					AlienFile alienFile = new AlienFile(user,fileName,ducc_ling);
+					dis = alienFile.getDataInputStream();
+					ois = new ObjectInputStream(new BufferedInputStream(dis));
+				}
 				BigInteger mod = (BigInteger) ois.readObject();
 			    BigInteger exp = (BigInteger) ois.readObject();
 			    RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(mod, exp);
-			    
 			    if(traditional) {
 			    	KeyFactory keyFactory = KeyFactory.getInstance(keyType);
 			    	PublicKey publicKey = keyFactory.generatePublic(publicKeySpec);
