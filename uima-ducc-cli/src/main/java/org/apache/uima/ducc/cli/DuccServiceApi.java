@@ -1039,7 +1039,7 @@ public class DuccServiceApi
                     rc = Query(args);
                     break;
                 default:
-                    System.out.println("Missing service action (register, unregister, start, stop, modify, or query)");
+                    System.out.println("Missing service action (register, unregister, start, stop, modify, observe_refrences, ignore_references, enable, disable, or query)");
                     System.exit(1);
             }
         } catch (Exception e) {
