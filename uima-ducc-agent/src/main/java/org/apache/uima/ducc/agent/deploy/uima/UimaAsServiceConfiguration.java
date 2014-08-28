@@ -26,7 +26,6 @@ import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.RouteDefinition;
 import org.apache.uima.ducc.agent.NodeAgent;
 import org.apache.uima.ducc.agent.deploy.ManagedService;
 import org.apache.uima.ducc.agent.deploy.ServiceAdapter;
