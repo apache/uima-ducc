@@ -293,7 +293,7 @@ class ServiceStarter(DuccUtil):
         DuccUtil.__init__(self)
         self.runner = runner
 
-    def gen_service(self, svcid):
+    def gen_service(self, svcid, autostart):
         os.environ['USER'] = os.environ['LOGNAME']        # make sure I'm me - after submit may not be
 
         if ( self.runner.use_http ):
@@ -312,15 +312,17 @@ class ServiceStarter(DuccUtil):
         props.put('scheduling_class', 'fixed')
         props.put('working_directory', os.getcwd())
         props.put('service_ping_arguments', 'broker-jmx-port=' + self.broker_jmx_port)
+        if ( autostart ):
+            props.put('autostart', 'true')
 
         svcfile = svcid + '.gen.svc'
         props.write(svcfile)
         return svcfile
 
-    def register_service(self, svcid, instances, start):
+    def register_service(self, svcid, instances, start, autostart):
         os.environ['USER'] = os.environ['LOGNAME']        # make sure I'm me - after submit may not be
 
-        svcfile = self.gen_service(svcid)
+        svcfile = self.gen_service(svcid, autostart)
         CMD = self.DUCC_HOME + '/bin/ducc_services --register ' + svcfile + ' --instances ' + instances
         lines = self.popen(CMD)
         for line in lines:
@@ -373,13 +375,29 @@ class ServiceStarter(DuccUtil):
                     print "Trying to start service", t, "but it is not registered."
                 self.started[t] = None
 
+        auto = svcprops.get('autostart')
+        self.autostarted = {}
+        if ( auto != None ):
+            auto = auto.strip()
+            # make a map with the service id as key and the number of instances as val
+            toks = auto.split() 
+            for t in toks:
+                t = t.strip()
+                if ( self.autostarted.has_key(t) ):
+                    print "Duplicate auto-started service", t
+                    sys.exit(1)
+                if ( not self.registered.has_key(t) ):
+                    print "Trying to start service", t, "but it is not registered."
+                self.autostarted[t] = None
+
         for (k, v) in self.registered.items():
             instances = svcprops.get("instances_" + k)
             if ( instances == None ):
                 print "Missing instances for registered job", k
             print "Registering service", k, "with", instances, "instances"
             start = self.started.has_key(k)
-            service = self.register_service(k, instances, start)
+            autostart = self.autostarted.has_key(k)
+            service = self.register_service(k, instances, start, autostart)
             svcs = self.registered[k]
             if ( svcs == None ):
                 svcs = []

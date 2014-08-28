@@ -27,6 +27,6 @@ instances_4 2
 instances_5 2
 
 # start these registered services
-start 2 3 4
-
+start 3 4
+autostart 2 5
 
