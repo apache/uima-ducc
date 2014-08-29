@@ -93,6 +93,7 @@ function ducc_viz_node_sorter(what)
 
     for ( i = 0, len = node_array.length; i < len; i++ ) {
         // console.log("Node is " + node_array[i].getAttribute("id"));
+        nodediv.removeChild(node_array[i]);
         nodediv.appendChild(node_array[i]);
     }
 }
