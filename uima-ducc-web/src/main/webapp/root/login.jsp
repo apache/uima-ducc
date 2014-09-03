@@ -31,6 +31,7 @@ under the License.
   <script src="js/ducc.js"></script>
   <script type="text/javascript" src="opensources/sorttable.js"></script>
   <link href="ducc.css" rel="stylesheet" type="text/css">
+  <%@ include file="$imports.jsp" %>
 </head>
 
 <body onload="ducc_init('authentication-login');">
