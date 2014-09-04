@@ -57,11 +57,13 @@ public class ServicesHelper {
 		}
 		String statistics = serviceAdapter.getStatistics();
 		if(statistics != null) {
-			if(statistics.length() > 0) {
-				if(retVal.length() > 0) {
-					retVal.append("\n");
+			if(!statistics.equals("N/A")) {
+				if(statistics.length() > 0) {
+					if(retVal.length() > 0) {
+						retVal.append("\n");
+					}
+					retVal.append(statistics);
 				}
-				retVal.append(statistics);
 			}
 		}
 		return retVal.toString();

@@ -103,6 +103,18 @@ public class ServiceInterpreter {
 				}
 				*/
 			}
+			else if(state.equalsIgnoreCase(ServiceState.Available.name())) {
+				Boolean value = getPingActive();
+				if(!value) {
+					retVal = "Pinger is not active";
+				}
+			}
+			else if(state.equalsIgnoreCase(ServiceState.Waiting.name())) {
+				Boolean value = getPingActive();
+				if(!value) {
+					retVal = "Pinger is not active";
+				}
+			}
 		}
 		catch(Exception e) {
 			duccLogger.debug(location, jobid, e);

@@ -164,6 +164,31 @@ public class ServiceAdapter implements IServiceAdapter {
 		return retVal;
 	}
 	
+	private boolean isPingerRelevant() {
+		boolean retVal = false;
+		String value = getState();
+		if(value != null) {
+			if(value.equalsIgnoreCase(ServiceState.Available.name())) {
+				retVal = true;
+			}
+			else if(value.equalsIgnoreCase(ServiceState.Waiting.name())) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
+	public boolean isFaultPinger() {
+		boolean retVal = false;
+		boolean value = isPingActive();
+		if(!value) {
+			if(isPingerRelevant()) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
 	@Override
 	public boolean isPingOnly() {
 		boolean retVal = false;
@@ -219,6 +244,9 @@ public class ServiceAdapter implements IServiceAdapter {
 			retVal = true;
 		}
 		else if(isFaultHealth()) {
+			retVal = true;
+		}
+		else if(isFaultPinger()) {
 			retVal = true;
 		}
 		return retVal;
