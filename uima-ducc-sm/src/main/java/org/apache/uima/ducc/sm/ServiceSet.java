@@ -48,6 +48,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
+import org.apache.uima.ducc.transport.event.sm.IService;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceClass;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
@@ -228,7 +229,6 @@ public class ServiceSet
         meta_props.put("service-healthy",    "false");
         meta_props.put("service-statistics", "N/A");
         setReferenced(this.reference_start);
-        meta_props.remove("submit-error");
 
         last_use = meta_props.getLongProperty("last-use", 0L);
         if ( last_use == 0 ) {
@@ -676,6 +676,7 @@ public class ServiceSet
     synchronized void enable()
     {
         meta_props.remove("disable-reason");
+        resetRuntimeErrors();
         this.enabled = true;
     }
 
@@ -1033,6 +1034,12 @@ public class ServiceSet
         String methodName = "reference";
 
         logger.info(methodName, this.id, "Reference start requested by ", id);
+
+        if ( ! enabled() ) {
+             logger.warn(methodName, this.id, "Not reference starting new service instances because service is disabled.");
+             return;
+        }
+
         if ( excessiveFailures() ) {
             logger.warn(methodName, this.id, "Reference start fails, excessive failures: init[" + init_failures + "], run[" + run_failures + "]");
             return;
@@ -1052,15 +1059,13 @@ public class ServiceSet
         }
 
         // Nothing running, so we do referenced start.
-        if ( enabled() && idle ) {
+        if ( idle ) {
             logger.info(methodName, this.id, "Reference starting new service instances.");
             init_failures = 0;
             resetRuntimeErrors();
             setReferenced(true);
             start(registered_instances);
-        } else {
-            logger.info(methodName, this.id, "Not reference starting new service instances because service is disabled.");
-        }
+        } 
 
         persistReferences();
     }
@@ -1307,9 +1312,11 @@ public class ServiceSet
             if (  translated.ordinality() > response.ordinality() ) response = translated;
         }
                 
-        // If there's no pinger we don't adjust, so the state machine can do magic to start one.
         // If there is a pinger, and it isn't pinging, we must not advance beyond the pinger's state.
-        if ( serviceMeta != null ) {
+        // If there is no pinger, we may never advance beyong Waiting
+        if ( serviceMeta == null ) {
+            response = (response.ordinality() < ServiceState.Waiting.ordinality()) ? response : ServiceState.Waiting;
+        } else if ( serviceMeta != null ) {
             logger.trace(methodName, id, "Cumulative before checking monitor/pinger:", response, ".  Monitor state:", serviceMeta.getServiceState());
             if ( serviceMeta.getServiceState().ordinality() <= response.ordinality() ) response = serviceMeta.getServiceState();
         }
@@ -1440,6 +1447,7 @@ public class ServiceSet
                             break;
 
                         case Available:
+                            logger.warn(methodName, id, "UNEXPECTED STATE TRANSITION:", getState(), "->", cumulative); 
                             setState(ServiceState.Waiting, cumulative, si);
                             break;
 
@@ -1452,8 +1460,7 @@ public class ServiceSet
                           break;
 
                         case Waiting:
-                            setState(ServiceState.Initializing, cumulative, si);
-                            logger.warn(methodName, id, "ILLEGAL STATE TRANSITION:", getState(), "->", cumulative); 
+                            setState(ServiceState.Waiting, cumulative, si);
                             break;
 
                         default:
@@ -1648,7 +1655,7 @@ public class ServiceSet
             logger.info(methodName, id, "Starting service monitor.");
             serviceMeta = new PingDriver(this);
         } catch ( Throwable t ) {
-            logger.error(methodName, id, "Cannot instantiate service monitor.", t);
+            logger.error(methodName, id, "Cannot instantiate service pinger.", t);
             return;
         }
 
@@ -1672,6 +1679,8 @@ public class ServiceSet
 
             if ( isPingOnly() && (ping_failures > ping_failure_max) ) {
                 logger.warn(methodName, id, "Stopping ping-only service due to excessive falutes:", ping_failure_max);
+                meta_props.put("submit-error", "Stopping ping-only service due to excessive falutes: " + ping_failure_max);
+
                 stop(-1L);        // must be -lL Long to get the right overload
                 implementors.remove(-1L);
             } 
