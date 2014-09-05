@@ -1368,6 +1368,7 @@ public class ServiceSet
                 stopPingThread();
                 break;
             default:
+                setReferenced(false);
                 stopPingThread();
                 break;
         }
