@@ -524,7 +524,7 @@ public class ServiceSet
         if ( init_failures >= init_failure_max ) return;     // too many init failures, no more enforcement
         if ( ping_failures >= ping_failure_max ) return;     // not pinging, let's not start more stuff
         
-        // could have more implementors than instances if some were started dynamically but the count not persisted
+        // could have more implementors than instances if some were started dynamically but the count not persisted via registration
         int needed = Math.max(0, instances - countImplementors());
         if ( needed > 0 ) {
             logger.info(methodName, id, "Autostarting", needed, "instance" + ((needed > 1) ? "s" : ""), "already have", countImplementors());
@@ -1133,6 +1133,7 @@ public class ServiceSet
         }
         
         for ( int i = 0; i < ndeletions; i++ ) {
+            instances = Math.max(0, instances - 1);   // prevent autostart and error handling from restarting things
             stop(deletions[i]);
         }
         
