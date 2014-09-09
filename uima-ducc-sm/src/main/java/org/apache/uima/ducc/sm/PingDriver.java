@@ -436,7 +436,8 @@ class PingDriver
                 }
             }
 
-            URLClassLoader l = new URLClassLoader(cp_urls.toArray(new URL[cp_urls.size()]));
+            @SuppressWarnings("resource")
+			URLClassLoader l = new URLClassLoader(cp_urls.toArray(new URL[cp_urls.size()]));
             @SuppressWarnings("rawtypes")
                 Class loaded_class = l.loadClass(ping_class);
             l = null;
