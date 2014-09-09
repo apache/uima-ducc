@@ -24,12 +24,24 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.IDuccEnv;
-
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccPropertiesResolver {
-
+	
+	private DuccLogger logger = DuccLogger.getLogger(DuccPropertiesResolver.class, null);
+	private DuccId duccId = null;
+	
+	private AtomicBoolean loadedPrivate = new AtomicBoolean(false);
+	
+	private AtomicBoolean e1 = new AtomicBoolean(false);
+	private AtomicBoolean e2 = new AtomicBoolean(false);
+	private AtomicBoolean e3 = new AtomicBoolean(false);
+	private AtomicBoolean e4 = new AtomicBoolean(false);
+	private AtomicBoolean e5 = new AtomicBoolean(false);
+	
     private static DuccPropertiesResolver duccPropertiesResolver = new DuccPropertiesResolver();
     
     public static DuccPropertiesResolver getInstance() {
@@ -59,6 +71,8 @@ public class DuccPropertiesResolver {
     	}
         
     }
+    
+    public static final String ducc_private_resources = "ducc.private.resources";
     
     public static final String ducc_threads_limit = "ducc.threads.limit";
     public static final String ducc_driver_jvm_args = "ducc.driver.jvm.args";
@@ -150,18 +164,31 @@ public class DuccPropertiesResolver {
     }
     
     private void init(Properties properties) {
+    	String location = "init";
+    	String fileName = null;
         try {
-            File file = new File(IDuccEnv.DUCC_PROPERTIES_FILE);
+        	String componentProperties="ducc.deploy.configuration";
+        	fileName = System.getProperty(componentProperties);
+        	if(fileName == null) {
+        		fileName = IDuccEnv.DUCC_PROPERTIES_FILE;
+        	}
+            File file = new File(fileName);
             FileInputStream fis;
             fis = new FileInputStream(file);
             properties.load(fis);
             fis.close();
         } 
         catch (FileNotFoundException e) {
-            System.out.println("File not found: "+IDuccEnv.DUCC_PROPERTIES_FILE);
+        	if(!e1.get()) {
+            	logger.error(location, duccId, "File not found: "+fileName);
+            	e1.set(true);;
+            }
         } 
         catch (IOException e) {
-            System.out.println("Error reading file: "+IDuccEnv.DUCC_PROPERTIES_FILE);
+        	if(!e2.get()) {
+            	logger.debug(location, duccId, "Error reading file: "+fileName);
+            	e2.set(true);;
+            }
         }
         enrich(properties);
     }
@@ -175,22 +202,45 @@ public class DuccPropertiesResolver {
     }
     
     private Properties getPrivateProperties() {
-    	//String methodName = "getPrivateProperties";
+    	String location = "getPrivateProperties";
     	Properties privateProperties = new Properties();
-    	String fileName = IDuccEnv.DUCC_PRIVATE_PROPERTIES_FILE;
-    	try {
-            File file = new File(fileName);
-            FileInputStream fis;
-            fis = new FileInputStream(file);
-            privateProperties.load(fis);
-            fis.close();
-        } 
-        catch (FileNotFoundException e) {
-            //System.out.println(methodName+" "+"File not found: "+fileName);
-        } 
-        catch (IOException e) {
-            //System.out.println(methodName+" "+"Error reading file: "+fileName);
-        }
+    	String key = ducc_private_resources;
+    	String directory = getProperty(key);
+    	if(directory != null) {
+    		String fileName = directory+File.separator+"ducc.private.properties";
+        	try {
+                File file = new File(fileName);
+                FileInputStream fis;
+                fis = new FileInputStream(file);
+                privateProperties.load(fis);
+                fis.close();
+                if(loadedPrivate.get()) {
+                	logger.debug(location, duccId, "Loaded: "+fileName);
+                }
+                else {
+                	logger.info(location, duccId, "Loaded: "+fileName);
+                }
+                loadedPrivate.set(true);
+            } 
+            catch (FileNotFoundException e) {
+            	if(!e3.get()) {
+                	logger.error(location, duccId, "File not found: "+fileName);
+                	e3.set(true);;
+                }
+            } 
+        	catch (IOException e) {
+        		if(!e4.get()) {
+                	logger.debug(location, duccId, "Error reading file: "+fileName);
+                	e4.set(true);;
+                }
+            }
+    	}
+    	else {
+    		if(!e5.get()) {
+            	logger.debug(location, duccId, "Key not found: "+key);
+            	e5.set(true);;
+            }
+    	}
     	return privateProperties;
     }
     
