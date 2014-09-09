@@ -280,111 +280,120 @@ public class ServicePingMain
         Socket sock = null;
 
 		try {
-			sock = new Socket("localhost", port);
-		} catch (NumberFormatException e2) {
-			e2.printStackTrace();
-			return 1;
-		} catch (UnknownHostException e2) {
-			e2.printStackTrace();
-			return 1;
-		} catch (IOException e2) {
-			e2.printStackTrace();
-			return 1;
-		} 
-
-        print ("ServicePingMain listens on port", sock.getLocalPort());
-        InputStream sock_in = null;
-		OutputStream sock_out = null;
-		try {
-			sock_in = sock.getInputStream();
-			sock_out = sock.getOutputStream();
-		} catch (IOException e2) {
-			e2.printStackTrace();
-			return 1;
-		}
-
-        ObjectOutputStream oos;
-		try {
-			oos = new ObjectOutputStream(sock_out);
-			oos.flush();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			return 1;
-		}        
-
-        ObjectInputStream ois;
-		try {
-			ois = new ObjectInputStream(sock_in);
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			return 1;
-		}        
-
-        AServicePing custom = resolve(pingClass, arguments, endpoint, initprops);
-        if ( custom == null ) {
-            print("bad_pinger:", pingClass, endpoint);
-            return 1;
-        }
-
-        while ( true ) {  
-        	if ( debug ) print("ServicePingMeta starts ping.");
-
-            Ping ping = null;
 			try {
-                ping = (Ping) ois.readObject();
-                if ( debug ) {
-                    print("Total instances:" , ping.getSmState().get("total-instances"));
-                    print("Active instances:", ping.getSmState().get("active-instances"));
-                    print("References:"      , ping.getSmState().get("references"));
-                    print("Run Failures:"    , ping.getSmState().get("runfailures"));
-                }
-			} catch (IOException e) {
-                handleError(custom, e);
-			} catch ( ClassNotFoundException e) {
-				handleError(custom, e);
+				sock = new Socket("localhost", port);
+			} catch (NumberFormatException e2) {
+				e2.printStackTrace();
+				return 1;
+			} catch (UnknownHostException e2) {
+				e2.printStackTrace();
+				return 1;
+			} catch (IOException e2) {
+				e2.printStackTrace();
+				return 1;
+			} 
+
+			print ("ServicePingMain listens on port", sock.getLocalPort());
+			InputStream sock_in = null;
+			OutputStream sock_out = null;
+			try {
+				sock_in = sock.getInputStream();
+				sock_out = sock.getOutputStream();
+			} catch (IOException e2) {
+				e2.printStackTrace();
+				return 1;
 			}
-            
-            boolean quit = ping.isQuit();
-            if ( debug ) print("Read ping: ", quit);
 
-            try {
-				if ( quit ) {
-                    if ( debug ) System.out.println("Calling custom.stop");
-				    custom.stop();                
-                    oos.close();
-                    ois.close();
-                    sock.close();
-                    if ( debug ) System.out.println("Custom.stop returns");
-				    return 0;
-                } else {
-                    Pong pr = new Pong();
-                    custom.setSmState(ping.getSmState());
-                    IServiceStatistics ss = custom.getStatistics();
-                    if ( ss == null ) {
-                        ss = default_statistics;
-                    }
+			ObjectOutputStream oos;
+			try {
+				oos = new ObjectOutputStream(sock_out);
+				oos.flush();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+				return 1;
+			}        
 
-                    pr.setStatistics     (ss);
-                    pr.setAdditions      (custom.getAdditions());
-                    pr.setDeletions      (custom.getDeletions());
-                    pr.setExcessiveFailures(custom.isExcessiveFailures());
-                    pr.setAutostart      (custom.isAutostart());
-                    pr.setLastUse        (custom.getLastUse());
+			ObjectInputStream ois;
+			try {
+				ois = new ObjectInputStream(sock_in);
+			} catch (IOException e1) {
+				e1.printStackTrace();
+				return 1;
+			}        
 
-                    oos.writeObject(pr);
-                    oos.flush();
+			AServicePing custom = resolve(pingClass, arguments, endpoint, initprops);
+			if ( custom == null ) {
+			    print("bad_pinger:", pingClass, endpoint);
+			    return 1;
+			}
 
-                    // The ObjectOutputStream will cache instances and if all you do is change a
-                    // field or two in the object, it won't be detected and the stale object will be
-                    // sent.  So you have to reset() the stream, (or use a new object, or use
-                    // clone() here also if you want, but this is simplest and safest since we have
-                    // no control over what the external pinger gives us.
-                    oos.reset();
-				} 
-            } catch (Throwable e) {
-                handleError(custom, e);
-			}            
-        }
+			while ( true ) {  
+				if ( debug ) print("ServicePingMeta starts ping.");
+
+			    Ping ping = null;
+				try {
+			        ping = (Ping) ois.readObject();
+			        if ( debug ) {
+			            print("Total instances:" , ping.getSmState().get("total-instances"));
+			            print("Active instances:", ping.getSmState().get("active-instances"));
+			            print("References:"      , ping.getSmState().get("references"));
+			            print("Run Failures:"    , ping.getSmState().get("runfailures"));
+			        }
+				} catch (IOException e) {
+			        handleError(custom, e);
+				} catch ( ClassNotFoundException e) {
+					handleError(custom, e);
+				}
+			    
+			    boolean quit = ping.isQuit();
+			    if ( debug ) print("Read ping: ", quit);
+
+			    try {
+					if ( quit ) {
+			            if ( debug ) System.out.println("Calling custom.stop");
+					    custom.stop();                
+			            oos.close();
+			            ois.close();
+			            sock.close();
+			            if ( debug ) System.out.println("Custom.stop returns");
+					    return 0;
+			        } else {
+			            Pong pr = new Pong();
+			            custom.setSmState(ping.getSmState());
+			            IServiceStatistics ss = custom.getStatistics();
+			            if ( ss == null ) {
+			                ss = default_statistics;
+			            }
+
+			            pr.setStatistics     (ss);
+			            pr.setAdditions      (custom.getAdditions());
+			            pr.setDeletions      (custom.getDeletions());
+			            pr.setExcessiveFailures(custom.isExcessiveFailures());
+			            pr.setAutostart      (custom.isAutostart());
+			            pr.setLastUse        (custom.getLastUse());
+
+			            oos.writeObject(pr);
+			            oos.flush();
+
+			            // The ObjectOutputStream will cache instances and if all you do is change a
+			            // field or two in the object, it won't be detected and the stale object will be
+			            // sent.  So you have to reset() the stream, (or use a new object, or use
+			            // clone() here also if you want, but this is simplest and safest since we have
+			            // no control over what the external pinger gives us.
+			            oos.reset();
+					} 
+			    } catch (Throwable e) {
+			        handleError(custom, e);
+				}            
+			}
+		} finally {
+			try {
+				sock.close();
+			} catch (IOException e) {
+				// Junk catch to keep Eclipse from whining
+				e.printStackTrace();
+			}
+		}
     }
 
     public static void main(String[] args)
