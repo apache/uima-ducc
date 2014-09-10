@@ -145,62 +145,64 @@ public class DuccWebUtil {
 		boolean list = false;
 		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		if(!users.isEmpty()) {
-			String user = propertiesMeta.getProperty(key_user).trim();
-			if(user != null) {
-				user = user.trim();
-				switch(filterUsersStyle) {
-				case IncludePlusActive:
-					if(isAvailable(propertiesMeta)) {
-						list = true;
-					}
-					else if(users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
+			if(propertiesMeta != null) {
+				String user = propertiesMeta.getProperty(key_user);
+				if(user != null) {
+					user = user.trim();
+					switch(filterUsersStyle) {
+					case IncludePlusActive:
+						if(isAvailable(propertiesMeta)) {
+							list = true;
+						}
+						else if(users.contains(user)) {
+							if(maxRecords > 0) {
+								if (counter < maxRecords) {
+									list = true;
+								}
 							}
 						}
-					}
-					break;
-				case ExcludePlusActive:
-					if(isAvailable(propertiesMeta)) {
-						list = true;
-					}
-					else if(!users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
+						break;
+					case ExcludePlusActive:
+						if(isAvailable(propertiesMeta)) {
+							list = true;
+						}
+						else if(!users.contains(user)) {
+							if(maxRecords > 0) {
+								if (counter < maxRecords) {
+									list = true;
+								}
 							}
 						}
-					}
-					break;
-				case Include:
-					if(users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
+						break;
+					case Include:
+						if(users.contains(user)) {
+							if(maxRecords > 0) {
+								if (counter < maxRecords) {
+									list = true;
+								}
 							}
 						}
-					}
-					break;
-				case Exclude:
-					if(!users.contains(user)) {
-						if(maxRecords > 0) {
-							if (counter < maxRecords) {
-								list = true;
+						break;
+					case Exclude:
+						if(!users.contains(user)) {
+							if(maxRecords > 0) {
+								if (counter < maxRecords) {
+									list = true;
+								}
 							}
 						}
-					}
-					break;
-				}	
+						break;
+					}	
+				}
 			}
-		}
-		else {
-			if(isAvailable(propertiesMeta)) {
-				list = true;
-			}
-			else if(maxRecords > 0) {
-				if (counter < maxRecords) {
+			else {
+				if(isAvailable(propertiesMeta)) {
 					list = true;
+				}
+				else if(maxRecords > 0) {
+					if (counter < maxRecords) {
+						list = true;
+					}
 				}
 			}
 		}
