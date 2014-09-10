@@ -36,6 +36,7 @@ public class IServicesRegistry {
 	public static final String numeric_id = IStateServices.numeric_id;
 	public static final String ping_active = IStateServices.ping_active;
 	public static final String ping_only = IStateServices.ping_only;
+	public static final String service_alive = IStateServices.service_alive;
 	public static final String service_class = IStateServices.service_class;
 	public static final String service_dependency = IStateServices.service_dependency;
 	public static final String service_healthy = IStateServices.service_healthy;

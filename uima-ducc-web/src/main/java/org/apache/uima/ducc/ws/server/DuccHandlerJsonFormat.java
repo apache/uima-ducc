@@ -78,10 +78,10 @@ import org.apache.uima.ducc.ws.JobInfo;
 import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.ReservationInfo;
 import org.apache.uima.ducc.ws.broker.BrokerHelper;
-import org.apache.uima.ducc.ws.broker.EntityInfo;
 import org.apache.uima.ducc.ws.broker.BrokerHelper.FrameworkAttribute;
+import org.apache.uima.ducc.ws.broker.EntityInfo;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
-import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
@@ -1047,7 +1047,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				col = new StringBuffer();
 				String state = service.getState();
 				boolean alert = service.isAlert();
-				boolean viable = service.isViable();
+				boolean available = service.isStateAvailable();
 				if(alert) {
 					state += "+Alert";
 				}
@@ -1055,7 +1055,7 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				if(alert) {
 					style = "class=\"health_red\"";
 				}
-				else if(viable) {
+				else if(available) {
 					style = "class=\"health_green\"";
 				}
 				String stateHover = ServicesHelper.getInstance().getStateHover(service);
@@ -1083,20 +1083,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(col.toString()));
 				// Start-Mode
 				col = new StringBuffer();
-				StartMode startMode = service.getStartMode();
-				StringBuffer startModeHover = new StringBuffer();
-				String startModeColor = "class=\"health_black\"";
+				StartState startState = service.getStartState();
+				col.append("<span>");
+				col.append(startState.name());
 				if(service.isDisabled()) {
-					String disableReason = service.getDisableReason();
-					if(disableReason.length() > 0) {
-						startModeHover.append(disableReason+"\n");
-					}
-					startModeHover.append("Disabled, no further starts will occur\n");
-					startModeColor = "class=\"health_red\"";
+					col.append("<br>");
+					String health = "class=\"health_red\"";
+					String reason = "title=\""+service.getDisableReason()+"\"";
+					col.append("<span "+health+" "+reason+">");
+					col.append("Disabled");
+					col.append("</span>");
 				}
-				startModeHover.append(startMode.getDescription());
-				col.append("<span "+startModeColor+" title=\""+startModeHover+"\">");
-				col.append(startMode.name());
 				col.append("</span>");
 				row.add(new JsonPrimitive(col.toString()));
 				// User

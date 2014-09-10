@@ -99,7 +99,7 @@ import org.apache.uima.ducc.ws.broker.BrokerHelper;
 import org.apache.uima.ducc.ws.broker.BrokerHelper.BrokerAttribute;
 import org.apache.uima.ducc.ws.registry.IServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
-import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
@@ -2462,7 +2462,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		String name = request.getParameter("name");
 		String instances = "?";
 		String deployments = "?";
-		StartMode startMode = StartMode.Reference;
+		StartState startState = StartState.Unknown;
 		boolean disabled = false;
 		String disableReason = "";
 		
@@ -2475,7 +2475,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			id = ""+si.getId();
 			instances = ""+si.getInstances();
 			deployments = ""+si.getDeployments();
-			startMode = si.getStartMode();
+			startState = si.getStartState();
 			disabled = si.isDisabled();
 			disableReason = si.getDisableReason();
 		}
@@ -2504,9 +2504,9 @@ public class DuccHandler extends DuccAbstractHandler {
 		sb.append(deployments);
 		sb.append("&nbsp");
 		// start-mode
-		sb.append("<th title=\""+startMode.getDescription()+"\">");
-		sb.append("StartMode: ");
-		sb.append(startMode.name());
+		sb.append("<th>");
+		sb.append("StartState: ");
+		sb.append(startState.name());
 		sb.append("&nbsp");
 		// disabled
 		if(disabled) {

@@ -115,7 +115,7 @@ if (table_style.equals("scroll")) {
 		<th title="The time this service was last used">Last Use</th>
 		<th title="The service number of instances registered">Instances</th>
 		<th title="The service number of processes currently started">Deployments</th>
-		<th title="The service start mode">Start<br>Mode</th>
+		<th title="The service start state">Start<br>State</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
 		<th title="The service scheduling class">Class</th>
 		<th title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>
@@ -151,7 +151,7 @@ if (table_style.equals("classic")) {
 		<th title="The time this service was last used">Last Use</th>
         <th title="The service number of instances registered">Instances</th>
         <th title="The service number of processes currently started">Deployments</th>
-		<th title="The service start mode">Start<br>Mode</th>
+		<th title="The service start state">Start<br>State</th>
 		<th class="ducc-no-filter" id="user_column_heading" title="The service owning user">User</th>
 		<th title="The service scheduling class">Class</th>
 		<th class="sorttable_numeric" title="The count for all service processes of major faults which required loading a memory page from disk">Pgin</th>

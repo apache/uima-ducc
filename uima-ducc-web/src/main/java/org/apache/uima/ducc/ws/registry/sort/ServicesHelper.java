@@ -37,13 +37,23 @@ public class ServicesHelper {
 	
 	public String getStateHover(IServiceAdapter serviceAdapter) {
 		StringBuffer retVal = new StringBuffer();
-		String popUp = serviceAdapter.getPopup();
-		if(popUp != null) {
-			if(popUp.length() > 0) {
+		String pingerStatus = serviceAdapter.getPingerStatus();
+		if(pingerStatus != null) {
+			if(pingerStatus.length() > 0) {
 				if(retVal.length() > 0) {
 					retVal.append("\n");
 				}
-				retVal.append(popUp);
+				retVal.append(pingerStatus);
+			}
+		}
+		if(!serviceAdapter.isPingActive()) {
+			if(serviceAdapter.isServiceIssue()) {
+				if(serviceAdapter.isStateActive()) {
+					if(retVal.length() > 0) {
+						retVal.append("\n");
+					}
+					retVal.append("Service not responding to pinger");
+				}
 			}
 		}
 		String errorText = serviceAdapter.getErrorText();
@@ -62,7 +72,9 @@ public class ServicesHelper {
 					if(retVal.length() > 0) {
 						retVal.append("\n");
 					}
+					//retVal.append("<pre>");
 					retVal.append(statistics);
+					//retVal.append("</pre>");
 				}
 			}
 		}

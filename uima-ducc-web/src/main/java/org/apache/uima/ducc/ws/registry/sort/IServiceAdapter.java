@@ -21,7 +21,7 @@ package org.apache.uima.ducc.ws.registry.sort;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 
 public interface IServiceAdapter {
 	
@@ -38,15 +38,22 @@ public interface IServiceAdapter {
 	public long getSwapMax();
 	public long getSize();
 	
+	public boolean isStateAvailable();
+	public boolean isStateActive();
+	
 	public boolean isPingOnly();
 	public boolean isPingActive();
 	public boolean isRegistered();
-	public boolean isViable();
 	public boolean isAlert();
 	public boolean isDisabled();
-	public boolean getHealth();
+	public boolean isServiceAlive();
+	public boolean isServiceHealthy();
+	public boolean isServiceIssue();
 	
-	public String getPopup();
+	public Boolean getServiceAlive();
+	public Boolean getServiceHealthy();
+	
+	public String getPingerStatus();
 	public String getErrorText();
 	public String getName();
 	public String getState();
@@ -56,7 +63,7 @@ public interface IServiceAdapter {
 	public String getDescription();
 	public String getDisableReason();
 	
-	public StartMode getStartMode();
+	public StartState getStartState();
 	
 	public ArrayList<String> getImplementors();
 	

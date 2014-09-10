@@ -75,7 +75,7 @@ import org.apache.uima.ducc.ws.MachineInfo;
 import org.apache.uima.ducc.ws.broker.BrokerHelper;
 import org.apache.uima.ducc.ws.broker.BrokerHelper.FrameworkAttribute;
 import org.apache.uima.ducc.ws.broker.EntityInfo;
-import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.sort.IServiceAdapter;
 import org.apache.uima.ducc.ws.registry.sort.ServicesHelper;
@@ -915,7 +915,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("<td>");
 				String state = service.getState();
 				boolean alert = service.isAlert();
-				boolean viable = service.isViable();
+				boolean available = service.isStateAvailable();
 				if(alert) {
 					state += "+Alert";
 				}
@@ -923,7 +923,7 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				if(alert) {
 					style = "class=\"health_red\"";
 				}
-				else if(viable) {
+				else if(available) {
 					style = "class=\"health_green\"";
 				}
 				String stateHover = ServicesHelper.getInstance().getStateHover(service);
@@ -949,22 +949,19 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("<td align=\"right\">");
 				sb.append(deployments);
 				sb.append("</td>");
-				// Start-Mode
-				StartMode startMode = service.getStartMode();
+				// Start-State
+				StartState startState = service.getStartState();
 				sb.append("<td align=\"right\">");
-				StringBuffer startModeHover = new StringBuffer();
-				String startModeColor = "class=\"health_black\"";
+				sb.append("<span>");
+				sb.append(startState.name());
 				if(service.isDisabled()) {
-					String disableReason = service.getDisableReason();
-					if(disableReason.length() > 0) {
-						startModeHover.append(disableReason+"\n");
-					}
-					startModeHover.append("Disabled, no further starts will occur\n");
-					startModeColor = "class=\"health_red\"";
+					sb.append("<br>");
+					String health = "class=\"health_red\"";
+					String reason = "title=\""+service.getDisableReason()+"\"";
+					sb.append("<span "+health+" "+reason+">");
+					sb.append("Disabled");
+					sb.append("</span>");
 				}
-				startModeHover.append(startMode.getDescription());
-				sb.append("<span "+startModeColor+" title=\""+startModeHover+"\">");
-				sb.append(startMode.name());
 				sb.append("</span>");
 				sb.append("</td>");
 				// User

@@ -82,34 +82,24 @@ public class ServiceInterpreter {
 		return retVal;
 	}
 	
-	private String placeholderPopup = "";
+	private String placeholderPingerStatus = "";
 	
-	public String getPopup() {
-		String location = "getPopup";
-		String retVal = placeholderPopup;
+	public String getPingerStatus() {
+		String location = "getPingerStatus";
+		String retVal = placeholderPingerStatus;
 		try {
 			String state = getState();
 			retVal = "The service is "+state;
 			if(state.equalsIgnoreCase(ServiceState.Waiting.name())) {
-				retVal = "Pinger is starting";
-				/*
-				String type = getUninterpreted(propertiesMeta, IServicesRegistry.service_type);
-				type = type.trim();
-				if(type.equalsIgnoreCase("CUSTOM")) {
+				boolean pingActive = getPingActive();
+				if(pingActive) {
 					retVal = "Pinger is starting";
 				}
 				else {
-					retVal = "Pinger and Service are starting";
+					retVal = "Pinger is unable to start";
 				}
-				*/
 			}
 			else if(state.equalsIgnoreCase(ServiceState.Available.name())) {
-				Boolean value = getPingActive();
-				if(!value) {
-					retVal = "Pinger is not active";
-				}
-			}
-			else if(state.equalsIgnoreCase(ServiceState.Waiting.name())) {
 				Boolean value = getPingActive();
 				if(!value) {
 					retVal = "Pinger is not active";
@@ -120,6 +110,40 @@ public class ServiceInterpreter {
 			duccLogger.debug(location, jobid, e);
 		}
 		return retVal;
+	}
+	
+	public Boolean getServiceAlive() {
+		String location = "getServiceAlive";
+		boolean retVal = true;
+		try {
+			String value = getValue(meta,IServicesRegistry.service_alive,Boolean.valueOf(retVal).toString());
+			retVal = Boolean.valueOf(value);
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	public boolean isServiceAlive() {
+		return getServiceAlive();
+	}
+	
+	public Boolean getServiceHealthy() {
+		String location = "getServiceHealthy";
+		boolean retVal = true;
+		try {
+			String value = getValue(meta,IServicesRegistry.service_healthy,Boolean.valueOf(retVal).toString());
+			retVal = Boolean.valueOf(value);
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	public boolean isServiceHealthy() {
+		return getServiceHealthy();
 	}
 	
 	private Integer placeholderId = new Integer(-1);
@@ -206,8 +230,8 @@ public class ServiceInterpreter {
 		return retVal;
 	}
 	
-	public Boolean getHealth() {
-		String location = "getHealth";
+	public Boolean getPingerReportedServiceHealth() {
+		String location = "getPingerReportedServiceHealth";
 		boolean retVal = true;
 		try {
 			String value = getValue(meta,IServicesRegistry.service_healthy,Boolean.valueOf(retVal).toString());
@@ -220,7 +244,7 @@ public class ServiceInterpreter {
 	}
 	
 	public String getServiceClass() {
-		String location = "getServiceClass";
+		String location	 = "getServiceClass";
 		String retVal = "";
 		try {
 			String serviceClass = getValue(meta,IServicesRegistry.service_class,"");
@@ -381,6 +405,10 @@ public class ServiceInterpreter {
 		return retVal;
 	}
 	
+	private boolean isAutostart() {
+		return getAutostart();
+	}
+	
 	private Boolean getReference() {
 		String location = "getReference";
 		Boolean retVal = new Boolean(true);
@@ -399,6 +427,10 @@ public class ServiceInterpreter {
 			duccLogger.error(location, jobid, e);
 		}
 		return retVal;
+	}
+	
+	private boolean isReference() {
+		return getReference();
 	}
 	
 	private Boolean isImplementers() {
@@ -445,34 +477,49 @@ public class ServiceInterpreter {
 		return retVal;
 	}
 	
-	public enum StartMode { 
-		Immediate("definition: New instances are automatically started at system boot time and at initial regsitration time."), 
-		Reference("definition: New instances are automatically started on-demand, unused instances are automatically stopped after linger period."), 
-		Manual("definition: Instances are not automatically started or stopped.");
+	public enum StartState { 
+		Autostart(), 
+		Reference(), 
+		Manual(),
+		Stopped(),
+		Unknown();
 		
-		private String description;
-		
-		private StartMode(String value) {
-			description = value;
-		}
-		
-		public String getDescription() {
-			return description;
+		private StartState() {
 		}
 	}
 	
-	public StartMode getStartMode() {
-		StartMode retVal = StartMode.Reference;
-		Boolean autostart = getAutostart();
-		Boolean reference = getReference();
-		if(autostart) {
-			retVal = StartMode.Immediate;
+	private int getStateOrdinality() {
+		String location = "getStateOrdinality";
+		int retVal = 0;
+		try {
+			String state = getState();
+			ServiceState serviceState = ServiceState.valueOf(state);
+			retVal = serviceState.ordinality();
 		}
-		else if(reference) {
-			retVal = StartMode.Reference;
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+		return retVal;
+	}
+	
+	public StartState getStartState() {
+		StartState retVal = StartState.Unknown;
+		if(isAutostart()) {
+			retVal = StartState.Autostart;
 		}
 		else {
-			retVal = StartMode.Manual;
+			int ordinality = getStateOrdinality();
+			if(ordinality > 3) {
+				if(isReference()) {
+					retVal = StartState.Reference;
+				}
+				else {
+					retVal = StartState.Manual;
+				}
+			}
+			else if(ordinality < 4) {
+				retVal = StartState.Stopped;
+			}
 		}
 		return retVal;
 	}

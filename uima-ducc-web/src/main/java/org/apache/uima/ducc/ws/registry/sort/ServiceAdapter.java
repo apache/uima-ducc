@@ -26,7 +26,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
-import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartMode;
+import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 
 public class ServiceAdapter implements IServiceAdapter {
@@ -134,20 +134,16 @@ public class ServiceAdapter implements IServiceAdapter {
 	}
 	
 	private boolean isHealthRelevant() {
-		boolean retVal = true;
-		String value = getState();
-		if(value != null) {
-			if(value.equalsIgnoreCase(ServiceState.Starting.name())) {
-				retVal = false;
-			}
-			else if(value.equalsIgnoreCase(ServiceState.Waiting.name())) {
-				retVal = false;
-			}
-			else if(value.equalsIgnoreCase(ServiceState.Initializing.name())) {
-				retVal = false;
-			}
-			else if(value.equalsIgnoreCase(ServiceState.Stopped.name())) {
-				retVal = false;
+		boolean retVal = false;
+		if(isPingActive()) {
+			String value = getState();
+			if(value != null) {
+				if(value.equalsIgnoreCase(ServiceState.Available.name())) {
+					retVal = true;
+				}
+				else if(value.equalsIgnoreCase(ServiceState.Waiting.name())) {
+					retVal = true;
+				}
 			}
 		}
 		return retVal;
@@ -155,10 +151,13 @@ public class ServiceAdapter implements IServiceAdapter {
 	
 	private boolean isFaultHealth() {
 		boolean retVal = false;
-		boolean value = getHealth();
+		boolean value = isServiceHealthy();
 		if(!value) {
-			if(isHealthRelevant()) {
-				retVal = true;
+			value = isServiceAlive();
+			if(!value) {
+				if(isHealthRelevant()) {
+					retVal = true;
+				}
 			}
 		}
 		return retVal;
@@ -226,11 +225,26 @@ public class ServiceAdapter implements IServiceAdapter {
 	}
 	
 	@Override
-	public boolean isViable() {
+	public boolean isStateAvailable() {
 		boolean retVal = false;
 		String value = getState();
 		if(value != null) {
 			if(value.equalsIgnoreCase(ServiceState.Available.name())) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
+	@Override
+	public boolean isStateActive() {
+		boolean retVal = false;
+		String value = getState();
+		if(value != null) {
+			if(value.equalsIgnoreCase(ServiceState.Available.name())) {
+				retVal = true;
+			}
+			else if(value.equalsIgnoreCase(ServiceState.Waiting.name())) {
 				retVal = true;
 			}
 		}
@@ -251,17 +265,46 @@ public class ServiceAdapter implements IServiceAdapter {
 		}
 		return retVal;
 	}
+
+	@Override
+	public Boolean getServiceAlive() {
+		return si.getServiceAlive();
+	}
+	
+	@Override
+	public boolean isServiceAlive() {
+		boolean retVal = si.isServiceAlive();
+		return retVal;
+	}
+	
+	@Override
+	public Boolean getServiceHealthy() {
+		Boolean value = si.getServiceHealthy();
+		return value;
+	}
+	
+	@Override
+	public boolean isServiceHealthy() {
+		boolean retVal = si.isServiceHealthy();
+		return retVal;
+	}
+	
+	@Override
+	public boolean isServiceIssue() {
+		boolean retVal = false;
+		if(!isServiceHealthy()) {
+			retVal = true;
+		}
+		else if(!isServiceAlive()) {
+			retVal = true;
+		}
+		return retVal;
+	}
 	
 	@Override
 	public boolean isDisabled() {
 		boolean retVal = si.isDisabled();
 		return retVal;
-	}
-	
-	@Override
-	public boolean getHealth() {
-		boolean value = si.getHealth();
-		return value;
 	}
 
 	private String getServiceClass() {
@@ -270,11 +313,11 @@ public class ServiceAdapter implements IServiceAdapter {
 	}
 	
 	@Override
-	public String getPopup() {
-		String value = si.getPopup();
+	public String getPingerStatus() {
+		String value = si.getPingerStatus();
 		return value;
 	}
-	
+
 	@Override
 	public String getErrorText() {
 		String value = si.getErrorText();
@@ -324,8 +367,8 @@ public class ServiceAdapter implements IServiceAdapter {
 	}
 	
 	@Override
-	public StartMode getStartMode() {
-		StartMode value = si.getStartMode();
+	public StartState getStartState() {
+		StartState value = si.getStartState();
 		return value;
 	}
 	
@@ -394,5 +437,5 @@ public class ServiceAdapter implements IServiceAdapter {
 	public ArrayList<String> getDependentReservations() {
 		return dependentReservations;
 	}
-
+	
 }
