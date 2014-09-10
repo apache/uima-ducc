@@ -294,7 +294,7 @@ under the License.
 
     <fileSet>
       <directory>src/main/resources/private</directory>
-      <outputDirectory>resources/private</outputDirectory>
+      <outputDirectory>resources.private</outputDirectory>
       <fileMode>600</fileMode>
       <directoryMode>700</directoryMode>
       <includes />
