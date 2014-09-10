@@ -145,7 +145,7 @@ public class DuccWebUtil {
 		boolean list = false;
 		DuccCookies.FilterUsersStyle filterUsersStyle = DuccCookies.getFilterUsersStyle(request);
 		if(!users.isEmpty()) {
-			String user = propertiesMeta.getProperty(key_user).trim();
+			String user = propertiesMeta.getProperty(key_user);
 			if(user != null) {
 				user = user.trim();
 				switch(filterUsersStyle) {
