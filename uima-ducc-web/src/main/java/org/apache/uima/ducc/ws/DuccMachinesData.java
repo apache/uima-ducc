@@ -28,7 +28,6 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.uima.ducc.cli.ws.json.MachineFacts;
 import org.apache.uima.ducc.cli.ws.json.MachineFactsList;
 import org.apache.uima.ducc.cli.ws.json.NodePidList;
@@ -100,75 +99,27 @@ public class DuccMachinesData {
 	
 	public ConcurrentSkipListMap<MachineInfo,String> getSortedMachines() {
 		ConcurrentSkipListMap<MachineInfo,String> retVal = sortedMachines;
-		if(!isPrecalculatedMachinesList()) {
-			retVal = new ConcurrentSkipListMap<MachineInfo,String>();
-			Iterator<Entry<String, MachineInfo>> iterator = unsortedMachines.entrySet().iterator();
-			while(iterator.hasNext()) {
-				Entry<String, MachineInfo> next = iterator.next();
-				MachineInfo machineInfo = next.getValue();
-				String name = next.getKey();
-				retVal.put(machineInfo, name);
-			}
-		}
-		return retVal;
-	}
-
-	private boolean isPrecalculatedMachinesList() {
-		String location = "isPrecalculatedMachinesList";
-		boolean retVal = true;
-		String value = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_ws_precalculate_machines);
-		if(value != null) {
-			Boolean result = new Boolean(value);
-			if(!result) {
-				retVal = false;
-			}
-			logger.debug(location, jobid, ""+retVal);
-		}
-		else {
-			logger.debug(location, jobid, ""+retVal+" (default");
-		}
 		return retVal;
 	}
 	
-	private ArrayList<MachineInfo> sortedMachinesGetKeysForValue(String value) {
-		ArrayList<MachineInfo> retVal = new ArrayList<MachineInfo>();
-		if(value != null) {
-			if(sortedMachines.containsValue(value)) {
-				for(Entry<MachineInfo, String> entry : sortedMachines.entrySet()) {
-					if(entry.getValue().equals(value)) {
-						retVal.add(entry.getKey());
-					}
-				}
-			}
-		}
-		return retVal;
-	}
-	 
-	private void sortedMachinesRemoveByValue(String value) {
-		String location = "sortedMachinesRemoveByValue";
-		ArrayList<MachineInfo> keys = sortedMachinesGetKeysForValue(value);
-		for(MachineInfo key : keys) {
-			sortedMachines.remove(key);
-			logger.debug(location, jobid, "del: "+value);
-		}
-	}
-	
-	private void updateSortedMachines(MachineInfo machineInfo) {
+	public void updateSortedMachines() {
 		String location = "updateSortedMachines";
-		if(isPrecalculatedMachinesList()) {
-			if(machineInfo != null) {
-				String value = machineInfo.getName();
-				if(value != null) {
-					String shortValue = StringUtils.substringBefore(value.trim(), ".");
-					sortedMachinesRemoveByValue(shortValue);
-					sortedMachinesRemoveByValue(value);
-				}
-				MachineInfo key = machineInfo;
-				sortedMachines.put(key, value);
+		logger.debug(location, jobid, "start");
+		try {
+			ConcurrentSkipListMap<MachineInfo,String> map = new ConcurrentSkipListMap<MachineInfo,String>();
+			for(Entry<String, MachineInfo> entry : unsortedMachines.entrySet()) {
+				String value = entry.getKey();
+				MachineInfo key = entry.getValue();
+				map.put(key, value);
 				logger.debug(location, jobid, "put: "+value);
 			}
+			sortedMachines = map;
 		}
-	}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		logger.debug(location, jobid, "end");
+	} 
 	
 	private volatile String published = null;
 	
@@ -191,8 +142,8 @@ public class DuccMachinesData {
 				String swapFree = "";
 				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, null, "", "", -1, 0);
 				unsortedMachines.put(machineInfo.getName(),machineInfo);
-				updateSortedMachines(machineInfo);
 			}
+			updateSortedMachines();
 		}
 		catch(Throwable t) {
 			logger.warn(location, jobid, t);
@@ -366,7 +317,6 @@ public class DuccMachinesData {
 		unsortedMachines.put(key,current);
 		updateTotals(ip,msi);
 		setPublished();
-		updateSortedMachines(current);
 	}
 	
 	public List<String> getPids(Ip ip, UserId user) {

@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ws;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.boot.DuccDaemonRuntimeProperties;
@@ -56,6 +57,9 @@ implements IWebServer {
 	private static AtomicInteger jobCount = new AtomicInteger(0);
 	private static AtomicInteger serviceCount = new AtomicInteger(0);
 	private static AtomicInteger reservationCount = new AtomicInteger(0);
+	
+	private static AtomicLong updateLast = new AtomicLong(System.currentTimeMillis());
+	private static long updateInterval = 60*1000;
 	
 	public WebServerComponent(CamelContext context, CommonConfiguration common) {
 		super("WebServer",context);
@@ -137,12 +141,24 @@ implements IWebServer {
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 
+	private void sortMachines() {
+		long last = updateLast.get();
+		long deadline = last + updateInterval;
+		long now = System.currentTimeMillis();
+		if(now > deadline) {
+			boolean success = updateLast.compareAndSet(last, now);
+			if(success) {
+				DuccMachinesData.getInstance().updateSortedMachines();
+			}
+		}
+	}
 	
 	public void update(NodeMetricsUpdateDuccEvent duccEvent) {
 		String methodName = "update";
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("enter"));
 		duccLogger.trace(methodName, jobid, duccMsg.fetchLabel("received")+"NodeMetricsUpdateDuccEvent");
 		DuccMachinesData.getInstance().put(new DatedNodeMetricsUpdateDuccEvent(duccEvent));
+		sortMachines();
 		duccLogger.trace(methodName, jobid, duccMsg.fetch("exit"));
 	}
 
