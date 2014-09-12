@@ -102,6 +102,7 @@ import org.apache.uima.ducc.ws.registry.ServiceInterpreter;
 import org.apache.uima.ducc.ws.registry.ServiceInterpreter.StartState;
 import org.apache.uima.ducc.ws.registry.ServicesRegistry;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
+import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.apache.uima.ducc.ws.sort.JobDetailsProcesses;
 import org.apache.uima.ducc.ws.utils.FormatHelper;
 import org.apache.uima.ducc.ws.utils.FormatHelper.Precision;
@@ -169,6 +170,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String duccReservationCancel    		= duccContext+"/reservation-cancel-request";
 	private String duccServiceSubmit    			= duccContext+"/service-submit-request";
 	private String duccServiceCancel    			= duccContext+"/service-cancel-request";
+	private String duccServiceEnable  				= duccContext+"/service-enable-request";
 	private String duccServiceStart   				= duccContext+"/service-start-request";
 	private String duccServiceStop   				= duccContext+"/service-stop-request";
 	
@@ -4070,16 +4072,16 @@ public class DuccHandler extends DuccAbstractHandler {
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	private void duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command) 
+	private String duccServletServiceCommand(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response, String command) 
 	{
 		String methodName = "duccServletServiceCommand";
 		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		String result = null;
 		try {
 			String name = "id";
 			String value = request.getParameter(name).trim();
 			duccLogger.info(methodName, null, command+" "+messages.fetchLabel("id:")+value);
 			String text;
-			String result;
 			String id = value.trim();
 			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			String resourceOwnerUserId = servicesRegistry.findServiceUser(id);
@@ -4117,6 +4119,31 @@ public class DuccHandler extends DuccAbstractHandler {
 		catch(Exception e) {
 			duccLogger.error(methodName, null, e);
 		}
+		duccLogger.trace(methodName, null, messages.fetch("exit"));
+		return result;
+	}
+	
+	private void handleDuccServletServiceEnable(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
+	throws IOException, ServletException
+	{
+		String methodName = "handleDuccServletServiceEnable";
+		duccLogger.trace(methodName, null, messages.fetch("enter"));
+		
+		String result = duccServletServiceCommand(target,baseRequest,request,response,"enable");
+		
+		boolean updateCache = false;
+		
+		if(updateCache) {
+			if(result != null) {
+				if(result.contains("success")) {
+					String name = "id";
+					String id = request.getParameter(name).trim();
+					Integer sid = Integer.valueOf(id);
+					ServicesSortCache.getInstance().setEnabled(sid);
+				}
+			}
+		}
+		
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
@@ -4433,6 +4460,11 @@ public class DuccHandler extends DuccAbstractHandler {
 				handleDuccServletServiceCancel(target, baseRequest, request, response);
 				DuccWebUtil.noCache(response);
 			}
+			else if(reqURI.startsWith(duccServiceEnable)) {
+				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
+				handleDuccServletServiceEnable(target, baseRequest, request, response);
+				DuccWebUtil.noCache(response);
+			}			
 			else if(reqURI.startsWith(duccServiceStart)) {
 				duccLogger.info(methodName, null,"getRequestURI():"+request.getRequestURI());
 				handleDuccServletServiceStart(target, baseRequest, request, response);
