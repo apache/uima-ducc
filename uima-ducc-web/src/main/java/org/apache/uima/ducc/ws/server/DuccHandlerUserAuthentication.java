@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.ws.server;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -120,60 +121,80 @@ public class DuccHandlerUserAuthentication extends DuccAbstractHandler {
 		String userId = request.getParameter("userid");
 		String password = request.getParameter("password");
 		try {
-			if((userId == null) || (userId.trim().length() == 0)) {
-				duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
-				sb.append("failure");
-			}
-			else if(duccAuthenticator.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
-				duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
-				sb.append("failure");
-			}
-			else {
-				Role role = Role.User;
-				String domain = null;
-				if(userId != null) {
-					if(userId.contains("@")) {
-						String[] parts = userId.split("@",2);
-						userId = parts[0];
-						domain = parts[1];
+			Properties properties = DuccWebProperties.get();
+			String ducc_runmode = properties.getProperty("ducc.runmode","Production");
+			if(ducc_runmode.equalsIgnoreCase("Test")) {
+				String ducc_runmode_pw = properties.getProperty("ducc.runmode.pw","");
+				if(ducc_runmode_pw.length() > 0) {
+					if(password != null) {
+						if(password.equals(ducc_runmode_pw)) {
+							duccWebSessionManager.login(request, userId);
+							sb.append("success");
+						}
 					}
-				}
-				duccLogger.debug(methodName, jobid, messages.fetchLabel("version")+duccAuthenticator.getVersion());
-				IAuthenticationResult result1 = duccAuthenticator.isAuthenticate(userId, domain, password);
-				IAuthenticationResult result2 = duccAuthenticator.isGroupMember(userId, domain, role);
-				duccLogger.debug(methodName, jobid, messages.fetch("login ")+userId+" "+"group reason: "+result2.getReason());
-				if(result1.isSuccess() && result2.isSuccess()) {
-					duccWebSessionManager.login(request, userId);
-					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("success"));
-					sb.append("success");
-				}
-				else {
-					IAuthenticationResult result;
-					if(!result1.isSuccess()) {
-						result = result1;
-					}
-					else {
-						result = result2;
-					}
-					int code = result.getCode();
-					String reason = result.getReason();
-					Exception exception = result.getException();
-					StringBuffer text = new StringBuffer();
-					text.append("code:"+code);
-					if(reason != null) {
-						text.append(", "+"reason:"+reason);
-					}
-					sb.append("failure"+" "+text);
-					if(exception != null) {
-						text.append(", "+"exception:"+exception);
-					}
-					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed")+" "+text);
 				}
 			}
 		}
-		catch(Throwable t) {
-			sb.append("failure"+" "+t.getMessage());
-			duccLogger.error(methodName, jobid, "userid="+userId);
+		catch(Exception e) {
+			duccLogger.error(methodName, jobid, e);
+		}
+		if(sb.length() == 0) {
+			try {
+				if((userId == null) || (userId.trim().length() == 0)) {
+					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
+					sb.append("failure");
+				}
+				else if(duccAuthenticator.isPasswordChecked() && (((password == null) || (password.trim().length() == 0)))) {
+					duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed"));
+					sb.append("failure");
+				}
+				else {
+					Role role = Role.User;
+					String domain = null;
+					if(userId != null) {
+						if(userId.contains("@")) {
+							String[] parts = userId.split("@",2);
+							userId = parts[0];
+							domain = parts[1];
+						}
+					}
+					duccLogger.debug(methodName, jobid, messages.fetchLabel("version")+duccAuthenticator.getVersion());
+					IAuthenticationResult result1 = duccAuthenticator.isAuthenticate(userId, domain, password);
+					IAuthenticationResult result2 = duccAuthenticator.isGroupMember(userId, domain, role);
+					duccLogger.debug(methodName, jobid, messages.fetch("login ")+userId+" "+"group reason: "+result2.getReason());
+					if(result1.isSuccess() && result2.isSuccess()) {
+						duccWebSessionManager.login(request, userId);
+						duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("success"));
+						sb.append("success");
+					}
+					else {
+						IAuthenticationResult result;
+						if(!result1.isSuccess()) {
+							result = result1;
+						}
+						else {
+							result = result2;
+						}
+						int code = result.getCode();
+						String reason = result.getReason();
+						Exception exception = result.getException();
+						StringBuffer text = new StringBuffer();
+						text.append("code:"+code);
+						if(reason != null) {
+							text.append(", "+"reason:"+reason);
+						}
+						sb.append("failure"+" "+text);
+						if(exception != null) {
+							text.append(", "+"exception:"+exception);
+						}
+						duccLogger.info(methodName, jobid, messages.fetch("login ")+userId+" "+messages.fetch("failed")+" "+text);
+					}
+				}
+			}
+			catch(Throwable t) {
+				sb.append("failure"+" "+t.getMessage());
+				duccLogger.error(methodName, jobid, "userid="+userId);
+			}
 		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, jobid, messages.fetch("exit"));
