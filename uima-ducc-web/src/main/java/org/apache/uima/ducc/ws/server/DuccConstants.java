@@ -26,11 +26,11 @@ public class DuccConstants {
 	public static final int[] memorySizes = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 	
 	public static final String hintPreferencesDescriptionStyleShort = "Hint: use Preferences -> Description Style [Short] to hide everything left of last /";
-	public static final String hintPreferencesRoleAdministrator = "Hint: use Preferences -> Role [Administrator] to enable";
+	public static final String hintPreferencesRoleAdministrator = "Hint: use Preferences -> Role [Administrator] to activate button";
 	public static final String hintPreferencesNotAdministrator = "Hint: Login user is not an Administrator";
 	public static final String hintPreferencesDateStyle = "Hint: use Preferences -> Date Style to alter format";
-	public static final String hintLogin = "Hint: use Login to enable";
-	public static final String hintLoginAndManual = "Hint: use Login to enable and switch to Refresh = Manual";
+	public static final String hintLogin = "Hint: use Login to activate button";
+	public static final String hintLoginAndManual = "Hint: use Login to activate button and switch to Refresh = Manual";
 	public static final String hintManual = "Hint: switch to Refresh = Manual";
 	public static final String hintNotAuthorized = "Hint: not authorized";
 }
