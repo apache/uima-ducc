@@ -4131,7 +4131,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		
 		String result = duccServletServiceCommand(target,baseRequest,request,response,"enable");
 		
-		boolean updateCache = false;
+		boolean updateCache = true;
 		
 		if(updateCache) {
 			if(result != null) {
