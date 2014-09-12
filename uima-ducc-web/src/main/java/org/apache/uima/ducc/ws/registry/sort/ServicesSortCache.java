@@ -23,10 +23,18 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 
+import org.apache.uima.ducc.common.persistence.services.IStateServices;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMap;
 import org.apache.uima.ducc.ws.registry.ServicesRegistryMapPayload;
 
 public class ServicesSortCache {
+	
+	
+	private static DuccLogger duccLogger = DuccLoggerComponents.getWsLogger(ServicesSortCache.class.getName());
+	private static DuccId jobid = null;
 	
 	private static ServicesSortCache instance = new ServicesSortCache();
 	
@@ -46,6 +54,35 @@ public class ServicesSortCache {
 			mapRevised.put(ss,ss);
 		}
 		map = mapRevised;
+	}
+	
+	private void enabled(int id, boolean bool) {
+		String location = "enabled";
+		try {
+			for(Entry<SortableService, IServiceAdapter> entry : map.entrySet()) {
+				IServiceAdapter payload = entry.getValue();
+				Properties meta = payload.getMeta();
+				String key = IStateServices.numeric_id;
+				String value = meta.getProperty(key);
+				int numeric_id = Integer.parseInt(value);
+				if(numeric_id == id) {
+					meta.setProperty(IStateServices.enabled, Boolean.toString(bool));
+					payload.setMeta(meta);
+					break;
+				}
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, jobid, e);
+		}
+	}
+	
+	public void setDisabled(int id) {
+		enabled(id, false);
+	}
+	
+	public void setEnabled(int id) {
+		enabled(id, true);
 	}
 	
 	public int size() {
