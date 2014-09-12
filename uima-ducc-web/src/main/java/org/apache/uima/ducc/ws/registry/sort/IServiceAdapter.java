@@ -28,6 +28,9 @@ public interface IServiceAdapter {
 	public Properties getSvc();
 	public Properties getMeta();
 	
+	public void setSvc(Properties properties);
+	public void setMeta(Properties properties);
+	
 	public int getId();
 	
 	public long getLastUse();

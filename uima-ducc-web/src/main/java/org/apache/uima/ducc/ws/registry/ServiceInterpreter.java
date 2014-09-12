@@ -40,7 +40,7 @@ public class ServiceInterpreter {
 		setMeta(propertiesMeta);
 	}
 	
-	private void setSvc(Properties value) {
+	public void setSvc(Properties value) {
 		svc = value;
 	}
 	
@@ -48,7 +48,7 @@ public class ServiceInterpreter {
 		return svc;
 	}
 	
-	private void setMeta(Properties value) {
+	public void setMeta(Properties value) {
 		meta = value;
 	}
 	

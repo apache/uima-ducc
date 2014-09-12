@@ -60,9 +60,19 @@ public class ServiceAdapter implements IServiceAdapter {
 		return si.getSvc();
 	}
 	
+	@Override
+	public void setSvc(Properties properties) {
+		si.setSvc(properties);
+	}
+	
 	@Override 
 	public Properties getMeta() {
 		return si.getMeta();
+	}
+	
+	@Override
+	public void setMeta(Properties properties) {
+		si.setMeta(properties);
 	}
 	
 	@Override
