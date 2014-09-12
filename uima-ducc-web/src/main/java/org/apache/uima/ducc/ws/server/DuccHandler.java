@@ -2469,15 +2469,17 @@ public class DuccHandler extends DuccAbstractHandler {
 		try {
 			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
-			Properties meta = payload.meta;
-			Properties svc = payload.svc;
-			ServiceInterpreter si = new ServiceInterpreter(svc, meta);
-			id = ""+si.getId();
-			instances = ""+si.getInstances();
-			deployments = ""+si.getDeployments();
-			startState = si.getStartState();
-			disabled = si.isDisabled();
-			disableReason = si.getDisableReason();
+			if(payload != null) {
+				Properties meta = payload.meta;
+				Properties svc = payload.svc;
+				ServiceInterpreter si = new ServiceInterpreter(svc, meta);
+				id = ""+si.getId();
+				instances = ""+si.getInstances();
+				deployments = ""+si.getDeployments();
+				startState = si.getStartState();
+				disabled = si.isDisabled();
+				disableReason = si.getDisableReason();
+			}
 		}
 		catch(Exception e) {
 			duccLogger.error(methodName, jobid, e);
