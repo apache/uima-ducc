@@ -227,7 +227,7 @@ class PostInstall(DuccUtil):
         print sys.version
 
         self.ducc_private_properties = DuccProperties()
-        self.ducc_private_properties.load(self.DUCC_HOME + '/resources/private/ducc.private.properties')
+        self.ducc_private_properties.load(self.DUCC_HOME + '/resources.private/ducc.private.properties')
 
         py_version = sys.version_info
         if ( (py_version[0] != 2) or (py_version[1] < 4) ):
