@@ -863,23 +863,12 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				String user = service.getUser();
 				long deployments = service.getDeployments();
 				long instances = service.getInstances();
-				// Start
+				// Enable
 				sb.append("<td valign=\"bottom\" class=\"ducc-col-start\">");
 				if(service.isRegistered()) {
 					if(buttonsEnabled) {
-						if(service.isPingOnly()) {
-							if(!service.isPingActive()) {
-								sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
-							}
-						}
-						else {
-							try {
-								if(deployments < instances) {
-									sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
-								}
-							}
-							catch(Exception e) {
-							}
+						if(service.isDisabled()) {
+							sb.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user)+"/>");
 						}
 					}
 				}

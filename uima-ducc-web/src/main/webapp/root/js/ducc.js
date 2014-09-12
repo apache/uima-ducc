@@ -2515,14 +2515,14 @@ function ducc_terminate_service(id)
 	return false;
 }
 
-function ducc_service_start(id)
+function ducc_service_enable(id)
 {	
 	try {
-		$.jGrowl(" Pending start...");
+		$.jGrowl(" Pending enable...");
 		$.ajax(
 		{
 			type: 'POST',
-			url : "/ducc-servlet/service-start-request"+"?id="+id,
+			url : "/ducc-servlet/service-enable-request"+"?id="+id,
 			success : function (data) 
 			{
 				$.jGrowl(data, { life: 6000 });
@@ -2532,7 +2532,7 @@ function ducc_service_start(id)
 		setTimeout(function(){window.close();}, 5000);
 	}
 	catch(err) {
-		ducc_error("ducc_service_start",err);
+		ducc_error("ducc_service_enable",err);
 	}
 	return false;
 }
@@ -2709,16 +2709,16 @@ function ducc_confirm_terminate_service(id)
 	}	
 }
 
-function ducc_confirm_service_start(id)
+function ducc_confirm_service_enable(id)
 {
 	try {
-		var result=confirm("Start service "+id+"?");
+		var result=confirm("Enable service "+id+"?");
 		if (result==true) {
-  			ducc_service_start(id);
+  			ducc_service_enable(id);
   		}
 	}
 	catch(err) {
-		ducc_error("ducc_confirm_service_start",err);
+		ducc_error("ducc_confirm_service_enable",err);
 	}	
 }
 

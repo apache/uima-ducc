@@ -987,24 +987,13 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				String user = service.getUser();
 				long deployments = service.getDeployments();
 				long instances = service.getInstances();
-				// Start
+				// Enable
 				col = new StringBuffer();
 				col.append("<span class=\"ducc-col-start\">");
 				if(service.isRegistered()) {
 					if(buttonsEnabled) {
-						if(service.isPingOnly()) {
-							if(!service.isPingActive()) {
-								col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
-							}
-						}
-						else {
-							try {
-								if(deployments < instances) {
-									col.append("<input type=\"button\" onclick=\"ducc_confirm_service_start("+sid+")\" value=\"Start\" "+getDisabledWithHover(request,user)+"/>");
-								}
-							}
-							catch(Exception e) {
-							}
+						if(service.isDisabled()) {
+							col.append("<input type=\"button\" onclick=\"ducc_confirm_service_enable("+sid+")\" value=\"Enable\" "+getDisabledWithHover(request,user)+"/>");
 						}
 					}
 				}
