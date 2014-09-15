@@ -213,10 +213,10 @@ public class DuccPropertiesResolver {
                 privateProperties.load(fis);
                 fis.close();
                 if(loadedPrivate.get()) {
-                	logger.debug(location, duccId, "Loaded: "+fileName);
+                	logger.debug(location, duccId, "Reloaded: "+fileName);
                 }
                 else {
-                	logger.info(location, duccId, "Loaded: "+fileName);
+                	logger.debug(location, duccId, "Loaded: "+fileName);
                 }
                 loadedPrivate.set(true);
             } 
