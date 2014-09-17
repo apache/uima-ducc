@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 
 import org.apache.uima.ducc.common.utils.AlienAbstract;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.Utils;
 
 public class AlienTextFile extends AlienAbstract {	
 	
@@ -32,30 +33,34 @@ public class AlienTextFile extends AlienAbstract {
 	private static String command_du = "/usr/bin/du";
 	private static String flag_dash_b = "-b";
 	
+	private static String double_dash = "--";
+	
 	private static String command_dd = "/bin/dd";
 	private static String arg_if = "if=";
 	private static String arg_skip = "skip=";
 	private static String arg_count = "count=";
 	
-	private static int sizeDu = 4096;
-	private static int sizeDefault = 0;
-	
 	private static int sizeBlockDd = 512;
+	private static int sizeDefault = 0;
 	
 	private String file_name;
 	private int page_bytes = 4096;
 	
-	public AlienTextFile(String user, String file_name, String ducc_ling) {
-		set_user(user);
-		set_file_name(file_name);
-		set_ducc_ling(ducc_ling);
+	public AlienTextFile(String user, String file_name) {
+		init(user, file_name, page_bytes);
 	}
 	
-	public AlienTextFile(String user, String file_name, String ducc_ling, int pageBytes) {
+	public AlienTextFile(String user, String file_name, int page_bytes) {
+		init(user, file_name, page_bytes);
+	}
+	
+	private void init(String user, String file_name, int page_bytes) {
+		String location = "init";
 		set_user(user);
 		set_file_name(file_name);
-		set_ducc_ling(ducc_ling);
-		set_page_bytes(pageBytes);
+		set_page_bytes(page_bytes);
+		set_ducc_ling(Utils.resolvePlaceholderIfExists(System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties()));
+		duccLogger.debug(location, duccId, "bytes:"+get_page_bytes());
 	}
 	
 	protected void set_file_name(String value) {
@@ -74,11 +79,57 @@ public class AlienTextFile extends AlienAbstract {
 		return page_bytes;
 	}
 	
+	private void trace(String text) {
+		String location = "trace";
+		duccLogger.debug(location, duccId, text);
+	}
+	
+	private void trace(String[] textArray) {
+		String location = "trace";
+		StringBuffer sb = new StringBuffer();
+		if(textArray != null) {
+			for(String s : textArray) {
+				if(s != null) {
+					sb.append(s+" ");
+				}
+			}
+		}
+		duccLogger.debug(location, duccId, sb);
+	}
+	
+	private String getResult(String[] command) {
+		String location = "getResult";
+		StringBuffer sb = new StringBuffer();
+		try {
+			trace(command);
+			ProcessBuilder pb = new ProcessBuilder( command );
+			Process process = pb.start();
+			InputStream is = process.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is);
+	        BufferedReader br = new BufferedReader(isr);
+	        String line;
+	        while ((line = br.readLine()) != null) {
+	           sb.append(line);
+	           sb.append("\n");
+	        }
+	        int exitValue = process.waitFor();
+	        duccLogger.debug(location,duccId, exitValue);
+		}
+		catch(Exception e) {
+			duccLogger.error(location, duccId, e);
+		}
+		String retVal = sb.toString();
+		return retVal;
+	}
+	
 	private String[] buildCommandDu() {
-		String[] command_ducc_ling_yes = { ducc_ling, q_parameter, u_parameter, user, command_du, flag_dash_b, file_name };
+		String[] command_ducc_ling_yes = { ducc_ling, q_parameter, u_parameter, user, double_dash, command_du, flag_dash_b, file_name };
 		String[] command_ducc_ling_no  = { command_du, flag_dash_b, file_name };
 		String[] command = command_ducc_ling_yes;
 		if(ducc_ling == null) {
+			command = command_ducc_ling_no;
+		}
+		else if(user == null) {
 			command = command_ducc_ling_no;
 		}
 		return command;
@@ -89,18 +140,8 @@ public class AlienTextFile extends AlienAbstract {
 		String data = "";
 		try {
 			String[] command = buildCommandDu();
-			echo(command);
-			ProcessBuilder pb = new ProcessBuilder( command );
-			Process p = pb.start();
-			p.waitFor();
-			InputStream pOut = p.getInputStream();
-			InputStreamReader isr = new InputStreamReader(pOut);
-			BufferedReader br = new BufferedReader(isr);
-			char[] cbuf = new char[sizeDu];
-	        int rc = br.read(cbuf);
-	        duccLogger.debug(methodName, duccId, rc);
-	        data = new String(cbuf);
-	        duccLogger.debug(methodName, duccId, data);
+			data = getResult(command);
+	        trace("data size:"+data.length());
 		}
 		catch(Throwable t) {
 			duccLogger.warn(methodName, duccId, t);
@@ -146,10 +187,13 @@ public class AlienTextFile extends AlienAbstract {
 	/******/
 	
 	private String[] buildCommandDd(int skip, int count) {
-		String[] command_ducc_ling_yes = { ducc_ling, q_parameter, u_parameter, user, command_dd, arg_if+file_name, arg_skip+skip, arg_count+count };
+		String[] command_ducc_ling_yes = { ducc_ling, q_parameter, u_parameter, user, double_dash, command_dd, arg_if+file_name, arg_skip+skip, arg_count+count };
 		String[] command_ducc_ling_no  = { command_dd, arg_if+file_name, arg_skip+skip, arg_count+count };
 		String[] command = command_ducc_ling_yes;
 		if(ducc_ling == null) {
+			command = command_ducc_ling_no;
+		}
+		else if(user == null) {
 			command = command_ducc_ling_no;
 		}
 		return command;
@@ -160,22 +204,8 @@ public class AlienTextFile extends AlienAbstract {
 		String data = "";
 		try {
 			String[] command = buildCommandDd(skip, count);
-			echo(command);
-			ProcessBuilder pb = new ProcessBuilder( command );
-			Process p = pb.start();
-			p.waitFor();
-			InputStream is = p.getInputStream();
-			int ev = p.exitValue();
-			if(ev > 0) {
-				is = p.getErrorStream();
-			}
-			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader br = new BufferedReader(isr);
-			int bufSize = count*sizeBlockDd;
-			char[] cbuf = new char[bufSize];
-			int rc = br.read(cbuf);
-			duccLogger.debug(methodName, duccId, rc);
-	        data = new String(cbuf);
+			data = getResult(command);
+	        trace("data size:"+data.length());
 		}
 		catch(Throwable t) {
 			duccLogger.warn(methodName, duccId, t);
@@ -242,12 +272,9 @@ public class AlienTextFile extends AlienAbstract {
 		AlienTextFile alienTextFile;
 		String arg_user = args[0];
 		String arg_file = args[1];
-		if(args.length < 3) {
-			alienTextFile = new AlienTextFile(arg_user, arg_file, null);
-		}
-		else {
-			String arg_ducc_ling = args[2];
-			alienTextFile = new AlienTextFile(arg_user, arg_file, arg_ducc_ling);
+		alienTextFile = new AlienTextFile(arg_user, arg_file);
+		if(args.length > 2) {
+			alienTextFile.set_ducc_ling(args[2]);
 		}
 		int bytes = alienTextFile.getByteSize();
 		System.out.println("--- file bytes ---");
