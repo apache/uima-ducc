@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 
 import org.apache.uima.ducc.common.utils.AlienAbstract;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 
 public class AlienTextFile extends AlienAbstract {	
@@ -44,23 +45,37 @@ public class AlienTextFile extends AlienAbstract {
 	private static int sizeDefault = 0;
 	
 	private String file_name;
-	private int page_bytes = 4096;
+	private int page_bytes = 64*4096;
 	
 	public AlienTextFile(String user, String file_name) {
-		init(user, file_name, page_bytes);
+		init(user, file_name);
 	}
-	
-	public AlienTextFile(String user, String file_name, int page_bytes) {
-		init(user, file_name, page_bytes);
-	}
-	
-	private void init(String user, String file_name, int page_bytes) {
+
+	private void init(String user, String file_name) {
 		String location = "init";
 		set_user(user);
 		set_file_name(file_name);
-		set_page_bytes(page_bytes);
 		set_ducc_ling(Utils.resolvePlaceholderIfExists(System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties()));
+		init_page_bytes();
 		duccLogger.debug(location, duccId, "bytes:"+get_page_bytes());
+	}
+	
+	private void init_page_bytes() {
+		String location = "init_page_bytes";
+		try {
+			String bytes_per_page = DuccPropertiesResolver.getInstance().getProperty(DuccPropertiesResolver.ducc_ws_bytes_per_page);
+			if(bytes_per_page != null) {
+				bytes_per_page = bytes_per_page.trim();
+				int value = Integer.parseInt(bytes_per_page);
+				if(value > 0) {
+					set_page_bytes(value);
+					duccLogger.debug(location, duccId, value);
+				}
+			}
+		}
+		catch(Exception e) {
+			duccLogger.error(location, duccId, e);
+		}
 	}
 	
 	protected void set_file_name(String value) {
