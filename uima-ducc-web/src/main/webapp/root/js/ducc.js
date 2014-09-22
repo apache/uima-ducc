@@ -2455,7 +2455,6 @@ function ducc_refresh(type) {
 
 function ducc_timed_loop(type) {
 	try {
-		tid = setTimeout(function(){ducc_timed_loop(type); type = null},30000); // again
 		var refreshmode = ducc_appl("refreshmode");
 		var c_value = ducc_get_cookie(refreshmode);
 		if(c_value == null) {
@@ -2465,6 +2464,7 @@ function ducc_timed_loop(type) {
 		if(c_value == "automatic") {
 			ducc_refresh(type);
 		}
+		var tid = setTimeout(function(){ducc_timed_loop(type); type = null},30000); // again
 	}
 	catch(err) {
 		ducc_error("ducc_timed_loop",err);
