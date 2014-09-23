@@ -243,19 +243,20 @@ public class NodeViz
 
 
         for (String s : m.keySet()) {
-            if ( !m.get(s).getStatus().equals("up") ) continue;
-            s = strip(s);
-            if ( ! hosts.containsKey(s) ) {
-                // System.out.println("Set host from MachineInfo with key :" + s + ":");
 
-                // NOTE: the map changes all the time so the value may be gone.  This situation
-                //       will be fixed one day but for now just forget the node, it will show up 
-                //       next time we get here.
-                MachineInfo mi = m.get(s);
-                if ( mi != null ) {
-                    VisualizedHost vh = new VisualizedHost(mi, quantum);
-                    hosts.put(s, vh);
-                }
+            MachineInfo mi = m.get(s);
+            // NOTE: the map changes all the time so the value may be gone.  This situation
+            //       will be fixed one day but for now just forget the node, it will show up 
+            //       next time we get here.            
+            if ( mi == null ) continue;
+
+            if ( !mi.getStatus().equals("up") ) continue; // filter non-up nodes
+
+            String key = strip(s);             // our key, possibly with domain stripped
+            if ( ! hosts.containsKey(key) ) {
+                // System.out.println("Set host from MachineInfo with key :" + key + ":");
+                VisualizedHost vh = new VisualizedHost(mi, quantum);
+                hosts.put(key, vh);
             }
         }
 
