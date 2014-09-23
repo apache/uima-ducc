@@ -223,7 +223,7 @@ public class DuccPropertiesResolver {
             } 
             catch (FileNotFoundException e) {
             	if(!e3.get()) {
-                	logger.error(location, duccId, "File not found: "+fileName);
+                	logger.debug(location, duccId, "File not found: "+fileName);
                 	e3.set(true);;
                 }
             } 
