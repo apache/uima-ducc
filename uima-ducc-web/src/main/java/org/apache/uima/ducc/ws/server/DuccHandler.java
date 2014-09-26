@@ -2074,7 +2074,7 @@ public class DuccHandler extends DuccAbstractHandler {
 								link = logfile+":"+reason;
 							}
 						}
-						String url = "/"+getFilePagerUrl(userId, logsjobdir+logfile);
+						String url = getFilePagerUrl(userId, logsjobdir+logfile);
 						String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+link+"</a>";
 						data.append(href);
 					}

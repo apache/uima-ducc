@@ -79,7 +79,7 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 	public final String duccContext = "/ducc-servlet";
 	
 	public final String duccLogData			  = duccContext+"/log-data";
-	public final String duccFilePager 		  = "file.pager.html";
+	public final String duccFilePager 		  = "/file.pager.html";
 	
 	public final String duccJpInitSummary	  = duccContext+"/uima-initialization-report-summary";
 	public final String duccJpInitData		  = duccContext+"/uima-initialization-report-data";
