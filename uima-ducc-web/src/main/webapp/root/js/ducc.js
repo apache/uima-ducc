@@ -2648,11 +2648,7 @@ function ducc_refresh_stopped(type) {
 function ducc_refresh_running(type) {
     var fname = "ducc_refresh_running";
     ducc_console_enter(fname);
-    ducc_refresh_page(type)
-    setTimeout(function() {
-        ducc_refresh_stopped(type);
-        type = null
-    }, 1000);
+    ducc_refresh_page(type);
     ducc_console_exit(fname);
 }
 
@@ -2667,22 +2663,34 @@ function ducc_refresh_started(type) {
         document.getElementById("loading").style.display = 'block';
     } catch (err) {
     }
-    setTimeout(function() {
-        ducc_refresh_running(type);
-        type = null
-    }, 1);
     ducc_console_exit(fname);
 }
+
+var to_started = null;
+var to_stopped = null;
 
 function ducc_refresh(type) {
     var fname = "ducc_refresh";
     ducc_console_enter(fname);
-    setTimeout(function() {
+    if(to_started != null) {
+        clearTimeout(to_started);
+    }
+    to_started = setTimeout(function() {
         ducc_refresh_started(type);
         type = null
     }, 1);
+    if(to_stopped != null) {
+        clearTimeout(to_stopped);
+    }
+    to_stopped = setTimeout(function() {
+        ducc_refresh_stopped(type);
+        type = null
+    }, 1001);
+    ducc_refresh_running(type);
     ducc_console_exit(fname);
 }
+
+var to_timed_loop = null;
 
 function ducc_timed_loop(type) {
     var fname = "ducc_timed_loop";
@@ -2697,7 +2705,10 @@ function ducc_timed_loop(type) {
         if (c_value == "automatic") {
             ducc_refresh(type);
         }
-        var tid = setTimeout(function() {
+        if(to_timed_loop != null) {
+            clearTimeout(to_timed_loop);
+        }
+        to_timed_loop = setTimeout(function() {
             ducc_timed_loop(type);
             type = null
         }, 30000); // again
