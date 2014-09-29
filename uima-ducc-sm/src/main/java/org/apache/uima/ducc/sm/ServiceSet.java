@@ -1165,6 +1165,13 @@ public class ServiceSet
         }
     }
 
+    void removeImplementor(ServiceInstance si)
+    {
+    	String methodName = "removeImplementor";
+        logger.info(methodName, id, "Removing implementor", si.getId());
+        implementors.remove(si.getId());
+    }
+
     /**
      * This is one of my service instances.  Update its state and maybe kick the
      * state machine as well.

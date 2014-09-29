@@ -71,6 +71,8 @@ class PingOnlyServiceInstance
         String methodName = "stop";
         logger.info(methodName, sset.getId(), "STOP PING-ONLY INSTANCE");
         state = JobState.Completed;
+        sset.signal(me);
+        sset.removeImplementor(this);
         driver.stop();
         setStopped(true);
     }
