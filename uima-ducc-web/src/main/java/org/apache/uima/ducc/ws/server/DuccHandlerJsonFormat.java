@@ -1091,8 +1091,17 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				row.add(new JsonPrimitive(col.toString()));
 				// Class
 				col = new StringBuffer();
-				String shareClass = service.getShareClass();
-				col.append(""+shareClass);
+				if(service.isPingOnly()) {
+					String shareClass = ""+service.getShareClass();
+					col.append("<span title=\""+shareClass+"\">");
+					String shareType = "ping-only";
+					col.append("<span>");
+					col.append(shareType);
+				}
+				else {
+					String shareClass = service.getShareClass();
+					col.append(""+shareClass);
+				}
 				row.add(new JsonPrimitive(col.toString()));
 				// Pgin
 				col = new StringBuffer();

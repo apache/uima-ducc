@@ -957,10 +957,19 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				sb.append("<td>");
 				sb.append(user);
 				sb.append("</td>");
-				// Share Class
+				// Share Class (or Type)
 				sb.append("<td>");
-				String shareClass = service.getShareClass();
-				sb.append(shareClass);
+				if(service.isPingOnly()) {
+					String shareClass = service.getShareClass();
+					sb.append("<span title=\""+shareClass+"\">");
+					String shareType = "ping-only";
+					sb.append("<span>");
+					sb.append(shareType);
+				}
+				else {
+					String shareClass = service.getShareClass();
+					sb.append(shareClass);
+				}
 				sb.append("</td>");
 				// PgIn
 				sb.append("<td align=\"right\">");
