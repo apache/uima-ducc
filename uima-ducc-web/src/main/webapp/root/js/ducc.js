@@ -137,9 +137,16 @@ function ducc_window_close() {
     }
 }
 
+var wip_identity = false;
+
 function ducc_identity() {
     var fname = "ducc_identity";
     var data = null;
+    if(wip_identity) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_identity = true;
     try {
         var servlet = "/ducc-servlet/cluster-name";
         var tomsecs = ms_timeout;
@@ -147,6 +154,7 @@ function ducc_identity() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_identity = false;
             $("#identity").html(data);
             try {
                 var a1 = data.split(">");
@@ -161,16 +169,25 @@ function ducc_identity() {
                 ducc_console_warn(message);
             }
         }).fail(function(jqXHR, textStatus) {
+            wip_identity = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_identity = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_version = false;
+
 function ducc_version() {
     var fname = "ducc_version";
     var data = null;
+    if(wip_version) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_version = true;
     try {
         var servlet = "/ducc-servlet/version";
         var tomsecs = ms_timeout;
@@ -178,19 +195,29 @@ function ducc_version() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_version = false;
             $("#version").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_version = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_version = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_password_checked = false;
+
 function ducc_password_checked() {
     var fname = "ducc_password_checked";
     var data = null;
+    if(wip_password_checked) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_password_checked = true;
     try {
         var servlet = "/ducc-servlet/authenticator-password-checked";
         var tomsecs = ms_timeout;
@@ -198,19 +225,29 @@ function ducc_password_checked() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_password_checked = false;
             $("#password_checked_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_password_checked = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_password_checked = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_authenticator_version = false;
+
 function ducc_authenticator_version() {
     var fname = "ducc_authenticator_version";
     var data = null;
+    if(wip_authenticator_version) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_authenticator_version = true;
     try {
         var servlet = "/ducc-servlet/authenticator-version";
         var tomsecs = ms_timeout;
@@ -218,19 +255,29 @@ function ducc_authenticator_version() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_authenticator_version = false;
             $("#authenticator_version_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_authenticator_version = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_authenticator_version = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_link_login = false;
+
 function ducc_link_login() {
     var fname = "ducc_link_login";
     var data = null;
+    if(wip_link_login) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_link_login = true;
     try {
         var servlet = "/ducc-servlet/login-link";
         var tomsecs = ms_timeout;
@@ -238,19 +285,29 @@ function ducc_link_login() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_link_login = false;
             $("#login_link_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_link_login = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_link_login = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_link_logout = false;
+
 function ducc_link_logout() {
     var fname = "ducc_link_logout";
     var data = null;
+    if(wip_link_logout) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_link_logout = true;
     try {
         var servlet = "/ducc-servlet/logout-link";
         var tomsecs = ms_timeout;
@@ -258,12 +315,15 @@ function ducc_link_logout() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_link_logout = false;
             $("#logout_link_area").html(data);
            ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_link_logout = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_link_logout = false;
         ducc_error(fname, err);
     }
 }
@@ -281,9 +341,16 @@ function ducc_links() {
     ducc_link_logout();
 }
 
+var wip_timestamp = false;
+
 function ducc_timestamp() {
     var fname = "ducc_timestamp";
     var data = null;
+    if(wip_timestamp) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_timestamp = true;
     try {
         var servlet = "/ducc-servlet/timestamp";
         var tomsecs = ms_timeout;
@@ -291,19 +358,29 @@ function ducc_timestamp() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_timestamp = false;
             $("#timestamp_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_timestamp = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_timestamp = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_authentication = false;
+
 function ducc_authentication() {
     var fname = "ducc_authentication";
     var data = null;
+    if(wip_authentication) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_authentication = true;
     try {
         var servlet = "/ducc-servlet/user-authentication-status";
         var tomsecs = ms_timeout;
@@ -311,19 +388,29 @@ function ducc_authentication() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_authentication = false;
             $("#authentication_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_authentication = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_authentication = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_utilization = false;
+
 function ducc_utilization() {
     var fname = "ducc_utilization";
     var data = null;
+    if(wip_utilization) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_utilization = true;
     try {
         var servlet = "/ducc-servlet/cluster-utilization";
         var tomsecs = ms_timeout;
@@ -331,12 +418,15 @@ function ducc_utilization() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_utilization = false;
             $("#utilization_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_utilization = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_utilization = false;
         ducc_error(fname, err);
     }
 }
@@ -399,6 +489,7 @@ function ducc_load_viz_head() {
 }
 
 var ms_load_viz_data = +new Date() - ms_reload_min;
+var wip_viz = false;
 
 function ducc_load_viz_data() {
     var fname = "ducc_load_viz_data";
@@ -408,6 +499,11 @@ function ducc_load_viz_data() {
         return;
     }
     ms_load_viz_data = ms_now;
+    if(wip_viz) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_viz = true;
     try {
         var servlet = "/ducc-servlet/viz-nodes";
         var tomsecs = ms_timeout;
@@ -415,13 +511,16 @@ function ducc_load_viz_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_viz = false;
             $("#viz-nodes").html(data);
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
+            wip_viz = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_viz = false;
         ducc_error(fname, err);
     }
 }
@@ -449,9 +548,16 @@ function ducc_load_jobs_data() {
     }
 }
 
+var wip_jobs = false;
+
 function ducc_load_classic_jobs_data() {
     var fname = "ducc_load_classic_jobs_data";
     var data = null;
+    if(wip_jobs) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_jobs = true;
     try {
         var servlet = "/ducc-servlet/classic-jobs-data";
         var tomsecs = ms_timeout;
@@ -459,14 +565,17 @@ function ducc_load_classic_jobs_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_jobs = false;
             $("#jobs_list_area").html(data);
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
+            wip_jobs = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_jobs = false;
         ducc_error(fname, err);
     }
 }
@@ -529,9 +638,16 @@ function ducc_load_services_data() {
     }
 }
 
+var wip_services = false;
+
 function ducc_load_classic_services_data() {
     var fname = "ducc_load_classic_services_data";
     var data = null;
+    if(wip_services) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_services = true;
     try {
         var servlet = "/ducc-servlet/classic-services-data";
         var tomsecs = ms_timeout;
@@ -539,14 +655,17 @@ function ducc_load_classic_services_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_services = false;
             $("#services_list_area").html(data);
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
+            wip_services = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_services = false;
         ducc_error(fname, err);
     }
 }
@@ -597,6 +716,7 @@ function ducc_init_service_summary_data() {
 }
 
 var ms_load_service_summary_data = +new Date() - ms_reload_min;
+var wip_service_summary = false;
 
 function ducc_load_service_summary_data() {
     var fname = "ducc_load_service_summary_data";
@@ -606,6 +726,11 @@ function ducc_load_service_summary_data() {
         return;
     }
     ms_load_service_summary_data = ms_now;
+    if(wip_service_summary) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_service_summary = true;
     try {
         var servlet = "/ducc-servlet/service-summary-data" + location.search;
         var tomsecs = ms_timeout;
@@ -613,13 +738,16 @@ function ducc_load_service_summary_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_service_summary = false;
             $("#service_summary_area").html(data);
             hide_show();
            ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_service_summary = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_service_summary = false;
         ducc_error(fname, err);
     }
 }
@@ -636,6 +764,7 @@ function ducc_init_broker_summary_data() {
 }
 
 var ms_load_broker_summary_data = +new Date() - ms_reload_min;
+var wip_broker_summary = false;
 
 function ducc_load_broker_summary_data() {
     var fname = "ducc_load_broker_summary_data";
@@ -645,6 +774,11 @@ function ducc_load_broker_summary_data() {
         return;
     }
     ms_load_broker_summary_data = ms_now;
+    if(wip_broker_summary) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_broker_summary = true;
     try {
         var servlet = "/ducc-servlet/broker-summary-data" + location.search;
         var tomsecs = ms_timeout;
@@ -652,13 +786,16 @@ function ducc_load_broker_summary_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_broker_summary = false;
             $("#broker_summary_area").html(data);
             hide_show();
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_broker_summary = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_broker_summary = false;
         ducc_error(fname, err);
     }
 }
@@ -675,6 +812,7 @@ function ducc_init_job_workitems_count_data() {
 }
 
 var ms_load_job_workitems_count_data = +new Date() - ms_reload_min;
+var wip_job_workitems_count_data = false;
 
 function ducc_load_job_workitems_count_data() {
     var fname = "ducc_load_job_workitems_count_data";
@@ -684,6 +822,11 @@ function ducc_load_job_workitems_count_data() {
         return;
     }
     ms_load_job_workitems_count_data = ms_now;
+    if(wip_job_workitems_count_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_workitems_count_data = true;
     try {
         var servlet = "/ducc-servlet/job-workitems-count-data" + location.search;
         var tomsecs = ms_timeout;
@@ -691,13 +834,16 @@ function ducc_load_job_workitems_count_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_workitems_count_data = false;
             $("#job_workitems_count_area").html(data);
             hide_show();
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_job_workitems_count_data = false;
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_job_workitems_count_data = false;
         ducc_error(fname, err);
     }
 }
@@ -714,6 +860,7 @@ function ducc_init_job_workitems_data() {
 }
 
 var ms_load_job_workitems_data = +new Date() - ms_reload_min;
+var wip_job_workitems_data = false;
 
 function ducc_load_job_workitems_data() {
     var fname = "ducc_load_job_workitems_data";
@@ -723,6 +870,11 @@ function ducc_load_job_workitems_data() {
         return;
     }
     ms_load_job_workitems_data = ms_now;
+    if(wip_job_workitems_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_workitems_data = true;
     try {
         data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
         $("#loading_workitems_area").html(data);
@@ -732,17 +884,20 @@ function ducc_load_job_workitems_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_workitems_data = false;
             $("#workitems_data_area").html(data);
             hide_show();
             data = "";
             $("#loading_workitems_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_job_workitems_data = false;
             data = "";
             $("#loading_workitems_area").html(data);
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_job_workitems_data = false;
         data = "";
         $("#loading_workitems_area").html(data);
         ducc_error(fname, err);
@@ -761,6 +916,7 @@ function ducc_init_job_performance_data() {
 }
 
 var ms_load_job_performance_data = +new Date() - ms_reload_min;
+var wip_job_performance_data = false;   
 
 function ducc_load_job_performance_data() {
     var fname = "ducc_load_job_performance_data";
@@ -770,6 +926,11 @@ function ducc_load_job_performance_data() {
         return;
     }
     ms_load_job_performance_data = ms_now;
+    if(wip_job_performance_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_performance_data = true;    
     try {
         data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
         $("#loading_performance_area").html(data);
@@ -779,17 +940,20 @@ function ducc_load_job_performance_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_performance_data = false;
             $("#performance_data_area").html(data);
             hide_show();
             data = "";
             $("#loading_performance_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_job_performance_data = false;
             data = "";
             $("#loading_performance_area").html(data);
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_job_performance_data = false;
         data = "";
         $("#loading_performance_area").html(data);
         ducc_error(fname, err);
@@ -808,6 +972,7 @@ function ducc_init_job_specification_data() {
 }
 
 var ms_load_job_specification_data = +new Date() - ms_reload_min;
+var wip_job_specification_data = false;
 
 function ducc_load_job_specification_data() {
     var fname = "ducc_load_job_specification_data";
@@ -817,6 +982,11 @@ function ducc_load_job_specification_data() {
         return;
     }
     ms_load_job_specification_data = ms_now;
+    if(wip_job_specification_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_specification_data = true;
     try {
         data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
         $("#loading_specification_area").html(data);
@@ -826,6 +996,7 @@ function ducc_load_job_specification_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_specification_data = false;
             $("#specification_data_area").html(data);
             hide_show();
             data = "";
@@ -836,11 +1007,13 @@ function ducc_load_job_specification_data() {
             }
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_job_specification_data = false;
             data = "";
             $("#loading_specification_area").html(data);
             ducc_console_fail(fname, textStatus);
         });
     } catch (err) {
+        wip_job_specification_data = false;
         data = "";
         $("#loading_specification_area").html(data);
         ducc_error(fname, err);
@@ -859,6 +1032,7 @@ function ducc_init_job_files_data() {
 }
 
 var ms_load_job_files_data = +new Date() - ms_reload_min;
+var wip_job_files_data = false;
 
 function ducc_load_job_files_data() {
     var fname = "ducc_load_job_files_data";
@@ -868,6 +1042,11 @@ function ducc_load_job_files_data() {
         return;
     }
     ms_load_job_files_data = ms_now;
+    if(wip_job_files_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_files_data = true;
     try {
         data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
         $("#loading_files_area").html(data);
@@ -877,6 +1056,7 @@ function ducc_load_job_files_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_files_data = false;
             $("#files_data_area").html(data);
             hide_show();
             data = "";
@@ -887,11 +1067,13 @@ function ducc_load_job_files_data() {
             }
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_job_files_data = false;
             data = "";
             $("#loading_files_area").html(data);
             ducc_console_fail(fname, textStatus);
         });        
     } catch (err) {
+        wip_job_files_data = false;
         data = "";
         $("#loading_files_area").html(data);
         ducc_error(fname, err);
@@ -910,6 +1092,7 @@ function ducc_init_reservation_specification_data() {
 }
 
 var ms_load_reservation_specification_data = +new Date() - ms_reload_min;
+var wip_reservation_specification_data = false;
 
 function ducc_load_reservation_specification_data() {
     var fname = "ducc_load_reservation_specification_data";
@@ -919,6 +1102,11 @@ function ducc_load_reservation_specification_data() {
         return;
     }
     ms_load_reservation_specification_data = ms_now;
+    if(wip_reservation_specification_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_specification_data = true;
     try {
         var servlet = "/ducc-servlet/reservation-specification-data" + location.search;
         var tomsecs = ms_timeout;
@@ -926,6 +1114,7 @@ function ducc_load_reservation_specification_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_specification_data = false;
             $("#specification_data_area").html(data);
             hide_show();
             var table_style = ducc_preferences_get("table_style");
@@ -934,9 +1123,11 @@ function ducc_load_reservation_specification_data() {
             }
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_specification_data = false;
             ducc_console_fail(fname, textStatus);
         });           
     } catch (err) {
+        wip_reservation_specification_data = false;
         ducc_error(fname, err);
     }
 }
@@ -953,6 +1144,7 @@ function ducc_init_reservation_files_data() {
 }
 
 var ms_load_reservation_files_data = +new Date() - ms_reload_min;
+var wip_reservation_files_data = false;
 
 function ducc_load_reservation_files_data() {
     var fname = "ducc_load_reservation_files_data";
@@ -962,6 +1154,11 @@ function ducc_load_reservation_files_data() {
         return;
     }
     ms_load_reservation_files_data = ms_now;
+    if(wip_reservation_files_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_files_data = true;
     try {
         data = "<img src=\"opensources/images/indicator.gif\" alt=\"waiting...\">";
         $("#loading_files_area").html(data);
@@ -971,6 +1168,7 @@ function ducc_load_reservation_files_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_files_data = false;
             $("#files_data_area").html(data);
             hide_show();
             data = "";
@@ -981,11 +1179,13 @@ function ducc_load_reservation_files_data() {
             }
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_files_data = false;
             data = "";
             $("#loading_files_area").html(data);
             ducc_console_fail(fname, textStatus);
         });        
     } catch (err) {
+        wip_reservation_files_data = false;
         data = "";
         $("#loading_files_area").html(data);
         ducc_error(fname, err);
@@ -1004,6 +1204,7 @@ function ducc_init_service_registry_data() {
 }
 
 var ms_load_service_registry_data = +new Date() - ms_reload_min;
+var wip_service_registry_data = false;
 
 function ducc_load_service_registry_data() {
     var fname = "ducc_load_service_registry_data";
@@ -1013,6 +1214,11 @@ function ducc_load_service_registry_data() {
         return;
     }
     ms_load_service_registry_data = ms_now;
+    if(wip_service_registry_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_service_registry_data = true;
     try {
         var servlet = "/ducc-servlet/service-registry-data" + location.search;
         var tomsecs = ms_timeout;
@@ -1020,18 +1226,22 @@ function ducc_load_service_registry_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_service_registry_data = false;
             $("#registry_data_area").html(data);
             hide_show();
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_service_registry_data = false;
             ducc_console_fail(fname, textStatus);
         });            
     } catch (err) {
+        wip_service_registry_data = false;
         ducc_error(fname, err);
     }
 }
 
 var ms_service_update_form_button = +new Date() - ms_reload_min;
+var wip_service_update_form_button = false;
 
 function ducc_service_update_form_button() {
     var fname = "ducc_service_update_form_button";
@@ -1041,6 +1251,11 @@ function ducc_service_update_form_button() {
         return;
     }
     ms_service_update_form_button = ms_now;
+    if(wip_service_update_form_button) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_service_update_form_button = true;
     try {
         var servlet = "/ducc-servlet/service-update-get-form-button" + location.search;
         var tomsecs = ms_timeout;
@@ -1048,12 +1263,15 @@ function ducc_service_update_form_button() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_service_update_form_button = false;
             $("#service_update_form_button").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_service_update_form_button = false;
             ducc_console_fail(fname, textStatus);
         });            
     } catch (err) {
+        wip_service_update_form_button = false;
         ducc_error(fname, err);
     }
 }
@@ -1074,6 +1292,7 @@ function ducc_init_service_deployments_data() {
 }
 
 var ms_load_service_deployments_data = +new Date() - ms_reload_min;
+var wip_service_deployments_data = false;
 
 function ducc_load_service_deployments_data() {
     var fname = "ducc_load_service_deployments_data";
@@ -1083,6 +1302,11 @@ function ducc_load_service_deployments_data() {
         return;
     }
     ms_load_service_deployments_data = ms_now;
+    if(wip_service_deployments_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_service_deployments_data = true;
     try {
         var servlet = "/ducc-servlet/service-deployments-data" + location.search;
         var tomsecs = ms_timeout;
@@ -1090,14 +1314,17 @@ function ducc_load_service_deployments_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_service_deployments_data = false;
             $("#deployments_list_area").html(data);
             ducc_cluetips();
             hide_show();
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_service_deployments_data = false;
             ducc_console_fail(fname, textStatus);
         });                
     } catch (err) {
+        wip_service_deployments_data = false;
         ducc_error(fname, err);
     }
 }
@@ -1114,6 +1341,7 @@ function ducc_init_service_files_data() {
 }
 
 var ms_load_service_files_data = +new Date() - ms_reload_min;
+var wip_service_files_data = false;
 
 function ducc_load_service_files_data() {
     var fname = "ducc_load_service_files_data";
@@ -1123,6 +1351,11 @@ function ducc_load_service_files_data() {
         return;
     }
     ms_load_service_files_data = ms_now;
+    if(wip_service_files_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_service_files_data = true;
     try {
         var servlet = "/ducc-servlet/service-files-data" + location.search;
         var tomsecs = ms_timeout;
@@ -1132,6 +1365,7 @@ function ducc_load_service_files_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_service_files_data = false;
             $("#files_data_area").html(data);
             hide_show();
             data = "";
@@ -1142,11 +1376,13 @@ function ducc_load_service_files_data() {
             //}
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_service_files_data = false;
             data = "";
             $("#loading_files_area").html(data);
             ducc_console_fail(fname, textStatus);
         });                
     } catch (err) {
+        wip_service_files_data = false;
         data = "";
         $("#loading_files_area").html(data);
         ducc_error(fname, err);
@@ -1165,6 +1401,7 @@ function ducc_init_service_history_data() {
 }
 
 var ms_load_service_history_data = +new Date() - ms_reload_min;
+var wip_service_history_data = false;
 
 function ducc_load_service_history_data() {
     var fname = "ducc_load_service_history_data";
@@ -1174,6 +1411,11 @@ function ducc_load_service_history_data() {
         return;
     }
     ms_load_service_history_data = ms_now;
+    if(wip_service_history_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_service_history_data = true;
     try {
         var servlet = "/ducc-servlet/service-history-data" + location.search;
         var tomsecs = ms_timeout;
@@ -1183,6 +1425,7 @@ function ducc_load_service_history_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_service_history_data = false;
             $("#history_data_area").html(data);
             hide_show();
             data = "";
@@ -1194,11 +1437,13 @@ function ducc_load_service_history_data() {
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
+            wip_service_history_data = false;
             data = "";
             $("#history_data_area").html(data);
             ducc_console_fail(fname, textStatus);
         });                
     } catch (err) {
+        wip_service_history_data = false;
         data = "";
         $("#loading_history_area").html(data);
         ducc_error(fname, err);
@@ -1247,6 +1492,7 @@ function hide_show() {
 }
 
 var ms_load_job_processes_data = +new Date() - ms_reload_min;
+var wip_job_processes_data = false;
 
 function ducc_load_job_processes_data() {
     var fname = "ducc_load_job_processes_data";
@@ -1256,6 +1502,11 @@ function ducc_load_job_processes_data() {
         return;
     }
     ms_load_job_processes_data = ms_now;
+    if(wip_job_processes_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_processes_data = true;
     try {
         var servlet = "/ducc-servlet/job-processes-data" + location.search;
         var tomsecs = ms_timeout;
@@ -1265,6 +1516,7 @@ function ducc_load_job_processes_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_processes_data = false;
             $("#processes_list_area").html(data);
             ducc_cluetips();
             hide_show();
@@ -1273,11 +1525,13 @@ function ducc_load_job_processes_data() {
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
+            wip_job_processes_data = false;
             data = "";
             $("#loading_processes_area").html(data);
             ducc_console_fail(fname, textStatus);
         });                    
     } catch (err) {
+        wip_job_processes_data = false;
         data = "";
         $("#loading_processes_area").html(data);
         ducc_error(fname, err);
@@ -1300,6 +1554,7 @@ function ducc_init_job_processes_data() {
 }
 
 var ms_load_reservation_processes_data = +new Date() - ms_reload_min;
+var wip_reservation_processes_data = false;
 
 function ducc_load_reservation_processes_data() {
     var fname = "ducc_load_reservation_processes_data";
@@ -1309,6 +1564,11 @@ function ducc_load_reservation_processes_data() {
         return;
     }
     ms_load_reservation_processes_data = ms_now;
+    if(wip_reservation_processes_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_processes_data = true;
     try {
         var servlet = "/ducc-servlet/reservation-processes-data" + location.search;
         var tomsecs = ms_timeout;
@@ -1318,6 +1578,7 @@ function ducc_load_reservation_processes_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_processes_data = false;
             $("#processes_list_area").html(data);
             ducc_cluetips();
             hide_show();
@@ -1326,11 +1587,13 @@ function ducc_load_reservation_processes_data() {
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_processes_data = false;
             data = "";
             $("#loading_processes_area").html(data);
             ducc_console_fail(fname, textStatus);
         });                  
     } catch (err) {
+        wip_reservation_processes_data = false;
         data = "";
         $("#loading_processes_area").html(data);
         ducc_error(fname, err);
@@ -1368,9 +1631,16 @@ function ducc_load_machines_data() {
     }
 }
 
+var wip_classic_machines_data = false;
+
 function ducc_load_classic_machines_data() {
     var fname = "ducc_load_classic_machines_data";
     var data = null;
+    if(wip_classic_machines_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_classic_machines_data = true;
     try {
         var servlet = "/ducc-servlet/classic-system-machines-data";
         var tomsecs = ms_timeout;
@@ -1378,14 +1648,17 @@ function ducc_load_classic_machines_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_classic_machines_data = false;
             $("#machines_list_area").html(data);
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
+            wip_classic_machines_data = false;
             ducc_console_fail(fname, textStatus);
         });                      
     } catch (err) {
+        wip_classic_machines_data = false;
         ducc_error(fname, err);
     }
 }
@@ -1424,9 +1697,16 @@ function ducc_init_machines_data() {
     }
 }
 
+var wip_reservation_form_button = false;
+
 function ducc_reservation_form_button() {
     var fname = "ducc_reservation_form_button";
     var data = null;
+    if(wip_reservation_form_button) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_form_button = true;
     try {
         var servlet = "/ducc-servlet/reservation-get-form-button";
         var tomsecs = ms_timeout;
@@ -1434,12 +1714,15 @@ function ducc_reservation_form_button() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_form_button = false;
             $("#reservation_form_button").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_form_button = false;
             ducc_console_fail(fname, textStatus);
         });                      
     } catch (err) {
+        wip_reservation_form_button = false;
         ducc_error(fname, err);
     }
 }
@@ -1466,9 +1749,16 @@ function ducc_load_reservations_data() {
     }
 }
 
+var wip_classic_reservations_data = false;
+
 function ducc_load_classic_reservations_data() {
     var fname = "ducc_load_classic_reservations_data";
     var data = null;
+    if(wip_classic_reservations_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_classic_reservations_data = true;
     try {
         var servlet = "/ducc-servlet/classic-reservations-data";
         var tomsecs = ms_timeout;
@@ -1476,14 +1766,17 @@ function ducc_load_classic_reservations_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_classic_reservations_data = false;
             $("#reservations_list_area").html(data);
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
+            wip_classic_reservations_data = false;
             ducc_console_fail(fname, textStatus);
         });                 
     } catch (err) {
+        wip_classic_reservations_data = false;
         ducc_error(fname, err);
     }
 }
@@ -1524,6 +1817,7 @@ function ducc_init_reservations_data() {
 }
 
 var ms_load_reservation_scheduling_classes_data = +new Date() - ms_reload_min;
+var wip_reservation_scheduling_classes = false;
 
 function ducc_load_reservation_scheduling_classes() {
     var fname = "ducc_load_reservation_scheduling_classes";
@@ -1533,6 +1827,11 @@ function ducc_load_reservation_scheduling_classes() {
         return;
     }
     ms_load_reservation_scheduling_classes_data = ms_now;
+    if(wip_reservation_scheduling_classes) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_scheduling_classes = true;
     try {
         var servlet = "/ducc-servlet/reservation-scheduling-classes";
         var tomsecs = ms_timeout;
@@ -1540,19 +1839,29 @@ function ducc_load_reservation_scheduling_classes() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_scheduling_classes = false;
             $("#scheduling_class_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_scheduling_classes = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_reservation_scheduling_classes = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_reservation_instance_memory_sizes = false;
+
 function ducc_load_reservation_instance_memory_sizes() {
     var fname = "ducc_load_reservation_instance_memory_sizes";
     var data = null;
+    if(wip_reservation_instance_memory_sizes) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_instance_memory_sizes = true;
     try {
         var servlet = "/ducc-servlet/reservation-instance-memory-sizes";
         var tomsecs = ms_timeout;
@@ -1560,19 +1869,29 @@ function ducc_load_reservation_instance_memory_sizes() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_instance_memory_sizes = false;
             $("#instance_memory_sizes_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_instance_memory_sizes = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_reservation_instance_memory_sizes = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_reservation_instance_memory_units = false;
+
 function ducc_load_reservation_instance_memory_units() {
     var fname = "ducc_load_reservation_instance_memory_units";
     var data = null;
+    if(wip_reservation_instance_memory_units) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_instance_memory_units = true;
     try {
         var servlet = "/ducc-servlet/reservation-instance-memory-units";
         var tomsecs = ms_timeout;
@@ -1580,19 +1899,29 @@ function ducc_load_reservation_instance_memory_units() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_instance_memory_units = false;
             $("#instance_memory_units_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_instance_memory_units = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_reservation_instance_memory_units = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_reservation_number_of_instances = false;
+
 function ducc_load_reservation_number_of_instances() {
     var fname = "ducc_load_reservation_number_of_instances";
     var data = null;
+    if(wip_reservation_number_of_instances) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_number_of_instances = true;
     try {
         var servlet = "/ducc-servlet/reservation-number-of-instances";
         var tomsecs = ms_timeout;
@@ -1600,19 +1929,29 @@ function ducc_load_reservation_number_of_instances() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_number_of_instances = false;
             $("#number_of_instances_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_number_of_instances = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_reservation_number_of_instances = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_reservation_submit_button = false;
+
 function ducc_load_reservation_submit_button() {
     var fname = "ducc_load_reservation_submit_button";
     var data = null;
+    if(wip_reservation_submit_button) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_reservation_submit_button = true;
     try {
         var servlet = "/ducc-servlet/reservation-get-submit-button";
         var tomsecs = ms_timeout;
@@ -1620,12 +1959,15 @@ function ducc_load_reservation_submit_button() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_reservation_submit_button = false;
             $("#reservation_submit_button_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_reservation_submit_button = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_reservation_submit_button = false;
         ducc_error(fname, err);
     }
 }
@@ -1657,9 +1999,16 @@ function ducc_init_submit_reservation_data() {
     }
 }
 
+var wip_job_form = false;
+
 function ducc_load_job_form() {
     var fname = "ducc_load_job_form";
     var data = null;
+    if(wip_job_form) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_form = true;
     try {
         var servlet = "/ducc-servlet/job-submit-form";
         var tomsecs = ms_timeout;
@@ -1667,19 +2016,29 @@ function ducc_load_job_form() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_form = false;
             $("#job_submit_form_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_job_form = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_job_form = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_job_submit_button = false;
+
 function ducc_load_job_submit_button() {
     var fname = "ducc_load_job_submit_button";
     var data = null;
+    if(wip_job_submit_button) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_job_submit_button = true;
     try {
         var servlet = "/ducc-servlet/job-get-submit-button";
         var tomsecs = ms_timeout;
@@ -1687,19 +2046,29 @@ function ducc_load_job_submit_button() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_job_submit_button = false;
             $("#job_submit_button_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_job_submit_button = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_job_submit_button = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_system_admin_admin_data = false;
+
 function ducc_load_system_admin_admin_data() {
     var fname = "ducc_load_system_admin_admin_data";
     var data = null;
+    if(wip_system_admin_admin_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_system_admin_admin_data = true;
     try {
         var servlet = "/ducc-servlet/system-admin-admin-data";
         var tomsecs = ms_timeout;
@@ -1707,19 +2076,29 @@ function ducc_load_system_admin_admin_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_system_admin_admin_data = false;
             $("#system_administration_administrators_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_system_admin_admin_data = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_system_admin_admin_data = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_system_admin_control_data = false;
+
 function ducc_load_system_admin_control_data() {
     var fname = "ducc_load_system_admin_control_data";
     var data = null;
+    if(wip_system_admin_control_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_system_admin_control_data = true;
     try {
         var servlet = "/ducc-servlet/system-admin-control-data";
         var tomsecs = ms_timeout;
@@ -1727,12 +2106,15 @@ function ducc_load_system_admin_control_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_system_admin_control_data = false;
             $("#system_administration_control_area").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_system_admin_control_data = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_system_admin_control_data = false;
         ducc_error(fname, err);
     }
 }
@@ -1783,9 +2165,16 @@ function ducc_load_system_classes_data() {
     }
 }
 
+var wip_classic_system_classes_data = false;
+
 function ducc_load_classic_system_classes_data() {
     var fname = "ducc_load_classic_system_classes_data";
     var data = null;
+    if(wip_classic_system_classes_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_classic_system_classes_data = true;
     try {
         var servlet = "/ducc-servlet/classic-system-classes-data";
         var tomsecs = ms_timeout;
@@ -1793,14 +2182,17 @@ function ducc_load_classic_system_classes_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_classic_system_classes_data = false;
             $("#system_classes_list_area").html(data);
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
+            wip_classic_system_classes_data = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_classic_system_classes_data = false;
         ducc_error(fname, err);
     }
 }
@@ -1919,9 +2311,16 @@ function ducc_load_system_daemons_data() {
     ducc_default_agents();
 }
 
+var wip_classic_system_daemons_data = false;
+
 function ducc_load_classic_system_daemons_data() {
     var fname = "ducc_load_classic_system_daemons_data";
     var data = null;
+    if(wip_classic_system_daemons_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_classic_system_daemons_data = true;
     try {
         var servlet = "/ducc-servlet/classic-system-daemons-data";
         var tomsecs = ms_timeout;
@@ -1929,14 +2328,17 @@ function ducc_load_classic_system_daemons_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_classic_system_daemons_data = false;
             $("#system_daemons_list_area").html(data);
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
+            wip_classic_system_daemons_data = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_classic_system_daemons_data = false;
         ducc_error(fname, err);
     }
 }
@@ -1990,9 +2392,16 @@ function ducc_load_system_broker_data() {
     }
 }
 
+var wip_classic_system_broker_data = false;
+
 function ducc_load_classic_system_broker_data() {
     var fname = "ducc_load_classic_system_broker_data";
     var data = null;
+    if(wip_classic_system_broker_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_classic_system_broker_data = true;
     try {
         var servlet = "/ducc-servlet/classic-system-broker-data";
         var tomsecs = ms_timeout;
@@ -2000,14 +2409,17 @@ function ducc_load_classic_system_broker_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_classic_system_broker_data = false;
             $("#system_broker_list_area").html(data);
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
         }).fail(function(jqXHR, textStatus) {
+            wip_classic_system_broker_data = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_classic_system_broker_data = false;
         ducc_error(fname, err);
     }
 }
@@ -2207,9 +2619,16 @@ function ducc_cookies() {
     }
 }
 
+var wip_uima_initialization_report_summary = false;
+
 function uima_initialization_report_summary() {
     var fname = "uima_initialization_report_summary";
     var data = null;
+    if(wip_uima_initialization_report_summary) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_uima_initialization_report_summary = true;
     try {
         var servlet = "/ducc-servlet/uima-initialization-report-summary" + location.search;
         var tomsecs = ms_timeout;
@@ -2217,19 +2636,29 @@ function uima_initialization_report_summary() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_uima_initialization_report_summary = false;
             $("#uima_initialization_report_summary").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_uima_initialization_report_summary = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_uima_initialization_report_summary = false;
         ducc_error(fname, err);
     }
 }
 
+var wip_uima_initialization_report_data = false;
+
 function uima_initialization_report_data() {
     var fname = "uima_initialization_report_data";
     var data = null;
+    if(wip_uima_initialization_report_data) {
+        ducc_console_warn(fname+" already in progress...")
+        return;
+    }
+    wip_uima_initialization_report_data = true;
     try {
         var servlet = "/ducc-servlet/uima-initialization-report-data" + location.search;
         var tomsecs = ms_timeout;
@@ -2237,12 +2666,15 @@ function uima_initialization_report_data() {
             url: servlet,
             timeout: tomsecs
         }).done(function(data) {
+            wip_uima_initialization_report_data = false;
             $("#uima_initialization_report_data").html(data);
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
+            wip_uima_initialization_report_data = false;
             ducc_console_fail(fname, textStatus);
         });                     
     } catch (err) {
+        wip_uima_initialization_report_data = false;
         ducc_error(fname, err);
     }
 }
