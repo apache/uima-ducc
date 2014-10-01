@@ -1476,7 +1476,7 @@ public class DuccHandler extends DuccAbstractHandler {
 			    	sb.append("</table>");
 			    	sb.append("<br>");
 			    	*/
-			    	sb.append("<<table class=\"sortable\">>");
+			    	sb.append("<table class=\"sortable\">");
 					sb.append("<tr class=\"ducc-head\">");
 					sb.append("<th>");
 					sb.append("Name");
