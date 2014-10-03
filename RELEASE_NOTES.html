@@ -45,9 +45,84 @@ provides cluster management services to automate the scale-out of UIMA pipelines
       
 <h2><a name="major.changes">2. Major Changes in this Release</a></h2>
 <p>
-UIMA DUCC 1.0.1 is the first Apache release. For up-to-date information on UIMA-DUCC 
-issues, see our issue tracker: 
-<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%221.0-Ducc%22%20ORDER%20BY%20key%20ASC">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%221.0-Ducc%22%20ORDER%20BY%20key%20ASC</a>
+UIMA DUCC 1.1.0 Apache is a maintenance release containing bug fixes and a few
+new features. What's new:<br>
+
+<h3>2.1 Service Manager Changes</h3>
+Advanced ping support - pinger is able to microschedule service instances
+The Ping API is enhanced to allow the following actions:
+<ul>
+        <li>start instances</li>
+        <li>stop  instances</li>
+        <li>change autostart</li> 
+        <li>set last-usage information in query</li>        
+        <li>manage the instance failure window. Default failure-window management is provide.</li>
+
+</ul>
+
+A sample microscheduling pinger is supplied to illustrate the new API.
+
+Multiple pingers may be registered by the admin to run internally as threads in the SM instead of as external processes.
+
+CLI support to enable / disable instance startup.
+
+CLI support to seamlessly transition service startup mode among autostarted, reference-started, and manually-started
+
+Enhance query to provide more information to CLI and web server:
+         Service last use
+         Registration date  
+         Explicit denotation of start mode: autostart, reference start, and manual start
+
+CLI now does user authentication and administrator authorization on all actions.
+  
+Most registration parameters can be dynamically modified without re-registering the service.
+
+Dynamic modification of pinger properties automatically restarts the pinger.
+
+Debug support - a service may be registered to connect back to a debug port when it is started.
+
+Multiple per-service admins - A service may register a list of ids which are allowed to perform administrative functions for that service.
+
+<h3>2.2 ducc_ling Changes</h3>
+<p>
+All registered groups are set for processes.
+
+User may set DUCC_UMASK to establish the umask for a processes.
+</p>
+
+
+<h3>2.3 Resource Manager Changes</h3>
+<p>
+
+Administrative CLI interface
+
+Vary-off a node to temporarily exclude it from scheduling
+
+Vary-on a node to return it to the scheduling pool
+      
+Query occupancy - for each node, shows what is scheduled there
+
+Query load - summary of scheduling tables to allow external entities such as LSF to collaborate with DUCC scheduler
+
+Misc enhancements
+   Better handling of failed nodes, purges all work other than reservations
+
+  Improved de-fragmentation logic
+
+  Improved handling of small clusters
+
+  Improved eviction, takes into account the amount of work that would be lost before scheduling a process for eviction.
+
+
+</p>
+
+<h3>2.4 Web Server Changes</h3>
+<p>
+Added Node visualization
+</p>
+
+For a complete list of issues fixed and up-to-date information on UIMA-DUCC issues, see our issue tracker: 
+<a href="https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%221.1.0-Ducc%22%20ORDER%20BY%20key%20ASC">https://issues.apache.org/jira/issues/?jql=project%20%3D%20UIMA%20AND%20fixVersion%20%3D%20%221.1.0-Ducc%22%20ORDER%20BY%20key%20ASC</a>
 </p> 
       
 <h2><a name="limitations">3. Limitations in this Release</a></h2>
