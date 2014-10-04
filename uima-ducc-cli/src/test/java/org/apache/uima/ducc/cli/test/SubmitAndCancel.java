@@ -63,9 +63,10 @@ public class SubmitAndCancel
         };
 
         try {
+            IDuccCallback cb = new MyCallback();
             DuccJobSubmit submit;
 
-            IDuccCallback cb = new MyCallback();
+            
             submit = new DuccJobSubmit(submit_args, (IDuccCallback) cb);
             submit.setProperty("description", "Submit-And-Cancel job 1");
             System.out.println("------------------------------ Submit with a callback ------------------------------");
@@ -136,6 +137,24 @@ public class SubmitAndCancel
                 System.out.println("Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
                 return;
             }
+
+            System.out.println("------------------------------ Submit with service dependency ------------------------------");
+            System.out.println("  ------ The job may fail if the service isn't registered -- that is OK ------------------");
+            Properties props = mkproperties(submit_args);      // test the constructor, plus easier to update
+            props.setProperty("service_dependency", "UIMA-AS:FixedSleepAE_1:tcp://localhost:61617");
+            props.setProperty("wait_for_completion", "true");
+
+            cb = new MyCallback(); // why not, lets go nuts
+            submit = new DuccJobSubmit(props, (IDuccCallback) cb);
+
+            System.out.println("Console attached: " + submit.isConsoleAttached());
+			if ( submit.execute() ) {
+                System.out.println("Job " + submit.getDuccId() + " submitted, rc = " + submit.getReturnCode());
+            } else {
+                System.out.println("Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
+                return;
+            }
+
             
 
             // Now some all-in-one variants - local
@@ -159,7 +178,7 @@ public class SubmitAndCancel
                 return;
             }
 
-            Properties props = mkproperties(submit_args);      // test the constructor, plus easier to update
+            props = mkproperties(submit_args);      // test the constructor, plus easier to update
             props.setProperty("all_in_one", "remote");
             props.setProperty("scheduling_class", "fixed");
             props.setProperty("description", "Submit-And-Cancel job 6");
