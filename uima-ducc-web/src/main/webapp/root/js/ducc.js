@@ -163,6 +163,7 @@ function ducc_identity() {
                 var n2 = a2[0];
                 var name = n2;
                 $(document).attr("title", "ducc-mon: " + name);
+                data = null;
                 ducc_console_success(fname);
             } catch (err) {
                 var message = fname + ".error: " + err;
@@ -197,6 +198,7 @@ function ducc_version() {
         }).done(function(data) {
             wip_version = false;
             $("#version").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_version = false;
@@ -227,6 +229,7 @@ function ducc_password_checked() {
         }).done(function(data) {
             wip_password_checked = false;
             $("#password_checked_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_password_checked = false;
@@ -257,6 +260,7 @@ function ducc_authenticator_version() {
         }).done(function(data) {
             wip_authenticator_version = false;
             $("#authenticator_version_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_authenticator_version = false;
@@ -287,6 +291,7 @@ function ducc_link_login() {
         }).done(function(data) {
             wip_link_login = false;
             $("#login_link_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_link_login = false;
@@ -317,7 +322,8 @@ function ducc_link_logout() {
         }).done(function(data) {
             wip_link_logout = false;
             $("#logout_link_area").html(data);
-           ducc_console_success(fname);
+           data = null;
+            ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_link_logout = false;
             ducc_console_fail(fname, textStatus);
@@ -360,6 +366,7 @@ function ducc_timestamp() {
         }).done(function(data) {
             wip_timestamp = false;
             $("#timestamp_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_timestamp = false;
@@ -390,6 +397,7 @@ function ducc_authentication() {
         }).done(function(data) {
             wip_authentication = false;
             $("#authentication_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_authentication = false;
@@ -420,6 +428,7 @@ function ducc_utilization() {
         }).done(function(data) {
             wip_utilization = false;
             $("#utilization_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_utilization = false;
@@ -513,6 +522,7 @@ function ducc_load_viz_data() {
         }).done(function(data) {
             wip_viz = false;
             $("#viz-nodes").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
@@ -567,6 +577,7 @@ function ducc_load_classic_jobs_data() {
         }).done(function(data) {
             wip_jobs = false;
             $("#jobs_list_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
@@ -657,6 +668,7 @@ function ducc_load_classic_services_data() {
         }).done(function(data) {
             wip_services = false;
             $("#services_list_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
@@ -741,7 +753,8 @@ function ducc_load_service_summary_data() {
             wip_service_summary = false;
             $("#service_summary_area").html(data);
             hide_show();
-           ducc_console_success(fname);
+           data = null;
+            ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_service_summary = false;
             ducc_console_fail(fname, textStatus);
@@ -789,6 +802,7 @@ function ducc_load_broker_summary_data() {
             wip_broker_summary = false;
             $("#broker_summary_area").html(data);
             hide_show();
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_broker_summary = false;
@@ -837,6 +851,7 @@ function ducc_load_job_workitems_count_data() {
             wip_job_workitems_count_data = false;
             $("#job_workitems_count_area").html(data);
             hide_show();
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_job_workitems_count_data = false;
@@ -889,6 +904,7 @@ function ducc_load_job_workitems_data() {
             hide_show();
             data = "";
             $("#loading_workitems_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_job_workitems_data = false;
@@ -945,6 +961,7 @@ function ducc_load_job_performance_data() {
             hide_show();
             data = "";
             $("#loading_performance_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_job_performance_data = false;
@@ -1005,6 +1022,7 @@ function ducc_load_job_specification_data() {
             if (table_style == "scroll") {
                 sorttable.makeSortable(document.getElementById('specification_table'));
             }
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_job_specification_data = false;
@@ -1065,6 +1083,7 @@ function ducc_load_job_files_data() {
             if (table_style == "scroll") {
                 sorttable.makeSortable(document.getElementById('files_table'));
             }
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_job_files_data = false;
@@ -1121,6 +1140,7 @@ function ducc_load_reservation_specification_data() {
             if (table_style == "scroll") {
                 sorttable.makeSortable(document.getElementById('specification_table'));
             }
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_specification_data = false;
@@ -1177,6 +1197,7 @@ function ducc_load_reservation_files_data() {
             if (table_style == "scroll") {
                 sorttable.makeSortable(document.getElementById('files_table'));
             }
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_files_data = false;
@@ -1229,6 +1250,7 @@ function ducc_load_service_registry_data() {
             wip_service_registry_data = false;
             $("#registry_data_area").html(data);
             hide_show();
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_service_registry_data = false;
@@ -1265,6 +1287,7 @@ function ducc_service_update_form_button() {
         }).done(function(data) {
             wip_service_update_form_button = false;
             $("#service_update_form_button").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_service_update_form_button = false;
@@ -1318,6 +1341,7 @@ function ducc_load_service_deployments_data() {
             $("#deployments_list_area").html(data);
             ducc_cluetips();
             hide_show();
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_service_deployments_data = false;
@@ -1374,6 +1398,7 @@ function ducc_load_service_files_data() {
             //if (table_style == "scroll") {
             //    sorttable.makeSortable(document.getElementById('files_table'));
             //}
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_service_files_data = false;
@@ -1434,6 +1459,7 @@ function ducc_load_service_history_data() {
             //if (table_style == "scroll") {
             //    sorttable.makeSortable(document.getElementById('history_table'));
             //}
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
@@ -1522,6 +1548,7 @@ function ducc_load_job_processes_data() {
             hide_show();
             data = "";
             $("#loading_processes_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
@@ -1584,6 +1611,7 @@ function ducc_load_reservation_processes_data() {
             hide_show();
             data = "";
             $("#loading_processes_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
         }).fail(function(jqXHR, textStatus) {
@@ -1650,6 +1678,7 @@ function ducc_load_classic_machines_data() {
         }).done(function(data) {
             wip_classic_machines_data = false;
             $("#machines_list_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
@@ -1716,6 +1745,7 @@ function ducc_reservation_form_button() {
         }).done(function(data) {
             wip_reservation_form_button = false;
             $("#reservation_form_button").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_form_button = false;
@@ -1768,6 +1798,7 @@ function ducc_load_classic_reservations_data() {
         }).done(function(data) {
             wip_classic_reservations_data = false;
             $("#reservations_list_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
@@ -1841,6 +1872,7 @@ function ducc_load_reservation_scheduling_classes() {
         }).done(function(data) {
             wip_reservation_scheduling_classes = false;
             $("#scheduling_class_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_scheduling_classes = false;
@@ -1871,6 +1903,7 @@ function ducc_load_reservation_instance_memory_sizes() {
         }).done(function(data) {
             wip_reservation_instance_memory_sizes = false;
             $("#instance_memory_sizes_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_instance_memory_sizes = false;
@@ -1901,6 +1934,7 @@ function ducc_load_reservation_instance_memory_units() {
         }).done(function(data) {
             wip_reservation_instance_memory_units = false;
             $("#instance_memory_units_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_instance_memory_units = false;
@@ -1931,6 +1965,7 @@ function ducc_load_reservation_number_of_instances() {
         }).done(function(data) {
             wip_reservation_number_of_instances = false;
             $("#number_of_instances_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_number_of_instances = false;
@@ -1961,6 +1996,7 @@ function ducc_load_reservation_submit_button() {
         }).done(function(data) {
             wip_reservation_submit_button = false;
             $("#reservation_submit_button_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_reservation_submit_button = false;
@@ -2018,6 +2054,7 @@ function ducc_load_job_form() {
         }).done(function(data) {
             wip_job_form = false;
             $("#job_submit_form_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_job_form = false;
@@ -2048,6 +2085,7 @@ function ducc_load_job_submit_button() {
         }).done(function(data) {
             wip_job_submit_button = false;
             $("#job_submit_button_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_job_submit_button = false;
@@ -2078,6 +2116,7 @@ function ducc_load_system_admin_admin_data() {
         }).done(function(data) {
             wip_system_admin_admin_data = false;
             $("#system_administration_administrators_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_system_admin_admin_data = false;
@@ -2108,6 +2147,7 @@ function ducc_load_system_admin_control_data() {
         }).done(function(data) {
             wip_system_admin_control_data = false;
             $("#system_administration_control_area").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_system_admin_control_data = false;
@@ -2184,6 +2224,7 @@ function ducc_load_classic_system_classes_data() {
         }).done(function(data) {
             wip_classic_system_classes_data = false;
             $("#system_classes_list_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
@@ -2330,6 +2371,7 @@ function ducc_load_classic_system_daemons_data() {
         }).done(function(data) {
             wip_classic_system_daemons_data = false;
             $("#system_daemons_list_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
@@ -2411,6 +2453,7 @@ function ducc_load_classic_system_broker_data() {
         }).done(function(data) {
             wip_classic_system_broker_data = false;
             $("#system_broker_list_area").html(data);
+            data = null;
             ducc_console_success(fname);
             ducc_load_common();
             ducc_cluetips();
@@ -2638,6 +2681,7 @@ function uima_initialization_report_summary() {
         }).done(function(data) {
             wip_uima_initialization_report_summary = false;
             $("#uima_initialization_report_summary").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_uima_initialization_report_summary = false;
@@ -2668,6 +2712,7 @@ function uima_initialization_report_data() {
         }).done(function(data) {
             wip_uima_initialization_report_data = false;
             $("#uima_initialization_report_data").html(data);
+            data = null;
             ducc_console_success(fname);
         }).fail(function(jqXHR, textStatus) {
             wip_uima_initialization_report_data = false;
