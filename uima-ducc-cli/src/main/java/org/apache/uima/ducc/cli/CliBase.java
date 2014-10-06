@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -339,6 +340,9 @@ public abstract class CliBase
             setDefaults(uiOpts, suppress_console_log);
         }
         
+        // This is not used by DUCC ... allows ducc-mon to display the origin of a job
+        cli_props.setProperty(UiOption.SubmitPid.pname(), ManagementFactory.getRuntimeMXBean().getName());
+
         if ( load_defaults && (getLogDirectory() == null) ) {
             throw new IllegalArgumentException("Cannot access log directory.");
         }
