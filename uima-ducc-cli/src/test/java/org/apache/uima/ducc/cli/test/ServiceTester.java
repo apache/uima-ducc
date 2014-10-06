@@ -72,7 +72,7 @@ public class ServiceTester
     List<String> failReasons = new ArrayList<String>();
     List<String> successReasons = new ArrayList<String>();
 
-    int default_timeout = 10;    // how many polls to allow before calling timeout
+    int default_timeout = 20;    // how many polls to allow before calling timeout
     ServiceTester()
     {
     }
