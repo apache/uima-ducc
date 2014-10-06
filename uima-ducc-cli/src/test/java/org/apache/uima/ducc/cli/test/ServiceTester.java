@@ -550,7 +550,7 @@ public class ServiceTester
                 if ( status.contains(s) ) return true;
             }
 
-            if ( (timeout > 0) && (++count > timeout) ) {
+            if ( (timeout > 0) && (++count > iterations) ) {
                 System.out.println("Timeout waiting for state " + Arrays.toString(states) + " for job " + runner.getId());
                 return false;
             }
