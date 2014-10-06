@@ -236,6 +236,13 @@ under the License.
       <directory>target/uima-as/apache-uima-as-${org.apache.uima.as.version}</directory>
       <outputDirectory>apache-uima</outputDirectory>
       <fileMode>755</fileMode>
+      <excludes>
+		<exclude>LICENSE</exclude>
+		<exclude>NOTICE</exclude>
+		<exclude>LICENSE.uimaj.txt</exclude>
+		<exclude>NOTICE.uimaj.txt</exclude>
+		
+	  </excludes>
       <directoryMode>755</directoryMode>        
     </fileSet>
 
