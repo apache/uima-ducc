@@ -215,13 +215,13 @@ For more information please check: http://www.apache.org/legal/
 DUCC Images
 
 
+
 ========================================================================= 
-== The following images are licensed: CC-BY-2.0
+== Creative Commons CC-BY-2.0
 ========================================================================= 
 120px-Anas_platyrhynchos_-United_Kingdom_-adult_female_and_ducklings-8.jpg 
 120px-Ducks_eating.jpg 120px-Rubber_duckies_So_many_ducks.jpg
 Ducklings_in_Shaw_Creek.jpg
-
 
  License
 
@@ -400,13 +400,13 @@ POSSIBILITY OF SUCH DAMAGES.
 
 
  ========================================================================= 
- == The following images are licensed: CC-BY-SA-2.0
+ == Creative Commons CC-BY-SA-2.0
 =========================================================================
-
 120px-Head_of_a_white_domesticated_duck.jpg 
 90px-Mallards_nest_Culwatty_-_geograph.org.uk_-_813413.jpg 
 90px-Swimming_white_domesticated_ducks.jpg
 Delena-cancerides-huntsman-spider.jpg
+Cygnet_in_Hyde_Park.jpg
 
    License
 
@@ -607,13 +607,11 @@ POSSIBILITY OF SUCH DAMAGES.
 
 
 ========================================================================= 
-== The following images are licensed: CC0 1.0 Universal
+== Creative Commons CC0 1.0 Universal
 =========================================================================
-
 120px-Thermal_image_of_four_ducks_swimming.jpg 
 propeller_hat_large.svg.png
-propeller_hat_small.svg.png
-
+propeller_hat_small.svg.png	
 
 License
 
@@ -718,9 +716,8 @@ either case contrary to Affirmer's express Statement of Purpose.
 
 
 ========================================================================= 
-== The following images are licensed: CC BY-SA 2.5
+== Creative Commons CC BY-SA 2.5
 =========================================================================
-
 refresh.png
 
 License
@@ -921,16 +918,14 @@ POSSIBILITY OF SUCH DAMAGES.
    not be modified without the mutual written agreement of the Licensor and You.
 
 
- ========================================================================= 
- == The following images are licensed: CC-BY-SA-3.0
+========================================================================= 
+ == Creative Commons CC-BY-SA-3.0
 =========================================================================
-
-144x144Stick_figure_-_choosing.jpg 
-2x1.33in-Bariken_kid.JPG 
-800px-Leg_Of_White_Duck.2x1.6.jpg 
-Flying_mallard_duck_-_female_2.0x1.4.jpg
-
-
+    144x144Stick_figure_-_choosing.jpg 
+    2x1.33in-Bariken_kid.JPG 
+    800px-Leg_Of_White_Duck.2x1.6.jpg 
+    Flying_mallard_duck_-_female_2.0x1.4.jpg
+    
 License
 
 THE WORK (AS DEFINED BELOW) IS PROVIDED UNDER THE TERMS OF THIS CREATIVE COMMONS
@@ -1252,10 +1247,9 @@ POSSIBILITY OF SUCH DAMAGES.
    additional rights not granted under this License, such additional rights are
    deemed to be included in the License; this License is not intended to
    restrict the license of any rights under applicable law.
-
-
+   
 ========================================================================= 
-== The following images are licensed: Richard David Ramsey
+ == Public Domain
 =========================================================================
 
 800px-Duck_crossing_Louisiana.2x1.4.jpg
@@ -1269,15 +1263,10 @@ conditions, unless such conditions are required by law.
 
 Richard David Ramsey
 
-
-========================================================================= 
-== The following images are licensed: Pigpen
-=========================================================================
-
+------
 indicator.gif
 
 License
-
 
 I, the copyright holder of this work, release this work into the public domain.
 This applies worldwide. In some countries this may not be legally possible; if
@@ -1286,11 +1275,7 @@ conditions, unless such conditions are required by law.
 
 Pigpen
 
-
-========================================================================= 
-== The following images are licensed:
-=========================================================================
-
+------
 RCA_Indian_Head_test_pattern.JPG
 
 License
@@ -1302,11 +1287,7 @@ rule of the shorter term for US works, such as Canada (50 p.m.a.), Mainland
 China (50 p.m.a., not Hong Kong or Macao), Germany (70 p.m.a.), Mexico (100
 p.m.a.), Switzerland (70 p.m.a.), and other countries with individual treaties.
 
-
-========================================================================= 
-== The following images are licensed:
-=========================================================================
-
+------
 ts-2.0x1.3.jpeg
 
 License
@@ -1316,11 +1297,7 @@ the wikipedia project. This applies worldwide. In case this is not legally
 possible: Frankyboy5 grants anyone the right to use this work for any purpose,
 without any conditions, unless such conditions are required by law.
 
-
- ========================================================================= 
- == The following images are licensed:
-=========================================================================
-
+------
 120px-Tracks_duck.gif
 
 License
@@ -1684,9 +1661,14 @@ EXHIBIT A.
 == The following products are licensed: MIT License
 ========================================================================= *
 
-SLF4J MIT License ========
+cluetip - Copyright 2012, Karl Swedberg
+jQuery, jQuery UI -  Copyright  2005, 2013 jQuery Foundation, Inc
+DataTables, DataTables-plugins - Copyright (C) 2008-2014, SpryMedia Ltd.
+sorttable - Copyright (c) 1997-date Stuart Langridge
+sorttable - Copyright (c) <2013> David Brink
+sorttable - Copyright (c) <2010> Andres Koetter
+navigation - Copyright (c) 2013 Mato llic <info@matoilc.ch>
 
-Copyright (c) 2004-2013 QOS.ch
  All rights reserved.
 
  Permission is hereby granted, free  of charge, to any person obtaining
@@ -1700,146 +1682,17 @@ Copyright (c) 2004-2013 QOS.ch
  The  above  copyright  notice  and  this permission  notice  shall  be
  included in all copies or substantial portions of the Software.
  
- THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
- EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
- MERCHANTABILITY,    FITNESS    FOR    A   PARTICULAR    PURPOSE    AND
- NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
- LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
- OF CONTRACT, TORT OR OTHERWISE,  ARISING FROM, OUT OF OR IN CONNECTION
- WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED,INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY 
+ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT 
+ OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR 
+ THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   
-sorttable plugin MIT License ===========
- 
-The MIT License (MIT)
-
-Copyright (c) <2013> David Brink
-Copyright (c) <2010> Andres Koetter
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
-
-
-clueTip plugin MIT License ===========
-
-Copyright (c) <year> <copyright holders>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. 
-
-jQuery MIT License ===========
-
-Copyright 2013 jQuery Foundation and other contributors
-http://jquery.com/
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-jQuery UI MIT License ===========
-
-  Copyright (c) 2010 Paul Bakaus, http://jqueryui.com/
-
-This software consists of voluntary contributions made by many individuals
-(AUTHORS.txt, http://jqueryui.com/about) For exact contribution history, see the
-revision history and logs, available at http://jquery-ui.googlecode.com/svn/
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-========================================================================= 
-== The following products are licensed: BSD License
-========================================================================= 
-
-DataTables BSD License =========== 
-opyright (c) 2008-2010, Allan Jardine All rights
-  reserved.
-
-Redistribution and use in source and binary forms, with or without modification,
-are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer. * Redistributions in
-    binary form must reproduce the above copyright notice, this list of
-    conditions and the following disclaimer in the documentation and/or other
-    materials provided with the distribution. * Neither the name of Allan
-    Jardine nor SpryMedia UK may be used to endorse or promote products derived
-    from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS "AS IS" AND ANY EXPRESS OR
-IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
-SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
-OF SUCH DAMAGE.
-
-
 ========================================================================= 
 == The following products are licensed: jGrowl
 =========================================================================
-
 
  jGrowl License ==============
 
@@ -1861,4 +1714,40 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. -----
------------
+
+========================================================================= 
+== The following products are licensed: SVG Icons
+=========================================================================
+
+This product contains icons from the SVG Icons project.  The icons are licensed 
+under the BSD license, but the actual license text is not provided by the SVG 
+Icons project.  Here's the generic BSD license template.
+                                  BSD License
+                                  
+Copyright (c) <YEAR>, <OWNER>
+                                  
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, 
+      this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, 
+      this list of conditions and the following disclaimer in the documentation 
+      and/or other materials provided with the distribution.
+    * Neither the name of the <ORGANIZATION> nor the names of its contributors may 
+      be used to endorse or promote products derived from this software without 
+      specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
