@@ -457,55 +457,36 @@
 				</executions>
 			</plugin>
 
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-changes-plugin</artifactId>
+			    <executions>
+			    	<execution>
+			           <id>default-cli2</id>
+				   <goals>
+				      <goal>jira-report</goal>
+				   </goals>
+				   
+				   <phase>generate-resources</phase>
+				   <configuration>
+				      <useJql>true</useJql>
+				      <fixVersionIds>${jiraVersion}</fixVersionIds>
+				      <component>DUCC</component>
+				      <columnNames>Type,Key,Status,Summary</columnNames>
+				      <resolution>Fixed</resolution>
+				      <status>Closed,Resolved</status>
+				      <sortColumnNames>Type, Status, Key</sortColumnNames>
+				      <outputDirectory>${basedir}/target/issuesFixed/</outputDirectory>
+				      <maxEntries>1000</maxEntries>
+				   </configuration>
+				</execution>
+			    </executions>
+			</plugin>
 
 
 		</plugins>
 		<!-- /pluginManagement -->
 	</build>
-
-	<profiles>
-		<profile>
-			<id>apache-release</id>
-			<build>
-				<plugins>
-
-					<!-- Build JIRA Report -->
-					<!-- depends on having -Djira.version set -->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-changes-plugin</artifactId>
-						
-						<executions>
-							<execution>
-								<id>default-cli</id>
-								<goals>
-									<goal>jira-report</goal>
-								</goals>
-								<!-- Disable this plugin for the first release -->
-								<phase />
-								<!-- Uncomment this for future releases -->
-								<!-- phase>generate-resources</phase -->
-								<!-- configuration>
-									<useJql>true</useJql>
-									<fixVersionIds>${jiraVersion}</fixVersionIds>
-									<component>DUCC</component>
-									<columnNames>Type,Key,Status,Summary</columnNames>
-									<resolution>Fixed</resolution>
-									<status>Closed,Resolved</status>
-									<sortColumnNames>Type, Status, Key</sortColumnNames>
-									<outputDirectory>${basedir}/target/issuesFixed/</outputDirectory>
-									<maxEntries>1000</maxEntries>
-								</configuration -->
-							</execution>
-						</executions>
-					</plugin>
-
-
-				</plugins>
-			</build>
-		</profile>
-
-	</profiles>
 
 	<!-- Include all ducc modules -->
 	<modules>
