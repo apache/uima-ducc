@@ -456,32 +456,21 @@
 					</execution>
 				</executions>
 			</plugin>
-
-			<plugin>
+            <!-- Temporarily disabled due to JIRA bug causing only 100 JIRas to be included.
+                 in a report. The jira report for 1.1.0-ducc release will be created manually.
+             -->
+			<!-- plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-changes-plugin</artifactId>
 			    <executions>
 			    	<execution>
 			           <id>default-cli2</id>
-				   <goals>
-				      <goal>jira-report</goal>
-				   </goals>
-				   
-				   <phase>generate-resources</phase>
 				   <configuration>
-				      <useJql>true</useJql>
 				      <fixVersionIds>${jiraVersion}</fixVersionIds>
-				      <component>DUCC</component>
-				      <columnNames>Type,Key,Status,Summary</columnNames>
-				      <resolution>Fixed</resolution>
-				      <status>Closed,Resolved</status>
-				      <sortColumnNames>Type, Status, Key</sortColumnNames>
-				      <outputDirectory>${basedir}/target/issuesFixed/</outputDirectory>
-				      <maxEntries>1000</maxEntries>
 				   </configuration>
 				</execution>
 			    </executions>
-			</plugin>
+			</plugin -->
 
 
 		</plugins>
