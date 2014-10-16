@@ -82,16 +82,16 @@
 
            \item[$--$driver\_descriptor\_CR\_overrides {[list]} ]             
              This is the Job Driver collection reader configuration overrides. They are specified as 
-             name/value pairs in a comma-delimited list. For example: 
+             name/value pairs in a whitespace-delimited list. For example: 
              \begin{verbatim}
---driver_descriptor_CR_overrides name1=value1,name2=value2...
+--driver_descriptor_CR_overrides name1=value1 name2=value2...
              \end{verbatim}
              
              
 %           \item[$--$driver\_environment {[list]} ]
 %
 %             This specifies environment parameters for the Job Driver. If present, they are added to the 
-%             Job Driver's environment as the process is spawned. It must be a quoted, blank-delimeted 
+%             Job Driver's environment as the process is spawned. It must be a quoted, blank-delimited 
 %             lsit of name-value pairs. For example: 
 %             \begin{verbatim}
 %"TERM=xterm DISPLAY=:1.0" 
@@ -215,9 +215,9 @@ ducc.submit.environment.propagated
            \begin{sloppypar}
            \item[$--$process\_descriptor\_AE\_overrides {[list]}  ]
 
-             This specifies AE overrides. It is a comma-delimited list of name/value pairs. Example: 
+             This specifies AE overrides. It is a whitespace-delimited list of name/value pairs. Example: 
              \begin{verbatim}
---process_descriptor_AE_Overrides name1=value1,name2=value2 
+--process_descriptor_AE_Overrides name1=value1 name2=value2 
              \end{verbatim}
            \end{sloppypar}             
 
@@ -234,9 +234,9 @@ ducc.submit.environment.propagated
            \begin{sloppypar}             
            \item[$--$process\_descriptor\_CC\_overrides {[list]}  ]
 
-             This specifies CC overrides. It is a comma-delimited list of name/value pairs. Example: 
+             This specifies CC overrides. It is a whitespace-delimited list of name/value pairs. Example: 
              \begin{verbatim}
---process_descriptor_CC_overrides name1=value1,name2=value2 
+--process_descriptor_CC_overrides name1=value1 name2=value2 
              \end{verbatim}
            \end{sloppypar}             
            
@@ -253,9 +253,9 @@ ducc.submit.environment.propagated
            \begin{sloppypar}             
            \item[$--$process\_descriptor\_CM\_overrides {[list]}  ]
 
-             This specifies CM overrides. It is a comma-delimited list of name/value pairs. Example: 
+             This specifies CM overrides. It is a whitespace-delimited list of name/value pairs. Example: 
 \begin{verbatim}
---process_descriptor_CM_overrides name1=value1,name2=value2 
+--process_descriptor_CM_overrides name1=value1 name2=value2 
 \end{verbatim}
            \end{sloppypar}
            
@@ -351,7 +351,7 @@ driver_descriptor_CR                = org.apache.uima.ducc.test.randomsleep.Fixe
 environment                         = AE_INIT_TIME=10000 LD_LIBRARY_PATH=/a/bogus/path 
 log_directory                       = /home/bob/ducc/logs/ 
 process_thread_count                = 1 
-driver_descriptor_CR_overrides      = jobfile:../simple/jobs/1.job,compression:10 
+driver_descriptor_CR_overrides      = jobfile:../simple/jobs/1.job compression:10 
 process_initialization_failures_cap = 99 
 process_per_item_time_max           = 60 
 driver_jvm_args                     = -Xmx500M 
