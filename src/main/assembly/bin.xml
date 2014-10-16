@@ -313,7 +313,11 @@ under the License.
       <includes>
         <include>README</include>
         <include>RELEASE_NOTES.html</include>
-        <include>issuesFixed/**</include>
+        <!-- Temporarily disable the include below for 1.1.0-Ducc release -->
+        <!-- JIRAs bug prevents more than 100 jiras in the report produced -->
+        <!-- by maven changes plugin. Workaround is to generate report     -->
+        <!-- manually and add it to the svn                                -->
+        <!-- include>issuesFixed/**</include -->
       </includes>
       <!-- The NOTICE and LICENSE for binary distro will be copied from src/main/legal  -->
       <excludes>
@@ -324,6 +328,14 @@ under the License.
       <directoryMode>755</directoryMode>
      
     </fileSet>
+
+    <fileSet>
+      <directory>src/main/issuesFixed</directory>
+      <outputDirectory>issuesFixed</outputDirectory>
+      <fileMode>750</fileMode>
+      <directoryMode>750</directoryMode>
+    </fileSet>
+
 
     <fileSet>
       <directory>src/main/admin</directory>
