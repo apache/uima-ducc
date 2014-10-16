@@ -733,6 +733,7 @@ ${uimaDUCCNoticeText}
 										<exclude>uima-ducc-transport/**</exclude>
 										<exclude>uima-ducc-web/**</exclude>
 										<exclude>**/src/main/webapp/root/opensources/**/*</exclude>
+										<exclude>**/src/main/issuesFixed/**/*</exclude>
 									</excludes>
 								</configuration>
 							</execution>
