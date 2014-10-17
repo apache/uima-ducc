@@ -562,7 +562,7 @@ public class CustomPing
     by any referencing service.  If run as an external process, any of the
     pre-registered arguments may be overridden by reference services.
 
-    The following arguments are specified in a single single comma-delimeted
+    The following arguments are specified in a single single comma-delimited
     string containing the following initializaton parameters:
     \begin{description}
       \item[meta-timeout] Defines how long to wait for {\em get\_meta} to return.
@@ -802,7 +802,13 @@ public class CustomPing
 
    \paragraph{Lines 314 and 315}
    The average time a single instance takes to serve a single request, {\em Ti}  is given
-   by the simple formula \( Ti = (eT / Q) * active \) where
+   by the simple formula 
+
+\begin{verbatim}
+    Ti = (eT / Q) * active
+\end{verbatim}
+ where
+
    \begin{description}
      \item[eT] is the average time an item stays in queue (from AMQ),
      \item[Q] is the current queue depth (from AMQ),
@@ -810,13 +816,21 @@ public class CustomPing
    \end{description}
 
    Therefore the time taken by a single thread {\em Ti} is given by 
-   \( Tt = Ti * nthreads \).
-     
+\begin{verbatim}
+   Tt = Ti * nthreads
+\end{verbatim}
+
    \paragraph{Lines 319 and 320}
    We want {\em Tt} to become close to the current
-   \(Tt * goal\) where {\em goal} is given by the ping arguments.  The 
+\begin{verbatim}
+   Tt * goal 
+\end{verbatim}
+
+    where {\em goal} is given by the ping arguments.  The 
    current ratio of actual service time to desired is then given by
-   \( r = eT / g \)
+\begin{verbatim}
+   r = eT / g
+\end{verbatim}
 
    Because we know that the DUCC job driver will never over-commit; that is,
    we know the current demand will remain constant unless the jobs using the
@@ -824,11 +838,11 @@ public class CustomPing
    that the number of service instances required is directly proportional
    to {\em r}.  
 
-   If \( r > 1\) we may need more instances to meet our {\em goal} and if
-   \( r < 1 \) we may be over-provisioned.
+   If  $r > 1$ we may need more instances to meet our {\em goal} and if
+   $r < 1$ we may be over-provisioned.
 
    \paragraph{Lines 325-347}
-   If \( r > 1\) we may be over-provisioned.  We calculate the number of required
+   If  $r > 1$ we may be over-provisioned.  We calculate the number of required
    instances by multiplying the current instances by {\em r} and rounding down.
    We account for instances that we know are starting but not yet started,
    cap on max instances per service, and again on max growth per cycle.
@@ -837,8 +851,8 @@ public class CustomPing
    otherwise we clear the expansion window.
 
    \paragraph{Lines 349-360}
-   If \( r < 1 \) we need to calculate shrinkage.  Because starting instances
-   is expensive we conservatively use \(r < .5\) instead and make a mark
+   If $r < 1$ we need to calculate shrinkage.  Because starting instances
+   is expensive we conservatively use $r < .5$ instead and make a mark
    in the shrinkage window.  
 
    Otherwise we clear the mark in the shinkage window.

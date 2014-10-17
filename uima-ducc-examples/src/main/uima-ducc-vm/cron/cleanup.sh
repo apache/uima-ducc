@@ -1,3 +1,4 @@
+#!/bin/bash
 # -----------------------------------------------------------------------
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -17,7 +18,6 @@
 # under the License.
 # -----------------------------------------------------------------------
 
-#!/bin/bash
 for f in `find /tmp -maxdepth 1 -mtime +7`; do rm -rf $f; done
 mkdir /tmp/degenaro
 mkdir /tmp/degenaro/ducc

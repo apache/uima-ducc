@@ -72,7 +72,7 @@ public class ServiceTester
     List<String> failReasons = new ArrayList<String>();
     List<String> successReasons = new ArrayList<String>();
 
-    int default_timeout = 10;    // how many polls to allow before calling timeout
+    int default_timeout = 20;    // how many polls to allow before calling timeout
     ServiceTester()
     {
     }
@@ -550,7 +550,7 @@ public class ServiceTester
                 if ( status.contains(s) ) return true;
             }
 
-            if ( (timeout > 0) && (++count > timeout) ) {
+            if ( (timeout > 0) && (++count > iterations) ) {
                 System.out.println("Timeout waiting for state " + Arrays.toString(states) + " for job " + runner.getId());
                 return false;
             }

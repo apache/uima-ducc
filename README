@@ -7,7 +7,7 @@
 We use Maven 3.0 for building; download this if needed, 
 and set the environment variable MAVEN_OPTS to -Xmx800m -XX:MaxPermSize-256m.
 
-To build UIMA-DUCC, install Java SDK 6 or later.
+To build UIMA-DUCC, install either Java SDK 6 or Java SDK 7.
 
 Then build from the directory containing this README by issuing the command
    mvn clean install.
@@ -80,7 +80,7 @@ installation instructions.
 3.1 Supported Platforms
 -----------------------
 
-UIMA-DUCC has been tested with Sun Java 6 as well as IBM Java 6 on Linux. The cluster of machines DUCC manages
+UIMA-DUCC has been tested with Sun Java 6 and 7 as well as IBM Java 6 and 7 on Linux. The cluster of machines DUCC manages
 must all be running a reasonably current level of Linux; other operating systems are not supported.
 . 
 
