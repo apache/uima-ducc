@@ -31,7 +31,6 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.apache.log4j.spi.ErrorHandler;
 import org.apache.log4j.spi.LoggingEvent;
-import org.apache.uima.InternationalizedException;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
@@ -318,37 +317,7 @@ public class DuccLogger
             if ( a == null ) a = "<null>"; // avoid null pointers
 
             s.append(" ");
-            //
-            // Recognize UIMA exceptions and produce more verbose logging
-            //
-            if ( a instanceof InternationalizedException ) {
-                InternationalizedException e = (InternationalizedException) a;
-                s.append(e.toString());
-                s.append("\n");
-                Object[] arguments = e.getArguments();
-                if ( arguments.length > 0 ) {
-                    s.append("UIMA exception arguments:\n");
-                }
-                for ( Object o : arguments ) {
-                    if ( o == null ) o = "<null>";  // avoid npe
-                    s.append(o.toString());
-                    s.append("\n");
-                }   
-
-                //
-                // Dig in to find the original throw, bypassing all
-                // the annoying infrastructure gorp in between.
-                //
-                Throwable nextCause = e.getCause();
-                if(nextCause != null) {
-                	while ( nextCause.getCause() != null ) {
-                		nextCause = nextCause.getCause();
-                	}
-                	s.append("Caused by:\n");
-                	s.append(nextCause.toString());
-                	appendStackTrace(s, nextCause);
-                }
-            } else if ( a instanceof Throwable ) {
+            if ( a instanceof Throwable ) {
             	Throwable t = (Throwable ) a;
                 s.append(t.toString());
                 s.append("\n");
