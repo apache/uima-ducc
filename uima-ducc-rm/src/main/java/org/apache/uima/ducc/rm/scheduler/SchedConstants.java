@@ -34,9 +34,10 @@ public interface SchedConstants
     public static final String COMPONENT_NAME            = "RM";
     public static final int DEFAULT_STABILITY_COUNT      = 5;
     public static final int DEFAULT_INIT_STABILITY_COUNT = 3;
-    public static final int DEFAULT_SCHEDULING_RATIO     = 4;
+    public static final int DEFAULT_SCHEDULING_RATIO     = 1;
     public static final int DEFAULT_SCHEDULING_RATE      = 60000;
     public static final int DEFAULT_NODE_METRICS_RATE    = 60000;
+    public static final int DEFAULT_OR_PUBLISH_RATE      = 30000;
 
     public static final int DEFAULT_PROCESSES            = 10;     // for jobs, number of processes if not specified
     public static final int DEFAULT_INSTANCES            = 1;     // for reservations, number of instances if not specified

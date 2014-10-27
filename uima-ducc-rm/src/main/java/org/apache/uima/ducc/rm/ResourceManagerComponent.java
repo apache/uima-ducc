@@ -57,14 +57,17 @@ public class ResourceManagerComponent
     int nodeStability;                // number of heartbeats from agent metrics we are allowed to miss before purging node
     int initStability;                // number of heartbeats from agent metrics we must wait for during init befor starting
     int nodeMetricsUpdateRate;
+    int orPublishingRate;
     boolean schedulerReady = false;
 
     ISchedulerMain scheduler;
     JobManagerConverter converter;
 
     // These guys are used to manage my own epoch
-    int schedulingRatio = 6;
-    int schedulingEpoch = 60000;
+    int schedulingRatio = 1;
+    // int schedulingEpoch = 60000;
+
+    long lastSchedule = 0;
     DuccEventDispatcher eventDispatcher;
     String stateEndpoint;
 
@@ -184,7 +187,8 @@ public class ResourceManagerComponent
         nodeStability         = SystemPropertyResolver.getIntProperty("ducc.rm.node.stability", DEFAULT_STABILITY_COUNT);
         nodeMetricsUpdateRate = SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", DEFAULT_NODE_METRICS_RATE);
         schedulingRatio       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.ratio", DEFAULT_SCHEDULING_RATIO);
-        schedulingEpoch       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", DEFAULT_SCHEDULING_RATE);
+        orPublishingRate      = SystemPropertyResolver.getIntProperty("ducc.orchestrator.abbreviated.state.publish.rate", DEFAULT_OR_PUBLISH_RATE);
+        // schedulingEpoch       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", DEFAULT_SCHEDULING_RATE);
         
         String adminEndpoint         = System.getProperty("ducc.rm.admin.endpoint");
         if ( adminEndpoint == null ) {
@@ -251,26 +255,28 @@ public class ResourceManagerComponent
 
         while ( true ) {
 
-            try {
-                Thread.sleep(schedulingEpoch);                               // and linger a while
-                //wait();
-            } catch (InterruptedException e) {
-            	logger.info(methodName, null, "Scheduling wait interrupted, executing out-of-band epoch.");
-            }
-            
-            try {
-                // logger.info(methodName, null, "Publishing RM state to", stateEndpoint);
-                logger.info(methodName, null, "--------", ++epoch_counter, "------- Entering scheduling loop --------------------");
-
-                jobManagerUpdate = scheduler.schedule();          
-                if ( jobManagerUpdate != null ) {             // returns null while waiting for node stability
-                    RmStateDuccEvent ev = converter.createState(jobManagerUpdate);
-                    eventDispatcher.dispatch(stateEndpoint, ev, "");  // tell the world what is scheduled (note empty string)
+            synchronized(this) {
+                try {
+                    //Thread.sleep(schedulingEpoch);                               // and linger a while
+                    wait();
+                } catch (InterruptedException e) {
+                    logger.info(methodName, null, "Scheduling wait interrupted, executing out-of-band epoch.");
                 }
-
-                logger.info(methodName, null, "--------", epoch_counter, "------- Scheduling loop returns  --------------------");
-            } catch (Throwable e1) {
-            	logger.fatal(methodName, null, e1);
+            
+                try {
+                    // logger.info(methodName, null, "Publishing RM state to", stateEndpoint);
+                    logger.info(methodName, null, "--------", epoch_counter, "------- Entering scheduling loop --------------------");
+                    
+                    jobManagerUpdate = scheduler.schedule();          
+                    if ( jobManagerUpdate != null ) {             // returns null while waiting for node stability
+                        RmStateDuccEvent ev = converter.createState(jobManagerUpdate);
+                        eventDispatcher.dispatch(stateEndpoint, ev, "");  // tell the world what is scheduled (note empty string)
+                }
+                    
+                    logger.info(methodName, null, "--------", epoch_counter, "------- Scheduling loop returns  --------------------");
+                } catch (Throwable e1) {
+                    logger.fatal(methodName, null, e1);
+                }
             }
             
         }
@@ -319,12 +325,24 @@ public class ResourceManagerComponent
     public void onOrchestratorStateUpdate(DuccWorkMap map)
     {
         String methodName = "onJobManagerStateUpdate";
+
         try {
             logger.info(methodName, null, "-------> OR state arrives");
-            converter.eventArrives(map);
-            //if ( ((epoch_counter++) % schedulingRatio) == 0 ) {
-            //    notify();
-            //}
+            synchronized(this) {
+                // If the OR publications come too fast just ignore them.
+                // We try to set the minSchedulingRate to be something reasonably less than
+                // the OR rate in order to be as responsive as possible.
+                long now = System.currentTimeMillis();
+                if ( now - lastSchedule >= orPublishingRate ) {
+                    converter.eventArrives(map);
+                    if ( ((++epoch_counter) % schedulingRatio) == 0 ) {
+                        notify();
+                    }
+                    lastSchedule = now;
+                } else {
+                    logger.warn(methodName, null, "-------> OR publication ignored, arrived too soon (less than", orPublishingRate, "delay). Delay was", (now-lastSchedule));
+                }
+            }
         } catch ( Throwable e ) {
             logger.error(methodName, null, "Excepton processing Orchestrator event:", e);
         }
