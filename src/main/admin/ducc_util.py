@@ -658,7 +658,8 @@ class DuccUtil(DuccBase):
         CMD = self.jvm
         CMD = CMD + " -DDUCC_HOME=" + self.DUCC_HOME
         CMD = CMD + " org.apache.uima.ducc.common.NodeConfiguration "
-        CMD = CMD + " -v " + allnodes
+        CMD = CMD + " -n " + allnodes
+        CMD = CMD + " -c " + classfile
         if ( verbose ):
             CMD = CMD + " -p " + classfile
             print CMD
