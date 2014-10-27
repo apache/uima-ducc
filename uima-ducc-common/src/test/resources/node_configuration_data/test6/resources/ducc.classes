@@ -1,0 +1,90 @@
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+
+# The first nodepool is the default nodepool which contains defaults for *all* nodepools.  
+# There need not be any subpools of global or even nodes.  Any node not otherwise assigned
+# to a nodepool is given to --default-- when it checks in.
+
+# Specify 'default = true' in a fair-share class for job default
+# Specify 'default = true' in a non-fair-share class for reservation default
+# Specify the alternative debug class as 'debug = class'.  No default debug, use
+#    inheritance as shown below
+
+# Test: Top level npC that isn't parented by --default--
+Nodepool --default--  { }
+Nodepool npA            { nodefile npA.nodes ; parent --default-- }
+Nodepool npB            { nodefile npB.nodes ; parent --default-- }
+Nodepool npC            { nodefile npC.nodes  }
+Nodepool npD            { nodefile npD.nodes ; parent npC }
+Nodepool npE            { nodefile npE.nodes ; parent npB }
+
+# Nnodepools may be defined with additional Nodepool statements.  For example here we define
+# a nodpool as a subpool of the default:
+#    Nodepool  subpool1 { parent = --default-- }
+# Here we define a second 'top-level' nodepool with no parent, consisting of the nodes defined
+# in the file toplevel1.nodes.
+#    Nodepool  toplevel1 { nodefile = toplevel1.nodes }
+
+
+# --------------------- Fair share definitions ---------------
+# The 'fair-base' class is a template for other fair-share classes.  Classes derived
+# from here inherit all its properties.  fair-base is identified as a template because
+# it has the property 'abstract = true'
+#
+
+Class fair-base {
+      policy = FAIR_SHARE
+      nodepool = --default--
+      priority = 10
+      weight = 100
+      abstract = true
+}
+
+# These classes are derived from fair-base, and override the 'weight' property.  As well
+# class 'normal' is designated as the default FAIR_SHARE class
+Class normal         fair-base  { weight = 100; default = true }
+Class normal-npA     fair-base  { weight = 100; nodepool = npA }
+Class normal-npB     fair-base  { weight = 100; nodepool = npB }
+Class normal-npC     fair-base  { weight = 100; nodepool = npC }
+Class normal-npD     fair-base  { weight = 100; nodepool = npD }
+Class normal-npE     fair-base  { weight = 100; nodepool = npE }
+
+# --------------------- Fixed share definitions ---------------
+Class fixed-base {
+      policy = FIXED_SHARE
+      nodepool = --default--
+      priority = 5
+      abstract = true
+      max-processes = 10
+}
+
+Class fixed      fixed-base  { default = true}
+Class JobDriver  fixed-base  { priority = 9 }
+
+# --------------------- Reserve definitions ---------------
+Class reserve-base {
+      policy = RESERVE
+      nodepool = --default--
+      priority = 1
+      abstract = true
+      max-machines = 10
+}
+ 
+Class reserve     reserve-base { default = true }
