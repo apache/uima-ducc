@@ -70,6 +70,8 @@ under the License.
         <include>org.apache.uima:uima-ducc-orchestrator</include>
         <include>org.apache.uima:uima-ducc-web</include>
         <include>org.apache.uima:uima-ducc-db</include>
+        <include>org.apache.uima:uima-ducc-user</include>
+        <include>org.apache.uima:uima-ducc-container</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
       <outputDirectory>lib/uima-ducc</outputDirectory>

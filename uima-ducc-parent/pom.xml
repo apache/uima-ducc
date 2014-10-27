@@ -732,6 +732,8 @@ ${uimaDUCCNoticeText}
 										<exclude>uima-ducc-spawn/**</exclude>
 										<exclude>uima-ducc-transport/**</exclude>
 										<exclude>uima-ducc-web/**</exclude>
+										<exclude>uima-ducc-user/**</exclude>
+										<exclude>uima-ducc-container/**</exclude>
 										<exclude>**/src/main/webapp/root/opensources/**/*</exclude>
 										<exclude>**/src/main/issuesFixed/**/*</exclude>
 									</excludes>
