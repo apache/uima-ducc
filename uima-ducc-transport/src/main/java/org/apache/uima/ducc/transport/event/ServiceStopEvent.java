@@ -26,7 +26,6 @@ public class ServiceStopEvent
     private long friendly;
     private String epname;
     private int instances;
-    private boolean update;
 
 	public ServiceStopEvent(String user, long friendly, String epname, byte[] auth_block, int cli_version)
     {
@@ -54,20 +53,9 @@ public class ServiceStopEvent
         this.instances = instances;
     }
 
-    public boolean getUpdate()
-    {
-        return update;
-    }
-
-    public void setUpdate(boolean update)
-    {
-        this.update = update;
-    }
-
 	@Override
 	public String toString() {
-		return "ServiceStopEvent [friendly=" + friendly + ", user=" + user + ", instances=" + instances + ", update=" + update
-				+ "]";
+		return "ServiceStopEvent [friendly=" + friendly + ", user=" + user + ", instances=" + instances +  "]";
 	}
 	
 }

@@ -1,4 +1,4 @@
-/*
+  /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,27 +26,28 @@ import java.io.OutputStreamWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingOptionException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.Parser;
-import org.apache.commons.cli.PosixParser;
+// import org.apache.commons.cli.CommandLine;
+// import org.apache.commons.cli.HelpFormatter;
+// import org.apache.commons.cli.MissingOptionException;
+// import org.apache.commons.cli.Option;
+// import org.apache.commons.cli.Options;
+// import org.apache.commons.cli.ParseException;
+// import org.apache.commons.cli.Parser;
+// import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDucc;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.transport.dispatcher.ClassManager;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.AbstractDuccOrchestratorEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
@@ -61,10 +62,11 @@ public abstract class CliBase
     private String myClassName = "N/A";
     private boolean init_done = false;
     protected String ducc_home;
+    // IHttpDispatcher dispatcher;
     DuccEventHttpDispatcher dispatcher;
 
-    protected Options cliOptions;
-    protected Parser parser;
+    //protected Options cliOptions;
+    //protected Parser parser;
     protected CommandLine commandLine;
 
     protected long friendlyId = -1;
@@ -91,7 +93,7 @@ public abstract class CliBase
     protected Properties userSpecifiedProperties;
     
     // Options added to the saved spec file that must be removed if used as a --specification option
-    private List<String> addedOptions = Arrays.asList(UiOption.SubmitPid.pname(), UiOption.User.pname());
+    //private List<UiOption> addedOptions = Arrays.asList(UiOption.SubmitPid, UiOption.User);
     
     /**
      * All extenders must implement execute - this method does whatever processing on the input
@@ -215,25 +217,25 @@ public abstract class CliBase
         }
     }
 
-    /*
-     * Also used by DuccMonitor
-     */
-    static public Options makeOptions(UiOption[] optlist)
-    {
-        Options opts = new Options();
-        for ( UiOption opt : optlist ) {
-            String arg = opt.argname();
-            Option o = new Option(opt.sname(), opt.pname(), (arg != null), opt.makeDesc());
-            o.setArgName(arg);
-            o.setOptionalArg(arg != null && arg.endsWith("(optional)"));
-            if (opt.multiargs()) {
-              o.setArgs(Option.UNLIMITED_VALUES);   // (Untested as we have no multiarg options)
-            }
-            opts.addOption(o);
-            // Note: avoid OptionBuilder as is not thread-safe
-        }
-        return opts;
-    }
+//    /*
+//     * Also used by DuccMonitor
+//     */
+//    static public Options makeOptions(UiOption[] optlist)
+//    {
+//        Options opts = new Options();
+//        for ( UiOption opt : optlist ) {
+//            String arg = opt.argname();
+//            Option o = new Option(opt.sname(), opt.pname(), (arg != null), opt.makeDesc());
+//            o.setArgName(arg);
+//            o.setOptionalArg(arg != null && arg.endsWith("(optional)"));
+//            if (opt.multiargs()) {
+//              o.setArgs(Option.UNLIMITED_VALUES);   // (Untested as we have no multiarg options)
+//            }
+//            opts.addOption(o);
+//            // Note: avoid OptionBuilder as is not thread-safe
+//        }
+//        return opts;
+//    }
 
     protected String[] mkArgs(Properties props)
     {
@@ -249,6 +251,24 @@ public abstract class CliBase
         }
         return arglist.toArray(new String[arglist.size()]);
     }
+
+    DuccEventHttpDispatcher makeDispatcher(String targetUrl)
+    {
+        String[] classpath = {
+            "lib/apache-camel/xstream*",
+            "lib/google-gson/gson*",
+        };        
+     
+        DuccEventHttpDispatcher ret = null;
+		try {
+			ClassManager cm = new ClassManager(classpath);
+			ret = (DuccEventHttpDispatcher) cm.construct("org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher", new Object[] {targetUrl});
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return ret;
+    }    
     
     /**
      * Standard init for all except the Service calls that are sent to the SM
@@ -264,10 +284,22 @@ public abstract class CliBase
         this.init (myClassName, opts, null, props, cli_props, consoleCb, "orchestrator");
     }
     
-    protected synchronized void init(String myClassName, UiOption[] uiOpts, String[] args, Properties props, 
+  /**
+   * 
+   * @param myClassName  Name of the class invoking me, for help string
+   * @param uiOpts       Array of IUioptions permitted for this command
+   * @param args         Arguments from the command line
+   * @param props        Properties passed in from the API
+   * @param cli_props    (Initially) empty properties file to be filled in 
+   * @param consoleCb    Console callback object (optional)
+   * @param servlet      The name of the http servlet that will serve this request
+   * @throws Exception
+   */
+    protected synchronized void init(String myClassName, IUiOption[] uiOpts, String[] args, Properties props, 
                     DuccProperties cli_props, IDuccCallback consoleCb, String servlet)
         throws Exception
     {
+
         CliFixups.cleanupArgs(args, myClassName);   // Default implementation does nothing
         
         if ( init_done ) return;
@@ -282,28 +314,43 @@ public abstract class CliBase
         ducc_home = Utils.findDuccHome();
 
         this.cli_props = cli_props;
-        parser = new PosixParser();
+        if ( args != null ) {
+        	fixupQuotedArgs(args);
+        }
+        commandLine = new CommandLine(args, uiOpts, props);
+        try {
+			commandLine.parse();
+		} catch (Exception e) {
+			usage(e.getMessage());
+		}
 
-        cliOptions = makeOptions(uiOpts);
+        // cliOptions = makeOptions(uiOpts);
         // If given only a properties file parse as if only have defaults
-        if (args == null) {
-            commandLine = parser.parse(cliOptions, null, props);
-        } else {
-            fixupQuotedArgs(args);
-            commandLine = parser.parse(cliOptions, args);
+//        if (args == null) {
+//        	// strings, uioptions, proerties
+//            commandLine.parse(null, uiOpts, props);
+//        } else {
+//            fixupQuotedArgs(args);
+//            commandLine = parser.parse(cliOptions, args);
+//        }
+//        if (commandLine.getOptions().length == 0 || commandLine.hasOption(UiOption.Help.pname())) {
+//            usage(null);
+//        }
+        if ( commandLine.contains(UiOption.Help)) {
+        	usage(null);
         }
-        if (commandLine.getOptions().length == 0 || commandLine.hasOption(UiOption.Help.pname())) {
-            usage(null);
-        }
-        debug = commandLine.hasOption(UiOption.Debug.pname());
+        
+        debug = commandLine.contains(UiOption.Debug);
 
         // Load the specification file, if given on the command line.  Note that registration
         // bypasses the somewhat redundant --specification option so we check two options.
         // Cannot have both as --specification && --register are never both valid.
         String fname = null;
-        for (String spec : new String[] { UiOption.Specification.pname(), UiOption.Register.pname()}) {
-            fname = commandLine.getOptionValue(spec);
-            if (fname != null) break;
+        for (IUiOption spec : new IUiOption[]{ UiOption.Specification, UiOption.Register }) {
+            if ( commandLine.isOption(spec) && commandLine.contains(spec)) {     // legal for this command, and also specified?
+            	fname = commandLine.get(spec);
+            	break;
+             }
         }
         // If have a specification file re-parse using it for default values
         if ( fname != null ) {
@@ -311,19 +358,26 @@ public abstract class CliBase
             Properties defaults = new Properties();
             defaults.load(fis);
             fis.close();
-            sanitize(defaults, cliOptions);  // Check for illegals as commons cli 1.2 throws a NPE !
+            CliFixups.cleanupProps(defaults, myClassName);     // By default does nothing
+            
+            // No longer needed we believe
+            // sanitize(defaults, commandLine);  // Check for illegals as commons cli 1.2 throws a NPE !  
+
             // If invoked with overriding properties add to or replace the defaults 
             if (props != null) {
                 defaults.putAll(props);
             }
-            commandLine = parser.parse(cliOptions, args, defaults);
+            commandLine = new CommandLine(args, uiOpts, defaults);
+            commandLine.parse();
         }
-
+        commandLine.verify();  // Insure all the rules specified by the IUiOpts are enforced        
+        
         // Check if any orphaned args left
-        List<?> extraArgs = commandLine.getArgList();
-        if (extraArgs.size() > 0) {
-            throw new ParseException("Superfluous arguments provided (perhaps quotes omitted?): " + extraArgs);
-        }
+        // new CommandLine parser will throw IllegalArgumentException if this happens
+//        List<?> extraArgs = commandLine.getArgList();
+//        if (extraArgs.size() > 0) {
+//            throw new ParseException("Superfluous arguments provided (perhaps quotes omitted?): " + extraArgs);
+//        }
         
         // Copy options into cli_props
         setOptions(uiOpts);
@@ -336,6 +390,9 @@ public abstract class CliBase
         
         // Apply defaults for and fixup the environment if needed
         //   -- unless default loading is inhibited, as it must be for modify operations
+        //      What this routine does is fill in all the options that weren't specified
+        //      on the command line with their defaults.  For 'modify' we want to bypass
+        //      this because ONLY the options from the command line should be set.
         if ( load_defaults ) {
             setDefaults(uiOpts, suppress_console_log);
         }
@@ -355,6 +412,8 @@ public abstract class CliBase
         initConsoleListener();
 
         String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
+
+        // dispatcher = makeDispatcher(targetUrl);
         dispatcher = new DuccEventHttpDispatcher(targetUrl);
         
         init_done = true;
@@ -363,28 +422,33 @@ public abstract class CliBase
     /*
      * Save options as properties after resolving any ${..} placeholders
      */
-    void setOptions(UiOption[] uiOpts) throws Exception {
-        for (Option opt : commandLine.getOptions()) {
-            String val = opt.getValue();
+    void setOptions(IUiOption[] uiOpts) 
+        throws Exception 
+    {
+    	Map<IUiOption, String> parsed = commandLine.allOptions();
+        for (IUiOption opt : parsed.keySet() ) {
+            String val = parsed.get(opt);
             if (val == null) {                    // Should only happen for no-arg options
-                val = opt.hasArg() ? "" : "true"; // Treat no-arg options as booleans ... apache.commons.cli expects this
+                val = "";                        
             } else {
                 if (val.contains("${")) {
                     val = resolvePlaceholders(val);
                 }
-                String oval = (String) cli_props.get(opt.getLongOpt());
-                if (oval != null && !oval.equals(val)) {
-                    throw new Exception("Duplicate option specified: " + opt.getLongOpt());
-                }
+                // no need to check for dups, the parser does this
+//                String oval = (String) cli_props.get(opt.getLongOpt());
+//                if (oval != null && !oval.equals(val)) {
+//                    throw new Exception("Duplicate option specified: " + opt.getLongOpt());
+//                }
             }
             val = val.trim();
             // SM cannot handle an empty list of service dependencies
-            if (val.length() == 0 && opt.getLongOpt().equals(UiOption.ServiceDependency.pname())) {
-                if (debug) System.out.println("CLI dropped empty option " + opt.getLongOpt());
-            } else {
-                cli_props.put(opt.getLongOpt(), val);
-                if (debug) System.out.println("CLI set " + opt.getLongOpt() + " = '" + val + "'");
-            }
+            // new parser: ServiceDependency configured to require an argument.
+//            if (val.length() == 0 && opt.getLongOpt().equals(UiOption.ServiceDependency.pname())) {
+//                if (debug) System.out.println("CLI dropped empty option " + opt.getLongOpt());
+//            } else {
+                cli_props.put(opt.pname(), val);
+                if (debug) System.out.println("CLI set " + opt.pname() + " = '" + val + "'");
+            //}
         }
     }
     
@@ -392,17 +456,26 @@ public abstract class CliBase
      * Check for missing required options, set defaults, and validate where possible
      * Also fixup the environment for all that use it.
      */
-    void setDefaults(UiOption[] uiOpts, boolean suppress_console) throws Exception {
-        for (UiOption uiopt : uiOpts) {
+    void setDefaults(IUiOption[] uiOpts, boolean suppress_console) throws Exception {
+        for (IUiOption uiopt : uiOpts) {
             if (!cli_props.containsKey(uiopt.pname())) {
-                if (uiopt.required()) {
-                    throw new MissingOptionException("Missing required option: " + uiopt.pname());
-                }
-                if (uiopt.deflt() != null) {
+                //
+                // here deal with stuff that wasn't given explicitly in the command
+                //
+                // our convention - optargs() implies boolean, but it does't have to.
+                //                  If the arg is not expllicitly specified, we assume
+                //                  it is (boolean,false) for the sake of dealing with defaults.
+                //                  -- and then just leave it out --
+                // similarly      - noargs() is definitely boolean, same treatement
+                //
+                if ( (! uiopt.optargs()) && (! uiopt.noargs() ) && uiopt.deflt() != null) {
                     if (debug) System.out.println("CLI set default: " + uiopt.pname() + " = " + uiopt.deflt());
                     cli_props.put(uiopt.pname(), uiopt.deflt());
                 }
             } else {
+                //
+                // here clean up stuff that was specified but we want to validate it
+                //
                 if (uiopt == UiOption.ClasspathOrder) {
                     String val = cli_props.getStringProperty(uiopt.pname());
                     if (!val.equals(ClasspathOrderParms.DuccBeforeUser.pname())
@@ -432,30 +505,41 @@ public abstract class CliBase
      * other than 'true' or 'yes' or '1' (CLI 1.2 mishandles others)
      */
     
-    private void sanitize(Properties props, Options opts) {
-        CliFixups.cleanupProps(props, myClassName);     // By default does nothing
-        for (String key : props.stringPropertyNames()) {
-            if (addedOptions.contains(key)) {
-                props.remove(key);
-            } else {
-                Option opt = cliOptions.getOption(key);
-                if (opt == null) {
-                    throw new IllegalArgumentException("Invalid option '" + key + "' in specification file");
-                }
-                if (!opt.hasArg()) {
-                    String val = props.getProperty(key);
-                    if (val.length() == 0) {
-                        props.setProperty(key, "true");
-                    } else if (!val.equalsIgnoreCase("true") &&
-                               !val.equalsIgnoreCase("yes") &&
-                               !val.equals("1")) {
-                        message("WARN: Ignoring illegal value: ", key, "=", val);
-                        props.remove(key);
-                    }
-                }
-            }
-        }
-    }
+    /*
+     * Notes for removal of commons.cli:
+     * - Do not need to check for invalid options, the parser does that and throws
+     * - Do not need to deal with missing boolean for no-opt parms, the parsesr does that
+     * What's left? Removing stuff like 'user' and 'pid' if you're reusing a
+     * previously-submitted properties file.  We probably don't need this either.
+     *
+     * Consulting Burn, it appears we probably don't need sanitize.
+
+     * So for now I'll just remove it and see what happens,
+     */
+    // private void sanitize(Properties props, Options opts) {
+    //     CliFixups.cleanupProps(props, myClassName);     // By default does nothing
+    //     for (String key : props.stringPropertyNames()) {
+    //         if (addedOptions.contains(key)) {
+    //             props.remove(key);
+    //         } else {
+    //             Option opt = cliOptions.getOption(key);
+    //             if (opt == null) {
+    //                 throw new IllegalArgumentException("Invalid option '" + key + "' in specification file");
+    //             }
+    //             if (!opt.hasArg()) {
+    //                 String val = props.getProperty(key);
+    //                 if (val.length() == 0) {
+    //                     props.setProperty(key, "true");
+    //                 } else if (!val.equalsIgnoreCase("true") &&
+    //                            !val.equalsIgnoreCase("yes") &&
+    //                            !val.equals("1")) {
+    //                     message("WARN: Ignoring illegal value: ", key, "=", val);
+    //                     props.remove(key);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     
     /*
      * Resolve any ${..} placeholders against user's system properties and environment
@@ -568,9 +652,7 @@ public abstract class CliBase
         if ( message != null ) {
             System.out.println(message);
         }
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.setWidth(DuccUiConstants.help_width);
-        formatter.printHelp(myClassName, cliOptions);
+        System.out.println(commandLine.formatHelp(myClassName));
         System.exit(1);
     }
 
@@ -589,8 +671,7 @@ public abstract class CliBase
         if ( key.startsWith("--") ) {
             key = key.substring(2);
         }
-        Option option = cliOptions.getOption(key);
-        if (option == null ) {
+        if ( ! commandLine.isOption(key)) {       
             return false;
         }
         cli_props.setProperty(key, value);

@@ -341,6 +341,7 @@ public class DuccJobSubmit
      */
     public static void main(String[] args) {
         try {
+
             DuccJobSubmit ds = new DuccJobSubmit(args, null);
             boolean rc = ds.execute();
             // If the return is 'true' then as best the API can tell, the submit worked

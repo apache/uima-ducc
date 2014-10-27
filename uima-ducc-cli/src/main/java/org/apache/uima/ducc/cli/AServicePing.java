@@ -95,8 +95,7 @@ public abstract class AServicePing
      * writes to stdout which is directed to
      * the declared service log directory by the infrastructore.
      */
-    protected org.apache.uima.ducc.common.utils.DuccLogger duccLogger = 
-        org.apache.uima.ducc.common.utils.DuccLogger.getLogger(this.getClass().getName(), "PING");	
+    protected org.apache.uima.ducc.common.utils.DuccLogger duccLogger;
 
     /**
      * Called by the ping driver, to pass in useful things the pinger may want.

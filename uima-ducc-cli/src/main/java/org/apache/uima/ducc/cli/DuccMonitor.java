@@ -18,30 +18,23 @@
  */
 package org.apache.uima.ducc.cli;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.management.ManagementFactory;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
+// import org.apache.commons.cli.CommandLine;
+// import org.apache.commons.cli.CommandLineParser;
+// import org.apache.commons.cli.HelpFormatter;
+// import org.apache.commons.cli.Options;
+// import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
-
-import com.google.gson.Gson;
 
 public abstract class DuccMonitor {
 
@@ -54,9 +47,11 @@ public abstract class DuccMonitor {
 	protected static final String StateCompleting = "Completing";
 	protected static final String StateCompleted = "Completed";
 
-	private Options options = new Options();
+    protected CommandLine command_line = null;
 
-	private UiOption[] opts = new UiOption[0];
+	// private Options options = new Options();
+
+	private IUiOption[] opts = new UiOption[0];
 
 	private String id = null;
 
@@ -83,18 +78,18 @@ public abstract class DuccMonitor {
 	private SynchronizedSimpleDateFormat sdf = new SynchronizedSimpleDateFormat(
 			"dd/MM/yyyy HH:mm:ss");
 
-	private UiOption[] optsSubmitJob = new UiOption[] { UiOption.Help,
+	private IUiOption[] optsSubmitJob = new UiOption[] { UiOption.Help,
 			UiOption.Debug, UiOption.Quiet, UiOption.Timestamp, UiOption.JobId,
 			UiOption.CancelOnInterrupt, };
 
-	private UiOption[] optsMonitorJob = new UiOption[] { UiOption.Help,
+	private IUiOption[] optsMonitorJob = new UiOption[] { UiOption.Help,
 			UiOption.Debug, UiOption.Quiet, UiOption.Timestamp, UiOption.JobId, };
 
-	private UiOption[] optsSubmitManagedReservation = new UiOption[] {
+	private IUiOption[] optsSubmitManagedReservation = new UiOption[] {
 			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
 			UiOption.ManagedReservationId, UiOption.CancelOnInterrupt, };
 
-	private UiOption[] optsMonitorManagedReservation = new UiOption[] {
+	private IUiOption[] optsMonitorManagedReservation = new UiOption[] {
 			UiOption.Help, UiOption.Debug, UiOption.Quiet, UiOption.Timestamp,
 			UiOption.ManagedReservationId, };
 
@@ -107,7 +102,10 @@ public abstract class DuccMonitor {
 		initialize(context, submit, messageProcessor);
 	}
 
-	public abstract void help(Options options);
+	public void help(IUiOption[] options)
+    {
+        System.out.println(command_line.formatHelp(this.getClass().getName()));
+    }
 
 	public abstract void cancel();
 
@@ -155,7 +153,7 @@ public abstract class DuccMonitor {
 				break;
 			}
 		}
-		options = CliBase.makeOptions(opts);
+		// options = CliBase.makeOptions(opts);
 		// message processor
 		if (messageProcessor != null) {
 			this.messageProcessor = messageProcessor;
@@ -247,39 +245,39 @@ public abstract class DuccMonitor {
 		duccPropertiesResolver = DuccPropertiesResolver.getInstance();
 		// Parse
 		synchronized (DuccMonitor.class) {
-			CommandLineParser parser = new PosixParser();
-			CommandLine commandLine = parser.parse(options, args);
-			if (commandLine.hasOption(DuccUiConstants.name_help)) {
-				help(options);
+			command_line = new CommandLine(args, opts);
+            try {
+                command_line.parse();
+            } catch ( IllegalArgumentException e ) {
+                System.out.println("Illegal arguments: " + e.getMessage());
+                help(opts);
+                return RC_HELP;
+            }
+
+			if (command_line.contains(UiOption.Help)) {
+				help(opts);
 				return RC_HELP;
 			}
-			if (commandLine.getOptions().length == 0) {
-				help(options);
-				return RC_HELP;
-			}
-			if (commandLine.hasOption(UiOption.Timestamp.pname())) {
+            
+			if (command_line.contains(UiOption.Timestamp)) {
 				flag_timestamp.set(true);
 			}
-			if (commandLine.hasOption(UiOption.Quiet.pname())) {
+			if (command_line.contains(UiOption.Quiet)) {
 				flag_info.set(false);
 				flag_error.set(false);
 			}
-			if (commandLine.hasOption(UiOption.Debug.pname())) {
+			if (command_line.contains(UiOption.Debug)) {
 				flag_debug.set(true);
 			}
-			if (commandLine.hasOption(UiOption.CancelOnInterrupt.pname())) {
+			if (command_line.contains(UiOption.CancelOnInterrupt)) {
 				flag_cancel_on_interrupt.set(true);
 			}
-			if (commandLine.hasOption(UiOption.JobId.pname())) {
-				id = commandLine.getOptionValue(UiOption.JobId.pname());
-			} else if (commandLine.hasOption(UiOption.ManagedReservationId
-					.pname())) {
-				id = commandLine.getOptionValue(UiOption.ManagedReservationId
-						.pname());
-			} else {
-				HelpFormatter formatter = new HelpFormatter();
-				formatter.setWidth(110);
-				formatter.printHelp(DuccJobMonitor.class.getName(), options);
+			if (command_line.contains(UiOption.JobId)) {
+				id = command_line.get(UiOption.JobId);
+			} else if (command_line.contains(UiOption.ManagedReservationId)) {
+				id = command_line.get(UiOption.ManagedReservationId);
+            } else {
+                System.out.println(command_line.formatHelp(DuccJobMonitor.class.getName()));
 				return RC_HELP;
 			}
 		}
@@ -300,12 +298,15 @@ public abstract class DuccMonitor {
 		info(message.toString());
 		// Poll until finished
 		while (flag_observer.get()) {
-			String json = getSingleLineStatus(urlString);
-			if (json != null) {
-				debug(json);
-				Gson gson = new Gson();
-				MonitorInfo monitorInfo = gson
-						.fromJson(json, MonitorInfo.class);
+            DuccEventHttpDispatcher dispatcher = new DuccEventHttpDispatcher(urlString, urlTimeout);
+            MonitorInfo monitorInfo = (MonitorInfo) dispatcher.dispatchJson(MonitorInfo.class);
+			// String json = getSingleLineStatus(urlString);
+			// if (json != null) {
+			// 	debug(json);
+			// 	Gson gson = new Gson();
+			// 	MonitorInfo monitorInfo = gson
+			// 			.fromJson(json, MonitorInfo.class);
+            if ( monitorInfo != null ) {
 				int stateCount = monitorInfo.stateSequence.size();
 				debug("states:" + stateCount);
 				if (stateCount <= 0) {
@@ -429,24 +430,24 @@ public abstract class DuccMonitor {
 		return retVal;
 	}
 
-	private String getSingleLineStatus(String urlString) {
-		String line = null;
-		URL url = null;
-		try {
-			url = new URL(urlString);
-			URLConnection uc = url.openConnection();
-			uc.setReadTimeout(urlTimeout);
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					uc.getInputStream()));
-			line = br.readLine();
-			br.close();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return line;
-	}
+//	private String getSingleLineStatus(String urlString) {
+//		String line = null;
+//		URL url = null;
+//		try {
+//			url = new URL(urlString);
+//			URLConnection uc = url.openConnection();
+//			uc.setReadTimeout(urlTimeout);
+//			BufferedReader br = new BufferedReader(new InputStreamReader(
+//					uc.getInputStream()));
+//			line = br.readLine();
+//			br.close();
+//		} catch (MalformedURLException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return line;
+//	}
 
 	private class Killer extends Thread {
 

@@ -27,12 +27,10 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.IDuccEnv;
-import org.apache.uima.ducc.common.utils.id.DuccId;
 
 public class DuccPropertiesResolver {
 	
-	private DuccLogger logger = DuccLogger.getLogger(DuccPropertiesResolver.class, null);
-	private DuccId duccId = null;
+	//private DuccId duccId = null;
 	
 	private AtomicBoolean loadedPrivate = new AtomicBoolean(false);
 	
@@ -163,7 +161,7 @@ public class DuccPropertiesResolver {
     }
     
     private void init(Properties properties) {
-    	String location = "init";
+    	//String location = "init";
     	String fileName = null;
         try {
         	String componentProperties="ducc.deploy.configuration";
@@ -179,13 +177,13 @@ public class DuccPropertiesResolver {
         } 
         catch (FileNotFoundException e) {
         	if(!e1.get()) {
-            	logger.error(location, duccId, "File not found: "+fileName);
+            	//logger.error(location, duccId, "File not found: "+fileName);
             	e1.set(true);;
             }
         } 
         catch (IOException e) {
         	if(!e2.get()) {
-            	logger.debug(location, duccId, "Error reading file: "+fileName);
+            	//logger.debug(location, duccId, "Error reading file: "+fileName);
             	e2.set(true);;
             }
         }
@@ -201,7 +199,7 @@ public class DuccPropertiesResolver {
     }
     
     private Properties getPrivateProperties() {
-    	String location = "getPrivateProperties";
+    	//String location = "getPrivateProperties";
     	Properties privateProperties = new Properties();
     	String key = ducc_private_resources;
     	String directory = getProperty(key);
@@ -214,29 +212,29 @@ public class DuccPropertiesResolver {
                 privateProperties.load(fis);
                 fis.close();
                 if(loadedPrivate.get()) {
-                	logger.debug(location, duccId, "Reloaded: "+fileName);
+                	//logger.debug(location, duccId, "Reloaded: "+fileName);
                 }
                 else {
-                	logger.debug(location, duccId, "Loaded: "+fileName);
+                	//logger.debug(location, duccId, "Loaded: "+fileName);
                 }
                 loadedPrivate.set(true);
             } 
             catch (FileNotFoundException e) {
             	if(!e3.get()) {
-                	logger.debug(location, duccId, "File not found: "+fileName);
+                	//logger.debug(location, duccId, "File not found: "+fileName);
                 	e3.set(true);;
                 }
             } 
         	catch (IOException e) {
         		if(!e4.get()) {
-                	logger.debug(location, duccId, "Error reading file: "+fileName);
+                	//logger.debug(location, duccId, "Error reading file: "+fileName);
                 	e4.set(true);;
                 }
             }
     	}
     	else {
     		if(!e5.get()) {
-            	logger.debug(location, duccId, "Key not found: "+key);
+            	//logger.debug(location, duccId, "Key not found: "+key);
             	e5.set(true);;
             }
     	}

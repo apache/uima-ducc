@@ -21,8 +21,6 @@ package org.apache.uima.ducc.cli;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -111,7 +109,6 @@ public class DuccServiceApi
         UiOption.Debug,
         UiOption.Start,
         UiOption.Instances,
-        UiOption.Update,
         UiOption.RoleAdministrator,
     }; 
 
@@ -120,7 +117,6 @@ public class DuccServiceApi
         UiOption.Debug,
         UiOption.Stop,
         UiOption.Instances,
-        UiOption.Update,
         UiOption.RoleAdministrator,
     }; 
 
@@ -192,14 +188,13 @@ public class DuccServiceApi
         //
         // generate modify options, same as registration options, only with the verb
         // Modify insteady of Register, and on extra option, Activate.
-        // The length here: same as registration options, 
-        //     plus 1 for Activate, 
+        // The length here, based on registration options:
         //     minus 1 for ProcessDD
         //     minus 1 for ServiceRequestEndpoint
         //     plus 1 for RoleAdministrator
-        //     ==> no lengh admustments
+        //     ==> -1 length
         //
-        modify_options = new UiOption[registration_options.length];
+        modify_options = new UiOption[registration_options.length - 1];
         int i = 0;
         for ( UiOption o : registration_options ) {
 
@@ -211,7 +206,7 @@ public class DuccServiceApi
             modify_options[i++] = o;
         }
         modify_options[i++] = UiOption.RoleAdministrator;
-        modify_options[i++] = UiOption.Activate;
+        // modify_options[i++] = UiOption.Activate;
     }
 
     private Pair<Integer, String> getId(UiOption opt)
@@ -273,15 +268,15 @@ public class DuccServiceApi
     }
 
 
-    private boolean getActivate()
-    {
-        return cli_props.containsKey(UiOption.Activate.pname());
-    }
+//    private boolean getActivate()
+//    {
+//        return cli_props.containsKey(UiOption.Activate.pname());
+//    }
 
-    private boolean getUpdate()
-    {
-        return cli_props.containsKey(UiOption.Update.pname());
-    }
+//    private boolean getUpdate()
+//    {
+//        return cli_props.containsKey(UiOption.Update.pname());
+//    }
 
     private void setLinger()
     {
@@ -523,10 +518,10 @@ public class DuccServiceApi
         ev.setAdministrative(asAdministrator);
 
         int instances = getInstances(-1);
-        boolean update = getUpdate();
+        //boolean update = getUpdate();
 
         ev.setInstances(instances);
-        ev.setUpdate(update);
+        //ev.setUpdate(update);
 
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
@@ -557,10 +552,10 @@ public class DuccServiceApi
         ev.setAdministrative(asAdministrator);
 
         int instances = getInstances(-1);
-        boolean update = getUpdate();
+        //boolean update = getUpdate();
 
         ev.setInstances(instances);
-        ev.setUpdate(update);
+        //ev.setUpdate(update);
 
         try {
             return (IServiceReply) dispatcher.dispatchAndWaitForDuccReply(ev);
@@ -624,7 +619,7 @@ public class DuccServiceApi
         ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), mods, auth_block, CliVersion.getVersion());
         int instances = getInstances(-1);
         Trinary autostart = getAutostart();
-        boolean activate = getActivate();
+        // boolean activate = getActivate();
         String  pingArguments = cli_props.getProperty(UiOption.ServicePingArguments.pname());
         String  pingClass     = cli_props.getProperty(UiOption.ServicePingClass.pname());
         String  pingClasspath = cli_props.getProperty(UiOption.ServicePingClasspath.pname());
@@ -641,8 +636,8 @@ public class DuccServiceApi
             default:
                 break;
         }
-        if ( activate ) mods.setProperty("activate", "true");
-        else            mods.setProperty("activate", "false");
+//        if ( activate ) mods.setProperty("activate", "true");
+//        else            mods.setProperty("activate", "false");
 
         if ( pingArguments != null ) mods.setProperty("service_ping_arguments", pingArguments);
         if ( pingClass     != null ) mods.setProperty("service_ping_class"    , pingClass);
@@ -777,34 +772,25 @@ public class DuccServiceApi
 
     void help()
     {
-        HelpFormatter formatter = new HelpFormatter();
-        Options options;
+        CommandLine cl;
 
-        formatter.setWidth(IUiOptions.help_width);
+        cl = new CommandLine(null, registration_options);
+        System.out.println(cl.formatHelp("--------------- Registr Options -------------"));
 
-        System.out.println("------------- Register Options ------------------");
-        options = makeOptions(registration_options);
-        formatter.printHelp(this.getClass().getName(), options);
+        cl = new CommandLine(null, unregister_options);
+        System.out.println(cl.formatHelp("\n\n------------- Unregister Options ------------------"));
 
-        System.out.println("\n\n------------- Unregister Options ------------------");
-        options = makeOptions(unregister_options);
-        formatter.printHelp(this.getClass().getName(), options);
+        cl = new CommandLine(null, start_options);
+        System.out.println(cl.formatHelp("\n\n------------- Start Options ------------------"));
 
-        System.out.println("\n\n------------- Start Options ------------------");
-        options = makeOptions(start_options);
-        formatter.printHelp(this.getClass().getName(), options);
+        cl = new CommandLine(null, stop_options);
+        System.out.println(cl.formatHelp("\n\n------------- Stop Options ------------------"));
 
-        System.out.println("\n\n------------- Stop Options ------------------");
-        options = makeOptions(stop_options);
-        formatter.printHelp(this.getClass().getName(), options);
+        cl = new CommandLine(null, modify_options);
+        System.out.println(cl.formatHelp("\n\n------------- Modify Options ------------------"));
 
-        System.out.println("\n\n------------- Modify Options ------------------");
-        options = makeOptions(modify_options);
-        formatter.printHelp(this.getClass().getName(), options);
-
-        System.out.println("\n\n------------- Query Options ------------------");
-        options = makeOptions(query_options);
-        formatter.printHelp(this.getClass().getName(), options);
+        cl = new CommandLine(null, modify_options);
+        System.out.println(cl.formatHelp("\n\n------------- Query Options ------------------"));
 
         System.exit(1);
     }

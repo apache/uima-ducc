@@ -591,6 +591,10 @@ class PingDriver
                 cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
                 continue;
             }
+            if ( j.contains("ducc-common") ) {
+                cp = cp + ":" + dh + "/lib/uima-ducc/" + j;
+                continue;
+            }
         }
 
         try {

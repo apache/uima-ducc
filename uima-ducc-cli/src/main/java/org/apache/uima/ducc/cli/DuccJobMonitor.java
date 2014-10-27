@@ -20,8 +20,8 @@ package org.apache.uima.ducc.cli;
 
 import java.util.ArrayList;
 
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
+//import org.apache.commons.cli.HelpFormatter;
+//import org.apache.commons.cli.Options;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
@@ -55,13 +55,12 @@ public class DuccJobMonitor extends DuccMonitor implements IDuccMonitor {
 		System.exit(code);
 	}
 	
-	@Override
-	public void help(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.setWidth(DuccUiConstants.help_width);
-		formatter.printHelp(DuccJobMonitor.class.getName(), options);
-		return;
-	}
+	// @Override
+	// public void help(IUiOption[] options) 
+    // {
+    //     command_line.formatHelp(this.getClass().getName());
+	// 	return;
+	// }
 	
 	@Override
 	public void cancel() {

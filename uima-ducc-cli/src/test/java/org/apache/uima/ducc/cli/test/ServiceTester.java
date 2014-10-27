@@ -20,6 +20,7 @@
 package org.apache.uima.ducc.cli.test;
 
 import java.io.FileInputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,19 +56,11 @@ public class ServiceTester
     DuccProperties ducc_properties;;
     String ducc_home;
     
-    // Base props.  These run a service from the examples
-    String[] props = {
-        "--description",            "Test Service 1",
-        "--process_jvm_args",       "-Xmx100M -DdefaultBrokerURL=",  // note broken, gets fixed in a while
-        "--classpath",              "${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*:${DUCC_HOME}/apache-uima/apache-activemq/lib/*:${DUCC_HOME}/examples/simple/resources/service",
-        "--service_ping_arguments", "broker-jmx-port=1099",
-        "--environment",            "AE_INIT_TIME=5000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path",
-        "--process_memory_size",    "15",
-        "--process_DD",             "${DUCC_HOME}/examples/simple/resources/service/Service_FixedSleep_1.xml",
-        "--scheduling_class",       "fixed",
-        "--working_directory",       "${HOME}",
-        "--service_linger",         "10000",
-    };
+    String testId;
+    String[] service_props;
+    String endpoint;
+    String service_id;
+    ApiRunner job;
 
     List<String> failReasons = new ArrayList<String>();
     List<String> successReasons = new ArrayList<String>();
@@ -103,8 +96,6 @@ public class ServiceTester
     String mkBrokerString(String ducc_home)
     	throws Exception
     {
-        ducc_properties = new DuccProperties();
-        ducc_properties.load(new FileInputStream(ducc_home + "/resources/ducc.properties"));
         String proto = ducc_properties.getStringProperty("ducc.broker.protocol");
         String host  = ducc_properties.getStringProperty("ducc.broker.hostname");
         String port  = ducc_properties.getStringProperty("ducc.broker.port");
@@ -119,7 +110,7 @@ public class ServiceTester
 
         String type = desc.getType().toString();
 
-        sb.append("Service: ");
+        sb.append("XService: ");
         sb.append(type);
         sb.append(":");
         sb.append(desc.getEndpoint());
@@ -304,7 +295,8 @@ public class ServiceTester
     {
         try {
             int count = 0;
-            System.out.println("Waiting for service " + id + " to reach state " + desired_state);
+            String prev = "";
+            System.out.println("Waiting for service " + id + " to reach state " + desired_state + " timeout " + timeout);
             do {
                 IServiceDescription desc = getServiceDescription(id);
                 if ( desc == null ) {
@@ -312,6 +304,7 @@ public class ServiceTester
                 }
 
                 String state = desc.getServiceState().toString();
+                if ( ! state.equals(prev) ) count = 0;
 
                 if ( state.equals(desired_state) ) return true;
 
@@ -319,14 +312,14 @@ public class ServiceTester
                     System.out.println("Query times out after " + count + " tries.");
                     return false;
                 }
-
+                prev = state;
 			    System.out.println(" ... " + state);
-			    Thread.sleep(5000);
+			    try { Thread.sleep(5000); } catch (InterruptedException e ) {}
 			} while ( true );
-		} catch (InterruptedException e) {
-            // I see this if the MR fails early - it interrupts the waiter which is me.
-            System.out.println("Query failed with sleep interruption.");            
-            return false;
+//		} catch (InterruptedException e) {
+//            // I see this if the MR fails early - it interrupts the waiter which is me.
+//            System.out.println("Query failed with sleep interruption.");            
+//            return false;
 		} catch (Exception e) {
             System.out.println("Query failed with exception:");            
 			e.printStackTrace();
@@ -486,17 +479,17 @@ public class ServiceTester
             props.setProperty("process_jvm_args",               "-Xmx100M ");
             props.setProperty("process_thread_count",           "2");
             props.setProperty("process_per_item_time_max",      "5");
-            props.setProperty("environment",                    "AE_INIT_TIME=5 AE_INIT_RANGE=5 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path");
+            props.setProperty("environment",                    "AE_INIT_TIME=1 AE_INIT_RANGE=1 INIT_ERROR=0");
             props.setProperty("process_deployments_max",        "999");
             props.setProperty("scheduling_class",               "normal");
             props.setProperty("service_dependency",             service_dependency);
             props.setProperty("description",                    "Depdendent job for Services Test");
             props.setProperty("wait_for_completion",            "true");
+            props.setProperty("timestamp",                      "true");
 
             try {
                 submit = new DuccJobSubmit(props, new ApiCallback(this));
                 
-                System.out.println("------------------------------ Submit Job for Services Test ------------------------------");
                 if ( submit.execute() ) {
                     System.out.println("Job " + submit.getDuccId() + " submitted, rc = " + submit.getReturnCode());
                     this.id = submit.getDuccId();
@@ -542,8 +535,11 @@ public class ServiceTester
         int iterations = timeout / sleeptime;
         int count = 0;
         
+        String prev_status = "";
         while ( true ) {                                        
             String status = runner.getStatus();
+            if ( !prev_status.equals(status) ) count = 0;   // reset count on each state change
+
             // System.out.println("======== wait for completion of " + Arrays.toString(states) + ". Current status:" + status);
             if ( runner.getStatus() == "Failed" ) return false;
             for ( String s : states ) {
@@ -554,7 +550,8 @@ public class ServiceTester
                 System.out.println("Timeout waiting for state " + Arrays.toString(states) + " for job " + runner.getId());
                 return false;
             }
-
+            prev_status = status;
+            
             try {
                 Thread.sleep(sleeptime);
             } catch (InterruptedException e) {
@@ -598,7 +595,6 @@ public class ServiceTester
 
     boolean stopService(String service_id)
     {
-        System.out.println("---------------------------------------- Stop ----------------------------------------");
         DuccServiceApi api = new DuccServiceApi(null);
         try {
 			IServiceReply reply = api.stop(new String[] {"--stop", "" + service_id});
@@ -619,7 +615,6 @@ public class ServiceTester
 
     boolean modifyService(String service_id, String k, String v)
     {
-        System.out.println("---------------------------------------- Modify ----------------------------------------");
         DuccServiceApi api = new DuccServiceApi(null);
         try {
 			IServiceReply reply = api.modify(new String[] {"--modify", "" + service_id, k, v}); // again, so we can continue
@@ -639,7 +634,6 @@ public class ServiceTester
 
     boolean enableService(String service_id)
     {
-        System.out.println("---------------------------------------- Enable ----------------------------------------");
         DuccServiceApi api = new DuccServiceApi(null);
         try {
 			IServiceReply reply = api.enable(new String[] {"--enable", "" + service_id});  // so disable has an effect
@@ -658,7 +652,6 @@ public class ServiceTester
 
     boolean ignoreReferences(String service_id)
     {
-        System.out.println("---------------------------------------- Ignore References ----------------------------------------");
 
         DuccServiceApi api = new DuccServiceApi(null);
         try {
@@ -679,7 +672,6 @@ public class ServiceTester
 
     boolean observeReferences(String service_id)
     {
-        System.out.println("---------------------------------------- Observe References ----------------------------------------");
 
         DuccServiceApi api = new DuccServiceApi(null);
         try {
@@ -735,64 +727,50 @@ public class ServiceTester
         return false;
     }             
 
-
-    void runTests(String testId, String[] service_props)
+    void testRegister(String subtestId)
     	throws Exception
     {
-        //x - register an MR as some anonymous remore service
-        //x - register a ping-only guy to ping him
-        //x -   wait for Available
-        //x -   stop the pinger
-        // -   start the pinger and wait for available
-        // -   stop the pinger
-        // -   modify the registration to autorun
-        // -   enable the pinger and wait for available
-        // -   stop the pinger and wait for stopped
-        // -   enable the pinger and wait for available
-        // -   cancel the MR service
-        // -   after stopping the service we want to see the pinger go to waiting
-        // -   unregister the pinger
-        // - stop the MR
-
-        String    subtestId;
-        String    endpoint;
-        ApiRunner job;
-
-
-        System.out.println(testId + " ---------------------------------------- Register  ------------------------------");
-        String service_id = registerService(service_props);
+        service_id = registerService(service_props);
         if ( service_id == null ) {
-            fail(testId, "<init>", "Service test failed: can't register service.");
+            fail(testId, subtestId, "Service test failed: can't register service.");
         }
-        success(testId, "<init>", "Service is registered for manual start.");
+        success(testId, subtestId, "Service is registered for manual start.");
         endpoint = getEndpoint(service_id);       // should be comon throughout the tests
+    }
 
-        subtestId = "Basic function";
-        System.out.println(testId + "---------------------------------------- Manual Start ------------------------------");
+    void testManualStart(String subtestId)
+    	throws Exception
+    {
         if ( startService(service_id) ) {      // first start after registration
             success(testId, subtestId, "Manual service start issued.");
         } else {
             fail(testId, subtestId, "Manual service start failed.");
         }
-        if ( waitForState("Available", service_id) ) {
+        if ( waitForState("Available", service_id, 120000) ) {
             success(testId, subtestId, "Service is manually started.");
         } else {
-            fail(testId, subtestId, "State Available timeout, state did not occur manually starting pinger.");
+            fail(testId, subtestId, "State Available timeout, state did not occur manually starting pinger for service " + service_id);
         }
+    }
 
-        System.out.println(testId + "---------------------------------------- Manual Stop ------------------------------");
+    void testManualStop(String subtestId, String reason)
+    	throws Exception
+    {
         if ( stopService(service_id) ) {
-            success(testId, subtestId, "Manual service stop issued.");
+            success(testId, subtestId, "Manual service stop issued - " + reason);
         } else {
-            fail(testId, subtestId, "Manual service stop failed.");
+            fail(testId, subtestId, "Manual service stop failed - " + reason);
         }
         if ( waitForState("Stopped", service_id) ) {
-            success(testId, subtestId, "Service is manually stopped");
+            success(testId, subtestId, "Service is manually stopped - " + reason);
         } else {
-            fail(testId, subtestId, "State Stopped timeout, state did not occur manually stopping pinger.");
+            fail(testId, subtestId, "Service did not reach Stopped state - " + reason);
         }
-            
-        System.out.println(testId + "---------------------------------------- Manual Restart ------------------------------");
+    }
+
+    void testManualRestart(String subtestId)
+        throws Exception
+    {
         if ( startService(service_id))  {                //r restart, verifies the previous stop cleaned up ok in SM
             success(testId, subtestId, "Second Manual service start issued.");
         } else {
@@ -803,33 +781,26 @@ public class ServiceTester
         } else {
             fail(testId, subtestId, "State Stopped timeout, state did not occur manually restarting pinger.");
         }
-            
+    }       
 
-        System.out.println(testId + "---------------------------------------- Manual Stop, prep for Autostart tests ------------------------------");
-        if ( stopService(service_id)) {
-            success(testId, subtestId, "Manual service stop issued in preparation for autostart tests.");
-        } else {
-            fail(testId, subtestId, "Manual service stop failed preparing for autostart tests.");
-        }
-        if ( waitForState("Stopped", service_id) ) {
-            success(testId, subtestId, "Service is manually is stopped in preparation for autostart tests.");
-        } else {
-            fail(testId, subtestId, "State Stopped timeout, state did not occur manually stopping pinger in preparation for autostart tests.");
-        }
-
-        System.out.println(testId + "---------------------------------------- Modify autostart=true ------------------------------");
+    void testModifyAutostartTrue(String subtestId)
+        throws Exception
+    {
         if ( modifyService(service_id, "--autostart", "true")) {   // switch to autostart
             success(testId, subtestId, "Modify --autostart=true issued.");
         } else {
             fail(testId, subtestId, "Modify --autostart=true failed.");
         }  
         if ( waitForStartState("autostart", service_id) ) {
-            success(testId, subtestId, "Service is modified for autostart, waiting for it to start.");
+            success(testId, subtestId, "Service is modified for autostart.");
         } else {
             fail(testId, subtestId, "Service modify for --autostart failed.");
         }
-            
-        System.out.println(testId + "---------------------------------------- Enable and wait to become Available ------------------------------");
+    }
+
+    void testEnableFromAutostart(String subtestId)
+        throws Exception
+    {
         if ( enableService(service_id) )  {       // let it enable out of autostart
             success(testId, subtestId, "Enable issued to stopped/autostart service.");
         } else {
@@ -840,32 +811,11 @@ public class ServiceTester
         } else {
             fail(testId, subtestId, "Service failed to start after autostart is enacled.");
         }
+    }
 
-        System.out.println(testId + "---------------------------------------- Stop autostarted service ------------------------------");
-        if ( stopService(service_id) )  {          // once more, make sure it will stop out of autostart
-            success(testId, subtestId, "Second stop issued to autostarted service.");
-        } else {
-            fail(testId, subtestId, "Second stop to autostarted service failed.");
-        }    
-        if ( waitForState("Stopped", service_id) ) {
-            success(testId, subtestId, "Service is stopped from autostart mode. Reenabling ...");
-        } else {
-            fail(testId, subtestId, "State Stopped timeout, did not reach stop start after stop from autostart.");
-        }
-
-        System.out.println(testId + "---------------------------------------- Re-enable autostarted service and wait for Available ------------------------------");
-        if ( enableService(service_id) )  {          // once more, make sure it will restart out of autostart
-            success(testId, subtestId, "Second enable issued to autostarted service.");
-        } else {
-            fail(testId, subtestId, "Second enable to autostarted service failed.");
-        }    
-        if ( waitForState("Available", service_id) ) {
-            success(testId, subtestId, "Service is enabled and running after stop from autostart.");
-        } else {
-            fail(testId, subtestId, "Service did not restart after enable from autostart.");
-        }
-
-        System.out.println(testId + "---------------------------------------- Modify autostart=false ------------------------------");
+    void testModifyAutostartFalse(String subtestId)
+        throws Exception
+    {
         if ( modifyService(service_id, "--autostart", "false")) { 
             success(testId, subtestId, "Modify --autostart=false issued.");
         } else {
@@ -875,21 +825,13 @@ public class ServiceTester
             success(testId, subtestId, "Service is in manual start mode");
         } else {
             fail(testId, subtestId, "Service modify for --autostart=false failed.");
+        
         }
+    }
 
-        System.out.println(testId + "---------------------------------------- Manual Stop, prep for Reference tests ------------------------------");
-        if ( stopService(service_id) ) {
-            success(testId, subtestId, "Manual service stop issued in prep for reference tests");
-        } else {
-            fail(testId, subtestId, "Manual service stop failed, prep for reference tests");
-        }
-        if ( waitForState("Stopped", service_id) ) {
-            success(testId, subtestId, "Service is manually stopped, prep for reference tests.");
-        } else {
-            fail(testId, subtestId, "State Stopped timeout, state did not occur manually stopping in prep for reference tests");
-        }
-
-        System.out.println(testId + "---------------------------------------- Enable in prep for reference tests ------------------------------");
+    void testEnableFromManual(String subtestId)
+        throws Exception
+    {
         if ( enableService(service_id) )  {       // let it enable out of autostart
             success(testId, subtestId, "Enable issued to stopped service, prep for reference tests");
         } else {
@@ -900,16 +842,18 @@ public class ServiceTester
         } else {
             fail(testId, subtestId, "Service did not reach stopped mode in prep for reference tests.");
         }
+    }
 
-        subtestId = "Reference test 1";
-        System.out.println(testId + "---------------------------------------- "  +  subtestId  +   " ------------------------------");
+    void testReferenceStart_1(String subtestId)
+        throws Exception
+    {
+        // not a test perse, but convenient to run as one
         System.out.println(testId + "          Reference <--> Manual start mode                                             -------"); 
         System.out.println(testId + "          Start with reference start, then ignore references, service should not exit. -------");
         System.out.println(testId + "          Then observe references, service should exit.                                -------");
-        System.out.println(testId + "---------------------------------------- Reference Start Test 1 ------------------------------");
-        job = startJob(endpoint);
 
-        if ( waitForJobState(job, new String[] {"Failed", "WaitingForResources", "Assigned", "Initializing", "Running"}, 30000) ) {
+        job = startJob(endpoint);
+        if ( waitForJobState(job, new String[] {"Failed", "WaitingForServices", "WaitingForResources", "Assigned", "Initializing", "Running"}, 60000) ) {
             success(testId, subtestId, "Dependent job " + job.getId() + " submitted.");
         } else {
             fail(testId, subtestId, "Could not start dependent job.");
@@ -928,6 +872,14 @@ public class ServiceTester
             fail(testId, subtestId, "Service did not reference start.");
         }
 
+        // Wait for job to actually start
+        if ( waitForJobState(job, new String[] {"Running"}, 60000) ) {
+            success(testId, subtestId, "Job " + job.getId() + " is started.");
+        } else {
+            fail(testId, subtestId, "Job " + job.getId() + " did not start within a reasonable time.");
+        }
+
+        // Now ignore refs and make sure SM agrees
         if ( ignoreReferences(endpoint) ) {
             success(testId, subtestId, "Ignore references.");
         } else {
@@ -938,10 +890,12 @@ public class ServiceTester
         } else {
             fail(testId, subtestId, "Service could not switch to manual..");
         }
-        
+
+        // Now wait for job to go away
         waitForJobState(job, new String[] {"Completed", "Failed", "completion"}, -1);
         System.out.println("Job " + job.getId() + " has exited.");
 
+        // Now wait for linger stop which should not happen
         System.out.println("--- Waiting for service to linger stop, which we expect to fail as we should be in manual state ---");
         if ( !waitForState("Stopped", service_id, default_timeout ) ) {
             success(testId, subtestId, "Service correctly did not linger-stop");
@@ -965,14 +919,16 @@ public class ServiceTester
         } else {
             fail(testId, subtestId, "Linger-stop service did not exit.");
         }
+    }
 
-        subtestId = "Reference test 2";
-        System.out.println(testId + "---------------------------------------- "  +  subtestId  +   " ------------------------------");
+    void testReferenceStart_2(String subtestId)
+    	throws Exception
+    {
+
         System.out.println(testId + "          Autostart -> reference                                                       -------"); 
         System.out.println(testId + "          Set service to autostart, then submit job.  When the job starts switch to    -------");
         System.out.println(testId + "          reference start.  When the job exits the service should also exit within its -------");
         System.out.println(testId + "          linger time.                                                                 -------");
-        System.out.println(testId + "---------------------------------------- Reference Start Test 2 ------------------------------");
 
         // the previous test should leave the service linger-stopped so simply changing the registration shoul dstart it
         System.out.println(subtestId + ": Switching service to autostart.");
@@ -992,7 +948,7 @@ public class ServiceTester
         // get the job into running state
         System.out.println(subtestId + ": Starting a job.");
         job = startJob(endpoint);
-        if ( waitForJobState(job, new String[] {"Running"}, 30000) ) {
+        if ( waitForJobState(job, new String[] {"Running"}, 60000) ) {
             success(testId, subtestId, "Dependent job " + job.getId() + " submitted.");
         } else {
             fail(testId, subtestId, "Could not start dependent job.");
@@ -1027,7 +983,7 @@ public class ServiceTester
 
         
         System.out.println(subtestId + ": Waiting for job to complete.");
-        if ( waitForJobState(job, new String[] {"Completed", "Failed"}, 30000) ) {
+        if ( waitForJobState(job, new String[] {"Completed", "Failed"}, 60000) ) {
             success(testId, subtestId, "Dependent job " + job.getId() + " completed.");
         } else {
             fail(testId, subtestId, "Dependend job did not complete as expected.");
@@ -1041,22 +997,19 @@ public class ServiceTester
             fail(testId, subtestId, "Service did not linger-stop");
         }
 
+    }
 
+    void testReferenceStart_3(String subtestId)
+        throws Exception
+    {
         subtestId = "Reference test 3";
-        System.out.println(testId + "---------------------------------------- "  +  subtestId  +   " ------------------------------");
         System.out.println(testId + "          Reference -> Autostart                                                       -------"); 
         System.out.println(testId + "          Let service reference start, then set to autostart.  Service should not exit -------");
         System.out.println(testId + "          once the job completes.                                                      -------");
-        System.out.println(testId + "---------------------------------------- Reference Start Test 2 ------------------------------");
 
         // get the job into running state
         System.out.println(subtestId + ": Starting a job.");
         job = startJob(endpoint);
-        if ( waitForJobState(job, new String[] {"Running"}, 30000) ) {
-            success(testId, subtestId, "Dependent job " + job.getId() + " submitted.");
-        } else {
-            fail(testId, subtestId, "Could not start dependent job.");
-        }
 
         System.out.println("Waiting for service to acknowledge reference start.");
         if ( waitForStartState("reference", service_id) ) {
@@ -1067,9 +1020,16 @@ public class ServiceTester
 
         System.out.println(subtestId + ": Waiting for service to become fully available.");
         if ( waitForState("Available", service_id, default_timeout) ) {
-            success(testId, subtestId, "Service is autostarted.");
+            success(testId, subtestId, "Service is reference started.");
         } else {
-            fail(testId, subtestId, "Service did not autostart.");
+            fail(testId, subtestId, "Service did not start correctly.");
+        }
+
+        System.out.println(subtestId + ": Waiting for job to start.");
+        if ( waitForJobState(job, new String[] {"Running"}, 60000) ) {
+            success(testId, subtestId, "Dependent job " + job.getId() + " submitted.");
+        } else {
+            fail(testId, subtestId, "Could not start dependent job.");
         }
 
         System.out.println(subtestId + ": Switching service to autostart.");
@@ -1079,8 +1039,15 @@ public class ServiceTester
             fail(testId, subtestId, "Modify --autostart=true failed.");
         }  
 
+        System.out.println(subtestId + ": Wait for autostart modify to complete..");
+        if ( waitForStartState("autostart", service_id) ) {
+            success(testId, subtestId, "Service switched to autostart.");
+        } else {
+            fail(testId, subtestId, "Service could not switch to autostart..");
+        }
+
         System.out.println(subtestId + ": Waiting for job to complete.");
-        if ( waitForJobState(job, new String[] {"Completed", "Failed"}, 30000) ) {
+        if ( waitForJobState(job, new String[] {"Completed", "Failed"}, 60000) ) {
             success(testId, subtestId, "Dependent job " + job.getId() + " completed.");
         } else {
             fail(testId, subtestId, "Dependend job did not complete as expected.");
@@ -1093,13 +1060,129 @@ public class ServiceTester
         } else {
             success(testId, subtestId, "Service correctly did not stop");
         }
+    }
 
 
+    void testUnregister(String subtestId)
+    	throws Exception
+    {
         if ( unregisterService(service_id) ) {  // finish the test
             success(testId, "<complete>", "Unregister issued.");
         } else {
             fail(testId, "<complete>", "Unregister failed.");
         }    
+    }        
+
+    void runTestSet(String[] testset)
+    	throws Exception
+    {
+        for ( int i = 0; i < testset.length; i++ ) {
+            String sti = testset[i];
+
+
+            System.out.println(testId + " -------------- START -------------------- " + sti + " ---------- START ------------");
+            if ( sti.equals("ManualStop") ) {
+                // stop happens for a lot of reasons, so we include a reason string
+                Method m = getClass().getDeclaredMethod("test" + sti, String.class, String.class);
+                String reason = testset[++i];
+                m.invoke(this, new Object[] {sti, reason} );
+            } else {
+                try {
+                    Method m = getClass().getDeclaredMethod("test" + sti, String.class);
+                    m.invoke(this, new Object[] {sti,} );
+                } catch ( Exception e ) {
+                	Throwable cause = e.getCause();
+                	System.out.println(cause.toString());
+                	cause.printStackTrace();
+                }
+            }
+            System.out.println(testId + " -------------- END ---------------------- " + sti + " ---------- END --------------");
+            System.out.println(" ");
+        }
+    }
+
+
+    void runTests(String testId, String[] service_props)
+    	throws Exception
+    {
+        //x - register an MR as some anonymous remore service
+        //x - register a ping-only guy to ping him
+        //x -   wait for Available
+        //x -   stop the pinger
+        // -   start the pinger and wait for available
+        // -   stop the pinger
+        // -   modify the registration to autorun
+        // -   enable the pinger and wait for available
+        // -   stop the pinger and wait for stopped
+        // -   enable the pinger and wait for available
+        // -   cancel the MR service
+        // -   after stopping the service we want to see the pinger go to waiting
+        // -   unregister the pinger
+        // - stop the MR
+
+        //
+        // We run these complext tests in groups to make debug easier
+        //
+
+        //
+        // Generic register, to initialize things
+        String[] testset0 = {
+            "Register"   ,
+        };
+
+        //
+        // Basic function
+        //
+        String[] testset1 = {
+            "ManualStart",
+            "ManualStop",   "Basic test",           // all ManualStop must include a reason string as well
+            "ManualRestart",
+            "ManualStop",   "Prep for autostart tests",
+            "ModifyAutostartTrue", 
+            "EnableFromAutostart",
+            "ManualStop",   "Stop autostarted service.",
+            "EnableFromAutostart",                  // we do this again to make sure state didn't get messed up so far
+            "ModifyAutostartFalse",                 // go into manual
+            "ManualStop",   "Prep for reference tests", // stopt the service
+            "EnableFromManual",                     // make it startable
+        };
+
+        //
+        // Reference start, manual <--> reference
+        //
+        String[] testset2 = {
+            "ReferenceStart_1",
+        };
+
+        //
+        // Reference start, autostart ---> reference
+        //
+        String[] testset3 = {
+            "ReferenceStart_2",
+        };
+
+        //
+        // Reference start, reference ---> autostart
+        //
+        String[] testset4 = {
+            "ReferenceStart_3",
+        };
+
+        //
+        // Generic unregister to finish up
+        //
+        String[] testset99 = {
+            "Unregister",
+        };
+
+        this.testId = testId;
+        this.service_props = service_props;
+        runTestSet(testset0);
+        runTestSet(testset1);
+        runTestSet(testset2);
+        runTestSet(testset3);
+        runTestSet(testset4);
+        runTestSet(testset99);
                 
     }
 
@@ -1107,6 +1190,7 @@ public class ServiceTester
     	throws Exception
     {
     	String testId = "Ping-Only";
+
         if ( startMr() ) {         // hangs until it's running
             success(testId, "<init MR>", "Ping-only service test: anonymous service started as MR.");
         } else {
@@ -1174,6 +1258,8 @@ public class ServiceTester
         if ( ducc_home == null ) {
             throw new IllegalArgumentException("DUCC_HOME must be set into system properties.");
         }
+        ducc_properties = new DuccProperties();
+        ducc_properties.load(new FileInputStream(ducc_home + "/resources/ducc.properties"));
 
 
         // start by clearing all registrations owned by me
@@ -1196,23 +1282,23 @@ public class ServiceTester
         }
 
         //
-        // Do "normal" tests
-        //
-        try {
-            runNormal();
-        } catch ( Exception e ) {
-            System.out.println("Normal test failed.");
-        }
-        
-
-        //
         // Do ping-only tests
         //
         try {
             runPingOnly();
         } catch ( Exception e ) {
-            System.out.println("Ping-only test failed.");
+            System.out.println("Ping-only test failed: " + e.toString());
         }
+
+        //
+        // Do "normal" tests
+        //
+        try {
+            runNormal();
+        } catch ( Exception e ) {
+            System.out.println("Normal test failed:" + e.toString());
+        }
+        
             			
     }
 

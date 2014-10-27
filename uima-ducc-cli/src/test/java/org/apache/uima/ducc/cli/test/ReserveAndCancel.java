@@ -23,99 +23,113 @@ import java.util.Properties;
 
 import org.apache.uima.ducc.cli.DuccReservationCancel;
 import org.apache.uima.ducc.cli.DuccReservationSubmit;
-import org.apache.uima.ducc.cli.IDuccCallback;
 
 public class ReserveAndCancel
+    extends ATestDriver
 {
 
-    public static void main(String[] args) 
+    String resid = null;
+
+    ReserveAndCancel()
+    {
+    }
+
+    //
+    // establish the tests and the order of execution
+    //
+    public String[] testsToRun()
     {
 
-        try {
-            Properties reserve_props = new Properties();
-            DuccReservationSubmit reserve;
-            int testid = 1;
+        // if ( true ) return new int[] {5,};
 
-            System.out.println("------------------------------ Reserve Normal ------------------------------");
-            reserve_props.setProperty("description", "Reserve And Cancel " + testid++);
-            reserve_props.setProperty("instance_memory_size", "4");
-            reserve_props.setProperty("number_of_instances", "2");
-            reserve_props.setProperty("scheduling_class", "fixed");
-            reserve = new DuccReservationSubmit(reserve_props);
-            if ( reserve.execute() ) {
-                System.out.println("Reservation " + reserve.getDuccId() + " successful, rc =" + reserve.getReturnCode() + ": " + reserve.getHostsAsString());
-                String[] hosts = reserve.getHosts();
-                System.out.println("" + hosts.length + " hosts assigned");
-                if ( hosts.length > 0 ) {
-                    for ( String h : reserve.getHosts() ) {
-                        System.out.println("   " + h);
-                    }
+        return new String[] {
+            "Reserve",
+            "Cancel",
+            "ReserveFail",
+            "CancelFail",
+        };
+    }
+    
+    void testReserve(String testid)
+    	throws Exception
+    {
+        Properties reserve_props = new Properties();
+        DuccReservationSubmit reserve;
+
+        reserve_props.setProperty("description", "Reserve And Cancel");
+        reserve_props.setProperty("instance_memory_size", "4");
+        reserve_props.setProperty("number_of_instances", "2");
+        reserve_props.setProperty("scheduling_class", "fixed");
+        reserve = new DuccReservationSubmit(reserve_props);
+        if ( reserve.execute() ) {
+            resid = "" + reserve.getDuccId();
+            success(testid, "Reservation", resid, "successful, rc =", ""+reserve.getReturnCode(), ":", reserve.getHostsAsString());
+            String[] hosts = reserve.getHosts();
+            System.out.println("" + hosts.length + " hosts assigned");
+            if ( hosts.length > 0 ) {
+                for ( String h : reserve.getHosts() ) {
+                    System.out.println("   " + h);
                 }
+            }            
+        } else {
+            fail(testid, "Reservation failed, rc = " + reserve.getReturnCode());
+        }
+    }
 
-            } else {
-                System.out.println("Reservation failed, rc = " + reserve.getReturnCode());
-            }
+    void testCancel(String testid)
+    	throws Exception
+    {
+        Properties cancel_props = new Properties();
+        cancel_props.setProperty("id", resid);
+        DuccReservationCancel cancel = new DuccReservationCancel(cancel_props);
+        if ( cancel.execute() ) {
+            success(testid, "Reservation " + ""+cancel.getDuccId() + " cancelled, rc = " + cancel.getReturnCode() + " " + cancel.getResponseMessage());
+        } else {                
+            fail(testid, "Reservation " + ""+cancel.getDuccId() + " cancel failed, rc = " + cancel.getReturnCode() + " " + cancel.getResponseMessage());
+        }
+    }
 
+    void testReserveFail(String testid)
+        throws Exception
+    {
+        Properties reserve_props = new Properties();
+        DuccReservationSubmit reserve = null;
 
-            Properties cancel_props = new Properties();
-            cancel_props.setProperty("id", ""+reserve.getDuccId());
-            DuccReservationCancel cancel = new DuccReservationCancel(cancel_props);
-            if ( cancel.execute() ) {
-                System.out.println("Reservation " + cancel.getDuccId() + " cancelled, rc = " + reserve.getReturnCode() + " " + cancel.getResponseMessage());
-            } else {                
-                System.out.println("Reservation " + cancel.getDuccId() + " cancel failed, rc = " + reserve.getReturnCode() + " " + cancel.getResponseMessage());
-            }
+        reserve_props.setProperty("description", "Reserve And Cancel (fail)");
+        reserve_props.setProperty("instance_memory_size", "99");
+        reserve_props.setProperty("number_of_instances", "99");
+        reserve_props.setProperty("scheduling_class", "fixed");
+        reserve = new DuccReservationSubmit(reserve_props);
+        if ( reserve.execute() ) {
+            fail(testid, "Reservation " +""+ reserve.getDuccId() + " successful but should have failed, rc =" + ""+reserve.getReturnCode() + ": " + reserve.getHostsAsString());
+            // designed to fail, if it doesn't we don't care about what is returned
+        } else {
+            success(testid, "Reservation failed as expected, rc = " + ""+reserve.getReturnCode());
+        }
+    }
 
-            System.out.println("------------------------------ Reserve Fail ------------------------------");
-            reserve_props.setProperty("description", "Reserve And Cancel " + testid++);
-            reserve_props.setProperty("instance_memory_size", "99");
-            reserve_props.setProperty("number_of_instances", "99");
-            reserve_props.setProperty("scheduling_class", "fixed");
-            reserve = new DuccReservationSubmit(reserve_props);
-            if ( reserve.execute() ) {
-                System.out.println("Reservation " + reserve.getDuccId() + " successful, rc =" + reserve.getReturnCode() + ": " + reserve.getHostsAsString());
-                String[] hosts = reserve.getHosts();
-                System.out.println("" + hosts.length + " hosts assigned");
-                if ( hosts.length > 0 ) {
-                    for ( String h : reserve.getHosts() ) {
-                        System.out.println("   " + h);
-                    }
-                }
-            } else {
-                System.out.println("Reservation failed, rc = " + reserve.getReturnCode());
-            }
+    void testCancelFail(String testid)
+        throws Exception
+    {
+        Properties cancel_props = new Properties();
+        DuccReservationCancel cancel = null;
 
-            System.out.println("------------------------------ Cancel Fail ------------------------------");
-            cancel_props.setProperty("id", "99999999999999");
-            cancel = new DuccReservationCancel(cancel_props);
-            if ( cancel.execute() ) {
-                System.out.println("Reservation " + cancel.getDuccId() + " cancelled, rc = " + cancel.getReturnCode() + " " + cancel.getResponseMessage());
-            } else {                
-                System.out.println("Reservation " + cancel.getDuccId() + " cancel failed, rc = " + cancel.getReturnCode() + " " + cancel.getResponseMessage());
-            }
-
-            // Must see this, otherwise something is crashing that we didn't expect
-            System.out.println("------------------------------ Reservation Test Ends ------------------------------");
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        System.out.println("------------------------------ Cancel Fail ------------------------------");
+        cancel_props.setProperty("id", "9999999");
+        cancel = new DuccReservationCancel(cancel_props);
+        if ( cancel.execute() ) {
+            fail(testid, "Reservation " + ""+cancel.getDuccId() + " cancelled but should have failed, rc = " + ""+cancel.getReturnCode() + " " + cancel.getResponseMessage());
+        } else {                
+            success(testid, "Reservation " + ""+cancel.getDuccId() + " cancel failed as expected, rc = " + ""+cancel.getReturnCode() + " " + cancel.getResponseMessage());
+        }
         
     }
     
-    static class MyCallback
-        implements IDuccCallback
+    public static void main(String[] args) 
     {
-        public void console(int pnum, String  msg)
-        {
-            System.out.println("---> " + pnum + " " + msg);
-        }
 
-        public void status(String msg)
-        {
-            System.out.println("---> " +msg);
-        }
+        ReserveAndCancel tester = new ReserveAndCancel();
+        tester.runTests();
     }
-
+    
 }

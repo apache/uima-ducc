@@ -18,11 +18,9 @@
 */
 package org.apache.uima.ducc.cli;
 
-import org.apache.commons.cli.Options;
-
 public interface IDuccMonitor {
 	
-	public void help(Options options);
+	//public void help(IUiOption[] options);
 	public void cancel();
 	public String getUrl(String id);
 }

@@ -1157,9 +1157,9 @@ public class ServiceHandler
                 case Modify:
                     // used by CLI only, won't even be passed in
                     continue;
-                case Activate:
+                //case Activate:
                     // TODO: I don't think this is ever used.  Maybe just drop it?
-                    continue;
+                    //continue;
             }
 
             String v = (String) mods.get(kk);

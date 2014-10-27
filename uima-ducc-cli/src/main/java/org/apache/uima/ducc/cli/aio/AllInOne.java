@@ -20,7 +20,6 @@ package org.apache.uima.ducc.cli.aio;
 
 import java.io.IOException;
 
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.collection.CollectionException;
@@ -80,7 +79,7 @@ public class AllInOne extends CliBase {
 		}
 	}
 	
-	private void examine() throws MissingArgumentException, IllegalArgumentException {
+	private void examine() throws IllegalArgumentException {
 		String mid = "examine";
 		mh.frameworkTrace(cid, mid, "enter");
 		examine_debug();

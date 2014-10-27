@@ -45,18 +45,34 @@ public interface IUiOptions
 
     static final int help_width = 120;
 
+    // 
+    // NOTE regarding noargs() and optargs: if the option can occur in a properties file
+    //      the option should be configured with 
+    //         optargs  true
+    //         deflt    "true"
+    //              or
+    //         deflt ""
+    //      because the Java properties class will NPE if you have a key and no value. This
+    //      Java restriction makes it hard to create a true boolean value.
+    //      
+    //      This doesn't matter if the properties is a file because the properties reader
+    //      inserts a "" which we interpret as "no argument provided", but in the API,
+    //      you want to provide a meaningful value, or no value, not "".
+    //
     enum UiOption
+        implements IUiOption
     {
-        Activate   { 
-            public String pname()       { return "activate"; } 
-            public String argname()     { return null; }
-            public String description() { return "If present, apply current service updates to the running instances.."; } 
-            public String example()     { return null; }
+        Administrators { 
+            public String pname()       { return "administrators"; } 
+            public String argname()     { return "list of ids"; } 
+            public String description() { return "Blank-delimited list of userids allowed to manage this service."; } 
+            public String example()     { return "bob mary jimbo"; }
             public String label()       { return name(); }
         },
         
+        
         AllInOne   { 
-            public String pname()      { return "all_in_one"; } 
+            public String pname()       { return "all_in_one"; } 
             public String argname()     { return "local|remote"; } 
             public String description() { return "Run driver and pipeline in single process."; } 
             public String example()     { return null; }
@@ -65,14 +81,15 @@ public interface IUiOptions
         
         AttachConsole { 
             public String pname()       { return "attach_console"; }
-            public String argname()     { return null; }
+            public boolean optargs()    { return true; }
+            public String deflt()       { return "true"; }
             public String description() { return "If specified, redirect remote stdout and stderr to the local submitting console."; }
             public String example()     { return null; }
             public String label()       { return name(); }
         },            
 
         Autostart   { 
-            public String pname()      { return "autostart"; } 
+            public String pname()       { return "autostart"; } 
             public String argname()     { return "boolean: true or false"; } 
             public String description() { return "If True, start the service when DUCC starts."; } 
             public String example()     { return null; }
@@ -81,7 +98,8 @@ public interface IUiOptions
 
         CancelOnInterrupt { 
             public String pname()       { return SpecificationProperties.key_cancel_on_interrupt; }
-            public String argname()     { return null; }
+            public boolean optargs()    { return true; }
+            public String deflt()       { return "true"; }
             public String description() { return "Cancel on interrupt (Ctrl-C). Implies "+WaitForCompletion.pname(); }
             public String example()     { return null; }
             public String label()       { return name(); }
@@ -106,7 +124,7 @@ public interface IUiOptions
 
         Debug { 
             public String pname()       { return "debug"; }
-            public String argname()     { return null; }
+            public boolean noargs()     { return true; }
             public String description() { return "Enable CLI Debugging messages."; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -133,7 +151,7 @@ public interface IUiOptions
             public String argname()     { return "string"; }
             public String description() { return "Description of the run."; }
             public String example()     { return "My excellent job!"; }
-            public String deflt()       { return "none"; }
+            public String deflt()       { return "[Empty Description]"; }
             public String label()       { return "Description"; }
         },            
 
@@ -180,20 +198,12 @@ public interface IUiOptions
         
         Help { 
             public String pname()       { return "help"; }
-            public String argname()     { return null; }
+            public boolean noargs()     { return true; }            
             public String description() { return "Print this help message"; }
             public String example()     { return null; }
             public String label()       { return null; }
         },            
 
-        Administrators { 
-            public String pname()       { return "administrators"; } 
-            public String argname()     { return "list of ids"; } 
-            public String description() { return "Blank-delimited list of userids allowed to manage this service."; } 
-            public String example()     { return "bob mary jimbo"; }
-            public String label()       { return name(); }
-        },
-        
         Instances   { 
             public String pname()       { return "instances"; } 
             public String argname()     { return "integer"; } 
@@ -247,8 +257,8 @@ public interface IUiOptions
         Jvm { 
             public String pname()       { return JobSpecificationProperties.key_jvm; }
             public String argname()     { return "path-name-to-java"; }
-            public String description() { return "The jvm to use.  Must be a full path to the 'java' executable.  Default is\n   the jvm that DUCC is using."; }
-            public String example()     { return null; }
+            public String description() { return "The jvm to use.  Must be a full path to the 'java' executable.  Default is the jvm that DUCC is using."; }
+            public String example()     { return "/opt/vendor/jdk-1.7/bin/java"; }
             public String label()       { return "Jvm"; }
         },            
 
@@ -289,6 +299,8 @@ public interface IUiOptions
         Quiet { 
             public String pname()       { return "quiet"; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
+            public String deflt()       { return "true"; }
             public String description() { return "Disable CLI Informational messages."; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -297,6 +309,8 @@ public interface IUiOptions
         Register    { 
             public String pname()       { return "register"; } 
             public String argname()     { return "specification-file (optional)"; } 
+            public boolean optargs()    { return true; }
+            public String deflt()       { return ""; }    // "" is correct
             public String description() { return "Register a service."; } 
             public String example()     { return null; }
             public String label()       { return name(); }
@@ -353,6 +367,7 @@ public interface IUiOptions
         ServiceTypeCustom { 
             public String pname()       { return ServiceRequestProperties.key_service_type_custom; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
             public String description() { return "Service type - internally generated"; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -361,6 +376,7 @@ public interface IUiOptions
         ServiceTypeOther { 
             public String pname()       { return ServiceRequestProperties.key_service_type_other; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
             public String description() { return "Service type - internally generated"; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -369,6 +385,7 @@ public interface IUiOptions
         ServiceTypeUima { 
             public String pname()       { return ServiceRequestProperties.key_service_type_uima; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
             public String description() { return "Service type - internally generated"; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -426,6 +443,7 @@ public interface IUiOptions
             // generated
             public String pname()       { return JobRequestProperties.key_submitter_pid_at_host; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
             public String description() { return null; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -590,6 +608,8 @@ public interface IUiOptions
         Query       { 
             public String pname()       { return "query"; } 
             public String argname()     { return "service-id-or-endpoint (optional)" ; } 
+            public boolean optargs()    { return true; }
+            public String deflt()       { return ""; }    // "" is correct, interpreted as all
             public String description() { return "Query a registered service, or all." ; } 
             public String example()     { return null; }
             public String label()       { return name(); }
@@ -624,7 +644,7 @@ public interface IUiOptions
 
         RoleAdministrator { 
             public String pname()       { return JobSpecificationProperties.key_role_administrator; }
-            public String argname()     { return null; }
+            public boolean noargs()     { return true; }
             public String description() { return "Act in the capacity of DUCC administrator."; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -668,6 +688,7 @@ public interface IUiOptions
             // generated, not public
             public String pname()       { return JobSpecificationProperties.key_signature; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
             public String description() { return null; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -686,6 +707,7 @@ public interface IUiOptions
             // generated, not public
             public String pname()       { return JobSpecificationProperties.key_submit_errors; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
             public String description() { return null; }
             public String example()     { return null; }
             public String label()       { return null; }
@@ -695,14 +717,16 @@ public interface IUiOptions
             // generated, not public
             public String pname()       { return JobSpecificationProperties.key_submit_warnings; }
             public String argname()     { return null; }
+            public boolean optargs()    { return true; }
             public String description() { return null; }
             public String example()     { return null; }
             public String label()       { return null; }
         },            
-
+ 
         SuppressConsoleLog { 
             public String pname()       { return "suppress_console_log"; }
             public String argname()     { return null; }
+            public boolean noargs()     { return true; }
             public String description() { return "Do not copy stdout to a log file."; }
             public String example()     { return null; }
             public String label()       { return name(); }
@@ -711,6 +735,7 @@ public interface IUiOptions
         Timestamp { 
             public String pname()       { return "timestamp"; }
             public String argname()     { return null; }
+            public boolean noargs()     { return true; }
             public String description() { return "Enables timestamp on monitor messages."; }
             public String example()     { return null; }
             public String label()       { return "ProcessTimestamp"; }
@@ -724,14 +749,6 @@ public interface IUiOptions
             public String label()       { return null; }
         },
 
-        Update { 
-            public String pname()       { return "update"; }
-            public String argname()     { return null; }
-            public String description() { return "If specified, update service registry with accompanying parameters."; }
-            public String example()     { return null; }
-            public String label()       { return null; }
-        },            
-
         User { 
             public String pname()       { return JobSpecificationProperties.key_user; };
             public String argname()     { return "userid"; }
@@ -742,6 +759,8 @@ public interface IUiOptions
 
         WaitForCompletion { 
             public String pname()       { return "wait_for_completion"; }
+            public boolean optargs()    { return true; }
+            public String deflt()       { return "true"; }
             public String argname()     { return null; }
             public String description() { return "Do not exit until job is completed."; }
             public String example()     { return null; }
@@ -757,24 +776,16 @@ public interface IUiOptions
             public String label()       { return "WorkingDirectory"; }
         },            
         ;
-          
-        // Each option must implement the first few methods,
-        public abstract String  pname();             // name of the option, e.g.  --description
-        public abstract String  argname();           // type of its argument, or null if none
-        public abstract String  description();       // description of what it is
-        public abstract String  example();           // example of usage
+
+        public String argname()    { return null; }  // the type of argument, if any
         public boolean multiargs() { return false; } // the option can have >1 arg
-        public boolean required()  { return false; } // this option is required
-        public String  deflt()     { return null; }  // default, or ""
+        public boolean required()  { return false; } // this option must be specified in the command line
+        public String  deflt()     { return null; }  // default, required if optargs == true
         public String  label()     { return null; }  // Parameter name for label in web form
         public String  sname()     { return null; }  // short name of option
-
-        public String makeDesc()
-        {
-            if ( example() == null ) return description();
-            return description() + "\nexample: " + example();
-        }
-        
+        public boolean optargs()   { return false; } // this option takes 0 or more arguments
+        public boolean noargs()    { return false; } // this option takes no arguments       
+                 
     };
 
     public enum ClasspathOrderParms

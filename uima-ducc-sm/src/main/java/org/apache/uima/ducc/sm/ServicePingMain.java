@@ -27,11 +27,12 @@ import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.uima.ducc.cli.AServicePing;
+import org.apache.uima.ducc.cli.CommandLine;
+import org.apache.uima.ducc.cli.IUiOption;
 import org.apache.uima.ducc.cli.ServiceStatistics;
 import org.apache.uima.ducc.common.IServiceStatistics;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -56,34 +57,79 @@ public class ServicePingMain
     int error_max = 10;
     int error_count = 0;
 
-    DuccProperties clioptions = new DuccProperties();
-    static final String None = "None";
+    CommandLine command_line = null;
+
+    enum OptionSet
+        implements IUiOption
+    {
+        Class   { 
+            public String pname()       { return "class"; } 
+            public String argname()     { return "Java classname"; }
+            public boolean required()   { return true; }
+            public String description() { return "This is the name of the class implementing the pinger"; }
+            public String example()     { return "org.bob.PingClass"; }
+        },
+        Endpoint   { 
+            public String pname()       { return "endpoint"; } 
+            public String argname()     { return "string"; }
+            public boolean required()    { return true; }
+            public String description() { return "Thsi is the endpoint specified in teh registration."; }
+            public String example()     { return "UIMA-AS:MyUimaAsEndpoint:/tcp//broker1:1234"; }
+        },
+        Port   { 
+            public String pname()       { return "port"; } 
+            public String argname()     { return "integer"; }
+            public boolean required()   { return true; }
+            public String description() { return "This is the port the broker is listening on."; }
+            public String example()     { return "12345"; }
+            public String label()       { return name(); }
+        },
+        Arguments   { 
+            public String pname()       { return "arguments"; } 
+            public String argname()     { return "string"; }
+            public String description() { return "Argument string from pinger registration, if any."; }
+        },
+        Initprops   { 
+            public String pname()       { return "initprops"; } 
+            public String argname()     { return "string"; }
+            public String description() { return "Initialization properties, if any."; }
+        },
+        ;
+        public boolean multiargs() { return false; } // the option can have >1 arg
+        public boolean required()  { return false; } // this option is required
+        public String  deflt()     { return null; }  // default, or ""
+        public String  label()     { return null; }  // Parameter name for label in web form
+        public String  sname()     { return null; }  // short name of option
+        public boolean optargs()   { return false; } // is the argument optional?
+        public boolean noargs()    { return false; }
+        public String  example()   { return null; }
+
+        public String makeDesc()
+        {
+            if ( example() == null ) return description();
+            return description() + "\nexample: " + example();
+        }
+    };
+
+    IUiOption[] options = {
+        OptionSet.Class,
+        OptionSet.Endpoint,
+        OptionSet.Port,
+        OptionSet.Arguments,
+        OptionSet.Initprops,
+    };
 
     public ServicePingMain()
     {
-    	clioptions.put("--class", clioptions);
-    	clioptions.put("--endpoint", clioptions);
-    	clioptions.put("--port", clioptions);
-    	clioptions.put("--arguments", None);
-    	clioptions.put("--initprops", clioptions);
     }
 
-    static void usage()
+    public void usage()
     {
-
-        System.out.println("Usage:");
-        System.out.println("   java org.apache.uima.ducc.smnew.ServicePingMain <args>");
-        System.out.println("Where args are:");
-        System.out.println("   --class     classname       This is the class implementing the pinger.");
-        System.out.println("   --endpoint  ep              This is the endpoint specified in the registration.");
-        System.out.println("   --port      port            This is the listen port the SM is listening on.");
-        System.out.println("   --arguments classname       These are the arguments for the pinger, supplied in the registration.");
-        System.out.println("   --initprops props           These are initialization properties passed from SM, in serialized properties format.");
-        
+        System.out.println(command_line.formatHelp(this.getClass().getName()));        
         System.exit(1);
     }
 
-    static void appendStackTrace(StringBuffer s, Throwable t)
+    void appendStackTrace(StringBuffer s, Throwable t)
     {
     	s.append("\nAt:\n");
         StackTraceElement[] stacktrace = t.getStackTrace();
@@ -95,7 +141,7 @@ public class ServicePingMain
     }
     
     
-    public static void print(Object ... args)
+    public void print(Object ... args)
     {
     	StringBuffer s = new StringBuffer();
         for ( Object a : args ) {
@@ -143,53 +189,53 @@ public class ServicePingMain
         }
     }
 
-    /**
-     * Simple argument parser for this class.  It is spawned only by SM so even though we do
-     * validity checking, we assume the args are correct and complete, and just crash hard if not as
-     * it's an internal error that should not occur.
-     */
-    void parseOptions(String[] args)
-    {
-        // First read them all in
-        if ( debug ) {
-            for ( int i = 0; i < args.length; i++ ) {
-                print("Args[" + i + "] = ", args[i]);
-            }
-        }
+    // /**
+    //  * Simple argument parser for this class.  It is spawned only by SM so even though we do
+    //  * validity checking, we assume the args are correct and complete, and just crash hard if not as
+    //  * it's an internal error that should not occur.
+    //  */
+    // void parseOptions(String[] args)
+    // {
+    //     // First read them all in
+    //     if ( debug ) {
+    //         for ( int i = 0; i < args.length; i++ ) {
+    //             print("Args[" + i + "] = ", args[i]);
+    //         }
+    //     }
 
-        for ( int i = 0; i < args.length; ) {
-            if ( clioptions.containsKey(args[i]) ) {
-                Object o = clioptions.get(args[i]);
-                if ( (o != clioptions) && ( o != None ) ) {
-                    System.out.println("Duplicate argument, not allowed: " + args[i]);
-                    System.exit(1);
-                }
-                System.out.println("Put " + args[i] + ", " + args[i+1]);
-                clioptions.put(args[i], args[i+1]);
-                i += 2;
-            } else {
-                System.out.println("Invalid argument: " + args[i]);
-                System.exit(1);
-            }
-        }
+    //     for ( int i = 0; i < args.length; ) {
+    //         if ( clioptions.containsKey(args[i]) ) {
+    //             Object o = clioptions.get(args[i]);
+    //             if ( (o != clioptions) && ( o != None ) ) {
+    //                 System.out.println("Duplicate argument, not allowed: " + args[i]);
+    //                 System.exit(1);
+    //             }
+    //             System.out.println("Put " + args[i] + ", " + args[i+1]);
+    //             clioptions.put(args[i], args[i+1]);
+    //             i += 2;
+    //         } else {
+    //             System.out.println("Invalid argument: " + args[i]);
+    //             System.exit(1);
+    //         }
+    //     }
 
-        // Now make sure they all exist
-        ArrayList<String> toRemove = new ArrayList<String>();
-        for ( Object o : clioptions.keySet()) {
-            String k = (String) o;
-            Object v = clioptions.get(k);
-            if ( v == clioptions ) {
-                System.out.println("Missing argument: " + k);
-                System.exit(1);
-            }
-            if ( v == None ) {             // optional arg, we want fetches to return null if it wasn't set 
-                toRemove.add(k);
-            }
-        }
-        for ( String k : toRemove ) {
-            clioptions.remove(k);
-        }
-    }
+    //     // Now make sure they all exist
+    //     ArrayList<String> toRemove = new ArrayList<String>();
+    //     for ( Object o : clioptions.keySet()) {
+    //         String k = (String) o;
+    //         Object v = clioptions.get(k);
+    //         if ( v == clioptions ) {
+    //             System.out.println("Missing argument: " + k);
+    //             System.exit(1);
+    //         }
+    //         if ( v == None ) {             // optional arg, we want fetches to return null if it wasn't set 
+    //             toRemove.add(k);
+    //         }
+    //     }
+    //     for ( String k : toRemove ) {
+    //         clioptions.remove(k);
+    //     }
+    // }
 
     /**
      * Convert the initialization props into a map<string, object>
@@ -266,15 +312,15 @@ public class ServicePingMain
 	protected int start(String[] args)
     {
 
-
+        command_line = new CommandLine(args, options);
+        command_line.parse();
         IServiceStatistics default_statistics = new ServiceStatistics(false, false, "<N/A>");
 
-        parseOptions(args);
-        String arguments = clioptions.getProperty("--arguments");
-        String pingClass = clioptions.getStringProperty("--class");
-        String endpoint  = clioptions.getStringProperty("--endpoint");
-        int port         = clioptions.getIntProperty   ("--port");
-        String initters  = clioptions.getStringProperty("--initprops");
+        String arguments = command_line.get   (OptionSet.Arguments);
+        String pingClass = command_line.get   (OptionSet.Class);
+        String endpoint  = command_line.get   (OptionSet.Endpoint);
+        int port         = command_line.getInt(OptionSet.Port);
+        String initters  = command_line.get   (OptionSet.Initprops);
         Map<String, Object> initprops = stringToProperties(initters);
 
         Socket sock = null;

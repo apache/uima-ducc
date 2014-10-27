@@ -26,100 +26,134 @@ import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
 import org.apache.uima.ducc.cli.IDuccCallback;
 
 public class ManagedReserveAndCancel
+    extends ATestDriver
 {
+
+    ManagedReserveAndCancel()
+    {
+
+    }
+
+    public String[] testsToRun()
+    {
+        return new String[] {
+            "ReserveSleep",
+            "ReserveAndCancel",
+            "AttachConsole",
+            "WaitForCompletion",
+            "Callback",
+        };
+    }
+
+    void testReserveSleep(String testid)
+        throws Exception
+    {
+        Properties reserve_props = new Properties();
+        DuccManagedReservationSubmit reserve;
+
+        reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid);
+        reserve_props.setProperty("process_memory_size", "4");
+        reserve_props.setProperty("process_executable", "/bin/sleep");
+        reserve_props.setProperty("process_executable_args", "5");
+        reserve_props.setProperty("scheduling_class", "fixed");
+
+
+
+        reserve = new DuccManagedReservationSubmit(reserve_props);
+        if ( reserve.execute() ) {
+            success(testid, "Managed reservation", ""+reserve.getDuccId(), "submitted successfully, rc", ""+reserve.getReturnCode());
+        } else {
+            fail(testid, "Managed reservation submit failed, rc",  ""+reserve.getReturnCode());
+        }
+    }
+
+    void testReserveAndCancel(String testid)
+        throws Exception
+    {
+        Properties reserve_props = new Properties();
+        DuccManagedReservationSubmit reserve;
+
+        reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid);
+        reserve_props.setProperty("process_executable_args", "30");
+        reserve = new DuccManagedReservationSubmit(reserve_props);
+        if ( reserve.execute() ) {
+            success(testid, "Managed reservation", ""+reserve.getDuccId(), "submitted successfully, rc =" + reserve.getReturnCode());
+        } else {
+            fail(testid, "Managed reservation submit failed, rc = " + reserve.getReturnCode());
+        }
+
+        Thread.sleep(10000);
+        Properties cancel_props = new Properties();
+        cancel_props.setProperty("id", ""+reserve.getDuccId());
+        DuccManagedReservationCancel cancel = new DuccManagedReservationCancel(cancel_props);
+        if ( cancel.execute() ) {
+            success(testid, "Reservation", cancel.getDuccId(), "cancelled, rc =", reserve.getReturnCode(),  cancel.getResponseMessage());
+        } else {                
+            fail(testid, "Reservation", "cancel failed, rc =", reserve.getReturnCode(), cancel.getResponseMessage());
+        }
+    }
+
+    void testAttachConsole(String testid)
+        throws Exception
+    {
+        Properties reserve_props = new Properties();
+        DuccManagedReservationSubmit reserve;
+
+        reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid);
+        reserve_props.setProperty("process_executable", "/bin/ls");
+        reserve_props.setProperty("process_executable_args", "-atl ${HOME}");
+        reserve_props.setProperty("attach_console", "true");
+        reserve = new DuccManagedReservationSubmit(reserve_props);
+        if ( reserve.execute() ) {
+            success(testid, "Managed reservation", reserve.getDuccId(), "submitted successfully, rc =", reserve.getReturnCode());
+        } else {
+            fail(testid, "Managed reservation submit failed, rc = ", reserve.getReturnCode());
+        }
+    }
+
+    void testWaitForCompletion(String testid)
+        throws Exception
+    {
+        Properties reserve_props = new Properties();
+        DuccManagedReservationSubmit reserve;
+
+        reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid);
+        reserve_props.setProperty("process_executable", "/bin/ls");
+        reserve_props.setProperty("process_executable_args", "-atl ${HOME}");
+        reserve_props.setProperty("attach_console", "true");
+        reserve_props.setProperty("wait_for_completion", "true");
+        reserve = new DuccManagedReservationSubmit(reserve_props);
+        if ( reserve.execute() ) {
+            success("Managed reservation", reserve.getDuccId(), "submitted successfully, rc =", reserve.getReturnCode());
+        } else {
+            fail("Managed reservation submit failed, rc = ", reserve.getReturnCode());
+        }
+    }
+
+    void testCallback(String testid)
+        throws Exception
+    {
+        Properties reserve_props = new Properties();
+        DuccManagedReservationSubmit reserve;
+
+        MyCallback cb = new MyCallback();
+        reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid);
+        reserve_props.setProperty("process_executable", "/bin/ls");
+        reserve_props.setProperty("process_executable_args", "-atl ${HOME}");
+        reserve_props.setProperty("attach_console", "true");
+        reserve_props.setProperty("wait_for_completion", "true");
+        reserve = new DuccManagedReservationSubmit(reserve_props, cb);
+        if ( reserve.execute() ) {
+            success("Managed reservation", reserve.getDuccId(), "submitted successfully, rc =", reserve.getReturnCode());
+        } else {
+            fail("Managed reservation submit failed, rc = ", reserve.getReturnCode());
+        }
+    }
 
     public static void main(String[] args) 
     {
-
-        try {
-            Properties reserve_props = new Properties();
-            int testid = 1;
-            reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid++);
-            reserve_props.setProperty("process_memory_size", "4");
-            reserve_props.setProperty("process_executable", "/bin/sleep");
-            reserve_props.setProperty("process_executable_args", "5");
-            reserve_props.setProperty("scheduling_class", "fixed");
-
-            DuccManagedReservationSubmit reserve;
-
-
-            System.out.println("------------------------------ Managed Reservation Sleep Normal ------------------------------");
-            reserve = new DuccManagedReservationSubmit(reserve_props);
-            if ( reserve.execute() ) {
-                System.out.println("Managed reservation " + reserve.getDuccId() + " submitted successfully, rc =" + reserve.getReturnCode());
-            } else {
-                System.out.println("Managed reservation submit failed, rc = " + reserve.getReturnCode());
-            }
-
-            System.out.println("------------------------------ Managed Reservation Sleep and Cancel ------------------------------");
-            reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid++);
-            reserve_props.setProperty("process_executable_args", "30");
-            reserve = new DuccManagedReservationSubmit(reserve_props);
-            if ( reserve.execute() ) {
-                System.out.println("Managed reservation " + reserve.getDuccId() + " submitted successfully, rc =" + reserve.getReturnCode());
-            } else {
-                System.out.println("Managed reservation submit failed, rc = " + reserve.getReturnCode());
-            }
-
-            Thread.sleep(10000);
-            Properties cancel_props = new Properties();
-            cancel_props.setProperty("id", ""+reserve.getDuccId());
-            DuccManagedReservationCancel cancel = new DuccManagedReservationCancel(cancel_props);
-            if ( cancel.execute() ) {
-                System.out.println("Reservation " + cancel.getDuccId() + " cancelled, rc = " + reserve.getReturnCode() + " " + cancel.getResponseMessage());
-            } else {                
-                System.out.println("Reservation " + cancel.getDuccId() + " cancel failed, rc = " + reserve.getReturnCode() + " " + cancel.getResponseMessage());
-            }
-
-            System.out.println("------------------------------ Managed Reservation ls with Attached Console ------------------------------");
-            reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid++);
-            reserve_props.setProperty("process_executable", "/bin/ls");
-            reserve_props.setProperty("process_executable_args", "-atl ${HOME}*");
-            reserve_props.setProperty("attach_console", "true");
-            reserve = new DuccManagedReservationSubmit(reserve_props);
-            if ( reserve.execute() ) {
-                System.out.println("Managed reservation " + reserve.getDuccId() + " submitted successfully, rc =" + reserve.getReturnCode());
-            } else {
-                System.out.println("Managed reservation submit failed, rc = " + reserve.getReturnCode());
-            }
-
-
-            System.out.println("------------------------------ Managed Reservation ls Wait For Completion ------------------------------");
-            reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid++);
-            reserve_props.setProperty("process_executable", "/bin/ls");
-            reserve_props.setProperty("process_executable_args", "-atl ${HOME}");
-            reserve_props.setProperty("attach_console", "true");
-            reserve_props.setProperty("wait_for_completion", "true");
-            reserve = new DuccManagedReservationSubmit(reserve_props);
-            if ( reserve.execute() ) {
-                System.out.println("Managed reservation " + reserve.getDuccId() + " submitted successfully, rc =" + reserve.getReturnCode());
-            } else {
-                System.out.println("Managed reservation submit failed, rc = " + reserve.getReturnCode());
-            }
-
-            System.out.println("------------------------------ Managed Reservation ls With Callback ------------------------------");
-            MyCallback cb = new MyCallback();
-            reserve_props.setProperty("description", "Managed Reserve And Cancel " + testid++);
-            reserve_props.setProperty("process_executable", "/bin/ls");
-            reserve_props.setProperty("process_executable_args", "-atl ${HOME}");
-            reserve_props.setProperty("attach_console", "true");
-            reserve_props.setProperty("wait_for_completion", "true");
-            reserve = new DuccManagedReservationSubmit(reserve_props, cb);
-            if ( reserve.execute() ) {
-                System.out.println("Managed reservation " + reserve.getDuccId() + " submitted successfully, rc =" + reserve.getReturnCode());
-            } else {
-                System.out.println("Managed reservation submit failed, rc = " + reserve.getReturnCode());
-            }
-
-
-            // Must see this, otherwise something is crashing that we didn't expect
-            System.out.println("------------------------------ Reservation Test Ends ------------------------------");
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        
+        ManagedReserveAndCancel tester = new ManagedReserveAndCancel();
+        tester.runTests();        
     }
     
     static class MyCallback

@@ -25,7 +25,6 @@ public class ServiceStartEvent
     private int friendly;
     private String epname;
     private int instances;
-    private boolean update;
 
 	public ServiceStartEvent(String user, int friendly, String epname, byte[] auth_block, int cli_version)
     {
@@ -53,19 +52,8 @@ public class ServiceStartEvent
         this.instances = instances;
     }
 
-    public boolean getUpdate()
-    {
-        return update;
-    }
-
-    public void setUpdate(boolean update)
-    {
-        this.update = update;
-    }
-
 	public String toString() {
-		return "ServiceStartEvent [friendly=" + friendly + ", user=" + user + ", instances=" + instances  + ", update=" + update
-				+ "]";
+		return "ServiceStartEvent [friendly=" + friendly + ", user=" + user + ", instances=" + instances + "]";
 	}
 	
 }

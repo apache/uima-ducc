@@ -28,7 +28,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
 import org.apache.uima.ducc.cli.DuccManagedReservationSubmit;
@@ -198,13 +197,13 @@ public class AllInOneLauncher extends CliBase {
 
     // all-in-one
     
-    private void examine_allInOne() throws MissingArgumentException, IllegalArgumentException {
+    private void examine_allInOne() throws IllegalArgumentException {
         String mid = "examine_allInOne";
         mh.frameworkTrace(cid, mid, enter);
         String pname = UiOption.AllInOne.pname();
         allInOneType = jobRequestProperties.getProperty(pname);
         if(allInOneType == null) {
-            throw new MissingArgumentException(pname);
+            throw new IllegalArgumentException("Illegal argument for all_in_one: " + pname);
         }
         if(allInOneType.equalsIgnoreCase(local)) {
             String message = allInOneType;
@@ -328,7 +327,7 @@ public class AllInOneLauncher extends CliBase {
         // Don't need all the DUCC jars as user's classpath must have all the UIMA jars it needs.
         // For simplicity add only the jar that has the AllInOne class --- it will pull in other 
         // jars that have dependencies such as the flow controller.
-        String duccClasspath = ducc_home + "/lib/uima-ducc-cli.jar";
+        String duccClasspath = ducc_home + "/lib/uima-ducc-cli.jar:" + ducc_home + "/lib/uima-ducc-common-2.0.0-SNAPSHOT.jar:" + ducc_home + "/lib/uima-ducc-transport-2.0.0-SNAPSHOT.jar";
         if (classpath_user_first) {
             classpath = classpath + File.pathSeparatorChar + duccClasspath;
         } else {

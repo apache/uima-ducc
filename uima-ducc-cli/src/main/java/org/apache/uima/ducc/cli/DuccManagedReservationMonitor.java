@@ -20,8 +20,6 @@ package org.apache.uima.ducc.cli;
 
 import java.util.ArrayList;
 
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
@@ -54,13 +52,13 @@ public class DuccManagedReservationMonitor extends DuccMonitor implements IDuccM
 		System.exit(code);
 	}
 	
-	@Override
-	public void help(Options options) {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.setWidth(DuccUiConstants.help_width);
-		formatter.printHelp(DuccManagedReservationMonitor.class.getName(), options);
-		return;
-	}
+//	@Override
+//	public void help(IUiOption) {
+//		HelpFormatter formatter = new HelpFormatter();
+//		formatter.setWidth(DuccUiConstants.help_width);
+//		formatter.printHelp(DuccManagedReservationMonitor.class.getName(), options);
+//		return;
+//	}
 	
 	@Override
 	public void cancel() {
