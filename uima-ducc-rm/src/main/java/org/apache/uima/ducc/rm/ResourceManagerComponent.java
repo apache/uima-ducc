@@ -58,6 +58,7 @@ public class ResourceManagerComponent
     int initStability;                // number of heartbeats from agent metrics we must wait for during init befor starting
     int nodeMetricsUpdateRate;
     int orPublishingRate;
+    int minRmPublishingRate;
     boolean schedulerReady = false;
 
     ISchedulerMain scheduler;
@@ -188,6 +189,7 @@ public class ResourceManagerComponent
         nodeMetricsUpdateRate = SystemPropertyResolver.getIntProperty("ducc.agent.node.metrics.publish.rate", DEFAULT_NODE_METRICS_RATE);
         schedulingRatio       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.ratio", DEFAULT_SCHEDULING_RATIO);
         orPublishingRate      = SystemPropertyResolver.getIntProperty("ducc.orchestrator.abbreviated.state.publish.rate", DEFAULT_OR_PUBLISH_RATE);
+        minRmPublishingRate      = orPublishingRate + DEFAULT_RM_PUBLISHING_SLOP;
         // schedulingEpoch       = SystemPropertyResolver.getIntProperty("ducc.rm.state.publish.rate", DEFAULT_SCHEDULING_RATE);
         
         String adminEndpoint         = System.getProperty("ducc.rm.admin.endpoint");
@@ -333,14 +335,14 @@ public class ResourceManagerComponent
                 // We try to set the minSchedulingRate to be something reasonably less than
                 // the OR rate in order to be as responsive as possible.
                 long now = System.currentTimeMillis();
-                if ( now - lastSchedule >= orPublishingRate ) {
+                if ( now - lastSchedule >= minRmPublishingRate ) {
                     converter.eventArrives(map);
                     if ( ((++epoch_counter) % schedulingRatio) == 0 ) {
                         notify();
                     }
                     lastSchedule = now;
                 } else {
-                    logger.warn(methodName, null, "-------> OR publication ignored, arrived too soon (less than", orPublishingRate, "delay). Delay was", (now-lastSchedule));
+                    logger.warn(methodName, null, "-------> OR publication ignored, arrived too soon (less than", minRmPublishingRate, "delay). Delay was", (now-lastSchedule));
                 }
             }
         } catch ( Throwable e ) {
