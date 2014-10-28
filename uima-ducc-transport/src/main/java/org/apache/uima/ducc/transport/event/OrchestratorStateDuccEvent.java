@@ -41,12 +41,12 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 	
 	public void setWorkMap(DuccWorkMap value) {
 		this.workMap = value.deepCopy();
-		compress(this.workMap);
+		//compress(this.workMap);
 	}
 	
 	public DuccWorkMap getWorkMap() {
 		DuccWorkMap value = this.workMap.deepCopy();
-		uncompress(value);
+		//uncompress(value);
 		return value;
 	}
 	
