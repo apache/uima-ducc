@@ -1,0 +1,32 @@
+<project name="uima-ducc-continer" default="all" basedir=".">
+    
+	<property name="resources.dir"         value="${basedir}/src/test/resources" />
+	
+	<property name="jar.dir"               value="${basedir}/../uima-ducc-user/target/classes" />
+	<property name="jar.file" 		       value="ducc-user.jar" />
+	
+	<property name="xml.dir"               value="${basedir}/../uima-ducc-user/src/test/resources" />
+	<property name="xml.file"              value="CR100.xml" />
+     	    
+	<target name="all" depends="jar, xml" />
+	
+	<target name="jar" depends="rm.jar, mk.jar" />
+	<target name="xml" depends="rm.xml, mk.xml" />
+	
+    <target name="mk.jar">
+    	<jar file="${resources.dir}/${jar.file}" basedir="${jar.dir}"/>
+    </target>
+	
+    <target name="rm.jar">
+        <delete file="${resources.dir}/${jar.file}"/>
+    </target>
+    
+    <target name="mk.xml">
+        <copy file="${xml.dir}/${xml.file}" todir="${resources.dir}"/>
+    </target>
+    
+    <target name="rm.xml">
+        <delete file="${resources.dir}/${xml.file}"/>
+    </target>
+	
+</project>
