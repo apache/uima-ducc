@@ -19,22 +19,27 @@
 package org.apache.uima.ducc.container.jd;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.uima.ducc.container.common.DuccLogger;
-import org.apache.uima.ducc.container.common.IDuccId;
-import org.apache.uima.ducc.container.common.IDuccLogger;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.jd.dispatch.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.dispatch.IWorkItem;
 
 public class JobDriverCommon {
 
-	private static IDuccLogger logger = DuccLogger.getLogger(JobDriverCommon.class, IDuccLogger.Component.JD.name());
+	private static IContainerLogger logger = ContainerLogger.getLogger(JobDriverCommon.class, IContainerLogger.Component.JD.name());
 	
 	private static JobDriverCommon instance = null;
 	
 	public static JobDriverCommon getInstance() {
 		return instance;
 	}
+	
+	private AtomicInteger wiSuccess = new AtomicInteger(0);
+	private AtomicInteger wiFailure = new AtomicInteger(0);
+	private AtomicInteger wiRetry = new AtomicInteger(0);
 	
 	private ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = null;
 	private JobDriverCasManager jdcm = null;
@@ -53,7 +58,7 @@ public class JobDriverCommon {
 			jdcm = new JobDriverCasManager(classpath, crXml, crCfg);
 		}
 		catch(Exception e) {
-			logger.error(location, IDuccId.null_id, e);
+			logger.error(location, IEntityId.null_id, e);
 		}
 		
 	}
@@ -65,4 +70,33 @@ public class JobDriverCommon {
 	public JobDriverCasManager getCasManager() {
 		return jdcm;
 	}
+	
+	//
+	
+	public int getWorkItemCountSuccess() {
+		return wiSuccess.get();
+	}
+
+	public int getWorkItemCountFailure() {
+		return wiFailure.get();
+	}
+
+	public int getWorkItemCountRetry() {
+		return wiRetry.get();
+	}
+	
+	//
+	
+	public void workItemSuccess() {
+		wiSuccess.incrementAndGet();
+	}
+	
+	public void workItemFailure() {
+		wiFailure.incrementAndGet();
+	}
+	
+	public void workItemRetry() {
+		wiRetry.incrementAndGet();
+	}
+	
 }

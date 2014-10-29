@@ -18,14 +18,14 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.common.DuccLogger;
-import org.apache.uima.ducc.container.common.IDuccId;
-import org.apache.uima.ducc.container.common.IDuccLogger;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 
 public class ActionIgnore implements IAction {
 	
-	private IDuccLogger logger = DuccLogger.getLogger(ActionIgnore.class, IDuccLogger.Component.JD.name());
+	private IContainerLogger logger = ContainerLogger.getLogger(ActionIgnore.class, IContainerLogger.Component.JD.name());
 	
 	@Override
 	public String getName() {
@@ -35,7 +35,7 @@ public class ActionIgnore implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, IDuccId.null_id, "");
+		logger.debug(location, IEntityId.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 	}
 }

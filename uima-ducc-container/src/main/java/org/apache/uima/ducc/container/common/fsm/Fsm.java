@@ -20,9 +20,9 @@ package org.apache.uima.ducc.container.common.fsm;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.uima.ducc.container.common.DuccLogger;
-import org.apache.uima.ducc.container.common.IDuccId;
-import org.apache.uima.ducc.container.common.IDuccLogger;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
@@ -34,7 +34,7 @@ import org.apache.uima.ducc.container.common.fsm.iface.IStateEventValue;
 
 public class Fsm implements IFsmBuilder {
 	
-	private static IDuccLogger logger = DuccLogger.getLogger(Fsm.class, IDuccLogger.Component.JD.name());
+	private static IContainerLogger logger = ContainerLogger.getLogger(Fsm.class, IContainerLogger.Component.JD.name());
 	
 	private ConcurrentHashMap<IStateEventKey, IStateEventValue> map = new ConcurrentHashMap<IStateEventKey, IStateEventValue>();
 	
@@ -57,7 +57,7 @@ public class Fsm implements IFsmBuilder {
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.state.get()+current.getName());
 		mb.append(Standardize.Label.event.get()+event.getName());
-		logger.debug(location, IDuccId.null_id, mb.toString());
+		logger.debug(location, IEntityId.null_id, mb.toString());
 	}
 
 	@Override
@@ -90,7 +90,7 @@ public class Fsm implements IFsmBuilder {
 		mb.append(Standardize.Label.state.get()+key.getState().getName());
 		mb.append(Standardize.Label.event.get()+key.getEvent().getName());
 		mb.append(Standardize.Label.hash.get()+key.hashCode());
-		logger.debug(location, IDuccId.null_id, mb.toString());
+		logger.debug(location, IEntityId.null_id, mb.toString());
 		return map.putIfAbsent(key, value);
 	}
 	
@@ -100,7 +100,7 @@ public class Fsm implements IFsmBuilder {
 		mb.append(Standardize.Label.state.get()+key.getState().getName());
 		mb.append(Standardize.Label.event.get()+key.getEvent().getName());
 		mb.append(Standardize.Label.hash.get()+key.hashCode());
-		logger.debug(location, IDuccId.null_id, mb.toString());
+		logger.debug(location, IEntityId.null_id, mb.toString());
 		IStateEventValue value = map.get(key);
 		return value;
 	}
@@ -129,7 +129,7 @@ public class Fsm implements IFsmBuilder {
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.curr.get()+_stateCurrent.getName());
 				mb.append(Standardize.Label.prev.get()+_statePrevious.getName());
-				logger.info(location, IDuccId.null_id, mb.toString());
+				logger.info(location, IEntityId.null_id, mb.toString());
 			}
 		}
 		catch(Exception e) {

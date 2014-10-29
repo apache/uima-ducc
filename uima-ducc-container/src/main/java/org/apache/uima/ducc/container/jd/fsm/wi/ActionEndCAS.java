@@ -18,9 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.common.DuccLogger;
-import org.apache.uima.ducc.container.common.IDuccId;
-import org.apache.uima.ducc.container.common.IDuccLogger;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
@@ -32,7 +32,7 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionEndCAS implements IAction {
 	
-	private IDuccLogger logger = DuccLogger.getLogger(ActionEndCAS.class, IDuccLogger.Component.JD.name());
+	private IContainerLogger logger = ContainerLogger.getLogger(ActionEndCAS.class, IContainerLogger.Component.JD.name());
 	
 	@Override
 	public String getName() {
@@ -42,7 +42,7 @@ public class ActionEndCAS implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, IDuccId.null_id, "");
+		logger.debug(location, IEntityId.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
@@ -56,15 +56,15 @@ public class ActionEndCAS implements IAction {
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				mb.append(Standardize.Label.remote.get()+rwi.toString());
-				logger.info(location, IDuccId.null_id, mb.toString());
+				logger.info(location, IEntityId.null_id, mb.toString());
 			}
 			else {MessageBuffer mb = new MessageBuffer();
 				mb.append("No CAS found for processing");
-				logger.info(location, IDuccId.null_id, mb.toString());
+				logger.info(location, IEntityId.null_id, mb.toString());
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, IDuccId.null_id, e);
+			logger.error(location, IEntityId.null_id, e);
 		}
 	}
 

@@ -22,15 +22,15 @@ import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.uima.ducc.container.common.DuccLogger;
-import org.apache.uima.ducc.container.common.IDuccId;
-import org.apache.uima.ducc.container.common.IDuccLogger;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 
 public class JobDriverCasManager {
 
-	private IDuccLogger logger = DuccLogger.getLogger(JobDriverCasManager.class, IDuccLogger.Component.JD.name());
+	private IContainerLogger logger = ContainerLogger.getLogger(JobDriverCasManager.class, IContainerLogger.Component.JD.name());
 	
 	private JobDriverCollectionReader jdcr = null;
 	
@@ -56,7 +56,7 @@ public class JobDriverCasManager {
 			jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
 		}
 		catch(JobDriverException e) {
-			logger.error(location, IDuccId.null_id, e);
+			logger.error(location, IEntityId.null_id, e);
 			throw e;
 		}
 	}

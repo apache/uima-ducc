@@ -24,9 +24,9 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import org.apache.uima.ducc.container.common.DuccLogger;
-import org.apache.uima.ducc.container.common.IDuccId;
-import org.apache.uima.ducc.container.common.IDuccLogger;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.jd.JobDriverException;
@@ -34,7 +34,7 @@ import org.apache.uima.ducc.container.net.impl.MetaCas;
 
 public class JobDriverCollectionReader {
 
-	private IDuccLogger logger = DuccLogger.getLogger(JobDriverCollectionReader.class, IDuccLogger.Component.JD.name());
+	private IContainerLogger logger = ContainerLogger.getLogger(JobDriverCollectionReader.class, IContainerLogger.Component.JD.name());
 	
 	private URLClassLoader urlClassLoader = null;
 	private String crXml = null;
@@ -183,7 +183,7 @@ public class JobDriverCollectionReader {
 	
 	private void setURLClassLoader(URLClassLoader value) {
 		String location = "setURLClassLoader";
-		logger.debug(location, IDuccId.null_id, value);
+		logger.debug(location, IEntityId.null_id, value);
 		urlClassLoader = value;
 	}
 	
@@ -198,11 +198,11 @@ public class JobDriverCollectionReader {
 	private void loadClass(String className) throws JobDriverException {
 		String location = "loadClass";
 		try {
-			logger.info(location, IDuccId.null_id, "loading "+className);
+			logger.info(location, IEntityId.null_id, "loading "+className);
 			Class<?> loadedClass = urlClassLoader.loadClass(className);
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.loaded.get()+loadedClass.getName());
-			logger.debug(location, IDuccId.null_id, mb.toString());
+			logger.debug(location, IEntityId.null_id, mb.toString());
 		} catch (ClassNotFoundException e) {
 			throw new JobDriverException(e);
 		}

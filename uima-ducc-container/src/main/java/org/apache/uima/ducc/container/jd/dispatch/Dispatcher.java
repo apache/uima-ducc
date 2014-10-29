@@ -20,9 +20,9 @@ package org.apache.uima.ducc.container.jd.dispatch;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.uima.ducc.container.common.DuccLogger;
-import org.apache.uima.ducc.container.common.IDuccId;
-import org.apache.uima.ducc.container.common.IDuccLogger;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
@@ -36,7 +36,7 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 
 public class Dispatcher {
 
-	private static IDuccLogger logger = DuccLogger.getLogger(Dispatcher.class, IDuccLogger.Component.JD.name());
+	private static IContainerLogger logger = ContainerLogger.getLogger(Dispatcher.class, IContainerLogger.Component.JD.name());
 	
 	public Dispatcher() {
 	}
@@ -60,7 +60,7 @@ public class Dispatcher {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append(Standardize.Label.type.get()+trans.getType());
-			logger.info(location, IDuccId.null_id, mb.toString());
+			logger.info(location, IEntityId.null_id, mb.toString());
 			Type type = trans.getType();
 			switch(type) {
 			case Get:
@@ -77,7 +77,7 @@ public class Dispatcher {
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, IDuccId.null_id, e);
+			logger.error(location, IEntityId.null_id, e);
 		}
 	}
 	
@@ -92,7 +92,7 @@ public class Dispatcher {
 			wi = map.get(rwi);
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
-			logger.debug(location, IDuccId.null_id, mb.toString());
+			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 		return wi;
 	}
@@ -105,13 +105,13 @@ public class Dispatcher {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
-			logger.debug(location, IDuccId.null_id, mb.toString());
+			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 		else {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append("has no work assigned presently");
-			logger.debug(location, IDuccId.null_id, mb.toString());
+			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 		return wi;
 	}
@@ -140,7 +140,7 @@ public class Dispatcher {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append("has no work assigned presently");
-			logger.debug(location, IDuccId.null_id, mb.toString());
+			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 		else {
 			trans.setMetaCas(wi.getMetaCas());
@@ -158,7 +158,7 @@ public class Dispatcher {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append("has no work assigned presently");
-			logger.debug(location, IDuccId.null_id, mb.toString());
+			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 		else {
 			trans.setMetaCas(wi.getMetaCas());
@@ -169,7 +169,7 @@ public class Dispatcher {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.AckMsecs.get()+(wi.getTodAck()-wi.getTodGet()));
 			mb.append(Standardize.Label.EndMsecs.get()+(wi.getTodEnd()-wi.getTodAck()));
-			logger.debug(location, IDuccId.null_id, mb.toString());
+			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 	}
 }
