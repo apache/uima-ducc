@@ -28,4 +28,6 @@ public class ServiceRequestProperties extends JobRequestProperties {
 	public static String key_service_type_uima = "service_type_uima";
 	public static String key_service_type_custom = "service_type_custom";
 	public static String key_service_type_other = "service_type_other";
+	
+	public static String key_service_id = "service_id";
 }

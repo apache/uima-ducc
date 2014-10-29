@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.transport.event;
 
-import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,7 +32,7 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 	private static final long serialVersionUID = 3637372507135841728L;
 
 	private DuccWorkMap workMap;
-	private ConcurrentHashMap<ICommandLine, ArrayList<DuccId>> serviceCmdLineMap = new ConcurrentHashMap<ICommandLine, ArrayList<DuccId>>();
+	private ConcurrentHashMap<String, ICommandLine> serviceCmdLineMap = new ConcurrentHashMap<String, ICommandLine>();
 	
 	public OrchestratorStateDuccEvent() {
 		super(EventType.ORCHESTRATOR_STATE);
@@ -41,44 +40,57 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 	
 	public void setWorkMap(DuccWorkMap value) {
 		this.workMap = value.deepCopy();
-		//compress(this.workMap);
+		compress(this.workMap);
 	}
 	
 	public DuccWorkMap getWorkMap() {
 		DuccWorkMap value = this.workMap.deepCopy();
-		//uncompress(value);
+		uncompress(value);
 		return value;
 	}
 	
 	private void compress(DuccWorkMap map) {
-		for(Entry<DuccId, IDuccWork> entry : map.getMap().entrySet()) {
-			IDuccWork dw = entry.getValue();
-			switch(dw.getDuccType()) {
-			case Service:
-				DuccWorkJob dwj = (DuccWorkJob) dw;
-				ICommandLine cl = dwj.getCommandLine();
-				if(!serviceCmdLineMap.containsKey(cl)) {
-					ArrayList<DuccId> list = new ArrayList<DuccId>();
-					serviceCmdLineMap.put(cl, list);
+		if(map != null) {
+			if(serviceCmdLineMap != null) {
+				for(Entry<DuccId, IDuccWork> entry : map.getMap().entrySet()) {
+					IDuccWork dw = entry.getValue();
+					switch(dw.getDuccType()) {
+					case Service:
+						DuccWorkJob dwj = (DuccWorkJob) dw;
+						String sid = dwj.getServiceId();
+						if(sid != null) {
+							ICommandLine cl = dwj.getCommandLine();
+							if(cl != null) {
+								serviceCmdLineMap.put(sid, cl);
+							}
+						}
+					default:
+						break;
+					}
 				}
-				ArrayList<DuccId> list = serviceCmdLineMap.get(cl);
-				list.add(dw.getDuccId());
-				dwj.setCommandLine(null);
-				break;
-			default:
-				break;
 			}
 		}
 	}
 	
 	private void uncompress(DuccWorkMap map) {
-		for(Entry<ICommandLine, ArrayList<DuccId>> entry : serviceCmdLineMap.entrySet()) {
-			ICommandLine cl = entry.getKey();
-			ArrayList<DuccId> list = entry.getValue();
-			for(DuccId duccId : list) {
-				IDuccWork dw = map.findDuccWork(duccId);
-				DuccWorkJob dwj = (DuccWorkJob) dw;
-				dwj.setCommandLine(cl);
+		if(map != null) {
+			if(serviceCmdLineMap != null) {
+				for(Entry<DuccId, IDuccWork> entry : map.getMap().entrySet()) {
+					IDuccWork dw = entry.getValue();
+					switch(dw.getDuccType()) {
+					case Service:
+						DuccWorkJob dwj = (DuccWorkJob) dw;
+						String sid = dwj.getServiceId();
+						if(sid != null) {
+							ICommandLine cl = serviceCmdLineMap.get(sid);
+							if(cl != null) {
+								dwj.setCommandLine(cl);
+							}
+						}
+					default:
+						break;
+					}
+				}
 			}
 		}
 	}

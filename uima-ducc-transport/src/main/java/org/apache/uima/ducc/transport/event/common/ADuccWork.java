@@ -40,6 +40,7 @@ public abstract class ADuccWork implements IDuccWork {
     private String[] serviceDependencies = null;
     private ServiceDeploymentType serviceDeploymentType = null;
     private String serviceEndpoint = null; // generated in submit
+    private String serviceId = null;
     private boolean cancelOnInterrupt = false;
 	
 	
@@ -138,6 +139,16 @@ public abstract class ADuccWork implements IDuccWork {
     public String getServiceEndpoint()
     {
         return serviceEndpoint;
+    }
+    
+    public void setServiceId(String serviceId)
+    {
+        this.serviceId = serviceId;
+    }
+
+    public String getServiceId()
+    {
+        return serviceId;
     }
     
     public void setCancelOnInterrupt()
