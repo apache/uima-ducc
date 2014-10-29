@@ -426,6 +426,12 @@ public class JobFactory {
         else {
         	job.setServiceDeploymentType(ServiceDeploymentType.unspecified);
         }
+        // Service Id
+        String serviceId = null;
+        if(jobRequestProperties.containsKey(ServiceRequestProperties.key_service_id)) {
+        	serviceId = jobRequestProperties.getProperty(ServiceRequestProperties.key_service_id);
+        }
+        job.setServiceId(serviceId);
 		// sweep out leftover logging trash
 		logSweeper(jobRequestProperties.getProperty(JobRequestProperties.key_log_directory), job.getDuccId());
 		// log
