@@ -70,6 +70,7 @@ public class DuccServiceSubmit
         UiOption.ServiceLinger,
 
         UiOption.ServicePingArguments,
+        UiOption.ServiceId, 
         UiOption.ServicePingClass,
         UiOption.ServicePingClasspath,
         UiOption.ServicePingJvmArgs,

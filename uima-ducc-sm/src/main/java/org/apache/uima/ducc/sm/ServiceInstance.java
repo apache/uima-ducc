@@ -166,7 +166,9 @@ class ServiceInstance
             api_classpath,
             "org.apache.uima.ducc.cli.DuccServiceSubmit",
             "--specification",
-            spec
+            spec,
+            "--service_id",
+            sset.getId().toString(),
         };
             
         for ( int i = 0; i < args.length; i++ ) { 

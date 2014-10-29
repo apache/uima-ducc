@@ -324,6 +324,13 @@ public interface IUiOptions
             public String label()       { return name(); }
         },            
 
+        ServiceId {                     // for use only by SM when spawing a service 
+            public String pname()       { return "service_id"; }
+            public String argname()     { return "number"; }
+            public String description() { return "The numeric id of the service being spawned"; }
+            public String example()     { return "123"; }
+        },            
+
         ServicePingClass { 
             public String pname()       { return "service_ping_class"; }
             public String argname()     { return "classname"; }
