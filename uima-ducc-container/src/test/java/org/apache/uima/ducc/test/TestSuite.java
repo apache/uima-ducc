@@ -81,6 +81,7 @@ public class TestSuite {
 	}
 	
 	private String[] jarList242 = { 
+			"/ducc-test.jar",
 			"/ducc-user.jar",
 			"/uimaj-as-core-2.4.2.jar",
 			"/uimaj-core-2.4.2.jar",
@@ -88,6 +89,7 @@ public class TestSuite {
 	};
 	
 	private String[] jarList260 = { 
+			"/ducc-test.jar",
 			"/ducc-user.jar",
 			"/uimaj-as-core-2.6.0.jar",
 			"/uimaj-core-2.6.0.jar",
@@ -157,7 +159,7 @@ public class TestSuite {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void test_03() {
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
@@ -169,7 +171,7 @@ public class TestSuite {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void test_04() {
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
@@ -264,7 +266,7 @@ public class TestSuite {
 		}
 	}
 	
-	//@Test
+	@Test
 	public void test_07() {
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
@@ -314,7 +316,7 @@ public class TestSuite {
 		}
 	}	
 	
-	//@Test
+	@Test
 	public void test_08() {
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
@@ -324,7 +326,7 @@ public class TestSuite {
 		getMetaCases(jarList260, crXml, crCfg, 0);
 	}
 	
-	//@Test
+	@Test
 	public void test_09() {
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());

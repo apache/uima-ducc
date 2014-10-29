@@ -2,23 +2,42 @@
     
 	<property name="resources.dir"         value="${basedir}/src/test/resources" />
 	
-	<property name="jar.dir"               value="${basedir}/../uima-ducc-user/target/classes" />
-	<property name="jar.file" 		       value="ducc-user.jar" />
-	
+	<property name="user.jar.dir"          value="${basedir}/../uima-ducc-user/target/classes" />
+	<property name="user.jar.file" 		   value="ducc-user.jar" />
+	   
+	<property name="test.jar.dir"          value="${basedir}/target/test-classes" />
+	<property name="test.jar.file"         value="ducc-test.jar" />
+	    
 	<property name="xml.dir"               value="${basedir}/../uima-ducc-user/src/test/resources" />
 	<property name="xml.file"              value="CR100.xml" />
      	    
-	<target name="all" depends="jar, xml" />
+	<target name="all" depends="user.jar ,test.jar, xml" />
 	
-	<target name="jar" depends="rm.jar, mk.jar" />
+	<target name="user.jar" depends="rm.user.jar, mk.user.jar" />
+	<target name="test.jar" depends="rm.test.jar, mk.test.jar" />
 	<target name="xml" depends="rm.xml, mk.xml" />
-	
-    <target name="mk.jar">
-    	<jar file="${resources.dir}/${jar.file}" basedir="${jar.dir}"/>
+    
+    <target name="mk.user.jar">
+        <jar file="${resources.dir}/${user.jar.file}" basedir="${user.jar.dir}"/>
+    </target>
+    
+    <target name="rm.user.jar">
+        <delete file="${resources.dir}/${user.jar.file}"/>
+    </target>
+    
+    <target name="mk.test.jar">
+    	 <jar destfile="${resources.dir}/${test.jar.file}"
+    	       basedir="${test.jar.dir}"
+    	       includes="org/**"
+    	  />
     </target>
 	
-    <target name="rm.jar">
-        <delete file="${resources.dir}/${jar.file}"/>
+    <target name="mk.test.jar.old">
+    	<jar file="${resources.dir}/${test.jar.file}" basedir="${test.jar.dir}"/>
+    </target>
+	
+    <target name="rm.test.jar">
+        <delete file="${resources.dir}/${test.jar.file}"/>
     </target>
     
     <target name="mk.xml">

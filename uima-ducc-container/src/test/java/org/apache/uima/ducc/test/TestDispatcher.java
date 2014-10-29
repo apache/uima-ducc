@@ -117,6 +117,7 @@ public class TestDispatcher {
 		try {
 			String[] jarList260 = { 
 					"/ducc-user.jar",
+					"/ducc-test.jar",
 					"/uimaj-as-core-2.6.0.jar",
 					"/uimaj-core-2.6.0.jar",
 					"/xstream-1.3.1.jar"

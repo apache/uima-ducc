@@ -52,7 +52,7 @@ public class JobDriverCollectionReader {
 	}
 	
 	public JobDriverCollectionReader(URL[] classLoaderUrls, String crXml, String cfCfg) throws JobDriverException {
-		URLClassLoader classLoader = new URLClassLoader(classLoaderUrls);
+		URLClassLoader classLoader = new URLClassLoader(classLoaderUrls, ClassLoader.getSystemClassLoader().getParent());
 		construct(classLoader, crXml, cfCfg);
 	}
 	
