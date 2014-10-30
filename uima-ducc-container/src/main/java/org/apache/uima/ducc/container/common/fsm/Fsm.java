@@ -120,8 +120,6 @@ public class Fsm implements IFsmBuilder {
 					mb.append(Standardize.Label.event.get()+event.getName());
 					throw new FsmException(mb.toString());
 				}
-				IAction action = value.getAction();
-				action.engage(actionData);
 				IState _statePrevious = _stateCurrent;
 				_stateCurrent = value.getState();
 				setStateCurrent(_stateCurrent);
@@ -130,6 +128,8 @@ public class Fsm implements IFsmBuilder {
 				mb.append(Standardize.Label.curr.get()+_stateCurrent.getName());
 				mb.append(Standardize.Label.prev.get()+_statePrevious.getName());
 				logger.info(location, IEntityId.null_id, mb.toString());
+				IAction action = value.getAction();
+				action.engage(actionData);
 			}
 		}
 		catch(Exception e) {

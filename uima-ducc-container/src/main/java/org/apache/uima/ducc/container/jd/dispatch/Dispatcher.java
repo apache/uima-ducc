@@ -122,15 +122,6 @@ public class Dispatcher {
 		IEvent event = WiFsm.Get_Request;
 		Object actionData = new ActionData(wi, rwi, trans);
 		fsm.transition(event, actionData);
-		IMetaCas metaCas = trans.getMetaCas();
-		if(metaCas != null) {
-			wi.setMetaCas(metaCas);
-			event = WiFsm.CAS_Available;
-		}
-		else {
-			event = WiFsm.CAS_Unavailable;
-		}
-		fsm.transition(event, actionData);
 	}
 	
 	public void handleMetaCasTransationAck(IMetaCasTransaction trans, IRemoteWorkerIdentity rwi) {

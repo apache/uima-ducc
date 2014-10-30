@@ -24,6 +24,8 @@ import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
+import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
+import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.jd.JobDriverCasManager;
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.dispatch.IRemoteWorkerIdentity;
@@ -48,6 +50,7 @@ public class ActionGetCAS implements IAction {
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
+			IFsm fsm = wi.getFsm();
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
 			IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
 			//
@@ -55,19 +58,25 @@ public class ActionGetCAS implements IAction {
 			IMetaCas metaCas = jdcm.getMetaCas();
 			trans.setMetaCas(metaCas);
 			//
+			IEvent event = null;
+			//
 			if(metaCas != null) {
 				wi.setTodGet();
+				event = WiFsm.CAS_Available;
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				mb.append(Standardize.Label.remote.get()+rwi.toString());
 				logger.info(location, IEntityId.null_id, mb.toString());
 			}
-			else {MessageBuffer mb = new MessageBuffer();
+			else {
+				event = WiFsm.CAS_Unavailable;
+				MessageBuffer mb = new MessageBuffer();
 				mb.append("No CAS found for processing");
 				logger.info(location, IEntityId.null_id, mb.toString());
 			}
-			
+			//
+			fsm.transition(event, actionData);
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);

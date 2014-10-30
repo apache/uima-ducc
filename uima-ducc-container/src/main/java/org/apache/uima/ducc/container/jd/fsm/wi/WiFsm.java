@@ -59,6 +59,8 @@ public class WiFsm extends Fsm {
 	
 	private void initialize() throws FsmException {
 		
+		// current state // event // action // next state //
+		
 		addInitial(Start, Get_Request, ActionGetCAS, Get_Pending);
 		
 		add(Get_Pending, CAS_Available, ActionSendCAS, CAS_Send);

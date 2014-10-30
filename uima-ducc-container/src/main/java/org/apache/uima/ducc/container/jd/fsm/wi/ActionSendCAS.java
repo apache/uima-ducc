@@ -22,6 +22,9 @@ import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
+import org.apache.uima.ducc.container.jd.dispatch.IWorkItem;
+import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionSendCAS implements IAction {
 	
@@ -37,6 +40,15 @@ public class ActionSendCAS implements IAction {
 		String location = "engage";
 		logger.debug(location, IEntityId.null_id, "");
 		IActionData actionData = (IActionData) objectData;
+		try {
+			IWorkItem wi = actionData.getWorkItem();
+			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+			IMetaCas metaCas = trans.getMetaCas();
+			wi.setMetaCas(metaCas);
+		}
+		catch(Exception e) {
+			logger.error(location, IEntityId.null_id, e);
+		}
 	}
 
 }
