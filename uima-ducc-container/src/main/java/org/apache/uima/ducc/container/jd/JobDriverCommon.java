@@ -37,6 +37,10 @@ public class JobDriverCommon {
 		return instance;
 	}
 	
+	public static void setInstance(String[] classpath, String crXml, String crCfg) {
+		instance = new JobDriverCommon(classpath, crXml, crCfg);
+	}
+	
 	private AtomicInteger wiSuccess = new AtomicInteger(0);
 	private AtomicInteger wiFailure = new AtomicInteger(0);
 	private AtomicInteger wiRetry = new AtomicInteger(0);
@@ -44,11 +48,8 @@ public class JobDriverCommon {
 	private ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = null;
 	private JobDriverCasManager jdcm = null;
 	
-	public JobDriverCommon(String[] classpath, String crXml, String crCfg) {
+	private JobDriverCommon(String[] classpath, String crXml, String crCfg) {
 		initialize(classpath, crXml, crCfg);
-		if(instance == null) {
-			instance = this;
-		}
 	}
 	
 	public void initialize(String[] classpath, String crXml, String crCfg) {

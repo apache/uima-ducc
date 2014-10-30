@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.test;
+package org.apache.uima.ducc.container.jd.test;
 
 import static org.junit.Assert.*;
 
@@ -25,6 +25,8 @@ import java.net.URL;
 
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.dispatch.Dispatcher;
+import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
+import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
@@ -130,27 +132,30 @@ public class TestDispatcher {
 		return transCommon(dispatcher, trans, reqNo);
 	}
 	
+	private String[] jarList260 = { 
+			"/ducc-user.jar",
+			"/ducc-test.jar",
+			"/uimaj-as-core-2.6.0.jar",
+			"/uimaj-core-2.6.0.jar",
+			"/xstream-1.3.1.jar"
+	};
+	
 	@Test
 	public void test_01() {
 		try {
-			String[] jarList260 = { 
-					"/ducc-user.jar",
-					"/ducc-test.jar",
-					"/uimaj-as-core-2.6.0.jar",
-					"/uimaj-core-2.6.0.jar",
-					"/xstream-1.3.1.jar"
-			};
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			new JobDriverCommon(jarList260, crXml, crCfg);
+			JobDriverCommon.setInstance(jarList260, crXml, crCfg);
 			int size = JobDriverCommon.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
-			String node = "node01";
-			int pid = 23;
-			int tid = 45;
+			ThreadInfoFactory tif = new ThreadInfoFactory(1,1,1);
+			ThreadInfo ti = tif.getRandom();
+			String node = ti.getNode();
+			int pid = ti.getPid();
+			int tid = ti.getTid();
 			int casNo = 1;
 			IMetaCas metaCasPrevious = null;
 			IMetaCas metaCas = transGet(dispatcher,node,pid,tid,casNo);
@@ -170,4 +175,40 @@ public class TestDispatcher {
 		}
 	}
 	
+	@Test
+	public void test_02() {
+		try {
+			URL urlXml = this.getClass().getResource("/CR100.xml");
+			File file = new File(urlXml.getFile());
+			String crXml = file.getAbsolutePath();
+			String crCfg = null;
+			JobDriverCommon.setInstance(jarList260, crXml, crCfg);
+			int size = JobDriverCommon.getInstance().getMap().size();
+			debug("map size:"+size);
+			Dispatcher dispatcher = new Dispatcher();
+			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
+			ThreadInfo ti = tif.getRandom();
+			debug("random:"+ti.toKey());
+			int casNo = 1;
+			IMetaCas metaCasPrevious = null;
+			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			assertTrue(metaCas != null);
+			while(metaCas != null) {
+				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				casNo++;
+				metaCasPrevious = metaCas;
+				assertTrue(metaCasPrevious != null);
+				ti = tif.getRandom();
+				debug("random:"+ti.toKey());
+				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			}
+			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
+			asExpected("CASes processed count == 100");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
 }
