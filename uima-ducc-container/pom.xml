@@ -47,6 +47,15 @@
       http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk/uima-ducc-container
     </url>
   </scm>
+  <dependencyManagement>
+		<dependencies>
+            <dependency>
+				<groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-user</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+  </dependencyManagement>
   
   <dependencies>
         <!-- Dependencies on other DUCC projects -->
@@ -55,11 +64,11 @@
 			<artifactId>uima-ducc-common</artifactId>
 		</dependency>
 
+       
         <dependency>
 			<groupId>org.apache.uima</groupId>
-			<artifactId>uima-ducc-transport</artifactId>
+			<artifactId>uima-ducc-user</artifactId>
 		</dependency>
-
 	</dependencies>
   
 

@@ -48,13 +48,31 @@
       http://svn.apache.org/viewvc/uima/sandbox/uima-ducc/trunk/uima-ducc-transport
     </url>
   </scm>
-
+<dependencyManagement>
+		<dependencies>
+            <dependency>
+				<groupId>org.apache.uima</groupId>
+			    <artifactId>uima-ducc-container</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+		</dependencies>
+  </dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.uima</groupId>
 			<artifactId>uima-ducc-common</artifactId>
 			<scope>compile</scope>
 		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.uima</groupId>
+			<artifactId>uima-ducc-container</artifactId>
+			<scope>compile</scope>
+		</dependency>
+
+
+
 
         <dependency>
             <groupId>commons-httpclient</groupId>
