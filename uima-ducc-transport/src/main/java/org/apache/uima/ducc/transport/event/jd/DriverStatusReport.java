@@ -42,7 +42,7 @@ import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 
 @SuppressWarnings("serial")
-public class DriverStatusReport implements Serializable {
+public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	
 	private static DuccLogger duccOut = DuccLoggerComponents.getJdOut(DriverStatusReport.class.getName());
 	private static DuccId jobid = null;
