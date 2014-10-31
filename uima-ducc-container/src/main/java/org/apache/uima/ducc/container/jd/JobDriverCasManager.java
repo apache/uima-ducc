@@ -20,11 +20,10 @@ package org.apache.uima.ducc.container.jd;
 
 import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.IContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 
@@ -36,9 +35,7 @@ public class JobDriverCasManager {
 	
 	private LinkedBlockingQueue<MetaCas> cacheQueue = new LinkedBlockingQueue<MetaCas>();
 	
-	private AtomicInteger countGet = new AtomicInteger(0);
-	private AtomicInteger countPut = new AtomicInteger(0);
-	private AtomicInteger countGetCr = new AtomicInteger(0);
+	private CasManagerStats casManagerStats = new CasManagerStats();
 	
 	public JobDriverCasManager(String[] classpath, String crXml, String crCfg) throws JobDriverException {
 		initialize(classpath, crXml, crCfg);
@@ -54,6 +51,7 @@ public class JobDriverCasManager {
 				i++;
 			}
 			jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			casManagerStats.setCrTotal(jdcr.getTotal());
 		}
 		catch(JobDriverException e) {
 			logger.error(location, IEntityId.null_id, e);
@@ -64,13 +62,12 @@ public class JobDriverCasManager {
 	public MetaCas getMetaCas() throws JobDriverException {
 		MetaCas retVal = cacheQueue.poll();
 		if(retVal != null) {
-			countGet.incrementAndGet();
+			casManagerStats.incRetryQueueGets();
 		}
 		else {
 			retVal = jdcr.getMetaCas();
 			if(retVal != null) {
-				countGetCr.incrementAndGet();
-				countGet.incrementAndGet();
+				casManagerStats.incCrGets();
 			}
 		}
 		return retVal;
@@ -78,22 +75,10 @@ public class JobDriverCasManager {
 	
 	public void putMetaCas(MetaCas metaCas) {
 		cacheQueue.add(metaCas);
-		countPut.incrementAndGet();
+		casManagerStats.incRetryQueuePuts();
 	}
 	
-	public int getTotal() throws JobDriverException {
-		return jdcr.getTotal();
-	}
-	
-	public int getGets() {
-		return countGet.intValue();
-	}
-	
-	public int getPuts() {
-		return countPut.intValue();
-	}
-	
-	public int getGetsCr() {
-		return countGetCr.intValue();
+	public CasManagerStats getCasManagerStats() {
+		return casManagerStats;
 	}
 }

@@ -28,6 +28,7 @@ import org.apache.uima.ducc.container.jd.JobDriverCasManager;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.dispatch.RemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -345,21 +346,27 @@ public class TestSuite {
 			String crCfg = null;
 			String[] jarList = jarList260;
 			JobDriverCasManager jdcm = new JobDriverCasManager(jarList, crXml, crCfg);
-			int total = jdcm.getTotal();
+			int total = jdcm.getCasManagerStats().getCrTotal();
 			assertTrue(total == 100);
 			MetaCas metaCas = jdcm.getMetaCas();
-			int puts = 3;
+			int retrys = 3;
 			while(metaCas != null) {
-				if(jdcm.getPuts() < puts) {
+				if(jdcm.getCasManagerStats().getRetryQueuePuts() < retrys) {
 					jdcm.putMetaCas(metaCas);
 				}
 				metaCas = jdcm.getMetaCas();
 			}
-			assertTrue(jdcm.getGetsCr() == total);
-			assertTrue(jdcm.getGets() == (puts+total));
-			assertTrue(jdcm.getPuts() == puts);
-			asExpected("puts == "+puts);
-			asExpected("gets == "+(puts+total));
+			int crGets = jdcm.getCasManagerStats().getCrGets();
+			debug("crGets:"+crGets);
+			assertTrue(crGets == total);
+			int rqPuts = jdcm.getCasManagerStats().getRetryQueuePuts();
+			debug("rqPuts:"+rqPuts);
+			int rqGets = jdcm.getCasManagerStats().getRetryQueueGets();
+			debug("rqGets:"+rqGets);
+			assertTrue(rqPuts == retrys);
+			assertTrue(rqGets == rqPuts);
+			asExpected("puts == "+rqPuts);
+			asExpected("gets == "+rqGets);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -396,4 +403,26 @@ public class TestSuite {
 		assertTrue(rwi01A.getPid() == p10);
 		assertTrue(rwi01A.getTid() == t20);
 	}
+	
+	@Test
+	public void test_30() {
+		OperatingInfo oi = new OperatingInfo();
+		oi.setWorkItemCrTotal(100);
+		assertTrue(oi.getWorkItemCrTotal() == 100);
+		oi.setWorkItemCrFetches(50);
+		assertTrue(oi.getWorkItemCrFetches() == 50);
+		oi.setWorkItemEndFailures(55);
+		assertTrue(oi.getWorkItemEndFailures() == 55);
+		oi.setWorkItemEndSuccesses(60);
+		assertTrue(oi.getWorkItemEndSuccesses() == 60);
+		oi.setWorkItemJpAcks(65);
+		assertTrue(oi.getWorkItemJpAcks() == 65);
+		oi.setWorkItemJpSends(70);
+		assertTrue(oi.getWorkItemJpSends() == 70);
+		oi.setWorkItemUserProcessingErrorRetries(75);
+		assertTrue(oi.getWorkItemUserProcessingErrorRetries() == 75);
+		oi.setWorkItemUserProcessingTimeouts(80);
+		assertTrue(oi.getWorkItemUserProcessingTimeouts() == 80);
+	}
+
 }

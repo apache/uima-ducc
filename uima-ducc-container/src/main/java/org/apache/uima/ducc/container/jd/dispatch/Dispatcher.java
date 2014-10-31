@@ -21,15 +21,21 @@ package org.apache.uima.ducc.container.jd.dispatch;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.IContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
+import org.apache.uima.ducc.container.jd.CasManagerStats;
+import org.apache.uima.ducc.container.jd.JobDriverCasManager;
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.fsm.wi.ActionData;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
+import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
@@ -41,15 +47,25 @@ public class Dispatcher {
 	public Dispatcher() {
 	}
 	
-	public void downNode(NodeInfo nodeInfo) {
+	public IOperatingInfo handleGetOperatingInfo() {
+		IOperatingInfo retVal = new OperatingInfo();
+		JobDriverCasManager jdcm = JobDriverCommon.getInstance().getCasManager();
+		CasManagerStats cms = jdcm.getCasManagerStats();
+		retVal.setWorkItemCrTotal(cms.getCrTotal());
+		retVal.setWorkItemCrFetches(cms.getCrGets());
+		return retVal;
+	}
+	
+	public void handleDownNode(INodeInfo nodeInfo) {
 		
 	}
 	
-	public void downProcess(ProcessInfo processInfo) {
+	public void handleDownProcess(IProcessInfo processInfo) {
 		
 	}
+
 	
-	public void preemptProcess(ProcessInfo processInfo) {
+	public void handlePreemptProcess(IProcessInfo processInfo) {
 		
 	}
 	
@@ -163,4 +179,5 @@ public class Dispatcher {
 			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 	}
+	
 }

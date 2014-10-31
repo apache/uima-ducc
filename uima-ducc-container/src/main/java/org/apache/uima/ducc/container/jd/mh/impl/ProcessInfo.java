@@ -16,8 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch;
+package org.apache.uima.ducc.container.jd.mh.impl;
 
-public class NodeInfo {
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+
+public class ProcessInfo implements IProcessInfo {
 
 }

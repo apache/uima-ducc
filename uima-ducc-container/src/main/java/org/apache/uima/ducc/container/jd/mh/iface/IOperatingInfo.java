@@ -16,8 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch;
+package org.apache.uima.ducc.container.jd.mh.iface;
 
-public class ProcessInfo {
+public interface IOperatingInfo {
 
+	public void setWorkItemCrTotal(int value);
+	public int getWorkItemCrTotal();
+	
+	public void setWorkItemCrFetches(int value);
+	public int getWorkItemCrFetches();
+	
+	public void setWorkItemJpSends(int value);
+	public int getWorkItemJpSends();
+	
+	public void setWorkItemJpAcks(int value);
+	public int getWorkItemJpAcks();
+	
+	public void setWorkItemEndSuccesses(int value);
+	public int getWorkItemEndSuccesses();
+	
+	public void setWorkItemEndFailures(int value);
+	public int getWorkItemEndFailures();
+	
+	public void setWorkItemUserProcessingTimeouts(int value);
+	public int getWorkItemUserProcessingTimeouts();
+	
+	public void setWorkItemUserProcessingErrorRetries(int value);
+	public int getWorkItemUserProcessingErrorRetries();
 }

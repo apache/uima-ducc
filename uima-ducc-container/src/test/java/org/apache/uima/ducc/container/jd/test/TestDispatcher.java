@@ -18,13 +18,15 @@
 */
 package org.apache.uima.ducc.container.jd.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.net.URL;
 
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.dispatch.Dispatcher;
+import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
@@ -168,6 +170,9 @@ public class TestDispatcher {
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
+			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			assertTrue(oi.getWorkItemCrFetches() == 100);
+			asExpected("CASes fetched count == 100");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -205,6 +210,9 @@ public class TestDispatcher {
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
+			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			assertTrue(oi.getWorkItemCrFetches() == 100);
+			asExpected("CASes fetched count == 100");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
