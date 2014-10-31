@@ -68,7 +68,7 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDealloc
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
-import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsMap;
 import org.apache.uima.ducc.transport.event.rm.IResource;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
@@ -99,7 +99,7 @@ public class StateManager {
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
 	private Messages messages = orchestratorCommonArea.getSystemMessages();
 	private DuccWorkMap workMap = orchestratorCommonArea.getWorkMap();
-	private ConcurrentHashMap<DuccId,DriverStatusReport> driverStatusReportMap = orchestratorCommonArea.getDriverStatusReportMap();
+	private ConcurrentHashMap<DuccId,IDriverStatusReport> driverStatusReportMap = orchestratorCommonArea.getDriverStatusReportMap();
 	private StateJobAccounting stateJobAccounting = StateJobAccounting.getInstance();
 	
 	HistoryPersistenceManager hpm = orchestratorCommonArea.getHistoryPersistencemanager();
@@ -324,7 +324,7 @@ public class StateManager {
 		}
 	}
 	
-	private void copyInvestmentReport(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+	private void copyInvestmentReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyInvestmentReport";
 		try {
 			ConcurrentHashMap<RemoteLocation, Long> omMap = jdStatusReport.getOperatingMillisMap();
@@ -349,7 +349,7 @@ public class StateManager {
 		}
 	}
 	
-	private void copyProcessWorkItemsReport(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+	private void copyProcessWorkItemsReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyProcessWorkItemsReport";
 		try {
 			IDuccProcessMap processMap = job.getProcessMap();
@@ -368,7 +368,7 @@ public class StateManager {
 		}
 	}
 	
-	private void copyDriverWorkItemsReport(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+	private void copyDriverWorkItemsReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyDriverWorkItemsReport";
 		try {
 			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
@@ -396,7 +396,7 @@ public class StateManager {
 		}
 	}
 	
-	private void setCompletionIfNotAlreadySet(DuccWorkJob duccWorkJob, DriverStatusReport jdStatusReport) {
+	private void setCompletionIfNotAlreadySet(DuccWorkJob duccWorkJob, IDriverStatusReport jdStatusReport) {
 		String methodName = "setCompletionIfNotAlreadySet";
 		DuccId jobid = null;
 		try {
@@ -445,7 +445,7 @@ public class StateManager {
 	/**
 	 * JD reconciliation
 	 */
-	public void reconcileState(DriverStatusReport jdStatusReport) {
+	public void reconcileState(IDriverStatusReport jdStatusReport) {
 		String methodName = "reconcileState (JD)";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		int changes = 0;
@@ -607,7 +607,7 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
-	public boolean isExcessCapacity(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+	public boolean isExcessCapacity(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "isExcessCapacity";
 		boolean retVal = false;
 		if(jdStatusReport != null) {
@@ -637,7 +637,7 @@ public class StateManager {
 		return retVal;
 	}
 	
-	private boolean deallocateIdleProcesses(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+	private boolean deallocateIdleProcesses(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateIdleProcesses";
 		boolean retVal = false;
 		if(!jdStatusReport.isPending()  && !jdStatusReport.isWorkItemPendingProcessAssignment()) {
@@ -663,7 +663,7 @@ public class StateManager {
 		return retVal;
 	}
 	
-	private boolean deallocateFailedProcesses(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+	private boolean deallocateFailedProcesses(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateFailedProcesses";
 		boolean retVal = false;
 		IDuccProcessMap processMap = job.getProcessMap();
@@ -686,7 +686,7 @@ public class StateManager {
 	}
 	
 	
-	private boolean deallocateJobDriver(DuccWorkJob job, DriverStatusReport jdStatusReport) {
+	private boolean deallocateJobDriver(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateJobDriver";
 		boolean retVal = false;
 		IDuccProcessMap processMap = job.getDriver().getProcessMap();

@@ -87,7 +87,7 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDealloc
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -360,7 +360,7 @@ implements Orchestrator {
 	
 	public void reconcileJdState(JdStateDuccEvent duccEvent) {
 		String methodName = "reconcileJdState";
-		DriverStatusReport dsr = duccEvent.getState();
+		IDriverStatusReport dsr = duccEvent.getState();
 		DuccId duccId = null;
 		if(dsr != null) {
 			duccId = dsr.getDuccId();

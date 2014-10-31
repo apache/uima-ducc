@@ -39,7 +39,7 @@ import org.apache.uima.ducc.orchestrator.utilities.Checkpointable;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
-import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 
 
 public class OrchestratorCommonArea {
@@ -128,7 +128,7 @@ public class OrchestratorCommonArea {
 		initSeqNo();
 		setDuccIdFactory(new DuccIdFactory(propertiesFileManager,constSeqNo));
 		workMap = new DuccWorkMap();
-		driverStatusReportMap = new ConcurrentHashMap<DuccId,DriverStatusReport>();
+		driverStatusReportMap = new ConcurrentHashMap<DuccId,IDriverStatusReport>();
 		processAccounting = new ProcessAccounting();
 		OrchestratorCheckpoint.getInstance().switchOnOff(commonConfiguration.orchestratorCheckpoint);
 		OrchestratorCheckpoint.getInstance().restoreState();
@@ -224,13 +224,13 @@ public class OrchestratorCommonArea {
 	
 	// **********
 	
-	private ConcurrentHashMap<DuccId,DriverStatusReport> driverStatusReportMap = null;
+	private ConcurrentHashMap<DuccId,IDriverStatusReport> driverStatusReportMap = null;
 	
-	public ConcurrentHashMap<DuccId,DriverStatusReport> getDriverStatusReportMap() {
+	public ConcurrentHashMap<DuccId,IDriverStatusReport> getDriverStatusReportMap() {
 		return driverStatusReportMap;
 	}
 	
-	public void setDriverStatusReportMap(ConcurrentHashMap<DuccId,DriverStatusReport> driverStatusReportMap) {
+	public void setDriverStatusReportMap(ConcurrentHashMap<DuccId,IDriverStatusReport> driverStatusReportMap) {
 		this.driverStatusReportMap = driverStatusReportMap;
 	}
 	

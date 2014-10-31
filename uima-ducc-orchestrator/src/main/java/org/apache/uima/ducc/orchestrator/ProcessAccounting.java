@@ -44,7 +44,7 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDealloc
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
-import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 
 
 public class ProcessAccounting {
@@ -731,7 +731,7 @@ public class ProcessAccounting {
 		return;
 	}
 	
-	public boolean setStatus(DriverStatusReport jdStatusReport, DuccWorkJob duccWorkJob) {
+	public boolean setStatus(IDriverStatusReport jdStatusReport, DuccWorkJob duccWorkJob) {
 		String methodName = "setStatus";
 		logger.trace(methodName, null, messages.fetch("enter"));
 		boolean retVal = false;
