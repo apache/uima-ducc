@@ -22,4 +22,32 @@ import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 
 public class ProcessInfo implements IProcessInfo {
 
+	private String node = null;
+	private int pid = 0;
+	
+	public ProcessInfo(String node, int pid) {
+		setNode(node);
+		setPid(pid);
+	}
+	
+	@Override
+	public String getNode() {
+		return node;
+	}
+	
+	@Override
+	public void setNode(String value) {
+		node = value;
+	}
+	
+	@Override
+	public int getPid() {
+		return pid;
+	}
+	
+	@Override
+	public void setPid(int value) {
+		pid = value;
+	}
+
 }

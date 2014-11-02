@@ -22,4 +22,20 @@ import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 
 public class NodeInfo implements INodeInfo {
 
+	private String node = null;
+	
+	public NodeInfo(String node) {
+		setNode(node);
+	}
+	
+	@Override
+	public String getNode() {
+		return node;
+	}
+	
+	@Override
+	public void setNode(String value) {
+		node = value;
+	}
+
 }
