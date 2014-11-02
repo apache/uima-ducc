@@ -24,11 +24,13 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 
+import org.apache.uima.ducc.container.jd.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.JobDriverCasManager;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.dispatch.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
+import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -348,11 +350,11 @@ public class TestSuite {
 			JobDriverCasManager jdcm = new JobDriverCasManager(jarList, crXml, crCfg);
 			int total = jdcm.getCasManagerStats().getCrTotal();
 			assertTrue(total == 100);
-			MetaCas metaCas = jdcm.getMetaCas();
+			IMetaCas metaCas = jdcm.getMetaCas();
 			int retrys = 3;
 			while(metaCas != null) {
 				if(jdcm.getCasManagerStats().getRetryQueuePuts() < retrys) {
-					jdcm.putMetaCas(metaCas);
+					jdcm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
 				}
 				metaCas = jdcm.getMetaCas();
 			}

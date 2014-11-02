@@ -23,10 +23,13 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Random;
 
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.dispatch.Dispatcher;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
@@ -99,13 +102,15 @@ public class TestDispatcher {
 		dispatcher.handleMetaCasTransation(trans);
 		IMetaCas metaCas = trans.getMetaCas();
 		if(metaCas != null) {
-			String seqNo = ""+reqNo;
-			debug("system key:"+metaCas.getSystemKey());
-			assertTrue(metaCas.getSystemKey().equals(seqNo));
-			asExpected("system key == "+seqNo);
-			debug("user key:"+metaCas.getUserKey());
-			assertTrue(metaCas.getUserKey().equals(seqNo));
-			asExpected("user key == "+seqNo);
+			if(reqNo > 0) {
+				String seqNo = ""+reqNo;
+				debug("system key:"+metaCas.getSystemKey());
+				assertTrue(metaCas.getSystemKey().equals(seqNo));
+				asExpected("system key == "+seqNo);
+				debug("user key:"+metaCas.getUserKey());
+				assertTrue(metaCas.getUserKey().equals(seqNo));
+				asExpected("user key == "+seqNo);
+			}
 		}
 		else {
 			debug("metaCas is null");
@@ -141,6 +146,8 @@ public class TestDispatcher {
 			"/uimaj-core-2.6.0.jar",
 			"/xstream-1.3.1.jar"
 	};
+	
+	// single node:pid:tid
 	
 	@Test
 	public void test_01() {
@@ -180,6 +187,8 @@ public class TestDispatcher {
 		}
 	}
 	
+	// multiple node:pid:tid
+	
 	@Test
 	public void test_02() {
 		try {
@@ -218,5 +227,67 @@ public class TestDispatcher {
 			e.printStackTrace();
 			fail("Exception");
 		}
+	}
+	
+	// multiple node:pid:tid with preemptions
+	
+	@Test
+	public void test_03() {
+		try {
+			URL urlXml = this.getClass().getResource("/CR100.xml");
+			File file = new File(urlXml.getFile());
+			String crXml = file.getAbsolutePath();
+			String crCfg = null;
+			JobDriverCommon.setInstance(jarList260, crXml, crCfg);
+			int size = JobDriverCommon.getInstance().getMap().size();
+			debug("map size:"+size);
+			Dispatcher dispatcher = new Dispatcher();
+			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
+			ThreadInfo ti = tif.getRandom();
+			debug("random:"+ti.toKey());
+			int casNo = -1;
+			IMetaCas metaCasPrevious = null;
+			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			assertTrue(metaCas != null);
+			while(metaCas != null) {
+				randomPreempt(dispatcher,ti);
+				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				randomPreempt(dispatcher,ti);
+				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				randomPreempt(dispatcher,ti);
+				casNo--;
+				metaCasPrevious = metaCas;
+				assertTrue(metaCasPrevious != null);
+				ti = tif.getRandom();
+				debug("random:"+ti.toKey());
+				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			}
+			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
+			asExpected("CASes processed count == 100");
+			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			assertTrue(oi.getWorkItemCrFetches() == 100);
+			asExpected("CASes fetched count == 100");
+			assertTrue(oi.getWorkItemPreemptions() == expectedPremptionsTest03);
+			asExpected("CASes preempted count == "+expectedPremptionsTest03);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	private long seedTest03 = 1;
+	private Random randomTest03 = new Random(seedTest03);
+	private long pctTest03 = 15;
+	
+	private long expectedPremptionsTest03 = 52;
+	
+	private void randomPreempt(Dispatcher dispatcher, ThreadInfo ti) {
+		int n = randomTest03.nextInt(100);
+		if(n < pctTest03) {
+			IProcessInfo processInfo = new ProcessInfo(ti.getNode(),ti.getPid());
+			dispatcher.handlePreemptProcess(processInfo);
+		}
+		
 	}
 }
