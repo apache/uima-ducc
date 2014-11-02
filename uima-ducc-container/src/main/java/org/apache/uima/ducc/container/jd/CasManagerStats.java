@@ -18,15 +18,20 @@
 */
 package org.apache.uima.ducc.container.jd;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CasManagerStats {
-
+	
+	public enum RetryReason { ProcessPreempt, ProcessDown, NodeDown, UserErrorRetry, TimeoutRetry };
+	
 	private AtomicInteger crTotal = new AtomicInteger(0);
 	private AtomicInteger crGets = new AtomicInteger(0);
 	
 	private AtomicInteger retryQueuePuts = new AtomicInteger(0);
 	private AtomicInteger retryQueueGets = new AtomicInteger(0);
+	
+	private ConcurrentHashMap<String,AtomicInteger> retryReasonsMap = new ConcurrentHashMap<String,AtomicInteger>();
 	
 	public void setCrTotal(int value) {
 		crTotal.set(value);
@@ -58,5 +63,28 @@ public class CasManagerStats {
 	
 	public int getRetryQueueGets() {
 		return retryQueueGets.get();
+	}
+	
+	public void incRetryReasons(RetryReason retryReason) {
+		if(retryReason != null) {
+			String key = retryReason.name();
+			retryReasonsMap.putIfAbsent(key, new AtomicInteger(0));
+			AtomicInteger value = retryReasonsMap.get(key);
+			value.incrementAndGet();
+		}
+	}
+	
+	public ConcurrentHashMap<String,AtomicInteger> getRetryReasons() {
+		return retryReasonsMap;
+	}
+	
+	public int getNumberOfPreemptions() {
+		int retVal = 0;
+		String key = RetryReason.ProcessPreempt.name();
+		if(retryReasonsMap.containsKey(key)) {
+			AtomicInteger value = retryReasonsMap.get(key);
+			retVal = value.get();
+		}
+		return retVal;
 	}
 }
