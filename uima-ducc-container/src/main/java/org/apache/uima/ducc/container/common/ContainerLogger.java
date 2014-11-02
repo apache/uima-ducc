@@ -11,7 +11,7 @@ public class ContainerLogger implements IContainerLogger {
 	}
 	
 	private static enum Type { 
-		DEBUG(true), INFO(true), WARN(true), ERROR(true);
+		DEBUG(true), INFO(true), WARN(true), ERROR(true), TRACE(false);
 		private boolean active = true;
 		private Type(boolean value) {
 			active = value;
@@ -96,6 +96,13 @@ public class ContainerLogger implements IContainerLogger {
 	public void info(String location, IEntityId eid, Object... args) {
 		if(Type.INFO.isActive()) {
 			log(Type.INFO, location, eid, args);
+		}
+	}
+	
+	@Override
+	public void trace(String location, IEntityId eid, Object... args) {
+		if(Type.TRACE.isActive()) {
+			log(Type.TRACE, location, eid, args);
 		}
 	}
 }
