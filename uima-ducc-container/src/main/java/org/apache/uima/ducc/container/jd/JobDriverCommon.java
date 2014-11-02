@@ -23,8 +23,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.jd.dispatch.IRemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.dispatch.IWorkItem;
+import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
 
 public class JobDriverCommon {
 
