@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
-public interface IProcessInfo {
+import org.apache.uima.ducc.container.jd.dispatch.iface.IRemotePid;
+
+public interface IProcessInfo extends IRemotePid {
 
 }

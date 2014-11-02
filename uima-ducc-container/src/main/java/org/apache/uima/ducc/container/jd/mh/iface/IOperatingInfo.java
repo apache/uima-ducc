@@ -38,6 +38,9 @@ public interface IOperatingInfo {
 	public void setWorkItemEndFailures(int value);
 	public int getWorkItemEndFailures();
 	
+	public void setWorkItemPreemptions(int value);
+	public int getWorkItemPreemptions();
+	
 	public void setWorkItemUserProcessingTimeouts(int value);
 	public int getWorkItemUserProcessingTimeouts();
 	

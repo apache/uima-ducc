@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
-public interface INodeInfo {
+import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteNode;
+
+public interface INodeInfo extends IRemoteNode {
 
 }
