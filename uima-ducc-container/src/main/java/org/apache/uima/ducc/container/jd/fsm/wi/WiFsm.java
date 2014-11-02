@@ -45,12 +45,16 @@ public class WiFsm extends Fsm {
 	public static IEvent Process_Failure	= new Event("Process_Failure");
 	public static IEvent Process_Preempt	= new Event("Process_Premept");
 	
-	public IAction ActionGetCAS		= new ActionGetCAS();
-	public IAction ActionSendCAS	= new ActionSendCAS();
-	public IAction ActionAckCAS		= new ActionAckCAS();
-	public IAction ActionEndCAS		= new ActionEndCAS();
+	public IAction ActionGet				= new ActionGet();
+	public IAction ActionSend				= new ActionSend();
+	public IAction ActionAck				= new ActionAck();
+	public IAction ActionEnd				= new ActionEnd();
 	
-	public IAction ActionIgnore 	= new ActionIgnore();
+	public IAction ActionInProgress			= new ActionInProgress();
+	public IAction ActionPreempt			= new ActionPreempt();
+	
+	public IAction ActionIgnore 			= new ActionIgnore();
+	public IAction ActionError				= new ActionError();
 	
 	public WiFsm() throws FsmException {
 		super();
@@ -61,13 +65,31 @@ public class WiFsm extends Fsm {
 		
 		// current state // event // action // next state //
 		
-		addInitial(Start, Get_Request, ActionGetCAS, Get_Pending);
+		initial(Start);
 		
-		add(Get_Pending, CAS_Available, ActionSendCAS, CAS_Send);
-		add(Get_Pending, CAS_Unavailable, ActionSendCAS, Start);
+		add(Start, Get_Request, ActionGet, Get_Pending);
+		add(Start, CAS_Available, ActionIgnore, Start);
+		add(Start, CAS_Unavailable, ActionIgnore, Start);
+		add(Start, Ack_Request, ActionError, Start);
+		add(Start, Process_Preempt, ActionIgnore, Start);
 		
-		add(CAS_Send, Ack_Request, ActionAckCAS, CAS_Active);
+		add(Get_Pending, Get_Request, ActionInProgress, Get_Pending);
+		add(Get_Pending, CAS_Available, ActionSend, CAS_Send);
+		add(Get_Pending, CAS_Unavailable, ActionSend, Start);
+		add(Get_Pending, Ack_Request, ActionError, Get_Pending);
+		add(Get_Pending, Process_Preempt, ActionPreempt, Start);
 		
-		add(CAS_Active, End_Request, ActionEndCAS, Start);
+		add(CAS_Send, Get_Request, ActionInProgress, CAS_Send);
+		add(CAS_Send, CAS_Available, ActionIgnore, CAS_Send);
+		add(CAS_Send, CAS_Unavailable, ActionIgnore, CAS_Send);
+		add(CAS_Send, Ack_Request, ActionAck, CAS_Active);
+		add(CAS_Send, Process_Preempt, ActionPreempt, Start);
+		
+		add(CAS_Active, Get_Request, ActionError, CAS_Active);
+		add(CAS_Active, CAS_Available, ActionIgnore, CAS_Active);
+		add(CAS_Active, CAS_Unavailable, ActionIgnore, CAS_Active);
+		add(CAS_Active, Ack_Request, ActionError, CAS_Active);
+		add(CAS_Active, End_Request, ActionEnd, Start);
+		add(CAS_Active, Process_Preempt, ActionPreempt, Start);
 	}
 }
