@@ -18,13 +18,24 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.IContainerLogger;
+import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 
-public interface IActionData {
+public class ActionError implements IAction {
+	
+	private IContainerLogger logger = ContainerLogger.getLogger(ActionError.class, IContainerLogger.Component.JD.name());
+	
+	@Override
+	public String getName() {
+		return ActionError.class.getName();
+	}
 
-	public IWorkItem getWorkItem();
-	public IRemoteWorkerIdentity getRemoteWorkerIdentity();
-	public IMetaCasTransaction getMetaCasTransaction();
+	@Override
+	public void engage(Object objectData) {
+		String location = "engage";
+		logger.debug(location, IEntityId.null_id, "");
+		IActionData actionData = (IActionData) objectData;
+	}
 }
