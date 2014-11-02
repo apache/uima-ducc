@@ -24,4 +24,5 @@ public interface IFsmBuilder extends IFsm {
 	
 	public void add(IState current, IEvent event, IAction action, IState next) throws FsmException;
 	public void addInitial(IState current, IEvent event, IAction action, IState next) throws FsmException;
+	public void initial(IState current) throws FsmException;
 }

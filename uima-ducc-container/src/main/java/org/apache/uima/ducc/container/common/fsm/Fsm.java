@@ -65,6 +65,11 @@ public class Fsm implements IFsmBuilder {
 		add(current, event, action, next);
 		setStateCurrent(current);
 	}
+
+	@Override
+	public void initial(IState state) throws FsmException {
+		setStateCurrent(state);
+	}
 	
 	private void setStateCurrent(IState value) {
 		stateCurrent = value;
