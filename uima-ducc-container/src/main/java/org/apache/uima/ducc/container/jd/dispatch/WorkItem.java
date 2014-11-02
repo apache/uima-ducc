@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.container.jd.dispatch;
 
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
+import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class WorkItem implements IWorkItem {

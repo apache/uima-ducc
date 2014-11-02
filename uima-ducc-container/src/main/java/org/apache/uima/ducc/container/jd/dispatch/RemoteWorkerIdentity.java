@@ -21,6 +21,9 @@ package org.apache.uima.ducc.container.jd.dispatch;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.IContainerLogger;
+import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteNode;
+import org.apache.uima.ducc.container.jd.dispatch.iface.IRemotePid;
+import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
 
 public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<Object> {
@@ -170,6 +173,52 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);
+		}
+		return retVal;
+	}
+
+	/////
+	
+	private int compareToNode(IRemoteNode that) {
+		int retVal = 0;
+		String thisNode = this.getNode();
+		String thatNode = that.getNode();
+		if(thisNode != null) {
+			if(thatNode != null) {
+				retVal = thisNode.compareTo(thatNode);
+			}
+		}
+		return retVal;
+	}
+	
+	private int compareToPid(IRemotePid that) {
+		int retVal = 0;
+		Integer thisPid = new Integer(this.getPid());
+		Integer thatPid = new Integer(that.getPid());
+		retVal = thisPid.compareTo(thatPid);
+		return retVal;
+	}
+	
+	@Override
+	public boolean comprises(IRemoteNode that) {
+		boolean retVal = false;
+		if(that != null) {
+			if(this.compareToNode(that) == 0) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+
+	@Override
+	public boolean comprises(IRemotePid that) {
+		boolean retVal = false;
+		if(that != null) {
+			if(this.compareToNode(that) == 0) {
+				if(this.compareToPid(that) == 0) {
+					retVal = true;
+				}
+			}
 		}
 		return retVal;
 	}
