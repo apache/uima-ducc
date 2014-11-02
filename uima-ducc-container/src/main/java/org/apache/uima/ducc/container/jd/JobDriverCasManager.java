@@ -24,8 +24,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.jd.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class JobDriverCasManager {
 
@@ -33,10 +34,10 @@ public class JobDriverCasManager {
 	
 	private JobDriverCollectionReader jdcr = null;
 	
-	private LinkedBlockingQueue<MetaCas> cacheQueue = new LinkedBlockingQueue<MetaCas>();
+	private LinkedBlockingQueue<IMetaCas> cacheQueue = new LinkedBlockingQueue<IMetaCas>();
 	
 	private CasManagerStats casManagerStats = new CasManagerStats();
-	
+
 	public JobDriverCasManager(String[] classpath, String crXml, String crCfg) throws JobDriverException {
 		initialize(classpath, crXml, crCfg);
 	}
@@ -59,8 +60,8 @@ public class JobDriverCasManager {
 		}
 	}
 	
-	public MetaCas getMetaCas() throws JobDriverException {
-		MetaCas retVal = cacheQueue.poll();
+	public IMetaCas getMetaCas() throws JobDriverException {
+		IMetaCas retVal = cacheQueue.poll();
 		if(retVal != null) {
 			casManagerStats.incRetryQueueGets();
 		}
@@ -73,9 +74,10 @@ public class JobDriverCasManager {
 		return retVal;
 	}
 	
-	public void putMetaCas(MetaCas metaCas) {
+	public void putMetaCas(IMetaCas metaCas, RetryReason retryReason) {
 		cacheQueue.add(metaCas);
 		casManagerStats.incRetryQueuePuts();
+		casManagerStats.incRetryReasons(retryReason);
 	}
 	
 	public CasManagerStats getCasManagerStats() {
