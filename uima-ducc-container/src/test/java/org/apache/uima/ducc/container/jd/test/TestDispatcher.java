@@ -26,7 +26,7 @@ import java.net.URL;
 import java.util.Random;
 
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
-import org.apache.uima.ducc.container.jd.dispatch.Dispatcher;
+import org.apache.uima.ducc.container.jd.mh.Dispatcher;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;

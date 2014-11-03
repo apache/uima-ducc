@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch;
+package org.apache.uima.ducc.container.jd.mh;
 
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,14 +31,16 @@ import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
 import org.apache.uima.ducc.container.jd.fsm.wi.ActionData;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
+import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
+import org.apache.uima.ducc.container.jd.wi.WorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
@@ -54,17 +56,22 @@ public class Dispatcher {
 		String location = "handleGetOperatingInfo";
 		IOperatingInfo retVal = null;
 		try {
-			retVal = new OperatingInfo();
-			CasManager cm = JobDriverCommon.getInstance().getCasManager();
+			IOperatingInfo oi = new OperatingInfo();
+			JobDriverCommon jdc = JobDriverCommon.getInstance();
+			CasManager cm = jdc.getCasManager();
 			CasManagerStats cms = cm.getCasManagerStats();
-			retVal.setWorkItemCrTotal(cms.getCrTotal());
-			retVal.setWorkItemCrFetches(cms.getCrGets());
-			retVal.setWorkItemPreemptions(cms.getNumberOfPreemptions());
+			IWorkItemStatistics wis = jdc.getWorkItemStatistics();
+			oi.setWorkItemCrTotal(cms.getCrTotal());
+			oi.setWorkItemCrFetches(cms.getCrGets());
+			oi.setWorkItemPreemptions(cms.getNumberOfPreemptions());
+			oi.setWorkItemClockedMillisMax(wis.getMillisMax());
 			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.crTotal.get()+retVal.getWorkItemCrTotal());
-			mb.append(Standardize.Label.crFetches.get()+retVal.getWorkItemCrFetches());
-			mb.append(Standardize.Label.preemptions.get()+retVal.getWorkItemPreemptions());
+			mb.append(Standardize.Label.crTotal.get()+oi.getWorkItemCrTotal());
+			mb.append(Standardize.Label.crFetches.get()+oi.getWorkItemCrFetches());
+			mb.append(Standardize.Label.preemptions.get()+oi.getWorkItemPreemptions());
+			mb.append(Standardize.Label.clockedMillisMax.get()+oi.getWorkItemClockedMillisMax());
 			logger.debug(location, IEntityId.null_id, mb.toString());
+			retVal = oi;
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);

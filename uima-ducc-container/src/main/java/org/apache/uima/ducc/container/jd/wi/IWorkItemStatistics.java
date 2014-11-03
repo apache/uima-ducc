@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch.iface;
+package org.apache.uima.ducc.container.jd.wi;
 
-public interface IRemotePid extends IRemoteNode {
-
-	public int getPid();
-	public void setPid(int value);
+public interface IWorkItemStatistics {
+	
+	public void ended(IWorkItem wi);
+	public long getMillisMax();
 }

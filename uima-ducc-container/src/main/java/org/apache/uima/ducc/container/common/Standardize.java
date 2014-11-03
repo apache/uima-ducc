@@ -24,6 +24,7 @@ public class Standardize {
 		crFetches,
 		crTotal,
 		preemptions,
+		clockedMillisMax,
 		state,
 		event,
 		curr,

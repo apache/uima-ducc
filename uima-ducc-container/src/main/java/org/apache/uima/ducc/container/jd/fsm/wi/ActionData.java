@@ -18,8 +18,8 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionData implements IActionData {

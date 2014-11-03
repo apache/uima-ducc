@@ -16,19 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common.files.json;
+package org.apache.uima.ducc.container.jd.mh.iface.remote;
 
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteTid;
-import org.apache.uima.ducc.container.net.iface.IMetaCasKeys;
-
-public interface IJsonWorkItemState extends IMetaCasKeys, IRemoteTid {
-
-	public String getStatus();
-	public void setStatus(String value);
+public interface IRemoteWorkerIdentity extends IRemoteTid {
 	
-	public long getTransferTime();
-	public void setTransferTime(long value);
-	
-	public long getProcessingTime();
-	public void setProcessingTime(long value);
+	boolean comprises(IRemoteNode thatNode);
+	boolean comprises(IRemotePid thatPid);
 }

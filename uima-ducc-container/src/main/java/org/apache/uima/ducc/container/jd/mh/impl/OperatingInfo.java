@@ -32,6 +32,8 @@ public class OperatingInfo implements IOperatingInfo {
 	private int jpUserProcessingTimeouts = 0;
 	private int jpUserProcessingErrorRetries = 0;
 	
+	private long clockedMillisMax = 0;
+	
 	@Override
 	public void setWorkItemCrTotal(int value) {
 		crTotal = value;
@@ -120,6 +122,16 @@ public class OperatingInfo implements IOperatingInfo {
 	@Override
 	public int getWorkItemUserProcessingErrorRetries() {
 		return jpUserProcessingErrorRetries;
+	}
+
+	@Override
+	public void setWorkItemClockedMillisMax(long value) {
+		clockedMillisMax = value;
+	}
+
+	@Override
+	public long getWorkItemClockedMillisMax() {
+		return clockedMillisMax;
 	}
 
 }

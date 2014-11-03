@@ -16,10 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch;
+package org.apache.uima.ducc.container.jd.wi;
 
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class WorkItem implements IWorkItem {
@@ -84,5 +83,19 @@ public class WorkItem implements IWorkItem {
 	@Override
 	public long getTodEnd() {
 		return todEnd.get();
+	}
+
+	@Override
+	public long getMillisOperating() {
+		long retVal = 0;
+		long start = getTodAck();
+		long end = getTodEnd();
+		if(start > 0) {
+			if(end == 0) {
+				end = System.currentTimeMillis();
+			}
+			retVal = end - start;
+		}
+		return retVal;
 	}
 }

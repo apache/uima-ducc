@@ -18,7 +18,7 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteNode;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
 
 public interface INodeInfo extends IRemoteNode {
 

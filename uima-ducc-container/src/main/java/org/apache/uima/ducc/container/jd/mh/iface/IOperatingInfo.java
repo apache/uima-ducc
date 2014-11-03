@@ -46,4 +46,10 @@ public interface IOperatingInfo {
 	
 	public void setWorkItemUserProcessingErrorRetries(int value);
 	public int getWorkItemUserProcessingErrorRetries();
+	
+	//
+	
+	public void setWorkItemClockedMillisMax(long value);
+	public long getWorkItemClockedMillisMax();
+	
 }

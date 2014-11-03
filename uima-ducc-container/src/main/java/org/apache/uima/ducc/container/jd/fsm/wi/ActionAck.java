@@ -24,9 +24,9 @@ import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
-import org.apache.uima.ducc.container.jd.dispatch.RemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 

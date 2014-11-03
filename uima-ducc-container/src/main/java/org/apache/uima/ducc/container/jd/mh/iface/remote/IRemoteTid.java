@@ -16,10 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch.iface;
+package org.apache.uima.ducc.container.jd.mh.iface.remote;
 
-public interface IRemoteNode {
+public interface IRemoteTid extends IRemotePid {
 
-	public String getNode();
-	public void setNode(String value);
+	public int getTid();
+	public void setTid(int value);
 }

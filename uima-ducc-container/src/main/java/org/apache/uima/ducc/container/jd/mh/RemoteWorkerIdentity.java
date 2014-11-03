@@ -16,14 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch;
+package org.apache.uima.ducc.container.jd.mh;
 
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.IContainerLogger;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteNode;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemotePid;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
 
 public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<Object> {

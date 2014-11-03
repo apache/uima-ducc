@@ -16,10 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.dispatch.iface;
+package org.apache.uima.ducc.container.jd.wi;
 
-public interface IRemoteWorkerIdentity extends IRemoteTid {
+import org.apache.uima.ducc.container.common.SynchronizedStats;
+
+public class WorkItemStatistics implements IWorkItemStatistics {
+
+	private SynchronizedStats stats = new SynchronizedStats();
 	
-	boolean comprises(IRemoteNode thatNode);
-	boolean comprises(IRemotePid thatPid);
+	public void ended(IWorkItem wi) {
+		long time = wi.getMillisOperating();
+		stats.addValue(time);
+	}
+	
+	public long getMillisMax() {
+		long value = (long) stats.getMax();
+		return value;
+	}
 }

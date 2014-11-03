@@ -28,7 +28,7 @@ import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
-import org.apache.uima.ducc.container.jd.dispatch.RemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;

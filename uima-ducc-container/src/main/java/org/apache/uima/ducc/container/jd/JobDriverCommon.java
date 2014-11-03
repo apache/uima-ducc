@@ -24,8 +24,10 @@ import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
+import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
 
 public class JobDriverCommon {
 
@@ -42,12 +44,15 @@ public class JobDriverCommon {
 	}
 	
 	private ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = null;
+	private IWorkItemStatistics wis = null;
+	
 	private CasManager cm = null;
 	
 	public void initialize(String[] classpath, String crXml, String crCfg) {
 		String location = "initialize";
 		try {
 			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
+			wis = new WorkItemStatistics();
 			cm = new CasManager(classpath, crXml, crCfg);
 		}
 		catch(Exception e) {
@@ -57,6 +62,10 @@ public class JobDriverCommon {
 	
 	public ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> getMap() {
 		return map;
+	}
+	
+	public IWorkItemStatistics getWorkItemStatistics() {
+		return wis;
 	}
 	
 	public CasManager getCasManager() {
