@@ -30,6 +30,7 @@ import org.apache.uima.ducc.container.jd.mh.Dispatcher;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
+import org.apache.uima.ducc.container.jd.test.helper.Testing;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
@@ -151,6 +152,9 @@ public class TestDispatcher {
 	
 	@Test
 	public void test_01() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
@@ -191,6 +195,9 @@ public class TestDispatcher {
 	
 	@Test
 	public void test_02() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
@@ -233,6 +240,9 @@ public class TestDispatcher {
 	
 	@Test
 	public void test_03() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());

@@ -31,6 +31,7 @@ import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsmBuilder;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
+import org.apache.uima.ducc.container.jd.test.helper.Testing;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -84,6 +85,9 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_01() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			IState s0 = new State("a");
 			IState s1 = new State("a");
@@ -110,6 +114,9 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_02() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			IEvent e0 = new Event("c");
 			IEvent e1 = new Event("c");
@@ -136,6 +143,9 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_03() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			IState s0 = new State("a");
 			IState s1 = new State("b");
@@ -177,6 +187,9 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_04() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			IState s1 = new State("s1");
 			IState s2 = new State("s2");
@@ -202,6 +215,9 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_05() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			WiFsm wiFsm = new WiFsm();
 			Object actionData = null;
@@ -229,6 +245,9 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_06() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			WiFsm wiFsm = new WiFsm();
 			Object actionData = null;

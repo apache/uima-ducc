@@ -30,6 +30,7 @@ import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
+import org.apache.uima.ducc.container.jd.test.helper.Testing;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 import org.junit.After;
@@ -117,6 +118,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_01() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -126,6 +130,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_02() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -164,6 +171,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_03() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -176,6 +186,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_04() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -207,6 +220,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_05() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		String crXml = null;
 		String crCfg = null;
 		testNoXml(jarList242, crXml, crCfg);
@@ -234,6 +250,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_06() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -271,6 +290,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_07() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -321,6 +343,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_08() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -331,6 +356,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_09() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
@@ -341,6 +369,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_10() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
@@ -378,6 +409,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_20() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		String n01 = "node01";
 		int p10 = 10;
 		int t20 = 20;
@@ -408,6 +442,9 @@ public class TestSuite {
 	
 	@Test
 	public void test_30() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		OperatingInfo oi = new OperatingInfo();
 		oi.setWorkItemCrTotal(100);
 		assertTrue(oi.getWorkItemCrTotal() == 100);

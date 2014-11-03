@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.container.common.files.json.JsonConverter;
 import org.apache.uima.ducc.container.common.files.json.JsonWorkItemState;
+import org.apache.uima.ducc.container.jd.test.helper.Testing;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -89,6 +90,9 @@ public class TestJson {
 	
 	@Test
 	public void test_01() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			JsonWorkItemState jwis1 = new JsonWorkItemState();
 			jwis1.setNode("node01");
@@ -125,6 +129,9 @@ public class TestJson {
 	
 	@Test
 	public void test_02() {
+		if(Testing.isDisabled(this.getClass().getName())) {
+			return;
+		}
 		try {
 			JsonWorkItemState jwis1 = new JsonWorkItemState();
 			jwis1.setNode("node01");
