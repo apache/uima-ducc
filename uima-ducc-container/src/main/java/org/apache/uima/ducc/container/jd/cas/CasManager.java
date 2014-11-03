@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd;
+package org.apache.uima.ducc.container.jd.cas;
 
 import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,13 +24,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.jd.CasManagerStats.RetryReason;
+import org.apache.uima.ducc.container.jd.JobDriverException;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public class JobDriverCasManager {
+public class CasManager {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(JobDriverCasManager.class, IContainerLogger.Component.JD.name());
+	private IContainerLogger logger = ContainerLogger.getLogger(CasManager.class, IContainerLogger.Component.JD.name());
 	
 	private JobDriverCollectionReader jdcr = null;
 	
@@ -38,7 +39,7 @@ public class JobDriverCasManager {
 	
 	private CasManagerStats casManagerStats = new CasManagerStats();
 
-	public JobDriverCasManager(String[] classpath, String crXml, String crCfg) throws JobDriverException {
+	public CasManager(String[] classpath, String crXml, String crCfg) throws JobDriverException {
 		initialize(classpath, crXml, crCfg);
 	}
 	

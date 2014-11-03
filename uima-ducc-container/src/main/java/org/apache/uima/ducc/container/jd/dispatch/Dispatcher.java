@@ -28,9 +28,9 @@ import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
-import org.apache.uima.ducc.container.jd.CasManagerStats;
-import org.apache.uima.ducc.container.jd.JobDriverCasManager;
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
 import org.apache.uima.ducc.container.jd.fsm.wi.ActionData;
@@ -55,8 +55,8 @@ public class Dispatcher {
 		IOperatingInfo retVal = null;
 		try {
 			retVal = new OperatingInfo();
-			JobDriverCasManager jdcm = JobDriverCommon.getInstance().getCasManager();
-			CasManagerStats cms = jdcm.getCasManagerStats();
+			CasManager cm = JobDriverCommon.getInstance().getCasManager();
+			CasManagerStats cms = cm.getCasManagerStats();
 			retVal.setWorkItemCrTotal(cms.getCrTotal());
 			retVal.setWorkItemCrFetches(cms.getCrGets());
 			retVal.setWorkItemPreemptions(cms.getNumberOfPreemptions());

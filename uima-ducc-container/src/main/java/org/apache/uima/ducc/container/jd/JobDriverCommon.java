@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.dispatch.iface.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
 
@@ -41,13 +42,13 @@ public class JobDriverCommon {
 	}
 	
 	private ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = null;
-	private JobDriverCasManager jdcm = null;
+	private CasManager cm = null;
 	
 	public void initialize(String[] classpath, String crXml, String crCfg) {
 		String location = "initialize";
 		try {
 			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
-			jdcm = new JobDriverCasManager(classpath, crXml, crCfg);
+			cm = new CasManager(classpath, crXml, crCfg);
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);
@@ -58,8 +59,8 @@ public class JobDriverCommon {
 		return map;
 	}
 	
-	public JobDriverCasManager getCasManager() {
-		return jdcm;
+	public CasManager getCasManager() {
+		return cm;
 	}
 	
 }

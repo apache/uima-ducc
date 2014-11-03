@@ -24,9 +24,9 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 
-import org.apache.uima.ducc.container.jd.CasManagerStats.RetryReason;
-import org.apache.uima.ducc.container.jd.JobDriverCasManager;
 import org.apache.uima.ducc.container.jd.JobDriverException;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.dispatch.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
@@ -347,23 +347,23 @@ public class TestSuite {
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
 			String[] jarList = jarList260;
-			JobDriverCasManager jdcm = new JobDriverCasManager(jarList, crXml, crCfg);
-			int total = jdcm.getCasManagerStats().getCrTotal();
+			CasManager cm = new CasManager(jarList, crXml, crCfg);
+			int total = cm.getCasManagerStats().getCrTotal();
 			assertTrue(total == 100);
-			IMetaCas metaCas = jdcm.getMetaCas();
+			IMetaCas metaCas = cm.getMetaCas();
 			int retrys = 3;
 			while(metaCas != null) {
-				if(jdcm.getCasManagerStats().getRetryQueuePuts() < retrys) {
-					jdcm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
+				if(cm.getCasManagerStats().getRetryQueuePuts() < retrys) {
+					cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
 				}
-				metaCas = jdcm.getMetaCas();
+				metaCas = cm.getMetaCas();
 			}
-			int crGets = jdcm.getCasManagerStats().getCrGets();
+			int crGets = cm.getCasManagerStats().getCrGets();
 			debug("crGets:"+crGets);
 			assertTrue(crGets == total);
-			int rqPuts = jdcm.getCasManagerStats().getRetryQueuePuts();
+			int rqPuts = cm.getCasManagerStats().getRetryQueuePuts();
 			debug("rqPuts:"+rqPuts);
-			int rqGets = jdcm.getCasManagerStats().getRetryQueueGets();
+			int rqGets = cm.getCasManagerStats().getRetryQueueGets();
 			debug("rqGets:"+rqGets);
 			assertTrue(rqPuts == retrys);
 			assertTrue(rqGets == rqPuts);

@@ -16,41 +16,33 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.fsm.wi;
+package org.apache.uima.ducc.container.jd;
 
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.common.fsm.iface.IAction;
-import org.apache.uima.ducc.container.jd.JobDriverCommon;
-import org.apache.uima.ducc.container.jd.cas.CasManager;
-import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
-import org.apache.uima.ducc.container.jd.dispatch.iface.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public class ActionPreempt implements IAction {
+public class JobDriver {
+
+	private static IContainerLogger logger = ContainerLogger.getLogger(JobDriver.class, IContainerLogger.Component.JD.name());
 	
-	private IContainerLogger logger = ContainerLogger.getLogger(ActionPreempt.class, IContainerLogger.Component.JD.name());
-	
-	@Override
-	public String getName() {
-		return ActionPreempt.class.getName();
+	private JobDriver() {
 	}
-
-	@Override
-	public void engage(Object objectData) {
-		String location = "engage";
-		logger.debug(location, IEntityId.null_id, "");
-		IActionData actionData = (IActionData) objectData;
+	
+	private void mainline(String[] args) {
+		String location = "mainline";
 		try {
-			IWorkItem wi = actionData.getWorkItem();
-			IMetaCas metaCas = wi.getMetaCas();
-			//
-			CasManager cm = JobDriverCommon.getInstance().getCasManager();
-			cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
+			//TODO
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);
 		}
 	}
+	
+	public static void main(String[] args) {
+		JobDriver jobDriver = new JobDriver();
+		jobDriver.mainline(args);
+
+	}
+
 }
