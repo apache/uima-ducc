@@ -237,8 +237,10 @@ public class TestSuite {
 			assertTrue(seqNo == 1);
 			String serializedCas = (String)mc.getSerializedCas();
 			asExpected("cas = "+serializedCas);
-			String prefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
-			assertTrue(serializedCas.startsWith(prefix));
+			if(Testing.isVerifyPrefix()) {
+				String prefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
+				assertTrue(serializedCas.startsWith(prefix));
+			}
 			String documentText = mc.getDocumentText();
 			asExpected("documentText = "+documentText);
 			assertTrue(documentText.equals("1"));
@@ -269,8 +271,10 @@ public class TestSuite {
 			assertTrue(seqNo == c);
 			String serializedCas = (String)mc.getSerializedCas();
 			asExpected("cas = "+serializedCas);
-			String prefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
-			assertTrue(serializedCas.startsWith(prefix));
+			if(Testing.isVerifyPrefix()) {
+				String prefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
+				assertTrue(serializedCas.startsWith(prefix));
+			}
 			String documentText = mc.getDocumentText();
 			asExpected("documentText = "+documentText);
 			assertTrue(documentText.equals(""+c));
