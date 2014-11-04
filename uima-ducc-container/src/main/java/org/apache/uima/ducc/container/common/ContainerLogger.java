@@ -46,6 +46,16 @@ public class ContainerLogger implements IContainerLogger {
 		setComponent(component);
 	}
 	
+	private static boolean silentRunning = false;
+	
+	public static void setSilentRunning() {
+		silentRunning = true;
+	}
+	
+	public static void resetSilentRunning() {
+		silentRunning = false;
+	}
+	
 	private String clazz = null;
 	private String component = null;
 	
@@ -93,7 +103,9 @@ public class ContainerLogger implements IContainerLogger {
 		text.append(location);
 		text.append(" ");	
 		text.append(format(args));
-		System.out.println(text);
+		if(!silentRunning) {
+			System.out.println(text);
+		}
 	}
 	
 	@Override

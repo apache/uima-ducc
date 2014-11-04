@@ -20,9 +20,10 @@ package org.apache.uima.ducc.container.jd.test.helper;
 
 public class Testing {
 
-	private static boolean disabled = true;
-	
+	private static boolean disabled = false;
+	private static boolean verbose = false;
 	private static boolean warned = false;
+	private static boolean debug = false;
 	
 	public static boolean isDisabled(String name ) {
 		if(disabled) {
@@ -32,5 +33,13 @@ public class Testing {
 			warned = true;
 		}
 		return disabled;
+	}
+	
+	public static boolean isVerbose() {
+		return verbose;
+	}
+	
+	public static boolean isDebug() {
+		return debug;
 	}
 }

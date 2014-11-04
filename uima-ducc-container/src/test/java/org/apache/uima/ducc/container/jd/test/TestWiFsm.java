@@ -20,6 +20,7 @@ package org.apache.uima.ducc.container.jd.test;
 
 import static org.junit.Assert.*;
 
+import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.fsm.Action;
 import org.apache.uima.ducc.container.common.fsm.Event;
 import org.apache.uima.ducc.container.common.fsm.Fsm;
@@ -50,34 +51,37 @@ public class TestWiFsm {
 
 	@Before
 	public void setUp() throws Exception {
+		if(!Testing.isVerbose()) {
+			ContainerLogger.setSilentRunning();
+		}
+		else {
+			ContainerLogger.resetSilentRunning();
+		}
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
-	
-	private boolean debug = false;
-	private boolean asExpected = true;
-	
+
 	private void out_println(String message) {
 		System.out.println(message);
 	}
 	
 	private void debug(String message) {
-		if(debug) {
+		if(Testing.isDebug()) {
 			out_println(message);
 		}
 	}
 	
 	private void asExpected(String text) {
-		if(asExpected) {
+		if(Testing.isVerbose()) {
 			String message = "as expected: "+text;
 			out_println(message);
 		}
 	}
 	
 	private void asExpected(Exception e) {
-		if(asExpected) {
+		if(Testing.isVerbose()) {
 			String message = "as expected: "+e.getMessage();
 			out_println(message);
 		}

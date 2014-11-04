@@ -25,6 +25,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.Random;
 
+import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.mh.Dispatcher;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
@@ -56,27 +57,30 @@ public class TestDispatcher {
 
 	@Before
 	public void setUp() throws Exception {
+		if(!Testing.isVerbose()) {
+			ContainerLogger.setSilentRunning();
+		}
+		else {
+			ContainerLogger.resetSilentRunning();
+		}
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
 	
-	private boolean debug = true;
-	private boolean asExpected = true;
-	
 	private void out_println(String message) {
 		System.out.println(message);
 	}
 	
 	private void debug(String message) {
-		if(debug) {
+		if(Testing.isDebug()) {
 			out_println(message);
 		}
 	}
 	
 	private void asExpected(String text) {
-		if(asExpected) {
+		if(Testing.isVerbose()) {
 			String message = "as expected: "+text;
 			out_println(message);
 		}

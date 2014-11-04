@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 
+import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
@@ -52,34 +53,37 @@ public class TestSuite {
 
 	@Before
 	public void setUp() throws Exception {
+		if(!Testing.isVerbose()) {
+			ContainerLogger.setSilentRunning();
+		}
+		else {
+			ContainerLogger.resetSilentRunning();
+		}
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
 	
-	private boolean debug = true;
-	private boolean asExpected = true;
-	
 	private void out_println(String message) {
 		System.out.println(message);
 	}
 	
 	private void debug(String message) {
-		if(debug) {
+		if(Testing.isDebug()) {
 			out_println(message);
 		}
 	}
 	
 	private void asExpected(String text) {
-		if(asExpected) {
+		if(Testing.isVerbose()) {
 			String message = "as expected: "+text;
 			out_println(message);
 		}
 	}
 	
 	private void asExpected(Exception e) {
-		if(asExpected) {
+		if(Testing.isVerbose()) {
 			String message = "as expected: "+e.getMessage();
 			out_println(message);
 		}
