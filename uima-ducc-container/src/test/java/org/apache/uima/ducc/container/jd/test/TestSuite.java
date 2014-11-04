@@ -31,6 +31,7 @@ import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.jd.test.helper.Testing;
+import org.apache.uima.ducc.container.jd.test.helper.Utilities;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 import org.junit.After;
@@ -83,22 +84,6 @@ public class TestSuite {
 			out_println(message);
 		}
 	}
-	
-	private String[] jarList242 = { 
-			"/ducc-test.jar",
-			"/ducc-user.jar",
-			"/uimaj-as-core-2.4.2.jar",
-			"/uimaj-core-2.4.2.jar",
-			"/xstream-1.3.1.jar"
-	};
-	
-	private String[] jarList260 = { 
-			"/ducc-test.jar",
-			"/ducc-user.jar",
-			"/uimaj-as-core-2.6.0.jar",
-			"/uimaj-core-2.6.0.jar",
-			"/xstream-1.3.1.jar"
-	};
 
 	private void testIncludeAll(String[] jarList, String crXml, String crCfg) {
 		try {
@@ -125,19 +110,7 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		testIncludeAll(jarList242, crXml, crCfg);
-	}
-	
-	@Test
-	public void test_02() {
-		if(Testing.isDisabled(this.getClass().getName())) {
-			return;
-		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		testIncludeAll(jarList260, crXml, crCfg);
+		testIncludeAll(Utilities.jarList, crXml, crCfg);
 	}
 	
 	private void testExcludeOne(String[] jarList, String crXml, String crCfg, int skip) {
@@ -170,7 +143,7 @@ public class TestSuite {
 	}
 	
 	@Test
-	public void test_03() {
+	public void test_02() {
 		if(Testing.isDisabled(this.getClass().getName())) {
 			return;
 		}
@@ -178,23 +151,9 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		testExcludeOne(jarList242, crXml, crCfg, 2);
-		for(int i=0; i<jarList242.length; i++) {
-			testExcludeOne(jarList242, crXml, crCfg, i);
-		}
-	}
-	
-	@Test
-	public void test_04() {
-		if(Testing.isDisabled(this.getClass().getName())) {
-			return;
-		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		for(int i=0; i<jarList260.length; i++) {
-			testExcludeOne(jarList260, crXml, crCfg, i);
+		testExcludeOne(Utilities.jarList, crXml, crCfg, 2);
+		for(int i=0; i<Utilities.jarList.length; i++) {
+			testExcludeOne(Utilities.jarList, crXml, crCfg, i);
 		}
 	}
 	
@@ -219,14 +178,13 @@ public class TestSuite {
 	}
 	
 	@Test
-	public void test_05() {
+	public void test_03() {
 		if(Testing.isDisabled(this.getClass().getName())) {
 			return;
 		}
 		String crXml = null;
 		String crCfg = null;
-		testNoXml(jarList242, crXml, crCfg);
-		testNoXml(jarList260, crXml, crCfg);
+		testNoXml(Utilities.jarList, crXml, crCfg);
 	}
 	
 	private void getTotal(String[] jarList, String crXml, String crCfg) {
@@ -249,7 +207,7 @@ public class TestSuite {
 	}
 	
 	@Test
-	public void test_06() {
+	public void test_04() {
 		if(Testing.isDisabled(this.getClass().getName())) {
 			return;
 		}
@@ -257,8 +215,7 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getTotal(jarList242, crXml, crCfg);
-		getTotal(jarList260, crXml, crCfg);
+		getTotal(Utilities.jarList, crXml, crCfg);
 	}
 	
 	private void getMetaCas(String[] jarList, String crXml, String crCfg) {
@@ -289,7 +246,7 @@ public class TestSuite {
 	}
 	
 	@Test
-	public void test_07() {
+	public void test_05() {
 		if(Testing.isDisabled(this.getClass().getName())) {
 			return;
 		}
@@ -297,8 +254,7 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getMetaCas(jarList242, crXml, crCfg);
-		getMetaCas(jarList260, crXml, crCfg);
+		getMetaCas(Utilities.jarList, crXml, crCfg);
 	}
 	
 	private void getMetaCases(JobDriverCollectionReader jdui, int total) throws JobDriverException {
@@ -342,7 +298,7 @@ public class TestSuite {
 	}	
 	
 	@Test
-	public void test_08() {
+	public void test_06() {
 		if(Testing.isDisabled(this.getClass().getName())) {
 			return;
 		}
@@ -350,12 +306,11 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getMetaCases(jarList242, crXml, crCfg, 0);
-		getMetaCases(jarList260, crXml, crCfg, 0);
+		getMetaCases(Utilities.jarList, crXml, crCfg, 0);
 	}
 	
 	@Test
-	public void test_09() {
+	public void test_07() {
 		if(Testing.isDisabled(this.getClass().getName())) {
 			return;
 		}
@@ -363,8 +318,7 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getMetaCases(jarList242, crXml, crCfg, 10);
-		getMetaCases(jarList260, crXml, crCfg, 10);
+		getMetaCases(Utilities.jarList, crXml, crCfg, 10);
 	}
 	
 	@Test
@@ -377,8 +331,7 @@ public class TestSuite {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			String[] jarList = jarList260;
-			CasManager cm = new CasManager(jarList, crXml, crCfg);
+			CasManager cm = new CasManager(Utilities.jarList, crXml, crCfg);
 			int total = cm.getCasManagerStats().getCrTotal();
 			assertTrue(total == 100);
 			IMetaCas metaCas = cm.getMetaCas();

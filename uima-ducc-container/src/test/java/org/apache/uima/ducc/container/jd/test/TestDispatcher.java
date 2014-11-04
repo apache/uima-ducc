@@ -33,6 +33,7 @@ import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.jd.test.helper.Testing;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
+import org.apache.uima.ducc.container.jd.test.helper.Utilities;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
@@ -140,14 +141,6 @@ public class TestDispatcher {
 		return transCommon(dispatcher, trans, reqNo);
 	}
 	
-	private String[] jarList260 = { 
-			"/ducc-user.jar",
-			"/ducc-test.jar",
-			"/uimaj-as-core-2.6.0.jar",
-			"/uimaj-core-2.6.0.jar",
-			"/xstream-1.3.1.jar"
-	};
-	
 	// single node:pid:tid
 	
 	@Test
@@ -160,7 +153,7 @@ public class TestDispatcher {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			JobDriverCommon.setInstance(jarList260, crXml, crCfg);
+			JobDriverCommon.setInstance(Utilities.jarList, crXml, crCfg);
 			int size = JobDriverCommon.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -203,7 +196,7 @@ public class TestDispatcher {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			JobDriverCommon.setInstance(jarList260, crXml, crCfg);
+			JobDriverCommon.setInstance(Utilities.jarList, crXml, crCfg);
 			int size = JobDriverCommon.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -248,7 +241,7 @@ public class TestDispatcher {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			JobDriverCommon.setInstance(jarList260, crXml, crCfg);
+			JobDriverCommon.setInstance(Utilities.jarList, crXml, crCfg);
 			int size = JobDriverCommon.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
