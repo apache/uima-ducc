@@ -16,12 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.wi;
+package org.apache.uima.ducc.container.common;
 
-public interface IWorkItemStatistics {
+import org.apache.uima.ducc.container.jd.JobDriver;
+
+public class Assertion {
+
+	private static IContainerLogger logger = ContainerLogger.getLogger(JobDriver.class, IContainerLogger.Component.JD.name());
 	
-	public void ended(IWorkItem wi);
-	public long getMillisMax();
-	public long getMillisMin();
-	public long getMillisAvg();
+	public static void nonNegative(long value) {
+		String location = "nonNegative";
+		if(value < 0) {
+			logger.error(location, IEntityId.null_id, value);
+			throw new RuntimeException();
+		}
+	}
 }

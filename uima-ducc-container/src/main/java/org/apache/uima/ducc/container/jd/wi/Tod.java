@@ -18,15 +18,21 @@
 */
 package org.apache.uima.ducc.container.jd.wi;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class Tod {
 
-	private long tod = 0;
+	private AtomicLong tod = new AtomicLong(0);
 	
 	public void set() {
-		tod = System.currentTimeMillis();
+		tod.set(System.currentTimeMillis());
+	}
+	
+	public void reset() {
+		tod.set(0);
 	}
 	
 	public long get() {
-		return tod;
+		return tod.get();
 	}
 }

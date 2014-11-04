@@ -61,6 +61,7 @@ public class ActionGet implements IAction {
 			IEvent event = null;
 			//
 			if(metaCas != null) {
+				wi.resetTods();
 				wi.setTodGet();
 				event = WiFsm.CAS_Available;
 				MessageBuffer mb = new MessageBuffer();

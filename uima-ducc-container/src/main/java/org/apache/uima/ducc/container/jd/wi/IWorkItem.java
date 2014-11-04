@@ -29,13 +29,18 @@ public interface IWorkItem {
 	public void setFsm(IFsm value);
 	public IFsm getFsm();
 	
+	public void resetTods();
+	
 	public void setTodGet();
+	public void resetTodGet();
 	public long getTodGet();
 	
 	public void setTodAck();
+	public void resetTodAck();
 	public long getTodAck();
 	
 	public void setTodEnd();
+	public void resetTodEnd();
 	public long getTodEnd();
 	
 	public long getMillisOperating();

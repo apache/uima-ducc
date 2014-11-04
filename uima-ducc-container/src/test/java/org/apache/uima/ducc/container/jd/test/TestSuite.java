@@ -462,6 +462,16 @@ public class TestSuite {
 		assertTrue(oi.getWorkItemUserProcessingErrorRetries() == 75);
 		oi.setWorkItemUserProcessingTimeouts(80);
 		assertTrue(oi.getWorkItemUserProcessingTimeouts() == 80);
+		oi.setWorkItemFinishedMillisMin(1000);
+		assertTrue(oi.getWorkItemFinishedMillisMin() == 1000);
+		oi.setWorkItemFinishedMillisMax(2000);
+		assertTrue(oi.getWorkItemFinishedMillisMax() == 2000);
+		oi.setWorkItemFinishedMillisAvg(1500);
+		assertTrue(oi.getWorkItemFinishedMillisAvg() == 1500);
+		oi.setWorkItemRunningMillisMin(1001);
+		assertTrue(oi.getWorkItemRunningMillisMin() == 1001);
+		oi.setWorkItemRunningMillisMax(2001);
+		assertTrue(oi.getWorkItemRunningMillisMax() == 2001);
 	}
 
 }

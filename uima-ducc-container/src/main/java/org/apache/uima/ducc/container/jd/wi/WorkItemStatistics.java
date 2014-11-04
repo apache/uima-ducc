@@ -18,19 +18,46 @@
 */
 package org.apache.uima.ducc.container.jd.wi;
 
+import org.apache.uima.ducc.container.common.Assertion;
 import org.apache.uima.ducc.container.common.SynchronizedStats;
 
 public class WorkItemStatistics implements IWorkItemStatistics {
 
 	private SynchronizedStats stats = new SynchronizedStats();
 	
+	private long mintime = 0;
+	
+	@Override
 	public void ended(IWorkItem wi) {
 		long time = wi.getMillisOperating();
+		Assertion.nonNegative(time);
+		if(time < mintime) {
+			time = mintime;
+		}
 		stats.addValue(time);
 	}
 	
+	@Override
+	public long getMillisMin() {
+		double stat = stats.getMin();
+		if(stat == Double.MAX_VALUE) {
+			stat = 0;
+		};
+		long value = (long) stat;
+		return value;
+	}
+	
+	@Override
 	public long getMillisMax() {
-		long value = (long) stats.getMax();
+		double stat = stats.getMax();
+		long value = (long) stat;
+		return value;
+	}
+	
+	@Override
+	public long getMillisAvg() {
+		double stat = stats.getMean();
+		long value = (long) stat;
 		return value;
 	}
 }

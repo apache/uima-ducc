@@ -49,7 +49,20 @@ public interface IOperatingInfo {
 	
 	//
 	
-	public void setWorkItemClockedMillisMax(long value);
-	public long getWorkItemClockedMillisMax();
+	public void setWorkItemFinishedMillisMin(long value);
+	public long getWorkItemFinishedMillisMin();
 	
+	public void setWorkItemFinishedMillisMax(long value);
+	public long getWorkItemFinishedMillisMax();
+	
+	public void setWorkItemFinishedMillisAvg(long value);
+	public long getWorkItemFinishedMillisAvg();
+	
+	//
+	
+	public void setWorkItemRunningMillisMin(long value);
+	public long getWorkItemRunningMillisMin();
+	
+	public void setWorkItemRunningMillisMax(long value);
+	public long getWorkItemRunningMillisMax();
 }

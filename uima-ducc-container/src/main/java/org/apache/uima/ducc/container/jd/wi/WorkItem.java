@@ -18,7 +18,10 @@
 */
 package org.apache.uima.ducc.container.jd.wi;
 
+import org.apache.uima.ducc.container.common.Assertion;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
+import org.apache.uima.ducc.container.common.fsm.iface.IState;
+import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class WorkItem implements IWorkItem {
@@ -56,10 +59,22 @@ public class WorkItem implements IWorkItem {
 	}
 
 	@Override
+	public void resetTods() {
+		todGet.reset();
+		todAck.reset();
+		todEnd.reset();
+	}
+	
+	@Override
 	public void setTodGet() {
 		todGet.set();
 	}
 
+	@Override
+	public void resetTodGet() {
+		todGet.reset();
+	}
+	
 	@Override
 	public long getTodGet() {
 		return todGet.get();
@@ -68,6 +83,11 @@ public class WorkItem implements IWorkItem {
 	@Override
 	public void setTodAck() {
 		todAck.set();
+	}
+	
+	@Override
+	public void resetTodAck() {
+		todAck.reset();
 	}
 
 	@Override
@@ -78,6 +98,11 @@ public class WorkItem implements IWorkItem {
 	@Override
 	public void setTodEnd() {
 		todEnd.set();
+	}
+
+	@Override
+	public void resetTodEnd() {
+		todEnd.reset();
 	}
 
 	@Override
@@ -92,10 +117,17 @@ public class WorkItem implements IWorkItem {
 		long end = getTodEnd();
 		if(start > 0) {
 			if(end == 0) {
-				end = System.currentTimeMillis();
+				IState state = fsm.getStateCurrent();
+				if(state.getName().equals(WiFsm.CAS_Active.getName())) {
+					end = System.currentTimeMillis();
+				}
+				else {
+					end = start;
+				}
 			}
 			retVal = end - start;
 		}
+		Assertion.nonNegative(retVal);
 		return retVal;
 	}
 }

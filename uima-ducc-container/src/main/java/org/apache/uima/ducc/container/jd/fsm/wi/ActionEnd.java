@@ -60,6 +60,7 @@ public class ActionEnd implements IAction {
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				mb.append(Standardize.Label.remote.get()+rwi.toString());
 				logger.info(location, IEntityId.null_id, mb.toString());
+				wi.resetTods();
 			}
 			else {MessageBuffer mb = new MessageBuffer();
 				mb.append("No CAS found for processing");

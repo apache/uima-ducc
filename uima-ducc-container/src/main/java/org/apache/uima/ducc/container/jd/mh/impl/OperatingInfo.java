@@ -32,7 +32,12 @@ public class OperatingInfo implements IOperatingInfo {
 	private int jpUserProcessingTimeouts = 0;
 	private int jpUserProcessingErrorRetries = 0;
 	
-	private long clockedMillisMax = 0;
+	private long finishedMillisMin = 0;
+	private long finishedMillisMax = 0;
+	private long finishedMillisAvg = 0;
+	
+	private long runningMillisMin = 0;
+	private long runningMillisMax = 0;
 	
 	@Override
 	public void setWorkItemCrTotal(int value) {
@@ -125,13 +130,53 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 
 	@Override
-	public void setWorkItemClockedMillisMax(long value) {
-		clockedMillisMax = value;
+	public void setWorkItemFinishedMillisMin(long value) {
+		finishedMillisMin = value;
 	}
 
 	@Override
-	public long getWorkItemClockedMillisMax() {
-		return clockedMillisMax;
+	public long getWorkItemFinishedMillisMin() {
+		return finishedMillisMin;
+	}
+	
+	@Override
+	public void setWorkItemFinishedMillisMax(long value) {
+		finishedMillisMax = value;
+	}
+
+	@Override
+	public long getWorkItemFinishedMillisMax() {
+		return finishedMillisMax;
+	}
+
+	@Override
+	public void setWorkItemFinishedMillisAvg(long value) {
+		finishedMillisAvg = value;
+	}
+
+	@Override
+	public long getWorkItemFinishedMillisAvg() {
+		return finishedMillisAvg;
+	}
+
+	@Override
+	public void setWorkItemRunningMillisMin(long value) {
+		runningMillisMin = value;
+	}
+
+	@Override
+	public long getWorkItemRunningMillisMin() {
+		return runningMillisMin;
+	}
+
+	@Override
+	public void setWorkItemRunningMillisMax(long value) {
+		runningMillisMax = value;
+	}
+
+	@Override
+	public long getWorkItemRunningMillisMax() {
+		return runningMillisMax;
 	}
 
 }

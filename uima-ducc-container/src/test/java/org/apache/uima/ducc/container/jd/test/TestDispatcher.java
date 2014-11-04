@@ -263,6 +263,12 @@ public class TestDispatcher {
 				randomPreempt(dispatcher,ti);
 				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
 				randomPreempt(dispatcher,ti);
+				try {
+					Thread.sleep(20);
+				}
+				catch(Exception e) {
+				}
+				dispatcher.handleGetOperatingInfo();
 				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
 				randomPreempt(dispatcher,ti);
 				casNo--;
@@ -279,6 +285,12 @@ public class TestDispatcher {
 			asExpected("CASes fetched count == 100");
 			assertTrue(oi.getWorkItemPreemptions() == expectedPremptionsTest03);
 			asExpected("CASes preempted count == "+expectedPremptionsTest03);
+			try {
+				Thread.sleep(50);
+			}
+			catch(Exception e) {
+			}
+			dispatcher.handleGetOperatingInfo();
 		}
 		catch(Exception e) {
 			e.printStackTrace();

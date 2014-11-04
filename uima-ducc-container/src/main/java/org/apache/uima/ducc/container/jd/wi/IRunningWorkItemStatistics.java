@@ -18,10 +18,11 @@
 */
 package org.apache.uima.ducc.container.jd.wi;
 
-public interface IWorkItemStatistics {
+public interface IRunningWorkItemStatistics {
 	
-	public void ended(IWorkItem wi);
+	public void setMillisMax(long value);
 	public long getMillisMax();
+	
+	public void setMillisMin(long value);
 	public long getMillisMin();
-	public long getMillisAvg();
 }
