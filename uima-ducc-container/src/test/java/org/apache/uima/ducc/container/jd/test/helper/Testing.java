@@ -20,7 +20,7 @@ package org.apache.uima.ducc.container.jd.test.helper;
 
 public class Testing {
 
-	private static boolean disabled = false;
+	private static boolean disabled = true;
 	private static boolean verbose = false;
 	private static boolean warned = false;
 	private static boolean debug = false;
