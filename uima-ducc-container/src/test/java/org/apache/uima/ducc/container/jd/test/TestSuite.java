@@ -85,11 +85,11 @@ public class TestSuite {
 		}
 	}
 
-	private void testIncludeAll(String[] jarList, String crXml, String crCfg) {
+	private void testIncludeAll(String[] userCP, String crXml, String crCfg) {
 		try {
-			URL[] classLoaderUrls = new URL[jarList.length];
+			URL[] classLoaderUrls = new URL[userCP.length];
 			int i = 0;
-			for(String jar : jarList) {
+			for(String jar : userCP) {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
@@ -110,15 +110,15 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		testIncludeAll(Utilities.jarList, crXml, crCfg);
+		testIncludeAll(Utilities.userCP, crXml, crCfg);
 	}
 	
-	private void testExcludeOne(String[] jarList, String crXml, String crCfg, int skip) {
+	private void testExcludeOne(String[] userCP, String crXml, String crCfg, int skip) {
 		try {
-			URL[] classLoaderUrls = new URL[jarList.length-1];
+			URL[] classLoaderUrls = new URL[userCP.length-1];
 			int index = 0;
-			for(int i=0; i<jarList.length; i++) {
-				String jar = jarList[i];
+			for(int i=0; i<userCP.length; i++) {
+				String jar = userCP[i];
 				if(i == skip) {
 					debug(i+" skip: "+jar);
 				}
@@ -151,17 +151,17 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		testExcludeOne(Utilities.jarList, crXml, crCfg, 2);
-		for(int i=0; i<Utilities.jarList.length; i++) {
-			testExcludeOne(Utilities.jarList, crXml, crCfg, i);
+		testExcludeOne(Utilities.userCP, crXml, crCfg, 2);
+		for(int i=0; i<Utilities.userCP.length; i++) {
+			testExcludeOne(Utilities.userCP, crXml, crCfg, i);
 		}
 	}
 	
-	private void testNoXml(String[] jarList, String crXml, String crCfg) {
+	private void testNoXml(String[] userCP, String crXml, String crCfg) {
 		try {
-			URL[] classLoaderUrls = new URL[jarList.length];
+			URL[] classLoaderUrls = new URL[userCP.length];
 			int i = 0;
-			for(String jar : jarList) {
+			for(String jar : userCP) {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
@@ -184,14 +184,14 @@ public class TestSuite {
 		}
 		String crXml = null;
 		String crCfg = null;
-		testNoXml(Utilities.jarList, crXml, crCfg);
+		testNoXml(Utilities.userCP, crXml, crCfg);
 	}
 	
-	private void getTotal(String[] jarList, String crXml, String crCfg) {
+	private void getTotal(String[] userCP, String crXml, String crCfg) {
 		try {
-			URL[] classLoaderUrls = new URL[jarList.length];
+			URL[] classLoaderUrls = new URL[userCP.length];
 			int i = 0;
-			for(String jar : jarList) {
+			for(String jar : userCP) {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
@@ -215,14 +215,14 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getTotal(Utilities.jarList, crXml, crCfg);
+		getTotal(Utilities.userCP, crXml, crCfg);
 	}
 	
-	private void getMetaCas(String[] jarList, String crXml, String crCfg) {
+	private void getMetaCas(String[] userCP, String crXml, String crCfg) {
 		try {
-			URL[] classLoaderUrls = new URL[jarList.length];
+			URL[] classLoaderUrls = new URL[userCP.length];
 			int i = 0;
-			for(String jar : jarList) {
+			for(String jar : userCP) {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
@@ -254,7 +254,7 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getMetaCas(Utilities.jarList, crXml, crCfg);
+		getMetaCas(Utilities.userCP, crXml, crCfg);
 	}
 	
 	private void getMetaCases(JobDriverCollectionReader jdui, int total) throws JobDriverException {
@@ -273,11 +273,11 @@ public class TestSuite {
 		}
 	}
 	
-	private void getMetaCases(String[] jarList, String crXml, String crCfg, int extra) {
+	private void getMetaCases(String[] userCP, String crXml, String crCfg, int extra) {
 		try {
-			URL[] classLoaderUrls = new URL[jarList.length];
+			URL[] classLoaderUrls = new URL[userCP.length];
 			int i = 0;
-			for(String jar : jarList) {
+			for(String jar : userCP) {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
@@ -306,7 +306,7 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getMetaCases(Utilities.jarList, crXml, crCfg, 0);
+		getMetaCases(Utilities.userCP, crXml, crCfg, 0);
 	}
 	
 	@Test
@@ -318,7 +318,7 @@ public class TestSuite {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		String crCfg = null;
-		getMetaCases(Utilities.jarList, crXml, crCfg, 10);
+		getMetaCases(Utilities.userCP, crXml, crCfg, 10);
 	}
 	
 	@Test
@@ -331,7 +331,7 @@ public class TestSuite {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			CasManager cm = new CasManager(Utilities.jarList, crXml, crCfg);
+			CasManager cm = new CasManager(Utilities.userCP, crXml, crCfg);
 			int total = cm.getCasManagerStats().getCrTotal();
 			assertTrue(total == 100);
 			IMetaCas metaCas = cm.getMetaCas();

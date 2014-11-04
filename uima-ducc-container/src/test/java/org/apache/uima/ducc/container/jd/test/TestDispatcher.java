@@ -153,7 +153,7 @@ public class TestDispatcher {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			JobDriverCommon.setInstance(Utilities.jarList, crXml, crCfg);
+			JobDriverCommon.setInstance(Utilities.userCP, crXml, crCfg);
 			int size = JobDriverCommon.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -196,7 +196,7 @@ public class TestDispatcher {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			JobDriverCommon.setInstance(Utilities.jarList, crXml, crCfg);
+			JobDriverCommon.setInstance(Utilities.userCP, crXml, crCfg);
 			int size = JobDriverCommon.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -241,7 +241,7 @@ public class TestDispatcher {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			String crCfg = null;
-			JobDriverCommon.setInstance(Utilities.jarList, crXml, crCfg);
+			JobDriverCommon.setInstance(Utilities.userCP, crXml, crCfg);
 			int size = JobDriverCommon.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();

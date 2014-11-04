@@ -20,11 +20,12 @@ package org.apache.uima.ducc.container.jd.test.helper;
 
 public class Utilities {
 	
-	public static String[] jarList = { 
-			"/ducc-test.jar",
+	public static String[] userCP = { 
+			"/",
 			"/uima-ducc-user.jar",
 			"/uimaj-as-core.jar",
 			"/uimaj-core.jar",
 			"/xstream-1.3.1.jar"
 	};
+
 }
