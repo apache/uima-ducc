@@ -26,6 +26,8 @@ public interface IOperatingInfo {
 	public void setWorkItemCrFetches(int value);
 	public int getWorkItemCrFetches();
 	
+	public boolean isWorkItemCrPending();
+
 	public void setWorkItemJpSends(int value);
 	public int getWorkItemJpSends();
 	

@@ -212,6 +212,13 @@ public class TestDispatcher {
 			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			while(metaCas != null) {
+				IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+				if(metaCas.getSystemKey().equals("100")) {
+					assertTrue(!oi.isWorkItemCrPending());
+				}
+				else {
+					assertTrue(oi.isWorkItemCrPending());
+				}
 				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
 				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
 				casNo++;

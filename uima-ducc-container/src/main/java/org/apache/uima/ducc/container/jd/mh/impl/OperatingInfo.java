@@ -62,6 +62,11 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 
 	@Override
+	public boolean isWorkItemCrPending() {
+		return (crFetches < crTotal);
+	}
+	
+	@Override
 	public void setWorkItemJpSends(int value) {
 		jpSends = value;
 	}
