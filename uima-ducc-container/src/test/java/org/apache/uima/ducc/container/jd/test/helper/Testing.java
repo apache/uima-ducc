@@ -25,8 +25,6 @@ public class Testing {
 	private static boolean warned = false;
 	private static boolean debug = false;
 	
-	private static boolean verifyPrefix = false;
-	
 	public static boolean isDisabled(String name ) {
 		if(disabled) {
 			if(!warned) {
@@ -45,7 +43,4 @@ public class Testing {
 		return debug;
 	}
 	
-	public static boolean isVerifyPrefix() {
-		return verifyPrefix;
-	}
 }

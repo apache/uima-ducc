@@ -88,7 +88,14 @@ public class TestSuite {
 			out_println(message);
 		}
 	}
-
+	
+	String prefix1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:tcas=\"http:///uima/tcas.ecore\"";
+	String prefix0 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
+	 
+	private void checkCas(String cas) {
+		assertTrue(cas.startsWith(prefix0) || cas.startsWith(prefix1));
+	}
+	
 	private void testIncludeAll(String[] userCP, String crXml, String crCfg) {
 		try {
 			URL[] classLoaderUrls = new URL[userCP.length];
@@ -236,11 +243,8 @@ public class TestSuite {
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == 1);
 			String serializedCas = (String)mc.getSerializedCas();
+			checkCas(serializedCas);
 			asExpected("cas = "+serializedCas);
-			if(Testing.isVerifyPrefix()) {
-				String prefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
-				assertTrue(serializedCas.startsWith(prefix));
-			}
 			String documentText = mc.getDocumentText();
 			asExpected("documentText = "+documentText);
 			assertTrue(documentText.equals("1"));
@@ -270,11 +274,8 @@ public class TestSuite {
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == c);
 			String serializedCas = (String)mc.getSerializedCas();
+			checkCas(serializedCas);
 			asExpected("cas = "+serializedCas);
-			if(Testing.isVerifyPrefix()) {
-				String prefix = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
-				assertTrue(serializedCas.startsWith(prefix));
-			}
 			String documentText = mc.getDocumentText();
 			asExpected("documentText = "+documentText);
 			assertTrue(documentText.equals(""+c));
