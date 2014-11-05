@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.aae.UimaSerializer;
 import org.apache.uima.cas.CAS;
@@ -46,6 +49,7 @@ import org.apache.uima.util.InvalidXMLException;
 import org.apache.uima.util.Progress;
 import org.apache.uima.util.XMLInputSource;
 import org.apache.uima.util.XMLParser;
+import org.xml.sax.SAXException;
 
 public class CollectionReaderManager {
 
@@ -147,13 +151,30 @@ public class CollectionReaderManager {
 			if(cr.hasNext()) {
 				CAS cas = cm.getEmptyCas();
 				cr.getNext(cas);
-				String serializedCas = uimaSerializer.serializeCasToXmi(cas, xmiSerializationSharedData);
+				String serializedCas = serialize(cas);
 				String documentText = cas.getDocumentText();
 				retVal = new JdUserMetaCas(seqNo.incrementAndGet(), serializedCas, documentText);
 				cm.recycle(cas);
 			}
 		}
 		return retVal;
+	}
+	
+	public String serialize(CAS cas) throws Exception {
+		String serializedCas = uimaSerializer.serializeCasToXmi(cas, xmiSerializationSharedData);
+		return serializedCas;
+	}
+	
+	public CAS deserialize(String serializedCas) throws ResourceInitializationException, FactoryConfigurationError, ParserConfigurationException, SAXException, IOException {
+		CAS cas = cm.getEmptyCas();
+		boolean lenient = true;
+		int mergePoint = -1;
+		uimaSerializer.deserializeCasFromXmi(serializedCas, cas, xmiSerializationSharedData, lenient, mergePoint);
+		return cas;
+	}
+	
+	public void recycle(CAS cas) {
+		cm.recycle(cas);
 	}
 	
 	private void setCrXml(String value) {

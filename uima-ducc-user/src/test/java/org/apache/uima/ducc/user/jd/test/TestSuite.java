@@ -23,8 +23,14 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Properties;
 
+import org.apache.uima.cas.CAS;
+import org.apache.uima.ducc.user.jd.CollectionReaderManager;
+import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler;
+import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler.HandleKey;
 import org.apache.uima.ducc.user.jd.iface.JdUserCollectionReader;
+import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
 import org.apache.uima.ducc.user.jd.iface.JdUserException;
 import org.apache.uima.ducc.user.jd.iface.JdUserMetaCas;
 import org.junit.After;
@@ -170,4 +176,109 @@ public class TestSuite {
 		}
 	}
 	
+	@Test
+	public void test06() {
+		try {
+			IJdUserErrorHandler eh = new JdUserErrorHandler();
+			CAS cas = null;
+			Exception e = null;
+			Properties properties = eh.handle(cas, e);
+			String key;
+			String value;
+			key = HandleKey.killJobFlag.name();
+			value = properties.getProperty(key);
+			assertTrue(value.equalsIgnoreCase("true"));
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	@Test
+	public void test07() {
+		try {
+			URL url = this.getClass().getResource("/CR100.xml");
+			File file = new File(url.getFile());
+			String crXml = file.getAbsolutePath();
+			debug(crXml);
+			String crCfg = null;
+			JdUserCollectionReader jdUserCollectionReader = new JdUserCollectionReader(crXml, crCfg);
+			int total = jdUserCollectionReader.getTotal();
+			assertTrue(total == 100);
+			JdUserMetaCas jdUserMetaCas = null;
+			jdUserMetaCas = jdUserCollectionReader.getJdUserMetaCas();
+			assertTrue(jdUserMetaCas != null);
+			String serializedCas = jdUserMetaCas.getSerializedCas();
+			assertTrue(serializedCas != null);
+			CollectionReaderManager crm = jdUserCollectionReader.getCollectionReaderManager();
+			CAS cas = crm.deserialize(serializedCas);
+			JdUserErrorHandler eh = new JdUserErrorHandler();
+			Exception exception = null;
+			Properties properties = eh.handle(cas, exception);
+			String key;
+			String value;
+			key = HandleKey.killJobFlag.name();
+			value = properties.getProperty(key);
+			assertTrue(value.equalsIgnoreCase("true"));
+			key = HandleKey.killJobReason.name();
+			value = properties.getProperty(key);
+			debug(key+": "+value);
+			key = HandleKey.killProcessFlag.name();
+			value = properties.getProperty(key);
+			assertTrue(value.equalsIgnoreCase("true"));
+			key = HandleKey.killProcessReason.name();
+			value = properties.getProperty(key);
+			debug(key+": "+value);
+			crm.recycle(cas);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	@Test
+	public void test08() {
+		try {
+			URL url = this.getClass().getResource("/CR100.xml");
+			File file = new File(url.getFile());
+			String crXml = file.getAbsolutePath();
+			debug(crXml);
+			String crCfg = null;
+			JdUserCollectionReader jdUserCollectionReader = new JdUserCollectionReader(crXml, crCfg);
+			int total = jdUserCollectionReader.getTotal();
+			assertTrue(total == 100);
+			JdUserMetaCas jdUserMetaCas = null;
+			jdUserMetaCas = jdUserCollectionReader.getJdUserMetaCas();
+			assertTrue(jdUserMetaCas != null);
+			String serializedCas = jdUserMetaCas.getSerializedCas();
+			assertTrue(serializedCas != null);
+			CollectionReaderManager crm = jdUserCollectionReader.getCollectionReaderManager();
+			CAS cas = crm.deserialize(serializedCas);
+			JdUserErrorHandler eh = new JdUserErrorHandler();
+			Exception exception = new RuntimeException();
+			Properties properties = eh.handle(cas, exception);
+			String key;
+			String value;
+			key = HandleKey.killWorkItemFlag.name();
+			value = properties.getProperty(key);
+			assertTrue(value.equalsIgnoreCase("true"));
+			key = HandleKey.killWorkItemReason.name();
+			value = properties.getProperty(key);
+			debug(key+": "+value);
+			key = HandleKey.killProcessFlag.name();
+			value = properties.getProperty(key);
+			assertTrue(value.equalsIgnoreCase("true"));
+			key = HandleKey.killProcessReason.name();
+			value = properties.getProperty(key);
+			debug(key+": "+value);
+			assertTrue(!properties.containsKey(HandleKey.killJobFlag));
+			crm.recycle(cas);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
 }

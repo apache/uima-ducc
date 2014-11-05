@@ -20,15 +20,26 @@ package org.apache.uima.ducc.user.jd.iface;
 
 import java.util.Properties;
 
-public interface IJdUserErrorHandlerDirective {
+import org.apache.uima.cas.CAS;
 
-	public boolean isTerminateJob();
-	public boolean isTerminateProcess();
-	public boolean isRetryCas();
+public interface IJdUserErrorHandler {
+
+	public enum InitializeKey { 
+		killJobLimit, 		// the number of work items to fail before the killing job
+		killWorkItemLimit, 	// the number of times a work item can be retried due to failure
+		killProcessFlag 	// whether or not the process of a failing work item should be killed
+		};
 	
-	public String getReasonTerminateJob();
-	public String getReasonTerminateProcess();
-	public String getReasonRetryCas();
+	public void initialize(Properties properties);
 	
-	public void config(Properties properties);
+	public enum HandleKey { 
+		killJobFlag, 		// request job kill
+		killJobReason,		// reason for job kill (text)
+		killWorkItemFlag, 	// request work item kill
+		killWorkItemReason,	// reason for work item kill (text)
+		killProcessFlag, 	// request process kill
+		killProcessReason,	// reason for process kill (text)
+		};
+	
+	public Properties handle(CAS cas, Exception e);
 }

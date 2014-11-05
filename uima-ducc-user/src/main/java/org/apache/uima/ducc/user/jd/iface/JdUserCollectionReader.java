@@ -31,6 +31,10 @@ public class JdUserCollectionReader {
 		crm = new CollectionReaderManager(crXml, crCfg);
 	}
 	
+	public CollectionReaderManager getCollectionReaderManager() {
+		return crm;
+	}
+	
 	public JdUserMetaCas getJdUserMetaCas() throws JdUserException {
 		JdUserMetaCas retVal = crm.getJdUserMetaCas();
 		return retVal;
