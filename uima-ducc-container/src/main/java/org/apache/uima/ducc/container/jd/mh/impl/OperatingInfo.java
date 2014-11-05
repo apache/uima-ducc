@@ -39,6 +39,8 @@ public class OperatingInfo implements IOperatingInfo {
 	private long runningMillisMin = 0;
 	private long runningMillisMax = 0;
 	
+	private long todMostRecentStart = 0;
+	
 	@Override
 	public void setWorkItemCrTotal(int value) {
 		crTotal = value;
@@ -177,6 +179,16 @@ public class OperatingInfo implements IOperatingInfo {
 	@Override
 	public long getWorkItemRunningMillisMax() {
 		return runningMillisMax;
+	}
+
+	@Override
+	public void setWorkItemTodMostRecentStart(long value) {
+		todMostRecentStart = value;
+	}
+
+	@Override
+	public long getWorkItemTodMostRecentStart() {
+		return todMostRecentStart;
 	}
 
 }

@@ -72,6 +72,7 @@ public class Dispatcher {
 			oi.setWorkItemFinishedMillisAvg(wis.getMillisAvg());
 			oi.setWorkItemRunningMillisMin(rwis.getMillisMin());
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
+			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.crTotal.get()+oi.getWorkItemCrTotal());
 			mb.append(Standardize.Label.crFetches.get()+oi.getWorkItemCrFetches());
@@ -81,6 +82,7 @@ public class Dispatcher {
 			mb.append(Standardize.Label.finishedMillisAvg.get()+oi.getWorkItemFinishedMillisAvg());
 			mb.append(Standardize.Label.runningMillisMin.get()+oi.getWorkItemRunningMillisMin());
 			mb.append(Standardize.Label.runningMillisMax.get()+oi.getWorkItemRunningMillisMax());
+			mb.append(Standardize.Label.todMostRecentStart.get()+oi.getWorkItemTodMostRecentStart());
 			logger.debug(location, IEntityId.null_id, mb.toString());
 			retVal = oi;
 		}

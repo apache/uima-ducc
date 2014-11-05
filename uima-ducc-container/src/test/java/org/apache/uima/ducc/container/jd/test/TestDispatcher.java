@@ -288,6 +288,9 @@ public class TestDispatcher {
 			catch(Exception e) {
 			}
 			dispatcher.handleGetOperatingInfo();
+			long tod = oi.getWorkItemTodMostRecentStart();
+			assertTrue(tod > 0);
+			asExpected("Most Recent Start > 0, value="+tod);
 		}
 		catch(Exception e) {
 			e.printStackTrace();

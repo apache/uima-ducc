@@ -29,9 +29,12 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 	private long millisMin = 0;
 	private long millisMax = 0;
 	
+	private long todMostRecentStart = 0;
+	
 	public static RunningWorkItemStatistics getCurrent() {
 		long min = Long.MAX_VALUE;
 		long max = 0;
+		long todMrs = 0;
 		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriverCommon.getInstance().getMap();
 		for(Entry<IRemoteWorkerIdentity, IWorkItem> entry : map.entrySet()) {
 			IWorkItem wi = entry.getValue();
@@ -44,17 +47,22 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 					min = time;
 				}
 			}
+			long tod = wi.getTodAck();
+			if(tod > todMrs) {
+				todMrs = tod;
+			}
 		}
 		if(min > max) {
 			min = max;
 		}
-		RunningWorkItemStatistics retVal = new RunningWorkItemStatistics(min,max);
+		RunningWorkItemStatistics retVal = new RunningWorkItemStatistics(min,max,todMrs);
 		return retVal;
 	}
 	
-	public RunningWorkItemStatistics(long min, long max) {
+	public RunningWorkItemStatistics(long min, long max, long todMRS) {
 		setMillisMin(min);
 		setMillisMax(max);
+		setTodMostRecentStart(todMRS);
 	}
 	
 	@Override
@@ -75,6 +83,16 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 	@Override
 	public long getMillisMax() {
 		return millisMax;
+	}
+
+	@Override
+	public void setTodMostRecentStart(long value) {
+		todMostRecentStart = value;
+	}
+
+	@Override
+	public long getTodMostRecentStart() {
+		return todMostRecentStart;
 	}
 	
 }

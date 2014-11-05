@@ -65,4 +65,9 @@ public interface IOperatingInfo {
 	
 	public void setWorkItemRunningMillisMax(long value);
 	public long getWorkItemRunningMillisMax();
+	
+	//
+	
+	public void setWorkItemTodMostRecentStart(long value);
+	public long getWorkItemTodMostRecentStart();
 }

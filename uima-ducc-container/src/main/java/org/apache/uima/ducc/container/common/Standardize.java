@@ -29,6 +29,7 @@ public class Standardize {
 		finishedMillisAvg,
 		runningMillisMax,
 		runningMillisMin,
+		todMostRecentStart,
 		state,
 		event,
 		curr,
