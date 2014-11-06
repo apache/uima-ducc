@@ -18,156 +18,79 @@
 */
 package org.apache.uima.ducc.user.jd.iface;
 
-import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.cas.CAS;
+import org.apache.uima.ducc.user.common.QuotedOptions;
 
 public class JdUserErrorHandler implements IJdUserErrorHandler {
 
-	private AtomicInteger exceptionLimitPerJob = new AtomicInteger(15);
-	private AtomicInteger exceptionLimitPerWorkItem = new AtomicInteger(0);
+	public enum Key { KillJobLimit, KillProcessLimit, KillWorkItemLimit };
 	
-	private AtomicInteger exceptionCounter = new AtomicInteger();
+	private static int DefaultJobErrorLimit = 15;
 	
-	private ConcurrentHashMap<String,AtomicInteger> map = new ConcurrentHashMap<String,AtomicInteger>();
+	private AtomicInteger jobErrorLimit = new AtomicInteger(DefaultJobErrorLimit);
+	
+	private AtomicInteger jobErrorCount = new AtomicInteger(0);
 	
 	public JdUserErrorHandler() {
 	}
 	
-	public JdUserErrorHandler(Properties properties) {
-		initialize(properties);
+	public JdUserErrorHandler(String initializationData) {
+		initialize(initializationData);
+	}
+	
+	private Map<String, String> parse(String initializationData) {
+		Map<String, String> map = new HashMap<String, String>();
+		try {
+			if(initializationData != null) {
+				ArrayList<String> toks = QuotedOptions.tokenizeList(initializationData, true);
+				if(toks != null) {
+					for(String tok : toks) {
+						String[] split = tok.split("=");
+						String key = split[0].trim().toLowerCase();
+						String value = split[1].trim();
+						map.put(key, value);
+					}
+				}
+			} 
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return map;
 	}
 	
 	@Override
-	public void initialize(Properties properties) {
-		if(properties != null) {
-			initializeLimitPerJob(properties);
-			initializeLimitPerWorkItem(properties);
-		}
-	}
-	
-	private void initializeLimitPerJob(Properties properties) {
-		try {
-			String key = InitializeKey.killJobLimit.name();
-			if(properties.containsKey(key)) {
-				String value = properties.getProperty(key);
-				int limit = Integer.parseInt(value);
-				if(limit > 0) {
-					exceptionLimitPerJob = new AtomicInteger(limit);
-				}
-			}
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void initializeLimitPerWorkItem(Properties properties) {
-		try {
-			String key = InitializeKey.killWorkItemLimit.name();
-			if(properties.containsKey(key)) {
-				String value = properties.getProperty(key);
-				int limit = Integer.parseInt(value);
-				if(limit > 0) {
-					exceptionLimitPerWorkItem = new AtomicInteger(limit);
-				}
-			}
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
+	public void initialize(String initializationData) {
+		Map<String, String> map = parse(initializationData);
+		String key = Key.KillJobLimit.name().toLowerCase();
+		String value = map.get(key);
+		initKillJob(value);
 	}
 
+	private void initKillJob(String value) {
+		try {
+			int expect = DefaultJobErrorLimit;
+			int update = Integer.parseInt(value);
+			jobErrorLimit.compareAndSet(expect, update);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
-	public Properties handle(CAS cas, Exception exception) {
-		Properties properties = new Properties();
-		exceptionCounter.incrementAndGet();
-		handleKillJob(properties, cas, exception);
-		handleKillWorkItem(properties, cas, exception);
-		return properties;
-	}
-	
-	private void killJob(Properties properties, String reason) {
-		String key;
-		String value;
-		key = HandleKey.killJobFlag.name();
-		value = Boolean.TRUE.toString();
-		properties.put(key, value);
-		key = HandleKey.killJobReason.name();
-		value = reason;
-		properties.put(key, value);
-	}
-	
-	private void killProcess(Properties properties, String reason) {
-		String key;
-		String value;
-		key = HandleKey.killProcessFlag.name();
-		value = Boolean.TRUE.toString();
-		properties.put(key, value);
-		key = HandleKey.killProcessReason.name();
-		value = reason;
-		properties.put(key, value);
-	}
-	
-	private void killWorkItem(Properties properties, String reason) {
-		String key;
-		String value;
-		key = HandleKey.killWorkItemFlag.name();
-		value = Boolean.TRUE.toString();
-		properties.put(key, value);
-		key = HandleKey.killWorkItemReason.name();
-		value = reason;
-		properties.put(key, value);
-	}
-	
-	private void handleKillJob(Properties properties, CAS cas, Exception exception) {
-		try {
-			int counter = exceptionCounter.get();
-			int limit = exceptionLimitPerJob.get();
-			if(counter > limit) {
-				String reasonKJ = "errors="+counter+" "+"limit="+limit;
-				killJob(properties, reasonKJ);
-			}
+	public IJdUserDirective handle(CAS cas, Exception e) {
+		JdUserDirective jdUserDirective = new JdUserDirective();
+		jobErrorCount.incrementAndGet();
+		if(jobErrorCount.get() > jobErrorLimit.get()) {
+			jdUserDirective.setKillJob();
 		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
+		return jdUserDirective;
 	}
-	
-	private void handleKillWorkItem(Properties properties, CAS cas, Exception exception) {
-		try {
-			if(cas == null) {
-				String reasonKJ = "cas=null";
-				killJob(properties, reasonKJ);
-				String reasonKP = "kill process (if possible!)";
-				killProcess(properties, reasonKP);
-			}
-			else if(exception == null){
-				String reasonKJ = "exception=null";
-				killJob(properties, reasonKJ);
-				String reasonKP = "kill process (if possible!)";
-				killProcess(properties, reasonKP);
-			}
-			else {
-				String mapKey = cas.getDocumentText();
-				if(!map.containsKey(mapKey)) {
-					map.putIfAbsent(mapKey, new AtomicInteger(0));
-				}
-				AtomicInteger mapValue = map.get(mapKey);
-				int counter = mapValue.incrementAndGet();
-				int limit = exceptionLimitPerWorkItem.get();
-				if(counter > limit) {
-					String reasonKW = "errors="+counter+" "+"limit="+limit;
-					killWorkItem(properties, reasonKW);
-				}
-				String reasonKP = "kill process (if possible!)";
-				killProcess(properties, reasonKP);
-			}
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-	}
+
 }

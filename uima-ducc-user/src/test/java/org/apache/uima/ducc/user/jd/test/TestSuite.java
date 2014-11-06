@@ -23,15 +23,15 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Properties;
 
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
+import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
 import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler;
-import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler.HandleKey;
 import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
+import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler.Key;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -180,13 +180,11 @@ public class TestSuite {
 		try {
 			IJdUserErrorHandler eh = new JdUserErrorHandler();
 			CAS cas = null;
-			Exception e = null;
-			Properties properties = eh.handle(cas, e);
-			String key;
-			String value;
-			key = HandleKey.killJobFlag.name();
-			value = properties.getProperty(key);
-			assertTrue(value.equalsIgnoreCase("true"));
+			Exception exception = null;
+			IJdUserDirective directive = eh.handle(cas, exception);
+			assertTrue(directive.isKillJob() == false);
+			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillWorkItem() == true);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -210,24 +208,75 @@ public class TestSuite {
 			assertTrue(jdUserMetaCas != null);
 			String serializedCas = jdUserMetaCas.getSerializedCas();
 			assertTrue(serializedCas != null);
+			//
 			CAS cas = jdcr.deserialize(serializedCas);
-			JdUserErrorHandler eh = new JdUserErrorHandler();
 			Exception exception = null;
-			Properties properties = eh.handle(cas, exception);
-			String key;
-			String value;
-			key = HandleKey.killJobFlag.name();
-			value = properties.getProperty(key);
-			assertTrue(value.equalsIgnoreCase("true"));
-			key = HandleKey.killJobReason.name();
-			value = properties.getProperty(key);
-			debug(key+": "+value);
-			key = HandleKey.killProcessFlag.name();
-			value = properties.getProperty(key);
-			assertTrue(value.equalsIgnoreCase("true"));
-			key = HandleKey.killProcessReason.name();
-			value = properties.getProperty(key);
-			debug(key+": "+value);
+			JdUserErrorHandler eh = null;
+			IJdUserDirective directive = null;
+			String plist = null;
+			int limit = 0;
+			//
+			exception = null;
+			eh = new JdUserErrorHandler();
+			directive = eh.handle(cas, exception);
+			assertTrue(directive.isKillJob() == false);
+			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillWorkItem() == true);
+			//
+			exception = new RuntimeException();
+			eh = new JdUserErrorHandler();
+			directive = eh.handle(cas, exception);
+			assertTrue(directive.isKillJob() == false);
+			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillWorkItem() == true);
+			//
+			limit = 15;
+			exception = new RuntimeException();
+			eh = new JdUserErrorHandler();
+			directive = eh.handle(cas, exception);
+			for(int i=1; i<limit; i++) {
+				directive = eh.handle(cas, exception);
+				assertTrue(directive.isKillJob() == false);
+				assertTrue(directive.isKillProcess() == false);
+				assertTrue(directive.isKillWorkItem() == true);
+			}
+			directive = eh.handle(cas, exception);
+			assertTrue(directive.isKillJob() == true);
+			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillWorkItem() == true);
+			//
+			limit = 10;
+			exception = new RuntimeException();
+			plist = Key.KillJobLimit.name()+"="+limit;
+			eh = new JdUserErrorHandler(plist);
+			directive = eh.handle(cas, exception);
+			for(int i=1; i<limit; i++) {
+				directive = eh.handle(cas, exception);
+				assertTrue(directive.isKillJob() == false);
+				assertTrue(directive.isKillProcess() == false);
+				assertTrue(directive.isKillWorkItem() == true);
+			}
+			directive = eh.handle(cas, exception);
+			assertTrue(directive.isKillJob() == true);
+			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillWorkItem() == true);
+			//
+			limit = 20;
+			exception = new RuntimeException();
+			plist = Key.KillJobLimit.name()+"="+limit;
+			eh = new JdUserErrorHandler(plist);
+			directive = eh.handle(cas, exception);
+			for(int i=1; i<limit; i++) {
+				directive = eh.handle(cas, exception);
+				assertTrue(directive.isKillJob() == false);
+				assertTrue(directive.isKillProcess() == false);
+				assertTrue(directive.isKillWorkItem() == true);
+			}
+			directive = eh.handle(cas, exception);
+			assertTrue(directive.isKillJob() == true);
+			assertTrue(directive.isKillProcess() == false);
+			assertTrue(directive.isKillWorkItem() == true);
+			//
 			jdcr.recycle(cas);
 		}
 		catch(Exception e) {
@@ -238,49 +287,6 @@ public class TestSuite {
 	
 	@Test
 	public void test08() {
-		try {
-			URL url = this.getClass().getResource("/CR100.xml");
-			File file = new File(url.getFile());
-			String crXml = file.getAbsolutePath();
-			debug(crXml);
-			String crCfg = null;
-			JdUserCollectionReader jdcr = new JdUserCollectionReader(crXml, crCfg);
-			int total = jdcr.getTotal();
-			assertTrue(total == 100);
-			JdUserMetaCas jdUserMetaCas = null;
-			jdUserMetaCas = jdcr.getJdUserMetaCas();
-			assertTrue(jdUserMetaCas != null);
-			String serializedCas = jdUserMetaCas.getSerializedCas();
-			assertTrue(serializedCas != null);
-			CAS cas = jdcr.deserialize(serializedCas);
-			JdUserErrorHandler eh = new JdUserErrorHandler();
-			Exception exception = new RuntimeException();
-			Properties properties = eh.handle(cas, exception);
-			String key;
-			String value;
-			key = HandleKey.killWorkItemFlag.name();
-			value = properties.getProperty(key);
-			assertTrue(value.equalsIgnoreCase("true"));
-			key = HandleKey.killWorkItemReason.name();
-			value = properties.getProperty(key);
-			debug(key+": "+value);
-			key = HandleKey.killProcessFlag.name();
-			value = properties.getProperty(key);
-			assertTrue(value.equalsIgnoreCase("true"));
-			key = HandleKey.killProcessReason.name();
-			value = properties.getProperty(key);
-			debug(key+": "+value);
-			assertTrue(!properties.containsKey(HandleKey.killJobFlag));
-			jdcr.recycle(cas);
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-			fail("Exception");
-		}
-	}
-	
-	@Test
-	public void test09() {
 		try {
 			int seqNo = 1;
 			String serializedCas = "ABC";

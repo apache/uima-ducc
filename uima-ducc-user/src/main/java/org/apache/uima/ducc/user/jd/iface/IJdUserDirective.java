@@ -18,9 +18,8 @@
 */
 package org.apache.uima.ducc.user.jd.iface;
 
-import org.apache.uima.cas.CAS;
-
-public interface IJdUserErrorHandler {
-	public void initialize(String initializationData);
-	public IJdUserDirective handle(CAS cas, Exception e);
+public interface IJdUserDirective {
+	public boolean isKillJob();
+	public boolean isKillProcess();
+	public boolean isKillWorkItem();
 }
