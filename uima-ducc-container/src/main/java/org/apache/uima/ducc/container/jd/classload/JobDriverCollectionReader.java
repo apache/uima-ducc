@@ -59,7 +59,7 @@ public class JobDriverCollectionReader {
 	private String name_getSerializedCas = "getSerializedCas";
 	
 	private String[] requiredClasses = { 
-			"org.apache.uima.ducc.user.jd.iface.JdUserCollectionReader", 
+			"org.apache.uima.ducc.user.jd.JdUserCollectionReader", 
 			"org.apache.uima.aae.UimaSerializer",
 			"org.apache.uima.cas.CAS",
 			"com.thoughtworks.xstream.XStream",
@@ -151,11 +151,11 @@ public class JobDriverCollectionReader {
 	
 	private void initialize() throws JobDriverException {
 		try {
-			class_JdUserCollectionReader = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.iface.JdUserCollectionReader");
+			class_JdUserCollectionReader = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserCollectionReader");
 			Constructor<?> constructor_JdUserCollectionReader = class_JdUserCollectionReader.getConstructor(String.class,String.class);
 			instance_JdUserCollectionReader = constructor_JdUserCollectionReader.newInstance(new Object[] { crXml, crCfg });
 			method_getTotal = class_JdUserCollectionReader.getMethod(name_getTotal, nullClassArray);
-			class_JdUserMetaCas = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.iface.JdUserMetaCas");
+			class_JdUserMetaCas = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserMetaCas");
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
 		} catch (ClassNotFoundException e) {
 			JobDriverException jobDriverException = new JobDriverException(e);

@@ -26,7 +26,7 @@ import java.net.URL;
 import java.util.Properties;
 
 import org.apache.uima.cas.CAS;
-import org.apache.uima.ducc.user.jd.JdUserCollectionReaderManager;
+import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
 import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler;
@@ -106,8 +106,8 @@ public class TestSuite {
 			String crXml = file.getAbsolutePath();
 			debug(crXml);
 			String crCfg = null;
-			JdUserCollectionReaderManager crm = new JdUserCollectionReaderManager(crXml, crCfg);
-			int total = crm.getTotal();
+			JdUserCollectionReader jdcr = new JdUserCollectionReader(crXml, crCfg);
+			int total = jdcr.getTotal();
 			assertTrue(total == 100);
 		}
 		catch(Exception e) {
@@ -124,18 +124,18 @@ public class TestSuite {
 			String crXml = file.getAbsolutePath();
 			debug(crXml);
 			String crCfg = null;
-			JdUserCollectionReaderManager crm = new JdUserCollectionReaderManager(crXml, crCfg);
-			int total = crm.getTotal();
+			JdUserCollectionReader jdcr = new JdUserCollectionReader(crXml, crCfg);
+			int total = jdcr.getTotal();
 			assertTrue(total == 100);
 			int counter = 0;
-			JdUserMetaCas jdUserMetaCas = crm.getJdUserMetaCas();
+			JdUserMetaCas jdUserMetaCas = jdcr.getJdUserMetaCas();
 			while(jdUserMetaCas != null) {
 				jdUserMetaCas.printMe();
 				counter++;
 				if(counter > 100) {
 					fail("Too many CASes: "+counter);
 				}
-				jdUserMetaCas = crm.getJdUserMetaCas();
+				jdUserMetaCas = jdcr.getJdUserMetaCas();
 			}
 			if(counter < 100) {
 				fail("Not enough CASes: "+counter);
@@ -155,17 +155,17 @@ public class TestSuite {
 			String crXml = file.getAbsolutePath();
 			debug(crXml);
 			String crCfg = null;
-			JdUserCollectionReaderManager crm = new JdUserCollectionReaderManager(crXml, crCfg);
-			int total = crm.getTotal();
+			JdUserCollectionReader jdcr = new JdUserCollectionReader(crXml, crCfg);
+			int total = jdcr.getTotal();
 			assertTrue(total == 100);
 			JdUserMetaCas jdUserMetaCas = null;
 			int counter = 0;
 			for(int i=0; i<total; i++) {
-				jdUserMetaCas = crm.getJdUserMetaCas();
+				jdUserMetaCas = jdcr.getJdUserMetaCas();
 				assertTrue(jdUserMetaCas != null);
 				counter++;
 			}
-			jdUserMetaCas = crm.getJdUserMetaCas();
+			jdUserMetaCas = jdcr.getJdUserMetaCas();
 			assertTrue(jdUserMetaCas == null);
 			assertTrue(counter == 100);
 		}
@@ -202,15 +202,15 @@ public class TestSuite {
 			String crXml = file.getAbsolutePath();
 			debug(crXml);
 			String crCfg = null;
-			JdUserCollectionReaderManager crm = new JdUserCollectionReaderManager(crXml, crCfg);
-			int total = crm.getTotal();
+			JdUserCollectionReader jdcr = new JdUserCollectionReader(crXml, crCfg);
+			int total = jdcr.getTotal();
 			assertTrue(total == 100);
 			JdUserMetaCas jdUserMetaCas = null;
-			jdUserMetaCas = crm.getJdUserMetaCas();
+			jdUserMetaCas = jdcr.getJdUserMetaCas();
 			assertTrue(jdUserMetaCas != null);
 			String serializedCas = jdUserMetaCas.getSerializedCas();
 			assertTrue(serializedCas != null);
-			CAS cas = crm.deserialize(serializedCas);
+			CAS cas = jdcr.deserialize(serializedCas);
 			JdUserErrorHandler eh = new JdUserErrorHandler();
 			Exception exception = null;
 			Properties properties = eh.handle(cas, exception);
@@ -228,7 +228,7 @@ public class TestSuite {
 			key = HandleKey.killProcessReason.name();
 			value = properties.getProperty(key);
 			debug(key+": "+value);
-			crm.recycle(cas);
+			jdcr.recycle(cas);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -244,15 +244,15 @@ public class TestSuite {
 			String crXml = file.getAbsolutePath();
 			debug(crXml);
 			String crCfg = null;
-			JdUserCollectionReaderManager crm = new JdUserCollectionReaderManager(crXml, crCfg);
-			int total = crm.getTotal();
+			JdUserCollectionReader jdcr = new JdUserCollectionReader(crXml, crCfg);
+			int total = jdcr.getTotal();
 			assertTrue(total == 100);
 			JdUserMetaCas jdUserMetaCas = null;
-			jdUserMetaCas = crm.getJdUserMetaCas();
+			jdUserMetaCas = jdcr.getJdUserMetaCas();
 			assertTrue(jdUserMetaCas != null);
 			String serializedCas = jdUserMetaCas.getSerializedCas();
 			assertTrue(serializedCas != null);
-			CAS cas = crm.deserialize(serializedCas);
+			CAS cas = jdcr.deserialize(serializedCas);
 			JdUserErrorHandler eh = new JdUserErrorHandler();
 			Exception exception = new RuntimeException();
 			Properties properties = eh.handle(cas, exception);
@@ -271,7 +271,7 @@ public class TestSuite {
 			value = properties.getProperty(key);
 			debug(key+": "+value);
 			assertTrue(!properties.containsKey(HandleKey.killJobFlag));
-			crm.recycle(cas);
+			jdcr.recycle(cas);
 		}
 		catch(Exception e) {
 			e.printStackTrace();

@@ -206,8 +206,8 @@ public class TestSuite {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			JobDriverCollectionReader jdui = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
-			int total = jdui.getTotal();
+			JobDriverCollectionReader jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			int total = jdcr.getTotal();
 			assertTrue(total == 100);
 			debug("total: "+total);
 		}
@@ -237,8 +237,8 @@ public class TestSuite {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			JobDriverCollectionReader jdui = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
-			MetaCas mc = jdui.getMetaCas();
+			JobDriverCollectionReader jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			MetaCas mc = jdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == 1);
@@ -267,9 +267,9 @@ public class TestSuite {
 		getMetaCas(Utilities.userCP, crXml, crCfg);
 	}
 	
-	private void getMetaCases(JobDriverCollectionReader jdui, int total) throws JobDriverException {
+	private void getMetaCases(JobDriverCollectionReader jdcr, int total) throws JobDriverException {
 		for(int c=1; c <= total; c++) {
-			MetaCas mc = jdui.getMetaCas();
+			MetaCas mc = jdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == c);
@@ -290,12 +290,12 @@ public class TestSuite {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			JobDriverCollectionReader jdui = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
-			int total = jdui.getTotal();
-			getMetaCases(jdui, total);
+			JobDriverCollectionReader jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			int total = jdcr.getTotal();
+			getMetaCases(jdcr, total);
 			if(extra > 0) {
 				for(int j=0; j<extra; j++) {
-					MetaCas mc = jdui.getMetaCas();
+					MetaCas mc = jdcr.getMetaCas();
 					assertTrue(mc == null);
 				}
 			}

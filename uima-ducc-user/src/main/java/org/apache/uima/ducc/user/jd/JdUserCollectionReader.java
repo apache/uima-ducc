@@ -49,7 +49,7 @@ import org.apache.uima.util.XMLInputSource;
 import org.apache.uima.util.XMLParser;
 import org.xml.sax.SAXException;
 
-public class JdUserCollectionReaderManager {
+public class JdUserCollectionReader {
 
 	private static UimaSerializer uimaSerializer = new UimaSerializer();
 	private static XmiSerializationSharedData xmiSerializationSharedData = new XmiSerializationSharedData();
@@ -66,7 +66,7 @@ public class JdUserCollectionReaderManager {
 	
 	private AtomicInteger seqNo = new AtomicInteger(0);
 	
-	public JdUserCollectionReaderManager(String crXml, String crCfg) throws JdUserException {
+	public JdUserCollectionReader(String crXml, String crCfg) throws JdUserException {
 		initialize(crXml, crCfg);
 	}
 
