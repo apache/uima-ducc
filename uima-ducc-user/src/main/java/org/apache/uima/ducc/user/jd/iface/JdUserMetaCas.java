@@ -23,11 +23,19 @@ public class JdUserMetaCas {
 	private int seqNo = -1;
 	private String serializedCas = null;
 	private String documentText = null;
+	private Exception exception = null;
 	
 	public JdUserMetaCas(int seqNo, String serializedCas, String documentText) {
 		setSeqNo(seqNo);
 		setSerializedCas(serializedCas);
 		setDocumentText(documentText);
+	}
+	
+	public JdUserMetaCas(int seqNo, String serializedCas, String documentText, Exception exception) {
+		setSeqNo(seqNo);
+		setSerializedCas(serializedCas);
+		setDocumentText(documentText);
+		setException(exception);
 	}
 	
 	private void setSeqNo(int value) {
@@ -54,7 +62,22 @@ public class JdUserMetaCas {
 		return documentText;
 	}
 	
+	private void setException(Exception value) {
+		exception = value;
+	}
+	
+	public Exception getException() {
+		return exception;
+	}
+	
 	public void printMe() {
-		System.out.println("seq:"+getSeqNo()+" "+"id:"+getDocumentText()+" "+"cas:"+getSerializedCas());
+		StringBuffer sb = new StringBuffer();
+		sb.append("seq:"+getSeqNo()+" ");
+		sb.append("id:"+getDocumentText()+" ");
+		sb.append("cas:"+getSerializedCas()+" ");
+		if(exception != null) {
+			sb.append("exception:"+getException());
+		}
+		System.out.println(sb);
 	}
 }

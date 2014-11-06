@@ -281,4 +281,24 @@ public class TestSuite {
 			fail("Exception");
 		}
 	}
+	
+	@Test
+	public void test09() {
+		try {
+			int seqNo = 1;
+			String serializedCas = "ABC";
+			String documentText = "123";
+			Exception exception = new RuntimeException("exception text");
+			JdUserMetaCas jdUserMetaCas = new JdUserMetaCas(seqNo, serializedCas, documentText, exception);
+			assertTrue(seqNo == jdUserMetaCas.getSeqNo());
+			assertTrue(serializedCas.equals(jdUserMetaCas.getSerializedCas()));
+			assertTrue(documentText.equals(jdUserMetaCas.getDocumentText()));
+			assertTrue(exception.equals(jdUserMetaCas.getException()));
+			jdUserMetaCas.printMe();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
 }
