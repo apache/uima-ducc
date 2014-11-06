@@ -36,8 +36,6 @@ import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
-import org.apache.uima.ducc.user.jd.iface.JdUserException;
-import org.apache.uima.ducc.user.jd.iface.JdUserMetaCas;
 import org.apache.uima.resource.ResourceConfigurationException;
 import org.apache.uima.resource.ResourceCreationSpecifier;
 import org.apache.uima.resource.ResourceInitializationException;
@@ -51,7 +49,7 @@ import org.apache.uima.util.XMLInputSource;
 import org.apache.uima.util.XMLParser;
 import org.xml.sax.SAXException;
 
-public class CollectionReaderManager {
+public class JdUserCollectionReaderManager {
 
 	private static UimaSerializer uimaSerializer = new UimaSerializer();
 	private static XmiSerializationSharedData xmiSerializationSharedData = new XmiSerializationSharedData();
@@ -59,7 +57,7 @@ public class CollectionReaderManager {
 	private String crXml = null;
 	private String crCfg = null;
 
-	private CasManager cm = null;
+	private JdUserCasManager cm = null;
 	private CollectionReader cr = null;
 
 	private HashMap<String, String> overrides = new HashMap<String, String>();
@@ -68,7 +66,7 @@ public class CollectionReaderManager {
 	
 	private AtomicInteger seqNo = new AtomicInteger(0);
 	
-	public CollectionReaderManager(String crXml, String crCfg) throws JdUserException {
+	public JdUserCollectionReaderManager(String crXml, String crCfg) throws JdUserException {
 		initialize(crXml, crCfg);
 	}
 
@@ -127,7 +125,7 @@ public class CollectionReaderManager {
 		setCr(UIMAFramework.produceCollectionReader(crrs));
 		initTotal();
 		// CasManager
-		cm = new CasManager(cr);
+		cm = new JdUserCasManager(cr);
 	}
 
 	public int getTotal() {

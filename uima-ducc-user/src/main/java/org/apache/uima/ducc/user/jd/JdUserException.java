@@ -16,33 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.iface;
+package org.apache.uima.ducc.user.jd;
 
-import org.apache.uima.ducc.user.jd.CollectionReaderManager;
+public class JdUserException extends Exception {
 
-public class JdUserCollectionReader {
-	
-	CollectionReaderManager crm = null;
-	
-	public JdUserCollectionReader() throws JdUserException {
+	private static final long serialVersionUID = 1L;
+
+	public JdUserException(String message) {
+		super(message);
 	}
-	
-	public JdUserCollectionReader(String crXml, String crCfg) throws JdUserException {
-		crm = new CollectionReaderManager(crXml, crCfg);
-	}
-	
-	public CollectionReaderManager getCollectionReaderManager() {
-		return crm;
-	}
-	
-	public JdUserMetaCas getJdUserMetaCas() throws JdUserException {
-		JdUserMetaCas retVal = crm.getJdUserMetaCas();
-		return retVal;
-	}
-	
-	public int getTotal() {
-		int retVal = crm.getTotal();
-		return retVal;
-	}
-	
 }

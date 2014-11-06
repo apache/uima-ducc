@@ -30,7 +30,7 @@ import org.apache.uima.resource.metadata.TypePriorities;
 import org.apache.uima.resource.metadata.TypeSystemDescription;
 import org.apache.uima.util.CasCreationUtils;
 
-public class CasManager {
+public class JdUserCasManager {
 
 	private String CAS_INITIAL_HEAP_SIZE = "1000";
 	
@@ -43,7 +43,7 @@ public class CasManager {
 	private FsIndexDescription[] fid;
 	private Properties crProperties = new Properties();
 	
-	public CasManager(CollectionReader cr) {
+	public JdUserCasManager(CollectionReader cr) {
 		setTypeSystemDescription(cr.getProcessingResourceMetaData().getTypeSystem());
 		setTypePriorities(cr.getProcessingResourceMetaData().getTypePriorities());
 		setFsIndexDescription(cr.getProcessingResourceMetaData().getFsIndexes());
