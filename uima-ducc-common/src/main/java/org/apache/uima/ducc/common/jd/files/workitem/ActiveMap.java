@@ -47,7 +47,7 @@ public class ActiveMap {
 		IWorkItemState value = get(key);
 		if(value != null) {
 			activeMap.remove(key);
-			logger.info(location, jobid, "seqNo:"+value.getSeqNo()+" state:"+value.getState()+" size:"+activeMap.size());
+			logger.debug(location, jobid, "seqNo:"+value.getSeqNo()+" state:"+value.getState()+" size:"+activeMap.size());
 		}
 		getOperatingLeast();
 	}
@@ -56,7 +56,7 @@ public class ActiveMap {
 		String location = "put";
 		if(value != null) {
 			activeMap.put(key,  value);
-			logger.info(location, jobid, "seqNo:"+value.getSeqNo()+" state:"+value.getState()+" size:"+activeMap.size());
+			logger.debug(location, jobid, "seqNo:"+value.getSeqNo()+" state:"+value.getState()+" size:"+activeMap.size());
 		}
 		getOperatingLeast();
 	}
@@ -81,7 +81,7 @@ public class ActiveMap {
 		if(operatingLeast == Long.MAX_VALUE) {
 			operatingLeast = 0;
 		}
-		logger.info(location, jobid, operatingLeast);
+		logger.debug(location, jobid, operatingLeast);
 		return operatingLeast;
 	}
 	
