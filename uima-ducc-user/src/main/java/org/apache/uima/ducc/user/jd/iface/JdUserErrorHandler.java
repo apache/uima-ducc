@@ -25,12 +25,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.user.common.QuotedOptions;
+import org.apache.uima.ducc.user.jd.JdUser;
 
 public class JdUserErrorHandler implements IJdUserErrorHandler {
 
-	public enum Key { KillJobLimit, KillProcessLimit, KillWorkItemLimit };
+	public enum InitializationDataKey { KillJobLimit, KillProcessLimit, KillWorkItemLimit };
 	
-	private static int DefaultJobErrorLimit = 15;
+	private static int DefaultJobErrorLimit = JdUser.DefaultJobErrorLimit;
 	
 	private AtomicInteger jobErrorLimit = new AtomicInteger(DefaultJobErrorLimit);
 	
@@ -66,10 +67,12 @@ public class JdUserErrorHandler implements IJdUserErrorHandler {
 	
 	@Override
 	public void initialize(String initializationData) {
-		Map<String, String> map = parse(initializationData);
-		String key = Key.KillJobLimit.name().toLowerCase();
-		String value = map.get(key);
-		initKillJob(value);
+		if(initializationData != null) {
+			Map<String, String> map = parse(initializationData);
+			String key = InitializationDataKey.KillJobLimit.name().toLowerCase();
+			String value = map.get(key);
+			initKillJob(value);
+		}
 	}
 
 	private void initKillJob(String value) {

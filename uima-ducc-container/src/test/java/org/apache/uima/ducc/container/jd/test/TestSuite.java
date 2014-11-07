@@ -24,70 +24,18 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
-import org.apache.uima.ducc.container.jd.test.helper.Testing;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestSuite {
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		if(!Testing.isVerbose()) {
-			ContainerLogger.setSilentRunning();
-		}
-		else {
-			ContainerLogger.resetSilentRunning();
-		}
-	}
-
-	@After
-	public void tearDown() throws Exception {
-	}
-	
-	private void out_println(String message) {
-		System.out.println(message);
-	}
-	
-	private void debug(String message) {
-		if(Testing.isDebug()) {
-			out_println(message);
-		}
-	}
-	
-	private void asExpected(String text) {
-		if(Testing.isVerbose()) {
-			String message = "as expected: "+text;
-			out_println(message);
-		}
-	}
-	
-	private void asExpected(Exception e) {
-		if(Testing.isVerbose()) {
-			String message = "as expected: "+e.getMessage();
-			out_println(message);
-		}
-	}
+public class TestSuite extends ATest {
 	
 	String prefix1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:tcas=\"http:///uima/tcas.ecore\"";
 	String prefix0 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><xmi:XMI xmlns:cas=\"http:///uima/cas.ecore\"";
@@ -114,7 +62,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_01() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
@@ -155,7 +103,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_02() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
@@ -190,7 +138,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_03() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		String crXml = null;
@@ -219,7 +167,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_04() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
@@ -257,7 +205,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_05() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
@@ -308,7 +256,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_06() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
@@ -320,7 +268,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_07() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		URL urlXml = this.getClass().getResource("/CR100.xml");
@@ -332,7 +280,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_10() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -371,7 +319,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_20() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		String n01 = "node01";
@@ -404,7 +352,7 @@ public class TestSuite {
 	
 	@Test
 	public void test_30() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		OperatingInfo oi = new OperatingInfo();

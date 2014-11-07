@@ -32,7 +32,7 @@ import org.apache.uima.util.CasCreationUtils;
 
 public class JdUserCasManager {
 
-	private String CAS_INITIAL_HEAP_SIZE = "1000";
+	private String CAS_INITIAL_HEAP_SIZE = JdUser.CAS_INITIAL_HEAP_SIZE;
 	
 	private ConcurrentLinkedQueue<CAS> recycledCasList = new ConcurrentLinkedQueue<CAS>();
 	

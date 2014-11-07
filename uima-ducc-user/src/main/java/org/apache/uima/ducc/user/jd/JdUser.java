@@ -16,31 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.test.helper;
+package org.apache.uima.ducc.user.jd;
 
-public class Testing {
+public class JdUser {
 
-	private static boolean disabled = false;
-	private static boolean verbose = false;
-	private static boolean warned = false;
-	private static boolean debug = false;
+	public static String CAS_INITIAL_HEAP_SIZE = "1000";
 	
-	public static boolean isDisabled(String name ) {
-		if(disabled) {
-			if(!warned) {
-				System.err.println("Tests are disabled: "+name);
-			}
-			warned = true;
-		}
-		return disabled;
-	}
-	
-	public static boolean isVerbose() {
-		return verbose;
-	}
-	
-	public static boolean isDebug() {
-		return debug;
-	}
-	
+	public static int DefaultJobErrorLimit = 15;
 }

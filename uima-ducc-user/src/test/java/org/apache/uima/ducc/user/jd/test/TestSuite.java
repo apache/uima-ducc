@@ -31,7 +31,7 @@ import org.apache.uima.ducc.user.jd.JdUserMetaCas;
 import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
 import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler;
 import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
-import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler.Key;
+import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler.InitializationDataKey;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -247,7 +247,7 @@ public class TestSuite {
 			//
 			limit = 10;
 			exception = new RuntimeException();
-			plist = Key.KillJobLimit.name()+"="+limit;
+			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
 			eh = new JdUserErrorHandler(plist);
 			directive = eh.handle(cas, exception);
 			for(int i=1; i<limit; i++) {
@@ -263,7 +263,7 @@ public class TestSuite {
 			//
 			limit = 20;
 			exception = new RuntimeException();
-			plist = Key.KillJobLimit.name()+"="+limit;
+			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
 			eh = new JdUserErrorHandler(plist);
 			directive = eh.handle(cas, exception);
 			for(int i=1; i<limit; i++) {

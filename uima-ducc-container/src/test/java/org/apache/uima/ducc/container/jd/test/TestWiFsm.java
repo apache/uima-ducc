@@ -18,9 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.fsm.Action;
 import org.apache.uima.ducc.container.common.fsm.Event;
 import org.apache.uima.ducc.container.common.fsm.Fsm;
@@ -32,64 +32,13 @@ import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsmBuilder;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
-import org.apache.uima.ducc.container.jd.test.helper.Testing;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestWiFsm {
-
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		if(!Testing.isVerbose()) {
-			ContainerLogger.setSilentRunning();
-		}
-		else {
-			ContainerLogger.resetSilentRunning();
-		}
-	}
-
-	@After
-	public void tearDown() throws Exception {
-	}
-
-	private void out_println(String message) {
-		System.out.println(message);
-	}
-	
-	private void debug(String message) {
-		if(Testing.isDebug()) {
-			out_println(message);
-		}
-	}
-	
-	private void asExpected(String text) {
-		if(Testing.isVerbose()) {
-			String message = "as expected: "+text;
-			out_println(message);
-		}
-	}
-	
-	private void asExpected(Exception e) {
-		if(Testing.isVerbose()) {
-			String message = "as expected: "+e.getMessage();
-			out_println(message);
-		}
-	}
+public class TestWiFsm extends ATest {
 	
 	@Test
 	public void test_01() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -118,7 +67,7 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_02() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -147,7 +96,7 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_03() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -191,7 +140,7 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_04() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -219,7 +168,7 @@ public class TestWiFsm {
 	
 	@Test
 	public void test_05() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -246,10 +195,9 @@ public class TestWiFsm {
 		}
 	}
 	
-	
 	@Test
 	public void test_06() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {

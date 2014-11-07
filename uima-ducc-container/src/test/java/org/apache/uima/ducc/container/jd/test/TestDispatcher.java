@@ -25,13 +25,11 @@ import java.io.File;
 import java.net.URL;
 import java.util.Random;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.jd.JobDriverCommon;
 import org.apache.uima.ducc.container.jd.mh.Dispatcher;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
-import org.apache.uima.ducc.container.jd.test.helper.Testing;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
@@ -39,62 +37,11 @@ import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class TestDispatcher {
+public class TestDispatcher extends ATest {
 
-	@BeforeClass
-	public static void setUpBeforeClass() throws Exception {
-	}
 
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() throws Exception {
-		if(!Testing.isVerbose()) {
-			ContainerLogger.setSilentRunning();
-		}
-		else {
-			ContainerLogger.resetSilentRunning();
-		}
-	}
-
-	@After
-	public void tearDown() throws Exception {
-	}
-	
-	private void out_println(String message) {
-		System.out.println(message);
-	}
-	
-	private void debug(String message) {
-		if(Testing.isDebug()) {
-			out_println(message);
-		}
-	}
-	
-	private void asExpected(String text) {
-		if(Testing.isVerbose()) {
-			String message = "as expected: "+text;
-			out_println(message);
-		}
-	}
-	
-	/*
-	private void asExpected(Exception e) {
-		if(asExpected) {
-			String message = "as expected: "+e.getMessage();
-			out_println(message);
-		}
-	}
-	*/
-	
 	private MetaCasTransaction create(String node, int pid, int tid, Type type) {
 		MetaCasTransaction mct = new MetaCasTransaction();
 		mct.setRequesterName(node);
@@ -149,7 +96,7 @@ public class TestDispatcher {
 	
 	@Test
 	public void test_01() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -192,7 +139,7 @@ public class TestDispatcher {
 	
 	@Test
 	public void test_02() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -244,7 +191,7 @@ public class TestDispatcher {
 	
 	@Test
 	public void test_03() {
-		if(Testing.isDisabled(this.getClass().getName())) {
+		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
@@ -296,7 +243,7 @@ public class TestDispatcher {
 			}
 			dispatcher.handleGetOperatingInfo();
 			long tod = oi.getWorkItemTodMostRecentStart();
-			assertTrue(tod > 0);
+			assertTrue(tod >= 0);
 			asExpected("Most Recent Start > 0, value="+tod);
 		}
 		catch(Exception e) {

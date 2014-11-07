@@ -16,43 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.jd.test;
 
-public class Standardize {
+import static org.junit.Assert.fail;
 
-	public enum Label {
-		crFetches,
-		crTotal,
-		preemptions,
-		finishedMillisMax,
-		finishedMillisMin,
-		finishedMillisAvg,
-		runningMillisMax,
-		runningMillisMin,
-		todMostRecentStart,
-		state,
-		event,
-		curr,
-		prev,
-		hash,
-		loaded,
-		seqNo,
-		transNo,
-		remote,
-		action,
-		type,
-		AckMsecs,
-		EndMsecs,
-		killJob,
-		killProcess,
-		killWorkItem,
-		;
-		
-		Label() {
+import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
+import org.apache.uima.ducc.container.jd.test.helper.Utilities;
+import org.junit.Test;
+
+public class TestClassLoading extends ATest {
+
+	@Test
+	public void test_01() {
+		if(isDisabled(this.getClass().getName())) {
+			return;
 		}
-		
-		public String get() {
-			return this+"=";
+		try {
+			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler(Utilities.userCP);
+			Object cas = null;
+			Object exception = null;
+			pjdeh.handle(cas, exception);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
 		}
 	}
+
 }
