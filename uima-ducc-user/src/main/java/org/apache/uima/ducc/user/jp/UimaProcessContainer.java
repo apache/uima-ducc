@@ -1,4 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.apache.uima.ducc.user.jp;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
@@ -40,10 +60,10 @@ public class UimaProcessContainer {
 	private static final Class CLASS_NAME = UimaProcessContainer.class;
 	private static final char FS = System.getProperty("file.separator").charAt(
 			0);
-	public static BrokerService broker = null;// new BrokerService();
+	public static BrokerService broker = null;
 	private UimaSerializer uimaSerializer = new UimaSerializer();
 
-	public int  deploy(String[] args) throws Exception {
+	public int deploy(String[] args) throws Exception {
 
 		broker = new BrokerService();
 		broker.setDedicatedTaskRunner(false);
@@ -79,7 +99,7 @@ public class UimaProcessContainer {
 			ids[i] = deployService(dd);
 		}
 		// initialize and start UIMA-AS client. This sends GetMeta request to
-		// deployed top level service and waits for reply
+		// deployed top level service and waits for a reply
 		initializeUimaAsClient(endpointName);
 
 		return scaleout;
@@ -89,18 +109,18 @@ public class UimaProcessContainer {
 		System.out.println("Stopping UIMA_AS Client");
 		try {
 			uimaASClient.stop();
-			
-		} catch( Exception e) {
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		System.out.println("Stopping Broker");
 		broker.stop();
 		broker.waitUntilStopped();
 	}
+
 	public void initializeUimaAsClient(String endpoint) throws Exception {
 
-		String brokerURL = System.getProperty("DefaultBrokerURL");// "vm://localhost?broker.persistent=false";
-
+		String brokerURL = System.getProperty("DefaultBrokerURL");
 		Map<String, Object> appCtx = new HashMap<String, Object>();
 		appCtx.put(UimaAsynchronousEngine.ServerUri, brokerURL);
 		appCtx.put(UimaAsynchronousEngine.ENDPOINT, endpoint);
@@ -154,8 +174,9 @@ public class UimaProcessContainer {
 		CAS cas = uimaASClient.getCAS();
 		XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 
-		uimaSerializer.deserializeCasFromXmi(xmi, cas, deserSharedData, true,-1);
-      // System.out.println("Sending CAS to JD");
+		uimaSerializer.deserializeCasFromXmi(xmi, cas, deserSharedData, true,
+				-1);
+
 		uimaASClient.sendAndReceiveCAS(cas);
 		cas.release();
 	}
@@ -176,9 +197,8 @@ public class UimaProcessContainer {
 		endpointName = getArg("-q", args);
 
 		if (nbrOfArgs < 1
-				|| (deploymentDescriptors.length == 0
-//						|| (args[0].startsWith("-") && (deploymentDescriptors.length == 0
-						|| saxonURL.equals("") || xslTransform.equals(""))) {
+				|| (deploymentDescriptors.length == 0 || saxonURL.equals("") || xslTransform
+						.equals(""))) {
 			printUsageMessage();
 			return null; // Done here
 		}
@@ -313,19 +333,19 @@ public class UimaProcessContainer {
 
 		public void onBeforeProcessCAS(UimaASProcessStatus status,
 				String nodeIP, String pid) {
-//			System.out
-//					.println("runTest: onBeforeProcessCAS() Notification - CAS:"
-//							+ status.getCasReferenceId()
-//							+ " is being processed on machine:"
-//							+ nodeIP
-//							+ " by process (PID):" + pid);
+			// System.out
+			// .println("runTest: onBeforeProcessCAS() Notification - CAS:"
+			// + status.getCasReferenceId()
+			// + " is being processed on machine:"
+			// + nodeIP
+			// + " by process (PID):" + pid);
 		}
 
 		public synchronized void onBeforeMessageSend(UimaASProcessStatus status) {
 			// casSent = status.getCasReferenceId();
-//			System.out
-//					.println("runTest: Received onBeforeMessageSend() Notification With CAS:"
-//							+ status.getCasReferenceId());
+			// System.out
+			// .println("runTest: Received onBeforeMessageSend() Notification With CAS:"
+			// + status.getCasReferenceId());
 		}
 
 		public void onUimaAsServiceExit(EventTrigger cause) {
@@ -340,16 +360,16 @@ public class UimaProcessContainer {
 			String casReferenceId = ((UimaASProcessStatus) aProcessStatus)
 					.getCasReferenceId();
 
-//			if (aProcessStatus instanceof UimaASProcessStatus) {
-//				if (aProcessStatus.isException()) {
-//					System.out
-//							.println("--------- Got Exception While Processing CAS"
-//									+ casReferenceId);
-//				} else {
-//					System.out.println("Client Received Reply - CAS:"
-//							+ casReferenceId);
-//				}
-//			}
+			// if (aProcessStatus instanceof UimaASProcessStatus) {
+			// if (aProcessStatus.isException()) {
+			// System.out
+			// .println("--------- Got Exception While Processing CAS"
+			// + casReferenceId);
+			// } else {
+			// System.out.println("Client Received Reply - CAS:"
+			// + casReferenceId);
+			// }
+			// }
 		}
 
 		/**
@@ -362,16 +382,16 @@ public class UimaProcessContainer {
 			String casReferenceId = ((UimaASProcessStatus) aProcessStatus)
 					.getCasReferenceId();
 
-//			if (aProcessStatus instanceof UimaASProcessStatus) {
-//				if (aProcessStatus.isException()) {
-//					System.out
-//							.println("--------- Got Exception While Processing CAS"
-//									+ casReferenceId);
-//				} else {
-//					System.out.println("Client Received Reply - CAS:"
-//							+ casReferenceId);
-//				}
-//			}
+			// if (aProcessStatus instanceof UimaASProcessStatus) {
+			// if (aProcessStatus.isException()) {
+			// System.out
+			// .println("--------- Got Exception While Processing CAS"
+			// + casReferenceId);
+			// } else {
+			// System.out.println("Client Received Reply - CAS:"
+			// + casReferenceId);
+			// }
+			// }
 
 		}
 

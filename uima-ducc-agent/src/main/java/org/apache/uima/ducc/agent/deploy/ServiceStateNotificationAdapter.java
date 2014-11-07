@@ -23,12 +23,6 @@ import java.util.List;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
-
-/**
- * Interface to 
- * 
- *
- */
 public interface ServiceStateNotificationAdapter {
 	public void notifyAgentWithStatus(ProcessState state);
 	public void notifyAgentWithStatus(ProcessState state, String message);

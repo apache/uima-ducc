@@ -25,6 +25,8 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 
 public class ProcessStateUpdate implements Serializable {
+	  public static final String ProcessStateUpdatePort = "ducc.agent.process.state.update.port";
+
 	/**
    * 
    */
