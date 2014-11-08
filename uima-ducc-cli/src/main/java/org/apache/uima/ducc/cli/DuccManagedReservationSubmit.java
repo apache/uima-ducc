@@ -21,6 +21,7 @@ package org.apache.uima.ducc.cli;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 import org.apache.uima.ducc.transport.event.SubmitServiceDuccEvent;
 import org.apache.uima.ducc.transport.event.SubmitServiceReplyDuccEvent;
@@ -146,7 +147,19 @@ public class DuccManagedReservationSubmit
      */
     public boolean execute() throws Exception 
     {
-
+        // If the specified scheduling class is pre-emptable, change to a fixed one if possible
+        String pname = UiOption.SchedulingClass.pname();
+        String scheduling_class = serviceRequestProperties.getProperty(pname);
+        if (scheduling_class != null) {
+            DuccSchedulerClasses duccSchedulerClasses = DuccSchedulerClasses.getInstance();
+            if (duccSchedulerClasses.isPreemptable(scheduling_class)) {
+                scheduling_class = duccSchedulerClasses.getDebugClassSpecificName(scheduling_class);
+                if (scheduling_class != null) {
+                    serviceRequestProperties.setProperty(pname, scheduling_class);
+                }
+            }
+        }
+        
         // Create a copy to be saved later without these 3 "ducclet" properties required by DUCC
         ServiceRequestProperties serviceProperties = (ServiceRequestProperties)serviceRequestProperties.clone();
         serviceRequestProperties.setProperty(UiOption.ProcessThreadCount.pname(), "1");
