@@ -19,24 +19,25 @@
 package org.apache.uima.ducc.container.jd.classload;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.IContainerLogger;
+import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 
-public class JobDriverCollectionReader {
+public class ProxyJobDriverCollectionReader {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(JobDriverCollectionReader.class, IContainerLogger.Component.JD.name());
+	private IContainerLogger logger = ContainerLogger.getLogger(ProxyJobDriverCollectionReader.class, IContainerLogger.Component.JD.name());
 	
 	private URLClassLoader urlClassLoader = null;
+	
 	private String crXml = null;
 	private String crCfg = null;
 	
@@ -58,6 +59,8 @@ public class JobDriverCollectionReader {
 	private String name_getDocumentText = "getDocumentText";
 	private String name_getSerializedCas = "getSerializedCas";
 	
+	private Method method_deserialize = null;
+	
 	private String[] requiredClasses = { 
 			"org.apache.uima.ducc.user.jd.JdUserCollectionReader", 
 			"org.apache.uima.aae.UimaSerializer",
@@ -65,63 +68,64 @@ public class JobDriverCollectionReader {
 			"com.thoughtworks.xstream.XStream",
 			};
 	
-	public JobDriverCollectionReader(URLClassLoader classLoader, String crXml, String cfCfg) throws JobDriverException {
+	public ProxyJobDriverCollectionReader(URLClassLoader classLoader, String crXml, String cfCfg) throws JobDriverException {
 		construct(classLoader, crXml, cfCfg);
 	}
 	
-	public JobDriverCollectionReader(URL[] classLoaderUrls, String crXml, String cfCfg) throws JobDriverException {
+	public ProxyJobDriverCollectionReader(URL[] classLoaderUrls, String crXml, String cfCfg) throws JobDriverException {
 		URLClassLoader classLoader = new URLClassLoader(classLoaderUrls, ClassLoader.getSystemClassLoader().getParent());
 		construct(classLoader, crXml, cfCfg);
 	}
 	
 	public int getTotal() throws JobDriverException {
+		String location = "getTotal";
 		int retVal = -1;
 		try {
 			retVal = (Integer)method_getTotal.invoke(instance_JdUserCollectionReader, nullObjectArray);
-		} catch (IllegalAccessException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (IllegalArgumentException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (InvocationTargetException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
+		} 
+		catch (Exception e) {
+			logger.error(location, IEntityId.null_id, e);
+			throw new JobDriverException(e);
 		}
 		return retVal;
 	}
 	
 	public MetaCas getMetaCas() throws JobDriverException {
+		String location = "getMetaCas";
 		MetaCas retVal = null;
 		try {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
 			Object instance_metaCas = method_getJdUserMetaCas.invoke(instance_JdUserCollectionReader, nullObjectArray);
 			if(instance_metaCas != null) {
 				Method method_getSeqNo = class_JdUserMetaCas.getMethod(name_getSeqNo, nullClassArray);
-				Integer x = (Integer)method_getSeqNo.invoke(instance_metaCas, nullObjectArray);
-				int seqNo = x.intValue();
+				Integer integer = (Integer)method_getSeqNo.invoke(instance_metaCas, nullObjectArray);
+				int seqNo = integer.intValue();
 				Method method_getSerializedCas = class_JdUserMetaCas.getMethod(name_getSerializedCas, nullClassArray);
 				Object serializedCas = method_getSerializedCas.invoke(instance_metaCas, nullObjectArray);
 				Method method_getDocumentText = class_JdUserMetaCas.getMethod(name_getDocumentText, nullClassArray);
 				String docId = (String)method_getDocumentText.invoke(instance_metaCas, nullObjectArray);
 				retVal = new MetaCas(seqNo, docId, serializedCas);
 			}
-		} catch (NoSuchMethodException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (SecurityException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (IllegalAccessException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (IllegalArgumentException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (InvocationTargetException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		}	
+		} 
+		catch (Exception e) {
+			logger.error(location, IEntityId.null_id, e);
+			throw new JobDriverException(e);
+		}
+		return retVal;
+	}
+	
+	public Object deserialize(String serializedCas) throws JobDriverException {
+		String location = "deserialize";
+		Object retVal = null;
+		try {
+			Object[] parms = new Object[1];
+			parms[0] = serializedCas;
+			retVal = method_deserialize.invoke(instance_JdUserCollectionReader, parms);
+		} 
+		catch (Exception e) {
+			logger.error(location, IEntityId.null_id, e);
+			throw new JobDriverException(e);
+		}
 		return retVal;
 	}
 	
@@ -132,12 +136,17 @@ public class JobDriverCollectionReader {
 	}
 	
 	private void prepare(URLClassLoader urlClassLoader, String crXml, String crCfg) throws JobDriverException {
+		String location = "prepare";
 		if(urlClassLoader == null) {
-			throw new JobDriverException("missing URLClassLoader");
+			JobDriverException e = new JobDriverException("missing URLClassLoader");
+			logger.error(location, IEntityId.null_id, e);
+			throw e;
 		}
 		setURLClassLoader(urlClassLoader);
 		if(crXml == null) {
-			throw new JobDriverException("missing CollectionReader xml");
+			JobDriverException e = new JobDriverException("missing CollectionReader xml");
+			logger.error(location, IEntityId.null_id, e);
+			throw e;
 		}
 		setCrXml(crXml);
 		setCrCfg(crCfg);
@@ -150,6 +159,7 @@ public class JobDriverCollectionReader {
 	}
 	
 	private void initialize() throws JobDriverException {
+		String location = "initialize";
 		try {
 			class_JdUserCollectionReader = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserCollectionReader");
 			Constructor<?> constructor_JdUserCollectionReader = class_JdUserCollectionReader.getConstructor(String.class,String.class);
@@ -157,27 +167,23 @@ public class JobDriverCollectionReader {
 			method_getTotal = class_JdUserCollectionReader.getMethod(name_getTotal, nullClassArray);
 			class_JdUserMetaCas = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserMetaCas");
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
-		} catch (ClassNotFoundException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (NoSuchMethodException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (SecurityException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (InstantiationException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (IllegalAccessException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (IllegalArgumentException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
-		} catch (InvocationTargetException e) {
-			JobDriverException jobDriverException = new JobDriverException(e);
-			throw jobDriverException;
+			//
+			Method[] classMethods = class_JdUserCollectionReader.getMethods();
+			for(Method method : classMethods) {
+				if(method.getName().equals("deserialize")) {
+					Type[] types = method.getParameterTypes();
+					if(types.length == 1) {
+						if(types[0].toString().contains(".String")) {
+							method_deserialize = method;
+							break;
+						}
+					}
+				}
+			}
+		} 
+		catch (Exception e) {
+			logger.error(location, IEntityId.null_id, e);
+			throw new JobDriverException(e);
 		}
 	}
 	
@@ -203,7 +209,9 @@ public class JobDriverCollectionReader {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.loaded.get()+loadedClass.getName());
 			logger.debug(location, IEntityId.null_id, mb.toString());
-		} catch (ClassNotFoundException e) {
+		} 
+		catch (Exception e) {
+			logger.error(location, IEntityId.null_id, e);
 			throw new JobDriverException(e);
 		}
 	}

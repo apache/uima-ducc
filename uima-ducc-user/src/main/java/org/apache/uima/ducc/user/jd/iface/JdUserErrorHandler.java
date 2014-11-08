@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.jd.JdUser;
 
@@ -87,11 +86,22 @@ public class JdUserErrorHandler implements IJdUserErrorHandler {
 	}
 	
 	@Override
-	public IJdUserDirective handle(CAS cas, Exception e) {
+	public IJdUserDirective handle(String serializedCAS, Exception exception) {
 		JdUserDirective jdUserDirective = new JdUserDirective();
-		jobErrorCount.incrementAndGet();
-		if(jobErrorCount.get() > jobErrorLimit.get()) {
-			jdUserDirective.setKillJob();
+		try {
+			if(serializedCAS != null) {
+				// CAS is provided
+			}
+			if(exception != null) {
+				// Exception is provided
+			}
+			jobErrorCount.incrementAndGet();
+			if(jobErrorCount.get() > jobErrorLimit.get()) {
+				jdUserDirective.setKillJob();
+			}
+		}
+		catch(Exception e) {
+			e.printStackTrace();
 		}
 		return jdUserDirective;
 	}

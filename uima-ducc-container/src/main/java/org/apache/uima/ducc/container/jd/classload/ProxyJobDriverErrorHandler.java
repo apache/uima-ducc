@@ -51,12 +51,10 @@ public class ProxyJobDriverErrorHandler {
 		initialize(classPath, className, initializationData);
 	}
 	
-	public ProxyJobDriverErrorHandler(String[] classPath, String initializationData) throws JobDriverException {
-		String className = defaultClassName;
-		initialize(classPath, className, initializationData);
-	}
-	
-	public ProxyJobDriverErrorHandler(String[] classPath, String initializationData, String className) throws JobDriverException {
+	public ProxyJobDriverErrorHandler(String[] classPath, String className, String initializationData) throws JobDriverException {
+		if(className == null) {
+			className = defaultClassName;
+		}
 		initialize(classPath, className, initializationData);
 	}
 	
@@ -82,7 +80,7 @@ public class ProxyJobDriverErrorHandler {
 				if(method.getName().equals("handle")) {
 					Type[] types = method.getParameterTypes();
 					if(types.length == 2) {
-						if(types[0].toString().contains("CAS")) {
+						if(types[0].toString().contains("String")) {
 							if(types[1].toString().contains("Exception")) {
 								methodInstanceHandle = method;
 								break;
@@ -108,28 +106,27 @@ public class ProxyJobDriverErrorHandler {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			logger.error(location, IEntityId.null_id, e);
 			throw new JobDriverException(e);
 		}
 	}
 	
-	public ProxyJobDriverDirective handle(Object cas, Object exception) throws JobDriverException {
+	public ProxyJobDriverDirective handle(Object serializedCAS, Object exception) throws JobDriverException {
 		String location = "handle";
 		ProxyJobDriverDirective retVal = null;
 		try {
-			if(cas != null) {
-				System.out.println("cas: "+cas.getClass().getName());
-			}
-			if(exception != null) {
-				System.out.println("exception: "+exception.getClass().getName());
-			}
-			Object directive = methodInstanceHandle.invoke(objectInstance, cas, exception);
+			Object[] plist = new Object[2];
+			plist[0] = serializedCAS;
+			plist[1] = exception;
+			Object directive = methodInstanceHandle.invoke(objectInstance, plist);
 			boolean isKillJob = (Boolean) methodInstanceIsKillJob.invoke(directive);
 			boolean isKillProcess = (Boolean) methodInstanceIsKillProcess.invoke(directive);
 			boolean isKillWorkItem = (Boolean) methodInstanceIsKillWorkItem.invoke(directive);
 			retVal = new ProxyJobDriverDirective(isKillJob, isKillProcess, isKillWorkItem);
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			logger.error(location, IEntityId.null_id, e);
 			throw new JobDriverException(e);
 		}

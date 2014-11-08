@@ -26,14 +26,14 @@ import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
-import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
+import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class CasManager {
 
 	private IContainerLogger logger = ContainerLogger.getLogger(CasManager.class, IContainerLogger.Component.JD.name());
 	
-	private JobDriverCollectionReader jdcr = null;
+	private ProxyJobDriverCollectionReader pjdcr = null;
 	
 	private LinkedBlockingQueue<IMetaCas> cacheQueue = new LinkedBlockingQueue<IMetaCas>();
 	
@@ -52,8 +52,8 @@ public class CasManager {
 				classLoaderUrls[i] = this.getClass().getResource(item);
 				i++;
 			}
-			jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
-			casManagerStats.setCrTotal(jdcr.getTotal());
+			pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			casManagerStats.setCrTotal(pjdcr.getTotal());
 		}
 		catch(JobDriverException e) {
 			logger.error(location, IEntityId.null_id, e);
@@ -67,7 +67,7 @@ public class CasManager {
 			casManagerStats.incRetryQueueGets();
 		}
 		else {
-			retVal = jdcr.getMetaCas();
+			retVal = pjdcr.getMetaCas();
 			if(retVal != null) {
 				casManagerStats.incCrGets();
 			}

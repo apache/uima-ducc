@@ -24,7 +24,6 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 
-import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
@@ -32,6 +31,7 @@ import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
 import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler;
 import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
 import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler.InitializationDataKey;
+import org.apache.uima.ducc.user.jd.test.helper.TestJdUserErrorHandler;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -179,9 +179,9 @@ public class TestSuite {
 	public void test06() {
 		try {
 			IJdUserErrorHandler eh = new JdUserErrorHandler();
-			CAS cas = null;
+			String serializedCAS = null;
 			Exception exception = null;
-			IJdUserDirective directive = eh.handle(cas, exception);
+			IJdUserDirective directive = eh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == false);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
@@ -206,10 +206,9 @@ public class TestSuite {
 			JdUserMetaCas jdUserMetaCas = null;
 			jdUserMetaCas = jdcr.getJdUserMetaCas();
 			assertTrue(jdUserMetaCas != null);
-			String serializedCas = jdUserMetaCas.getSerializedCas();
-			assertTrue(serializedCas != null);
+			String serializedCAS = jdUserMetaCas.getSerializedCas();
+			assertTrue(serializedCAS != null);
 			//
-			CAS cas = jdcr.deserialize(serializedCas);
 			Exception exception = null;
 			JdUserErrorHandler eh = null;
 			IJdUserDirective directive = null;
@@ -218,14 +217,14 @@ public class TestSuite {
 			//
 			exception = null;
 			eh = new JdUserErrorHandler();
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == false);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			exception = new RuntimeException();
 			eh = new JdUserErrorHandler();
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == false);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
@@ -233,14 +232,14 @@ public class TestSuite {
 			limit = 15;
 			exception = new RuntimeException();
 			eh = new JdUserErrorHandler();
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			for(int i=1; i<limit; i++) {
-				directive = eh.handle(cas, exception);
+				directive = eh.handle(serializedCAS, exception);
 				assertTrue(directive.isKillJob() == false);
 				assertTrue(directive.isKillProcess() == false);
 				assertTrue(directive.isKillWorkItem() == true);
 			}
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == true);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
@@ -249,14 +248,14 @@ public class TestSuite {
 			exception = new RuntimeException();
 			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
 			eh = new JdUserErrorHandler(plist);
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			for(int i=1; i<limit; i++) {
-				directive = eh.handle(cas, exception);
+				directive = eh.handle(serializedCAS, exception);
 				assertTrue(directive.isKillJob() == false);
 				assertTrue(directive.isKillProcess() == false);
 				assertTrue(directive.isKillWorkItem() == true);
 			}
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == true);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
@@ -265,19 +264,17 @@ public class TestSuite {
 			exception = new RuntimeException();
 			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
 			eh = new JdUserErrorHandler(plist);
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			for(int i=1; i<limit; i++) {
-				directive = eh.handle(cas, exception);
+				directive = eh.handle(serializedCAS, exception);
 				assertTrue(directive.isKillJob() == false);
 				assertTrue(directive.isKillProcess() == false);
 				assertTrue(directive.isKillWorkItem() == true);
 			}
-			directive = eh.handle(cas, exception);
+			directive = eh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == true);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
-			//
-			jdcr.recycle(cas);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -287,6 +284,28 @@ public class TestSuite {
 	
 	@Test
 	public void test08() {
+		try {
+			//
+			String serializedCAS = null;
+			Exception exception = null;
+			TestJdUserErrorHandler eh = null;
+			IJdUserDirective directive = null;
+			//
+			exception = null;
+			eh = new TestJdUserErrorHandler();
+			directive = eh.handle(serializedCAS, exception);
+			assertTrue(directive.isKillJob() == true);
+			assertTrue(directive.isKillProcess() == true);
+			assertTrue(directive.isKillWorkItem() == false);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	@Test
+	public void test09() {
 		try {
 			int seqNo = 1;
 			String serializedCas = "ABC";

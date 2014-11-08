@@ -27,7 +27,7 @@ import java.net.URL;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
-import org.apache.uima.ducc.container.jd.classload.JobDriverCollectionReader;
+import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
@@ -52,7 +52,7 @@ public class TestSuite extends ATest {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -88,7 +88,7 @@ public class TestSuite extends ATest {
 				}
 			}
 			try {
-				new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+				new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
 				fail("Exception missing...?");
 			}
 			catch(JobDriverException e) {
@@ -124,7 +124,7 @@ public class TestSuite extends ATest {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
 			fail("Exception missing...?");
 		}
 		catch(JobDriverException e) {
@@ -154,8 +154,8 @@ public class TestSuite extends ATest {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			JobDriverCollectionReader jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
-			int total = jdcr.getTotal();
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			int total = pjdcr.getTotal();
 			assertTrue(total == 100);
 			debug("total: "+total);
 		}
@@ -185,8 +185,8 @@ public class TestSuite extends ATest {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			JobDriverCollectionReader jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
-			MetaCas mc = jdcr.getMetaCas();
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			MetaCas mc = pjdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == 1);
@@ -215,9 +215,9 @@ public class TestSuite extends ATest {
 		getMetaCas(Utilities.userCP, crXml, crCfg);
 	}
 	
-	private void getMetaCases(JobDriverCollectionReader jdcr, int total) throws JobDriverException {
+	private void getMetaCases(ProxyJobDriverCollectionReader pjdcr, int total) throws JobDriverException {
 		for(int c=1; c <= total; c++) {
-			MetaCas mc = jdcr.getMetaCas();
+			MetaCas mc = pjdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();
 			asExpected("seqNo = "+seqNo);
 			assertTrue(seqNo == c);
@@ -238,12 +238,12 @@ public class TestSuite extends ATest {
 				classLoaderUrls[i] = this.getClass().getResource(jar);
 				i++;
 			}
-			JobDriverCollectionReader jdcr = new JobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
-			int total = jdcr.getTotal();
-			getMetaCases(jdcr, total);
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			int total = pjdcr.getTotal();
+			getMetaCases(pjdcr, total);
 			if(extra > 0) {
 				for(int j=0; j<extra; j++) {
-					MetaCas mc = jdcr.getMetaCas();
+					MetaCas mc = pjdcr.getMetaCas();
 					assertTrue(mc == null);
 				}
 			}
