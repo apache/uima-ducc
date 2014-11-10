@@ -45,8 +45,18 @@ public class ActionEnd implements IAction {
 		return ActionEnd.class.getName();
 	}
 	
-	private void retry(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
-		String location = "retry";
+	private void killJob(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+		String location = "killJob";
+		cm.getCasManagerStats().setKillJob();
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
+		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		logger.info(location, IEntityId.null_id, mb.toString());
+	}
+	
+	private void retryWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+		String location = "retryWorkItem";
 		cm.putMetaCas(metaCas, RetryReason.UserErrorRetry);
 		cm.getCasManagerStats().incEndRetry();
 		MessageBuffer mb = new MessageBuffer();
@@ -56,8 +66,8 @@ public class ActionEnd implements IAction {
 		logger.info(location, IEntityId.null_id, mb.toString());
 	}
 	
-	private void failure(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
-		String location = "failure";
+	private void killWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+		String location = "killWorkItem";
 		cm.getCasManagerStats().incEndFailure();
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
@@ -66,8 +76,8 @@ public class ActionEnd implements IAction {
 		logger.info(location, IEntityId.null_id, mb.toString());
 	}
 	
-	private void success(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
-		String location = "success";
+	private void successWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+		String location = "successWorkItem";
 		cm.getCasManagerStats().incEndSuccess();
 		wi.setTodEnd();
 		updateStatistics(wi);
@@ -98,19 +108,22 @@ public class ActionEnd implements IAction {
 					ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
 					ProxyJobDriverDirective pjdd = pjdeh.handle(cas, exception);
 					if(pjdd != null) {
+						if(pjdd.isKillJob()) {
+							killJob(cm, wi, trans, metaCas, rwi);
+						}
 						if(pjdd.isKillWorkItem()) {
-							failure(cm, wi, trans, metaCas, rwi);
+							killWorkItem(cm, wi, trans, metaCas, rwi);
 						}
 						else {
-							retry(cm, wi, trans, metaCas, rwi);
+							retryWorkItem(cm, wi, trans, metaCas, rwi);
 						}
 					}
 					else {
-						failure(cm, wi, trans, metaCas, rwi);
+						killWorkItem(cm, wi, trans, metaCas, rwi);
 					}
 				}
 				else {
-					success(cm, wi, trans, metaCas, rwi);
+					successWorkItem(cm, wi, trans, metaCas, rwi);
 				}
 				wi.resetTods();
 			}

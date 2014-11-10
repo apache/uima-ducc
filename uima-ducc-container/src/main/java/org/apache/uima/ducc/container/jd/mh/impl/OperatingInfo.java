@@ -42,6 +42,8 @@ public class OperatingInfo implements IOperatingInfo {
 	
 	private long todMostRecentStart = 0;
 	
+	private boolean killJob = false;
+	
 	@Override
 	public void setWorkItemCrTotal(int value) {
 		crTotal = value;
@@ -205,6 +207,16 @@ public class OperatingInfo implements IOperatingInfo {
 	@Override
 	public long getWorkItemTodMostRecentStart() {
 		return todMostRecentStart;
+	}
+
+	@Override
+	public void setKillJob() {
+		killJob = true;
+	}
+
+	@Override
+	public boolean isKillJob() {
+		return killJob;
 	}
 
 }

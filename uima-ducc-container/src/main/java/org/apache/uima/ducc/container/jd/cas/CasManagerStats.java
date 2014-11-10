@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.container.jd.cas;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CasManagerStats {
@@ -34,6 +35,8 @@ public class CasManagerStats {
 	private AtomicInteger endSuccess = new AtomicInteger(0);
 	private AtomicInteger endFailure = new AtomicInteger(0);
 	private AtomicInteger endRetry = new AtomicInteger(0);
+	
+	private AtomicBoolean killJob = new AtomicBoolean(false);
 	
 	private ConcurrentHashMap<String,AtomicInteger> retryReasonsMap = new ConcurrentHashMap<String,AtomicInteger>();
 	
@@ -114,5 +117,13 @@ public class CasManagerStats {
 	
 	public int getEndRetry() {
 		return endRetry.get();
+	}
+	
+	public void setKillJob() {
+		killJob.set(true);
+	}
+	
+	public boolean isKillJob() {
+		return killJob.get();
 	}
 }

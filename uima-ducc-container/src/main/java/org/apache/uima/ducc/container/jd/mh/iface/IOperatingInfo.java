@@ -75,4 +75,9 @@ public interface IOperatingInfo {
 	
 	public void setWorkItemTodMostRecentStart(long value);
 	public long getWorkItemTodMostRecentStart();
+	
+	//
+	
+	public void setKillJob();
+	public boolean isKillJob();
 }

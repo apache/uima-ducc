@@ -69,6 +69,9 @@ public class Dispatcher {
 			oi.setWorkItemEndSuccesses(cms.getEndSuccess());
 			oi.setWorkItemEndFailures(cms.getEndFailure());
 			oi.setWorkItemEndRetrys(cms.getEndRetry());
+			if(cms.isKillJob()) {
+				oi.setKillJob();
+			}
 			oi.setWorkItemPreemptions(cms.getNumberOfPreemptions());
 			oi.setWorkItemFinishedMillisMin(wis.getMillisMin());
 			oi.setWorkItemFinishedMillisMax(wis.getMillisMax());
@@ -81,6 +84,7 @@ public class Dispatcher {
 			mb.append(Standardize.Label.crFetches.get()+oi.getWorkItemCrFetches());
 			mb.append(Standardize.Label.endSuccess.get()+oi.getWorkItemEndSuccesses());
 			mb.append(Standardize.Label.endFailure.get()+oi.getWorkItemEndFailures());
+			mb.append(Standardize.Label.killJob.get()+oi.isKillJob());
 			mb.append(Standardize.Label.preemptions.get()+oi.getWorkItemPreemptions());
 			mb.append(Standardize.Label.finishedMillisMin.get()+oi.getWorkItemFinishedMillisMin());
 			mb.append(Standardize.Label.finishedMillisMax.get()+oi.getWorkItemFinishedMillisMax());
