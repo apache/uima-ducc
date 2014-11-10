@@ -27,9 +27,9 @@ import org.junit.BeforeClass;
 public abstract class ATest {
 	
 	private boolean disabled = false;
-	private boolean verbose = true;
+	private boolean verbose = false;
 	private boolean warned = false;
-	private boolean debug = true;
+	private boolean debug = false;
 	
 	public boolean isDisabled(String name ) {
 		if(disabled) {
