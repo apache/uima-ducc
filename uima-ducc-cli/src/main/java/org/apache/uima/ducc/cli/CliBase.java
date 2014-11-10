@@ -314,9 +314,6 @@ public abstract class CliBase
         ducc_home = Utils.findDuccHome();
 
         this.cli_props = cli_props;
-        if ( args != null ) {
-        	fixupQuotedArgs(args);
-        }
         commandLine = new CommandLine(args, uiOpts, props);
         try {
 			commandLine.parse();
@@ -349,6 +346,9 @@ public abstract class CliBase
         for (IUiOption spec : new IUiOption[]{ UiOption.Specification, UiOption.Register }) {
             if ( commandLine.isOption(spec) && commandLine.contains(spec)) {     // legal for this command, and also specified?
             	fname = commandLine.get(spec);
+            	if (fname.length() == 0) {		// Check if --register has no value
+            		fname = null;
+            	}
             	break;
              }
         }
@@ -874,23 +874,4 @@ public abstract class CliBase
         return false;
     }
 
-    /*
-     * Since apache-commons-cli 1.2 wrongly removes initial or final quotes, add extra one(s)
-     * i.e. an --environment setting of FOO="a b" becomes FOO="a b""
-     * What about a lonely " ... both starts & ends so would become => """
-     * Should we turn an empty string into "" ?  For now leave as-is
-     */
-    private String[] fixupQuotedArgs(String[] args) {
-        for (int i = 0; i < args.length; ++i) {
-            if (args[i].length() == 0) continue;
-            if (args[i].charAt(0) == '"') {
-                args[i] = "\"" + args[i];
-            }
-            if (args[i].endsWith("\"")) {
-                args[i] = args[i] + "\"";
-            }
-        }
-        return args;
-    }
-    
 }
