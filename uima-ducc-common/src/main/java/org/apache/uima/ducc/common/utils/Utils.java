@@ -348,73 +348,65 @@ public class Utils {
 		return retVal;
 	}
 
-    static String DUCC_HOME = null;
-    
-    /*
-     * Return the value of DUCC_HOME
-     */
-    public static String findDuccHome() {
+	/*
+	 * Return the value of DUCC_HOME 
+	 * Infer DUCC_HOME from location of this class
+	 * but let system property override, and warn when different.
+	 */
+	
+	static String DUCC_HOME = null;
+	
+	public static String findDuccHome() {
 
-        if ( DUCC_HOME != null ) {
-            return DUCC_HOME;
-        }
+		if (DUCC_HOME != null) {
+			return DUCC_HOME;
+		}
+		DUCC_HOME = System.getProperty("DUCC_HOME");
 
-        // Infer DUCC_HOME from location of this class 
-        // but let system property override, and warn when different.
-        
-        String jar_ducc_home = inferDuccHome();
-        DUCC_HOME = System.getProperty("DUCC_HOME");
-        if (DUCC_HOME != null) {
-            if (jar_ducc_home != null) {
-                // Resolve any symbolic links, e.g. /users -> /users1
-                try {
-                    DUCC_HOME = (new File((DUCC_HOME))).getCanonicalPath();
-                } catch (IOException e) {
-                }
-                if (!jar_ducc_home.equals(DUCC_HOME)) {
-                    System.out.println("WARNING: Setting DUCC_HOME = " + DUCC_HOME + " but the CLI request is from " + jar_ducc_home);
-                }
-            }
-        } else {
-            DUCC_HOME = jar_ducc_home;
-            if (DUCC_HOME != null) {
-                System.setProperty("DUCC_HOME", DUCC_HOME);
-            } else {
-                throw new IllegalArgumentException("Cannot infer DUCC_HOME and no system property provided");
-            }
-        }
-        
-        return DUCC_HOME;
-    }
+		// Find resource that holds this class and if a jar check if it appears to be in a DUCC installation
+		URL res = Utils.class.getProtectionDomain().getCodeSource().getLocation();
+		String p = res.getPath();
+		if (!p.endsWith(".jar")) {
+			if (DUCC_HOME == null) {
+				throw new IllegalArgumentException(
+						"DUCC_HOME system property missing and cannot infer it as not running from a jar");
+			}
+			return DUCC_HOME;
+		}
+		// File name should be:
+		// <ducc-home>/lib/uima-ducc/uima-ducc-common-<version>.jar
+		// Strip off the jar file and the 2 directories above
+		int ndx = p.lastIndexOf("/");
+		ndx = p.lastIndexOf("/", ndx - 1);
+		ndx = p.lastIndexOf("/", ndx - 1);
+		String jar_ducc_home = p.substring(0, ndx);
+		File props = new File(jar_ducc_home + "/resources/ducc.properties");
+		if (!props.exists()) {
+			if (DUCC_HOME == null) {
+				throw new IllegalArgumentException("DUCC_HOME system property missing and cannot infer it as "
+						+ res + " is not part of a valid DUCC installation");
+			}
+			return DUCC_HOME;
+		}
 
-    /*
-     * Locate the jar file that holds this class and deduce DUCC_HOME
-     */
-    private static String inferDuccHome() {
-        // (Theoretically could get a null from the first 2 gets)
-        URL res = Utils.class.getProtectionDomain().getCodeSource().getLocation();
-        String p = res.getPath();
-        if ( !p.endsWith(".jar") ) {
-            System.out.println("WARNING: Cannot infer DUCC_HOME as not running from a jar");
-            return null;
-        }
-                
-        // File name should be:  <ducc-home>/lib/uima-ducc/uima-ducc-common-<version>.jar
-        // Strip off the jar file and the 2 directories above 
-        int ndx = p.lastIndexOf("/");
-        ndx = p.lastIndexOf("/", ndx-1);
-        ndx = p.lastIndexOf("/", ndx-1);
-        p = p.substring(0, ndx);
+		if (DUCC_HOME == null) {
+			DUCC_HOME = jar_ducc_home;
+			System.setProperty("DUCC_HOME", DUCC_HOME);
+			
+		} else { // Resolve any symbolic links, e.g. /users -> /users1
+			try {
+				DUCC_HOME = (new File((DUCC_HOME))).getCanonicalPath();
+			} catch (IOException e) {
+			}
+			if (!jar_ducc_home.equals(DUCC_HOME)) {
+				System.out.println("WARNING: Setting DUCC_HOME = " + DUCC_HOME
+						+ " but the CLI request is from " + jar_ducc_home);
+			}
+		}
 
-        File props = new File(p + "/resources/ducc.properties");
-        if ( ! props.exists() ) {
-            System.out.println("WARNING: Cannot infer DUCC_HOME as running from " + res + " that is not part of a valid DUCC installation");
-            return null;
-        }
-        return p;
-    }
-    
-    
+		return DUCC_HOME;
+	}
+
 	public static void main(String[] args) {
 		try {
 			if ( Utils.isThisNode("192.168.3.3", "192.168.3.3") ) {
