@@ -225,9 +225,9 @@ public class TestDispatcher extends ATest {
 			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			while(metaCas != null) {
-				randomPreempt(dispatcher,ti);
+				randomPreemptTest03(dispatcher,ti);
 				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
-				randomPreempt(dispatcher,ti);
+				randomPreemptTest03(dispatcher,ti);
 				try {
 					Thread.sleep(20);
 				}
@@ -235,7 +235,7 @@ public class TestDispatcher extends ATest {
 				}
 				dispatcher.handleGetOperatingInfo();
 				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
-				randomPreempt(dispatcher,ti);
+				randomPreemptTest03(dispatcher,ti);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
@@ -266,18 +266,178 @@ public class TestDispatcher extends ATest {
 		}
 	}
 	
-	private long seedTest03 = 1;
+	private long seedTest03 = 3;
 	private Random randomTest03 = new Random(seedTest03);
 	private long pctTest03 = 15;
 	
-	private long expectedPremptionsTest03 = 52;
+	private long expectedPremptionsTest03 = 32;
 	
-	private void randomPreempt(Dispatcher dispatcher, ThreadInfo ti) {
+	private void randomPreemptTest03(Dispatcher dispatcher, ThreadInfo ti) {
 		int n = randomTest03.nextInt(100);
 		if(n < pctTest03) {
 			IProcessInfo processInfo = new ProcessInfo(ti.getNode(),ti.getPid());
 			dispatcher.handlePreemptProcess(processInfo);
 		}
-		
+	}
+	
+	// multiple node:pid:tid with errors
+	
+	@Test
+	public void test_04() {
+		if(isDisabled(this.getClass().getName())) {
+			return;
+		}
+		try {
+			URL urlXml = this.getClass().getResource("/CR100.xml");
+			File file = new File(urlXml.getFile());
+			String crXml = file.getAbsolutePath();
+			String crCfg = null;
+			IJobDriverConfig jdCfg = new JobDriverConfig();
+			jdCfg.setUserClasspath(Utilities.userCP);
+			jdCfg.setCrXml(crXml);
+			jdCfg.setCrCfg(crCfg);
+			JobDriver.setInstance(jdCfg);
+			int size = JobDriver.getInstance().getMap().size();
+			debug("map size:"+size);
+			Dispatcher dispatcher = new Dispatcher();
+			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
+			ThreadInfo ti = tif.getRandom();
+			debug("random:"+ti.toKey());
+			int casNo = -1;
+			IMetaCas metaCasPrevious = null;
+			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			assertTrue(metaCas != null);
+			int inject = 0;
+			while(metaCas != null) {
+				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				if(randomErrorTest04()) {
+					Exception exception = new RuntimeException("injected error test #04");
+					metaCas.setUserSpaceException(exception);
+					inject++;
+				}
+				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				casNo--;
+				metaCasPrevious = metaCas;
+				assertTrue(metaCasPrevious != null);
+				ti = tif.getRandom();
+				debug("random:"+ti.toKey());
+				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			}
+			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
+			asExpected("CASes processed count == 100");
+			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			assertTrue(oi.getWorkItemCrFetches() == 100);
+			asExpected("CASes fetched count == 100");
+			long endSuccess = oi.getWorkItemEndSuccesses();
+			long endFailure = oi.getWorkItemEndFailures();
+			debug("injected errors: "+inject);
+			debug("end success: "+endSuccess);
+			debug("end failure: "+endFailure);
+			assertTrue(endFailure == expectedErrorsTest04);
+			asExpected("CASes error count == "+expectedErrorsTest04);
+			assertTrue(endSuccess+endFailure == 100);
+			asExpected("CASes failure+success count == 100");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	private long seedTest04 = 4;
+	private Random randomTest04 = new Random(seedTest04);
+	private long pctTest04 = 15;
+	
+	private long expectedErrorsTest04 = 17;
+	
+	private boolean randomErrorTest04() {
+		boolean retVal = false;
+		int n = randomTest04.nextInt(100);
+		if(n < pctTest04) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
+	
+	// multiple node:pid:tid with errors & retrys
+	
+	@Test
+	public void test_05() {
+		if(isDisabled(this.getClass().getName())) {
+			return;
+		}
+		try {
+			URL urlXml = this.getClass().getResource("/CR100.xml");
+			File file = new File(urlXml.getFile());
+			String crXml = file.getAbsolutePath();
+			String crCfg = null;
+			IJobDriverConfig jdCfg = new JobDriverConfig();
+			jdCfg.setUserClasspath(Utilities.userCP);
+			jdCfg.setCrXml(crXml);
+			jdCfg.setCrCfg(crCfg);
+			String eh = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandlerRandomRetry";
+			jdCfg.setErrorHandlerClassName(eh);
+			JobDriver.setInstance(jdCfg);
+			int size = JobDriver.getInstance().getMap().size();
+			debug("map size:"+size);
+			Dispatcher dispatcher = new Dispatcher();
+			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
+			ThreadInfo ti = tif.getRandom();
+			debug("random:"+ti.toKey());
+			int casNo = -1;
+			IMetaCas metaCasPrevious = null;
+			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			assertTrue(metaCas != null);
+			int inject = 0;
+			while(metaCas != null) {
+				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				if(randomErrorTest05()) {
+					Exception exception = new RuntimeException("injected error test #05");
+					metaCas.setUserSpaceException(exception);
+					inject++;
+				}
+				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				casNo--;
+				metaCasPrevious = metaCas;
+				assertTrue(metaCasPrevious != null);
+				ti = tif.getRandom();
+				debug("random:"+ti.toKey());
+				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			}
+			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
+			asExpected("CASes processed count == 100");
+			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			assertTrue(oi.getWorkItemCrFetches() == 100);
+			asExpected("CASes fetched count == 100");
+			long endSuccess = oi.getWorkItemEndSuccesses();
+			long endFailure = oi.getWorkItemEndFailures();
+			long endRetry = oi.getWorkItemEndRetrys();
+			debug("injected errors: "+inject);
+			debug("end success: "+endSuccess);
+			debug("end failure: "+endFailure);
+			debug("end retry: "+endRetry);
+			assertTrue(endSuccess+endFailure == 100);
+			asExpected("CASes failure+success count == 100");
+			assertTrue(endRetry > 0);
+			asExpected("CASes retry count == "+endRetry);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	private long seedTest05 = 5;
+	private Random randomTest05 = new Random(seedTest05);
+	private long pctTest05 = 15;
+	
+	private boolean randomErrorTest05() {
+		boolean retVal = false;
+		int n = randomTest05.nextInt(100);
+		if(n < pctTest05) {
+			retVal = true;
+		}
+		return retVal;
 	}
 }

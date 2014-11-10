@@ -59,13 +59,16 @@ public class Dispatcher {
 		IOperatingInfo retVal = null;
 		try {
 			IOperatingInfo oi = new OperatingInfo();
-			JobDriver jdc = JobDriver.getInstance();
-			CasManager cm = jdc.getCasManager();
+			JobDriver jd = JobDriver.getInstance();
+			CasManager cm = jd.getCasManager();
 			CasManagerStats cms = cm.getCasManagerStats();
-			IWorkItemStatistics wis = jdc.getWorkItemStatistics();
+			IWorkItemStatistics wis = jd.getWorkItemStatistics();
 			IRunningWorkItemStatistics rwis = RunningWorkItemStatistics.getCurrent();
 			oi.setWorkItemCrTotal(cms.getCrTotal());
 			oi.setWorkItemCrFetches(cms.getCrGets());
+			oi.setWorkItemEndSuccesses(cms.getEndSuccess());
+			oi.setWorkItemEndFailures(cms.getEndFailure());
+			oi.setWorkItemEndRetrys(cms.getEndRetry());
 			oi.setWorkItemPreemptions(cms.getNumberOfPreemptions());
 			oi.setWorkItemFinishedMillisMin(wis.getMillisMin());
 			oi.setWorkItemFinishedMillisMax(wis.getMillisMax());
@@ -76,6 +79,8 @@ public class Dispatcher {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.crTotal.get()+oi.getWorkItemCrTotal());
 			mb.append(Standardize.Label.crFetches.get()+oi.getWorkItemCrFetches());
+			mb.append(Standardize.Label.endSuccess.get()+oi.getWorkItemEndSuccesses());
+			mb.append(Standardize.Label.endFailure.get()+oi.getWorkItemEndFailures());
 			mb.append(Standardize.Label.preemptions.get()+oi.getWorkItemPreemptions());
 			mb.append(Standardize.Label.finishedMillisMin.get()+oi.getWorkItemFinishedMillisMin());
 			mb.append(Standardize.Label.finishedMillisMax.get()+oi.getWorkItemFinishedMillisMax());

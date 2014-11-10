@@ -31,6 +31,10 @@ public class CasManagerStats {
 	private AtomicInteger retryQueuePuts = new AtomicInteger(0);
 	private AtomicInteger retryQueueGets = new AtomicInteger(0);
 	
+	private AtomicInteger endSuccess = new AtomicInteger(0);
+	private AtomicInteger endFailure = new AtomicInteger(0);
+	private AtomicInteger endRetry = new AtomicInteger(0);
+	
 	private ConcurrentHashMap<String,AtomicInteger> retryReasonsMap = new ConcurrentHashMap<String,AtomicInteger>();
 	
 	public void setCrTotal(int value) {
@@ -86,5 +90,29 @@ public class CasManagerStats {
 			retVal = value.get();
 		}
 		return retVal;
+	}
+	
+	public void incEndSuccess() {
+		endSuccess.incrementAndGet();
+	}
+	
+	public int getEndSuccess() {
+		return endSuccess.get();
+	}
+	
+	public void incEndFailure() {
+		endFailure.incrementAndGet();
+	}
+	
+	public int getEndFailure() {
+		return endFailure.get();
+	}
+	
+	public void incEndRetry() {
+		endRetry.incrementAndGet();
+	}
+	
+	public int getEndRetry() {
+		return endRetry.get();
 	}
 }

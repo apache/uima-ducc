@@ -25,6 +25,10 @@ import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
+import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
+import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
@@ -40,7 +44,40 @@ public class ActionEnd implements IAction {
 	public String getName() {
 		return ActionEnd.class.getName();
 	}
-
+	
+	private void retry(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+		String location = "retry";
+		cm.putMetaCas(metaCas, RetryReason.UserErrorRetry);
+		cm.getCasManagerStats().incEndRetry();
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
+		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		logger.info(location, IEntityId.null_id, mb.toString());
+	}
+	
+	private void failure(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+		String location = "failure";
+		cm.getCasManagerStats().incEndFailure();
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
+		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		logger.info(location, IEntityId.null_id, mb.toString());
+	}
+	
+	private void success(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+		String location = "success";
+		cm.getCasManagerStats().incEndSuccess();
+		wi.setTodEnd();
+		updateStatistics(wi);
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
+		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		logger.info(location, IEntityId.null_id, mb.toString());
+	}
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -51,15 +88,30 @@ public class ActionEnd implements IAction {
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
 			IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
 			IMetaCas metaCas = wi.getMetaCas();
+			JobDriver jd = JobDriver.getInstance();
+			CasManager cm = jd.getCasManager();
 			//
 			if(metaCas != null) {
-				wi.setTodEnd();
-				updateStatistics(wi);
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
-				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-				mb.append(Standardize.Label.remote.get()+rwi.toString());
-				logger.info(location, IEntityId.null_id, mb.toString());
+				Object exception = metaCas.getUserSpaceException();
+				if(exception != null) {
+					Object cas = metaCas.getUserSpaceCas();
+					ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
+					ProxyJobDriverDirective pjdd = pjdeh.handle(cas, exception);
+					if(pjdd != null) {
+						if(pjdd.isKillWorkItem()) {
+							failure(cm, wi, trans, metaCas, rwi);
+						}
+						else {
+							retry(cm, wi, trans, metaCas, rwi);
+						}
+					}
+					else {
+						failure(cm, wi, trans, metaCas, rwi);
+					}
+				}
+				else {
+					success(cm, wi, trans, metaCas, rwi);
+				}
 				wi.resetTods();
 			}
 			else {MessageBuffer mb = new MessageBuffer();
@@ -76,5 +128,4 @@ public class ActionEnd implements IAction {
 		IWorkItemStatistics wis = JobDriver.getInstance().getWorkItemStatistics();
 		wis.ended(wi);
 	}
-
 }

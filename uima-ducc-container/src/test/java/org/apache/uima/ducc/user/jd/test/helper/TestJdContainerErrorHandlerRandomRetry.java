@@ -16,45 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.user.jd.test.helper;
 
-public class Standardize {
+import java.util.Random;
 
-	public enum Label {
-		crFetches,
-		crTotal,
-		preemptions,
-		endSuccess,
-		endFailure,
-		finishedMillisMax,
-		finishedMillisMin,
-		finishedMillisAvg,
-		runningMillisMax,
-		runningMillisMin,
-		todMostRecentStart,
-		state,
-		event,
-		curr,
-		prev,
-		hash,
-		loaded,
-		seqNo,
-		transNo,
-		remote,
-		action,
-		type,
-		AckMsecs,
-		EndMsecs,
-		killJob,
-		killProcess,
-		killWorkItem,
-		;
-		
-		Label() {
+import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
+import org.apache.uima.ducc.user.jd.iface.JdUserDirective;
+import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
+
+public class TestJdContainerErrorHandlerRandomRetry extends JdUserErrorHandler {
+
+	private Random random = new Random();
+	
+	@Override
+	public IJdUserDirective handle(String serializedCAS, Exception e) {
+		JdUserDirective jdUserDirective = new JdUserDirective();
+		jdUserDirective.setKillJob();
+		jdUserDirective.setKillProcess();
+		jdUserDirective.resetKillWorkItem();
+		if(random.nextBoolean()) {
+			jdUserDirective.setKillWorkItem();
 		}
-		
-		public String get() {
-			return this+"=";
-		}
+		return jdUserDirective;
 	}
+
 }

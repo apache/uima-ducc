@@ -40,6 +40,9 @@ public interface IOperatingInfo {
 	public void setWorkItemEndFailures(int value);
 	public int getWorkItemEndFailures();
 	
+	public void setWorkItemEndRetrys(int value);
+	public int getWorkItemEndRetrys();
+	
 	public void setWorkItemPreemptions(int value);
 	public int getWorkItemPreemptions();
 	
