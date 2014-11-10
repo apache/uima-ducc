@@ -296,7 +296,7 @@ public class NodeViz
             "GB, <b>Managed Reservations:</b> " + (pop_shares * quantum) +
             "GB, <b>Reservations:</b> " + (reservation_shares * quantum) +
             "GB, <b>Unoccupied:</b> " + (unoccupied_shares * quantum) +
-            "</small></i>" +
+            "GB</small></i>" +
             "</div>" +
             "<br>" +
             //"<div id=\"nodelist\" style=\"background-color:e5e5e5\">" +
