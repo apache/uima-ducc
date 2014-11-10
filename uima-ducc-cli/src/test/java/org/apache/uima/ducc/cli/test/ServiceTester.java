@@ -1239,6 +1239,7 @@ public class ServiceTester
             "--process_DD",             "${DUCC_HOME}/examples/simple/resources/service/Service_FixedSleep_1.xml",
             "--scheduling_class",       "fixed",
             "--working_directory",       "${HOME}",
+            "--register",		// Has no specification argument
             "--service_linger",         "10000",
         };
 
