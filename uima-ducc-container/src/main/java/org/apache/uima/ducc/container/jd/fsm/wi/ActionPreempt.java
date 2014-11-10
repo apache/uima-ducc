@@ -22,7 +22,7 @@ import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
-import org.apache.uima.ducc.container.jd.JobDriverCommon;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
@@ -46,7 +46,7 @@ public class ActionPreempt implements IAction {
 			IWorkItem wi = actionData.getWorkItem();
 			IMetaCas metaCas = wi.getMetaCas();
 			//
-			CasManager cm = JobDriverCommon.getInstance().getCasManager();
+			CasManager cm = JobDriver.getInstance().getCasManager();
 			cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
 		}
 		catch(Exception e) {

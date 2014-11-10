@@ -24,7 +24,7 @@ import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
-import org.apache.uima.ducc.container.jd.JobDriverCommon;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
@@ -73,7 +73,7 @@ public class ActionEnd implements IAction {
 	}
 	
 	private void updateStatistics(IWorkItem wi) {
-		IWorkItemStatistics wis = JobDriverCommon.getInstance().getWorkItemStatistics();
+		IWorkItemStatistics wis = JobDriver.getInstance().getWorkItemStatistics();
 		wis.ended(wi);
 	}
 

@@ -26,7 +26,7 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
-import org.apache.uima.ducc.container.jd.JobDriverCommon;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
@@ -54,7 +54,7 @@ public class ActionGet implements IAction {
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
 			IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
 			//
-			CasManager cm = JobDriverCommon.getInstance().getCasManager();
+			CasManager cm = JobDriver.getInstance().getCasManager();
 			IMetaCas metaCas = cm.getMetaCas();
 			trans.setMetaCas(metaCas);
 			//

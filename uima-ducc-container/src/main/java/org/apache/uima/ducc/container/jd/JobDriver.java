@@ -18,31 +18,59 @@
 */
 package org.apache.uima.ducc.container.jd;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.config.IJobDriverConfig;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
+import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
 
 public class JobDriver {
 
 	private static IContainerLogger logger = ContainerLogger.getLogger(JobDriver.class, IContainerLogger.Component.JD.name());
 	
-	private JobDriver() {
+	private static JobDriver instance = new JobDriver();
+	
+	public static JobDriver getInstance() {
+		return instance;
 	}
 	
-	private void mainline(String[] args) {
-		String location = "mainline";
+	public static void setInstance(IJobDriverConfig jobDriverConfig) {
+		instance.initialize(jobDriverConfig);
+	}
+	
+	private ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = null;
+	private IWorkItemStatistics wis = null;
+	
+	private CasManager cm = null;
+	
+	public void initialize(IJobDriverConfig jdCfg) {
+		String location = "initialize";
 		try {
-			//TODO
+			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
+			wis = new WorkItemStatistics();
+			cm = new CasManager(jdCfg.getUserClasspath(), jdCfg.getCrXml(), jdCfg.getCrCfg());
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);
 		}
 	}
 	
-	public static void main(String[] args) {
-		JobDriver jobDriver = new JobDriver();
-		jobDriver.mainline(args);
-
+	public ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> getMap() {
+		return map;
 	}
-
+	
+	public IWorkItemStatistics getWorkItemStatistics() {
+		return wis;
+	}
+	
+	public CasManager getCasManager() {
+		return cm;
+	}
+	
 }

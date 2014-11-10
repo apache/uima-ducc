@@ -28,7 +28,7 @@ import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
-import org.apache.uima.ducc.container.jd.JobDriverCommon;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.fsm.wi.ActionData;
@@ -59,7 +59,7 @@ public class Dispatcher {
 		IOperatingInfo retVal = null;
 		try {
 			IOperatingInfo oi = new OperatingInfo();
-			JobDriverCommon jdc = JobDriverCommon.getInstance();
+			JobDriver jdc = JobDriver.getInstance();
 			CasManager cm = jdc.getCasManager();
 			CasManagerStats cms = cm.getCasManagerStats();
 			IWorkItemStatistics wis = jdc.getWorkItemStatistics();
@@ -95,7 +95,7 @@ public class Dispatcher {
 	public void handleDownNode(INodeInfo nodeInfo) {
 		String location = "handleDownNode";
 		try {
-			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriverCommon.getInstance().getMap();
+			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
 			//TODO
 		}
 		catch(Exception e) {
@@ -106,7 +106,7 @@ public class Dispatcher {
 	public void handleDownProcess(IProcessInfo processInfo) {
 		String location = "handleDownProcess";
 		try {
-			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriverCommon.getInstance().getMap();
+			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
 			//TODO
 		}
 		catch(Exception e) {
@@ -117,7 +117,7 @@ public class Dispatcher {
 	public void handlePreemptProcess(IProcessInfo processInfo) {
 		String location = "handlePreemptProcess";
 		try {
-			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriverCommon.getInstance().getMap();
+			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
 			for(Entry<IRemoteWorkerIdentity, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerIdentity rwi = entry.getKey();
 				if(rwi.comprises(processInfo)) {
@@ -174,7 +174,7 @@ public class Dispatcher {
 	
 	private IWorkItem register(IRemoteWorkerIdentity rwi) {
 		String location = "register";
-		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriverCommon.getInstance().getMap();
+		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
 		IWorkItem wi = map.get(rwi);
 		while(wi == null) {
 			IMetaCas metaCas = null;
@@ -190,7 +190,7 @@ public class Dispatcher {
 	
 	private IWorkItem find(IRemoteWorkerIdentity rwi) {
 		String location = "find";
-		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriverCommon.getInstance().getMap();
+		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
 		IWorkItem wi = map.get(rwi);
 		if(wi != null) {
 			MessageBuffer mb = new MessageBuffer();
