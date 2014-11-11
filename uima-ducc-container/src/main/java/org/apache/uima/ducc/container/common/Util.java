@@ -18,47 +18,17 @@
 */
 package org.apache.uima.ducc.container.common;
 
-public class Standardize {
+public class Util {
 
-	public enum Label {
-		node,
-		pid,
-		tid,
-		crFetches,
-		crTotal,
-		preemptions,
-		endSuccess,
-		endFailure,
-		finishedMillisMax,
-		finishedMillisMin,
-		finishedMillisAvg,
-		runningMillisMax,
-		runningMillisMin,
-		todMostRecentStart,
-		state,
-		event,
-		curr,
-		prev,
-		hash,
-		loaded,
-		seqNo,
-		transNo,
-		remote,
-		action,
-		type,
-		AckMsecs,
-		EndMsecs,
-		killJob,
-		killProcess,
-		killWorkItem,
-		operatingMillis,
-		;
-		
-		Label() {
+	public static boolean compare(String s0, String s1) {
+		boolean retVal = false;
+		if(s0 != null) {
+			if(s1 != null) {
+				if(s0.equals(s1)) {
+					retVal = true;
+				}
+			}
 		}
-		
-		public String get() {
-			return this+"=";
-		}
+		return retVal;
 	}
 }

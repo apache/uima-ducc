@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.container.jd.mh.iface;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public interface IOperatingInfo {
 
@@ -86,6 +85,6 @@ public interface IOperatingInfo {
 	
 	//
 	
-	public void setMapOperating(HashMap<String,ArrayList<String>> value);
-	public HashMap<String,ArrayList<String>> getMapOperating();
+	public void setActiveWorkItemInfo(ArrayList<IWorkItemInfo> value);
+	public ArrayList<IWorkItemInfo> getActiveWorkItemInfo();
 }

@@ -24,14 +24,15 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
@@ -387,13 +388,21 @@ public class TestSuite extends ATest {
 		ArrayList<String> pids01 = new ArrayList<String>();
 		pids01.add("011");
 		pids01.add("012");
-		HashMap<String,ArrayList<String>> map = new HashMap<String,ArrayList<String>>();
-		String mapKey = "node01";
-		map.put("node01", pids01);
-		oi.setMapOperating(map);
-		HashMap<String,ArrayList<String>> mapOperating = oi.getMapOperating();
-		assertTrue(mapOperating.size() == 1);
-		ArrayList<String> list = mapOperating.get(mapKey);
+		ArrayList<IWorkItemInfo> list = new ArrayList<IWorkItemInfo>();
+		IWorkItemInfo wii = new WorkItemInfo();
+		wii.setNodeName("node01");
+		wii.setPid(1);
+		wii.setTid(1);
+		wii.setOperatingMillis(9991);
+		list.add(wii);
+		wii = new WorkItemInfo();
+		wii.setNodeName("node02");
+		wii.setPid(2);
+		wii.setTid(2);
+		wii.setOperatingMillis(9992);
+		list.add(wii);
+		oi.setActiveWorkItemInfo(list);
+		list = oi.getActiveWorkItemInfo();
 		assertTrue(list.size() == 2);
 	}
 

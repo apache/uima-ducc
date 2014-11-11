@@ -19,9 +19,9 @@
 package org.apache.uima.ducc.container.jd.mh.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 
 public class OperatingInfo implements IOperatingInfo {
 
@@ -46,8 +46,8 @@ public class OperatingInfo implements IOperatingInfo {
 	private long todMostRecentStart = 0;
 	
 	private boolean killJob = false;
-	
-	private HashMap<String,ArrayList<String>> mapOperating = null;
+
+	private ArrayList<IWorkItemInfo> activeWorkItemInfo = null;
 	
 	@Override
 	public void setWorkItemCrTotal(int value) {
@@ -225,13 +225,13 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 
 	@Override
-	public void setMapOperating(HashMap<String, ArrayList<String>> value) {
-		mapOperating = value;
+	public void setActiveWorkItemInfo(ArrayList<IWorkItemInfo> value) {
+		activeWorkItemInfo = value;
 	}
 
 	@Override
-	public HashMap<String, ArrayList<String>> getMapOperating() {
-		return mapOperating;
+	public ArrayList<IWorkItemInfo> getActiveWorkItemInfo() {
+		return activeWorkItemInfo;
 	}
 
 }

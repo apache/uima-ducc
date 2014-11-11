@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.container.jd;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +27,9 @@ import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 
 public class JobDriverHelper {
@@ -41,31 +42,30 @@ public class JobDriverHelper {
 		return instance;
 	}
 	
-	public HashMap<String,ArrayList<String>> getMapOperating() {
-		String location = "getMapOperating";
-		HashMap<String,ArrayList<String>> mapOperating = new HashMap<String, ArrayList<String>>();
+	public ArrayList<IWorkItemInfo> getActiveWotrkItemInfo() {
+		String location = "getActiveWotrkItemInfo";
+		ArrayList<IWorkItemInfo> list = new ArrayList<IWorkItemInfo>();
 		JobDriver jd = JobDriver.getInstance();
 		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = jd.getMap();
 		for(Entry<IRemoteWorkerIdentity, IWorkItem> entry : map.entrySet()) {
 			IRemoteWorkerIdentity rwi = entry.getKey();
-			String node = rwi.getNodeName();
-			String pid = ""+rwi.getPid();
-			ArrayList<String> list = null;
-			if(!mapOperating.containsKey(node)) {
-				list = new ArrayList<String>();
-				mapOperating.put(node,list);
-			}
-			else {
-				list = mapOperating.get(node);
-			}
-			if(!list.contains(pid)) {
-				list.add(pid);
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.node.get()+node);
-				mb.append(Standardize.Label.pid.get()+pid);
-				logger.debug(location, IEntityId.null_id, mb);
-			}
+			IWorkItem wi = entry.getValue();
+			IWorkItemInfo wii = new WorkItemInfo();
+			wii.setNodeAddress(rwi.getNodeAddress());
+			wii.setNodeName(rwi.getNodeName());
+			wii.setPid(rwi.getPid());
+			wii.setTid(rwi.getTid());
+			//TODO
+			wii.setSeqNo(0);
+			wii.setOperatingMillis(wi.getMillisOperating());
+			list.add(wii);
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.node.get()+wii.getNodeName());
+			mb.append(Standardize.Label.pid.get()+wii.getPid());
+			mb.append(Standardize.Label.tid.get()+wii.getTid());
+			mb.append(Standardize.Label.operatingMillis.get()+wii.getOperatingMillis());
+			logger.debug(location, IEntityId.null_id, mb);
 		}
-		return mapOperating;
+		return list;
 	}
 }

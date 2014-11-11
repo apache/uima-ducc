@@ -24,8 +24,6 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Random;
 
 import org.apache.uima.ducc.container.jd.JobDriver;
@@ -34,6 +32,7 @@ import org.apache.uima.ducc.container.jd.config.JobDriverConfig;
 import org.apache.uima.ducc.container.jd.mh.Dispatcher;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfo;
 import org.apache.uima.ducc.container.jd.test.helper.ThreadInfoFactory;
@@ -243,14 +242,9 @@ public class TestDispatcher extends ATest {
 			}
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
-			int count = 0;
-			HashMap<String, ArrayList<String>> mapOperating = oi.getMapOperating();
-			for(Entry<String, ArrayList<String>> entry : mapOperating.entrySet()) {
-				ArrayList<String> list = entry.getValue();
-				count = count + list.size();
-			}
-			assertTrue(count == 100);
-			asExpected("Map operating count == 100");
+			ArrayList<IWorkItemInfo> list = oi.getActiveWorkItemInfo();
+			assertTrue(list.size() == 100);
+			asExpected("Operating count == 100");
 		}
 		catch(Exception e) {
 			e.printStackTrace();

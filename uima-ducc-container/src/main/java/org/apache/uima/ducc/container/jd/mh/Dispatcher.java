@@ -81,7 +81,7 @@ public class Dispatcher {
 			oi.setWorkItemRunningMillisMin(rwis.getMillisMin());
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
 			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());
-			oi.setMapOperating(jdh.getMapOperating());
+			oi.setActiveWorkItemInfo(jdh.getActiveWotrkItemInfo());
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.crTotal.get()+oi.getWorkItemCrTotal());
 			mb.append(Standardize.Label.crFetches.get()+oi.getWorkItemCrFetches());

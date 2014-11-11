@@ -16,49 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.jd.mh.iface;
 
-public class Standardize {
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteTid;
 
-	public enum Label {
-		node,
-		pid,
-		tid,
-		crFetches,
-		crTotal,
-		preemptions,
-		endSuccess,
-		endFailure,
-		finishedMillisMax,
-		finishedMillisMin,
-		finishedMillisAvg,
-		runningMillisMax,
-		runningMillisMin,
-		todMostRecentStart,
-		state,
-		event,
-		curr,
-		prev,
-		hash,
-		loaded,
-		seqNo,
-		transNo,
-		remote,
-		action,
-		type,
-		AckMsecs,
-		EndMsecs,
-		killJob,
-		killProcess,
-		killWorkItem,
-		operatingMillis,
-		;
-		
-		Label() {
-		}
-		
-		public String get() {
-			return this+"=";
-		}
-	}
+public interface IWorkItemInfo extends IRemoteNode, IRemotePid, IRemoteTid {
+	
+	public int getSeqNo();
+	public void setSeqNo(int value);
+	
+	public long getOperatingMillis();
+	public void setOperatingMillis(long value);
 }
