@@ -23,6 +23,8 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
@@ -382,6 +384,17 @@ public class TestSuite extends ATest {
 		assertTrue(oi.getWorkItemRunningMillisMin() == 1001);
 		oi.setWorkItemRunningMillisMax(2001);
 		assertTrue(oi.getWorkItemRunningMillisMax() == 2001);
+		ArrayList<String> pids01 = new ArrayList<String>();
+		pids01.add("011");
+		pids01.add("012");
+		HashMap<String,ArrayList<String>> map = new HashMap<String,ArrayList<String>>();
+		String mapKey = "node01";
+		map.put("node01", pids01);
+		oi.setMapOperating(map);
+		HashMap<String,ArrayList<String>> mapOperating = oi.getMapOperating();
+		assertTrue(mapOperating.size() == 1);
+		ArrayList<String> list = mapOperating.get(mapKey);
+		assertTrue(list.size() == 2);
 	}
 
 }

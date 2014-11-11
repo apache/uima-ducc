@@ -18,6 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 public interface IOperatingInfo {
 
 	public void setWorkItemCrTotal(int value);
@@ -80,4 +83,9 @@ public interface IOperatingInfo {
 	
 	public void setKillJob();
 	public boolean isKillJob();
+	
+	//
+	
+	public void setMapOperating(HashMap<String,ArrayList<String>> value);
+	public HashMap<String,ArrayList<String>> getMapOperating();
 }

@@ -23,6 +23,9 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import org.apache.uima.ducc.container.jd.JobDriver;
@@ -144,7 +147,7 @@ public class TestDispatcher extends ATest {
 	// multiple node:pid:tid
 	
 	@Test
-	public void test_02() {
+	public void test_02a() {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
@@ -190,6 +193,64 @@ public class TestDispatcher extends ATest {
 			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	// multiple node:pid:tid
+	
+	@Test
+	public void test_02b() {
+		if(isDisabled(this.getClass().getName())) {
+			return;
+		}
+		try {
+			URL urlXml = this.getClass().getResource("/CR100.xml");
+			File file = new File(urlXml.getFile());
+			String crXml = file.getAbsolutePath();
+			String crCfg = null;
+			IJobDriverConfig jdCfg = new JobDriverConfig();
+			jdCfg.setUserClasspath(Utilities.userCP);
+			jdCfg.setCrXml(crXml);
+			jdCfg.setCrCfg(crCfg);
+			JobDriver.setInstance(jdCfg);
+			int size = JobDriver.getInstance().getMap().size();
+			debug("map size:"+size);
+			Dispatcher dispatcher = new Dispatcher();
+			ThreadInfoFactory tif = new ThreadInfoFactory(200,10,1);
+			ThreadInfo ti = tif.getRandom();
+			debug("random:"+ti.toKey());
+			int casNo = 1;
+			IMetaCas metaCasPrevious = null;
+			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			assertTrue(metaCas != null);
+			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			while(oi.getWorkItemCrFetches() < 100) {
+				if(metaCas != null) {
+					transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+					//transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+					casNo++;
+					metaCasPrevious = metaCas;
+					assertTrue(metaCasPrevious != null);
+				}
+				ti = tif.getRandom();
+				debug("random:"+ti.toKey());
+				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				oi = dispatcher.handleGetOperatingInfo();
+			}
+			assertTrue(oi.getWorkItemCrFetches() == 100);
+			asExpected("CASes fetched count == 100");
+			int count = 0;
+			HashMap<String, ArrayList<String>> mapOperating = oi.getMapOperating();
+			for(Entry<String, ArrayList<String>> entry : mapOperating.entrySet()) {
+				ArrayList<String> list = entry.getValue();
+				count = count + list.size();
+			}
+			assertTrue(count == 100);
+			asExpected("Map operating count == 100");
 		}
 		catch(Exception e) {
 			e.printStackTrace();

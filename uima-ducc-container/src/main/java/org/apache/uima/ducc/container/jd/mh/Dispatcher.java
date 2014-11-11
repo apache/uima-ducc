@@ -29,6 +29,7 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.fsm.wi.ActionData;
@@ -60,6 +61,7 @@ public class Dispatcher {
 		try {
 			IOperatingInfo oi = new OperatingInfo();
 			JobDriver jd = JobDriver.getInstance();
+			JobDriverHelper jdh = JobDriverHelper.getInstance();
 			CasManager cm = jd.getCasManager();
 			CasManagerStats cms = cm.getCasManagerStats();
 			IWorkItemStatistics wis = jd.getWorkItemStatistics();
@@ -79,6 +81,7 @@ public class Dispatcher {
 			oi.setWorkItemRunningMillisMin(rwis.getMillisMin());
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
 			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());
+			oi.setMapOperating(jdh.getMapOperating());
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.crTotal.get()+oi.getWorkItemCrTotal());
 			mb.append(Standardize.Label.crFetches.get()+oi.getWorkItemCrFetches());
