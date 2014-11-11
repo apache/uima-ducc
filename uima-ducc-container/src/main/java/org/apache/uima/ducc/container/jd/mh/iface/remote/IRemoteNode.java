@@ -20,6 +20,9 @@ package org.apache.uima.ducc.container.jd.mh.iface.remote;
 
 public interface IRemoteNode {
 
-	public String getNode();
-	public void setNode(String value);
+	public String getNodeName();
+	public void setNodeName(String value);
+	
+	public String getNodeAddress();
+	public void setNodeAddress(String value);
 }

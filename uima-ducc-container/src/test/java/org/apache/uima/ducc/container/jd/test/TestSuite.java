@@ -327,8 +327,8 @@ public class TestSuite extends ATest {
 		String n01 = "node01";
 		int p10 = 10;
 		int t20 = 20;
-		RemoteWorkerIdentity rwi01A = new RemoteWorkerIdentity(n01,p10,t20);
-		RemoteWorkerIdentity rwi01B = new RemoteWorkerIdentity(n01,p10,t20);
+		RemoteWorkerIdentity rwi01A = new RemoteWorkerIdentity(n01,null,p10,t20);
+		RemoteWorkerIdentity rwi01B = new RemoteWorkerIdentity(n01,null,p10,t20);
 		assertTrue(rwi01A.equals(rwi01A));
 		assertTrue(rwi01B.equals(rwi01B));
 		assertTrue(rwi01A.equals(rwi01B));
@@ -338,16 +338,16 @@ public class TestSuite extends ATest {
 		String n02 = "node02";
 		int p30 = 30;
 		int t40 = 40;
-		RemoteWorkerIdentity rwi02A = new RemoteWorkerIdentity(n02,p10,t20);
-		RemoteWorkerIdentity rwi01C = new RemoteWorkerIdentity(n01,p30,t20);
-		RemoteWorkerIdentity rwi01D = new RemoteWorkerIdentity(n01,p10,t40);
+		RemoteWorkerIdentity rwi02A = new RemoteWorkerIdentity(n02,null,p10,t20);
+		RemoteWorkerIdentity rwi01C = new RemoteWorkerIdentity(n01,null,p30,t20);
+		RemoteWorkerIdentity rwi01D = new RemoteWorkerIdentity(n01,null,p10,t40);
 		assertTrue(!rwi01A.equals(rwi02A));
 		assertTrue(!rwi01A.equals(rwi01C));
 		assertTrue(!rwi01A.equals(rwi01D));
 		assertTrue(rwi01A.compareTo(rwi02A) != 0);
 		assertTrue(rwi01A.compareTo(rwi01C) != 0);
 		assertTrue(rwi01A.compareTo(rwi01D) != 0);
-		assertTrue(rwi01A.getNode().equals(n01));
+		assertTrue(rwi01A.getNodeName().equals(n01));
 		assertTrue(rwi01A.getPid() == p10);
 		assertTrue(rwi01A.getTid() == t20);
 	}

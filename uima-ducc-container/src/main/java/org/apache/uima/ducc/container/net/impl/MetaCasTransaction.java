@@ -35,6 +35,7 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	private int providerPort = 0;
 	
 	private String requesterName = null;
+	private String requesterAddress = null;
 	private int requesterPid = 0;
 	private int requesterTid = 0;
 	
@@ -84,6 +85,16 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 		requesterName = value;
 	}
 
+	@Override
+	public String getRequesterAddress() {
+		return requesterAddress;
+	}
+
+	@Override
+	public void setRequesterAddress(String value) {
+		requesterAddress = value;
+	}
+	
 	@Override
 	public int getRequesterProcessId() {
 		return requesterPid;

@@ -25,7 +25,8 @@ public class JsonWorkItemState implements IJsonWorkItemState {
 	private String systemKey = null;
 	private String userKey = null;
 	
-	private String node = null;
+	private String nodeName = null;
+	private String nodeAddress = null;
 	private int pid = 0;
 	private int tid = 0;
 	
@@ -55,15 +56,25 @@ public class JsonWorkItemState implements IJsonWorkItemState {
 	}
 	
 	@Override
-	public String getNode() {
-		return node;
+	public String getNodeName() {
+		return nodeName;
 	}
 
 	@Override
-	public void setNode(String value) {
-		node = value;
+	public void setNodeName(String value) {
+		nodeName = value;
+	}
+	
+	@Override
+	public String getNodeAddress() {
+		return nodeAddress;
 	}
 
+	@Override
+	public void setNodeAddress(String value) {
+		nodeAddress = value;
+	}
+	
 	@Override
 	public int getPid() {
 		return pid;

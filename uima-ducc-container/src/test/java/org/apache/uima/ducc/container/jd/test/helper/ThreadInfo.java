@@ -20,18 +20,31 @@ package org.apache.uima.ducc.container.jd.test.helper;
 
 public class ThreadInfo {
 
-	private int node = 0;
+	private int nodeName = 0;
+	private int nodeAddress = 0;
 	private int pid = 0;
 	private int tid = 0;
 	
-	public ThreadInfo(int node, int pid, int tid) {
-		this.node = node;
+	public ThreadInfo(int nodeName, int nodeAddress, int pid, int tid) {
+		this.nodeName = nodeName;
+		this.nodeAddress = nodeAddress;
 		this.pid = pid;
 		this.tid = tid;
 	}
 	
-	public String getNode() {
-		return "node"+node;
+	public ThreadInfo(int nodeName, int pid, int tid) {
+		this.nodeName = nodeName;
+		this.nodeAddress = nodeName;
+		this.pid = pid;
+		this.tid = tid;
+	}
+	
+	public String getNodeName() {
+		return "nodeName"+nodeName;
+	}
+	
+	public String getNodeAddress() {
+		return "nodeAddress"+nodeAddress;
 	}
 	
 	public int getPid() {
@@ -43,6 +56,6 @@ public class ThreadInfo {
 	}
 	
 	public String toKey() {
-		return getNode()+":"+getPid()+":"+getTid();
+		return getNodeName()+":"+getPid()+":"+getTid();
 	}
 }

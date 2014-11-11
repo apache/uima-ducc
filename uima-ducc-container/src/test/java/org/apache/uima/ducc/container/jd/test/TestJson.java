@@ -30,7 +30,7 @@ import org.junit.Test;
 public class TestJson extends ATest {
 	
 	private void compare(JsonWorkItemState jwisA, JsonWorkItemState jwisB) {
-		assertTrue(jwisA.getNode().equals(jwisB.getNode()));
+		assertTrue(jwisA.getNodeName().equals(jwisB.getNodeName()));
 		assertTrue(jwisA.getPid() == jwisB.getPid());
 		assertTrue(jwisA.getTid() == jwisB.getTid());
 		assertTrue(jwisA.getProcessingTime() == jwisB.getProcessingTime());
@@ -47,7 +47,7 @@ public class TestJson extends ATest {
 		}
 		try {
 			JsonWorkItemState jwis1 = new JsonWorkItemState();
-			jwis1.setNode("node01");
+			jwis1.setNodeName("node01");
 			jwis1.setPid(23);
 			jwis1.setTid(45);
 			jwis1.setProcessingTime(5000);
@@ -56,7 +56,7 @@ public class TestJson extends ATest {
 			jwis1.setUserKey("usr0001");
 			jwis1.setStatus("running");
 			JsonWorkItemState jwis2 = new JsonWorkItemState();
-			jwis2.setNode("node01");
+			jwis2.setNodeName("node01");
 			jwis2.setPid(23);
 			jwis2.setTid(46);
 			jwis2.setProcessingTime(0000);
@@ -86,7 +86,7 @@ public class TestJson extends ATest {
 		}
 		try {
 			JsonWorkItemState jwis1 = new JsonWorkItemState();
-			jwis1.setNode("node01");
+			jwis1.setNodeName("node01");
 			jwis1.setPid(23);
 			jwis1.setTid(45);
 			jwis1.setProcessingTime(5000);

@@ -119,7 +119,7 @@ public class TestDispatcher extends ATest {
 			Dispatcher dispatcher = new Dispatcher();
 			ThreadInfoFactory tif = new ThreadInfoFactory(1,1,1);
 			ThreadInfo ti = tif.getRandom();
-			String node = ti.getNode();
+			String node = ti.getNodeName();
 			int pid = ti.getPid();
 			int tid = ti.getTid();
 			int casNo = 1;
@@ -169,7 +169,7 @@ public class TestDispatcher extends ATest {
 			debug("random:"+ti.toKey());
 			int casNo = 1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			while(metaCas != null) {
 				IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
@@ -179,14 +179,14 @@ public class TestDispatcher extends ATest {
 				else {
 					assertTrue(oi.isWorkItemCrPending());
 				}
-				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
-				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo++;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
@@ -225,20 +225,20 @@ public class TestDispatcher extends ATest {
 			debug("random:"+ti.toKey());
 			int casNo = 1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
 			while(oi.getWorkItemCrFetches() < 100) {
 				if(metaCas != null) {
-					transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
-					//transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+					transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+					//transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 					casNo++;
 					metaCasPrevious = metaCas;
 					assertTrue(metaCasPrevious != null);
 				}
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				oi = dispatcher.handleGetOperatingInfo();
 			}
 			assertTrue(oi.getWorkItemCrFetches() == 100);
@@ -283,11 +283,11 @@ public class TestDispatcher extends ATest {
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			while(metaCas != null) {
 				randomPreemptTest03(dispatcher,ti);
-				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				randomPreemptTest03(dispatcher,ti);
 				try {
 					Thread.sleep(20);
@@ -295,14 +295,14 @@ public class TestDispatcher extends ATest {
 				catch(Exception e) {
 				}
 				dispatcher.handleGetOperatingInfo();
-				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				randomPreemptTest03(dispatcher,ti);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
@@ -336,7 +336,7 @@ public class TestDispatcher extends ATest {
 	private void randomPreemptTest03(Dispatcher dispatcher, ThreadInfo ti) {
 		int n = randomTest03.nextInt(100);
 		if(n < pctTest03) {
-			IProcessInfo processInfo = new ProcessInfo(ti.getNode(),ti.getPid());
+			IProcessInfo processInfo = new ProcessInfo(ti.getNodeName(),null,ti.getPid());
 			dispatcher.handlePreemptProcess(processInfo);
 		}
 	}
@@ -366,23 +366,23 @@ public class TestDispatcher extends ATest {
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest04()) {
 					Exception exception = new RuntimeException("injected error test #04");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
@@ -453,23 +453,23 @@ public class TestDispatcher extends ATest {
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
 					Exception exception = new RuntimeException("injected error test #05");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
@@ -521,23 +521,23 @@ public class TestDispatcher extends ATest {
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
 					Exception exception = new RuntimeException("injected error test #05");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
@@ -604,23 +604,23 @@ public class TestDispatcher extends ATest {
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest06()) {
 					Exception exception = new RuntimeException("injected error test #06");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNode(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");

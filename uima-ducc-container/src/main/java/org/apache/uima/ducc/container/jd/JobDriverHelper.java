@@ -48,7 +48,7 @@ public class JobDriverHelper {
 		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = jd.getMap();
 		for(Entry<IRemoteWorkerIdentity, IWorkItem> entry : map.entrySet()) {
 			IRemoteWorkerIdentity rwi = entry.getKey();
-			String node = rwi.getNode();
+			String node = rwi.getNodeName();
 			String pid = ""+rwi.getPid();
 			ArrayList<String> list = null;
 			if(!mapOperating.containsKey(node)) {
