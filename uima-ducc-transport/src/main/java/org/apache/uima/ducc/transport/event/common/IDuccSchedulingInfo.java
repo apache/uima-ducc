@@ -115,15 +115,19 @@ public interface IDuccSchedulingInfo extends Serializable {
 	public String getWorkItemsRetry();
 	public void setWorkItemsRetry(String number);
 	
+	@Deprecated
 	public String getWorkItemsLost();
+	@Deprecated
 	public void setWorkItemsLost(String number);
-	
+	@Deprecated
 	public int getIntWorkItemsLost();
 	
 	public String getWorkItemsPreempt();
 	public void setWorkItemsPreempt(String number);
 	
+	@Deprecated
 	public ConcurrentHashMap<Integer,DuccId> getLimboMap();
+	@Deprecated
 	public void setLimboMap(ConcurrentHashMap<Integer,DuccId> map);
 	
 	public ConcurrentHashMap<String,DuccId> getCasQueuedMap();
