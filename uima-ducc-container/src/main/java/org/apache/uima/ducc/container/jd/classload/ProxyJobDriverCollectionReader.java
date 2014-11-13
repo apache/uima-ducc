@@ -24,6 +24,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
@@ -68,13 +69,20 @@ public class ProxyJobDriverCollectionReader {
 			"com.thoughtworks.xstream.XStream",
 			};
 	
-	public ProxyJobDriverCollectionReader(URLClassLoader classLoader, String crXml, String cfCfg) throws JobDriverException {
-		construct(classLoader, crXml, cfCfg);
-	}
-	
-	public ProxyJobDriverCollectionReader(URL[] classLoaderUrls, String crXml, String cfCfg) throws JobDriverException {
+	public ProxyJobDriverCollectionReader() throws JobDriverException {
+		SystemPropertiesHelper sph = SystemPropertiesHelper.getInstance();
+		String userClasspath = sph.getUserClasspath();
+		String[] classpath = sph.stringToArray(userClasspath);
+		URL[] classLoaderUrls = new URL[classpath.length];
+		int i = 0;
+		for(String jar : classpath) {
+			classLoaderUrls[i] = this.getClass().getResource(jar);
+			i++;
+		}
 		URLClassLoader classLoader = new URLClassLoader(classLoaderUrls, ClassLoader.getSystemClassLoader().getParent());
-		construct(classLoader, crXml, cfCfg);
+		String crXml = sph.getCollectionReaderXml();
+		String crCfg = sph.getCollectionReaderCfg();
+		construct(classLoader, crXml, crCfg);
 	}
 	
 	public int getTotal() throws JobDriverException {

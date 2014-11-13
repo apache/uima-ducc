@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.container.jd.cas;
 
-import java.net.URL;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.uima.ducc.container.common.ContainerLogger;
@@ -39,20 +38,14 @@ public class CasManager {
 	
 	private CasManagerStats casManagerStats = new CasManagerStats();
 
-	public CasManager(String[] classpath, String crXml, String crCfg) throws JobDriverException {
-		initialize(classpath, crXml, crCfg);
+	public CasManager() throws JobDriverException {
+		initialize();
 	}
 	
-	public void initialize(String[] classpath, String crXml, String crCfg) throws JobDriverException {
+	public void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
-			URL[] classLoaderUrls = new URL[classpath.length];
-			int i = 0;
-			for(String item : classpath) {
-				classLoaderUrls[i] = this.getClass().getResource(item);
-				i++;
-			}
-			pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			pjdcr = new ProxyJobDriverCollectionReader();
 			casManagerStats.setCrTotal(pjdcr.getTotal());
 		}
 		catch(JobDriverException e) {

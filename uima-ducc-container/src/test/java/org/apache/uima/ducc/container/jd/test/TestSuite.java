@@ -25,6 +25,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 
+import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
@@ -46,16 +47,19 @@ public class TestSuite extends ATest {
 	private void checkCas(String cas) {
 		assertTrue(cas.startsWith(prefix0) || cas.startsWith(prefix1));
 	}
+	private void config() {
+		URL urlXml = this.getClass().getResource("/CR100.xml");
+		File file = new File(urlXml.getFile());
+		String crXml = file.getAbsolutePath();
+		System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+		String userClasspath = Utilities.userCP;
+		System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+	}
 	
-	private void testIncludeAll(String[] userCP, String crXml, String crCfg) {
+	private void testIncludeAll() {
 		try {
-			URL[] classLoaderUrls = new URL[userCP.length];
-			int i = 0;
-			for(String jar : userCP) {
-				classLoaderUrls[i] = this.getClass().getResource(jar);
-				i++;
-			}
-			new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			config();
+			new ProxyJobDriverCollectionReader();
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -68,30 +72,33 @@ public class TestSuite extends ATest {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		testIncludeAll(Utilities.userCP, crXml, crCfg);
+		testIncludeAll();
 	}
 	
-	private void testExcludeOne(String[] userCP, String crXml, String crCfg, int skip) {
+	private void testExcludeOne(int skip) {
 		try {
-			URL[] classLoaderUrls = new URL[userCP.length-1];
-			int index = 0;
-			for(int i=0; i<userCP.length; i++) {
-				String jar = userCP[i];
+			URL urlXml = this.getClass().getResource("/CR100.xml");
+			File file = new File(urlXml.getFile());
+			String crXml = file.getAbsolutePath();
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			String[] classpathParts = userClasspath.split(File.pathSeparator);
+			StringBuffer sb = new StringBuffer();
+			for(int i=0; i<classpathParts.length; i++) {
+				String jar = classpathParts[i];
 				if(i == skip) {
 					debug(i+" skip: "+jar);
 				}
 				else {
 					debug(i+" use: "+jar);
-					classLoaderUrls[index] = this.getClass().getResource(jar);
-					index++;
+					sb.append(this.getClass().getResource(jar));
+					sb.append(File.pathSeparator);
 				}
 			}
 			try {
-				new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+				String userPartialClasspath = sb.toString();
+				System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userPartialClasspath);
+				new ProxyJobDriverCollectionReader();
 				fail("Exception missing...?");
 			}
 			catch(JobDriverException e) {
@@ -109,25 +116,18 @@ public class TestSuite extends ATest {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		testExcludeOne(Utilities.userCP, crXml, crCfg, 2);
-		for(int i=0; i<Utilities.userCP.length; i++) {
-			testExcludeOne(Utilities.userCP, crXml, crCfg, i);
+		testExcludeOne(2);
+		String[] cpParts = Utilities.userCP.split(File.pathSeparator);
+		for(int i=0; i<cpParts.length; i++) {
+			testExcludeOne(i);
 		}
 	}
 	
-	private void testNoXml(String[] userCP, String crXml, String crCfg) {
+	private void testNoXml() {
 		try {
-			URL[] classLoaderUrls = new URL[userCP.length];
-			int i = 0;
-			for(String jar : userCP) {
-				classLoaderUrls[i] = this.getClass().getResource(jar);
-				i++;
-			}
-			new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			new ProxyJobDriverCollectionReader();
 			fail("Exception missing...?");
 		}
 		catch(JobDriverException e) {
@@ -144,20 +144,13 @@ public class TestSuite extends ATest {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
-		String crXml = null;
-		String crCfg = null;
-		testNoXml(Utilities.userCP, crXml, crCfg);
+		testNoXml();
 	}
 	
-	private void getTotal(String[] userCP, String crXml, String crCfg) {
+	private void getTotal() {
 		try {
-			URL[] classLoaderUrls = new URL[userCP.length];
-			int i = 0;
-			for(String jar : userCP) {
-				classLoaderUrls[i] = this.getClass().getResource(jar);
-				i++;
-			}
-			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			config();
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			int total = pjdcr.getTotal();
 			assertTrue(total == 100);
 			debug("total: "+total);
@@ -173,22 +166,14 @@ public class TestSuite extends ATest {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		getTotal(Utilities.userCP, crXml, crCfg);
+		getTotal();
 	}
-	
-	private void getMetaCas(String[] userCP, String crXml, String crCfg) {
+
+
+	private void getMetaCas() {
 		try {
-			URL[] classLoaderUrls = new URL[userCP.length];
-			int i = 0;
-			for(String jar : userCP) {
-				classLoaderUrls[i] = this.getClass().getResource(jar);
-				i++;
-			}
-			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			config();
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();
 			asExpected("seqNo = "+seqNo);
@@ -211,13 +196,9 @@ public class TestSuite extends ATest {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		getMetaCas(Utilities.userCP, crXml, crCfg);
+		getMetaCas();
 	}
-	
+
 	private void getMetaCases(ProxyJobDriverCollectionReader pjdcr, int total) throws JobDriverException {
 		for(int c=1; c <= total; c++) {
 			MetaCas mc = pjdcr.getMetaCas();
@@ -233,15 +214,10 @@ public class TestSuite extends ATest {
 		}
 	}
 	
-	private void getMetaCases(String[] userCP, String crXml, String crCfg, int extra) {
+	private void getMetaCases(int extra) {
 		try {
-			URL[] classLoaderUrls = new URL[userCP.length];
-			int i = 0;
-			for(String jar : userCP) {
-				classLoaderUrls[i] = this.getClass().getResource(jar);
-				i++;
-			}
-			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			config();
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			int total = pjdcr.getTotal();
 			getMetaCases(pjdcr, total);
 			if(extra > 0) {
@@ -262,11 +238,7 @@ public class TestSuite extends ATest {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		getMetaCases(Utilities.userCP, crXml, crCfg, 0);
+		getMetaCases(0);
 	}
 	
 	@Test
@@ -274,11 +246,7 @@ public class TestSuite extends ATest {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
-		URL urlXml = this.getClass().getResource("/CR100.xml");
-		File file = new File(urlXml.getFile());
-		String crXml = file.getAbsolutePath();
-		String crCfg = null;
-		getMetaCases(Utilities.userCP, crXml, crCfg, 10);
+		getMetaCases(10);
 	}
 	
 	@Test
@@ -287,11 +255,8 @@ public class TestSuite extends ATest {
 			return;
 		}
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			CasManager cm = new CasManager(Utilities.userCP, crXml, crCfg);
+			config();
+			CasManager cm = new CasManager();
 			int total = cm.getCasManagerStats().getCrTotal();
 			assertTrue(total == 100);
 			IMetaCas metaCas = cm.getMetaCas();

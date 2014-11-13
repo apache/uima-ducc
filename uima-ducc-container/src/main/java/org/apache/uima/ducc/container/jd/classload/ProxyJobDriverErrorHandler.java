@@ -23,6 +23,7 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
@@ -45,22 +46,21 @@ public class ProxyJobDriverErrorHandler {
 	private static String defaultClassName = packageName+"JdUserErrorHandler";
 	private static String directiveInterfaceName = packageName+"IJdUserDirective";
 	
-	public ProxyJobDriverErrorHandler(String[] classPath) throws JobDriverException {
-		String className = defaultClassName;
-		String initializationData = null;
-		initialize(classPath, className, initializationData);
+	public ProxyJobDriverErrorHandler() throws JobDriverException {
+		initialize();
 	}
 	
-	public ProxyJobDriverErrorHandler(String[] classPath, String className, String initializationData) throws JobDriverException {
-		if(className == null) {
-			className = defaultClassName;
-		}
-		initialize(classPath, className, initializationData);
-	}
-	
-	private void initialize(String[] classpath, String className, String initializationData) throws JobDriverException {
+	private void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
+			SystemPropertiesHelper sph = SystemPropertiesHelper.getInstance();
+			String userClasspath = sph.getUserClasspath();
+			String[] classpath = sph.stringToArray(userClasspath);
+			String className = sph.getUserErrorHandlerClassname();
+			if(className == null) {
+				className = defaultClassName;
+			}
+			String initializationData = sph.getUserErrorHandlerCfg();
 			URL[] classLoaderUrls = new URL[classpath.length];
 			int i = 0;
 			for(String item : classpath) {

@@ -18,7 +18,12 @@
 */
 package org.apache.uima.ducc.container.jd.test;
 
+import java.util.Map;
+
+import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
+import org.apache.uima.ducc.common.config.SystemPropertiesHelper.Name;
 import org.apache.uima.ducc.container.common.ContainerLogger;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -27,9 +32,39 @@ import org.junit.BeforeClass;
 public abstract class ATest {
 	
 	private boolean disabled = false;
-	private boolean verbose = true;
+	private boolean verbose = false;
 	private boolean warned = false;
-	private boolean debug = true;
+	private boolean debug = false;
+	
+	public void reset() {
+		JobDriver.resetInstance();
+		debug("reset: "+JobDriver.class.getName());
+	}
+	
+	public void clear() {
+		for(Name name : SystemPropertiesHelper.Name.values()) {
+			System.clearProperty(name.name());
+			debug("clear: "+name.name());
+		}
+	}
+	
+	public void environment() {
+		Map<String, String> map = System.getenv();
+		if(map != null) {
+			if(map.containsKey("JUNIT_VERBOSE")) {
+				verbose = true;
+			}
+			if(map.containsKey("JUNIT_DEBUG")) {
+				debug = true;
+			}
+		}
+		if(!isVerbose()) {
+			ContainerLogger.setSilentRunning();
+		}
+		else {
+			ContainerLogger.resetSilentRunning();
+		}
+	}
 	
 	public boolean isDisabled(String name ) {
 		if(disabled) {
@@ -59,12 +94,9 @@ public abstract class ATest {
 
 	@Before
 	public void setUp() throws Exception {
-		if(!isVerbose()) {
-			ContainerLogger.setSilentRunning();
-		}
-		else {
-			ContainerLogger.resetSilentRunning();
-		}
+		environment();
+		clear();
+		reset();
 	}
 
 	@After

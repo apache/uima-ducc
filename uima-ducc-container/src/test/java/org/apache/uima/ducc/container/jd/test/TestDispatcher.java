@@ -26,9 +26,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
 import org.apache.uima.ducc.container.jd.JobDriver;
-import org.apache.uima.ducc.container.jd.config.IJobDriverConfig;
-import org.apache.uima.ducc.container.jd.config.JobDriverConfig;
 import org.apache.uima.ducc.container.jd.mh.Dispatcher;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
@@ -107,12 +106,9 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
-			JobDriver.setInstance(jdCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -154,12 +150,9 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
-			JobDriver.setInstance(jdCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -210,12 +203,9 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
-			JobDriver.setInstance(jdCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -263,12 +253,9 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
-			JobDriver.setInstance(jdCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -346,12 +333,9 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
-			JobDriver.setInstance(jdCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -433,12 +417,9 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
-			JobDriver.setInstance(jdCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -497,16 +478,13 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			//
 			String ehcp = "KillJobLimit="+2;
-			jdCfg.setErrorHandlerConfigurationParameters(ehcp);
+			System.setProperty(SystemPropertiesHelper.Name.UserErrorHandlerCfg.name(), ehcp);
 			//
-			JobDriver.setInstance(jdCfg);
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -582,14 +560,13 @@ public class TestDispatcher extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			IJobDriverConfig jdCfg = new JobDriverConfig();
-			jdCfg.setUserClasspath(Utilities.userCP);
-			jdCfg.setCrXml(crXml);
-			jdCfg.setCrCfg(crCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			//
 			String eh = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandlerRandomRetry";
-			jdCfg.setErrorHandlerClassName(eh);
-			JobDriver.setInstance(jdCfg);
+			System.setProperty(SystemPropertiesHelper.Name.UserErrorHandlerClassname.name(), eh);
+			//
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -651,4 +628,5 @@ public class TestDispatcher extends ATest {
 		}
 		return retVal;
 	}
+
 }

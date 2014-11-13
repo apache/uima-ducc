@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.net.URL;
 
+import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
@@ -39,7 +40,9 @@ public class TestClassLoading extends ATest {
 			return;
 		}
 		try {
-			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler(Utilities.userCP);
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
 			Object serializedCAS = null;
 			Object exception = null;
 			pjdeh.handle(serializedCAS, exception);
@@ -56,22 +59,17 @@ public class TestClassLoading extends ATest {
 			return;
 		}
 		try {
-			String[] userCP = Utilities.userCP;
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			URL[] classLoaderUrls = new URL[userCP.length];
-			int i = 0;
-			for(String jar : userCP) {
-				classLoaderUrls[i] = this.getClass().getResource(jar);
-				i++;
-			}
-			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
 			Object serializedCAS = mc.getSerializedCas();
 			Object exception = null;
-			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler(Utilities.userCP);
+			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
 			pjdeh.handle(serializedCAS, exception);
 		}
 		catch(Exception e) {
@@ -80,30 +78,25 @@ public class TestClassLoading extends ATest {
 		}
 	}
 	
-
 	@Test
 	public void test_03() {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
-			String[] userCP = Utilities.userCP;
+			String userClasspath = Utilities.userCP;
+			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			String crCfg = null;
-			URL[] classLoaderUrls = new URL[userCP.length];
-			int i = 0;
-			for(String jar : userCP) {
-				classLoaderUrls[i] = this.getClass().getResource(jar);
-				i++;
-			}
-			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader(classLoaderUrls, crXml, crCfg);
+			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
 			Object serializedCAS = mc.getSerializedCas();
 			Object exception = null;
 			String className = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandler";
-			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler(Utilities.userCP, className, null);
+			System.setProperty(SystemPropertiesHelper.Name.UserErrorHandlerClassname.name(), className);
+			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
 			ProxyJobDriverDirective directive = pjdeh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == true);
 			assertTrue(directive.isKillProcess() == true);
@@ -114,4 +107,5 @@ public class TestClassLoading extends ATest {
 			fail("Exception");
 		}
 	}
+	
 }
