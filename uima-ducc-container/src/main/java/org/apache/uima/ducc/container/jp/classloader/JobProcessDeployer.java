@@ -49,7 +49,7 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 			addUrlsToSystemLoader(urls);
 
 			Class<?> classToLaunch = null;
-			classToLaunch = ClassLoader.getSystemClassLoader().loadClass(clzToLoad);
+			classToLaunch = ClassLoader.getSystemClassLoader().getParent().loadClass(clzToLoad);
 
 			Method deployMethod = classToLaunch.getMethod(M_DEPLOY, String[].class);
 			Method processMethod = classToLaunch.getMethod(M_PROCESS, String.class);
@@ -74,7 +74,7 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 
 	private static void addUrlsToSystemLoader(URL[] urls) throws IOException {
 		URLClassLoader systemClassLoader = (URLClassLoader) ClassLoader
-				.getSystemClassLoader();
+				.getSystemClassLoader().getParent();
 		try {
 			Method method = URLClassLoader.class.getDeclaredMethod("addURL",
 					new Class[] { URL.class });
@@ -91,12 +91,6 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 
 	private URL[] getUrls(String jps) throws MalformedURLException, IOException,
 			URISyntaxException {
-//		String jps = System.getProperty("org.apache.uima.ducc.userjarpath");
-//		if (null == jps) {
-//			System.err
-//					.println("Missing the -Dorg.apache.uima.jarpath=XXXX property");
-//			System.exit(1);
-//		}
 		if (!suppressClassPathDisplay) {
 			System.out.println("UimaBootstrap ClassPath:");
 		}
@@ -143,4 +137,20 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 		urls.add(url);
 	}
 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }
