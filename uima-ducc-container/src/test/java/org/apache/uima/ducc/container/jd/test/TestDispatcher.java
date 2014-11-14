@@ -109,6 +109,7 @@ public class TestDispatcher extends ATest {
 			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
 			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -153,6 +154,7 @@ public class TestDispatcher extends ATest {
 			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
 			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -206,6 +208,7 @@ public class TestDispatcher extends ATest {
 			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
 			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -256,6 +259,7 @@ public class TestDispatcher extends ATest {
 			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
 			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -336,6 +340,7 @@ public class TestDispatcher extends ATest {
 			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
 			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -420,6 +425,7 @@ public class TestDispatcher extends ATest {
 			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
 			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -485,6 +491,7 @@ public class TestDispatcher extends ATest {
 			String ehcp = "KillJobLimit="+2;
 			System.setProperty(SystemPropertiesHelper.Name.UserErrorHandlerCfg.name(), ehcp);
 			//
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();
@@ -567,6 +574,7 @@ public class TestDispatcher extends ATest {
 			String eh = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandlerRandomRetry";
 			System.setProperty(SystemPropertiesHelper.Name.UserErrorHandlerClassname.name(), eh);
 			//
+			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
 			Dispatcher dispatcher = new Dispatcher();

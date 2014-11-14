@@ -37,13 +37,19 @@ public class JobDriver {
 	private static JobDriver instance = null;
 	
 	public static JobDriver getInstance() {
-		if(instance == null) {
-			instance = new JobDriver();
-		}
 		return instance;
 	}
 	
-	public static void resetInstance() {
+	public static void createInstance() throws JobDriverException {
+		if(instance != null) {
+			throw new JobDriverException("already created");
+		}
+		else {
+			instance = new JobDriver();
+		}
+	}
+	
+	public static void destroyInstance() {
 		instance = null;
 	}
 	
@@ -52,11 +58,11 @@ public class JobDriver {
 	private CasManager cm = null;
 	private ProxyJobDriverErrorHandler pjdeh = null;
 	
-	public JobDriver() {
+	private JobDriver() throws JobDriverException {
 		initialize();
 	}
 	
-	public void initialize() {
+	private void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
 			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
@@ -66,6 +72,7 @@ public class JobDriver {
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);
+			throw new JobDriverException(e);
 		}
 	}
 	

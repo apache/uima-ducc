@@ -36,9 +36,9 @@ public abstract class ATest {
 	private boolean warned = false;
 	private boolean debug = false;
 	
-	public void reset() {
-		JobDriver.resetInstance();
-		debug("reset: "+JobDriver.class.getName());
+	public void destroy() {
+		JobDriver.destroyInstance();
+		debug("destroy: "+JobDriver.class.getName());
 	}
 	
 	public void clear() {
@@ -96,7 +96,7 @@ public abstract class ATest {
 	public void setUp() throws Exception {
 		environment();
 		clear();
-		reset();
+		destroy();
 	}
 
 	@After
