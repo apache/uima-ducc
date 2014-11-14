@@ -250,7 +250,7 @@ public class DuccMachinesData {
 		// mem: free
 		long nodeMemFree = nodeMetrics.getNodeMemory().getMemFree();
 		logger.debug(location, jobid, "node: "+machineName+" "+"memFree: "+nodeMemFree);
-		long lvalMemFree = (long) ((1.0*nodeMemFree)/(1024*1024)+0.5);
+		long lvalMemFree = (long) ((1.0*nodeMemFree)/(1024*1024)+0.0);  // do NOT round up!
 		String memFree = ""+lvalMemFree/*+memUnits*/;
 		// shares: total
 		msi.sharesTotal = lvalMemFree/shareSize;
