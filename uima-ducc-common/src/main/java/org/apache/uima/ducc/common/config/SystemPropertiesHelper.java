@@ -29,11 +29,27 @@ public class SystemPropertiesHelper {
 	}
 	
 	public enum Name {
-		CollectionReaderCfg,
-		CollectionReaderXml,
-		UserClasspath,
-		UserErrorHandlerClassname,
-		UserErrorHandlerCfg,
+		
+		CollectionReaderCfg(false),
+		CollectionReaderXml(true),
+		UserClasspath(true),
+		UserErrorHandlerClassname(false),
+		UserErrorHandlerCfg(false),
+		;
+		
+		private boolean requiredFlag;
+		
+		private Name(boolean requiredFlag) {
+			setRequired(requiredFlag);
+		}
+		
+		private void setRequired(boolean value) {
+			requiredFlag = value;
+		}
+		
+		public boolean isRequired() {
+			return requiredFlag;
+		}
 	}
 	
 	public String getCollectionReaderCfg() {
