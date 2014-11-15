@@ -98,7 +98,7 @@ public class TestSuite extends ATest {
 			try {
 				String userPartialClasspath = sb.toString();
 				System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userPartialClasspath);
-				new ProxyJobDriverCollectionReader();
+				new ProxyJobDriverCollectionReader(true);
 				fail("Exception missing...?");
 			}
 			catch(JobDriverException e) {

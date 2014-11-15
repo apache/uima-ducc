@@ -27,6 +27,7 @@ import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.classloader.ClassLoaderUtil;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 
 public class ProxyJobDriverErrorHandler {
@@ -67,7 +68,7 @@ public class ProxyJobDriverErrorHandler {
 				classLoaderUrls[i] = this.getClass().getResource(item);
 				i++;
 			}
-			classLoader = new URLClassLoader(classLoaderUrls, ClassLoader.getSystemClassLoader().getParent());
+			classLoader = new URLClassLoader(classLoaderUrls, ClassLoaderUtil.getClassLoader());
 			Class<?> classAnchor = classLoader.loadClass(className);
 			objectInstance = classAnchor.newInstance();
 			//

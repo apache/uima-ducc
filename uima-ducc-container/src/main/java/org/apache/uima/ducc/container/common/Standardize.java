@@ -21,6 +21,7 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		directory,
 		node,
 		pid,
 		tid,
@@ -41,6 +42,7 @@ public class Standardize {
 		prev,
 		hash,
 		loaded,
+		loading,
 		seqNo,
 		transNo,
 		remote,
