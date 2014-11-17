@@ -20,7 +20,6 @@ package org.apache.uima.ducc.container.jd.classload;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -61,9 +60,7 @@ public class ProxyJobDriverCollectionReader {
 	private String name_getSeqNo = "getSeqNo";
 	private String name_getDocumentText = "getDocumentText";
 	private String name_getSerializedCas = "getSerializedCas";
-	
-	private Method method_deserialize = null;
-	
+
 	private String[] requiredClasses = { 
 			"org.apache.uima.ducc.user.jd.JdUserCollectionReader", 
 			"org.apache.uima.aae.UimaSerializer",
@@ -142,21 +139,6 @@ public class ProxyJobDriverCollectionReader {
 		return retVal;
 	}
 	
-	public Object deserialize(String serializedCas) throws JobDriverException {
-		String location = "deserialize";
-		Object retVal = null;
-		try {
-			Object[] parms = new Object[1];
-			parms[0] = serializedCas;
-			retVal = method_deserialize.invoke(instance_JdUserCollectionReader, parms);
-		} 
-		catch (Exception e) {
-			logger.error(location, IEntityId.null_id, e);
-			throw new JobDriverException(e);
-		}
-		return retVal;
-	}
-	
 	private void construct(URLClassLoader classLoader, String crXml, String cfCfg) throws JobDriverException {
 		setup(classLoader, crXml, cfCfg);
 		validate();
@@ -195,19 +177,6 @@ public class ProxyJobDriverCollectionReader {
 			method_getTotal = class_JdUserCollectionReader.getMethod(name_getTotal, nullClassArray);
 			class_JdUserMetaCas = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserMetaCas");
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
-			//
-			Method[] classMethods = class_JdUserCollectionReader.getMethods();
-			for(Method method : classMethods) {
-				if(method.getName().equals("deserialize")) {
-					Type[] types = method.getParameterTypes();
-					if(types.length == 1) {
-						if(types[0].toString().contains(".String")) {
-							method_deserialize = method;
-							break;
-						}
-					}
-				}
-			}
 		} 
 		catch (Exception e) {
 			logger.error(location, IEntityId.null_id, e);
