@@ -1,0 +1,71 @@
+% 
+% Licensed to the Apache Software Foundation (ASF) under one
+% or more contributor license agreements.  See the NOTICE file
+% distributed with this work for additional information
+% regarding copyright ownership.  The ASF licenses this file
+% to you under the Apache License, Version 2.0 (the
+% "License"); you may not use this file except in compliance
+% with the License.  You may obtain a copy of the License at
+% 
+%   http://www.apache.org/licenses/LICENSE-2.0
+% 
+% Unless required by applicable law or agreed to in writing,
+% software distributed under the License is distributed on an
+% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+% KIND, either express or implied.  See the License for the
+% specific language governing permissions and limitations
+% under the License.
+% 
+% Create well-known link to this spot for HTML version
+    \section{Overview}
+
+    This chapter provides an overview of the DUCC process logs and how to interpret the
+    entries therin.
+
+    Each of the DUCC ``head node'' processes writes a detailed log of its operation to
+    the directory \ducchome/logs.  The logs are managed by Apache log4j.  All logs are
+    managed by a single log4j configuration file
+\begin{verbatim}
+        DUCC_HOME/resources/log4j.xml
+\end{verbatim}
+
+    The logs are set to roll after some reaching a given size and the number of generations
+    is limited to prevent overrunning disk space.  In general the log level is set to
+    provide sufficient diagnostic output to resolve most issues.
+
+    Each DUCC component writes its own log as defined in the following table:
+
+    \begin{tabular} {| l | l |}
+       \hline
+          Component & Log Name \\
+      \hline
+      \hline
+          Resource Manager & rm.log \\
+      \hline
+          Service Manager & sm.log \\
+      \hline
+          Orchestrator & or.log \\
+      \hline
+          Process Manager & pm.log \\
+      \hline
+          Agent & {\em [hostname].agent.log } \\
+      \hline
+    \end{tabular}
+    
+    Because there may be many agents, the agent log is prefixed with the name of the host for
+    each running agent.
+
+\section{Resource Manager Log (rm.log)}
+    To be filled in.
+
+\section{Service  Manager Log (sm.log)}
+    To be filled in.
+
+\section{ (Orchestrator Log or.log)}
+    To be filled in.
+
+\section{Process Manager Log (pm.log)}
+    To be filled in.
+
+\section{Agent log Log (hostname.agent.log)}
+    To be filled in.
