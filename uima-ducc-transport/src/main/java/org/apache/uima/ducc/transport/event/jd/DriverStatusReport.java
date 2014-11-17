@@ -40,9 +40,9 @@ import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.Util;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
-
-@SuppressWarnings("serial")
 public class DriverStatusReport implements Serializable, IDriverStatusReport {
+
+	private static final long serialVersionUID = 100L;
 	
 	private static DuccLogger duccOut = DuccLoggerComponents.getJdOut(DriverStatusReport.class.getName());
 	private static DuccId jobid = null;
@@ -114,6 +114,11 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	public DriverStatusReport(DuccId duccId, String jdJmxUrl) {
 		setJdJmxUrl(jdJmxUrl);
 		setDuccId(duccId);
+	}
+	
+	@Override
+	public long getVersion() {
+		return serialVersionUID;
 	}
 	
 	/*
@@ -792,4 +797,5 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	public void setOperatingMillisMap(ConcurrentHashMap<RemoteLocation,Long> value) {
 		operatingMillisMap = value;
 	}
+
 }

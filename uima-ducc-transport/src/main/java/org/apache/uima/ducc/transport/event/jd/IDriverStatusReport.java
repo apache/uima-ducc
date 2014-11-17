@@ -31,6 +31,8 @@ import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 public interface IDriverStatusReport {
 
+	public long getVersion();
+	
 	public DuccId getDuccId();
 	public String getLogReport();
 	
@@ -41,21 +43,37 @@ public interface IDriverStatusReport {
 	public int getWorkItemsRetry();
 	public int getWorkItemsDispatched();
 	public int getWorkItemsPreempted();
+	
+	@Deprecated
 	public int getWorkItemsLost();
 	
+	@Deprecated
 	public int getWorkItemPendingProcessAssignmentCount();
 	
+	// min of finished & running
 	public long getWiMillisMin();
+	
+	// max of finished & running
 	public long getWiMillisMax();
+	
+	// avg of finished
 	public long getWiMillisAvg();
 	
+	// min of running
 	public long getWiMillisOperatingLeast();
+	
+	// max of finished
 	public long getWiMillisCompletedMost();
 	
+	// tod most recent started work item
 	public long getMostRecentStart();
 	
+	// true if CR not yet exhausted
 	public boolean isPending();
+	
+	@Deprecated
 	public boolean isWorkItemPendingProcessAssignment();
+	
 	public boolean isKillJob();
 	
 	public boolean isOperating(String nodeIP, String PID);
@@ -75,7 +93,11 @@ public interface IDriverStatusReport {
 	
 	public DuccProcessWorkItemsMap getDuccProcessWorkItemsMap();
 	
-	public ConcurrentHashMap<RemoteLocation, Long>getOperatingMillisMap();
+	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap();
+	
+	@Deprecated
 	public ConcurrentHashMap<Integer,DuccId> getLimboMap();
+	
+	@Deprecated
 	public ConcurrentHashMap<String,DuccId> getCasQueuedMap();
 }

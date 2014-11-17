@@ -19,6 +19,8 @@
 
 package org.apache.uima.ducc.transport.configuration.jd.iface;
 
-public interface IJobDriverComponent {
+import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 
+public interface IJobDriverComponent {
+	public JdStateDuccEvent getState();
 }

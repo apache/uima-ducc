@@ -24,16 +24,17 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jetty.JettyHttpComponent;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
-import org.apache.uima.ducc.transport.event.delegate.DuccEventDelegateListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-
 
 	/**
 	 * A {@link JobDriverConfiguration} to configure JobDriver component. Depends on 
@@ -43,6 +44,10 @@ import org.springframework.context.annotation.Import;
 	@Configuration
 	@Import({DuccTransportConfiguration.class,CommonConfiguration.class})
 	public class JobDriverConfiguration {
+		
+		private static DuccLogger logger = DuccLoggerComponents.getJdOut(JobDriverConfiguration.class.getName());
+		private static DuccId jobid = null;
+		
 		//	use Spring magic to autowire (instantiate and bind) CommonConfiguration to a local variable
 		@Autowired CommonConfiguration common;
 		//	use Spring magic to autowire (instantiate and bind) DuccTransportConfiguration to a local variable
@@ -127,9 +132,9 @@ import org.springframework.context.annotation.Import;
 			}
 			public void process(Exchange exchange) throws Exception {
 				// Fetch new state from Dispatched Job
-//				JdStateDuccEvent sse = jdc.getState();
+				JdStateDuccEvent sse = jdc.getState();
 				//	Add the state object to the Message
-//				exchange.getIn().setBody(sse);
+				exchange.getIn().setBody(sse);
 			}
 			
 		}
@@ -144,6 +149,7 @@ import org.springframework.context.annotation.Import;
 		 */
 		@Bean 
 		public JobDriverComponent jobDriver() throws Exception {
+			String location = "jobDriver";
 			JobDriverComponent jdc = new JobDriverComponent("JobDriver", common.camelContext(), this);
 	        //	Instantiate delegate listener to receive incoming messages. 
 	        JobDriverEventListener delegateListener = this.jobDriverDelegateListener(jdc);
@@ -156,6 +162,7 @@ import org.springframework.context.annotation.Import;
 			int port = Utils.findFreePort();
 			String jdUniqueId = "jdApp";
 			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc.getContext(), delegateListener, port, jdUniqueId));
+			logger.debug(location, jobid, "endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
 			jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
 			return jdc;
 		}
