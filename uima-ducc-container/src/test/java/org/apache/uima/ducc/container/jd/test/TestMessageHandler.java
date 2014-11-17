@@ -28,7 +28,7 @@ import java.util.Random;
 
 import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
 import org.apache.uima.ducc.container.jd.JobDriver;
-import org.apache.uima.ducc.container.jd.mh.Dispatcher;
+import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
@@ -42,7 +42,7 @@ import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
 import org.junit.Test;
 
-public class TestDispatcher extends ATest {
+public class TestMessageHandler extends ATest {
 
 
 	private MetaCasTransaction create(String node, int pid, int tid, Type type) {
@@ -54,8 +54,8 @@ public class TestDispatcher extends ATest {
 		return mct;
 	}
 	
-	private IMetaCas transCommon(Dispatcher dispatcher, MetaCasTransaction trans, int reqNo) {
-		dispatcher.handleMetaCasTransation(trans);
+	private IMetaCas transCommon(MessageHandler messageHandler, MetaCasTransaction trans, int reqNo) {
+		messageHandler.handleMetaCasTransation(trans);
 		IMetaCas metaCas = trans.getMetaCas();
 		if(metaCas != null) {
 			if(reqNo > 0) {
@@ -74,25 +74,25 @@ public class TestDispatcher extends ATest {
 		return metaCas;
 	}
 	
-	private IMetaCas transGet(Dispatcher dispatcher, String node, int pid, int tid, int reqNo) {
+	private IMetaCas transGet(MessageHandler messageHandler, String node, int pid, int tid, int reqNo) {
 		debug("Get");
 		MetaCasTransaction trans = create(node, pid, tid, Type.Get);
 		trans.setTransactionId(new TransactionId(reqNo,0));
-		return transCommon(dispatcher, trans, reqNo);
+		return transCommon(messageHandler, trans, reqNo);
 	}
 	
-	private IMetaCas transAck(Dispatcher dispatcher, String node, int pid, int tid, int reqNo) {
+	private IMetaCas transAck(MessageHandler messageHandler, String node, int pid, int tid, int reqNo) {
 		debug("Ack");
 		MetaCasTransaction trans = create(node, pid, tid, Type.Ack);
 		trans.setTransactionId(new TransactionId(reqNo,1));
-		return transCommon(dispatcher, trans, reqNo);
+		return transCommon(messageHandler, trans, reqNo);
 	}
 	
-	private IMetaCas transEnd(Dispatcher dispatcher, String node, int pid, int tid, int reqNo) {
+	private IMetaCas transEnd(MessageHandler messageHandler, String node, int pid, int tid, int reqNo) {
 		debug("End");
 		MetaCasTransaction trans = create(node, pid, tid, Type.End);
 		trans.setTransactionId(new TransactionId(reqNo,2));
-		return transCommon(dispatcher, trans, reqNo);
+		return transCommon(messageHandler, trans, reqNo);
 	}
 	
 	// single node:pid:tid
@@ -112,7 +112,7 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(1,1,1);
 			ThreadInfo ti = tif.getRandom();
 			String node = ti.getNodeName();
@@ -120,17 +120,17 @@ public class TestDispatcher extends ATest {
 			int tid = ti.getTid();
 			int casNo = 1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,node,pid,tid,casNo);
+			IMetaCas metaCas = transGet(messageHandler,node,pid,tid,casNo);
 			while(metaCas != null) {
-				transAck(dispatcher,node,pid,tid,casNo);
-				transEnd(dispatcher,node,pid,tid,casNo);
+				transAck(messageHandler,node,pid,tid,casNo);
+				transEnd(messageHandler,node,pid,tid,casNo);
 				casNo++;
 				metaCasPrevious = metaCas;
-				metaCas = transGet(dispatcher,node,pid,tid,casNo);
+				metaCas = transGet(messageHandler,node,pid,tid,casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
 		}
@@ -157,34 +157,34 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = 1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			while(metaCas != null) {
-				IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+				IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 				if(metaCas.getSystemKey().equals("100")) {
 					assertTrue(!oi.isWorkItemCrPending());
 				}
 				else {
 					assertTrue(oi.isWorkItemCrPending());
 				}
-				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo++;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
 		}
@@ -211,27 +211,27 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(200,10,1);
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = 1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			while(oi.getWorkItemCrFetches() < 100) {
 				if(metaCas != null) {
-					transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-					//transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+					transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+					//transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 					casNo++;
 					metaCasPrevious = metaCas;
 					assertTrue(metaCasPrevious != null);
 				}
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-				oi = dispatcher.handleGetOperatingInfo();
+				metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				oi = messageHandler.handleGetOperatingInfo();
 			}
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
@@ -262,36 +262,36 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			while(metaCas != null) {
-				randomPreemptTest03(dispatcher,ti);
-				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-				randomPreemptTest03(dispatcher,ti);
+				randomPreemptTest03(messageHandler,ti);
+				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				randomPreemptTest03(messageHandler,ti);
 				try {
 					Thread.sleep(20);
 				}
 				catch(Exception e) {
 				}
-				dispatcher.handleGetOperatingInfo();
-				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
-				randomPreemptTest03(dispatcher,ti);
+				messageHandler.handleGetOperatingInfo();
+				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				randomPreemptTest03(messageHandler,ti);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
 			assertTrue(oi.getWorkItemPreemptions() == expectedPremptionsTest03);
@@ -301,7 +301,7 @@ public class TestDispatcher extends ATest {
 			}
 			catch(Exception e) {
 			}
-			dispatcher.handleGetOperatingInfo();
+			messageHandler.handleGetOperatingInfo();
 			long tod = oi.getWorkItemTodMostRecentStart();
 			assertTrue(tod >= 0);
 			asExpected("Most Recent Start > 0, value="+tod);
@@ -318,11 +318,11 @@ public class TestDispatcher extends ATest {
 	
 	private long expectedPremptionsTest03 = 32;
 	
-	private void randomPreemptTest03(Dispatcher dispatcher, ThreadInfo ti) {
+	private void randomPreemptTest03(MessageHandler messageHandler, ThreadInfo ti) {
 		int n = randomTest03.nextInt(100);
 		if(n < pctTest03) {
 			IProcessInfo processInfo = new ProcessInfo(ti.getNodeName(),null,ti.getPid());
-			dispatcher.handlePreemptProcess(processInfo);
+			messageHandler.handlePreemptProcess(processInfo);
 		}
 	}
 	
@@ -343,33 +343,33 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest04()) {
 					Exception exception = new RuntimeException("injected error test #04");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
 			long endSuccess = oi.getWorkItemEndSuccesses();
@@ -428,33 +428,33 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
 					Exception exception = new RuntimeException("injected error test #05");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
 			long endSuccess = oi.getWorkItemEndSuccesses();
@@ -494,33 +494,33 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
 					Exception exception = new RuntimeException("injected error test #05");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
 			long endSuccess = oi.getWorkItemEndSuccesses();
@@ -577,33 +577,33 @@ public class TestDispatcher extends ATest {
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
-			Dispatcher dispatcher = new Dispatcher();
+			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
 			ThreadInfo ti = tif.getRandom();
 			debug("random:"+ti.toKey());
 			int casNo = -1;
 			IMetaCas metaCasPrevious = null;
-			IMetaCas metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+			IMetaCas metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			assertTrue(metaCas != null);
 			int inject = 0;
 			while(metaCas != null) {
-				transAck(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest06()) {
 					Exception exception = new RuntimeException("injected error test #06");
 					metaCas.setUserSpaceException(exception);
 					inject++;
 				}
-				transEnd(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				casNo--;
 				metaCasPrevious = metaCas;
 				assertTrue(metaCasPrevious != null);
 				ti = tif.getRandom();
 				debug("random:"+ti.toKey());
-				metaCas = transGet(dispatcher,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
+				metaCas = transGet(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 			}
 			assertTrue(metaCasPrevious.getSystemKey().equals("100"));
 			asExpected("CASes processed count == 100");
-			IOperatingInfo oi = dispatcher.handleGetOperatingInfo();
+			IOperatingInfo oi = messageHandler.handleGetOperatingInfo();
 			assertTrue(oi.getWorkItemCrFetches() == 100);
 			asExpected("CASes fetched count == 100");
 			long endSuccess = oi.getWorkItemEndSuccesses();

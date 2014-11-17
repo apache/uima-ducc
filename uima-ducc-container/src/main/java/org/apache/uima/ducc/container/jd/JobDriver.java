@@ -25,6 +25,8 @@ import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
+import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
+import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
@@ -57,6 +59,7 @@ public class JobDriver {
 	private IWorkItemStatistics wis = null;
 	private CasManager cm = null;
 	private ProxyJobDriverErrorHandler pjdeh = null;
+	private IMessageHandler mh = new MessageHandler();
 	
 	private JobDriver() throws JobDriverException {
 		initialize();
@@ -69,6 +72,7 @@ public class JobDriver {
 			wis = new WorkItemStatistics();
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
+			mh = new MessageHandler();
 		}
 		catch(Exception e) {
 			logger.error(location, IEntityId.null_id, e);
@@ -92,4 +96,7 @@ public class JobDriver {
 		return pjdeh;
 	}
 	
+	public IMessageHandler getMessageHandler() {
+		return mh;
+	}
 }

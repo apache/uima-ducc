@@ -30,8 +30,8 @@ import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
-import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.fsm.wi.ActionData;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
@@ -48,13 +48,11 @@ import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 
-public class Dispatcher {
+public class MessageHandler implements IMessageHandler {
 
-	private static IContainerLogger logger = ContainerLogger.getLogger(Dispatcher.class, IContainerLogger.Component.JD.name());
+	private static IContainerLogger logger = ContainerLogger.getLogger(MessageHandler.class, IContainerLogger.Component.JD.name());
 	
-	public Dispatcher() {
-	}
-	
+	@Override
 	public IOperatingInfo handleGetOperatingInfo() {
 		String location = "handleGetOperatingInfo";
 		IOperatingInfo retVal = null;
@@ -103,7 +101,8 @@ public class Dispatcher {
 		}
 		return retVal;
 	}
-	
+
+	@Override
 	public void handleDownNode(INodeInfo nodeInfo) {
 		String location = "handleDownNode";
 		try {
@@ -115,6 +114,7 @@ public class Dispatcher {
 		}
 	}
 	
+	@Override
 	public void handleDownProcess(IProcessInfo processInfo) {
 		String location = "handleDownProcess";
 		try {
@@ -126,6 +126,7 @@ public class Dispatcher {
 		}
 	}
 	
+	@Override
 	public void handlePreemptProcess(IProcessInfo processInfo) {
 		String location = "handlePreemptProcess";
 		try {
@@ -156,6 +157,7 @@ public class Dispatcher {
 		}
 	}
 	
+	@Override
 	public void handleMetaCasTransation(IMetaCasTransaction trans) {
 		String location = "handleMetaCasTransation";
 		try {
@@ -266,5 +268,5 @@ public class Dispatcher {
 			logger.debug(location, IEntityId.null_id, mb.toString());
 		}
 	}
-	
+
 }
