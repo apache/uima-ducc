@@ -166,17 +166,19 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
         Future<ProcessCpuUsage> processCpuUsage = null;
         String[] cgroupPids = new String[0];
         try {
+          String swapUsageScript = System.getProperty("ducc.agent.swap.usage.script");
+          
           if ( agent.useCgroups ) {
         	String containerId = agent.cgroupsManager.getContainerId(managedProcess);
             cgroupPids = 
                 agent.cgroupsManager.getPidsInCgroup(containerId);
-            
             for( String pid : cgroupPids ) {
-                DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
-                        pid, managedProcess.getOwner(), DUCC_HOME
-                                + "/admin/ducc_get_process_swap_usage.sh", logger);
-                totalSwapUsage += processSwapSpaceUsage.getSwapUsage();
-
+            	// the swap usage script is defined in ducc.properties
+                if ( swapUsageScript != null ) {
+                	DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
+                            pid, managedProcess.getOwner(), swapUsageScript, logger);
+                    totalSwapUsage += processSwapSpaceUsage.getSwapUsage();
+                }
                 
                 ProcessMajorFaultCollector processMajorFaultUsageCollector = 
                 		new ProcessMajorFaultCollector(logger, pid);
@@ -221,10 +223,11 @@ public class LinuxProcessMetricsProcessor extends BaseProcessor implements Proce
                 rStatmFile.close();
             }
           } else {
-             DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
-             process.getPID(), managedProcess.getOwner(), DUCC_HOME
-                   + "/admin/ducc_get_process_swap_usage.sh", logger);
-             totalSwapUsage = processSwapSpaceUsage.getSwapUsage();
+              if ( swapUsageScript != null ) {
+            	  DuccProcessSwapSpaceUsage processSwapSpaceUsage = new DuccProcessSwapSpaceUsage(
+            	             process.getPID(), managedProcess.getOwner(), swapUsageScript, logger);
+            	  totalSwapUsage = processSwapSpaceUsage.getSwapUsage();
+              }
 
              ProcessMajorFaultCollector processMajorFaultUsageCollector = 
             		 new ProcessMajorFaultCollector(logger, process.getPID());
