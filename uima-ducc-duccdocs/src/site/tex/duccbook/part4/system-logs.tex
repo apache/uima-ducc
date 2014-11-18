@@ -17,7 +17,7 @@
 % under the License.
 % 
 % Create well-known link to this spot for HTML version
-    \section{Overview}
+ \section{Overview}
 
     This chapter provides an overview of the DUCC process logs and how to interpret the
     entries therin.
@@ -55,9 +55,153 @@
     Because there may be many agents, the agent log is prefixed with the name of the host for
     each running agent.
 
-\section{Resource Manager Log (rm.log)}
-    To be filled in.
+\section{Common Log Format}
+     
+    Timestamp   LOGLEVEL  COMPONENT.sourceFileName method-name Jobid-or-NA text
 
+\section{Resource Manager Log (rm.log)}
+
+    The RM log is designed to show all phases of resource scheduling.  Much of the flow of a job can
+    be observed in this log alone.  The following specific information is available and is explained in
+    more detail below:
+    \begin{itemize}
+      \item Bootstrap configuration
+      \item Node arrival and missesd heartbeats
+      \item Node occupancy
+      \item Job arrival and status updates
+      \item Calculation of job caps
+      \item How-much - fair share 
+      \item What-of - host assignment and preemption
+      \item Defrag
+      \item Internal schedule
+      \item Published schedule
+    \end{itemize}
+    
+\subsection{Bootstrap Configuration}
+   The RM summarizes its entire configuration when it starts up and prints it to the log to
+   provide context for subsequent data and as verification that the RM is configured in the
+   way it was though to be.  All the following are fond in the bootstrap section and are mostly
+   self-explanatory:
+
+   \begin{itemize}
+     \item A pretty-print of the class configuration.  This is the same as produced by the {\em check\_ducc -c -v} 
+       command.
+     \item A summary of all classes, one per line.  This is a more concise display and is similar to the
+       DUCC Classes page in the web server.
+     \item A listing of all RM configuration parameters and the environment including things such as the
+       version of JAVA, the operating system, etc.
+     \item Nodepool occupancy.  As host names are parsed from the {\em ducc.nodes} files, the RM log
+       shows exactly which nodepool each node is added to.
+   \end{itemize}
+   
+   The RM logs can wrap quickly under high load in which case this information is lost.
+
+\subsection{Node Arrival and Missed Heartbeats}
+\subsubsection{Node Arrival}
+    As each node ``checks in'' with the RM a line is printed with details about the node.  Some fields
+    are redundant but are produced by different components processing the node arrival and thus serve
+    as confirmation that all parts are operating correctly.
+
+    A node arrival entry is of the form:
+\begin{verbatim}
+    [LOGHEADER] Nodepool: power Host added: power :  bluej290-18   shares  3 total    9:          
+                              bluej290-18     3             0             3  48128 <none>
+\end{verbatim}
+    where the fields mean (f the field isn't described here, the value is not relevent to node arrival):
+    \begin{description}
+      \item[LOGHEADER] is the log entry header as described above.
+      \item[Nodepool:power] The node is added to the ``power'' nodepool
+      \item[bluej290-18] This is the name of the node
+      \item[shares 3] The number of full shares supported on this machine.
+      \item[total 9] This is the total shares in the system after this node arrives.
+      \item[48128] This is the memory, in KB, on that host.
+    \end{description}
+
+\subsubsection{Missed Heartbeats}
+    The DUCC Agents send out regular ``heartbeat'' meessages with current node statistics. These
+    messages are used by RM to determine if a node has failed.  If a heartbeat does not arrive
+    at the specified time this is noted in the log as a {\em missing} heartbeat. If a specific (configurable) number
+    of consecutive heartbeats is missed, the RM marks the node offline and instructs the
+    DUCC Orchestrator to purge the shares so they can be rescheduled.
+
+    A missed heartbeat log entry is of the form
+\begin{verbatim}
+    [LOGHEADER] "*** Missed heartbeat ***" NODENAME count[NN]
+\end{verbatim}
+    where the fields mean:
+    \begin{description}
+      \item[LOGHEADER] is the log entry header as described above.
+      \item[*** Missed heartbeat ***] Indicates this is a missing heartbeat message.
+      \item[NODENAME] This is the name of the (possibly) errant host.
+      \item[count[N]] This is the number of CONSECUTIVE missing heartbeats.
+    \end{description}
+
+    Note that it is not unusual to miss the occasional heartbeat or two due to general network or system load.
+    As soon as a heartbeat is received the count is reset to 0.
+
+    If the number of missing heartbeats exceeds the value {\em ducc.rm.node.stability} configured in
+    {\em ducc.properties} the node is marked offline and this message is emitted:
+\begin{verbatim}
+    HEADER "*** ! Notification of node death:" NODENAME
+\end{verbatim}
+
+    If the node recovers and rejoins, the NodeArrives message as described above is emitted.
+
+\subsection{Node Occupancy}
+    {\em Node occupancy} describes, for each node, the capacity of the node, the work assigned to
+    that node, and the number of open shares on that node.  The RM writes the node occupancy 
+    to its log before assignment of every new schedule.  The occupancy can be found under the log header line:
+\begin{verbatim}
+    [LOGHEADER] Machine occupancy before schedule
+\end{verbatim}
+
+    Sample node occupancy follows.  The header is included in the log.
+\begin{verbatim}
+           Name Order Active Shares Unused Shares Memory (MB) Jobs
+--------------- ----- ------------- ------------- ----------- ------ ...
+ f1n2.bluej.net    16            16             0      255459 206710 206715 207878 206719 207900 206674 
+ f1n4.bluej.net    16             0            16      255459 <none>[16]
+ f7n2.bluej.net    16             0            16      255459 <none>[16]
+f9n10.bluej.net    16             0            16      255459 <none>[16]
+ f6n1.bluej.net    16             0            16      255459 <none>[16]
+ f7n1.bluej.net    16             3            13      255459 203408 [13]
+ f7n3.bluej.net    16            16             0      255459 206716 207904 206720 206717 207879 206718 
+f4n10.bluej.net    16            15             1      255459 209155 208975 209153 209155 209153 [1]
+ f7n5.bluej.net    16            16             0      255459 208960 
+ f1n3.bluej.net    16            16             0      255459 205608 206695 207906 205609 206693 206683 
+ f1n1.bluej.net    16             3            13      255459 208913 [13]
+f6n10.bluej.net    16             3            13      255459 208977 [13]
+ f6n7.bluej.net    16             0            16      255459 <none>[16]
+ f7n6.bluej.net    16            15             1      255459 209155 209151 206701 209155 206699 [1]
+\end{verbatim}
+
+    The meaning of each column is:
+    \begin{description}
+      \item[Name] The host name.
+      \item[Order] This is the share order of the node.  The number represents the number of shares
+        that can be scheduled on this node. (Recall that an actual process may and usually does
+        occupy multiple shares.)
+      \item[Active Shares] This is the number of the shares on the node which are scheduled
+        for work.
+      \item[Unused Shares] This is the number of shares available for new work.
+      \item[Memory] This is the real memory capacity of the node, as reported by the node's
+        Agent process.
+      \item[Jobs] Each entry here is the DUCC-assigned id of a job with process assigned to
+        this node.  Each entry corresponds to one process.  If an ID appears more than 
+        once the job has more than one process assigned to the node; see for example, the
+        node {\bf f6n10.bluej.net} with multiple entries for job {\em 206693}.
+
+        When no work is assigned to the node, the string {\bf $<$none$>$} is displayed.  
+        
+        When there is a number in brackets, e.g. {\bf [13]} for node {\bf f7n1.bluej.net}, the
+        number represents the number of shares available to be shcheduled on the node.
+    \end{description}
+    
+    The current node occupancy can be queried interactively with the command:
+\begin{verbatim}
+    DUCC_HOME/admin/rm_qoccupancy --console
+\end{verbatim}
+    
 \section{Service  Manager Log (sm.log)}
     To be filled in.
 
