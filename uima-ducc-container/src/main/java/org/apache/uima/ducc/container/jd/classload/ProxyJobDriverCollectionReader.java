@@ -25,12 +25,12 @@ import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.JdFlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.JdFlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
-import org.apache.uima.ducc.container.common.classloader.ClassLoaderUtil;
+import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 
@@ -69,37 +69,28 @@ public class ProxyJobDriverCollectionReader {
 			};
 	
 	public ProxyJobDriverCollectionReader() throws JobDriverException {
-		ClassLoader classLoader = ClassLoaderUtil.getClassLoader();
-		initialize(classLoader);
+		initialize();
 	}
 	
-	public ProxyJobDriverCollectionReader(boolean parentFlag) throws JobDriverException {
-		ClassLoader classLoader = ClassLoaderUtil.getClassLoader();
-		if(parentFlag) {
-			classLoader = ClassLoaderUtil.getClassLoaderParent();
-		}
-		initialize(classLoader);
-	}
-	
-	private void initialize(ClassLoader baseClassLoader) throws JobDriverException {
-		String location = "initialize";
+	private void initialize() throws JobDriverException {
 		JdFlagsExtendedHelper feh = JdFlagsExtendedHelper.getInstance();
 		String userClasspath = feh.getUserClasspath();
-		String resolvedUserCP = ClassLoaderUtil.resolveClasspathWildcards(userClasspath);
-		String[] classpath = feh.stringToArray(resolvedUserCP);
-		URL[] classLoaderUrls = new URL[classpath.length];
-		logger.info(location, IEntityId.null_id, "classpath");
-		int i = 0;
-		for(String jar : classpath) {
-			String text = "["+i+"]"+" "+jar;
-			logger.info(location, IEntityId.null_id, text);
-			classLoaderUrls[i] = this.getClass().getResource(jar);
-			i++;
-		}
-		URLClassLoader classLoader = new URLClassLoader(classLoaderUrls, baseClassLoader);
+		URLClassLoader classLoader = createClassLoader(userClasspath);
 		String crXml = feh.getCollectionReaderXml();
 		String crCfg = feh.getCollectionReaderCfg();
 		construct(classLoader, crXml, crCfg);
+	}
+	
+	private URLClassLoader createClassLoader(String userClasspath) {
+		String location = "createClassLoader";
+		URLClassLoader retVal = null;
+		try {
+			retVal = PrivateClassLoader.create(userClasspath);
+		}
+		catch(Exception e) {
+			logger.error(location, IEntityId.null_id, e);
+		}
+		return retVal;
 	}
 	
 	public int getTotal() throws JobDriverException {
@@ -204,6 +195,10 @@ public class ProxyJobDriverCollectionReader {
 			MessageBuffer mb1 = new MessageBuffer();
 			mb1.append(Standardize.Label.loading.get()+className);
 			logger.debug(location, IEntityId.null_id, mb1.toString());
+			URL[] urls = urlClassLoader.getURLs();
+			for(URL url : urls) {
+				logger.debug(location, IEntityId.null_id, url);
+			}
 			Class<?> loadedClass = urlClassLoader.loadClass(className);
 			MessageBuffer mb2 = new MessageBuffer();
 			mb2.append(Standardize.Label.loaded.get()+loadedClass.getName());

@@ -40,7 +40,7 @@ public class TestClassLoading extends ATest {
 			return;
 		}
 		try {
-			String userClasspath = Utilities.userCP;
+			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
 			Object serializedCAS = null;
@@ -59,7 +59,7 @@ public class TestClassLoading extends ATest {
 			return;
 		}
 		try {
-			String userClasspath = Utilities.userCP;
+			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
@@ -84,7 +84,7 @@ public class TestClassLoading extends ATest {
 			return;
 		}
 		try {
-			String userClasspath = Utilities.userCP;
+			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());

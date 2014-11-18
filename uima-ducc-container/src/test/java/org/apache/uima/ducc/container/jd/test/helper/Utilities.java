@@ -18,18 +18,39 @@
 */
 package org.apache.uima.ducc.container.jd.test.helper;
 
+import java.net.URL;
+
 public class Utilities {
 	
-	public static String userCP =
-			"/" +
+	private static Utilities instance = new Utilities();
+	
+	private String userCP = null;
+	
+	public static Utilities getInstance() {
+		return instance;
+	}
+	
+	private String resource(String name) {
+		String retVal = "";
+		URL url = this.getClass().getResource(name);
+		retVal = url.getFile();
+		return retVal;
+	}
+	private Utilities() {
+		userCP = 
+			resource("/") +
 			":" +
-			"/uima-ducc-user.jar" +
+			resource("/uima-ducc-user.jar") +
 			":" +
-			"/uimaj-as-core.jar" +
+			resource("/uimaj-as-core.jar") +
 			":" +
-			"/uimaj-core.jar" +
+			resource("/uimaj-core.jar") +
 			":" +
-			"/xstream-1.3.1.jar"
-	;
-
+			resource("/xstream-1.3.1.jar") +
+			""
+			;
+	}
+	public String getUserCP() {
+		return userCP;
+	}
 }

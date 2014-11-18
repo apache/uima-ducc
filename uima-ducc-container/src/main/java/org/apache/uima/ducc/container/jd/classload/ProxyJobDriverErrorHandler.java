@@ -20,14 +20,13 @@ package org.apache.uima.ducc.container.jd.classload;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.net.URL;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.jd.JdFlagsHelper;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.common.classloader.ClassLoaderUtil;
+import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 
 public class ProxyJobDriverErrorHandler {
@@ -62,13 +61,7 @@ public class ProxyJobDriverErrorHandler {
 				className = defaultClassName;
 			}
 			String initializationData = sph.getUserErrorHandlerCfg();
-			URL[] classLoaderUrls = new URL[classpath.length];
-			int i = 0;
-			for(String item : classpath) {
-				classLoaderUrls[i] = this.getClass().getResource(item);
-				i++;
-			}
-			classLoader = new URLClassLoader(classLoaderUrls, ClassLoaderUtil.getClassLoader());
+			URLClassLoader classLoader = createClassLoader(userClasspath);
 			Class<?> classAnchor = classLoader.loadClass(className);
 			objectInstance = classAnchor.newInstance();
 			//
@@ -112,6 +105,18 @@ public class ProxyJobDriverErrorHandler {
 			logger.error(location, IEntityId.null_id, e);
 			throw new JobDriverException(e);
 		}
+	}
+	
+	private URLClassLoader createClassLoader(String userClasspath) {
+		String location = "createClassLoader";
+		URLClassLoader retVal = null;
+		try {
+			retVal = PrivateClassLoader.create(userClasspath);
+		}
+		catch(Exception e) {
+			logger.error(location, IEntityId.null_id, e);
+		}
+		return retVal;
 	}
 	
 	public ProxyJobDriverDirective handle(Object serializedCAS, Object exception) throws JobDriverException {

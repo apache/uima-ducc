@@ -52,7 +52,7 @@ public class TestSuite extends ATest {
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
 		System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
-		String userClasspath = Utilities.userCP;
+		String userClasspath = Utilities.getInstance().getUserCP();
 		System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 	}
 	
@@ -81,7 +81,7 @@ public class TestSuite extends ATest {
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
 			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
-			String userClasspath = Utilities.userCP;
+			String userClasspath = Utilities.getInstance().getUserCP();
 			String[] classpathParts = userClasspath.split(File.pathSeparator);
 			StringBuffer sb = new StringBuffer();
 			for(int i=0; i<classpathParts.length; i++) {
@@ -98,7 +98,7 @@ public class TestSuite extends ATest {
 			try {
 				String userPartialClasspath = sb.toString();
 				System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userPartialClasspath);
-				new ProxyJobDriverCollectionReader(true);
+				new ProxyJobDriverCollectionReader();
 				fail("Exception missing...?");
 			}
 			catch(JobDriverException e) {
@@ -117,7 +117,8 @@ public class TestSuite extends ATest {
 			return;
 		}
 		testExcludeOne(2);
-		String[] cpParts = Utilities.userCP.split(File.pathSeparator);
+		String userClasspath = Utilities.getInstance().getUserCP();
+		String[] cpParts = userClasspath.split(File.pathSeparator);
 		for(int i=0; i<cpParts.length; i++) {
 			testExcludeOne(i);
 		}
@@ -125,7 +126,7 @@ public class TestSuite extends ATest {
 	
 	private void testNoXml() {
 		try {
-			String userClasspath = Utilities.userCP;
+			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			new ProxyJobDriverCollectionReader();
 			fail("Exception missing...?");
