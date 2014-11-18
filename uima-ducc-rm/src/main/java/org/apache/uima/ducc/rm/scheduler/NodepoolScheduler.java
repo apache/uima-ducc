@@ -256,6 +256,7 @@ public class NodepoolScheduler
 
     /**
      * Return the nodepool for a class, or the global nodepool if none is explicitly associated with the class.
+     * @deprecated Remove as soon as it is verified corrcct.
      */
     NodePool getNodepool(ResourceClass rc)
     {
@@ -527,20 +528,36 @@ public class NodepoolScheduler
         while ( (nshares[1] > 0) && (given)) {
             given = false;
             for ( IEntity e : entities ) {
-                int[] wbo = e.getWantedByOrder();         // nshares
+                //int[] wbo = e.getWantedByOrder();         // nshares
                 int[] gbo = e.getGivenByOrder();          // nshares
 
                 for ( int o = maxorder; o > 0; o-- ) {                
-                    int canuse = wbo[o] - gbo[o];
-                    while ( (canuse > 0 ) && (vshares[o] > 0) ) {
+                    // the entity access its wbo, gbo, and entity-specific knowledge to decide whether
+                    // the bonus is usable.  if so, we give out exactly one in an attempt to spread the wealth.
+                    //
+                    // An example of where you can't use, is a class over a nodepool whose resources
+                    // are exhausted, in which case we'd loop and see if anybody else was game.
+                    // UIMA-4065
+                    while ( (e.canUseBonus(o) ) && (vshares[o] > 0) ) {
                         gbo[o]++;
-                        //bonus++;
-                        canuse = wbo[o] - gbo[o];
                         removeSharesByOrder(vshares, nshares, 1, o);
                         given = true;
                         break;
                     }
                 }
+
+                // UIMA-4605 - old 'bonus' code -- keep for a while as quick reference
+                // for ( int o = maxorder; o > 0; o-- ) {                
+                //     int canuse = wbo[o] - gbo[o];
+                //     while ( (canuse > 0 ) && (vshares[o] > 0) ) {
+                //         gbo[o]++;
+                //         //bonus++;
+                //         canuse = wbo[o] - gbo[o];
+                //         removeSharesByOrder(vshares, nshares, 1, o);
+                //         given = true;
+                //         break;
+                //     }
+                // }
             }
         } 
 
@@ -570,11 +587,23 @@ public class NodepoolScheduler
      * Count out shares for only the jobs in the ResouceClasses here, and only from the given
      * nodepool.
      */
-	protected void countClassShares(NodePool np, ArrayList<ResourceClass> rcs)
+	protected void countClassShares(NodePool np, List<ResourceClass> rcs)
     { 		
 		String methodName = "countClassShares";
 
-        logger.debug(methodName, null, "Counting for nodepool", np.getId());
+        if ( logger.isDebug() ) {
+            StringBuffer sb = new StringBuffer("Counting for nodepool ");
+            sb.append(np.getId());
+            sb.append(" - classes -");
+            for ( ResourceClass rc : rcs ) {
+                sb.append(" ");
+                sb.append(rc.getName());
+            }
+
+            logger.debug(methodName, null, sb.toString());
+        }
+        // if ( true ) return;
+
         // pull the counts.  these don't get updated by the counting routines per-se.  after doing counting the np's are
         // expected to do the 'what-of' calculations that do acutall allocation and which update the counts
         int[] vshares = np.cloneVMachinesByOrder();
@@ -685,48 +714,106 @@ public class NodepoolScheduler
     }
 
     /**
-     * Depth-first traversal of the nodepool.  Once you get to a leaf, count the shares.  This sets an
-     * upper-bound on the number of shares a class can have.  As you wind back up the tree the counts may
-     * be reduced because of competition from jobs in the parent node.  By the time we're dont we should have
-     * accounted for all jobs and all usable resources.
+     * Find the set of classes from the presented set of elibible classes that have jobs in
+     * the given nodepool.  UIMA-4065
      *
-     * Note how this works:
-     * Consider a configuration with two nodepools plus global, A, B, and G.  Suppose nodepools A and B have
-     * 30 shares each and G only has 10 shares.  G can apportion over it's 10, plus the 60 from A and B. So
-     * after apporioning over A and B we need to do fair-share over G+A+B to insure that jobs submitted
-     * to G are not "cheated" - recall that jobs in this set of classes have the same weight and priority,
-     * and thus the same "right" to all the shares.  However, allocating a job from class A over the
-     * full set of 10+30 shares could over-allocate it.  So the cap calculations must be sure never to
-     * increase the already-given shares for subpools.
-     *
-     * Therefore we traverse the FULL SET of classes on every recursion.  When calculating caps from
-     * apportion_shares the resource classes will have to account for multiple traversals and not over-allocate
-     * if a class has already been apportioned from a subpool.
+     * @param np        Relevent nodepool
+     * @param eligible  (Possibly restricted) set of classes that **might** have jobs in the nodepool
+     * @return List of classes with jobs in the nodepool
      */
-    protected void traverseNodepoolsForCounts(NodePool np, ArrayList<ResourceClass> rcs)
+    private List<ResourceClass> gatherRcs(NodePool np, List<ResourceClass> eligible)
     {
-        //HashMap<String, NodePool> subpools = np.getChildren();
-        List<NodePool> subpools = np.getChildrenAscending();
-        for ( NodePool subpool : subpools ) {
-            ArrayList<ResourceClass> cls = new ArrayList<ResourceClass>();
-            String npn = subpool.getId();
-            int njobs = 0;
-            for ( ResourceClass rc : rcs ) {
-                String rcnpn = rc.getNodepoolName();
-                if ( rcnpn == null ) continue;
-
-                if ( rc.getNodepoolName().equals(npn) ) {
-                    cls.add(rc);
-                    njobs += rc.countJobs();
-                }
-            }
-            if ( njobs > 0 ) {
-                traverseNodepoolsForCounts(subpool, cls);
-            }
+        ArrayList<ResourceClass> ret = new ArrayList<ResourceClass>();
+        String npn = np.getId();
+        for ( ResourceClass rc : eligible ) {
+            String rcnpn = rc.getNodepoolName();
+            if ( rcnpn == null       ) continue;
+            if ( rc.countJobs() == 0 ) continue;
+            if ( rcnpn.equals(npn)   ) ret.add(rc);
         }
-
-        countClassShares(np, rcs);
+        return ret;        
     }
+
+    /**
+     * Do a depth-first traversal of the nodepool calculating counts for all the jobs in the nodepool and its children.
+     *
+     * Starting at each leaf NP, gather all the classes that have jobs in the NP, and if there are any, get class counts
+     * for the classes.  Pass the classes up to the caller who can do a more global recount if necessary.  If there are
+     * no jobs over the nodepool then bypass the count for it, of course.  This is a rewrite of the original which did
+     * not properly handle the recursion past 1 level (root + 1).  It uses gatherRcs() as a helper to find relevent classes.
+     * jrc 2014-11-05. UIMA-4605
+     *
+     * Note that this is tricky - please make sure you understand all the logic in countClassShares before changing
+     * anything.
+     * 
+     * @param np
+     * @param eligible
+     * @return List of classes with potential counts.
+     */
+    protected List<ResourceClass> traverseNodepoolsForCounts(NodePool np, List<ResourceClass> eligible)
+    {
+        //String methodName = "traverseNodepoolsForCounts";
+
+        List<ResourceClass> myRcs = gatherRcs(np, eligible);       // the resource classes for NodePool np
+        boolean hasJobs = (myRcs.size() > 0);                      // do I have jobs for this np?
+
+        List<NodePool> subpools = np.getChildrenAscending();       // now recurse down to leaves from here
+        for ( NodePool subpool : subpools ) {
+            List<ResourceClass> subrc = traverseNodepoolsForCounts(subpool, eligible);
+            myRcs.addAll(subrc);
+        }        
+
+        // now do our fs, if there are jobs resident in this np
+        if ( hasJobs ) countClassShares(np, myRcs);
+        return myRcs;                                             // return aggregated classes to caller
+    }
+
+//     /**
+//      * Depth-first traversal of the nodepool.  Once you get to a leaf, count the shares.  This sets an
+//      * upper-bound on the number of shares a class can have.  As you wind back up the tree the counts may
+//      * be reduced because of competition from jobs in the parent node.  By the time we're done we should have
+//      * accounted for all jobs and all usable resources.
+//      *
+//      * Note how this works:
+//      * Consider a configuration with two nodepools plus global, A, B, and G.  Suppose nodepools A and B have
+//      * 30 shares each and G only has 10 shares.  G can apportion over it's 10, plus the 60 from A and B. So
+//      * after apporioning over A and B we need to do fair-share over G+A+B to insure that jobs submitted
+//      * to G are not "cheated" - recall that jobs in this set of classes have the same weight and priority,
+//      * and thus the same "right" to all the shares.  However, allocating a job from class A over the
+//      * full set of 10+30 shares could over-allocate it.  So the cap calculations must be sure never to
+//      * increase the already-given shares for subpools.
+//      *
+//      * Therefore we traverse the FULL SET of classes on every recursion.  When calculating caps from
+//      * apportion_shares the resource classes will have to account for multiple traversals and not over-allocate
+//      * if a class has already been apportioned from a subpool.
+//      *
+//      * Keep for a while for reference.  It is wrong but if there are still bugs in the rewrite we
+//      * want easy reference to the original. jrc 2014-11-05 UIMA-4065
+//      */
+//     protected void traverseNodepoolsForCounts(NodePool np, List<ResourceClass> rcs)
+//     {
+//         //HashMap<String, NodePool> subpools = np.getChildren();
+//         List<NodePool> subpools = np.getChildrenAscending();
+//         for ( NodePool subpool : subpools ) {
+//             ArrayList<ResourceClass> cls = new ArrayList<ResourceClass>();
+//             String npn = subpool.getId();
+//             int njobs = 0;
+//             for ( ResourceClass rc : rcs ) {
+//                 String rcnpn = rc.getNodepoolName();
+//                 if ( rcnpn == null ) continue;
+
+//                 if ( rc.getNodepoolName().equals(npn) ) {
+//                     cls.add(rc);
+//                     njobs += rc.countJobs();
+//                 }
+//             }
+//             if ( njobs > 0 ) {
+//                 traverseNodepoolsForCounts(subpool, cls);
+//             }
+//         }
+
+//         countClassShares(np, rcs);
+//     }
 
 
     protected void updateNodepools(NodePool np, ArrayList<ResourceClass> rcs)
@@ -807,7 +894,7 @@ public class NodepoolScheduler
         //
         // First step, figure out how many shares per class.
         //
-        traverseNodepoolsForCounts(globalNodepool, eligible);
+        traverseNodepoolsForCounts(globalNodepool, eligible);   // (only these classes, not the global set)
 
         //
         // Everything should be stable - now reduce the counts in the nodepools
@@ -917,7 +1004,7 @@ public class NodepoolScheduler
 
             if ( !jobInClass(rcs, j) ) continue;
 
-            if ( getNodepool(rc) == np ) {
+            if ( rc.getNodepool() == np ) {
                 switch ( rc.getPolicy()) {
                     case FAIR_SHARE:
                         fair_share_jobs.add(j);
@@ -1106,7 +1193,7 @@ public class NodepoolScheduler
                 j.clearShares();
             }
 
-            NodePool np = getNodepool(rc);
+            NodePool np = rc.getNodepool();
 
             int classcap = 0;
             classcap = calcCaps(rc.getAbsoluteCap(), rc.getPercentCap(), np.countTotalShares());       // quantum shares
@@ -1196,7 +1283,7 @@ public class NodepoolScheduler
         for ( ResourceClass rc : rcs ) {
             ArrayList<IRmJob> jobs = rc.getAllJobsSorted(new JobByTimeSorter());
 
-            NodePool np = getNodepool(rc);
+            NodePool np = rc.getNodepool();
             for ( IRmJob j : jobs ) {
 
                 if ( j.countNShares() > 0 ) {               // all or nothing - if we have any, we're fully satisfied
@@ -1238,12 +1325,6 @@ public class NodepoolScheduler
     // =========================== REWORKED CODE FOR RESERVATIONS ================================
     // ==========================================================================================
     // ==========================================================================================
-
-    /**
-     * TODO: what to do if there are machines that are larger than requested, but
-     *       not enough of the exact size.  For now, refuse, the request will only
-     *       match exactly.
-     */
 	private void howMuchReserve(ArrayList<ResourceClass> rcs)
     {
         String methodName = "howMuchToreserve";
@@ -1263,7 +1344,7 @@ public class NodepoolScheduler
             ArrayList<IRmJob> jobs = rc.getAllJobsSorted(new JobByTimeSorter());
             int machines_given_out = 0;
 
-            NodePool np = getNodepool(rc);
+            NodePool np = rc.getNodepool();
 
             // Find out what is given out already, for class caps.  These are already accounted for
             // in the global counts.
@@ -1335,7 +1416,7 @@ public class NodepoolScheduler
                 }
 
                 classcap = calcCaps(rc.getAbsoluteCap(), rc.getPercentCap(), np.countLocalMachines());
-                
+                logger.info(methodName, j.getId(), "Absolute cap:", rc.getAbsoluteCap(), "PercentCap", rc.getPercentCap(), "np.countLocalMachines", np.countLocalMachines(), "cap", classcap);
                 //
                 // Assumption to continue is that this is a new reservation
                 //
@@ -1391,7 +1472,7 @@ public class NodepoolScheduler
     {
         String methodName = "whatOfToReserve";
         for ( ResourceClass rc : rcs ) {
-            NodePool np = getNodepool(rc);
+            NodePool np = rc.getNodepool();
 
             ArrayList<IRmJob> jobs = rc.getAllJobsSorted(new JobByTimeSorter());
             for ( IRmJob j: jobs ) {
@@ -1436,7 +1517,7 @@ public class NodepoolScheduler
 
                case FIXED_SHARE: 
                    {
-                       NodePool np = getNodepool(rc);
+                       NodePool np = rc.getNodepool();
                        HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                        for ( IRmJob j : jobs.values() ) {
                            if ( j.countNShares() > 0 ) {   // all-or-nothing - if there's anything, it's fully scheduled.
@@ -1449,7 +1530,7 @@ public class NodepoolScheduler
 
                case RESERVE:               
                    {
-                       NodePool np = getNodepool(rc);
+                       NodePool np = rc.getNodepool();
                        HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                        for ( IRmJob j : jobs.values() ) {
                            if ( j.countNShares() > 0 ) {   // all-or-nothing - if there's anything, it's fully scheduled.
@@ -1470,7 +1551,13 @@ public class NodepoolScheduler
     {
         for (ResourceClass rc : resourceClasses.values() ) {
             if ( rc.getPolicy() == Policy.FAIR_SHARE ) {
-                NodePool np = getNodepool(rc);
+                NodePool np = rc.getNodepool();
+                NodePool check = getNodepool(rc);
+                if ( np != check ) {
+                    throw new IllegalStateException("getNodepool is busted.");
+                } else {
+                    System.out.println("------------------- np pointer checks out ok. ----------------- rc: " + rc.getName() + " np: " + np.getId() );
+                }
                 HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                 for ( IRmJob j : jobs.values() ) {
                     HashMap<Share, Share> shares = j.getAssignedShares();
@@ -1522,7 +1609,9 @@ public class NodepoolScheduler
         // stop_here_de++;
 
         for ( NodePool np : nodepool.getChildrenDescending() ) {   // recurse down the tree
-            doEvictions(np);                                      // depth-first traversal
+            logger.info(methodName, null, "Recurse to", np.getId(), "from", nodepool.getId());
+            doEvictions(np);                                       // depth-first traversal
+            logger.info(methodName, null, "Return from", np.getId(), "proceeding with logic for", nodepool.getId());
         }
 
         int neededByOrder[] = NodePool.makeArray();         // for each order, how many N-shares do I want to add?
@@ -1567,7 +1656,7 @@ public class NodepoolScheduler
     {
         Machine m = candidate.getMachine();
         ResourceClass nrc = needy.getResourceClass();
-        NodePool np = getNodepool(nrc);
+        NodePool np = nrc.getNodepool();
 
         return np.containsMachine(m);           // can we get to the candidate share from 'needy's np?
     }
@@ -1580,8 +1669,8 @@ public class NodepoolScheduler
         ResourceClass prc = potential.getResourceClass();
         ResourceClass nrc = needy.getResourceClass();
 
-        NodePool np = getNodepool(nrc);
-        NodePool pp = getNodepool(prc);
+        NodePool np = nrc.getNodepool();
+        NodePool pp = prc.getNodepool();
 
         return np.containsSubpool(pp) || pp.containsSubpool(np);
     }
@@ -1694,13 +1783,15 @@ public class NodepoolScheduler
 
         for ( Machine m : machines.values() ) {
             if ( m.getShareOrder() < orderNeeded ) {
-                logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded);
+                logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded); 
+                logger.info(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded); 
                 continue;
             }
 
             // if the job is a reservation the machine size has to match
             if ( nj.isReservation() && ( m.getShareOrder() != orderNeeded )) {
                 logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": reservation requires exact match for order", orderNeeded);
+                logger.info(methodName, nj.getId(), "Bypass ", m.getId(), ": reservation requires exact match for order", orderNeeded);
                 continue;
             }
 
@@ -1714,11 +1805,13 @@ public class NodepoolScheduler
             }
             if ( g >= orderNeeded ) {
                 logger.trace(methodName, nj.getId(), "Candidate machine:", m.getId());
+                logger.info(methodName, nj.getId(), "Candidate machine:", m.getId());
                 eligibleMachines.put(m, m);
             } else {
                 // (a) the share is not forceable (non-preemptbable, or already being removed), or
                 // (b) the share is not owned by a rich job
                 logger.trace(methodName, nj.getId(), "Not a candidate, insufficient rich jobs:", m.getId());
+                logger.info(methodName, nj.getId(), "Not a candidate, insufficient rich jobs:", m.getId());
             }
         }
 
@@ -2148,8 +2241,7 @@ public class NodepoolScheduler
                     to_remove = available;
                     needed -= to_remove;
                 }
-
-                // TODO TODO TODO Is this loop useful, and if so, for what? Is it old code I forgot to remove?
+                
                 if ( to_remove > 0 ) {
                     NodePool np = allPools[npi];
                     for ( NodePool npj = np; npj != null; npj = npj.getParent() ) {        // must propogate up because of how these tables work

@@ -354,43 +354,24 @@ public class RmJob
         return countNShares() - countNSharesGiven();
     }
 
-//     /**
-//      * Can I use more N-shares; how many?
-//      */
-//     public int canUseBonus(int bonus, int[] nSharesByOrder)
-//     {
-//         int cap = getJobCap();
-//         int can_use = Math.max(0, cap - shares_given);         // what can we actually use?
-
-//         if ( can_use > nSharesByOrder[share_order] ) {         // can't use more than physicalliy exist
-//             return 0;
-//         }
-
-//         for (int i = share_order; i <= Math.min(bonus, (nSharesByOrder.length - 1)); i++ ) {
-//             if ( (nSharesByOrder[i] > 0) &&  (i <= can_use) ) {
-//                 return i ;
-//             }
-//         }
-//        return 0;
-//    }
-
     /**
-     * Can I use more N-shares?
-
-    public int canUseBonus(int bonus, int[] nSharesByOrder)
+     * Can I use more 1 more share of this size?
+     * UIMA-4065
+     *
+     * @param order The size of the available share.  Must be an exact match because the
+     *              offerer has already done all reasonable splitting and will have a better
+     *              use for it if I can't take it.
+     *
+     *              The decision is based on the wbo/gbo arrays that the offer has been building up
+     *              just before asking this question.
+     *
+     * @return      True if I can use the share, false otherwise.
+     */
+    public boolean canUseBonus(int order)              // UIMA-4065
     {
-        int cap = getJobCap();
-        int can_use = Math.max(0, cap - countNSharesGiven());         // what can we actually use?
-        
-        //         if ( can_use > nSharesByOrder[share_order] ) {         // can't use more than physicalliy exist
-        //             return 0;
-        //         }
-        if ( can_use == 0 ) {
-            return 0;
-        }
-        return ( nSharesByOrder[share_order] > 0 ) ? share_order : 0;
-    }
-    */
+        if ( order != share_order) return false;
+        return (getWantedByOrder()[order] > 0);        // yep, still want
+   }
 
     /**
      * Officially allocated shares assigned to this job which are known to be in use.

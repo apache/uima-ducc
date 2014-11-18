@@ -54,6 +54,8 @@ interface IEntity
     void   setGivenByOrder(int[] gbo); // the scheduler uses this to set the allocation after each
                                        //    scheduling round
 
+    boolean canUseBonus(int order);    // can I use one more share of this size
+
     int    calculateCap(int order, int basis); // The entity must work out any caps that may restrict the counts
 
     long   getTimestamp();                   // for tiebreaks

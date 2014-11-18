@@ -448,6 +448,7 @@ public class NodeConfiguration
         return;
     }
 
+    ArrayList<DuccProperties> independentNodepools = new ArrayList<DuccProperties>();
     DuccProperties parseNodepool(String name, String parent)
         throws IOException,
         IllegalConfigurationException
@@ -490,6 +491,10 @@ public class NodeConfiguration
         if ( ! ret.containsKey("nodefile") && (ducc_nodes != null) ) {
         	// duplicates will be checked later
             ret.put("nodefile", ducc_nodes);
+        }
+        if ( ! ret.containsKey("parent") ) {
+            // System.out.println("Add top level nodepool: " + name);
+            independentNodepools.add(ret);
         }
         return ret;
     }
@@ -580,7 +585,6 @@ public class NodeConfiguration
     }
 
     Map<String, DuccProperties> clmap = new HashMap<String, DuccProperties>();
-    ArrayList<DuccProperties> independentNodepools = new ArrayList<DuccProperties>();
     ArrayList<String> independentClasses = new ArrayList<String>();
 
     /**
@@ -738,13 +742,8 @@ public class NodeConfiguration
         for ( DuccProperties p : nodepools.values() ) {
             String parent = p.getStringProperty("parent", null);
             String name   = p.getStringProperty("name");
-            if ( name.equals("npA") ) {
-                int stop_here =1 ;
-                stop_here++;
-            }
-            if ( parent == null ) {
-                independentNodepools.add(p);
-            } else {
+
+            if ( parent != null ) {
                 DuccProperties par_pool = nodepools.get(parent);
                 if ( par_pool == null ) {
                     throw new IllegalConfigurationException("Nodepool " + name+ " parent pool " + parent + " cannot be found.");
@@ -877,24 +876,45 @@ public class NodeConfiguration
      * If nothing throws then allNodePools has a map of all node pool files to read and the nodepool props file to attach them to
      * @param p
      */
-    void checkForDuplicatePoolFiles(DuccProperties p)
+    void checkForDuplicatePoolFiles()
     		throws IllegalConfigurationException
     {
-        String npfile = p.getProperty("nodefile"); 
-        if ( poolsByNodefile.containsKey(npfile) ) {
-            throw new IllegalConfigurationException("Duplicate nodepool file reference to " + npfile + " from " + p.getProperty("name") + " not allowed "
-                                                    + " first reference was from " + poolsByNodefile.get(npfile));
-            
-        }
-        if ( npfile != null ) {                  // pools are not required to have nodes associated, e.g. --default--
-            poolsByNodefile.put(npfile, p);
-        }
-        @SuppressWarnings("unchecked")
-		List<DuccProperties> children = (List<DuccProperties>) p.get("children");
-        if ( children != null ) {
-            for ( DuccProperties dp : children ) {
-                checkForDuplicatePoolFiles(dp);
+        for ( DuccProperties dp : nodepools.values() ) {
+            String npfile = dp.getProperty("nodefile"); 
+            if ( poolsByNodefile.containsKey(npfile) ) {
+                throw new IllegalConfigurationException("Duplicate nodepool file reference to " + npfile + " from " + dp.getProperty("name") + " not allowed "
+                                                        + " first reference was from " + poolsByNodefile.get(npfile));
+                
             }
+            if ( npfile != null ) {                  // pools are not required to have nodes associated, e.g. --default--
+                poolsByNodefile.put(npfile, dp);
+            }            
+        }
+    }
+
+    void checkForMissingNodeFile()
+    	throws IllegalConfigurationException
+    {
+        List<String> missing = new ArrayList<String>();
+        for ( DuccProperties dp : nodepools.values() ) {
+            if ( ! dp.containsKey("nodefile") ) {
+                missing.add(dp.getProperty("name"));          // remember, for possible exception below
+
+                // No nodefile, assign it ducc_nodes
+                // it will crash in a while if this is a conflict
+                if ( ducc_nodes != null ) {
+                    dp.setProperty("nodefile", ducc_nodes);                
+                }
+            }
+        }
+        
+        if ( missing.size() > 1 ) {
+            StringBuffer sb = new StringBuffer("Multiple nodepools with no associated node file, not allowed: ");
+            for (String s : missing) {
+                sb.append(" ");
+                sb.append(s);
+            }
+            throw new IllegalConfigurationException(sb.toString());
         }
     }
 
@@ -944,47 +964,18 @@ public class NodeConfiguration
     		throws IllegalConfigurationException
     {
 
-        for (DuccProperties p : independentNodepools) {      // walk the tree and read the node files
-            checkForDuplicatePoolFiles(p);
-        }
-
+        checkForMissingNodeFile();                       // only one nodepool may be missing its node file
+                                                         //    also fills in default nodefile if needed
+        checkForDuplicatePoolFiles();                    // only one pool may reference any single file
+            
         // if we get here without crash the node pool files are not inconsistent
         for ( String k : poolsByNodefile.keySet() ) {
             readNodepoolNodes(k, (DuccProperties) poolsByNodefile.get(k), domain);
         }
+        // TODO: Test above procedures
+        //       Assign ducc.nodes to the one allowable top level np with no pool file
 
-
-        // depth-first search, required to deal correctly with nesting
-        // @SuppressWarnings("unchecked")
-//         List<DuccProperties> children = (List<DuccProperties>) p.get("children");
-//         if ( children != null ) {
-//             for ( DuccProperties dp : children ) {
-//                 readNpNodes(dp, domain);
-//             }
-//         }
-        
-//         String npfile = p.getProperty("nodefile"); 
-//         if ( npfile != null ) {
-//             p.put("nodes", readNodepoolFile(npfile, p.getProperty("name"), domain));
-//         }
     }
-
-//     void readNodefile(DuccProperties p, String domain)
-//         throws IllegalConfigurationException
-//     {
-//         String npfile = p.getProperty("nodefile");
-//         if ( npfile != null ) {
-//             p.put("nodes", readNodepoolFile(npfile, domain, false));
-//         }
-
-//         @SuppressWarnings("unchecked")
-//      List<DuccProperties> children = (List<DuccProperties>) p.get("children");
-//         if ( children != null ) {
-//             for ( DuccProperties pc : children ) {
-//                 readNodefile(pc, domain);
-//             }
-//         }
-//     }
 
     /**
      * Read the complete node configuration as defined in.  Intended for use from command line, not
@@ -1090,6 +1081,7 @@ public class NodeConfiguration
         sb.append(leader);
 
         for ( String s : nodes.keySet() ) {
+            if ( s.indexOf(".") >= 0 ) continue; // skip domains to make it more readable
             if ( cur_width + s.length() + 1 > MAX_WIDTH) {
                 sb.append("\n");
                 sb.append(leader);

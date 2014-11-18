@@ -32,14 +32,14 @@ public class NodeConfigurationTest
 
     // test name, short description, expected rc
     String[] configurations = {
-        "test1", "Basic configuration test"              , "0",
-        "test2", "Test Illegal Nodepool confuration"     , "0",
-        "test3", "Circular references"                   , "1",
-        "test4", "Duplicate Nodepools"                   , "1",
-        "test5", "Missing parent"                        , "1",
-        "test6", "Toplevel NP, parent is not --default--", "0",
-        "test7", "Class references non-existent NP"      , "1",
-        "test8", "Two NPs with no node file specified"   , "1",
+        "test1",  "Basic configuration test"                   , "0",      // pass
+        "test2",  "Multiple children"                          , "0",      // pass
+        "test3",  "Circular references"                        , "1",      // fail
+        "test4",  "Duplicate Nodepools"                        , "1",      // fail
+        "test5",  "Missing parent"                             , "1",      // fail
+        "test6",  "Toplevel NP, parent is not --default--"     , "0",      // pass
+        "test7",  "Class references non-existent NP"           , "1",      // fail
+        "test8",  "Two NPs with no node file specified"        , "1",      // fail
     };
 
     List<String> successes = new ArrayList<String>();
@@ -92,10 +92,6 @@ public class NodeConfigurationTest
             int rc = 0;
             	
             System.out.println("-------------------------------------- Run Test " + testid + " -----------------------------------------------------");
-            if ( testid.equals("test3")) {
-                int stop_here = 0;
-                stop_here++;
-            }
             if ( (rc = runConfiguration(testid)) == expected) {
                 successes.add(testid + ": " + desc + "; expected rc=" + expected + " actual rc=" + rc);
             } else {

@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 
@@ -34,7 +35,7 @@ public class ResourceClass
     implements SchedConstants,
                IEntity
 {
-    //private DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
+    private DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
 
     private String id;
     private Policy policy;
@@ -60,6 +61,8 @@ public class ResourceClass
     private HashMap<Integer, HashMap<IRmJob, IRmJob>> jobsByOrder = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
     private HashMap<User, HashMap<IRmJob, IRmJob>> jobsByUser = new HashMap<User, HashMap<IRmJob, IRmJob>>();
     private int max_job_order = 0;  // largest order of any job still alive in this rc (not necessarily globally though)
+
+    private NodePool nodepool = null;
 
     // private HashMap<Integer, Integer> nSharesByOrder = new HashMap<Integer, Integer>();         // order, N shares of that order
     private boolean subpool_counted = false;
@@ -214,6 +217,16 @@ public class ResourceClass
 //             nodepoolName = NodePool.globalName;
 //         } 
 //     }
+
+    public void setNodepool(NodePool np)
+    {
+        this.nodepool = np;
+    }
+
+    public NodePool getNodepool()
+    {
+        return this.nodepool;
+    }
 
     public long getTimestamp()
     {
@@ -400,6 +413,49 @@ public class ResourceClass
         return 0;
     }
     */
+
+    /**
+     * Can I use more 1 more share of this size?  This is more complex than for Users and Jobs because
+     * in addition to checking if my request is filled, we need to make sure the underlying nodepools
+     * can support the bonus.  (This creates an upper bound on apportionment from this class that tends
+     * to trickle down into users and jobs as the counting progresses).
+     * UIMA-4065
+     *
+     * @param order The size of the available share.  Must be an exact match because the
+     *              offerer has already done all reasonable splitting and will have a better
+     *              use for it if I can't take it.
+     *
+     *              The decision is based on the wbo/gbo arrays that the offer has been building up
+     *              just before asking this question.
+     *
+     * @return      True if I can use the share, false otherwise.
+     */
+    public boolean canUseBonus(int order)              // UIMA-4065
+    {
+        String methodName = "canUseBonus";
+        int wbo = getWantedByOrder()[order];           // calculated by caller so we don't need to check caps
+        int gbo = getGivenByOrder()[order];
+
+        // 
+        // we want to ask the nodepool and its subpools:
+        //    how many open shares of "order" will you have after we give way
+        //    the ones already counte?
+        //
+        //  To do this, we have "our" nodepool recursively gather all thear classes
+        //  and  accumulate this:  np.countLocalNSharesByOrder - (foreachrc: gbo[order])
+        //
+        //  Then, if gbo < resourcesavailable we can return true, else return false
+        //
+        int resourcesAvailable = nodepool.countAssignableShares(order);      // recurses, covers all relevent rc's
+        logger.info(methodName, null, "Class", id, "nodepool", nodepool.getId(), "order", order, "wbo", wbo, "gbo", gbo, "resourcesAvailable", resourcesAvailable);
+
+        if ( wbo <= 0 ) return false;
+
+        if ( resourcesAvailable <= 0 ) {          // if i get another do I go over?
+            return false;                              // yep, politely decline
+        }
+        return true;                           
+   }
 
     void updateNodepool(NodePool np)
     {

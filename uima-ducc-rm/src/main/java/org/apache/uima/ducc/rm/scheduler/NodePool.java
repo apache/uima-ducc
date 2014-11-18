@@ -61,6 +61,7 @@ class NodePool
     HashMap<Node, Machine>                   preemptables    = new HashMap<Node, Machine>();                   // candidates for preemption for reservations
     int total_shares = 0;
 
+    Map<ResourceClass, ResourceClass>       allClasses       = new HashMap<ResourceClass, ResourceClass>();    // all the classes directly serviced by me
     //
     // There are "theoretical" shares based on actual capacities of
     // the machines.  They are used for the "how much" part of the
@@ -116,6 +117,11 @@ class NodePool
 
     }
 
+    void addResourceClass(ResourceClass cl)
+    {  // UIMA-4065
+        allClasses.put(cl, cl);
+    }
+
     NodePool getParent()
     {
         return this.parent;
@@ -143,6 +149,31 @@ class NodePool
             count += np.countOccupiedShares();
         }
         return count;
+    }
+
+    //
+    // Note, this will only be accurate AFTER reset, but before actuall allocation of
+    // shares begins.  After allocation, and before the next reset this will return junk.
+    //
+    // It is intended to be called from ResourceClass.canUseBonus()
+    // UIMA-4065
+    int countAssignableShares(int order)
+    {
+        String methodName = "countAssignableShares";
+        // first calculate my contribution
+        int ret = nSharesByOrder[order];
+        for (ResourceClass rc : allClasses.values() ) {
+            int[] gbo = rc.getGivenByOrder();
+            if ( gbo != null ) {
+                ret -= gbo[order];
+            }
+        }
+        logger.info(methodName, null, "Shares available for", id, ":", ret);
+        // now accumulate the kid's contribution
+        for ( NodePool np : children.values() ) {
+            ret += np.countAssignableShares(order);
+        }
+        return ret;
     }
 
     void removeShare(Share s)
@@ -281,7 +312,7 @@ class NodePool
     }
 
     /**
-     * Returns N-Shares
+     * Returns N-Shares, recursing down
      */
     int countNSharesByOrder(int o)
     {
@@ -290,6 +321,14 @@ class NodePool
             count += np.countNSharesByOrder(o);
         }
         return count;
+    }
+
+    /**
+     * Returns N-Shares, local
+     */
+    int countLocalNSharesByOrder(int o)
+    {
+        return nSharesByOrder[o];
     }
 
     /**
@@ -653,7 +692,15 @@ class NodePool
 
     void resetPreemptables()
     {
+    	String methodName = "resetPreemptables";
+        logger.info(methodName, null, "Resetting preemptables in nodepool", id);
+
+        // UIMA-4064 Need to do this recrsively
         preemptables.clear();
+        for ( NodePool np : children.values() ) {
+            np.resetPreemptables();
+        }
+
     }
 
 
@@ -667,7 +714,8 @@ class NodePool
         }
 
         for ( NodePool np : children.values() ) {
-            if (np.getSubpool(name) != null) return np;
+            NodePool ret = np.getSubpool(name);
+            if (ret != null) return ret;
         }
         return null;
     }
@@ -962,7 +1010,9 @@ class NodePool
      */
     int countFreeableMachines(IRmJob j, boolean enforce)
     {
+        String methodName = "countFreeableMachines";
 
+        logger.info(methodName, j.getId(), "Enter nodepool", id, "with enforce", enforce, "preemptables.size() =", preemptables.size());
         int needed = j.countInstances();
         int order = j.getShareOrder();
 
@@ -976,29 +1026,44 @@ class NodePool
         } else {
             machs.addAll(allMachines.values());
         }
+        StringBuffer sb = new StringBuffer("Machines to search:");
+        for ( Machine m : machs ) {
+            sb.append(" ");
+            sb.append(m.getId());
+        }
+        logger.info(methodName, j.getId(), sb.toString());
+
         Collections.sort(machs, new MachineByAscendingOrderSorter());
 
         int given = 0;           // total to give, free or freeable
         Iterator<Machine> iter = machs.iterator();
         ArrayList<Machine> pables = new ArrayList<Machine>();
+        
         while ( iter.hasNext() && (given < needed) ) {
             Machine m = iter.next();
+            logger.info(methodName, j.getId(), "Examining", m.getId());
             if ( preemptables.containsKey(m.key()) ) {         // already counted, don't count twice
+                logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "already counted.");
                 continue;
             }
 
             if ( m.getShareOrder() < order ) {
+                logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "order", m.getShareOrder(), "less than required", order);
                 continue;
             }
 
             if ( m.isFree() ) {
+                logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is free");
                 given++;
                 continue;
             }
 
             if ( m.isFreeable() ) {
+                logger.info(methodName, j.getId(), "Giving", m.getId(), "because it is freeable");
                 given++;
                 pables.add(m);
+            } else {
+                logger.info(methodName, j.getId(), "Bypass because machine", m.getId(), "is not freeable");
             }
         }
 
@@ -1014,6 +1079,7 @@ class NodePool
         }
 
         for ( Machine m : pables ) {
+            logger.info(methodName, j.getId(), "Setting up", m.getId(), "to clear for reservation");
             preemptables.put(m.key(), m);
             nMachinesByOrder[m.getShareOrder()]--;
         }
@@ -1115,13 +1181,17 @@ class NodePool
                     j.shrinkByOne(s);
                     nPendingByOrder[order]++;
                 } else {
-                    // This is 99.44% caused by fragmentation.  We could force the issue here, but instead will
-                    // defer to the defrag code which will try to find better candidates for eviction.
-                    logger.warn(methodName, null, "Found non-preemptable share on machine that should be clearable (possible fragmentation):", s);
+                    // if the share was evicted or purged we don't care.  otherwise, it SHOULD be evictable so we
+                    // log its state to try to figure out why it didn't evict
+                    if ( ! (s.isEvicted() || s.isPurged() ) ) {
+                        IRmJob j = s.getJob();                    
+                        logger.warn(methodName, j.getId(), "Found non-preemptable share", s.getId(), "fixed:", s.isFixed(), "j.NShares", j.countNShares(), "j.NSharesGiven", j.countNSharesGiven());
+                    }
                 }
             }
             given++;
             iter.remove();
+            logger.info(methodName, null, "Remove", m.getId(), "from preemptables list");
         }
        
         return given;
@@ -1323,7 +1393,9 @@ class NodePool
         logger.debug(methodName, null, getId(),  "NeededByOrder", type, "on entrance eviction", Arrays.toString(neededByOrder));
 
         for ( NodePool np : getChildrenDescending() ) {
+            logger.info(methodName, null, "Recurse to", np.getId(), "from", getId(), "force:", force);
             np.doEvictionsByMachine(neededByOrder, force);
+            logger.info(methodName, null, "Recurse from", np.getId(), "proceed with logic for", getId(), "force", force);
         }
 
         // 
@@ -1331,7 +1403,12 @@ class NodePool
         // number of shares that already are free
         //
         for ( int nbo = maxorder; nbo > 0; nbo-- ) {
-            int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - countPendingSharesByOrder(nbo)); 
+            // UIMA-4065 - I think that subtracting countPendingSharesByOrder() amounts to double counting because it
+            //             will reflect any evictions from the depth-first recursion.  Instead, we would subtract only
+            //             our own shares.
+            //
+            // int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - countPendingSharesByOrder(nbo)); 
+            int needed = Math.max(0, neededByOrder[nbo] - countNSharesByOrder(nbo) - nPendingByOrder[nbo]);
             neededByOrder[nbo] = needed;
             neededByOrder[0] += needed;
         }

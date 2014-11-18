@@ -61,7 +61,7 @@ public class Scheduler
     String ducc_home;
     // Integer epoch = 5;                                                 // scheduling epoch, seconds
 
-    NodePool[] nodepools;
+    NodePool[] nodepools;                                                 // top-level nodepools
     int max_order = 0;
 
     //
@@ -564,6 +564,17 @@ public class Scheduler
 
             Map<ResourceClass, ResourceClass> classesForNp = new HashMap<ResourceClass, ResourceClass>();
             getClassesForNodepool(np, classesForNp);           // all classes served by this heirarchy - fills in classesForNp
+            for ( ResourceClass rc: classesForNp.values() ) {               // UIMA-4065 tell each cl which np serves it
+                String rcid = rc.getNodepoolName();
+                if ( rcid != null ) {
+                    // set the two-way pointers between rc and np
+                    NodePool subpool = nodepools[i].getSubpool(rcid);
+                    rc.setNodepool(subpool);                  // rc -> nodepool
+                    logger.info(methodName, null, "Assign rc", rc.getName(), "to np", subpool.getId());
+                    subpool.addResourceClass(rc);             // nodepool -> rc
+                }
+            }
+
 
             schedulers[i].setClasses(classesForNp);
         }
@@ -1025,7 +1036,7 @@ public class Scheduler
         
         if ( m == null ) {
             // allNodes.put(node, node);
-            long allocatable_mem =  node.getNodeMetrics().getNodeMemory().getMemTotal() - share_free_dram;
+            long allocatable_mem =  node.getNodeMetrics().getNodeMemory().getMemFree() - share_free_dram;
             if ( dramOverride > 0 ) {
                 allocatable_mem = dramOverride;
             }
