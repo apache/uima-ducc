@@ -81,8 +81,20 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		return retVal;
 	}
 	
+	private DuccId getDuccId(IOperatingInfo operatingInfo) {
+		DuccId retVal = null;
+		try {
+			String jobId = operatingInfo.getJobId();
+			long value = Long.parseLong(jobId);
+			retVal = new DuccId(value);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return retVal;
+	}
 	public JobDriverReport(IOperatingInfo operatingInfo) {
-		//setDuccId(driverContainer.getDuccId());
+		setDuccId(getDuccId(operatingInfo));
 		//setJmxUrl(driverContainer.getJmxUrl());
 		setWorkItemsTotal(operatingInfo.getWorkItemCrTotal());
 		setWorkItemsProcessingCompleted(operatingInfo.getWorkItemEndSuccesses());
