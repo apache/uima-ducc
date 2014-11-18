@@ -18,15 +18,15 @@
 */
 package org.apache.uima.ducc.container.common;
 
-import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
+import org.apache.uima.ducc.common.jd.JdFlagsHelper;
 
-public class ContainerPropertiesHelper extends SystemPropertiesHelper {
+public class JdFlagsExtendedHelper extends JdFlagsHelper {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(ContainerPropertiesHelper.class, IContainerLogger.Component.JD.name());
+	private IContainerLogger logger = ContainerLogger.getLogger(JdFlagsExtendedHelper.class, IContainerLogger.Component.JD.name());
 	
-	private static ContainerPropertiesHelper instance = new ContainerPropertiesHelper();
+	private static JdFlagsExtendedHelper instance = new JdFlagsExtendedHelper();
 	
-	public static ContainerPropertiesHelper getInstance() {
+	public static JdFlagsExtendedHelper getInstance() {
 		return instance;
 	}
 	
@@ -37,7 +37,7 @@ public class ContainerPropertiesHelper extends SystemPropertiesHelper {
 			String[] list = retVal.split(":");
 			if(list != null) {
 				if(list.length > 0) {
-					logger.debug(location, IEntityId.null_id, SystemPropertiesHelper.Name.UserClasspath.name());
+					logger.debug(location, IEntityId.null_id, JdFlagsHelper.Name.UserClasspath.name());
 					int index = 0;
 					for(String item : list) {
 						String text = "["+index+"]"+" "+item;

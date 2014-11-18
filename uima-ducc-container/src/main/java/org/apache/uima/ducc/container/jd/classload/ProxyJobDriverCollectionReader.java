@@ -25,7 +25,7 @@ import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.ContainerPropertiesHelper;
+import org.apache.uima.ducc.container.common.JdFlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.MessageBuffer;
@@ -83,10 +83,10 @@ public class ProxyJobDriverCollectionReader {
 	
 	private void initialize(ClassLoader baseClassLoader) throws JobDriverException {
 		String location = "initialize";
-		ContainerPropertiesHelper cph = ContainerPropertiesHelper.getInstance();
-		String userClasspath = cph.getUserClasspath();
+		JdFlagsExtendedHelper feh = JdFlagsExtendedHelper.getInstance();
+		String userClasspath = feh.getUserClasspath();
 		String resolvedUserCP = ClassLoaderUtil.resolveClasspathWildcards(userClasspath);
-		String[] classpath = cph.stringToArray(resolvedUserCP);
+		String[] classpath = feh.stringToArray(resolvedUserCP);
 		URL[] classLoaderUrls = new URL[classpath.length];
 		logger.info(location, IEntityId.null_id, "classpath");
 		int i = 0;
@@ -97,8 +97,8 @@ public class ProxyJobDriverCollectionReader {
 			i++;
 		}
 		URLClassLoader classLoader = new URLClassLoader(classLoaderUrls, baseClassLoader);
-		String crXml = cph.getCollectionReaderXml();
-		String crCfg = cph.getCollectionReaderCfg();
+		String crXml = feh.getCollectionReaderXml();
+		String crCfg = feh.getCollectionReaderCfg();
 		construct(classLoader, crXml, crCfg);
 	}
 	

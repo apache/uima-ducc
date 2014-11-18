@@ -64,6 +64,7 @@ public class MessageHandler implements IMessageHandler {
 			CasManagerStats cms = cm.getCasManagerStats();
 			IWorkItemStatistics wis = jd.getWorkItemStatistics();
 			IRunningWorkItemStatistics rwis = RunningWorkItemStatistics.getCurrent();
+			oi.setJobId(jd.getJobId());
 			oi.setWorkItemCrTotal(cms.getCrTotal());
 			oi.setWorkItemCrFetches(cms.getCrGets());
 			oi.setWorkItemEndSuccesses(cms.getEndSuccess());

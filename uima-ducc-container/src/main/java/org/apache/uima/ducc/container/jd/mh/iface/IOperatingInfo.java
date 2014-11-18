@@ -22,6 +22,9 @@ import java.util.ArrayList;
 
 public interface IOperatingInfo {
 
+	public void setJobId(String value);
+	public String getJobId();
+	
 	public void setWorkItemCrTotal(int value);
 	public int getWorkItemCrTotal();
 	

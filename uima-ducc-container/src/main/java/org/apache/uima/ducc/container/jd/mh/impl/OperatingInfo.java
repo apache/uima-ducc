@@ -25,6 +25,8 @@ import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 
 public class OperatingInfo implements IOperatingInfo {
 
+	private String jobId = null;
+	
 	private int crTotal = 0;
 	private int crFetches = 0;
 	private int jpSends = 0;
@@ -48,6 +50,16 @@ public class OperatingInfo implements IOperatingInfo {
 	private boolean killJob = false;
 
 	private ArrayList<IWorkItemInfo> activeWorkItemInfo = null;
+	
+	@Override
+	public void setJobId(String value) {
+		jobId = value;
+	}
+
+	@Override
+	public String getJobId() {
+		return jobId;
+	}
 	
 	@Override
 	public void setWorkItemCrTotal(int value) {

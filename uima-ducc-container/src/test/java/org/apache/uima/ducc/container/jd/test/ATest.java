@@ -20,8 +20,8 @@ package org.apache.uima.ducc.container.jd.test;
 
 import java.util.Map;
 
-import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
-import org.apache.uima.ducc.common.config.SystemPropertiesHelper.Name;
+import org.apache.uima.ducc.common.jd.JdFlagsHelper;
+import org.apache.uima.ducc.common.jd.JdFlagsHelper.Name;
 import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.junit.After;
@@ -42,7 +42,7 @@ public abstract class ATest {
 	}
 	
 	public void clear() {
-		for(Name name : SystemPropertiesHelper.Name.values()) {
+		for(Name name : JdFlagsHelper.Name.values()) {
 			System.clearProperty(name.name());
 			debug("clear: "+name.name());
 		}

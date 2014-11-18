@@ -26,7 +26,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
-import org.apache.uima.ducc.common.config.SystemPropertiesHelper;
+import org.apache.uima.ducc.common.jd.JdFlagsHelper;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
@@ -106,9 +106,9 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
@@ -151,9 +151,9 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
@@ -205,9 +205,9 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
@@ -256,9 +256,9 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
@@ -337,9 +337,9 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
@@ -422,9 +422,9 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
 			debug("map size:"+size);
@@ -484,12 +484,12 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			//
 			String ehcp = "KillJobLimit="+2;
-			System.setProperty(SystemPropertiesHelper.Name.UserErrorHandlerCfg.name(), ehcp);
+			System.setProperty(JdFlagsHelper.Name.UserErrorHandlerCfg.name(), ehcp);
 			//
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
@@ -567,12 +567,12 @@ public class TestMessageHandler extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(SystemPropertiesHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
 			String userClasspath = Utilities.userCP;
-			System.setProperty(SystemPropertiesHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
 			//
 			String eh = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandlerRandomRetry";
-			System.setProperty(SystemPropertiesHelper.Name.UserErrorHandlerClassname.name(), eh);
+			System.setProperty(JdFlagsHelper.Name.UserErrorHandlerClassname.name(), eh);
 			//
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getMap().size();
