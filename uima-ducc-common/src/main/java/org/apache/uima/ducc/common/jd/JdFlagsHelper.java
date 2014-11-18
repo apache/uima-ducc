@@ -15,16 +15,16 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/package org.apache.uima.ducc.common.config;
+*/package org.apache.uima.ducc.common.jd;
 
 import java.io.File;
 import java.util.Properties;
 
-public class SystemPropertiesHelper {
+public class JdFlagsHelper {
 
-	private static SystemPropertiesHelper instance = new SystemPropertiesHelper();
+	private static JdFlagsHelper instance = new JdFlagsHelper();
 	
-	public static SystemPropertiesHelper getInstance() {
+	public static JdFlagsHelper getInstance() {
 		return instance;
 	}
 	
@@ -32,6 +32,7 @@ public class SystemPropertiesHelper {
 		
 		CollectionReaderCfg(false),
 		CollectionReaderXml(true),
+		JobId(true),
 		UserClasspath(true),
 		UserErrorHandlerClassname(false),
 		UserErrorHandlerCfg(false),
@@ -68,6 +69,15 @@ public class SystemPropertiesHelper {
 	
 	public String getCollectionReaderXmlDashD(String value) {
 		return toDashD(Name.CollectionReaderXml.name(),value);
+	}
+	
+	public String getJobId() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JobId.name());
+	}
+	
+	public String getJobIdDashD(String value) {
+		return toDashD(Name.JobId.name(),value);
 	}
 	
 	public String getUserClasspath() {
