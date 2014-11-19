@@ -18,8 +18,12 @@
 */
 package org.apache.uima.ducc.container.net.impl;
 
-public class TransactionId {
+import java.io.Serializable;
 
+public class TransactionId implements Serializable {
+
+	private static final long serialVersionUID = 1L;
+	
 	private int major = 0;
 	private int minor = 0;
 	
