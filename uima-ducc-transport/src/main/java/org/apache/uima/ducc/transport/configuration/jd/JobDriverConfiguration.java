@@ -28,6 +28,10 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
+import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
@@ -106,7 +110,7 @@ import org.springframework.context.annotation.Import;
 			    };
 
 		}
-		private RouteBuilder routeBuilderForJpIncomingRequests(final CamelContext camelContext, final JobDriverEventListener delegate, final int port, final String app) throws Exception {
+		private RouteBuilder routeBuilderForJpIncomingRequests(final CamelContext camelContext, final int port, final String app) throws Exception {
 		    return new RouteBuilder() {
 		        public void configure() throws Exception {
 		            JettyHttpComponent jetty = new JettyHttpComponent();
@@ -114,12 +118,36 @@ import org.springframework.context.annotation.Import;
 		            jetty.setMinThreads(1);
 		            camelContext.addComponent("jetty", jetty);
 		            // listen on all interfaces.
-		            from("jetty:http://0.0.0.0:" + port + "/"+app).
-		              bean(delegate);
+		            from("jetty:http://0.0.0.0:" + port + "/"+app)
+		            .unmarshal().xstream().
+		            process(new JobDriverProcessor()).marshal().xstream();
 		        }
 		    };
 		}
 		
+		public static class JobDriverProcessor  implements Processor {
+		    public void process(Exchange exchange) throws Exception {
+		        // Get the transaction object sent by the JP
+		    	IMetaCasTransaction imt = 
+		        		exchange.getIn().getBody(MetaCasTransaction.class);
+		        
+		    	//
+		    	// do all processing here
+		    	//
+		    	
+		    	// setup reply 
+		    	imt.setDirection(Direction.Response);
+		        String key = "XMI CAS";   // whatever
+		        String xmi = new String("Blob"); // for testing
+		        // Add serialized CAS to the outgoing message
+                MetaCas metaCas = new MetaCas(1, key, xmi);
+		        imt.setMetaCas(metaCas);
+
+		        exchange.getOut().setHeader("content-type", "text/xml");
+		        // ship it!
+		        exchange.getOut().setBody(imt);
+		    }
+		} 
 		/**
 		 * Camel Processor responsible for generating Dispatched Job's state.
 		 * 
@@ -161,7 +189,7 @@ import org.springframework.context.annotation.Import;
 			
 			int port = Utils.findFreePort();
 			String jdUniqueId = "jdApp";
-			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc.getContext(), delegateListener, port, jdUniqueId));
+			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc.getContext(), port, jdUniqueId));
 			logger.debug(location, jobid, "endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
 			jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
 			return jdc;
