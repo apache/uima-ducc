@@ -19,8 +19,10 @@
 
 package org.apache.uima.ducc.transport.configuration.jd.iface;
 
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 
 public interface IJobDriverComponent {
 	public JdStateDuccEvent getState();
+	public void onJpRequestDuccEvent(IMetaCasTransaction metaCasTransaction) throws Exception;
 }

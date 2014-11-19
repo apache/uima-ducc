@@ -33,6 +33,8 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
@@ -101,6 +103,7 @@ implements IJobDriverComponent {
 	
 	private AtomicInteger getStateReqNo = new AtomicInteger(0);
 	
+	@Override
 	public JdStateDuccEvent getState() {
 		String location = "getState";
 		JdStateDuccEvent state = new JdStateDuccEvent();
@@ -115,6 +118,20 @@ implements IJobDriverComponent {
 			logger.error(location, jobid, e);
 		}
 		return state;
+	}
+
+	@Override
+	public void onJpRequestDuccEvent(IMetaCasTransaction metaCasTransaction) throws Exception {
+		String location = "onJpRequestDuccEvent";
+		try {
+			metaCasTransaction.setDirection(Direction.Response);
+			IMessageHandler mh = JobDriver.getInstance().getMessageHandler();
+			mh.handleMetaCasTransation(metaCasTransaction);
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+			throw e;
+		}
 	}
 
 }

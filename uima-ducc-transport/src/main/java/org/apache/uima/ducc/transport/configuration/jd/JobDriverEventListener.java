@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.configuration.jd;
 
 import org.apache.camel.Body;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
@@ -34,7 +35,9 @@ public class JobDriverEventListener implements DuccEventDelegateListener {
 	public void onOrchestratorAbbreviatedStateDuccEvent(@Body OrchestratorAbbreviatedStateDuccEvent duccEvent) throws Exception {
 		//component.evaluateJobDriverConstraints(duccEvent);
 	}
-	
+	public void onJpRequestDuccEvent(@Body IMetaCasTransaction duccEvent) throws Exception {
+		component.onJpRequestDuccEvent(duccEvent);
+	}
 	public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
 	}
 
