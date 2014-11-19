@@ -39,6 +39,7 @@ public class JobProcessManager implements IJobProcessManager {
 	}
 	
 	public IUimaProcessor deploy(String userClasspath, String[] args, String clz) throws ServiceFailedInitialization {
+		clz = "org.apache.uima.ducc.user.jp.UimaProcessContainer";
 		// This blocks until the UIMA AS service is deployed and initialized
 		return jobProcessDeployer.deploy(userClasspath, args, clz);
 	}

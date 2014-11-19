@@ -29,21 +29,27 @@ public class UimaProcessor implements IUimaProcessor {
 	Method stopMethod=null;
 	Object uimaContainerInstance = null;
 	int scaleout;
-	
+	volatile boolean running = false;
 	public UimaProcessor(Object uimaContainerInstance, Method processMethod, Method stopMethod, int scaleout) {
 		this.processMethod = processMethod;
 		this.stopMethod = stopMethod;
 		this.uimaContainerInstance = uimaContainerInstance;
 		this.scaleout = scaleout;
+		this.running = true;
 	}
 	
 	public void stop() throws Exception {
+		running = false;
 		stopMethod.invoke(uimaContainerInstance);
 	}
 
 	
 	public void process(String xmi) throws Exception {
-		processMethod.invoke(uimaContainerInstance, xmi);
+		if ( running ) {
+			processMethod.invoke(uimaContainerInstance, xmi);
+		} else {
+			throw new IllegalStateException("UimaProcessor Not in Running State - The Service is in Stopping State");
+		}
 	}
 
 	

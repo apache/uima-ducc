@@ -19,6 +19,8 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 
 import java.net.InetAddress;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -28,6 +30,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
+import org.apache.uima.ducc.container.jp.UimaProcessor;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
@@ -154,19 +157,10 @@ public class JobProcessConfiguration  {
 							common.managedProcessStateUpdateEndpoint,
 							camelContext);
 
-//			ManagedUimaService service = 
-//		        	new ManagedUimaService(common.saxonJarPath,
-//		        			common.dd2SpringXslPath, 
-//		        			serviceAdapter(eventDispatcher,common.managedServiceEndpoint), camelContext);
-			
-//			service.setConfigFactory(this);
-//		    service.setAgentStateUpdateEndpoint(common.managedProcessStateUpdateEndpoint);
-            
-			// Create an Agent proxy. This is used to notify the Agent
+			// Create Agent proxy which will be used to notify Agent
 			// of state changes.
 			agent = new AgentSession(eventDispatcher,
 					System.getenv("ProcessDuccId"), common.managedServiceEndpoint);
-
 			
 			System.out
 					.println("#######################################################");
@@ -174,20 +168,15 @@ public class JobProcessConfiguration  {
 					+ common.managedProcessStateUpdateEndpoint + " ##");
 			System.out
 					.println("#######################################################");
-
-//			JobProcessEventListener delegateListener = processDelegateListener(jobProcessManager);
-//			delegateListener.setDuccEventDispatcher(eventDispatcher);
-			
 			jobProcessManager = new JobProcessManager();
-			// Create Lifecycle manager responsible for handling start event
-			// initiated by the Ducc framework. It will eventually call the
-			// start(String[] args) method on JobProcessConfiguration object
-			// which kicks off initialization of UIMA pipeline and processing
-			// begins.
 			duccComponent = 
 					new JobProcessComponent("UimaProcess", camelContext, this);
 			duccComponent.setAgentSession(agent);
 			duccComponent.setJobProcessManager(jobProcessManager);
+			duccComponent.setSaxonJarPath(common.saxonJarPath);
+			duccComponent.setDd2SpringXslPath(common.dd2SpringXslPath);
+			duccComponent.setTimeout(10000);  //common.jpTimeout);
+			
 			
 			JobProcessEventListener eventListener = 
 					new JobProcessEventListener(duccComponent);
@@ -202,93 +191,7 @@ public class JobProcessConfiguration  {
 			throw e;
 		}
 	}
-/*
-	public void start(String[] args) {
-		try {
-			String jps = System.getProperty("org.apache.uima.ducc.userjarpath");
-			if (null == jps) {
-				System.err
-						.println("Missing the -Dorg.apache.uima.jarpath=XXXX property");
-				System.exit(1);
-			}
-			String processJmxUrl = duccComponent.getProcessJmxUrl();
-			agent.notify(ProcessState.Initializing, processJmxUrl);
-			IUimaProcessor uimaProcessor = null; 
-			ScheduledThreadPoolExecutor executor = null;
-			
-			try {
-				executor = new ScheduledThreadPoolExecutor(1);
-				executor.prestartAllCoreThreads();
-				// Instantiate a UIMA AS jmx monitor to poll for status of the AE.
-				// This monitor checks if the AE is initializing or ready.
-				JmxAEProcessInitMonitor monitor = new JmxAEProcessInitMonitor(agent);
-				executor.scheduleAtFixedRate(monitor, 20, 30, TimeUnit.SECONDS);
 
-		    	// Deploy UIMA pipelines. This blocks until the pipelines initializes or
-		    	// there is an exception. The IUimaProcessor is a wrapper around
-		    	// processing container where the analysis is being done.
-		    	uimaProcessor =
-		    			jobProcessManager.deploy(jps, args, "org.apache.uima.ducc.user.jp.UserProcessContainer");
-				
-		    	// pipelines deployed and initialized. This is process is Ready
-		    	// for processing
-		    	currentState = ProcessState.Running;
-				// Update agent with the most up-to-date state of the pipeline
-			//	monitor.run();
-				// all is well, so notify agent that this process is in Running state
-				agent.notify(currentState, processJmxUrl);
-                // Create thread pool and begin processing
-				
-				
-				
-		    } catch( Exception ee) {
-		    	currentState = ProcessState.FailedInitialization;
-				System.out
-						.println(">>> Failed to Deploy UIMA Service. Check UIMA Log for Details");
-				agent.notify(ProcessState.FailedInitialization);
-		    } finally {
-				// Stop executor. It was only needed to poll AE initialization status.
-				// Since deploy() completed
-				// the UIMA AS service either succeeded initializing or it failed. In
-				// either case we no longer
-				// need to poll for initialization status
-		    	if ( executor != null ) {
-			    	executor.shutdownNow();
-		    	}
-		    	
-		    }
-			
-
-
-		} catch( Exception e) {
-			currentState = ProcessState.FailedInitialization;
-			agent.notify(currentState);
-
-			
-		}
-	}
-	*/
-
-/*
-	public void stop() {
-        try {
-        	//agent.stop();
-        	
-        	if (camelContext != null) {
-    			for (Route route : camelContext.getRoutes()) {
-
-    				route.getConsumer().stop();
-    				System.out.println(">>> configFactory.stop() - stopped route:"
-    						+ route.getId());
-    			}
-    		}
-		} catch( Exception e) {
-			
-		}
-		
-		
-	}
-*/
 	private class DuccProcessFilter implements Predicate {
 		String thisNodeIP;
 

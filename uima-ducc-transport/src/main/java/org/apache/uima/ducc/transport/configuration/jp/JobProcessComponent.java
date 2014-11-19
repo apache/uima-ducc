@@ -19,11 +19,14 @@
 
 package org.apache.uima.ducc.transport.configuration.jp;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
+import org.apache.uima.aae.UimaAsVersion;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -40,13 +43,29 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	private JobProcessManager jobProcessManager = null;
 	protected ProcessState currentState = ProcessState.Undefined;
 	protected ProcessState previousState = ProcessState.Undefined;
-
+	protected static DuccLogger logger;
+	protected String saxonJarPath;
+	protected String dd2SpringXslPath;
+	protected String dd;
+	private int timeout;  // socket timeout for HTTPClient
+	private IUimaProcessor uimaProcessor = null; 
+	
 	public JobProcessComponent(String componentName, CamelContext ctx,JobProcessConfiguration jpc) {
 		super(componentName,ctx);
 		this.configuration = jpc;
 		jmxConnectString = super.getProcessJmxUrl();
+		
 	}
 
+	protected void setDD(String dd) {
+		this.dd = dd;
+	}
+	public void setDd2SpringXslPath( String dd2SpringXslPath ) {
+		this.dd2SpringXslPath = dd2SpringXslPath;
+	}
+	public void setSaxonJarPath( String saxonJarPath) {
+		this.saxonJarPath = saxonJarPath;
+	}
 	protected void setAgentSession(AgentSession session ) {
 		agent = session;
 	}
@@ -58,22 +77,25 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	}
 	
 	public DuccLogger getLogger() {
-		// TODO Auto-generated method stub
-		return null;
+		logger = new DuccLogger(JobProcessComponent.class);
+		return logger;
+	}
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
 	}
 	public void start(DuccService service, String[] args) throws Exception {
 		super.start(service, args);
-		//this.configuration.start(args);
+		
 		try {
 			String jps = System.getProperty("org.apache.uima.ducc.userjarpath");
 			if (null == jps) {
 				System.err
-						.println("Missing the -Dorg.apache.uima.jarpath=XXXX property");
+						.println("Missing the -Dorg.apache.uima.ducc.userjarpath=XXXX property");
 				System.exit(1);
 			}
 			String processJmxUrl = super.getProcessJmxUrl();
 			agent.notify(ProcessState.Initializing, processJmxUrl);
-			IUimaProcessor uimaProcessor = null; 
+			
 			ScheduledThreadPoolExecutor executor = null;
 			
 			try {
@@ -89,14 +111,37 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				 */
 				executor.scheduleAtFixedRate(monitor, 20, 30, TimeUnit.SECONDS);
 
-		    	// Deploy UIMA pipelines. This blocks until the pipelines initializes or
+				System.out.println("Ducc UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
+				String[] uimaAsArgs = { "-dd",args[0],"-saxonURL",saxonJarPath,
+						"-xslt",dd2SpringXslPath
+					};
+				final DuccHttpClient client = new DuccHttpClient();
+
+				String jdURL = System.getProperty("jdURL");
+				String url = jdURL.substring(jdURL.indexOf("http://")+7 );  // skip protocol
+				String host = url.substring(0, url.indexOf(":"));
+				String port = url.substring(url.indexOf(":") + 1);
+				String target = "";
+				if (port.indexOf("/") > -1) {
+					target = port.substring(port.indexOf("/"));
+					port = port.substring(0, port.indexOf("/"));
+				}
+//				client.intialize(host, Integer.valueOf(port), target, uimaProcessor.getScaleout(), timeout);
+				client.intialize(host, Integer.valueOf(port), target, 2, timeout);
+
+				UimaServiceThreadFactory tf = new UimaServiceThreadFactory(Thread
+						.currentThread().getThreadGroup());
+
+				final ExecutorService tpe = Executors.newFixedThreadPool(2, tf);
+//				final ExecutorService tpe = Executors.newFixedThreadPool(uimaProcessor.getScaleout(), tf);
+
+				
+				// Deploy UIMA pipelines. This blocks until the pipelines initializes or
 		    	// there is an exception. The IUimaProcessor is a wrapper around
 		    	// processing container where the analysis is being done.
-		    	uimaProcessor =
-		    			jobProcessManager.deploy(jps, args, "org.apache.uima.ducc.user.jp.UserProcessContainer");
+		    	uimaProcessor =	jobProcessManager.deploy(jps, uimaAsArgs, "org.apache.uima.ducc.user.jp.UimaProcessContainer");
 				
-		    	// pipelines deployed and initialized. This is process is Ready
-		    	// for processing
+		    	// pipelines deployed and initialized. This process is Ready
 		    	currentState = ProcessState.Running;
 				// Update agent with the most up-to-date state of the pipeline
 			//	monitor.run();
@@ -104,9 +149,16 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				agent.notify(currentState, processJmxUrl);
                 // Create thread pool and begin processing
 				
+				//for (int j = 0; j < uimaProcessor.getScaleout(); j++) {
+
+				for (int j = 0; j < uimaProcessor.getScaleout(); j++) {
+					tpe.submit(new HttpWorkerThread(this, client, uimaProcessor));
+				}
+				
 				
 				
 		    } catch( Exception ee) {
+		    	ee.printStackTrace();
 		    	currentState = ProcessState.FailedInitialization;
 				System.out
 						.println(">>> Failed to Deploy UIMA Service. Check UIMA Log for Details");
@@ -150,8 +202,10 @@ public class JobProcessComponent extends AbstractDuccComponent{
     						+ route.getId());
     			}
     		}
-
-			agent.stop();
+        	//jobProcessManager.
+			//agent.stop();
+        	uimaProcessor.stop();
+        	agent.stop();
 			super.stop();
 	    } catch( Exception e) {
 	    	e.printStackTrace();

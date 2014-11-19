@@ -64,6 +64,7 @@ public class UimaProcessContainer {
 	private UimaSerializer uimaSerializer = new UimaSerializer();
 
 	public int deploy(String[] args) throws Exception {
+		System.out.println("UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
 
 		broker = new BrokerService();
 		broker.setDedicatedTaskRunner(false);
@@ -101,7 +102,6 @@ public class UimaProcessContainer {
 		// initialize and start UIMA-AS client. This sends GetMeta request to
 		// deployed top level service and waits for a reply
 		initializeUimaAsClient(endpointName);
-
 		return scaleout;
 	}
 
