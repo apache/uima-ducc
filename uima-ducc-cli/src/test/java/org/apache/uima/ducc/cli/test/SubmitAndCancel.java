@@ -37,7 +37,7 @@ public class SubmitAndCancel
         
         "--process_descriptor_AE",          "org.apache.uima.ducc.test.randomsleep.FixedSleepAE",
         "--process_memory_size",            "2",
-        "--classpath",                      "${DUCC_HOME}/lib/uima-ducc/examples/*",
+        "--classpath",                      "${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*",
         "--process_jvm_args",               "-Xmx100M ",
         "--process_thread_count",           "2",
         "--process_per_item_time_max",      "5",
@@ -58,9 +58,6 @@ public class SubmitAndCancel
     //
     public String[] testsToRun()
     {
-
-        // if ( true ) return new int[] {5,};
-
         return new String[] {
             "Submit",
             "SubmitAndCancel",
@@ -236,14 +233,19 @@ public class SubmitAndCancel
         arglist.add("--description");
         arglist.add("Submit-And-Cancel job 5");
 
-        cb = new MyCallback(); // why not, lets go nuts
-        submit = new DuccJobSubmit(arglist, (IDuccCallback) cb);
-        System.out.println(testid + " ------------------------------ Submit all_in_one local ------------------------------");
-        System.out.println(testid + " Console attached: " + submit.isConsoleAttached());
-        if ( submit.execute() ) {
-            success(testid, "Job " + submit.getDuccId() + " submitted, rc = " + submit.getReturnCode());
-        } else {
-            fail(testid, "Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
+        try {
+            cb = new MyCallback(); // why not, lets go nuts
+            submit = new DuccJobSubmit(arglist, (IDuccCallback) cb);
+            System.out.println(testid + " ------------------------------ Submit all_in_one local ------------------------------");
+            System.out.println(testid + " Console attached: " + submit.isConsoleAttached());
+            if ( submit.execute() ) {
+                success(testid, "Job " + submit.getDuccId() + " submitted, rc = " + submit.getReturnCode());
+            } else {
+                fail(testid, "Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
+            }
+        } catch ( Throwable t ) {
+            fail(testid, "All-In-One Local Job failed with exception " + t.toString());
+            t.printStackTrace();
         }
     }
 
@@ -262,14 +264,19 @@ public class SubmitAndCancel
         //     System.out.println("Props: k=" + k + " v=" + props.get(k));
         // }
 
-        cb = new MyCallback(); // why not, lets go nuts
-        submit = new DuccJobSubmit(props, (IDuccCallback) cb);
-        System.out.println(testid + " ------------------------------ Submit all_in_one remote ------------------------------");
-        System.out.println(testid + " Console attached: " + submit.isConsoleAttached());
-        if ( submit.execute() ) {
-            success(testid, "Job " + submit.getDuccId() + " submitted, rc = " + submit.getReturnCode());
-        } else {
-            fail(testid, "Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
+        try {
+            cb = new MyCallback(); // why not, lets go nuts
+            submit = new DuccJobSubmit(props, (IDuccCallback) cb);
+            System.out.println(testid + " ------------------------------ Submit all_in_one remote ------------------------------");
+            System.out.println(testid + " Console attached: " + submit.isConsoleAttached());
+            if ( submit.execute() ) {
+                success(testid, "Job " + submit.getDuccId() + " submitted, rc = " + submit.getReturnCode());
+            } else {
+                fail(testid, "Job " + submit.getDuccId() + " not submitted, rc = " + submit.getReturnCode());
+            }
+        } catch ( Throwable e ) {
+            fail(testid, "All-In-One Remote Job failed with exception " + e.toString());
+            e.printStackTrace();
         }
     }
 
@@ -298,6 +305,7 @@ public class SubmitAndCancel
             success(testid, "Job " + submit.getDuccId() + " could not be submitted.");
             return;
         }
+
         success(testid, "Job " + submit.getDuccId() + " was submited!");
     }
     

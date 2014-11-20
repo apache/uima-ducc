@@ -78,7 +78,7 @@
                     <mkdir dir="target/site/duccbook-html/images" />
                     <mkdir dir="target/site/duccbook-install" />
 
-                    <exec executable="htlatex" dir="src/site/tex/duccbook">
+                    <exec executable="htlatex" dir="src/site/tex/duccbook" output="/dev/null">
                       <arg value="duccbook.tex" />
                     </exec>
                     <move todir="target/site/duccbook-html" overwrite="true">
@@ -104,7 +104,7 @@
 
                     <echo message="Building duccbook Installation HTML" />
                     <mkdir dir="target/site/duccbook-html" />
-                    <exec executable="htlatex" dir="src/site/tex/duccbook" failonerror="true">
+                    <exec executable="htlatex" dir="src/site/tex/duccbook" failonerror="true" output="/dev/null">
                       <arg value="installation.tex" />
                     </exec>
                     <move todir="target/site/duccbook-html" overwrite="true">
@@ -126,7 +126,7 @@
 
                     <echo message="Building duccbook Installation PDF" />
                     <mkdir dir="target/site/duccbook-pdf" />
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook" failonerror="true">
+                    <exec executable="pdflatex" dir="src/site/tex/duccbook" failonerror="true"  output="/dev/null">
                       <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
                       <arg value="-interaction=errorstopmode" />
                       <arg value="installation.tex" />
@@ -134,14 +134,14 @@
 
                     <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
                     <!-- htlatex by default runs enough to get xrefs and TOC -->
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook">
+                    <exec executable="pdflatex" dir="src/site/tex/duccbook"  output="/dev/null">
                       <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
                       <arg value="installation.tex" />
                     </exec>
 
                     <echo message="Completed duccbook Installation PDF" />
 
-                    <exec executable="latex" dir="src/site/tex/duccbook">
+                    <exec executable="latex" dir="src/site/tex/duccbook"  output="/dev/null">
                       <arg value="-output-directory=../../../../target/site/duccbook-install" />
                       <arg value="installation.tex" />
                     </exec>
@@ -152,7 +152,7 @@
 
                     <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
                     <!-- htlatex by default runs enough to get xrefs and TOC -->
-                    <exec executable="dvi2tty" dir="target/site/duccbook-install">
+                    <exec executable="dvi2tty" dir="target/site/duccbook-install"  output="/dev/null">
                       <arg value="-oINSTALL" />
                       <arg value="-w132" />
                       <arg value="-l" />
@@ -167,14 +167,14 @@
 
                     <echo message="Building duccbook PDF" />
                     <mkdir dir="target/site/duccbook-pdf" />
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook">
+                    <exec executable="pdflatex" dir="src/site/tex/duccbook"  output="/dev/null"> 
                       <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
                       <arg value="duccbook.tex" />
                     </exec>
 
                     <!-- must be run twice to correctly gen the xrefs, TOC, etc. -->
                     <!-- htlatex by default runs enough to get xrefs and TOC -->
-                    <exec executable="pdflatex" dir="src/site/tex/duccbook">
+                    <exec executable="pdflatex" dir="src/site/tex/duccbook"  output="/dev/null">
                       <arg value="-output-directory=../../../../target/site/duccbook-pdf" />
                       <arg value="duccbook.tex" />
                     </exec>
