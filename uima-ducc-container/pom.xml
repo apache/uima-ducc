@@ -64,7 +64,15 @@
 			<artifactId>uima-ducc-user</artifactId>
 		</dependency>
 	</dependencies>
-  	<build>
+    <profiles>
+	<profile>
+	   <id>run-junit-tests</id>	
+	   <activation>
+	      <!-- Execute the plugins if -DskipTests is not defined -->
+	      <property><name>!skipTests</name></property>
+	   </activation>
+       
+  	   <build>
 		<pluginManagement>
 		   <plugins>
 		      <plugin>
@@ -109,7 +117,6 @@
 		      </plugin>
 		   </plugins>
 		</pluginManagement>
-		
 		<plugins>
 		<plugin>
                <groupId>org.apache.uima</groupId>
@@ -235,6 +242,7 @@
 		</plugins>
 		
 	</build>
-		
+   </profile>
+   </profiles>		
 
 </project>
