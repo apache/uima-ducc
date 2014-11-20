@@ -23,7 +23,6 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -140,12 +139,12 @@ public class TestClassLoading extends ATest {
     // Check that a private class can only be loaded from the private class-loader
     // i.e. no leakage from private to system
     try {
-      Class<?> cls = scl.loadClass(privateClass);
+      scl.loadClass(privateClass);
       fail("Found private class in system class-loader");
     } catch (ClassNotFoundException e) {
     }
     try {
-      Class<?> cls = pcl.loadClass(privateClass);
+      pcl.loadClass(privateClass);
     } catch (ClassNotFoundException e) {
       fail("Cannot load private class");
     }
@@ -153,15 +152,15 @@ public class TestClassLoading extends ATest {
     // Check that a public class can only be loaded from the system class-loader
     // i.e. no leakage from public to private
     try {
-      Class<?> cls = pcl.loadClass(publicClass);
+      pcl.loadClass(publicClass);
       fail("Found public class in private class-loader");
     } catch (ClassNotFoundException e) {
     }
     try {
-      Class<?> cls = scl.loadClass(publicClass);
+      scl.loadClass(publicClass);
     } catch (ClassNotFoundException e) {
       fail("Cannot load public class");
     }
-    pcl.close();
+    // pcl.close();   // Requires Java 1.7
   }
 }
