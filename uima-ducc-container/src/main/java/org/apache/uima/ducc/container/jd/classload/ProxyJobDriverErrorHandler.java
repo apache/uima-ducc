@@ -23,15 +23,15 @@ import java.lang.reflect.Type;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.jd.JdFlagsHelper;
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 
 public class ProxyJobDriverErrorHandler {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(ProxyJobDriverErrorHandler.class, IContainerLogger.Component.JD.name());
+	private static Logger logger = Logger.getLogger(ProxyJobDriverErrorHandler.class, IComponent.Id.JD.name());
 	
 	private URLClassLoader classLoader = null;
 	
@@ -102,7 +102,7 @@ public class ProxyJobDriverErrorHandler {
 			}
 		} 
 		catch (Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 	}
@@ -114,7 +114,7 @@ public class ProxyJobDriverErrorHandler {
 			retVal = PrivateClassLoader.create(userClasspath);
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 		return retVal;
 	}
@@ -133,7 +133,7 @@ public class ProxyJobDriverErrorHandler {
 			retVal = new ProxyJobDriverDirective(isKillJob, isKillProcess, isKillWorkItem);
 		} 
 		catch (Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 		return retVal;

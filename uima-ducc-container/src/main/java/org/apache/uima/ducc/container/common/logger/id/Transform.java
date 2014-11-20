@@ -16,14 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.common.logger.id;
 
-public interface IContainerLogger {
 
-	public enum Component { JD, JP };
+public class Transform {
 
-	public void debug(String location, IEntityId jobid, Object ... args);
-	public void error(String location, IEntityId jobid, Object ... args);
-	public void info(String location, IEntityId jobid, Object ... args);
-	public void trace(String location, IEntityId jobid, Object ... args);
+	public static Id toId(String value) {
+		Id retVal = new Id(value);
+		return retVal;
+	}
+	
+	public static String toString(Id value) {
+		String retVal = null;
+		if(value != null) {
+			retVal = value.toString();
+		}
+		return retVal;
+	}
 }

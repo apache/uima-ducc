@@ -18,16 +18,16 @@
 */
 package org.apache.uima.ducc.container.common.fsm;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 
 public class Action implements IAction {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(Action.class, IContainerLogger.Component.JD.name());
+	private static Logger logger = Logger.getLogger(Action.class, IComponent.Id.JD.name());
 	
 	@Override
 	public String getName() {
@@ -39,7 +39,7 @@ public class Action implements IAction {
 		String location = "engage";
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.action.get()+getName());
-		logger.debug(location, IEntityId.null_id, mb.toString());
+		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 
 }

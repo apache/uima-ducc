@@ -18,17 +18,17 @@
 */
 package org.apache.uima.ducc.container.jd.mh;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.common.IContainerLogger;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
 
 public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<Object> {
-	
-	private IContainerLogger logger = ContainerLogger.getLogger(RemoteWorkerIdentity.class, IContainerLogger.Component.JD.name());
+
+	private static Logger logger = Logger.getLogger(RemoteWorkerIdentity.class, IComponent.Id.JD.name());
 	
 	private String nodeName = null;
 	private String nodeAddress = null;
@@ -149,7 +149,7 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 		return retVal;
 	}
@@ -185,7 +185,7 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 		return retVal;
 	}

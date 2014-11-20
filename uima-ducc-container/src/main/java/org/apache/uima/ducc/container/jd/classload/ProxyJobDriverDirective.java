@@ -18,15 +18,15 @@
 */
 package org.apache.uima.ducc.container.jd.classload;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 
 public class ProxyJobDriverDirective {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(ProxyJobDriverDirective.class, IContainerLogger.Component.JD.name());
+	private static Logger logger = Logger.getLogger(ProxyJobDriverDirective.class, IComponent.Id.JD.name());
 	
 	private boolean killJob = false;
 	private boolean killProcess = false;
@@ -45,7 +45,7 @@ public class ProxyJobDriverDirective {
 		mb.append(Standardize.Label.killJob.get()+killJob);
 		mb.append(Standardize.Label.killProcess.get()+killProcess);
 		mb.append(Standardize.Label.killWorkItem.get()+killWorkItem);
-		logger.debug(location, IEntityId.null_id, mb);
+		logger.debug(location, ILogger.null_id, mb);
 	}
 	
 	private void setKillJob(boolean value) {

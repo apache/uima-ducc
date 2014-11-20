@@ -16,21 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.common.logger;
 
-import org.apache.uima.ducc.container.common.logger.IComponent;
-import org.apache.uima.ducc.container.common.logger.ILogger;
-import org.apache.uima.ducc.container.common.logger.Logger;
-
-public class Assertion {
-
-	private static Logger logger = Logger.getLogger(Assertion.class, IComponent.Id.JD.name());
-	
-	public static void nonNegative(long value) {
-		String location = "nonNegative";
-		if(value < 0) {
-			logger.error(location, ILogger.null_id, value);
-			throw new RuntimeException();
-		}
-	}
+public interface IComponent {
+	public enum Id { JD, JP };
 }

@@ -16,9 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common;
+package org.apache.uima.ducc.container.common.logger.id;
 
-public interface IEntityId {
+public class Id {
 
-	public static IEntityId null_id = null;
+	public static Id null_id = new Id(null);;
+	
+	private String id = null;
+	
+	public Id(String id) {
+		setId(id);
+	}
+	
+	private void setId(String value) {
+		id = value;
+	}
+	
+	@Override
+	public String toString() {
+		return id;
+	}
 }

@@ -18,17 +18,17 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionSend implements IAction {
-	
-	private IContainerLogger logger = ContainerLogger.getLogger(ActionSend.class, IContainerLogger.Component.JD.name());
+
+	private static Logger logger = Logger.getLogger(ActionSend.class, IComponent.Id.JD.name());
 	
 	@Override
 	public String getName() {
@@ -38,7 +38,7 @@ public class ActionSend implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, IEntityId.null_id, "");
+		logger.debug(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
@@ -47,7 +47,7 @@ public class ActionSend implements IAction {
 			wi.setMetaCas(metaCas);
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 

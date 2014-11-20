@@ -22,11 +22,11 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
@@ -34,7 +34,7 @@ import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 
 public class JobDriverHelper {
 
-	private static IContainerLogger logger = ContainerLogger.getLogger(JobDriverHelper.class, IContainerLogger.Component.JD.name());
+	private static Logger logger = Logger.getLogger(JobDriverHelper.class, IComponent.Id.JD.name());
 	
 	private static JobDriverHelper instance = new JobDriverHelper();
 	
@@ -64,7 +64,7 @@ public class JobDriverHelper {
 			mb.append(Standardize.Label.pid.get()+wii.getPid());
 			mb.append(Standardize.Label.tid.get()+wii.getTid());
 			mb.append(Standardize.Label.operatingMillis.get()+wii.getOperatingMillis());
-			logger.debug(location, IEntityId.null_id, mb);
+			logger.debug(location, ILogger.null_id, mb);
 		}
 		return list;
 	}

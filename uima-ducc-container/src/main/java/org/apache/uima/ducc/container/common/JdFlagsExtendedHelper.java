@@ -19,10 +19,13 @@
 package org.apache.uima.ducc.container.common;
 
 import org.apache.uima.ducc.common.jd.JdFlagsHelper;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 
 public class JdFlagsExtendedHelper extends JdFlagsHelper {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(JdFlagsExtendedHelper.class, IContainerLogger.Component.JD.name());
+	private static Logger logger = Logger.getLogger(JdFlagsExtendedHelper.class, IComponent.Id.JD.name());
 	
 	private static JdFlagsExtendedHelper instance = new JdFlagsExtendedHelper();
 	
@@ -37,11 +40,11 @@ public class JdFlagsExtendedHelper extends JdFlagsHelper {
 			String[] list = retVal.split(":");
 			if(list != null) {
 				if(list.length > 0) {
-					logger.debug(location, IEntityId.null_id, JdFlagsHelper.Name.UserClasspath.name());
+					logger.debug(location, ILogger.null_id, JdFlagsHelper.Name.UserClasspath.name());
 					int index = 0;
 					for(String item : list) {
 						String text = "["+index+"]"+" "+item;
-						logger.debug(location, IEntityId.null_id, text);
+						logger.debug(location, ILogger.null_id, text);
 						index++;
 					}
 				}

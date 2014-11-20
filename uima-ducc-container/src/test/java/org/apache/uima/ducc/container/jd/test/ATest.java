@@ -22,7 +22,6 @@ import java.util.Map;
 
 import org.apache.uima.ducc.common.jd.JdFlagsHelper;
 import org.apache.uima.ducc.common.jd.JdFlagsHelper.Name;
-import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,12 +56,6 @@ public abstract class ATest {
 			if(map.containsKey("JUNIT_DEBUG")) {
 				debug = true;
 			}
-		}
-		if(!isVerbose()) {
-			ContainerLogger.setSilentRunning();
-		}
-		else {
-			ContainerLogger.resetSilentRunning();
 		}
 	}
 	

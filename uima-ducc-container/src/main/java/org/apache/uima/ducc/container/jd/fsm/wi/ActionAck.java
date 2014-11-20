@@ -18,12 +18,12 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
@@ -31,8 +31,8 @@ import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionAck implements IAction {
-	
-	private IContainerLogger logger = ContainerLogger.getLogger(ActionAck.class, IContainerLogger.Component.JD.name());
+
+	private static Logger logger = Logger.getLogger(ActionAck.class, IComponent.Id.JD.name());
 	
 	@Override
 	public String getName() {
@@ -42,7 +42,7 @@ public class ActionAck implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, IEntityId.null_id, "");
+		logger.debug(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
@@ -57,15 +57,15 @@ public class ActionAck implements IAction {
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				mb.append(Standardize.Label.remote.get()+rwi.toString());
-				logger.info(location, IEntityId.null_id, mb.toString());
+				logger.info(location, ILogger.null_id, mb.toString());
 			}
 			else {MessageBuffer mb = new MessageBuffer();
 				mb.append("No CAS found for processing");
-				logger.info(location, IEntityId.null_id, mb.toString());
+				logger.info(location, ILogger.null_id, mb.toString());
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 

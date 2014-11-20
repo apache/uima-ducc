@@ -21,13 +21,15 @@ package org.apache.uima.ducc.container.jd.mh;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.common.logger.id.Id;
+import org.apache.uima.ducc.container.common.logger.id.Transform;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
@@ -50,15 +52,16 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 
 public class MessageHandler implements IMessageHandler {
 
-	private static IContainerLogger logger = ContainerLogger.getLogger(MessageHandler.class, IContainerLogger.Component.JD.name());
+	private static ILogger logger = Logger.getLogger(MessageHandler.class, IComponent.Id.JD.name());
 	
 	@Override
 	public IOperatingInfo handleGetOperatingInfo() {
 		String location = "handleGetOperatingInfo";
 		IOperatingInfo retVal = null;
+		JobDriver jd = JobDriver.getInstance();
+		Id jobid = Transform.toId(jd.getJobId());
 		try {
 			IOperatingInfo oi = new OperatingInfo();
-			JobDriver jd = JobDriver.getInstance();
 			JobDriverHelper jdh = JobDriverHelper.getInstance();
 			CasManager cm = jd.getCasManager();
 			CasManagerStats cms = cm.getCasManagerStats();
@@ -94,11 +97,11 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.runningMillisMin.get()+oi.getWorkItemRunningMillisMin());
 			mb.append(Standardize.Label.runningMillisMax.get()+oi.getWorkItemRunningMillisMax());
 			mb.append(Standardize.Label.todMostRecentStart.get()+oi.getWorkItemTodMostRecentStart());
-			logger.debug(location, IEntityId.null_id, mb.toString());
+			logger.debug(location, jobid, mb.toString());
 			retVal = oi;
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, jobid, e);
 		}
 		return retVal;
 	}
@@ -111,7 +114,7 @@ public class MessageHandler implements IMessageHandler {
 			//TODO
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
@@ -123,7 +126,7 @@ public class MessageHandler implements IMessageHandler {
 			//TODO
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
@@ -138,7 +141,7 @@ public class MessageHandler implements IMessageHandler {
 					MessageBuffer mb = new MessageBuffer();
 					mb.append(Standardize.Label.remote.get()+rwi.toString());
 					mb.append(Boolean.TRUE.toString());
-					logger.debug(location, IEntityId.null_id, mb.toString());
+					logger.debug(location, ILogger.null_id, mb.toString());
 					IWorkItem wi = entry.getValue();
 					IFsm fsm = wi.getFsm();
 					IEvent event = WiFsm.Process_Preempt;
@@ -149,12 +152,12 @@ public class MessageHandler implements IMessageHandler {
 					MessageBuffer mb = new MessageBuffer();
 					mb.append(Standardize.Label.remote.get()+rwi.toString());
 					mb.append(Boolean.FALSE.toString());
-					logger.trace(location, IEntityId.null_id, mb.toString());
+					logger.trace(location, ILogger.null_id, mb.toString());
 				}
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
@@ -166,7 +169,7 @@ public class MessageHandler implements IMessageHandler {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append(Standardize.Label.type.get()+trans.getType());
-			logger.info(location, IEntityId.null_id, mb.toString());
+			logger.info(location, ILogger.null_id, mb.toString());
 			Type type = trans.getType();
 			switch(type) {
 			case Get:
@@ -183,7 +186,7 @@ public class MessageHandler implements IMessageHandler {
 			}
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
@@ -198,7 +201,7 @@ public class MessageHandler implements IMessageHandler {
 			wi = map.get(rwi);
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
-			logger.debug(location, IEntityId.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		return wi;
 	}
@@ -211,13 +214,13 @@ public class MessageHandler implements IMessageHandler {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
-			logger.debug(location, IEntityId.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append("has no work assigned presently");
-			logger.debug(location, IEntityId.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		return wi;
 	}
@@ -237,7 +240,7 @@ public class MessageHandler implements IMessageHandler {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append("has no work assigned presently");
-			logger.debug(location, IEntityId.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
 			trans.setMetaCas(wi.getMetaCas());
@@ -255,7 +258,7 @@ public class MessageHandler implements IMessageHandler {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwi.toString());
 			mb.append("has no work assigned presently");
-			logger.debug(location, IEntityId.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
 			trans.setMetaCas(wi.getMetaCas());
@@ -266,7 +269,7 @@ public class MessageHandler implements IMessageHandler {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.AckMsecs.get()+(wi.getTodAck()-wi.getTodGet()));
 			mb.append(Standardize.Label.EndMsecs.get()+(wi.getTodEnd()-wi.getTodAck()));
-			logger.debug(location, IEntityId.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 	}
 

@@ -18,14 +18,14 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
-import org.apache.uima.ducc.container.common.IContainerLogger;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
@@ -35,8 +35,8 @@ import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionInProgress implements IAction {
-	
-	private IContainerLogger logger = ContainerLogger.getLogger(ActionInProgress.class, IContainerLogger.Component.JD.name());
+
+	private static Logger logger = Logger.getLogger(ActionInProgress.class, IComponent.Id.JD.name());
 	
 	@Override
 	public String getName() {
@@ -46,7 +46,7 @@ public class ActionInProgress implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, IEntityId.null_id, "");
+		logger.debug(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
@@ -67,19 +67,19 @@ public class ActionInProgress implements IAction {
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				mb.append(Standardize.Label.remote.get()+rwi.toString());
-				logger.info(location, IEntityId.null_id, mb.toString());
+				logger.info(location, ILogger.null_id, mb.toString());
 			}
 			else {
 				event = WiFsm.CAS_Unavailable;
 				MessageBuffer mb = new MessageBuffer();
 				mb.append("No CAS found for processing");
-				logger.info(location, IEntityId.null_id, mb.toString());
+				logger.info(location, ILogger.null_id, mb.toString());
 			}
 			//
 			fsm.transition(event, actionData);
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 		
 	}

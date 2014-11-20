@@ -20,10 +20,10 @@ package org.apache.uima.ducc.container.jd;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.uima.ducc.container.common.ContainerLogger;
 import org.apache.uima.ducc.container.common.JdFlagsExtendedHelper;
-import org.apache.uima.ducc.container.common.IContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
@@ -35,7 +35,7 @@ import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
 
 public class JobDriver {
 
-	private static IContainerLogger logger = ContainerLogger.getLogger(JobDriver.class, IContainerLogger.Component.JD.name());
+	private static Logger logger = Logger.getLogger(JobDriver.class, IComponent.Id.JD.name());
 	
 	private static JobDriver instance = null;
 	
@@ -79,7 +79,7 @@ public class JobDriver {
 			mh = new MessageHandler();
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 	}

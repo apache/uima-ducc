@@ -24,19 +24,19 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.container.common.ContainerLogger;
-import org.apache.uima.ducc.container.common.IContainerLogger;
-import org.apache.uima.ducc.container.common.IEntityId;
 import org.apache.uima.ducc.container.common.JdFlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 
 public class ProxyJobDriverCollectionReader {
 
-	private IContainerLogger logger = ContainerLogger.getLogger(ProxyJobDriverCollectionReader.class, IContainerLogger.Component.JD.name());
+	private static Logger logger = Logger.getLogger(ProxyJobDriverCollectionReader.class, IComponent.Id.JD.name());
 	
 	private URLClassLoader urlClassLoader = null;
 	
@@ -88,7 +88,7 @@ public class ProxyJobDriverCollectionReader {
 			retVal = PrivateClassLoader.create(userClasspath);
 		}
 		catch(Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 		}
 		return retVal;
 	}
@@ -100,7 +100,7 @@ public class ProxyJobDriverCollectionReader {
 			retVal = (Integer)method_getTotal.invoke(instance_JdUserCollectionReader, nullObjectArray);
 		} 
 		catch (Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 		return retVal;
@@ -124,7 +124,7 @@ public class ProxyJobDriverCollectionReader {
 			}
 		} 
 		catch (Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 		return retVal;
@@ -140,13 +140,13 @@ public class ProxyJobDriverCollectionReader {
 		String location = "setup";
 		if(urlClassLoader == null) {
 			JobDriverException e = new JobDriverException("missing URLClassLoader");
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw e;
 		}
 		setURLClassLoader(urlClassLoader);
 		if(crXml == null) {
 			JobDriverException e = new JobDriverException("missing CollectionReader xml");
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw e;
 		}
 		setCrXml(crXml);
@@ -170,14 +170,14 @@ public class ProxyJobDriverCollectionReader {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
 		} 
 		catch (Exception e) {
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 	}
 	
 	private void setURLClassLoader(URLClassLoader value) {
 		String location = "setURLClassLoader";
-		logger.debug(location, IEntityId.null_id, value);
+		logger.debug(location, ILogger.null_id, value);
 		urlClassLoader = value;
 	}
 	
@@ -194,20 +194,20 @@ public class ProxyJobDriverCollectionReader {
 		try {
 			MessageBuffer mb1 = new MessageBuffer();
 			mb1.append(Standardize.Label.loading.get()+className);
-			logger.debug(location, IEntityId.null_id, mb1.toString());
+			logger.debug(location, ILogger.null_id, mb1.toString());
 			URL[] urls = urlClassLoader.getURLs();
 			for(URL url : urls) {
-				logger.debug(location, IEntityId.null_id, url);
+				logger.debug(location, ILogger.null_id, url);
 			}
 			Class<?> loadedClass = urlClassLoader.loadClass(className);
 			MessageBuffer mb2 = new MessageBuffer();
 			mb2.append(Standardize.Label.loaded.get()+loadedClass.getName());
-			logger.trace(location, IEntityId.null_id, mb2.toString());
+			logger.trace(location, ILogger.null_id, mb2.toString());
 		} 
 		catch (Exception e) {
 			DuccLogger duccLogger = DuccLogger.getLogger(ProxyJobDriverCollectionReader.class, "JD");
 			duccLogger.error(location, null, e);
-			logger.error(location, IEntityId.null_id, e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 	}
