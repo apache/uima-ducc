@@ -22,9 +22,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.jd.JdFlagsHelper;
+import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
@@ -108,4 +114,54 @@ public class TestClassLoading extends ATest {
 		}
 	}
 	
+  @Test
+  public void test_loader() throws URISyntaxException, IOException {
+
+    // First set up a private class-loaded and verify that its resources exist 
+    // and are not also in the system class-loader.
+    String privateCP = "../uima-ducc-sm/target/classes";
+    String privateClass = "org.apache.uima.ducc.sm.PingDriver";
+    String publicClass = "org.apache.uima.ducc.container.common.Util";
+    
+    URLClassLoader scl = (URLClassLoader) ClassLoader.getSystemClassLoader();
+    URLClassLoader pcl = PrivateClassLoader.create(privateCP);
+    for (URL u : pcl.getURLs()) {
+      if (!(new File(u.getPath())).exists()) {
+        fail("Missing test classpath resource: " + u);
+      }
+      URI ur = u.toURI().normalize();
+      for (URL uu : scl.getURLs()) {
+        if (ur.equals(uu.toURI().normalize())) {
+          fail("Test classpath resource: " + u + " is also in the system class-loader");
+        }
+      }
+    }
+    
+    // Check that a private class can only be loaded from the private class-loader
+    // i.e. no leakage from private to system
+    try {
+      Class<?> cls = scl.loadClass(privateClass);
+      fail("Found private class in system class-loader");
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class<?> cls = pcl.loadClass(privateClass);
+    } catch (ClassNotFoundException e) {
+      fail("Cannot load private class");
+    }
+
+    // Check that a public class can only be loaded from the system class-loader
+    // i.e. no leakage from public to private
+    try {
+      Class<?> cls = pcl.loadClass(publicClass);
+      fail("Found public class in private class-loader");
+    } catch (ClassNotFoundException e) {
+    }
+    try {
+      Class<?> cls = scl.loadClass(publicClass);
+    } catch (ClassNotFoundException e) {
+      fail("Cannot load public class");
+    }
+    pcl.close();
+  }
 }
