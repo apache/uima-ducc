@@ -30,7 +30,6 @@ import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
-import org.apache.uima.ducc.container.net.impl.MetaCas;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
@@ -110,9 +109,10 @@ import org.springframework.context.annotation.Import;
 			    };
 
 		}
-		private RouteBuilder routeBuilderForJpIncomingRequests(final CamelContext camelContext, final int port, final String app) throws Exception {
+		private RouteBuilder routeBuilderForJpIncomingRequests(final JobDriverComponent jdc, final int port, final String app) throws Exception {
 		    return new RouteBuilder() {
 		        public void configure() throws Exception {
+		        	CamelContext camelContext = jdc.getContext();
 		            JettyHttpComponent jetty = new JettyHttpComponent();
 		            jetty.setMaxThreads(4);  // Need to parameterize
 		            jetty.setMinThreads(1);
@@ -120,28 +120,27 @@ import org.springframework.context.annotation.Import;
 		            // listen on all interfaces.
 		            from("jetty:http://0.0.0.0:" + port + "/"+app)
 		            .unmarshal().xstream().
-		            process(new JobDriverProcessor()).marshal().xstream();
+		            process(new JobDriverProcessor(jdc)).marshal().xstream();
 		        }
 		    };
 		}
 		
 		public static class JobDriverProcessor  implements Processor {
+			private 	IJobDriverComponent jdc;
+			
+			private JobDriverProcessor(IJobDriverComponent jdc) {
+				this.jdc = jdc;
+			}
 		    public void process(Exchange exchange) throws Exception {
 		        // Get the transaction object sent by the JP
 		    	IMetaCasTransaction imt = 
 		        		exchange.getIn().getBody(MetaCasTransaction.class);
 		        
-		    	//
-		    	// do all processing here
-		    	//
+		    	// process JP's request
+		    	jdc.handleJpRequest(imt);
 		    	
 		    	// setup reply 
 		    	imt.setDirection(Direction.Response);
-		        String key = "XMI CAS";   // whatever
-		        String xmi = new String("Blob"); // for testing
-		        // Add serialized CAS to the outgoing message
-                MetaCas metaCas = new MetaCas(1, key, xmi);
-		        imt.setMetaCas(metaCas);
 
 		        exchange.getOut().setHeader("content-type", "text/xml");
 		        // ship it!
@@ -189,7 +188,7 @@ import org.springframework.context.annotation.Import;
 			
 			int port = Utils.findFreePort();
 			String jdUniqueId = "jdApp";
-			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc.getContext(), port, jdUniqueId));
+			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
 			logger.debug(location, jobid, "endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
 			jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
 			return jdc;

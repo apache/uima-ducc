@@ -34,7 +34,6 @@ import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
@@ -121,10 +120,9 @@ implements IJobDriverComponent {
 	}
 
 	@Override
-	public void onJpRequestDuccEvent(IMetaCasTransaction metaCasTransaction) throws Exception {
-		String location = "onJpRequestDuccEvent";
+	public void handleJpRequest(IMetaCasTransaction metaCasTransaction) throws Exception {
+		String location = "handleJpRequest";
 		try {
-			metaCasTransaction.setDirection(Direction.Response);
 			IMessageHandler mh = JobDriver.getInstance().getMessageHandler();
 			mh.handleMetaCasTransation(metaCasTransaction);
 		}
