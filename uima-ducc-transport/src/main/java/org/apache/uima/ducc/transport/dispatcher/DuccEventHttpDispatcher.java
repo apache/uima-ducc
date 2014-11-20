@@ -172,9 +172,15 @@ public class DuccEventHttpDispatcher {
     public DuccEvent dispatchAndWaitForDuccReply(DuccEvent duccEvent) 
         throws Exception
     {
-        String serBody = toXml(duccEvent);
-        String response =  dispatch(serBody, "text/xml");
-        return (DuccEvent) fromXml(response);
+        String serBody = null;
+    	try{
+    		serBody = toXml(duccEvent);
+            String response =  dispatch(serBody, "text/xml");
+            return (DuccEvent) fromXml(response);
+    	} catch ( Throwable t ) { 
+            t.printStackTrace(); 
+        }
+        return null;
     }
 
     Object fromJson(String str, Class<?> cl)

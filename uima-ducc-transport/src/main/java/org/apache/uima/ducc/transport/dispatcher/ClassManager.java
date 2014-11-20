@@ -317,35 +317,25 @@ public class ClassManager
         extends URLClassLoader
     {
 
-        ClassLoader parent;
         HttpClassLoader(URL[] urls, ClassLoader parent)
         {
             super(urls, parent);
-            this.parent = parent;
-
-            //for ( URL u : urls ) {
-            //    System.out.println("XStreamClassLoader initializes from " + u);
-            // }
         }
 
-        public Class<?> findClass(final String clname)
-            throws ClassNotFoundException
+        public Class<?> loadClass(String clname, boolean resolve)
+        	throws ClassNotFoundException
         {
-            if ( DEBUG ) System.out.println("--------- HttpClassLoader -- Finding class " + clname + " from " + this.getClass() + " " + clname);
-            Class<?> ret = super.findClass(clname);
-            if ( ret == null ) {
-                if ( DEBUG ) {
-                    System.out.println("                                          Not found");
-                }
-            } else {
-                if ( DEBUG ) {
-                    System.out.println("                                          " + ret.getProtectionDomain().getCodeSource().getLocation());
-                    System.out.println("                                          " + ret.getClassLoader());
-                }
-            }
-            return ret;
-        }
 
+            if ( DEBUG ) System.out.println("--------- HttpClassLoader ------- load class " + clname);
+            try {
+                Class<?> ret =  super.loadClass(clname, resolve);
+                if ( DEBUG ) System.out.println("--------- HttpClassLoader ------- returns " + clname);                
+                return ret;
+            } catch ( ClassNotFoundException e ) {
+                if ( DEBUG ) System.out.println("--------- HttpClassLoader ------- fails to find " + clname);                
+                throw e;
+            }
+        }
     }
 
     class PrivateClassLoader
@@ -380,60 +370,22 @@ public class ClassManager
             this.grand_parent = grand_parent;
         }
 
-
-        public Class<?> loadClass(String clname)
-        	throws ClassNotFoundException
-        {
-            if ( DEBUG ) System.out.println("---- A ------- load class " + clname + " from " + this);
-            Class<?> ret =  super.loadClass(clname);
-            if ( DEBUG ) {
-                System.out.println("---- A ------- load class " + clname + " returns " + ret );
-                try { 
-                    throw new Exception("Stack trace:");
-                } catch ( Throwable e ) {
-                    e.printStackTrace();
-                    System.out.println("--- A -----------------------------------------------------------------------------");
-                }
-            }
-            return ret;
-        }
-
         public Class<?> loadClass(String clname, boolean resolve)
         	throws ClassNotFoundException
         {
-
-            if ( DEBUG ) System.out.println("---- B ------- load class " + clname + " from " + this);
-            Class<?> ret =  super.loadClass(clname, resolve);
-            if ( DEBUG ) {
-                System.out.println("---- B ------ load class " + clname + " returns " + ret);
-                try { 
-                    throw new Exception("Stack trace:");
-                } catch ( Throwable e ) {
-                    e.printStackTrace();
-                    System.out.println("---- B -----------------------------------------------------------------------------");
-                }
-            }
-            return ret;
-        }
-
-
-        public Class<?> findClass(final String clname)
-            throws ClassNotFoundException
-        {
-            if ( DEBUG ) System.out.println("*********** find class ********** " + clname);
-            // we want all the interfaces from "common" except UIOptions and IDuccMonitor which aren't well-placed
-            // for this exercise so we need a special case for them
-            Class<?> ret = grand_parent.findClass(clname);
-            if ( ret == null ) {
-                if ( DEBUG ) {
-                    System.out.println("*********** Looking in " + parent + " for " + clname);
-                }
-                return super.findClass(clname);
-            } else {
+            Class<?> ret = null;
+            if ( DEBUG ) System.out.println("---- A ------- load class " + clname + " from " + this);
+            try { 
+                ret = grand_parent.loadClass(clname, resolve);
+                if ( DEBUG ) System.out.println("---- A ------- returns " + clname + " from " + grand_parent);                
+                return ret;
+            }  catch ( ClassNotFoundException e ) {
+                if ( DEBUG ) System.out.println("---- A ------- looking in " + parent + " to load " + clname);
+                ret = super.loadClass(clname, resolve);
+                if ( DEBUG ) System.out.println("---- A ------- returns " + clname + " from " + parent);
                 return ret;
             }
         }
-
     }
 
 }
