@@ -62,7 +62,11 @@ public class DefaultNodeMemoryCollector implements CallableMemoryCollector{
 			  e.printStackTrace();
 		  }
 		  if ( metricName.equalsIgnoreCase(FREE_PHYSICAL_MEMORY_SIZE)) {
-			  nodeMemory.setMemFree(metricValue);
+              if ( fakeMemorySize != -1 ) {               // UIMA-4114
+                  nodeMemory.setMemFree(fakeMemorySize);
+              } else {
+                  nodeMemory.setMemFree(metricValue);
+              }
 		  } else if ( metricName.equalsIgnoreCase(FREE_SWAP_MEMORY_SIZE)) {
 			  nodeMemory.setSwapFree(metricValue);
 		  } else if ( metricName.equalsIgnoreCase(TOTAL_SWAP_SPACE_SIZE)) {
