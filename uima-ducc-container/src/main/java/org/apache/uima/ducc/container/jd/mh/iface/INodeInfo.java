@@ -18,8 +18,10 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
+import java.io.Serializable;
+
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
 
-public interface INodeInfo extends IRemoteNode {
+public interface INodeInfo extends IRemoteNode, Serializable {
 
 }

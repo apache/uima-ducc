@@ -24,6 +24,8 @@ import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 
 public class OperatingInfo implements IOperatingInfo {
+	
+	private static final long serialVersionUID = 1L;
 
 	private String jobId = null;
 	

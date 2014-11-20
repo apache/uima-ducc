@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface.remote;
 
-public interface IRemoteWorkerIdentity extends IRemoteTid {
+import java.io.Serializable;
+
+public interface IRemoteWorkerIdentity extends IRemoteTid, Serializable {
 	
 	boolean comprises(IRemoteNode thatNode);
 	boolean comprises(IRemotePid thatPid);

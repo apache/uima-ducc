@@ -18,8 +18,10 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
+import java.io.Serializable;
+
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
 
-public interface IProcessInfo extends IRemotePid {
+public interface IProcessInfo extends IRemotePid, Serializable{
 
 }

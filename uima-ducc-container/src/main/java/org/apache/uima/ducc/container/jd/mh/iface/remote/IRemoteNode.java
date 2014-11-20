@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface.remote;
 
-public interface IRemoteNode {
+import java.io.Serializable;
+
+public interface IRemoteNode extends Serializable {
 
 	public String getNodeName();
 	public void setNodeName(String value);

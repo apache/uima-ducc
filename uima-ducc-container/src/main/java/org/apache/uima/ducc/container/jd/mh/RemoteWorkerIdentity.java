@@ -28,6 +28,8 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
 
 public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<Object> {
 
+	private static final long serialVersionUID = 1L;
+
 	private static Logger logger = Logger.getLogger(RemoteWorkerIdentity.class, IComponent.Id.JD.name());
 	
 	private String nodeName = null;

@@ -22,6 +22,8 @@ import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 
 public class NodeInfo implements INodeInfo {
 
+	private static final long serialVersionUID = 1L;
+	
 	private String nodeName = null;
 	private String nodeAddress = null;
 	

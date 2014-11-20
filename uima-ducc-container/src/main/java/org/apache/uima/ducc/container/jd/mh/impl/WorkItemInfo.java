@@ -22,6 +22,8 @@ import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 
 public class WorkItemInfo implements IWorkItemInfo {
 
+	private static final long serialVersionUID = 1L;
+	
 	String nodeName = null;
 	String nodeAddress = null;
 	int pid = 0;

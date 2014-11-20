@@ -18,11 +18,13 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
+import java.io.Serializable;
+
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteTid;
 
-public interface IWorkItemInfo extends IRemoteNode, IRemotePid, IRemoteTid {
+public interface IWorkItemInfo extends IRemoteNode, IRemotePid, IRemoteTid, Serializable {
 	
 	public int getSeqNo();
 	public void setSeqNo(int value);

@@ -18,9 +18,10 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public interface IOperatingInfo {
+public interface IOperatingInfo extends Serializable {
 
 	public void setJobId(String value);
 	public String getJobId();

@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.mh.iface.remote;
 
-public interface IRemoteTid extends IRemotePid {
+import java.io.Serializable;
+
+public interface IRemoteTid extends IRemotePid, Serializable {
 
 	public int getTid();
 	public void setTid(int value);
