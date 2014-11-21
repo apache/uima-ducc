@@ -41,7 +41,7 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	
 	private IMetaCas metaCas = null;
 	
-	private DriverState driverState = null;
+	private JdState jdState = null;
 	
 	public MetaCasTransaction() {
 		transactionId = new TransactionId(0,0);
@@ -158,13 +158,13 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	}
 
 	@Override
-	public DriverState getDriverState() {
-		return driverState;
+	public JdState getJdState() {
+		return jdState;
 	}
 
 	@Override
-	public void setDriverState(DriverState value) {
-		driverState = value;
+	public void setJdState(JdState value) {
+		jdState = value;
 	}
 
 }

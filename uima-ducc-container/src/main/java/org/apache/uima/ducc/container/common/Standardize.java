@@ -21,7 +21,7 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
-		driverState,
+		jdState,
 		directory,
 		node,
 		pid,

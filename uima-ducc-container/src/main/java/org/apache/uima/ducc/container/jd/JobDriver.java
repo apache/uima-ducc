@@ -32,7 +32,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.DriverState;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
 public class JobDriver {
 
@@ -64,7 +64,7 @@ public class JobDriver {
 	private ProxyJobDriverErrorHandler pjdeh = null;
 	private IMessageHandler mh = new MessageHandler();
 	
-	private DriverState driverState = null;
+	private JdState jdState = null;
 	
 	private JobDriver() throws JobDriverException {
 		initialize();
@@ -73,6 +73,7 @@ public class JobDriver {
 	private void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
+			jdState = JdState.Initializing;
 			JdFlagsExtendedHelper feh = JdFlagsExtendedHelper.getInstance();
 			jobId = feh.getJobId();
 			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
@@ -80,7 +81,7 @@ public class JobDriver {
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
 			mh = new MessageHandler();
-			driverState = DriverState.Initializing;
+			advanceJdState(JdState.Active);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
@@ -112,21 +113,21 @@ public class JobDriver {
 		return mh;
 	}
 	
-	public DriverState getDriverState() {
-		synchronized(driverState) {
-			return driverState;
+	public JdState getJdState() {
+		synchronized(jdState) {
+			return jdState;
 		}
 	}
 	
-	public void advanceDriverState(DriverState value) {
-		synchronized(driverState) {
-			switch(driverState) {
+	public void advanceJdState(JdState value) {
+		synchronized(jdState) {
+			switch(jdState) {
 			case Ended:
 				break;
 			case Active:
 				switch(value) {
 				case Ended:
-					driverState = value;
+					jdState = value;
 					break;
 				}
 				break;
@@ -134,11 +135,11 @@ public class JobDriver {
 				switch(value) {
 				case Ended:
 				case Active:
-					driverState = value;
+					jdState = value;
 				}
 				break;
 			}
-			driverState = value;
+			jdState = value;
 		}
 	}
 }

@@ -49,7 +49,7 @@ public class OperatingInfo implements IOperatingInfo {
 	
 	private long todMostRecentStart = 0;
 	
-	private String driverState = null;
+	private String jdState = null;
 	private boolean killJob = false;
 
 	private ArrayList<IWorkItemInfo> activeWorkItemInfo = null;
@@ -243,13 +243,13 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 	
 	@Override
-	public void setDriverState(String value) {
-		driverState = value;
+	public void setJdState(String value) {
+		jdState = value;
 	}
 
 	@Override
-	public String getDriverState() {
-		return driverState;
+	public String getJdState() {
+		return jdState;
 	}
 
 	@Override

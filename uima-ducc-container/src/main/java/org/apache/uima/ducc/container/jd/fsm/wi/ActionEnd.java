@@ -35,7 +35,7 @@ import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.DriverState;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
 public class ActionEnd implements IAction {
 
@@ -94,9 +94,9 @@ public class ActionEnd implements IAction {
 	private void checkEnded(CasManager cm) {
 		String location = "checkEnded";
 		if(cm.getCasManagerStats().getUnfinishedWorkCount() <= 0) {
-			JobDriver.getInstance().advanceDriverState(DriverState.Ended);
+			JobDriver.getInstance().advanceJdState(JdState.Ended);
 			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.driverState.get()+JobDriver.getInstance().getDriverState());
+			mb.append(Standardize.Label.jdState.get()+JobDriver.getInstance().getJdState());
 			logger.info(location, ILogger.null_id, mb.toString());
 		}
 	}
