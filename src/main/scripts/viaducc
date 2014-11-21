@@ -37,6 +37,8 @@ global ducc_home
 ducc_class = 'fixed'
 java_cmd   = None
 ducc_home  = None       # tbd in a minute
+ducc_mem_size = None
+default_jvm = None
 
 # get the default DUCC_HOME right away for message
 realpath = os.path.realpath(sys.argv[0])
@@ -63,10 +65,14 @@ def usage():
     print "   -DDUCC_ENVIRONMENT=environment-settings"
     print "       The default is no additional environment.  The environment string should be"
     print '       blank-delimeted and quoted, for example: -DDUCC_ENVIRONMENT="A=B C=D"'
+    if (default_jvm != None ):
+        print ""
+        print "   -DJAVA_BIN=specific-java-bin-directory"
+        print "       For use with java_viaducc.  Details follow."
+        print "       The default is -DJAVA_BIN=" + default_jvm
     print ""
-    print "   -DJAVA_BIN=specific-java-bin-directory"
-    print "       For use with java_viaducc.  Details follow."
-    print "       The default is -DJAVA_BIN=" + default_jvm
+    print "   -DDUCC_NO_CANCEL_ON_INTERRUPT"
+    print "       To disable process cancellation when the submitting process terminates."
     print ""
     print "   When invoked as 'viaducc' the command is executed in a DUCC-managed resource"
     print "with the console (bi-directionally) redirected to the submitter's console."
@@ -131,23 +137,21 @@ def main():
     global default_jvm
     global ducc_home
 
-    p = read_properties()
-    default_jvm = p[0]
-    ducc_mem_size = p[1]
-
     if ( len(sys.argv) == 1 ):
         usage()
 
     ducc_class = 'fixed'
     java_cmd   = None
     ducc_env   = ''
+    enable_cancel = True
 
-    # remember to add the '=' at the end of these
+    # remember to add the '=' at the end if following value
     p_mem_size  = '-DDUCC_MEMORY_SIZE='
     p_class     = '-DDUCC_CLASS='
     p_jvm_dir   = '-DJAVA_BIN='
     p_ducc_home = '-DDUCC_HOME='
     p_env       = '-DDUCC_ENVIRONMENT='
+    p_no_int    = '-DDUCC_NO_CANCEL_ON_INTERRUPT'
 
     need_java = False
     if ( os.path.basename(sys.argv[0]) != 'viaducc' ):
@@ -179,8 +183,16 @@ def main():
         elif (arg.startswith(p_env) ):
             ducc_env = ' --environment "' + arg[len(p_env):] + '"'
 
+        elif (arg.startswith(p_no_int) ):
+            enable_cancel = False
+
         else:
             ducc_args.append("'" + arg + "'")
+
+    p = read_properties()
+    default_jvm = p[0]
+    if (ducc_mem_size == None ):
+        ducc_mem_size = p[1]
 
     if ( need_java and (java_cmd == None) ):
         java_cmd = default_jvm
@@ -197,7 +209,8 @@ def main():
     CMD = CMD +       ' --scheduling_class ' + ducc_class
     CMD = CMD +       ' --description ' + os.path.basename(sys.argv[0])
     CMD = CMD +       ' --wait_for_completion'
-    CMD = CMD +       ' --cancel_on_interrupt'
+    if (enable_cancel):
+        CMD = CMD +       ' --cancel_on_interrupt'
     CMD = CMD +       ' --working_directory ' + os.getcwd()
     CMD = CMD +       ducc_env
  
