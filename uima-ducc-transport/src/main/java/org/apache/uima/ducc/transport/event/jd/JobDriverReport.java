@@ -40,6 +40,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 
 	private DuccId duccId = null;
 	private int port = 0;
+	private String jdState = null;
 	private String jmxUrl = null;
 	
 	private long workItemsTotal = 0;
@@ -97,6 +98,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	public JobDriverReport(IOperatingInfo operatingInfo) {
 		setDuccId(getDuccId(operatingInfo));
+		setJdState(operatingInfo.getJdState());
 		//setJmxUrl(driverContainer.getJmxUrl());
 		setWorkItemsTotal(operatingInfo.getWorkItemCrTotal());
 		setWorkItemsProcessingCompleted(operatingInfo.getWorkItemEndSuccesses());
@@ -144,6 +146,10 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	public void setPort(int value) {
 		port = value;
+	}
+	
+	public void setJdState(String value) {
+		jdState = value;
 	}
 	
 	private void setJmxUrl(String value) {
@@ -219,6 +225,11 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	@Override
 	public int getPort() {
 		return port;
+	}
+
+	@Override
+	public String getJdState() {
+		return jdState;
 	}
 	
 	@Override

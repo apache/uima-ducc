@@ -145,6 +145,14 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	public void setPort(int value) {
 	}
 	
+	
+	public String getJdState() {
+		return null;
+	}
+	
+	public void setJdState(String value) {
+	}
+	
 	/*
 	 * Id
 	 */

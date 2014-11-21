@@ -38,6 +38,9 @@ public interface IDriverStatusReport {
 	public int getPort();
 	public void setPort(int value);
 	
+	public String getJdState();
+	public void setJdState(String value);
+	
 	public String getLogReport();
 	
 	public long getWorkItemsTotal();
