@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.transport.event.jd;
 
 import java.io.Serializable;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +41,7 @@ import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.Util;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
+@Deprecated
 public class DriverStatusReport implements Serializable, IDriverStatusReport {
 
 	private static final long serialVersionUID = 100L;
@@ -130,6 +132,17 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	
 	public DuccId getDuccId() {
 		return duccId;
+	}
+	
+	/*
+	 * Port (ducc 2.0)
+	 */
+	
+	public int getPort() {
+		return 0;
+	}
+	
+	public void setPort(int value) {
 	}
 	
 	/*
