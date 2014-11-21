@@ -189,7 +189,7 @@ import org.springframework.context.annotation.Import;
 			int port = Utils.findFreePort();
 			String jdUniqueId = "jdApp";
 			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
-			logger.debug(location, jobid, "endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
+			logger.info(location, jobid, "port: "+port+" "+"endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
 			jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
 			return jdc;
 		}
