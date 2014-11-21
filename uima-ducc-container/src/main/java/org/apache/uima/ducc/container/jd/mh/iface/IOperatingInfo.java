@@ -84,6 +84,9 @@ public interface IOperatingInfo extends Serializable {
 	
 	//
 	
+	public void setDriverState(String value);
+	public String getDriverState();
+	
 	public void setKillJob();
 	public boolean isKillJob();
 	

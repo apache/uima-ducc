@@ -23,10 +23,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.DriverState;
 
 public class CasManager {
 
@@ -47,6 +49,7 @@ public class CasManager {
 		try {
 			pjdcr = new ProxyJobDriverCollectionReader();
 			casManagerStats.setCrTotal(pjdcr.getTotal());
+			JobDriver.getInstance().advanceDriverState(DriverState.Active);
 		}
 		catch(JobDriverException e) {
 			logger.error(location, ILogger.null_id, e);

@@ -49,6 +49,7 @@ import org.apache.uima.ducc.container.jd.wi.RunningWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.DriverState;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 
 public class MessageHandler implements IMessageHandler {
@@ -101,7 +102,9 @@ public class MessageHandler implements IMessageHandler {
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
 			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());
 			oi.setActiveWorkItemInfo(jdh.getActiveWotrkItemInfo());
+			oi.setDriverState(jd.getDriverState().name());
 			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.driverState.get()+oi.getWorkItemCrTotal());
 			mb.append(Standardize.Label.crTotal.get()+oi.getWorkItemCrTotal());
 			mb.append(Standardize.Label.crFetches.get()+oi.getWorkItemCrFetches());
 			mb.append(Standardize.Label.endSuccess.get()+oi.getWorkItemEndSuccesses());
@@ -201,6 +204,8 @@ public class MessageHandler implements IMessageHandler {
 			default:
 				break;
 			}
+			DriverState driverState = JobDriver.getInstance().getDriverState();
+			trans.setDriverState(driverState);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

@@ -35,6 +35,7 @@ import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.DriverState;
 
 public class ActionEnd implements IAction {
 
@@ -74,6 +75,7 @@ public class ActionEnd implements IAction {
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 		mb.append(Standardize.Label.remote.get()+rwi.toString());
 		logger.info(location, ILogger.null_id, mb.toString());
+		checkEnded(cm);
 	}
 	
 	private void successWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
@@ -86,6 +88,17 @@ public class ActionEnd implements IAction {
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 		mb.append(Standardize.Label.remote.get()+rwi.toString());
 		logger.info(location, ILogger.null_id, mb.toString());
+		checkEnded(cm);
+	}
+	
+	private void checkEnded(CasManager cm) {
+		String location = "checkEnded";
+		if(cm.getCasManagerStats().getUnfinishedWorkCount() <= 0) {
+			JobDriver.getInstance().advanceDriverState(DriverState.Ended);
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.driverState.get()+JobDriver.getInstance().getDriverState());
+			logger.info(location, ILogger.null_id, mb.toString());
+		}
 	}
 	
 	@Override

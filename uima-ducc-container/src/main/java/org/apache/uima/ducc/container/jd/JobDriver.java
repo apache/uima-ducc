@@ -32,6 +32,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.DriverState;
 
 public class JobDriver {
 
@@ -63,6 +64,8 @@ public class JobDriver {
 	private ProxyJobDriverErrorHandler pjdeh = null;
 	private IMessageHandler mh = new MessageHandler();
 	
+	private DriverState driverState = null;
+	
 	private JobDriver() throws JobDriverException {
 		initialize();
 	}
@@ -77,6 +80,7 @@ public class JobDriver {
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
 			mh = new MessageHandler();
+			driverState = DriverState.Initializing;
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
@@ -106,5 +110,35 @@ public class JobDriver {
 	
 	public IMessageHandler getMessageHandler() {
 		return mh;
+	}
+	
+	public DriverState getDriverState() {
+		synchronized(driverState) {
+			return driverState;
+		}
+	}
+	
+	public void advanceDriverState(DriverState value) {
+		synchronized(driverState) {
+			switch(driverState) {
+			case Ended:
+				break;
+			case Active:
+				switch(value) {
+				case Ended:
+					driverState = value;
+					break;
+				}
+				break;
+			case Initializing:
+				switch(value) {
+				case Ended:
+				case Active:
+					driverState = value;
+				}
+				break;
+			}
+			driverState = value;
+		}
 	}
 }
