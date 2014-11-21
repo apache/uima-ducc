@@ -50,6 +50,7 @@ import org.springframework.context.annotation.Import;
 		
 		private static DuccLogger logger = DuccLoggerComponents.getJdOut(JobDriverConfiguration.class.getName());
 		private static DuccId jobid = null;
+		private static int port = 0;
 		
 		//	use Spring magic to autowire (instantiate and bind) CommonConfiguration to a local variable
 		@Autowired CommonConfiguration common;
@@ -186,7 +187,8 @@ import org.springframework.context.annotation.Import;
 			//	Inject Camel Router that will delegate messages to JobDriver delegate listener
 			jdc.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorAbbreviatedStateUpdateEndpoint, delegateListener));
 			
-			int port = Utils.findFreePort();
+			port = Utils.findFreePort();
+			jdc.setPort(port);
 			String jdUniqueId = "jdApp";
 			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
 			logger.info(location, jobid, "port: "+port+" "+"endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
