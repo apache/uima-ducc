@@ -24,6 +24,7 @@ import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
@@ -57,6 +58,7 @@ public class ActionAck implements IAction {
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				JobDriver.getInstance().getMessageHandler().incAcks();
 				logger.info(location, ILogger.null_id, mb.toString());
 			}
 			else {MessageBuffer mb = new MessageBuffer();

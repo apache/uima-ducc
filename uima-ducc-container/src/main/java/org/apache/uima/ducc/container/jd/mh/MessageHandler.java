@@ -20,6 +20,7 @@ package org.apache.uima.ducc.container.jd.mh;
 
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
@@ -54,6 +55,20 @@ public class MessageHandler implements IMessageHandler {
 
 	private static ILogger logger = Logger.getLogger(MessageHandler.class, IComponent.Id.JD.name());
 	
+	private AtomicInteger gets = new AtomicInteger(0);
+	private AtomicInteger acks = new AtomicInteger(0);
+	
+	public MessageHandler() {
+	}
+	
+	public void incGets() {
+		gets.incrementAndGet();
+	}
+	
+	public void incAcks() {
+		acks.incrementAndGet();
+	}
+	
 	@Override
 	public IOperatingInfo handleGetOperatingInfo() {
 		String location = "handleGetOperatingInfo";
@@ -70,6 +85,8 @@ public class MessageHandler implements IMessageHandler {
 			oi.setJobId(jd.getJobId());
 			oi.setWorkItemCrTotal(cms.getCrTotal());
 			oi.setWorkItemCrFetches(cms.getCrGets());
+			oi.setWorkItemJpGets(gets.get());
+			oi.setWorkItemJpAcks(acks.get());
 			oi.setWorkItemEndSuccesses(cms.getEndSuccess());
 			oi.setWorkItemEndFailures(cms.getEndFailure());
 			oi.setWorkItemEndRetrys(cms.getEndRetry());

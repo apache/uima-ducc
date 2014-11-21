@@ -30,4 +30,7 @@ public interface IMessageHandler {
 	public void handleDownProcess(IProcessInfo processInfo);
 	public void handlePreemptProcess(IProcessInfo processInfo);
 	public void handleMetaCasTransation(IMetaCasTransaction trans);
+	
+	public void incGets();
+	public void incAcks();
 }

@@ -68,6 +68,7 @@ public class ActionGet implements IAction {
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				JobDriver.getInstance().getMessageHandler().incGets();
 				logger.info(location, ILogger.null_id, mb.toString());
 			}
 			else {

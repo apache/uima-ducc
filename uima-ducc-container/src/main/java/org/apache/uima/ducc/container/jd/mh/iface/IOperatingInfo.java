@@ -34,8 +34,8 @@ public interface IOperatingInfo extends Serializable {
 	
 	public boolean isWorkItemCrPending();
 
-	public void setWorkItemJpSends(int value);
-	public int getWorkItemJpSends();
+	public void setWorkItemJpGets(int value);
+	public int getWorkItemJpGets();
 	
 	public void setWorkItemJpAcks(int value);
 	public int getWorkItemJpAcks();

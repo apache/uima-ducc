@@ -335,8 +335,8 @@ public class TestSuite extends ATest {
 		assertTrue(oi.getWorkItemEndSuccesses() == 60);
 		oi.setWorkItemJpAcks(65);
 		assertTrue(oi.getWorkItemJpAcks() == 65);
-		oi.setWorkItemJpSends(70);
-		assertTrue(oi.getWorkItemJpSends() == 70);
+		oi.setWorkItemJpGets(70);
+		assertTrue(oi.getWorkItemJpGets() == 70);
 		oi.setWorkItemUserProcessingErrorRetries(75);
 		assertTrue(oi.getWorkItemUserProcessingErrorRetries() == 75);
 		oi.setWorkItemUserProcessingTimeouts(80);

@@ -31,7 +31,7 @@ public class OperatingInfo implements IOperatingInfo {
 	
 	private int crTotal = 0;
 	private int crFetches = 0;
-	private int jpSends = 0;
+	private int jpGets = 0;
 	private int jpAcks = 0;
 	private int jpEndSuccesses = 0;
 	private int jpEndFailures = 0;
@@ -52,6 +52,9 @@ public class OperatingInfo implements IOperatingInfo {
 	private boolean killJob = false;
 
 	private ArrayList<IWorkItemInfo> activeWorkItemInfo = null;
+	
+	public OperatingInfo() {
+	}
 	
 	@Override
 	public void setJobId(String value) {
@@ -89,13 +92,13 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 	
 	@Override
-	public void setWorkItemJpSends(int value) {
-		jpSends = value;
+	public void setWorkItemJpGets(int value) {
+		jpGets = value;
 	}
 
 	@Override
-	public int getWorkItemJpSends() {
-		return jpSends;
+	public int getWorkItemJpGets() {
+		return jpGets;
 	}
 
 	@Override
