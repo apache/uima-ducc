@@ -36,7 +36,17 @@ public interface IMetaCasTransaction extends IMetaCasProvider, IMetaCasRequester
 	
 	public TransactionId getTransactionId();
 	public void setTransactionId(TransactionId value);
-	
+
 	public IMetaCas getMetaCas();
 	public void setMetaCas(IMetaCas value);
+	
+	/*
+	 * Initializing - driver is not yet ready to deliver work items
+	 * Active - driver is ready or delivering work items
+	 * Ended - driver is finished delivering work items
+	 */
+	public enum DriverState { Initializing, Active, Ended };
+	
+	public DriverState getDriverState();
+	public void setDriverState(DriverState value);
 }
