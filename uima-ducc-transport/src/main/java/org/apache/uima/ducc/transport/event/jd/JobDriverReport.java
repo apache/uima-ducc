@@ -100,7 +100,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		setWorkItemsProcessingCompleted(operatingInfo.getWorkItemEndSuccesses());
 		setWorkItemsProcessingError(operatingInfo.getWorkItemEndFailures());
 		setWorkItemsRetry(operatingInfo.getWorkItemUserProcessingErrorRetries());
-		setWorkItemsDispatched(operatingInfo.getWorkItemJpSends()-(operatingInfo.getWorkItemEndSuccesses()+operatingInfo.getWorkItemEndFailures()));
+		setWorkItemsDispatched(operatingInfo.getWorkItemJpGets()-(operatingInfo.getWorkItemEndSuccesses()+operatingInfo.getWorkItemEndFailures()));
 		// min of finished & running
 		long fMin = operatingInfo.getWorkItemFinishedMillisMin();
 		long min = fMin;
