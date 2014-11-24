@@ -49,6 +49,17 @@ public class WorkMapHelper {
 		ts.ended();
 	}
 	
+	public static IDuccWork findDuccWork(DuccWorkMap workMap, String duccId, Object object, String methodName) {
+		IDuccWork dw = null;
+		TrackSync ts = TrackSync.await(workMap, object.getClass(), methodName);
+		synchronized(workMap) {
+			ts.using();
+			dw = workMap.findDuccWork(duccId);
+		}
+		ts.ended();
+		return dw;
+	}
+	
 	public static IDuccWork findDuccWork(DuccWorkMap workMap, DuccId duccId, Object object, String methodName) {
 		IDuccWork dw = null;
 		TrackSync ts = TrackSync.await(workMap, object.getClass(), methodName);

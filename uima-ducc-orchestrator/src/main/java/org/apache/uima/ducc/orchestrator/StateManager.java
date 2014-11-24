@@ -453,7 +453,8 @@ public class StateManager {
 		synchronized(workMap) {
 			ts.using();
 			DuccId duccId = jdStatusReport.getDuccId();
-			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, duccId, this, methodName);
+			String sid = ""+duccId.getFriendly();
+			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, sid, this, methodName);
 			if(duccWorkJob != null) {
 				IRationale rationale;
 				String jdJmxUrl = jdStatusReport.getJdJmxUrl();
