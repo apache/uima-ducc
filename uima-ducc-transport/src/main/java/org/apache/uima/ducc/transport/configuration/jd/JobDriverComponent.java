@@ -25,8 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
-import org.apache.uima.ducc.common.jd.JdFlagsHelper;
-import org.apache.uima.ducc.common.jd.JdFlagsHelper.Name;
+import org.apache.uima.ducc.common.container.FlagsHelper;
+import org.apache.uima.ducc.common.container.FlagsHelper.Name;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
@@ -59,8 +59,8 @@ implements IJobDriverComponent {
 		String location = "verifySystemProperties";
 		Properties properties = System.getProperties();
 		ArrayList<String> missing = new ArrayList<String>();
-		for(Name name : JdFlagsHelper.Name.values()) {
-			String key = name.name();
+		for(Name name : FlagsHelper.Name.values()) {
+			String key = name.pname();
 			if(properties.containsKey(key)) {
 				String value = properties.getProperty(key);
 				String text = key+"="+value;
