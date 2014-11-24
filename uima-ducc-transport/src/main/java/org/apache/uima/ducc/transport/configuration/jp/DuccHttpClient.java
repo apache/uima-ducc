@@ -46,6 +46,7 @@ import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 
 public class DuccHttpClient {
@@ -63,7 +64,15 @@ public class DuccHttpClient {
 	ReentrantLock lock = new ReentrantLock();
 	int timeout;
 	
-	public void intialize(String url, int port, String application, int scaleout, int timeout)
+	public void setTimeout( int timeout) {
+		this.timeout = timeout;
+	}
+	public void setScaleout(int scaleout) {
+		connPool.setMaxTotal(scaleout);
+		connPool.setDefaultMaxPerRoute(scaleout);
+		connPool.setMaxPerRoute(host, scaleout);
+	}
+	public void intialize(String url, int port, String application)
 			throws Exception {
 		target = application;
 		this.timeout = timeout;
@@ -80,17 +89,25 @@ public class DuccHttpClient {
 		coreContext.setTargetHost(host);
 		connPool = new BasicConnPool();
 		
-		connPool.setMaxTotal(scaleout);
-		connPool.setDefaultMaxPerRoute(scaleout);
-		connPool.setMaxPerRoute(host, scaleout);
 		connStrategy = new DefaultConnectionReuseStrategy();//DefaultConnectionReuseStrategy.INSTANCE;
 		pid = getProcessIP("N/A");
 		hostname = InetAddress.getLocalHost().getCanonicalHostName();
 		hostIP = InetAddress.getLocalHost().getHostAddress();
-
+		// test connection to the JD
+		testConnection();
 		System.out.println("HttpClient Initialized");
 	}
-    public void close() {
+	public void testConnection() throws Exception {
+		// test connection to the JD
+	    Future<BasicPoolEntry> future = connPool.lease(host,  null);
+		BasicPoolEntry poolEntry = null;
+		try {
+			poolEntry= future.get();
+		} finally {
+			connPool.release(poolEntry, true);
+		}
+	}
+	public void close() {
     	try {
         //	conn.close();
     		
@@ -142,13 +159,16 @@ public class DuccHttpClient {
 		BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", target);
 		addCommonHeaders(transaction);
 		addCommonHeaders(request);
+		transaction.setDirection(Direction.Request);
 		return execute(request,transaction);
 	}
 	private IMetaCasTransaction execute( BasicHttpEntityEnclosingRequest request, IMetaCasTransaction transaction ) throws Exception {
 		BasicPoolEntry poolEntry=null;
 		try {
+			// Get the connection from the pool
 		    Future<BasicPoolEntry> future = connPool.lease(host,  null);
 		    poolEntry = future.get();
+		    
 		    HttpClientConnection conn = poolEntry.getConnection();
 		    coreContext.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
             coreContext.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, host);
@@ -160,21 +180,17 @@ public class DuccHttpClient {
 			request.setHeader("content-type", "text/xml");
             String body = XStreamUtils.marshall(transaction);
 			HttpEntity entity = new StringEntity(body);
-            //request.setHeader("content-length", String.valueOf(body.length()));
 
 			request.setEntity(entity);
 
 			httpexecutor.preProcess(request, httpproc, coreContext);
 			HttpResponse response = httpexecutor.execute(request, conn,	coreContext);
 			httpexecutor.postProcess(response, httpproc, coreContext);
-//			ObjectInput i = new ObjectInputStream(response.getEntity().getContent());
-//		    IMetaCasTransaction cmt = (IMetaCasTransaction) i.readObject();
-//			
-//			byte[] cargo = EntityUtils.toByteArray(response.getEntity());
-//			ByteArrayInputStream bis = new ByteArrayInputStream(cargo);
-//		    ObjectInput in = new ObjectInputStream(bis);
-//		    IMetaCasTransaction cmt2 = (IMetaCasTransaction) in.readObject();
 
+			if ( response.getStatusLine().getStatusCode() != 200) {
+				System.out.println("Unable to Communicate with JD - Error:"+response.getStatusLine());
+				throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+response.getStatusLine());
+			}
 			System.out.println("<< Response: "
 					+ response.getStatusLine());
 			String responseData = EntityUtils.toString(response.getEntity());

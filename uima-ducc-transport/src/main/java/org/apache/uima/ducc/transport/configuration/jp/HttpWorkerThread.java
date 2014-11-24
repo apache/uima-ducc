@@ -19,18 +19,22 @@
 
 package org.apache.uima.ducc.transport.configuration.jp;
 
+import java.net.SocketTimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.jp.iface.IUimaProcessor;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 
 public class HttpWorkerThread implements Runnable {
 	DuccHttpClient httpClient = null;
 	private IUimaProcessor uimaProcessor;
 	private JobProcessComponent duccComponent;
-	
-	private volatile boolean running = true;
-
+	static AtomicInteger counter = new AtomicInteger();
+    private DuccLogger logger;
 	private Object monitor = new Object();
 /*
 	interface SMEvent {
@@ -229,10 +233,9 @@ public class HttpWorkerThread implements Runnable {
 
 	public void run() {
 		try {
-			String xmi = null;
 			//States stateMachine = new States(States.Start);
 //			SMContext ctx = new SMContextImpl(httpClient, States.Start);
-			
+			String command="";
 			// run forever (or until the process throws IllegalStateException
 			while (true) {  //service.running && ctx.state().process(ctx)) {
 
@@ -242,32 +245,52 @@ public class HttpWorkerThread implements Runnable {
 					// According to HTTP spec, GET may not contain Body in 
 					// HTTP request. HttpClient actually enforces this. So
 					// do a POST instead of a GET.
+					transaction.setType(Type.Get);  // Tell JD you want a CAS
+					command = "Get";
 					transaction = httpClient.post(transaction);
+                    
+					// Confirm receipt of the CAS. 
+					transaction.setType(Type.Ack);
+					command = "Ack";
+					httpClient.post(transaction); // Ready to process
 					
-					transaction.setDirection(Direction.Request);
-					//httpClient.post(transaction); // Received Work Item
-					// if the processor is stopped due to external request the
-					// process() will throw IllegalStateException handled below.
-					
-				//	uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
-					httpClient.post(transaction); // Work Item Processed
-					System.exit(0);
-/*
-					synchronized (monitor) {
-						Random rand = new Random();
-
-						// nextInt is normally exclusive of the top value,
-						// so add 1 to make it inclusive
-						int randomNum = rand.nextInt((1000 - 100) + 1) + 100;
-						try {
-							monitor.wait(randomNum);
-						} catch (InterruptedException e) {
-
+					// if the JD did not provide a CAS, most likely the CR is
+					// done. In such case, reduce frequency of Get requests
+					// by sleeping in between Get's. Eventually the JD will 
+					// confirm that there is no more work and this thread
+					// can exit.
+					if ( transaction.getMetaCas() == null || transaction.getMetaCas().getUserSpaceCas() == null) {
+						// if the JD state is Ended, exit this thread as all work has
+						// been processed and accounted for
+						if ( transaction.getJdState().equals(JdState.Ended) ) {
+							duccComponent.getLogger().warn("run", null, "Exiting Thread "+Thread.currentThread().getId()+" JD Finished Processing");
+							System.out.println("Exiting Thred DriverState=Ended");
+							break; // the JD completed. Exit the thread
 						}
+						// There is no CAS. It looks like the JD CR is done but there
+						// are still WIs being processed. Slow down the rate of requests	
+						synchronized (monitor) {
+							try {
+								monitor.wait(duccComponent.getThreadSleepTime());
+							} catch (InterruptedException e) {
+
+							}
+						}
+					} else {
+						uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
+						transaction.setType(Type.End);
+						command = "End";
+						httpClient.post(transaction); // Work Item Processed - End
 					}
-*/
-				} catch (IllegalStateException e) {
-					break; // service stopped
+				} catch( SocketTimeoutException e) {
+					duccComponent.getLogger().warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
+					System.out.println("Time Out While Waiting For a Reply from JD For "+command+" Request");
+				}
+				catch (Exception e ) {
+					duccComponent.getLogger().warn("run", null, e);
+					duccComponent.getLogger().warn("run", null, "Caught Unexpected Exception - Exiting Thread "+Thread.currentThread().getId() );
+					e.printStackTrace();
+					break; 
 				} finally {
 
 				}

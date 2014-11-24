@@ -19,8 +19,6 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 
 import java.net.InetAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -28,9 +26,9 @@ import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
-import org.apache.uima.ducc.container.jp.UimaProcessor;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
@@ -43,6 +41,8 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import({ DuccTransportConfiguration.class, CommonConfiguration.class })
 public class JobProcessConfiguration  {
+	public static final String AGENT_ENDPOINT="mina:tcp://localhost:";
+	public static final String USER_CP_KEY = "UserClasspath";
 	@Autowired
 	DuccTransportConfiguration transport;
 	@Autowired
@@ -109,7 +109,26 @@ public class JobProcessConfiguration  {
 			// exchange);
 		}
 	}
-
+    private void checkPrereqs(DuccLogger logger) {
+		if (null == System.getProperty(USER_CP_KEY)) {
+			logger.error("start", null, "Missing the -Dorg.apache.uima.ducc.userjarpath=XXXX property");
+			throw new RuntimeException("Missing the -Dorg.apache.uima.ducc.userjarpath=XXXX property");
+		}
+		if (null == common.saxonJarPath ){
+			logger.error("start", null, "Missing saxon jar path. Check your ducc.properties");
+			throw new RuntimeException("Missing saxon jar path. Check your ducc.properties");
+		}
+		if (null == common.dd2SpringXslPath ){
+			logger.error("start", null, "Missing dd2sping xsl path. Check your ducc.properties");
+			throw new RuntimeException("Missing dd2spring xsl path. Check your ducc.properties");
+		}
+		if (null == System.getProperty("jdURL")) {
+			logger.error("start", null, "Missing the -DjdURL property");
+			throw new RuntimeException("Missing the -DjdURL property");
+		}
+		
+		
+    }
 	
 	@Bean
 	public JobProcessComponent getProcessManagerInstance() throws Exception {
@@ -121,6 +140,14 @@ public class JobProcessConfiguration  {
 			String thisNodeIP = (System.getenv("IP") == null) ? InetAddress
 					.getLocalHost().getHostAddress() : System.getenv("IP");
 			camelContext = common.camelContext();
+
+			duccComponent = 
+					new JobProcessComponent("UimaProcess", camelContext, this);
+			
+			// check if required configuration is provided. This method throws Exceptions if 
+			// there is something missing.
+			checkPrereqs(duccComponent.getLogger());
+			
 			int serviceSocketPort = 0;
 			String agentSocketParams = "";
 			String jpSocketParams = "";
@@ -137,7 +164,7 @@ public class JobProcessConfiguration  {
 			if (common.managedProcessStateUpdateEndpointType != null
 					&& common.managedProcessStateUpdateEndpointType
 							.equalsIgnoreCase("socket")) {
-				common.managedProcessStateUpdateEndpoint = "mina:tcp://localhost:"
+				common.managedProcessStateUpdateEndpoint = AGENT_ENDPOINT
 						+ System.getProperty(ProcessStateUpdate.ProcessStateUpdatePort)
 						+ agentSocketParams;
 			}
@@ -148,7 +175,7 @@ public class JobProcessConfiguration  {
 							.equalsIgnoreCase("socket")) {
 				serviceSocketPort = Utils.findFreePort();
 				// service is on the same node as the agent
-				common.managedServiceEndpoint = "mina:tcp://localhost:"
+				common.managedServiceEndpoint = AGENT_ENDPOINT
 						+ serviceSocketPort + jpSocketParams;
 			}
 
@@ -169,14 +196,22 @@ public class JobProcessConfiguration  {
 			System.out
 					.println("#######################################################");
 			jobProcessManager = new JobProcessManager();
-			duccComponent = 
-					new JobProcessComponent("UimaProcess", camelContext, this);
 			duccComponent.setAgentSession(agent);
 			duccComponent.setJobProcessManager(jobProcessManager);
 			duccComponent.setSaxonJarPath(common.saxonJarPath);
 			duccComponent.setDd2SpringXslPath(common.dd2SpringXslPath);
-			duccComponent.setTimeout(10000);  //common.jpTimeout);
-			
+			if ( common.processThreadSleepTime != null ) {
+				duccComponent.setThreadSleepTime(Integer.parseInt(common.processThreadSleepTime));
+				duccComponent.getLogger().info("getProcessManagerInstance", null, "Overriding Default Thread Sleep Time - New Value "+common.processThreadSleepTime+" ms");
+			}
+			if ( common.processContainerClass != null ) {
+				duccComponent.setContainerClass(common.processContainerClass);
+				duccComponent.getLogger().info("getProcessManagerInstance", null, "Overriding Default Process Container Class With "+common.processContainerClass);
+			}
+			if ( common.processRequestTimeout != null ) {
+				duccComponent.setTimeout(Integer.valueOf(common.processRequestTimeout));
+				duccComponent.getLogger().info("getProcessManagerInstance", null, "Overriding Default Process Request Timeout - New Timeout "+common.processRequestTimeout+" ms");
+			}
 			
 			JobProcessEventListener eventListener = 
 					new JobProcessEventListener(duccComponent);
