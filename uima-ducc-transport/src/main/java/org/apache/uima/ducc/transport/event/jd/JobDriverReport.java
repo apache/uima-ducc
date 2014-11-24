@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.common.Util;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
@@ -356,10 +357,20 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		return null;
 	}
 
+	@Deprecated
 	@Override
 	public DriverState getDriverState() {
-		// TODO Auto-generated method stub
-		return null;
+		DriverState retVal = DriverState.Undefined;
+		String state = getJdState();
+		if(state != null) {
+			if(state.equals(JdState.Initializing.name())) {
+				retVal = DriverState.Initializing;
+			}
+			else if(state.equals(JdState.Active.name())) {
+				retVal = DriverState.Running;
+			}
+		}
+		return retVal;
 	}
 
 	@Override

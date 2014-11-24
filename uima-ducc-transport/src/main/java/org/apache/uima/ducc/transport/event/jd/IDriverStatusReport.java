@@ -91,6 +91,7 @@ public interface IDriverStatusReport {
 	
 	public Iterator<DuccId> getKillDuccIds();
 	
+	@Deprecated
 	public DriverState getDriverState();
 	
 	public JobCompletionType getJobCompletionType();
