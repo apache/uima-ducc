@@ -192,7 +192,20 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.agent.launcher.process.stop.timeout'] }")
 	public String processStopTimeout;	
 
-  @Value("#{ systemProperties['ducc.orchestrator.http.port'] }")
+	// Fetch max amount of time to wait for a reply from the JD
+	@Value("#{ systemProperties['ducc.process.request.timeout'] }")
+	public String processRequestTimeout;
+
+	// Fetch the container class
+	@Value("#{ systemProperties['ducc.process.container.class'] }")
+	public String processContainerClass;
+	
+	// Fetch the container class
+	@Value("#{ systemProperties['ducc.process.thread.sleep.time'] }")
+	public String processThreadSleepTime;
+	
+	
+	@Value("#{ systemProperties['ducc.orchestrator.http.port'] }")
   public String duccORHttpPort; 
 
   public CamelContext camelContext() {

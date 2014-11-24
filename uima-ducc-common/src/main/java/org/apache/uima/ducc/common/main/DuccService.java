@@ -167,10 +167,10 @@ public class DuccService extends AbstractDuccComponent {
 			}
 			getDuccLogger().info(methodName, null, "... Component started: ", duccComponent.getKey());
 		}
-		
+		System.out.println("Starting Camel. Use ctrl + c to terminate the JVM.\n");
     // run until you terminate the JVM
     getDuccLogger().info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
-    main.run();
+    main.start();
        
   }
 	public AbstractDuccComponent getComponentInstance(String componentKey) {
