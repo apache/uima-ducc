@@ -15,16 +15,16 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/package org.apache.uima.ducc.common.jd;
+*/package org.apache.uima.ducc.common.container;
 
 import java.io.File;
 import java.util.Properties;
 
-public class JdFlagsHelper {
+public class FlagsHelper {
 
-	private static JdFlagsHelper instance = new JdFlagsHelper();
+	private static FlagsHelper instance = new FlagsHelper();
 	
-	public static JdFlagsHelper getInstance() {
+	public static FlagsHelper getInstance() {
 		return instance;
 	}
 	
@@ -51,76 +51,79 @@ public class JdFlagsHelper {
 		public boolean isRequired() {
 			return requiredFlag;
 		}
+		
+		public String pname() {
+			return "ducc.deploy."+name();
+		}
+		
+		public String dname() {
+			return "-D"+pname();
+		}
+		
+		public String arg(String value) {
+			String retVal = "";
+			if(value != null) {
+				String trimmedValue = value.trim();
+				if(trimmedValue.length() > 0) {
+					retVal = dname()+"="+trimmedValue;
+				}
+			}
+			return retVal;
+		}
 	}
 	
 	public String getCollectionReaderCfg() {
 		Properties properties = System.getProperties();
-		return properties.getProperty(Name.CollectionReaderCfg.name());
+		return properties.getProperty(Name.CollectionReaderCfg.pname());
 	}
 	
 	public String getCollectionReaderCfgDashD(String value) {
-		return toDashD(Name.CollectionReaderCfg.name(),value);
+		return Name.CollectionReaderCfg.arg(value);
 	}
 	
 	public String getCollectionReaderXml() {
 		Properties properties = System.getProperties();
-		return properties.getProperty(Name.CollectionReaderXml.name());
+		return properties.getProperty(Name.CollectionReaderXml.pname());
 	}
 	
 	public String getCollectionReaderXmlDashD(String value) {
-		return toDashD(Name.CollectionReaderXml.name(),value);
+		return Name.CollectionReaderXml.arg(value);
 	}
 	
 	public String getJobId() {
 		Properties properties = System.getProperties();
-		return properties.getProperty(Name.JobId.name());
+		return properties.getProperty(Name.JobId.pname());
 	}
 	
 	public String getJobIdDashD(String value) {
-		return toDashD(Name.JobId.name(),value);
+		return Name.JobId.arg(value);
 	}
 	
 	public String getUserClasspath() {
 		Properties properties = System.getProperties();
-		return properties.getProperty(Name.UserClasspath.name());
+		return properties.getProperty(Name.UserClasspath.pname());
 	}
 	
 	public String getUserClasspathDashD(String value) {
-		return toDashD(Name.UserClasspath.name(),value);
+		return Name.UserClasspath.arg(value);
 	}
 	
 	public String getUserErrorHandlerClassname() {
 		Properties properties = System.getProperties();
-		return properties.getProperty(Name.UserErrorHandlerClassname.name());
+		return properties.getProperty(Name.UserErrorHandlerClassname.pname());
 	}
 	
 	public String getUserErrorHandlerClassnameDashD(String value) {
-		return toDashD(Name.UserErrorHandlerClassname.name(),value);
+		return Name.UserErrorHandlerClassname.arg(value);
 	}
 	
 	public String getUserErrorHandlerCfg() {
 		Properties properties = System.getProperties();
-		return properties.getProperty(Name.UserErrorHandlerCfg.name());
+		return properties.getProperty(Name.UserErrorHandlerCfg.pname());
 	}
 	
 	public String getUserErrorHandlerCfgDashD(String value) {
-		return toDashD(Name.UserErrorHandlerCfg.name(),value);
-	}
-	
-	private String toDashD(String key, String value) {
-		String retVal = "";
-		if(key != null) {
-			if(value != null) {
-				String trimmedKey = key.trim();
-				String trimmedValue = value.trim();
-				if(trimmedKey.length() > 0) {
-					if(trimmedValue.length() > 0) {
-						retVal = "-D"+trimmedKey+"="+trimmedValue;
-					}
-				}
-			}
-		}
-		return retVal;
+		return Name.UserErrorHandlerCfg.arg(value);
 	}
 	
 	public String[] stringToArray(String classpath) {
