@@ -160,12 +160,15 @@ under the License.
       <includes>
         <include>commons-httpclient:commons-httpclient</include>
         <include>commons-codec:commons-codec</include>
+        <include>org.apache.httpcomponents:httpcore</include>
+        <include>org.apache.httpcomponents:httpclient</include>
       </includes>      
       <outputDirectory>lib/http-client</outputDirectory>
       <useProjectArtifact>false</useProjectArtifact>
       <fileMode>644</fileMode> 
       <directoryMode>755</directoryMode>        
     </dependencySet>
+
 
 	<!-- Combine the shared common jars -->
     <dependencySet>
