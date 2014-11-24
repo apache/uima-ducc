@@ -29,4 +29,5 @@ public interface IDuccWorkMap {
 	public Set<DuccId> getManagedReservationKeySet();
 	
 	public IDuccWork findDuccWork(DuccId duccId);
+	public IDuccWork findDuccWork(String duccId);
 }

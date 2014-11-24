@@ -271,6 +271,20 @@ public class DuccWorkMap implements IDuccWorkMap, Serializable, Map {
 			return concurrentWorkMap.get(duccId);
 		}
 	}
+
+	@Override
+	public IDuccWork findDuccWork(String duccId) {
+		IDuccWork retVal = null;
+		for(Entry<DuccId, IDuccWork> entry : concurrentWorkMap.entrySet()) {
+			DuccId id = entry.getKey();
+			String sid = ""+id.getFriendly();
+			if(sid.equals(duccId)) {
+				retVal = entry.getValue();
+				break;
+			}
+		};
+		return retVal;
+	}
 	
 	public IDuccWork findDuccWork(DuccType duccType, String id) {
 		IDuccWork duccWork = null;
