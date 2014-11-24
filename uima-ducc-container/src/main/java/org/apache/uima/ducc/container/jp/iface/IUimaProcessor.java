@@ -21,6 +21,6 @@ package org.apache.uima.ducc.container.jp.iface;
 
 public interface IUimaProcessor {
 	public void stop() throws Exception;
-	public void process(String xmi) throws Exception;
+	public void process(Object xmi) throws Exception;
 	public int getScaleout() throws Exception;
 }

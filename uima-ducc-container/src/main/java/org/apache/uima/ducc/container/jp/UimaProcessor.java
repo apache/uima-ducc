@@ -44,7 +44,7 @@ public class UimaProcessor implements IUimaProcessor {
 	}
 
 	
-	public void process(String xmi) throws Exception {
+	public void process(Object xmi) throws Exception {
 		if ( running ) {
 			processMethod.invoke(uimaContainerInstance, xmi);
 		} else {

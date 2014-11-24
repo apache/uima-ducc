@@ -53,7 +53,7 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 			}
 	        
 			Method deployMethod = classToLaunch.getMethod(M_DEPLOY, String[].class);
-			Method processMethod = classToLaunch.getMethod(M_PROCESS, String.class);
+			Method processMethod = classToLaunch.getMethod(M_PROCESS, Object.class);
 			Method stopMethod = classToLaunch.getMethod(M_STOP);
 			
 			Object uimaContainerInstance = classToLaunch.newInstance();
