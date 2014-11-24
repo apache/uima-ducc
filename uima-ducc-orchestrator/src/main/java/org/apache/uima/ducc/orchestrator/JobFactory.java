@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -73,11 +74,20 @@ public class JobFactory {
 	
 	private long driver_max_size_in_bytes = 0;
 	
+	private enum JdVersion { V1, V2 };
+	private JdVersion jdVersion = JdVersion.V2;
+	
 	public JobFactory() {
 		String ducc_jd_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_share_quantum);
 		long oneKB = 1024;
 		long oneMB = 1024*oneKB;
 		driver_max_size_in_bytes = Long.parseLong(ducc_jd_share_quantum) * oneMB;
+		String jd_configuration_class = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_configuration_class);
+		if(jd_configuration_class != null) {
+			if(jd_configuration_class.trim().equals("org.apache.uima.ducc.jd.config.JobDriverConfiguration")) {
+				jdVersion = JdVersion.V1;
+			}
+		}
 	}
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
@@ -255,11 +265,113 @@ public class JobFactory {
 		}
 	}
 	
+	private String buildJobDriverClasspath(JobRequestProperties jobRequestProperties, DuccId jobid) {
+		String methodName = "buildJobDriverClasspath";
+		String cp = null;
+		switch(jdVersion) {
+		case V2:
+			cp = getDuccClasspath(0);
+			logger.debug(methodName, jobid, "java CP:"+cp);
+			break;
+		default:
+		case V1:
+			String java_classpath = getDuccClasspath(0);  // for driver	
+			String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
+			logger.debug(methodName, jobid, "driver CP (spec):"+driverClasspath);
+			logger.debug(methodName, jobid, "java CP:"+java_classpath);
+			if(driverClasspath != null) {
+				if(isClasspathOrderUserBeforeDucc(jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath_order),jobid)) {
+					logger.info(methodName, jobid, "driver:OrderUserBeforeDucc");
+					driverClasspath=driverClasspath+File.pathSeparator+java_classpath;
+				}
+				else {
+					logger.info(methodName, jobid, "driver:OrderDuccBeforeUser");
+					driverClasspath=java_classpath+File.pathSeparator+driverClasspath;
+				}
+			}
+			else {
+				logger.info(methodName, jobid, "driver:OrderDefault");
+				driverClasspath=java_classpath;
+			}
+			logger.debug(methodName, jobid, "driver CP (combined):"+driverClasspath);
+			cp = driverClasspath;
+			break;
+		}
+		return cp;
+	}
+	
+	private JavaCommandLine buildJobDriverCommandLine(JobRequestProperties jobRequestProperties, DuccId jobid) {
+		JavaCommandLine jcl = null;
+		// java command
+		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
+		jcl = new JavaCommandLine(javaCmd);
+		jcl.setClassName(IDuccCommand.main);
+		jcl.addOption(IDuccCommand.arg_ducc_deploy_configruation);
+		jcl.addOption(IDuccCommand.arg_ducc_deploy_components);
+		jcl.addOption(IDuccCommand.arg_ducc_job_id+jobid.toString());
+		String cp = buildJobDriverClasspath(jobRequestProperties, jobid);
+		jcl.setClasspath(cp);
+		// Add the user-provided JVM args
+		boolean haveXmx = false;
+		String driver_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_jvm_args);
+		ArrayList<String> dTokens = QuotedOptions.tokenizeList(driver_jvm_args, true);
+		for(String token : dTokens) {
+			jcl.addOption(token);
+			if (!haveXmx) {
+			    haveXmx = token.startsWith("-Xmx");
+			}
+		}
+		// Add any site-provided JVM args, but not -Xmx if the user has provided one
+		String siteJvmArgs = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_driver_jvm_args);
+		dTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
+		for (String token : dTokens) {
+		    if (!haveXmx || !token.startsWith("-Xmx")) {
+		       jcl.addOption(token);
+		    }
+		}
+		// Add job JVM args
+		switch(jdVersion) {
+		case V2:
+			// add JobId
+			String opt;
+			opt = FlagsHelper.Name.JobId.dname()+"="+jobid.getFriendly();
+			jcl.addOption(opt);
+			// add CrXML
+			String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
+			if(crxml != null) {
+				opt = FlagsHelper.Name.CollectionReaderXml.dname()+"="+crxml;
+				jcl.addOption(opt);
+			}
+			// add CrCfg
+			String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
+			if(crcfg != null) {
+				opt = FlagsHelper.Name.CollectionReaderCfg.dname()+"="+crcfg;
+				jcl.addOption(opt);
+			}
+			// add userCP
+			String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
+			if(userCP == null) {
+				userCP = "";
+			}
+			String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
+			userCP = augment+File.pathSeparator+userCP;
+			opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
+			jcl.addOption(opt);
+			break;
+		default:
+		case V1:
+			break;
+		}
+		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
+		jcl.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
+		// Log directory
+		jcl.setLogDirectory(jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
+		return jcl;
+	}
+	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
 		String methodName = "createDriver";
 		DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
-		// java command
-		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
 		// broker & queue
 		job.setJobBroker(common.brokerUrl);
 		job.setJobQueue(common.jdQueuePrefix+job.getDuccId());
@@ -297,60 +409,12 @@ public class JobFactory {
 		}
 		// Command line
 		DuccWorkPopDriver driver = new DuccWorkPopDriver(job.getjobBroker(), job.getjobQueue(), crxml, crcfg, meta_time, lost_time, wi_time, processExceptionHandler, processStatusMaxWaitMillis);
-		JavaCommandLine driverCommandLine = new JavaCommandLine(javaCmd);
-		driverCommandLine.setClassName(IDuccCommand.main);
-		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_configruation);
-		driverCommandLine.addOption(IDuccCommand.arg_ducc_deploy_components);
-		driverCommandLine.addOption(IDuccCommand.arg_ducc_job_id+job.getDuccId().toString());
-		// classpath
-		String java_classpath = getDuccClasspath(0);  // for driver	
-		String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-		logger.debug(methodName, job.getDuccId(), "driver CP (spec):"+driverClasspath);
-		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
-		if(driverClasspath != null) {
-			if(isClasspathOrderUserBeforeDucc(jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath_order),job.getDuccId())) {
-				logger.info(methodName, job.getDuccId(), "driver:OrderUserBeforeDucc");
-				driverClasspath=driverClasspath+File.pathSeparator+java_classpath;
-			}
-			else {
-				logger.info(methodName, job.getDuccId(), "driver:OrderDuccBeforeUser");
-				driverClasspath=java_classpath+File.pathSeparator+driverClasspath;
-			}
-		}
-		else {
-			logger.info(methodName, job.getDuccId(), "driver:OrderDefault");
-			driverClasspath=java_classpath;
-		}
-		logger.debug(methodName, job.getDuccId(), "driver CP (combined):"+driverClasspath);
-		driverCommandLine.setClasspath(driverClasspath);
-		// Add the user-provided JVM args
-		boolean haveXmx = false;
-		String driver_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_jvm_args);
-		ArrayList<String> dTokens = QuotedOptions.tokenizeList(driver_jvm_args, true);
-		for(String token : dTokens) {
-			driverCommandLine.addOption(token);
-			if (!haveXmx) {
-			    haveXmx = token.startsWith("-Xmx");
-			}
-		}
-		// Add any site-provided JVM args, but not -Xmx if the user has provided one
-		String siteJvmArgs = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_driver_jvm_args);
-		dTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
-		for (String token : dTokens) {
-		    if (!haveXmx || !token.startsWith("-Xmx")) {
-		        driverCommandLine.addOption(token);
-		    }
-		}
-		
-		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
-		driverCommandLine.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
+		JavaCommandLine driverCommandLine = buildJobDriverCommandLine(jobRequestProperties, job.getDuccId());
 		// Environment
 		String driverEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 		int envCountDriver = addEnvironment(job, "driver", driverCommandLine, driverEnvironmentVariables);
 		logger.info(methodName, job.getDuccId(), "driver env vars: "+envCountDriver);
 		logger.debug(methodName, job.getDuccId(), "driver: "+driverCommandLine.getCommand());
-		// Log directory
-		driverCommandLine.setLogDirectory(jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
 		driver.setCommandLine(driverCommandLine);
 		//
 		NodeIdentity nodeIdentity = hostManager.getNode();
