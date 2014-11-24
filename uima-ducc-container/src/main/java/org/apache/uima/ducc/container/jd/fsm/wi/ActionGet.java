@@ -33,6 +33,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
 public class ActionGet implements IAction {
 
@@ -54,7 +55,9 @@ public class ActionGet implements IAction {
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
 			IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
 			//
-			CasManager cm = JobDriver.getInstance().getCasManager();
+			JobDriver jd = JobDriver.getInstance();
+			jd.advanceJdState(JdState.Active);
+			CasManager cm = jd.getCasManager();
 			IMetaCas metaCas = cm.getMetaCas();
 			trans.setMetaCas(metaCas);
 			//

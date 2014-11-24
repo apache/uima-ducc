@@ -81,7 +81,6 @@ public class JobDriver {
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
 			mh = new MessageHandler();
-			advanceJdState(JdState.Active);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
