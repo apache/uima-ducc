@@ -108,6 +108,7 @@ public class UimaProcessContainer {
 	public void stop() throws Exception {
 		System.out.println("Stopping UIMA_AS Client");
 		try {
+			System.setProperty("dontKill", "true");
 			uimaASClient.stop();
 
 		} catch (Exception e) {
@@ -170,11 +171,11 @@ public class UimaProcessContainer {
 		return containerId;
 	}
 
-	public void process(String xmi) throws Exception {
+	public void process(Object xmi) throws Exception {
 		CAS cas = uimaASClient.getCAS();
 		XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 
-		uimaSerializer.deserializeCasFromXmi(xmi, cas, deserSharedData, true,
+		uimaSerializer.deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,
 				-1);
 
 		uimaASClient.sendAndReceiveCAS(cas);
