@@ -20,7 +20,7 @@ package org.apache.uima.ducc.container.jd;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.uima.ducc.container.common.JdFlagsExtendedHelper;
+import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -74,7 +74,7 @@ public class JobDriver {
 		String location = "initialize";
 		try {
 			jdState = JdState.Initializing;
-			JdFlagsExtendedHelper feh = JdFlagsExtendedHelper.getInstance();
+			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 			jobId = feh.getJobId();
 			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
 			wis = new WorkItemStatistics();

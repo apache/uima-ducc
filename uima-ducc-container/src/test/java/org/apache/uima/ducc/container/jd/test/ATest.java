@@ -20,8 +20,8 @@ package org.apache.uima.ducc.container.jd.test;
 
 import java.util.Map;
 
-import org.apache.uima.ducc.common.jd.JdFlagsHelper;
-import org.apache.uima.ducc.common.jd.JdFlagsHelper.Name;
+import org.apache.uima.ducc.common.container.FlagsHelper;
+import org.apache.uima.ducc.common.container.FlagsHelper.Name;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -41,8 +41,12 @@ public abstract class ATest {
 	}
 	
 	public void clear() {
-		for(Name name : JdFlagsHelper.Name.values()) {
-			System.clearProperty(name.name());
+		for(Name name : FlagsHelper.Name.values()) {
+			try {
+				System.clearProperty(name.pname());
+			}
+			catch(Exception e) {
+			}
 			debug("clear: "+name.name());
 		}
 	}
@@ -102,6 +106,13 @@ public abstract class ATest {
 	
 	protected void debug(String message) {
 		if(isDebug()) {
+			out_println(message);
+		}
+	}
+	
+	protected void announce(String text) {
+		if(isVerbose()) {
+			String message = text;
 			out_println(message);
 		}
 	}

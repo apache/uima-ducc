@@ -18,18 +18,18 @@
 */
 package org.apache.uima.ducc.container.common;
 
-import org.apache.uima.ducc.common.jd.JdFlagsHelper;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 
-public class JdFlagsExtendedHelper extends JdFlagsHelper {
+public class FlagsExtendedHelper extends FlagsHelper {
 
-	private static Logger logger = Logger.getLogger(JdFlagsExtendedHelper.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(FlagsExtendedHelper.class, IComponent.Id.JD.name());
 	
-	private static JdFlagsExtendedHelper instance = new JdFlagsExtendedHelper();
+	private static FlagsExtendedHelper instance = new FlagsExtendedHelper();
 	
-	public static JdFlagsExtendedHelper getInstance() {
+	public static FlagsExtendedHelper getInstance() {
 		return instance;
 	}
 	
@@ -40,7 +40,7 @@ public class JdFlagsExtendedHelper extends JdFlagsHelper {
 			String[] list = retVal.split(":");
 			if(list != null) {
 				if(list.length > 0) {
-					logger.debug(location, ILogger.null_id, JdFlagsHelper.Name.UserClasspath.name());
+					logger.debug(location, ILogger.null_id, FlagsHelper.Name.UserClasspath.pname());
 					int index = 0;
 					for(String item : list) {
 						String text = "["+index+"]"+" "+item;

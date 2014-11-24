@@ -28,7 +28,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import org.apache.uima.ducc.common.jd.JdFlagsHelper;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
@@ -46,7 +46,7 @@ public class TestClassLoading extends ATest {
 		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
-			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
 			Object serializedCAS = null;
 			Object exception = null;
@@ -65,11 +65,11 @@ public class TestClassLoading extends ATest {
 		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
-			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
 			Object serializedCAS = mc.getSerializedCas();
@@ -90,17 +90,17 @@ public class TestClassLoading extends ATest {
 		}
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
-			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
 			Object serializedCAS = mc.getSerializedCas();
 			Object exception = null;
 			String className = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandler";
-			System.setProperty(JdFlagsHelper.Name.UserErrorHandlerClassname.name(), className);
+			System.setProperty(FlagsHelper.Name.UserErrorHandlerClassname.pname(), className);
 			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
 			ProxyJobDriverDirective directive = pjdeh.handle(serializedCAS, exception);
 			assertTrue(directive.isKillJob() == true);

@@ -25,7 +25,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 
-import org.apache.uima.ducc.common.jd.JdFlagsHelper;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
@@ -51,9 +51,9 @@ public class TestSuite extends ATest {
 		URL urlXml = this.getClass().getResource("/CR100.xml");
 		File file = new File(urlXml.getFile());
 		String crXml = file.getAbsolutePath();
-		System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
+		System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
 		String userClasspath = Utilities.getInstance().getUserCP();
-		System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
+		System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 	}
 	
 	private void testIncludeAll() {
@@ -80,7 +80,7 @@ public class TestSuite extends ATest {
 			URL urlXml = this.getClass().getResource("/CR100.xml");
 			File file = new File(urlXml.getFile());
 			String crXml = file.getAbsolutePath();
-			System.setProperty(JdFlagsHelper.Name.CollectionReaderXml.name(), crXml);
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
 			String userClasspath = Utilities.getInstance().getUserCP();
 			String[] classpathParts = userClasspath.split(File.pathSeparator);
 			StringBuffer sb = new StringBuffer();
@@ -97,7 +97,7 @@ public class TestSuite extends ATest {
 			}
 			try {
 				String userPartialClasspath = sb.toString();
-				System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userPartialClasspath);
+				System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userPartialClasspath);
 				new ProxyJobDriverCollectionReader();
 				fail("Exception missing...?");
 			}
@@ -127,7 +127,7 @@ public class TestSuite extends ATest {
 	private void testNoXml() {
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
-			System.setProperty(JdFlagsHelper.Name.UserClasspath.name(), userClasspath);
+			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			new ProxyJobDriverCollectionReader();
 			fail("Exception missing...?");
 		}

@@ -24,7 +24,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.container.common.JdFlagsExtendedHelper;
+import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
@@ -73,7 +73,7 @@ public class ProxyJobDriverCollectionReader {
 	}
 	
 	private void initialize() throws JobDriverException {
-		JdFlagsExtendedHelper feh = JdFlagsExtendedHelper.getInstance();
+		FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 		String userClasspath = feh.getUserClasspath();
 		URLClassLoader classLoader = createClassLoader(userClasspath);
 		String crXml = feh.getCollectionReaderXml();

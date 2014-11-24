@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URLClassLoader;
 
-import org.apache.uima.ducc.common.jd.JdFlagsHelper;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
@@ -53,7 +53,7 @@ public class ProxyJobDriverErrorHandler {
 	private void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
-			JdFlagsHelper sph = JdFlagsHelper.getInstance();
+			FlagsHelper sph = FlagsHelper.getInstance();
 			String userClasspath = sph.getUserClasspath();
 			String[] classpath = sph.stringToArray(userClasspath);
 			String className = sph.getUserErrorHandlerClassname();
