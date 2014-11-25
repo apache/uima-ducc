@@ -113,7 +113,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		
 		try {
 			// the JobProcessConfiguration checked if the below property exists
-			String jps = System.getProperty(FlagsHelper.Name.UserClasspath.name());
+			String jps = System.getProperty(FlagsHelper.Name.UserClasspath.pname());
 
 			String processJmxUrl = super.getProcessJmxUrl();
 			// tell the agent that this process is initializing

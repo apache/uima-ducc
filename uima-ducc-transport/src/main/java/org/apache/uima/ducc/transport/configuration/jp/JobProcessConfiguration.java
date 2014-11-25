@@ -111,8 +111,8 @@ public class JobProcessConfiguration  {
 	}
     private void checkPrereqs(DuccLogger logger) {
 		if (null == System.getProperty(FlagsHelper.Name.UserClasspath.name())) {
-			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.UserClasspath.name()+"=XXXX property");
-			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.UserClasspath.name()+"=XXXX property");
+			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
+			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
 		}
 		if (null == common.saxonJarPath ){
 			logger.error("start", null, "Missing saxon jar path. Check your ducc.properties");
@@ -122,9 +122,9 @@ public class JobProcessConfiguration  {
 			logger.error("start", null, "Missing dd2sping xsl path. Check your ducc.properties");
 			throw new RuntimeException("Missing dd2spring xsl path. Check your ducc.properties");
 		}
-		if (null == System.getProperty(FlagsHelper.Name.JdURL.name())) {
-			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.JdURL+" property");
-			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.JdURL+" property");
+		if (null == System.getProperty(FlagsHelper.Name.JdURL.pname())) {
+			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.JdURL.pname()+" property");
+			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.JdURL.pname()+" property");
 		}
 		
 		
