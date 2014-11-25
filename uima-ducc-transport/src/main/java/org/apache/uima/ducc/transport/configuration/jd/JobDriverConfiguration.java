@@ -23,6 +23,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.jetty.JettyHttpComponent;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -186,7 +187,13 @@ import org.springframework.context.annotation.Import;
 	        delegateListener.setDuccEventDispatcher(jobDriverTransport.duccEventDispatcher(common.orchestratorStateUpdateEndpoint, jdc.getContext()));
 			//	Inject Camel Router that will delegate messages to JobDriver delegate listener
 			jdc.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorAbbreviatedStateUpdateEndpoint, delegateListener));
-			
+			try {
+				NodeIdentity nodeIdentity = new NodeIdentity();
+				jdc.setNode(nodeIdentity.getIp());
+			}
+			catch(Exception e) {
+				logger.error(location, jobid, e);
+			}
 			port = Utils.findFreePort();
 			jdc.setPort(port);
 			String jdUniqueId = "jdApp";

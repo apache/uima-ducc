@@ -44,6 +44,7 @@ implements IJobDriverComponent {
 	
 	private static DuccLogger logger = DuccLoggerComponents.getJdOut(JobDriverComponent.class.getName());
 	private static DuccId jobid = null;
+	private static String node = null;
 	private static int port = 0;
 	
 	private JobDriverConfiguration configuration;
@@ -96,6 +97,10 @@ implements IJobDriverComponent {
 		return configuration;
 	}
 	
+	public void setNode(String value) {
+		node = value;
+	}
+	
 	public void setPort(int value) {
 		port = value;
 	}
@@ -115,6 +120,7 @@ implements IJobDriverComponent {
 			IMessageHandler mh = JobDriver.getInstance().getMessageHandler();
 			IOperatingInfo oi = mh.handleGetOperatingInfo();
 			IDriverStatusReport driverStatusReport = new JobDriverReport(oi);
+			driverStatusReport.setNode(node);
 			driverStatusReport.setPort(port);
 			state.setState(driverStatusReport);
 			logger.debug(location, jobid, "reqNo: "+getStateReqNo.incrementAndGet());
