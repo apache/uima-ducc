@@ -67,7 +67,7 @@ implements IJobDriverComponent {
 				logger.info(location, jobid, text);
 			}
 			else {
-				if(name.isRequired()) {
+				if(name.isRequiredJd()) {
 					missing.add(name.name());
 					String text = key+" is missing.";
 					logger.error(location, jobid, text);

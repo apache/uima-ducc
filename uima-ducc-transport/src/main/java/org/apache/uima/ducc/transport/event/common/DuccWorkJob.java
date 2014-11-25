@@ -33,6 +33,8 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	private boolean jdURLSpecified = false;
+	
 	private DuccWorkPopDriver driver = null;
 	private String jobBroker = null;
 	private String jobQueue = null;
@@ -568,6 +570,16 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 			System.out.println(">>>>>>>>>>>>>>>> What Class is it? "+obj.getClass().getName());
 			return super.equals(obj);
 		}
+	}
+
+	@Override
+	public boolean isJdURLSpecified() {
+		return jdURLSpecified;
+	}
+
+	@Override
+	public void setJdURLSpecified() {
+		jdURLSpecified = true;
 	}
 
 }
