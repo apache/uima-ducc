@@ -30,6 +30,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
 import org.apache.uima.aae.UimaAsVersion;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
@@ -52,6 +53,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	private int timeout = 30000;  // default socket timeout for HTTPClient
 	private int threadSleepTime = 5000; // time to sleep between GET requests if JD sends null CAS
 	private IUimaProcessor uimaProcessor = null; 
+	// define default class to use to invoke methods via reflection
 	private String containerClass = "org.apache.uima.ducc.user.jp.UimaProcessContainer";
 ;
 	
@@ -100,12 +102,18 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 	}
+	/**
+	 * This method is called by super during ducc framework boot
+	 * sequence. It creates all the internal components and worker threads
+	 * and initiates processing. When threads exit, this method shuts down
+	 * the components and returns.
+	 */
 	public void start(DuccService service, String[] args) throws Exception {
 		super.start(service, args);
 		
 		try {
 			// the JobProcessConfiguration checked if the below property exists
-			String jps = System.getProperty(JobProcessConfiguration.USER_CP_KEY);
+			String jps = System.getProperty(FlagsHelper.Name.UserClasspath.name());
 
 			String processJmxUrl = super.getProcessJmxUrl();
 			// tell the agent that this process is initializing
@@ -177,15 +185,15 @@ public class JobProcessComponent extends AbstractDuccComponent{
                 // Create thread pool and begin processing
 		    	getLogger().info("start", null, "Starting "+uimaProcessor.getScaleout()+" Process Threads");
 				
+		    	// Create and start worker threads that pull Work Items from the JD
 		    	Future<?>[] threadHandles = new Future<?>[uimaProcessor.getScaleout()];
 				for (int j = 0; j < uimaProcessor.getScaleout(); j++) {
-					threadHandles[j] =tpe.submit(new HttpWorkerThread(this, client, uimaProcessor));
+					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, client, uimaProcessor));
 				}
-				System.out.println(">>>>>>>>>>>>>  Waiting for Threads to Exit");
 				for( Future<?> f : threadHandles ) {
-					f.get();
+					f.get();  // wait for worker threads to exit
 				}
-				System.out.println(">>>>>>>>>>>>>  Threads Exited");
+		    	getLogger().info("start", null, "All Http Worker Threads Terminated");
 		    } catch( Exception ee) {
 		    	ee.printStackTrace();
 		    	currentState = ProcessState.FailedInitialization;

@@ -43,7 +43,6 @@ import org.springframework.context.annotation.Import;
 @Import({ DuccTransportConfiguration.class, CommonConfiguration.class })
 public class JobProcessConfiguration  {
 	public static final String AGENT_ENDPOINT="mina:tcp://localhost:";
-	public static final String USER_CP_KEY = "UserClasspath";
 	@Autowired
 	DuccTransportConfiguration transport;
 	@Autowired
@@ -111,9 +110,9 @@ public class JobProcessConfiguration  {
 		}
 	}
     private void checkPrereqs(DuccLogger logger) {
-		if (null == System.getProperty(USER_CP_KEY)) {
-			logger.error("start", null, "Missing the -D"+USER_CP_KEY+"=XXXX property");
-			throw new RuntimeException("Missing the -D"+USER_CP_KEY+"=XXXX property");
+		if (null == System.getProperty(FlagsHelper.Name.UserClasspath.name())) {
+			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.UserClasspath.name()+"=XXXX property");
+			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.UserClasspath.name()+"=XXXX property");
 		}
 		if (null == common.saxonJarPath ){
 			logger.error("start", null, "Missing saxon jar path. Check your ducc.properties");
@@ -123,9 +122,9 @@ public class JobProcessConfiguration  {
 			logger.error("start", null, "Missing dd2sping xsl path. Check your ducc.properties");
 			throw new RuntimeException("Missing dd2spring xsl path. Check your ducc.properties");
 		}
-		if (null == System.getProperty("jdURL")) {
-			logger.error("start", null, "Missing the -DjdURL property");
-			throw new RuntimeException("Missing the -DjdURL property");
+		if (null == System.getProperty(FlagsHelper.Name.JdURL.name())) {
+			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.JdURL+" property");
+			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.JdURL+" property");
 		}
 		
 		
