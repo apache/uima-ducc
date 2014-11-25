@@ -18,6 +18,8 @@
 */package org.apache.uima.ducc.common.container;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 
 public class FlagsHelper {
@@ -30,26 +32,36 @@ public class FlagsHelper {
 	
 	public enum Name {
 		
-		CollectionReaderCfg(false),
-		CollectionReaderXml(true),
-		JobId(true),
-		UserClasspath(true),
-		UserErrorHandlerClassname(false),
-		UserErrorHandlerCfg(false),
+		CollectionReaderCfg,
+		CollectionReaderXml,
+		JdURL,						// http://<node>:<port>/jdApp
+		JobId,
+		UserClasspath,				// path1.class:path2.jar:path3/*:...
+		UserErrorHandlerClassname,
+		UserErrorHandlerCfg,
+		WorkItemTimeout,			// maximum milliseconds that any work item should take to process
 		;
 		
-		private boolean requiredFlag;
+		private static ArrayList<Name> requiredJd = new ArrayList<Name>(Arrays.asList(CollectionReaderCfg, JobId, UserClasspath));
+		private static ArrayList<Name> requiredJp = new ArrayList<Name>(Arrays.asList(JdURL, JobId, UserClasspath));
 		
-		private Name(boolean requiredFlag) {
-			setRequired(requiredFlag);
+		private Name() {
 		}
 		
-		private void setRequired(boolean value) {
-			requiredFlag = value;
+		public boolean isRequiredJd() {
+			boolean retVal = false;
+			if(requiredJd.contains(this)) {
+				retVal = true;
+			}
+			return retVal;
 		}
 		
-		public boolean isRequired() {
-			return requiredFlag;
+		public boolean isRequiredJp() {
+			boolean retVal = false;
+			if(requiredJp.contains(this)) {
+				retVal = true;
+			}
+			return retVal;
 		}
 		
 		public String pname() {
@@ -90,6 +102,15 @@ public class FlagsHelper {
 		return Name.CollectionReaderXml.arg(value);
 	}
 	
+	public String getJdURL() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JdURL.pname());
+	}
+	
+	public String getJdURLDashD(String value) {
+		return Name.JdURL.arg(value);
+	}
+	
 	public String getJobId() {
 		Properties properties = System.getProperties();
 		return properties.getProperty(Name.JobId.pname());
@@ -124,6 +145,15 @@ public class FlagsHelper {
 	
 	public String getUserErrorHandlerCfgDashD(String value) {
 		return Name.UserErrorHandlerCfg.arg(value);
+	}
+	
+	public String getWorkItemTimeout() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.WorkItemTimeout.pname());
+	}
+	
+	public String getWorkItemTimeoutDashD(String value) {
+		return Name.WorkItemTimeout.arg(value);
 	}
 	
 	public String[] stringToArray(String classpath) {
