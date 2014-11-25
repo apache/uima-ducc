@@ -45,6 +45,8 @@ import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.OrchestratorConstants.StartType;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
+import org.apache.uima.ducc.orchestrator.factory.IJobFactory;
+import org.apache.uima.ducc.orchestrator.factory.JobFactory;
 import org.apache.uima.ducc.orchestrator.maintenance.MaintenanceThread;
 import org.apache.uima.ducc.orchestrator.maintenance.NodeAccounting;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
@@ -108,7 +110,7 @@ implements Orchestrator {
 	private StateManager stateManager = StateManager.getInstance();
 	//private HealthMonitor healthMonitor = HealthMonitor.getInstance();
 	//private MqReaper mqReaper = MqReaper.getInstance();
-	private JobFactory jobFactory = JobFactory.getInstance();
+	private IJobFactory jobFactory = JobFactory.getInstance();
 	private ReservationFactory reservationFactory = ReservationFactory.getInstance();
 	private CommonConfiguration commonConfiguration = orchestratorCommonArea.getCommonConfiguration();
 	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
@@ -587,7 +589,7 @@ implements Orchestrator {
 			}
 			else {
 				if(Validate.request(duccEvent)) {
-					DuccWorkJob duccWorkJob = jobFactory.create(common,properties);
+					IDuccWorkJob duccWorkJob = jobFactory.create(common,properties);
 					WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
 					// state: Received
 					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);
@@ -944,7 +946,7 @@ implements Orchestrator {
 			else {
 				logger.debug(methodName, null, messages.fetch("job driver host")+" "+messages.fetchLabel("IP")+nodeIdentity.getIp()+" "+messages.fetchLabel("name")+nodeIdentity.getName());
 				if(Validate.request(duccEvent)) {
-					DuccWorkJob duccWorkJob = jobFactory.create(common,properties);
+					IDuccWorkJob duccWorkJob = jobFactory.create(common,properties);
 					WorkMapHelper.addDuccWork(workMap, duccWorkJob, this, methodName);
 					// state: Received
 					stateJobAccounting.stateChange(duccWorkJob, JobState.Received);

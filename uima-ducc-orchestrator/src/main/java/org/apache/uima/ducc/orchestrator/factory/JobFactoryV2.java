@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.orchestrator;
+package org.apache.uima.ducc.orchestrator.factory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,6 +38,9 @@ import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
+import org.apache.uima.ducc.orchestrator.CGroupManager;
+import org.apache.uima.ducc.orchestrator.JobDriverHostManager;
+import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
@@ -63,31 +66,21 @@ import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 
-
-public class JobFactory {
-	private static JobFactory jobFactory = new JobFactory();
-	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobFactory.class.getName());
+public class JobFactoryV2 implements IJobFactory {
+	private static JobFactoryV2 jobFactory = new JobFactoryV2();
+	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(JobFactoryV2.class.getName());
 	
-	public static JobFactory getInstance() {
+	public static IJobFactory getInstance() {
 		return jobFactory;
 	}
 	
 	private long driver_max_size_in_bytes = 0;
-	
-	private enum JdVersion { V1, V2 };
-	private JdVersion jdVersion = JdVersion.V2;
-	
-	public JobFactory() {
+
+	private JobFactoryV2() {
 		String ducc_jd_share_quantum = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_share_quantum);
 		long oneKB = 1024;
 		long oneMB = 1024*oneKB;
 		driver_max_size_in_bytes = Long.parseLong(ducc_jd_share_quantum) * oneMB;
-		String jd_configuration_class = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_configuration_class);
-		if(jd_configuration_class != null) {
-			if(jd_configuration_class.trim().equals("org.apache.uima.ducc.jd.config.JobDriverConfiguration")) {
-				jdVersion = JdVersion.V1;
-			}
-		}
 	}
 	
 	private OrchestratorCommonArea orchestratorCommonArea = OrchestratorCommonArea.getInstance();
@@ -165,7 +158,7 @@ public class JobFactory {
 		logger.info(methodName, job.getDuccId(), "uimaDeploymentDescriptor      "+uimaDeploymentDescriptor);
 	}
 	
-	public void logSweeper(String logDir, DuccId jobId) {
+	private void logSweeper(String logDir, DuccId jobId) {
 		String methodName = "logSweeper";
 		if(logDir != null) {
 			if(jobId != null) {
@@ -268,35 +261,8 @@ public class JobFactory {
 	private String buildJobDriverClasspath(JobRequestProperties jobRequestProperties, DuccId jobid) {
 		String methodName = "buildJobDriverClasspath";
 		String cp = null;
-		switch(jdVersion) {
-		case V2:
-			cp = getDuccClasspath(0);
-			logger.debug(methodName, jobid, "java CP:"+cp);
-			break;
-		default:
-		case V1:
-			String java_classpath = getDuccClasspath(0);  // for driver	
-			String driverClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-			logger.debug(methodName, jobid, "driver CP (spec):"+driverClasspath);
-			logger.debug(methodName, jobid, "java CP:"+java_classpath);
-			if(driverClasspath != null) {
-				if(isClasspathOrderUserBeforeDucc(jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath_order),jobid)) {
-					logger.info(methodName, jobid, "driver:OrderUserBeforeDucc");
-					driverClasspath=driverClasspath+File.pathSeparator+java_classpath;
-				}
-				else {
-					logger.info(methodName, jobid, "driver:OrderDuccBeforeUser");
-					driverClasspath=java_classpath+File.pathSeparator+driverClasspath;
-				}
-			}
-			else {
-				logger.info(methodName, jobid, "driver:OrderDefault");
-				driverClasspath=java_classpath;
-			}
-			logger.debug(methodName, jobid, "driver CP (combined):"+driverClasspath);
-			cp = driverClasspath;
-			break;
-		}
+		cp = getDuccClasspath(0);
+		logger.debug(methodName, jobid, "java CP:"+cp);	
 		return cp;
 	}
 	
@@ -330,8 +296,6 @@ public class JobFactory {
 		    }
 		}
 		// Add job JVM args
-		switch(jdVersion) {
-		case V2:
 			// add JobId
 			String opt;
 			opt = FlagsHelper.Name.JobId.dname()+"="+jobid.getFriendly();
@@ -357,11 +321,6 @@ public class JobFactory {
 			userCP = augment+File.pathSeparator+userCP;
 			opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
 			jcl.addOption(opt);
-			break;
-		default:
-		case V1:
-			break;
-		}
 		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
 		jcl.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
 		// Log directory
