@@ -135,6 +135,17 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	}
 	
 	/*
+	 * Node (ducc 2.0)
+	 */
+	
+	public String getNode() {
+		return null;
+	}
+	
+	public void setNode(String value) {
+	}
+	
+	/*
 	 * Port (ducc 2.0)
 	 */
 	

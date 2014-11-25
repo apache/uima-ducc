@@ -35,6 +35,9 @@ public interface IDriverStatusReport {
 	
 	public DuccId getDuccId();
 	
+	public String getNode();
+	public void setNode(String value);
+	
 	public int getPort();
 	public void setPort(int value);
 	
