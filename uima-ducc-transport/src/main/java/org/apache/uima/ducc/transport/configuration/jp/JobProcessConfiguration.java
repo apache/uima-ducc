@@ -26,6 +26,7 @@ import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
@@ -111,8 +112,8 @@ public class JobProcessConfiguration  {
 	}
     private void checkPrereqs(DuccLogger logger) {
 		if (null == System.getProperty(USER_CP_KEY)) {
-			logger.error("start", null, "Missing the -Dorg.apache.uima.ducc.userjarpath=XXXX property");
-			throw new RuntimeException("Missing the -Dorg.apache.uima.ducc.userjarpath=XXXX property");
+			logger.error("start", null, "Missing the -D"+USER_CP_KEY+"=XXXX property");
+			throw new RuntimeException("Missing the -D"+USER_CP_KEY+"=XXXX property");
 		}
 		if (null == common.saxonJarPath ){
 			logger.error("start", null, "Missing saxon jar path. Check your ducc.properties");
