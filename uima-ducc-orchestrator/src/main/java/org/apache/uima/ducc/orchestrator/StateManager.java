@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -41,6 +42,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
+import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccReservation;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
@@ -68,14 +70,13 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDealloc
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
-import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsMap;
+import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.rm.IResource;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
 import org.apache.uima.ducc.transport.event.sm.ServiceDependency;
 import org.apache.uima.ducc.transport.event.sm.ServiceMap;
-
 
 public class StateManager {
 	private static final DuccLogger logger = DuccLoggerComponents.getOrLogger(StateManager.class.getName());
@@ -354,13 +355,15 @@ public class StateManager {
 		try {
 			IDuccProcessMap processMap = job.getProcessMap();
 			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
-			Iterator<DuccId> iterator = pwiMap.keySet().iterator();
-			while(iterator.hasNext()) {
-				DuccId processId = iterator.next();
-				IDuccProcess process = processMap.get(processId);
-				IDuccProcessWorkItems pwi = pwiMap.get(processId);
-				process.setProcessWorkItems(pwi);
-				logger.trace(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+			if(pwiMap != null) {
+				Iterator<DuccId> iterator = pwiMap.keySet().iterator();
+				while(iterator.hasNext()) {
+					DuccId processId = iterator.next();
+					IDuccProcess process = processMap.get(processId);
+					IDuccProcessWorkItems pwi = pwiMap.get(processId);
+					process.setProcessWorkItems(pwi);
+					logger.trace(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+				}
 			}
 		}
 		catch(Throwable t) {
@@ -372,17 +375,19 @@ public class StateManager {
 		String methodName = "copyDriverWorkItemsReport";
 		try {
 			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
-			IDuccProcessWorkItems pwi = pwiMap.getTotals();
-			pwi.setCountUnassigned(jdStatusReport.getWorkItemPendingProcessAssignmentCount());
-			DuccWorkPopDriver driver = job.getDriver();
-			IDuccProcessMap processMap = driver.getProcessMap();
-			if(processMap != null) {
-				Iterator<DuccId> iterator = processMap.keySet().iterator();
-				while(iterator.hasNext()) {
-					DuccId processId = iterator.next();
-					IDuccProcess process = processMap.get(processId);
-					process.setProcessWorkItems(pwi);
-					logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+			if(pwiMap != null) {
+				IDuccProcessWorkItems pwi = pwiMap.getTotals();
+				pwi.setCountUnassigned(jdStatusReport.getWorkItemPendingProcessAssignmentCount());
+				DuccWorkPopDriver driver = job.getDriver();
+				IDuccProcessMap processMap = driver.getProcessMap();
+				if(processMap != null) {
+					Iterator<DuccId> iterator = processMap.keySet().iterator();
+					while(iterator.hasNext()) {
+						DuccId processId = iterator.next();
+						IDuccProcess process = processMap.get(processId);
+						process.setProcessWorkItems(pwi);
+						logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+					}
 				}
 			}
 			job.setWiMillisMin(jdStatusReport.getWiMillisMin());
@@ -442,6 +447,27 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private void addJdUrlToJpCommandLine(IDuccWorkJob dwj, IDriverStatusReport jdStatusReport) {
+		String location = "addJdPortToJpCommandLine";
+		DuccId jobid = null;
+		if(!dwj.isJdURLSpecified()) {
+			jobid = dwj.getDuccId();
+			String node = jdStatusReport.getNode();
+			int port = jdStatusReport.getPort();
+			if(port > 0) {
+				JavaCommandLine jcl = (JavaCommandLine) dwj.getCommandLine();
+				// add port
+				String opt;
+				// format is http://<node>:<port>/jdApp
+				String value = "http://"+node+":"+port+"/jdApp";
+				opt = FlagsHelper.Name.JdURL.dname()+"="+value;
+				jcl.addOption(opt);
+				logger.info(location, jobid, opt);
+				dwj.setJdURLSpecified();
+			}
+		}
+	}
+	
 	/**
 	 * JD reconciliation
 	 */
@@ -456,6 +482,7 @@ public class StateManager {
 			String sid = ""+duccId.getFriendly();
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, sid, this, methodName);
 			if(duccWorkJob != null) {
+				addJdUrlToJpCommandLine(duccWorkJob, jdStatusReport);
 				IRationale rationale;
 				String jdJmxUrl = jdStatusReport.getJdJmxUrl();
 				setJdJmxUrl(duccWorkJob, jdJmxUrl);
@@ -669,18 +696,20 @@ public class StateManager {
 		boolean retVal = false;
 		IDuccProcessMap processMap = job.getProcessMap();
 		Iterator<DuccId> iterator = jdStatusReport.getKillDuccIds();
-		while (iterator.hasNext()) {
-			DuccId duccId = iterator.next();
-			IDuccProcess process = processMap.get(duccId);
-			if(process != null) {
-				if(!process.isDeallocated()) {
-					process.setResourceState(ResourceState.Deallocated);
-					process.setProcessDeallocationType(ProcessDeallocationType.Exception);
-					logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+		if(iterator != null) {
+			while (iterator.hasNext()) {
+				DuccId duccId = iterator.next();
+				IDuccProcess process = processMap.get(duccId);
+				if(process != null) {
+					if(!process.isDeallocated()) {
+						process.setResourceState(ResourceState.Deallocated);
+						process.setProcessDeallocationType(ProcessDeallocationType.Exception);
+						logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+					}
 				}
-			}
-			else {
-				logger.warn(methodName, job.getDuccId(), duccId, "not in process map");
+				else {
+					logger.warn(methodName, job.getDuccId(), duccId, "not in process map");
+				}
 			}
 		}
 		return retVal;

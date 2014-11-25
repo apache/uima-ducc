@@ -594,6 +594,16 @@ public class JobFactoryV2 implements IJobFactory {
 	        for(String token : pTokens) {
 	            pipelineCommandLine.addOption(token);
 	        }
+	        
+			// add userCP
+			String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
+			if(userCP == null) {
+				userCP = "";
+			}
+			String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
+			userCP = augment+File.pathSeparator+userCP;
+			String opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
+			pipelineCommandLine.addOption(opt);
 			
 			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 			int envCountProcess = addEnvironment(job, "process", pipelineCommandLine, processEnvironmentVariables);
