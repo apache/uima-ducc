@@ -110,7 +110,7 @@ public class JobProcessConfiguration  {
 		}
 	}
     private void checkPrereqs(DuccLogger logger) {
-		if (null == System.getProperty(FlagsHelper.Name.UserClasspath.name())) {
+		if (null == System.getProperty(FlagsHelper.Name.UserClasspath.pname())) {
 			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
 			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
 		}
