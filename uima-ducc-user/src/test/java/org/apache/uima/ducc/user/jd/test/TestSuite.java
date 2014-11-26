@@ -21,9 +21,18 @@ package org.apache.uima.ducc.user.jd.test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.uima.ducc.user.dd.DeploymentDescriptorGenerator;
+import org.apache.uima.ducc.user.dd.DuccUimaAggregate;
+import org.apache.uima.ducc.user.dd.DuccUimaAggregateComponent;
+import org.apache.uima.ducc.user.dd.IDuccUimaAggregateComponent;
+import org.apache.uima.ducc.user.dd.IDuccUimaDeployableConfiguration;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
@@ -317,6 +326,77 @@ public class TestSuite {
 			assertTrue(documentText.equals(jdUserMetaCas.getDocumentText()));
 			assertTrue(exception.equals(jdUserMetaCas.getException()));
 			jdUserMetaCas.printMe();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	private void delete(File directory) {
+		try {
+			for(File file : directory.listFiles()) {
+				debug("delete: "+file.getName());
+				file.delete();
+			}
+			debug("delete: "+directory.getName());
+			directory.delete();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private IDuccUimaDeployableConfiguration getIDuccUimaDeployableConfiguration() {
+		String ddName = "name";
+		String ddDescription = "description";
+		int ddThreadCount = 1;
+		String ddBrokerURL = "brokerURL";
+		String ddEndpoint = "endpoint";
+		ArrayList<IDuccUimaAggregateComponent> ddComponents = new ArrayList<IDuccUimaAggregateComponent>();
+		URL url = this.getClass().getResource("/CR100.xml");
+		File file = new File(url.getFile());
+		String aeDescriptor = file.getAbsolutePath();
+		List<String> aeOverrides = null;
+		DuccUimaAggregateComponent aeComponent = new DuccUimaAggregateComponent(aeDescriptor, aeOverrides);
+		ddComponents.add(aeComponent);
+		IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(ddName, ddDescription, ddThreadCount, ddBrokerURL, ddEndpoint, ddComponents);
+		return configuration;
+	}
+	
+	private void show(String name) {
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(name));
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+			}
+			br.close();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Test
+	public void test10() {
+		try {
+			URL url = this.getClass().getResource("/");
+			File root = new File(url.getFile());
+			String name = root.getAbsolutePath();
+			debug(name);
+			assertTrue(root.isDirectory());
+			String nameWorking = name+File.separator+"working";
+			File working = new File(nameWorking);
+			delete(working);
+			working.mkdir();
+			DeploymentDescriptorGenerator ddg = new DeploymentDescriptorGenerator(working.getAbsolutePath());
+			IDuccUimaDeployableConfiguration configuration = getIDuccUimaDeployableConfiguration();
+			String jobId = "12345";
+			String dd = ddg.generate(configuration, jobId);
+			debug(dd);
+			show(dd);
+			delete(working);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
