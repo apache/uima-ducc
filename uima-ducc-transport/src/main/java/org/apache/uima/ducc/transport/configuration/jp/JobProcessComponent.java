@@ -112,6 +112,10 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		super.start(service, args);
 		
 		try {
+			if ( args == null || args[0] == null || args.length == 0) {
+				logger.warn("start", null, "Missing Deployment Descriptor - the JP Requires DD argument");
+                throw new RuntimeException("Missing Deployment Descriptor - the JP Requires DD argument");
+			}
 			// the JobProcessConfiguration checked if the below property exists
 			String jps = System.getProperty(FlagsHelper.Name.UserClasspath.pname());
 
@@ -140,7 +144,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 					};
 				final DuccHttpClient client = new DuccHttpClient();
 
-				String jdURL = System.getProperty("jdURL");
+				String jdURL = System.getProperty(FlagsHelper.Name.JdURL.pname());
 				String url = jdURL.substring(jdURL.indexOf("http://")+7 );  // skip protocol
 				String host = url.substring(0, url.indexOf(":"));
 				String port = url.substring(url.indexOf(":") + 1);
