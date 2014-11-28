@@ -33,6 +33,7 @@ import org.apache.uima.ducc.user.dd.DuccUimaAggregate;
 import org.apache.uima.ducc.user.dd.DuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dd.IDuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dd.IDuccUimaDeployableConfiguration;
+import org.apache.uima.ducc.user.dd.iface.DDGenerate;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
@@ -343,7 +344,7 @@ public class TestSuite {
 			directory.delete();
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 	
@@ -379,7 +380,7 @@ public class TestSuite {
 	}
 
 	@Test
-	public void test10() {
+	public void test10a() {
 		try {
 			URL url = this.getClass().getResource("/");
 			File root = new File(url.getFile());
@@ -394,6 +395,58 @@ public class TestSuite {
 			IDuccUimaDeployableConfiguration configuration = getIDuccUimaDeployableConfiguration();
 			String jobId = "12345";
 			String dd = ddg.generate(configuration, jobId);
+			debug(dd);
+			show(dd);
+			delete(working);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	@Test
+	public void test10b() {
+		try {
+			URL url = this.getClass().getResource("/");
+			File root = new File(url.getFile());
+			String name = root.getAbsolutePath();
+			debug(name);
+			assertTrue(root.isDirectory());
+			String nameWorking = name+File.separator+"working";
+			File working = new File(nameWorking);
+			delete(working);
+			working.mkdir();
+			DDGenerate ddGenerate = new DDGenerate();
+			
+			String directory = working.getAbsolutePath();
+			String id = "99999";
+			String ddName = "ddName";
+			String ddDescription = "ddDescription";
+			Integer ddThreadCount = new Integer(11);
+			String ddBrokerURL = "ddBrokerURL";
+			String ddBrokerEndpoint = "ddBrokerEndpount";
+			String cmDescriptor = null;
+			List<String> cmOverrides = null;
+			String aeDescriptor = root+File.separator+"FixedSleepAE.xml";
+			List<String> aeOverrides = null;
+			String ccDescriptor = null;
+			List<String> ccOverrides = null;
+			
+			String dd = ddGenerate.generate(
+					directory, 
+					id, ddName, 
+					ddDescription, 
+					ddThreadCount, 
+					ddBrokerURL, 
+					ddBrokerEndpoint, 
+					cmDescriptor, 
+					cmOverrides, 
+					aeDescriptor, 
+					aeOverrides, 
+					ccDescriptor, 
+					ccOverrides);
+			
 			debug(dd);
 			show(dd);
 			delete(working);
