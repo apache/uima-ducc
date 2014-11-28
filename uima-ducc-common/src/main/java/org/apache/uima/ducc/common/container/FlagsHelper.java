@@ -35,7 +35,20 @@ public class FlagsHelper {
 		CollectionReaderCfg,
 		CollectionReaderXml,
 		JdURL,						// http://<node>:<port>/jdApp
+		JobDirectory,
 		JobId,
+		JpAeDescriptor,
+		JpAeOverrides,
+		JpCcDescriptor,
+		JpCcOverrides,
+		JpCmDescriptor,
+		JpCmOverrides,
+		JpDd,
+		JpDdBrokerEndpoint,
+		JpDdBrokerURL,
+		JpDdDescription,
+		JpDdName,
+		JpDdThreadCount,
 		UserClasspath,				// path1.class:path2.jar:path3/*:...
 		UserErrorHandlerClassname,
 		UserErrorHandlerCfg,
@@ -111,6 +124,15 @@ public class FlagsHelper {
 		return Name.JdURL.arg(value);
 	}
 	
+	public String getJobDirectory() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JobDirectory.pname());
+	}
+	
+	public String getJobDirectoryDashD(String value) {
+		return Name.JobDirectory.arg(value);
+	}
+	
 	public String getJobId() {
 		Properties properties = System.getProperties();
 		return properties.getProperty(Name.JobId.pname());
@@ -118,6 +140,114 @@ public class FlagsHelper {
 	
 	public String getJobIdDashD(String value) {
 		return Name.JobId.arg(value);
+	}
+	
+	public String getJpAeDescriptor() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpAeDescriptor.pname());
+	}
+	
+	public String getJpAeDescriptorDashD(String value) {
+		return Name.JpAeDescriptor.arg(value);
+	}
+	
+	public String getJpAeOverrides() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpAeOverrides.pname());
+	}
+	
+	public String getJpAeOverridesDashD(String value) {
+		return Name.JpAeOverrides.arg(value);
+	}
+	
+	public String getJpCcDescriptor() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpCcDescriptor.pname());
+	}
+	
+	public String getJpCcDescriptorDashD(String value) {
+		return Name.JpCcDescriptor.arg(value);
+	}
+	
+	public String getJpCcOverrides() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpCcOverrides.pname());
+	}
+	
+	public String getJpCcOverridesDashD(String value) {
+		return Name.JpCcOverrides.arg(value);
+	}
+	
+	public String getJpCmDescriptor() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpCmDescriptor.pname());
+	}
+	
+	public String getJpCmDescriptorDashD(String value) {
+		return Name.JpCmDescriptor.arg(value);
+	}
+	
+	public String getJpCmOverrides() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpCmOverrides.pname());
+	}
+	
+	public String getJpCmOverridesDashD(String value) {
+		return Name.JpCmOverrides.arg(value);
+	}
+	
+	public String getJpDd() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpDd.pname());
+	}
+	
+	public String getJpDdDashD(String value) {
+		return Name.JpDd.arg(value);
+	}
+	
+	public String getJpDdBrokerEndpoint() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpDdBrokerEndpoint.pname());
+	}
+	
+	public String getJpDdBrokerEndpointDashD(String value) {
+		return Name.JpDdBrokerEndpoint.arg(value);
+	}
+	
+	public String getJpDdBrokerURL() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpDdBrokerURL.pname());
+	}
+	
+	public String getJpDdBrokerURLDashD(String value) {
+		return Name.JpDdBrokerURL.arg(value);
+	}
+	
+	public String getJpDdDescription() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpDdDescription.pname());
+	}
+	
+	public String getJpDdDescriptionDashD(String value) {
+		return Name.JpDdDescription.arg(value);
+	}
+	
+	public String getJpDdName() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpDdName.pname());
+	}
+	
+	public String getJpDdNameDashD(String value) {
+		return Name.JpDdName.arg(value);
+	}
+	
+	public String getJpDdThreadCount() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpDdThreadCount.pname());
+	}
+	
+	public String getJpDdThreadCountDashD(String value) {
+		return Name.JpDdThreadCount.arg(value);
 	}
 	
 	public String getUserClasspath() {
