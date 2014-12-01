@@ -45,6 +45,7 @@ import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccReservation;
+import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkPopDriver;
@@ -486,10 +487,10 @@ public class StateManager {
 				IRationale rationale;
 				String jdJmxUrl = jdStatusReport.getJdJmxUrl();
 				setJdJmxUrl(duccWorkJob, jdJmxUrl);
-				IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = jdStatusReport.getUimaDeploymentDescriptor();
-				if(uimaDeploymentDescriptor != null) {
-					boolean copyDD = true;
-					if(copyDD) {
+				String jpDd = jdStatusReport.getUimaDeploymentDescriptor();
+				if(jpDd != null) {
+					if(duccWorkJob.getUimaDeployableConfiguration() == null) {
+						IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = new DuccUimaDeploymentDescriptor(jpDd);
 						duccWorkJob.setUimaDeployableConfiguration(uimaDeploymentDescriptor);
 					}
 				}

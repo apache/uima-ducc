@@ -28,6 +28,7 @@ import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
+import org.apache.uima.ducc.common.container.FlagsHelper.Name;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -266,7 +267,7 @@ public class JobFactoryV2 implements IJobFactory {
 		return cp;
 	}
 	
-	private JavaCommandLine buildJobDriverCommandLine(JobRequestProperties jobRequestProperties, DuccId jobid) {
+	private JavaCommandLine buildJobDriverCommandLine(JobRequestProperties jobRequestProperties,  DuccId jobid) {
 		JavaCommandLine jcl = null;
 		// java command
 		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
@@ -296,36 +297,66 @@ public class JobFactoryV2 implements IJobFactory {
 		    }
 		}
 		// Add job JVM args
-			// add JobId
-			String opt;
-			opt = FlagsHelper.Name.JobId.dname()+"="+jobid.getFriendly();
+		String opt;
+		// add JobId	
+		opt = FlagsHelper.Name.JobId.dname()+"="+jobid.getFriendly();
+		jcl.addOption(opt);
+		// add CrXML
+		String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
+		if(crxml != null) {
+			opt = FlagsHelper.Name.CollectionReaderXml.dname()+"="+crxml;
 			jcl.addOption(opt);
-			// add CrXML
-			String crxml = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR);
-			if(crxml != null) {
-				opt = FlagsHelper.Name.CollectionReaderXml.dname()+"="+crxml;
-				jcl.addOption(opt);
-			}
-			// add CrCfg
-			String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
-			if(crcfg != null) {
-				opt = FlagsHelper.Name.CollectionReaderCfg.dname()+"="+crcfg;
-				jcl.addOption(opt);
-			}
-			// add userCP
-			String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-			if(userCP == null) {
-				userCP = "";
-			}
-			String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
-			userCP = augment+File.pathSeparator+userCP;
-			opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
+		}
+		// add CrCfg
+		String crcfg = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_descriptor_CR_overrides);
+		if(crcfg != null) {
+			opt = FlagsHelper.Name.CollectionReaderCfg.dname()+"="+crcfg;
 			jcl.addOption(opt);
+		}
+		// add userCP
+		String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
+		if(userCP == null) {
+			userCP = "";
+		}
+		String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
+		userCP = augment+File.pathSeparator+userCP;
+		opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
+		jcl.addOption(opt);
+		// add JpDdDirectory	
+		addDashD(jcl, FlagsHelper.Name.JobDirectory, jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
+		// add Jp DD construction pieces-parts (Jp DD should be null)
+		addDashD(jcl, FlagsHelper.Name.JpAeDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_AE));
+		addDashD(jcl, FlagsHelper.Name.JpAeOverrides, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_AE_overrides));
+		addDashD(jcl, FlagsHelper.Name.JpCcDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CC));
+		addDashD(jcl, FlagsHelper.Name.JpCcOverrides, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CC_overrides));
+		addDashD(jcl, FlagsHelper.Name.JpCmDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CM));
+		addDashD(jcl, FlagsHelper.Name.JpCmOverrides, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CM_overrides));
+		// add Jp DD (pieces-parts should be null)
+		addDashD(jcl, FlagsHelper.Name.JpDd, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_DD));
+		// add Jp DD specs
+		String name = "DUCC.Job";
+		String description = "DUCC.Generated";
+		String brokerURL = "DUCC.BrokerURL";
+		String brokerEndpoint = "DUCC.BrokerEndpoint";
+		addDashD(jcl, FlagsHelper.Name.JpDdName, name);
+		addDashD(jcl, FlagsHelper.Name.JpDdDescription, description);
+		addDashD(jcl, FlagsHelper.Name.JpDdThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
+		addDashD(jcl, FlagsHelper.Name.JpDdBrokerURL, brokerURL);
+		addDashD(jcl, FlagsHelper.Name.JpDdBrokerEndpoint, brokerEndpoint);
 		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
 		jcl.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
 		// Log directory
 		jcl.setLogDirectory(jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
 		return jcl;
+	}
+	
+	private void addDashD(JavaCommandLine jcl, Name name, String value) {
+		String location = "addDadhD";
+		logger.trace(location, null, name.dname()+"="+value);
+		if(value != null) {
+			String opt = name.dname()+"="+value;
+			jcl.addOption(opt);
+		}
 	}
 	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
