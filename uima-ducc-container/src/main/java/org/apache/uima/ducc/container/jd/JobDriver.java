@@ -24,6 +24,7 @@ import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.dd.DdManager;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
@@ -62,7 +63,8 @@ public class JobDriver {
 	private IWorkItemStatistics wis = null;
 	private CasManager cm = null;
 	private ProxyJobDriverErrorHandler pjdeh = null;
-	private IMessageHandler mh = new MessageHandler();
+	private IMessageHandler mh = null; // new MessageHandler();
+	private DdManager ddManager = null;
 	
 	private JdState jdState = null;
 	
@@ -80,6 +82,7 @@ public class JobDriver {
 			wis = new WorkItemStatistics();
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
+			ddManager = new DdManager();
 			mh = new MessageHandler();
 		}
 		catch(Exception e) {
@@ -110,6 +113,10 @@ public class JobDriver {
 	
 	public IMessageHandler getMessageHandler() {
 		return mh;
+	}
+	
+	public DdManager getDdManager() {
+		return ddManager;
 	}
 	
 	public JdState getJdState() {

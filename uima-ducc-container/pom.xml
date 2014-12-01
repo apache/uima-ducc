@@ -232,6 +232,8 @@
                              <target> 
                                 <copy file="${basedir}/target/uimaj/apache-uima/lib/uima-core.jar" tofile="${basedir}/target/test-classes/uimaj-core.jar"/>
                                 <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/uimaj-as-core.jar" tofile="${basedir}/target/test-classes/uimaj-as-core.jar"/>
+                                <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/xmlbeans.jar" tofile="${basedir}/target/test-classes/xmlbeans.jar"/>
+                                <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/apache-activemq/lib/spring-core-3.0.7.RELEASE.jar" tofile="${basedir}/target/test-classes/spring-core.jar"/>
                                 <copy file="../uima-ducc-user/target/uima-ducc-user-${version}.jar" tofile="${basedir}/target/test-classes/uima-ducc-user.jar"/>
                              </target> 
                            </configuration> 

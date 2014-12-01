@@ -197,7 +197,7 @@ public class ProxyJobDriverCollectionReader {
 			logger.debug(location, ILogger.null_id, mb1.toString());
 			URL[] urls = urlClassLoader.getURLs();
 			for(URL url : urls) {
-				logger.debug(location, ILogger.null_id, url);
+				logger.trace(location, ILogger.null_id, url);
 			}
 			Class<?> loadedClass = urlClassLoader.loadClass(className);
 			MessageBuffer mb2 = new MessageBuffer();

@@ -104,10 +104,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_01");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
@@ -150,10 +160,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_02a");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
@@ -205,10 +225,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_2b");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
@@ -257,10 +287,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_03");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
@@ -339,10 +379,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_04");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
@@ -425,10 +475,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_05a");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
@@ -488,10 +548,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_05b");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			//
@@ -572,10 +642,20 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_06");
 		try {
-			URL urlXml = this.getClass().getResource("/CR100.xml");
-			File file = new File(urlXml.getFile());
-			String crXml = file.getAbsolutePath();
-			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			URL urlXml = null;
+			File file = null;
+			String path = null;
+			//
+			urlXml = this.getClass().getResource("/CR100.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), path);
+			//
+			urlXml = this.getClass().getResource("/DDSleepDescriptor.xml");
+			file = new File(urlXml.getFile());
+			path = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JpDd.pname(), path);
+			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			//

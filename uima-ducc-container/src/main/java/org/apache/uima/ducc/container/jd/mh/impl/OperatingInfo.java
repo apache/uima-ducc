@@ -29,6 +29,8 @@ public class OperatingInfo implements IOperatingInfo {
 
 	private String jobId = null;
 	
+	private String jpDd = null;
+	
 	private int crTotal = 0;
 	private int crFetches = 0;
 	private int jpGets = 0;
@@ -260,6 +262,16 @@ public class OperatingInfo implements IOperatingInfo {
 	@Override
 	public ArrayList<IWorkItemInfo> getActiveWorkItemInfo() {
 		return activeWorkItemInfo;
+	}
+
+	@Override
+	public void setJpDd(String value) {
+		jpDd = value;
+	}
+
+	@Override
+	public String getJpDd() {
+		return jpDd;
 	}
 
 }

@@ -36,6 +36,7 @@ public class Utilities {
 		retVal = url.getFile();
 		return retVal;
 	}
+	
 	private Utilities() {
 		userCP = 
 			resource("/") +
@@ -47,10 +48,32 @@ public class Utilities {
 			resource("/uimaj-core.jar") +
 			":" +
 			resource("/xstream-1.3.1.jar") +
+			":" +
+			resource("/spring-core.jar") +
+			":" +
+			resource("/xmlbeans.jar") +
 			""
 			;
 	}
+	
 	public String getUserCP() {
 		return userCP;
+	}
+	
+	public String getUserCP(boolean value) {
+		String retVal = userCP;
+		if(value) {
+			listToConsole(userCP);
+		}
+		return retVal;
+	}
+	
+	public void listToConsole(String userCP) {
+		if(userCP != null) {
+			String[] segments = userCP.split(":");
+			for(String segment : segments) {
+				System.out.println(segment);
+			}
+		}
 	}
 }

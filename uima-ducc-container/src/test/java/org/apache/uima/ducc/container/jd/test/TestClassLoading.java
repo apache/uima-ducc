@@ -27,9 +27,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.List;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
+import org.apache.uima.ducc.container.dd.classload.ProxyDDGenerate;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
@@ -106,6 +108,79 @@ public class TestClassLoading extends ATest {
 			assertTrue(directive.isKillJob() == true);
 			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == false);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	private void delete(File directory) {
+		try {
+			for(File file : directory.listFiles()) {
+				debug("delete: "+file.getName());
+				file.delete();
+			}
+			debug("delete: "+directory.getName());
+			directory.delete();
+		}
+		catch(Exception e) {
+			//e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void test_04() {
+		if(isDisabled(this.getClass().getName())) {
+			return;
+		}
+		try {
+			String userClasspath = Utilities.getInstance().getUserCP();
+			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			ProxyDDGenerate pddGenerate = new ProxyDDGenerate();
+			//
+			URL url = this.getClass().getResource("/");
+			File root = new File(url.getFile());
+			String name = root.getAbsolutePath();
+			debug(name);
+			assertTrue(root.isDirectory());
+			String nameWorking = name+File.separator+"working";
+			File working = new File(nameWorking);
+			delete(working);
+			working.mkdir();
+			//
+			String directory = working.getAbsolutePath();
+			String id = "12345";
+			String ddName = "name";
+			String ddDescription = "description";
+			Integer ddThreadCount = new Integer(1);
+			String ddBrokerURL = "brokerURL";
+			String ddEndpoint = "endpoint";
+			String cmDescriptor = null;
+			List<String> cmOverrides = null;
+			//String aeDescriptor = "org.apache.uima.ducc.test.randomsleep.FixedSleepAE";
+			String aeDescriptor = "FixedSleepAE";
+			List<String> aeOverrides = null;
+			String ccDescriptor = null;
+			List<String> ccOverrides = null;
+			String dd = pddGenerate.generate(
+					directory, 
+					id, 
+					ddName, 
+					ddDescription,
+					ddThreadCount,
+					ddBrokerURL, 
+					ddEndpoint, 
+					cmDescriptor, 
+					cmOverrides, 
+					aeDescriptor, 
+					aeOverrides, 
+					ccDescriptor, 
+					ccOverrides
+					);
+			debug(dd);
+			//
+			delete(working);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
