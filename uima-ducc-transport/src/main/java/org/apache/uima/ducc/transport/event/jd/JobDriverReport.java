@@ -29,6 +29,7 @@ import org.apache.uima.ducc.container.common.Util;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
@@ -68,6 +69,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	private ArrayList<IWorkItemInfo> listActiveWorkItemInfo = null;
 	
 	private ConcurrentHashMap<RemoteLocation, Long> mapProcessOperatingMillis = null;
+	
+	private String jpDd = null;
 	
 	private long max(long a, long b) {
 		long retVal = a;
@@ -140,6 +143,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		}
 		// operating map
 		setActiveWorkItemInfo(operatingInfo.getActiveWorkItemInfo());
+		// JpDd
+		setJpDd(operatingInfo.getJpDd());
 	}
 	
 	private void setDuccId(DuccId value) {
@@ -216,6 +221,10 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private void setActiveWorkItemInfo(ArrayList<IWorkItemInfo> value) {
 		listActiveWorkItemInfo = value;
+	}
+	
+	private void setJpDd(String value) {
+		jpDd = value;
 	}
 	
 	@Override
@@ -356,9 +365,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	}
 
 	@Override
-	public IDuccUimaDeploymentDescriptor getUimaDeploymentDescriptor() {
-		// TODO Auto-generated method stub
-		return null;
+	public String getUimaDeploymentDescriptor() {
+		return jpDd;
 	}
 
 	@Override

@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.transport.event.jd;
 
 import java.io.Serializable;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,7 +34,6 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
-import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.Util;
@@ -107,7 +105,7 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	
 	private ConcurrentHashMap<String,String> pendingProcessAssignmentMap = new ConcurrentHashMap<String,String>();
 	
-	private IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = null;
+	private String uimaDeploymentDescriptor = null;
 	
 	private DuccProcessWorkItemsMap duccProcessWorkItemsMap = new DuccProcessWorkItemsMap();
 	
@@ -774,11 +772,11 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 		return performanceMetricsSummaryMap;
 	}
 	
-	public IDuccUimaDeploymentDescriptor getUimaDeploymentDescriptor() {
+	public String getUimaDeploymentDescriptor() {
 		return uimaDeploymentDescriptor;
 	}
 	
-	public void setUimaDeploymentDescriptor(IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor) {
+	public void setUimaDeploymentDescriptor(String uimaDeploymentDescriptor) {
 		this.uimaDeploymentDescriptor = uimaDeploymentDescriptor;
 	}
 	
