@@ -151,7 +151,7 @@ public class JobDriver extends Thread implements IJobDriver {
 			IDuccUimaDeployableConfiguration udc = job.getUimaDeployableConfiguration();
 			String process_DD = ddg.generate(udc, job.getDuccId().toString());
 			IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = new DuccUimaDeploymentDescriptor(process_DD);
-			driverStatusReport.setUimaDeploymentDescriptor(uimaDeploymentDescriptor);
+			driverStatusReport.setUimaDeploymentDescriptor(uimaDeploymentDescriptor.getDeploymentDescriptorPath());
 			// Prepare for gathering of UIMA performance statistics
 			String logsjobdir = job.getLogDirectory()+job.getDuccId().getFriendly()+File.separator;
 			performanceSummaryWriter = new PerformanceSummaryWriter(logsjobdir);
