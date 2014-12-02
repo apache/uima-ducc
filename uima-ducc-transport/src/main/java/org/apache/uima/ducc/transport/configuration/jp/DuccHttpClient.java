@@ -44,6 +44,7 @@ import org.apache.http.protocol.RequestContent;
 import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
@@ -58,8 +59,9 @@ public class DuccHttpClient {
 	BasicConnPool connPool = null;
 	HttpHost host = null;
 	String target = null;
-	String hostIP = "";
-	String hostname = "";
+//	String hostIP = "";
+//	String hostname = "";
+	NodeIdentity nodeIdentity;
 	String pid = "";
 	ReentrantLock lock = new ReentrantLock();
 	int timeout;
@@ -91,8 +93,8 @@ public class DuccHttpClient {
 		
 		connStrategy = new DefaultConnectionReuseStrategy();//DefaultConnectionReuseStrategy.INSTANCE;
 		pid = getProcessIP("N/A");
-		hostname = InetAddress.getLocalHost().getCanonicalHostName();
-		hostIP = InetAddress.getLocalHost().getHostAddress();
+		nodeIdentity = new NodeIdentity();
+		
 		// test connection to the JD
 		testConnection();
 		System.out.println("HttpClient Initialized");
@@ -133,16 +135,16 @@ public class DuccHttpClient {
 		return fallback;
 	}
     private void addCommonHeaders( BasicHttpRequest request ) {
-    	request.setHeader("IP", hostIP);
-		request.setHeader("Hostname", hostname);
+    	request.setHeader("IP", nodeIdentity.getIp());
+		request.setHeader("Hostname", nodeIdentity.getName());
 		request.setHeader("ThreadID",
 				String.valueOf(Thread.currentThread().getId()));
 		request.setHeader("PID", pid);
 		
     }
     private void addCommonHeaders( IMetaCasTransaction transaction ) {
-    	transaction.setRequesterAddress(hostIP);
-    	transaction.setRequesterName(hostname);
+    	transaction.setRequesterAddress(nodeIdentity.getIp());
+    	transaction.setRequesterName(nodeIdentity.getName());
     	transaction.setRequesterProcessId(Integer.valueOf(pid));
     	transaction.setRequesterThreadId((int)Thread.currentThread().getId());
     }
