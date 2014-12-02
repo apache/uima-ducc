@@ -59,11 +59,12 @@ class DuccProcess(Thread):
     def read_jobfile(self):
         print 'Reading jobfile', self.jobfile
         f = open(self.jobfile);
-        threads = '1'
-        memory = '15'
-        clz = 'urgent'
+        threads  = '1'
+        memory   = '15'
+        clz      = 'normal'
         machines = None
         services = None
+        jobtype  = None
         
         for line in f:
             toks = line.strip().split('=');
@@ -82,14 +83,17 @@ class DuccProcess(Thread):
                 machines = toks[1]
             elif (toks[0].strip() == 'services'):
                 services = toks[1].strip()
+            elif (toks[0].strip() == 'type'):
+                jobtype = toks[1].strip()
 
         answer = {}
-        answer['threads'] = threads
-        answer['memory'] = memory
-        answer['class'] = clz
-        answer['user'] = user
+        answer['threads']  = threads
+        answer['memory']   = memory
+        answer['class']    = clz
+        answer['user']     = user
         answer['machines'] = machines
         answer['services'] = services
+        answer['type']     = jobtype
         return answer
 
     def execute(self):
@@ -176,6 +180,7 @@ class DuccProcess(Thread):
         user     = parms['user']
         machines = parms['machines']
         services = parms['services']
+        jobtype  = parms['type']
         (process_xmx, bloat_parms) = self.calculate_bloat(memory)
         driver_args = []
         process_args = []
@@ -251,7 +256,7 @@ class DuccProcess(Thread):
                   + ' LD_LIBRARY_PATH=/a/bogus/path' \
                   + '"'
 
-        if ( self.runner.max_machines == 0 ):
+        if ( self.runner.max_machines == 0 or jobtype == 'reserve' ):
             if ( machines != None ):
                 CMD = CMD + ' --process_deployments_max '  + machines
         elif (self.runner.max_machines != -1 ):

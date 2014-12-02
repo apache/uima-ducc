@@ -107,10 +107,21 @@ class Prepare(DuccUtil):
             if ( d == None ):
                 self.error('No such property:', d)
             ret[val] = d
-
+        
         return ret
 
-    def distributeParameters(self, parmset, count):
+    def show(self, vals, tag):
+        tally = {}
+        for v in vals:
+            if ( tally.has_key(v) ):
+                tally[v] = tally[v] + 1
+            else:
+                tally[v] = 1
+
+        for k in tally.keys():
+            print '%10s tally: %12s --> %d' % (tag, k, tally[k])
+
+    def distributeParameters(self, parmset, count, tag):
         ''' 
         Randomly assign the values in the memory set to the jobs.  Otherwise use the supplied values.
 
@@ -119,6 +130,7 @@ class Prepare(DuccUtil):
 
         count   is the number of things we need to distribute the stuff in parmset over
         '''
+
 
         denom = 0
         for v in parmset.values():
@@ -147,6 +159,7 @@ class Prepare(DuccUtil):
 
         # gotta love python - now randomly shuffle the values
         random.shuffle(tmp)
+        self.show(tmp, tag)
         return tmp
     
     def writeControlFile(self, allfiles):
@@ -182,10 +195,10 @@ class Prepare(DuccUtil):
 
         files = os.listdir(self.srcdir)
         count = len(files)
-        mem_assignments = self.distributeParameters(self.memory, count)
-        class_assignments = self.distributeParameters(self.classes, count)
+        mem_assignments = self.distributeParameters(self.memory, count, 'memory')
+        class_assignments = self.distributeParameters(self.classes, count, 'class')
         if ( self.services != None ):
-            service_assignments = self.distributeParameters(self.services, count)
+            service_assignments = self.distributeParameters(self.services, count, 'services')
 
         if ( not os.path.exists(self.destdir) ):
             os.makedirs(self.destdir)
@@ -195,16 +208,50 @@ class Prepare(DuccUtil):
         for f in files:
             props = DuccProperties()
             props.load(self.srcdir + '/' + f)
-            props.put('memory', mem_assignments[ndx])
-            props.put('class' , class_assignments[ndx])
+            cls_assignment = class_assignments[ndx]
+
+            mem_override = self.maxmem[cls_assignment]
+            if ( mem_override == None ):
+                props.put('memory', mem_assignments[ndx])
+            else:
+                props.put('memory', mem_override)
+
+            props.put('class' , cls_assignment)
             if ( self.services != None ):
                 props.put('services', service_assignments[ndx])
+
+            process_override = self.maxproc[cls_assignment]
+            if ( process_override != None ):                    # force override of max_processes
+                props.put('machines', process_override)
+
+            type_override = self.type[cls_assignment]
+            if ( type_override != None ):                    # force override of max_processes
+                props.put('type', 'reserve')
+
             fname = self.destdir + '/' + f
             allfiles.append( (int(props.get('tod')), fname) )
             props.write(self.destdir + '/' + f)
             ndx = ndx + 1
             
         self.writeControlFile(sorted(allfiles))
+
+    def from_keys(self, props, base, stem):
+        '''
+           Given a base dictionary, "base", use its keyset to form a property from the
+           stem and look for it in props.
+           
+           Assign None as the value if not found.
+        '''
+        ret = {}
+        for bk in base.keys():
+            k = stem + '.' + bk
+            print 'LOOKING FOR', k
+            if ( props.has_key(k) ):
+                ret[bk] = props.get(k)
+            else:
+                ret[bk] = None
+        return ret
+                
 
     def main(self, argv):
 
@@ -224,6 +271,9 @@ class Prepare(DuccUtil):
         self.spread       = self.toint    (props, 'submission.spread')
         self.compression  = self.toint    (props, 'compression' , 1)
         self.classes      = self.toarray  (props, 'scheduling.classes')
+        self.maxproc      = self.from_keys(props, self.classes, 'scheduling.maxproc')
+        self.maxmem       = self.from_keys(props, self.classes, 'scheduling.maxmem')
+        self.type         = self.from_keys(props, self.classes, 'scheduling.type')
         self.memory       = self.toarray  (props, 'job.memory')
         self.randomseed    = props.get('random.seed')
 
@@ -240,6 +290,9 @@ class Prepare(DuccUtil):
         print '   spread               :', self.spread
         print '   compression          :', self.compression
         print '   classes              :', self.classes
+        print '   maxproc              :', self.maxproc
+        print '   maxmem               :', self.maxmem
+        print '   type                 :', self.type
         print '   memory               :', self.memory
         print '   services             :', self.services
         print '   randomseed           :', self.randomseed
