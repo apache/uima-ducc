@@ -54,7 +54,9 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	private int threadSleepTime = 5000; // time to sleep between GET requests if JD sends null CAS
 	private IUimaProcessor uimaProcessor = null; 
 	private CountDownLatch workerThreadCount = null;
-	
+	ScheduledThreadPoolExecutor executor = null;
+	ExecutorService tpe = null;
+
 	// define default class to use to invoke methods via reflection
 	private String containerClass = "org.apache.uima.ducc.user.jp.UimaProcessContainer";
 ;
@@ -125,8 +127,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
 			// tell the agent that this process is initializing
 			agent.notify(ProcessState.Initializing, processJmxUrl);
 			
-			ScheduledThreadPoolExecutor executor = null;
-			ExecutorService tpe = null;
 			try {
 				executor = new ScheduledThreadPoolExecutor(1);
 				executor.prestartAllCoreThreads();
@@ -218,14 +218,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		    		tpe.shutdown();
 		    		tpe.awaitTermination(0, TimeUnit.MILLISECONDS);
 		    	}
-
-		    	if ( uimaProcessor != null ) {
-	    			uimaProcessor.stop();
-		    	}
-
-		    	stop();
-		    	super.stop();
-				
 		    }
 		} catch( Exception e) {
 			currentState = ProcessState.FailedInitialization;
@@ -257,6 +249,19 @@ public class JobProcessComponent extends AbstractDuccComponent{
         	// block for worker threads to exit run()
         	workerThreadCount.await();
         	
+			// Stop executor. It was only needed to poll AE initialization status.
+			// Since deploy() completed
+			// the UIMA AS service either succeeded initializing or it failed. In
+			// either case we no longer
+			// need to poll for initialization status
+	    	if ( executor != null ) {
+		    	executor.shutdownNow();
+	    	}
+	    	if ( tpe != null ) {
+	    		tpe.shutdown();
+	    		tpe.awaitTermination(0, TimeUnit.MILLISECONDS);
+	    	}
+
         	if ( uimaProcessor != null ) {
             	uimaProcessor.stop();
         	}
