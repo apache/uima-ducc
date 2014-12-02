@@ -112,7 +112,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		super.start(service, args);
 		
 		try {
-			if ( args == null || args[0] == null || args.length == 0) {
+			if ( args == null || args.length ==0 || args[0] == null || args[0].trim().length() == 0) {
 				logger.warn("start", null, "Missing Deployment Descriptor - the JP Requires DD argument");
                 throw new RuntimeException("Missing Deployment Descriptor - the JP Requires DD argument");
 			}
