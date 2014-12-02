@@ -19,7 +19,7 @@
 
 package org.apache.uima.ducc.transport.configuration.jp;
 
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -53,6 +53,8 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	private int timeout = 30000;  // default socket timeout for HTTPClient
 	private int threadSleepTime = 5000; // time to sleep between GET requests if JD sends null CAS
 	private IUimaProcessor uimaProcessor = null; 
+	private CountDownLatch workerThreadCount = null;
+	
 	// define default class to use to invoke methods via reflection
 	private String containerClass = "org.apache.uima.ducc.user.jp.UimaProcessContainer";
 ;
@@ -172,7 +174,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				// Setup Thread Factory 
 				UimaServiceThreadFactory tf = new UimaServiceThreadFactory(Thread
 						.currentThread().getThreadGroup());
-
+				workerThreadCount = new CountDownLatch(uimaProcessor.getScaleout());
 				// Setup Thread pool with thread count = scaleout
 				tpe = Executors.newFixedThreadPool(uimaProcessor.getScaleout(), tf);
 
@@ -192,7 +194,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		    	// Create and start worker threads that pull Work Items from the JD
 		    	Future<?>[] threadHandles = new Future<?>[uimaProcessor.getScaleout()];
 				for (int j = 0; j < uimaProcessor.getScaleout(); j++) {
-					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, client, uimaProcessor));
+					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, client, uimaProcessor, workerThreadCount));
 				}
 				for( Future<?> f : threadHandles ) {
 					f.get();  // wait for worker threads to exit
@@ -223,17 +225,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
 
 		    	stop();
 		    	super.stop();
-//		    	super.getContext().stop();
-//		    	new Thread() {
-//		    		public void run() {
-//		    			try {
-//		    				System.setProperty("dontKill", "true");
-//			    			uimaProcessor.stop();
-//		    			} catch( Exception e) {
-//		    				e.printStackTrace();
-//		    			}
-//		    		}
-//		    	}.start();
 				
 		    }
 		} catch( Exception e) {
@@ -244,14 +235,16 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		}
 
 	}
+	public boolean isRunning() {
+		return currentState.equals(ProcessState.Running);
+	}
 	public void stop() {
+		currentState = ProcessState.Stopping;
 		if ( super.isStopping() ) {
 			return;  // already stopping - nothing to do
 		}
-		//configuration.stop();
+
 		System.out.println("... AbstractManagedService - Stopping Service Adapter");
-//		serviceAdapter.stop();
-		System.out.println("... AbstractManagedService - Calling super.stop() ");
 	    try {
         	if (getContext() != null) {
     			for (Route route : getContext().getRoutes()) {
@@ -261,8 +254,9 @@ public class JobProcessComponent extends AbstractDuccComponent{
     						+ route.getId());
     			}
     		}
-        	//jobProcessManager.
-			//agent.stop();
+        	// block for worker threads to exit run()
+        	workerThreadCount.await();
+        	
         	if ( uimaProcessor != null ) {
             	uimaProcessor.stop();
         	}
@@ -270,7 +264,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
             	agent.stop();
         	}
 			super.stop();
-			//super.getContext().stop();
 			
 	    } catch( Exception e) {
 	    	e.printStackTrace();

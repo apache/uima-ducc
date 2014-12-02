@@ -20,6 +20,7 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 
 import java.net.SocketTimeoutException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -36,6 +37,7 @@ public class HttpWorkerThread implements Runnable {
 	static AtomicInteger counter = new AtomicInteger();
     private DuccLogger logger;
 	private Object monitor = new Object();
+	private CountDownLatch workerThreadCount = null;
 /*
 	interface SMEvent {
 		Event action();
@@ -225,10 +227,11 @@ public class HttpWorkerThread implements Runnable {
 	}
 	*/
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
-			IUimaProcessor processor) {
+			IUimaProcessor processor, CountDownLatch workerThreadCount) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
 		this.uimaProcessor = processor;
+		this.workerThreadCount = workerThreadCount;
 	}
 
 	public void run() {
@@ -237,7 +240,7 @@ public class HttpWorkerThread implements Runnable {
 //			SMContext ctx = new SMContextImpl(httpClient, States.Start);
 			String command="";
 			// run forever (or until the process throws IllegalStateException
-			while (true) {  //service.running && ctx.state().process(ctx)) {
+			while (duccComponent.isRunning()) {  //service.running && ctx.state().process(ctx)) {
 
 				try {
 					IMetaCasTransaction transaction = new MetaCasTransaction();
@@ -300,9 +303,11 @@ public class HttpWorkerThread implements Runnable {
 
 		} catch (Throwable t) {
 			t.printStackTrace();
+			duccComponent.getLogger().warn("run", null, t);
 		} finally {
 			System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
+			workerThreadCount.countDown();
 		}
 
 	}
