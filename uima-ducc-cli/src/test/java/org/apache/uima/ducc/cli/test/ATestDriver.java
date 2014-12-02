@@ -56,7 +56,7 @@ public abstract class ATestDriver
     void abort(String testid, Object ... reason)
         throws FailedTestException
     {
-        failReasons.add(join(testid, reason));
+        failReasons.add(join("FAILURE", testid, reason));
         throw new FailedTestException(join(testid, reason));
     }
     
@@ -68,7 +68,7 @@ public abstract class ATestDriver
      */
     void fail(String testid, Object ... reason)
     {
-        failReasons.add(join(testid, reason));
+        failReasons.add(join("FAILURE", testid, reason));
         System.out.println(join(testid, reason));        
     }
     
@@ -77,7 +77,7 @@ public abstract class ATestDriver
      */
     void success(String testid, Object ... reason)
     {
-        successReasons.add(join(testid, reason));
+        successReasons.add(join("SUCCESS", testid, reason));
         System.out.println(join(testid, reason));
     }
         

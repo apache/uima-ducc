@@ -399,15 +399,17 @@ public class TestCommandLine
         cl = new CommandLine(args, opts);
         testid = tid + ": optargs=T, multiargs=T, fetch deflt";
         try {
+            // TODO: If we implement multi args this block should register success, not failure
             cl.parse();
-            success(testid, "Parse succeeded.");
+            fail(testid, "Parse succeeded but should have failed because multargs is not implemented.");
             if ( cl.get(opts[0]).equals("bob")) {
                 success(testid, "Default of 'bob' correctly found.");
             } else {
                 fail(testid, "Did not fetch default. Expeced 'bob', found", cl.get(opts[0]));
             }
         } catch ( Exception e ) {
-            fail(testid, "Parse failed", e.getMessage());
+            // TODO: If we implement multi args this block should register failure, not success
+            success(testid, "Parse failed as expected, because multargs is not implemented.");
         }        
         
         args = new String[] {
@@ -416,15 +418,17 @@ public class TestCommandLine
         cl = new CommandLine(args, opts);
         testid = tid + ": optargs=T, multiargs=T, fetch value";
         try {
+            // TODO: If we implement multi args this block should register success, not failure
             cl.parse();
-            success(testid, "Parse succeeded.");
+            fail(testid, "Parse succeeded but should have failed because multargs is not implemented.");
             if ( cl.get(opts[0]).equals("mary")) {
                 success(testid, "Valu of 'mary' correctly found.");
             } else {
                 fail(testid, "Did not fetch default. Expeced 'mary', found", cl.get(opts[0]));
             }
         } catch ( Exception e ) {
-            fail(testid, "Parse failed", e.getMessage());
+            // TODO: If we implement multi args this block should register failure, not success
+            success(testid, "Parse failed as expected, because multargs is not implemented.");
         }        
         
     }
@@ -684,10 +688,11 @@ public class TestCommandLine
 
         try {            
             cl.parse();
+            cl.verify();
             fail(testid, "Incomplete option set should have failed but didn't");
 
         } catch (Exception e) {
-            success(testid, "Parse failed.", e.getMessage());
+            success(testid, "Parse failed as expected.", e.getMessage());
         }
         
     }

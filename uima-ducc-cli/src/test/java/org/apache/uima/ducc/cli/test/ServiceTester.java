@@ -73,7 +73,7 @@ public class ServiceTester
     void fail(String testid, String subtestId, String reason)
         throws FailedTestException
     {
-        failReasons.add(testid + " - " + subtestId + " - " + reason);
+        failReasons.add("FAILURE " + testid + " - " + subtestId + " - " + reason);
         throw new FailedTestException(testid + " - " + subtestId + " - test failed: " + reason);
     }
 
@@ -86,7 +86,7 @@ public class ServiceTester
 
     void success(String testid, String subtestId, String reason)
     {
-        successReasons.add(testid + " - " + subtestId + " - " + reason);
+        successReasons.add("SUCCESS " + testid + " - " + subtestId + " - " + reason);
         System.out.println(testid + " - " + subtestId + " - test passed: " + reason);
     }
 
@@ -1285,11 +1285,11 @@ public class ServiceTester
         //
         // Do ping-only tests
         //
-        try {
-            runPingOnly();
-        } catch ( Exception e ) {
-            System.out.println("Ping-only test failed: " + e.toString());
-        }
+//        try {
+//            runPingOnly();
+//        } catch ( Exception e ) {
+//            System.out.println("Ping-only test failed: " + e.toString());
+//        }
 
         //
         // Do "normal" tests

@@ -515,7 +515,6 @@ public class CommandLine
 
         if ( args       != null ) addCommandLine();
         if ( properties != null ) addProperties();
-
     }
         
 }
