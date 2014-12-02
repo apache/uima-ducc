@@ -246,12 +246,12 @@ public class HttpWorkerThread implements Runnable {
 					// HTTP request. HttpClient actually enforces this. So
 					// do a POST instead of a GET.
 					transaction.setType(Type.Get);  // Tell JD you want a CAS
-					command = "Get";
+					command = Type.Get.name();
 					transaction = httpClient.post(transaction);
                     
 					// Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
-					command = "Ack";
+					command = Type.Ack.name();
 					httpClient.post(transaction); // Ready to process
 					
 					// if the JD did not provide a CAS, most likely the CR is
@@ -277,9 +277,10 @@ public class HttpWorkerThread implements Runnable {
 							}
 						}
 					} else {
+						// process the CAS
 						uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
 						transaction.setType(Type.End);
-						command = "End";
+						command = Type.End.name();
 						httpClient.post(transaction); // Work Item Processed - End
 					}
 				} catch( SocketTimeoutException e) {
