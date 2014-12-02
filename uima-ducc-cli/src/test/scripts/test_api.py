@@ -24,10 +24,25 @@ import getopt
 import subprocess
 
 # 
-# Try to poison the CLI with a bogus xstream class (simulating an incorrect version of
-# xstreadm)
+# Run the full set of functional tests
 #
 
+#
+# Many things are time sensitive as DUCC failures can cause some of the calls to never return.
+# Your ducc.properties should have the following (or even smaller) tuning values set.
+#
+# ducc.sm.instance.failure.max                          3
+# ducc.sm.instance.failure.window                      10
+# ducc.sm.meta.ping.rate                            10000
+# ducc.sm.default.linger                            15000
+# ducc.orchestrator.state.publish.rate              10000
+# ducc.orchestrator.abbreviated.state.publish.rate  10000
+# ducc.rm.state.publish.ratio                           1
+# ducc.agent.node.metrics.publish.rate              10000
+# ducc.agent.node.inventory.publish.rate            10000
+# ducc.pm.state.publish.rate                        15000
+# ducc.agent.launcher.process.stop.timeout           5000
+#
 #
 # map the test id to the proper test class
 #
