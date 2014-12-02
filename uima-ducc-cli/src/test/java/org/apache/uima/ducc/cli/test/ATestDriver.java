@@ -35,6 +35,7 @@ public abstract class ATestDriver
     {
     }
 
+
     String join(String testid, Object ... toks)
     {
         StringBuffer sb = new StringBuffer();
@@ -46,6 +47,16 @@ public abstract class ATestDriver
         }
         return sb.toString();
     }
+
+    String join(String outcome, String testid, Object ... toks)
+    {
+        StringBuffer sb = new StringBuffer();
+        sb.append(outcome);
+        sb.append(" ");
+        sb.append(join(testid, toks));
+        return sb.toString();
+    }
+
 
     /**
      * Update running log, and save result for summary.
