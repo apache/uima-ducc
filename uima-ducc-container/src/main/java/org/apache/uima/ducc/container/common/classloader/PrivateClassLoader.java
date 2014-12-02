@@ -43,9 +43,12 @@ public class PrivateClassLoader {
     for (String element : classPathElements) {
       if (element.endsWith("*")) {
         File dir = new File(element.substring(0, element.length() - 1));
-        for (File f : dir.listFiles()) {
-          if (f.getName().endsWith(".jar")) {
-            urlList.add(f.toURI().toURL());
+        File[] files = dir.listFiles();   // Will be null if missing or not a dir
+        if (files != null) {
+          for (File f : files) {
+            if (f.getName().endsWith(".jar")) {
+              urlList.add(f.toURI().toURL());
+            }
           }
         }
       } else {

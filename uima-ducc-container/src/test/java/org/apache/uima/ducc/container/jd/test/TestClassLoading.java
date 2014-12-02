@@ -56,7 +56,7 @@ public class TestClassLoading extends ATest {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			fail("Exception");
+			fail("Exception " + e);
 		}
 	}
 
@@ -238,4 +238,33 @@ public class TestClassLoading extends ATest {
     }
     // pcl.close();   // Requires Java 1.7
   }
+  
+  @Test
+  public void test_invalid_cp() throws URISyntaxException, IOException {
+
+    // Set up a private class-loader with a couple of missing 
+    // or invalid entries that should be quietly ignored
+    String[] privateCP = {"../uima-ducc-sm/target/classes",
+                          "pom.xml*",
+                          "unknown-file.jar",
+                          "unknown-wildcard/*"};
+    
+    URLClassLoader pcl = null;
+    try {
+      pcl = PrivateClassLoader.create(privateCP);
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Failed to create private class loader");
+    }
+    URL[] urls = pcl.getURLs();
+    
+    if (urls.length != 1) {
+      fail("Should have only one entry in the classpath, not " + urls.length);
+    }
+    File f = new File(privateCP[0]);
+    URL u = f.toURI().toURL();
+    if (!u.equals(urls[0])) {
+      fail("C;asspath should have only " + u);
+    }
+  }  
 }
