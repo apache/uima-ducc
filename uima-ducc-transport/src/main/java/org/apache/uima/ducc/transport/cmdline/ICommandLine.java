@@ -26,6 +26,8 @@ public interface ICommandLine extends Serializable {
 	public String getExecutable();
 	public void addArgument(String arg);
 	public List<String> getArguments();
+	public void addOption(String opt);
+	public List<String> getOptions();
 	public String getWorkingDirectory();
 	public String getLogDirectory();
 }
