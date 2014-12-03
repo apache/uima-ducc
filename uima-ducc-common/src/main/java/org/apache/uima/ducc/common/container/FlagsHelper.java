@@ -44,8 +44,8 @@ public class FlagsHelper {
 		JpCmDescriptor,
 		JpCmOverrides,
 		JpDd,
-		JpDdBrokerEndpoint,
-		JpDdBrokerURL,
+		JpDdBrokerEndpoint("ducc.local.queue"),
+		JpDdBrokerURL("${DefaultBrokerURL}"),
 		JpDdDescription,
 		JpDdName,
 		JpDdThreadCount,
@@ -58,7 +58,17 @@ public class FlagsHelper {
 		private static ArrayList<Name> requiredJd = new ArrayList<Name>(Arrays.asList(CollectionReaderCfg, JobId, UserClasspath));
 		private static ArrayList<Name> requiredJp = new ArrayList<Name>(Arrays.asList(JdURL, JobId, UserClasspath));
 		
+		private String defaultValue = null;
+		
 		private Name() {
+		}
+		
+		private Name(String value) {
+			defaultValue = value;
+		}
+		
+		public String getDefaultValue() {
+			return defaultValue;
 		}
 		
 		public boolean isRequiredJd() {
