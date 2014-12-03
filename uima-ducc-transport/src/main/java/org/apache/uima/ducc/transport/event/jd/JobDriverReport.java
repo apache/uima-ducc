@@ -29,10 +29,8 @@ import org.apache.uima.ducc.container.common.Util;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
-import org.apache.uima.ducc.transport.event.common.DuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
-import org.apache.uima.ducc.transport.event.common.IDuccUimaDeploymentDescriptor;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
@@ -71,6 +69,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	private ConcurrentHashMap<RemoteLocation, Long> mapProcessOperatingMillis = null;
 	
 	private String jpDd = null;
+	
+	private JobCompletionType jobCompletionType = JobCompletionType.EndOfJob;
 	
 	private long max(long a, long b) {
 		long retVal = a;
@@ -387,14 +387,16 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 			else if(state.equals(JdState.Active.name())) {
 				retVal = DriverState.Running;
 			}
+			else if(state.equals(JdState.Ended.name())) {
+				retVal = DriverState.Completed;
+			}
 		}
 		return retVal;
 	}
 
 	@Override
 	public JobCompletionType getJobCompletionType() {
-		// TODO Auto-generated method stub
-		return null;
+		return jobCompletionType;
 	}
 
 	@Override
