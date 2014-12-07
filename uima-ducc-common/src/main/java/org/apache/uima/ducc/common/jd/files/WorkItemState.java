@@ -26,6 +26,7 @@ public class WorkItemState implements IWorkItemState {
 	private String wiId = null;
 	private String node = null;
 	private String pid = null;
+	private String tid = null;
 	@Deprecated
 	private Name name = null;
 	private State state = State.unknown;
@@ -82,6 +83,16 @@ public class WorkItemState implements IWorkItemState {
 	
 	public void setPid(String pid) {
 		this.pid = pid;
+	}
+	
+	
+	public String getTid() {
+		return tid;
+	}
+	
+	
+	public void setTid(String tid) {
+		this.tid = tid;
 	}
 	
 	
@@ -207,6 +218,8 @@ public class WorkItemState implements IWorkItemState {
 				break;
 			case retry:
 				retVal = -2; 
+				break;
+			default:
 				break;
 			}
 		}

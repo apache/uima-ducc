@@ -39,7 +39,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 
 @SuppressWarnings("deprecation")
-public class WorkItemStateReader extends WorkItemStateAbstract {
+public class WorkItemStateReader extends WorkItemStateAbstract implements IWorkItemStateReader {
 	
 	protected DuccLogger logger = DuccLogger.getLogger(WorkItemStateReader.class, null);
 	
@@ -88,13 +88,14 @@ public class WorkItemStateReader extends WorkItemStateAbstract {
 		
 	}
 	
+	@Override
 	public ConcurrentSkipListMap<Long,IWorkItemState> getMap() {
 		long lastRecordNo = 0;
 		long maxRecords = MaxRecords;
 		return getMap(lastRecordNo, maxRecords);
 	}
 	
-	public ConcurrentSkipListMap<Long,IWorkItemState> getMap(long lastRecordNo, long maxRecords) {
+	private ConcurrentSkipListMap<Long,IWorkItemState> getMap(long lastRecordNo, long maxRecords) {
 		String location = "getMap";
 		ConcurrentSkipListMap<Long,IWorkItemState> map = new ConcurrentSkipListMap<Long, IWorkItemState>();;
 		if(wiVersion == 0) {
@@ -159,6 +160,8 @@ public class WorkItemStateReader extends WorkItemStateAbstract {
 							map.remove(key);
 							logger.debug(location, jobid, "seqNo:"+key);
 							break RemoveFirstCompleted;
+						default:
+							break;
 						}
 					}
 			}

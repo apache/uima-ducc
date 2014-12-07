@@ -41,7 +41,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonWriter;
 
-public class WorkItemStateKeeper extends WorkItemStateAbstract {
+public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkItemStateKeeper {
 	
 	private DuccLogger logger = DuccLogger.getLogger(WorkItemStateKeeper.class, null);
 	
@@ -81,8 +81,9 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 					map.put(key,value);
 				}
 				break;
+			default:
+				break;
 			}
-			
 		}
 		if(logger != null) {
 			for(Entry<RemoteLocation, Long> entry : map.entrySet()) {
@@ -96,6 +97,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		return map;
 	}
 	
+	@Override
 	public synchronized void zip() {
 		String location = "zip";
 		try {
@@ -114,6 +116,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		}
 	}
 	
+	@Deprecated
 	public void start(int seqNo, String wiId) {
 		IWorkItemState wis = new WorkItemState(seqNo);
 		Long key = new Long(seqNo);
@@ -123,11 +126,26 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		record(wis);
 	}
 	
+	@Override
+	public void start(int seqNo, String wiId, String node, String pid, String tid) {
+		IWorkItemState wis = new WorkItemState(seqNo);
+		Long key = new Long(seqNo);
+		activeMap.put(key, wis);
+		wis.setWiId(wiId);
+		wis.stateStart();
+		wis.setNode(node);
+		wis.setPid(pid);
+		wis.setTid(tid);
+		record(wis);
+	}
+	
+	@Deprecated
 	public void queued(String seqNo) {
 		Long key = new Long(seqNo);
 		queued(key.intValue());
 	}
 	
+	@Override
 	public void queued(int seqNo) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = activeMap.get(key);
@@ -135,11 +153,13 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		record(wis);
 	}
 	
+	@Deprecated
 	public void operating(String seqNo) {
 		Long key = new Long(seqNo);
 		operating(key.intValue());
 	}
 	
+	@Override
 	public void operating(int seqNo) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = activeMap.get(key);
@@ -147,6 +167,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		record(wis);
 	}
 	
+	@Override
 	public void ended(int seqNo) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = activeMap.get(key);
@@ -154,6 +175,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		record(wis);
 	}
 	
+	@Override
 	public void error(int seqNo) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = activeMap.get(key);
@@ -161,13 +183,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		record(wis);
 	}
 	
-	public void lost(int seqNo) {
-		Long key = new Long(seqNo);
-		IWorkItemState wis = activeMap.get(key);
-		wis.stateLost();
-		record(wis);
-	}
-	
+	@Override
 	public void retry(int seqNo) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = activeMap.get(key);
@@ -175,19 +191,20 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 		record(wis);
 	}
 	
+	@Deprecated
 	public void location(String seqNo, String node, String pid) {
 		Long key = new Long(seqNo);
 		location(key.intValue(), node, pid);
 	}
 	
-	public void location(int seqNo, String node, String pid) {
+	private void location(int seqNo, String node, String pid) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = activeMap.get(key);
 		wis.setNode(node);
 		wis.setPid(pid);
 		record(wis);
 	}
-	
+
 	private synchronized void record(IWorkItemState wis) {
 		String location = "record";
 		try {
@@ -359,5 +376,5 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract {
 			}
 		}
 	}
-	
+
 }

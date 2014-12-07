@@ -139,6 +139,8 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 			case LocalTimeout:
 				retVal = true;
 				break;
+			default:
+				break;
 			}
 		}
 		return retVal;
@@ -150,6 +152,8 @@ public abstract class AbstractJdProcessExceptionHandler implements IJdProcessExc
 			switch(analysisOfCause) {
 			case WireFormatTimeout:
 				retVal = true;
+				break;
+			default:
 				break;
 			}
 		}

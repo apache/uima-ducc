@@ -104,6 +104,8 @@ public class WorkItemStateManager {
 						retVal = millis;
 					}
 					break;
+				default:
+					break;
 				}
 			}
 		}
@@ -124,6 +126,8 @@ public class WorkItemStateManager {
 						retVal = millis;
 					}
 					break;
+				default:
+					break;
 				}
 			}
 		}
@@ -142,6 +146,8 @@ public class WorkItemStateManager {
 				case ended:
 					retVal += workItemState.getMillisProcessing();
 					count++;
+					break;
+				default:
 					break;
 				}
 			}

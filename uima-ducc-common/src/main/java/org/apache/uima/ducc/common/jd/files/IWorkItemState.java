@@ -30,6 +30,8 @@ public interface IWorkItemState extends Serializable, Comparable<IWorkItemState>
 	public void setNode(String node);
 	public String getPid();
 	public void setPid(String pid);
+	public String getTid();
+	public void setTid(String tid);
 	
 	public enum State {
 		start,
