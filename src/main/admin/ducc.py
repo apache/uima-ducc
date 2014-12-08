@@ -52,7 +52,9 @@ class Ducc(DuccUtil):
 
         print 'ACTIVEMQ_OPTS:', os.environ['ACTIVEMQ_OPTS']
         print 'ACTIVEMQ_HOME:', os.environ['ACTIVEMQ_HOME']
-
+        
+        self.verify_limits()
+        
         here = os.getcwd()
         os.chdir(broker_home + '/bin')
         CMD = './activemq start xbean:' + broker_config 
@@ -200,6 +202,8 @@ class Ducc(DuccUtil):
                         return
 
         # not already running, and the node is viable.  fire it off.
+        if ( not self.verify_limits() ):
+            return
         cmd = []
         cmd.append(self.java())
         cmd.append(ducc_component)
