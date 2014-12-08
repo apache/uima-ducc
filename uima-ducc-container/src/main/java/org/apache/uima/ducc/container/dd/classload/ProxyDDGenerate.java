@@ -142,6 +142,7 @@ public class ProxyDDGenerate {
 					};
 			String dd = (String) method.invoke(instance, args);
 			show("generated deployment descriptor", dd);
+			retVal = dd;
 		}
 		catch(Exception e) {
 			e.printStackTrace();

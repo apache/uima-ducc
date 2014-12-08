@@ -79,9 +79,11 @@ public class DdManager {
 				pddg = new ProxyDDGenerate();
 				String value = pddg.generate(jobDirectory, jobId, ddName, ddDescription, ddThreadCount, ddBrokerURL, ddBrokerEndpoint, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
 				setDD(value);
+				logger.info(location, null, "generated dd: "+value);
 			}
 			else {
 				setDD(dd);
+				logger.info(location, null, "specified dd: "+dd);
 			}
 			
 		}

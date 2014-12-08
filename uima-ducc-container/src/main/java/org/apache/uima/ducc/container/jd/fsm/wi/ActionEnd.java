@@ -93,7 +93,11 @@ public class ActionEnd implements IAction {
 	
 	private void checkEnded(CasManager cm) {
 		String location = "checkEnded";
-		if(cm.getCasManagerStats().getUnfinishedWorkCount() <= 0) {
+		int remainder = cm.getCasManagerStats().getUnfinishedWorkCount();
+		MessageBuffer mb1 = new MessageBuffer();
+		mb1.append(Standardize.Label.remainder.get()+remainder);
+		logger.debug(location, ILogger.null_id, mb1.toString());
+		if(remainder <= 0) {
 			JobDriver.getInstance().advanceJdState(JdState.Ended);
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.jdState.get()+JobDriver.getInstance().getJdState());

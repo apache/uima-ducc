@@ -21,6 +21,10 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		current,
+		request,
+		result,
+		remainder,
 		jdState,
 		directory,
 		node,

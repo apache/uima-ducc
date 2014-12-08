@@ -21,6 +21,8 @@ package org.apache.uima.ducc.container.jd;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -126,7 +128,12 @@ public class JobDriver {
 	}
 	
 	public void advanceJdState(JdState value) {
+		String location = "advanceJdState";
+		String request = value.name();
+		String current = null;
+		String result = null;
 		synchronized(jdState) {
+			current = jdState.name();
 			switch(jdState) {
 			case Ended:
 				break;
@@ -145,7 +152,12 @@ public class JobDriver {
 				}
 				break;
 			}
-			jdState = value;
+			result = jdState.name();
 		}
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.current.get()+current);
+		mb.append(Standardize.Label.request.get()+request);
+		mb.append(Standardize.Label.result.get()+result);
+		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 }

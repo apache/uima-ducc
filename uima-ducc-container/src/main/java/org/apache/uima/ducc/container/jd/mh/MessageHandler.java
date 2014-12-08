@@ -236,10 +236,19 @@ public class MessageHandler implements IMessageHandler {
 		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
 		IWorkItem wi = map.get(rwi);
 		if(wi != null) {
-			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwi.toString());
-			mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
-			logger.debug(location, ILogger.null_id, mb.toString());
+			IMetaCas metaCas = wi.getMetaCas();
+			if(metaCas != null) {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+				logger.debug(location, ILogger.null_id, mb.toString());
+			}
+			else {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				mb.append("has no work assigned presently");
+				logger.debug(location, ILogger.null_id, mb.toString());
+			}
 		}
 		else {
 			MessageBuffer mb = new MessageBuffer();
