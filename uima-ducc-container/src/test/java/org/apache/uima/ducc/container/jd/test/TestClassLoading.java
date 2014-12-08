@@ -193,8 +193,8 @@ public class TestClassLoading extends ATest {
 
     // First set up a private class-loaded and verify that its resources exist 
     // and are not also in the system class-loader.
-    String privateCP = "../uima-ducc-sm/target/classes";
-    String privateClass = "org.apache.uima.ducc.sm.PingDriver";
+    String privateCP = "src/test/java/";
+    String privateResource = "org/apache/uima/ducc/container/jd/test/TestClassLoading.java";
     String publicClass = "org.apache.uima.ducc.container.common.Util";
     
     URLClassLoader scl = (URLClassLoader) ClassLoader.getSystemClassLoader();
@@ -211,17 +211,15 @@ public class TestClassLoading extends ATest {
       }
     }
     
-    // Check that a private class can only be loaded from the private class-loader
+    // Check that a private resource can only be loaded from the private class-loader
     // i.e. no leakage from private to system
-    try {
-      scl.loadClass(privateClass);
-      fail("Found private class in system class-loader");
-    } catch (ClassNotFoundException e) {
+    // (Can't use a class as all in this project are in the public classpath)
+    if (scl.findResource(privateResource) != null) { 
+      fail("Found private resource in system class-loader");
     }
-    try {
-      pcl.loadClass(privateClass);
-    } catch (ClassNotFoundException e) {
-      fail("Cannot load private class");
+    if (pcl.findResource(privateResource) == null) {
+      PrivateClassLoader.dump(pcl, 1);
+      fail("Cannot load private resource");
     }
 
     // Check that a public class can only be loaded from the system class-loader
@@ -244,7 +242,7 @@ public class TestClassLoading extends ATest {
 
     // Set up a private class-loader with a couple of missing 
     // or invalid entries that should be quietly ignored
-    String[] privateCP = {"../uima-ducc-sm/target/classes",
+    String[] privateCP = {"target/classes",
                           "pom.xml*",
                           "unknown-file.jar",
                           "unknown-wildcard/*"};
