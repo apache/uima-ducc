@@ -78,6 +78,7 @@ class StartSim(DuccUtil):
         if ( not self.verify_jvm() ):
             return        
         self.verify_duccling(True)
+        self.verify_limits()
 
         memory = int(memory) * 1024 * 1024    # to GB from KB
         CMDPARMS = []
