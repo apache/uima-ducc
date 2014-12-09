@@ -42,6 +42,7 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
 import org.apache.uima.ducc.transport.agent.IUimaPipelineAEComponent;
+import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.event.common.DuccProcess;
 import org.apache.uima.ducc.transport.event.common.DuccReservation;
@@ -469,6 +470,40 @@ public class StateManager {
 		}
 	}
 	
+	private void addDdToJpCommandLine(IDuccWorkJob dwj, IDriverStatusReport jdStatusReport) {
+		String location = "addDdToJpCommandLine";
+		DuccId jobid = null;
+		if(!dwj.isDdSpecified()) {
+			String jpDd = jdStatusReport.getUimaDeploymentDescriptor();
+			if(jpDd != null) {
+				//V1
+				IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = new DuccUimaDeploymentDescriptor(jpDd);
+				dwj.setUimaDeployableConfiguration(uimaDeploymentDescriptor);
+				//V2
+				ICommandLine jcl = dwj.getCommandLine();
+				List<String> args = jcl.getArguments();
+				String arg = uimaDeploymentDescriptor.getDeploymentDescriptorPath();
+				if(args == null) {
+					jcl.addArgument(arg);
+					logger.debug(location, jobid,  "add[null]:"+arg);
+				}
+				else if(args.isEmpty()) {
+					jcl.addArgument(uimaDeploymentDescriptor.getDeploymentDescriptorPath());
+					logger.debug(location, jobid, "add[empty]:"+arg);
+				}
+				List<String> argList = jcl.getArguments();
+				if(args != null) {
+					int index = 0;
+					for(String argument : argList) {
+						logger.debug(location, jobid, "arg["+index+"]: "+argument);
+						index++;
+					}
+				}
+				dwj.setDdSpecified();
+			}
+		}
+	}
+	
 	/**
 	 * JD reconciliation
 	 */
@@ -484,16 +519,10 @@ public class StateManager {
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, sid, this, methodName);
 			if(duccWorkJob != null) {
 				addJdUrlToJpCommandLine(duccWorkJob, jdStatusReport);
-				IRationale rationale;
+				addDdToJpCommandLine(duccWorkJob, jdStatusReport);
+				//
 				String jdJmxUrl = jdStatusReport.getJdJmxUrl();
 				setJdJmxUrl(duccWorkJob, jdJmxUrl);
-				String jpDd = jdStatusReport.getUimaDeploymentDescriptor();
-				if(jpDd != null) {
-					if(duccWorkJob.getUimaDeployableConfiguration() == null) {
-						IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = new DuccUimaDeploymentDescriptor(jpDd);
-						duccWorkJob.setUimaDeployableConfiguration(uimaDeploymentDescriptor);
-					}
-				}
 				//
 				copyInvestmentReport(duccWorkJob, jdStatusReport);
 				copyProcessWorkItemsReport(duccWorkJob, jdStatusReport);
@@ -508,6 +537,7 @@ public class StateManager {
 					break;
 				}
 				//
+				IRationale rationale;
 				if(jdStatusReport.getWorkItemsTotal() == 0) {
 					jobTerminate(duccWorkJob, JobCompletionType.NoWorkItemsFound, new Rationale("job driver had no work items to process"), ProcessDeallocationType.JobCanceled);
 				}
