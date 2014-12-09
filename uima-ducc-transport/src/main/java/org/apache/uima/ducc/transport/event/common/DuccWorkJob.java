@@ -34,6 +34,7 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	private static final long serialVersionUID = 1L;
 
 	private boolean jdURLSpecified = false;
+	private boolean jdDdSpecified = false;
 	
 	private DuccWorkPopDriver driver = null;
 	private String jobBroker = null;
@@ -580,6 +581,16 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	@Override
 	public void setJdURLSpecified() {
 		jdURLSpecified = true;
+	}
+
+	@Override
+	public boolean isDdSpecified() {
+		return jdDdSpecified;
+	}
+
+	@Override
+	public void setDdSpecified() {
+		jdDdSpecified = true;
 	}
 
 }

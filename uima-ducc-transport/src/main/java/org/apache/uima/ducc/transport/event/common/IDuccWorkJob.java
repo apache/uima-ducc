@@ -29,6 +29,9 @@ public interface IDuccWorkJob extends Identifiable, IDuccWorkService, IDuccWorkE
 	public boolean isJdURLSpecified();
 	public void setJdURLSpecified();
 	
+	public boolean isDdSpecified();
+	public void setDdSpecified();
+	
 	public String getUserLogsDir();
 	
 	public JobState getJobState();
