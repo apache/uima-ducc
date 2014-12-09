@@ -278,7 +278,7 @@ public class JobFactoryV2 implements IJobFactory {
 		jcl.addOption(IDuccCommand.arg_ducc_job_id+jobid.toString());
 		String cp = buildJobDriverClasspath(jobRequestProperties, jobid);
 		jcl.setClasspath(cp);
-		// Add the user-provided JVM args
+		// Add the user-provided JVM opts
 		boolean haveXmx = false;
 		String driver_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_jvm_args);
 		ArrayList<String> dTokens = QuotedOptions.tokenizeList(driver_jvm_args, true);
@@ -288,7 +288,7 @@ public class JobFactoryV2 implements IJobFactory {
 			    haveXmx = token.startsWith("-Xmx");
 			}
 		}
-		// Add any site-provided JVM args, but not -Xmx if the user has provided one
+		// Add any site-provided JVM opts, but not -Xmx if the user has provided one
 		String siteJvmArgs = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_driver_jvm_args);
 		dTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);    // a null arg is acceptable
 		for (String token : dTokens) {
@@ -296,7 +296,7 @@ public class JobFactoryV2 implements IJobFactory {
 		       jcl.addOption(token);
 		    }
 		}
-		// Add job JVM args
+		// Add job JVM opts
 		String opt;
 		// add JobId	
 		opt = FlagsHelper.Name.JobId.dname()+"="+jobid.getFriendly();
@@ -336,13 +336,11 @@ public class JobFactoryV2 implements IJobFactory {
 		// add Jp DD specs
 		String name = "DUCC.Job";
 		String description = "DUCC.Generated";
-		String brokerURL = "DUCC.BrokerURL";
-		String brokerEndpoint = "DUCC.BrokerEndpoint";
 		addDashD(jcl, FlagsHelper.Name.JpDdName, name);
 		addDashD(jcl, FlagsHelper.Name.JpDdDescription, description);
 		addDashD(jcl, FlagsHelper.Name.JpDdThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
-		addDashD(jcl, FlagsHelper.Name.JpDdBrokerURL, brokerURL);
-		addDashD(jcl, FlagsHelper.Name.JpDdBrokerEndpoint, brokerEndpoint);
+		addDashD(jcl, FlagsHelper.Name.JpDdBrokerURL,  FlagsHelper.Name.JpDdBrokerURL.getDefaultValue());
+		addDashD(jcl, FlagsHelper.Name.JpDdBrokerEndpoint, FlagsHelper.Name.JpDdBrokerEndpoint.getDefaultValue());
 		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
 		jcl.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
 		// Log directory
@@ -351,7 +349,7 @@ public class JobFactoryV2 implements IJobFactory {
 	}
 	
 	private void addDashD(JavaCommandLine jcl, Name name, String value) {
-		String location = "addDadhD";
+		String location = "addDashD";
 		logger.trace(location, null, name.dname()+"="+value);
 		if(value != null) {
 			String opt = name.dname()+"="+value;
@@ -619,7 +617,7 @@ public class JobFactoryV2 implements IJobFactory {
 			for(String token : pTokens) {
 				pipelineCommandLine.addOption(token);
 			}
-		    // Add any site-provided JVM args
+		    // Add any site-provided JVM opts
 	        String siteJvmArgs = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_process_jvm_args);
 	        pTokens = QuotedOptions.tokenizeList(siteJvmArgs, true);   // a null arg is acceptable
 	        for(String token : pTokens) {
@@ -631,9 +629,18 @@ public class JobFactoryV2 implements IJobFactory {
 			if(userCP == null) {
 				userCP = "";
 			}
+			
+			logger.debug(methodName, job.getDuccId(), "userCP pipeline: "+userCP);
+			
 			String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
+			
+			logger.debug(methodName, job.getDuccId(), "augment pipeline: "+augment);
+			
 			userCP = augment+File.pathSeparator+userCP;
 			String opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
+			
+			logger.debug(methodName, job.getDuccId(), "opt pipeline: "+opt);
+			
 			pipelineCommandLine.addOption(opt);
 			
 			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
