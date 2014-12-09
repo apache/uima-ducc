@@ -61,4 +61,17 @@ public class PrivateClassLoader {
     URL[] urls = new URL[urlList.size()];
     return new URLClassLoader(urlList.toArray(urls), ClassLoader.getSystemClassLoader().getParent());
   }
+  
+  /* 
+   * Dump all the URLs
+   */
+  public static void dump(ClassLoader cl, int numLevels) {
+    int n = 0;
+    for (URLClassLoader ucl = (URLClassLoader) cl; ucl != null && ++n <= numLevels; ucl = (URLClassLoader) ucl.getParent()) {
+      System.out.println("Class-loader " + n + " has " + ucl.getURLs().length + " urls:");
+      for (URL u : ucl.getURLs()) {
+        System.out.println("  " + u );
+      }
+    }
+  }
 }
