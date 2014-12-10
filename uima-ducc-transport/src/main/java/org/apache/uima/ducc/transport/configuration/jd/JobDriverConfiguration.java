@@ -116,8 +116,9 @@ import org.springframework.context.annotation.Import;
 		        public void configure() throws Exception {
 		        	CamelContext camelContext = jdc.getContext();
 		            JettyHttpComponent jetty = new JettyHttpComponent();
-		            jetty.setMaxThreads(4);  // Need to parameterize
+		            jetty.setMaxThreads(10);  // Need to parameterize
 		            jetty.setMinThreads(1);
+		            
 		            camelContext.addComponent("jetty", jetty);
 		            // listen on all interfaces.
 		            from("jetty:http://0.0.0.0:" + port + "/"+app)
