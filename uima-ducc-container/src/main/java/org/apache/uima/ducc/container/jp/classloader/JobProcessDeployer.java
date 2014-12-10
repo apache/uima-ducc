@@ -34,9 +34,17 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 	private static String M_DEPLOY="deploy";
 	private static String M_PROCESS="process";
 	private static String M_STOP="stop";
+	private static String M_INITIALIZE="initialize";
+	
     private boolean DEBUG = false;
-
-	public IUimaProcessor deploy(String userClasspath, String[] args, String clzToLoad) throws ServiceFailedInitialization {
+    Method processMethod = null;
+    Method stopMethod = null;
+    Method deployMethod = null;
+    Object uimaContainerInstance = null;
+    int scaleout=1;
+    
+    
+    public int initialize(String userClasspath, String[] args, String clzToLoad) throws ServiceFailedInitialization {
 		try {
 
 			URLClassLoader ucl = PrivateClassLoader.create(userClasspath);
@@ -51,22 +59,33 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 					System.out.println("-----------:"+u.getFile());
 				}
 			}
-	        
-			Method deployMethod = classToLaunch.getMethod(M_DEPLOY, String[].class);
-			Method processMethod = classToLaunch.getMethod(M_PROCESS, Object.class);
-			Method stopMethod = classToLaunch.getMethod(M_STOP);
-			
-			Object uimaContainerInstance = classToLaunch.newInstance();
-			// This blocks until Uima AS container is fully initialized
-			Object scaleout = deployMethod.invoke(uimaContainerInstance,
-					(Object) args);
+			Method initMethod = classToLaunch.getMethod(M_INITIALIZE, String[].class);
+			processMethod = classToLaunch.getMethod(M_PROCESS, Object.class);
+			stopMethod = classToLaunch.getMethod(M_STOP);
+			deployMethod = classToLaunch.getMethod(M_DEPLOY);
 
-			return new UimaProcessor(uimaContainerInstance,processMethod,stopMethod,(Integer)scaleout);
-	
+			uimaContainerInstance = classToLaunch.newInstance();
+			Object s = initMethod.invoke(uimaContainerInstance,
+					(Object) args);
+	        this.scaleout = (Integer)s;
+	        
+			return scaleout;
+			
 		} catch( Exception e) {
 			throw new ServiceFailedInitialization(e);
 		}
 
+    	
+    }
+    public IUimaProcessor deploy() throws ServiceFailedInitialization {
+		try {
+	    	// This blocks until Uima AS container is fully initialized
+			deployMethod.invoke(uimaContainerInstance);
+	    	return new UimaProcessor(uimaContainerInstance,processMethod,stopMethod,scaleout);
+			
+		} catch( Exception e) {
+			throw new ServiceFailedInitialization(e);
+		}
 	}
 	
 }
