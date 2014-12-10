@@ -196,10 +196,14 @@ public class CommonConfiguration {
 	@Value("#{ systemProperties['ducc.process.request.timeout'] }")
 	public String processRequestTimeout;
 
-	// Fetch the container class
-	@Value("#{ systemProperties['ducc.process.container.class'] }")
-	public String processContainerClass;
+	// Fetch the UIMA-AS container class
+	@Value("#{ systemProperties['ducc.process.uima.as.container.class'] }")
+	public String uimaASProcessContainerClass;
 	
+	// Fetch the UIMA container class
+	@Value("#{ systemProperties['ducc.process.uima.container.class'] }")
+	public String uimaProcessContainerClass;
+
 	// Fetch the container class
 	@Value("#{ systemProperties['ducc.process.thread.sleep.time'] }")
 	public String processThreadSleepTime;
