@@ -19,7 +19,10 @@
 package org.apache.uima.ducc.container.net.iface;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Properties;
 
 public interface IPerformanceMetrics extends Serializable {
-
+	public void set(List<Properties> metrics);
+	public List<Properties> get();
 }
