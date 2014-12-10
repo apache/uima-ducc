@@ -110,15 +110,29 @@ public class JobProcessConfiguration  {
 		}
 	}
     private void checkPrereqs(DuccLogger logger) {
-		if (null == System.getProperty(FlagsHelper.Name.UserClasspath.pname())) {
+    	boolean uimaAsJob=false;
+    	
+		if ( null == System.getProperty("Ducc.Job.Type") ) {
+			logger.error("start", null, "Missing Job Type. Add -DDucc.Job.Type=uima-as or Ducc.Job.Type=uima. Check your command line");
+			throw new RuntimeException("Missing Job Type. Add -DDucc.Job.Type=uima-as or Ducc.Job.Type=uima. Check your command line");
+		} else {
+			String jobType = System.getProperty("Ducc.Job.Type");
+			if ( jobType.trim().equals("uima-as")) {
+				uimaAsJob = true;
+			} else if ( !jobType.trim().equals("uima")) {
+				throw new RuntimeException("Invalid value for -DDucc.Job.Type. Expected uima-as or uima, Instead it is "+jobType);
+			}
+		}
+    	
+    	if (null == System.getProperty(FlagsHelper.Name.UserClasspath.pname())) {
 			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
 			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
 		}
-		if (null == common.saxonJarPath ){
+		if (uimaAsJob && null == common.saxonJarPath ){
 			logger.error("start", null, "Missing saxon jar path. Check your ducc.properties");
 			throw new RuntimeException("Missing saxon jar path. Check your ducc.properties");
 		}
-		if (null == common.dd2SpringXslPath ){
+		if (uimaAsJob && null == common.dd2SpringXslPath ){
 			logger.error("start", null, "Missing dd2sping xsl path. Check your ducc.properties");
 			throw new RuntimeException("Missing dd2spring xsl path. Check your ducc.properties");
 		}
@@ -129,7 +143,23 @@ public class JobProcessConfiguration  {
 		
 		
     }
-	
+	public String getUserContainerClassForJob(String key) {
+		if ( key.equals("uima-as")) {
+			if ( common.uimaASProcessContainerClass == null ) {
+				// use default
+				return "org.apache.uima.ducc.user.jp.UimaASProcessContainer";
+			} else {
+				return common.uimaASProcessContainerClass;
+			}
+		} else {
+			if ( common.uimaProcessContainerClass == null ) {
+				// use default
+				return "org.apache.uima.ducc.user.jp.UimaProcessContainer";
+			} else {
+				return common.uimaProcessContainerClass;
+			}
+		}
+	}
 	@Bean
 	public JobProcessComponent getProcessManagerInstance() throws Exception {
 		try {
@@ -148,6 +178,7 @@ public class JobProcessConfiguration  {
 			// there is something missing.
 			checkPrereqs(duccComponent.getLogger());
 			
+
 			int serviceSocketPort = 0;
 			String agentSocketParams = "";
 			String jpSocketParams = "";
@@ -203,10 +234,6 @@ public class JobProcessConfiguration  {
 			if ( common.processThreadSleepTime != null ) {
 				duccComponent.setThreadSleepTime(Integer.parseInt(common.processThreadSleepTime));
 				duccComponent.getLogger().info("getProcessManagerInstance", null, "Overriding Default Thread Sleep Time - New Value "+common.processThreadSleepTime+" ms");
-			}
-			if ( common.processContainerClass != null ) {
-				duccComponent.setContainerClass(common.processContainerClass);
-				duccComponent.getLogger().info("getProcessManagerInstance", null, "Overriding Default Process Container Class With "+common.processContainerClass);
 			}
 			if ( common.processRequestTimeout != null ) {
 				duccComponent.setTimeout(Integer.valueOf(common.processRequestTimeout));
