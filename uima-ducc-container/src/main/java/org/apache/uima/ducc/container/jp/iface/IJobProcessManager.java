@@ -20,6 +20,9 @@ package org.apache.uima.ducc.container.jp.iface;
 
 
 public interface IJobProcessManager {
-	public IUimaProcessor deploy(String userClasspath, String[] args, String clz) throws ServiceFailedInitialization;
+	
+	public int initialize(String userClasspath, String[] args, String clz) throws ServiceFailedInitialization;
+	public IUimaProcessor deploy() throws ServiceFailedInitialization;
+    public void stop() throws Exception;
 
 }

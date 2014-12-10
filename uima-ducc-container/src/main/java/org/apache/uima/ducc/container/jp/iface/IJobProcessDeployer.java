@@ -21,5 +21,7 @@ package org.apache.uima.ducc.container.jp.iface;
 
 
 public interface IJobProcessDeployer {
-	public IUimaProcessor deploy(String userClasspath, String[] args, String clzToLoad) throws ServiceFailedInitialization;
+	public int initialize(String userClasspath, String[] args, String clzToLoad) throws ServiceFailedInitialization;
+
+	public IUimaProcessor deploy() throws ServiceFailedInitialization;
 }
