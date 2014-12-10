@@ -90,7 +90,6 @@ public class DuccHttpClient {
 		host = new HttpHost(url, port);
 		coreContext.setTargetHost(host);
 		connPool = new BasicConnPool();
-		
 		connStrategy = new DefaultConnectionReuseStrategy();//DefaultConnectionReuseStrategy.INSTANCE;
 		pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
@@ -166,48 +165,67 @@ public class DuccHttpClient {
 	}
 	private IMetaCasTransaction execute( BasicHttpEntityEnclosingRequest request, IMetaCasTransaction transaction ) throws Exception {
 		BasicPoolEntry poolEntry=null;
-		try {
-			// Get the connection from the pool
-		    Future<BasicPoolEntry> future = connPool.lease(host,  null);
-		    poolEntry = future.get();
-		    
-		    HttpClientConnection conn = poolEntry.getConnection();
-		    coreContext.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
-            coreContext.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, host);
-            
-            conn.setSocketTimeout(10000); 
-			System.out.println(">> Request URI: "	+ request.getRequestLine().getUri());
-           // request.
+		int retry = 2;
+		Exception lastError = null;
+		IMetaCasTransaction reply=null;
+		while( retry-- > 0 ) {
+			try {
+				// Get the connection from the pool
+			    Future<BasicPoolEntry> future = connPool.lease(host,  null);
+			    poolEntry = future.get();
+			    
+			    HttpClientConnection conn = poolEntry.getConnection();
+			    coreContext.setAttribute(HttpCoreContext.HTTP_CONNECTION, conn);
+	            coreContext.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, host);
+	            
+	            conn.setSocketTimeout(10000); 
+				System.out.println(">> Request URI: "	+ request.getRequestLine().getUri());
+	           // request.
 
-			request.setHeader("content-type", "text/xml");
-            String body = XStreamUtils.marshall(transaction);
-			HttpEntity entity = new StringEntity(body);
+				request.setHeader("content-type", "text/xml");
+	            String body = XStreamUtils.marshall(transaction);
+				HttpEntity entity = new StringEntity(body);
 
-			request.setEntity(entity);
+				request.setEntity(entity);
 
-			httpexecutor.preProcess(request, httpproc, coreContext);
-			HttpResponse response = httpexecutor.execute(request, conn,	coreContext);
-			httpexecutor.postProcess(response, httpproc, coreContext);
+				httpexecutor.preProcess(request, httpproc, coreContext);
+				HttpResponse response = httpexecutor.execute(request, conn,	coreContext);
+				httpexecutor.postProcess(response, httpproc, coreContext);
 
-			if ( response.getStatusLine().getStatusCode() != 200) {
-				System.out.println("Unable to Communicate with JD - Error:"+response.getStatusLine());
-				throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+response.getStatusLine());
+				if ( response.getStatusLine().getStatusCode() != 200) {
+					System.out.println("Unable to Communicate with JD - Error:"+response.getStatusLine());
+					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+response.getStatusLine());
+				}
+				System.out.println("<< Response: "
+						+ response.getStatusLine());
+				String responseData = EntityUtils.toString(response.getEntity());
+				System.out.println(responseData);
+				Object o = XStreamUtils.unmarshall(responseData);
+				if ( o instanceof IMetaCasTransaction) {
+					reply = (MetaCasTransaction)o;
+					break;
+				} else {
+					throw new InvalidClassException("Expected IMetaCasTransaction - Instead Received "+o.getClass().getName());
+				}
+			} catch( Exception t) {
+				lastError = t;
 			}
-			System.out.println("<< Response: "
-					+ response.getStatusLine());
-			String responseData = EntityUtils.toString(response.getEntity());
-			System.out.println(responseData);
-			Object o = XStreamUtils.unmarshall(responseData);
-			if ( o instanceof IMetaCasTransaction) {
-				return (MetaCasTransaction)o;
-			} else {
-				throw new InvalidClassException("Expected IMetaCasTransaction - Instead Received "+o.getClass().getName());
+			finally {
+				System.out.println("==============");
+				connPool.release(poolEntry, true);
 			}
-		} finally {
-			System.out.println("==============");
-			connPool.release(poolEntry, true);
+			
 		}
+		if ( reply != null ) {
+			return reply;
+		} else {
+			if ( lastError != null ){
+				throw lastError;
 
+			} else {
+				throw new RuntimeException("Shouldn't happen ");
+			}
+		} 
 	}
 
 }
