@@ -20,15 +20,21 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 
 import java.net.SocketTimeoutException;
+import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.XStreamUtils;
+import org.apache.uima.ducc.container.jp.JobProcessManager;
 import org.apache.uima.ducc.container.jp.iface.IUimaProcessor;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
+import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
 
 public class HttpWorkerThread implements Runnable {
 	DuccHttpClient httpClient = null;
@@ -38,6 +44,7 @@ public class HttpWorkerThread implements Runnable {
     private DuccLogger logger;
 	private Object monitor = new Object();
 	private CountDownLatch workerThreadCount = null;
+	private JobProcessManager jobProcessManager = null;
 /*
 	interface SMEvent {
 		Event action();
@@ -227,15 +234,29 @@ public class HttpWorkerThread implements Runnable {
 	}
 	*/
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
-			IUimaProcessor processor, CountDownLatch workerThreadCount) {
+			JobProcessManager jobProcessManager , CountDownLatch workerThreadCount) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
-		this.uimaProcessor = processor;
+		//this.uimaProcessor = processor;
+		this.jobProcessManager = jobProcessManager;
 		this.workerThreadCount = workerThreadCount;
 	}
+    private void initialize(boolean isUimaASJob ) throws Exception {
+    	// For UIMA-AS job, there should only be one instance of UimaProcessor.
+    	// This processor contains AMQ broker, UIMA-AS client and UIMA-AS service.
+    	// For UIMA job, each AE must be pinned to a thread that called intialize().
+    	synchronized(IUimaProcessor.class ) {
+    		if ( isUimaASJob && uimaProcessor != null ) {
+    			return; // for UIMA-AS job (DD) there is only one uimaProcessor
+    		}
+        	uimaProcessor = jobProcessManager.deploy();
 
+    	}
+    	
+    }
 	public void run() {
 		try {
+			initialize(duccComponent.isUimaASJob());
 			//States stateMachine = new States(States.Start);
 //			SMContext ctx = new SMContextImpl(httpClient, States.Start);
 			String command="";
@@ -281,7 +302,16 @@ public class HttpWorkerThread implements Runnable {
 						}
 					} else {
 						// process the CAS
-						uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
+						@SuppressWarnings("unchecked")
+						List<Properties> metrics = (List<Properties>) 
+								uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
+						
+						IPerformanceMetrics metricsWrapper =
+								new PerformanceMetrics();
+						metricsWrapper.set(metrics);
+						
+						transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
+						transaction.getMetaCas().setUserSpaceCas(null);
 						transaction.setType(Type.End);
 						command = Type.End.name();
 						httpClient.post(transaction); // Work Item Processed - End
@@ -305,6 +335,13 @@ public class HttpWorkerThread implements Runnable {
 			t.printStackTrace();
 			duccComponent.getLogger().warn("run", null, t);
 		} finally {
+//			try {
+//				if ( uimaProcessor != null ) {
+//					uimaProcessor.stop();
+//				}
+//			} catch( Throwable t) {
+//				
+//			}
 			System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
 			workerThreadCount.countDown();
