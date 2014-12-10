@@ -18,6 +18,9 @@
  */
 package org.apache.uima.ducc.container.jp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.uima.ducc.container.jp.classloader.JobProcessDeployer;
 import org.apache.uima.ducc.container.jp.iface.IJobProcessDeployer;
 import org.apache.uima.ducc.container.jp.iface.IJobProcessManager;
@@ -29,21 +32,39 @@ import org.apache.uima.ducc.container.jp.iface.ServiceFailedInitialization;
 public class JobProcessManager implements IJobProcessManager {
 	private IJobProcessManagerCallbackListener callbackListener;
 	private IJobProcessDeployer jobProcessDeployer;
-	
+	List<IUimaProcessor> processors = new ArrayList<IUimaProcessor>();
+	private IUimaProcessor processor = null;
+
 	public JobProcessManager() {
 		jobProcessDeployer = new JobProcessDeployer();
+	}
+	public int initialize(String userClasspath, String[] args, String clz) throws ServiceFailedInitialization {
+		return jobProcessDeployer.initialize(userClasspath, args, clz);
 	}
 	
 	public void setCallbackListener(IJobProcessManagerCallbackListener callbackListener ) {
 		this.callbackListener = callbackListener;
 	}
 	
-	public IUimaProcessor deploy(String userClasspath, String[] args, String clz) throws ServiceFailedInitialization {
-		clz = "org.apache.uima.ducc.user.jp.UimaProcessContainer";
-		// This blocks until the UIMA AS service is deployed and initialized
-		return jobProcessDeployer.deploy(userClasspath, args, clz);
+	public synchronized IUimaProcessor deploy() throws ServiceFailedInitialization {
+		String jobType = System.getProperty("Ducc.Job.Type");
+		if ( jobType.trim().equals("uima-as") ) {
+			if ( processors.size() == 0) {
+				// This blocks until the UIMA AS service is deployed and initialized
+   			    processor = jobProcessDeployer.deploy();
+				processors.add(processor);
+			}
+			return processor;
+		}
+        processor = jobProcessDeployer.deploy();
+		processors.add(processor);
+		return processor;
 	}
 
-
+    public void stop() throws Exception {
+    	for( IUimaProcessor processor : processors ) {
+    		processor.stop();
+    	}
+    }
 
 }

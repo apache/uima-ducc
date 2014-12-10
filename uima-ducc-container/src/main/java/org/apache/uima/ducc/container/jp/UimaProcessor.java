@@ -44,12 +44,15 @@ public class UimaProcessor implements IUimaProcessor {
 	}
 
 	
-	public void process(Object xmi) throws Exception {
+	public Object process(Object xmi) throws Exception {
+		return processMethod.invoke(uimaContainerInstance, xmi);
+/*
 		if ( running ) {
-			processMethod.invoke(uimaContainerInstance, xmi);
+			return processMethod.invoke(uimaContainerInstance, xmi);
 		} else {
 			throw new IllegalStateException("UimaProcessor Not in Running State - The Service is in Stopping State");
 		}
+		*/
 	}
 
 	
