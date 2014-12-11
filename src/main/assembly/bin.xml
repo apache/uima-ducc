@@ -555,12 +555,14 @@ under the License.
       <source>src/main/cglib/com.springsource.net.sf.cglib-${cglib.version}.jar</source>
       <outputDirectory>lib/springframework</outputDirectory>
       <destName>com.springsource.net.sf.cglib-${cglib.version}.jar</destName>
+      <fileMode>644</fileMode>
     </file>
     
     <file>
       <source>uima-ducc-common/src/main/java/org/apache/uima/ducc/common/internationalization/Messages.properties</source>
       <outputDirectory>resources</outputDirectory>
       <destName>Messages.properties</destName>
+      <fileMode>644</fileMode>
     </file>
     
    </files>
