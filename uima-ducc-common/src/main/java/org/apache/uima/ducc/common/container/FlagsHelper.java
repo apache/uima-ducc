@@ -48,7 +48,8 @@ public class FlagsHelper {
 		JpDdBrokerURL("${DefaultBrokerURL}"),
 		JpDdDescription,
 		JpDdName,
-		JpDdThreadCount,
+		JpThreadCount,
+		JpType,						// { uima, uima-as }
 		UserClasspath,				// path1.class:path2.jar:path3/*:...
 		UserErrorHandlerClassname,
 		UserErrorHandlerCfg,
@@ -251,13 +252,22 @@ public class FlagsHelper {
 		return Name.JpDdName.arg(value);
 	}
 	
-	public String getJpDdThreadCount() {
+	public String getJpThreadCount() {
 		Properties properties = System.getProperties();
-		return properties.getProperty(Name.JpDdThreadCount.pname());
+		return properties.getProperty(Name.JpThreadCount.pname());
 	}
 	
-	public String getJpDdThreadCountDashD(String value) {
-		return Name.JpDdThreadCount.arg(value);
+	public String getJpThreadCountDashD(String value) {
+		return Name.JpThreadCount.arg(value);
+	}
+	
+	public String getJpType() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpType.pname());
+	}
+	
+	public String getJpTypeDashD(String value) {
+		return Name.JpType.arg(value);
 	}
 	
 	public String getUserClasspath() {
