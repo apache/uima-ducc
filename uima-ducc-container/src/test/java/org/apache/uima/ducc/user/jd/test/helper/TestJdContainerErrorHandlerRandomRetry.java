@@ -31,12 +31,13 @@ public class TestJdContainerErrorHandlerRandomRetry extends JdUserErrorHandler {
 	@Override
 	public IJdUserDirective handle(String serializedCAS, Exception e) {
 		JdUserDirective jdUserDirective = new JdUserDirective();
-		jdUserDirective.setKillJob();
-		jdUserDirective.setKillProcess();
+		jdUserDirective.resetKillJob();
+		jdUserDirective.resetKillProcess();
 		jdUserDirective.resetKillWorkItem();
 		if(random.nextBoolean()) {
 			jdUserDirective.setKillWorkItem();
 		}
+		System.out.println("killWorkItem="+jdUserDirective.isKillWorkItem());
 		return jdUserDirective;
 	}
 

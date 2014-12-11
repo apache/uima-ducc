@@ -21,6 +21,9 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		isKillJob,
+		isKillProcess,
+		isKillWorkItem,
 		current,
 		request,
 		result,

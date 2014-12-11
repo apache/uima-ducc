@@ -16,19 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.common.files.json;
+package org.apache.uima.ducc.container.common;
 
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteTid;
-import org.apache.uima.ducc.container.net.iface.IMetaCasKeys;
+import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public interface IJsonWorkItemState extends IMetaCasKeys, IRemoteTid {
+public class MetaCasHelper {
 
-	public String getStatus();
-	public void setStatus(String value);
+	private IMetaCas metaCas = null;
 	
-	public long getTransferTime();
-	public void setTransferTime(long value);
+	public MetaCasHelper(IMetaCas metaCas) {
+		setMetaCas(metaCas);
+	}
 	
-	public long getProcessingTime();
-	public void setProcessingTime(long value);
+	private void setMetaCas(IMetaCas value) {
+		metaCas = value;
+	}
+	
+	public int getSystemKey() {
+		int retVal = -1;
+		try {
+			retVal = Integer.parseInt(metaCas.getSystemKey());
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
+		return retVal;
+	}
 }

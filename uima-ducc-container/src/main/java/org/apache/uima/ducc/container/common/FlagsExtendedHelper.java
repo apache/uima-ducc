@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.common;
 
+import java.io.File;
+
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
@@ -53,4 +55,20 @@ public class FlagsExtendedHelper extends FlagsHelper {
 		return retVal;
 	}
 	
+	public String getLogDirectory() {
+		StringBuffer sb = new StringBuffer();
+		String jobDirectory = getJobDirectory();
+		if(jobDirectory != null) {
+			sb.append(jobDirectory);
+			if(!jobDirectory.endsWith(File.separator)) {
+				sb.append(File.separator);
+			}
+		}
+		String jobId = getJobId();
+		if(jobId != null) {
+			sb.append(jobId);
+			sb.append(File.separator);
+		}
+		return sb.toString();
+	}
 }

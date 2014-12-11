@@ -46,7 +46,7 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 	
 	public RemoteWorkerIdentity(String nodeName, String nodeAddress, int pid, int tid) {
 		setNodeName(nodeName);
-		setNodeAddress(nodeName);
+		setNodeAddress(nodeAddress);
 		setPid(pid);
 		setTid(tid);
 	}

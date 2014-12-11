@@ -18,13 +18,16 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.MetaCasHelper;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
@@ -105,6 +108,50 @@ public class ActionEnd implements IAction {
 		}
 	}
 	
+	private void handleException(IActionData actionData) throws JobDriverException {
+		String location = "handleException";
+		IWorkItem wi = actionData.getWorkItem();
+		IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+		IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
+		IMetaCas metaCas = wi.getMetaCas();
+		JobDriver jd = JobDriver.getInstance();
+		CasManager cm = jd.getCasManager();
+		//
+		IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+		MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+		//
+		int seqNo = metaCasHelper.getSystemKey();
+		Object exception = metaCas.getUserSpaceException();
+		//
+		Object cas = metaCas.getUserSpaceCas();
+		ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
+		ProxyJobDriverDirective pjdd = pjdeh.handle(cas, exception);
+		if(pjdd != null) {
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());
+			mb.append(Standardize.Label.isKillProcess.get()+pjdd.isKillProcess());
+			mb.append(Standardize.Label.isKillWorkItem.get()+pjdd.isKillWorkItem());
+			logger.info(location, ILogger.null_id, mb.toString());
+			if(pjdd.isKillJob()) {
+				wisk.error(seqNo);
+				killWorkItem(cm, wi, trans, metaCas, rwi);
+				killJob(cm, wi, trans, metaCas, rwi);
+			}
+			else if(pjdd.isKillWorkItem()) {
+				wisk.error(seqNo);
+				killWorkItem(cm, wi, trans, metaCas, rwi);
+			}
+			else {
+				wisk.retry(seqNo);
+				retryWorkItem(cm, wi, trans, metaCas, rwi);
+			}
+		}
+		else {
+			wisk.error(seqNo);
+			killWorkItem(cm, wi, trans, metaCas, rwi);
+		}
+	}
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -118,33 +165,23 @@ public class ActionEnd implements IAction {
 			JobDriver jd = JobDriver.getInstance();
 			CasManager cm = jd.getCasManager();
 			//
+			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+			//
 			if(metaCas != null) {
+				int seqNo = metaCasHelper.getSystemKey();
 				Object exception = metaCas.getUserSpaceException();
 				if(exception != null) {
-					Object cas = metaCas.getUserSpaceCas();
-					ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
-					ProxyJobDriverDirective pjdd = pjdeh.handle(cas, exception);
-					if(pjdd != null) {
-						if(pjdd.isKillJob()) {
-							killJob(cm, wi, trans, metaCas, rwi);
-						}
-						if(pjdd.isKillWorkItem()) {
-							killWorkItem(cm, wi, trans, metaCas, rwi);
-						}
-						else {
-							retryWorkItem(cm, wi, trans, metaCas, rwi);
-						}
-					}
-					else {
-						killWorkItem(cm, wi, trans, metaCas, rwi);
-					}
+					handleException(actionData);
 				}
 				else {
+					wisk.ended(seqNo);
 					successWorkItem(cm, wi, trans, metaCas, rwi);
 				}
 				wi.resetTods();
 			}
-			else {MessageBuffer mb = new MessageBuffer();
+			else {
+				MessageBuffer mb = new MessageBuffer();
 				mb.append("No CAS found for processing");
 				logger.info(location, ILogger.null_id, mb.toString());
 			}

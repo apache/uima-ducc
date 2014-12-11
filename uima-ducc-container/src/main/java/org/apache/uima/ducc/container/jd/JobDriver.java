@@ -20,6 +20,8 @@ package org.apache.uima.ducc.container.jd;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
+import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
@@ -68,6 +70,8 @@ public class JobDriver {
 	private IMessageHandler mh = null; // new MessageHandler();
 	private DdManager ddManager = null;
 	
+	private IWorkItemStateKeeper wisk = null;
+	
 	private JdState jdState = null;
 	
 	private JobDriver() throws JobDriverException {
@@ -82,6 +86,7 @@ public class JobDriver {
 			jobId = feh.getJobId();
 			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
 			wis = new WorkItemStatistics();
+			wisk = new WorkItemStateKeeper(IComponent.Id.JD.name(), feh.getLogDirectory());
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
 			ddManager = new DdManager();
@@ -119,6 +124,10 @@ public class JobDriver {
 	
 	public DdManager getDdManager() {
 		return ddManager;
+	}
+	
+	public IWorkItemStateKeeper getWorkItemStateKeeper() {
+		return wisk;
 	}
 	
 	public JdState getJdState() {

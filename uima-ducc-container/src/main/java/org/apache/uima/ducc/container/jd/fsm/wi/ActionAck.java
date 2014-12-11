@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.MetaCasHelper;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -52,7 +54,15 @@ public class ActionAck implements IAction {
 			//
 			IMetaCas metaCas = wi.getMetaCas();
 			//
+			JobDriver jd = JobDriver.getInstance();
+			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+			//
 			if(metaCas != null) {
+				//
+				int seqNo = metaCasHelper.getSystemKey();
+				wisk.operating(seqNo);
+				//
 				wi.setTodAck();
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());

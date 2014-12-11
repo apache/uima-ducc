@@ -104,7 +104,7 @@ public class MessageHandler implements IMessageHandler {
 			oi.setWorkItemRunningMillisMin(rwis.getMillisMin());
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
 			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());
-			oi.setActiveWorkItemInfo(jdh.getActiveWotrkItemInfo());
+			oi.setActiveWorkItemInfo(jdh.getActiveWorkItemInfo());
 			oi.setJdState(jd.getJdState().name());
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.jdState.get()+oi.getJdState());

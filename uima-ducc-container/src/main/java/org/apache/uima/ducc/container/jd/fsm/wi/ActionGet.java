@@ -18,7 +18,9 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.MetaCasHelper;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
@@ -60,10 +62,20 @@ public class ActionGet implements IAction {
 			CasManager cm = jd.getCasManager();
 			IMetaCas metaCas = cm.getMetaCas();
 			trans.setMetaCas(metaCas);
+			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
 			//
 			IEvent event = null;
 			//
 			if(metaCas != null) {
+				int seqNo = metaCasHelper.getSystemKey();
+				String wiId = metaCas.getUserKey();
+				String node = rwi.getNodeAddress();
+				String pid = ""+rwi.getPid();
+				String tid = ""+rwi.getTid();
+				wisk.start(seqNo, wiId, node, pid, tid);
+				wisk.queued(seqNo);
+				//
 				wi.resetTods();
 				wi.setTodGet();
 				event = WiFsm.CAS_Available;

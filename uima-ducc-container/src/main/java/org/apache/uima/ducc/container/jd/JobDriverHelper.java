@@ -42,8 +42,8 @@ public class JobDriverHelper {
 		return instance;
 	}
 	
-	public ArrayList<IWorkItemInfo> getActiveWotrkItemInfo() {
-		String location = "getActiveWotrkItemInfo";
+	public ArrayList<IWorkItemInfo> getActiveWorkItemInfo() {
+		String location = "getActiveWorkItemInfo";
 		ArrayList<IWorkItemInfo> list = new ArrayList<IWorkItemInfo>();
 		JobDriver jd = JobDriver.getInstance();
 		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = jd.getMap();
