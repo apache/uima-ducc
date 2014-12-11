@@ -172,9 +172,9 @@ workloads.
 \section{Single-user System Installation}
 \label{subsec:install.single-user}
     \begin{enumerate}
-      \item Expand the distribution file:
+      \item Expand the distribution file with the appropriate umask:
 \begin{verbatim}
-tar -zxf <distribution.file>
+(umask 022 && tar -zxf <distribution.file>)
 \end{verbatim}
 
         This creates a directory with a name of the form ``apache-uima-ducc-[version]''.
