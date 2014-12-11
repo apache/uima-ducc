@@ -46,7 +46,7 @@ public class DdManager {
 			feh.getJobId(),
 			feh.getJpDdName(),
 			feh.getJpDdDescription(),
-			convert2Integer(feh.getJpDdThreadCount()),
+			convert2Integer(feh.getJpThreadCount()),
 			feh.getJpDdBrokerURL(),
 			feh.getJpDdBrokerEndpoint(),
 			feh.getJpAeDescriptor(), 
