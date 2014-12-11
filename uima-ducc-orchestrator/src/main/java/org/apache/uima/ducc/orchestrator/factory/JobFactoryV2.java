@@ -338,7 +338,7 @@ public class JobFactoryV2 implements IJobFactory {
 		String description = "DUCC.Generated";
 		addDashD(jcl, FlagsHelper.Name.JpDdName, name);
 		addDashD(jcl, FlagsHelper.Name.JpDdDescription, description);
-		addDashD(jcl, FlagsHelper.Name.JpDdThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
+		addDashD(jcl, FlagsHelper.Name.JpThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
 		addDashD(jcl, FlagsHelper.Name.JpDdBrokerURL,  FlagsHelper.Name.JpDdBrokerURL.getDefaultValue());
 		addDashD(jcl, FlagsHelper.Name.JpDdBrokerEndpoint, FlagsHelper.Name.JpDdBrokerEndpoint.getDefaultValue());
 		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
