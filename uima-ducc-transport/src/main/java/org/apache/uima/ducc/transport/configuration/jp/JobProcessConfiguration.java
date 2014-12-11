@@ -112,15 +112,15 @@ public class JobProcessConfiguration  {
     private void checkPrereqs(DuccLogger logger) {
     	boolean uimaAsJob=false;
     	
-		if ( null == System.getProperty("Ducc.Job.Type") ) {
-			logger.error("start", null, "Missing Job Type. Add -DDucc.Job.Type=uima-as or Ducc.Job.Type=uima. Check your command line");
-			throw new RuntimeException("Missing Job Type. Add -DDucc.Job.Type=uima-as or Ducc.Job.Type=uima. Check your command line");
+		if ( null == System.getProperty(FlagsHelper.Name.JpType.pname()) ) { //"Ducc.Job.Type") ) {
+			logger.error("start", null, "Missing Job Type. Add -D"+FlagsHelper.Name.JpType.pname()+"=uima-as or "+FlagsHelper.Name.JpType.pname()+"=uima. Check your command line");
+			throw new RuntimeException("Missing Job Type. Add -D"+FlagsHelper.Name.JpType.pname()+"=uima-as or "+FlagsHelper.Name.JpType.pname()+"=uima. Check your command line");
 		} else {
-			String jobType = System.getProperty("Ducc.Job.Type");
+			String jobType = System.getProperty(FlagsHelper.Name.JpType.pname());
 			if ( jobType.trim().equals("uima-as")) {
 				uimaAsJob = true;
 			} else if ( !jobType.trim().equals("uima")) {
-				throw new RuntimeException("Invalid value for -DDucc.Job.Type. Expected uima-as or uima, Instead it is "+jobType);
+				throw new RuntimeException("Invalid value for -D"+FlagsHelper.Name.JpType.pname()+". Expected uima-as or uima, Instead it is "+jobType);
 			}
 		}
     	

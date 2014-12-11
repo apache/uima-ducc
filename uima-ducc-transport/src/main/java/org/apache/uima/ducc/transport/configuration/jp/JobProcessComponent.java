@@ -143,7 +143,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				executor.scheduleAtFixedRate(monitor, 20, 30, TimeUnit.SECONDS);
                 // the JobProcessConfiguration class already checked for 
 				// existence of -DDucc.Job.Type
-				String jobType = System.getProperty("Ducc.Job.Type"); 
+				String jobType = System.getProperty(FlagsHelper.Name.JpType.pname()); 
 				containerClass = configuration.getUserContainerClassForJob(jobType);
 				String[] uimaAsArgs;
 				if ( "uima-as".equals(jobType)) {
@@ -152,7 +152,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
     				uimaAsArgs = new String[] { "-dd",args[0],"-saxonURL",saxonJarPath,
     						"-xslt",dd2SpringXslPath};
                 } else {
-                	String scaleout = System.getProperty("Ducc.Job.Threads");
+                	String scaleout = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
                 	if ( scaleout == null ) {
                 		scaleout = "1";
                 	}
