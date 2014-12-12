@@ -336,7 +336,9 @@ public class JobFactoryV2 implements IJobFactory {
 		// add Jp DD specs
 		String name = "DUCC.Job";
 		String description = "DUCC.Generated";
+		//TODO
 		addDashD(jcl, FlagsHelper.Name.JpDdName, name);
+		//TODO
 		addDashD(jcl, FlagsHelper.Name.JpDdDescription, description);
 		addDashD(jcl, FlagsHelper.Name.JpThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
 		addDashD(jcl, FlagsHelper.Name.JpDdBrokerURL,  FlagsHelper.Name.JpDdBrokerURL.getDefaultValue());
@@ -350,7 +352,7 @@ public class JobFactoryV2 implements IJobFactory {
 	
 	private void addDashD(JavaCommandLine jcl, Name name, String value) {
 		String location = "addDashD";
-		logger.trace(location, null, name.dname()+"="+value);
+		logger.debug(location, null, name.dname()+"="+value);
 		if(value != null) {
 			String opt = name.dname()+"="+value;
 			jcl.addOption(opt);
@@ -642,6 +644,8 @@ public class JobFactoryV2 implements IJobFactory {
 			logger.debug(methodName, job.getDuccId(), "opt pipeline: "+opt);
 			
 			pipelineCommandLine.addOption(opt);
+			
+			addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima-as");
 			
 			String processEnvironmentVariables = jobRequestProperties.getProperty(JobSpecificationProperties.key_environment);
 			int envCountProcess = addEnvironment(job, "process", pipelineCommandLine, processEnvironmentVariables);
