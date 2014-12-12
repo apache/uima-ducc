@@ -175,7 +175,8 @@ public class JobProcessComponent extends AbstractDuccComponent{
 
 					// initialize http client. It tests the connection and fails
 					// if unable to connect
-					client.intialize(host, Integer.valueOf(port), target);
+//					client.intialize(host, Integer.valueOf(port), target);
+					client.initialize(jdURL);
 					logger.info("start", null,"The JP Connected To JD Using URL "+jdURL);
 				} catch( Exception ee ) {
 					if ( ee.getCause() != null && ee instanceof java.net.ConnectException ) {
@@ -199,7 +200,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 
 				// initialize http client
 				client.setTimeout(timeout);
-				client.setScaleout(scaleout);//uimaProcessor.getScaleout());
+//				client.setScaleout(scaleout);//uimaProcessor.getScaleout());
 				
 		    	// pipelines deployed and initialized. This process is Ready
 		    	currentState = ProcessState.Running;

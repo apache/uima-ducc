@@ -271,12 +271,14 @@ public class HttpWorkerThread implements Runnable {
 					// do a POST instead of a GET.
 					transaction.setType(Type.Get);  // Tell JD you want a CAS
 					command = Type.Get.name();
-					transaction = httpClient.post(transaction);
+//					transaction = httpClient.post(transaction);
+					transaction = httpClient.execute(transaction);
                     
 					// Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
 					command = Type.Ack.name();
-					httpClient.post(transaction); // Ready to process
+///					httpClient.post(transaction); // Ready to process
+					httpClient.execute(transaction); // Ready to process
 					
 					// if the JD did not provide a CAS, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
@@ -314,7 +316,8 @@ public class HttpWorkerThread implements Runnable {
 						transaction.getMetaCas().setUserSpaceCas(null);
 						transaction.setType(Type.End);
 						command = Type.End.name();
-						httpClient.post(transaction); // Work Item Processed - End
+//						httpClient.post(transaction); // Work Item Processed - End
+						httpClient.execute(transaction); // Work Item Processed - End
 					}
 				} catch( SocketTimeoutException e) {
 					duccComponent.getLogger().warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");

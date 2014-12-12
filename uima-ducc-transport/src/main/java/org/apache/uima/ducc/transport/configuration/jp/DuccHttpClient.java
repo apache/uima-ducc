@@ -23,6 +23,11 @@ import java.net.InetAddress;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.http.ConnectionReuseStrategy;
 import org.apache.http.HttpClientConnection;
 import org.apache.http.HttpEntity;
@@ -66,6 +71,10 @@ public class DuccHttpClient {
 	ReentrantLock lock = new ReentrantLock();
 	int timeout;
 	
+	// New --------------------
+    HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+    PostMethod postMethod;
+	
 	public void setTimeout( int timeout) {
 		this.timeout = timeout;
 	}
@@ -73,6 +82,11 @@ public class DuccHttpClient {
 		connPool.setMaxTotal(scaleout);
 		connPool.setDefaultMaxPerRoute(scaleout);
 		connPool.setMaxPerRoute(host, scaleout);
+	}
+	public void initialize(String jdUrl) throws Exception {
+        postMethod = new PostMethod(jdUrl);
+        pid = getProcessIP("N/A");
+		nodeIdentity = new NodeIdentity();
 	}
 	public void intialize(String url, int port, String application)
 			throws Exception {
@@ -147,6 +161,16 @@ public class DuccHttpClient {
     	transaction.setRequesterProcessId(Integer.valueOf(pid));
     	transaction.setRequesterThreadId((int)Thread.currentThread().getId());
     }
+    
+    private void addCommonHeaders( PostMethod method ) {
+    	method.setRequestHeader("IP", nodeIdentity.getIp());
+    	method.setRequestHeader("Hostname", nodeIdentity.getName());
+    	method.setRequestHeader("ThreadID",
+				String.valueOf(Thread.currentThread().getId()));
+    	method.setRequestHeader("PID", pid);
+		
+    }
+
 	public IMetaCasTransaction get(IMetaCasTransaction transaction) throws Exception {
 		// According to HTTP spec, GET request should not include the body. We need
 		// to send in body to the JD so use POST
@@ -168,6 +192,7 @@ public class DuccHttpClient {
 		int retry = 2;
 		Exception lastError = null;
 		IMetaCasTransaction reply=null;
+
 		while( retry-- > 0 ) {
 			try {
 				// Get the connection from the pool
@@ -209,6 +234,7 @@ public class DuccHttpClient {
 				}
 			} catch( Exception t) {
 				lastError = t;
+				t.printStackTrace();
 			}
 			finally {
 				System.out.println("==============");
@@ -228,4 +254,62 @@ public class DuccHttpClient {
 		} 
 	}
 
+	
+	public IMetaCasTransaction execute( IMetaCasTransaction transaction ) throws Exception {
+		int retry = 2;
+		Exception lastError = null;
+		IMetaCasTransaction reply=null;
+
+		addCommonHeaders(transaction);
+		transaction.setDirection(Direction.Request);
+		
+		while( retry-- > 0 ) {
+			try {
+				// Serialize request object to XML
+				String body = XStreamUtils.marshall(transaction);
+				System.out.println("Body Length:"+body.length());
+	            RequestEntity e = new StringRequestEntity(body,"application/xml","UTF-8" );
+	            postMethod.setRequestEntity(e);
+	            System.out.println("Entity Body Length:"+postMethod.getRequestEntity().getContentLength());
+	            addCommonHeaders(postMethod);
+	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
+	            // wait for a reply
+	            httpClient.executeMethod(postMethod);
+                String responseData = postMethod.getResponseBodyAsString();	            
+				if ( postMethod.getStatusLine().getStatusCode() != 200) {
+					System.out.println("Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
+					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
+				}
+				System.out.println("<< Response: "+ postMethod.getStatusLine());
+//				String responseData = EntityUtils.toString(postMethod.getEntity());
+				System.out.println(responseData);
+				Object o = XStreamUtils.unmarshall(responseData);
+				if ( o instanceof IMetaCasTransaction) {
+					reply = (MetaCasTransaction)o;
+					break;
+				} else {
+					throw new InvalidClassException("Expected IMetaCasTransaction - Instead Received "+o.getClass().getName());
+				}
+			} catch( Exception t) {
+				lastError = t;
+				t.printStackTrace();
+			}
+			finally {
+				System.out.println("==============");
+				postMethod.releaseConnection();
+			}
+			
+		}
+		if ( reply != null ) {
+			return reply;
+		} else {
+			if ( lastError != null ){
+				throw lastError;
+
+			} else {
+				throw new RuntimeException("Shouldn't happen ");
+			}
+		} 
+	}
+	
 }
