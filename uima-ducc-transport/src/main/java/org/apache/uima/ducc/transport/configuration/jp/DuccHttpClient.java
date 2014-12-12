@@ -163,11 +163,13 @@ public class DuccHttpClient {
     }
     
     private void addCommonHeaders( PostMethod method ) {
-    	method.setRequestHeader("IP", nodeIdentity.getIp());
-    	method.setRequestHeader("Hostname", nodeIdentity.getName());
-    	method.setRequestHeader("ThreadID",
-				String.valueOf(Thread.currentThread().getId()));
-    	method.setRequestHeader("PID", pid);
+    	synchronized( DuccHttpClient.class) {
+        	method.setRequestHeader("IP", nodeIdentity.getIp());
+        	method.setRequestHeader("Hostname", nodeIdentity.getName());
+        	method.setRequestHeader("ThreadID",
+    				String.valueOf(Thread.currentThread().getId()));
+        	method.setRequestHeader("PID", pid);
+    	}
 		
     }
 
