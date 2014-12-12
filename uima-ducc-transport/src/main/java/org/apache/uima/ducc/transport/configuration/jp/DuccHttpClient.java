@@ -72,7 +72,7 @@ public class DuccHttpClient {
 	int timeout;
 	
 	// New --------------------
-    HttpClient httpClient = new HttpClient(new MultiThreadedHttpConnectionManager());
+    HttpClient httpClient = null;
     PostMethod postMethod;
 	
 	public void setTimeout( int timeout) {
@@ -87,6 +87,12 @@ public class DuccHttpClient {
         postMethod = new PostMethod(jdUrl);
         pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
+		MultiThreadedHttpConnectionManager cMgr =
+		    new MultiThreadedHttpConnectionManager();
+		
+		httpClient = 
+    		new HttpClient(cMgr);
+		 
 	}
 	public void intialize(String url, int port, String application)
 			throws Exception {
@@ -257,7 +263,7 @@ public class DuccHttpClient {
 	}
 
 	
-	public IMetaCasTransaction execute( IMetaCasTransaction transaction ) throws Exception {
+	public synchronized IMetaCasTransaction execute( IMetaCasTransaction transaction ) throws Exception {
 		int retry = 2;
 		Exception lastError = null;
 		IMetaCasTransaction reply=null;
@@ -273,7 +279,7 @@ public class DuccHttpClient {
 	            RequestEntity e = new StringRequestEntity(body,"application/xml","UTF-8" );
 	            postMethod.setRequestEntity(e);
 	            System.out.println("Entity Body Length:"+postMethod.getRequestEntity().getContentLength());
-	            addCommonHeaders(postMethod);
+	            //addCommonHeaders(postMethod);
 	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
 	            // wait for a reply
 	            httpClient.executeMethod(postMethod);
