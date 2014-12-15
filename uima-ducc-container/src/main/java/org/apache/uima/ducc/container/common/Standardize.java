@@ -21,6 +21,15 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		dispatch,
+		done,
+		error,
+		preempt,
+		retry,
+		avg,
+		min,
+		max,
+		removed,
 		isKillJob,
 		isKillProcess,
 		isKillWorkItem,
@@ -31,6 +40,7 @@ public class Standardize {
 		jdState,
 		directory,
 		node,
+		ip,
 		pid,
 		tid,
 		crFetches,
