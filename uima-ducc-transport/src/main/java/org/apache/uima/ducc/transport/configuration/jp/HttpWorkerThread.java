@@ -25,6 +25,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
@@ -37,11 +38,11 @@ import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
 
 public class HttpWorkerThread implements Runnable {
+	DuccLogger logger = new DuccLogger(HttpWorkerThread.class);
 	DuccHttpClient httpClient = null;
 	private IUimaProcessor uimaProcessor;
 	private JobProcessComponent duccComponent;
 	static AtomicInteger counter = new AtomicInteger();
-    private DuccLogger logger;
 	private Object monitor = new Object();
 	private CountDownLatch workerThreadCount = null;
 	private JobProcessManager jobProcessManager = null;
@@ -237,7 +238,6 @@ public class HttpWorkerThread implements Runnable {
 			JobProcessManager jobProcessManager , CountDownLatch workerThreadCount) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
-		//this.uimaProcessor = processor;
 		this.jobProcessManager = jobProcessManager;
 		this.workerThreadCount = workerThreadCount;
 	}
@@ -257,6 +257,9 @@ public class HttpWorkerThread implements Runnable {
 	public void run() {
 		try {
 			initialize(duccComponent.isUimaASJob());
+			// each thread needs its own PostMethod
+			PostMethod postMethod = new PostMethod(httpClient.getJdUrl());
+		
 			//States stateMachine = new States(States.Start);
 //			SMContext ctx = new SMContextImpl(httpClient, States.Start);
 			String command="";
@@ -272,13 +275,15 @@ public class HttpWorkerThread implements Runnable {
 					transaction.setType(Type.Get);  // Tell JD you want a CAS
 					command = Type.Get.name();
 //					transaction = httpClient.post(transaction);
-					transaction = httpClient.execute(transaction);
-                    
-					// Confirm receipt of the CAS. 
+					transaction = httpClient.execute(transaction, postMethod);
+                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
+					System.out.println("Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
+                    // Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
 					command = Type.Ack.name();
 ///					httpClient.post(transaction); // Ready to process
-					httpClient.execute(transaction); // Ready to process
+					httpClient.execute(transaction, postMethod); // Ready to process
+                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Sent ACK");
 					
 					// if the JD did not provide a CAS, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
@@ -290,7 +295,7 @@ public class HttpWorkerThread implements Runnable {
 						// been processed and accounted for
 						if ( transaction.getJdState().equals(JdState.Ended) ) {
 							duccComponent.getLogger().warn("run", null, "Exiting Thread "+Thread.currentThread().getId()+" JD Finished Processing");
-							System.out.println("Exiting Thred DriverState=Ended");
+							System.out.println("Exiting Thread DriverState=Ended");
 							break; // the JD completed. Exit the thread
 						}
 						// There is no CAS. It looks like the JD CR is done but there
@@ -307,6 +312,7 @@ public class HttpWorkerThread implements Runnable {
 						@SuppressWarnings("unchecked")
 						List<Properties> metrics = (List<Properties>) 
 								uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
+	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
 						
 						IPerformanceMetrics metricsWrapper =
 								new PerformanceMetrics();
@@ -317,7 +323,9 @@ public class HttpWorkerThread implements Runnable {
 						transaction.setType(Type.End);
 						command = Type.End.name();
 //						httpClient.post(transaction); // Work Item Processed - End
-						httpClient.execute(transaction); // Work Item Processed - End
+						httpClient.execute(transaction, postMethod); // Work Item Processed - End
+	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END");
+
 					}
 				} catch( SocketTimeoutException e) {
 					duccComponent.getLogger().warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");

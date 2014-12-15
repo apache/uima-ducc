@@ -50,13 +50,14 @@ import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.util.EntityUtils;
 import org.apache.uima.ducc.common.NodeIdentity;
+import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 
 public class DuccHttpClient {
-	
+	DuccLogger logger = new DuccLogger(DuccHttpClient.class);
 	HttpRequestExecutor httpexecutor = null;
 	ConnectionReuseStrategy connStrategy = null;
 	HttpCoreContext coreContext = null;
@@ -64,8 +65,6 @@ public class DuccHttpClient {
 	BasicConnPool connPool = null;
 	HttpHost host = null;
 	String target = null;
-//	String hostIP = "";
-//	String hostname = "";
 	NodeIdentity nodeIdentity;
 	String pid = "";
 	ReentrantLock lock = new ReentrantLock();
@@ -73,7 +72,8 @@ public class DuccHttpClient {
 	
 	// New --------------------
     HttpClient httpClient = null;
-    PostMethod postMethod;
+    //PostMethod postMethod;
+	String jdUrl;
 	
 	public void setTimeout( int timeout) {
 		this.timeout = timeout;
@@ -83,13 +83,16 @@ public class DuccHttpClient {
 		connPool.setDefaultMaxPerRoute(scaleout);
 		connPool.setMaxPerRoute(host, scaleout);
 	}
+	public String getJdUrl() {
+		return jdUrl;
+	}
 	public void initialize(String jdUrl) throws Exception {
-        postMethod = new PostMethod(jdUrl);
-        pid = getProcessIP("N/A");
+    //    postMethod = new PostMethod(jdUrl);
+		this.jdUrl = jdUrl;
+		pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
 		MultiThreadedHttpConnectionManager cMgr =
 		    new MultiThreadedHttpConnectionManager();
-		
 		httpClient = 
     		new HttpClient(cMgr);
 		 
@@ -153,25 +156,39 @@ public class DuccHttpClient {
 		}
 		return fallback;
 	}
+	private String getIP() {
+		String ip =nodeIdentity.getIp();
+		if ( System.getenv("IP") != null) {
+			ip = System.getenv("IP");
+		}
+		return ip;
+	}
+	private String getNodeName() {
+		String nn =nodeIdentity.getName();
+		if ( System.getenv("NodeName") != null) {
+			nn = System.getenv("NodeName");
+		}
+		return nn;
+	}
     private void addCommonHeaders( BasicHttpRequest request ) {
-    	request.setHeader("IP", nodeIdentity.getIp());
-		request.setHeader("Hostname", nodeIdentity.getName());
+    	request.setHeader("IP", getIP());
+		request.setHeader("Hostname", getNodeName());
 		request.setHeader("ThreadID",
 				String.valueOf(Thread.currentThread().getId()));
 		request.setHeader("PID", pid);
 		
     }
     private void addCommonHeaders( IMetaCasTransaction transaction ) {
-    	transaction.setRequesterAddress(nodeIdentity.getIp());
-    	transaction.setRequesterName(nodeIdentity.getName());
+    	transaction.setRequesterAddress(getIP());
+    	transaction.setRequesterName(getNodeName());
     	transaction.setRequesterProcessId(Integer.valueOf(pid));
     	transaction.setRequesterThreadId((int)Thread.currentThread().getId());
     }
     
     private void addCommonHeaders( PostMethod method ) {
     	synchronized( DuccHttpClient.class) {
-        	method.setRequestHeader("IP", nodeIdentity.getIp());
-        	method.setRequestHeader("Hostname", nodeIdentity.getName());
+        	method.setRequestHeader("IP", getIP());
+        	method.setRequestHeader("Hostname", getNodeName());
         	method.setRequestHeader("ThreadID",
     				String.valueOf(Thread.currentThread().getId()));
         	method.setRequestHeader("PID", pid);
@@ -263,7 +280,7 @@ public class DuccHttpClient {
 	}
 
 	
-	public synchronized IMetaCasTransaction execute( IMetaCasTransaction transaction ) throws Exception {
+	public IMetaCasTransaction execute( IMetaCasTransaction transaction, PostMethod postMethod ) throws Exception {
 		int retry = 2;
 		Exception lastError = null;
 		IMetaCasTransaction reply=null;
@@ -275,22 +292,18 @@ public class DuccHttpClient {
 			try {
 				// Serialize request object to XML
 				String body = XStreamUtils.marshall(transaction);
-				System.out.println("Body Length:"+body.length());
 	            RequestEntity e = new StringRequestEntity(body,"application/xml","UTF-8" );
 	            postMethod.setRequestEntity(e);
-	            System.out.println("Entity Body Length:"+postMethod.getRequestEntity().getContentLength());
-	            //addCommonHeaders(postMethod);
+	            addCommonHeaders(postMethod);
 	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
 	            // wait for a reply
 	            httpClient.executeMethod(postMethod);
                 String responseData = postMethod.getResponseBodyAsString();	            
 				if ( postMethod.getStatusLine().getStatusCode() != 200) {
-					System.out.println("Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
+					logger.error("execute", null, "Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 				}
-				System.out.println("<< Response: "+ postMethod.getStatusLine());
-//				String responseData = EntityUtils.toString(postMethod.getEntity());
-				System.out.println(responseData);
+				logger.info("execute", null, "JD Reply Status:"+postMethod.getStatusLine());
 				Object o = XStreamUtils.unmarshall(responseData);
 				if ( o instanceof IMetaCasTransaction) {
 					reply = (MetaCasTransaction)o;
@@ -300,10 +313,9 @@ public class DuccHttpClient {
 				}
 			} catch( Exception t) {
 				lastError = t;
-				t.printStackTrace();
+				logger.error("run", null, t);
 			}
 			finally {
-				System.out.println("==============");
 				postMethod.releaseConnection();
 			}
 			
