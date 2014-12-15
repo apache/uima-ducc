@@ -27,8 +27,10 @@ import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.common.Util;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.transport.event.common.DuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IRationale;
@@ -71,6 +73,10 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	private String jpDd = null;
 	
 	private JobCompletionType jobCompletionType = JobCompletionType.EndOfJob;
+	
+	private IDuccPerWorkItemStatistics duccPerWorkItemStatistics = null;
+	
+	private DuccProcessWorkItemsMap duccProcessWorkItemsMap = null;
 	
 	private long max(long a, long b) {
 		long retVal = a;
@@ -145,6 +151,35 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		setActiveWorkItemInfo(operatingInfo.getActiveWorkItemInfo());
 		// JpDd
 		setJpDd(operatingInfo.getJpDd());
+		// per work statistics
+		DuccPerWorkItemStatistics perWorkItemStatistics = new DuccPerWorkItemStatistics(
+			operatingInfo.getWorkItemFinishedMillisMax(),
+			operatingInfo.getWorkItemFinishedMillisMin(),
+			operatingInfo.getWorkItemFinishedMillisAvg(),
+			operatingInfo.getWorkItemFinishedMillisStdDev()
+			);
+		setPerWorkItemStatistics(perWorkItemStatistics);
+		// per process statistics
+		ArrayList<IProcessInfo> list = operatingInfo.getProcessItemInfo();
+		if(list != null) {
+			if(!list.isEmpty()) {
+				//TODO
+				/*
+				duccProcessWorkItemsMap = new DuccProcessWorkItemsMap();
+				for(IProcessInfo pi : list) {
+					String name = pi.getNodeName();
+					int pid = pi.getPid();
+					DuccId duccId = getProcessDuccId(name, pid);
+					IDuccProcessWorkItems pwi = new DuccProcessWorkItems();
+				}
+				*/
+			}
+		}
+	}
+	
+	private DuccId getProcessDuccId(String name, int pid) {
+		DuccId duccId = null;
+		return duccId;
 	}
 	
 	private void setDuccId(DuccId value) {
@@ -225,6 +260,10 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private void setJpDd(String value) {
 		jpDd = value;
+	}
+	
+	private void setPerWorkItemStatistics(IDuccPerWorkItemStatistics value) {
+		duccPerWorkItemStatistics = value;
 	}
 	
 	@Override
@@ -407,14 +446,12 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 
 	@Override
 	public IDuccPerWorkItemStatistics getPerWorkItemStatistics() {
-		// TODO Auto-generated method stub
-		return null;
+		return duccPerWorkItemStatistics;
 	}
 
 	@Override
 	public DuccProcessWorkItemsMap getDuccProcessWorkItemsMap() {
-		// TODO Auto-generated method stub
-		return null;
+		return duccProcessWorkItemsMap;
 	}
 
 	@Override

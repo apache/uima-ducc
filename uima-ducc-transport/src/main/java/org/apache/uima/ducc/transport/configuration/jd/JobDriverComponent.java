@@ -20,10 +20,12 @@
 package org.apache.uima.ducc.transport.configuration.jd;
 
 import java.util.ArrayList;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.camel.CamelContext;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.container.FlagsHelper.Name;
@@ -33,9 +35,17 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
+import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
+import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
+import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.JobDriverReport;
 
@@ -142,6 +152,60 @@ implements IJobDriverComponent {
 			logger.error(location, jobid, e);
 			throw e;
 		}
+	}
+
+	@Override
+	public void handleOrPublication(OrchestratorAbbreviatedStateDuccEvent duccEvent) throws Exception {
+		String location = "handleOrPublication";
+		try {
+			JobDriver jd = JobDriver.getInstance();
+			String duccId = jd.getJobId();
+			IMessageHandler mh = jd.getMessageHandler();
+			if(duccId != null) {
+				DuccWorkMap dwMap = duccEvent.getWorkMap();
+				DuccWorkJob dwj = (DuccWorkJob) dwMap.findDuccWork(duccId);
+				if(dwj != null) {
+					IDuccProcessMap pMap = dwj.getProcessMap();
+					for(Entry<DuccId, IDuccProcess> entry : pMap.entrySet()) {
+						IDuccProcess p = entry.getValue();
+						ProcessState state = p.getProcessState();
+						NodeIdentity ni = p.getNodeIdentity();
+						String node = ni.getName();
+						String ip = ni.getIp();
+						String pid = p.getPID();
+						logger.debug(location, jobid, "node: "+node+" "+"ip: "+ip+" "+"pid: "+pid+" "+"state:"+state.name());
+						switch(state) {
+						case Starting:    
+						case Initializing:
+						case Running:
+							break;
+						default:
+							try {
+								if(pid != null) {
+									int iPid = Integer.parseInt(pid.trim());
+									IProcessInfo processInfo = new ProcessInfo(node, ip, iPid);
+									if(p.isPreempted()) {
+										mh.handlePreemptProcess(processInfo);
+									}
+									else {
+										mh.handleDownProcess(processInfo);
+									}
+								}
+							}
+							catch(Exception e) {
+								logger.error(location, jobid, e);
+							}
+							break;
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+			throw e;
+		}
+		
 	}
 
 }

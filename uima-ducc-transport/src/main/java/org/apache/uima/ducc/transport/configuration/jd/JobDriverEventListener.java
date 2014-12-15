@@ -32,7 +32,7 @@ public class JobDriverEventListener implements DuccEventDelegateListener {
 		this.component = component;
 	}
 	public void onOrchestratorAbbreviatedStateDuccEvent(@Body OrchestratorAbbreviatedStateDuccEvent duccEvent) throws Exception {
-		//component.evaluateJobDriverConstraints(duccEvent);
+		component.handleOrPublication(duccEvent);
 	}
 	public void setDuccEventDispatcher(DuccEventDispatcher eventDispatcher) {
 	}
