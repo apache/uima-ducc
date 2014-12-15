@@ -41,7 +41,7 @@ import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.jd.wi.IRunningWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
@@ -105,6 +105,7 @@ public class MessageHandler implements IMessageHandler {
 			oi.setWorkItemRunningMillisMax(rwis.getMillisMax());
 			oi.setWorkItemTodMostRecentStart(rwis.getTodMostRecentStart());
 			oi.setActiveWorkItemInfo(jdh.getActiveWorkItemInfo());
+			oi.setProcessInfo(jdh.getProcessInfo());
 			oi.setJdState(jd.getJdState().name());
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.jdState.get()+oi.getJdState());
@@ -133,7 +134,7 @@ public class MessageHandler implements IMessageHandler {
 	public void handleDownNode(INodeInfo nodeInfo) {
 		String location = "handleDownNode";
 		try {
-			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
 			//TODO
 		}
 		catch(Exception e) {
@@ -145,7 +146,12 @@ public class MessageHandler implements IMessageHandler {
 	public void handleDownProcess(IProcessInfo processInfo) {
 		String location = "handleDownProcess";
 		try {
-			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
+			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
+			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
+			logger.info(location, ILogger.null_id, mb.toString());
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
 			//TODO
 		}
 		catch(Exception e) {
@@ -157,25 +163,30 @@ public class MessageHandler implements IMessageHandler {
 	public void handlePreemptProcess(IProcessInfo processInfo) {
 		String location = "handlePreemptProcess";
 		try {
-			ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
-			for(Entry<IRemoteWorkerIdentity, IWorkItem> entry : map.entrySet()) {
-				IRemoteWorkerIdentity rwi = entry.getKey();
-				if(rwi.comprises(processInfo)) {
-					MessageBuffer mb = new MessageBuffer();
-					mb.append(Standardize.Label.remote.get()+rwi.toString());
-					mb.append(Boolean.TRUE.toString());
-					logger.debug(location, ILogger.null_id, mb.toString());
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
+			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
+			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
+			logger.info(location, ILogger.null_id, mb.toString());
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
+				IRemoteWorkerThread rwt = entry.getKey();
+				if(rwt.comprises(processInfo)) {
+					MessageBuffer mb1 = new MessageBuffer();
+					mb1.append(Standardize.Label.remote.get()+rwt.toString());
+					mb1.append(Boolean.TRUE.toString());
+					logger.info(location, ILogger.null_id, mb1.toString());
 					IWorkItem wi = entry.getValue();
 					IFsm fsm = wi.getFsm();
 					IEvent event = WiFsm.Process_Preempt;
-					Object actionData = new ActionData(wi, rwi, null);
+					Object actionData = new ActionData(wi, rwt, null);
 					fsm.transition(event, actionData);
 				}
 				else {
-					MessageBuffer mb = new MessageBuffer();
-					mb.append(Standardize.Label.remote.get()+rwi.toString());
-					mb.append(Boolean.FALSE.toString());
-					logger.trace(location, ILogger.null_id, mb.toString());
+					MessageBuffer mb2 = new MessageBuffer();
+					mb2.append(Standardize.Label.remote.get()+rwt.toString());
+					mb2.append(Boolean.FALSE.toString());
+					logger.info(location, ILogger.null_id, mb2.toString());
 				}
 			}
 		}
@@ -188,21 +199,21 @@ public class MessageHandler implements IMessageHandler {
 	public void handleMetaCasTransation(IMetaCasTransaction trans) {
 		String location = "handleMetaCasTransation";
 		try {
-			RemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
+			RemoteWorkerThread rwt = new RemoteWorkerThread(trans);
 			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwi.toString());
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			mb.append(Standardize.Label.type.get()+trans.getType());
 			logger.info(location, ILogger.null_id, mb.toString());
 			Type type = trans.getType();
 			switch(type) {
 			case Get:
-				handleMetaCasTransationGet(trans, rwi);
+				handleMetaCasTransationGet(trans, rwt);
 				break;
 			case Ack:
-				handleMetaCasTransationAck(trans, rwi);
+				handleMetaCasTransationAck(trans, rwt);
 				break;
 			case End:
-				handleMetaCasTransationEnd(trans, rwi);
+				handleMetaCasTransationEnd(trans, rwt);
 				break;
 			default:
 				break;
@@ -215,9 +226,9 @@ public class MessageHandler implements IMessageHandler {
 		}
 	}
 	
-	private IWorkItem register(IRemoteWorkerIdentity rwi) {
+	private IWorkItem register(IRemoteWorkerThread rwi) {
 		String location = "register";
-		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
 		IWorkItem wi = map.get(rwi);
 		while(wi == null) {
 			IMetaCas metaCas = null;
@@ -231,9 +242,9 @@ public class MessageHandler implements IMessageHandler {
 		return wi;
 	}
 	
-	private IWorkItem find(IRemoteWorkerIdentity rwi) {
+	private IWorkItem find(IRemoteWorkerThread rwi) {
 		String location = "find";
-		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
 		IWorkItem wi = map.get(rwi);
 		if(wi != null) {
 			IMetaCas metaCas = wi.getMetaCas();
@@ -259,20 +270,20 @@ public class MessageHandler implements IMessageHandler {
 		return wi;
 	}
 	
-	private void handleMetaCasTransationGet(IMetaCasTransaction trans, IRemoteWorkerIdentity rwi) {
-		IWorkItem wi = register(rwi);
+	private void handleMetaCasTransationGet(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+		IWorkItem wi = register(rwt);
 		IFsm fsm = wi.getFsm();
 		IEvent event = WiFsm.Get_Request;
-		Object actionData = new ActionData(wi, rwi, trans);
+		Object actionData = new ActionData(wi, rwt, trans);
 		fsm.transition(event, actionData);
 	}
 	
-	private void handleMetaCasTransationAck(IMetaCasTransaction trans, IRemoteWorkerIdentity rwi) {
+	private void handleMetaCasTransationAck(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationAck";
-		IWorkItem wi = find(rwi);
+		IWorkItem wi = find(rwt);
 		if(wi == null) {
 			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwi.toString());
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			mb.append("has no work assigned presently");
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
@@ -280,17 +291,17 @@ public class MessageHandler implements IMessageHandler {
 			trans.setMetaCas(wi.getMetaCas());
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.Ack_Request;
-			Object actionData = new ActionData(wi, rwi, trans);
+			Object actionData = new ActionData(wi, rwt, trans);
 			fsm.transition(event, actionData);
 		}
 	}
 	
-	private void handleMetaCasTransationEnd(IMetaCasTransaction trans, IRemoteWorkerIdentity rwi) {
+	private void handleMetaCasTransationEnd(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
 		String location = "handleMetaCasTransationEnd";
-		IWorkItem wi = find(rwi);
+		IWorkItem wi = find(rwt);
 		if(wi == null) {
 			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwi.toString());
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			mb.append("has no work assigned presently");
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
@@ -298,7 +309,7 @@ public class MessageHandler implements IMessageHandler {
 			trans.setMetaCas(wi.getMetaCas());
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.End_Request;
-			Object actionData = new ActionData(wi, rwi, trans);
+			Object actionData = new ActionData(wi, rwt, trans);
 			fsm.transition(event, actionData);
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.AckMsecs.get()+(wi.getTodAck()-wi.getTodGet()));

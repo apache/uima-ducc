@@ -18,19 +18,19 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionData implements IActionData {
 	
 	private IWorkItem workItem = null;
-	private IRemoteWorkerIdentity remoteWorkerIdentity = null;
+	private IRemoteWorkerThread remoteWorkerThread = null;
 	private IMetaCasTransaction metaCasTransaction = null;
 	
-	public ActionData(IWorkItem workItem, IRemoteWorkerIdentity remoteWorkerIdentity, IMetaCasTransaction metaCasTransaction) {
+	public ActionData(IWorkItem workItem, IRemoteWorkerThread remoteWorkerThread, IMetaCasTransaction metaCasTransaction) {
 		setWorkItem(workItem);
-		setRemoteWorkerIdentity(remoteWorkerIdentity);
+		setRemoteWorkerThread(remoteWorkerThread);
 		setMetaCasTransaction(metaCasTransaction);
 	}
 	
@@ -44,12 +44,12 @@ public class ActionData implements IActionData {
 	}
 	
 	@Override
-	public IRemoteWorkerIdentity getRemoteWorkerIdentity() {
-		return remoteWorkerIdentity;
+	public IRemoteWorkerThread getRemoteWorkerThread() {
+		return remoteWorkerThread;
 	}
 	
-	private void setRemoteWorkerIdentity(IRemoteWorkerIdentity value) {
-		remoteWorkerIdentity = value;
+	private void setRemoteWorkerThread(IRemoteWorkerThread value) {
+		remoteWorkerThread = value;
 	}
 	
 	@Override

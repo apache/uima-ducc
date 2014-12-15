@@ -21,6 +21,7 @@ package org.apache.uima.ducc.container.jd.mh.impl;
 import java.util.ArrayList;
 
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 
 public class OperatingInfo implements IOperatingInfo {
@@ -45,6 +46,7 @@ public class OperatingInfo implements IOperatingInfo {
 	private long finishedMillisMin = 0;
 	private long finishedMillisMax = 0;
 	private long finishedMillisAvg = 0;
+	private long finishedMillisStdDev = 0;
 	
 	private long runningMillisMin = 0;
 	private long runningMillisMax = 0;
@@ -55,6 +57,7 @@ public class OperatingInfo implements IOperatingInfo {
 	private boolean killJob = false;
 
 	private ArrayList<IWorkItemInfo> activeWorkItemInfo = null;
+	private ArrayList<IProcessInfo> processInfo = null;
 	
 	public OperatingInfo() {
 	}
@@ -203,6 +206,16 @@ public class OperatingInfo implements IOperatingInfo {
 	public long getWorkItemFinishedMillisAvg() {
 		return finishedMillisAvg;
 	}
+	
+	@Override
+	public void setWorkItemFinishedMillisStdDev(long value) {
+		finishedMillisStdDev = value;
+	}
+
+	@Override
+	public long getWorkItemFinishedMillisStdDev() {
+		return finishedMillisStdDev;
+	}
 
 	@Override
 	public void setWorkItemRunningMillisMin(long value) {
@@ -264,6 +277,16 @@ public class OperatingInfo implements IOperatingInfo {
 		return activeWorkItemInfo;
 	}
 
+	@Override
+	public void setProcessInfo(ArrayList<IProcessInfo> value) {
+		processInfo = value;
+	}
+
+	@Override
+	public ArrayList<IProcessInfo> getProcessItemInfo() {
+		return processInfo;
+	}
+	
 	@Override
 	public void setJpDd(String value) {
 		jpDd = value;

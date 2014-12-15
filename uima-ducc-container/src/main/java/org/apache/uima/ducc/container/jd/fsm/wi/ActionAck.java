@@ -27,8 +27,8 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
@@ -50,7 +50,7 @@ public class ActionAck implements IAction {
 		try {
 			IWorkItem wi = actionData.getWorkItem();
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-			IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
+			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
 			//
 			IMetaCas metaCas = wi.getMetaCas();
 			//
@@ -67,7 +67,7 @@ public class ActionAck implements IAction {
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				mb.append(Standardize.Label.remote.get()+rwt.toString());
 				JobDriver.getInstance().getMessageHandler().incAcks();
 				logger.info(location, ILogger.null_id, mb.toString());
 			}

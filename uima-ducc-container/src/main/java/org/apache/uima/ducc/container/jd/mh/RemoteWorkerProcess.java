@@ -21,34 +21,29 @@ package org.apache.uima.ducc.container.jd.mh;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteNode;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
 
-public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<Object> {
+public class RemoteWorkerProcess implements IRemoteWorkerProcess {
 
 	private static final long serialVersionUID = 1L;
 
-	private static Logger logger = Logger.getLogger(RemoteWorkerIdentity.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(RemoteWorkerProcess.class, IComponent.Id.JD.name());
 	
 	private String nodeName = null;
 	private String nodeAddress = null;
 	private int pid = 0;
-	private int tid = 0;
 	
-	public RemoteWorkerIdentity(IMetaCasRequester metaCasRequester) {
+	public RemoteWorkerProcess(IMetaCasRequester metaCasRequester) {
 		setNodeName(metaCasRequester.getRequesterName());
 		setNodeAddress(metaCasRequester.getRequesterAddress());
 		setPid(metaCasRequester.getRequesterProcessId());
-		setTid(metaCasRequester.getRequesterThreadId());
 	}
 	
-	public RemoteWorkerIdentity(String nodeName, String nodeAddress, int pid, int tid) {
+	public RemoteWorkerProcess(String nodeName, String nodeAddress, int pid) {
 		setNodeName(nodeName);
 		setNodeAddress(nodeAddress);
 		setPid(pid);
-		setTid(tid);
 	}
 	
 	@Override
@@ -58,9 +53,13 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 			sb.append(nodeName);
 			sb.append(".");
 		}
+		if(nodeAddress != null) {
+			sb.append("[");
+			sb.append(nodeAddress);
+			sb.append("]");
+			sb.append(".");
+		}
 		sb.append(pid);
-		sb.append(".");
-		sb.append(tid);
 		return sb.toString();
 	}
 	
@@ -94,17 +93,7 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 		pid = value;
 	}
 	
-	@Override
-	public int getTid() {
-		return tid;
-	}
-	
-	@Override
-	public void setTid(int value) {
-		tid = value;
-	}
-	
-	private int compareNodeName(RemoteWorkerIdentity that) {
+	private int compareNodeName(RemoteWorkerProcess that) {
 		int retVal = 0;
 		String thisNodeName = this.getNodeName();
 		String thatNodeName = that.getNodeName();
@@ -116,19 +105,11 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 		return retVal;
 	}
 	
-	private int comparePid(RemoteWorkerIdentity that) {
+	private int comparePid(RemoteWorkerProcess that) {
 		int retVal = 0;
 		Integer thisPid = new Integer(this.pid);
 		Integer thatPid = new Integer(that.pid);
 		retVal = thisPid.compareTo(thatPid);
-		return retVal;
-	}
-	
-	private int compareTid(RemoteWorkerIdentity that) {
-		int retVal = 0;
-		Integer thisTid = new Integer(this.tid);
-		Integer thatTid = new Integer(that.tid);
-		retVal = thisTid.compareTo(thatTid);
 		return retVal;
 	}
 	
@@ -138,15 +119,12 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 		int retVal = 0;
 		try {
 			if(o != null) {
-				RemoteWorkerIdentity that = (RemoteWorkerIdentity) o;
+				RemoteWorkerProcess that = (RemoteWorkerProcess) o;
 				if(retVal == 0) {
 					retVal = compareNodeName(that);
 				}
 				if(retVal == 0) {
 					retVal = comparePid(that);
-				}
-				if(retVal == 0) {
-					retVal = compareTid(that);
 				}
 			}
 		}
@@ -162,10 +140,8 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 		int result = 1;
 		String thisNodeName = this.getNodeName();
 		Integer thisPid = new Integer(this.pid);
-		Integer thisTid = new Integer(this.tid);
 		result = prime * result + ((thisNodeName == null) ? 0 : thisNodeName.hashCode());
 		result = prime * result + ((thisPid == null) ? 0 : thisPid.hashCode());
-		result = prime * result + ((thisTid == null) ? 0 : thisTid.hashCode());
 		return result;
 	}
 	
@@ -179,7 +155,7 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 					retVal = true;
 				}
 				else {
-					RemoteWorkerIdentity that = (RemoteWorkerIdentity) obj;
+					RemoteWorkerProcess that = (RemoteWorkerProcess) obj;
 					if(this.compareTo(that) == 0) {
 						retVal = true;
 					}
@@ -192,49 +168,4 @@ public class RemoteWorkerIdentity implements IRemoteWorkerIdentity, Comparable<O
 		return retVal;
 	}
 
-	/////
-	
-	private int compareToNodeName(IRemoteNode that) {
-		int retVal = 0;
-		String thisNodeName = this.getNodeName();
-		String thatNodeName = that.getNodeName();
-		if(thisNodeName != null) {
-			if(thatNodeName != null) {
-				retVal = thisNodeName.compareTo(thatNodeName);
-			}
-		}
-		return retVal;
-	}
-	
-	private int compareToPid(IRemotePid that) {
-		int retVal = 0;
-		Integer thisPid = new Integer(this.getPid());
-		Integer thatPid = new Integer(that.getPid());
-		retVal = thisPid.compareTo(thatPid);
-		return retVal;
-	}
-	
-	@Override
-	public boolean comprises(IRemoteNode that) {
-		boolean retVal = false;
-		if(that != null) {
-			if(this.compareToNodeName(that) == 0) {
-				retVal = true;
-			}
-		}
-		return retVal;
-	}
-
-	@Override
-	public boolean comprises(IRemotePid that) {
-		boolean retVal = false;
-		if(that != null) {
-			if(this.compareToNodeName(that) == 0) {
-				if(this.compareToPid(that) == 0) {
-					retVal = true;
-				}
-			}
-		}
-		return retVal;
-	}
 }

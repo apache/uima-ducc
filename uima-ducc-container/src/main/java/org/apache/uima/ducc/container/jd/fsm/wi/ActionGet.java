@@ -29,9 +29,13 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
@@ -55,26 +59,30 @@ public class ActionGet implements IAction {
 			IWorkItem wi = actionData.getWorkItem();
 			IFsm fsm = wi.getFsm();
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-			IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
+			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
+			IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
 			//
 			JobDriver jd = JobDriver.getInstance();
+			JobDriverHelper jdh = JobDriverHelper.getInstance();
 			jd.advanceJdState(JdState.Active);
 			CasManager cm = jd.getCasManager();
 			IMetaCas metaCas = cm.getMetaCas();
 			trans.setMetaCas(metaCas);
 			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+			IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 			//
 			IEvent event = null;
 			//
 			if(metaCas != null) {
 				int seqNo = metaCasHelper.getSystemKey();
 				String wiId = metaCas.getUserKey();
-				String node = rwi.getNodeAddress();
-				String pid = ""+rwi.getPid();
-				String tid = ""+rwi.getTid();
+				String node = rwt.getNodeAddress();
+				String pid = ""+rwt.getPid();
+				String tid = ""+rwt.getTid();
 				wisk.start(seqNo, wiId, node, pid, tid);
 				wisk.queued(seqNo);
+				pStats.dispatch(wi);
 				//
 				wi.resetTods();
 				wi.setTodGet();
@@ -82,7 +90,7 @@ public class ActionGet implements IAction {
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				mb.append(Standardize.Label.remote.get()+rwt.toString());
 				JobDriver.getInstance().getMessageHandler().incGets();
 				logger.info(location, ILogger.null_id, mb.toString());
 			}

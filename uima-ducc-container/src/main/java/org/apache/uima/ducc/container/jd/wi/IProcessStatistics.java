@@ -16,15 +16,23 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.fsm.wi;
+package org.apache.uima.ducc.container.jd.wi;
 
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
-import org.apache.uima.ducc.container.jd.wi.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-
-public interface IActionData {
-
-	public IWorkItem getWorkItem();
-	public IRemoteWorkerThread getRemoteWorkerThread();
-	public IMetaCasTransaction getMetaCasTransaction();
+public interface IProcessStatistics {
+	public void dispatch(IWorkItem wi);
+	public void done(IWorkItem wi);
+	public void error(IWorkItem wi);
+	public void preempt(IWorkItem wi);
+	public void retry(IWorkItem wi);
+	
+	public long getCountDispatch();
+	public long getCountDone();
+	public long getCountError();
+	public long getCountPreempt();
+	public long getCountRetry();
+	
+	public long getMillisAvg();
+	public long getMillisMax();
+	public long getMillisMin();
+	public long getMillisStdDev();
 }

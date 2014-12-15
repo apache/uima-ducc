@@ -121,7 +121,7 @@ public class TestMessageHandler extends ATest {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(1,1,1);
@@ -177,7 +177,7 @@ public class TestMessageHandler extends ATest {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
@@ -242,7 +242,7 @@ public class TestMessageHandler extends ATest {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(200,10,1);
@@ -304,7 +304,7 @@ public class TestMessageHandler extends ATest {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
@@ -396,7 +396,7 @@ public class TestMessageHandler extends ATest {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
@@ -492,7 +492,7 @@ public class TestMessageHandler extends ATest {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
@@ -569,7 +569,7 @@ public class TestMessageHandler extends ATest {
 			System.setProperty(FlagsHelper.Name.UserErrorHandlerCfg.pname(), ehcp);
 			//
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);
@@ -663,7 +663,7 @@ public class TestMessageHandler extends ATest {
 			System.setProperty(FlagsHelper.Name.UserErrorHandlerClassname.pname(), eh);
 			//
 			JobDriver.createInstance();
-			int size = JobDriver.getInstance().getMap().size();
+			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
 			MessageHandler messageHandler = new MessageHandler();
 			ThreadInfoFactory tif = new ThreadInfoFactory(2,2,2);

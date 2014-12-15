@@ -28,12 +28,16 @@ import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverException;
+import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerIdentity;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
@@ -49,39 +53,39 @@ public class ActionEnd implements IAction {
 		return ActionEnd.class.getName();
 	}
 	
-	private void killJob(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+	private void killJob(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerThread rwt) {
 		String location = "killJob";
 		cm.getCasManagerStats().setKillJob();
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		mb.append(Standardize.Label.remote.get()+rwt.toString());
 		logger.info(location, ILogger.null_id, mb.toString());
 	}
 	
-	private void retryWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+	private void retryWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerThread rwt) {
 		String location = "retryWorkItem";
 		cm.putMetaCas(metaCas, RetryReason.UserErrorRetry);
 		cm.getCasManagerStats().incEndRetry();
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		mb.append(Standardize.Label.remote.get()+rwt.toString());
 		logger.info(location, ILogger.null_id, mb.toString());
 	}
 	
-	private void killWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+	private void killWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerThread rwt) {
 		String location = "killWorkItem";
 		cm.getCasManagerStats().incEndFailure();
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		mb.append(Standardize.Label.remote.get()+rwt.toString());
 		logger.info(location, ILogger.null_id, mb.toString());
 		checkEnded(cm);
 	}
 	
-	private void successWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerIdentity rwi) {
+	private void successWorkItem(CasManager cm, IWorkItem wi, IMetaCasTransaction trans, IMetaCas metaCas, IRemoteWorkerThread rwt) {
 		String location = "successWorkItem";
 		cm.getCasManagerStats().incEndSuccess();
 		wi.setTodEnd();
@@ -89,7 +93,7 @@ public class ActionEnd implements IAction {
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-		mb.append(Standardize.Label.remote.get()+rwi.toString());
+		mb.append(Standardize.Label.remote.get()+rwt.toString());
 		logger.info(location, ILogger.null_id, mb.toString());
 		checkEnded(cm);
 	}
@@ -112,13 +116,16 @@ public class ActionEnd implements IAction {
 		String location = "handleException";
 		IWorkItem wi = actionData.getWorkItem();
 		IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-		IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
+		IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
+		IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
 		IMetaCas metaCas = wi.getMetaCas();
 		JobDriver jd = JobDriver.getInstance();
+		JobDriverHelper jdh = JobDriverHelper.getInstance();
 		CasManager cm = jd.getCasManager();
 		//
 		IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 		MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+		IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 		//
 		int seqNo = metaCasHelper.getSystemKey();
 		Object exception = metaCas.getUserSpaceException();
@@ -134,21 +141,25 @@ public class ActionEnd implements IAction {
 			logger.info(location, ILogger.null_id, mb.toString());
 			if(pjdd.isKillJob()) {
 				wisk.error(seqNo);
-				killWorkItem(cm, wi, trans, metaCas, rwi);
-				killJob(cm, wi, trans, metaCas, rwi);
+				pStats.error(wi);
+				killWorkItem(cm, wi, trans, metaCas, rwt);
+				killJob(cm, wi, trans, metaCas, rwt);
 			}
 			else if(pjdd.isKillWorkItem()) {
 				wisk.error(seqNo);
-				killWorkItem(cm, wi, trans, metaCas, rwi);
+				pStats.error(wi);
+				killWorkItem(cm, wi, trans, metaCas, rwt);
 			}
 			else {
 				wisk.retry(seqNo);
-				retryWorkItem(cm, wi, trans, metaCas, rwi);
+				pStats.retry(wi);
+				retryWorkItem(cm, wi, trans, metaCas, rwt);
 			}
 		}
 		else {
 			wisk.error(seqNo);
-			killWorkItem(cm, wi, trans, metaCas, rwi);
+			pStats.error(wi);
+			killWorkItem(cm, wi, trans, metaCas, rwt);
 		}
 	}
 	
@@ -160,13 +171,16 @@ public class ActionEnd implements IAction {
 		try {
 			IWorkItem wi = actionData.getWorkItem();
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-			IRemoteWorkerIdentity rwi = new RemoteWorkerIdentity(trans);
+			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
+			IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
 			IMetaCas metaCas = wi.getMetaCas();
 			JobDriver jd = JobDriver.getInstance();
+			JobDriverHelper jdh = JobDriverHelper.getInstance();
 			CasManager cm = jd.getCasManager();
 			//
 			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+			IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 			//
 			if(metaCas != null) {
 				int seqNo = metaCasHelper.getSystemKey();
@@ -176,7 +190,8 @@ public class ActionEnd implements IAction {
 				}
 				else {
 					wisk.ended(seqNo);
-					successWorkItem(cm, wi, trans, metaCas, rwi);
+					pStats.done(wi);
+					successWorkItem(cm, wi, trans, metaCas, rwt);
 				}
 				wi.resetTods();
 			}
@@ -192,7 +207,14 @@ public class ActionEnd implements IAction {
 	}
 	
 	private void updateStatistics(IWorkItem wi) {
+		String location = "updateStatistics";
 		IWorkItemStatistics wis = JobDriver.getInstance().getWorkItemStatistics();
 		wis.ended(wi);
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+		mb.append(Standardize.Label.avg.get()+wis.getMillisAvg());
+		mb.append(Standardize.Label.min.get()+wis.getMillisAvg());
+		mb.append(Standardize.Label.max.get()+wis.getMillisAvg());
+		logger.info(location, ILogger.null_id, mb.toString());
 	}
 }

@@ -23,5 +23,28 @@ import java.io.Serializable;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
 
 public interface IProcessInfo extends IRemotePid, Serializable{
-
+	
+	public void setDispatch(long value);
+	public long getDispatch();
+	
+	public void setDone(long value);
+	public long getDone();
+	
+	public void setError(long value);
+	public long getError();
+	
+	public void setPreempt(long value);
+	public long getPreempt();
+	
+	public void setRetry(long value);
+	public long getRetry();
+	
+	public void setAvg(long value);
+	public long getAvg();
+	
+	public void setMax(long value);
+	public long getMax();
+	
+	public void setMin(long value);
+	public long getMin();
 }

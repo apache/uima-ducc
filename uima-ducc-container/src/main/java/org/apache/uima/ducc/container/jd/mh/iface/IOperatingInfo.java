@@ -72,6 +72,9 @@ public interface IOperatingInfo extends Serializable {
 	public void setWorkItemFinishedMillisAvg(long value);
 	public long getWorkItemFinishedMillisAvg();
 	
+	public void setWorkItemFinishedMillisStdDev(long value);
+	public long getWorkItemFinishedMillisStdDev();
+	
 	//
 	
 	public void setWorkItemRunningMillisMin(long value);
@@ -97,4 +100,7 @@ public interface IOperatingInfo extends Serializable {
 	
 	public void setActiveWorkItemInfo(ArrayList<IWorkItemInfo> value);
 	public ArrayList<IWorkItemInfo> getActiveWorkItemInfo();
+	
+	public void setProcessInfo(ArrayList<IProcessInfo> value);
+	public ArrayList<IProcessInfo> getProcessItemInfo();
 }

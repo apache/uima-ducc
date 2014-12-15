@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.container.jd.mh.impl;
 
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 
 public class ProcessInfo implements IProcessInfo {
 
@@ -28,9 +29,32 @@ public class ProcessInfo implements IProcessInfo {
 	private String nodeAddress = null;
 	private int pid = 0;
 	
+	private long dispatch = 0;
+	private long done = 0;
+	private long error = 0;
+	private long preempt = 0;
+	private long retry = 0;
+	
+	private long avg = 0;
+	private long max = 0;
+	private long min = 0;
+	
 	public ProcessInfo(String nodeName, String nodeAddress, int pid) {
 		setNodeName(nodeName);
 		setPid(pid);
+	}
+	
+	public ProcessInfo(String nodeName, String nodeAddress, int pid, IProcessStatistics pStats) {
+		setNodeName(nodeName);
+		setPid(pid);
+		setDispatch(pStats.getCountDispatch());
+		setDone(pStats.getCountDone());
+		setError(pStats.getCountError());
+		setPreempt(pStats.getCountPreempt());
+		setRetry(pStats.getCountRetry());
+		setAvg(pStats.getMillisAvg());
+		setMax(pStats.getMillisMax());
+		setMin(pStats.getMillisMin());
 	}
 	
 	@Override
@@ -61,5 +85,87 @@ public class ProcessInfo implements IProcessInfo {
 	public void setPid(int value) {
 		pid = value;
 	}
+
+	@Override
+	public void setDispatch(long value) {
+		dispatch = value;
+	}
+
+	@Override
+	public long getDispatch() {
+		return dispatch;
+	}
+
+	@Override
+	public void setDone(long value) {
+		done = value;
+	}
+
+	@Override
+	public long getDone() {
+		return done;
+	}
+
+	@Override
+	public void setError(long value) {
+		error = value;
+	}
+
+	@Override
+	public long getError() {
+		return error;
+	}
+
+	@Override
+	public void setPreempt(long value) {
+		preempt = value;
+	}
+
+	@Override
+	public long getPreempt() {
+		return preempt;
+	}
+
+	@Override
+	public void setRetry(long value) {
+		retry = value;
+	}
+
+	@Override
+	public long getRetry() {
+		return retry;
+	}
+
+	@Override
+	public void setAvg(long value) {
+		avg = value;
+	}
+
+	@Override
+	public long getAvg() {
+		return avg;
+	}
+
+	@Override
+	public void setMax(long value) {
+		max = value;
+	}
+
+	@Override
+	public long getMax() {
+		return max;
+	}
+
+	@Override
+	public void setMin(long value) {
+		min = value;
+	}
+
+	@Override
+	public long getMin() {
+		return min;
+	}
+
+
 
 }

@@ -16,15 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.fsm.wi;
+package org.apache.uima.ducc.container.jd.mh.iface.remote;
 
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
-import org.apache.uima.ducc.container.jd.wi.IWorkItem;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+public interface IRemoteWorkerProcess extends IRemotePid, Comparable<Object> {
 
-public interface IActionData {
-
-	public IWorkItem getWorkItem();
-	public IRemoteWorkerThread getRemoteWorkerThread();
-	public IMetaCasTransaction getMetaCasTransaction();
 }

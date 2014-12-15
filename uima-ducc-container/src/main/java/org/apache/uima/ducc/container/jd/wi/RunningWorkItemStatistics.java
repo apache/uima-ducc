@@ -22,7 +22,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.container.jd.JobDriver;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 
 public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 
@@ -35,8 +35,8 @@ public class RunningWorkItemStatistics implements IRunningWorkItemStatistics {
 		long min = Long.MAX_VALUE;
 		long max = 0;
 		long todMrs = 0;
-		ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = JobDriver.getInstance().getMap();
-		for(Entry<IRemoteWorkerIdentity, IWorkItem> entry : map.entrySet()) {
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 			IWorkItem wi = entry.getValue();
 			long time = wi.getMillisOperating();
 			if(time > 0) {

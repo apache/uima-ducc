@@ -60,4 +60,11 @@ public class WorkItemStatistics implements IWorkItemStatistics {
 		long value = (long) stat;
 		return value;
 	}
+	
+	@Override
+	public long getMillisStdDev() {
+		double stat = stats.getStandardDeviation();
+		long value = (long) stat;
+		return value;
+	}
 }

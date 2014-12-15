@@ -33,7 +33,9 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerIdentity;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
@@ -63,7 +65,8 @@ public class JobDriver {
 	}
 	
 	private String jobId = null;
-	private ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> map = null;
+	private ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> remoteThreadMap = null;
+	private ConcurrentHashMap<IRemotePid, IProcessStatistics> remoteProcessMap = null;
 	private IWorkItemStatistics wis = null;
 	private CasManager cm = null;
 	private ProxyJobDriverErrorHandler pjdeh = null;
@@ -84,7 +87,8 @@ public class JobDriver {
 			jdState = JdState.Initializing;
 			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 			jobId = feh.getJobId();
-			map = new ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem>();
+			remoteThreadMap = new ConcurrentHashMap<IRemoteWorkerThread, IWorkItem>();
+			remoteProcessMap = new ConcurrentHashMap<IRemotePid, IProcessStatistics>();
 			wis = new WorkItemStatistics();
 			wisk = new WorkItemStateKeeper(IComponent.Id.JD.name(), feh.getLogDirectory());
 			cm = new CasManager();
@@ -102,8 +106,12 @@ public class JobDriver {
 		return jobId;
 	}
 	
-	public ConcurrentHashMap<IRemoteWorkerIdentity, IWorkItem> getMap() {
-		return map;
+	public ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> getRemoteThreadMap() {
+		return remoteThreadMap;
+	}
+
+	public ConcurrentHashMap<IRemotePid, IProcessStatistics> getRemoteProcessMap() {
+		return remoteProcessMap;
 	}
 	
 	public IWorkItemStatistics getWorkItemStatistics() {

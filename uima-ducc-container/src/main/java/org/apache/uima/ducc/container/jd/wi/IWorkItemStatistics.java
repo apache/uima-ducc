@@ -24,4 +24,5 @@ public interface IWorkItemStatistics {
 	public long getMillisMax();
 	public long getMillisMin();
 	public long getMillisAvg();
+	public long getMillisStdDev();
 }
