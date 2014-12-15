@@ -61,6 +61,10 @@ public class Scheduler
     String ducc_home;
     // Integer epoch = 5;                                                 // scheduling epoch, seconds
 
+    NodeConfiguration configuration = null;                               // UIMA-4142 make it global
+    
+    String defaultDomain = null;                                          // UIMA-4142
+    
     NodePool[] nodepools;                                                 // top-level nodepools
     int max_order = 0;
 
@@ -221,6 +225,7 @@ public class Scheduler
         logger.info(methodName, null, "                       default fairshare class : ", defaultFairShareName);
         logger.info(methodName, null, "                       default reserve         : ", defaultReserveName);
         logger.info(methodName, null, "                       class definition file   : ", class_definitions);
+        logger.info(methodName, null, "                       default domain          : ", defaultDomain);      // UIMA-4142
         logger.info(methodName, null, "                       eviction policy         : ", evictionPolicy);
         logger.info(methodName, null, "                       use prediction          : ", SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         logger.info(methodName, null, "                       prediction fudge factor : ", SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 10000));
@@ -248,6 +253,11 @@ public class Scheduler
                                                                                              + rmversion_minor   + "." 
                                                                                              + rmversion_ptf);
         initialized = true;
+    }
+
+    public synchronized String reconfigure()          // UIMA-4142
+    {
+    	return "Reconfigure not implemented.";
     }
 
     public synchronized boolean isInitialized()
@@ -490,19 +500,20 @@ public class Scheduler
     	String methodName = "initClasses";
         String me = Scheduler.class.getName() + ".Config";
         DuccLogger initLogger = new DuccLogger(me, COMPONENT_NAME);
-        NodeConfiguration nc = new NodeConfiguration(filename, initLogger);
+        configuration = new NodeConfiguration(filename, initLogger);        // UIMA-4142 make the config global
 		try {
-			nc.readConfiguration();
+			configuration.readConfiguration();                              // UIMA-4142
 		} catch (Throwable e) {
             logger.error(methodName, null, e);
             logger.error(methodName, null, "Scheduler exits: unable to read configuration.");
             System.exit(1);
 		}
 
-        nc.printConfiguration();
+        defaultDomain = configuration.getDefaultDomain();                   // UIMA-4142
+        configuration.printConfiguration();
 
-        DuccProperties[] nps = nc.getToplevelNodepools();
-        Map<String, DuccProperties> cls = nc.getClasses();
+        DuccProperties[] nps = configuration.getToplevelNodepools();
+        Map<String, DuccProperties> cls = configuration.getClasses();
 
         nodepools = new NodePool[nps.length];                   // top-level nodepools
         schedulers = new IScheduler[nps.length];                // a schedler for each top-level nodepool
@@ -518,12 +529,12 @@ public class Scheduler
             logger.info(methodName, null, rc.toString());
         }
 
-        DuccProperties dc = nc.getDefaultFairShareClass();
+        DuccProperties dc = configuration.getDefaultFairShareClass();
         if ( dc != null ) {
             defaultFairShareName = dc.getProperty("name");
         }
 
-        dc = nc.getDefaultReserveClass();
+        dc = configuration.getDefaultReserveClass();
         if ( dc != null ) {
             defaultReserveName = dc.getProperty("name");
         }
@@ -1345,6 +1356,28 @@ public class Scheduler
     }
 
     /**
+     * Determine if the given share is in a nodepool that this job is allowed to be scheduled over.
+     * You can get a mismatch if the classes or nodepools are reconfigured and RM is restarted
+     * with jobs still in the system.
+     *
+     * UIMA-4142
+     *
+     * @param     s  The share to validate.
+     * @param     j  The job to validate against.
+     * @return true  if s and j are compatible, false otherwise.
+     */
+    boolean compatibleNodepool(Share s, IRmJob j)
+    {
+        // cut to the chase and ask the NP directly if this dude is allowed
+
+        NodePool np = s.getNodepool();
+        ResourceClass rc = j.getResourceClass();
+        Policy p = rc.getPolicy();
+
+        return np.compatibleNodepool(p, rc);
+    }
+
+    /**
      * Make this public for log following.
      */
     public synchronized void processRecovery(IRmJob j)
@@ -1356,6 +1389,7 @@ public class Scheduler
         j.setShareOrder(share_order);
         j.setResourceClass(rc);
         HashMap<Share, Share> shares = j.getRecoveredShares();
+        List<Share> sharesToShrink = new ArrayList<Share>();       // UIMA-4142
         StringBuffer sharenames = new StringBuffer();
         for ( Share s : shares.values() ) {
             sharenames.append(s.toString());
@@ -1364,6 +1398,9 @@ public class Scheduler
             switch ( rc.getPolicy() ) {
                 case FAIR_SHARE:
                     s.setShareOrder(share_order);
+                    if ( !compatibleNodepool(s, j) ) {            // UIMA-4142
+                        sharesToShrink.add(s);
+                    }
                     break;
                 case FIXED_SHARE:
                     logger.info(methodName, j.getId(), "Set fixed bit for FIXED job");
@@ -1371,12 +1408,22 @@ public class Scheduler
                     s.setFixed();
                     j.markComplete();            // in recovery: if there are any shares at all for this job
                                                  // we know it once had all its shares so its allocation is complete
+                    if ( !compatibleNodepool(s, j) ) {            // UIMA-4142
+                        if ( j.isService() ) {
+                            sharesToShrink.add(s);   // nodepool reconfig snafu, SM will reallocate the process
+                        } else {
+                            logger.warn(methodName, j.getId(), "Share is in incompatible nodepool but cannot be evicted:", s);
+                        }
+                    }
                     break;
                 case RESERVE:
                     logger.info(methodName, j.getId(), "Set fixed bit for RESERVE job");
                     s.setFixed();
                     j.markComplete();            // in recovery: if there are any shares at all for this job
                                                  // we know it once had all its shares so its allocation is complete
+                    if ( j.isService() && !compatibleNodepool(s, j) ) {       // UIMA-4142
+                        sharesToShrink.add(s);   // nodepool reconfig snafu, SM will reallocate the process
+                    }
                     break;
             }
 
@@ -1412,6 +1459,17 @@ public class Scheduler
         j.setResourceClass(prclass);
         logger.info(methodName, j.getId(), "Recovered job:", j.toString());
         logger.info(methodName, j.getId(), "Recovered shares:", sharenames.toString());
+
+        // After a reconfig/restart the share may be in the wrong place, in which case it
+        // needs to be removed.  We have to wait until it is fully hooked into the structures
+        // before scheduling for removal because it could take a while to go away and
+        // we have to be careful not to overcommit.
+        // UIMA-4142
+        for ( Share s : sharesToShrink ) {
+            logger.info(methodName, j.getId(), "Recovery - Removing share from wrong nodepool after reconfiguration:", s);
+            j.shrinkByOne(s);
+        }
+
     }
 
     /**

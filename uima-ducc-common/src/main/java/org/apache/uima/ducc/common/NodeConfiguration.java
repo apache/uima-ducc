@@ -39,9 +39,6 @@ import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.IllegalConfigurationException;
 import org.apache.uima.ducc.common.utils.SystemPropertyResolver;
 
-
-
-
 /**
  * This class reads and parses a node configuration file.  It is used primarily by RM for scheduling
  * and by the web server to present the configuration.
@@ -57,9 +54,19 @@ public class NodeConfiguration
     DuccProperties defaultReserveClass    = new DuccProperties();
     DuccProperties defaultNodepool        = new DuccProperties();
 
-    Map<String, DuccProperties> nodepools = new HashMap<String, DuccProperties>();
-    ArrayList<DuccProperties> classes = new ArrayList<DuccProperties>();
+    Map<String, DuccProperties> nodepools = new HashMap<String, DuccProperties>();        // all nodepools, by name
+    ArrayList<DuccProperties> independentNodepools = new ArrayList<DuccProperties>();     // the top-level node pools
 
+    // UIMA-4142 Move all these declarations to the top and comment them
+    ArrayList<DuccProperties> classes = new ArrayList<DuccProperties>();                  // all classes, during parsing, a discard
+    Map<String, DuccProperties> clmap = new HashMap<String, DuccProperties>();            // all classes, by name
+    ArrayList<String> independentClasses = new ArrayList<String>();                       // all classes that don't derive from something
+
+    Map<String, String> allNodes   = new HashMap<String, String>();                        // map node           -> nodepool name, map for dup checking
+    Map<String, DuccProperties> poolsByNodefile = new HashMap<String, DuccProperties>();   // nodepool node file -> nodepool props
+
+    Map<String, String> allImports = new HashMap<String, String>();                        // map nodefile -> importer, map for dup checking
+    Map<String, String> referrers  = new HashMap<String, String>();                        // map nodefile -> referring nodepool, for dup checking
 
     DuccLogger logger;
     String defaultDomain = null;
@@ -212,152 +219,6 @@ public class NodeConfiguration
         return null;
     }
 
-    Map<String, String> allImports = new HashMap<String, String>();        // map nodefile -> importer, map for dup checking
-    Map<String, String> referrers  = new HashMap<String, String>();        // map nodefile -> referring nodepool, for dup checking
-    /**
-     *
-     * Here we read the node files to hand off to the nodepool structures.  We want to do 
-     * careful checking for duplicate nodes and duplicate inclusion or the scheduler will
-     * go berserk!
-     *
-     * It is important to remember that nodefiles are potentially (but not required to be)
-     * used for two purposes: 
-     *   1) name the nodes that are expected in the cluster, and are started at boot time
-     *   2) define nodepool occupancy
-     * This dual use does NOT require similar structure, although similar structure is usually
-     * much easier for humans to deal with.  Therefore we need to track duplicate inclusion
-     * for 'import' and 'reference' separately, while reading the file exactly once.
-     * 
-     * A nodefile may be read as a result of reference from a nodepool definition
-     *    It may be referred by exactly one nodepool
-     * A nodefile may also be read as a result of import from another nodepool
-     *    It may be imported by exactly one other nodefile
-     * If a nodefile is both imported and referred-to, it means the nodefile represents both
-     *     a nodepool, and a group of logically grouped subnodes.
-     *     e.g. "intel" nodes may contain a 'rhel' nodepool and a 'suse' nodepool
-     * 
-     * The only way this routine is entered for 'import', is recursively from within itself.  The
-     * checks for multiple imports are made near that recursive call.
-     *
-     * The only way it is entered by NP 'referral' is from the recursive readNpNodes. We make the
-     * duplicate referral check right at the top.
-     *
-     * 
-     * @param npfile    The physical file to read
-     * @param referrer  The nodepool that this set of nodes belongs to
-     * @param domain    The domain to use, optionally, to create double entries for the node
-     * @return
-     * @throws IllegalConfigurationException
-     */
-    Map<String, String> XXXXXreadNodepoolFileXXXXX(String npfile, String referrer, String domain)
-        throws IllegalConfigurationException
-    {
-        //String methodName = "readNodepoolFile";
-        npfile = resolve(npfile);
-
-        // see if it has been referred to by someone else --> error
-        	// this check is for multiple references in the nodepool defs.  includes
-        // are dealt with below.
-        if ( referrer != null ) {                                    // been here?
-            if ( referrers.containsKey(npfile) ) {          //   ...       done that
-                throw new IllegalConfigurationException("Duplicate nodepool file reference to " + npfile + " from " + referrer + " not allowed "
-                                                        + " first reference was from " + referrers.get(npfile));
-            }
-            referrers.put(npfile, referrer);
-        }
-        
-        Map<String, String> response = new HashMap<String, String>();
-     
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(npfile));
-            String node = "";
-            while ( (node = br.readLine()) != null ) {
-                int ndx = node.indexOf("#");
-                if ( ndx >= 0 ) {
-                    node = node.substring(0, ndx);
-                }
-                node = node.trim();
-                if (node.equals("") ) {
-                    continue;
-                }
-
-                if ( node.startsWith("domain") ) {
-                    String[] tmp = node.split("\\s+");
-                    if ( tmp.length == 2 ) {
-                        domain = tmp[1];
-                        continue;
-                    } else {
-                        throw new IllegalConfigurationException("Invalid domain specification in node file " + npfile + ": " + node);
-                    }
-                }
-
-                if ( node.startsWith("import") ) {
-                    String[] tmp = node.split("\\s+");
-                    String importfile = tmp[1];
-                    if ( allImports.containsKey(importfile) ) {
-                        //if ( ! allImports.get(importfile).equals(npfile) ) {
-                            throw new IllegalConfigurationException("Duplicate imported nodefile " + 
-                                                                    importfile + 
-                                                                    " imported from " + 
-                                                                    npfile + 
-                                                                    ", not allowed. Previous import from " + 
-                                                                    allImports.get(importfile));
-                        //} 
-                        //continue;         // already imported by 'me' in an earlier pass
-                    }
-                    allImports.put(importfile, npfile);
-                    
-                    if ( referrers.containsKey(importfile) ) {       // already read by reference from a nodepool, so it's not directly
-                                                                     // part of this nodepool
-                        continue;
-                    }
-
-                    //try {
-                    //    response.putAll(readNodepoolFile(importfile, null, domain));
-                    //} catch ( IllegalConfigurationException e ) {
-                    //    throw new IllegalConfigurationException(e.getMessage() + " imbedded from " + npfile);
-                    //}
-                    continue;
-                }
-
-                if ( allNodes.containsKey(node) ) {
-                    throw new IllegalConfigurationException("Duplicate node found in " + npfile + ": " + node + "; first occurance in " + allNodes.get(node));
-                }
-                allNodes.put(node, npfile);
-                response.put(node, node);
-
-                // include fully and non-fully qualified names to allow sloppiness of config
-
-                ndx = node.indexOf(".");
-                String dnode = null;
-                if ( ndx >= 0 ) {
-                    dnode = node.substring(0, ndx);
-                    response.put(dnode, dnode);
-                } else if ( domain != null ) {
-                    dnode = node + "." + domain;
-                    response.put(dnode, dnode);
-                } 
-                if( dnode != null ) {
-                    if ( allNodes.containsKey(dnode) ) {
-                        throw new IllegalConfigurationException("Duplicate node found in " + npfile + ": " + dnode + "; first occurance in " + allNodes.get(dnode));
-                    }
-                    allNodes.put(dnode, npfile);
-                }
-                
-            }
-            
-        } catch (FileNotFoundException e) {
-            throw new IllegalConfigurationException("Cannot open NodePool file \"" + npfile + "\": file not found.");
-        } catch (IOException e) {
-            throw new IllegalConfigurationException("Cannot read NodePool file \"" + npfile + "\": I/O Error.");
-        } finally {
-            try { br.close(); } catch (IOException e) { }
-        }
-        
-        return response;
-    }
-
     /**
      * Provide a continual stream of lines, removing empty lines and comment lines.
      */
@@ -448,7 +309,6 @@ public class NodeConfiguration
         return;
     }
 
-    ArrayList<DuccProperties> independentNodepools = new ArrayList<DuccProperties>();
     DuccProperties parseNodepool(String name, String parent)
         throws IOException,
         IllegalConfigurationException
@@ -583,9 +443,6 @@ public class NodeConfiguration
             }
         }
     }
-
-    Map<String, DuccProperties> clmap = new HashMap<String, DuccProperties>();
-    ArrayList<String> independentClasses = new ArrayList<String>();
 
     /**
      * Propogate my properties to all my kids and their kids, etc.  Classes only, Nodepools don't
@@ -784,11 +641,10 @@ public class NodeConfiguration
         }        
     }
 
-    Map<String, String> allNodes   = new HashMap<String, String>();                        // map node           -> nodepool name, map for dup checking
-    Map<String, DuccProperties> poolsByNodefile = new HashMap<String, DuccProperties>();   // nodepool node file -> nodepool props
     void readNodepoolNodes(String nodefile, DuccProperties p, String domain)
     		throws IllegalConfigurationException
-    {    		
+    {    	
+    	String methodName = "readnodepoolFiles";
         @SuppressWarnings("unchecked")
         Map<String, String> nodes = (Map<String, String>) p.get("nodes");
         if ( nodes == null ) {
@@ -811,14 +667,10 @@ public class NodeConfiguration
                     continue;
                 }
 
+                // UIMA-4142 Domain no longer supported
                 if ( node.startsWith("domain") ) {
-                    String[] tmp = node.split("\\s+");
-                    if ( tmp.length == 2 ) {
-                        domain = tmp[1];
-                        continue;
-                    } else {
-                        throw new IllegalConfigurationException("Invalid domain specification in node file " + nodefile + ": " + node);
-                    }
+                    logInfo(methodName, "The \"domain\" keyword is no long supported in node files. Found in file " + nodefile);
+                    continue;
                 }
 
 
@@ -838,23 +690,23 @@ public class NodeConfiguration
                     throw new IllegalConfigurationException("Duplicate node found in " + nodefile + ": " + node + "; first occurance in " + allNodes.get(node));
                 }
                 allNodes.put(node, nodefile); // for dup checking - we only get to read a node once
-                nodes.put(node, node);
+                nodes.put(node, nodefile);    // UIMA-4142 map host -> domain
 
                 // include fully and non-fully qualified names to allow sloppiness of config
                 ndx = node.indexOf(".");
                 String dnode = null;
                 if ( ndx >= 0 ) {                     // strip domain to get just the name
                     dnode = node.substring(0, ndx);
-                    nodes.put(dnode, dnode);
+                    nodes.put(dnode, nodefile);      // UIMA-4142 map host -> domain
                 } else if ( domain != null ) {       // or add the domain, if found, to get fully-qualified
                     dnode = node + "." + domain;
-                    nodes.put(dnode, dnode);
+                    nodes.put(dnode, nodefile);      // UIMA-4142 map host -> domain
                 } 
                 if( dnode != null ) {
                     if ( allNodes.containsKey(dnode) ) {
                         throw new IllegalConfigurationException("Duplicate node found in " + nodefile + ": " + dnode + "; first occurance in " + allNodes.get(dnode));
                     }
-                    allNodes.put(dnode, nodefile);
+                    allNodes.put(dnode, nodefile);   // UIMA-4142 map host -> domain
                 }
             }
             
@@ -1013,6 +865,12 @@ public class NodeConfiguration
     {
         if ( clmap == null ) return null;
         return clmap.get(name);
+    }
+
+    // UIMA-4142 return domain in API
+    public String getDefaultDomain()
+    {
+        return defaultDomain;
     }
 
     public Map<String, DuccProperties> getClasses()

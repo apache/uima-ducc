@@ -28,6 +28,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.admin.event.DuccAdminEvent;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancy;
+import org.apache.uima.ducc.common.admin.event.RmAdminReconfigure;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
@@ -160,6 +161,14 @@ public class ResourceManagerComponent
                         reply = new RmAdminReply(scheduler.varyon(vo.getNodes()));
                     }
                 } else
+                if (body instanceof RmAdminReconfigure) {    // UIMA-4142
+                    if ( ! validateAdministrator(dae) ) {
+                        reply = new RmAdminReply("Not authorized");
+                    } else {
+                        RmAdminReconfigure rc = (RmAdminReconfigure) body;            	 
+                        reply = new RmAdminReply(scheduler.reconfigure());
+                    }
+                } else
                 if (body instanceof RmAdminQLoad) {
                     // not priveleged
                     reply = scheduler.queryLoad();
@@ -167,9 +176,13 @@ public class ResourceManagerComponent
                 if (body instanceof RmAdminQOccupancy) {
                     // not priveleged
                     reply = scheduler.queryOccupancy();
+                } else {
+                    logger.info(methodName, null, "Invalid admin command:", body.getClass().getName());
+                    reply = new RmAdminReply("Unrecognized RM admin request.");
                 }
             } else {
-                reply = new RmAdminReply("Unrecognized RM admin request.");
+                logger.info(methodName, null, "Invalid RM event:", body.getClass().getName());
+                reply = new RmAdminReply("Unrecognized RM event.");
             }
             exchange.getIn().setBody(reply);
         }

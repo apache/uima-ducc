@@ -114,7 +114,6 @@ class NodePool
         this.evictionPolicy = ep;
         this.depth = depth;
         this.order = order;
-
     }
 
     void addResourceClass(ResourceClass cl)
@@ -341,6 +340,33 @@ class NodePool
             count += np.countPendingSharesByOrder(o);
         }
         return count;
+    }
+
+    /**
+     * Interrogate whether work assigned to the indicated rc could end up in this np or its children.
+     * This is called during recovery; a change to the class or np config can cause incompatibilities
+     * with previously scheduled work after a restart.
+     *
+     * UIMA-4142
+     *
+     * @param     p   The scheduling policy; determines whether descent into child pools is allowed.
+     * @param    rc  The rc to check
+     * @return true If work scheduled to the RC is compatible.
+     */
+    boolean compatibleNodepool(Policy p, ResourceClass rc)
+    {
+        switch ( p ) {
+            case FAIR_SHARE:
+                if ( allClasses.containsKey(rc) ) return true;
+                for (NodePool np : children.values()) {
+                    if ( np.compatibleNodepool(p, rc) ) return true;
+                }
+            case FIXED_SHARE:
+            case RESERVE:
+                if ( allClasses.containsKey(rc) ) return true;
+        }
+
+        return false;
     }
 
     int[] cloneNSharesByOrder()
@@ -761,7 +787,6 @@ class NodePool
         return sorted;
     }
 
-
     /**
      * Subpools are always associated with a classname.
      *
@@ -871,7 +896,8 @@ class NodePool
         }
         mlist.put(machine.key(), machine);        
 
-        logger.info(methodName, null, "Nodepool:", id, "Host added:", id, ": ", machine.getId(), String.format("shares %2d total %4d:", order, total_shares), machine.toString());
+        logger.info(methodName, null, "Nodepool:", id, "Host added:", id, ": ", machine.getId(), "Nodefile:", subpoolNames.get(machine.getId()), // UIMA-4142, add file nodefile
+                    String.format("shares %2d total %4d:", order, total_shares), machine.toString()); 
         updated++;
         
         return machine;

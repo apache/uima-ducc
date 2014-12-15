@@ -209,8 +209,9 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     if (duccBrokerUrlDecoration != null && duccBrokerUrlDecoration.trim().length() > 0) {
       burl.append("?").append(duccBrokerUrlDecoration);
     }
-    logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
     System.setProperty("ducc.broker.url", burl.toString());
+    // UIMA-4142 (remove annoying debug statement) 
+    // logger.info("composeBrokerUrl", null, "Ducc Composed Broker URL:" + System.getProperty("ducc.broker.url"));
   }
 
   // Jira 3943 - Adjust endpoints only on those in ducc.properties

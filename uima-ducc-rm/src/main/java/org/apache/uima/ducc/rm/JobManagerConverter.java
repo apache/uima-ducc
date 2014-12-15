@@ -55,6 +55,8 @@ import org.apache.uima.ducc.transport.event.common.IDuccWork;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkExecutable;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService;
+import org.apache.uima.ducc.transport.event.common.IDuccWorkService.ServiceDeploymentType;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.rm.IResource;
@@ -115,6 +117,29 @@ public class JobManagerConverter
     {
         if ( w == null ) return "0";
         return w.getDiff();
+    }
+
+    /**
+     * UIMA-4142
+     * Work out if the job is being recovered.  How do you know?  Because
+     *   A) for non-reservation, there is a process map and the job is not completed
+     *   B) there is a reservation map and the job is not completed
+     *
+     * The maps are built up from Share assignments earlier.
+     */
+    boolean isRecovered(IDuccWork job)
+    {
+        switch ( job.getDuccType() ) {
+          case Service:
+          case Pop:
+          case Job:              
+              IDuccProcessMap     pm = ((IDuccWorkExecutable)job).getProcessMap();              
+              return ( (pm.size() > 0) && !job.isCompleted() );
+          case Reservation:
+              IDuccReservationMap rm = ((IDuccWorkReservation)job).getReservationMap();
+              return ( (rm.size() > 0) && !job.isCompleted() );
+        }
+        throw new IllegalStateException("Cannot recognize job type for " + job.getDuccId() + ": found " + job.getDuccType());
     }
 
 //    void formatSchedulingInfo(DuccId id, IDuccSchedulingInfo si, int remaining_work)
@@ -212,13 +237,13 @@ public class JobManagerConverter
     /**
      * NOTE: If this returns false, it maust also refuse().
      */
-    private boolean receiveExecutable(IRmJob j, IDuccWork job)
+    private boolean receiveExecutable(IRmJob j, IDuccWork job, boolean mustRecover)    // UIMA-4142, add mustRecover flag
     {
     	String methodName = "receiveExecutable";
         IDuccWorkExecutable de = (IDuccWorkExecutable) job;
         IDuccProcessMap     pm = de.getProcessMap();
 
-        if ( (pm.size() > 0) && !job.isCompleted() ) {          // need to recover, apparently RM crashed. hmph.
+        if ( mustRecover ) {                                   // need to recover
             for ( IDuccProcess proc : pm.values() ) {          // build up Shares from the incoming state
 
                 ProcessState state = proc.getProcessState();                
@@ -256,14 +281,14 @@ public class JobManagerConverter
     /**
      * NOTE: If this returns false, it maust also refuse().
      */
-    private boolean receiveReservation(IRmJob j, IDuccWork job)
+    private boolean receiveReservation(IRmJob j, IDuccWork job, boolean mustRecover)  // UIMA-4142, add mustRecover flag
     {
     	String methodName = "receiveReservation";
         j.setReservation();
 
         IDuccWorkReservation dr = (IDuccWorkReservation) job;
         IDuccReservationMap rm = dr.getReservationMap();
-        if ( (rm.size() > 0) && !job.isCompleted() ) {          // need to recover, apparently RM crashed. hmph.
+        if ( mustRecover ) {                                   // need to recover
             for ( IDuccReservation res : rm.values() ) {       // build up Shares from the incoming state
                 NodeIdentity ni = res.getNodeIdentity();
                 Machine m = scheduler.getMachine(ni);
@@ -286,7 +311,7 @@ public class JobManagerConverter
         }
         return true;
     }
-
+   
     /**
      * Convert a JobManager Job into a ResourceManager RmJob.  We assume this job is NOT in
      * our lists.
@@ -325,7 +350,9 @@ public class JobManagerConverter
 
         // Convert Lou's structure into mine.
         IRmJob j = new RmJob(job.getDuccId());
-        
+
+        boolean mustRecover = isRecovered(job);             // UIMA-4142
+
         IDuccSchedulingInfo si = job.getSchedulingInfo();
         IDuccStandardInfo   sti = job.getStandardInfo();
         
@@ -394,6 +421,17 @@ public class JobManagerConverter
 
         j.setDuccType(job.getDuccType());                 // ugly and artificial but ... not going to rant here
                                                           // it's needed so messages can be made legible
+        switch ( job.getDuccType() ) {                    // UIMA-4142 to distinguish between service and AP 
+            case Service:
+            case Pop:
+                if  ( ((IDuccWorkService)job).getServiceDeploymentType() == ServiceDeploymentType.other )  {
+                    j.setArbitraryProcess();
+                }
+                break;
+            default:
+                break;                    
+        }
+
 
         //
         // Now: must either create a new job, or recover one that we didn't know about, on the assumption that we
@@ -448,7 +486,7 @@ public class JobManagerConverter
                       break;
               }
               
-              status = receiveExecutable(j, job);
+              status = receiveExecutable(j, job, mustRecover); // UIMA-4142, add mustRecover flag
               logger.trace(methodName, j.getId(), "Serivce, Pop, or Job arrives, accepted:", status);
               break;
           case Reservation:
@@ -464,7 +502,7 @@ public class JobManagerConverter
               j.setMaxShares(-1);
               j.setNInstances(max_machines);
 
-              status = receiveReservation(j, job);
+              status = receiveReservation(j, job, mustRecover);  // UIMA-4142, add mustRecover flag
               logger.trace(methodName, j.getId(), "Reservation arrives, accepted:", status);
               break;
           default:

@@ -1553,11 +1553,6 @@ public class NodepoolScheduler
             if ( rc.getPolicy() == Policy.FAIR_SHARE ) {
                 NodePool np = rc.getNodepool();
                 NodePool check = getNodepool(rc);
-                if ( np != check ) {
-                    throw new IllegalStateException("getNodepool is busted.");
-                } else {
-                    System.out.println("------------------- np pointer checks out ok. ----------------- rc: " + rc.getName() + " np: " + np.getId() );
-                }
                 HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                 for ( IRmJob j : jobs.values() ) {
                     HashMap<Share, Share> shares = j.getAssignedShares();

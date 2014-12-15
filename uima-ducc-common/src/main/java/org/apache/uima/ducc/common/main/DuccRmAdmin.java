@@ -33,6 +33,7 @@ import org.apache.uima.ducc.common.admin.event.RmAdminQLoad;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancy;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
+import org.apache.uima.ducc.common.admin.event.RmAdminReconfigure;
 import org.apache.uima.ducc.common.admin.event.RmAdminReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOff;
 import org.apache.uima.ducc.common.admin.event.RmAdminVaryOn;
@@ -241,6 +242,20 @@ public class DuccRmAdmin
         RmAdminQOccupancy qo = new RmAdminQOccupancy(user, cypheredMessage);
 		return (RmAdminQOccupancyReply) dispatchAndWaitForReply(qo);
 	}
+    
+	/**
+	 * Send reconfigure event to RM.
+     * UIMA-4142
+	 * 
+	 * @throws Exception
+	 */
+	public void reconfigure()
+		throws Exception 
+    {
+        RmAdminReconfigure np = new RmAdminReconfigure(user, cypheredMessage);
+		RmAdminReply reply = dispatchAndWaitForReply(np);
+		System.out.println(reply.getResponse());
+	}
 
     
     public void run(String[] args)
@@ -292,6 +307,14 @@ public class DuccRmAdmin
 
             return;
         }
+
+        if ( args[0].equals("--reconfigure") ) {     // UIMA-4142
+            if ( args.length != 1 ) usage("Reconfigure takes no arguments.");
+            reconfigure();
+            return;
+        }
+
+        System.out.println("Unknown command: " + args[0]);
     }
 
     public static void usage(String msg)
@@ -305,6 +328,7 @@ public class DuccRmAdmin
         System.out.println("   --varyon  string-delimeted-nodes");
         System.out.println("   --qload --console|--compact");
         System.out.println("   --qoccupancy --console|--compact");
+        System.out.println("   --reconfigure");         // dynamic reconfig UIMA-4142
 
         System.exit(1);
     }

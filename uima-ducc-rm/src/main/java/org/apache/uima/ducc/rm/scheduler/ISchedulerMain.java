@@ -75,6 +75,7 @@ public interface ISchedulerMain
 
     String varyoff(String[] nodes);
     String varyon(String[] nodes);
+    String reconfigure();
     RmAdminQLoadReply queryLoad();
     RmAdminQOccupancyReply queryOccupancy();
 }

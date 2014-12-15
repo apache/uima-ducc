@@ -261,5 +261,9 @@ public interface IRmJob
     public void setDuccType(DuccType dt);
     public DuccType getDuccType();
 
+    public void setArbitraryProcess();            // UIMA-4142
+    public boolean isArbitraryProcess();          // UIMA-4142
+    public boolean isService();                   // UIMA-4142
+
     public boolean isInitialized();
 }

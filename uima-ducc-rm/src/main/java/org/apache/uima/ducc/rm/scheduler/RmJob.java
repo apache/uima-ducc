@@ -44,6 +44,7 @@ public class RmJob
 	
     protected DuccId   id;                            // sched-assigned id (maybe delegate to job manager eventually)
     protected DuccType ducc_type;                     // for messages so we can tell what kind of job
+    protected boolean  arbitrary_process = false;     // Is this an AP?
     protected String name;                            // user's name for job
     protected String resource_class_name;             // Name of the res class, from incoming job parms
     protected ResourceClass resource_class;           // The actual class, assigned as job is received in scheduler.
@@ -1183,6 +1184,24 @@ public class RmJob
         return this.ducc_type;
     }
 
+    // UIMA-4142
+    public void setArbitraryProcess()
+    {
+        this.arbitrary_process = true;
+    }
+
+    // UIMA-4142
+    public boolean isArbitraryProcess()
+    {
+        return (ducc_type == DuccType.Service) && this.arbitrary_process;
+    }
+
+    // UIMA-4142
+    public boolean isService()
+    {
+        return (ducc_type == DuccType.Service) && !this.arbitrary_process;
+    }
+
     /**
      * Is at least one of my current shares initialized?
      */
@@ -1243,7 +1262,7 @@ public class RmJob
             st = "J";
             break;
         case Service:
-            st = "S";
+            st = ( isArbitraryProcess() ? "M" : "S" );          // UIMA-4142
             break;
         }
         return st;
