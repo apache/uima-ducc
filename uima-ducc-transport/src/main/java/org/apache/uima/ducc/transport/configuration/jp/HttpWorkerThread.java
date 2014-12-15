@@ -276,8 +276,6 @@ public class HttpWorkerThread implements Runnable {
 					command = Type.Get.name();
 //					transaction = httpClient.post(transaction);
 					transaction = httpClient.execute(transaction, postMethod);
-                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
-					System.out.println("Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
                     // Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
 					command = Type.Ack.name();
@@ -308,6 +306,9 @@ public class HttpWorkerThread implements Runnable {
 							}
 						}
 					} else {
+	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
+						System.out.println("Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
+
 						// process the CAS
 						@SuppressWarnings("unchecked")
 						List<Properties> metrics = (List<Properties>) 
