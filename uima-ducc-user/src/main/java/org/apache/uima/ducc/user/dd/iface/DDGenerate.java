@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.user.dd.iface;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +57,20 @@ public class DDGenerate implements IDDGenerate {
 		}
 	}
 	
+	private String fabricateTargetDirectoryName(String baseDir, String jobId) {
+		StringBuffer sb = new StringBuffer();
+		if(baseDir != null) {
+			sb.append(baseDir);
+			if(!baseDir.endsWith(File.separator)) {
+				sb.append(File.separator);
+			}
+			if(jobId != null) {
+				sb.append(jobId);
+			}
+		}
+		return sb.toString();
+	}
+	
 	@Override
 	public String generate(
 			String directory, 
@@ -88,7 +103,8 @@ public class DDGenerate implements IDDGenerate {
 			show("aeOverrides", aeOverrides);
 			show("ccDescriptor", ccDescriptor);
 			show("ccOverrides", ccOverrides);
-			DeploymentDescriptorGenerator ddg = new DeploymentDescriptorGenerator(directory);
+			String targetDirectory = fabricateTargetDirectoryName(directory, id);
+			DeploymentDescriptorGenerator ddg = new DeploymentDescriptorGenerator(targetDirectory);
 			ArrayList<IDuccUimaAggregateComponent> ddComponents = new ArrayList<IDuccUimaAggregateComponent>();
 			conditionalAddComponent(ddComponents, cmDescriptor, cmOverrides);
 			conditionalAddComponent(ddComponents, aeDescriptor, aeOverrides);
