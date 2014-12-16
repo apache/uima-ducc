@@ -191,6 +191,14 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 		record(wis);
 	}
 	
+	@Override
+	public void preempt(int seqNo) {
+		Long key = new Long(seqNo);
+		IWorkItemState wis = activeMap.get(key);
+		wis.statePreempt();
+		record(wis);
+	}
+	
 	@Deprecated
 	public void location(String seqNo, String node, String pid) {
 		Long key = new Long(seqNo);

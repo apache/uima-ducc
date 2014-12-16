@@ -25,5 +25,6 @@ public interface IWorkItemStateKeeper {
 	public void ended(int seqNo);
 	public void error(int seqNo);
 	public void retry(int seqNo);
+	public void preempt(int seqNo);
 	public void zip();
 }

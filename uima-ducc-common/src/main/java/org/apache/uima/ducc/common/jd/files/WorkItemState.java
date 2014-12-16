@@ -165,7 +165,11 @@ public class WorkItemState implements IWorkItemState {
 	public void stateRetry() {
 		state = State.retry;
 	}
-
+	
+	
+	public void statePreempt() {
+		state = State.preempt;
+	}
 	
 	public long getMillisOverhead() {
 		long retVal = 0;
