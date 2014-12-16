@@ -41,6 +41,7 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
+import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -122,6 +123,8 @@ implements IJobDriverComponent {
 	
 	private AtomicInteger getStateReqNo = new AtomicInteger(0);
 	
+	private IDuccProcessMap dpMap = null;
+	
 	@Override
 	public JdStateDuccEvent getState() {
 		String location = "getState";
@@ -129,7 +132,7 @@ implements IJobDriverComponent {
 		try {
 			IMessageHandler mh = JobDriver.getInstance().getMessageHandler();
 			IOperatingInfo oi = mh.handleGetOperatingInfo();
-			IDriverStatusReport driverStatusReport = new JobDriverReport(oi);
+			IDriverStatusReport driverStatusReport = new JobDriverReport(oi, dpMap);
 			driverStatusReport.setNode(node);
 			driverStatusReport.setPort(port);
 			state.setState(driverStatusReport);
@@ -166,6 +169,7 @@ implements IJobDriverComponent {
 				DuccWorkJob dwj = (DuccWorkJob) dwMap.findDuccWork(duccId);
 				if(dwj != null) {
 					IDuccProcessMap pMap = dwj.getProcessMap();
+					dpMap = pMap;
 					for(Entry<DuccId, IDuccProcess> entry : pMap.entrySet()) {
 						IDuccProcess p = entry.getValue();
 						ProcessState state = p.getProcessState();

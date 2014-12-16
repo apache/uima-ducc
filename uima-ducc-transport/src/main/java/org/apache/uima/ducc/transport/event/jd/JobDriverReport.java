@@ -21,23 +21,32 @@ package org.apache.uima.ducc.transport.event.jd;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.common.Util;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.transport.event.common.DuccPerWorkItemStatistics;
+import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobCompletionType;
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
+import org.apache.uima.ducc.transport.event.common.IDuccProcess;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 public class JobDriverReport implements Serializable, IDriverStatusReport {
 
+	private static Logger logger = Logger.getLogger(JobDriverReport.class, IComponent.Id.JD.name());
+	
 	private static final long serialVersionUID = 200L;
 
 	private DuccId duccId = null;
@@ -107,7 +116,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		return retVal;
 	}
 	
-	public JobDriverReport(IOperatingInfo operatingInfo) {
+	public JobDriverReport(IOperatingInfo operatingInfo, IDuccProcessMap dpMap) {
+		String location = "JobDriverReport";
 		setDuccId(getDuccId(operatingInfo));
 		setJdState(operatingInfo.getJdState());
 		//setJmxUrl(driverContainer.getJmxUrl());
@@ -115,7 +125,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		setWorkItemsProcessingCompleted(operatingInfo.getWorkItemEndSuccesses());
 		setWorkItemsProcessingError(operatingInfo.getWorkItemEndFailures());
 		setWorkItemsRetry(operatingInfo.getWorkItemUserProcessingErrorRetries());
-		setWorkItemsDispatched(operatingInfo.getWorkItemJpGets()-(operatingInfo.getWorkItemEndSuccesses()+operatingInfo.getWorkItemEndFailures()));
+		setWorkItemsDispatched(operatingInfo.getWorkItemDispatcheds());
 		// min of finished & running
 		long fMin = operatingInfo.getWorkItemFinishedMillisMin();
 		long min = fMin;
@@ -163,23 +173,34 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		ArrayList<IProcessInfo> list = operatingInfo.getProcessItemInfo();
 		if(list != null) {
 			if(!list.isEmpty()) {
-				//TODO
-				/*
 				duccProcessWorkItemsMap = new DuccProcessWorkItemsMap();
 				for(IProcessInfo pi : list) {
-					String name = pi.getNodeName();
+					String ip = pi.getNodeAddress();
 					int pid = pi.getPid();
-					DuccId duccId = getProcessDuccId(name, pid);
-					IDuccProcessWorkItems pwi = new DuccProcessWorkItems();
+					IDuccProcess dp = dpMap.findProcess(ip, ""+pid);
+					if(dp != null) {
+						DuccId key = dp.getDuccId();
+						IDuccProcessWorkItems value = new DuccProcessWorkItems(pi);
+						duccProcessWorkItemsMap.put(key, value);
+					}
+					else {
+						logger.debug(location, null, "process not found: "+"ip="+ip+" "+"pid="+pid);
+						int i = 0;
+						for(Entry<DuccId, IDuccProcess> entry : dpMap.entrySet()) {
+							IDuccProcess value = entry.getValue();
+							logger.debug(location, null, "process["+i+"]: "+"ip="+value.getNodeIdentity().getIp()+" "+"pid="+value.getPID());
+							i++;
+						}
+					}
 				}
-				*/
+			}
+			else {
+				logger.debug(location, null, "list is empty");
 			}
 		}
-	}
-	
-	private DuccId getProcessDuccId(String name, int pid) {
-		DuccId duccId = null;
-		return duccId;
+		else {
+			logger.debug(location, null, "list is null");
+		}
 	}
 	
 	private void setDuccId(DuccId value) {

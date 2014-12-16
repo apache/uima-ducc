@@ -20,6 +20,8 @@ package org.apache.uima.ducc.transport.event.common;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+
 public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 
 	private static final long serialVersionUID = 1L;
@@ -33,9 +35,25 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 	private AtomicLong lost = new AtomicLong(0);
 	private AtomicLong preempt = new AtomicLong(0);
 	private AtomicLong completedMillisTotal = new AtomicLong(0);
+	private AtomicLong completedMillisAvg = new AtomicLong(0);
 	private AtomicLong completedMillisMax = new AtomicLong(0);
 	private AtomicLong completedMillisMin = new AtomicLong(0);
 
+	public DuccProcessWorkItems() {	
+	}
+	
+	public DuccProcessWorkItems(IProcessInfo pi) {	
+		dispatch.set(pi.getDispatch());
+		done.set(pi.getDone());
+		error.set(pi.getError());
+		retry.set(pi.getRetry());
+		lost.set(0);
+		preempt.set(pi.getPreempt());
+		completedMillisAvg.set(pi.getAvg());
+		completedMillisMax.set(pi.getMax());
+		completedMillisMin.set(pi.getMin());
+	}
+	
 	public long getCountUnassigned() {
 		return unassigned;
 	}
@@ -172,7 +190,7 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 	}
 	
 	
-	public long getSecsAvg() {
+	public long getSecsAvgV1() {
 		long retVal = 0;
 		try {
 			long count = done.get();
@@ -185,7 +203,20 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 		}
 		return retVal;
 	}
-
+	
+	public long getSecsAvg() {
+		long retVal = 0;
+		try {
+			double msecs = (double)completedMillisAvg.get();
+			retVal = (long)(msecs/1000);
+		}
+		catch(Throwable t) {
+		}
+		if(retVal == 0) {
+			retVal = getSecsAvgV1();
+		}
+		return retVal;
+	}
 	
 	public long getSecsMax() {
 		long retVal = 0;
