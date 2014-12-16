@@ -97,6 +97,7 @@ public class MessageHandler implements IMessageHandler {
 			if(cms.isKillJob()) {
 				oi.setKillJob();
 			}
+			oi.setWorkItemDispatcheds(cms.getDispatched());
 			oi.setWorkItemPreemptions(cms.getNumberOfPreemptions());
 			oi.setWorkItemFinishedMillisMin(wis.getMillisMin());
 			oi.setWorkItemFinishedMillisMax(wis.getMillisMax());

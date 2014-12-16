@@ -18,13 +18,20 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.MetaCasHelper;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
@@ -36,7 +43,17 @@ public class ActionPreempt implements IAction {
 	public String getName() {
 		return ActionPreempt.class.getName();
 	}
-
+	
+	private void preemptWorkItem(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+		String location = "preemptWorkItem";
+		cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
+		cm.getCasManagerStats().incEndRetry();
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+		mb.append(Standardize.Label.remote.get()+rwp.toString());
+		logger.info(location, ILogger.null_id, mb.toString());
+	}
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -45,9 +62,32 @@ public class ActionPreempt implements IAction {
 		try {
 			IWorkItem wi = actionData.getWorkItem();
 			IMetaCas metaCas = wi.getMetaCas();
-			//
-			CasManager cm = JobDriver.getInstance().getCasManager();
-			cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
+			JobDriver jd = JobDriver.getInstance();
+			CasManager cm = jd.getCasManager();
+			JobDriverHelper jdh = JobDriverHelper.getInstance();
+			IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
+			if(rwp != null) {
+				if(metaCas != null) {
+					preemptWorkItem(cm, wi, metaCas, rwp);
+					IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+					MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
+					int seqNo = metaCasHelper.getSystemKey();
+					wisk.preempt(seqNo);
+					pStats.preempt(wi);
+					wi.resetTods();
+				}
+				else {
+					MessageBuffer mb = new MessageBuffer();
+					mb.append("No CAS found for processing");
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
+			}
+			else {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append("No remote worker process entry found for processing");
+				logger.info(location, ILogger.null_id, mb.toString());
+			}
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

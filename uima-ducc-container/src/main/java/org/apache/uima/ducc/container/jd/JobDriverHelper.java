@@ -27,15 +27,18 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.impl.ProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.impl.WorkItemInfo;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.ProcessStatistics;
+import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class JobDriverHelper {
 
@@ -80,7 +83,7 @@ public class JobDriverHelper {
 	}
 	
 	public ArrayList<IProcessInfo> getProcessInfo() {
-		String location = "getActiveProcessInfo";
+		String location = "getProcessInfo";
 		ArrayList<IProcessInfo> list = new ArrayList<IProcessInfo>();
 		try {
 			JobDriver jd = JobDriver.getInstance();
@@ -92,12 +95,16 @@ public class JobDriverHelper {
 				list.add(processInfo);
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
+				mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
 				mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 				mb.append(Standardize.Label.dispatch.get()+processInfo.getDispatch());
 				mb.append(Standardize.Label.done.get()+processInfo.getDone());
 				mb.append(Standardize.Label.error.get()+processInfo.getError());
 				mb.append(Standardize.Label.preempt.get()+processInfo.getPreempt());
 				mb.append(Standardize.Label.retry.get()+processInfo.getRetry());
+				mb.append(Standardize.Label.avg.get()+processInfo.getAvg());
+				mb.append(Standardize.Label.max.get()+processInfo.getMax());
+				mb.append(Standardize.Label.min.get()+processInfo.getMin());
 				logger.debug(location, ILogger.null_id, mb);
 			}
 		}
@@ -116,5 +123,48 @@ public class JobDriverHelper {
 			processStatistics = remoteprocessMap.get(remotePid);
 		}
 		return processStatistics;
+	}
+	
+	public boolean isEqual(String a, String b) {
+		boolean retVal = false;
+		if(a != null) {
+			if(b != null) {
+				return a.equals(b);
+			}
+		}
+		return retVal;
+	}
+	
+	public boolean isEqual(IMetaCas a, IMetaCas b) {
+		boolean retVal = false;
+		if(a != null) {
+			if(b != null) {
+				return isEqual(a.getSystemKey(), b.getSystemKey());
+			}
+		}
+		return retVal;
+	}
+	
+	public boolean isEqual(IWorkItem a, IWorkItem b) {
+		boolean retVal = false;
+		if(a != null) {
+			if(b != null) {
+				return isEqual(a.getMetaCas(), b.getMetaCas());
+			}
+		}
+		return retVal;
+	}
+	
+	public IRemoteWorkerProcess getRemoteWorkerProcess(IWorkItem wi) {
+		IRemoteWorkerProcess rwp = null;
+		JobDriver jd = JobDriver.getInstance();
+		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = jd.getRemoteThreadMap();
+		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
+			if(isEqual(entry.getValue(), wi)) {
+				IRemoteWorkerThread rwt = entry.getKey();
+				rwp = new RemoteWorkerProcess(rwt.getNodeName(),rwt.getNodeAddress(),rwt.getPid());
+			}
+		}
+		return rwp;
 	}
 }

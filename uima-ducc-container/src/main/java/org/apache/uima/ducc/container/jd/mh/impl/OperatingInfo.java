@@ -39,6 +39,7 @@ public class OperatingInfo implements IOperatingInfo {
 	private int jpEndSuccesses = 0;
 	private int jpEndFailures = 0;
 	private int jpEndRetrys = 0;
+	private int jpDispatcheds = 0;
 	private int jpPreemptions = 0;
 	private int jpUserProcessingTimeouts = 0;
 	private int jpUserProcessingErrorRetries = 0;
@@ -147,6 +148,16 @@ public class OperatingInfo implements IOperatingInfo {
 		return jpEndRetrys;
 	}
 
+	@Override
+	public void setWorkItemDispatcheds(int value) {
+		jpDispatcheds = value;
+	}
+
+	@Override
+	public int getWorkItemDispatcheds() {
+		return jpDispatcheds;
+	}
+	
 	@Override
 	public void setWorkItemPreemptions(int value) {
 		jpPreemptions = value;

@@ -41,7 +41,19 @@ public class CasManagerStats {
 	private ConcurrentHashMap<String,AtomicInteger> retryReasonsMap = new ConcurrentHashMap<String,AtomicInteger>();
 	
 	public int getUnfinishedWorkCount() {
-		return crTotal.get() - (endSuccess.get() + endFailure.get());
+		return crTotal.get() - getEnded();
+	}
+	
+	public int getPendingRetry() {
+		return retryQueuePuts.get() - retryQueueGets.get();
+	}
+	
+	public int getEnded() {
+		return endSuccess.get() + endFailure.get();
+	}
+	
+	public int getDispatched() {
+		return (crGets.get() - getEnded()) - getPendingRetry();
 	}
 	
 	public void setCrTotal(int value) {

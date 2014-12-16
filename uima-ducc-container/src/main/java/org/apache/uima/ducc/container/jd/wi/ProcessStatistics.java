@@ -20,8 +20,16 @@ package org.apache.uima.ducc.container.jd.wi;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
+
 public class ProcessStatistics implements IProcessStatistics {
 
+	private static Logger logger = Logger.getLogger(ProcessStatistics.class, IComponent.Id.JD.name());
+	
 	private AtomicLong dispatch = new AtomicLong(0);
 	private AtomicLong done = new AtomicLong(0);
 	private AtomicLong error = new AtomicLong(0);
@@ -37,9 +45,16 @@ public class ProcessStatistics implements IProcessStatistics {
 
 	@Override
 	public void done(IWorkItem wi) {
+		String location = "done";
 		dispatch.decrementAndGet();
 		done.incrementAndGet();
 		wis.ended(wi);
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+		mb.append(Standardize.Label.avg.get()+getMillisAvg());
+		mb.append(Standardize.Label.max.get()+getMillisMax());
+		mb.append(Standardize.Label.min.get()+getMillisMin());
+		logger.trace(location, ILogger.null_id, mb.toString());
 	}
 
 	@Override

@@ -98,6 +98,18 @@ public class ActionEnd implements IAction {
 		checkEnded(cm);
 	}
 	
+	private void updateStatistics(IWorkItem wi) {
+		String location = "updateStatistics";
+		IWorkItemStatistics wis = JobDriver.getInstance().getWorkItemStatistics();
+		wis.ended(wi);
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+		mb.append(Standardize.Label.avg.get()+wis.getMillisAvg());
+		mb.append(Standardize.Label.max.get()+wis.getMillisMax());
+		mb.append(Standardize.Label.min.get()+wis.getMillisMin());
+		logger.debug(location, ILogger.null_id, mb.toString());
+	}
+	
 	private void checkEnded(CasManager cm) {
 		String location = "checkEnded";
 		int remainder = cm.getCasManagerStats().getUnfinishedWorkCount();
@@ -163,6 +175,16 @@ public class ActionEnd implements IAction {
 		}
 	}
 	
+	private void displayProcessStatistics(IWorkItem wi, IProcessStatistics pStats) {
+		String location = "displayProcessStatistics";
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+		mb.append(Standardize.Label.avg.get()+pStats.getMillisAvg());
+		mb.append(Standardize.Label.max.get()+pStats.getMillisMax());
+		mb.append(Standardize.Label.min.get()+pStats.getMillisMin());
+		logger.debug(location, ILogger.null_id, mb.toString());
+	}
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -190,8 +212,9 @@ public class ActionEnd implements IAction {
 				}
 				else {
 					wisk.ended(seqNo);
-					pStats.done(wi);
 					successWorkItem(cm, wi, trans, metaCas, rwt);
+					pStats.done(wi);
+					displayProcessStatistics(wi, pStats);
 				}
 				wi.resetTods();
 			}
@@ -205,16 +228,5 @@ public class ActionEnd implements IAction {
 			logger.error(location, ILogger.null_id, e);
 		}
 	}
-	
-	private void updateStatistics(IWorkItem wi) {
-		String location = "updateStatistics";
-		IWorkItemStatistics wis = JobDriver.getInstance().getWorkItemStatistics();
-		wis.ended(wi);
-		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
-		mb.append(Standardize.Label.avg.get()+wis.getMillisAvg());
-		mb.append(Standardize.Label.min.get()+wis.getMillisAvg());
-		mb.append(Standardize.Label.max.get()+wis.getMillisAvg());
-		logger.info(location, ILogger.null_id, mb.toString());
-	}
+
 }

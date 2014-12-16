@@ -46,6 +46,7 @@ public class ProcessInfo implements IProcessInfo {
 	
 	public ProcessInfo(String nodeName, String nodeAddress, int pid, IProcessStatistics pStats) {
 		setNodeName(nodeName);
+		setNodeAddress(nodeAddress);
 		setPid(pid);
 		setDispatch(pStats.getCountDispatch());
 		setDone(pStats.getCountDone());

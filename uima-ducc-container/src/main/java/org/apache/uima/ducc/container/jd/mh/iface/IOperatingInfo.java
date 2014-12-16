@@ -51,6 +51,9 @@ public interface IOperatingInfo extends Serializable {
 	
 	public void setWorkItemEndRetrys(int value);
 	public int getWorkItemEndRetrys();
+
+	public void setWorkItemDispatcheds(int value);
+	public int getWorkItemDispatcheds();
 	
 	public void setWorkItemPreemptions(int value);
 	public int getWorkItemPreemptions();
