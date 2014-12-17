@@ -776,6 +776,10 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 		return uimaDeploymentDescriptor;
 	}
 	
+	public String getUimaAnalysisEngine() {
+		return null;
+	}
+	
 	public void setUimaDeploymentDescriptor(String uimaDeploymentDescriptor) {
 		this.uimaDeploymentDescriptor = uimaDeploymentDescriptor;
 	}

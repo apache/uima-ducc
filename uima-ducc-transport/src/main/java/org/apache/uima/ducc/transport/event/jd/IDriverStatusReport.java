@@ -90,6 +90,7 @@ public interface IDriverStatusReport {
 	public String getJdJmxUrl();
 	
 	public String getUimaDeploymentDescriptor();
+	public String getUimaAnalysisEngine();
 	
 	public Iterator<DuccId> getKillDuccIds();
 	
