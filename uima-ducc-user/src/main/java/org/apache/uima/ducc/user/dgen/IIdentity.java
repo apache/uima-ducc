@@ -16,27 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd;
+package org.apache.uima.ducc.user.dgen;
 
-import java.util.List;
+import java.io.Serializable;
 
-public interface IDuccUimaAggregate extends IDuccUimaDeployableConfiguration {
-
-	public List<IDuccUimaAggregateComponent> getComponents();
-	public void setComponents(List<IDuccUimaAggregateComponent> components);
-	
+public interface IIdentity extends Serializable {
 	public String getName();
-	public void setName(String name);
-	
-	public String getDescription();
-	public void setDescription(String description);
-	
-	public int getThreadCount();
-	public void setThreadCount(int threadCount);
-	
-	public String getBrokerURL();
-	public void setBrokerURL(String brokerURL);
-	
-	public String getEndpoint();
-	public void setEndpoint(String endpoint);
+	public String getIP();
 }

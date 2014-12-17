@@ -28,12 +28,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.uima.ducc.user.dd.DeploymentDescriptorGenerator;
-import org.apache.uima.ducc.user.dd.DuccUimaAggregate;
-import org.apache.uima.ducc.user.dd.DuccUimaAggregateComponent;
-import org.apache.uima.ducc.user.dd.IDuccUimaAggregateComponent;
-import org.apache.uima.ducc.user.dd.IDuccUimaDeployableConfiguration;
-import org.apache.uima.ducc.user.dd.iface.DDGenerate;
+import org.apache.uima.ducc.user.dgen.AeGenerator;
+import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
+import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
+import org.apache.uima.ducc.user.dgen.IDuccUimaAggregateComponent;
+import org.apache.uima.ducc.user.dgen.IDuccUimaDeployableConfiguration;
+import org.apache.uima.ducc.user.dgen.iface.AeGenerate;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
@@ -349,19 +349,19 @@ public class TestSuite {
 	}
 	
 	private IDuccUimaDeployableConfiguration getIDuccUimaDeployableConfiguration() {
-		String ddName = "name";
-		String ddDescription = "description";
-		int ddThreadCount = 1;
-		String ddBrokerURL = "brokerURL";
-		String ddEndpoint = "endpoint";
-		ArrayList<IDuccUimaAggregateComponent> ddComponents = new ArrayList<IDuccUimaAggregateComponent>();
+		String aeName = "name";
+		String aeDescription = "description";
+		int aeThreadCount = 1;
+		String aeBrokerURL = "brokerURL";
+		String aeEndpoint = "endpoint";
+		ArrayList<IDuccUimaAggregateComponent> aeComponents = new ArrayList<IDuccUimaAggregateComponent>();
 		URL url = this.getClass().getResource("/CR100.xml");
 		File file = new File(url.getFile());
 		String aeDescriptor = file.getAbsolutePath();
 		List<String> aeOverrides = null;
 		DuccUimaAggregateComponent aeComponent = new DuccUimaAggregateComponent(aeDescriptor, aeOverrides);
-		ddComponents.add(aeComponent);
-		IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(ddName, ddDescription, ddThreadCount, ddBrokerURL, ddEndpoint, ddComponents);
+		aeComponents.add(aeComponent);
+		IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(aeName, aeDescription, aeThreadCount, aeBrokerURL, aeEndpoint, aeComponents);
 		return configuration;
 	}
 	
@@ -391,12 +391,12 @@ public class TestSuite {
 			File working = new File(nameWorking);
 			delete(working);
 			working.mkdir();
-			DeploymentDescriptorGenerator ddg = new DeploymentDescriptorGenerator(working.getAbsolutePath());
+			AeGenerator aeGenerator = new AeGenerator(working.getAbsolutePath());
 			IDuccUimaDeployableConfiguration configuration = getIDuccUimaDeployableConfiguration();
 			String jobId = "12345";
-			String dd = ddg.generate(configuration, jobId);
-			debug(dd);
-			show(dd);
+			String ae = aeGenerator.generate(configuration, jobId);
+			debug(ae);
+			show(ae);
 			delete(working);
 		}
 		catch(Exception e) {
@@ -417,15 +417,15 @@ public class TestSuite {
 			File working = new File(nameWorking);
 			delete(working);
 			working.mkdir();
-			DDGenerate ddGenerate = new DDGenerate();
+			AeGenerate aeGenerate = new AeGenerate();
 			
 			String directory = working.getAbsolutePath();
 			String id = "99999";
-			String ddName = "ddName";
-			String ddDescription = "ddDescription";
-			Integer ddThreadCount = new Integer(11);
-			String ddBrokerURL = "ddBrokerURL";
-			String ddBrokerEndpoint = "ddBrokerEndpount";
+			String aeName = "aeName";
+			String aeDescription = "aeDescription";
+			Integer aeThreadCount = new Integer(11);
+			String aeBrokerURL = "aeBrokerURL";
+			String aeBrokerEndpoint = "aeBrokerEndpount";
 			String cmDescriptor = null;
 			List<String> cmOverrides = null;
 			String aeDescriptor = root+File.separator+"FixedSleepAE.xml";
@@ -433,13 +433,13 @@ public class TestSuite {
 			String ccDescriptor = null;
 			List<String> ccOverrides = null;
 			
-			String dd = ddGenerate.generate(
+			String ae = aeGenerate.generate(
 					directory, 
-					id, ddName, 
-					ddDescription, 
-					ddThreadCount, 
-					ddBrokerURL, 
-					ddBrokerEndpoint, 
+					id, aeName, 
+					aeDescription, 
+					aeThreadCount, 
+					aeBrokerURL, 
+					aeBrokerEndpoint, 
 					cmDescriptor, 
 					cmOverrides, 
 					aeDescriptor, 
@@ -447,8 +447,8 @@ public class TestSuite {
 					ccDescriptor, 
 					ccOverrides);
 			
-			debug(dd);
-			show(dd);
+			debug(ae);
+			show(ae);
 			delete(working);
 		}
 		catch(Exception e) {

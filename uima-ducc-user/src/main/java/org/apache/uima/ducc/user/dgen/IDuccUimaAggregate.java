@@ -16,21 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd;
+package org.apache.uima.ducc.user.dgen;
 
-public class DuccUimaDeploymentDescriptor implements IDuccUimaDeploymentDescriptor  {
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 873886659538891891L;
-	private String deploymentDescriptorPath=null;
-	
-	public DuccUimaDeploymentDescriptor(String deploymentDescriptorPath) {
-		this.deploymentDescriptorPath = deploymentDescriptorPath;
-	}
-	public String getDeploymentDescriptorPath() {
-		return deploymentDescriptorPath;
-	}
+import java.util.List;
 
+public interface IDuccUimaAggregate extends IDuccUimaDeployableConfiguration {
+
+	public List<IDuccUimaAggregateComponent> getComponents();
+	public void setComponents(List<IDuccUimaAggregateComponent> components);
+	
+	public String getName();
+	public void setName(String name);
+	
+	public String getDescription();
+	public void setDescription(String description);
+	
+	public int getThreadCount();
+	public void setThreadCount(int threadCount);
+	
+	public String getBrokerURL();
+	public void setBrokerURL(String brokerURL);
+	
+	public String getEndpoint();
+	public void setEndpoint(String endpoint);
 }

@@ -16,13 +16,42 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd.iface;
+package org.apache.uima.ducc.user.dgen;
 
-public class DDException extends Exception {
+import java.util.List;
 
+public class DuccUimaAggregateComponent implements IDuccUimaAggregateComponent {
+
+	/**
+	 * please increment this sUID when removing or modifying a field 
+	 */
 	private static final long serialVersionUID = 1L;
-
-	public DDException(String message) {
-		super(message);
+	private String descriptor;
+	private List<String> overrides;
+	
+	public DuccUimaAggregateComponent(String descriptor, List<String> overrides) {
+		setDescriptor(descriptor);
+		setOverrides(overrides);
 	}
+	
+	
+	public String getDescriptor() {
+		return this.descriptor;
+	}
+
+	
+	public void setDescriptor(String descriptor) {
+		this.descriptor = descriptor;
+	}
+
+	
+	public List<String> getOverrides() {
+		return this.overrides;
+	}
+
+	
+	public void setOverrides(List<String> overrides) {
+		this.overrides = overrides;
+	}
+
 }

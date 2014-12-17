@@ -16,11 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd;
+package org.apache.uima.ducc.user.dgen.iface;
 
-import java.io.Serializable;
+import java.util.List;
 
-public interface IIdentity extends Serializable {
-	public String getName();
-	public String getIP();
+public interface IAeGenerate {
+
+	public String generate(
+			String directory,
+			String id,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenEndpoint,
+			String cm,
+			List<String> cmOverrides, 
+			String ae, 
+			List<String> aeOverrides, 
+			String cc,
+			List<String> ccOverrides
+			) throws AeException;
 }

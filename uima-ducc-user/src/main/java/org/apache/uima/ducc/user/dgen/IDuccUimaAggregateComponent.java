@@ -16,8 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd;
+package org.apache.uima.ducc.user.dgen;
 
-public interface IDuccUimaDeploymentDescriptor extends IDuccUimaDeployableConfiguration {
-	public String getDeploymentDescriptorPath();
+import java.io.Serializable;
+import java.util.List;
+
+public interface IDuccUimaAggregateComponent extends Serializable {
+
+	public String getDescriptor();
+	public void setDescriptor(String descriptor);
+	
+	public List<String> getOverrides();
+	public void setOverrides(List<String> overrides);
 }

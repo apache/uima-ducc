@@ -16,19 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd;
+package org.apache.uima.ducc.user.dgen.iface;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
+public class AeException extends Exception {
 
-public class XStreamUtils {
-	
-	public static String marshall( Object targetToMarshall) throws Exception {
-        XStream xStream = new XStream(new DomDriver());
-        return xStream.toXML(targetToMarshall);
-	}
-	public static Object unmarshall( String targetToUnmarshall) throws Exception {
-		XStream xStream = new XStream(new DomDriver());
-		return xStream.fromXML(targetToUnmarshall);
+	private static final long serialVersionUID = 1L;
+
+	public AeException(String message) {
+		super(message);
 	}
 }

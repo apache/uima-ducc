@@ -16,27 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd.iface;
+package org.apache.uima.ducc.user.dgen.iface;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.uima.ducc.user.dd.DeploymentDescriptorGenerator;
-import org.apache.uima.ducc.user.dd.DuccUimaAggregate;
-import org.apache.uima.ducc.user.dd.DuccUimaAggregateComponent;
-import org.apache.uima.ducc.user.dd.IDuccUimaAggregateComponent;
-import org.apache.uima.ducc.user.dd.IDuccUimaDeployableConfiguration;
+import org.apache.uima.ducc.user.dgen.AeGenerator;
+import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
+import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
+import org.apache.uima.ducc.user.dgen.IDuccUimaAggregateComponent;
+import org.apache.uima.ducc.user.dgen.IDuccUimaDeployableConfiguration;
 
-public class DDGenerate implements IDDGenerate {
+public class AeGenerate implements IAeGenerate {
 
-	public DDGenerate() {	
+	public AeGenerate() {	
 	}
 	
-	private void conditionalAddComponent(ArrayList<IDuccUimaAggregateComponent> ddComponents, String descriptor, List<String> overrides) {
+	private void conditionalAddComponent(ArrayList<IDuccUimaAggregateComponent> dgenComponents, String descriptor, List<String> overrides) {
 		if(descriptor != null) {
-			DuccUimaAggregateComponent ddComponent = new DuccUimaAggregateComponent(descriptor, overrides);
-			ddComponents.add(ddComponent);
+			DuccUimaAggregateComponent dgenComponent = new DuccUimaAggregateComponent(descriptor, overrides);
+			dgenComponents.add(dgenComponent);
 		}
 	}
 	
@@ -75,28 +75,28 @@ public class DDGenerate implements IDDGenerate {
 	public String generate(
 			String directory, 
 			String id,
-			String ddName,
-			String ddDescription,
-			Integer ddThreadCount,
-			String ddBrokerURL,
-			String ddEndpoint,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenEndpoint,
 			String cmDescriptor,
 			List<String> cmOverrides, 
 			String aeDescriptor, 
 			List<String> aeOverrides, 
 			String ccDescriptor,
 			List<String> ccOverrides
-			) throws DDException
+			) throws AeException
 	{
 		String retVal = null;
 		try {
 			show("directory", directory);
 			show("id", id);
-			show("ddName", ddName);
-			show("ddDescription", ddDescription);
-			show("ddThreadCount", ddThreadCount.toString());
-			show("ddBrokerURL", ddBrokerURL);
-			show("ddEndpoint", ddEndpoint);
+			show("dgenName", dgenName);
+			show("dgenDescription", dgenDescription);
+			show("dgenThreadCount", dgenThreadCount.toString());
+			show("dgenBrokerURL", dgenBrokerURL);
+			show("dgenEndpoint", dgenEndpoint);
 			show("cmDescriptor", cmDescriptor);
 			show("cmOverrides", cmOverrides);
 			show("aeDescriptor", aeDescriptor);
@@ -104,17 +104,17 @@ public class DDGenerate implements IDDGenerate {
 			show("ccDescriptor", ccDescriptor);
 			show("ccOverrides", ccOverrides);
 			String targetDirectory = fabricateTargetDirectoryName(directory, id);
-			DeploymentDescriptorGenerator ddg = new DeploymentDescriptorGenerator(targetDirectory);
-			ArrayList<IDuccUimaAggregateComponent> ddComponents = new ArrayList<IDuccUimaAggregateComponent>();
-			conditionalAddComponent(ddComponents, cmDescriptor, cmOverrides);
-			conditionalAddComponent(ddComponents, aeDescriptor, aeOverrides);
-			conditionalAddComponent(ddComponents, ccDescriptor, ccOverrides);
-			IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(ddName, ddDescription, ddThreadCount, ddBrokerURL, ddEndpoint, ddComponents);
-			retVal = ddg.generate(configuration, id);
+			AeGenerator aeGenerator = new AeGenerator(targetDirectory);
+			ArrayList<IDuccUimaAggregateComponent> dgenComponents = new ArrayList<IDuccUimaAggregateComponent>();
+			conditionalAddComponent(dgenComponents, cmDescriptor, cmOverrides);
+			conditionalAddComponent(dgenComponents, aeDescriptor, aeOverrides);
+			conditionalAddComponent(dgenComponents, ccDescriptor, ccOverrides);
+			IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenEndpoint, dgenComponents);
+			retVal = aeGenerator.generate(configuration, id);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			throw new DDException(e.toString());
+			throw new AeException(e.toString());
 		}
 		return retVal;
 	}

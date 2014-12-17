@@ -16,25 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dd.iface;
+package org.apache.uima.ducc.user.dgen;
 
-import java.util.List;
+public class InvalidOverrideParameterException extends Exception {
 
-public interface IDDGenerate {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -4948849140814646049L;
 
-	public String generate(
-			String directory,
-			String id,
-			String ddName,
-			String ddDescription,
-			Integer ddThreadCount,
-			String ddBrokerURL,
-			String ddEndpoint,
-			String cm,
-			List<String> cmOverrides, 
-			String ae, 
-			List<String> aeOverrides, 
-			String cc,
-			List<String> ccOverrides
-			) throws DDException;
+	public InvalidOverrideParameterException(String msg) {
+		super(msg);
+	}
 }
