@@ -16,17 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.dd;
+package org.apache.uima.ducc.container.dgen.classload;
 
-public class DdException extends Exception {
+public class ProxyAeException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 	
-	public DdException(String text) {
+	public ProxyAeException(String text) {
 		super(text);
 	}
 	
-	public DdException(Exception e) {
+	public ProxyAeException(Exception e) {
 		super(e);
 	}
 }

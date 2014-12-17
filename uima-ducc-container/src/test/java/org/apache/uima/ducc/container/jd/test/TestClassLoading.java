@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
-import org.apache.uima.ducc.container.dd.classload.ProxyDDGenerate;
+import org.apache.uima.ducc.container.dgen.classload.ProxyAeGenerate;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
@@ -137,7 +137,7 @@ public class TestClassLoading extends ATest {
 		try {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
-			ProxyDDGenerate pddGenerate = new ProxyDDGenerate();
+			ProxyAeGenerate proxy = new ProxyAeGenerate();
 			//
 			URL url = this.getClass().getResource("/");
 			File root = new File(url.getFile());
@@ -151,11 +151,11 @@ public class TestClassLoading extends ATest {
 			//
 			String directory = working.getAbsolutePath();
 			String id = "12345";
-			String ddName = "name";
-			String ddDescription = "description";
-			Integer ddThreadCount = new Integer(1);
-			String ddBrokerURL = "brokerURL";
-			String ddEndpoint = "endpoint";
+			String dgenName = "name";
+			String dgenDescription = "description";
+			Integer dgenThreadCount = new Integer(1);
+			String dgenBrokerURL = "brokerURL";
+			String dgenEndpoint = "endpoint";
 			String cmDescriptor = null;
 			List<String> cmOverrides = null;
 			//String aeDescriptor = "org.apache.uima.ducc.test.randomsleep.FixedSleepAE";
@@ -163,14 +163,14 @@ public class TestClassLoading extends ATest {
 			List<String> aeOverrides = null;
 			String ccDescriptor = null;
 			List<String> ccOverrides = null;
-			String dd = pddGenerate.generate(
+			String dgen = proxy.generate(
 					directory, 
 					id, 
-					ddName, 
-					ddDescription,
-					ddThreadCount,
-					ddBrokerURL, 
-					ddEndpoint, 
+					dgenName, 
+					dgenDescription,
+					dgenThreadCount,
+					dgenBrokerURL, 
+					dgenEndpoint, 
 					cmDescriptor, 
 					cmOverrides, 
 					aeDescriptor, 
@@ -178,7 +178,7 @@ public class TestClassLoading extends ATest {
 					ccDescriptor, 
 					ccOverrides
 					);
-			debug(dd);
+			debug(dgen);
 			//
 			delete(working);
 		}

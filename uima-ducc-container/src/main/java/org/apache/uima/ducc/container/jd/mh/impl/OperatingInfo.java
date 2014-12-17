@@ -30,7 +30,7 @@ public class OperatingInfo implements IOperatingInfo {
 
 	private String jobId = null;
 	
-	private String jpDd = null;
+	private String jpAe = null;
 	
 	private int crTotal = 0;
 	private int crFetches = 0;
@@ -299,13 +299,13 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 	
 	@Override
-	public void setJpDd(String value) {
-		jpDd = value;
+	public void setJpAe(String value) {
+		jpAe = value;
 	}
 
 	@Override
-	public String getJpDd() {
-		return jpDd;
+	public String getJpAe() {
+		return jpAe;
 	}
 
 }

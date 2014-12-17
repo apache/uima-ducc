@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.dd.classload;
+package org.apache.uima.ducc.container.dgen.classload;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -33,22 +33,22 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 
-public class ProxyDDGenerate {
+public class ProxyAeGenerate {
 
-	private static Logger logger = Logger.getLogger(ProxyDDGenerate.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(ProxyAeGenerate.class, IComponent.Id.JD.name());
 	
 	private URLClassLoader urlClassLoader = null;
 
 	private String[] requiredClasses = { 
-			"org.apache.uima.ducc.user.dd.iface.DDException", 
-			"org.apache.uima.ducc.user.dd.iface.DDGenerate",
-			"org.apache.uima.ducc.user.dd.iface.IDDGenerate",
+			"org.apache.uima.ducc.user.dgen.iface.AeException", 
+			"org.apache.uima.ducc.user.dgen.iface.AeGenerate",
+			"org.apache.uima.ducc.user.dgen.iface.IAeGenerate",
 			// implied:
 			//"org.springframework.util.Assert",
 			//"org.apache.xmlbeans.XmlBeans",
 			};
 	
-	public ProxyDDGenerate() throws ProxyDDException {
+	public ProxyAeGenerate() throws ProxyAeException {
 		initialize();
 	}
 	
@@ -78,45 +78,45 @@ public class ProxyDDGenerate {
 	public String generate(
 			String directory, 
 			String id,
-			String ddName,
-			String ddDescription,
-			Integer ddThreadCount,
-			String ddBrokerURL,
-			String ddEndpoint,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenEndpoint,
 			String cmDescriptor,
 			List<String> cmOverrides, 
 			String aeDescriptor, 
 			List<String> aeOverrides, 
 			String ccDescriptor,
 			List<String> ccOverrides
-			) throws ProxyDDException
+			) throws ProxyAeException
 	{
 		String retVal = null;
 		try {
 			show("directory", directory);
 			show("id", id);
-			show("ddName", ddName);
-			show("ddDescription", ddDescription);
-			show("ddThreadCount", ddThreadCount);
-			show("ddBrokerURL", ddBrokerURL);
-			show("ddEndpoint", ddEndpoint);
+			show("dgenName", dgenName);
+			show("dgenDescription", dgenDescription);
+			show("dgenThreadCount", dgenThreadCount);
+			show("dgenBrokerURL", dgenBrokerURL);
+			show("dgenEndpoint", dgenEndpoint);
 			show("cmDescriptor", cmDescriptor);
 			show("cmOverrides", cmOverrides);
 			show("aeDescriptor", aeDescriptor);
 			show("aeOverrides", aeOverrides);
 			show("ccDescriptor", ccDescriptor);
 			show("ccOverrides", ccOverrides);
-			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dd.iface.DDGenerate");
+			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dgen.iface.AeGenerate");
 			Constructor<?> constructor = clazz.getConstructor();
 			Object instance = constructor.newInstance();
 			Class<?>[] parameterTypes = { 
 					String.class,	// directory
 					String.class,	// id
-					String.class,	// ddName
-					String.class,	// ddDescription
-					Integer.class,	// ddThreadCount
-					String.class,	// ddBrokerURL
-					String.class,	// ddEndpoint
+					String.class,	// dgenName
+					String.class,	// dgenDescription
+					Integer.class,	// dgenThreadCount
+					String.class,	// dgenBrokerURL
+					String.class,	// dgenEndpoint
 					String.class,	// cmDescriptor
 					List.class,		// cmOverrides
 					String.class,	// aeDescriptor
@@ -128,11 +128,11 @@ public class ProxyDDGenerate {
 			Object[] args = { 
 					directory, 
 					id, 
-					ddName, 
-					ddDescription, 
-					ddThreadCount, 
-					ddBrokerURL, 
-					ddEndpoint,
+					dgenName, 
+					dgenDescription, 
+					dgenThreadCount, 
+					dgenBrokerURL, 
+					dgenEndpoint,
 					cmDescriptor,
 					cmOverrides,
 					aeDescriptor,
@@ -140,18 +140,18 @@ public class ProxyDDGenerate {
 					ccDescriptor,
 					ccOverrides
 					};
-			String dd = (String) method.invoke(instance, args);
-			show("generated deployment descriptor", dd);
-			retVal = dd;
+			String dgen = (String) method.invoke(instance, args);
+			show("generated deployment descriptor", dgen);
+			retVal = dgen;
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			throw new ProxyDDException(e.toString());
+			throw new ProxyAeException(e.toString());
 		}
 		return retVal;
 	}
 	
-	private void initialize() throws ProxyDDException {
+	private void initialize() throws ProxyAeException {
 		FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 		String userClasspath = feh.getUserClasspath();
 		urlClassLoader = createClassLoader(userClasspath);
@@ -170,13 +170,13 @@ public class ProxyDDGenerate {
 		return retVal;
 	}
 	
-	private void validate() throws ProxyDDException {
+	private void validate() throws ProxyAeException {
 		for(String className : requiredClasses) {
 			loadClass(className);
 		}
 	}
 	
-	private void loadClass(String className) throws ProxyDDException {
+	private void loadClass(String className) throws ProxyAeException {
 		String location = "loadClass";
 		try {
 			MessageBuffer mb1 = new MessageBuffer();
@@ -192,10 +192,10 @@ public class ProxyDDGenerate {
 			logger.trace(location, ILogger.null_id, mb2.toString());
 		} 
 		catch (Exception e) {
-			DuccLogger duccLogger = DuccLogger.getLogger(ProxyDDGenerate.class, "JD");
+			DuccLogger duccLogger = DuccLogger.getLogger(ProxyAeGenerate.class, "JD");
 			duccLogger.error(location, null, e);
 			logger.error(location, ILogger.null_id, e);
-			throw new ProxyDDException(e);
+			throw new ProxyAeException(e);
 		}
 	}
 }

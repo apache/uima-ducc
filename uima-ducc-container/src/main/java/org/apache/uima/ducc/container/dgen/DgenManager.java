@@ -15,7 +15,7 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/package org.apache.uima.ducc.container.dd;
+*/package org.apache.uima.ducc.container.dgen;
 
 import java.util.List;
 
@@ -24,22 +24,22 @@ import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.dd.classload.ProxyDDException;
-import org.apache.uima.ducc.container.dd.classload.ProxyDDGenerate;
+import org.apache.uima.ducc.container.dgen.classload.ProxyAeException;
+import org.apache.uima.ducc.container.dgen.classload.ProxyAeGenerate;
 
-public class DdManager {
+public class DgenManager {
 
-	private static Logger logger = Logger.getLogger(DdManager.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(DgenManager.class, IComponent.Id.JD.name());
 
-	private String dd = null;
+	private String dgen = null;
 	
-	private ProxyDDGenerate pddg = null;
+	private ProxyAeGenerate proxy = null;
 	
-	public DdManager() throws DdException {
+	public DgenManager() throws DgenException {
 		initialize();
 	}
 	
-	private void initialize() throws DdException {
+	private void initialize() throws DgenException {
 		FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 		initialize(
 			feh.getJobDirectory(),
@@ -61,35 +61,35 @@ public class DdManager {
 	public void initialize(
 			String jobDirectory,
 			String jobId,
-			String ddName,
-			String ddDescription,
-			Integer ddThreadCount,
-			String ddBrokerURL,
-			String ddBrokerEndpoint,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenBrokerEndpoint,
 			String aeDescriptor, 
 			List<String> aeOverrides, 
 			String ccDescriptor, 
 			List<String> ccOverrides,
 			String cmDescriptor,
 			List<String> cmOverrides,
-			String dd) throws DdException {
+			String dgen) throws DgenException {
 		String location = "initialize";
 		try {
-			if(dd == null) {
-				pddg = new ProxyDDGenerate();
-				String value = pddg.generate(jobDirectory, jobId, ddName, ddDescription, ddThreadCount, ddBrokerURL, ddBrokerEndpoint, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
-				setDD(value);
-				logger.info(location, null, "generated dd: "+value);
+			if(dgen == null) {
+				proxy = new ProxyAeGenerate();
+				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
+				setAe(value);
+				logger.info(location, null, "generated dgen: "+value);
 			}
 			else {
-				setDD(dd);
-				logger.info(location, null, "specified dd: "+dd);
+				setAe(dgen);
+				logger.info(location, null, "specified dgen: "+dgen);
 			}
 			
 		}
-		catch(ProxyDDException e) {
+		catch(ProxyAeException e) {
 			logger.error(location, ILogger.null_id, e);
-			throw new DdException(e);
+			throw new DgenException(e);
 		}
 	}
 	
@@ -112,11 +112,11 @@ public class DdManager {
 		return retVal;
 	}
 	
-	public String getDD() {
-		return dd;
+	public String getAe() {
+		return dgen;
 	}
 	
-	private void setDD(String value) {
-		dd = value;
+	private void setAe(String value) {
+		dgen = value;
 	}
 }
