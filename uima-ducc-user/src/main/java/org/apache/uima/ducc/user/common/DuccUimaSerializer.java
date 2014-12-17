@@ -57,8 +57,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.DomDriver;
+//import com.thoughtworks.xstream.XStream;
+//import com.thoughtworks.xstream.io.xml.DomDriver;
 //import java.util.concurrent.ConcurrentHashMap;
 
 public class DuccUimaSerializer {
@@ -243,16 +243,6 @@ public class DuccUimaSerializer {
     return fos.toByteArray();
   }
   
-  @SuppressWarnings("unchecked")
-  public static List<AnalysisEnginePerformanceMetrics> deserializePerformanceMetrics(String serializedComponentStats) {
-    // check if we received components stats. Currently UIMA AS is not supporting per component
-    // stats in asynch aggregates. If the service is asynch, just return an empty list
-    if ( serializedComponentStats == null || serializedComponentStats.trim().length() == 0 ) {
-      // return an empty list
-      return new ArrayList<AnalysisEnginePerformanceMetrics>();
-    }
-    XStream xstream = new XStream(new DomDriver());
-    return (List<AnalysisEnginePerformanceMetrics>)xstream.fromXML(serializedComponentStats);
-  }
+ 
   
 }

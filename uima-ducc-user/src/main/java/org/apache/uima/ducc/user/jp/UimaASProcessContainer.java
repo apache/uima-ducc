@@ -173,9 +173,9 @@ public class UimaASProcessContainer implements IProcessContainer {
 			}
 
 		} catch ( Exception e) {
-			e.printStackTrace();
 			throw e;
 		} finally {
+			// restore context class loader
 			Thread.currentThread().setContextClassLoader(currentCL);
 			brokerLatch.countDown();
 		}

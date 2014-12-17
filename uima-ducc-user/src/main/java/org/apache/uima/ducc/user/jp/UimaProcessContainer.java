@@ -30,14 +30,13 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.UIMAFramework;
-import org.apache.uima.aae.UimaClassFactory;
-import org.apache.uima.aae.UimaSerializer;
-import org.apache.uima.aae.monitor.statistics.AnalysisEnginePerformanceMetrics;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
+import org.apache.uima.ducc.user.common.DuccUimaSerializer;
+import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThreadAffinity;
 import org.apache.uima.resource.Resource;
@@ -47,7 +46,7 @@ import org.apache.uima.util.CasPool;
 
 public class UimaProcessContainer implements IProcessContainer {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
-	private UimaSerializer uimaSerializer = new UimaSerializer();
+	private DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
 
 	Semaphore sharedInitSemaphore = new Semaphore(1);
 	// this map enforces thread affinity to specific thread. Needed to make
@@ -139,8 +138,8 @@ public class UimaProcessContainer implements IProcessContainer {
 			System.out.println("Available Permits:"+sharedInitSemaphore.availablePermits());
 			sharedInitSemaphore.acquire();
 			// Parse the descriptor in the calling thread.
-			rSpecifier = UimaClassFactory
-					.produceResourceSpecifier(analysisEngineDescriptor);
+			rSpecifier = UimaUtils.getResourceSpecifier(analysisEngineDescriptor);
+//					.produceResourceSpecifier(analysisEngineDescriptor);
 			AnalysisEngine ae = UIMAFramework.produceAnalysisEngine(rSpecifier,
 					paramsMap);
 
@@ -179,21 +178,24 @@ public class UimaProcessContainer implements IProcessContainer {
 			// deserialize the CAS
 			uimaSerializer.deserializeCasFromXmi((String) xmi, cas,
 					deserSharedData, true, -1);
-			// delegate processing to the UIMA-AS service and wait for a reply
+			// the following checks out AE instance pinned to this thread
 			ae = instanceMap.checkout();
-
-//			List<AnalysisEnginePerformanceMetrics> beforeAnalysis = getMetrics(ae);
+//System.out.println("Getting Pre Process Metrics");
+			List<AnalysisEnginePerformanceMetrics> beforeAnalysis = getMetrics(ae);
 			ae.process(cas);
-//			List<AnalysisEnginePerformanceMetrics> afterAnalysis = getMetrics(ae);
+//			System.out.println("Getting Post Process Metrics");
+			List<AnalysisEnginePerformanceMetrics> afterAnalysis = getMetrics(ae);
+//			System.out.println("Getting Pre Process Metrics");
+
 			// get the delta
-//			List<AnalysisEnginePerformanceMetrics> casMetrics = getAEMetricsForCAS(
-//					 afterAnalysis, beforeAnalysis);
+			List<AnalysisEnginePerformanceMetrics> casMetrics = getAEMetricsForCAS(
+					 afterAnalysis, beforeAnalysis);
 
 			// convert UIMA-AS metrics into properties so that we can return
 			// this
 			// data in a format which doesnt require UIMA-AS to digest
 			List<Properties> metricsList = new ArrayList<Properties>();
-			/*
+			
 			for (AnalysisEnginePerformanceMetrics metrics : casMetrics) {
 				Properties p = new Properties();
 				p.setProperty("name", metrics.getName());
@@ -204,8 +206,8 @@ public class UimaProcessContainer implements IProcessContainer {
 						String.valueOf(metrics.getNumProcessed()));
 				metricsList.add(p);
 			}
-			*/
-			System.out.println("Thread:"+Thread.currentThread().getId()+" Processed "+num+" CASes");
+			
+//			System.out.println("Thread:"+Thread.currentThread().getId()+" Processed "+num+" CASes");
 			return metricsList;
 		} finally {
 			if (ae != null) {
@@ -240,9 +242,9 @@ public class UimaProcessContainer implements IProcessContainer {
 				// System.out.println("-----------------Simple1:"+aem.getName());
 			} else {
 				String path = produceUniqueName(aem);
-				 System.out.println(Thread.currentThread().getId()+" -----------------Unique2:"+aem.getUniqueMBeanName());
-				 System.out.println(Thread.currentThread().getId()+" -----------------Simple2:"+aem.getName());
-				 System.out.println(Thread.currentThread().getId()+" -----------------Path:"+path);
+//				 System.out.println(Thread.currentThread().getId()+" -----------------Unique2:"+aem.getUniqueMBeanName());
+//				 System.out.println(Thread.currentThread().getId()+" -----------------Simple2:"+aem.getName());
+//				 System.out.println(Thread.currentThread().getId()+" -----------------Path:"+path);
 				analysisManagementObjects.add(deepCopyMetrics(aem, path));
 
 			}
@@ -367,14 +369,16 @@ public class UimaProcessContainer implements IProcessContainer {
 				// by extracting its instance number.For example,
 				// NoOpAnnotator 2.
 				int last = tmp.lastIndexOf(" ");
-				if (last > -1) {
+//				System.out.println("uimaFullyQualifiedAEContext.trim().length()="+uimaFullyQualifiedAEContext.trim().length() );
+				index = tmp.substring(last).trim();
+				if (uimaFullyQualifiedAEContext.trim().length() > 0 && last > -1) {
 					// extract instance number
-					index = tmp.substring(last);
+					
 
 					try {
 						// check if the instance number is a number. If not silently
 						// handle the exception.
-						Integer.parseInt(index.trim());
+						Integer.parseInt(index);
 						System.out.println("deepCopyMetrics - context:"+uimaFullyQualifiedAEContext+" last="+last);
 						// strip the instance number from the AE name
 						uimaFullyQualifiedAEContext = uimaFullyQualifiedAEContext
@@ -433,4 +437,67 @@ public class UimaProcessContainer implements IProcessContainer {
 		return performanceList;
 
 	}
+	private static class AnalysisEnginePerformanceMetrics {
+		  
+		  private String name;
+		  private String uniqueName;
+		  private long analysisTime;
+		  private long numProcessed;
+		  
+		  /**
+		   * Creates a performance metrics instance
+		   * 
+		   */
+		  public AnalysisEnginePerformanceMetrics(String name, String uimaContextPath, long analysisTime, long numProcessed ) {
+		    this.name = name;
+		    this.uniqueName = uimaContextPath;
+		    this.analysisTime = analysisTime;
+		    this.numProcessed = numProcessed;
+		  }
+
+		  /**
+		   * Gets the local name of the component as specified in the aggregate
+		   * 
+		   * @return the name
+		   */
+		  public String getName() {
+		    return name;
+		  }
+
+		  /**
+		   * Gets the unique name of the component reflecting its location in the aggregate hierarchy
+		   * 
+		   * @return the unique name
+		   */
+		  public String getUniqueName() {
+		    if ( uniqueName != null && uniqueName.trim().length() > 0 && !uniqueName.trim().equals("Components")) {
+//		    	if ( !uimaContextPath.endsWith(getName())) {
+//		    		return uimaContextPath+"/"+getName();
+//		    	}
+		      return uniqueName;
+		    } else {
+		      return getName();
+		    }
+		  }
+
+		  /**
+		   * Gets the elapsed time the CAS spent analyzing this component
+		   * 
+		   * @return time in milliseconds
+		   */
+		  public long getAnalysisTime() {
+		    return analysisTime;
+		  }
+
+		  /**
+		   * Gets the total number of CASes processed by this component so far
+		   * 
+		   * @return number processed
+		   */
+		  public long getNumProcessed() {
+		    return numProcessed;
+		  }
+		  
+		}
+
 }
