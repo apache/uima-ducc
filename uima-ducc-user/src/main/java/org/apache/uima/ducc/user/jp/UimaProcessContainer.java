@@ -19,20 +19,17 @@
 
 package org.apache.uima.ducc.user.jp;
 
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.UIMAFramework;
-import org.apache.uima.aae.AsynchAECasManager_impl;
 import org.apache.uima.aae.UimaClassFactory;
 import org.apache.uima.aae.UimaSerializer;
 import org.apache.uima.aae.monitor.statistics.AnalysisEnginePerformanceMetrics;
@@ -45,17 +42,8 @@ import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThreadAffinity;
 import org.apache.uima.resource.Resource;
 import org.apache.uima.resource.ResourceInitializationException;
-import org.apache.uima.resource.ResourceManager;
 import org.apache.uima.resource.ResourceSpecifier;
-import org.apache.uima.resource.metadata.Import;
-import org.apache.uima.resource.metadata.impl.Import_impl;
-import org.apache.uima.resourceSpecifier.CasPoolType;
-import org.apache.uima.resourceSpecifier.factory.impl.CasPoolImpl;
-import org.apache.uima.resourceSpecifier.impl.CasPoolTypeImpl;
 import org.apache.uima.util.CasPool;
-import org.apache.uima.util.InvalidXMLException;
-import org.apache.uima.util.XMLInputSource;
-import org.apache.xmlbeans.SchemaType;
 
 public class UimaProcessContainer implements IProcessContainer {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
@@ -130,7 +118,7 @@ public class UimaProcessContainer implements IProcessContainer {
 			scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
          return scaleout;		  
 	  }
-	public void deploy() throws Exception {
+	public void deploy(String duccHome) throws Exception {
 	    
 //		String jmxName = "org.apache.uima:type=ee.jms.services,s=" + getComponentName() + " Uima EE Service,";
 

@@ -23,11 +23,13 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.jp.UimaProcessor;
 import org.apache.uima.ducc.container.jp.iface.IJobProcessDeployer;
 import org.apache.uima.ducc.container.jp.iface.IUimaProcessor;
 import org.apache.uima.ducc.container.jp.iface.ServiceFailedInitialization;
+
 
 public class JobProcessDeployer implements IJobProcessDeployer {
 	// declare methods to be called via reflection
@@ -62,7 +64,7 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 			Method initMethod = classToLaunch.getMethod(M_INITIALIZE, String[].class);
 			processMethod = classToLaunch.getMethod(M_PROCESS, Object.class);
 			stopMethod = classToLaunch.getMethod(M_STOP);
-			deployMethod = classToLaunch.getMethod(M_DEPLOY);
+			deployMethod = classToLaunch.getMethod(M_DEPLOY, String.class);
 
 			uimaContainerInstance = classToLaunch.newInstance();
 			Object s = initMethod.invoke(uimaContainerInstance,
@@ -80,7 +82,7 @@ public class JobProcessDeployer implements IJobProcessDeployer {
     public IUimaProcessor deploy() throws ServiceFailedInitialization {
 		try {
 	    	// This blocks until Uima AS container is fully initialized
-			deployMethod.invoke(uimaContainerInstance);
+			deployMethod.invoke(uimaContainerInstance, Utils.findDuccHome());
 	    	return new UimaProcessor(uimaContainerInstance,processMethod,stopMethod,scaleout);
 			
 		} catch( Exception e) {

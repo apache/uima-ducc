@@ -20,8 +20,11 @@
 package org.apache.uima.ducc.user.jp;
 
 import java.io.File;
-import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.BindException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,11 +35,10 @@ import java.util.concurrent.CountDownLatch;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.activemq.broker.BrokerService;
 import org.apache.uima.UIMAFramework;
+import org.apache.uima.aae.UimaASApplicationEvent.EventTrigger;
 import org.apache.uima.aae.UimaAsVersion;
 import org.apache.uima.aae.UimaSerializer;
-import org.apache.uima.aae.UimaASApplicationEvent.EventTrigger;
 import org.apache.uima.aae.client.UimaASProcessStatus;
 import org.apache.uima.aae.client.UimaAsBaseCallbackListener;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
@@ -52,21 +54,22 @@ import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
 public class UimaASProcessContainer implements IProcessContainer {
-	String endpointName;
+	private String endpointName;
 	protected int scaleout;
-	String saxonURL = null;
-	String xslTransform = null;
-	String uimaAsDebug = null;
-	static final BaseUIMAAsynchronousEngine_impl uimaASClient = new BaseUIMAAsynchronousEngine_impl();
+	private String saxonURL = null;
+	private String xslTransform = null;
+	private static BaseUIMAAsynchronousEngine_impl uimaASClient = null;
 	private static final CountDownLatch brokerLatch = new CountDownLatch(1);
-	
+	private static Object brokerInstance = null;
+	private static Class<?> classToLaunch=null;
+	private static volatile boolean brokerRunning = false;
 	protected Object initializeMonitor = new Object();
 	public volatile boolean initialized = false;
 	private static final Class<?> CLASS_NAME = UimaProcessContainer.class;
 	private static final char FS = System.getProperty("file.separator").charAt(
 			0);
-	public static BrokerService broker = null;
-	private UimaSerializer uimaSerializer = new UimaSerializer();
+	// use this map to pin each thread to its own instance of UimaSerializer
+	private static Map<Long, UimaSerializer> serializerMap = new HashMap<Long, UimaSerializer>();
     private String[] deploymentDescriptors = null;
 	private String[] ids = null;
     
@@ -86,67 +89,121 @@ public class UimaASProcessContainer implements IProcessContainer {
 	 * @return
 	 * @throws Exception
 	 */
-//	public void deploy(String[] args) throws Exception {
-	public void deploy() throws Exception {
-		System.out.println("UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
+	public void deploy(String duccHome) throws Exception {
+		// deploy single instance of embedded broker
 		synchronized( UimaASProcessContainer.class) {
-			if ( broker == null ) {
-				broker = new BrokerService();
-				broker.setDedicatedTaskRunner(false);
-				broker.setPersistent(false);
-				int port = 61626;  // try to start the colocated broker with this port first
-				String brokerURL = "tcp://localhost:";
-				// loop until a valid port is found for the broker
-				while (true) {
-					try {
-						broker.addConnector(brokerURL + port);
-						broker.start();
-						broker.waitUntilStarted();
-						System.setProperty("DefaultBrokerURL", brokerURL + port);
-						break;   // got a valid port for the broker
-					} catch (IOException e) {
-						if (e.getCause() instanceof BindException) {
-							port++;   // choose the next port and retry
-						} else {
-							throw new RuntimeException(e);
-						}
+			if ( brokerInstance == null ) {
+				System.out.println("UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
+				// isolate broker by loading it in its own Class Loader
+				// Sets the brokerInstance
+				deployBroker(duccHome);
+				
+				// Broker is running 
+				brokerRunning = true;
+				// create a shared instance of UIMA-AS client
+				uimaASClient = new BaseUIMAAsynchronousEngine_impl();
 
-					}
-
+				int i = 0;
+				// Deploy UIMA-AS services
+				for (String dd : deploymentDescriptors) {
+					// keep the container id so that we can un-deploy it when shutting
+					// down
+					ids[i] = deployService(dd);
 				}
-				brokerLatch.countDown();
+				// send GetMeta to UIMA-AS service and wait for a reply
+				initializeUimaAsClient(endpointName);
 			}
+			//	Pin thread to its own CAS serializer
+			serializerMap.put( Thread.currentThread().getId(), new UimaSerializer());
 		}
-		brokerLatch.await();   // all threads must wait for the broker to start and init
-		// deploy colocated UIMA-AS services from provided deployment
-		// descriptors
-		int i = 0;
-		for (String dd : deploymentDescriptors) {
-			// keep the container id so that we can un-deploy it when shutting
-			// down
-			ids[i] = deployService(dd);
-		}
-		initializeUimaAsClient(endpointName);
-/*
-		// Get DDs and also extract scaleout property from DD
-		String[] deploymentDescriptors = getDescriptors(args);
-		// deploy colocated UIMA-AS services from provided deployment
-		// descriptors
-		String[] ids = new String[deploymentDescriptors.length];
-		int i = 0;
-		for (String dd : deploymentDescriptors) {
-			// keep the container id so that we can un-deploy it when shutting
-			// down
-			ids[i] = deployService(dd);
-		}
-		// initialize and start UIMA-AS client. This sends GetMeta request to
-		// deployed top level service and waits for a reply
-		initializeUimaAsClient(endpointName);
-	
-		return scaleout;
-*/
 	}
+	private void deployBroker(String duccHome) throws Exception {
+		// Save current context class loader. When done loading the broker jars
+		// this class loader will be restored
+		ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
 
+		try {
+			// setup a classpath for Ducc broker
+			String[] brokerClasspath = new String[] {
+				duccHome+File.separator+"apache-uima"+File.separator+"apache-activemq"+File.separator+"lib"+File.separator+"*",
+				duccHome+File.separator+"apache-uima"+File.separator+"apache-activemq"+File.separator+"lib"+File.separator+"optional"+File.separator+"*"
+			};
+			
+			// isolate broker in its own Class loader
+			URLClassLoader ucl = create(brokerClasspath);
+			Thread.currentThread().setContextClassLoader(ucl);
+			
+			classToLaunch = ucl.loadClass("org.apache.activemq.broker.BrokerService");
+
+		    URL[] urls2 = ucl.getURLs();
+			for( URL u : urls2 ) {
+				System.out.println("-----------:"+u.getFile());
+			}
+			
+			brokerInstance = classToLaunch.newInstance();
+			
+			Method setDedicatedTaskRunnerMethod = classToLaunch.getMethod("setDedicatedTaskRunner", boolean.class);
+			setDedicatedTaskRunnerMethod.invoke(brokerInstance, false);
+			
+			Method setPersistentMethod = classToLaunch.getMethod("setPersistent", boolean.class);
+			setPersistentMethod.invoke(brokerInstance, false);
+			
+			int port = 61626;  // try to start the colocated broker with this port first
+			String brokerURL = "tcp://localhost:";
+			// loop until a valid port is found for the broker
+			while (true) {
+				try {
+					Method addConnectorMethod = classToLaunch.getMethod("addConnector", String.class);
+					addConnectorMethod.invoke(brokerInstance, brokerURL+port);
+					
+					Method startMethod = classToLaunch.getMethod("start");
+					startMethod.invoke(brokerInstance);
+					
+					Method waitUntilStartedMethod = classToLaunch.getMethod("waitUntilStarted");
+					waitUntilStartedMethod.invoke(brokerInstance);
+					System.setProperty("DefaultBrokerURL", brokerURL + port);
+					break;   // got a valid port for the broker
+				} catch (Exception e) {
+					if (e.getCause() instanceof BindException) {
+						port++;   // choose the next port and retry
+					} else {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+
+		} catch ( Exception e) {
+			e.printStackTrace();
+			throw e;
+		} finally {
+			Thread.currentThread().setContextClassLoader(currentCL);
+			brokerLatch.countDown();
+		}
+		
+	}
+	  public static URLClassLoader create(String[] classPathElements) throws MalformedURLException {
+		    ArrayList<URL> urlList = new ArrayList<URL>(classPathElements.length);
+		    for (String element : classPathElements) {
+		      if (element.endsWith("*")) {
+		        File dir = new File(element.substring(0, element.length() - 1));
+		        File[] files = dir.listFiles();   // Will be null if missing or not a dir
+		        if (files != null) {
+		          for (File f : files) {
+		            if (f.getName().endsWith(".jar")) {
+		              urlList.add(f.toURI().toURL());
+		            }
+		          }
+		        }
+		      } else {
+		        File f = new File(element);
+		        if (f.exists()) {
+		          urlList.add(f.toURI().toURL());
+		        }
+		      }
+		    }
+		    URL[] urls = new URL[urlList.size()];
+		    return new URLClassLoader(urlList.toArray(urls), ClassLoader.getSystemClassLoader().getParent());
+		  }
 	/** 
 	 * This method is called via reflection and stops the UIMA-AS service,
 	 * the client, and the colocated broker.
@@ -154,17 +211,32 @@ public class UimaASProcessContainer implements IProcessContainer {
 	 * @throws Exception
 	 */
 	public void stop() throws Exception {
-		System.out.println("Stopping UIMA_AS Client");
-		try {
-			System.setProperty("dontKill", "true");
-			uimaASClient.stop();
+		// stops the broker
+		//brokerContainer.stop();
+		synchronized(UimaASProcessContainer.class) {
+			if ( brokerRunning ) {
+				System.out.println("Stopping UIMA_AS Client");
+				try {
+					// Prevent UIMA-AS from exiting
+					System.setProperty("dontKill", "true");
+					uimaASClient.stop();
 
-		} catch (Exception e) {
-			e.printStackTrace();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
+				System.out.println("Stopping Broker");
+
+				Method stopMethod = classToLaunch.getMethod("stop");
+				stopMethod.invoke(brokerInstance);
+				
+				Method waitMethod = classToLaunch.getMethod("waitUntilStopped");
+				waitMethod.invoke(brokerInstance);
+
+				brokerRunning = false;
+			}
 		}
-		System.out.println("Stopping Broker");
-		broker.stop();
-		broker.waitUntilStopped();
+
 	}
 	/**
 	 * This method is called via reflection and delegates processing to the colocated
@@ -177,8 +249,9 @@ public class UimaASProcessContainer implements IProcessContainer {
 		CAS cas = uimaASClient.getCAS();   // fetch a new CAS from the client's Cas Pool
 		try {
 			XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
-			// deserialize the CAS
-			uimaSerializer.deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,
+			// Use thread dedicated UimaSerializer to de-serialize the CAS
+			serializerMap.get(Thread.currentThread().getId()).
+				deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,
 					-1);
 			List<AnalysisEnginePerformanceMetrics> perfMetrics = new ArrayList<AnalysisEnginePerformanceMetrics>();
 			// delegate processing to the UIMA-AS service and wait for a reply
@@ -204,7 +277,6 @@ public class UimaASProcessContainer implements IProcessContainer {
     
 
 	private void initializeUimaAsClient(String endpoint) throws Exception {
-
 		String brokerURL = System.getProperty("DefaultBrokerURL");
 		Map<String, Object> appCtx = new HashMap<String, Object>();
 		appCtx.put(UimaAsynchronousEngine.ServerUri, brokerURL);
@@ -219,7 +291,6 @@ public class UimaASProcessContainer implements IProcessContainer {
 		uimaASClient.initialize(appCtx);
         // blocks until the client initializes
 		waitUntilInitialized();
-
 	}
 
 	private void waitUntilInitialized() throws Exception {
@@ -274,7 +345,6 @@ public class UimaASProcessContainer implements IProcessContainer {
 		}
 		saxonURL = ArgsParser.getArg("-saxonURL", args);
 		xslTransform = ArgsParser.getArg("-xslt", args);
-		uimaAsDebug = ArgsParser.getArg("-uimaEeDebug", args);
 		endpointName = ArgsParser.getArg("-q", args);
 
 		if (nbrOfArgs < 1
@@ -370,19 +440,6 @@ public class UimaASProcessContainer implements IProcessContainer {
 		public synchronized void entityProcessComplete(CAS aCAS,
 				EntityProcessStatus aProcessStatus,
 				List<AnalysisEnginePerformanceMetrics> componentMetricsList) {
-			String casReferenceId = ((UimaASProcessStatus) aProcessStatus)
-					.getCasReferenceId();
-
-			// if (aProcessStatus instanceof UimaASProcessStatus) {
-			// if (aProcessStatus.isException()) {
-			// System.out
-			// .println("--------- Got Exception While Processing CAS"
-			// + casReferenceId);
-			// } else {
-			// System.out.println("Client Received Reply - CAS:"
-			// + casReferenceId);
-			// }
-			// }
 		}
 
 		/**
@@ -392,20 +449,6 @@ public class UimaASProcessContainer implements IProcessContainer {
 		 */
 		public synchronized void entityProcessComplete(CAS aCAS,
 				EntityProcessStatus aProcessStatus) {
-			String casReferenceId = ((UimaASProcessStatus) aProcessStatus)
-					.getCasReferenceId();
-
-			// if (aProcessStatus instanceof UimaASProcessStatus) {
-			// if (aProcessStatus.isException()) {
-			// System.out
-			// .println("--------- Got Exception While Processing CAS"
-			// + casReferenceId);
-			// } else {
-			// System.out.println("Client Received Reply - CAS:"
-			// + casReferenceId);
-			// }
-			// }
-
 		}
 
 		/**

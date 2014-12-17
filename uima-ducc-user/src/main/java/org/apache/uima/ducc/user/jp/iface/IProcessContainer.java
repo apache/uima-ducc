@@ -24,7 +24,7 @@ import java.util.Properties;
 
 public interface IProcessContainer {
 	public int initialize(String[] args) throws Exception;
-	public void deploy() throws Exception;
+	public void deploy(String duccHome) throws Exception;
 	public void stop() throws Exception;
 	public List<Properties> process(Object xmi) throws Exception;
 }

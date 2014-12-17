@@ -246,9 +246,9 @@ public class HttpWorkerThread implements Runnable {
     	// This processor contains AMQ broker, UIMA-AS client and UIMA-AS service.
     	// For UIMA job, each AE must be pinned to a thread that called intialize().
     	synchronized(IUimaProcessor.class ) {
-    		if ( isUimaASJob && uimaProcessor != null ) {
-    			return; // for UIMA-AS job (DD) there is only one uimaProcessor
-    		}
+//    		if ( isUimaASJob && uimaProcessor != null ) {
+ //   			return; // for UIMA-AS job (DD) there is only one uimaProcessor
+  //  		}
         	uimaProcessor = jobProcessManager.deploy();
 
     	}

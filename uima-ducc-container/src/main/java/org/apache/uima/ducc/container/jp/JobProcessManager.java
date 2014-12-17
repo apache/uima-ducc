@@ -21,7 +21,6 @@ package org.apache.uima.ducc.container.jp;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.jp.classloader.JobProcessDeployer;
 import org.apache.uima.ducc.container.jp.iface.IJobProcessDeployer;
 import org.apache.uima.ducc.container.jp.iface.IJobProcessManager;
@@ -48,15 +47,15 @@ public class JobProcessManager implements IJobProcessManager {
 	}
 	
 	public synchronized IUimaProcessor deploy() throws ServiceFailedInitialization {
-		String jobType = System.getProperty(FlagsHelper.Name.JpType.pname());
-		if ( jobType.trim().equals("uima-as") ) {
-			if ( processors.size() == 0) {
-				// This blocks until the UIMA AS service is deployed and initialized
-   			    processor = jobProcessDeployer.deploy();
-				processors.add(processor);
-			}
-			return processor;
-		}
+//		String jobType = System.getProperty(FlagsHelper.Name.JpType.pname());
+//		if ( jobType.trim().equals("uima-as") ) {
+//			if ( processors.size() == 0) {
+//				// This blocks until the UIMA AS service is deployed and initialized
+//   			    processor = jobProcessDeployer.deploy();
+//				processors.add(processor);
+//			}
+//			return processor;
+//		}
         processor = jobProcessDeployer.deploy();
 		processors.add(processor);
 		return processor;
