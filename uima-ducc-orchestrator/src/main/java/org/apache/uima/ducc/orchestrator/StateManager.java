@@ -470,25 +470,28 @@ public class StateManager {
 		}
 	}
 	
-	private void addDdToJpCommandLine(IDuccWorkJob dwj, IDriverStatusReport jdStatusReport) {
-		String location = "addDdToJpCommandLine";
+	private void addDeployableToJpCommandLine(IDuccWorkJob dwj, IDriverStatusReport jdStatusReport) {
+		String location = "addDeployableToJpCommandLine";
 		DuccId jobid = null;
 		if(!dwj.isDdSpecified()) {
+			//V1
 			String jpDd = jdStatusReport.getUimaDeploymentDescriptor();
 			if(jpDd != null) {
-				//V1
 				IDuccUimaDeploymentDescriptor uimaDeploymentDescriptor = new DuccUimaDeploymentDescriptor(jpDd);
 				dwj.setUimaDeployableConfiguration(uimaDeploymentDescriptor);
-				//V2
+			}
+			//V2
+			String jpAe = jdStatusReport.getUimaAnalysisEngine();
+			if(jpAe != null) {
 				ICommandLine jcl = dwj.getCommandLine();
 				List<String> args = jcl.getArguments();
-				String arg = uimaDeploymentDescriptor.getDeploymentDescriptorPath();
+				String arg = jpAe;
 				if(args == null) {
 					jcl.addArgument(arg);
 					logger.debug(location, jobid,  "add[null]:"+arg);
 				}
 				else if(args.isEmpty()) {
-					jcl.addArgument(uimaDeploymentDescriptor.getDeploymentDescriptorPath());
+					jcl.addArgument(jpAe);
 					logger.debug(location, jobid, "add[empty]:"+arg);
 				}
 				List<String> argList = jcl.getArguments();
@@ -519,7 +522,7 @@ public class StateManager {
 			DuccWorkJob duccWorkJob = (DuccWorkJob) WorkMapHelper.findDuccWork(workMap, sid, this, methodName);
 			if(duccWorkJob != null) {
 				addJdUrlToJpCommandLine(duccWorkJob, jdStatusReport);
-				addDdToJpCommandLine(duccWorkJob, jdStatusReport);
+				addDeployableToJpCommandLine(duccWorkJob, jdStatusReport);
 				//
 				String jdJmxUrl = jdStatusReport.getJdJmxUrl();
 				setJdJmxUrl(duccWorkJob, jdJmxUrl);
