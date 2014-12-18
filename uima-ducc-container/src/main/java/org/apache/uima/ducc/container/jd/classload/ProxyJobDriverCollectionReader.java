@@ -63,9 +63,7 @@ public class ProxyJobDriverCollectionReader {
 
 	private String[] requiredClasses = { 
 			"org.apache.uima.ducc.user.jd.JdUserCollectionReader", 
-			"org.apache.uima.aae.UimaSerializer",
 			"org.apache.uima.cas.CAS",
-			"com.thoughtworks.xstream.XStream",
 			};
 	
 	public ProxyJobDriverCollectionReader() throws JobDriverException {

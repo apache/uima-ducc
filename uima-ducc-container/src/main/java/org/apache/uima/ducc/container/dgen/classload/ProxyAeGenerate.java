@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.container.dgen.classload;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -25,6 +26,7 @@ import java.net.URLClassLoader;
 import java.util.List;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
@@ -43,9 +45,7 @@ public class ProxyAeGenerate {
 			"org.apache.uima.ducc.user.dgen.iface.AeException", 
 			"org.apache.uima.ducc.user.dgen.iface.AeGenerate",
 			"org.apache.uima.ducc.user.dgen.iface.IAeGenerate",
-			// implied:
-			//"org.springframework.util.Assert",
-			//"org.apache.xmlbeans.XmlBeans",
+			"org.apache.uima.aae.UimaSerializer",
 			};
 	
 	public ProxyAeGenerate() throws ProxyAeException {
@@ -151,9 +151,52 @@ public class ProxyAeGenerate {
 		return retVal;
 	}
 	
+	private String getUimaAsDirectory() throws Exception {
+		String location = "getUimaAsDirectory";
+		try {
+			StringBuffer sb = new StringBuffer();
+			String duccHome = Utils.findDuccHome();
+			sb.append(duccHome);
+			if(!duccHome.endsWith(File.separator)) {
+				sb.append(File.separator);
+			}
+			sb.append("apache-uima");
+			sb.append(File.separator);
+			sb.append("lib");
+			sb.append(File.separator);
+			sb.append("*");
+			String retVal = sb.toString();
+			logger.info(location, ILogger.null_id, retVal);
+			return retVal;
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+			throw e;
+		}
+	}
+	
+	private String augmentUserClasspath() throws ProxyAeException {
+		String location = "augmentUserClasspath";
+		try {
+			StringBuffer sb = new StringBuffer();
+			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
+			String userClasspath = feh.getUserClasspath();
+			sb.append(userClasspath);
+			if(!userClasspath.endsWith(File.pathSeparator)) {
+				sb.append(File.pathSeparator);
+			}
+			sb.append(getUimaAsDirectory());
+			String retVal = sb.toString();
+			logger.info(location, ILogger.null_id, retVal);
+			return retVal;
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+			throw new ProxyAeException(e);
+		}
+	}
 	private void initialize() throws ProxyAeException {
-		FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
-		String userClasspath = feh.getUserClasspath();
+		String userClasspath = augmentUserClasspath();
 		urlClassLoader = createClassLoader(userClasspath);
 		validate();
 	}
