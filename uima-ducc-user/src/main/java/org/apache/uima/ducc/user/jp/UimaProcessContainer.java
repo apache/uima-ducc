@@ -135,7 +135,7 @@ public class UimaProcessContainer implements IProcessContainer {
 			// core. The sharedInitSemaphore is a static and is shared by all
 			// instances
 			// of this class.
-			System.out.println("Available Permits:"+sharedInitSemaphore.availablePermits());
+//			System.out.println("Available Permits:"+sharedInitSemaphore.availablePermits());
 			sharedInitSemaphore.acquire();
 			// Parse the descriptor in the calling thread.
 			rSpecifier = UimaUtils.getResourceSpecifier(analysisEngineDescriptor);

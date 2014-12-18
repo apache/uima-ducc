@@ -256,6 +256,8 @@ public class HttpWorkerThread implements Runnable {
     }
 	public void run() {
 		try {
+	    	logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
+
 			initialize(duccComponent.isUimaASJob());
 			// each thread needs its own PostMethod
 			PostMethod postMethod = new PostMethod(httpClient.getJdUrl());
@@ -264,6 +266,8 @@ public class HttpWorkerThread implements Runnable {
 //			SMContext ctx = new SMContextImpl(httpClient, States.Start);
 			String command="";
 			// run forever (or until the process throws IllegalStateException
+	    	logger.info("HttpWorkerThread.run()", null, "Processing Work Items - Thread Id:"+Thread.currentThread().getId());
+
 			while (duccComponent.isRunning()) {  //service.running && ctx.state().process(ctx)) {
 
 				try {
@@ -276,7 +280,9 @@ public class HttpWorkerThread implements Runnable {
 					command = Type.Get.name();
 //					transaction = httpClient.post(transaction);
 					transaction = httpClient.execute(transaction, postMethod);
-                    // Confirm receipt of the CAS. 
+                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
+
+					// Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
 					command = Type.Ack.name();
 ///					httpClient.post(transaction); // Ready to process
@@ -306,26 +312,31 @@ public class HttpWorkerThread implements Runnable {
 							}
 						}
 					} else {
-	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
-						System.out.println("Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
+						//System.out.println("Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
 
 						// process the CAS
-						@SuppressWarnings("unchecked")
-						List<Properties> metrics = (List<Properties>) 
-								uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
-	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
-						
-						IPerformanceMetrics metricsWrapper =
-								new PerformanceMetrics();
-						metricsWrapper.set(metrics);
-						
-						transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
+						try {
+							@SuppressWarnings("unchecked")
+							List<Properties> metrics = 
+							   (List<Properties>) 
+									uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
+		                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
+							IPerformanceMetrics metricsWrapper =
+									new PerformanceMetrics();
+							metricsWrapper.set(metrics);
+							
+							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
+							
+						} catch( Exception ee) {
+							transaction.getMetaCas().setUserSpaceException("Exception");
+							logger.error("run", null, ee);
+						}
 						transaction.getMetaCas().setUserSpaceCas(null);
 						transaction.setType(Type.End);
 						command = Type.End.name();
 //						httpClient.post(transaction); // Work Item Processed - End
 						httpClient.execute(transaction, postMethod); // Work Item Processed - End
-	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END");
+	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END for WI:"+transaction.getMetaCas().getSystemKey());
 
 					}
 				} catch( SocketTimeoutException e) {

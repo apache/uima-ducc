@@ -115,6 +115,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	 * the components and returns.
 	 */
 	public void start(DuccService service, String[] args) throws Exception {
+		getLogger().info("start", null,"Ducc UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
 		super.start(service, args);
 		
 		try {
@@ -145,21 +146,25 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				// existence of -DDucc.Job.Type
 				String jobType = System.getProperty(FlagsHelper.Name.JpType.pname()); 
 				containerClass = configuration.getUserContainerClassForJob(jobType);
-				String[] uimaAsArgs;
+				String[] jpArgs;
 				if ( "uima-as".equals(jobType)) {
 					uimaASJob = true;
                 	// dd - deployment descriptor. Will use UIMA-AS
-    				uimaAsArgs = new String[] { "-dd",args[0],"-saxonURL",saxonJarPath,
+					jpArgs = new String[] { "-dd",args[0],"-saxonURL",saxonJarPath,
     						"-xslt",dd2SpringXslPath};
-                } else {
+                } else if ( "uima".equals(jobType)) {
                 	String scaleout = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
                 	if ( scaleout == null ) {
                 		scaleout = "1";
                 	}
                 	// aed - analysis engine descriptor. Will use UIMA core only
-    				uimaAsArgs = new String[] { "-aed",args[0], "-t", scaleout};
+                	jpArgs = new String[] { "-aed",args[0], "-t", scaleout};
+                } else if ( "user".equals(jobType)) {
+                	jpArgs = args;  
+                } else {
+                	throw new RuntimeException("Unsupported JP deployment mode. Check a value provided for -D"+FlagsHelper.Name.JpType.pname()+". Supported modes: [uima-as|uima|user]");
                 }
-				getLogger().info("start", null,"Ducc UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
+				getLogger().info("start", null,"Ducc JP JobType="+jobType);
 				final DuccHttpClient client = new DuccHttpClient();
 				String jdURL="";
 				try {
@@ -185,10 +190,10 @@ public class JobProcessComponent extends AbstractDuccComponent{
 					throw ee;
 				}
 
-				// Deploy UIMA pipelines. This blocks until the pipelines initialize or
+				// Deploy UIMA pipelines. This blocks until the pipelines initializes or
 		    	// there is an exception. The IUimaProcessor is a wrapper around
 		    	// processing container where the analysis is being done.
-		    	int scaleout =	jobProcessManager.initialize(jps, uimaAsArgs, containerClass);
+		    	int scaleout =	jobProcessManager.initialize(jps, jpArgs, containerClass);
 //		    	uimaProcessor =	jobProcessManager.deploy(jps, uimaAsArgs, containerClass);
 
 				// Setup Thread Factory 
@@ -210,7 +215,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				agent.notify(currentState, processJmxUrl);
 				System.out.println("JMX Connect String:"+ processJmxUrl);
                 // Create thread pool and begin processing
-		    	getLogger().info("start", null, "Starting "+scaleout+" Process Threads");
+		    	getLogger().info("start", null, "Starting "+scaleout+" Process Threads - JMX Connect String:"+ processJmxUrl);
 				
 		    	// Create and start worker threads that pull Work Items from the JD
 		    	Future<?>[] threadHandles = new Future<?>[scaleout];
@@ -219,6 +224,8 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				for (int j = 0; j < scaleout; j++) {
 					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, client, jobProcessManager, workerThreadCount));
 				}
+		    	getLogger().info("start", null, "All Http Worker Threads Started - Waiting For All Threads to Exit");
+
 				for( Future<?> f : threadHandles ) {
 					if ( f != null ) {
 						f.get();  // wait for worker threads to exit

@@ -303,7 +303,7 @@ public class DuccHttpClient {
 					logger.error("execute", null, "Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 				}
-				logger.info("execute", null, "JD Reply Status:"+postMethod.getStatusLine());
+				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+postMethod.getStatusLine());
 				Object o = XStreamUtils.unmarshall(responseData);
 				if ( o instanceof IMetaCasTransaction) {
 					reply = (MetaCasTransaction)o;
