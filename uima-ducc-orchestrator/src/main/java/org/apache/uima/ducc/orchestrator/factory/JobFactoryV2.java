@@ -88,9 +88,7 @@ public class JobFactoryV2 implements IJobFactory {
 	private IDuccIdFactory duccIdFactory = orchestratorCommonArea.getDuccIdFactory();
 	private JobDriverHostManager hostManager = orchestratorCommonArea.getHostManager();
 	private DuccIdFactory jdIdFactory = new DuccIdFactory();
-	
-	private String classpath_order = System.getProperty("ducc.orchestrator.job.factory.classpath.order");
-	
+
 	private int addEnvironment(DuccWorkJob job, String type, ACommandLine aCommandLine, String environmentVariables) {
 		String methodName = "addEnvironment";
 		logger.trace(methodName, job.getDuccId(), "enter");
@@ -188,23 +186,6 @@ public class JobFactoryV2 implements IJobFactory {
 		}
 	}
 	
-	private boolean isClasspathOrderUserBeforeDucc(String user_specified_classpath_order, DuccId jobId) {
-		String methodName = "isClasspathOrderUserBeforeDucc";
-		boolean retVal = false;
-		if(user_specified_classpath_order != null) {
-			if(user_specified_classpath_order.trim().equals("user-before-ducc")) {
-				logger.warn(methodName, jobId, "user specified classpath order: "+user_specified_classpath_order);
-				retVal = true;
-			}
-		}
-		else if(classpath_order != null) {
-			if(classpath_order.trim().equals("user-before-ducc")) {
-				retVal = true;
-			}
-		}
-		return retVal;
-	}
-	
 	private boolean isJpUima(DuccType duccType, ServiceDeploymentType serviceDeploymentType) {
 		boolean retVal = true;
 		switch(duccType) {
@@ -259,14 +240,6 @@ public class JobFactoryV2 implements IJobFactory {
 		}
 	}
 	
-	private String buildJobDriverClasspath(JobRequestProperties jobRequestProperties, DuccId jobid) {
-		String methodName = "buildJobDriverClasspath";
-		String cp = null;
-		cp = getDuccClasspath(0);
-		logger.debug(methodName, jobid, "java CP:"+cp);	
-		return cp;
-	}
-	
 	private JavaCommandLine buildJobDriverCommandLine(JobRequestProperties jobRequestProperties,  DuccId jobid) {
 		JavaCommandLine jcl = null;
 		// java command
@@ -276,8 +249,7 @@ public class JobFactoryV2 implements IJobFactory {
 		jcl.addOption(IDuccCommand.arg_ducc_deploy_configruation);
 		jcl.addOption(IDuccCommand.arg_ducc_deploy_components);
 		jcl.addOption(IDuccCommand.arg_ducc_job_id+jobid.toString());
-		String cp = buildJobDriverClasspath(jobRequestProperties, jobid);
-		jcl.setClasspath(cp);
+		jcl.setClasspath(getDuccClasspath(0));
 		// Add the user-provided JVM opts
 		boolean haveXmx = false;
 		String driver_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_jvm_args);
@@ -491,25 +463,7 @@ public class JobFactoryV2 implements IJobFactory {
 		// log
 		jobRequestProperties.specification(logger);
 		// classpath
-        String java_classpath = getDuccClasspath(1);    // for job processes & services 
-		String processClasspath = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-		logger.debug(methodName, job.getDuccId(), "process CP (spec):"+processClasspath);
-		logger.debug(methodName, job.getDuccId(), "java CP:"+java_classpath);
-		if(processClasspath != null) {
-			if(isClasspathOrderUserBeforeDucc(jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath_order),job.getDuccId())) {
-				logger.info(methodName, job.getDuccId(), "process:OrderUserBeforeDucc");
-				processClasspath=processClasspath+File.pathSeparator+java_classpath;
-			}
-			else {
-				logger.info(methodName, job.getDuccId(), "process:OrderDuccBeforeUser");
-				processClasspath=java_classpath+File.pathSeparator+processClasspath;
-			}
-		}
-		else {
-			logger.info(methodName, job.getDuccId(), "process:OrderDefault");
-			processClasspath=java_classpath;
-		}
-		logger.debug(methodName, job.getDuccId(), "process CP (combined):"+processClasspath);
+       
 		// java command
 		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
 		if(javaCmd == null) {
@@ -613,7 +567,7 @@ public class JobFactoryV2 implements IJobFactory {
 			// pipelines
 			JavaCommandLine pipelineCommandLine = new JavaCommandLine(javaCmd);
 			pipelineCommandLine.setClassName("main:provided-by-Process-Manager");
-			pipelineCommandLine.setClasspath(processClasspath);
+			pipelineCommandLine.setClasspath(getDuccClasspath(1));
 			String process_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_jvm_args);
 			ArrayList<String> pTokens = QuotedOptions.tokenizeList(process_jvm_args, true);
 			for(String token : pTokens) {
