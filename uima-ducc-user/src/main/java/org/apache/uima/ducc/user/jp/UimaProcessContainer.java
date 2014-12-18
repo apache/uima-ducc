@@ -339,7 +339,7 @@ public class UimaProcessContainer implements IProcessContainer {
 					}
 				}
 				sb.append("/").append(n.trim());
-			} else if (part.trim().startsWith("name=")) {
+			} else if (part.trim().startsWith("name=") || part.trim().startsWith("org.apache.uima:name=")) {
 				sb.append("/").append(
 						part.substring(part.trim().indexOf("=") + 1));
 			}
@@ -369,8 +369,12 @@ public class UimaProcessContainer implements IProcessContainer {
 				// by extracting its instance number.For example,
 				// NoOpAnnotator 2.
 				int last = tmp.lastIndexOf(" ");
+				if ( last == -1 ) {
+					index = "1";	
+				} else {
+					index = tmp.substring(last).trim();
+				}
 //				System.out.println("uimaFullyQualifiedAEContext.trim().length()="+uimaFullyQualifiedAEContext.trim().length() );
-				index = tmp.substring(last).trim();
 				if (uimaFullyQualifiedAEContext.trim().length() > 0 && last > -1) {
 					// extract instance number
 					
@@ -379,14 +383,14 @@ public class UimaProcessContainer implements IProcessContainer {
 						// check if the instance number is a number. If not silently
 						// handle the exception.
 						Integer.parseInt(index);
-						System.out.println("deepCopyMetrics - context:"+uimaFullyQualifiedAEContext+" last="+last);
+//						System.out.println("deepCopyMetrics - context:"+uimaFullyQualifiedAEContext+" last="+last);
 						// strip the instance number from the AE name
 						uimaFullyQualifiedAEContext = uimaFullyQualifiedAEContext
 								.substring(0, last + 1);
 					} catch (NumberFormatException nfe) {
 
 					} catch( Exception e) {
-						System.out.println(Thread.currentThread().getId()+" deepCopyMetrics - context:"+uimaFullyQualifiedAEContext+" last="+last);
+//						System.out.println(Thread.currentThread().getId()+" deepCopyMetrics - context:"+uimaFullyQualifiedAEContext+" last="+last);
 					}
 				} else {
 
