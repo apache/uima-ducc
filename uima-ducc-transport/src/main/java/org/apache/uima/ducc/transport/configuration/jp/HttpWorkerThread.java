@@ -279,9 +279,12 @@ public class HttpWorkerThread implements Runnable {
 					transaction.setType(Type.Get);  // Tell JD you want a CAS
 					command = Type.Get.name();
 //					transaction = httpClient.post(transaction);
+			    	logger.info("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
 					transaction = httpClient.execute(transaction, postMethod);
                     if ( transaction.getMetaCas()!= null) {
     					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
+                    } else {
+    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas");
                     }
 
 					// Confirm receipt of the CAS. 
