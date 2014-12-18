@@ -29,11 +29,11 @@ import javax.xml.parsers.FactoryConfigurationError;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.uima.UIMAFramework;
-import org.apache.uima.aae.UimaSerializer;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
+import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.resource.ResourceConfigurationException;
@@ -51,7 +51,7 @@ import org.xml.sax.SAXException;
 
 public class JdUserCollectionReader {
 
-	private static UimaSerializer uimaSerializer = new UimaSerializer();
+	private static DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
 	private static XmiSerializationSharedData xmiSerializationSharedData = new XmiSerializationSharedData();
 	
 	private String crXml = null;
