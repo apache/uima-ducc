@@ -280,7 +280,9 @@ public class HttpWorkerThread implements Runnable {
 					command = Type.Get.name();
 //					transaction = httpClient.post(transaction);
 					transaction = httpClient.execute(transaction, postMethod);
-                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
+                    if ( transaction.getMetaCas()!= null) {
+    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
+                    }
 
 					// Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
