@@ -53,7 +53,7 @@ public class ActionGet implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, ILogger.null_id, "");
+		logger.trace(location, ILogger.null_id, "enter");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
@@ -106,7 +106,7 @@ public class ActionGet implements IAction {
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
 		}
-		
+		logger.trace(location, ILogger.null_id, "exit");
 	}
 
 }
