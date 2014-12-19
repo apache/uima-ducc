@@ -333,7 +333,7 @@ public class HttpWorkerThread implements Runnable {
 							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
 							
 						} catch( Exception ee) {
-							transaction.getMetaCas().setUserSpaceException("Exception");
+							transaction.getMetaCas().setUserSpaceException("Bob");
 							logger.error("run", null, ee);
 						}
 						transaction.getMetaCas().setUserSpaceCas(null);
