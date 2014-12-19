@@ -188,7 +188,6 @@ public class ActionEnd implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
@@ -208,9 +207,17 @@ public class ActionEnd implements IAction {
 				int seqNo = metaCasHelper.getSystemKey();
 				Object exception = metaCas.getUserSpaceException();
 				if(exception != null) {
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+					mb.append("exception");
+					logger.info(location, ILogger.null_id, mb.toString());
 					handleException(actionData);
 				}
 				else {
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+					mb.append("ended");
+					logger.info(location, ILogger.null_id, mb.toString());
 					wisk.ended(seqNo);
 					successWorkItem(cm, wi, trans, metaCas, rwt);
 					pStats.done(wi);
