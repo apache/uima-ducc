@@ -20,5 +20,5 @@ package org.apache.uima.ducc.user.jd.iface;
 
 public interface IJdUserErrorHandler {
 	public void initialize(String initializationData);
-	public IJdUserDirective handle(String serializedCAS, Exception exception);
+	public IJdUserDirective handle(String serializedCAS, String serializedException);
 }

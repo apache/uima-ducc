@@ -86,13 +86,13 @@ public class JdUserErrorHandler implements IJdUserErrorHandler {
 	}
 	
 	@Override
-	public IJdUserDirective handle(String serializedCAS, Exception exception) {
+	public IJdUserDirective handle(String serializedCAS, String serializedException) {
 		JdUserDirective jdUserDirective = new JdUserDirective();
 		try {
 			if(serializedCAS != null) {
 				// CAS is provided
 			}
-			if(exception != null) {
+			if(serializedException != null) {
 				// Exception is provided
 			}
 			jobErrorCount.incrementAndGet();
