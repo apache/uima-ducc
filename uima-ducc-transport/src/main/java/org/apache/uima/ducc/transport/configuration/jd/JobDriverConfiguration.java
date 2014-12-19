@@ -18,6 +18,13 @@
 */
 package org.apache.uima.ducc.transport.configuration.jd;
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -28,6 +35,7 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Direction;
@@ -35,6 +43,10 @@ import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -127,6 +139,19 @@ import org.springframework.context.annotation.Import;
 		        }
 		    };
 		}
+		public Server createServer(int port, String app, IJobDriverComponent jdc) throws Exception {
+			Server server = new Server(port);
+			QueuedThreadPool threadPool = new QueuedThreadPool();
+			threadPool.setMaxThreads(10);
+			server.setThreadPool(threadPool);
+			
+			 ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		     context.setContextPath("/");
+		     server.setHandler(context);
+		 
+		    context.addServlet(new ServletHolder(new JDServlet(jdc)),app);
+			return server;
+		}
 		
 		public static class JobDriverProcessor  implements Processor {
 			private 	IJobDriverComponent jdc;
@@ -197,11 +222,54 @@ import org.springframework.context.annotation.Import;
 			}
 			port = Utils.findFreePort();
 			jdc.setPort(port);
-			String jdUniqueId = "jdApp";
-			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
+			String jdUniqueId = "/jdApp";
+//			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
+            Server server = createServer(port, jdUniqueId, jdc);
+			server.start();
+			logger.info(location,jobid,"Jetty Running - Port:"+port);
 			logger.info(location, jobid, "port: "+port+" "+"endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
+
 			jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
 			return jdc;
 		}
+		public class JDServlet extends HttpServlet
+		{
+			private static final long serialVersionUID = 1L;
+			private IJobDriverComponent jdc;
+			public JDServlet(IJobDriverComponent jdc) {
+				this.jdc = jdc;
+			}
+		    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+		    		throws ServletException, IOException
+		    {
+		    	try {
+					char[] content = new char[request.getContentLength()];
 
+					request.getReader().read(content);
+					logger.info("doPost",jobid, "Http Request Body:::"+String.valueOf(content));
+					
+					IMetaCasTransaction imt=null;
+					String t = String.valueOf(content);
+						
+					imt = (IMetaCasTransaction) XStreamUtils
+									.unmarshall(t.trim());
+			        
+			    	// process JP's request
+			    	jdc.handleJpRequest(imt);
+			    	
+			    	// setup reply 
+			    	imt.setDirection(Direction.Response);
+
+					response.setStatus(HttpServletResponse.SC_OK);
+
+					response.setHeader("content-type", "text/xml");
+					String body = XStreamUtils.marshall(imt);
+						
+					response.getWriter().write(body);
+		    		
+		    	} catch (Throwable e) {
+		    		throw new ServletException(e);
+		    	}
+		    }
+		}
 }
