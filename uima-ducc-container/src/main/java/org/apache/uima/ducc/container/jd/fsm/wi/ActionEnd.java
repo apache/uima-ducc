@@ -140,11 +140,11 @@ public class ActionEnd implements IAction {
 		IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 		//
 		int seqNo = metaCasHelper.getSystemKey();
-		Object exception = metaCas.getUserSpaceException();
+		String serializedException = (String) metaCas.getUserSpaceException();
 		//
-		Object cas = metaCas.getUserSpaceCas();
+		String serializedCas = (String) metaCas.getUserSpaceCas();
 		ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
-		ProxyJobDriverDirective pjdd = pjdeh.handle(cas, exception);
+		ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas, serializedException);
 		if(pjdd != null) {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());

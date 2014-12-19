@@ -29,7 +29,7 @@ public class TestJdContainerErrorHandlerRandomRetry extends JdUserErrorHandler {
 	private Random random = new Random();
 	
 	@Override
-	public IJdUserDirective handle(String serializedCAS, Exception e) {
+	public IJdUserDirective handle(String serializedCAS, String serializedException) {
 		JdUserDirective jdUserDirective = new JdUserDirective();
 		jdUserDirective.resetKillJob();
 		jdUserDirective.resetKillProcess();

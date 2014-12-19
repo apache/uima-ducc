@@ -32,6 +32,9 @@ public class ProxyJobDriverDirective {
 	private boolean killProcess = false;
 	private boolean killWorkItem = true;
 	
+	public ProxyJobDriverDirective() {
+	}
+	
 	public ProxyJobDriverDirective(boolean killJob, boolean killProcess, boolean killWorkItem) {
 		initialize(killJob, killProcess, killWorkItem);
 	}

@@ -50,9 +50,9 @@ public class TestClassLoading extends ATest {
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
 			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
-			Object serializedCAS = null;
-			Object exception = null;
-			pjdeh.handle(serializedCAS, exception);
+			String serializedCAS = null;
+			String serializedException = null;
+			pjdeh.handle(serializedCAS, serializedException);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -74,10 +74,10 @@ public class TestClassLoading extends ATest {
 			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
-			Object serializedCAS = mc.getSerializedCas();
-			Object exception = null;
+			String serializedCAS = mc.getSerializedCas();
+			String serializedException = null;
 			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
-			pjdeh.handle(serializedCAS, exception);
+			pjdeh.handle(serializedCAS, serializedException);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -99,12 +99,12 @@ public class TestClassLoading extends ATest {
 			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
 			ProxyJobDriverCollectionReader pjdcr = new ProxyJobDriverCollectionReader();
 			MetaCas mc = pjdcr.getMetaCas();
-			Object serializedCAS = mc.getSerializedCas();
-			Object exception = null;
+			String serializedCAS = mc.getSerializedCas();
+			String serializedException = null;
 			String className = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandler";
 			System.setProperty(FlagsHelper.Name.UserErrorHandlerClassname.pname(), className);
 			ProxyJobDriverErrorHandler pjdeh = new ProxyJobDriverErrorHandler();
-			ProxyJobDriverDirective directive = pjdeh.handle(serializedCAS, exception);
+			ProxyJobDriverDirective directive = pjdeh.handle(serializedCAS, serializedException);
 			assertTrue(directive.isKillJob() == true);
 			assertTrue(directive.isKillProcess() == true);
 			assertTrue(directive.isKillWorkItem() == false);

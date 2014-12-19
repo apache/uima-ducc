@@ -75,7 +75,7 @@ public class ProxyJobDriverErrorHandler {
 					Type[] types = method.getParameterTypes();
 					if(types.length == 2) {
 						if(types[0].toString().contains("String")) {
-							if(types[1].toString().contains("Exception")) {
+							if(types[1].toString().contains("String")) {
 								methodInstanceHandle = method;
 								break;
 							}
@@ -119,13 +119,13 @@ public class ProxyJobDriverErrorHandler {
 		return retVal;
 	}
 	
-	public ProxyJobDriverDirective handle(Object serializedCAS, Object exception) throws JobDriverException {
+	public ProxyJobDriverDirective handle(String serializedCAS, String serializedException) throws JobDriverException {
 		String location = "handle";
-		ProxyJobDriverDirective retVal = null;
+		ProxyJobDriverDirective retVal = new ProxyJobDriverDirective();
 		try {
 			Object[] plist = new Object[2];
 			plist[0] = serializedCAS;
-			plist[1] = exception;
+			plist[1] = serializedException;
 			Object directive = methodInstanceHandle.invoke(objectInstance, plist);
 			boolean isKillJob = (Boolean) methodInstanceIsKillJob.invoke(directive);
 			boolean isKillProcess = (Boolean) methodInstanceIsKillProcess.invoke(directive);
@@ -134,7 +134,6 @@ public class ProxyJobDriverErrorHandler {
 		} 
 		catch (Exception e) {
 			logger.error(location, ILogger.null_id, e);
-			throw new JobDriverException(e);
 		}
 		return retVal;
 	}

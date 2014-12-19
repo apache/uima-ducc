@@ -271,6 +271,17 @@ public class MessageHandler implements IMessageHandler {
 		return wi;
 	}
 	
+	private void update(IWorkItem wi, IMetaCas metaCas) {
+		IMetaCas local = wi.getMetaCas();
+		IMetaCas remote = metaCas;
+		if(local != null) {
+			if(remote != null) {
+				local.setPerformanceMetrics(remote.getPerformanceMetrics());
+				local.setUserSpaceException(remote.getUserSpaceException());
+			}
+		}
+	}
+	
 	private void handleMetaCasTransationGet(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
 		IWorkItem wi = register(rwt);
 		IFsm fsm = wi.getFsm();
@@ -289,7 +300,7 @@ public class MessageHandler implements IMessageHandler {
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
-			trans.setMetaCas(wi.getMetaCas());
+			update(wi, trans.getMetaCas());
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.Ack_Request;
 			Object actionData = new ActionData(wi, rwt, trans);
@@ -307,7 +318,7 @@ public class MessageHandler implements IMessageHandler {
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		else {
-			trans.setMetaCas(wi.getMetaCas());
+			update(wi, trans.getMetaCas());
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.End_Request;
 			Object actionData = new ActionData(wi, rwt, trans);

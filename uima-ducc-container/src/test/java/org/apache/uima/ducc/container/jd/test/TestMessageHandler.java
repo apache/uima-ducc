@@ -410,8 +410,8 @@ public class TestMessageHandler extends ATest {
 			while(metaCas != null) {
 				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest04()) {
-					Exception exception = new RuntimeException("injected error test #04");
-					metaCas.setUserSpaceException(exception);
+					String serializedException = new RuntimeException("injected error test #04").toString();
+					metaCas.setUserSpaceException(serializedException);
 					inject++;
 				}
 				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
@@ -506,8 +506,8 @@ public class TestMessageHandler extends ATest {
 			while(metaCas != null) {
 				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
-					Exception exception = new RuntimeException("injected error test #05");
-					metaCas.setUserSpaceException(exception);
+					String serializedException = new RuntimeException("injected error test #05").toString();
+					metaCas.setUserSpaceException(serializedException);
 					inject++;
 				}
 				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
@@ -583,8 +583,8 @@ public class TestMessageHandler extends ATest {
 			while(metaCas != null) {
 				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
-					Exception exception = new RuntimeException("injected error test #05");
-					metaCas.setUserSpaceException(exception);
+					String serializedException = new RuntimeException("injected error test #05").toString();
+					metaCas.setUserSpaceException(serializedException);
 					inject++;
 				}
 				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
@@ -677,8 +677,8 @@ public class TestMessageHandler extends ATest {
 			while(metaCas != null) {
 				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest06()) {
-					Exception exception = new RuntimeException("injected error test #06");
-					metaCas.setUserSpaceException(exception);
+					String serializedException = new RuntimeException("injected error test #06").toString();
+					metaCas.setUserSpaceException(serializedException);
 					inject++;
 				}
 				transEnd(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
