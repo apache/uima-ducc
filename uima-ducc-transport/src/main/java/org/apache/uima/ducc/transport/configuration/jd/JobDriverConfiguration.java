@@ -25,11 +25,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jetty.JettyHttpComponent;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -123,6 +121,7 @@ import org.springframework.context.annotation.Import;
 			    };
 
 		}
+		/*
 		private RouteBuilder routeBuilderForJpIncomingRequests(final JobDriverComponent jdc, final int port, final String app) throws Exception {
 		    return new RouteBuilder() {
 		        public void configure() throws Exception {
@@ -139,6 +138,7 @@ import org.springframework.context.annotation.Import;
 		        }
 		    };
 		}
+		*/
 		public Server createServer(int port, String app, IJobDriverComponent jdc) throws Exception {
 			Server server = new Server(port);
 			QueuedThreadPool threadPool = new QueuedThreadPool();

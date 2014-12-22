@@ -42,7 +42,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
-import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
 
 public class JobDriverReport implements Serializable, IDriverStatusReport {
 
@@ -85,7 +84,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private IDuccPerWorkItemStatistics duccPerWorkItemStatistics = null;
 	
-	private DuccProcessWorkItemsMap duccProcessWorkItemsMap = null;
+	private DuccProcessWorkItemsReport duccProcessWorkItemsReport = null;
 	
 	private long max(long a, long b) {
 		long retVal = a;
@@ -173,7 +172,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		ArrayList<IProcessInfo> list = operatingInfo.getProcessItemInfo();
 		if(list != null) {
 			if(!list.isEmpty()) {
-				duccProcessWorkItemsMap = new DuccProcessWorkItemsMap();
+				duccProcessWorkItemsReport = new DuccProcessWorkItemsReport();
 				for(IProcessInfo pi : list) {
 					String ip = pi.getNodeAddress();
 					int pid = pi.getPid();
@@ -181,7 +180,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 					if(dp != null) {
 						DuccId key = dp.getDuccId();
 						IDuccProcessWorkItems value = new DuccProcessWorkItems(pi);
-						duccProcessWorkItemsMap.put(key, value);
+						duccProcessWorkItemsReport.accum(key, value);
 					}
 					else {
 						logger.debug(location, null, "process not found: "+"ip="+ip+" "+"pid="+pid);
@@ -461,8 +460,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	}
 
 	@Override
-	public DuccProcessWorkItemsMap getDuccProcessWorkItemsMap() {
-		return duccProcessWorkItemsMap;
+	public DuccProcessWorkItemsReport getDuccProcessWorkItemsMap() {
+		return duccProcessWorkItemsReport;
 	}
 
 	@Override

@@ -73,7 +73,8 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
-import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
+import org.apache.uima.ducc.transport.event.jd.IDuccProcessWorkItemsReport;
+import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsReportV1;
 import org.apache.uima.ducc.transport.event.jd.v1.IDriverStatusReportV1;
 import org.apache.uima.ducc.transport.event.rm.IResource;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
@@ -348,16 +349,43 @@ public class StateManager {
 				logger.debug(methodName, job.getDuccId(), process.getDuccId(), "investment:"+investment+" "+"node(IP): "+nodeIP+" "+"pid: "+pid);
 			}
 		}
-		catch(Throwable t) {
-			logger.error(methodName, job.getDuccId(), t);
+		catch(Exception e) {
+			logger.error(methodName, job.getDuccId(), e);
+		}
+	}
+	private void copyProcessWorkItemsReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
+		String methodName = "copyProcessWorkItemsReport";
+		if(jdStatusReport instanceof IDriverStatusReportV1) {
+			copyProcessWorkItemsReportV1(job, jdStatusReport);
+		}
+		else {
+			try {
+				IDuccProcessMap processMap = job.getProcessMap();
+				IDuccProcessWorkItemsReport pwiReport = jdStatusReport.getDuccProcessWorkItemsMap();
+				if(pwiReport!= null) {
+					ConcurrentHashMap<DuccId, IDuccProcessWorkItems> pwiMap = pwiReport.getMap();
+					Iterator<DuccId> iterator = pwiMap.keySet().iterator();
+					while(iterator.hasNext()) {
+						DuccId processId = iterator.next();
+						IDuccProcess process = processMap.get(processId);
+						IDuccProcessWorkItems pwi = pwiMap.get(processId);
+						process.setProcessWorkItems(pwi);
+						logger.trace(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+					}
+				}
+			}
+			catch(Exception e) {
+				logger.error(methodName, job.getDuccId(), e);
+			}
 		}
 	}
 	
-	private void copyProcessWorkItemsReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
+	private void copyProcessWorkItemsReportV1(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyProcessWorkItemsReport";
 		try {
 			IDuccProcessMap processMap = job.getProcessMap();
-			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
+			DuccProcessWorkItemsReportV1 pwiReport = (DuccProcessWorkItemsReportV1)jdStatusReport.getDuccProcessWorkItemsMap();
+			ConcurrentHashMap<DuccId, IDuccProcessWorkItems> pwiMap = pwiReport;
 			if(pwiMap != null) {
 				Iterator<DuccId> iterator = pwiMap.keySet().iterator();
 				while(iterator.hasNext()) {
@@ -369,15 +397,51 @@ public class StateManager {
 				}
 			}
 		}
-		catch(Throwable t) {
-			logger.error(methodName, job.getDuccId(), t);
+		catch(Exception e) {
+			logger.error(methodName, job.getDuccId(), e);
 		}
 	}
 	
 	private void copyDriverWorkItemsReport(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "copyDriverWorkItemsReport";
+		if(jdStatusReport instanceof IDriverStatusReportV1) {
+			copyDriverWorkItemsReportV1(job, jdStatusReport);
+		}
+		else {
+			try {
+				IDuccProcessWorkItemsReport pwiReport = jdStatusReport.getDuccProcessWorkItemsMap();
+				if(pwiReport != null) {
+					IDuccProcessWorkItems pwi = pwiReport.getTotals();
+					
+					DuccWorkPopDriver driver = job.getDriver();
+					IDuccProcessMap processMap = driver.getProcessMap();
+					if(processMap != null) {
+						Iterator<DuccId> iterator = processMap.keySet().iterator();
+						while(iterator.hasNext()) {
+							DuccId processId = iterator.next();
+							IDuccProcess process = processMap.get(processId);
+							process.setProcessWorkItems(pwi);
+							logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+						}
+					}
+
+				}
+				job.setWiMillisMin(jdStatusReport.getWiMillisMin());
+				job.setWiMillisMax(jdStatusReport.getWiMillisMax());
+				job.setWiMillisAvg(jdStatusReport.getWiMillisAvg());
+				job.setWiMillisOperatingLeast(jdStatusReport.getWiMillisOperatingLeast());
+				job.setWiMillisCompletedMost(jdStatusReport.getWiMillisCompletedMost());
+			}
+			catch(Exception e) {
+				logger.error(methodName, job.getDuccId(), e);
+			}
+		}
+	}
+	
+	private void copyDriverWorkItemsReportV1(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
+		String methodName = "copyDriverWorkItemsReportV1";
 		try {
-			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
+			DuccProcessWorkItemsReportV1 pwiMap = (DuccProcessWorkItemsReportV1) jdStatusReport.getDuccProcessWorkItemsMap();
 			if(pwiMap != null) {
 				IDuccProcessWorkItems pwi = pwiMap.getTotals();
 				
@@ -403,8 +467,8 @@ public class StateManager {
 			job.setWiMillisOperatingLeast(jdStatusReport.getWiMillisOperatingLeast());
 			job.setWiMillisCompletedMost(jdStatusReport.getWiMillisCompletedMost());
 		}
-		catch(Throwable t) {
-			logger.error(methodName, job.getDuccId(), t);
+		catch(Exception e) {
+			logger.error(methodName, job.getDuccId(), e);
 		}
 	}
 	

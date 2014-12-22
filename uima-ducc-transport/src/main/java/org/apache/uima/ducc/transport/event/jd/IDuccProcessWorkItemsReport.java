@@ -16,25 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.jd;
+package org.apache.uima.ducc.transport.event.jd;
 
-import org.apache.uima.ducc.jd.client.IWorkItemMonitor;
-import org.apache.uima.ducc.jd.client.ThreadLocation;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReportV1;
+import java.io.Serializable;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 
-public interface IJobDriver extends IJobDriverAccess, IWorkItemMonitor {
-	
-	public void initialize(IDuccWorkJob job, DriverStatusReportV1 driverStatusReport) throws JobDriverTerminateException;
-	public void run();
-	
-	public IDuccWorkJob getJob();
-	public void setJob(IDuccWorkJob job);
-	
-	public boolean callbackRegister(String casId, String name);
-	public void callbackUnregister(String casId);
-	
-	public boolean isLostCas(String casId);
-	public ThreadLocation getLostCas(String casId);
+public interface IDuccProcessWorkItemsReport extends Serializable {
+	public ConcurrentHashMap<DuccId, IDuccProcessWorkItems> getMap();
+	public IDuccProcessWorkItems getTotals();
+	public void accum(DuccId key, IDuccProcessWorkItems value);
 }

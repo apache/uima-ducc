@@ -37,15 +37,16 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.Util;
+import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsReport;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 @Deprecated
-public class DriverStatusReport implements Serializable, IDriverStatusReportV1 {
+public class DriverStatusReportV1 implements Serializable, IDriverStatusReportV1 {
 
 	private static final long serialVersionUID = 100L;
 	
-	private static DuccLogger duccOut = DuccLoggerComponents.getJdOut(DriverStatusReport.class.getName());
+	private static DuccLogger duccOut = DuccLoggerComponents.getJdOut(DriverStatusReportV1.class.getName());
 	private static DuccId jobid = null;
 	
 	private DuccId duccId = null;
@@ -108,11 +109,11 @@ public class DriverStatusReport implements Serializable, IDriverStatusReportV1 {
 	
 	private String uimaDeploymentDescriptor = null;
 	
-	private DuccProcessWorkItemsMap duccProcessWorkItemsMap = new DuccProcessWorkItemsMap();
+	private DuccProcessWorkItemsReportV1 duccProcessWorkItemsReport = new DuccProcessWorkItemsReportV1();
 	
 	private ConcurrentHashMap<RemoteLocation,Long> operatingMillisMap = new ConcurrentHashMap<RemoteLocation,Long>();
 	
-	public DriverStatusReport(DuccId duccId, String jdJmxUrl) {
+	public DriverStatusReportV1(DuccId duccId, String jdJmxUrl) {
 		setJdJmxUrl(jdJmxUrl);
 		setDuccId(duccId);
 	}
@@ -179,12 +180,12 @@ public class DriverStatusReport implements Serializable, IDriverStatusReportV1 {
 	/*
 	 * DuccProcessWorkItemsMap
 	 */
-	public void setDuccProcessWorkItemsMap(DuccProcessWorkItemsMap duccProcessWorkItemsMap) {
-		this.duccProcessWorkItemsMap = duccProcessWorkItemsMap;
+	public void setDuccProcessWorkItemsReport(DuccProcessWorkItemsReportV1 duccProcessWorkItemsReport) {
+		this.duccProcessWorkItemsReport = duccProcessWorkItemsReport;
 	}
 	
-	public DuccProcessWorkItemsMap getDuccProcessWorkItemsMap() {
-		return duccProcessWorkItemsMap;
+	public DuccProcessWorkItemsReportV1 getDuccProcessWorkItemsReport() {
+		return duccProcessWorkItemsReport;
 	}
 	
 	/*
@@ -589,7 +590,7 @@ public class DriverStatusReport implements Serializable, IDriverStatusReportV1 {
 		//<UIMA-3365>
 		int retVal = 0;
 		try {
-			DuccProcessWorkItemsMap pwiMap = getDuccProcessWorkItemsMap();
+			DuccProcessWorkItemsReportV1 pwiMap = getDuccProcessWorkItemsReport();
 			Iterator<DuccId> iterator = pwiMap.keySet().iterator();
 			while(iterator.hasNext()) {
 				DuccId processId = iterator.next();
@@ -762,8 +763,8 @@ public class DriverStatusReport implements Serializable, IDriverStatusReportV1 {
 		duccOut.debug(methodName, duccId, getLogReport());
 	}
 	
-	public DriverStatusReport deepCopy() {
-		return (DriverStatusReport)SerializationUtils.clone(this);
+	public DriverStatusReportV1 deepCopy() {
+		return (DriverStatusReportV1)SerializationUtils.clone(this);
 	}
 	
 	public void setPerWorkItemStatistics(IDuccPerWorkItemStatistics perWorkItemStatistics) {
@@ -837,6 +838,12 @@ public class DriverStatusReport implements Serializable, IDriverStatusReportV1 {
 
 	public void setOperatingMillisMap(ConcurrentHashMap<RemoteLocation,Long> value) {
 		operatingMillisMap = value;
+	}
+
+	@Override
+	public DuccProcessWorkItemsReport getDuccProcessWorkItemsMap() {
+		//V2
+		return null;
 	}
 
 }

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event.jd.v1;
+package org.apache.uima.ducc.transport.event.jd;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,70 +24,28 @@ import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 
-
-public class DuccProcessWorkItemsMap extends ConcurrentHashMap<DuccId, IDuccProcessWorkItems> {
-
+public class DuccProcessWorkItemsReport implements IDuccProcessWorkItemsReport {
+	
 	private static final long serialVersionUID = 1L;
 	
+	private ConcurrentHashMap<DuccId, IDuccProcessWorkItems> map = new ConcurrentHashMap<DuccId, IDuccProcessWorkItems>();
 	private IDuccProcessWorkItems totals = new DuccProcessWorkItems();
 	
+	@Override
+	public ConcurrentHashMap<DuccId, IDuccProcessWorkItems> getMap() {
+		return map;
+	}
+	@Override
 	public IDuccProcessWorkItems getTotals() {
 		return totals;
 	}
 	
-	public IDuccProcessWorkItems put(DuccId key, IDuccProcessWorkItems value) {
+	@Override
+	public void accum(DuccId key, IDuccProcessWorkItems value) {
 		//TODO
-		return value;
-	}
-	
-	private IDuccProcessWorkItems get(DuccId duccId) {
-		IDuccProcessWorkItems retVal = super.get(duccId);
-		if(retVal == null) {
-			retVal = new DuccProcessWorkItems();
-			super.put(duccId, retVal);
-		}
-		return retVal;
-	}
-	
-	public void done(DuccId processId, long time) {
-		getTotals().done(time);
-		if(processId != null) {
-			get(processId).done(time);
-		}
+		map.put(key, value);
 	}
 
-	public void dispatch(DuccId processId) {
-		getTotals().dispatch();
-		if(processId != null) {
-			get(processId).dispatch();
-		}
-	}
-	
-	public void error(DuccId processId) {
-		getTotals().error();
-		if(processId != null) {
-			get(processId).error();
-		}
-	}
-	
-	public void retry(DuccId processId) {
-		getTotals().retry();
-		if(processId != null) {
-			get(processId).retry();
-		}
-	}
-	
-	public void lost(DuccId processId) {
-		getTotals().lost();
-		if(processId != null) {
-			get(processId).lost();
-		}
-	}
-	
-	public void preempt(DuccId processId) {
-		getTotals().preempt();
-		if(processId != null) {
-			get(processId).preempt();
-		}
-	}
+
+
 }

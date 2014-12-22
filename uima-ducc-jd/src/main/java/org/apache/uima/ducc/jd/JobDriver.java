@@ -77,8 +77,8 @@ import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryItem;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
-import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReport;
-import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
+import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReportV1;
+import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsReportV1;
 import org.apache.uima.ducc.transport.uima.dd.generator.DeploymentDescriptorGenerator;
 import org.apache.uima.util.Progress;
 
@@ -94,7 +94,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	
 	private IDuccWorkJob job = null;
 	
-	private DriverStatusReport driverStatusReport = null;
+	private DriverStatusReportV1 driverStatusReport = null;
 	private WorkItemStateKeeper workItemStateKeeper = null;
 	private PerformanceSummaryWriter performanceSummaryWriter = null;
 	private SynchronizedStats synchronizedStats = null;
@@ -131,7 +131,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		super();
 	}
 
-	public void initialize(IDuccWorkJob job, DriverStatusReport driverStatusReport) throws JobDriverTerminateException {
+	public void initialize(IDuccWorkJob job, DriverStatusReportV1 driverStatusReport) throws JobDriverTerminateException {
 		String location = "initialize";
 		duccOut.info(location, jobid, "jd.step:"+location);
 		try {
@@ -260,7 +260,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		setJob(value);
 	}
 	
-	private void setDriverStatusReport(DriverStatusReport value) {
+	private void setDriverStatusReport(DriverStatusReportV1 value) {
 		driverStatusReport = value;
 	}
 	
@@ -269,7 +269,7 @@ public class JobDriver extends Thread implements IJobDriver {
 		try {
 			if(casSource.isExhaustedReader()) {
 				IDuccWorkJob job = getJob();
-				DriverStatusReport driverStatusReport = getDriverStatusReportLive();
+				DriverStatusReportV1 driverStatusReport = getDriverStatusReportLive();
 				long todo = driverStatusReport.getWorkItemsToDo();
 				long capacity = job.getWorkItemCapacity();
 				if(capacity > 0) {
@@ -951,14 +951,14 @@ public class JobDriver extends Thread implements IJobDriver {
 	}
 	
 	
-	public DriverStatusReport getDriverStatusReportLive() {
+	public DriverStatusReportV1 getDriverStatusReportLive() {
 		synchronized (driverStatusReport) {
 			return driverStatusReport;
 		}
 	}
 	
 	
-	public DriverStatusReport getDriverStatusReportCopy() {
+	public DriverStatusReportV1 getDriverStatusReportCopy() {
 		//synchronized (driverStatusReport) {
 			return driverStatusReport.deepCopy();
 		//}
@@ -1226,18 +1226,18 @@ public class JobDriver extends Thread implements IJobDriver {
 		casLocationPendingMap.put(casId, casLocation);
 	}
 	
-	private DuccProcessWorkItemsMap getPwiMap() {
-		String location = "getPwiMap";
-		DuccProcessWorkItemsMap pwiMap = getDriverStatusReportLive().getDuccProcessWorkItemsMap();
-		duccOut.debug(location, jobid, "DuccProcessWorkItemsMap size:"+pwiMap.size());
-		return pwiMap;
+	private DuccProcessWorkItemsReportV1 getPwiReport() {
+		String location = "getPwiReport";
+		DuccProcessWorkItemsReportV1 pwiReport = getDriverStatusReportLive().getDuccProcessWorkItemsReport();
+		duccOut.debug(location, jobid, "DuccProcessWorkItemsMap size:"+pwiReport.size());
+		return pwiReport;
 	}
 	
 	
 	public void accountingWorkItemIsDispatch(DuccId processId) {
 		String location = "accountingWorkItemIsDispatch";
 		try {
-			getPwiMap().dispatch(processId);
+			getPwiReport().dispatch(processId);
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, "accounting error?", e);
@@ -1248,7 +1248,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	public void accountingWorkItemIsPreempt(DuccId processId) {
 		String location = "accountingWorkItemIsPreempt";
 		try {
-			getPwiMap().preempt(processId);
+			getPwiReport().preempt(processId);
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, "accounting error?", e);
@@ -1259,7 +1259,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	public void accountingWorkItemIsRetry(DuccId processId) {
 		String location = "accountingWorkItemIsRetry";
 		try {
-			getPwiMap().retry(processId);
+			getPwiReport().retry(processId);
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, "accounting error?", e);
@@ -1269,7 +1269,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	public void accountingWorkItemIsError(DuccId processId) {
 		String location = "accountingWorkItemIsError";
 		try {
-			getPwiMap().error(processId);
+			getPwiReport().error(processId);
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, "accounting error?", e);
@@ -1279,7 +1279,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	public void accountingWorkItemIsLost(DuccId processId) {
 		String location = "accountingWorkItemIsLost";
 		try {
-			getPwiMap().lost(processId);
+			getPwiReport().lost(processId);
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, "accounting error?", e);
@@ -1289,7 +1289,7 @@ public class JobDriver extends Thread implements IJobDriver {
 	public void accountingWorkItemIsDone(DuccId processId, long time) {
 		String location = "accountingWorkItemIsDone";
 		try {
-			getPwiMap().done(processId, time);
+			getPwiReport().done(processId, time);
 		}
 		catch(Exception e) {
 			duccOut.error(location, jobid, "accounting error?", e);

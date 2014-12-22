@@ -22,14 +22,14 @@ import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateKeeper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.jd.client.CasDispatchMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
-import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReportV1;
 
 
 public interface IJobDriverAccess {
 	
 	public CasDispatchMap getCasDispatchMap();
-	public DriverStatusReport getDriverStatusReportLive();
-	public DriverStatusReport getDriverStatusReportCopy();
+	public DriverStatusReportV1 getDriverStatusReportLive();
+	public DriverStatusReportV1 getDriverStatusReportCopy();
 	public WorkItemStateKeeper getWorkItemStateKeeper();
 	public PerformanceSummaryWriter getPerformanceSummaryWriter();
 	public void assignLocation(IJobDriver jobDriver, String casId, String nodeIP, String PID);

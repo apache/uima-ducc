@@ -27,7 +27,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
-import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
 
 public interface IDriverStatusReport {
 
@@ -95,7 +94,7 @@ public interface IDriverStatusReport {
 	
 	public IDuccPerWorkItemStatistics getPerWorkItemStatistics();
 	
-	public DuccProcessWorkItemsMap getDuccProcessWorkItemsMap();
+	public IDuccProcessWorkItemsReport getDuccProcessWorkItemsMap();
 	
 	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap();
 	

@@ -41,7 +41,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
-import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReportV1;
 import org.apache.uima.ducc.transport.json.jp.JobProcessCollection;
 import org.apache.uima.ducc.transport.json.jp.JobProcessData;
 
@@ -63,7 +63,7 @@ implements IJobDriverComponent {
 	private DuccId duccId = null;
 	private String jobId = String.valueOf(-1);
 	protected JobDriver thread = null;
-	protected DriverStatusReport driverStatusReport = null;
+	protected DriverStatusReportV1 driverStatusReport = null;
 	private String jdBrokerUrl;
 	private String jdQueue;
 	
@@ -142,7 +142,7 @@ implements IJobDriverComponent {
 					try {
 						thread = new JobDriver();
 						duccOut.trace(methodName, job.getDuccId(), "thread:"+thread);
-						driverStatusReport = new DriverStatusReport(job.getDuccId(),getProcessJmxUrl());
+						driverStatusReport = new DriverStatusReportV1(job.getDuccId(),getProcessJmxUrl());
 						thread.initialize(job, driverStatusReport);
 						thread.start();
 						jpc = new JobProcessCollection(job);
@@ -218,7 +218,7 @@ implements IJobDriverComponent {
 					catch(Throwable t) {
 						duccOut.warn(methodName, null, t);
 					}
-					DriverStatusReport dsr = driverStatusReport;
+					DriverStatusReportV1 dsr = driverStatusReport;
 					if(dsr == null) {
 						duccOut.debug(methodName, null, duccMsg.fetch("dsr is null"));
 					}
