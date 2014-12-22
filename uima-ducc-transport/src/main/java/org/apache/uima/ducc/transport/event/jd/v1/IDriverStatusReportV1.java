@@ -16,25 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.jd;
+package org.apache.uima.ducc.transport.event.jd.v1;
 
-import org.apache.uima.ducc.jd.client.IWorkItemMonitor;
-import org.apache.uima.ducc.jd.client.ThreadLocation;
-import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReport;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
-public interface IJobDriver extends IJobDriverAccess, IWorkItemMonitor {
+public interface IDriverStatusReportV1 extends IDriverStatusReport {
 	
-	public void initialize(IDuccWorkJob job, DriverStatusReport driverStatusReport) throws JobDriverTerminateException;
-	public void run();
+	@Deprecated
+	public int getWorkItemsLost();
 	
-	public IDuccWorkJob getJob();
-	public void setJob(IDuccWorkJob job);
+	@Deprecated
+	public int getWorkItemPendingProcessAssignmentCount();
 	
-	public boolean callbackRegister(String casId, String name);
-	public void callbackUnregister(String casId);
+	@Deprecated
+	public boolean isWorkItemPendingProcessAssignment();
 	
-	public boolean isLostCas(String casId);
-	public ThreadLocation getLostCas(String casId);
+	@Deprecated
+	public DriverState getDriverState();
+	
+	@Deprecated
+	public ConcurrentHashMap<Integer,DuccId> getLimboMap();
+	
+	@Deprecated
+	public ConcurrentHashMap<String,DuccId> getCasQueuedMap();
 }

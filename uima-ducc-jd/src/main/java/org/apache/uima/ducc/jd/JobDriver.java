@@ -74,11 +74,11 @@ import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
-import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryItem;
 import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
+import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
 import org.apache.uima.ducc.transport.uima.dd.generator.DeploymentDescriptorGenerator;
 import org.apache.uima.util.Progress;
 

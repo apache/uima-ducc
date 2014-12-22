@@ -42,6 +42,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
+import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
 
 public class JobDriverReport implements Serializable, IDriverStatusReport {
 
@@ -71,7 +72,6 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	private long wiTodMostRecentStart = 0;
 	
 	private boolean wiPending = true;
-	private boolean wiPendingProcessAssignment = false;
 	
 	private boolean killJob = false;
 	
@@ -219,7 +219,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		jdState = value;
 	}
 	
-	private void setJmxUrl(String value) {
+	public void setJmxUrl(String value) {
 		jmxUrl = value;
 	}
 	
@@ -349,16 +349,6 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	}
 
 	@Override
-	public int getWorkItemsLost() {
-		return 0;
-	}
-
-	@Override
-	public int getWorkItemPendingProcessAssignmentCount() {
-		return 0;
-	}
-
-	@Override
 	public long getWiMillisMin() {
 		return wiMillisMin;
 	}
@@ -391,11 +381,6 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	@Override
 	public boolean isPending() {
 		return wiPending;
-	}
-
-	@Override
-	public boolean isWorkItemPendingProcessAssignment() {
-		return wiPendingProcessAssignment;
 	}
 
 	@Override
@@ -498,18 +483,6 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 			}
 		}
 		return mapProcessOperatingMillis;
-	}
-
-	@Override
-	public ConcurrentHashMap<Integer, DuccId> getLimboMap() {
-		ConcurrentHashMap<Integer, DuccId> map = new ConcurrentHashMap<Integer, DuccId>();
-		return map;
-	}
-
-	@Override
-	public ConcurrentHashMap<String, DuccId> getCasQueuedMap() {
-		ConcurrentHashMap<String, DuccId> map = new ConcurrentHashMap<String, DuccId>();
-		return map;
 	}
 
 }

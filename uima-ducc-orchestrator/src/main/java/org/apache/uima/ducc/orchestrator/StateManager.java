@@ -72,8 +72,9 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDealloc
 import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.history.HistoryPersistenceManager;
-import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsMap;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
+import org.apache.uima.ducc.transport.event.jd.v1.IDriverStatusReportV1;
 import org.apache.uima.ducc.transport.event.rm.IResource;
 import org.apache.uima.ducc.transport.event.rm.IRmJobState;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
@@ -379,7 +380,7 @@ public class StateManager {
 			DuccProcessWorkItemsMap pwiMap = jdStatusReport.getDuccProcessWorkItemsMap();
 			if(pwiMap != null) {
 				IDuccProcessWorkItems pwi = pwiMap.getTotals();
-				pwi.setCountUnassigned(jdStatusReport.getWorkItemPendingProcessAssignmentCount());
+				
 				DuccWorkPopDriver driver = job.getDriver();
 				IDuccProcessMap processMap = driver.getProcessMap();
 				if(processMap != null) {
@@ -390,6 +391,10 @@ public class StateManager {
 						process.setProcessWorkItems(pwi);
 						logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 					}
+				}
+				if(jdStatusReport instanceof IDriverStatusReportV1) {
+					IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
+					pwi.setCountUnassigned(jdStatusReportV1.getWorkItemPendingProcessAssignmentCount());
 				}
 			}
 			job.setWiMillisMin(jdStatusReport.getWiMillisMin());
@@ -677,8 +682,12 @@ public class StateManager {
 			long total = jdStatusReport.getWorkItemsTotal();
 			long done = jdStatusReport.getWorkItemsProcessingCompleted();
 			long error = jdStatusReport.getWorkItemsProcessingError();
-			long lost = jdStatusReport.getWorkItemsLost();
-			long todo = total - (done + error + lost);
+			long todo = total - (done + error);
+			if(jdStatusReport instanceof IDriverStatusReportV1) {
+				IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
+				long lost = jdStatusReportV1.getWorkItemsLost();
+				todo = todo - lost;
+			}
 			long tps = job.getSchedulingInfo().getIntThreadsPerShare();
 			long numShares = 0;
 			if(todo%tps > 0) {
@@ -699,10 +708,26 @@ public class StateManager {
 		return retVal;
 	}
 	
+	private boolean isDeallocatable(IDriverStatusReport jdStatusReport) {
+		boolean retVal = false;
+		if(!jdStatusReport.isPending()) {
+			if(jdStatusReport instanceof IDriverStatusReportV1) {
+				IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
+				if(!jdStatusReportV1.isWorkItemPendingProcessAssignment()) {
+					retVal = true;
+				}
+			}
+			else {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
 	private boolean deallocateIdleProcesses(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateIdleProcesses";
 		boolean retVal = false;
-		if(!jdStatusReport.isPending()  && !jdStatusReport.isWorkItemPendingProcessAssignment()) {
+		if(isDeallocatable(jdStatusReport)) {
 			IDuccProcessMap processMap = job.getProcessMap();
 			Iterator<DuccId> iterator = processMap.keySet().iterator();
 			boolean excessCapacity = isExcessCapacity(job, jdStatusReport);

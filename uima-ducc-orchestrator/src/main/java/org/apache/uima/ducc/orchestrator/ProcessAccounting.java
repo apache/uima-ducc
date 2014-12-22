@@ -45,6 +45,7 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ResourceState;
 import org.apache.uima.ducc.transport.event.common.ITimeWindow;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
+import org.apache.uima.ducc.transport.event.jd.v1.IDriverStatusReportV1;
 
 
 public class ProcessAccounting {
@@ -767,20 +768,21 @@ public class ProcessAccounting {
 		if(!compare(jdRetryWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsRetry())) {
 			duccWorkJob.getSchedulingInfo().setWorkItemsRetry(jdRetryWorkItems);
 		}
-		String jdLostWorkItems = ""+jdStatusReport.getWorkItemsLost();
-		if(!compare(jdLostWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsLost())) {
-			duccWorkJob.getSchedulingInfo().setWorkItemsLost(jdLostWorkItems);
-		}
 		String jdPreemptWorkItems = ""+jdStatusReport.getWorkItemsPreempted();
 		if(!compare(jdPreemptWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsPreempt())) {
 			duccWorkJob.getSchedulingInfo().setWorkItemsPreempt(jdPreemptWorkItems);
 		}
-		
-		duccWorkJob.getSchedulingInfo().setCasQueuedMap(jdStatusReport.getCasQueuedMap());
-		duccWorkJob.getSchedulingInfo().setLimboMap(jdStatusReport.getLimboMap());
+		if(jdStatusReport instanceof IDriverStatusReportV1) {
+			IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
+			String jdLostWorkItems = ""+jdStatusReportV1.getWorkItemsLost();
+			if(!compare(jdLostWorkItems,duccWorkJob.getSchedulingInfo().getWorkItemsLost())) {
+				duccWorkJob.getSchedulingInfo().setWorkItemsLost(jdLostWorkItems);
+			}
+			duccWorkJob.getSchedulingInfo().setCasQueuedMap(jdStatusReportV1.getCasQueuedMap());
+			duccWorkJob.getSchedulingInfo().setLimboMap(jdStatusReportV1.getLimboMap());
+		}
 		
 		duccWorkJob.getSchedulingInfo().setMostRecentWorkItemStart(jdStatusReport.getMostRecentStart());
-		
 		duccWorkJob.getSchedulingInfo().setPerWorkItemStatistics(jdStatusReport.getPerWorkItemStatistics());
 
 		logger.trace(methodName, null, messages.fetch("exit"));

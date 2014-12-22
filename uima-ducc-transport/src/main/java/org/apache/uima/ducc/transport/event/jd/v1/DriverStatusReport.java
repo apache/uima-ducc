@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event.jd;
+package org.apache.uima.ducc.transport.event.jd.v1;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -37,10 +37,11 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.Util;
+import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 @Deprecated
-public class DriverStatusReport implements Serializable, IDriverStatusReport {
+public class DriverStatusReport implements Serializable, IDriverStatusReportV1 {
 
 	private static final long serialVersionUID = 100L;
 	
@@ -161,6 +162,12 @@ public class DriverStatusReport implements Serializable, IDriverStatusReport {
 	
 	public void setJdState(String value) {
 	}
+	
+	/*
+	 * JmxUrl (ducc 2.0)
+	 */
+	public void setJmxUrl(String value) {
+	};
 	
 	/*
 	 * Id

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event.jd;
+package org.apache.uima.ducc.transport.event.jd.v1;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,6 +33,11 @@ public class DuccProcessWorkItemsMap extends ConcurrentHashMap<DuccId, IDuccProc
 	
 	public IDuccProcessWorkItems getTotals() {
 		return totals;
+	}
+	
+	public IDuccProcessWorkItems put(DuccId key, IDuccProcessWorkItems value) {
+		//TODO
+		return value;
 	}
 	
 	private IDuccProcessWorkItems get(DuccId duccId) {

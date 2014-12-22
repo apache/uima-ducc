@@ -41,7 +41,6 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.configuration.jd.iface.IJobDriverComponent;
 import org.apache.uima.ducc.transport.event.JdStateDuccEvent;
 import org.apache.uima.ducc.transport.event.OrchestratorAbbreviatedStateDuccEvent;
-import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.DuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
@@ -135,6 +134,7 @@ implements IJobDriverComponent {
 			IDriverStatusReport driverStatusReport = new JobDriverReport(oi, dpMap);
 			driverStatusReport.setNode(node);
 			driverStatusReport.setPort(port);
+			driverStatusReport.setJmxUrl(getProcessJmxUrl());
 			state.setState(driverStatusReport);
 			logger.debug(location, jobid, "reqNo: "+getStateReqNo.incrementAndGet());
 		}

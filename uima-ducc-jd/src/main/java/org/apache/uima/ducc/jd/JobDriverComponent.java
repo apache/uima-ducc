@@ -40,8 +40,8 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.Rationale;
-import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
+import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReport;
 import org.apache.uima.ducc.transport.json.jp.JobProcessCollection;
 import org.apache.uima.ducc.transport.json.jp.JobProcessData;
 

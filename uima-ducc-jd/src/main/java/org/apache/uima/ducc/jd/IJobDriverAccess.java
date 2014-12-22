@@ -21,8 +21,8 @@ package org.apache.uima.ducc.jd;
 import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateKeeper;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.jd.client.CasDispatchMap;
-import org.apache.uima.ducc.transport.event.jd.DriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryWriter;
+import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReport;
 
 
 public interface IJobDriverAccess {

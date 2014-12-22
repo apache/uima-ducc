@@ -27,6 +27,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccCompletionType.JobComple
 import org.apache.uima.ducc.transport.event.common.IDuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
+import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsMap;
 
 public interface IDriverStatusReport {
 
@@ -40,6 +41,10 @@ public interface IDriverStatusReport {
 	public int getPort();
 	public void setPort(int value);
 	
+	public void setJmxUrl(String value);
+	
+	public DriverState getDriverState();
+	
 	public String getJdState();
 	public void setJdState(String value);
 	
@@ -52,12 +57,6 @@ public interface IDriverStatusReport {
 	public int getWorkItemsRetry();
 	public int getWorkItemsDispatched();
 	public int getWorkItemsPreempted();
-	
-	@Deprecated
-	public int getWorkItemsLost();
-	
-	@Deprecated
-	public int getWorkItemPendingProcessAssignmentCount();
 	
 	// min of finished & running
 	public long getWiMillisMin();
@@ -80,9 +79,6 @@ public interface IDriverStatusReport {
 	// true if CR not yet exhausted
 	public boolean isPending();
 	
-	@Deprecated
-	public boolean isWorkItemPendingProcessAssignment();
-	
 	public boolean isKillJob();
 	
 	public boolean isOperating(String nodeIP, String PID);
@@ -94,9 +90,6 @@ public interface IDriverStatusReport {
 	
 	public Iterator<DuccId> getKillDuccIds();
 	
-	@Deprecated
-	public DriverState getDriverState();
-	
 	public JobCompletionType getJobCompletionType();
 	public IRationale getJobCompletionRationale();
 	
@@ -106,9 +99,4 @@ public interface IDriverStatusReport {
 	
 	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap();
 	
-	@Deprecated
-	public ConcurrentHashMap<Integer,DuccId> getLimboMap();
-	
-	@Deprecated
-	public ConcurrentHashMap<String,DuccId> getCasQueuedMap();
 }
