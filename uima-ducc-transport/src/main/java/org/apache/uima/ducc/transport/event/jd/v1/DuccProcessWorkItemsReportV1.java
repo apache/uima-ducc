@@ -21,23 +21,23 @@ package org.apache.uima.ducc.transport.event.jd.v1;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
-import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItems;
-import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
+import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItemsV1;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItemsV1;
 
-public class DuccProcessWorkItemsReportV1 extends ConcurrentHashMap<DuccId, IDuccProcessWorkItems> {
+public class DuccProcessWorkItemsReportV1 extends ConcurrentHashMap<DuccId, IDuccProcessWorkItemsV1> {
 
 	private static final long serialVersionUID = 1L;
 	
-	private IDuccProcessWorkItems totals = new DuccProcessWorkItems();
+	private IDuccProcessWorkItemsV1 totals = new DuccProcessWorkItemsV1();
 	
-	public IDuccProcessWorkItems getTotals() {
+	public IDuccProcessWorkItemsV1 getTotals() {
 		return totals;
 	}
 	
-	private IDuccProcessWorkItems get(DuccId duccId) {
-		IDuccProcessWorkItems retVal = super.get(duccId);
+	private IDuccProcessWorkItemsV1 get(DuccId duccId) {
+		IDuccProcessWorkItemsV1 retVal = (IDuccProcessWorkItemsV1) super.get(duccId);
 		if(retVal == null) {
-			retVal = new DuccProcessWorkItems();
+			retVal = new DuccProcessWorkItemsV1();
 			super.put(duccId, retVal);
 		}
 		return retVal;

@@ -25,19 +25,16 @@ import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 
 	private static final long serialVersionUID = 1L;
-
-	private long unassigned = 0;
 	
 	private AtomicLong dispatch = new AtomicLong(0);
 	private AtomicLong done = new AtomicLong(0);
 	private AtomicLong error = new AtomicLong(0);
 	private AtomicLong retry = new AtomicLong(0);
-	private AtomicLong lost = new AtomicLong(0);
 	private AtomicLong preempt = new AtomicLong(0);
-	private AtomicLong completedMillisTotal = new AtomicLong(0);
-	private AtomicLong completedMillisAvg = new AtomicLong(0);
-	private AtomicLong completedMillisMax = new AtomicLong(0);
-	private AtomicLong completedMillisMin = new AtomicLong(0);
+	
+	private AtomicLong doneMillisAvg = new AtomicLong(0);
+	private AtomicLong doneMillisMax = new AtomicLong(0);
+	private AtomicLong doneMillisMin = new AtomicLong(0);
 
 	public DuccProcessWorkItems() {	
 	}
@@ -47,198 +44,120 @@ public class DuccProcessWorkItems implements IDuccProcessWorkItems {
 		done.set(pi.getDone());
 		error.set(pi.getError());
 		retry.set(pi.getRetry());
-		lost.set(0);
 		preempt.set(pi.getPreempt());
-		completedMillisAvg.set(pi.getAvg());
-		completedMillisMax.set(pi.getMax());
-		completedMillisMin.set(pi.getMin());
+		doneMillisAvg.set(pi.getAvg());
+		doneMillisMax.set(pi.getMax());
+		doneMillisMin.set(pi.getMin());
 	}
 	
-	public long getCountUnassigned() {
-		return unassigned;
+	public boolean isAssignedWork() {
+		boolean retVal = true;
+		if((getCountDispatch() == 0) 
+		&& (getCountDone() == 0 )
+		&& (getCountError() == 0) 
+		&& (getCountPreempt() == 0) 
+		&& (getCountRetry() == 0)
+		) {
+			retVal = false;
+		}
+		return retVal;
 	}
 
-	public void setCountUnassigned(long count) {
-		unassigned = count;
-	}
-	
-	private void setMin(long update) {
-		completedMillisMin.compareAndSet(0, update);
-		while(true) {
-			long min = completedMillisMin.get();
-			if(update < min) {
-				completedMillisMin.compareAndSet(min, update);
-			}
-			else {
-				break;
-			}
-		}
-	}
-	
-	private void setMax(long update) {
-		completedMillisMax.compareAndSet(0, update);
-		while(true) {
-			long max = completedMillisMax.get();
-			if(update > max) {
-				completedMillisMax.compareAndSet(max, update);
-			}
-			else {
-				break;
-			}
-		}
-	}
-	
-	public void done(long delta) {
-		done.incrementAndGet();
-		completedMillisTotal.addAndGet(delta);
-		setMin(delta);
-		setMax(delta);
-		undispatch();
-	}
-	
-	public void error() {
-		error.incrementAndGet();
-		undispatch();
-	}
-	
-	public void retry() {
-		retry.incrementAndGet();
-		undispatch();
-	}
-	
-	public void lost() {
-		lost.incrementAndGet();
-	}
-	
-	public void preempt() {
-		preempt.incrementAndGet();
-		undispatch();
-	}
-	
-	public void dispatch() {
-		dispatch.incrementAndGet();
-	}
-	
-	private void undispatch() {
-		dispatch.decrementAndGet();
+	@Override
+	public void setCountDispatch(long value) {
+		dispatch.set(value);
 	}
 
-	
+	@Override
+	public void setCountDone(long value) {
+		done.set(value);
+	}
+
+	@Override
+	public void setCountError(long value) {
+		error.set(value);
+	}
+
+	@Override
+	public void setCountRetry(long value) {
+		retry.set(value);
+	}
+
+	@Override
+	public void setCountPreempt(long value) {
+		preempt.set(value);
+	}
+
+	@Override
 	public long getCountDispatch() {
-		long retVal = 0;
-		try {
-			retVal = dispatch.get();
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
+		return dispatch.get();
 	}
 
-	
+	@Override
 	public long getCountDone() {
-		long retVal = 0;
-		try {
-			retVal = done.get();
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
+		return done.get();
 	}
 
-	
+	@Override
 	public long getCountError() {
-		long retVal = 0;
-		try {
-			retVal = error.get();
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
+		return error.get();
 	}
 
-	
+	@Override
 	public long getCountRetry() {
-		long retVal = 0;
-		try {
-			retVal = retry.get();
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-	
-	public long getCountLost() {
-		long retVal = 0;
-		try {
-			retVal = lost.get();
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
+		return retry.get();
 	}
 
-	
+	@Override
 	public long getCountPreempt() {
-		long retVal = 0;
-		try {
-			retVal = preempt.get();
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-	
-	public long getSecsAvgV1() {
-		long retVal = 0;
-		try {
-			long count = done.get();
-			if(count > 0) {
-				double msecs = (double)completedMillisTotal.get() / (double)count;
-				retVal = (long)(msecs/1000);
-			}
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
-	}
-	
-	public long getSecsAvg() {
-		long retVal = 0;
-		try {
-			double msecs = (double)completedMillisAvg.get();
-			retVal = (long)(msecs/1000);
-		}
-		catch(Throwable t) {
-		}
-		if(retVal == 0) {
-			retVal = getSecsAvgV1();
-		}
-		return retVal;
-	}
-	
-	public long getSecsMax() {
-		long retVal = 0;
-		try {
-			double msecs = (double)completedMillisMax.get();
-			retVal = (long)(msecs/1000);
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
+		return preempt.get();
 	}
 
-	
-	public long getSecsMin() {
-		long retVal = 0;
-		try {
-			double msecs = (double)completedMillisMin.get();
-			retVal = (long)(msecs/1000);
-		}
-		catch(Throwable t) {
-		}
-		return retVal;
+	@Override
+	public void setMillisAvg(long value) {
+		doneMillisAvg.set(value);
 	}
-	
+
+	@Override
+	public void setMillisMax(long value) {
+		doneMillisMax.set(value);
+	}
+
+	@Override
+	public void setMillisMin(long value) {
+		doneMillisMin.set(value);
+	}
+	@Override
+	public long getMillisAvg() {
+		return doneMillisAvg.get();
+	}
+
+	@Override
+	public long getMillisMax() {
+		return doneMillisMax.get();
+	}
+
+	@Override
+	public long getMillisMin() {
+		return doneMillisMin.get();
+	}
+
+	@Override
+	public long getSecsAvg() {
+		double value = doneMillisAvg.get()/1000.0;
+		return (long) value;
+	}
+
+	@Override
+	public long getSecsMax() {
+		double value = doneMillisMax.get()/1000.0;
+		return (long) value;
+	}
+
+	@Override
+	public long getSecsMin() {
+		double value = doneMillisMin.get()/1000.0;
+		return (long) value;
+	}
+
 }

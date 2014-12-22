@@ -18,9 +18,9 @@
 */
 package org.apache.uima.ducc.transport.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
-import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItems;
+import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItemsV1;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,7 +45,7 @@ public class DuccProcessWorkItemsTest {
 	public void tearDown() throws Exception {
 	}
 	
-	private static void stats(DuccProcessWorkItems pwi) {
+	private static void stats(DuccProcessWorkItemsV1 pwi) {
 		System.out.println("     done: "+pwi.getCountDone());
 		System.out.println("    error: "+pwi.getCountError());
 		System.out.println("    retry: "+pwi.getCountRetry());
@@ -55,17 +55,17 @@ public class DuccProcessWorkItemsTest {
 		System.out.println("max(secs): "+pwi.getSecsMax());
 	}
 	
-	private static void done(DuccProcessWorkItems pwi, int msecs) {
+	private static void done(DuccProcessWorkItemsV1 pwi, int msecs) {
 		pwi.dispatch();
 		pwi.done(msecs);
 	}
 	
-	private static void error(DuccProcessWorkItems pwi) {
+	private static void error(DuccProcessWorkItemsV1 pwi) {
 		pwi.dispatch();
 		pwi.error();
 	}
 	
-	private static void retry(DuccProcessWorkItems pwi) {
+	private static void retry(DuccProcessWorkItemsV1 pwi) {
 		pwi.dispatch();
 		pwi.retry();
 	}
@@ -73,7 +73,7 @@ public class DuccProcessWorkItemsTest {
 	@Test
 	public void test() {
 		try {
-			DuccProcessWorkItems pwi = new DuccProcessWorkItems();
+			DuccProcessWorkItemsV1 pwi = new DuccProcessWorkItemsV1();
 			pwi.dispatch();
 			done(pwi,30000);
 			done(pwi,40000);

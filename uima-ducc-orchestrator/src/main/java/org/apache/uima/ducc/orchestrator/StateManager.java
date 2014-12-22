@@ -57,6 +57,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessType.ProcessType;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
+import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItemsV1;
 import org.apache.uima.ducc.transport.event.common.IDuccReservationMap;
 import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccState.ReservationState;
@@ -370,7 +371,7 @@ public class StateManager {
 						IDuccProcess process = processMap.get(processId);
 						IDuccProcessWorkItems pwi = pwiMap.get(processId);
 						process.setProcessWorkItems(pwi);
-						logger.trace(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+						logger.trace(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch());
 					}
 				}
 			}
@@ -385,13 +386,13 @@ public class StateManager {
 		try {
 			IDuccProcessMap processMap = job.getProcessMap();
 			DuccProcessWorkItemsReportV1 pwiReport = (DuccProcessWorkItemsReportV1)jdStatusReport.getDuccProcessWorkItemsMap();
-			ConcurrentHashMap<DuccId, IDuccProcessWorkItems> pwiMap = pwiReport;
+			ConcurrentHashMap<DuccId, IDuccProcessWorkItemsV1> pwiMap = pwiReport;
 			if(pwiMap != null) {
 				Iterator<DuccId> iterator = pwiMap.keySet().iterator();
 				while(iterator.hasNext()) {
 					DuccId processId = iterator.next();
 					IDuccProcess process = processMap.get(processId);
-					IDuccProcessWorkItems pwi = pwiMap.get(processId);
+					IDuccProcessWorkItemsV1 pwi = pwiMap.get(processId);
 					process.setProcessWorkItems(pwi);
 					logger.trace(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 				}
@@ -412,7 +413,6 @@ public class StateManager {
 				IDuccProcessWorkItemsReport pwiReport = jdStatusReport.getDuccProcessWorkItemsMap();
 				if(pwiReport != null) {
 					IDuccProcessWorkItems pwi = pwiReport.getTotals();
-					
 					DuccWorkPopDriver driver = job.getDriver();
 					IDuccProcessMap processMap = driver.getProcessMap();
 					if(processMap != null) {
@@ -421,7 +421,7 @@ public class StateManager {
 							DuccId processId = iterator.next();
 							IDuccProcess process = processMap.get(processId);
 							process.setProcessWorkItems(pwi);
-							logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
+							logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch());
 						}
 					}
 
@@ -443,8 +443,7 @@ public class StateManager {
 		try {
 			DuccProcessWorkItemsReportV1 pwiMap = (DuccProcessWorkItemsReportV1) jdStatusReport.getDuccProcessWorkItemsMap();
 			if(pwiMap != null) {
-				IDuccProcessWorkItems pwi = pwiMap.getTotals();
-				
+				IDuccProcessWorkItemsV1 pwi = pwiMap.getTotals();
 				DuccWorkPopDriver driver = job.getDriver();
 				IDuccProcessMap processMap = driver.getProcessMap();
 				if(processMap != null) {
@@ -456,10 +455,8 @@ public class StateManager {
 						logger.debug(methodName, job.getDuccId(), "done:"+pwi.getCountDone()+" "+"error:"+pwi.getCountError()+" "+"dispatch:"+pwi.getCountDispatch()+" "+"unassigned:"+pwi.getCountUnassigned()+" "+"lost:"+pwi.getCountLost());
 					}
 				}
-				if(jdStatusReport instanceof IDriverStatusReportV1) {
-					IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
-					pwi.setCountUnassigned(jdStatusReportV1.getWorkItemPendingProcessAssignmentCount());
-				}
+				IDriverStatusReportV1 jdStatusReportV1 = (IDriverStatusReportV1) jdStatusReport;
+				pwi.setCountUnassigned(jdStatusReportV1.getWorkItemPendingProcessAssignmentCount());
 			}
 			job.setWiMillisMin(jdStatusReport.getWiMillisMin());
 			job.setWiMillisMax(jdStatusReport.getWiMillisMax());

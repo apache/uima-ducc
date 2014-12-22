@@ -21,12 +21,16 @@ package org.apache.uima.ducc.transport.event.jd;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.transport.event.common.DuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 
 public class DuccProcessWorkItemsReport implements IDuccProcessWorkItemsReport {
 	
 	private static final long serialVersionUID = 1L;
+
+	private static Logger logger = Logger.getLogger(DuccProcessWorkItemsReport.class, IComponent.Id.JD.name());
 	
 	private ConcurrentHashMap<DuccId, IDuccProcessWorkItems> map = new ConcurrentHashMap<DuccId, IDuccProcessWorkItems>();
 	private IDuccProcessWorkItems totals = new DuccProcessWorkItems();
@@ -42,7 +46,67 @@ public class DuccProcessWorkItemsReport implements IDuccProcessWorkItemsReport {
 	
 	@Override
 	public void accum(DuccId key, IDuccProcessWorkItems value) {
-		//TODO
+		String location = "accum";
+		long dispatch = totals.getCountDispatch();
+		long done = totals.getCountDone();
+		long error = totals.getCountError();
+		long preempt = totals.getCountPreempt();
+		long retry = totals.getCountRetry();
+		// dispatch
+		long newDispatch = dispatch+value.getCountDispatch();
+		totals.setCountDispatch(newDispatch);
+		// done
+		long newDone = done+value.getCountDone();
+		totals.setCountDone(newDone);
+		// error
+		long newError = error+value.getCountError();
+		totals.setCountError(newError);
+		// preempt
+		long newPreempt = preempt+value.getCountPreempt();
+		totals.setCountPreempt(newPreempt);
+		// retry
+		long newRetry = retry+value.getCountRetry();
+		totals.setCountRetry(newRetry);
+		// avg
+		long cnt1 = totals.getCountDone();
+		long avg1 = totals.getMillisAvg();
+		long cnt2 = value.getCountDone();
+		long avg2 = value.getMillisAvg();
+		double top = (avg1*cnt1)+(avg2*cnt2);
+		double bot = (cnt1+cnt2);
+		long avg = (long)(top/bot);
+		totals.setMillisAvg(avg);
+		// max
+		long max = totals.getMillisMax();
+		long maxCandidate = value.getMillisMax();
+		logger.trace(location, null, "max="+max+" "+"maxCandidate="+maxCandidate);
+		if(max > 0) {
+			if(maxCandidate > 0) {
+				if(maxCandidate > max) {
+					max = maxCandidate;
+				}
+			}
+		}
+		else {
+			max = maxCandidate;
+		}
+		totals.setMillisMax(max);
+		// min
+		long min = totals.getMillisMin();
+		long minCandidate = value.getMillisMin();
+		logger.trace(location, null, "min="+min+" "+"minCandidate="+minCandidate);
+		if(min > 0) {
+			if(minCandidate > 0) {
+				if(minCandidate < min) {
+					min = minCandidate;
+				}
+			}
+		}
+		else {
+			min = minCandidate;
+		}
+		totals.setMillisMin(min);
+		// process
 		map.put(key, value);
 	}
 

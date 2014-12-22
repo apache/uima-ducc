@@ -20,32 +20,17 @@ package org.apache.uima.ducc.transport.event.common;
 
 import java.io.Serializable;
 
-public interface IDuccProcessWorkItems extends Serializable {
+public interface IDuccProcessWorkItemsV1 extends IDuccProcessWorkItems, Serializable {
+	
+	public long getCountUnassigned();	
+	public void setCountUnassigned(long count);
+	
+	public long getCountLost();
 
-	public boolean isAssignedWork();
-	
-	public void setCountDispatch(long value);
-	public void setCountDone(long value);
-	public void setCountError(long value);
-	public void setCountRetry(long value);
-	public void setCountPreempt(long value);
-	
-	public long getCountDispatch();
-	public long getCountDone();
-	public long getCountError();
-	public long getCountRetry();
-	public long getCountPreempt();
-	
-	public void setMillisAvg(long value);
-	public void setMillisMax(long value);
-	public void setMillisMin(long value);
-	
-	public long getMillisAvg();
-	public long getMillisMax();
-	public long getMillisMin();
-	
-	public long getSecsAvg();
-	public long getSecsMax();
-	public long getSecsMin();
-	
+	public void dispatch();
+	public void done(long millis);
+	public void error();
+	public void retry();
+	public void lost();
+	public void preempt();
 }
