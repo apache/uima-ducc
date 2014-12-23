@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
@@ -45,11 +47,13 @@ public class ActionGet implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionGet.class, IComponent.Id.JD.name());
 	
+	private AtomicBoolean warned = new AtomicBoolean(false);
+	
 	@Override
 	public String getName() {
 		return ActionGet.class.getName();
 	}
-
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -66,7 +70,18 @@ public class ActionGet implements IAction {
 			JobDriverHelper jdh = JobDriverHelper.getInstance();
 			jd.advanceJdState(JdState.Active);
 			CasManager cm = jd.getCasManager();
-			IMetaCas metaCas = cm.getMetaCas();
+			IMetaCas metaCas = null;
+			if(cm.getCasManagerStats().isKillJob()) {
+				if(!warned.getAndSet(true)) {
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
+					mb.append("this and future requests refused due to pending kill job");
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
+			}
+			else {
+				metaCas = cm.getMetaCas();
+			}
 			trans.setMetaCas(metaCas);
 			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
@@ -97,6 +112,8 @@ public class ActionGet implements IAction {
 			else {
 				event = WiFsm.CAS_Unavailable;
 				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
+				mb.append(Standardize.Label.remote.get()+rwt.toString());
 				mb.append("No CAS found for processing");
 				logger.info(location, ILogger.null_id, mb.toString());
 			}

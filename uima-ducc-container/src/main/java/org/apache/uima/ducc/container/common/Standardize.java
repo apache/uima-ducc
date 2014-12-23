@@ -21,6 +21,8 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		enter,
+		exit,
 		dispatch,
 		done,
 		error,

@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.Event;
 import org.apache.uima.ducc.container.common.fsm.Fsm;
 import org.apache.uima.ducc.container.common.fsm.FsmException;
@@ -25,8 +27,13 @@ import org.apache.uima.ducc.container.common.fsm.State;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 
 public class WiFsm extends Fsm {
+
+	private static Logger logger = Logger.getLogger(WiFsm.class, IComponent.Id.JD.name());
 	
 	public static IState Start 				= new State("Start");
 	public static IState Get_Pending 		= new State("Get_Pending");
@@ -62,6 +69,11 @@ public class WiFsm extends Fsm {
 	}
 	
 	private void initialize() throws FsmException {
+		String location = "initialize";
+		
+		MessageBuffer mb1 = new MessageBuffer();
+		mb1.append(Standardize.Label.enter.get());
+		logger.debug(location, ILogger.null_id, mb1.toString());
 		
 		// current state // event // action // next state //
 		
@@ -91,5 +103,9 @@ public class WiFsm extends Fsm {
 		add(CAS_Active, Ack_Request, ActionError, CAS_Active);
 		add(CAS_Active, End_Request, ActionEnd, Start);
 		add(CAS_Active, Process_Preempt, ActionPreempt, Start);
+		
+		MessageBuffer mb2 = new MessageBuffer();
+		mb2.append(Standardize.Label.exit.get());
+		logger.debug(location, ILogger.null_id, mb2.toString());
 	}
 }
