@@ -21,7 +21,10 @@ package org.apache.uima.ducc.container.jd.mh.iface.remote;
 import java.io.Serializable;
 
 public interface IRemotePid extends IRemoteNode, Serializable {
-
+	
+	public String getPidName();
+	public void setPidName(String value);
+	
 	public int getPid();
 	public void setPid(int value);
 }

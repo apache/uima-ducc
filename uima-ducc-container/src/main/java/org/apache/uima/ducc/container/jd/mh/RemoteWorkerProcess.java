@@ -32,17 +32,20 @@ public class RemoteWorkerProcess implements IRemoteWorkerProcess {
 	
 	private String nodeName = null;
 	private String nodeAddress = null;
+	private String pidName = null;
 	private int pid = 0;
 	
 	public RemoteWorkerProcess(IMetaCasRequester metaCasRequester) {
-		setNodeName(metaCasRequester.getRequesterName());
+		setNodeName(metaCasRequester.getRequesterNodeName());
 		setNodeAddress(metaCasRequester.getRequesterAddress());
+		setPidName(metaCasRequester.getRequesterProcessName());
 		setPid(metaCasRequester.getRequesterProcessId());
 	}
 	
-	public RemoteWorkerProcess(String nodeName, String nodeAddress, int pid) {
+	public RemoteWorkerProcess(String nodeName, String nodeAddress, String pidName, int pid) {
 		setNodeName(nodeName);
 		setNodeAddress(nodeAddress);
+		setPidName(pidName);
 		setPid(pid);
 	}
 	
@@ -60,6 +63,12 @@ public class RemoteWorkerProcess implements IRemoteWorkerProcess {
 			sb.append(".");
 		}
 		sb.append(pid);
+		if(pidName != null) {
+			sb.append(".");
+			sb.append("[");
+			sb.append(pidName);
+			sb.append("]");
+		}
 		return sb.toString();
 	}
 	
@@ -81,6 +90,16 @@ public class RemoteWorkerProcess implements IRemoteWorkerProcess {
 	@Override
 	public void setNodeAddress(String value) {
 		nodeAddress = value;
+	}
+
+	@Override
+	public String getPidName() {
+		return pidName;
+	}
+
+	@Override
+	public void setPidName(String value) {
+		pidName = value;
 	}
 	
 	@Override

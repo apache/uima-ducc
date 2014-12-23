@@ -27,6 +27,7 @@ public class ProcessInfo implements IProcessInfo {
 	
 	private String nodeName = null;
 	private String nodeAddress = null;
+	private String pidName = null;
 	private int pid = 0;
 	
 	private long dispatch = 0;
@@ -39,14 +40,16 @@ public class ProcessInfo implements IProcessInfo {
 	private long max = 0;
 	private long min = 0;
 	
-	public ProcessInfo(String nodeName, String nodeAddress, int pid) {
+	public ProcessInfo(String nodeName, String nodeAddress, String pidName, int pid) {
 		setNodeName(nodeName);
+		setPidName(pidName);
 		setPid(pid);
 	}
 	
-	public ProcessInfo(String nodeName, String nodeAddress, int pid, IProcessStatistics pStats) {
+	public ProcessInfo(String nodeName, String nodeAddress, String pidName, int pid, IProcessStatistics pStats) {
 		setNodeName(nodeName);
 		setNodeAddress(nodeAddress);
+		setPidName(pidName);
 		setPid(pid);
 		setDispatch(pStats.getCountDispatch());
 		setDone(pStats.getCountDone());
@@ -76,7 +79,17 @@ public class ProcessInfo implements IProcessInfo {
 	public void setNodeAddress(String value) {
 		nodeAddress = value;
 	}
-	
+
+	@Override
+	public String getPidName() {
+		return pidName;
+	}
+
+	@Override
+	public void setPidName(String value) {
+		pidName = value;
+	}
+
 	@Override
 	public int getPid() {
 		return pid;
@@ -166,7 +179,5 @@ public class ProcessInfo implements IProcessInfo {
 	public long getMin() {
 		return min;
 	}
-
-
 
 }

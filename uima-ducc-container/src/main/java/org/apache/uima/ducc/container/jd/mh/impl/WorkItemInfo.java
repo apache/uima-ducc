@@ -26,6 +26,7 @@ public class WorkItemInfo implements IWorkItemInfo {
 	
 	String nodeName = null;
 	String nodeAddress = null;
+	String pidName = null;
 	int pid = 0;
 	int tid = 0;
 	long operatingMillis = 0;
@@ -51,6 +52,16 @@ public class WorkItemInfo implements IWorkItemInfo {
 		nodeAddress = value;
 	}
 
+	@Override
+	public String getPidName() {
+		return pidName;
+	}
+
+	@Override
+	public void setPidName(String value) {
+		pidName = value;
+	}
+	
 	@Override
 	public int getPid() {
 		return pid;
@@ -90,4 +101,5 @@ public class WorkItemInfo implements IWorkItemInfo {
 	public void setSeqNo(int value) {
 		seqNo = value;
 	}
+
 }

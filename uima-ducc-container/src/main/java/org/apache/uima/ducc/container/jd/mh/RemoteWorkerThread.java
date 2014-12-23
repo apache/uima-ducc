@@ -34,19 +34,22 @@ public class RemoteWorkerThread implements IRemoteWorkerThread {
 	
 	private String nodeName = null;
 	private String nodeAddress = null;
+	private String pidName = null;
 	private int pid = 0;
 	private int tid = 0;
 	
 	public RemoteWorkerThread(IMetaCasRequester metaCasRequester) {
-		setNodeName(metaCasRequester.getRequesterName());
+		setNodeName(metaCasRequester.getRequesterNodeName());
 		setNodeAddress(metaCasRequester.getRequesterAddress());
+		setPidName(metaCasRequester.getRequesterProcessName());
 		setPid(metaCasRequester.getRequesterProcessId());
 		setTid(metaCasRequester.getRequesterThreadId());
 	}
 	
-	public RemoteWorkerThread(String nodeName, String nodeAddress, int pid, int tid) {
+	public RemoteWorkerThread(String nodeName, String nodeAddress, String pidName, int pid, int tid) {
 		setNodeName(nodeName);
 		setNodeAddress(nodeAddress);
+		setPidName(pidName);
 		setPid(pid);
 		setTid(tid);
 	}
@@ -65,6 +68,12 @@ public class RemoteWorkerThread implements IRemoteWorkerThread {
 			sb.append(".");
 		}
 		sb.append(pid);
+		if(pidName != null) {
+			sb.append(".");
+			sb.append("[");
+			sb.append(pidName);
+			sb.append("]");
+		}
 		sb.append(".");
 		sb.append(tid);
 		return sb.toString();
@@ -88,6 +97,16 @@ public class RemoteWorkerThread implements IRemoteWorkerThread {
 	@Override
 	public void setNodeAddress(String value) {
 		nodeAddress = value;
+	}
+
+	@Override
+	public String getPidName() {
+		return pidName;
+	}
+
+	@Override
+	public void setPidName(String value) {
+		pidName = value;
 	}
 	
 	@Override
@@ -243,4 +262,5 @@ public class RemoteWorkerThread implements IRemoteWorkerThread {
 		}
 		return retVal;
 	}
+
 }

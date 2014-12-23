@@ -19,7 +19,6 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 import java.io.InvalidClassException;
 import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -170,6 +169,10 @@ public class DuccHttpClient {
 		}
 		return nn;
 	}
+	private String getProcessName() {
+		String pn = System.getenv("ProcessDuccIdFriendly");
+		return pn;
+	}
     private void addCommonHeaders( BasicHttpRequest request ) {
     	request.setHeader("IP", getIP());
 		request.setHeader("Hostname", getNodeName());
@@ -179,10 +182,17 @@ public class DuccHttpClient {
 		
     }
     private void addCommonHeaders( IMetaCasTransaction transaction ) {
+    	String location = "addCommonHeaders";
     	transaction.setRequesterAddress(getIP());
-    	transaction.setRequesterName(getNodeName());
+    	transaction.setRequesterNodeName(getNodeName());
+    	transaction.setRequesterProcessName(getProcessName());
     	transaction.setRequesterProcessId(Integer.valueOf(pid));
     	transaction.setRequesterThreadId((int)Thread.currentThread().getId());
+    	logger.trace(location, null, "ip:"+transaction.getRequesterAddress());
+    	logger.trace(location, null, "nodeName:"+transaction.getRequesterNodeName());
+    	logger.trace(location, null, "processName:"+transaction.getRequesterProcessName());
+    	logger.trace(location, null, "processId:"+transaction.getRequesterProcessId());
+    	logger.trace(location, null, "threadId:"+transaction.getRequesterThreadId());
     }
     
     private void addCommonHeaders( PostMethod method ) {

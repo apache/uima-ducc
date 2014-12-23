@@ -65,14 +65,19 @@ public class WiFsm extends Fsm {
 	
 	public WiFsm() throws FsmException {
 		super();
-		initialize();
+		// build only 1 Fsm at a time
+		// (not really necessary, but to avoid confusion in logs)
+		synchronized(WiFsm.class) {
+			initialize();
+		}
+		
 	}
 	
 	private void initialize() throws FsmException {
 		String location = "initialize";
 		
 		MessageBuffer mb1 = new MessageBuffer();
-		mb1.append(Standardize.Label.enter.get());
+		mb1.append(Standardize.Label.enter.name());
 		logger.debug(location, ILogger.null_id, mb1.toString());
 		
 		// current state // event // action // next state //
@@ -105,7 +110,7 @@ public class WiFsm extends Fsm {
 		add(CAS_Active, Process_Preempt, ActionPreempt, Start);
 		
 		MessageBuffer mb2 = new MessageBuffer();
-		mb2.append(Standardize.Label.exit.get());
+		mb2.append(Standardize.Label.exit.name());
 		logger.debug(location, ILogger.null_id, mb2.toString());
 	}
 }

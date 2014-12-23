@@ -47,7 +47,8 @@ public class TestMessageHandler extends ATest {
 
 	private MetaCasTransaction create(String node, int pid, int tid, Type type) {
 		MetaCasTransaction mct = new MetaCasTransaction();
-		mct.setRequesterName(node);
+		mct.setRequesterNodeName(node);
+		mct.setRequesterProcessName(pid+"");
 		mct.setRequesterProcessId(pid);
 		mct.setRequesterThreadId(tid);
 		mct.setType(type);
@@ -365,7 +366,7 @@ public class TestMessageHandler extends ATest {
 	private void randomPreemptTest03(MessageHandler messageHandler, ThreadInfo ti) {
 		int n = randomTest03.nextInt(100);
 		if(n < pctTest03) {
-			IProcessInfo processInfo = new ProcessInfo(ti.getNodeName(),null,ti.getPid());
+			IProcessInfo processInfo = new ProcessInfo(ti.getNodeName(),null,""+ti.getPid(),ti.getPid());
 			messageHandler.handlePreemptProcess(processInfo);
 		}
 	}

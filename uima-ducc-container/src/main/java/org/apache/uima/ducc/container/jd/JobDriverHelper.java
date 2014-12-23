@@ -62,6 +62,7 @@ public class JobDriverHelper {
 				IWorkItemInfo wii = new WorkItemInfo();
 				wii.setNodeAddress(rwt.getNodeAddress());
 				wii.setNodeName(rwt.getNodeName());
+				wii.setPidName(rwt.getPidName());
 				wii.setPid(rwt.getPid());
 				wii.setTid(rwt.getTid());
 				//TODO
@@ -91,11 +92,12 @@ public class JobDriverHelper {
 			for(Entry<IRemotePid, IProcessStatistics> entry : map.entrySet()) {
 				IRemotePid rwp = entry.getKey();
 				IProcessStatistics pStats = entry.getValue();
-				IProcessInfo processInfo = new ProcessInfo(rwp.getNodeName(), rwp.getNodeAddress(), rwp.getPid(), pStats);
+				IProcessInfo processInfo = new ProcessInfo(rwp.getNodeName(), rwp.getNodeAddress(), rwp.getPidName(), rwp.getPid(), pStats);
 				list.add(processInfo);
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
 				mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
+				mb.append(Standardize.Label.pidName.get()+processInfo.getPidName());
 				mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 				mb.append(Standardize.Label.dispatch.get()+processInfo.getDispatch());
 				mb.append(Standardize.Label.done.get()+processInfo.getDone());
@@ -162,7 +164,7 @@ public class JobDriverHelper {
 		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 			if(isEqual(entry.getValue(), wi)) {
 				IRemoteWorkerThread rwt = entry.getKey();
-				rwp = new RemoteWorkerProcess(rwt.getNodeName(),rwt.getNodeAddress(),rwt.getPid());
+				rwp = new RemoteWorkerProcess(rwt.getNodeName(),rwt.getNodeAddress(),rwt.getPidName(),rwt.getPid());
 			}
 		}
 		return rwp;

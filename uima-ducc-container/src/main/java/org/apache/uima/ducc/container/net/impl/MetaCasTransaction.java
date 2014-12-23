@@ -34,8 +34,9 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	private String providerName = null;
 	private int providerPort = 0;
 	
-	private String requesterName = null;
+	private String requesterNodeName = null;
 	private String requesterAddress = null;
+	private String requesterPidName = null;
 	private int requesterPid = 0;
 	private int requesterTid = 0;
 	
@@ -78,13 +79,13 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	}
 
 	@Override
-	public String getRequesterName() {
-		return requesterName;
+	public String getRequesterNodeName() {
+		return requesterNodeName;
 	}
 
 	@Override
-	public void setRequesterName(String value) {
-		requesterName = value;
+	public void setRequesterNodeName(String value) {
+		requesterNodeName = value;
 	}
 
 	@Override
@@ -95,6 +96,16 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	@Override
 	public void setRequesterAddress(String value) {
 		requesterAddress = value;
+	}
+
+	@Override
+	public String getRequesterProcessName() {
+		return requesterPidName;
+	}
+
+	@Override
+	public void setRequesterProcessName(String value) {
+		requesterPidName = value;
 	}
 	
 	@Override

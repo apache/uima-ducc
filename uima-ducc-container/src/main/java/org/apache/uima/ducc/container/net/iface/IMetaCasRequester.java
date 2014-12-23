@@ -22,11 +22,14 @@ import java.io.Serializable;
 
 public interface IMetaCasRequester extends Serializable {
 	
-	public String getRequesterName();
-	public void setRequesterName(String value);
+	public String getRequesterNodeName();
+	public void setRequesterNodeName(String value);
 	
 	public String getRequesterAddress();
 	public void setRequesterAddress(String value);
+	
+	public String getRequesterProcessName();
+	public void setRequesterProcessName(String value);
 	
 	public int getRequesterProcessId();
 	public void setRequesterProcessId(int value);

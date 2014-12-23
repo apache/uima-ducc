@@ -176,6 +176,7 @@ implements IJobDriverComponent {
 						NodeIdentity ni = p.getNodeIdentity();
 						String node = ni.getName();
 						String ip = ni.getIp();
+						String pidName = p.getDuccId().getFriendly()+"";
 						String pid = p.getPID();
 						logger.debug(location, jobid, "node: "+node+" "+"ip: "+ip+" "+"pid: "+pid+" "+"state:"+state.name());
 						switch(state) {
@@ -187,7 +188,7 @@ implements IJobDriverComponent {
 							try {
 								if(pid != null) {
 									int iPid = Integer.parseInt(pid.trim());
-									IProcessInfo processInfo = new ProcessInfo(node, ip, iPid);
+									IProcessInfo processInfo = new ProcessInfo(node, ip, pidName, iPid);
 									if(p.isPreempted()) {
 										mh.handlePreemptProcess(processInfo);
 									}

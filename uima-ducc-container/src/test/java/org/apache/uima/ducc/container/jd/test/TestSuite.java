@@ -294,8 +294,8 @@ public class TestSuite extends ATest {
 		String n01 = "node01";
 		int p10 = 10;
 		int t20 = 20;
-		RemoteWorkerThread rwt01A = new RemoteWorkerThread(n01,null,p10,t20);
-		RemoteWorkerThread rwt01B = new RemoteWorkerThread(n01,null,p10,t20);
+		RemoteWorkerThread rwt01A = new RemoteWorkerThread(n01,null,p10+"",p10,t20);
+		RemoteWorkerThread rwt01B = new RemoteWorkerThread(n01,null,p10+"",p10,t20);
 		assertTrue(rwt01A.equals(rwt01A));
 		assertTrue(rwt01B.equals(rwt01B));
 		assertTrue(rwt01A.equals(rwt01B));
@@ -305,9 +305,9 @@ public class TestSuite extends ATest {
 		String n02 = "node02";
 		int p30 = 30;
 		int t40 = 40;
-		RemoteWorkerThread rwt02A = new RemoteWorkerThread(n02,null,p10,t20);
-		RemoteWorkerThread rwt01C = new RemoteWorkerThread(n01,null,p30,t20);
-		RemoteWorkerThread rwt01D = new RemoteWorkerThread(n01,null,p10,t40);
+		RemoteWorkerThread rwt02A = new RemoteWorkerThread(n02,null,p10+"",p10,t20);
+		RemoteWorkerThread rwt01C = new RemoteWorkerThread(n01,null,p30+"",p30,t20);
+		RemoteWorkerThread rwt01D = new RemoteWorkerThread(n01,null,p10+"",p10,t40);
 		assertTrue(!rwt01A.equals(rwt02A));
 		assertTrue(!rwt01A.equals(rwt01C));
 		assertTrue(!rwt01A.equals(rwt01D));

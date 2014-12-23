@@ -119,6 +119,9 @@ public abstract class CommandExecutor implements Callable<Process> {
 				// Add process unique ducc id to correlate process state updates
 				env.put("ProcessDuccId", ((ManagedProcess) managedProcess)
 						.getDuccId().getUnique());
+				// Add "friendly" process name for coordination with JD and OR
+				env.put("ProcessDuccIdFriendly", ((ManagedProcess) managedProcess)
+						.getDuccId().getFriendly()+"");
 				if (((ManagedProcess) managedProcess).getDuccProcess()
 						.getProcessType()
 						.equals(ProcessType.Job_Uima_AS_Process)) {

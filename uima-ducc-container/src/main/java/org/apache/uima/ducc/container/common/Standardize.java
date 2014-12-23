@@ -43,6 +43,7 @@ public class Standardize {
 		directory,
 		node,
 		ip,
+		pidName,
 		pid,
 		tid,
 		crFetches,
