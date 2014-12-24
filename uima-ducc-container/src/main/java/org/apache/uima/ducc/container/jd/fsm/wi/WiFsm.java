@@ -58,7 +58,8 @@ public class WiFsm extends Fsm {
 	public IAction ActionEnd				= new ActionEnd();
 	
 	public IAction ActionInProgress			= new ActionInProgress();
-	public IAction ActionPreempt			= new ActionPreempt();
+	public IAction ActionProcessFailure		= new ActionProcessFailure();
+	public IAction ActionProcessPreempt		= new ActionProcessPreempt();
 	
 	public IAction ActionIgnore 			= new ActionIgnore();
 	public IAction ActionError				= new ActionError();
@@ -89,25 +90,29 @@ public class WiFsm extends Fsm {
 		add(Start, CAS_Unavailable, ActionIgnore, Start);
 		add(Start, Ack_Request, ActionError, Start);
 		add(Start, Process_Preempt, ActionIgnore, Start);
+		add(Start, Process_Failure, ActionIgnore, Start);
 		
 		add(Get_Pending, Get_Request, ActionInProgress, Get_Pending);
 		add(Get_Pending, CAS_Available, ActionSend, CAS_Send);
 		add(Get_Pending, CAS_Unavailable, ActionSend, Start);
 		add(Get_Pending, Ack_Request, ActionError, Get_Pending);
-		add(Get_Pending, Process_Preempt, ActionPreempt, Start);
+		add(Get_Pending, Process_Preempt, ActionProcessPreempt, Start);
+		add(Get_Pending, Process_Failure, ActionProcessFailure, Start);
 		
 		add(CAS_Send, Get_Request, ActionInProgress, CAS_Send);
 		add(CAS_Send, CAS_Available, ActionIgnore, CAS_Send);
 		add(CAS_Send, CAS_Unavailable, ActionIgnore, CAS_Send);
 		add(CAS_Send, Ack_Request, ActionAck, CAS_Active);
-		add(CAS_Send, Process_Preempt, ActionPreempt, Start);
+		add(CAS_Send, Process_Preempt, ActionProcessPreempt, Start);
+		add(CAS_Send, Process_Failure, ActionProcessFailure, Start);
 		
 		add(CAS_Active, Get_Request, ActionError, CAS_Active);
 		add(CAS_Active, CAS_Available, ActionIgnore, CAS_Active);
 		add(CAS_Active, CAS_Unavailable, ActionIgnore, CAS_Active);
 		add(CAS_Active, Ack_Request, ActionError, CAS_Active);
 		add(CAS_Active, End_Request, ActionEnd, Start);
-		add(CAS_Active, Process_Preempt, ActionPreempt, Start);
+		add(CAS_Active, Process_Preempt, ActionProcessPreempt, Start);
+		add(CAS_Active, Process_Failure, ActionProcessFailure, Start);
 		
 		MessageBuffer mb2 = new MessageBuffer();
 		mb2.append(Standardize.Label.exit.name());

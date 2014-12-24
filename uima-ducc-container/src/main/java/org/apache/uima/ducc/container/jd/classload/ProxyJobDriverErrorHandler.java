@@ -124,6 +124,7 @@ public class ProxyJobDriverErrorHandler {
 		return retVal;
 	}
 	
+	// Failed work item
 	public ProxyJobDriverDirective handle(String serializedCAS, String serializedException) throws JobDriverException {
 		String location = "handle";
 		ProxyJobDriverDirective retVal = new ProxyJobDriverDirective();
@@ -135,6 +136,23 @@ public class ProxyJobDriverErrorHandler {
 			boolean isKillJob = (Boolean) methodInstanceIsKillJob.invoke(directive);
 			boolean isKillProcess = (Boolean) methodInstanceIsKillProcess.invoke(directive);
 			boolean isKillWorkItem = (Boolean) methodInstanceIsKillWorkItem.invoke(directive);
+			retVal = new ProxyJobDriverDirective(isKillJob, isKillProcess, isKillWorkItem);
+		} 
+		catch (Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return retVal;
+	}
+	
+	// Failed process
+	public ProxyJobDriverDirective handle(String serializedCAS) throws JobDriverException {
+		String location = "handle";
+		ProxyJobDriverDirective retVal = new ProxyJobDriverDirective();
+		try {
+			//TODO
+			boolean isKillJob = false;
+			boolean isKillProcess = false;
+			boolean isKillWorkItem = false;
 			retVal = new ProxyJobDriverDirective(isKillJob, isKillProcess, isKillWorkItem);
 		} 
 		catch (Exception e) {

@@ -153,7 +153,26 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.info(location, ILogger.null_id, mb.toString());
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-			//TODO
+			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
+				IRemoteWorkerThread rwt = entry.getKey();
+				if(rwt.comprises(processInfo)) {
+					MessageBuffer mb1 = new MessageBuffer();
+					mb1.append(Standardize.Label.remote.get()+rwt.toString());
+					mb1.append(Boolean.TRUE.toString());
+					logger.info(location, ILogger.null_id, mb1.toString());
+					IWorkItem wi = entry.getValue();
+					IFsm fsm = wi.getFsm();
+					IEvent event = WiFsm.Process_Failure;
+					Object actionData = new ActionData(wi, rwt, null);
+					fsm.transition(event, actionData);
+				}
+				else {
+					MessageBuffer mb2 = new MessageBuffer();
+					mb2.append(Standardize.Label.remote.get()+rwt.toString());
+					mb2.append(Boolean.FALSE.toString());
+					logger.info(location, ILogger.null_id, mb2.toString());
+				}
+			}
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

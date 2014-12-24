@@ -30,28 +30,53 @@ import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
+import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
+import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public class ActionPreempt implements IAction {
+public class ActionProcessFailure implements IAction {
 
-	private static Logger logger = Logger.getLogger(ActionPreempt.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(ActionProcessFailure.class, IComponent.Id.JD.name());
+	
+	public ActionProcessFailure() {
+		super();
+	}
 	
 	@Override
 	public String getName() {
-		return ActionPreempt.class.getName();
+		return ActionProcessFailure.class.getName();
 	}
 	
-	private void preemptWorkItem(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
-		String location = "preemptWorkItem";
-		cm.putMetaCas(metaCas, RetryReason.ProcessPreempt);
-		cm.getCasManagerStats().incEndRetry();
+	private void retryWorkItem(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+		String location = "retryWorkItem";
+		
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 		mb.append(Standardize.Label.remote.get()+rwp.toString());
 		logger.info(location, ILogger.null_id, mb.toString());
+		//
+		cm.putMetaCas(metaCas, RetryReason.ProcessDown);
+		cm.getCasManagerStats().incEndRetry();
+		JobDriver jd = JobDriver.getInstance();
+		JobDriverHelper jdh = JobDriverHelper.getInstance();
+		IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+		MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+		IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
+		int seqNo = metaCasHelper.getSystemKey();
+		wisk.retry(seqNo);
+		pStats.retry(wi);
+		wi.resetTods();
+	}
+	
+	private void killWorkItem(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+		//TODO
+	}
+	
+	private void killJob(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+		//TODO
 	}
 	
 	@Override
@@ -68,14 +93,28 @@ public class ActionPreempt implements IAction {
 			IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
 			if(rwp != null) {
 				if(metaCas != null) {
-					preemptWorkItem(cm, wi, metaCas, rwp);
-					IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-					MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
-					int seqNo = metaCasHelper.getSystemKey();
-					wisk.preempt(seqNo);
-					pStats.preempt(wi);
-					wi.resetTods();
+					String serializedCas = (String) metaCas.getUserSpaceCas();
+					ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
+					ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas);
+					if(pjdd != null) {
+						MessageBuffer mb = new MessageBuffer();
+						mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());
+						mb.append(Standardize.Label.isKillProcess.get()+pjdd.isKillProcess());
+						mb.append(Standardize.Label.isKillWorkItem.get()+pjdd.isKillWorkItem());
+						logger.info(location, ILogger.null_id, mb.toString());
+						if(pjdd.isKillJob()) {
+							killJob(cm, wi, metaCas, rwp);
+						}
+						else if(pjdd.isKillWorkItem()) {
+							killWorkItem(cm, wi, metaCas, rwp);
+						}
+						else {
+							retryWorkItem(cm, wi, metaCas, rwp);
+						}
+					}
+					else {
+						retryWorkItem(cm, wi, metaCas, rwp);
+					}
 				}
 				else {
 					MessageBuffer mb = new MessageBuffer();
