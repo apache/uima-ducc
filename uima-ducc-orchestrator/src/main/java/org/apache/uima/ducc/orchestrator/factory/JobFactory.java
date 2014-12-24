@@ -19,7 +19,7 @@
 package org.apache.uima.ducc.orchestrator.factory;
 
 import org.apache.uima.ducc.common.config.CommonConfiguration;
-import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
+import org.apache.uima.ducc.common.utils.VersionCommunicationsJdJp;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 
@@ -27,14 +27,11 @@ public class JobFactory implements IJobFactory {
 	
 	public static IJobFactory getInstance() {
 		IJobFactory jobFactory = null;
-		String jd_configuration_class = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_configuration_class);
-		if(jd_configuration_class != null) {
-			if(jd_configuration_class.trim().equals("org.apache.uima.ducc.jd.config.JobDriverConfiguration")) {
-				jobFactory = JobFactoryV1.getInstance();
-			}
-			else {
-				jobFactory = JobFactoryV2.getInstance();
-			}
+		if(VersionCommunicationsJdJp.get() == 1) {
+			jobFactory = JobFactoryV1.getInstance();
+		}
+		else {
+			jobFactory = JobFactoryV2.getInstance();
 		}
 		return jobFactory;
 	}
