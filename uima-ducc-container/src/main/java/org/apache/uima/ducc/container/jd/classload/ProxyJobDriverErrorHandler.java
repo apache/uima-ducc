@@ -53,15 +53,20 @@ public class ProxyJobDriverErrorHandler {
 	private void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
-			FlagsHelper sph = FlagsHelper.getInstance();
-			String userClasspath = sph.getUserClasspath();
-			String[] classpath = sph.stringToArray(userClasspath);
-			String className = sph.getUserErrorHandlerClassname();
+			FlagsHelper fh = FlagsHelper.getInstance();
+			String userClasspath = fh.getUserClasspath();
+			String[] classpath = fh.stringToArray(userClasspath);
+			if(classpath != null) {
+				for(String item : classpath) {
+					logger.trace(location, ILogger.null_id, item);
+				}
+			}
+			String className = fh.getUserErrorHandlerClassname();
 			if(className == null) {
 				className = defaultClassName;
 			}
-			String initializationData = sph.getUserErrorHandlerCfg();
-			URLClassLoader classLoader = createClassLoader(userClasspath);
+			String initializationData = fh.getUserErrorHandlerCfg();
+			classLoader = createClassLoader(userClasspath);
 			Class<?> classAnchor = classLoader.loadClass(className);
 			objectInstance = classAnchor.newInstance();
 			//
