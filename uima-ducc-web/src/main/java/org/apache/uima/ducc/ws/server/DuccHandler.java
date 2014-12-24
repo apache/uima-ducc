@@ -63,6 +63,7 @@ import org.apache.uima.ducc.common.utils.IDuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.SynchronizedSimpleDateFormat;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Version;
+import org.apache.uima.ducc.common.utils.VersionCommunicationsJdJp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.authentication.DuccWebAdministrators;
 import org.apache.uima.ducc.transport.Constants;
@@ -267,6 +268,13 @@ public class DuccHandler extends DuccAbstractHandler {
 		StringBuffer sb = new StringBuffer();
 		String version = Version.version();
 		sb.append(version);
+		int comm = VersionCommunicationsJdJp.get();
+		if(comm == 2) {
+			sb.append("<sup title=\"pull-model\">+</sup>");
+		}
+		else if(comm == 1) {
+			sb.append("<sup title=\"push-model\">*</sup>");
+		}
 		response.getWriter().println(sb);
 		duccLogger.trace(methodName, null, messages.fetch("exit"));
 	}	
@@ -1137,22 +1145,19 @@ public class DuccHandler extends DuccAbstractHandler {
 				sb.append(dispatch);
 				sb.append("</th>");
 				thSep(sb);
-				String jd_configuration_class = DuccPropertiesResolver.getInstance().getFileProperty(DuccPropertiesResolver.ducc_jd_configuration_class);
-				if(jd_configuration_class != null) {
-					if(jd_configuration_class.trim().equals("org.apache.uima.ducc.jd.config.JobDriverConfiguration")) {
-						// unassigned
-						sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
-						sb.append("Unassigned: ");
-						sb.append(unassigned);
-						sb.append("</th>");
-						thSep(sb);
-						// limbo
-						sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
-						sb.append("Limbo: ");
-						sb.append(limbo);
-						sb.append("</th>");
-						thSep(sb);
-					}
+				if(VersionCommunicationsJdJp.get() == 1) {
+					// unassigned
+					sb.append("<th title=\"The number of work items currently dispatched for which acknowledgement is yet to be received\">");
+					sb.append("Unassigned: ");
+					sb.append(unassigned);
+					sb.append("</th>");
+					thSep(sb);
+					// limbo
+					sb.append("<th title=\"The number of work items pending re-dispatch to an alternate Job Process. Each of these work items is essentially stuck waiting for its previous JP to terminate.\">");
+					sb.append("Limbo: ");
+					sb.append(limbo);
+					sb.append("</th>");
+					thSep(sb);
 				}
 				break;
 			}
