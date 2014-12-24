@@ -33,6 +33,7 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
+import org.apache.uima.ducc.container.jd.log.ErrorLogger;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
@@ -124,6 +125,10 @@ public class ActionEnd implements IAction {
 		}
 	}
 	
+	private void toJdErrLog(String text) {
+		ErrorLogger.record(text);
+	}
+	
 	private void handleException(IActionData actionData) throws JobDriverException {
 		String location = "handleException";
 		IWorkItem wi = actionData.getWorkItem();
@@ -141,6 +146,7 @@ public class ActionEnd implements IAction {
 		//
 		int seqNo = metaCasHelper.getSystemKey();
 		String serializedException = (String) metaCas.getUserSpaceException();
+		toJdErrLog(serializedException);
 		//
 		String serializedCas = (String) metaCas.getUserSpaceCas();
 		ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
