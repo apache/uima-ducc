@@ -29,7 +29,8 @@ public interface IWorkItem {
 	public void setFsm(IFsm value);
 	public IFsm getFsm();
 	
-	public void resetTods();
+	public void reset();
+	//public void resetTods();
 	
 	public void setTodGet();
 	public void resetTodGet();

@@ -20,6 +20,8 @@ package org.apache.uima.ducc.container.jd.cas;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -42,7 +44,7 @@ public class CasManager {
 		initialize();
 	}
 	
-	public void initialize() throws JobDriverException {
+	private void initialize() throws JobDriverException {
 		String location = "initialize";
 		try {
 			pjdcr = new ProxyJobDriverCollectionReader();
@@ -55,11 +57,8 @@ public class CasManager {
 	}
 	
 	public IMetaCas getMetaCas() throws JobDriverException {
-		IMetaCas retVal = cacheQueue.poll();
-		if(retVal != null) {
-			casManagerStats.incRetryQueueGets();
-		}
-		else {
+		IMetaCas retVal = dequeueMetaCas();
+		if(retVal == null) {
 			retVal = pjdcr.getMetaCas();
 			if(retVal != null) {
 				casManagerStats.incCrGets();
@@ -67,11 +66,36 @@ public class CasManager {
 		}
 		return retVal;
 	}
+
+	private IMetaCas dequeueMetaCas() throws JobDriverException {
+		String location = "dequeueMetaCas";
+		IMetaCas metaCas = cacheQueue.poll();
+		if(metaCas != null) {
+			casManagerStats.incRetryQueueGets();
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+			mb.append(Standardize.Label.puts.get()+casManagerStats.getRetryQueuePuts());
+			mb.append(Standardize.Label.gets.get()+casManagerStats.getRetryQueueGets());
+			logger.info(location, ILogger.null_id, mb);
+		}
+		return metaCas;
+	}
 	
 	public void putMetaCas(IMetaCas metaCas, RetryReason retryReason) {
+		queueMetaCas(metaCas, retryReason);
+	}
+	
+	private void queueMetaCas(IMetaCas metaCas, RetryReason retryReason) {
+		String location = "queueMetaCas";
 		cacheQueue.add(metaCas);
 		casManagerStats.incRetryQueuePuts();
 		casManagerStats.incRetryReasons(retryReason);
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+		mb.append(Standardize.Label.puts.get()+casManagerStats.getRetryQueuePuts());
+		mb.append(Standardize.Label.gets.get()+casManagerStats.getRetryQueueGets());
+		mb.append(Standardize.Label.reason.get()+retryReason.name());
+		logger.info(location, ILogger.null_id, mb);
 	}
 	
 	public CasManagerStats getCasManagerStats() {

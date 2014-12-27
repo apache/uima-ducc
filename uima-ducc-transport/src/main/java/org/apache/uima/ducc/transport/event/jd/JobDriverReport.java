@@ -123,8 +123,9 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		setWorkItemsTotal(operatingInfo.getWorkItemCrTotal());
 		setWorkItemsProcessingCompleted(operatingInfo.getWorkItemEndSuccesses());
 		setWorkItemsProcessingError(operatingInfo.getWorkItemEndFailures());
-		setWorkItemsRetry(operatingInfo.getWorkItemUserProcessingErrorRetries());
 		setWorkItemsDispatched(operatingInfo.getWorkItemDispatcheds());
+		setWorkItemsRetry(operatingInfo.getWorkItemRetrys());
+		setWorkItemsPreempt(operatingInfo.getWorkItemPreemptions());
 		// min of finished & running
 		long fMin = operatingInfo.getWorkItemFinishedMillisMin();
 		long min = fMin;
@@ -234,12 +235,16 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		workItemsProcessingError = value;
 	}
 	
+	private void setWorkItemsDispatched(int value) {
+		workItemsDispatched = value;
+	}
+	
 	private void setWorkItemsRetry(int value) {
 		workItemsRetry = value;
 	}
 	
-	private void setWorkItemsDispatched(int value) {
-		workItemsDispatched = value;
+	private void setWorkItemsPreempt(int value) {
+		workItemsPreempted = value;
 	}
 	
 	private void setWiMillisMin(long value) {

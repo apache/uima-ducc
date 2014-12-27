@@ -111,6 +111,11 @@ public class CasManagerStats {
 		return retVal;
 	}
 	
+	public int getNumberOfRetrys() {
+		int retVal = getEndRetry() - getNumberOfPreemptions();
+		return retVal;
+	}
+	
 	public void incEndSuccess() {
 		endSuccess.incrementAndGet();
 	}

@@ -67,45 +67,48 @@ public class DuccProcessWorkItemsReport implements IDuccProcessWorkItemsReport {
 		// retry
 		long newRetry = retry+value.getCountRetry();
 		totals.setCountRetry(newRetry);
-		// avg
-		long cnt1 = totals.getCountDone();
-		long avg1 = totals.getMillisAvg();
-		long cnt2 = value.getCountDone();
-		long avg2 = value.getMillisAvg();
-		double top = (avg1*cnt1)+(avg2*cnt2);
-		double bot = (cnt1+cnt2);
-		long avg = (long)(top/bot);
-		totals.setMillisAvg(avg);
-		// max
-		long max = totals.getMillisMax();
-		long maxCandidate = value.getMillisMax();
-		logger.trace(location, null, "max="+max+" "+"maxCandidate="+maxCandidate);
-		if(max > 0) {
-			if(maxCandidate > 0) {
-				if(maxCandidate > max) {
-					max = maxCandidate;
+		// update avg, max, min
+		if(value.getCountDone() > 0) {
+			// avg
+			long cnt1 = totals.getCountDone();
+			long avg1 = totals.getMillisAvg();
+			long cnt2 = value.getCountDone();
+			long avg2 = value.getMillisAvg();
+			double top = (avg1*cnt1)+(avg2*cnt2);
+			double bot = (cnt1+cnt2);
+			long avg = (long)(top/bot);
+			totals.setMillisAvg(avg);
+			// max
+			long max = totals.getMillisMax();
+			long maxCandidate = value.getMillisMax();
+			logger.trace(location, null, "max="+max+" "+"maxCandidate="+maxCandidate);
+			if(max > 0) {
+				if(maxCandidate > 0) {
+					if(maxCandidate > max) {
+						max = maxCandidate;
+					}
 				}
 			}
-		}
-		else {
-			max = maxCandidate;
-		}
-		totals.setMillisMax(max);
-		// min
-		long min = totals.getMillisMin();
-		long minCandidate = value.getMillisMin();
-		logger.trace(location, null, "min="+min+" "+"minCandidate="+minCandidate);
-		if(min > 0) {
-			if(minCandidate > 0) {
-				if(minCandidate < min) {
-					min = minCandidate;
+			else {
+				max = maxCandidate;
+			}
+			totals.setMillisMax(max);
+			// min
+			long min = totals.getMillisMin();
+			long minCandidate = value.getMillisMin();
+			logger.trace(location, null, "min="+min+" "+"minCandidate="+minCandidate);
+			if(min > 0) {
+				if(minCandidate > 0) {
+					if(minCandidate < min) {
+						min = minCandidate;
+					}
 				}
 			}
+			else {
+				min = minCandidate;
+			}
+			totals.setMillisMin(min);
 		}
-		else {
-			min = minCandidate;
-		}
-		totals.setMillisMin(min);
 		// process
 		map.put(key, value);
 	}

@@ -35,7 +35,7 @@ import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public class ActionProcessPreempt implements IAction {
+public class ActionProcessPreempt extends Action implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionProcessPreempt.class, IComponent.Id.JD.name());
 	
@@ -75,7 +75,8 @@ public class ActionProcessPreempt implements IAction {
 					int seqNo = metaCasHelper.getSystemKey();
 					wisk.preempt(seqNo);
 					pStats.preempt(wi);
-					wi.resetTods();
+					displayProcessStatistics(logger, wi, pStats);
+					wi.reset();
 				}
 				else {
 					MessageBuffer mb = new MessageBuffer();

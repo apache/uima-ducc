@@ -117,12 +117,24 @@ public class JobDriverHelper {
 	}
 	
 	public IProcessStatistics getProcessStatistics(IRemotePid remotePid) {
+		String location = "getProcessStatistics";
 		JobDriver jd = JobDriver.getInstance();
 		ConcurrentHashMap<IRemotePid, IProcessStatistics> remoteprocessMap = jd.getRemoteProcessMap();
 		IProcessStatistics processStatistics = remoteprocessMap.get(remotePid);
+		boolean add = false;
 		if(processStatistics == null) {
+			add = true;
 			remoteprocessMap.putIfAbsent(remotePid, new ProcessStatistics());
 			processStatistics = remoteprocessMap.get(remotePid);
+		}
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.remote.get()+remotePid.toString());
+		mb.append(Standardize.Label.add.get()+add);
+		if(add) {
+			logger.debug(location, ILogger.null_id, mb);
+		}
+		else {
+			logger.trace(location, ILogger.null_id, mb);
 		}
 		return processStatistics;
 	}
@@ -169,4 +181,5 @@ public class JobDriverHelper {
 		}
 		return rwp;
 	}
+	
 }

@@ -59,11 +59,22 @@ public class WorkItem implements IWorkItem {
 	}
 
 	@Override
+	public void reset() {
+		metaCas = null;
+		fsm.reset();
+		todGet.reset();
+		todAck.reset();
+		todEnd.reset();
+	}
+	
+	/*
+	@Override
 	public void resetTods() {
 		todGet.reset();
 		todAck.reset();
 		todEnd.reset();
 	}
+	*/
 	
 	@Override
 	public void setTodGet() {

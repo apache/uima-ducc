@@ -246,7 +246,7 @@ import org.springframework.context.annotation.Import;
 					char[] content = new char[request.getContentLength()];
 
 					request.getReader().read(content);
-					logger.info("doPost",jobid, "Http Request Body:::"+String.valueOf(content));
+					logger.debug("doPost",jobid, "Http Request Body:::"+String.valueOf(content));
 					
 					IMetaCasTransaction imt=null;
 					String t = String.valueOf(content);

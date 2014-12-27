@@ -20,6 +20,7 @@ package org.apache.uima.ducc.container.jd.mh;
 
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
@@ -60,6 +61,8 @@ public class MessageHandler implements IMessageHandler {
 	private AtomicInteger gets = new AtomicInteger(0);
 	private AtomicInteger acks = new AtomicInteger(0);
 	
+	private ConcurrentLinkedQueue<IRemoteWorkerThread> legacyList = new ConcurrentLinkedQueue<IRemoteWorkerThread>();
+	
 	public MessageHandler() {
 	}
 	
@@ -98,6 +101,7 @@ public class MessageHandler implements IMessageHandler {
 				oi.setKillJob();
 			}
 			oi.setWorkItemDispatcheds(cms.getDispatched());
+			oi.setWorkItemRetrys(cms.getNumberOfRetrys());
 			oi.setWorkItemPreemptions(cms.getNumberOfPreemptions());
 			oi.setWorkItemFinishedMillisMin(wis.getMillisMin());
 			oi.setWorkItemFinishedMillisMax(wis.getMillisMax());
@@ -115,6 +119,7 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.endSuccess.get()+oi.getWorkItemEndSuccesses());
 			mb.append(Standardize.Label.endFailure.get()+oi.getWorkItemEndFailures());
 			mb.append(Standardize.Label.killJob.get()+oi.isKillJob());
+			mb.append(Standardize.Label.retrys.get()+oi.getWorkItemRetrys());
 			mb.append(Standardize.Label.preemptions.get()+oi.getWorkItemPreemptions());
 			mb.append(Standardize.Label.finishedMillisMin.get()+oi.getWorkItemFinishedMillisMin());
 			mb.append(Standardize.Label.finishedMillisMax.get()+oi.getWorkItemFinishedMillisMax());
@@ -151,26 +156,35 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
 			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
-			logger.info(location, ILogger.null_id, mb.toString());
+			logger.trace(location, ILogger.null_id, mb.toString());
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
-					MessageBuffer mb1 = new MessageBuffer();
-					mb1.append(Standardize.Label.remote.get()+rwt.toString());
-					mb1.append(Boolean.TRUE.toString());
-					logger.info(location, ILogger.null_id, mb1.toString());
-					IWorkItem wi = entry.getValue();
-					IFsm fsm = wi.getFsm();
-					IEvent event = WiFsm.Process_Failure;
-					Object actionData = new ActionData(wi, rwt, null);
-					fsm.transition(event, actionData);
+					if(legacyList.contains(rwt)) {
+						MessageBuffer mb1 = new MessageBuffer();
+						mb1.append(Standardize.Label.remote.get()+rwt.toString());
+						mb1.append(Standardize.Label.status.get()+"already kaput");
+						logger.trace(location, ILogger.null_id, mb1.toString());
+					}
+					else {
+						legacyList.add(rwt);
+						MessageBuffer mb1 = new MessageBuffer();
+						mb1.append(Standardize.Label.remote.get()+rwt.toString());
+						mb1.append(Standardize.Label.status.get()+"transition to down");
+						logger.info(location, ILogger.null_id, mb1.toString());
+						IWorkItem wi = entry.getValue();
+						IFsm fsm = wi.getFsm();
+						IEvent event = WiFsm.Process_Failure;
+						Object actionData = new ActionData(wi, rwt, null);
+						fsm.transition(event, actionData);
+					}
 				}
 				else {
-					MessageBuffer mb2 = new MessageBuffer();
-					mb2.append(Standardize.Label.remote.get()+rwt.toString());
-					mb2.append(Boolean.FALSE.toString());
-					logger.info(location, ILogger.null_id, mb2.toString());
+					MessageBuffer mb1 = new MessageBuffer();
+					mb1.append(Standardize.Label.remote.get()+rwt.toString());
+					mb1.append(Standardize.Label.status.get()+"unaffected");
+					logger.trace(location, ILogger.null_id, mb1.toString());
 				}
 			}
 		}
@@ -187,26 +201,36 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
 			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
-			logger.info(location, ILogger.null_id, mb.toString());
+			logger.trace(location, ILogger.null_id, mb.toString());
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
-					MessageBuffer mb1 = new MessageBuffer();
-					mb1.append(Standardize.Label.remote.get()+rwt.toString());
-					mb1.append(Boolean.TRUE.toString());
-					logger.info(location, ILogger.null_id, mb1.toString());
-					IWorkItem wi = entry.getValue();
-					IFsm fsm = wi.getFsm();
-					IEvent event = WiFsm.Process_Preempt;
-					Object actionData = new ActionData(wi, rwt, null);
-					fsm.transition(event, actionData);
+					if(legacyList.contains(rwt)) {
+						MessageBuffer mb1 = new MessageBuffer();
+						mb1.append(Standardize.Label.remote.get()+rwt.toString());
+						mb1.append(Standardize.Label.status.get()+"already kaput");
+						logger.trace(location, ILogger.null_id, mb1.toString());
+					}
+					else {
+						legacyList.add(rwt);
+						MessageBuffer mb1 = new MessageBuffer();
+						mb1.append(Standardize.Label.remote.get()+rwt.toString());
+						mb1.append(Standardize.Label.status.get()+"transition to down");
+						logger.info(location, ILogger.null_id, mb1.toString());
+						IWorkItem wi = entry.getValue();
+						IFsm fsm = wi.getFsm();
+						IEvent event = WiFsm.Process_Preempt;
+						Object actionData = new ActionData(wi, rwt, null);
+						fsm.transition(event, actionData);
+					}
+					
 				}
 				else {
-					MessageBuffer mb2 = new MessageBuffer();
-					mb2.append(Standardize.Label.remote.get()+rwt.toString());
-					mb2.append(Boolean.FALSE.toString());
-					logger.info(location, ILogger.null_id, mb2.toString());
+					MessageBuffer mb1 = new MessageBuffer();
+					mb1.append(Standardize.Label.remote.get()+rwt.toString());
+					mb1.append(Standardize.Label.status.get()+"unaffected");
+					logger.trace(location, ILogger.null_id, mb1.toString());
 				}
 			}
 		}

@@ -38,9 +38,22 @@ public class ProcessStatistics implements IProcessStatistics {
 	
 	private IWorkItemStatistics wis = new WorkItemStatistics();
 	
+	private void loggit(String location, IWorkItem wi) {
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+		mb.append(Standardize.Label.dispatch.get()+dispatch.get());
+		mb.append(Standardize.Label.done.get()+done.get());
+		mb.append(Standardize.Label.error.get()+error.get());
+		mb.append(Standardize.Label.preempt.get()+preempt.get());
+		mb.append(Standardize.Label.retry.get()+retry.get());
+		logger.debug(location, ILogger.null_id, mb.toString());
+	}
+	
 	@Override
 	public void dispatch(IWorkItem wi) {
+		String location = "dispatch";
 		dispatch.incrementAndGet();
+		loggit(location, wi);
 	}
 
 	@Override
@@ -49,30 +62,31 @@ public class ProcessStatistics implements IProcessStatistics {
 		dispatch.decrementAndGet();
 		done.incrementAndGet();
 		wis.ended(wi);
-		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
-		mb.append(Standardize.Label.avg.get()+getMillisAvg());
-		mb.append(Standardize.Label.max.get()+getMillisMax());
-		mb.append(Standardize.Label.min.get()+getMillisMin());
-		logger.trace(location, ILogger.null_id, mb.toString());
+		loggit(location, wi);
 	}
 
 	@Override
 	public void error(IWorkItem wi) {
+		String location = "error";
 		dispatch.decrementAndGet();
 		error.incrementAndGet();
+		loggit(location, wi);
 	}
 
 	@Override
 	public void preempt(IWorkItem wi) {
+		String location = "preempt";
 		dispatch.decrementAndGet();
 		preempt.incrementAndGet();
+		loggit(location, wi);
 	}
 
 	@Override
 	public void retry(IWorkItem wi) {
+		String location = "retry";
 		dispatch.decrementAndGet();
 		retry.incrementAndGet();
+		loggit(location, wi);
 	}
 
 	@Override

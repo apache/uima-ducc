@@ -82,6 +82,7 @@ public class ActionGet implements IAction {
 			else {
 				metaCas = cm.getMetaCas();
 			}
+			wi.setMetaCas(metaCas);
 			trans.setMetaCas(metaCas);
 			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
@@ -99,7 +100,6 @@ public class ActionGet implements IAction {
 				wisk.queued(seqNo);
 				pStats.dispatch(wi);
 				//
-				wi.resetTods();
 				wi.setTodGet();
 				event = WiFsm.CAS_Available;
 				MessageBuffer mb = new MessageBuffer();

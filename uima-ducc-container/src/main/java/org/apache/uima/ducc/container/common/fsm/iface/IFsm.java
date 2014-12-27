@@ -25,4 +25,5 @@ public interface IFsm {
 	public void transition(IEvent event, Object actionData) throws FsmException;
 	public IState getStateCurrent();
 	public IState getStatePrevious();
+	public void reset();
 }

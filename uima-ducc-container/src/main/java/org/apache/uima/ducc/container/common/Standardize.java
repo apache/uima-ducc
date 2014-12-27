@@ -21,6 +21,11 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		status,
+		add,
+		puts,
+		gets,
+		reason,
 		enter,
 		exit,
 		dispatch,
@@ -48,6 +53,7 @@ public class Standardize {
 		tid,
 		crFetches,
 		crTotal,
+		retrys,
 		preemptions,
 		endSuccess,
 		endFailure,

@@ -38,6 +38,7 @@ public class Fsm implements IFsmBuilder {
 	
 	private ConcurrentHashMap<IStateEventKey, IStateEventValue> map = new ConcurrentHashMap<IStateEventKey, IStateEventValue>();
 	
+	private IState stateInitial = null;
 	private IState stateCurrent = null;
 	private IState statePrevious = null;
 	
@@ -68,7 +69,16 @@ public class Fsm implements IFsmBuilder {
 
 	@Override
 	public void initial(IState state) throws FsmException {
+		setStateInitial(state);
 		setStateCurrent(state);
+	}
+	
+	private void setStateInitial(IState value) {
+		stateInitial = value;
+	}
+
+	private IState getStateInitial() {
+		return stateInitial;
 	}
 	
 	private void setStateCurrent(IState value) {
@@ -141,5 +151,24 @@ public class Fsm implements IFsmBuilder {
 			throw new FsmException(e);
 		}
 	}
-
+	
+	@Override
+	public void reset() throws FsmException {
+		String location = "reset";
+		try {
+			synchronized(map) {
+				IState _stateCurrent = getStateInitial();
+				IState _statePrevious = getStateCurrent();
+				if(!_stateCurrent.equals(_statePrevious)) {
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.curr.get()+_stateCurrent.getName());
+					mb.append(Standardize.Label.prev.get()+_statePrevious.getName());
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
+			}
+		}
+		catch(Exception e) {
+			throw new FsmException(e);
+		}
+	}
 }

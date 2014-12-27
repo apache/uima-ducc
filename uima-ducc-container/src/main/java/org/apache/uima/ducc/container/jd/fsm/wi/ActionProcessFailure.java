@@ -37,7 +37,7 @@ import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public class ActionProcessFailure implements IAction {
+public class ActionProcessFailure extends Action implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionProcessFailure.class, IComponent.Id.JD.name());
 	
@@ -68,7 +68,6 @@ public class ActionProcessFailure implements IAction {
 		int seqNo = metaCasHelper.getSystemKey();
 		wisk.retry(seqNo);
 		pStats.retry(wi);
-		wi.resetTods();
 	}
 	
 	private void killWorkItem(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
@@ -92,6 +91,7 @@ public class ActionProcessFailure implements IAction {
 			JobDriverHelper jdh = JobDriverHelper.getInstance();
 			IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
 			if(rwp != null) {
+				IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 				if(metaCas != null) {
 					String serializedCas = (String) metaCas.getUserSpaceCas();
 					ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
@@ -115,6 +115,8 @@ public class ActionProcessFailure implements IAction {
 					else {
 						retryWorkItem(cm, wi, metaCas, rwp);
 					}
+					displayProcessStatistics(logger, wi, pStats);
+					wi.reset();
 				}
 				else {
 					MessageBuffer mb = new MessageBuffer();

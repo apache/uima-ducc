@@ -45,7 +45,7 @@ import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
-public class ActionEnd implements IAction {
+public class ActionEnd extends Action implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionEnd.class, IComponent.Id.JD.name());
 	
@@ -160,8 +160,8 @@ public class ActionEnd implements IAction {
 			if(pjdd.isKillJob()) {
 				wisk.error(seqNo);
 				pStats.error(wi);
-				killWorkItem(cm, wi, trans, metaCas, rwt);
 				killJob(cm, wi, trans, metaCas, rwt);
+				killWorkItem(cm, wi, trans, metaCas, rwt);
 			}
 			else if(pjdd.isKillWorkItem()) {
 				wisk.error(seqNo);
@@ -179,16 +179,6 @@ public class ActionEnd implements IAction {
 			pStats.error(wi);
 			killWorkItem(cm, wi, trans, metaCas, rwt);
 		}
-	}
-	
-	private void displayProcessStatistics(IWorkItem wi, IProcessStatistics pStats) {
-		String location = "displayProcessStatistics";
-		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
-		mb.append(Standardize.Label.avg.get()+pStats.getMillisAvg());
-		mb.append(Standardize.Label.max.get()+pStats.getMillisMax());
-		mb.append(Standardize.Label.min.get()+pStats.getMillisMin());
-		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 	
 	@Override
@@ -218,6 +208,7 @@ public class ActionEnd implements IAction {
 					mb.append("exception");
 					logger.info(location, ILogger.null_id, mb.toString());
 					handleException(actionData);
+					displayProcessStatistics(logger, wi, pStats);
 				}
 				else {
 					MessageBuffer mb = new MessageBuffer();
@@ -227,9 +218,9 @@ public class ActionEnd implements IAction {
 					wisk.ended(seqNo);
 					successWorkItem(cm, wi, trans, metaCas, rwt);
 					pStats.done(wi);
-					displayProcessStatistics(wi, pStats);
+					displayProcessStatistics(logger, wi, pStats);
 				}
-				wi.resetTods();
+				wi.reset();
 			}
 			else {
 				MessageBuffer mb = new MessageBuffer();
