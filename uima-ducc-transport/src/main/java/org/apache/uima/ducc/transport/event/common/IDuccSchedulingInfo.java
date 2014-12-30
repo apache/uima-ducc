@@ -21,9 +21,9 @@ package org.apache.uima.ducc.transport.event.common;
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.common.IDuccUnits.MemoryUnits;
-import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 
 
 public interface IDuccSchedulingInfo extends Serializable {

@@ -37,6 +37,9 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState;
 import org.apache.uima.ducc.common.jd.files.IWorkItemState.State;
+import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryItem;
+import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryMap;
+import org.apache.uima.ducc.common.jd.files.perf.PerformanceSummaryReader;
 import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateReader;
 import org.apache.uima.ducc.common.node.metrics.ProcessGarbageCollectionStats;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -45,9 +48,6 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
-import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryItem;
-import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
-import org.apache.uima.ducc.transport.event.jd.PerformanceSummaryReader;
 
 
 /**

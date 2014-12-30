@@ -49,6 +49,7 @@ import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.RunningWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WorkItem;
+import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
@@ -74,9 +75,22 @@ public class MessageHandler implements IMessageHandler {
 		acks.incrementAndGet();
 	}
 	
+	private void piggyback() {
+		String location = "piggyback";
+		try {
+			JobDriver jd = JobDriver.getInstance();
+			IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
+			wipk.publish();
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+	}
+	
 	@Override
 	public IOperatingInfo handleGetOperatingInfo() {
 		String location = "handleGetOperatingInfo";
+		piggyback();
 		IOperatingInfo retVal = null;
 		JobDriver jd = JobDriver.getInstance();
 		Id jobid = Transform.toId(jd.getJobId());

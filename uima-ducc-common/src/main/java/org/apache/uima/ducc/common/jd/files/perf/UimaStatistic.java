@@ -16,7 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event.jd;
+package org.apache.uima.ducc.common.jd.files.perf;
+
 
 public class UimaStatistic implements Comparable<UimaStatistic> {
 

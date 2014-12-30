@@ -16,12 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.transport.event.jd;
+package org.apache.uima.ducc.container.jd.wi.perf;
 
-public class PerformanceSummary extends PerformanceSummaryWriter {
+public interface IWorkItemPerformanceInfo {
 
-	public PerformanceSummary(String dirname) {
-		super(dirname);
-	}
-
+	public String getName();
+	public String getUniqueName();
+	public double getCount();
+	public double getTime();
+	public double getPctOfTime();
+	public double getAvg();
+	public double getMin();
+	public double getMax();
 }

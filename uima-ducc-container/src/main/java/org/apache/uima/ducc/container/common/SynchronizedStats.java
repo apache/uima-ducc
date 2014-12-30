@@ -46,6 +46,16 @@ public class SynchronizedStats {
             }
         }
     }
+    public long getNum() {
+    	 synchronized(mux) {
+             return num;
+         }
+    }
+    public double getSum() {
+   	 synchronized(mux) {
+            return sum;
+        }
+   }
     public double getMax() {
         synchronized(mux) {
             return max;

@@ -18,6 +18,10 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
+
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
@@ -41,9 +45,11 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
+import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 
 public class ActionEnd extends Action implements IAction {
 
@@ -91,6 +97,7 @@ public class ActionEnd extends Action implements IAction {
 		cm.getCasManagerStats().incEndSuccess();
 		wi.setTodEnd();
 		updateStatistics(wi);
+		updatePerformanceMetrics(wi);
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
 		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
@@ -108,6 +115,48 @@ public class ActionEnd extends Action implements IAction {
 		mb.append(Standardize.Label.avg.get()+wis.getMillisAvg());
 		mb.append(Standardize.Label.max.get()+wis.getMillisMax());
 		mb.append(Standardize.Label.min.get()+wis.getMillisMin());
+		logger.debug(location, ILogger.null_id, mb.toString());
+	}
+
+	private String keyName = "name";
+	private String keyUniqueName = "uniqueName";
+	private String keyAnalysisTime = "analysisTime";
+	
+	private void updatePerformanceMetrics(IWorkItem wi) {
+		String location = "updatePerformanceMetrics";
+		IMetaCas metaCas = wi.getMetaCas();
+		IPerformanceMetrics performanceMetrics = metaCas.getPerformanceMetrics();
+		List<Properties> list = performanceMetrics.get();
+		int size = 0;
+		if(list !=  null) {
+			size = list.size();
+			JobDriver jd = JobDriver.getInstance();
+			IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
+			for(Properties properties : list) {
+				String name = properties.getProperty(keyName);
+				String uniqueName = properties.getProperty(keyUniqueName);
+				String analysisTime = properties.getProperty(keyAnalysisTime);
+				long time = 0;
+				try {
+					time = Long.parseLong(analysisTime);
+				}
+				catch(Exception e) {
+					logger.error(location, ILogger.null_id, e);
+				}
+				wipk.dataAdd(name, uniqueName, time);
+				for(Entry<Object, Object> entry : properties.entrySet()) {
+					String key = (String) entry.getKey();
+					String value = (String) entry.getValue();
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.key.get()+key);
+					mb.append(Standardize.Label.value.get()+value);
+					logger.debug(location, ILogger.null_id, mb.toString());
+				}
+			}
+		}
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
+		mb.append(Standardize.Label.size.get()+size);
 		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 	

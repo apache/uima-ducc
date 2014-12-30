@@ -39,6 +39,8 @@ import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
 import org.apache.uima.ducc.container.jd.wi.WorkItemStatistics;
+import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
+import org.apache.uima.ducc.container.jd.wi.perf.WorkItemPerformanceKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 
 public class JobDriver {
@@ -65,6 +67,7 @@ public class JobDriver {
 	}
 	
 	private String jobId = null;
+	private String logDir = null;
 	private ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> remoteThreadMap = null;
 	private ConcurrentHashMap<IRemotePid, IProcessStatistics> remoteProcessMap = null;
 	private IWorkItemStatistics wis = null;
@@ -74,6 +77,7 @@ public class JobDriver {
 	private DgenManager ddManager = null;
 	
 	private IWorkItemStateKeeper wisk = null;
+	private IWorkItemPerformanceKeeper wipk = null;
 	
 	private JdState jdState = null;
 	
@@ -87,10 +91,12 @@ public class JobDriver {
 			jdState = JdState.Initializing;
 			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 			jobId = feh.getJobId();
+			logDir = feh.getLogDirectory();
 			remoteThreadMap = new ConcurrentHashMap<IRemoteWorkerThread, IWorkItem>();
 			remoteProcessMap = new ConcurrentHashMap<IRemotePid, IProcessStatistics>();
 			wis = new WorkItemStatistics();
-			wisk = new WorkItemStateKeeper(IComponent.Id.JD.name(), feh.getLogDirectory());
+			wisk = new WorkItemStateKeeper(IComponent.Id.JD.name(), logDir);
+			wipk = new WorkItemPerformanceKeeper(logDir);
 			cm = new CasManager();
 			pjdeh = new ProxyJobDriverErrorHandler();
 			ddManager = new DgenManager();
@@ -138,6 +144,10 @@ public class JobDriver {
 		return wisk;
 	}
 	
+	public IWorkItemPerformanceKeeper getWorkItemPerformanceKeeper() {
+		return wipk;
+	}
+	
 	public JdState getJdState() {
 		synchronized(jdState) {
 			return jdState;
@@ -158,14 +168,18 @@ public class JobDriver {
 				switch(value) {
 				case Ended:
 					jdState = value;
+					wipk.publish();
 					break;
 				}
 				break;
 			case Initializing:
 				switch(value) {
 				case Ended:
+					jdState = value;
+					break;
 				case Active:
 					jdState = value;
+					break;
 				}
 				break;
 			}

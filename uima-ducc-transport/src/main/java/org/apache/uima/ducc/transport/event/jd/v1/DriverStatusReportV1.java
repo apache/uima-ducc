@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang.SerializationUtils;
+import org.apache.uima.ducc.common.jd.files.perf.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.common.jd.files.workitem.RemoteLocation;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -38,7 +39,6 @@ import org.apache.uima.ducc.transport.event.common.IRationale;
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.common.Util;
 import org.apache.uima.ducc.transport.event.jd.DuccProcessWorkItemsReport;
-import org.apache.uima.ducc.transport.event.jd.PerformanceMetricsSummaryMap;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 @Deprecated
