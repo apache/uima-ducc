@@ -21,6 +21,7 @@ package org.apache.uima.ducc.container.jd.mh;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
@@ -75,15 +76,31 @@ public class MessageHandler implements IMessageHandler {
 		acks.incrementAndGet();
 	}
 	
+	//
+	
+	private static AtomicBoolean piggybacking = new AtomicBoolean(false);
+	
+	public static void piggybackingDisable() {
+		piggybacking.set(false);
+	}
+	
+	public static void piggybackingEnable() {
+		piggybacking.set(false);
+	}
+	
+	//
+	
 	private void piggyback() {
 		String location = "piggyback";
-		try {
-			JobDriver jd = JobDriver.getInstance();
-			IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
-			wipk.publish();
-		}
-		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
+		if(piggybacking.get()) {
+			try {
+				JobDriver jd = JobDriver.getInstance();
+				IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
+				wipk.publish();
+			}
+			catch(Exception e) {
+				logger.error(location, ILogger.null_id, e);
+			}
 		}
 	}
 	

@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.container.FlagsHelper.Name;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -83,6 +84,7 @@ public abstract class ATest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		MessageHandler.piggybackingDisable();
 	}
 
 	@AfterClass
