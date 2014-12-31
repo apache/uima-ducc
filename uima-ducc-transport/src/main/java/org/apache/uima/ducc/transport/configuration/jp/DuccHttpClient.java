@@ -17,6 +17,10 @@
  * under the License.
 */
 package org.apache.uima.ducc.transport.configuration.jp;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.InvalidClassException;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.Future;
@@ -305,17 +309,36 @@ public class DuccHttpClient {
 	            RequestEntity e = new StringRequestEntity(body,"application/xml","UTF-8" );
 	            postMethod.setRequestEntity(e);
 	            addCommonHeaders(postMethod);
+	    
 	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
 	            // wait for a reply
 	            httpClient.executeMethod(postMethod);
-                String responseData = postMethod.getResponseBodyAsString();	            
+                //InputStream responseData = postMethod.getResponseBodyAsStream();
+                
+                //ByteArrayInputStream input = new ByteArray
+                //BufferedInputStream input=new BufferedInputStream(responseData);
+                //ByteArrayOutputStream output=new ByteArrayOutputStream();
+                String content = new String(postMethod.getResponseBody());
+                
+                /*
+                byte b[]=new byte[1024];
+                StringBuffer sb = new StringBuffer();
+                int read=0;
+                while ((read=input.read(b)) > -1) {
+                  output.write(b,0,read);
+                  sb.append(new String(b));
+                }
+                responseData.close();
+                input.close();
+                */
 				if ( postMethod.getStatusLine().getStatusCode() != 200) {
 					logger.error("execute", null, "Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 				}
 				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+postMethod.getStatusLine());
-				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" Recv'd:"+responseData);
-				Object o = XStreamUtils.unmarshall(responseData);
+				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" Recv'd:"+content);
+				System.out.println(content);
+				Object o = XStreamUtils.unmarshall(content); //sb.toString());
 				if ( o instanceof IMetaCasTransaction) {
 					reply = (MetaCasTransaction)o;
 					break;

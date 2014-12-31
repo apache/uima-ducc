@@ -55,6 +55,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	private int threadSleepTime = 5000; // time to sleep between GET requests if JD sends null CAS
 //	private IUimaProcessor uimaProcessor = null; 
 	private CountDownLatch workerThreadCount = null;
+	private CountDownLatch threadReadyCount=null;
 	ScheduledThreadPoolExecutor executor = null;
 	ExecutorService tpe = null;
     private volatile boolean uimaASJob=false;
@@ -108,6 +109,9 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 	}
+	public int getTimeout() {
+		return this.timeout;
+	}
 	/**
 	 * This method is called by super during ducc framework boot
 	 * sequence. It creates all the internal components and worker threads
@@ -120,8 +124,8 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		
 		try {
 			if ( args == null || args.length ==0 || args[0] == null || args[0].trim().length() == 0) {
-				logger.warn("start", null, "Missing Deployment Descriptor - the JP Requires DD argument");
-                throw new RuntimeException("Missing Deployment Descriptor - the JP Requires DD argument");
+				logger.warn("start", null, "Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
+                throw new RuntimeException("Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
 			}
 			// the JobProcessConfiguration checked if the below property exists
 			String jps = System.getProperty(FlagsHelper.Name.UserClasspath.pname());
@@ -194,6 +198,9 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		    	// there is an exception. The IUimaProcessor is a wrapper around
 		    	// processing container where the analysis is being done.
 		    	int scaleout =	jobProcessManager.initialize(jps, jpArgs, containerClass);
+		    	// initialize latch to count number of threads which initialized successfully
+		    	threadReadyCount = new CountDownLatch(scaleout);
+		    	
 //		    	uimaProcessor =	jobProcessManager.deploy(jps, uimaAsArgs, containerClass);
 
 				// Setup Thread Factory 
@@ -207,12 +214,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				client.setTimeout(timeout);
 //				client.setScaleout(scaleout);//uimaProcessor.getScaleout());
 				
-		    	// pipelines deployed and initialized. This process is Ready
-		    	currentState = ProcessState.Running;
-				// Update agent with the most up-to-date state of the pipeline
-			//	monitor.run();
-				// all is well, so notify agent that this process is in Running state
-				agent.notify(currentState, processJmxUrl);
 				System.out.println("JMX Connect String:"+ processJmxUrl);
                 // Create thread pool and begin processing
 		    	getLogger().info("start", null, "Starting "+scaleout+" Process Threads - JMX Connect String:"+ processJmxUrl);
@@ -222,9 +223,17 @@ public class JobProcessComponent extends AbstractDuccComponent{
 //		    	Future<?>[] threadHandles = new Future<?>[uimaProcessor.getScaleout()];
 //				for (int j = 0; j < uimaProcessor.getScaleout(); j++) {
 				for (int j = 0; j < scaleout; j++) {
-					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, client, jobProcessManager, workerThreadCount));
+					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, client, jobProcessManager, workerThreadCount, threadReadyCount));
 				}
-		    	getLogger().info("start", null, "All Http Worker Threads Started - Waiting For All Threads to Exit");
+				// wait until all process threads initialize
+				threadReadyCount.await();
+		    	// pipelines deployed and initialized. This process is Ready
+		    	currentState = ProcessState.Running;
+				// Update agent with the most up-to-date state of the pipeline
+				// all is well, so notify agent that this process is in Running state
+				agent.notify(currentState, processJmxUrl);
+
+				getLogger().info("start", null, "All Http Worker Threads Started - Waiting For All Threads to Exit");
 
 				for( Future<?> f : threadHandles ) {
 					if ( f != null ) {

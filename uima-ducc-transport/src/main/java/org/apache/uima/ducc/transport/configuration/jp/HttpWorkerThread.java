@@ -25,7 +25,10 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
+import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
@@ -45,6 +48,7 @@ public class HttpWorkerThread implements Runnable {
 	static AtomicInteger counter = new AtomicInteger();
 	private Object monitor = new Object();
 	private CountDownLatch workerThreadCount = null;
+	private CountDownLatch threadReadyCount = null;
 	private JobProcessManager jobProcessManager = null;
 /*
 	interface SMEvent {
@@ -235,11 +239,13 @@ public class HttpWorkerThread implements Runnable {
 	}
 	*/
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
-			JobProcessManager jobProcessManager , CountDownLatch workerThreadCount) {
+			JobProcessManager jobProcessManager , CountDownLatch workerThreadCount,
+			CountDownLatch threadReadyCount) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
 		this.jobProcessManager = jobProcessManager;
 		this.workerThreadCount = workerThreadCount;
+		this.threadReadyCount = threadReadyCount;
 	}
     private void initialize(boolean isUimaASJob ) throws Exception {
     	// For UIMA-AS job, there should only be one instance of UimaProcessor.
@@ -261,10 +267,19 @@ public class HttpWorkerThread implements Runnable {
 			initialize(duccComponent.isUimaASJob());
 			// each thread needs its own PostMethod
 			PostMethod postMethod = new PostMethod(httpClient.getJdUrl());
-		
+			// Set request timeout
+			postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, duccComponent.getTimeout());
 			//States stateMachine = new States(States.Start);
 //			SMContext ctx = new SMContextImpl(httpClient, States.Start);
 			String command="";
+			
+			threadReadyCount.countDown();  // this thread is ready
+			
+			// **************************************************************************
+			// now block and wait until all threads finish deploying and initializing UIMA
+			// **************************************************************************
+			threadReadyCount.await();
+			
 			// run forever (or until the process throws IllegalStateException
 	    	logger.info("HttpWorkerThread.run()", null, "Processing Work Items - Thread Id:"+Thread.currentThread().getId());
 
@@ -332,7 +347,19 @@ public class HttpWorkerThread implements Runnable {
 							
 							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
 							
-						} catch( Exception ee) {
+						} catch( RuntimeException ee) {
+							if ( ee.getCause().equals( AnalysisEngineProcessException.class)) {
+								// This is process error. It may contain user defined
+								// exception in the stack trace. To protect against
+								// ClassNotF ound, the entire stack trace was serialized.
+								// Fetch the serialized stack trace and pass it on to
+								// to the JD.
+								transaction.getMetaCas().setUserSpaceException(ee.getMessage());
+							} else {
+								logger.error("run", null, ee);
+							}
+							transaction.getMetaCas().setUserSpaceException("Bob");
+						}  catch( Exception ee) {
 							transaction.getMetaCas().setUserSpaceException("Bob");
 							logger.error("run", null, ee);
 						}
