@@ -29,6 +29,8 @@ public interface IWorkItem {
 	public void setFsm(IFsm value);
 	public IFsm getFsm();
 	
+	public int getSeqNo();
+	
 	public void reset();
 	//public void resetTods();
 	

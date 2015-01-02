@@ -141,4 +141,16 @@ public class WorkItem implements IWorkItem {
 		Assertion.nonNegative(retVal);
 		return retVal;
 	}
+
+	@Override
+	public int getSeqNo() {
+		int retVal = 0;
+		try {
+			retVal = Integer.parseInt(getMetaCas().getSystemKey());
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return retVal;
+	}
 }
