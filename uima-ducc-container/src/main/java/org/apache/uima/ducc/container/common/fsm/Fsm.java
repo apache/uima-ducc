@@ -58,7 +58,7 @@ public class Fsm implements IFsmBuilder {
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.state.get()+current.getName());
 		mb.append(Standardize.Label.event.get()+event.getName());
-		logger.debug(location, ILogger.null_id, mb.toString());
+		logger.trace(location, ILogger.null_id, mb.toString());
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class Fsm implements IFsmBuilder {
 		mb.append(Standardize.Label.state.get()+key.getState().getName());
 		mb.append(Standardize.Label.event.get()+key.getEvent().getName());
 		mb.append(Standardize.Label.hash.get()+key.hashCode());
-		logger.debug(location, ILogger.null_id, mb.toString());
+		logger.trace(location, ILogger.null_id, mb.toString());
 		return map.putIfAbsent(key, value);
 	}
 	
@@ -115,14 +115,22 @@ public class Fsm implements IFsmBuilder {
 		mb.append(Standardize.Label.state.get()+key.getState().getName());
 		mb.append(Standardize.Label.event.get()+key.getEvent().getName());
 		mb.append(Standardize.Label.hash.get()+key.hashCode());
-		logger.debug(location, ILogger.null_id, mb.toString());
+		logger.trace(location, ILogger.null_id, mb.toString());
 		IStateEventValue value = map.get(key);
 		return value;
 	}
 	
 	@Override
-	public void transition(IEvent event, Object actionData) throws FsmException {
+	public void transitionLog(IEvent event, Object actionData) {
 		String location = "transition";
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.curr.get()+getStateCurrent().getName());
+		mb.append(Standardize.Label.prev.get()+getStatePrevious().getName());
+		logger.trace(location, ILogger.null_id, mb.toString());
+	}
+	
+	@Override
+	public void transition(IEvent event, Object actionData) throws FsmException {
 		try {
 			synchronized(map) {
 				IState _stateCurrent = getStateCurrent();
@@ -139,10 +147,7 @@ public class Fsm implements IFsmBuilder {
 				_stateCurrent = value.getState();
 				setStateCurrent(_stateCurrent);
 				setStatePrevious(_statePrevious);
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.curr.get()+_stateCurrent.getName());
-				mb.append(Standardize.Label.prev.get()+_statePrevious.getName());
-				logger.info(location, ILogger.null_id, mb.toString());
+				transitionLog(event, actionData);
 				IAction action = value.getAction();
 				action.engage(actionData);
 			}

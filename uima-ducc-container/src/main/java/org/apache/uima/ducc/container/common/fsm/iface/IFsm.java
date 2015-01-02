@@ -23,6 +23,7 @@ import org.apache.uima.ducc.container.common.fsm.FsmException;
 public interface IFsm {
 	
 	public void transition(IEvent event, Object actionData) throws FsmException;
+	public void transitionLog(IEvent event, Object actionData);
 	public IState getStateCurrent();
 	public IState getStatePrevious();
 	public void reset();
