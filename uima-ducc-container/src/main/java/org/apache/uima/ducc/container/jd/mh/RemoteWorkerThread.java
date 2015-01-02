@@ -32,6 +32,9 @@ public class RemoteWorkerThread implements IRemoteWorkerThread {
 
 	private static Logger logger = Logger.getLogger(RemoteWorkerThread.class, IComponent.Id.JD.name());
 	
+	private boolean includeNodeAddress = false;
+	private boolean includePidName = false;
+	
 	private String nodeName = null;
 	private String nodeAddress = null;
 	private String pidName = null;
@@ -61,18 +64,22 @@ public class RemoteWorkerThread implements IRemoteWorkerThread {
 			sb.append(nodeName);
 			sb.append(".");
 		}
-		if(nodeAddress != null) {
-			sb.append("[");
-			sb.append(nodeAddress);
-			sb.append("]");
-			sb.append(".");
+		if(includeNodeAddress) {
+			if(nodeAddress != null) {
+				sb.append("[");
+				sb.append(nodeAddress);
+				sb.append("]");
+				sb.append(".");
+			}
 		}
 		sb.append(pid);
-		if(pidName != null) {
-			sb.append(".");
-			sb.append("[");
-			sb.append(pidName);
-			sb.append("]");
+		if(includePidName) {
+			if(pidName != null) {
+				sb.append(".");
+				sb.append("[");
+				sb.append(pidName);
+				sb.append("]");
+			}
 		}
 		sb.append(".");
 		sb.append(tid);

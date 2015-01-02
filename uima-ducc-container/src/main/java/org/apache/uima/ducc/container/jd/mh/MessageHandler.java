@@ -203,7 +203,7 @@ public class MessageHandler implements IMessageHandler {
 						MessageBuffer mb1 = new MessageBuffer();
 						mb1.append(Standardize.Label.remote.get()+rwt.toString());
 						mb1.append(Standardize.Label.status.get()+"transition to down");
-						logger.info(location, ILogger.null_id, mb1.toString());
+						logger.warn(location, ILogger.null_id, mb1.toString());
 						IWorkItem wi = entry.getValue();
 						IFsm fsm = wi.getFsm();
 						IEvent event = WiFsm.Process_Failure;
@@ -248,7 +248,7 @@ public class MessageHandler implements IMessageHandler {
 						MessageBuffer mb1 = new MessageBuffer();
 						mb1.append(Standardize.Label.remote.get()+rwt.toString());
 						mb1.append(Standardize.Label.status.get()+"transition to down");
-						logger.info(location, ILogger.null_id, mb1.toString());
+						logger.warn(location, ILogger.null_id, mb1.toString());
 						IWorkItem wi = entry.getValue();
 						IFsm fsm = wi.getFsm();
 						IEvent event = WiFsm.Process_Preempt;
@@ -278,7 +278,7 @@ public class MessageHandler implements IMessageHandler {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			mb.append(Standardize.Label.type.get()+trans.getType());
-			logger.info(location, ILogger.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 			Type type = trans.getType();
 			switch(type) {
 			case Get:
