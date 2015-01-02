@@ -219,7 +219,7 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 			State state = wis.getState();
 			String seqNo = wis.getSeqNo();
 			Long key = Long.valueOf(seqNo);
-			logger.info(location, jobid, "seqNo:"+seqNo+" "+state.name());
+			logger.debug(location, jobid, "seqNo:"+seqNo+" "+state.name());
 			switch(state) {
 			case ended:
 			case error:
