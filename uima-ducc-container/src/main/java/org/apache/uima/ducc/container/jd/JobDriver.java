@@ -189,6 +189,6 @@ public class JobDriver {
 		mb.append(Standardize.Label.current.get()+current);
 		mb.append(Standardize.Label.request.get()+request);
 		mb.append(Standardize.Label.result.get()+result);
-		logger.debug(location, ILogger.null_id, mb.toString());
+		logger.trace(location, ILogger.null_id, mb.toString());
 	}
 }
