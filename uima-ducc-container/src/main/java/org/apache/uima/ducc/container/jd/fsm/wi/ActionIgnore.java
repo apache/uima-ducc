@@ -18,10 +18,12 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 
 public class ActionIgnore implements IAction {
 
@@ -35,7 +37,9 @@ public class ActionIgnore implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, ILogger.null_id, "");
+		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
+		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+		logger.info(location, ILogger.null_id, mb.toString());
 	}
 }

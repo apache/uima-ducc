@@ -22,6 +22,7 @@ import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
@@ -38,13 +39,16 @@ public class ActionSend implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, ILogger.null_id, "");
+		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
 			IMetaCas metaCas = trans.getMetaCas();
 			wi.setMetaCas(metaCas);
+			//
+			TimeoutManager toMgr = TimeoutManager.getInstance();
+			toMgr.pendingAck(actionData);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

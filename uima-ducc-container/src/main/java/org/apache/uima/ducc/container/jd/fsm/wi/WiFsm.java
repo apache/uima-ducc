@@ -30,6 +30,7 @@ import org.apache.uima.ducc.container.common.fsm.iface.IState;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 
 public class WiFsm extends Fsm {
 
@@ -79,7 +80,7 @@ public class WiFsm extends Fsm {
 		
 		MessageBuffer mb1 = new MessageBuffer();
 		mb1.append(Standardize.Label.enter.name());
-		logger.debug(location, ILogger.null_id, mb1.toString());
+		logger.trace(location, ILogger.null_id, mb1.toString());
 		
 		// current state // event // action // next state //
 		
@@ -94,7 +95,7 @@ public class WiFsm extends Fsm {
 		
 		add(Get_Pending, Get_Request, ActionInProgress, Get_Pending);
 		add(Get_Pending, CAS_Available, ActionSend, CAS_Send);
-		add(Get_Pending, CAS_Unavailable, ActionSend, Start);
+		add(Get_Pending, CAS_Unavailable, ActionIgnore, Start);
 		add(Get_Pending, Ack_Request, ActionError, Get_Pending);
 		add(Get_Pending, Process_Preempt, ActionProcessPreempt, Start);
 		add(Get_Pending, Process_Failure, ActionProcessFailure, Start);
@@ -116,6 +117,16 @@ public class WiFsm extends Fsm {
 		
 		MessageBuffer mb2 = new MessageBuffer();
 		mb2.append(Standardize.Label.exit.name());
-		logger.debug(location, ILogger.null_id, mb2.toString());
+		logger.trace(location, ILogger.null_id, mb2.toString());
+	}
+	
+	@Override
+	public void transitionLog(IEvent event, Object objectData) {
+		String location = "transition";
+		IActionData actionData = (IActionData) objectData;
+		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+		mb.append(Standardize.Label.curr.get()+getStateCurrent().getName());
+		mb.append(Standardize.Label.prev.get()+getStatePrevious().getName());
+		logger.info(location, ILogger.null_id, mb.toString());
 	}
 }

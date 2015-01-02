@@ -21,17 +21,16 @@ package org.apache.uima.ducc.container.jd.fsm.wi;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
-import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
-import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
-import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.fault.injector.FaultInjector;
+import org.apache.uima.ducc.container.jd.log.LoggerHelper;
+import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
 public class ActionAck implements IAction {
 
@@ -45,33 +44,33 @@ public class ActionAck implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, ILogger.null_id, "");
+		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
-			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
-			//
 			IMetaCas metaCas = wi.getMetaCas();
-			//
 			JobDriver jd = JobDriver.getInstance();
 			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
 			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-			//
 			if(metaCas != null) {
+				if(FaultInjector.missingAck(actionData)) {
+					return;
+				}
+				//
+				TimeoutManager toMgr = TimeoutManager.getInstance();
+				toMgr.receivedAck(actionData);
+				toMgr.pendingEnd(actionData);
 				//
 				int seqNo = metaCasHelper.getSystemKey();
 				wisk.operating(seqNo);
 				//
 				wi.setTodAck();
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
-				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-				mb.append(Standardize.Label.remote.get()+rwt.toString());
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 				JobDriver.getInstance().getMessageHandler().incAcks();
 				logger.info(location, ILogger.null_id, mb.toString());
 			}
-			else {MessageBuffer mb = new MessageBuffer();
+			else {
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 				mb.append("No CAS found for processing");
 				logger.info(location, ILogger.null_id, mb.toString());
 			}

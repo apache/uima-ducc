@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
-import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
@@ -33,6 +32,7 @@ import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
@@ -73,8 +73,7 @@ public class ActionGet implements IAction {
 			IMetaCas metaCas = null;
 			if(cm.getCasManagerStats().isKillJob()) {
 				if(!warned.getAndSet(true)) {
-					MessageBuffer mb = new MessageBuffer();
-					mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					mb.append("this and future requests refused due to pending kill job");
 					logger.info(location, ILogger.null_id, mb.toString());
 				}
@@ -102,18 +101,13 @@ public class ActionGet implements IAction {
 				//
 				wi.setTodGet();
 				event = WiFsm.CAS_Available;
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
-				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-				mb.append(Standardize.Label.remote.get()+rwt.toString());
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 				JobDriver.getInstance().getMessageHandler().incGets();
 				logger.info(location, ILogger.null_id, mb.toString());
 			}
 			else {
 				event = WiFsm.CAS_Unavailable;
-				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.transNo.get()+trans.getTransactionId().toString());
-				mb.append(Standardize.Label.remote.get()+rwt.toString());
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 				mb.append("No CAS found for processing");
 				logger.info(location, ILogger.null_id, mb.toString());
 			}

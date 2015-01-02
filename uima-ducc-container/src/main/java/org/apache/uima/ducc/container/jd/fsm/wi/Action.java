@@ -22,15 +22,15 @@ import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 
 public abstract class Action {
 	
-	protected void displayProcessStatistics(Logger logger, IWorkItem wi, IProcessStatistics pStats) {
+	protected void displayProcessStatistics(Logger logger, IActionData actionData, IWorkItem wi, IProcessStatistics pStats) {
 		String location = "displayProcessStatistics";
-		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.seqNo.get()+wi.getMetaCas().getSystemKey());
+		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		mb.append(Standardize.Label.avg.get()+pStats.getMillisAvg());
 		mb.append(Standardize.Label.max.get()+pStats.getMillisMax());
 		mb.append(Standardize.Label.min.get()+pStats.getMillisMin());

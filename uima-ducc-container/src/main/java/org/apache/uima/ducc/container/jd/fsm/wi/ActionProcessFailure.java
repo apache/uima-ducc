@@ -32,6 +32,7 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
+import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
@@ -50,12 +51,9 @@ public class ActionProcessFailure extends Action implements IAction {
 		return ActionProcessFailure.class.getName();
 	}
 	
-	private void retryWorkItem(CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
+	private void retryWorkItem(IActionData actionData, CasManager cm, IWorkItem wi, IMetaCas metaCas, IRemoteWorkerProcess rwp) {
 		String location = "retryWorkItem";
-		
-		MessageBuffer mb = new MessageBuffer();
-		mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
-		mb.append(Standardize.Label.remote.get()+rwp.toString());
+		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		logger.info(location, ILogger.null_id, mb.toString());
 		//
 		cm.putMetaCas(metaCas, RetryReason.ProcessDown);
@@ -81,7 +79,7 @@ public class ActionProcessFailure extends Action implements IAction {
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
-		logger.debug(location, ILogger.null_id, "");
+		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
 			IWorkItem wi = actionData.getWorkItem();
@@ -97,7 +95,7 @@ public class ActionProcessFailure extends Action implements IAction {
 					ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
 					ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas);
 					if(pjdd != null) {
-						MessageBuffer mb = new MessageBuffer();
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 						mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());
 						mb.append(Standardize.Label.isKillProcess.get()+pjdd.isKillProcess());
 						mb.append(Standardize.Label.isKillWorkItem.get()+pjdd.isKillWorkItem());
@@ -109,23 +107,23 @@ public class ActionProcessFailure extends Action implements IAction {
 							killWorkItem(cm, wi, metaCas, rwp);
 						}
 						else {
-							retryWorkItem(cm, wi, metaCas, rwp);
+							retryWorkItem(actionData, cm, wi, metaCas, rwp);
 						}
 					}
 					else {
-						retryWorkItem(cm, wi, metaCas, rwp);
+						retryWorkItem(actionData, cm, wi, metaCas, rwp);
 					}
-					displayProcessStatistics(logger, wi, pStats);
+					displayProcessStatistics(logger, actionData, wi, pStats);
 					wi.reset();
 				}
 				else {
-					MessageBuffer mb = new MessageBuffer();
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					mb.append("No CAS found for processing");
 					logger.info(location, ILogger.null_id, mb.toString());
 				}
 			}
 			else {
-				MessageBuffer mb = new MessageBuffer();
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 				mb.append("No remote worker process entry found for processing");
 				logger.info(location, ILogger.null_id, mb.toString());
 			}
