@@ -65,8 +65,7 @@ public class JobDriverHelper {
 				wii.setPidName(rwt.getPidName());
 				wii.setPid(rwt.getPid());
 				wii.setTid(rwt.getTid());
-				//TODO
-				wii.setSeqNo(0);
+				wii.setSeqNo(wi.getSeqNo());
 				wii.setOperatingMillis(wi.getMillisOperating());
 				list.add(wii);
 				MessageBuffer mb = new MessageBuffer();
