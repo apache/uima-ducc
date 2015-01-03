@@ -45,10 +45,6 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 	
 	private Gson gson = new Gson();
 	
-	private String ducc_ling = 
-			Utils.resolvePlaceholderIfExists(
-					System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
-	
 	public JobPerformanceSummaryJsonGz(String directory) {
 		initialize(directory);
 	}
@@ -146,6 +142,9 @@ public class JobPerformanceSummaryJsonGz implements IPersistenceJobPerformanceSu
 		}
 		else {
 			try {
+				String ducc_ling = 
+						Utils.resolvePlaceholderIfExists(
+								System.getProperty("ducc.agent.launcher.ducc_spawn_path"),System.getProperties());
 				AlienFile alienFile = new AlienFile(userid, filename, ducc_ling);
 				String json = alienFile.getString();
 				Type typeOfMap = new TypeToken<JobPerformanceSummaryData>() { }.getType();
