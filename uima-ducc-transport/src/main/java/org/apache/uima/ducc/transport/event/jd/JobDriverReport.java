@@ -30,6 +30,7 @@ import org.apache.uima.ducc.container.common.Util;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IWorkItemInfo;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
@@ -156,6 +157,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		// kill job?
 		if(operatingInfo.isKillJob()) {
 			setKillJob();
+			setCompletionType(operatingInfo.getCompletionType());
 		}
 		// operating map
 		setActiveWorkItemInfo(operatingInfo.getActiveWorkItemInfo());
@@ -448,6 +450,16 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		return retVal;
 	}
 
+	private void setCompletionType(CompletionType completionType) {
+		switch(completionType) {
+		case Normal:
+			break;
+		case Exception:
+			jobCompletionType = JobCompletionType.CanceledByDriver;
+			break;
+		}
+	}
+	
 	@Override
 	public JobCompletionType getJobCompletionType() {
 		return jobCompletionType;
