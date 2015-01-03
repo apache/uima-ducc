@@ -23,6 +23,14 @@ import java.util.ArrayList;
 
 public interface IOperatingInfo extends Serializable {
 
+	public enum CompletionType {
+		Normal,
+		Exception
+	}
+	
+	public void setCompletionType(CompletionType value);
+	public CompletionType getCompletionType();
+	
 	public void setJobId(String value);
 	public String getJobId();
 

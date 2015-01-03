@@ -33,6 +33,7 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.mh.IMessageHandler;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
+import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemotePid;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
@@ -80,6 +81,9 @@ public class JobDriver {
 	private IWorkItemPerformanceKeeper wipk = null;
 	
 	private JdState jdState = null;
+	
+	private boolean killJob = false;
+	private CompletionType completionType = CompletionType.Normal;
 	
 	private JobDriver() throws JobDriverException {
 		initialize();
@@ -190,5 +194,18 @@ public class JobDriver {
 		mb.append(Standardize.Label.request.get()+request);
 		mb.append(Standardize.Label.result.get()+result);
 		logger.trace(location, ILogger.null_id, mb.toString());
+	}
+	
+	public void killJob(CompletionType value) {
+		killJob = true;
+		completionType = value;
+	}
+	
+	public boolean isKillJob() {
+		return killJob;
+	}
+	
+	public CompletionType getCompletionType() {
+		return completionType;
 	}
 }

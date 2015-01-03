@@ -16,22 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.log;
+package org.apache.uima.ducc.container.jd.timeout;
 
-import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
+import java.util.concurrent.Callable;
 
-public class ErrorLogger {
-	
-	private static DuccLogger logger = DuccLoggerComponents.getJdErr(Error.class.getName());
-	
-	public static void record(String text) {
-		String location = "record";
-		logger.error(location, null, text);
-	}
-	
-	public static void record(Exception e) {
-		String location = "record";
-		logger.error(location, null, e);
-	}
+import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
+import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
+import org.apache.uima.ducc.container.jd.fsm.wi.IActionData;
+
+public interface ITimeoutTask extends Callable<Object> {
+
+	public IFsm getFsm();
+	public IEvent getEvent();
+	public IActionData getActionData();
+	public long getDeadline();
 }

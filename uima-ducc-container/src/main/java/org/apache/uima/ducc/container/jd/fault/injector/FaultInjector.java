@@ -36,6 +36,8 @@ public class FaultInjector {
 	
 	private static ArrayList<String> list = new ArrayList< String>();
 	
+	private enum Type { Once, Forever };
+	
 	private static int seed = 1;
 	private static int pctFail = 25;
 	private static Random random = new Random(seed);
@@ -57,7 +59,7 @@ public class FaultInjector {
 		return list.contains(id);
 	}
 	 
-	private static boolean missing(String location, IActionData actionData) {
+	private static boolean missing(String location, IActionData actionData, Type type) {
 		boolean fault = false;
 		if(enabled) {
 			if(isRegistered(actionData)) {
@@ -65,7 +67,13 @@ public class FaultInjector {
 			}
 			else {
 				if(random.nextInt(100) < pctFail) {
-					register(actionData);
+					switch(type) {
+					case Once:
+						break;
+					case Forever:
+						register(actionData);
+						break;
+					}
 					fault = true;
 				}
 			}
@@ -79,11 +87,16 @@ public class FaultInjector {
 
 	public static boolean missingAck(IActionData actionData) {
 		String location = "missingAck";
-		return missing(location, actionData);
+		Type type = Type.Once;
+		if(random.nextBoolean()) {
+			type = Type.Forever;
+		};
+		return missing(location, actionData, type);
 	}
 	
 	public static boolean missingEnd(IActionData actionData) {
 		String location = "missingEnd";
-		return missing(location, actionData);
+		Type type = Type.Once;
+		return missing(location, actionData, type);
 	}
 }

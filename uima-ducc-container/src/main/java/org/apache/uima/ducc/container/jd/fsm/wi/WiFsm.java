@@ -30,7 +30,10 @@ import org.apache.uima.ducc.container.common.fsm.iface.IState;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.log.ErrorLogger;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
+import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 
 public class WiFsm extends Fsm {
 
@@ -118,6 +121,17 @@ public class WiFsm extends Fsm {
 		MessageBuffer mb2 = new MessageBuffer();
 		mb2.append(Standardize.Label.exit.name());
 		logger.trace(location, ILogger.null_id, mb2.toString());
+	}
+	
+	@Override
+	public void transition(IEvent event, Object actionData) throws FsmException {
+		try {
+			super.transition(event, actionData);
+		}
+		catch(Exception e) {
+			ErrorLogger.record(e);
+			JobDriver.getInstance().killJob(CompletionType.Exception);
+		}
 	}
 	
 	@Override
