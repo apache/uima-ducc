@@ -19,6 +19,9 @@
 
 package org.apache.uima.ducc.user.jp;
 
+
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
+import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
@@ -43,11 +47,15 @@ import org.apache.uima.resource.Resource;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.util.CasPool;
+import org.apache.uima.util.Level;
+import org.apache.uima.util.Logger;
 
 public class UimaProcessContainer implements IProcessContainer {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
 	private DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
-
+   // private Object xstreamInstance=null;
+   // private Method toXMLMethod = null;
+    
 	Semaphore sharedInitSemaphore = new Semaphore(1);
 	// this map enforces thread affinity to specific thread. Needed to make
 	// sure that a thread used to initialized the AE is used to call process().
@@ -112,15 +120,84 @@ public class UimaProcessContainer implements IProcessContainer {
 	      platformMBeanServer = null;
 	    }
 	  }
+/*
+	  private void loadXStream(String duccHome) throws Exception {
+			ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
+				// setup a classpath for Ducc broker
+			String amqOptionalDir = 
+					duccHome+File.separator+"apache-uima"+File.separator+"apache-activemq"+File.separator+"lib"+File.separator+"optional"+File.separator;//+"*"
+
+			File amqOptionalDirFile = new File(amqOptionalDir);
+	        File[] files = amqOptionalDirFile.listFiles();   // Will be null if missing or not a dir
+	        URL[] urls = new URL[1];
+	        if (files != null) {
+	          for (File f : files) {
+	            if (f.getName().startsWith("xstream")) {
+	              urls[0] = f.toURI().toURL();
+	              break;
+	            }
+	          }
+	        }
+
+
+	        // isolate XStream in its own Class loader
+
+			URLClassLoader ucl = new URLClassLoader(urls,ClassLoader.getSystemClassLoader().getParent() );
+			Thread.currentThread().setContextClassLoader(ucl);
+				
+			Class<?> xstreamClass = ucl.loadClass("com.thoughtworks.xstream.XStream");
+
+			Class<?> domClaz = ucl.loadClass("com.thoughtworks.xstream.io.xml.DomDriver");
+			Class<?> sdClaz = ucl.loadClass("com.thoughtworks.xstream.io.HierarchicalStreamDriver");
+			
+			
+		    URL[] urls2 = ucl.getURLs();
+			for( URL u : urls2 ) {
+				System.out.println(">>>>>>>> -----------:"+u.getFile());
+			}
+			//Constructor<?>[] constr = xstreamClass.getConstructors();	
+			Constructor<?> cons = xstreamClass.getConstructor(sdClaz);	
+			xstreamInstance = cons.newInstance(domClaz.newInstance());
+			//xstreamInstance = xstreamClass.newInstance();	
+		    
+			
+			toXMLMethod = xstreamClass.getMethod("toXML", Object.class);
+		    System.out.println("Initialized XStream For Serialization");
+
+		    // Restore class loader
+		    Thread.currentThread().setContextClassLoader(currentCL);
+	  }
+*/		    
+	  private String serialize(Throwable t) throws Exception {
+		  try {
+				//return (String)toXMLMethod.invoke(xstreamInstance, t);
+	          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		      ObjectOutputStream oos = new ObjectOutputStream( baos );
+		      oos.writeObject( t );
+		      oos.close();
+		      return new String(baos.toByteArray());
+		  
+		  } catch( Exception e) {
+			  e.printStackTrace();
+			  throw e;
+		  }
+	  }
 	  public int initialize(String[] args ) throws Exception {
 			analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
 			scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
+			
+			
+//	        XStream xStream = new XStream(new DomDriver())
+//	        return xStream.toXML(targetToMarshall);
+
+			
          return scaleout;		  
 	  }
 	public void deploy(String duccHome) throws Exception {
 	    
 //		String jmxName = "org.apache.uima:type=ee.jms.services,s=" + getComponentName() + " Uima EE Service,";
-
+		//loadXStream(duccHome);
+		
 		ResourceSpecifier rSpecifier = null;
 	    HashMap<String,Object> paramsMap = 
 				new HashMap<String,Object>();
@@ -198,6 +275,7 @@ public class UimaProcessContainer implements IProcessContainer {
 			
 			for (AnalysisEnginePerformanceMetrics metrics : casMetrics) {
 				Properties p = new Properties();
+				
 				p.setProperty("name", metrics.getName());
 				p.setProperty("uniqueName", metrics.getUniqueName());
 				p.setProperty("analysisTime",
@@ -209,7 +287,33 @@ public class UimaProcessContainer implements IProcessContainer {
 			
 //			System.out.println("Thread:"+Thread.currentThread().getId()+" Processed "+num+" CASes");
 			return metricsList;
-		} finally {
+		} catch( Throwable e ) {
+			String serializedStackTrace = serialize(e);
+			Logger logger = UIMAFramework.getLogger();
+			logger.log(Level.WARNING, "UimaProcessContainer", e);
+			e.printStackTrace();
+			// repackage so that the code on the other side is protected
+			// against Custom Exception classes that the user code may
+			// throw. Serialize the stack trace and throw a RuntimeException
+			// with a causedby of AnalysisEngineProcessException. The code
+			// on the other side must determine if the exception was caused
+			// by processing error or something else. In case of the latter
+			// it would be java only stack trace.
+			throw new 
+			RuntimeException(serializedStackTrace, new AnalysisEngineProcessException());
+		}
+//		catch( Throwable t) {
+			//throw new ResourceProcessException(serialized);
+//			byte[] ser = 
+//			XMLEncoder encoder =
+//			           new XMLEncoder(
+//			              new BufferedOutputStream(
+//			                new FileOutputStream(filename)));
+//			        encoder.writeObject(f);
+//			        encoder.close();
+		
+//		}
+		finally {
 			if (ae != null) {
 				instanceMap.checkin(ae);
 			}
@@ -220,8 +324,17 @@ public class UimaProcessContainer implements IProcessContainer {
 
 		}
 	}
-
-	private List<AnalysisEnginePerformanceMetrics> getMetrics(AnalysisEngine ae)
+/*	
+	private String serialize ( Serializable o ) throws IOException {
+	        ByteArrayOutputStream os = new ByteArrayOutputStream();
+	        XMLEncoder encoder = new XMLEncoder(os);
+			encoder.writeObject(o);
+			encoder.close();   
+			return new String(os.toByteArray());
+	        
+	    }
+*/
+	   private List<AnalysisEnginePerformanceMetrics> getMetrics(AnalysisEngine ae)
 			throws Exception {
 		List<AnalysisEnginePerformanceMetrics> analysisManagementObjects = new ArrayList<AnalysisEnginePerformanceMetrics>();
 		synchronized(UimaProcessContainer.class) {

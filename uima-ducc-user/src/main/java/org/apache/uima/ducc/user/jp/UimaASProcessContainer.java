@@ -19,7 +19,9 @@
 
 package org.apache.uima.ducc.user.jp;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
 import java.net.BindException;
 import java.net.MalformedURLException;
@@ -44,11 +46,13 @@ import org.apache.uima.aae.client.UimaAsBaseCallbackListener;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
 import org.apache.uima.aae.monitor.statistics.AnalysisEnginePerformanceMetrics;
 import org.apache.uima.adapter.jms.client.BaseUIMAAsynchronousEngine_impl;
+import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.EntityProcessStatus;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.util.Level;
+import org.apache.uima.util.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -268,6 +272,20 @@ public class UimaASProcessContainer implements IProcessContainer {
 				metricsList.add(p);
 			}
 			return metricsList;
+		} catch( Throwable e ) {
+			String serializedStackTrace = serialize(e);
+			Logger logger = UIMAFramework.getLogger();
+			logger.log(Level.WARNING, "UimaProcessContainer", e);
+			e.printStackTrace();
+			// repackage so that the code on the other side is protected
+			// against Custom Exception classes that the user code may
+			// throw. Serialize the stack trace and throw a RuntimeException
+			// with a causedby of AnalysisEngineProcessException. The code
+			// on the other side must determine if the exception was caused
+			// by processing error or something else. In case of the latter
+			// it would be java only stack trace.
+			throw new 
+			RuntimeException(serializedStackTrace, new AnalysisEngineProcessException());
 		} finally {
 			if ( cas != null) {
 				cas.release();
@@ -275,6 +293,20 @@ public class UimaASProcessContainer implements IProcessContainer {
 		}
 	}
     
+	  private String serialize(Throwable t) throws Exception {
+		  try {
+				//return (String)toXMLMethod.invoke(xstreamInstance, t);
+	          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		      ObjectOutputStream oos = new ObjectOutputStream( baos );
+		      oos.writeObject( t );
+		      oos.close();
+		      return new String(baos.toByteArray());
+		  
+		  } catch( Exception e) {
+			  e.printStackTrace();
+			  throw e;
+		  }
+	  }
 
 	private void initializeUimaAsClient(String endpoint) throws Exception {
 		String brokerURL = System.getProperty("DefaultBrokerURL");

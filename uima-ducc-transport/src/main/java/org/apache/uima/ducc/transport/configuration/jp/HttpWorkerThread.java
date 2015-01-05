@@ -19,6 +19,9 @@
 
 package org.apache.uima.ducc.transport.configuration.jp;
 
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Properties;
@@ -261,27 +264,34 @@ public class HttpWorkerThread implements Runnable {
     	
     }
 	public void run() {
-		try {
-	    	logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
-
+		String command="";
+		PostMethod postMethod = null;
+	    logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
+	   	try {
 			initialize(duccComponent.isUimaASJob());
 			// each thread needs its own PostMethod
-			PostMethod postMethod = new PostMethod(httpClient.getJdUrl());
+			postMethod = new PostMethod(httpClient.getJdUrl());
 			// Set request timeout
 			postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, duccComponent.getTimeout());
 			//States stateMachine = new States(States.Start);
-//			SMContext ctx = new SMContextImpl(httpClient, States.Start);
-			String command="";
-			
+//				SMContext ctx = new SMContextImpl(httpClient, States.Start);
+				
 			threadReadyCount.countDown();  // this thread is ready
-			
 			// **************************************************************************
 			// now block and wait until all threads finish deploying and initializing UIMA
 			// **************************************************************************
 			threadReadyCount.await();
+	    		
+	   	} catch( Throwable t) {
+	    		logger.error("HttpWorkerThread.run()", null, t);
+	    		
+	   		return;  // non-recovorable error
+	   	}
 			
-			// run forever (or until the process throws IllegalStateException
-	    	logger.info("HttpWorkerThread.run()", null, "Processing Work Items - Thread Id:"+Thread.currentThread().getId());
+			
+		// run forever (or until the process throws IllegalStateException
+	   	logger.info("HttpWorkerThread.run()", null, "Processing Work Items - Thread Id:"+Thread.currentThread().getId());
+		try {
 
 			while (duccComponent.isRunning()) {  //service.running && ctx.state().process(ctx)) {
 
@@ -347,21 +357,31 @@ public class HttpWorkerThread implements Runnable {
 							
 							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
 							
-						} catch( RuntimeException ee) {
-							if ( ee.getCause().equals( AnalysisEngineProcessException.class)) {
-								// This is process error. It may contain user defined
-								// exception in the stack trace. To protect against
-								// ClassNotF ound, the entire stack trace was serialized.
-								// Fetch the serialized stack trace and pass it on to
-								// to the JD.
-								transaction.getMetaCas().setUserSpaceException(ee.getMessage());
-							} else {
-								logger.error("run", null, ee);
-							}
-							transaction.getMetaCas().setUserSpaceException("Bob");
-						}  catch( Exception ee) {
-							transaction.getMetaCas().setUserSpaceException("Bob");
+						}  catch( InvocationTargetException ee) {
+							// The only way we would be here is if uimaProcessor.process() method failed.
+							// In this case, the process method serialized stack trace into binary blob
+							// and wrapped it in AnalysisEngineProcessException. The serialized stack 
+							// trace is available via getMessage() call.
+							//logger.error("run", null, ee);
+							//System.out.println("Error>>>> Caused By Class::::"+ee.getCause().getClass().getName());
+							// This is process error. It may contain user defined
+							// exception in the stack trace. To protect against
+						    // ClassNotFound, the entire stack trace was serialized.
+							// Fetch the serialized stack trace and pass it on to
+							// to the JD. The actual serialized stack trace is wrapped in
+							// RuntimeException->AnalysisEngineException.message
+							transaction.getMetaCas().setUserSpaceException(ee.getCause().getCause().getMessage());								
+//							transaction.getMetaCas().setUserSpaceException("Bob");
+							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
+							//ee.printStackTrace();
+						} catch( Exception ee) {
+							ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						    ObjectOutputStream oos = new ObjectOutputStream( baos );
+						    oos.writeObject( ee);
+						    oos.close();
+							transaction.getMetaCas().setUserSpaceException(baos.toByteArray());
 							logger.error("run", null, ee);
+//							ee.printStackTrace();
 						}
 						transaction.getMetaCas().setUserSpaceCas(null);
 						transaction.setType(Type.End);
