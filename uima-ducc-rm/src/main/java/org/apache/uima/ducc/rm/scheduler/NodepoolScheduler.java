@@ -1055,7 +1055,7 @@ public class NodepoolScheduler
         logger.trace(methodName, null, "Exit : needyJobs.size =", needyJobs.size());
     }
 
-    private static int stop_here_dx = 0;
+    // private static int stop_here_dx = 0;
     protected void traverseNodepoolsForExpansion(NodePool np, ArrayList<ResourceClass> rcs)
     {
     	String methodName = "traverseNodepoolsForExpansion";
@@ -1066,13 +1066,13 @@ public class NodepoolScheduler
             traverseNodepoolsForExpansion(subpool, rcs);
         }
 
-        logger.info(methodName, null, "--- stop_here_dx", stop_here_dx);
-        if ( stop_here_dx == 13 ) {
-            @SuppressWarnings("unused")
-			int stophere;
-            stophere=1;
-        }
-        stop_here_dx++;
+        // logger.info(methodName, null, "--- stop_here_dx", stop_here_dx);
+        // if ( stop_here_dx == 13 ) {
+        //     @SuppressWarnings("unused")
+		// 	int stophere;
+        //     stophere=1;
+        // }
+        // stop_here_dx++;
 
         // fall through at leaves
         
@@ -1106,7 +1106,7 @@ public class NodepoolScheduler
      * Counts are established.  We strictly honor them inside each job and evict where the count is 
      * less than the currently allocated shares, and add where it is greater.
      */
-    static int stophere = 0;
+    //static int stophere = 0;
     protected void whatOfFairShare(ArrayList<ResourceClass> rcs)
     {
     	String methodName = "whatOfFairShare";
@@ -1133,12 +1133,12 @@ public class NodepoolScheduler
         }
 
         //traverseNodepoolsForEviction(globalNodepool, eligible);
-        logger.trace(methodName, null, "Machine occupancy before expansion", stophere++);
-        if ( stophere == 7 ) {
-            @SuppressWarnings("unused")
-			int stophere;
-            stophere = 1 ;
-        }
+        // logger.trace(methodName, null, "Machine occupancy before expansion", stophere++);
+        // if ( stophere == 7 ) {
+        //     @SuppressWarnings("unused")
+		// 	int stophere;
+        //     stophere = 1 ;
+        // }
         traverseNodepoolsForExpansion(globalNodepool, eligible);
     }
 

@@ -143,6 +143,20 @@ public abstract class AbstractDuccComponent implements DuccComponent,
     composeBrokerUrl();
   }
 
+  public void reloadProperties(String componentProperties) throws Exception {
+    DuccProperties duccProperties = new DuccProperties();
+    duccProperties.load((String) System.getProperty(componentProperties));
+    Properties sysprops = System.getProperties();
+    for (Map.Entry<Object, Object> entry : duccProperties.entrySet()) {
+        String key = ((String) entry.getKey()).trim();
+        sysprops.remove(key);
+    }
+    // resolve any placeholders
+    enrichSystemPropertiesWith(duccProperties);
+    // Compose Broker URL from parts defined in ducc.properties
+    composeBrokerUrl();
+  }
+
   /**
    * Resolve any placeholders in property values in provided DuccProperties
    * Adjust the *endpoint ones before copying to the System properties

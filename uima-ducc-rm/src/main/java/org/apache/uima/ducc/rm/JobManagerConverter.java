@@ -683,10 +683,20 @@ public class JobManagerConverter
         }
 
         // The init file is read and configured ?
-        if ( ! scheduler.isInitialized() ) return;
-        
+        if ( ! scheduler.isInitialized() ) return;   // handle race, OR pub comes in while RM is (re)configuring itself
+
+        if ( scheduler.mustRecover() ) {             // UIMA-4142 reconfig happened. 
+            // must do this independently of isInitialized() since reinit could happen fully between OR pubs
+            localMap = new DuccWorkMap();            // as if RM had been booted
+            lastJobManagerUpdate = new JobManagerUpdate();
+            refusedJobs.clear();
+            first_or_state = true;
+        }
+
         if ( first_or_state ) {
             first_or_state = false;
+            scheduler.setRecovery(false);
+
             if ( ! recoverFromOrchestrator(jobMap) ) {
                 logger.info(methodName, null, "There are no active jobs in map so can't build up state. Waiting for init stability.");
                 return;
@@ -700,7 +710,7 @@ public class JobManagerConverter
 
         // scheduler is readied either by fast-recovery, or by init stability
         if ( !scheduler.ready() ) {
-            logger.info(methodName, null, "Orchestrator event is discarded: waiting for init stability.");
+            logger.info(methodName, null, "Orchestrator event is discarded: scheduler is waiting for init stability or is paused for reconfig..");
             return;
         }
 

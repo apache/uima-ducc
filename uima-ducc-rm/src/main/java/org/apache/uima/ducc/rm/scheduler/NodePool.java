@@ -110,7 +110,7 @@ class NodePool
         if ( nodes == null ) {            // unlikely, but not illegal
             this.subpoolNames = new HashMap<String, String>();
             logger.warn(methodName, null, "Nodepool", id, ": no nodes in node list");
-        }
+        } 
         this.evictionPolicy = ep;
         this.depth = depth;
         this.order = order;
@@ -221,6 +221,20 @@ class NodePool
             count += np.countOfflineMachines();
         }
         return count;
+    }
+
+    /**
+     * Return nodes varied off for me and my kids.
+     * UIMA-4142, RM reconfiguration
+     */
+    Map<Node, Machine> getOfflineMachines()
+    {
+        @SuppressWarnings("unchecked")
+		Map<Node, Machine> ret = (Map<Node, Machine>) offlineMachines.clone();
+        for (NodePool np : children.values()) {
+            ret.putAll(np.getOfflineMachines());
+        }
+        return ret;
     }
 
     /**
@@ -343,7 +357,39 @@ class NodePool
     }
 
     /**
-     * Interrogate whether work assigned to the indicated rc could end up in this np or its children.
+     * Helper for compatibleNodepool(), recurses down children.
+     * UIMA-4142
+     */
+    private boolean isCompatibleNodepool(Policy p, ResourceClass rc)
+    {
+        if ( allClasses.containsKey(rc) ) return true;
+        for (NodePool np : children.values()) {
+            if ( np.isCompatibleNodepool(p, rc) ) return true;
+        }      
+        return false;
+    }
+
+    /**
+     * Helper for compatibleNodepool(), find the top of the heirarchy.
+     * UIMA-4142
+     */
+    NodePool findTopOfHeirarchy()
+    {
+        NodePool ret = this;
+        while (ret.getParent() != null) {
+            ret = ret.getParent();
+        }
+        return ret;
+    }
+
+    /**
+     * Interrogate whether work assigned to the indicated rc could end up here.  
+     *
+     * If it's a fair-share allocation, we need to interrogate 'me', my children, and 
+     * my ancestors.
+     *
+     * If it's something else, it must reside reight here.
+     *
      * This is called during recovery; a change to the class or np config can cause incompatibilities
      * with previously scheduled work after a restart.
      *
@@ -357,10 +403,8 @@ class NodePool
     {
         switch ( p ) {
             case FAIR_SHARE:
-                if ( allClasses.containsKey(rc) ) return true;
-                for (NodePool np : children.values()) {
-                    if ( np.compatibleNodepool(p, rc) ) return true;
-                }
+                NodePool top = findTopOfHeirarchy();
+                return top.isCompatibleNodepool(p, rc);
             case FIXED_SHARE:
             case RESERVE:
                 if ( allClasses.containsKey(rc) ) return true;

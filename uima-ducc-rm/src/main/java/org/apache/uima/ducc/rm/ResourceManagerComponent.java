@@ -77,7 +77,7 @@ public class ResourceManagerComponent
 
     public ResourceManagerComponent(CamelContext context) {
         super("ResourceManager", context);
-        this.scheduler = new Scheduler();
+        this.scheduler = new Scheduler(this);          // UIMA-4142 pass 'this' in so we can reconfig (reread ducc.properties)
     }
     
     public ISchedulerMain getScheduler()

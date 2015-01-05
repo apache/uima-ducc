@@ -68,7 +68,9 @@ public interface ISchedulerMain
     //    has the scheduler read it's config files and initialized structures?
     //    has the scheduler discovered enough resources that it can schedule work?
     boolean isInitialized();              // has scheduler read all it's config and set up its strucures?
-    boolean ready();                    // have enough resources checked in so scheduler can schedule work?
+    boolean ready();                      // have enough resources checked in so scheduler can schedule work?
+    boolean mustRecover();                // UIMA-4142 RM was reconfigured so must recover from OR
+    void    setRecovery(boolean r);       // UIMA-4142 signal RM that the outer layer has completed recovery
 
     // once both initialized() and ready() occur, the RM scaffolding will enable scheduling by calling start
     void start();

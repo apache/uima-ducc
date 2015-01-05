@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
+import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
@@ -64,7 +65,8 @@ public class Scheduler
     NodeConfiguration configuration = null;                               // UIMA-4142 make it global
     
     String defaultDomain = null;                                          // UIMA-4142
-    
+    boolean needRecovery = false;                                         // UIMA-4142 tell outer layer that recovery is required
+    AbstractDuccComponent baseComponent;                                  // UIMA-4142, pass in the base for reconfig - reread ducc.properties
     NodePool[] nodepools;                                                 // top-level nodepools
     int max_order = 0;
 
@@ -148,8 +150,9 @@ public class Scheduler
     final static String rmversion_string = null;
 
     boolean initialized = false;           // we refuse nodeupdates until this is true
-    public Scheduler()
+    public Scheduler(AbstractDuccComponent baseComponent)
     {
+        this.baseComponent = baseComponent;                // UIMA-4142, pass in the base for reconfig
     }
 
     public synchronized void init()
@@ -255,14 +258,81 @@ public class Scheduler
         initialized = true;
     }
 
-    public synchronized String reconfigure()          // UIMA-4142
+    public String reconfigure()          // UIMA-4142
     {
-    	return "Reconfigure not implemented.";
+        String methodName = "reconfigure";
+
+        logger.info(methodName, null, "Reconfiguration starts.");
+
+        setInitialized(false);           // stop receipt of OR and Agent publications
+
+        HashMap<Node, Machine> offlineMachines                   = new HashMap<Node, Machine>();
+        for (NodePool np : nodepools) {
+            offlineMachines.putAll(np.getOfflineMachines());            
+        }
+
+        // (be careful, don't use the value, that must be discarded as it points to the OLD np)
+        List<String> offlineHostnames = new ArrayList<String>();
+        for ( Machine m : offlineMachines.values()) {
+        	logger.info(methodName, null, "Saving offline status of", m.getId());
+            offlineHostnames.add(m.getId());
+        }
+        offlineMachines = null;
+
+        this.configuration = null;
+        this.defaultDomain = null;
+        this.nodepools = null;
+        this.max_order = 0;
+        this.busyShares.clear();
+        this.vacatedShares.clear();
+        this.incomingJobs.clear();
+        this.recoveredJobs.clear();
+        this.initializedJobs.clear();
+        this.deadNodes.clear();
+        this.nodepoolsByNode.clear();
+        this.shortToLongNode.clear();
+        this.users.clear();
+        this.allJobs.clear();
+        this.resourceClasses.clear();
+        this.resourceClassesByName.clear();
+
+        try {
+            baseComponent.reloadProperties("ducc.deploy.configuration");
+            init();
+
+            if ( offlineHostnames.size() > 0 ) {
+                String[] offline = offlineHostnames.toArray(new String[offlineHostnames.size()]);
+                varyoff(offline);
+            }
+        } catch ( Throwable t ) {
+        	// TODO do something?  What?  If this fails its pretty awful.
+        }
+        
+        setRecovery(true);               // signal to outer layer that full recovery is needed
+        setInitialized(true);            // resume receipt of publications
+        logger.info(methodName, null, "Reconfiguration complete.");
+
+        return "Reconfiguration complete.";
+    }
+
+    public synchronized void setRecovery(boolean v)
+    {
+        this.needRecovery = v;
+    }
+
+    public synchronized boolean mustRecover()
+    {
+        return this.needRecovery;
     }
 
     public synchronized boolean isInitialized()
     {
         return initialized;
+    }
+
+    public synchronized void setInitialized(boolean v)
+    {
+        this.initialized = v;
     }
 
     public Machine getMachine(Node n)
@@ -545,6 +615,7 @@ public class Scheduler
             @SuppressWarnings("unchecked")
 			Class<IScheduler> cl = (Class<IScheduler>) Class.forName(schedImplName);
             for ( int i = 0; i < nps.length; i++ ) {
+                logger.info(methodName, null, "Rebuilding", schedImplName, "for top level nodepool", nps[i].get("name"));
                 schedulers[i] = (IScheduler) cl.newInstance();
                 schedulers[i].setEvictionPolicy(evictionPolicy);
             }
@@ -746,6 +817,7 @@ public class Scheduler
     	String methodName = "handleDeadNodes";
     	
         if ( ! isInitialized() ) {
+            logger.info(methodName, null, "Waiting for (re)initialization.");
             return;
         }
 
@@ -794,6 +866,7 @@ public class Scheduler
         }
 
         if ( ! isInitialized() ) {
+            logger.info(methodName, null, "Waiting for (re)initialization.");
             return null;
         }
 
@@ -1006,7 +1079,7 @@ public class Scheduler
         logger.info(methodName, null, "Map", longname, "to", np.getId());
         nodepoolsByNode.put(longname, np);
 
-        if ( ndx >=0 ) {
+        if ( ndx >= 0 ) {
             shortname = longname.substring(0, ndx);
             nodepoolsByNode.put(shortname, np);
             shortToLongNode.put(shortname, longname);
@@ -1035,6 +1108,12 @@ public class Scheduler
     private int total_arrivals = 0;
     public synchronized void nodeArrives(Node node)
     {        
+        String methodName = "nodeArrives";
+        if ( ! isInitialized() ) {
+            logger.info(methodName, null, "Waiting for (re)initialization; node = " + node.getNodeIdentity().getName());
+            return;
+        }
+
     	// String methodName = "nodeArrives";
         // The first block insures the node is in the scheduler's records as soon as possible
 
