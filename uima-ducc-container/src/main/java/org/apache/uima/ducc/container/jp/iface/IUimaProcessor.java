@@ -24,4 +24,5 @@ public interface IUimaProcessor {
 	public void stop() throws Exception;
 	public Object process(Object xmi) throws Exception;
 	public int getScaleout() throws Exception;
+	public byte[] getLastSerializedError() throws Exception;
 }

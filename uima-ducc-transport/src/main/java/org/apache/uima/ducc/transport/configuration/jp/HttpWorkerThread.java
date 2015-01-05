@@ -36,6 +36,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
 import org.apache.uima.ducc.container.jp.iface.IUimaProcessor;
+import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
@@ -370,8 +371,15 @@ public class HttpWorkerThread implements Runnable {
 							// Fetch the serialized stack trace and pass it on to
 							// to the JD. The actual serialized stack trace is wrapped in
 							// RuntimeException->AnalysisEngineException.message
-							transaction.getMetaCas().setUserSpaceException(ee.getCause().getCause().getMessage());								
-//							transaction.getMetaCas().setUserSpaceException("Bob");
+
+							IMetaCas mc = transaction.getMetaCas();
+							//Throwable t = ee.getTargetException();
+//							mc.setUserSpaceException(t.getMessage().getBytes());								
+							byte[] serializedException = uimaProcessor.getLastSerializedError();
+							mc.setUserSpaceException(serializedException);								
+							
+							
+							//							transaction.getMetaCas().setUserSpaceException("Bob");
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
 							//ee.printStackTrace();
 						} catch( Exception ee) {

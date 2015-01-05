@@ -36,12 +36,14 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 	private static String M_DEPLOY="deploy";
 	private static String M_PROCESS="process";
 	private static String M_STOP="stop";
+	private static String M_LASTERROR="getLastSerializedError";
 	private static String M_INITIALIZE="initialize";
 	
     private boolean DEBUG = false;
     Method processMethod = null;
     Method stopMethod = null;
     Method deployMethod = null;
+    Method lastErrorMethod = null;
     Object uimaContainerInstance = null;
     int scaleout=1;
     
@@ -65,6 +67,7 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 			processMethod = classToLaunch.getMethod(M_PROCESS, Object.class);
 			stopMethod = classToLaunch.getMethod(M_STOP);
 			deployMethod = classToLaunch.getMethod(M_DEPLOY, String.class);
+			lastErrorMethod = classToLaunch.getMethod(M_LASTERROR);
 
 			uimaContainerInstance = classToLaunch.newInstance();
 			Object s = initMethod.invoke(uimaContainerInstance,
@@ -83,7 +86,7 @@ public class JobProcessDeployer implements IJobProcessDeployer {
 		try {
 	    	// This blocks until Uima AS container is fully initialized
 			deployMethod.invoke(uimaContainerInstance, Utils.findDuccHome());
-	    	return new UimaProcessor(uimaContainerInstance,processMethod,stopMethod,scaleout);
+	    	return new UimaProcessor(uimaContainerInstance,processMethod,stopMethod,lastErrorMethod,scaleout);
 			
 		} catch( Exception e) {
 			throw new ServiceFailedInitialization(e);

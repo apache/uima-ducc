@@ -27,12 +27,15 @@ public class UimaProcessor implements IUimaProcessor {
 
 	Method processMethod=null;
 	Method stopMethod=null;
+	Method lastErrorMethod=null;
+	
 	Object uimaContainerInstance = null;
 	int scaleout;
 	volatile boolean running = false;
-	public UimaProcessor(Object uimaContainerInstance, Method processMethod, Method stopMethod, int scaleout) {
+	public UimaProcessor(Object uimaContainerInstance, Method processMethod, Method stopMethod, Method lastErrorMethod, int scaleout) {
 		this.processMethod = processMethod;
 		this.stopMethod = stopMethod;
+		this.lastErrorMethod = lastErrorMethod;
 		this.uimaContainerInstance = uimaContainerInstance;
 		this.scaleout = scaleout;
 		this.running = true;
@@ -55,7 +58,9 @@ public class UimaProcessor implements IUimaProcessor {
 		*/
 	}
 
-	
+	public byte[] getLastSerializedError() throws Exception {
+		return (byte[])lastErrorMethod.invoke(uimaContainerInstance);
+	}
 	public int getScaleout() throws Exception {
 		return scaleout;
 	}

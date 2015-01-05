@@ -50,6 +50,7 @@ import org.apache.uima.util.CasPool;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
+
 public class UimaProcessContainer implements IProcessContainer {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
 	private DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
@@ -62,6 +63,8 @@ public class UimaProcessContainer implements IProcessContainer {
 	// Some AEs depend on ThreadLocal storage.
 	UimaAnalysisEngineInstancePoolWithThreadAffinity instanceMap = new UimaAnalysisEngineInstancePoolWithThreadAffinity();
 	AnalysisEngineMetaData analysisEngineMetadata;
+    private Throwable lastError = null;
+    
 	private static CasPool casPool = null;
 	 /** Class and Method handles for reflection */
 //	  private static Class<?> mbeanServerClass;
@@ -168,14 +171,26 @@ public class UimaProcessContainer implements IProcessContainer {
 		    Thread.currentThread().setContextClassLoader(currentCL);
 	  }
 */		    
-	  private String serialize(Throwable t) throws Exception {
+	  
+	  public byte[] getLastSerializedError() throws Exception {
+		  
+		  if ( lastError != null ) {
+			  
+			  return serialize(lastError);
+		  }
+		  return null;
+		  
+	  }
+	  private byte[] serialize(Throwable t) throws Exception {
 		  try {
 				//return (String)toXMLMethod.invoke(xstreamInstance, t);
 	          ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		      ObjectOutputStream oos = new ObjectOutputStream( baos );
 		      oos.writeObject( t );
 		      oos.close();
-		      return new String(baos.toByteArray());
+		      
+		      return baos.toByteArray();
+//		      return new String(baos.toByteArray());
 		  
 		  } catch( Exception e) {
 			  e.printStackTrace();
@@ -288,7 +303,8 @@ public class UimaProcessContainer implements IProcessContainer {
 //			System.out.println("Thread:"+Thread.currentThread().getId()+" Processed "+num+" CASes");
 			return metricsList;
 		} catch( Throwable e ) {
-			String serializedStackTrace = serialize(e);
+			lastError = e;
+//			String serializedStackTrace = serialize(e);
 			Logger logger = UIMAFramework.getLogger();
 			logger.log(Level.WARNING, "UimaProcessContainer", e);
 			e.printStackTrace();
@@ -299,8 +315,9 @@ public class UimaProcessContainer implements IProcessContainer {
 			// on the other side must determine if the exception was caused
 			// by processing error or something else. In case of the latter
 			// it would be java only stack trace.
-			throw new 
-			RuntimeException(serializedStackTrace, new AnalysisEngineProcessException());
+//			throw new 
+//			RuntimeException(serializedStackTrace, new AnalysisEngineProcessException());
+			throw new AnalysisEngineProcessException();
 		}
 //		catch( Throwable t) {
 			//throw new ResourceProcessException(serialized);
