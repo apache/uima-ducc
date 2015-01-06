@@ -187,7 +187,9 @@ public class ActionEnd extends Action implements IAction {
 		IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 		//
 		int seqNo = metaCasHelper.getSystemKey();
-		String serializedException = (String) metaCas.getUserSpaceException();
+		//String serializedException = (String) metaCas.getUserSpaceException();
+		//TODO
+		String serializedException = Standardize.Label.seqNo.get()+seqNo+" work-in-progress is to log actual exception here!";
 		toJdErrLog(serializedException);
 		//
 		String serializedCas = (String) metaCas.getUserSpaceCas();
