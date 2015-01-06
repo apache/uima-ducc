@@ -69,6 +69,7 @@ public class JobDriver {
 	
 	private String jobId = null;
 	private String logDir = null;
+	private long workItemTimeoutMillis = 24*60*60*1000;
 	private ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> remoteThreadMap = null;
 	private ConcurrentHashMap<IRemotePid, IProcessStatistics> remoteProcessMap = null;
 	private IWorkItemStatistics wis = null;
@@ -96,6 +97,7 @@ public class JobDriver {
 			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 			jobId = feh.getJobId();
 			logDir = feh.getLogDirectory();
+			setWorkItemTimeout();
 			remoteThreadMap = new ConcurrentHashMap<IRemoteWorkerThread, IWorkItem>();
 			remoteProcessMap = new ConcurrentHashMap<IRemotePid, IProcessStatistics>();
 			wis = new WorkItemStatistics();
@@ -109,6 +111,21 @@ public class JobDriver {
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
+		}
+	}
+	
+	private void setWorkItemTimeout() {
+		String location = "setWorkItemTimeout";
+		try {
+			FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
+			String workItemTimeout = feh.getWorkItemTimeout();
+			workItemTimeoutMillis = Long.parseLong(workItemTimeout)*(60*1000);
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.value.get()+workItemTimeoutMillis);
+			logger.trace(location, ILogger.null_id, mb.toString());
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
@@ -142,6 +159,10 @@ public class JobDriver {
 	
 	public DgenManager getDdManager() {
 		return ddManager;
+	}
+	
+	public long getWorkItemTimeoutMillis() {
+		return workItemTimeoutMillis;
 	}
 	
 	public IWorkItemStateKeeper getWorkItemStateKeeper() {

@@ -65,6 +65,9 @@ public class WiFsm extends Fsm {
 	public IAction ActionProcessFailure		= new ActionProcessFailure();
 	public IAction ActionProcessPreempt		= new ActionProcessPreempt();
 	
+	public IAction ActionAckTimeout			= new ActionAckTimeout();
+	public IAction ActionEndTimeout			= new ActionEndTimeout();
+	
 	public IAction ActionIgnore 			= new ActionIgnore();
 	public IAction ActionError				= new ActionError();
 	
@@ -93,22 +96,31 @@ public class WiFsm extends Fsm {
 		add(Start, CAS_Available, ActionIgnore, Start);
 		add(Start, CAS_Unavailable, ActionIgnore, Start);
 		add(Start, Ack_Request, ActionError, Start);
+		add(Start, End_Request, ActionError, Start);
 		add(Start, Process_Preempt, ActionIgnore, Start);
 		add(Start, Process_Failure, ActionIgnore, Start);
+		add(Start, Ack_Timer_Pop, ActionIgnore, Start);
+		add(Start, End_Timer_Pop, ActionIgnore, Start);
 		
 		add(Get_Pending, Get_Request, ActionInProgress, Get_Pending);
 		add(Get_Pending, CAS_Available, ActionSend, CAS_Send);
 		add(Get_Pending, CAS_Unavailable, ActionIgnore, Start);
 		add(Get_Pending, Ack_Request, ActionError, Get_Pending);
+		add(Get_Pending, End_Request, ActionError, Get_Pending);
 		add(Get_Pending, Process_Preempt, ActionProcessPreempt, Start);
 		add(Get_Pending, Process_Failure, ActionProcessFailure, Start);
+		add(Get_Pending, Ack_Timer_Pop, ActionIgnore, Get_Pending);
+		add(Get_Pending, End_Timer_Pop, ActionIgnore, Get_Pending);
 		
 		add(CAS_Send, Get_Request, ActionInProgress, CAS_Send);
 		add(CAS_Send, CAS_Available, ActionIgnore, CAS_Send);
 		add(CAS_Send, CAS_Unavailable, ActionIgnore, CAS_Send);
 		add(CAS_Send, Ack_Request, ActionAck, CAS_Active);
+		add(CAS_Send, End_Request, ActionError, CAS_Send);
 		add(CAS_Send, Process_Preempt, ActionProcessPreempt, Start);
 		add(CAS_Send, Process_Failure, ActionProcessFailure, Start);
+		add(CAS_Send, Ack_Timer_Pop, ActionAckTimeout, Start);
+		add(CAS_Send, End_Timer_Pop, ActionIgnore, CAS_Send);
 		
 		add(CAS_Active, Get_Request, ActionError, CAS_Active);
 		add(CAS_Active, CAS_Available, ActionIgnore, CAS_Active);
@@ -117,6 +129,8 @@ public class WiFsm extends Fsm {
 		add(CAS_Active, End_Request, ActionEnd, Start);
 		add(CAS_Active, Process_Preempt, ActionProcessPreempt, Start);
 		add(CAS_Active, Process_Failure, ActionProcessFailure, Start);
+		add(CAS_Active, Ack_Timer_Pop, ActionIgnore, CAS_Active);
+		add(CAS_Active, End_Timer_Pop, ActionEndTimeout, Start);
 		
 		MessageBuffer mb2 = new MessageBuffer();
 		mb2.append(Standardize.Label.exit.name());
@@ -141,6 +155,7 @@ public class WiFsm extends Fsm {
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		mb.append(Standardize.Label.curr.get()+getStateCurrent().getName());
 		mb.append(Standardize.Label.prev.get()+getStatePrevious().getName());
+		mb.append(Standardize.Label.event.get()+event.getName());
 		logger.info(location, ILogger.null_id, mb.toString());
 	}
 }

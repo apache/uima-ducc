@@ -126,6 +126,7 @@ public class Fsm implements IFsmBuilder {
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.curr.get()+getStateCurrent().getName());
 		mb.append(Standardize.Label.prev.get()+getStatePrevious().getName());
+		mb.append(Standardize.Label.event.get()+event.getName());
 		logger.trace(location, ILogger.null_id, mb.toString());
 	}
 	

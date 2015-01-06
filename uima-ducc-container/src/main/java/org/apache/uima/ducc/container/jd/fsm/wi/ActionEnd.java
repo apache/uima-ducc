@@ -37,15 +37,17 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
-import org.apache.uima.ducc.container.jd.fault.injector.FaultInjector;
 import org.apache.uima.ducc.container.jd.log.ErrorLogger;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
@@ -229,6 +231,7 @@ public class ActionEnd extends Action implements IAction {
 		try {
 			IWorkItem wi = actionData.getWorkItem();
 			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
 			IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
 			IMetaCas metaCas = wi.getMetaCas();
 			JobDriver jd = JobDriver.getInstance();
@@ -240,13 +243,11 @@ public class ActionEnd extends Action implements IAction {
 			IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 			//
 			if(metaCas != null) {
-				if(FaultInjector.missingEnd(actionData)) {
-					return;
-				}
+				WiTracker.getInstance().unassign(rwt);
 				//
 				TimeoutManager toMgr = TimeoutManager.getInstance();
 				toMgr.receivedAck(actionData);
-				toMgr.pendingEnd(actionData);
+				toMgr.receivedEnd(actionData);
 				//
 				int seqNo = metaCasHelper.getSystemKey();
 				Object exception = metaCas.getUserSpaceException();

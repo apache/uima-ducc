@@ -39,6 +39,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
@@ -90,6 +91,7 @@ public class ActionGet implements IAction {
 			IEvent event = null;
 			//
 			if(metaCas != null) {
+				WiTracker.getInstance().assign(rwt, wi);
 				int seqNo = metaCasHelper.getSystemKey();
 				String wiId = metaCas.getUserKey();
 				String node = rwt.getNodeAddress();

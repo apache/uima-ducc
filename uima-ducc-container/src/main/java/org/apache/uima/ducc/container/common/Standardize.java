@@ -21,6 +21,10 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		id,
+		skip,
+		dispatched,
+		deadline,
 		sum,
 		count,
 		total,

@@ -86,7 +86,7 @@ public class TimeoutTask implements ITimeoutTask {
 		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 		mb.append(Standardize.Label.event.get()+event.getName());
 		logger.warn(location, ILogger.null_id, mb.toString());
-		TimeoutManager.getInstance().unregister(fsm);
+		TimeoutManager.getInstance().timeout(actionData);
 		fsm.transition(event, actionData);
 		return null;
 	}

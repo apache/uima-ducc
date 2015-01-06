@@ -50,8 +50,31 @@ public class LoggerHelper {
 		String retVal = "?";
 		try {
 			IWorkItem wi = actionData.getWorkItem();
+			retVal = getSeqNo(wi);
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return retVal;
+	}
+	
+	public static String getSeqNo(IWorkItem wi) {
+		String retVal = "?";
+		try {
 			IMetaCas metaCas = wi.getMetaCas();
 			retVal = metaCas.getSystemKey();
+		}
+		catch(Exception e) {
+			// oh well
+		}
+		return retVal;
+	}
+	
+	public static String getId(IWorkItem wi) {
+		String retVal = "?";
+		try {
+			IMetaCas metaCas = wi.getMetaCas();
+			retVal = metaCas.getUserKey();
 		}
 		catch(Exception e) {
 			// oh well
@@ -96,6 +119,33 @@ public class LoggerHelper {
 			//mb.append(Standardize.Label.transNo.get()+transNo);
 			mb.append(Standardize.Label.seqNo.get()+seqNo);
 			mb.append(Standardize.Label.remote.get()+remote);
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return mb;
+	}
+	
+	public static MessageBuffer getMessageBuffer(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+		String location = "getMessageBuffer";
+		MessageBuffer mb = new MessageBuffer();
+		try {
+			//mb.append(Standardize.Label.transNo.get()+transNo);
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+		return mb;
+	}
+	
+	public static MessageBuffer getMessageBuffer(IRemoteWorkerThread rwt, IWorkItem wi) {
+		String location = "getMessageBuffer";
+		MessageBuffer mb = new MessageBuffer();
+		try {
+			mb.append(Standardize.Label.seqNo.get()+getSeqNo(wi));
+			mb.append(Standardize.Label.id.get()+getSeqNo(wi));
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

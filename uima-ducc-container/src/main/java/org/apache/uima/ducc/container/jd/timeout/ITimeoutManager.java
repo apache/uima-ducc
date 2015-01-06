@@ -28,4 +28,5 @@ public interface ITimeoutManager {
 	public void pendingEnd(IActionData actionData);
 	public void receivedEnd(IActionData actionData);
 	
+	public void timeout(IActionData actionData);
 }

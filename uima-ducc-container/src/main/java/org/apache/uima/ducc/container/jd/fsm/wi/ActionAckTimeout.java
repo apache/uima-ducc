@@ -26,20 +26,33 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.JobDriverHelper;
+import org.apache.uima.ducc.container.jd.cas.CasManager;
+import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
-import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
+import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public class ActionAck implements IAction {
+public class ActionAckTimeout extends Action implements IAction {
 
-	private static Logger logger = Logger.getLogger(ActionAck.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(ActionAckTimeout.class, IComponent.Id.JD.name());
 	
 	@Override
 	public String getName() {
-		return ActionAck.class.getName();
+		return ActionAckTimeout.class.getName();
 	}
-
+	
+	private void preemptWorkItem(IActionData actionData, CasManager cm, IMetaCas metaCas) {
+		String location = "preemptWorkItem";
+		cm.putMetaCas(metaCas, RetryReason.TimeoutRetry);
+		cm.getCasManagerStats().incEndRetry();
+		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+		logger.info(location, ILogger.null_id, mb.toString());
+	}
+	
 	@Override
 	public void engage(Object objectData) {
 		String location = "engage";
@@ -49,25 +62,31 @@ public class ActionAck implements IAction {
 			IWorkItem wi = actionData.getWorkItem();
 			IMetaCas metaCas = wi.getMetaCas();
 			JobDriver jd = JobDriver.getInstance();
-			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-			if(metaCas != null) {
-				//
-				TimeoutManager toMgr = TimeoutManager.getInstance();
-				toMgr.receivedAck(actionData);
-				toMgr.pendingEnd(actionData);
-				//
-				int seqNo = metaCasHelper.getSystemKey();
-				wisk.operating(seqNo);
-				//
-				wi.setTodAck();
-				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				JobDriver.getInstance().getMessageHandler().incAcks();
-				logger.info(location, ILogger.null_id, mb.toString());
+			CasManager cm = jd.getCasManager();
+			JobDriverHelper jdh = JobDriverHelper.getInstance();
+			IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
+			if(rwp != null) {
+				if(metaCas != null) {
+					WiTracker.getInstance().unassign(wi);
+					preemptWorkItem(actionData, cm, metaCas);
+					IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+					MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
+					int seqNo = metaCasHelper.getSystemKey();
+					wisk.preempt(seqNo);
+					pStats.preempt(wi);
+					displayProcessStatistics(logger, actionData, wi, pStats);
+					wi.reset();
+				}
+				else {
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+					mb.append("No CAS found for processing");
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
 			}
 			else {
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				mb.append("No CAS found for processing");
+				mb.append("No remote worker process entry found for processing");
 				logger.info(location, ILogger.null_id, mb.toString());
 			}
 		}
@@ -75,5 +94,4 @@ public class ActionAck implements IAction {
 			logger.error(location, ILogger.null_id, e);
 		}
 	}
-
 }

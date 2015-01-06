@@ -26,11 +26,13 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.fsm.wi.IActionData;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
@@ -57,14 +59,15 @@ public class TimeoutManager implements ITimeoutManager {
 	public void pendingAck(IActionData actionData) {
 		String location = "pendingAck";
 		try {
-			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			logger.debug(location, ILogger.null_id, mb.toString());
 			IWorkItem wi = actionData.getWorkItem();
 			IFsm fsm = wi.getFsm();
 			IEvent event = WiFsm.Ack_Timer_Pop;
 			long deadline = System.currentTimeMillis()+ackTimeout;
 			ITimeoutTask timeoutTask = new TimeoutTask(fsm, event, actionData, deadline);
 			register(fsm, timeoutTask);
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			mb.append(Standardize.Label.deadline+"+"+ackTimeout/1000);
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
@@ -77,6 +80,9 @@ public class TimeoutManager implements ITimeoutManager {
 		try {
 			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 			logger.debug(location, ILogger.null_id, mb.toString());
+			IWorkItem wi = actionData.getWorkItem();
+			IFsm fsm = wi.getFsm();
+			unregister(fsm);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
@@ -87,7 +93,16 @@ public class TimeoutManager implements ITimeoutManager {
 	public void pendingEnd(IActionData actionData) {
 		String location = "pendingEnd";
 		try {
+			IWorkItem wi = actionData.getWorkItem();
+			IFsm fsm = wi.getFsm();
+			IEvent event = WiFsm.End_Timer_Pop;
+			JobDriver jd = JobDriver.getInstance();
+			long endTimeout = jd.getWorkItemTimeoutMillis();
+			long deadline = System.currentTimeMillis()+endTimeout;
+			ITimeoutTask timeoutTask = new TimeoutTask(fsm, event, actionData, deadline);
+			register(fsm, timeoutTask);
 			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			mb.append(Standardize.Label.deadline+"+"+endTimeout/1000);
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		catch(Exception e) {
@@ -101,19 +116,17 @@ public class TimeoutManager implements ITimeoutManager {
 		try {
 			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 			logger.debug(location, ILogger.null_id, mb.toString());
+			IWorkItem wi = actionData.getWorkItem();
+			IFsm fsm = wi.getFsm();
+			unregister(fsm);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
 		}
 	}
 
-	private boolean wip = true;
-	
-	public void register(IFsm fsm, ITimeoutTask timeoutTask) {
+	private void register(IFsm fsm, ITimeoutTask timeoutTask) {
 		String location = "register";
-		if(wip) {
-			return;
-		}
 		try {
 			mapTask.put(fsm, timeoutTask);
 			Callable<?> callable = timeoutTask;
@@ -124,18 +137,15 @@ public class TimeoutManager implements ITimeoutManager {
 			//
 			IActionData actionData = timeoutTask.getActionData();
 			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			logger.info(location, ILogger.null_id, mb.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
-	public void unregister(IFsm fsm) {
+	private void unregister(IFsm fsm) {
 		String location = "unregister";
-		if(wip) {
-			return;
-		}
 		try {
 			ScheduledFuture<?> scheduledFuture = mapFuture.remove(fsm);
 			if(scheduledFuture != null) {
@@ -145,11 +155,27 @@ public class TimeoutManager implements ITimeoutManager {
 			if(timeoutTask != null) {
 				IActionData actionData = timeoutTask.getActionData();
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				logger.info(location, ILogger.null_id, mb.toString());
+				logger.debug(location, ILogger.null_id, mb.toString());
 			}
 		}	
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
 		}
 	}
+
+	@Override
+	public void timeout(IActionData actionData) {
+		String location = "timeout";
+		try {
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			logger.debug(location, ILogger.null_id, mb.toString());
+			IWorkItem wi = actionData.getWorkItem();
+			IFsm fsm = wi.getFsm();
+			unregister(fsm);
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+	}
+
 }

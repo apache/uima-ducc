@@ -154,6 +154,7 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.endSuccess.get()+oi.getWorkItemEndSuccesses());
 			mb.append(Standardize.Label.endFailure.get()+oi.getWorkItemEndFailures());
 			mb.append(Standardize.Label.killJob.get()+oi.isKillJob());
+			mb.append(Standardize.Label.dispatched.get()+oi.getWorkItemDispatcheds());
 			mb.append(Standardize.Label.retrys.get()+oi.getWorkItemRetrys());
 			mb.append(Standardize.Label.preemptions.get()+oi.getWorkItemPreemptions());
 			mb.append(Standardize.Label.finishedMillisMin.get()+oi.getWorkItemFinishedMillisMin());
@@ -321,28 +322,28 @@ public class MessageHandler implements IMessageHandler {
 		return wi;
 	}
 	
-	private IWorkItem find(IRemoteWorkerThread rwi) {
+	private IWorkItem find(IRemoteWorkerThread rwt) {
 		String location = "find";
 		ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-		IWorkItem wi = map.get(rwi);
+		IWorkItem wi = map.get(rwt);
 		if(wi != null) {
 			IMetaCas metaCas = wi.getMetaCas();
 			if(metaCas != null) {
 				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				mb.append(Standardize.Label.remote.get()+rwt.toString());
 				mb.append(Standardize.Label.seqNo.get()+metaCas.getSystemKey());
 				logger.debug(location, ILogger.null_id, mb.toString());
 			}
 			else {
 				MessageBuffer mb = new MessageBuffer();
-				mb.append(Standardize.Label.remote.get()+rwi.toString());
+				mb.append(Standardize.Label.remote.get()+rwt.toString());
 				mb.append("has no work assigned presently");
 				logger.debug(location, ILogger.null_id, mb.toString());
 			}
 		}
 		else {
 			MessageBuffer mb = new MessageBuffer();
-			mb.append(Standardize.Label.remote.get()+rwi.toString());
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			mb.append("has no work assigned presently");
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
