@@ -228,6 +228,7 @@ def main():
             CMD = CMD +   ' --process_executable_args "' + ' '.join(ducc_args[1:]) + '"'
 
     print CMD
+    sys.stdout.flush()         # UIMA-4168
 
     rc = os.system(CMD)
     sys.exit(rc);
