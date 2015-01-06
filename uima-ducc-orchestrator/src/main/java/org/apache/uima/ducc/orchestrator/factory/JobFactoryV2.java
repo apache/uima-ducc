@@ -606,8 +606,13 @@ public class JobFactoryV2 implements IJobFactory {
 			
 			pipelineCommandLine.addOption(opt);
 			
-			addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima");
-			
+			if(process_DD != null) {
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima-as");
+			}
+			else {
+				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima");
+			}
+
 			String process_thread_count = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count);
 			if(process_thread_count != null) {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpThreadCount, process_thread_count);
