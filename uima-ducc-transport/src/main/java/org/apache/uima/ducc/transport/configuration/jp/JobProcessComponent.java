@@ -269,6 +269,9 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		}
 
 	}
+	public void setRunning() {
+		currentState = ProcessState.Running;
+	}
 	public boolean isRunning() {
 		return currentState.equals(ProcessState.Running);
 	}

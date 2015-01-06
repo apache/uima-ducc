@@ -283,6 +283,9 @@ public class HttpWorkerThread implements Runnable {
 			// **************************************************************************
 			threadReadyCount.await();
 	    		
+			synchronized(JobProcessComponent.class) {
+				duccComponent.setRunning();
+			}
 	   	} catch( Throwable t) {
 	    		logger.error("HttpWorkerThread.run()", null, t);
 	    		
