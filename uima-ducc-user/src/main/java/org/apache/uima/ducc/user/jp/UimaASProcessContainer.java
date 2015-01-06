@@ -57,7 +57,8 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class UimaASProcessContainer implements IProcessContainer {
+public class UimaASProcessContainer  extends AbstractProcessContainer 
+implements IProcessContainer {
 	private String endpointName;
 	protected int scaleout;
 	private String saxonURL = null;
@@ -76,7 +77,7 @@ public class UimaASProcessContainer implements IProcessContainer {
 	private static Map<Long, UimaSerializer> serializerMap = new HashMap<Long, UimaSerializer>();
     private String[] deploymentDescriptors = null;
 	private String[] ids = null;
-    
+   
 	public int initialize(String[] args) throws Exception {
 		// Get DDs and also extract scaleout property from DD
 		deploymentDescriptors = getDescriptors(args);
@@ -261,6 +262,8 @@ public class UimaASProcessContainer implements IProcessContainer {
 	public List<Properties> process(Object xmi) throws Exception {
 		CAS cas = uimaASClient.getCAS();   // fetch a new CAS from the client's Cas Pool
 		try {
+			// reset last error
+			lastError = null;
 			XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 			// Use thread dedicated UimaSerializer to de-serialize the CAS
 			serializerMap.get(Thread.currentThread().getId()).
@@ -282,19 +285,11 @@ public class UimaASProcessContainer implements IProcessContainer {
 			}
 			return metricsList;
 		} catch( Throwable e ) {
-			String serializedStackTrace = serialize(e);
+			lastError = e;
 			Logger logger = UIMAFramework.getLogger();
 			logger.log(Level.WARNING, "UimaProcessContainer", e);
 			e.printStackTrace();
-			// repackage so that the code on the other side is protected
-			// against Custom Exception classes that the user code may
-			// throw. Serialize the stack trace and throw a RuntimeException
-			// with a causedby of AnalysisEngineProcessException. The code
-			// on the other side must determine if the exception was caused
-			// by processing error or something else. In case of the latter
-			// it would be java only stack trace.
-			throw new 
-			RuntimeException(serializedStackTrace, new AnalysisEngineProcessException());
+			throw new AnalysisEngineProcessException();
 		} finally {
 			if ( cas != null) {
 				cas.release();
@@ -302,21 +297,6 @@ public class UimaASProcessContainer implements IProcessContainer {
 		}
 	}
     
-	  private String serialize(Throwable t) throws Exception {
-		  try {
-				//return (String)toXMLMethod.invoke(xstreamInstance, t);
-	          ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		      ObjectOutputStream oos = new ObjectOutputStream( baos );
-		      oos.writeObject( t );
-		      oos.close();
-		      return new String(baos.toByteArray());
-		  
-		  } catch( Exception e) {
-			  e.printStackTrace();
-			  throw e;
-		  }
-	  }
-
 	private void initializeUimaAsClient(String endpoint) throws Exception {
 		String brokerURL = System.getProperty("DefaultBrokerURL");
 		Map<String, Object> appCtx = new HashMap<String, Object>();
