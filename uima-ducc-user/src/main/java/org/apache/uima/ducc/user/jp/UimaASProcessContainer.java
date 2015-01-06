@@ -96,26 +96,35 @@ public class UimaASProcessContainer implements IProcessContainer {
 	public void deploy(String duccHome) throws Exception {
 		// deploy single instance of embedded broker
 		synchronized( UimaASProcessContainer.class) {
-			if ( brokerInstance == null ) {
-				System.out.println("UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
-				// isolate broker by loading it in its own Class Loader
-				// Sets the brokerInstance
-				deployBroker(duccHome);
-				
-				// Broker is running 
-				brokerRunning = true;
-				// create a shared instance of UIMA-AS client
-				uimaASClient = new BaseUIMAAsynchronousEngine_impl();
+			try {
+				if ( brokerInstance == null ) {
+					System.out.println("UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
+					// isolate broker by loading it in its own Class Loader
+					// Sets the brokerInstance
+					deployBroker(duccHome);
+					
+					// Broker is running 
+					brokerRunning = true;
+					// create a shared instance of UIMA-AS client
+					uimaASClient = new BaseUIMAAsynchronousEngine_impl();
 
-				int i = 0;
-				// Deploy UIMA-AS services
-				for (String dd : deploymentDescriptors) {
-					// keep the container id so that we can un-deploy it when shutting
-					// down
-					ids[i] = deployService(dd);
+					int i = 0;
+					// Deploy UIMA-AS services
+					for (String dd : deploymentDescriptors) {
+						// keep the container id so that we can un-deploy it when shutting
+						// down
+						ids[i] = deployService(dd);
+					}
+					// send GetMeta to UIMA-AS service and wait for a reply
+					initializeUimaAsClient(endpointName);
 				}
-				// send GetMeta to UIMA-AS service and wait for a reply
-				initializeUimaAsClient(endpointName);
+				
+			} catch ( Throwable e) {
+				Logger logger = UIMAFramework.getLogger();
+				logger.log(Level.WARNING, "UimaProcessContainer", e);
+				e.printStackTrace();
+				throw new RuntimeException(e);
+
 			}
 			//	Pin thread to its own CAS serializer
 			serializerMap.put( Thread.currentThread().getId(), new UimaSerializer());

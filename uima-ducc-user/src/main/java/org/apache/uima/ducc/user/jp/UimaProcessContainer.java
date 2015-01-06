@@ -247,8 +247,13 @@ public class UimaProcessContainer implements IProcessContainer {
 				}
 			}
 
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			latch.countDown();
+			Logger logger = UIMAFramework.getLogger();
+			logger.log(Level.WARNING, "UimaProcessContainer", e);
+			e.printStackTrace();
+			throw new RuntimeException(e);
+
 		} finally {
 			sharedInitSemaphore.release();
 			
