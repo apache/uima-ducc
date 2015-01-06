@@ -294,6 +294,13 @@ public class JobFactoryV2 implements IJobFactory {
 		userCP = augment+File.pathSeparator+userCP;
 		opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
 		jcl.addOption(opt);
+		// add WorkItemTimeout	
+		String wiTimeout = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_per_item_time_max);
+		if(wiTimeout == null) {
+			DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
+			wiTimeout = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.default_process_per_item_time_max);
+		}
+		addDashD(jcl, FlagsHelper.Name.WorkItemTimeout, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_per_item_time_max));		
 		// add JpDdDirectory	
 		addDashD(jcl, FlagsHelper.Name.JobDirectory, jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
 		// add Jp DD construction pieces-parts (Jp DD should be null)
