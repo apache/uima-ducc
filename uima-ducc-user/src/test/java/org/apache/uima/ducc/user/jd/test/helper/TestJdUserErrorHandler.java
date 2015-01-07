@@ -25,7 +25,7 @@ import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
 public class TestJdUserErrorHandler extends JdUserErrorHandler {
 
 	@Override
-	public IJdUserDirective handle(String serializedCAS, String e) {
+	public IJdUserDirective handle(String serializedCAS, Object userException) {
 		JdUserDirective jdUserDirective = new JdUserDirective();
 		jdUserDirective.setKillJob();
 		jdUserDirective.setKillProcess();

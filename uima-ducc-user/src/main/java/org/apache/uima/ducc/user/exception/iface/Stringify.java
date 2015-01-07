@@ -16,9 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.iface;
+package org.apache.uima.ducc.user.exception.iface;
 
-public interface IJdUserErrorHandler {
-	public void initialize(String initializationData);
-	public IJdUserDirective handle(String serializedCAS, Object userException);
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+public class Stringify implements IStringify {
+
+	@Override
+	public String convert(Object byteArray) throws StringifyException {
+		try {
+			Throwable t = Transformer.deserialize(byteArray);
+			StringWriter sw = new StringWriter();
+			t.printStackTrace(new PrintWriter(sw));
+			return sw.toString();
+		}
+		catch(Exception e) {
+			throw new StringifyException(e);
+		}
+	}
+
 }

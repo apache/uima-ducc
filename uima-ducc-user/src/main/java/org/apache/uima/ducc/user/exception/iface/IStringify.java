@@ -16,9 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.iface;
+package org.apache.uima.ducc.user.exception.iface;
 
-public interface IJdUserErrorHandler {
-	public void initialize(String initializationData);
-	public IJdUserDirective handle(String serializedCAS, Object userException);
+public interface IStringify {
+	
+	public String convert(
+		Object userException
+		) throws StringifyException;
 }

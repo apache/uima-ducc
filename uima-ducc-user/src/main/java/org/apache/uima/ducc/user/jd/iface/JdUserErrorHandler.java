@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.user.common.QuotedOptions;
+import org.apache.uima.ducc.user.exception.iface.Transformer;
 import org.apache.uima.ducc.user.jd.JdUser;
 
 public class JdUserErrorHandler implements IJdUserErrorHandler {
@@ -86,13 +87,16 @@ public class JdUserErrorHandler implements IJdUserErrorHandler {
 	}
 	
 	@Override
-	public IJdUserDirective handle(String serializedCAS, String serializedException) {
+	public IJdUserDirective handle(String serializedCAS, Object byteArray) {
 		JdUserDirective jdUserDirective = new JdUserDirective();
 		try {
+			Throwable userThrowable = null;
 			if(serializedCAS != null) {
 				// CAS is provided
 			}
-			if(serializedException != null) {
+			if(byteArray != null) {
+				userThrowable = Transformer.deserialize(byteArray);
+				userThrowable.getClass();
 				// Exception is provided
 			}
 			jobErrorCount.incrementAndGet();

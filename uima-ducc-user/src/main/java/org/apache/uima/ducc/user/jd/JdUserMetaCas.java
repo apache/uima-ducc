@@ -23,7 +23,7 @@ public class JdUserMetaCas {
 	private int seqNo = -1;
 	private String serializedCas = null;
 	private String documentText = null;
-	private String  serializedException = null;
+	private Exception  userException = null;
 	
 	public JdUserMetaCas(int seqNo, String serializedCas, String documentText) {
 		setSeqNo(seqNo);
@@ -31,11 +31,11 @@ public class JdUserMetaCas {
 		setDocumentText(documentText);
 	}
 	
-	public JdUserMetaCas(int seqNo, String serializedCas, String documentText, String serializedException) {
+	public JdUserMetaCas(int seqNo, String serializedCas, String documentText, Exception userException) {
 		setSeqNo(seqNo);
 		setSerializedCas(serializedCas);
 		setDocumentText(documentText);
-		setSerializedException(serializedException);
+		setUserException(userException);
 	}
 	
 	private void setSeqNo(int value) {
@@ -62,12 +62,12 @@ public class JdUserMetaCas {
 		return documentText;
 	}
 	
-	private void setSerializedException(String value) {
-		serializedException = value;
+	private void setUserException(Exception value) {
+		userException = value;
 	}
 	
-	public String getSerializedException() {
-		return serializedException;
+	public Exception getUserException() {
+		return userException;
 	}
 	
 	public void printMe() {
@@ -75,8 +75,8 @@ public class JdUserMetaCas {
 		sb.append("seq:"+getSeqNo()+" ");
 		sb.append("id:"+getDocumentText()+" ");
 		sb.append("cas:"+getSerializedCas()+" ");
-		if(serializedException != null) {
-			sb.append("exception:"+getSerializedException());
+		if(userException != null) {
+			sb.append("exception:"+getUserException().toString());
 		}
 		System.out.println(sb);
 	}
