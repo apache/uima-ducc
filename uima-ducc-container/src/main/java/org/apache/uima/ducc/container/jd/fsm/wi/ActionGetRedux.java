@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
+import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
+import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -31,13 +33,13 @@ import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
-public class ActionInProgress implements IAction {
+public class ActionGetRedux implements IAction {
 
-	private static Logger logger = Logger.getLogger(ActionInProgress.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(ActionGetRedux.class, IComponent.Id.JD.name());
 	
 	@Override
 	public String getName() {
-		return ActionInProgress.class.getName();
+		return ActionGetRedux.class.getName();
 	}
 
 	@Override
@@ -49,9 +51,12 @@ public class ActionInProgress implements IAction {
 			IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
 			IWorkItem wi = map.get(rwt);
+			IFsm fsm = wi.getFsm();
+			IEvent event = WiFsm.CAS_Unavailable;
 			if(wi != null) {
 				IMetaCas metaCas = wi.getMetaCas();
 				if(metaCas != null) {
+					event = WiFsm.CAS_Available;
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					logger.debug(location, ILogger.null_id, mb.toString());
 					actionData.getWorkItem().setMetaCas(metaCas);
@@ -62,6 +67,8 @@ public class ActionInProgress implements IAction {
 					logger.info(location, ILogger.null_id, mb.toString());
 				}
 			}
+			//
+			fsm.transition(event, actionData);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
