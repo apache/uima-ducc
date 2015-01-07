@@ -233,6 +233,25 @@ public abstract class DuccMonitor {
 		}
 	}
 
+	private ArrayList<String> seenRemotePids = new ArrayList<String>();
+	
+	private void displayRemotePids(MonitorInfo monitorInfo) {
+		if(monitorInfo != null) {
+			if(monitorInfo.remotePids != null) {
+				for(String remotePid : monitorInfo.remotePids) {
+					if(!seenRemotePids.contains(remotePid)) {
+						seenRemotePids.add(remotePid);
+						StringBuffer message = new StringBuffer();
+						message.append("id:" + id);
+						message.append(" ");
+						message.append("remote:" + remotePid);
+						info(message.toString());
+					}
+				}
+			}
+		}
+	}
+	
 	private int runInternal(String[] args) throws Exception {
 		// DUCC_HOME
 		String ducc_home = Utils.findDuccHome();
@@ -296,6 +315,7 @@ public abstract class DuccMonitor {
 		message.append("location:");
 		message.append(ManagementFactory.getRuntimeMXBean().getName());
 		info(message.toString());
+		debug(urlString);
 		// Poll until finished
 		while (flag_observer.get()) {
             DuccEventHttpDispatcher dispatcher = new DuccEventHttpDispatcher(urlString, urlTimeout);
@@ -307,6 +327,7 @@ public abstract class DuccMonitor {
 			// 	MonitorInfo monitorInfo = gson
 			// 			.fromJson(json, MonitorInfo.class);
             if ( monitorInfo != null ) {
+            	displayRemotePids(monitorInfo);
 				int stateCount = monitorInfo.stateSequence.size();
 				debug("states:" + stateCount);
 				if (stateCount <= 0) {
