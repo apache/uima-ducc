@@ -132,39 +132,47 @@ public class ActionEnd extends Action implements IAction {
 	
 	private void updatePerformanceMetrics(IActionData actionData, IWorkItem wi) {
 		String location = "updatePerformanceMetrics";
-		IMetaCas metaCas = wi.getMetaCas();
-		IPerformanceMetrics performanceMetrics = metaCas.getPerformanceMetrics();
-		List<Properties> list = performanceMetrics.get();
-		int size = 0;
-		if(list !=  null) {
-			size = list.size();
-			JobDriver jd = JobDriver.getInstance();
-			IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
-			for(Properties properties : list) {
-				String name = properties.getProperty(keyName);
-				String uniqueName = properties.getProperty(keyUniqueName);
-				String analysisTime = properties.getProperty(keyAnalysisTime);
-				long time = 0;
-				try {
-					time = Long.parseLong(analysisTime);
-				}
-				catch(Exception e) {
-					logger.error(location, ILogger.null_id, e);
-				}
-				wipk.dataAdd(name, uniqueName, time);
-				for(Entry<Object, Object> entry : properties.entrySet()) {
-					String key = (String) entry.getKey();
-					String value = (String) entry.getValue();
-					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					mb.append(Standardize.Label.key.get()+key);
-					mb.append(Standardize.Label.value.get()+value);
-					logger.debug(location, ILogger.null_id, mb.toString());
+		if(wi != null) {
+			IMetaCas metaCas = wi.getMetaCas();
+			if(metaCas != null) {
+				IPerformanceMetrics performanceMetrics = metaCas.getPerformanceMetrics();
+				if(performanceMetrics != null) {
+					List<Properties> list = performanceMetrics.get();
+					if(list != null) {
+						int size = 0;
+						if(list !=  null) {
+							size = list.size();
+							JobDriver jd = JobDriver.getInstance();
+							IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
+							for(Properties properties : list) {
+								String name = properties.getProperty(keyName);
+								String uniqueName = properties.getProperty(keyUniqueName);
+								String analysisTime = properties.getProperty(keyAnalysisTime);
+								long time = 0;
+								try {
+									time = Long.parseLong(analysisTime);
+								}
+								catch(Exception e) {
+									logger.error(location, ILogger.null_id, e);
+								}
+								wipk.dataAdd(name, uniqueName, time);
+								for(Entry<Object, Object> entry : properties.entrySet()) {
+									String key = (String) entry.getKey();
+									String value = (String) entry.getValue();
+									MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+									mb.append(Standardize.Label.key.get()+key);
+									mb.append(Standardize.Label.value.get()+value);
+									logger.debug(location, ILogger.null_id, mb.toString());
+								}
+							}
+						}
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append(Standardize.Label.size.get()+size);
+						logger.debug(location, ILogger.null_id, mb.toString());
+					}
 				}
 			}
 		}
-		MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-		mb.append(Standardize.Label.size.get()+size);
-		logger.debug(location, ILogger.null_id, mb.toString());
 	}
 	
 	private void jdExhausted(IActionData actionData) {
