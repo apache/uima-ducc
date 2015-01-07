@@ -44,6 +44,8 @@ import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
+import org.apache.uima.ducc.container.jd.ux.classload.ProxyUxException;
+import org.apache.uima.ducc.container.jd.ux.classload.ProxyUxStringify;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
@@ -57,6 +59,22 @@ import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 public class ActionEnd extends Action implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionEnd.class, IComponent.Id.JD.name());
+	
+	private ProxyUxStringify proxy = null;
+	
+	public ActionEnd() {
+		initialize();
+	}
+	
+	private void initialize() {
+		String location = "initialize";
+		try {
+			proxy = new ProxyUxStringify();
+		} 
+		catch (ProxyUxException e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+	}
 	
 	@Override
 	public String getName() {
@@ -187,14 +205,20 @@ public class ActionEnd extends Action implements IAction {
 		IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 		//
 		int seqNo = metaCasHelper.getSystemKey();
-		//String serializedException = (String) metaCas.getUserSpaceException();
-		//TODO
-		String serializedException = Standardize.Label.seqNo.get()+seqNo+" work-in-progress is to log actual exception here!";
-		toJdErrLog(serializedException);
+		String delimiter = Standardize.Label.seqNo.get()+seqNo+" ***** EXCEPTION *****";
+		toJdErrLog(delimiter);
+		Object userException = metaCas.getUserSpaceException();
+		try {
+			String printableException = proxy.convert(userException);
+			toJdErrLog(printableException);
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
 		//
 		String serializedCas = (String) metaCas.getUserSpaceCas();
 		ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
-		ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas, serializedException);
+		ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas, userException);
 		if(pjdd != null) {
 			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 			mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());

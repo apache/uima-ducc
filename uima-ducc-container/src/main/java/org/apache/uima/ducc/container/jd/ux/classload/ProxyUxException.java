@@ -16,29 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.test.helper;
+package org.apache.uima.ducc.container.jd.ux.classload;
 
-import java.util.Random;
+public class ProxyUxException extends Exception {
 
-import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
-import org.apache.uima.ducc.user.jd.iface.JdUserDirective;
-import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
-
-public class TestJdContainerErrorHandlerRandomRetry extends JdUserErrorHandler {
-
-	private Random random = new Random();
+	private static final long serialVersionUID = 1L;
 	
-	@Override
-	public IJdUserDirective handle(String serializedCAS, Object userException) {
-		JdUserDirective jdUserDirective = new JdUserDirective();
-		jdUserDirective.resetKillJob();
-		jdUserDirective.resetKillProcess();
-		jdUserDirective.resetKillWorkItem();
-		if(random.nextBoolean()) {
-			jdUserDirective.setKillWorkItem();
-		}
-		System.out.println("killWorkItem="+jdUserDirective.isKillWorkItem());
-		return jdUserDirective;
+	public ProxyUxException(String text) {
+		super(text);
 	}
-
+	
+	public ProxyUxException(Exception e) {
+		super(e);
+	}
 }

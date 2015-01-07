@@ -40,6 +40,7 @@ import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
+import org.apache.uima.ducc.user.exception.iface.Transformer;
 import org.junit.Test;
 
 public class TestMessageHandler extends ATest {
@@ -408,7 +409,8 @@ public class TestMessageHandler extends ATest {
 			while(metaCas != null) {
 				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest04()) {
-					String serializedException = new RuntimeException("injected error test #04").toString();
+					Exception e = new RuntimeException("injected error test #04");
+					Object serializedException = Transformer.serialize(e);
 					metaCas.setUserSpaceException(serializedException);
 					inject++;
 				}
@@ -580,7 +582,8 @@ public class TestMessageHandler extends ATest {
 			while(metaCas != null) {
 				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
-					String serializedException = new RuntimeException("injected error test #05").toString();
+					Exception e = new RuntimeException("injected error test #05");
+					Object serializedException = Transformer.serialize(e);
 					metaCas.setUserSpaceException(serializedException);
 					inject++;
 				}

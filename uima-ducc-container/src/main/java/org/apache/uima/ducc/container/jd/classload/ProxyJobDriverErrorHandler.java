@@ -80,7 +80,7 @@ public class ProxyJobDriverErrorHandler {
 					Type[] types = method.getParameterTypes();
 					if(types.length == 2) {
 						if(types[0].toString().contains("String")) {
-							if(types[1].toString().contains("String")) {
+							if(types[1].toString().contains("Object")) {
 								methodInstanceHandle = method;
 								break;
 							}
@@ -125,13 +125,13 @@ public class ProxyJobDriverErrorHandler {
 	}
 	
 	// Failed work item
-	public ProxyJobDriverDirective handle(String serializedCAS, String serializedException) throws JobDriverException {
+	public ProxyJobDriverDirective handle(String serializedCAS, Object userException) throws JobDriverException {
 		String location = "handle";
 		ProxyJobDriverDirective retVal = new ProxyJobDriverDirective();
 		try {
 			Object[] plist = new Object[2];
 			plist[0] = serializedCAS;
-			plist[1] = serializedException;
+			plist[1] = userException;
 			Object directive = methodInstanceHandle.invoke(objectInstance, plist);
 			boolean isKillJob = (Boolean) methodInstanceIsKillJob.invoke(directive);
 			boolean isKillProcess = (Boolean) methodInstanceIsKillProcess.invoke(directive);
