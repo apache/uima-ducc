@@ -22,10 +22,12 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.common.CancelReasons.CancelReason;
+import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.json.MonitorInfo;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
@@ -55,6 +57,35 @@ public class DuccWebMonitorManagedReservation {
 	
 	protected DuccWebMonitorManagedReservation(long timeoutMillis) {
 		this.timeoutMillis = timeoutMillis;
+	}
+	
+	private ArrayList<String> getRemotePids (Map<DuccId, IDuccProcess> map) {
+		String location = "getRemotePids";
+		ArrayList<String> list = new ArrayList<String>();
+		if(map != null) {
+			if(map.size() > 0) {
+				for(Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
+					IDuccProcess proc = entry.getValue();
+					NodeIdentity nodeIdentity = proc.getNodeIdentity();
+					String host = nodeIdentity.getName();
+					if(host != null) {
+						String pid = proc.getPID();
+						if(pid != null) {
+							String remotePid = pid+"@"+host;
+							list.add(remotePid);
+							duccLogger.debug(location, jobid, remotePid);
+						}
+					}
+				}
+			}
+			else {
+				duccLogger.debug(location, jobid, "map is empty");
+			}
+		}
+		else {
+			duccLogger.debug(location, jobid, "map is null");
+		}
+		return list;
 	}
 	
 	protected void monitor(OrchestratorStateDuccEvent duccEvent) {
@@ -109,6 +140,8 @@ public class DuccWebMonitorManagedReservation {
 			
 			Map<DuccId, IDuccProcess> map = dwr.getProcessMap().getMap();
 			monitorInfo.code = getCode(map);
+			
+			monitorInfo.remotePids = getRemotePids(map);
 			
 			ArrayList<String> stateSequence = monitorInfo.stateSequence;
 			String state = dwr.getJobState().toString();
