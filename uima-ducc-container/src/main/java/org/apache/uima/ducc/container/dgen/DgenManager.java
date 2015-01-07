@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/package org.apache.uima.ducc.container.dgen;
+*/
+package org.apache.uima.ducc.container.dgen;
 
 import java.util.List;
 
