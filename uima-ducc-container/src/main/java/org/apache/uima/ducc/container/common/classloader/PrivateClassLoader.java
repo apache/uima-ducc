@@ -19,7 +19,7 @@
 package org.apache.uima.ducc.container.common.classloader;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -29,16 +29,17 @@ import java.util.ArrayList;
  * as a peer (not a child) of the system class-loader.
  * Expand wild-cards to a list of jars
  * Quietly ignore missing files just as Java does
+ * Resolve symbolic links as Java does (so Sicstus can find its native library!)
  * NOTE: directory elements in a URLClassLoader must end in a '/' but the toURI() method adds those 
  */
 
 public class PrivateClassLoader {
 
-  public static URLClassLoader create(String classPath) throws MalformedURLException {
+  public static URLClassLoader create(String classPath) throws IOException {
     return create(classPath.split(":"));
   }
 
-  public static URLClassLoader create(String[] classPathElements) throws MalformedURLException {
+  public static URLClassLoader create(String[] classPathElements) throws IOException  {
     ArrayList<URL> urlList = new ArrayList<URL>(classPathElements.length);
     for (String element : classPathElements) {
       if (element.endsWith("*")) {
@@ -47,14 +48,14 @@ public class PrivateClassLoader {
         if (files != null) {
           for (File f : files) {
             if (f.getName().endsWith(".jar")) {
-              urlList.add(f.toURI().toURL());
+              urlList.add(f.getCanonicalFile().toURI().toURL());
             }
           }
         }
       } else {
         File f = new File(element);
         if (f.exists()) {
-          urlList.add(f.toURI().toURL());
+          urlList.add(f.getCanonicalFile().toURI().toURL());
         }
       }
     }
