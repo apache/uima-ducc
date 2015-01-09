@@ -93,7 +93,7 @@ public class ServiceInterpreter {
 			if(state.equalsIgnoreCase(ServiceState.Waiting.name())) {
 				boolean pingActive = getPingActive();
 				if(pingActive) {
-					retVal = "Pinger is starting";
+					retVal = "Pinger is running"; // UIMA-4177
 				}
 				else {
 					retVal = "Pinger is unable to start";

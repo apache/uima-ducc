@@ -52,7 +52,7 @@ public class ServicesHelper {
 					if(retVal.length() > 0) {
 						retVal.append("\n");
 					}
-					retVal.append("Service not responding to pinger");
+					//retVal.append("Service not responding to pinger");  // UIMA-4177
 				}
 			}
 		}
