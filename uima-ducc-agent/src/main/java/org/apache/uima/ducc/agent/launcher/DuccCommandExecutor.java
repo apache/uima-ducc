@@ -501,7 +501,7 @@ public class DuccCommandExecutor extends CommandExecutor {
               // Add main class and component type to the command line
               if ( ducc20JpProcess ) {
                   ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=job-process");
-                  ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccJobService");
+                  ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.user.common.main.DuccJobService");
               } else {
                   ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=uima-as");
                   ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
