@@ -24,16 +24,12 @@ import java.io.ObjectOutputStream;
 public abstract class AbstractProcessContainer {
 
 	protected Throwable lastError = null;
+    protected int scaleout=1;
 
-	public byte[] getLastSerializedError() throws Exception {
-
-		if (lastError != null) {
-
-			return serialize(lastError);
-		}
-		return null;
-
+	public int getScaleout( ){
+		return scaleout;
 	}
+
 
 	protected byte[] serialize(Throwable t) throws Exception {
 		try {
