@@ -137,11 +137,11 @@ public class JobProcessConfiguration {
 			}
 		}
 
-		if (null == System.getProperty(FlagsHelper.Name.UserClasspath.pname())) {
+		if (null == System.getProperty(FlagsHelper.Name.JpDuccClasspath.pname())) {
 			logger.error("start", null, "Missing the -D"
-					+ FlagsHelper.Name.UserClasspath.pname() + "=XXXX property");
+					+ FlagsHelper.Name.JpDuccClasspath.pname() + "=XXXX property");
 			throw new RuntimeException("Missing the -D"
-					+ FlagsHelper.Name.UserClasspath.pname() + "=XXXX property");
+					+ FlagsHelper.Name.JpDuccClasspath.pname() + "=XXXX property");
 		}
 		if (uimaAsJob && null == common.saxonJarPath) {
 			logger.error("start", null,
@@ -203,11 +203,12 @@ public class JobProcessConfiguration {
 			// custom processor class can be provided in the command line.
 			// Its not required. If not present, this code will assign one
 			// based on jobType
-			if ( System.getProperty("ducc.deploy.processor.class") == null ) {
+			if ( System.getProperty(FlagsHelper.Name.JpProcessorClass.pname() ) == null  ) { //"ducc.deploy.processor.class") == null ) {
 				String containerClass = getUserContainerClassForJob(jobType);
 				// Save the container class. This will be referenced from the
 				// DuccJobService.initialize()
-				System.setProperty("ducc.deploy.processor.class",
+				String tmp = FlagsHelper.Name.JpProcessorClass.pname();
+				System.setProperty(FlagsHelper.Name.JpProcessorClass.pname(),//"ducc.deploy.processor.class",
 						containerClass);
 			}
 

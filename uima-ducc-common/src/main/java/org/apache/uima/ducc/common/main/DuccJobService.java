@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 
 /**
@@ -85,7 +86,7 @@ public class DuccJobService {
 		ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
 		// Fetch a classpath for the fenced Ducc container
 		String duccContainerClasspath = System
-				.getProperty("ducc.deploy.container.classpath");
+				.getProperty(FlagsHelper.Name.JpDuccClasspath.pname());//"ducc.deploy.JpDuccClasspath");
 		URLClassLoader ucl = create(duccContainerClasspath);
 		if ( System.getProperty("DEBUG") != null ) {
 			DEBUG = true;
@@ -106,7 +107,7 @@ public class DuccJobService {
 		// below property is set by component's Configuration class. It can also
 		// be provided on the command line in case a custom processor is needed.
 		String processorClass = System
-				.getProperty("ducc.deploy.processor.class");
+				.getProperty(FlagsHelper.Name.JpProcessorClass.pname());//"ducc.deploy.processor.class");
 
 		// Instantiate process container where the actual analysis will be done.
 		// Currently there are two containers:
