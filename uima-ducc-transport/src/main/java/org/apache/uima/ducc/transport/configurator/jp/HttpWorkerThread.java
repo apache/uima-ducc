@@ -152,19 +152,19 @@ public class HttpWorkerThread implements Runnable {
 						// if the JD state is Ended, exit this thread as all work has
 						// been processed and accounted for
 						if ( transaction.getJdState().equals(JdState.Ended) ) {
-							duccComponent.getLogger().warn("run", null, "Exiting Thread "+Thread.currentThread().getId()+" JD Finished Processing");
-							System.out.println("Exiting Thread DriverState=Ended");
-							break; // the JD completed. Exit the thread
+							// the JD says there are no more WIs. Sleep awhile
+							// do a GET in case JD changes its mind. The JP will
+							// eventually be stopped by the agent
+							synchronized (monitor) {
+								try {
+									monitor.wait(duccComponent.getThreadSleepTime());
+								} catch (InterruptedException e) {
+
+								}
+							}
 						}
 						// There is no CAS. It looks like the JD CR is done but there
 						// are still WIs being processed. Slow down the rate of requests	
-						synchronized (monitor) {
-							try {
-								monitor.wait(duccComponent.getThreadSleepTime());
-							} catch (InterruptedException e) {
-
-							}
-						}
 					} else {
 						// process the CAS
 						try {
