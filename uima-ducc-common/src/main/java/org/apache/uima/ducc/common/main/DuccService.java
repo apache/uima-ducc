@@ -30,6 +30,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -59,6 +60,7 @@ public class DuccService extends AbstractDuccComponent {
     private static DuccLogger globalLogger = null;
     private ApplicationContext context;
     Map<String,AbstractDuccComponent> duccComponents = null;
+    private String[] args = null;
 	public DuccService() {
 		super("");
         
@@ -154,24 +156,28 @@ public class DuccService extends AbstractDuccComponent {
 		context = 
 			new AnnotationConfigApplicationContext(configClasses);
 		//	Extract all Ducc components from Spring container
-//		Map<String,AbstractDuccComponent> duccComponents = 
 		duccComponents =
 			context.getBeansOfType(AbstractDuccComponent.class);
-		//	Start all components
+		//	Start all components except for JP component
 		for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
-			getDuccLogger().info(methodName, null, "... Starting Component: ", duccComponent.getKey());
-			if ( args != null && args.length > 0 ) {
-				duccComponent.getValue().start(this,args);
-			} else {
-				duccComponent.getValue().start(this);
+			String key = duccComponent.getKey();
+			// The job-process is what used to be uima-as to identify the type of component
+			// The new job-process is the JP component. JP components are started differently
+			// from the rest of Ducc daemons.
+			if ( !(duccComponent.getValue() instanceof IJobProcessor) ) {
+				getDuccLogger().info(methodName, null, "... Starting Component: ", duccComponent.getKey());
+				if ( args != null && args.length > 0 ) {
+					duccComponent.getValue().start(this,args);
+				} else {
+					duccComponent.getValue().start(this);
+				}
+				getDuccLogger().info(methodName, null, "... Component started: ", duccComponent.getKey());
 			}
-			getDuccLogger().info(methodName, null, "... Component started: ", duccComponent.getKey());
 		}
 		System.out.println("Starting Camel. Use ctrl + c to terminate the JVM.\n");
-    // run until you terminate the JVM
-    getDuccLogger().info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
-    main.start();
-       
+        // run until you terminate the JVM
+        getDuccLogger().info(methodName, null, "Starting Camel. Use ctrl + c to terminate the JVM.\n");
+        main.start();
   }
 	public AbstractDuccComponent getComponentInstance(String componentKey) {
     //  Extract all Ducc components from Spring container
@@ -183,6 +189,51 @@ public class DuccService extends AbstractDuccComponent {
       }
     }
 	  return null;
+	}
+	/**
+	 * This method is only called when launching a JP.
+	 * @param instanceType
+	 * @return
+	 */
+	public AbstractDuccComponent getComponentByInstanceType(Class<?> instanceType) {
+	    //  Extract all Ducc components from Spring container
+	    Map<String,AbstractDuccComponent> duccComponents = 
+	      context.getBeansOfType(AbstractDuccComponent.class);
+	    for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
+	        return duccComponent.getValue();
+	    }
+	    return null;
+	}
+    /**
+	 * This method is only called when launching a JP.
+     * @param ipc - instance of IProcessContainer
+     * @param args - program args
+     * @throws Exception
+     */
+	public void setProcessor(Object ipc, String[] args) throws Exception {
+		AbstractDuccComponent duccComponent = getComponentByInstanceType(IJobProcessor.class);
+		if ( duccComponent instanceof IJobProcessor ) {
+			// store program args which will be used in start() method below
+			this.args = args;
+			// hand-off instance of IProcessContainer to the IJobProcessor
+			((IJobProcessor)duccComponent).setProcessor(ipc, args);
+			getDuccLogger().info("setProcessor", null, "... Component started: job-process");
+		}
+	}
+	/**
+	 * This method is only called when launching a JP. It starts the JP including
+	 * initialization and starts all worker threads.
+     *
+	 * @throws Exception
+	 */
+	public void start() throws Exception {
+		AbstractDuccComponent duccComponent = getComponentByInstanceType(IJobProcessor.class);
+		if ( duccComponent instanceof IJobProcessor ) {
+			// initialize JP and start work threads to begin processing
+			duccComponent.start(this, args);
+			getDuccLogger().info("setProcessor", null, "... Component started: job-process");
+		}
+		
 	}
 	public void stop() throws Exception {
 		if ( main.isStarted() ) {
