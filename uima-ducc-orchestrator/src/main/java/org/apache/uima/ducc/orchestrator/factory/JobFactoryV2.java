@@ -240,6 +240,20 @@ public class JobFactoryV2 implements IJobFactory {
 		}
 	}
 	
+	private String addUimaDucc(String cp) {
+		StringBuffer sb = new StringBuffer();
+		if(cp != null) {
+			String tcp = cp.trim();
+			sb.append(tcp);
+			if(!tcp.endsWith(File.pathSeparator)) {
+				sb.append(File.pathSeparator);
+			}
+		}
+		String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
+		sb.append(augment);
+		return sb.toString();
+	}
+	
 	private JavaCommandLine buildJobDriverCommandLine(JobRequestProperties jobRequestProperties,  DuccId jobid) {
 		JavaCommandLine jcl = null;
 		// java command
@@ -287,11 +301,7 @@ public class JobFactoryV2 implements IJobFactory {
 		}
 		// add userCP
 		String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-		if(userCP == null) {
-			userCP = "";
-		}
-		String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
-		userCP = augment+File.pathSeparator+userCP;
+		userCP = addUimaDucc(userCP);
 		opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
 		jcl.addOption(opt);
 		// add WorkItemTimeout	
@@ -469,8 +479,6 @@ public class JobFactoryV2 implements IJobFactory {
 		logSweeper(jobRequestProperties.getProperty(JobRequestProperties.key_log_directory), job.getDuccId());
 		// log
 		jobRequestProperties.specification(logger);
-		// classpath
-       
 		// java command
 		String javaCmd = jobRequestProperties.getProperty(JobSpecificationProperties.key_jvm);
 		if(javaCmd == null) {
@@ -574,7 +582,11 @@ public class JobFactoryV2 implements IJobFactory {
 			// pipelines
 			JavaCommandLine pipelineCommandLine = new JavaCommandLine(javaCmd);
 			pipelineCommandLine.setClassName("main:provided-by-Process-Manager");
-			pipelineCommandLine.setClasspath(getDuccClasspath(1));
+			// user CP
+			String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
+			userCP = addUimaDucc(userCP);
+			pipelineCommandLine.setClasspath(userCP);
+			// jvm args
 			String process_jvm_args = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_jvm_args);
 			ArrayList<String> pTokens = QuotedOptions.tokenizeList(process_jvm_args, true);
 			for(String token : pTokens) {
@@ -586,26 +598,12 @@ public class JobFactoryV2 implements IJobFactory {
 	        for(String token : pTokens) {
 	            pipelineCommandLine.addOption(token);
 	        }
-	        
-			// add userCP
-			String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
-			if(userCP == null) {
-				userCP = "";
-			}
-			
-			logger.debug(methodName, job.getDuccId(), "userCP pipeline: "+userCP);
-			
-			String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
-			
-			logger.debug(methodName, job.getDuccId(), "augment pipeline: "+augment);
-			
-			userCP = augment+File.pathSeparator+userCP;
-			String opt = FlagsHelper.Name.UserClasspath.dname()+"="+userCP;
-			
+			// add ducc CP
+	        String duccCP = getDuccClasspath(1);
+			String opt = FlagsHelper.Name.JpDuccClasspath.dname()+"="+duccCP;
 			logger.debug(methodName, job.getDuccId(), "opt pipeline: "+opt);
-			
 			pipelineCommandLine.addOption(opt);
-			
+			// add JpType
 			if(process_DD != null) {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima-as");
 			}
