@@ -87,7 +87,8 @@ public class HttpWorkerThread implements Runnable {
 			}
             t.printStackTrace();
 	   		logger.error("HttpWorkerThread.run()", null, t);
-	    		
+	   		System.out.println("EXITING WorkThread ID:"
+					+ Thread.currentThread().getId());
 	   		return;  // non-recovorable error
 	   	} finally {
 			// count down the latch. Once all threads deploy and initialize their analytics the processing
@@ -101,8 +102,7 @@ public class HttpWorkerThread implements Runnable {
 				threadReadyCount.await();
 			} catch( Exception ie) {}
 
-			System.out.println("EXITING WorkThread ID:"
-					+ Thread.currentThread().getId());
+		
 			workerThreadCount.countDown();
 
 			if (!error) {
