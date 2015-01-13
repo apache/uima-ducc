@@ -76,7 +76,7 @@ implements IProcessContainer {
     private String[] deploymentDescriptors = null;
 	private String[] ids = null;
    
-    private volatile boolean threadAffinity=true;
+    private volatile boolean threadAffinity=false;
 	    
 	public boolean useThreadAffinity() {
 	  return threadAffinity;

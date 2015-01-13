@@ -261,8 +261,8 @@ public class HttpWorkerThread implements Runnable {
 				boolean useThreadAffinity =
 						(Boolean)useThreadAffinityMethod.invoke(processorInstance);
 				if ( useThreadAffinity) {
-					Method deployMethod = processorInstance.getClass().getDeclaredMethod("stop");
-					deployMethod.invoke(processorInstance);
+					Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
+					stopMethod.invoke(processorInstance);
 				}
 		   	} catch( Throwable t) {
 		   		t.printStackTrace();
