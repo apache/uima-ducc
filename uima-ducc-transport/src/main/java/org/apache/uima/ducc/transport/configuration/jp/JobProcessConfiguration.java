@@ -29,7 +29,9 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
@@ -185,7 +187,6 @@ public class JobProcessConfiguration  {
 			if (common.managedServiceEndpointParams != null) {
 				jpSocketParams = "?" + common.managedServiceEndpointParams;
 			}
-
 			if (common.managedProcessStateUpdateEndpointParams != null) {
 				agentSocketParams = "?"
 						+ common.managedProcessStateUpdateEndpointParams;

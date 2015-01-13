@@ -43,6 +43,7 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class HttpWorkerThread implements Runnable {
 	DuccLogger logger = new DuccLogger(HttpWorkerThread.class);
@@ -268,7 +269,8 @@ public class HttpWorkerThread implements Runnable {
 		String command="";
 		PostMethod postMethod = null;
 	    logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
-	   	try {
+	   	boolean error=false;
+	    try {
 			initialize(duccComponent.isUimaASJob());
 			// each thread needs its own PostMethod
 			postMethod = new PostMethod(httpClient.getJdUrl());
@@ -277,19 +279,29 @@ public class HttpWorkerThread implements Runnable {
 			//States stateMachine = new States(States.Start);
 //				SMContext ctx = new SMContextImpl(httpClient, States.Start);
 				
+	   	} catch( Throwable t) {
+	   		error = true;
+	   		synchronized(JobProcessComponent.class) {
+				duccComponent.setState(ProcessState.FailedInitialization);
+			}
+	   		logger.error("HttpWorkerThread.run()", null, t);
+	   		return;  // non-recovorable error
+
+	   	} finally {
 			threadReadyCount.countDown();  // this thread is ready
 			// **************************************************************************
 			// now block and wait until all threads finish deploying and initializing UIMA
 			// **************************************************************************
-			threadReadyCount.await();
-	    		
-			synchronized(JobProcessComponent.class) {
-				duccComponent.setRunning();
+			try {
+				threadReadyCount.await();
+			} catch( Exception ie) {}
+			
+			if (!error) {
+				synchronized(JobProcessComponent.class) {
+					duccComponent.setState(ProcessState.Running);
+				}
 			}
-	   	} catch( Throwable t) {
-	    		logger.error("HttpWorkerThread.run()", null, t);
-	    		
-	   		return;  // non-recovorable error
+	   		
 	   	}
 			
 			

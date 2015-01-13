@@ -120,6 +120,7 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	 */
 	public void start(DuccService service, String[] args) throws Exception {
 		getLogger().info("start", null,"Ducc UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
+		System.out.println("... Starting Component");
 		super.start(service, args);
 		
 		try {
@@ -181,7 +182,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
 						target = port.substring(port.indexOf("/"));
 						port = port.substring(0, port.indexOf("/"));
 					}
-
 					// initialize http client. It tests the connection and fails
 					// if unable to connect
 //					client.intialize(host, Integer.valueOf(port), target);
@@ -227,11 +227,14 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				}
 				// wait until all process threads initialize
 				threadReadyCount.await();
-		    	// pipelines deployed and initialized. This process is Ready
-		    	currentState = ProcessState.Running;
-				// Update agent with the most up-to-date state of the pipeline
-				// all is well, so notify agent that this process is in Running state
-				agent.notify(currentState, processJmxUrl);
+                // if there was init error setState() method
+				if ( !currentState.equals(ProcessState.FailedInitialization )) {
+			    	// pipelines deployed and initialized. This process is Ready
+			    	currentState = ProcessState.Running;
+					// Update agent with the most up-to-date state of the pipeline
+					// all is well, so notify agent that this process is in Running state
+					agent.notify(currentState, processJmxUrl);
+				}
 
 				getLogger().info("start", null, "All Http Worker Threads Started - Waiting For All Threads to Exit");
 
@@ -269,8 +272,15 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		}
 
 	}
-	public void setRunning() {
-		currentState = ProcessState.Running;
+	public void setState(ProcessState state) {
+		if ( !currentState.equals(ProcessState.FailedInitialization)) {
+			if ( state.equals(ProcessState.FailedInitialization)) {
+				currentState = state;
+				agent.notify(currentState, super.getProcessJmxUrl());
+			}
+		} else if ( currentState.equals(ProcessState.Initializing) ){
+			currentState = state;
+		}
 	}
 	public boolean isRunning() {
 		return currentState.equals(ProcessState.Running);
