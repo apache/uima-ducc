@@ -30,6 +30,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.agent.NodeAgent;
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.TimeStamp;
 import org.apache.uima.ducc.common.utils.Utils;
@@ -488,9 +489,24 @@ public class DuccCommandExecutor extends CommandExecutor {
 	          break;
 	        case Job_Uima_AS_Process:
               processType = "-UIMA-";
-              ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=uima-as");
-              ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
-	          break;
+              List<String> options = ((JavaCommandLine)cmdLine).getOptions();
+              boolean ducc20JpProcess = false;
+              // determine if we are launching Ducc2.0 or Ducc1.+ JP
+              for( String option : options ) {
+            	  if ( option.indexOf(FlagsHelper.Name.JpType.pname()) > -1) {
+            		  ducc20JpProcess = true;
+            		  break;
+            	  }
+              }
+              // Add main class and component type to the command line
+              if ( ducc20JpProcess ) {
+                  ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=job-process");
+                  ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccJobService");
+              } else {
+                  ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=uima-as");
+                  ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.common.main.DuccService");
+              }
+              break;
 	      }
 //	      if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessType().equals(ProcessType.Pop)) {
 //	        processType = "-JD-";
