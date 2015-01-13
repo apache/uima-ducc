@@ -110,16 +110,10 @@ public class JobProcessConfiguration {
 		}
 	}
 
-	private void checkPrereqs(DuccLogger logger) {
+	private void checkPrereqs() {
 		boolean uimaAsJob = false;
 
 		if (null == System.getProperty(FlagsHelper.Name.JpType.pname())) { // "Ducc.Job.Type")
-																			// )
-																			// {
-			logger.error("start", null, "Missing Job Type. Add -D"
-					+ FlagsHelper.Name.JpType.pname() + "=uima-as or "
-					+ FlagsHelper.Name.JpType.pname()
-					+ "=uima. Check your command line");
 			throw new RuntimeException("Missing Job Type. Add -D"
 					+ FlagsHelper.Name.JpType.pname() + "=uima-as or "
 					+ FlagsHelper.Name.JpType.pname()
@@ -138,26 +132,18 @@ public class JobProcessConfiguration {
 		}
 
 		if (null == System.getProperty(FlagsHelper.Name.JpDuccClasspath.pname())) {
-			logger.error("start", null, "Missing the -D"
-					+ FlagsHelper.Name.JpDuccClasspath.pname() + "=XXXX property");
 			throw new RuntimeException("Missing the -D"
 					+ FlagsHelper.Name.JpDuccClasspath.pname() + "=XXXX property");
 		}
 		if (uimaAsJob && null == common.saxonJarPath) {
-			logger.error("start", null,
-					"Missing saxon jar path. Check your ducc.properties");
 			throw new RuntimeException(
 					"Missing saxon jar path. Check your ducc.properties");
 		}
 		if (uimaAsJob && null == common.dd2SpringXslPath) {
-			logger.error("start", null,
-					"Missing dd2sping xsl path. Check your ducc.properties");
 			throw new RuntimeException(
 					"Missing dd2spring xsl path. Check your ducc.properties");
 		}
 		if (null == System.getProperty(FlagsHelper.Name.JdURL.pname())) {
-			logger.error("start", null, "Missing the -D"
-					+ FlagsHelper.Name.JdURL.pname() + " property");
 			throw new RuntimeException("Missing the -D"
 					+ FlagsHelper.Name.JdURL.pname() + " property");
 		}
@@ -185,6 +171,12 @@ public class JobProcessConfiguration {
 	@Bean
 	public JobProcessComponent getProcessManagerInstance() throws Exception {
 		try {
+			checkPrereqs();
+		} catch(Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		try {
 
 			// Assume IP address provided from environment. In production this
 			// will be the actual node IP. In testing, the IP can be virtual
@@ -207,7 +199,6 @@ public class JobProcessConfiguration {
 				String containerClass = getUserContainerClassForJob(jobType);
 				// Save the container class. This will be referenced from the
 				// DuccJobService.initialize()
-				String tmp = FlagsHelper.Name.JpProcessorClass.pname();
 				System.setProperty(FlagsHelper.Name.JpProcessorClass.pname(),//"ducc.deploy.processor.class",
 						containerClass);
 			}
