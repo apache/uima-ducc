@@ -24,7 +24,10 @@ import java.util.Properties;
 
 public interface IProcessContainer {
 	public int initialize(String[] args) throws Exception;
+	public int initialize(Properties props, String[] args) throws Exception;
 	public void deploy(String duccHome) throws Exception;
 	public void stop() throws Exception;
+	public int getScaleout();
 	public List<Properties> process(Object xmi) throws Exception;
+	public boolean useThreadAffinity();
 }

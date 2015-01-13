@@ -64,26 +64,12 @@ implements IProcessContainer {
 	AnalysisEngineMetaData analysisEngineMetadata;
    
 	private static CasPool casPool = null;
-	 /** Class and Method handles for reflection */
-//	  private static Class<?> mbeanServerClass;
-//
-//	  private static Class<?> objectNameClass;
-//
-//	  private static Constructor<?> objectNameConstructor;
-//
-//	  private static Method isRegistered;
-//
-//	  private static Method registerMBean;
-//
-//	  private static Method unregisterMBean;
-//
 //	  /**
 //	   * Set to true if we can find the required JMX classes and methods
 //	   */
 	  private static boolean jmxAvailable;
 //
 	  AtomicInteger counter = new AtomicInteger();
-	  private int scaleout=1;
 	  private String analysisEngineDescriptor=null;
 	  private static CountDownLatch latch = new CountDownLatch(1);
 	  /**
@@ -169,24 +155,32 @@ implements IProcessContainer {
 		    Thread.currentThread().setContextClassLoader(currentCL);
 	  }
 */		    
-	  
+	    // maintain thread affinity to specific instance of AE
+	  private volatile boolean threadAffinity=true;
+	    
+	  public boolean useThreadAffinity() {
+	   	return threadAffinity;
+	  }
 
 	  public int initialize(String[] args ) throws Exception {
-			analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
-			scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
-			
-			
-//	        XStream xStream = new XStream(new DomDriver())
-//	        return xStream.toXML(targetToMarshall);
-
-			
+		 analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
+		 scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
          return scaleout;		  
 	  }
+	public int initialize(Properties props, String[] args) throws Exception {
+			return initialize(args);
+	}
+	public byte[] getLastSerializedError() throws Exception {
+
+		if (lastError != null) {
+
+			return super.serialize(lastError);
+		}
+		return null;
+
+	}
+	  
 	public void deploy(String duccHome) throws Exception {
-	    
-//		String jmxName = "org.apache.uima:type=ee.jms.services,s=" + getComponentName() + " Uima EE Service,";
-		//loadXStream(duccHome);
-		
 		ResourceSpecifier rSpecifier = null;
 	    HashMap<String,Object> paramsMap = 
 				new HashMap<String,Object>();
@@ -195,17 +189,12 @@ implements IProcessContainer {
 
 		try {
 			// Acquire single-permit semaphore to serialize instantiation of
-			// AEs.
-			// This is done to control access to non-thread safe structures in
-			// the
-			// core. The sharedInitSemaphore is a static and is shared by all
-			// instances
-			// of this class.
-//			System.out.println("Available Permits:"+sharedInitSemaphore.availablePermits());
+			// AEs. This is done to control access to non-thread safe 
+			// structures in the core. The sharedInitSemaphore is a static 
+			// and is shared by all instances of this class.
 			sharedInitSemaphore.acquire();
 			// Parse the descriptor in the calling thread.
 			rSpecifier = UimaUtils.getResourceSpecifier(analysisEngineDescriptor);
-//					.produceResourceSpecifier(analysisEngineDescriptor);
 			AnalysisEngine ae = UIMAFramework.produceAnalysisEngine(rSpecifier,
 					paramsMap);
 
@@ -236,14 +225,20 @@ implements IProcessContainer {
 	}
 
 	public void stop() throws Exception {
-
+		try {
+			AnalysisEngine ae = instanceMap.checkout();
+			if ( ae != null ) {
+				ae.destroy();
+			}
+		} catch( Exception e) {
+			
+		}
 	}
 
 	public List<Properties> process(Object xmi) throws Exception {
 		AnalysisEngine ae = null;
 		latch.await();
 		CAS cas = casPool.getCas();
-		int num = counter.incrementAndGet();
 		try {
 			// reset last error
 			lastError = null;
@@ -253,12 +248,9 @@ implements IProcessContainer {
 					deserSharedData, true, -1);
 			// the following checks out AE instance pinned to this thread
 			ae = instanceMap.checkout();
-//System.out.println("Getting Pre Process Metrics");
 			List<AnalysisEnginePerformanceMetrics> beforeAnalysis = getMetrics(ae);
 			ae.process(cas);
-//			System.out.println("Getting Post Process Metrics");
 			List<AnalysisEnginePerformanceMetrics> afterAnalysis = getMetrics(ae);
-//			System.out.println("Getting Pre Process Metrics");
 
 			// get the delta
 			List<AnalysisEnginePerformanceMetrics> casMetrics = getAEMetricsForCAS(
@@ -281,7 +273,6 @@ implements IProcessContainer {
 				metricsList.add(p);
 			}
 			
-//			System.out.println("Thread:"+Thread.currentThread().getId()+" Processed "+num+" CASes");
 			return metricsList;
 		} catch( Throwable e ) {
 			super.lastError = e;
@@ -290,38 +281,15 @@ implements IProcessContainer {
 			e.printStackTrace();
 			throw new AnalysisEngineProcessException();
 		}
-//		catch( Throwable t) {
-			//throw new ResourceProcessException(serialized);
-//			byte[] ser = 
-//			XMLEncoder encoder =
-//			           new XMLEncoder(
-//			              new BufferedOutputStream(
-//			                new FileOutputStream(filename)));
-//			        encoder.writeObject(f);
-//			        encoder.close();
-		
-//		}
 		finally {
 			if (ae != null) {
 				instanceMap.checkin(ae);
 			}
 			if (cas != null) {
 				casPool.releaseCas(cas);
-//				cas.release();
 			}
-
 		}
 	}
-/*	
-	private String serialize ( Serializable o ) throws IOException {
-	        ByteArrayOutputStream os = new ByteArrayOutputStream();
-	        XMLEncoder encoder = new XMLEncoder(os);
-			encoder.writeObject(o);
-			encoder.close();   
-			return new String(os.toByteArray());
-	        
-	    }
-*/
 	   private List<AnalysisEnginePerformanceMetrics> getMetrics(AnalysisEngine ae)
 			throws Exception {
 		List<AnalysisEnginePerformanceMetrics> analysisManagementObjects = new ArrayList<AnalysisEnginePerformanceMetrics>();

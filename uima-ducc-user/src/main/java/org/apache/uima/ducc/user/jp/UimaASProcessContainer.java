@@ -19,9 +19,7 @@
 
 package org.apache.uima.ducc.user.jp;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
 import java.net.BindException;
 import java.net.MalformedURLException;
@@ -60,7 +58,7 @@ import org.xml.sax.helpers.DefaultHandler;
 public class UimaASProcessContainer  extends AbstractProcessContainer 
 implements IProcessContainer {
 	private String endpointName;
-	protected int scaleout;
+//	protected int scaleout;
 	private String saxonURL = null;
 	private String xslTransform = null;
 	private static BaseUIMAAsynchronousEngine_impl uimaASClient = null;
@@ -78,6 +76,11 @@ implements IProcessContainer {
     private String[] deploymentDescriptors = null;
 	private String[] ids = null;
    
+    private volatile boolean threadAffinity=true;
+	    
+	public boolean useThreadAffinity() {
+	  return threadAffinity;
+	}	
 	public int initialize(String[] args) throws Exception {
 		// Get DDs and also extract scaleout property from DD
 		deploymentDescriptors = getDescriptors(args);
@@ -85,25 +88,51 @@ implements IProcessContainer {
 	    
 		return scaleout;
 	}
+	public int initialize(Properties props, String[] args) throws Exception {
+		// generate Spring context file once
+		synchronized( UimaASProcessContainer.class) {
+			if ( !initialized ) {
+				initialize(args);
+				initialized = true;
+			}
+			return scaleout;
+		}
+	}
+	public byte[] getLastSerializedError() throws Exception {
 
+		if (lastError != null) {
+
+			return super.serialize(lastError);
+		}
+		return null;
+
+	}
 	/**
-	 * This method is called via reflection and deploys both the colocated AMQ broker
-	 * and UIMA-AS service.
+	 * This method is called by each worker thread before entering  
+	 * process loop in run(). Each work thread shares instance of
+	 * this class (IProcessContainer). IN this method a single instance
+	 * of a co-located broker is created. This broker is deployed in 
+	 * a fenced container using a classloader initialized with a classpath
+	 * built at runtime which includes just the AMQ jars. Once the broker is
+	 * deployed, this method also creates a shared instance of UIMA-AS client
+	 * which is used to deploy UIMA-AS based service. 
 	 * 
-	 * @param args - command line args
+	 * @param duccHome - DUCC HOME needed to find AMQ jars 
 	 * @return
 	 * @throws Exception
 	 */
 	public void deploy(String duccHome) throws Exception {
-		// deploy single instance of embedded broker
+		// deploy singleUIMA-AS Version instance of embedded broker
 		synchronized( UimaASProcessContainer.class) {
 			try {
+				// below code runs once to create broker, uima-as client and
+				// uima-as service
 				if ( brokerInstance == null ) {
+					
 					System.out.println("UIMA-AS Version::"+UimaAsVersion.getFullVersionString());
 					// isolate broker by loading it in its own Class Loader
 					// Sets the brokerInstance
 					deployBroker(duccHome);
-					
 					// Broker is running 
 					brokerRunning = true;
 					// create a shared instance of UIMA-AS client
@@ -112,8 +141,8 @@ implements IProcessContainer {
 					int i = 0;
 					// Deploy UIMA-AS services
 					for (String dd : deploymentDescriptors) {
-						// keep the container id so that we can un-deploy it when shutting
-						// down
+						// Deploy UIMA-AS service. Keep the deployment id so 
+						// that we can undeploy uima-as service on stop.
 						ids[i] = deployService(dd);
 					}
 					// send GetMeta to UIMA-AS service and wait for a reply
@@ -131,6 +160,16 @@ implements IProcessContainer {
 			serializerMap.put( Thread.currentThread().getId(), new UimaSerializer());
 		}
 	}
+	  public static void dump(ClassLoader cl, int numLevels) {
+		    int n = 0;
+		    for (URLClassLoader ucl = (URLClassLoader) cl; ucl != null && ++n <= numLevels; ucl = (URLClassLoader) ucl.getParent()) {
+		      System.out.println("Class-loader " + n + " has " + ucl.getURLs().length + " urls:");
+		      for (URL u : ucl.getURLs()) {
+		        System.out.println("  " + u );
+		      }
+		    }
+		  }
+
 	private void deployBroker(String duccHome) throws Exception {
 		// Save current context class loader. When done loading the broker jars
 		// this class loader will be restored
@@ -148,12 +187,7 @@ implements IProcessContainer {
 			Thread.currentThread().setContextClassLoader(ucl);
 			
 			classToLaunch = ucl.loadClass("org.apache.activemq.broker.BrokerService");
-
-		    URL[] urls2 = ucl.getURLs();
-			for( URL u : urls2 ) {
-				System.out.println("-----------:"+u.getFile());
-			}
-			
+			dump(ucl, 4);
 			brokerInstance = classToLaunch.newInstance();
 			
 			Method setDedicatedTaskRunnerMethod = classToLaunch.getMethod("setDedicatedTaskRunner", boolean.class);
@@ -176,6 +210,8 @@ implements IProcessContainer {
 					Method waitUntilStartedMethod = classToLaunch.getMethod("waitUntilStarted");
 					waitUntilStartedMethod.invoke(brokerInstance);
 					System.setProperty("DefaultBrokerURL", brokerURL + port);
+					System.setProperty("BrokerURI", brokerURL + port);
+
 					break;   // got a valid port for the broker
 				} catch (Exception e) {
 					if (e.getCause() instanceof BindException) {
@@ -336,8 +372,13 @@ implements IProcessContainer {
 		try {
 			// use UIMA-AS client to deploy the service using provided
 			// Deployment Descriptor
-			containerId = uimaASClient
+		System.out.println("---------------- BROKER URL:::"+System.getProperty("DefaultBrokerURL"));
+        ClassLoader duccCl = Thread.currentThread().getContextClassLoader();
+		ClassLoader cl = this.getClass().getClassLoader();
+		Thread.currentThread().setContextClassLoader(cl);
+		containerId = uimaASClient
 					.deploy(aDeploymentDescriptorPath, appCtx);
+		Thread.currentThread().setContextClassLoader(duccCl);
 
 		} catch (Exception e) {
 			// Any problem here should be fatal
