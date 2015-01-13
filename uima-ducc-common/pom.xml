@@ -123,6 +123,11 @@
 	  <scope>test</scope>
     </dependency>
 
+   <dependency>
+    <groupId>org.apache.uima</groupId>
+    <artifactId>uima-ducc-user</artifactId>
+   </dependency>
+
   </dependencies>
 
 </project>
