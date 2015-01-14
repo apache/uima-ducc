@@ -82,13 +82,25 @@ implements IProcessContainer {
 	  return threadAffinity;
 	}	
 	public int initialize(String[] args) throws Exception {
-		// Get DDs and also extract scaleout property from DD
-		deploymentDescriptors = getDescriptors(args);
-		ids = new String[deploymentDescriptors.length];
-	    
+		// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+		try {
+			// Get DDs and also extract scaleout property from DD
+			deploymentDescriptors = getDescriptors(args);
+			ids = new String[deploymentDescriptors.length];
+			
+		} finally {
+			// restore context CL 
+			Thread.currentThread().setContextClassLoader(savedCL);
+			
+		}
 		return scaleout;
 	}
 	public int initialize(Properties props, String[] args) throws Exception {
+
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
 			if ( !initialized ) {
@@ -122,6 +134,11 @@ implements IProcessContainer {
 	 * @throws Exception
 	 */
 	public void deploy(String duccHome) throws Exception {
+		// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		// deploy singleUIMA-AS Version instance of embedded broker
 		synchronized( UimaASProcessContainer.class) {
 			try {
@@ -154,6 +171,10 @@ implements IProcessContainer {
 				logger.log(Level.WARNING, "UimaProcessContainer", e);
 				e.printStackTrace();
 				throw new RuntimeException(e);
+
+			} finally {
+				// restore context CL 
+				Thread.currentThread().setContextClassLoader(savedCL);
 
 			}
 			//	Pin thread to its own CAS serializer
@@ -261,32 +282,42 @@ implements IProcessContainer {
 	 * @throws Exception
 	 */
 	public void stop() throws Exception {
+		// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		// stops the broker
 		//brokerContainer.stop();
-		synchronized(UimaASProcessContainer.class) {
-			if ( brokerRunning ) {
-				System.out.println("Stopping UIMA_AS Client");
-				try {
-					// Prevent UIMA-AS from exiting
-					System.setProperty("dontKill", "true");
-					uimaASClient.stop();
+		try {
+			synchronized(UimaASProcessContainer.class) {
+				if ( brokerRunning ) {
+					System.out.println("Stopping UIMA_AS Client");
+					try {
+						// Prevent UIMA-AS from exiting
+						System.setProperty("dontKill", "true");
+						uimaASClient.stop();
 
-				} catch (Exception e) {
-					e.printStackTrace();
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+					System.out.println("Stopping Broker");
+
+					Method stopMethod = classToLaunch.getMethod("stop");
+					stopMethod.invoke(brokerInstance);
+					
+					Method waitMethod = classToLaunch.getMethod("waitUntilStopped");
+					waitMethod.invoke(brokerInstance);
+
+					brokerRunning = false;
 				}
-				
-				System.out.println("Stopping Broker");
-
-				Method stopMethod = classToLaunch.getMethod("stop");
-				stopMethod.invoke(brokerInstance);
-				
-				Method waitMethod = classToLaunch.getMethod("waitUntilStopped");
-				waitMethod.invoke(brokerInstance);
-
-				brokerRunning = false;
 			}
+			
+		} finally {
+			// restore context CL 
+			Thread.currentThread().setContextClassLoader(savedCL);
 		}
-
 	}
 	/**
 	 * This method is called via reflection and delegates processing to the colocated
@@ -296,6 +327,11 @@ implements IProcessContainer {
 	 * @throws Exception
 	 */
 	public List<Properties> process(Object xmi) throws Exception {
+		// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		CAS cas = uimaASClient.getCAS();   // fetch a new CAS from the client's Cas Pool
 		try {
 			// reset last error
@@ -330,6 +366,9 @@ implements IProcessContainer {
 			if ( cas != null) {
 				cas.release();
 			}
+			// restore context CL 
+			Thread.currentThread().setContextClassLoader(savedCL);
+
 		}
 	}
     

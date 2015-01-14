@@ -181,6 +181,11 @@ implements IProcessContainer {
 	}
 	  
 	public void deploy(String duccHome) throws Exception {
+		// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		ResourceSpecifier rSpecifier = null;
 	    HashMap<String,Object> paramsMap = 
 				new HashMap<String,Object>();
@@ -219,12 +224,18 @@ implements IProcessContainer {
 
 		} finally {
 			sharedInitSemaphore.release();
-			
+			// restore context CL 
+			Thread.currentThread().setContextClassLoader(savedCL);
 		}
 		
 	}
 
 	public void stop() throws Exception {
+		// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		try {
 			AnalysisEngine ae = instanceMap.checkout();
 			if ( ae != null ) {
@@ -232,10 +243,19 @@ implements IProcessContainer {
 			}
 		} catch( Exception e) {
 			
+		} finally {
+			// restore context CL 
+			Thread.currentThread().setContextClassLoader(savedCL);
+
 		}
 	}
 
 	public List<Properties> process(Object xmi) throws Exception {
+		// save current context cl and inject System classloader as
+		// a context cl before calling user code. This is done in 
+		// user code needs to load resources 
+		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
+		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 		AnalysisEngine ae = null;
 		latch.await();
 		CAS cas = casPool.getCas();
@@ -288,6 +308,8 @@ implements IProcessContainer {
 			if (cas != null) {
 				casPool.releaseCas(cas);
 			}
+			// restore context CL 
+			Thread.currentThread().setContextClassLoader(savedCL);
 		}
 	}
 	   private List<AnalysisEnginePerformanceMetrics> getMetrics(AnalysisEngine ae)
