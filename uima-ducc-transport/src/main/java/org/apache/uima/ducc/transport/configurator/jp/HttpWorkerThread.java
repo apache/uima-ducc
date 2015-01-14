@@ -24,7 +24,6 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -61,6 +60,7 @@ public class HttpWorkerThread implements Runnable {
 		this.workerThreadCount = workerThreadCount;
 		this.threadReadyCount = threadReadyCount;
 	}
+	@SuppressWarnings("unchecked")
 	public void run() {
 		String command="";
 		PostMethod postMethod = null;
@@ -169,10 +169,11 @@ public class HttpWorkerThread implements Runnable {
 						// process the CAS
 						try {
 							// using java reflection, call process to analyze the CAS
-							processMethod.
+							 
+							 List<Properties> metrics = (List<Properties>)processMethod.
 							   invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
-							List<Properties> metrics = new ArrayList<Properties>();
-							metrics.add(new Properties());   // empty for now
+							
+							//metrics.add(new Properties());   // empty for now
 		                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
 							IPerformanceMetrics metricsWrapper =
 									new PerformanceMetrics();
