@@ -341,12 +341,23 @@ implements IProcessContainer {
 			serializerMap.get(Thread.currentThread().getId()).
 				deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,
 					-1);
+			/*
+			 * The following code commented for now. Re-enable when uima-as
+			 * performance metric collection is fixed. There is a bug in 
+			 * the uima-as which causes metrics to be invalid.
 			List<AnalysisEnginePerformanceMetrics> perfMetrics = new ArrayList<AnalysisEnginePerformanceMetrics>();
+			*/
+			
 			// delegate processing to the UIMA-AS service and wait for a reply
-			uimaASClient.sendAndReceiveCAS(cas, perfMetrics);
+			uimaASClient.sendAndReceiveCAS(cas);//, perfMetrics);
 			// convert UIMA-AS metrics into properties so that we can return this
 			// data in a format which doesnt require UIMA-AS to digest
 			List<Properties> metricsList = new ArrayList<Properties>(); 
+			/*
+			 * The following code commented for now. Re-enable when uima-as
+			 * performance metric collection is fixed. There is a bug in 
+			 * the uima-as which causes metrics to be invalid.
+
 			for( AnalysisEnginePerformanceMetrics metrics : perfMetrics ) {
 				Properties p = new Properties();
 				p.setProperty("name", metrics.getName());
@@ -355,6 +366,7 @@ implements IProcessContainer {
 				p.setProperty("numProcessed",String.valueOf(metrics.getNumProcessed()) );
 				metricsList.add(p);
 			}
+			*/
 			return metricsList;
 		} catch( Throwable e ) {
 			lastError = e;
