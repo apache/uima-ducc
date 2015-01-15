@@ -47,6 +47,7 @@ import org.apache.uima.resource.metadata.OperationalProperties;
  *    and then optionally to CC delegate if so specified by flag in WorkItem feature structure.
  * If no CM delegate, then WI-Cas is sent to AE and CC if it exists.
  */
+@Deprecated // ducc 2.0
 public class DuccJobProcessFC extends JCasFlowController_ImplBase {
 
   private List<String> mSequence;

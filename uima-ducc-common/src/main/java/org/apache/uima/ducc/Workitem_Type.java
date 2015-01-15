@@ -33,6 +33,7 @@ import org.apache.uima.jcas.cas.TOP_Type;
 /** 
  * Updated by JCasGen Fri Aug 02 09:06:21 EDT 2013
  * @generated */
+@Deprecated // ducc 2.0
 public class Workitem_Type extends TOP_Type {
   /** @generated */
   protected FSGenerator getFSGenerator() {return fsGenerator;}

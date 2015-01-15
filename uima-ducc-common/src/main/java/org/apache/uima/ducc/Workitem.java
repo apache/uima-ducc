@@ -27,7 +27,7 @@ import org.apache.uima.jcas.cas.TOP_Type;
 import org.apache.uima.jcas.cas.TOP;
 
 
-
+@Deprecated // ducc 2.0
 public class Workitem extends TOP {
   /** @generated
    * @ordered 

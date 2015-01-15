@@ -1,0 +1,10 @@
+These resources (and code implementations) can be deleted once DUCC 1.x support is discontinued.  
+They have been moved to uima-ducc-user.
+
+uima-ducc-common/src/main/resources/org/apache/uima/ducc/common/uima/DuccJobFlowControlTS.xml
+uima-ducc-common/src/main/resources/org/apache/uima/ducc/common/uima/DuccJobProcessFC.xml
+
+uima-ducc-common/src/main/java/org/apache/uima/ducc/Workitem_Type.java
+uima-ducc-common/src/main/java/org/apache/uima/ducc/Workitem.java
+uima-ducc-common/src/main/java/org/apache/uima/ducc/common/uima/DuccJobProcessFC.java
+
