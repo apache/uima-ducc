@@ -37,6 +37,7 @@ public class FlagsHelper {
 		JdURL,						// http://<node>:<port>/jdApp
 		JobDirectory,
 		JobId,
+		JpFlowController,
 		JpAeDescriptor,
 		JpAeOverrides,
 		JpCcDescriptor,
@@ -153,6 +154,15 @@ public class FlagsHelper {
 	
 	public String getJobIdDashD(String value) {
 		return Name.JobId.arg(value);
+	}
+	
+	public String getJpFlowController() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.JpFlowController.pname());
+	}
+	
+	public String getJpFlowControllerDashD(String value) {
+		return Name.JpFlowController.arg(value);
 	}
 	
 	public String getJpAeDescriptor() {
