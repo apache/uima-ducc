@@ -249,7 +249,7 @@ public class JobFactoryV2 implements IJobFactory {
 				sb.append(File.pathSeparator);
 			}
 		}
-		String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"*";
+		String augment = IDuccEnv.DUCC_HOME+File.separator+"lib"+File.separator+"uima-ducc"+File.separator+"user"+File.separator+"*";
 		sb.append(augment);
 		return sb.toString();
 	}
