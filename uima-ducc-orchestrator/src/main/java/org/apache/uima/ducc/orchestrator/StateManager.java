@@ -681,7 +681,10 @@ public class StateManager {
 							if(!duccWorkJob.isFinished()) {
 								stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
 							}
-							deallocateJobDriver(duccWorkJob, jdStatusReport);
+							stopJps(duccWorkJob);
+							if(!duccWorkJob.hasAliveProcess()) {
+								stopJd(duccWorkJob);
+							}
 							duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 							switch(jdStatusReport.getJobCompletionType()) {
 							case EndOfJob:
@@ -835,10 +838,25 @@ public class StateManager {
 		return retVal;
 	}
 	
+	private void stopJps(DuccWorkJob job) {
+		String methodName = "stopJps";
+		IDuccProcessMap processMap = job.getProcessMap();
+		Iterator<DuccId> iterator = processMap.keySet().iterator();
+		while (iterator.hasNext()) {
+			DuccId duccId = iterator.next();
+			IDuccProcess process = processMap.get(duccId);
+			if(process != null) {
+				if(!process.isDeallocated()) {
+					process.setResourceState(ResourceState.Deallocated);
+					process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
+					logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+				}
+			}
+		}
+	}
 	
-	private boolean deallocateJobDriver(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
-		String methodName = "deallocateJobDriver";
-		boolean retVal = false;
+	private void stopJd(DuccWorkJob job) {
+		String methodName = "stopJd";
 		IDuccProcessMap processMap = job.getDriver().getProcessMap();
 		Iterator<DuccId> iterator = processMap.keySet().iterator();
 		while (iterator.hasNext()) {
@@ -851,11 +869,7 @@ public class StateManager {
 					logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
 				}
 			}
-			else {
-				logger.warn(methodName, job.getDuccId(), duccId, "not in process map");
-			}
 		}
-		return retVal;
 	}
 	
 	private static AtomicBoolean refusedLogged = new AtomicBoolean(false);
