@@ -350,6 +350,7 @@ public class TestSuite {
 		int aeThreadCount = 1;
 		String aeBrokerURL = "brokerURL";
 		String aeEndpoint = "endpoint";
+		String aeFlowController = "flowController";
 		ArrayList<IDuccUimaAggregateComponent> aeComponents = new ArrayList<IDuccUimaAggregateComponent>();
 		URL url = this.getClass().getResource("/CR100.xml");
 		File file = new File(url.getFile());
@@ -357,7 +358,7 @@ public class TestSuite {
 		List<String> aeOverrides = null;
 		DuccUimaAggregateComponent aeComponent = new DuccUimaAggregateComponent(aeDescriptor, aeOverrides);
 		aeComponents.add(aeComponent);
-		IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(aeName, aeDescription, aeThreadCount, aeBrokerURL, aeEndpoint, aeComponents);
+		IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(aeName, aeDescription, aeThreadCount, aeBrokerURL, aeEndpoint, aeFlowController, aeComponents);
 		return configuration;
 	}
 	
@@ -421,7 +422,8 @@ public class TestSuite {
 			String aeDescription = "aeDescription";
 			Integer aeThreadCount = new Integer(11);
 			String aeBrokerURL = "aeBrokerURL";
-			String aeBrokerEndpoint = "aeBrokerEndpount";
+			String aeBrokerEndpoint = "aeBrokerEndpoint";
+			String aeFlowController = "aeFlowController";
 			String cmDescriptor = null;
 			List<String> cmOverrides = null;
 			String aeDescriptor = root+File.separator+"FixedSleepAE.xml";
@@ -436,6 +438,7 @@ public class TestSuite {
 					aeThreadCount, 
 					aeBrokerURL, 
 					aeBrokerEndpoint, 
+					aeFlowController,
 					cmDescriptor, 
 					cmOverrides, 
 					aeDescriptor, 

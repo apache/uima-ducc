@@ -30,6 +30,7 @@ public interface IAeGenerate {
 			Integer dgenThreadCount,
 			String dgenBrokerURL,
 			String dgenEndpoint,
+			String dgenFlowController,
 			String cm,
 			List<String> cmOverrides, 
 			String ae, 

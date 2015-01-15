@@ -80,6 +80,7 @@ public class AeGenerate implements IAeGenerate {
 			Integer dgenThreadCount,
 			String dgenBrokerURL,
 			String dgenEndpoint,
+			String dgenFlowController,
 			String cmDescriptor,
 			List<String> cmOverrides, 
 			String aeDescriptor, 
@@ -97,6 +98,7 @@ public class AeGenerate implements IAeGenerate {
 			show("dgenThreadCount", dgenThreadCount.toString());
 			show("dgenBrokerURL", dgenBrokerURL);
 			show("dgenEndpoint", dgenEndpoint);
+			show("dgenFlowController", dgenFlowController);
 			show("cmDescriptor", cmDescriptor);
 			show("cmOverrides", cmOverrides);
 			show("aeDescriptor", aeDescriptor);
@@ -109,7 +111,7 @@ public class AeGenerate implements IAeGenerate {
 			conditionalAddComponent(dgenComponents, cmDescriptor, cmOverrides);
 			conditionalAddComponent(dgenComponents, aeDescriptor, aeOverrides);
 			conditionalAddComponent(dgenComponents, ccDescriptor, ccOverrides);
-			IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenEndpoint, dgenComponents);
+			IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenEndpoint, dgenFlowController, dgenComponents);
 			retVal = aeGenerator.generate(configuration, id);
 		}
 		catch(Exception e) {

@@ -84,12 +84,12 @@ public class UimaUtils {
 	 * @throws Exception
 	 */
 	public static UimaASPrimitiveDeploymentDescriptor createUimaASDeploymentDescriptor(
-			String name, String description, String brokerURL, String endpoint,
+			String name, String description, String brokerURL, String endpoint, String flowController,
 			int scaleup, String directory, String fname, String... aeDescriptors)
 			throws Exception {
 		List<List<String>> overrides = new ArrayList<List<String>>();
 		return createUimaASDeploymentDescriptor(name, description, brokerURL,
-				endpoint, scaleup, directory, fname, overrides, aeDescriptors);
+				endpoint, flowController, scaleup, directory, fname, overrides, aeDescriptors);
 	}
 
 	/**
@@ -105,6 +105,8 @@ public class UimaUtils {
 	 *            - broker the UIMA AS service will connect to
 	 * @param endpoint
 	 *            - queue name of the UIMA AS service
+	 * @param flowController
+	 *            - flow controller for the UIMA AS service
 	 * @param scaleup
 	 *            - how many pipelines (threads) UIMA AS will deploy in the jvm
 	 * @param overrides
@@ -119,12 +121,12 @@ public class UimaUtils {
 	 * @throws Exception
 	 */
 	public static UimaASPrimitiveDeploymentDescriptor createUimaASDeploymentDescriptor(
-			String name, String description, String brokerURL, String endpoint,
+			String name, String description, String brokerURL, String endpoint, String flowController,
 			int scaleup, String directory, String fname, List<List<String>> overrides,
 			String... aeDescriptors) throws Exception {
 		// First create UIMA AE aggregate descriptor from provided aeDescriptor
 		// paths
-		AnalysisEngineDescription aed = createAggregateDescription((scaleup > 1),overrides,
+		AnalysisEngineDescription aed = createAggregateDescription(flowController,(scaleup > 1),overrides,
 				aeDescriptors);
 		aed.getMetaData().setName(name);
 		// Create a temporary file where AE descriptor will be saved
@@ -173,10 +175,10 @@ public class UimaUtils {
 	 * 
 	 * @throws Exception
 	 */
-	public static AnalysisEngineDescription createAggregateDescription(boolean multipleDeploymentsAllowed,
+	public static AnalysisEngineDescription createAggregateDescription(String flowController, boolean multipleDeploymentsAllowed,
 			String... descriptorPaths) throws Exception {
 		List<List<String>> overrides = new ArrayList<List<String>>();
-		return createAggregateDescription(multipleDeploymentsAllowed, overrides, descriptorPaths);
+		return createAggregateDescription(flowController, multipleDeploymentsAllowed, overrides, descriptorPaths);
 	}
 
 //	public static URL resolveRelativePath(URL aRelativeUrl) {
@@ -266,7 +268,7 @@ public class UimaUtils {
 	 * @throws Exception
 	 */
 	public static AnalysisEngineDescription createAggregateDescription(
-			boolean multipleDeploymentAllowed, List<List<String>> overrides, String... descriptorPaths)
+			String flowController, boolean multipleDeploymentAllowed, List<List<String>> overrides, String... descriptorPaths)
 			throws Exception {
 
 		// create the descriptor and set configuration parameters
@@ -343,13 +345,12 @@ public class UimaUtils {
 			flowNames.add(key);
 
 		}
-		String fcsn;
-		if ( (fcsn = getProperty(FlowControllerResourceSpecifier)) != null ) {
+		if ( flowController != null ) {
 			FlowControllerDeclaration fcd = new FlowControllerDeclaration_impl();
 			desc.setFlowControllerDeclaration(fcd);
 			fcd.setImport(new Import_impl());		
 			fcd.setKey(FlowControllerKey);
-			fcd.getImport().setName(fcsn);
+			fcd.getImport().setName(flowController);
 		}
 		
 		FixedFlow fixedFlow = new FixedFlow_impl();
@@ -387,11 +388,6 @@ public class UimaUtils {
         return retVal;
 	}
 
-	private static String getProperty(String propertyName) {
-		//DuccPropertiesResolver.getInstance().getProperty(propertyName);
-		return null;
-	}
-	
 	private static void addOverrides(List<List<String>> overrides,
 			AnalysisEngineDescription desc, ResourceSpecifier[] specifiers,
 			List<String> flowNames) throws Exception {

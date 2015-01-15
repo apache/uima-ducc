@@ -35,21 +35,24 @@ public class DuccUimaAggregate implements IDuccUimaAggregate {
 	private int threadCount = 1;
 	private String brokerURL;
 	private String endpoint;
+	private String flowController;
 	
-	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint) {
+	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController) {
 		setName(name);
 		setDescription(description);
 		setThreadCount(threadCount);
 		setBrokerURL(brokerURL);
 		setEndpoint(endpoint);
+		setFlowController(flowController);
 	}
 	
-	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint,List<IDuccUimaAggregateComponent> components) {
+	public DuccUimaAggregate(String name, String description, int threadCount, String brokerURL, String endpoint, String flowController, List<IDuccUimaAggregateComponent> components) {
 		setName(name);
 		setDescription(description);
 		setThreadCount(threadCount);
 		setBrokerURL(brokerURL);
 		setEndpoint(endpoint);
+		setFlowController(flowController);
 		setComponents(components);
 	}
 	
@@ -111,5 +114,15 @@ public class DuccUimaAggregate implements IDuccUimaAggregate {
 	
 	public void setEndpoint(String endpoint) {
 		this.endpoint = endpoint;
+	}
+	
+	
+	public String getFlowController() {
+		return flowController;
+	}
+
+	
+	public void setFlowController(String flowController) {
+		this.flowController = flowController;
 	}
 }

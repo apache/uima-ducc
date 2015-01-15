@@ -50,6 +50,7 @@ public class AeGenerator {
 		    aggregateConfiguration.getDescription(), 
 		    aggregateConfiguration.getBrokerURL(), 
 		    aggregateConfiguration.getEndpoint(),	
+		    aggregateConfiguration.getFlowController(),
 		    aggregateConfiguration.getThreadCount(), 
 		    userLogDir,
 		    jobId+"-uima-ae-descriptor-"+Utils.getPID()+".xml",
@@ -64,13 +65,14 @@ public class AeGenerator {
 			String description, 
 			String brokerURL, 
 			String endpoint,
+			String flowController,
 			int scaleup, 
 			String directory, 
 			String fname, 
 			List<List<String>> overrides,
 			String... aeDescriptors) throws Exception {
 		
-		AnalysisEngineDescription aed = UimaUtils.createAggregateDescription((scaleup > 1),overrides, aeDescriptors);
+		AnalysisEngineDescription aed = UimaUtils.createAggregateDescription(flowController, (scaleup > 1), overrides, aeDescriptors);
 		aed.getMetaData().setName(name);
 		File file = null;
 		File dir = new File(directory);

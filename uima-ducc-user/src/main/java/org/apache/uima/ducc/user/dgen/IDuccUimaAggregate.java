@@ -39,4 +39,7 @@ public interface IDuccUimaAggregate extends IDuccUimaDeployableConfiguration {
 	
 	public String getEndpoint();
 	public void setEndpoint(String endpoint);
+	
+	public String getFlowController();
+	public void setFlowController(String flowController);
 }
