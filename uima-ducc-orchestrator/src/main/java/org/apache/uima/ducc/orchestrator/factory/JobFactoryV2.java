@@ -313,7 +313,10 @@ public class JobFactoryV2 implements IJobFactory {
 		addDashD(jcl, FlagsHelper.Name.WorkItemTimeout, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_per_item_time_max));		
 		// add JpDdDirectory	
 		addDashD(jcl, FlagsHelper.Name.JobDirectory, jobRequestProperties.getProperty(JobSpecificationProperties.key_log_directory));
-		// add Jp DD construction pieces-parts (Jp DD should be null)
+		// add Jp aggregate construction  from pieces-parts (Jp DD should be null)
+		String keyFCRS = "ducc.flow-controller.specifier";
+		String valueFCRS = DuccPropertiesResolver.getInstance().getFileProperty(keyFCRS);
+		addDashD(jcl, FlagsHelper.Name.JpFlowController, valueFCRS);
 		addDashD(jcl, FlagsHelper.Name.JpAeDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_AE));
 		addDashD(jcl, FlagsHelper.Name.JpAeOverrides, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_AE_overrides));
 		addDashD(jcl, FlagsHelper.Name.JpCcDescriptor, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_descriptor_CC));
