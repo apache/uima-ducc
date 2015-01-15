@@ -93,6 +93,19 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
+    <!-- Put examples jar one level down to isolate from daemons -->
+    <dependencySet>
+      <useStrictFiltering>true</useStrictFiltering>
+      <includes>
+        <include>org.apache.uima:uima-ducc-user</include>
+      </includes>      
+      <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
+      <outputDirectory>lib/uima-ducc/user</outputDirectory>
+      <useProjectArtifact>false</useProjectArtifact>
+      <fileMode>644</fileMode> 
+      <directoryMode>755</directoryMode>        
+    </dependencySet>
+    
    <!-- Google GSon -->   
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
