@@ -83,6 +83,7 @@ public class ProxyAeGenerate {
 			Integer dgenThreadCount,
 			String dgenBrokerURL,
 			String dgenEndpoint,
+			String dgenFlowController,
 			String cmDescriptor,
 			List<String> cmOverrides, 
 			String aeDescriptor, 
@@ -100,6 +101,7 @@ public class ProxyAeGenerate {
 			show("dgenThreadCount", dgenThreadCount);
 			show("dgenBrokerURL", dgenBrokerURL);
 			show("dgenEndpoint", dgenEndpoint);
+			show("degnFlowController", dgenFlowController);
 			show("cmDescriptor", cmDescriptor);
 			show("cmOverrides", cmOverrides);
 			show("aeDescriptor", aeDescriptor);
@@ -117,6 +119,7 @@ public class ProxyAeGenerate {
 					Integer.class,	// dgenThreadCount
 					String.class,	// dgenBrokerURL
 					String.class,	// dgenEndpoint
+					String.class,	// dgenFlowController
 					String.class,	// cmDescriptor
 					List.class,		// cmOverrides
 					String.class,	// aeDescriptor
@@ -133,6 +136,7 @@ public class ProxyAeGenerate {
 					dgenThreadCount, 
 					dgenBrokerURL, 
 					dgenEndpoint,
+					dgenFlowController,
 					cmDescriptor,
 					cmOverrides,
 					aeDescriptor,

@@ -161,6 +161,7 @@ public class TestClassLoading extends ATest {
 			Integer dgenThreadCount = new Integer(1);
 			String dgenBrokerURL = "brokerURL";
 			String dgenEndpoint = "endpoint";
+			String dgenFlowController = "flowController";
 			String cmDescriptor = null;
 			List<String> cmOverrides = null;
 			//String aeDescriptor = "org.apache.uima.ducc.test.randomsleep.FixedSleepAE";
@@ -176,6 +177,7 @@ public class TestClassLoading extends ATest {
 					dgenThreadCount,
 					dgenBrokerURL, 
 					dgenEndpoint, 
+					dgenFlowController,
 					cmDescriptor, 
 					cmOverrides, 
 					aeDescriptor, 

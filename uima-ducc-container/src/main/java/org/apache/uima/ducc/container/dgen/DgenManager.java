@@ -50,6 +50,7 @@ public class DgenManager {
 			convert2Integer(feh.getJpThreadCount()),
 			feh.getJpDdBrokerURL(),
 			feh.getJpDdBrokerEndpoint(),
+			feh.getJpFlowController(),
 			feh.getJpAeDescriptor(), 
 			convert2List(feh.getJpAeOverrides()), 
 			feh.getJpCcDescriptor(), 
@@ -67,6 +68,7 @@ public class DgenManager {
 			Integer dgenThreadCount,
 			String dgenBrokerURL,
 			String dgenBrokerEndpoint,
+			String flowController, 
 			String aeDescriptor, 
 			List<String> aeOverrides, 
 			String ccDescriptor, 
@@ -78,7 +80,7 @@ public class DgenManager {
 		try {
 			if(dgen == null) {
 				proxy = new ProxyAeGenerate();
-				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
+				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
 				setAe(value);
 				logger.info(location, null, "generated dgen: "+value);
 			}
