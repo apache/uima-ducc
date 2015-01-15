@@ -310,6 +310,7 @@ public class DuccHttpClient {
                 
 				if ( postMethod.getStatusLine().getStatusCode() != 200) {
 					logger.error("execute", null, "Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
+					logger.error("execute", null, "Content causing error:"+postMethod.getResponseBody());
 					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 				}
 				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+postMethod.getStatusLine());
