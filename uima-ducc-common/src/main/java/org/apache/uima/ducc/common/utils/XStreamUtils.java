@@ -24,11 +24,15 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 public class XStreamUtils {
 	
 	public static String marshall( Object targetToMarshall) throws Exception {
-        XStream xStream = new XStream(new DomDriver());
-        return xStream.toXML(targetToMarshall);
+        synchronized(XStreamUtils.class) {
+    		XStream xStream = new XStream(new DomDriver());
+            return xStream.toXML(targetToMarshall);
+        }
 	}
 	public static Object unmarshall( String targetToUnmarshall) throws Exception {
-		XStream xStream = new XStream(new DomDriver());
-		return xStream.fromXML(targetToUnmarshall);
+        synchronized(XStreamUtils.class) {
+    		XStream xStream = new XStream(new DomDriver());
+    		return xStream.fromXML(targetToUnmarshall);
+        }
 	}
 }
