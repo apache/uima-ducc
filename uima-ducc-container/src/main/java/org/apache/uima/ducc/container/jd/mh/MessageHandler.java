@@ -300,6 +300,9 @@ public class MessageHandler implements IMessageHandler {
 			}
 			JdState jdState = JobDriver.getInstance().getJdState();
 			trans.setJdState(jdState);
+			IMetaCas metaCas = trans.getMetaCas();
+			metaCas.setPerformanceMetrics(null);
+			metaCas.setUserSpaceException(null);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
