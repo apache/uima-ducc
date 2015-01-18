@@ -92,6 +92,7 @@ public class ProxyAeGenerate {
 			List<String> ccOverrides
 			) throws ProxyAeException
 	{
+		String location = "generate";
 		String retVal = null;
 		try {
 			show("directory", directory);
@@ -149,7 +150,7 @@ public class ProxyAeGenerate {
 			retVal = dgen;
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			logger.error(location, ILogger.null_id, e);
 			throw new ProxyAeException(e.toString());
 		}
 		return retVal;

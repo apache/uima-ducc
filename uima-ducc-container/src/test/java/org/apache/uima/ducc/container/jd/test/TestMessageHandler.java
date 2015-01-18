@@ -504,7 +504,8 @@ public class TestMessageHandler extends ATest {
 			while(metaCas != null) {
 				transAck(messageHandler,ti.getNodeName(),ti.getPid(),ti.getTid(),casNo);
 				if(randomErrorTest05()) {
-					String serializedException = new RuntimeException("injected error test #05").toString();
+					Throwable exception = new RuntimeException("injected error test #05");
+					Object serializedException = Transformer.serialize(exception);
 					metaCas.setUserSpaceException(serializedException);
 					inject++;
 				}

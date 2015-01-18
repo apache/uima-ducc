@@ -52,6 +52,7 @@ public class ProxyUxStringify {
 	public String convert(
 			Object userException
 			) throws ProxyUxException {
+		String location = "convert";
 		String retVal = null;
 		try {
 			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.exception.iface.Stringify");
@@ -68,7 +69,7 @@ public class ProxyUxStringify {
 			retVal = (String)printableString;
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			logger.error(location, ILogger.null_id, e);
 			throw new ProxyUxException(e.toString());
 		}
 		return retVal;

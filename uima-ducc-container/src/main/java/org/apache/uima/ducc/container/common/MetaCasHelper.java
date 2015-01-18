@@ -18,10 +18,15 @@
 */
 package org.apache.uima.ducc.container.common;
 
+import org.apache.uima.ducc.container.common.logger.IComponent;
+import org.apache.uima.ducc.container.common.logger.ILogger;
+import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 
 public class MetaCasHelper {
 
+	private static Logger logger = Logger.getLogger(MetaCasHelper.class, IComponent.Id.JD.name());
+	
 	private IMetaCas metaCas = null;
 	
 	public MetaCasHelper(IMetaCas metaCas) {
@@ -33,12 +38,13 @@ public class MetaCasHelper {
 	}
 	
 	public int getSystemKey() {
+		String location = "getSystemKey";
 		int retVal = -1;
 		try {
 			retVal = Integer.parseInt(metaCas.getSystemKey());
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			logger.error(location, ILogger.null_id, e);
 		}
 		return retVal;
 	}

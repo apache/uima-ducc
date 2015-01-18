@@ -156,6 +156,7 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 	}
 	
 	public void publish() {	
+		String location = "publish";
 		try {
 			List<IWorkItemPerformanceInfo> list = dataGet();
 			ConcurrentSkipListMap<String, JobPerformanceSummary> map = new ConcurrentSkipListMap<String, JobPerformanceSummary>();
@@ -176,7 +177,7 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 			jsonGz.exportData(data);
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
