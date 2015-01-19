@@ -26,10 +26,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.RandomStringUtils;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.analysis_engine.AnalysisEngine;
 import org.apache.uima.analysis_engine.AnalysisEngineManagement;
@@ -158,6 +160,14 @@ implements IProcessContainer {
 	    // maintain thread affinity to specific instance of AE
 	  private volatile boolean threadAffinity=true;
 	    
+	  private String gen(int length) {
+		  StringBuffer sb = new StringBuffer();
+		  for(int i=length; i > 0; i -= 12) {
+			  int n = Math.min(12, Math.abs(i));
+			  sb.append(org.apache.commons.lang.StringUtils.leftPad(Long.toString(Math.round(Math.random()*Math.pow(36,n)),n),'0'));
+		  }
+		  return sb.toString();
+	  }
 	  public boolean useThreadAffinity() {
 	   	return threadAffinity;
 	  }
@@ -293,6 +303,18 @@ implements IProcessContainer {
 				metricsList.add(p);
 			}
 			*/
+			for( int i=0; i<100; i++) {
+				Properties p = new Properties();
+				
+				p.setProperty("name", RandomStringUtils.random(50,true,false).trim());
+				p.setProperty("uniqueName", RandomStringUtils.random(1500,true,false).trim());
+				p.setProperty("analysisTime",
+						String.valueOf(0));
+				p.setProperty("numProcessed",
+						String.valueOf(0));
+				metricsList.add(p);
+
+			}
 			return metricsList;
 		} catch( Throwable e ) {
 			super.lastError = e;
