@@ -31,6 +31,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.apache.log4j.spi.ErrorHandler;
 import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.xml.DOMConfigurator;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
@@ -139,6 +140,14 @@ public class DuccLogger
     public DuccLogger(String claz, String component)
     {
         // initLogger();
+
+        // UIMA-4186, use log4j API for configuration
+        String ducc_home = System.getProperty("DUCC_HOME");
+        if ( ducc_home == null ) { 
+            System.out.println("WARNING: Cannot find system proeprty DUCC_HOME to configure ducc logger.  Using defualt log4j configurator.");
+        } else {
+            DOMConfigurator.configureAndWatch(System.getProperty("DUCC_HOME") + "/resources/log4j.xml");
+        }
 
         //
         // Try to set component from calling thread if not set.  

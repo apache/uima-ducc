@@ -246,7 +246,7 @@ class DuccUtil(DuccBase):
         CLASSPATH = CLASSPATH + ':' + LIB + 'libpam4j/*'
         CLASSPATH = CLASSPATH + ':' + LIB + 'uima-ducc/*'
 
-        CLASSPATH = CLASSPATH + ':' + DH  + 'resources'
+        # CLASSPATH = CLASSPATH + ':' + DH  + 'resources'  UIMA-4168 Use API, not classpath to configure log4j
     
         # more are added to some components in ducc.py, e.g.
         #    derby, apache-activemq/lib/optional, jetty from ws lib, jsp, http- client
