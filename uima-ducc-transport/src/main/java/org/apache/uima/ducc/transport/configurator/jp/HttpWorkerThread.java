@@ -122,7 +122,7 @@ public class HttpWorkerThread implements Runnable {
 
 				try {
 					IMetaCasTransaction transaction = new MetaCasTransaction();
-					
+					System.out.println("Requesting Work from JD");
 					// According to HTTP spec, GET may not contain Body in 
 					// HTTP request. HttpClient actually enforces this. So
 					// do a POST instead of a GET.

@@ -290,20 +290,21 @@ implements IJobProcessor{
 	}
 	public void stop() {
 		currentState = ProcessState.Stopping;
+		agent.notify(currentState);
 		if ( super.isStopping() ) {
 			return;  // already stopping - nothing to do
 		}
 
 		System.out.println("... AbstractManagedService - Stopping Service Adapter");
 	    try {
-        	if (getContext() != null) {
-    			for (Route route : getContext().getRoutes()) {
-
-    				route.getConsumer().stop();
-    				System.out.println(">>> configFactory.stop() - stopped route:"
-    						+ route.getId());
-    			}
-    		}
+//        	if (getContext() != null) {
+//    			for (Route route : getContext().getRoutes()) {
+//
+//    				route.getConsumer().stop();
+//    				System.out.println(">>> configFactory.stop() - stopped route:"
+//    						+ route.getId());
+//    			}
+//    		}
         	// block for worker threads to exit run()
         	workerThreadCount.await();
         	
@@ -326,10 +327,14 @@ implements IJobProcessor{
         	if ( agent != null) {
             	agent.stop();
         	}
-			super.stop();
+			
 			
 	    } catch( Exception e) {
 	    	e.printStackTrace();
+	    } finally {
+	    	try {
+		    	super.stop();
+	    	} catch( Exception ee) {}
 	    }
 	}
 

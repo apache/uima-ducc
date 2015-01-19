@@ -89,6 +89,7 @@ public class DuccHttpClient {
 		nodeIdentity = new NodeIdentity();
 		MultiThreadedHttpConnectionManager cMgr =
 		    new MultiThreadedHttpConnectionManager();
+		
 		httpClient = 
     		new HttpClient(cMgr);
 		 
@@ -298,8 +299,11 @@ public class DuccHttpClient {
 			try {
 				// Serialize request object to XML
 				String body = XStreamUtils.marshall(transaction);
+				//System.out.println("Sending Message of size:"+body.length()+" Message:"+body);
 	            RequestEntity e = new StringRequestEntity(body,"application/xml","UTF-8" );
+	            
 	            postMethod.setRequestEntity(e);
+	            
 	            addCommonHeaders(postMethod);
 	    
 	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
@@ -311,12 +315,20 @@ public class DuccHttpClient {
 				if ( postMethod.getStatusLine().getStatusCode() != 200) {
 					logger.error("execute", null, "Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 					logger.error("execute", null, "Content causing error:"+postMethod.getResponseBody());
+					System.out.println("Thread::"+Thread.currentThread().getId()+" ERRR::Content causing error:"+postMethod.getResponseBody());
 					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 				}
 				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+postMethod.getStatusLine());
 				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" Recv'd:"+content);
-				System.out.println(content);
-				Object o = XStreamUtils.unmarshall(content); //sb.toString());
+				//System.out.println("Thread::"+Thread.currentThread().getId()+" " +content);
+				Object o;
+				try {
+					o = XStreamUtils.unmarshall(content); //sb.toString());
+					
+				} catch( Exception ex) {
+					System.out.println("Got Error Thread::"+Thread.currentThread().getId()+" ERRR::Content causing error:"+postMethod.getResponseBody());
+					throw ex;
+				}
 				if ( o instanceof IMetaCasTransaction) {
 					reply = (MetaCasTransaction)o;
 					break;
