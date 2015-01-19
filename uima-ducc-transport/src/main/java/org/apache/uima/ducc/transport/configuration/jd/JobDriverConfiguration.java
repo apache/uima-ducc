@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.transport.configuration.jd;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -243,16 +244,27 @@ import org.springframework.context.annotation.Import;
 		    		throws ServletException, IOException
 		    {
 		    	try {
-					char[] content = new char[request.getContentLength()];
+					StringBuilder sb = new StringBuilder();
+					BufferedReader reader = request.getReader();
+					String line;
+					while ((line = reader.readLine()) != null ) {
+						sb.append(line);
+					}
+					//char[] content = new char[request.getContentLength()];
+					String content = sb.toString().trim();
 
-					request.getReader().read(content);
+					//char[] content = new char[request.getContentLength()];
+
+					//request.getReader().read(content);
 					logger.debug("doPost",jobid, "Http Request Body:::"+String.valueOf(content));
 					
 					IMetaCasTransaction imt=null;
-					String t = String.valueOf(content);
+					//String t = String.valueOf(content);
 						
+//					imt = (IMetaCasTransaction) XStreamUtils
+//									.unmarshall(t.trim());
 					imt = (IMetaCasTransaction) XStreamUtils
-									.unmarshall(t.trim());
+							.unmarshall(content);
 			        
 			    	// process JP's request
 			    	jdc.handleJpRequest(imt);
