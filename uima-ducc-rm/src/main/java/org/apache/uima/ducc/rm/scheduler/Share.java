@@ -37,8 +37,9 @@ public class Share
 {
     //private transient DuccLogger logger = DuccLogger.getLogger(Share.class, COMPONENT_NAME);
     private Machine machine;               // machine associatede with this share, assigned after "what-of"
-    private DuccId id;                     // unique *within this machine*         assigned after "what-of"
-    private IRmJob job;                    // job executing in this share, if any, assigned after "what-of"
+    private DuccId id = null;              // unique *within this machine*         assigned after "what-of"
+    private IRmJob job = null;;            // job executing in this share, if any, assigned after "what-of"
+    private DuccId bljobid = null;         // UIMA-4142 ID of blacklisted job
     private int share_order;               // may not be same as machine's order
 
     private ITimeWindow init_time = null;  // how much time this process spends initializing
@@ -68,6 +69,21 @@ public class Share
         this.id = id;
         this.machine = machine;
         this.job = job;
+        this.bljobid = null;        // UIMA-4142
+        this.share_order = share_order;
+    }
+
+    /**
+     * UIMA-4142
+     * This constructor is for a blacklisted share.  We can't make a job but we know what the
+     * job's id would have been if we could.
+     */
+    public Share(DuccId id, Machine machine, DuccId jobid, int share_order)
+    {
+        this.id = id;
+        this.machine = machine;
+        this.job = null;
+        this.bljobid = jobid;       // UIMA-4142
         this.share_order = share_order;
     }
 
@@ -79,6 +95,7 @@ public class Share
         this.machine = machine;
         this.id = Scheduler.newId();
         this.job = job;
+        this.bljobid = null;        // UIMA-4142
         this.share_order = share_order;
     }
 
@@ -132,6 +149,18 @@ public class Share
     public DuccId getId()
     {
         return id;
+    }
+
+    // UIMA-4142
+    public boolean isBlacklisted()
+    {
+        return bljobid != null;
+    }
+
+    // UIMA-4142
+    public DuccId getBlJobId()
+    {
+        return bljobid;
     }
 
     Machine getMachine()

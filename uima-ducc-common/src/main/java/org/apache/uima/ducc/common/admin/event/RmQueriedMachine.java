@@ -31,14 +31,17 @@ public class RmQueriedMachine
     String nodepoolId;
     long memory;
     int order;
+    boolean blacklisted;
     List<RmQueriedShare> shares = null;
     
-    public RmQueriedMachine(String name, String nodepoolId, long memory, int order)
+    // UIMA-4142, account for blacklist
+    public RmQueriedMachine(String name, String nodepoolId, long memory, int order, boolean blacklisted)
     {
         this.name = name;
         this.nodepoolId = nodepoolId;
         this.memory = memory;
         this.order = order;
+        this.blacklisted = blacklisted;
     }
 
     public void addShare(RmQueriedShare rqs)
@@ -47,15 +50,22 @@ public class RmQueriedMachine
         shares.add(rqs);
     }
 
-    public String getId()      { return name; }
-    public long getMemory()    { return memory; }
-    public int getShareOrder() { return order; }
+    public String getId()          { return name; }
+    public long getMemory()        { return memory; }
+    public int getShareOrder()     { return order; }
+    public boolean isBlacklisted() { return blacklisted; }        // UIMA-4142
+    
+    static String fmt_s = "%20s %11s %15s %10s %5s %4s %s";
+    String        fmt_d = "%20s %11s %15s %10d %5d %4d" ;
 
-    static String fmt_s = "%14s %14s %10s %5s %4s %s";
-    String        fmt_d = "%14s %14s %10d %5d %4d" ;
     public static String header()
     {
-        return String.format(fmt_s, "Node", "Nodepool", "Memory", "Order", "Free", "Shares\n");
+        return String.format(fmt_s, "Node", "Blacklisted", "Nodepool", "Memory", "Order", "Free", "Shares");
+    }
+
+    public static String separator()
+    {
+        return String.format(fmt_s, "--------------------", "-----------", "---------------", "----------", "-----", "----", "----------");
     }
 
     public String toConsole() 
@@ -63,17 +73,17 @@ public class RmQueriedMachine
         StringBuffer sb = new StringBuffer();
 
         if ( shares == null ) {
-            sb.append(String.format(fmt_d, name, nodepoolId, memory, order, 0));
+            sb.append(String.format(fmt_d, name, blacklisted, nodepoolId, memory, order, 0));
             sb.append(" [none]");
         } else {
             int used = 0;
             for ( RmQueriedShare s : shares ) {                
                 used += s.getShareOrder();
             }
-            sb.append(String.format(fmt_d, name, nodepoolId, memory, order, order - used));
+            sb.append(String.format(fmt_d, name, blacklisted, nodepoolId, memory, order, order - used));
 
             String spacer = " ";
-            String altSpacer = "\n" + String.format(fmt_s, "", "", "", "", "", ""); // yes, blank, of exactly the right size
+            String altSpacer = "\n" + String.format(fmt_s, "", "", "", "", "", "", ""); // yes, blank, of exactly the right size
             for ( RmQueriedShare s : shares ) {                
                 sb.append(spacer);
                 sb.append(s.toConsole());
@@ -91,6 +101,8 @@ public class RmQueriedMachine
         sb.append(name);
         sb.append(" ");
         sb.append(nodepoolId);
+        sb.append(" ");
+        sb.append(Boolean.toString(blacklisted));
         sb.append(" ");
         sb.append(Long.toString(memory));
         sb.append(" ");
@@ -116,6 +128,6 @@ public class RmQueriedMachine
 
     public String toString()
     {
-        return String.format("%14s %12d %3d %3d", name, memory, order, shares == null ? 0 : shares.size());
+        return String.format("%14s %5s %12d %3d %3d", name, blacklisted, memory, order, shares == null ? 0 : shares.size());
     }
 }

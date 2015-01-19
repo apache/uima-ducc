@@ -36,7 +36,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 class NodePool
 	implements SchedConstants
 {
-	DuccLogger logger = DuccLogger.getLogger(NodePool.class, COMPONENT_NAME);
+	static DuccLogger logger = DuccLogger.getLogger(NodePool.class, COMPONENT_NAME);
     String id;
     NodePool parent = null;
 
@@ -52,7 +52,7 @@ class NodePool
     HashMap<Node, Machine> allMachines                       = new HashMap<Node, Machine>();                   // all active machines in the system
     HashMap<Node, Machine> unresponsiveMachines              = new HashMap<Node, Machine>();                   // machines with excessive missed heartbeats
     HashMap<Node, Machine> offlineMachines                   = new HashMap<Node, Machine>();
-    HashMap<Integer, HashMap<Node, Machine>> machinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>(); // Schedulable, not necessarily fee
+    HashMap<Integer, HashMap<Node, Machine>> machinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>(); // All schedulable machines, not necessarily free
     HashMap<String, Machine>                 machinesByName  = new HashMap<String, Machine>();                 // by name, for nodepool support
     HashMap<String, Machine>                 machinesByIp    = new HashMap<String, Machine>();                 // by IP, for nodepool support
 
@@ -76,9 +76,9 @@ class NodePool
     //
     //                            assume 2x16G, 0x32G, 1x48G, 4x64G machines ------------------------------+
     //                            the arrays look like this for each init of the scheduler:                v
-    int nMachinesByOrder[];       // number of machines of each share order                         [ 0  2 0 1  4 ] - physical machines
-    int vMachinesByOrder[];
-    int nSharesByOrder[];         // shares of each size for each share order                       [ 0 21 9 5  4 ] - collective N Shares for each order
+    int nMachinesByOrder[];       // number of full, free machines of each share order                [ 0  2 0 1  4 ] - physical machines
+    int vMachinesByOrder[];       // number of partial machines, indexed by free space
+    int nSharesByOrder[];         // shares of each size for each share order                         [ 0 21 9 5  4 ] - collective N Shares for each order
     //int nFreeSharesByOrder[];     // for each order, the theoretical number of shares to give away  [ 0  1 0 3 16 ] - free Q shares per order
 
     int machinesToPreempt[];     // number of full machines to preempt for reservations, by order
@@ -89,7 +89,8 @@ class NodePool
     //     int shareExpansion[]; 
     Map<Integer, Integer> onlineMachinesByOrder = new HashMap<Integer, Integer>();  // all online machines
 
-    HashMap<Integer, HashMap<Node, Machine>> virtualMachinesByOrder;
+    // Indexed by available free shares, the specific machines with the indicated free space
+    HashMap<Integer, Map<Node, Machine>> virtualMachinesByOrder = new HashMap<Integer, Map<Node, Machine>>();  // UIMA-4142
     static int maxorder = 0;
 
 //     NodePool(NodePool parent, String id, EvictionPolicy ep, int order)
@@ -563,12 +564,13 @@ class NodePool
     }
 
     @SuppressWarnings("unchecked")
-	HashMap<Node, Machine> getVirtualMachinesByOrder(int order)
+	Map<Node, Machine> getVirtualMachinesByOrder(int order)
     {
-        HashMap<Node, Machine> machs;
+        Map<Node, Machine> machs;
 
         if( virtualMachinesByOrder.containsKey(order) ) {
-            machs = (HashMap<Node, Machine>) virtualMachinesByOrder.get(order).clone();
+        	HashMap<Node, Machine> tmp = (HashMap<Node, Machine>) virtualMachinesByOrder.get(order);
+            machs = (HashMap<Node, Machine>) tmp.clone();
         } else {
             machs = new HashMap<Node, Machine>();
         }
@@ -656,7 +658,7 @@ class NodePool
     public synchronized void connectShare(Share s, Machine m, IRmJob j, int order)
     {
         String methodName = "connectShare";
-        logger.trace(methodName, j.getId(), "share", s,  "order", order, "machine", m);
+        logger.info(methodName, j.getId(), "share", s,  "order", order, "machine", m);
         j.assignShare(s);
         m.assignShare(s);
         rearrangeVirtual(m, order);
@@ -665,10 +667,12 @@ class NodePool
 
     void rearrangeVirtual(Machine m, int order)
     {
-    	//String methodName = "rearrangeVirtual";
+    	String methodName = "rearrangeVirtual";
         if ( allMachines.containsKey(m.key()) ) {
             int v_order = m.getVirtualShareOrder();
             int r_order = m.getShareOrder();
+
+            logger.info(methodName, null, m.getId(), "order", order, "v_order", v_order, "r_order", r_order);
 
             if ( v_order == r_order ) {
                 nMachinesByOrder[r_order]--;
@@ -676,7 +680,7 @@ class NodePool
                 vMachinesByOrder[v_order]--;
             }
            
-            HashMap<Node, Machine> vlist = virtualMachinesByOrder.get(v_order);
+            Map<Node, Machine> vlist = virtualMachinesByOrder.get(v_order);
             vlist.remove(m.key());
             
             v_order -= order;
@@ -734,20 +738,45 @@ class NodePool
 
         machinesToPreempt  = new int[maxorder + 1];
 
-        virtualMachinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>();
-        for ( Integer i : machinesByOrder.keySet() ) {
-
-            @SuppressWarnings("unchecked")
-            HashMap<Node, Machine> ml = (HashMap<Node, Machine>) machinesByOrder.get(i).clone();
-
-            virtualMachinesByOrder.put(i, ml);
-            nMachinesByOrder[i] = ml.size();
-        }
-        calcNSharesByOrder();
-
+        // UIMA-4142 Must set vMachinesByOrder and virtualMachinesByOrder independently of
+        //           machinesByOrder because blacklisting can cause v_order != r_order
+        //           during reset.
+        virtualMachinesByOrder.clear();
         for ( Machine m : allMachines.values() ) {
             m.resetVirtualShareOrder();
+            int v_order = m.getVirtualShareOrder();
+            int r_order = m.getShareOrder();
+            
+            Map<Node, Machine> ml = null;
+            if ( v_order == r_order ) {
+                nMachinesByOrder[r_order]++;
+            } else {
+                vMachinesByOrder[v_order]++;
+            }
+
+            ml = virtualMachinesByOrder.get(v_order);
+            if ( ml == null ) {
+                ml = new HashMap<Node, Machine>();
+                virtualMachinesByOrder.put(v_order, ml);
+            }
+
+            ml.put(m.key(), m);
         }
+
+        // UIMA 4142 this old calc isn't right any more because blacklisting can cause
+        //     v_order != r_order during reset
+        // virtualMachinesByOrder = new HashMap<Integer, HashMap<Node, Machine>>();
+        // for ( Integer i : machinesByOrder.keySet() ) {
+
+        //     @SuppressWarnings("unchecked")
+        //     HashMap<Node, Machine> ml = (HashMap<Node, Machine>) machinesByOrder.get(i).clone();
+
+        //     virtualMachinesByOrder.put(i, ml);
+        //     nMachinesByOrder[i] = ml.size();
+        // }
+
+
+        calcNSharesByOrder();
 
         for ( NodePool np : children.values() ) {
             np.reset(order);
@@ -998,6 +1027,14 @@ class NodePool
     void nodeLeaves(Machine m)
     {
         disable(m, unresponsiveMachines);
+    }
+
+    // UIMA-4142
+    // helper for CLI things that refer to things by name only.  do we know about anything by this
+    // name?  see resolve() in Scheduler.java.
+    boolean hasNode(String n)
+    {
+        return machinesByName.containsKey(n);
     }
 
     String varyoff(String node)
@@ -1542,11 +1579,12 @@ class NodePool
                         continue;                                            // nothing here to give
                     }
                     
-                    HashMap<Node, Machine> machs = getVirtualMachinesByOrder(i);
+                    Map<Node, Machine> machs = getVirtualMachinesByOrder(i);
                     ArrayList<Machine> ml = new ArrayList<Machine>();
                     ml.addAll(machs.values());
                     
                     for ( Machine m : ml ) {                                // look for space
+                        if ( m.isBlacklisted() ) continue;                  // nope
                         int g = Math.min(needed, m.countFreeShares(order)); // adjust by the order supported on the machine
                         for ( int ndx= 0;  ndx < g; ndx++ ) {
                             Share s = new Share(m, j, order);

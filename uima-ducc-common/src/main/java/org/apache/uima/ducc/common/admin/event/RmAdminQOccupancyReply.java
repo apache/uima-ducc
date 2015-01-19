@@ -53,6 +53,8 @@ public class RmAdminQOccupancyReply
         StringBuffer sb = new StringBuffer();
         sb.append(RmQueriedMachine.header());
         sb.append("\n");
+        sb.append(RmQueriedMachine.separator());
+        sb.append("\n");
         for ( RmQueriedMachine m : machines ) {
             sb.append(m.toConsole());
             sb.append("\n");

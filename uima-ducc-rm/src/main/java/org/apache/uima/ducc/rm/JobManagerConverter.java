@@ -81,7 +81,9 @@ public class JobManagerConverter
     JobManagerUpdate lastJobManagerUpdate = new JobManagerUpdate();
 
     Map<IRmJob, IRmJob> refusedJobs = new HashMap<IRmJob, IRmJob>();
-    
+
+    Map<DuccId, IRmJobState> blacklistedResources = new HashMap<DuccId, IRmJobState>(); // UIMA-4142 to tell OR
+
     boolean recovery = false;
 
     public JobManagerConverter(ISchedulerMain scheduler, NodeStability ns)
@@ -110,6 +112,149 @@ public class JobManagerConverter
         j.refuse(reason);
         synchronized(refusedJobs) {
             refusedJobs.put(j, j);
+        }
+    }
+
+    /**
+     * Purge everything in the world for this job.
+     * UIMA-4142
+     */
+    void blacklistJob(IDuccWork job, long memory, boolean evict)
+    {
+    	String methodName = "blacklistJob";
+        
+        int order = scheduler.calcShareOrder(memory);
+        Map<DuccId, IResource> all_shares      = null; 
+        Map<DuccId, IResource> shrunken_shares = null;
+        Map<DuccId, IResource> expanded_shares = null;
+
+        if ( evict ) {
+            all_shares      = new LinkedHashMap<DuccId, IResource>();
+            shrunken_shares = new LinkedHashMap<DuccId, IResource>();
+            expanded_shares = new LinkedHashMap<DuccId, IResource>();
+        }
+
+        // first time - everything must go
+        IDuccProcessMap pm = ((IDuccWorkExecutable)job).getProcessMap();              
+        for ( IDuccProcess proc : pm.values() ) {          // build up Shares from the incoming state
+            NodeIdentity ni = proc.getNodeIdentity();
+            Machine m = scheduler.getMachine(ni);
+            int share_order = 1;
+            
+            if ( m != null ) {
+                if ( proc.isActive() || (proc.getProcessState() == ProcessState.Undefined) ) {                                    
+                    logger.info(methodName, job.getDuccId(), "blacklist", proc.getDuccId(), 
+                                "state", proc.getProcessState(), "isActive", proc.isActive(), "isComplete", proc.isComplete());
+                    m.blacklist(job.getDuccId(), proc.getDuccId(), order);
+                    if ( evict ) {
+                        share_order = m.getShareOrder();         // best guess
+                        Resource r = new Resource(proc.getDuccId(), proc.getNode(), false, share_order, 0);
+                        all_shares.put(proc.getDuccId(), r);
+                        shrunken_shares.put(proc.getDuccId(), r);
+                    }
+                } else {
+                    logger.info(methodName, job.getDuccId(), "whitelist", proc.getDuccId(), 
+                                "state", proc.getProcessState(), "isActive", proc.isActive(), "isComplete", proc.isComplete());
+                    m.whitelist(proc.getDuccId());
+                }
+            }
+        }
+
+        if ( evict && (shrunken_shares.size() > 0) ) {
+            RmJobState rjs = new RmJobState(job.getDuccId(), all_shares, shrunken_shares, expanded_shares);
+            rjs.setDuccType(job.getDuccType());
+            blacklistedResources.put(job.getDuccId(), rjs);          // to tell OR
+        }
+    }
+
+    // UIMA-4142
+    void blacklistReservation(IDuccWork job)
+    {
+    	String methodName = "blacklistReservation";
+        logger.trace(methodName, job.getDuccId(), "enter");
+
+        IDuccReservationMap drm = ((IDuccWorkReservation) job).getReservationMap();
+                
+        for ( IDuccReservation idr : drm.values() ) {
+            NodeIdentity ni = idr.getNodeIdentity();
+            Machine m = scheduler.getMachine(ni);
+            if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
+                logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getName());
+            } else {
+                m.blacklist(job.getDuccId(), idr.getDuccId(), -1);
+            }
+        }
+
+    }
+
+    // UIMA-4142
+    void blacklist(IDuccWork job, int memory)
+    {
+        String methodName = "blacklist";
+        logger.trace(methodName, job.getDuccId(), "enter");
+
+        switch ( job.getDuccType() ) {
+            case Job:
+                blacklistJob(job, memory, true);
+                break;
+            case Service:
+            case Pop:
+                switch ( ((IDuccWorkService)job).getServiceDeploymentType() ) 
+                    {
+                    case uima:
+                    case custom:
+                        blacklistJob(job, memory, true);
+                        break;
+                    case other:
+                        blacklistJob(job, memory, false);
+                        break;
+                    }
+                break;
+            case Reservation:
+                blacklistReservation(job);
+                break;
+            default:
+                // illegal - internal error if this happens
+                logger.error(methodName, job.getDuccId(), "Unknown job type", job.getDuccType(), "ignoring in blacklist.");
+                break;                    
+        }
+    }
+
+    // UIMA-4142
+    void whitelist(IDuccWork job)
+    {
+    	String methodName = "whitelist";
+
+        switch ( job.getDuccType() ) {
+            case Job:                
+            case Service:
+            case Pop:
+                for ( IDuccProcess idp : ((IDuccWorkJob) job).getProcessMap().values() ) {
+                    NodeIdentity ni = idp.getNodeIdentity();
+                    Machine m = scheduler.getMachine(ni);
+                    if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
+                        logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getName());
+                    } else {
+                        m.whitelist(idp.getDuccId());
+                    }
+                }
+
+                break;
+            case Reservation:
+                for ( IDuccReservation idp : ((IDuccWorkReservation) job).getReservationMap().values() ) {
+                    NodeIdentity ni = idp.getNodeIdentity();
+                    Machine m = scheduler.getMachine(ni);
+                    if ( m == null ) {                             // not known, huh? maybe next epoch it will have checked in
+                        logger.warn(methodName, job.getDuccId(), "Problem whitelisting: cannot find machine", ni.getName());
+                    } else {
+                        m.whitelist(idp.getDuccId());
+                    }
+                }
+                break;
+            default:
+                // illegal - internal error if this happens
+                logger.error(methodName, job.getDuccId(), "Unknown job type", job.getDuccType(), "ignoring in blacklist.");
+                break;                    
         }
     }
 
@@ -189,7 +334,7 @@ public class JobManagerConverter
             return;
         } else {            
             int total_work     = toInt(si.getWorkItemsTotal(), scheduler.getDefaultNTasks());
-            int completed_work = toInt(si.getWorkItemsCompleted(), 0)  + toInt(si.getWorkItemsError(), 0)+ toInt(si.getWorkItemsLost(), 0);
+            int completed_work = toInt(si.getWorkItemsCompleted(), 0)  + toInt(si.getWorkItemsError(), 0);
 
             int max_shares     = toInt(si.getSharesMax(), Integer.MAX_VALUE);
             int existing_max_shares = j.getMaxShares();
@@ -448,8 +593,15 @@ public class JobManagerConverter
         j.setResourceClass(rescl);
 
         if ( rescl == null ) {
-            // ph darn, we can't continue past this point
+            // oh darn, we can't continue past this point
             refuse(j, "Cannot find priority class " + className + " for job");
+            
+            // UIMA-4142
+            // However, is this is recovery and we get here, it's because somehow the class definition
+            // got deleted.  In this case there might be resources assigned.  We must evict if possible.
+            // All affected hosts must be blacklisted.  We need to remember all this so we can unblacklist them
+            // if the resources ever become free.
+            blacklist(job, memory);
             return false;
         }
 
@@ -689,6 +841,7 @@ public class JobManagerConverter
             // must do this independently of isInitialized() since reinit could happen fully between OR pubs
             localMap = new DuccWorkMap();            // as if RM had been booted
             lastJobManagerUpdate = new JobManagerUpdate();
+            blacklistedResources.clear();            // UIMA-4142
             refusedJobs.clear();
             first_or_state = true;
         }
@@ -739,6 +892,7 @@ public class JobManagerConverter
                 }
             } else {
                 logger.info(methodName, w.getDuccId(), "Received non-schedulable job, state = ", w.getStateObject());
+                whitelist(w);                          // UIMA-4142 if blacklisted, clear everything
             }
         }
         
@@ -977,6 +1131,10 @@ public class JobManagerConverter
                 rjs.setDuccType(j.getDuccType());
                 rmJobState.put(j.getId(), rjs);
             }
+
+            // UIMA-4142 Add the blacklist to the mix
+            rmJobState.putAll(blacklistedResources);
+            blacklistedResources.clear();
 
             previousJobState = rmJobState;
         }        

@@ -285,6 +285,7 @@ public class DuccProcess implements IDuccProcess {
 		switch(processState) {
 		case Initializing:
 		case Running:
+		case Starting:              // uima-4142 This state found missing.  Added by jrc 2015-01-15
 			retVal = true;	
 			break;
 		}

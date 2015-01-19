@@ -185,7 +185,9 @@ public class Scheduler
             dramOverride = dramOverride * (1024 * 1024);         // convert to KB
         }
 
-        idFactory = new DuccIdFactory(1);
+        if ( idFactory == null ) {                               // UIMA-4142 only remake it on first boot
+            idFactory = new DuccIdFactory(1);
+        }
 
 //        try {
 //            schedImplName = SystemPropertyResolver.getStringProperty("ducc.rm.scheduler", "org.apache.uima.ducc.rm.ClassBasedScheduler");
@@ -203,10 +205,10 @@ public class Scheduler
         String class_definitions = SystemPropertyResolver
             .getStringProperty(DuccPropertiesResolver
                                .ducc_rm_class_definitions, "scheduler.classes");
-
         class_definitions = System.getProperty("DUCC_HOME") + "/resources/" + class_definitions;
+
         try {
-            initClasses(class_definitions);
+            initClasses();
         } catch ( Exception e ) {
             logger.error(methodName, null, e);
             throw e;
@@ -265,6 +267,16 @@ public class Scheduler
         logger.info(methodName, null, "Reconfiguration starts.");
 
         setInitialized(false);           // stop receipt of OR and Agent publications
+
+        // First we run the logic that reads the configuration, and if it fails, we abort the reconfig without crashing
+        // We'll throw it away because we call init() in a minute, which will do the actual configuration, as if booting
+		try {
+			readConfiguration();                                    // UIMA-4142
+		} catch (Throwable e) {
+            setInitialized(true);
+            logger.warn(methodName, null, "Reconfiguration aborted:", e.toString());
+            return "Reconfiguration failed: " + e.toString();
+		}
 
         HashMap<Node, Machine> offlineMachines                   = new HashMap<Node, Machine>();
         for (NodePool np : nodepools) {
@@ -404,7 +416,7 @@ public class Scheduler
     /**
      * Calculate share order, given some memory size in GB (as in from a job spec)
      */
-    int calcShareOrder(long mem)
+    public int calcShareOrder(long mem)
     {
         // Calculate its share order
         mem = mem * 1024 * 1024;                 // to GB
@@ -415,95 +427,6 @@ public class Scheduler
         }
         return share_order;
     }
-
-//     /**
-//      * Use the NodeIdentity to infer my the domain name.
-//      *
-//      * Itertate through the possible names - if one of them has a '.'
-//      * the we have to assume the following stuff is the domain name.
-//      * We only get one such name, so we give up the search if we find
-//      * it.
-//      */
-//     static String cached_domain = null;
-//     private String getDomainName()
-//     {
-//     	String methodName = "getDomainName";
-
-//         String answer = System.getProperty("SIM_RM_DOMAIN");       // for the simulation wrapper, to replay logs from other domains correctly
-//         if ( answer != null ) {
-//             return answer;
-//         }
-
-//         if ( cached_domain != null ) return cached_domain;
-//         try {
-// 			NodeIdentity ni   = new NodeIdentity();
-// 			for ( IIdentity id : ni.getNodeIdentities()) {
-// 			    String n = id.getName();
-// 			    int ndx = n.indexOf(".");
-// 			    if ( ndx > 0 ) {
-// 			        cached_domain =  n.substring(ndx + 1);
-//                     return cached_domain;
-// 			    }
-// 			}
-// 		} catch (Exception e) {
-// 			// TODO Auto-generated catch block
-// 			logger.warn(methodName, null, "Cannot create my own node identity:", e);
-// 		}
-//         return null;  // crappy config if this happens, some stuff may not match nodepools and
-//                       // nothing to do about it.
-//     }
-
-//     Map<String, String> readNodepoolFile(String npfile)
-//     {
-//         String methodName = "readNodepoolFile";
-//         String my_domain = getDomainName();
-//         String ducc_home = System.getProperty("DUCC_HOME");
-//         npfile = ducc_home + "/resources/" + npfile;
-
-//         logger.info(methodName, null, "Domain name:", my_domain);
-//         Map<String, String> response = new HashMap<String, String>();
-
-//         try {
-//             BufferedReader br = new BufferedReader(new FileReader(npfile));
-//             String node = "";
-//             while ( (node = br.readLine()) != null ) {
-//                 int ndx = node.indexOf("#");
-//                 if ( ndx >= 0 ) {
-//                     node = node.substring(0, ndx);
-//                 }
-//                 node = node.trim();
-//                 if (node.equals("") ) {
-//                     continue;
-//                 }
-
-//                 if ( node.startsWith("import") ) {
-//                     String[] tmp = node.split("\\s");
-//                     response.putAll(readNodepoolFile(tmp[1]));
-//                     continue;
-//                 }
-//                 response.put(node, node);
-
-//                 // include fully and non-fully qualified names to allow sloppiness of config
-//                 ndx = node.indexOf(".");
-//                 String dnode;
-//                 if ( ndx >= 0 ) {
-//                     dnode = node.substring(0, ndx);
-//                     response.put(dnode, dnode);
-//                 } else if ( my_domain != null ) {
-//                     dnode = node + "." + my_domain;
-//                     response.put(dnode, dnode);
-//                 }
-//             }
-//             br.close();                        
-            
-//         } catch (FileNotFoundException e) {
-//             throw new SchedulingException(null, "Cannot open NodePool file \"" + npfile + "\": file not found.");
-//         } catch (IOException e) {
-//             throw new SchedulingException(null, "Cannot read NodePool file \"" + npfile + "\": I/O Error.");
-//         }
-                
-//         return response;
-//     }
 
     /**
      * Collect all the classes served by the indicated nodepool (property set).  This fills
@@ -565,17 +488,34 @@ public class Scheduler
         }
     }
 
-    void initClasses(String filename)
+    // UIMA-4142 better modularize this code
+    NodeConfiguration readConfiguration()
+        throws Exception
     {
-    	String methodName = "initClasses";
+        String class_definitions = SystemPropertyResolver
+            .getStringProperty(DuccPropertiesResolver
+                               .ducc_rm_class_definitions, "scheduler.classes");
+        class_definitions = System.getProperty("DUCC_HOME") + "/resources/" + class_definitions;
         String me = Scheduler.class.getName() + ".Config";
         DuccLogger initLogger = new DuccLogger(me, COMPONENT_NAME);
-        configuration = new NodeConfiguration(filename, initLogger);        // UIMA-4142 make the config global
+        NodeConfiguration nc = new NodeConfiguration(class_definitions, initLogger);        // UIMA-4142 make the config global
+        nc.readConfiguration();
+        return nc;                                             // UIMA-4142
+    }
+
+    // UIMA-4142, don't pass in class def file, instead use common readConfiguration
+    void initClasses()
+    {
+    	String methodName = "initClasses";
+        
 		try {
-			configuration.readConfiguration();                              // UIMA-4142
+            configuration = readConfiguration();
 		} catch (Throwable e) {
+            // RM boot.  We must abort being has we have no prior working configuration to fall back to.
             logger.error(methodName, null, e);
             logger.error(methodName, null, "Scheduler exits: unable to read configuration.");
+            System.out.println("Scheduler exits: unable to read configuration.");
+            e.printStackTrace();
             System.exit(1);
 		}
 
@@ -1146,22 +1086,42 @@ public class Scheduler
         }
     }
 
+    /**
+     * User passed us a node by name.  Maybe did and maybe didn't qualify it.  
+     * Maybe the node checked in qualified maybe it didn't.  Here we try to find
+     * something that kind of matches.
+     * UIMA-4142.  Technically a bug on vary-on and vary-off but found and fixed as part of
+     *             the indicated Jira.
+     */
+    synchronized String resolve(String node)
+    {
+        NodePool np = nodepoolsByNode.get(node);
+        if ( np == null ) return null;                  // indexed by long and short so if not found we're stuck
+
+        if ( np.hasNode(node) ) return node;            // he knows it by this name we're done
+
+        int ndx = node.indexOf(".");
+        if ( ndx > 0 ) {
+            // np MUST know it by either long or short or it wouldn't be in nodepoolsByNode
+            // so it must be short
+            return node.substring(0, ndx);
+        } else {
+            // and vice-versa, it must be the long
+            return shortToLongNode.get(node);
+        }
+    }
+
     public synchronized String varyon(String[] nodes)
     {
         String methodName = "varyon";
         StringBuffer reply = new StringBuffer();
         for (String n : nodes ) {
 
-            if ( shortToLongNode.containsKey(n) ) {         // internally everything is by 'long'
-                n = shortToLongNode.get(n);
-            }
-
-            NodePool np = nodepoolsByNode.get(n);
-            if ( np == null ) {
-                reply.append("No nodepool found for node ");
-                reply.append(n);
-                reply.append("\n");
+            n = resolve(n);
+            if ( n == null ) {
+                reply.append("VaryOn: The node cannot be found in the RM.\n");
             } else {                
+                NodePool np = nodepoolsByNode.get(n);  // if null, resolve will fail
                 String repl = np.varyon(n);
                 logger.info(methodName, null, repl);
                 reply.append(repl);
@@ -1177,16 +1137,11 @@ public class Scheduler
         StringBuffer reply = new StringBuffer();
         for (String n : nodes ) {
 
-            if ( shortToLongNode.containsKey(n) ) {         // internally everything is by 'long'
-                n = shortToLongNode.get(n);
-            }
-
-            NodePool np = nodepoolsByNode.get(n);
-            if ( np == null ) {
-                reply.append("No nodepool found for node ");
-                reply.append(n);
-                reply.append("\n");
-            } else {                
+            n = resolve(n);
+            if ( n == null ) {
+                reply.append("VaryOff: The node cannot be found in the RM.\n");
+            } else {
+                NodePool np = nodepoolsByNode.get(n);  // if null, resolve will fail
                 String repl = np.varyoff(n);
                 logger.info(methodName, null, repl);
                 reply.append(repl);

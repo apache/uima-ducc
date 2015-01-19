@@ -35,6 +35,9 @@ public class RmQueriedShare
     boolean purged      = false;
     boolean fixed       = false;
     boolean initialized = false;
+
+    boolean blacklisted = false;
+
     public RmQueriedShare(long job_id, long share_id, int order, long investment_init, long investment_rt)
     {
         this.jobId = job_id;
@@ -44,10 +47,11 @@ public class RmQueriedShare
         this.investmentRt = investment_rt;
     }
 
-    public void setEvicted(boolean v){ this.evicted = v; }
-    public void setPurged(boolean v){ this.purged  = v; }
-    public void setFixed(boolean v) { this.fixed   = v; }
-    public void setInitialized(boolean v) {this.initialized = v; }
+    public void setEvicted(boolean v)     { this.evicted = v; }
+    public void setPurged(boolean v)      { this.purged  = v; }
+    public void setFixed(boolean v)       { this.fixed   = v; }
+    public void setInitialized(boolean v) { this.initialized = v; }
+    public void setBlacklisted()          { this.blacklisted = true; }
 
     public long getJobId()          { return this.jobId; }
     public long getId()             { return this.shareId; }
@@ -63,11 +67,19 @@ public class RmQueriedShare
 
     public String toCompact()
     {
-        return String.format("%d %d %d %d %d %s %s %s %s", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
+        if ( blacklisted ) {
+            return String.format("BLACKLISTED %8d %8d %d", jobId, shareId, order);
+        } else {
+            return String.format("%d %d %d %d %d %s %s %s %s", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
+        }
     }
 
     public String toConsole()
     {
-        return String.format("J[%8d] S[%8d] O[%d] II[%8d] IR[%8d] E[%5s] P[%5s] F[%5s] I[%5s]", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
+        if ( blacklisted ) {
+            return String.format("J[%8d] S[%8d] O[%d] BLACKLISTED", jobId, shareId, order);
+        } else {
+            return String.format("J[%8d] S[%8d] O[%d] II[%8d] IR[%8d] E[%5s] P[%5s] F[%5s] I[%5s]", jobId, shareId, order, investmentInit, investmentRt, evicted, purged, fixed, initialized);
+        }
     }
 }

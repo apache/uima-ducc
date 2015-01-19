@@ -19,18 +19,21 @@
 package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.uima.ducc.common.Node;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.admin.event.RmQueriedShare;
+import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.common.utils.id.DuccId;
 
 
 
 public class Machine
 	implements SchedConstants
 {
-    //private DuccLogger logger = DuccLogger.getLogger(Machine.class, COMPONENT_NAME);
+    private static DuccLogger logger = DuccLogger.getLogger(Machine.class, COMPONENT_NAME);
 
     private String id;
     private int hbcounter = 0;           // heartbeat counter
@@ -56,6 +59,11 @@ public class Machine
     private int virtual_share_order = 0;
     private int shares_left = 0;
 
+    // UIMA-4142
+    // count of shares unavailable because of blacklisting
+    private int blacklisted_shares = 0;
+    private Map<DuccId, Share> blacklistedWork = new HashMap<DuccId, Share>(); // id of process or reservation, share order
+
     Node node;   
 
     private HashMap<Share, Share> activeShares = new HashMap<Share, Share>();
@@ -79,6 +87,61 @@ public class Machine
     public Node key()
     {
         return node;
+    }
+
+    // UIMA-4142
+    // Black list some number of shres for a specific job and proc.  This reduces the number of
+    // schedulable shares until they are whitelisted.
+    public synchronized void blacklist(DuccId jobid, DuccId procid, int nshares)
+    {
+        String methodName = "blacklist";
+        
+        if ( ! blacklistedWork.containsKey(procid) ) {                 // already condemned?
+            if ( nshares == -1 ) nshares = share_order;                // whole machine - reservations
+
+            Share s = new Share(procid, this, jobid, nshares);
+            blacklistedWork.put(procid, s);
+            shares_left -= nshares; 
+            blacklisted_shares += nshares;
+
+            if ( shares_left < 0 ) {
+                try {
+                    throw new IllegalStateException("shares_left went negative");
+                } catch ( Exception e ) {
+                    logger.error(methodName, null , e, "shares went negative on", this.id, "share", procid.toString(), "nshares", nshares, "shares_left", shares_left, "share_order", share_order);
+                }
+            }
+        }
+        logger.info(methodName, null, this.id, procid.toString(), procid.getUUID(),  "procs", blacklistedWork.size(), "shares left", shares_left, "/", share_order);
+    }
+
+
+    // UIMA-4142
+    // Whitelist shares if they were previously blacklisted, making them available for scheduling.
+    public synchronized void whitelist(DuccId procid)
+    {
+    	String methodName = "whitelist";
+        if ( blacklistedWork.containsKey(procid) ) {
+            Share s = blacklistedWork.remove(procid);
+            int nshares = s.getShareOrder();
+            shares_left += nshares;
+            blacklisted_shares -= nshares;
+
+            if ( shares_left > share_order ) {
+                try {
+                    throw new IllegalStateException("shares_left exceeds share_order");
+                } catch ( Exception e ) {
+                    logger.error(methodName, null , e, "shares left exceeds share_order on", this.id, "share", procid.toString(), "nshares", nshares, "shares_left", shares_left, "share_order", share_order);
+                }
+            }
+        }
+        logger.info(methodName, null, this.id, procid.toString(), procid.getUUID(), "procs", blacklistedWork.size(), "shares left", shares_left, "/", share_order);
+    }
+
+    // UIMA-4142
+    public synchronized boolean isBlacklisted()
+    {
+        return blacklistedWork.size() > 0;
     }
 
     public synchronized void heartbeat_down()
@@ -120,7 +183,8 @@ public class Machine
         //
         // We use this trick so we can use the "normal" allocation mechanisms for bookeeping without special-casing reservations.
         //
-        return ( (activeShares.size()) == 0 && (virtual_share_order == share_order));
+        // UIMA-4142, include blacklist considerations
+        return ( (activeShares.size()) == 0 && (virtual_share_order == share_order) && ( !isBlacklisted() ) );
     }
 
     /**
@@ -129,6 +193,9 @@ public class Machine
     public boolean isFreeable()
     {
         boolean answer = true;
+        // UIMA-4142, include blacklist considerations
+        if ( isBlacklisted() ) return false;
+
         for ( Share s : activeShares.values() ) {
             if ( s.isFixed() ) {
                 return false;
@@ -192,7 +259,7 @@ public class Machine
     {
         this.share_order = o; 
         this.shares_left = share_order;
-        this.virtual_share_order = share_order;
+        resetVirtualShareOrder();             // UIMA-4142 use common code to calculate this
     }
 
     public void setVirtualShareOrder(int o)
@@ -202,7 +269,8 @@ public class Machine
 
     public void resetVirtualShareOrder()
     {
-        this.virtual_share_order = share_order;
+        // UIMA-4142, include blacklist considerations
+        this.virtual_share_order = share_order - blacklisted_shares;
     }
 
     public void removeShare(Share s)
@@ -213,7 +281,7 @@ public class Machine
     }
 
     /**
-     * How many shares of the given order can I support without preemption? (Virtual, not quantum shares.)
+     * How many shares of the given order can I support without preemption?
      */
     public int countFreeShares(int order)
     {
@@ -222,7 +290,8 @@ public class Machine
         for ( Share s : activeShares.values() ) {
             in_use += s.getShareOrder();
         }
-        return (share_order - in_use) / order ;
+        // UIMA-4142, include blacklist considerations
+        return (share_order - in_use - blacklisted_shares) / order ;
     }
 
     public int countFreeShares()
@@ -250,7 +319,8 @@ public class Machine
 
     RmQueriedMachine queryMachine()
     {
-        RmQueriedMachine ret = new RmQueriedMachine(id, nodepool.getId(), memory, share_order);
+        // UIMA-4142, include blacklist considerations
+        RmQueriedMachine ret = new RmQueriedMachine(id, nodepool.getId(), memory, share_order, isBlacklisted());
         for ( Share s : activeShares.values() ) {
             RmQueriedShare rqs = new RmQueriedShare(s.getJob().getId().getFriendly(),
                                                     s.getId().getFriendly(),
@@ -263,6 +333,17 @@ public class Machine
             rqs.setInitialized(s.isInitialized());
             ret.addShare(rqs);
         }
+                
+        for (Share s : blacklistedWork.values() ) {
+            RmQueriedShare rqs = new RmQueriedShare(s.getBlJobId().getFriendly(),
+                                                    s.getId().getFriendly(),
+                                                    s.getShareOrder(),
+                                                    s.getInitializationTime(), 
+                                                    s.getInvestment());
+            rqs.setBlacklisted();
+            ret.addShare(rqs);
+        }
+
         return ret;
     }
 
@@ -280,12 +361,13 @@ public class Machine
     
     public static String getDashes()
     {
-        return String.format("%20s %5s %13s %13s %11s %s", "--------------------", "-----", "-------------", "-------------", "-----------", "------ ...");
+        return String.format("%20s %12s %5s %13s %13s %11s %s", "--------------------", "------------", "-----", "-------------", "-------------", "-----------", "------ ...");
     }
 
     public static String getHeader()
     {
-        return String.format("%20s %5s %13s %13s %11s %s", "Name", "Order", "Active Shares", "Unused Shares", "Memory (MB)", "Jobs");
+        // UIMA-4142, include blacklist considerations
+        return String.format("%20s %12s %5s %13s %13s %11s %s", "Name", "Blacklisted", "Order", "Active Shares", "Unused Shares", "Memory (MB)", "Jobs");
     }
 
     /**
@@ -347,6 +429,7 @@ public class Machine
 
             unused = share_order - qshares;
         } 
-        return String.format("%20s %5d %13d %13d %11d %s", id, share_order, qshares, unused, (memory/1024), jobs);
+        // UIMA-4142, include blacklist considerations
+        return String.format("%20s %12s %5d %13d %13d %11d %s", id, isBlacklisted(), share_order, qshares, unused, (memory/1024), jobs);
     }
 }

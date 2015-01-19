@@ -35,7 +35,7 @@ public class ResourceClass
     implements SchedConstants,
                IEntity
 {
-    private DuccLogger logger = DuccLogger.getLogger(this.getClass(), COMPONENT_NAME);
+    private static DuccLogger logger = DuccLogger.getLogger(ResourceClass.class, COMPONENT_NAME);
 
     private String id;
     private Policy policy;
