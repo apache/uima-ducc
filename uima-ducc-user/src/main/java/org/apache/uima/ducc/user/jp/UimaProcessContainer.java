@@ -290,7 +290,7 @@ implements IProcessContainer {
 			// this
 			// data in a format which doesnt require UIMA-AS to digest
 			List<Properties> metricsList = new ArrayList<Properties>();
-			/*
+			
 			for (AnalysisEnginePerformanceMetrics metrics : casMetrics) {
 				Properties p = new Properties();
 				
@@ -302,19 +302,7 @@ implements IProcessContainer {
 						String.valueOf(metrics.getNumProcessed()));
 				metricsList.add(p);
 			}
-			*/
-			for( int i=0; i<100; i++) {
-				Properties p = new Properties();
-				
-				p.setProperty("name", RandomStringUtils.random(50,true,false).trim());
-				p.setProperty("uniqueName", RandomStringUtils.random(1500,true,false).trim());
-				p.setProperty("analysisTime",
-						String.valueOf(0));
-				p.setProperty("numProcessed",
-						String.valueOf(0));
-				metricsList.add(p);
-
-			}
+			
 			return metricsList;
 		} catch( Throwable e ) {
 			super.lastError = e;
