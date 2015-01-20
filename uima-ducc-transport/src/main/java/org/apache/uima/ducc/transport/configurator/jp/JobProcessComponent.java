@@ -73,15 +73,23 @@ implements IJobProcessor{
 		this.processorInstance = pc;
 	}
 	public void setState(ProcessState state) {
+		if ( !state.equals(currentState)) {
+			currentState = state;
+			agent.notify(currentState, super.getProcessJmxUrl());
+		} 
+/*		
 		if ( !currentState.equals(ProcessState.FailedInitialization)) {
 			if ( state.equals(ProcessState.FailedInitialization)) {
 				currentState = state;
 				System.out.println("Initialization Failed - Notifying Agent");
 				agent.notify(currentState, super.getProcessJmxUrl());
+			} else {
+				currentState = state;
 			}
 		} else if ( currentState.equals(ProcessState.Initializing) ){
 			currentState = state;
 		}
+		*/
 	}
     public void setThreadSleepTime(int sleepTime) {
     	threadSleepTime = sleepTime;
@@ -266,8 +274,8 @@ implements IJobProcessor{
 		    	
 		    	
 		    	// Stop process container
-				Method deployMethod = processorInstance.getClass().getDeclaredMethod("stop");
-				deployMethod.invoke(processorInstance);
+				Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
+				stopMethod.invoke(processorInstance);
 				stop();
 		    }
 		} catch( Exception e) {
