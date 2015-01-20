@@ -65,6 +65,8 @@ public class MessageHandler implements IMessageHandler {
 	
 	private ConcurrentLinkedQueue<IRemoteWorkerThread> legacyList = new ConcurrentLinkedQueue<IRemoteWorkerThread>();
 	
+	private ConcurrentHashMap<IRemoteWorkerThread,IRemoteWorkerThread> wipMap = new ConcurrentHashMap<IRemoteWorkerThread,IRemoteWorkerThread>();
+	
 	public MessageHandler() {
 	}
 	
@@ -275,11 +277,45 @@ public class MessageHandler implements IMessageHandler {
 		}
 	}
 	
+	private void block(IRemoteWorkerThread rwt) {
+		String location = "block";
+		if(rwt != null) {
+			IRemoteWorkerThread result = wipMap.putIfAbsent(rwt, rwt);
+			if(result != null) {
+				MessageBuffer mb;
+				mb = new MessageBuffer();
+				mb.append(Standardize.Label.remote.get()+rwt.toString());
+				mb.append(Standardize.Label.status.get()+"delayed");
+				logger.warn(location, ILogger.null_id, mb.toString());
+				while(result != null) {
+					try {
+						Thread.sleep(200);
+					}
+					catch(Exception e) {
+					}
+					result = wipMap.putIfAbsent(rwt, rwt);
+				}
+				mb = new MessageBuffer();
+				mb.append(Standardize.Label.remote.get()+rwt.toString());
+				mb.append(Standardize.Label.status.get()+"in-force");
+				logger.warn(location, ILogger.null_id, mb.toString());
+			}
+		}
+	}
+	
+	private void unblock(IRemoteWorkerThread rwt) {
+		if(rwt != null) {
+			wipMap.remove(rwt);
+		}
+	}
+	
 	@Override
 	public void handleMetaCasTransation(IMetaCasTransaction trans) {
 		String location = "handleMetaCasTransation";
+		RemoteWorkerThread rwt = null;
 		try {
-			RemoteWorkerThread rwt = new RemoteWorkerThread(trans);
+			rwt = new RemoteWorkerThread(trans);
+			block(rwt);
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.remote.get()+rwt.toString());
 			mb.append(Standardize.Label.type.get()+trans.getType());
@@ -308,6 +344,9 @@ public class MessageHandler implements IMessageHandler {
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
+		}
+		finally {
+			unblock(rwt);
 		}
 	}
 	
