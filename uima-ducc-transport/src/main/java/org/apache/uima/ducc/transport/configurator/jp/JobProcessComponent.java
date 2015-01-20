@@ -303,17 +303,9 @@ implements IJobProcessor{
 			return;  // already stopping - nothing to do
 		}
 
-		System.out.println("... AbstractManagedService - Stopping Service Adapter");
+		System.out.println("... JobProcessComponent - Stopping Service Adapter");
 	    try {
-//        	if (getContext() != null) {
-//    			for (Route route : getContext().getRoutes()) {
-//
-//    				route.getConsumer().stop();
-//    				System.out.println(">>> configFactory.stop() - stopped route:"
-//    						+ route.getId());
-//    			}
-//    		}
-        	// block for worker threads to exit run()
+        	// block until all worker threads exit run()
         	workerThreadCount.await();
         	
 			// Stop executor. It was only needed to poll AE initialization status.
@@ -329,14 +321,9 @@ implements IJobProcessor{
 	    		tpe.awaitTermination(0, TimeUnit.MILLISECONDS);
 	    	}
 
-//        	if ( uimaProcessor != null ) {
-//            	uimaProcessor.stop();
-//        	}
         	if ( agent != null) {
             	agent.stop();
         	}
-			
-			
 	    } catch( Exception e) {
 	    	e.printStackTrace();
 	    } finally {
