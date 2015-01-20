@@ -217,7 +217,6 @@ public class DuccService extends AbstractDuccComponent {
 			this.args = args;
 			// hand-off instance of IProcessContainer to the IJobProcessor
 			((IJobProcessor)duccComponent).setProcessor(ipc, args);
-			getDuccLogger().info("setProcessor", null, "... Component started: job-process");
 		}
 	}
 	/**
@@ -231,7 +230,7 @@ public class DuccService extends AbstractDuccComponent {
 		if ( duccComponent instanceof IJobProcessor ) {
 			// initialize JP and start work threads to begin processing
 			duccComponent.start(this, args);
-			getDuccLogger().info("setProcessor", null, "... Component started: job-process");
+			//getDuccLogger().info("setProcessor", null, "... Component started: job-process");
 		}
 		
 	}
