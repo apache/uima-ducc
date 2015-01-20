@@ -103,7 +103,7 @@ public class HttpWorkerThread implements Runnable {
 			} catch( Exception ie) {}
 
 		
-			workerThreadCount.countDown();
+//			workerThreadCount.countDown();
 
 			if (!error) {
 				synchronized(JobProcessComponent.class) {
@@ -149,18 +149,13 @@ public class HttpWorkerThread implements Runnable {
 					// confirm that there is no more work and this thread
 					// can exit.
 					if ( transaction.getMetaCas() == null || transaction.getMetaCas().getUserSpaceCas() == null) {
-						// if the JD state is Ended, exit this thread as all work has
-						// been processed and accounted for
-						if ( transaction.getJdState().equals(JdState.Ended) ) {
-							// the JD says there are no more WIs. Sleep awhile
-							// do a GET in case JD changes its mind. The JP will
-							// eventually be stopped by the agent
-							synchronized (monitor) {
-								try {
-									monitor.wait(duccComponent.getThreadSleepTime());
-								} catch (InterruptedException e) {
-
-								}
+						// the JD says there are no more WIs. Sleep awhile
+						// do a GET in case JD changes its mind. The JP will
+						// eventually be stopped by the agent
+						synchronized (monitor) {
+							try {
+								monitor.wait(duccComponent.getThreadSleepTime());
+							} catch (InterruptedException e) {
 							}
 						}
 						// There is no CAS. It looks like the JD CR is done but there
@@ -198,8 +193,6 @@ public class HttpWorkerThread implements Runnable {
 							Method getLastSerializedErrorMethod = processorInstance.getClass().getDeclaredMethod("getLastSerializedError");
 							byte[] serializedException =
 							    (byte[])getLastSerializedErrorMethod.invoke(processorInstance);
-
-//							byte[] serializedException = uimaProcessor.getLastSerializedError();
 							mc.setUserSpaceException(serializedException);								
 
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
@@ -242,16 +235,8 @@ public class HttpWorkerThread implements Runnable {
 			t.printStackTrace();
 			duccComponent.getLogger().warn("run", null, t);
 		} finally {
-//			try {
-//				if ( uimaProcessor != null ) {
-//					uimaProcessor.stop();
-//				}
-//			} catch( Throwable t) {
-//				
-//			}
 			System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
-			workerThreadCount.countDown();
 		    try {
 		    	// Determine if the Worker thread has thread affinity to specific AE
 		    	// instance. This depends on the process container. If this process
@@ -267,7 +252,9 @@ public class HttpWorkerThread implements Runnable {
 				}
 		   	} catch( Throwable t) {
 		   		t.printStackTrace();
-		   	}		
+		   	} finally {
+				workerThreadCount.countDown();
+		   	}
 		
 		}
 
