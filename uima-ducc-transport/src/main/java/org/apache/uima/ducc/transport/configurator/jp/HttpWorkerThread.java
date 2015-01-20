@@ -122,25 +122,25 @@ public class HttpWorkerThread implements Runnable {
 
 				try {
 					IMetaCasTransaction transaction = new MetaCasTransaction();
-					System.out.println("Requesting Work from JD");
+					//System.out.println("Requesting Work from JD");
 					// According to HTTP spec, GET may not contain Body in 
 					// HTTP request. HttpClient actually enforces this. So
 					// do a POST instead of a GET.
 					transaction.setType(Type.Get);  // Tell JD you want a CAS
 					command = Type.Get.name();
-			    	logger.info("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
+			    	logger.debug("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
 					transaction = httpClient.execute(transaction, postMethod);
                     if ( transaction.getMetaCas()!= null) {
     					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
                     } else {
-    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas");
+    					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas. Sleeping for "+duccComponent.getThreadSleepTime());
                     }
 
 					// Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
 					command = Type.Ack.name();
 					httpClient.execute(transaction, postMethod); // Ready to process
-                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Sent ACK");
+                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sent ACK");
 					
                     
 					// if the JD did not provide a CAS, most likely the CR is
@@ -174,7 +174,7 @@ public class HttpWorkerThread implements Runnable {
 							   invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
 							
 							//metrics.add(new Properties());   // empty for now
-		                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
+		                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
 							IPerformanceMetrics metricsWrapper =
 									new PerformanceMetrics();
 							metricsWrapper.set(metrics);
