@@ -382,11 +382,14 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         logger.info(methodName, null, "----------stop() called");
  
         try {
-            logger.info(methodName, null, "Stopping Camel Routes");
+        	logger.info(methodName, null, "Stopping Camel Routes");
             List<Route> routes = context.getRoutes();
             for (Route route : routes) {
-                route.getConsumer().stop();
-                route.getEndpoint().stop();
+                if ( !route.getId().startsWith("mina")) {
+                    logger.info(methodName, null, "Stopping Route:"+route.getId());
+                    route.getConsumer().stop();
+                    route.getEndpoint().stop();
+                }
             }
 
             ActiveMQComponent amqc = (ActiveMQComponent) context.getComponent("activemq");
@@ -395,8 +398,8 @@ public abstract class AbstractDuccComponent implements DuccComponent,
 
             logger.info(methodName, null, "Stopping Camel Context");
             context.stop();
-            
             logger.info(methodName, null, "Camel Context Stopped");
+            
 
             ObjectName name = new ObjectName(
                                              "org.apache.uima.ducc.service.admin.jmx:type=DuccComponentMBean,name="
