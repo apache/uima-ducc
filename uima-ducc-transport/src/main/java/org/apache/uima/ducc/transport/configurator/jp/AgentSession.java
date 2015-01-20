@@ -52,6 +52,8 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	
 	private Object stateLock = new Object();
 	
+	private volatile boolean stopped=false;
+	
 	/**
 	 * JMS based adapter C'tor
 	 * 
@@ -92,18 +94,21 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	 * 
 	 */
 	public void notify(ProcessStateUpdate state) {
+		if ( stopped ) {
+			return;
+		}
 		try {
-			ProcessStateUpdateDuccEvent duccEvent = 
+		    ProcessStateUpdateDuccEvent duccEvent = 
 				new ProcessStateUpdateDuccEvent(state);
-      logger.info("notifyAgentWithStatus",null," >>>>>>> UIMA AS Service Deployed - PID:"+pid);
+            //logger.info("notifyAgentWithStatus",null," >>>>>>> UIMA AS Service Deployed - PID:"+pid);
 
-      if (endpoint != null ) {
-        state.setSocketEndpoint(endpoint);
-      }
+            if (endpoint != null ) {
+              state.setSocketEndpoint(endpoint);
+            }
 			//	send the process update to the remote
 			dispatcher.dispatch(duccEvent, System.getenv("IP"));
 			String jmx = state.getProcessJmxUrl() == null ? "N/A" : state.getProcessJmxUrl();
-			logger.info("notifyAgentWithStatus",null,"... UIMA AS Service Deployed - PID:"+pid+". Service State: "+state+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv("IP"));
+			logger.info("notifyAgentWithStatus",null,"... Job Process State Changed - PID:"+pid+". Process State: "+state.getState().toString()+". JMX Url:"+jmx+" Dispatched State Update Event to Agent with IP:"+System.getenv("IP"));
 		} catch( Exception e) {
 			e.printStackTrace();
 		}
@@ -123,6 +128,7 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	   }
 	}
 	public void stop() throws Exception {
+		stopped = true;
 		dispatcher.stop();
 	}
 }
