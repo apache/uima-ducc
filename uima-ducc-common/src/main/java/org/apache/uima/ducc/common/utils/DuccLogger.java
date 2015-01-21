@@ -293,21 +293,12 @@ public class DuccLogger
         return isLevelEnabled(Level.TRACE);
     }
 
-    protected String formatMsg(String loc, DuccId jid, DuccId pid, Object ... args)
+    protected String formatMsg(DuccId pid, Object ... args)
     {
-    	String jobId = format(jid);
-    	String processId = format(pid);
-    	String header = String.format("%s %7s %7s", loc, jobId, processId);
-        return formatMsg(loc, header, args);
+    	String header = format(pid);
+        return formatMsg(header, args);
     }
     
-    protected String formatMsg(String loc, DuccId jid, Object ... args)
-    {
-    	String jobId = format(jid);
-    	String header = String.format("%s %7s", loc, jobId);
-        return formatMsg(loc, header, args);
-    }
-
     private void appendStackTrace(StringBuffer s, Throwable t)
     {
     	s.append("\nAt:\n");
@@ -319,9 +310,9 @@ public class DuccLogger
         }
     }
 
-    protected String formatMsg(String loc, String header, Object ... args)
+    protected String formatMsg(Object ... args)
     {
-    	StringBuffer s = new StringBuffer(header);
+    	StringBuffer s = new StringBuffer();
         for ( Object a : args ) {
             if ( a == null ) a = "<null>"; // avoid null pointers
 
@@ -366,9 +357,9 @@ public class DuccLogger
         // MDC.clear();
     }
 
-    public void doAppend(Level level, String msg, Throwable t)
+    public void doAppend(Level level, String method, DuccId jobid, String msg, Throwable t)
     {
-        DuccLoggingEvent ev = new DuccLoggingEvent(logger, component, level, msg, t, Thread.currentThread().getId(), Thread.currentThread().getName());
+        DuccLoggingEvent ev = new DuccLoggingEvent(logger, component, level, method, jobid, msg, t, Thread.currentThread().getId(), Thread.currentThread().getName());
         if ( threaded ) {
             events.offer(ev);
         } else {
@@ -376,9 +367,9 @@ public class DuccLogger
         }
     }
 
-    public void doAppend(Level level, String msg)
+    public void doAppend(Level level, String method, DuccId jobid, String msg)
     {
-        DuccLoggingEvent ev = new DuccLoggingEvent(logger, component, level, msg, null, Thread.currentThread().getId(), Thread.currentThread().getName());
+        DuccLoggingEvent ev = new DuccLoggingEvent(logger, component, level, method, jobid, msg, null, Thread.currentThread().getId(), Thread.currentThread().getName());
         if ( threaded ) {
             events.offer(ev);
         } else {
@@ -389,168 +380,168 @@ public class DuccLogger
     public void fatal(String location, DuccId jobid, Object ... args)
     {
         if ( isLevelEnabled(Level.FATAL) ) {
-            doAppend(Level.FATAL, formatMsg(location, jobid, args));
+            doAppend(Level.FATAL, location, jobid, formatMsg(args));
         }
     }
 
     public void fatal(String location, DuccId jobid, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.FATAL) ) {
-            doAppend(Level.FATAL, formatMsg(location, jobid, args), t);
+            doAppend(Level.FATAL, location, jobid, formatMsg(args), t);
         }
     }
 
     public void fatal(String location, DuccId jobid, DuccId processId, Object ... args)
     {
         if ( isLevelEnabled(Level.FATAL) ) {
-            doAppend(Level.FATAL, formatMsg(location, jobid, processId, args));
+            doAppend(Level.FATAL, location, jobid, formatMsg(processId, args));
         }
     }
 
     public void fatal(String location, DuccId jobid, DuccId processId, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.FATAL) ) {
-            doAppend(Level.FATAL, formatMsg(location, jobid, processId, args), t);
+            doAppend(Level.FATAL, location, jobid, formatMsg(processId, args), t);
         }
     }
     
     public void debug(String location, DuccId jobid, Object ... args)
     {
         if ( isLevelEnabled(Level.DEBUG) ) {
-            doAppend(Level.DEBUG, formatMsg(location, jobid, args));
+            doAppend(Level.DEBUG, location, jobid, formatMsg(args));
         } 
     }
 
     public void debug(String location, DuccId jobid, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.DEBUG) ) {
-            doAppend(Level.DEBUG, formatMsg(location, jobid, args), t);
+            doAppend(Level.DEBUG, location, jobid, formatMsg(args), t);
         }
     }
     
     public void debug(String location, DuccId jobid, DuccId processId, Object ... args)
     {
         if ( isLevelEnabled(Level.DEBUG) ) {
-            doAppend(Level.DEBUG, formatMsg(location, jobid, processId, args));
+            doAppend(Level.DEBUG, location, jobid, formatMsg(processId, args));
         } 
     }
 
     public void debug(String location, DuccId jobid, DuccId processId, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.DEBUG) ) {
-            doAppend(Level.DEBUG, formatMsg(location, jobid, processId, args), t);
+            doAppend(Level.DEBUG, location, jobid, formatMsg(processId, args), t);
         }
     }
     
     public void error(String location, DuccId jobid, Object ... args)
     {
         if ( isLevelEnabled(Level.ERROR) ) {
-            doAppend(Level.ERROR, formatMsg(location, jobid, args));
+            doAppend(Level.ERROR, location, jobid, formatMsg(args));
         }
     }
 
     public void error(String location, DuccId jobid, Throwable t, Object ... args)
     { 
         if ( isLevelEnabled(Level.ERROR) ) {
-            doAppend(Level.ERROR, formatMsg(location, jobid, args), t);
+            doAppend(Level.ERROR, location, jobid, formatMsg(args), t);
         }
     }
     
     public void error(String location, DuccId jobid, DuccId processId, Object ... args)
     {
         if ( isLevelEnabled(Level.ERROR) ) {
-            doAppend(Level.ERROR, formatMsg(location, jobid, processId, args));
+            doAppend(Level.ERROR, location, jobid, formatMsg(processId, args));
         }
     }
 
     public void error(String location, DuccId jobid, DuccId processId, Throwable t, Object ... args)
     { 
         if ( isLevelEnabled(Level.ERROR) ) {
-            doAppend(Level.ERROR, formatMsg(location, jobid, processId, args), t);
+            doAppend(Level.ERROR, location, jobid, formatMsg(processId, args), t);
         }
     }
     
     public void info(String location, DuccId jobid, Object ... args)
     {
         if ( isLevelEnabled(Level.INFO) ) {
-            doAppend(Level.INFO, formatMsg(location, jobid, args));
+            doAppend(Level.INFO, location, jobid, formatMsg(args));
         }
     }
 
     public void info(String location, DuccId jobid, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.INFO) ) {
-            doAppend(Level.INFO, formatMsg(location, jobid, args), t);
+            doAppend(Level.INFO, location, jobid, formatMsg(args), t);
         }
     }
     
     public void info(String location, DuccId jobid, DuccId processId, Object ... args)
     {
         if ( isLevelEnabled(Level.INFO) ) {
-            doAppend(Level.INFO, formatMsg(location, jobid, processId, args));
+            doAppend(Level.INFO, location, jobid, formatMsg(processId, args));
         }
     }
 
     public void info(String location, DuccId jobid, DuccId processId, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.INFO) ) {
-            doAppend(Level.INFO, formatMsg(location, jobid, processId, args), t);
+            doAppend(Level.INFO, location, jobid, formatMsg(processId, args), t);
         }
     }
     
     public void trace(String location, DuccId jobid, Object ... args)
     {
         if ( isLevelEnabled(Level.TRACE) ) {
-            doAppend(Level.TRACE, formatMsg(location, jobid, args));
+            doAppend(Level.TRACE, location, jobid, formatMsg(args));
         }
     }
 
     public void trace(String location, DuccId jobid, Throwable t, Object ... args)
     {    
         if ( isLevelEnabled(Level.TRACE) ) {
-            doAppend(Level.TRACE, formatMsg(location, jobid, args), t);
+            doAppend(Level.TRACE, location, jobid, formatMsg(args), t);
         }
     }
     
     public void trace(String location, DuccId jobid, DuccId processId, Object ... args)
     {
         if ( isLevelEnabled(Level.TRACE) ) {
-            doAppend(Level.TRACE, formatMsg(location, jobid, processId, args));
+            doAppend(Level.TRACE, location, jobid, formatMsg(processId, args));
         }
     }
 
     public void trace(String location, DuccId jobid, DuccId processId, Throwable t, Object ... args)
     {    
         if ( isLevelEnabled(Level.TRACE) ) {
-            doAppend(Level.TRACE, formatMsg(location, jobid, processId, args), t);
+            doAppend(Level.TRACE, location, jobid, formatMsg(processId, args), t);
         }
     }
     
     public void warn(String location, DuccId jobid, Object ... args)
     {
         if ( isLevelEnabled(Level.WARN) ) {
-            doAppend(Level.WARN, formatMsg(location, jobid, args));
+            doAppend(Level.WARN, location, jobid, formatMsg(args));
         }
     }
 
     public void warn(String location, DuccId jobid, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.WARN) ) {
-            doAppend(Level.WARN, formatMsg(location, jobid, args), t);
+            doAppend(Level.WARN, location, jobid, formatMsg(args), t);
         }
     }
     
     public void warn(String location, DuccId jobid, DuccId processId, Object ... args)
     {
         if ( isLevelEnabled(Level.WARN) ) {
-            doAppend(Level.WARN, formatMsg(location, jobid, processId, args));
+            doAppend(Level.WARN, location, jobid, formatMsg(processId, args));
         }
     }
 
     public void warn(String location, DuccId jobid, DuccId processId, Throwable t, Object ... args)
     {
         if ( isLevelEnabled(Level.WARN) ) {
-            doAppend(Level.WARN, formatMsg(location, jobid, processId, args), t);
+            doAppend(Level.WARN, location, jobid, formatMsg(processId, args), t);
         }
     }
 
@@ -560,7 +551,7 @@ public class DuccLogger
     public void shutdown()
     {
         if ( threaded ) {
-            DuccLoggingEvent ev = new DuccLoggingEvent(null, null, null, null, null, 0, null);
+            DuccLoggingEvent ev = new DuccLoggingEvent(null, null, null, null, null, null, null, 0, null);
             ev.done = true;
             events.offer(ev);
         }
@@ -576,16 +567,20 @@ public class DuccLogger
         boolean done = false;
         long tid;
         String threadName;
+        String method;
+        String jobid;
         
-        DuccLoggingEvent(Logger logger, String component, Level level, Object msg, Throwable throwable, long threadId, String threadName)
+        DuccLoggingEvent(Logger logger, String component, Level level, String method, DuccId jobid, Object msg, Throwable throwable, long threadId, String threadName)
         {
             this.logger = logger;
-            this.component = component;
+            this.component = component.trim();
             this.level = level;
+            this.method = method.trim();
+            this.jobid = format(jobid);
             this.msg = msg;
             this.throwable = throwable;
             this.tid = threadId;
-            this.threadName = threadName;
+            this.threadName = threadName.trim();
         }
     }
 
@@ -605,6 +600,8 @@ public class DuccLogger
 
         MDC.put("COMPONENT", ev.component);
         MDC.put("TID", ev.tid);
+        MDC.put("JID", ev.jobid);
+        MDC.put("METHOD", ev.method);
         MDC.put("TNAME", ev.threadName);
         
         try {

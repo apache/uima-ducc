@@ -26,7 +26,6 @@ import org.apache.uima.ducc.container.common.logger.id.Id;
 public class Logger implements ILogger {
 	
 	private DuccLogger duccLogger = null;
-	private Level level = Level.DEBUG;
 	
 	public static Logger getLogger(Class<?> clazz) {
 		return new Logger(clazz, null);
@@ -48,9 +47,7 @@ public class Logger implements ILogger {
 	}
 
 	private Logger(Class<?> clazz, String component) {
-		duccLogger = DuccLogger.getLogger(clazz, component);
-		duccLogger.setLevel(level);
-		
+		duccLogger = DuccLogger.getLogger(clazz, component);		
 	}
 
 	@Override
