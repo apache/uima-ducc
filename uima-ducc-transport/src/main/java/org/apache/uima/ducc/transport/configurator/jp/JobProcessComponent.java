@@ -163,13 +163,11 @@ implements IJobProcessor{
 				String[] jpArgs;
                 // check if this is DD job
 				if ( "uima-as".equals(jobType)) {
-					getLogger().info("start", null,"Ducc UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
 					uimaASJob = true;
                 	// dd - deployment descriptor. Will use UIMA-AS
 					jpArgs = new String[] { "-dd",args[0],"-saxonURL",saxonJarPath,
     						"-xslt",dd2SpringXslPath};
                 } else if ( "uima".equals(jobType)) {
-            		getLogger().info("start", null,"Ducc UIMA Version:"+UimaVersion.getFullVersionString());
                 	// this is pieces-parts job
                 	String scaleout = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
                 	if ( scaleout == null ) {
