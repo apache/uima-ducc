@@ -294,7 +294,8 @@ public class DuccCommandExecutor extends CommandExecutor {
 	          }
 
 	        } catch (TimeoutException tex) { // on time out kill the process
-	          if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Running)) {
+	          if ( ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Running) ||
+	        	    ((ManagedProcess)super.managedProcess).getDuccProcess().getProcessState().equals(ProcessState.Stopping) ) {
 	            logger.info(methodName,((ManagedProcess)super.managedProcess).getDuccId(),"------------ Agent Timed-out Waiting for Process with PID:"+((ManagedProcess) managedProcess).getDuccProcess().getPID()+" to Stop. Process State:"+((ManagedProcess) managedProcess).getDuccProcess().getProcessState()+" .Process did not stop in alloted time of "+maxTimeToWaitForProcessToStop+" millis");
 	            logger.info(methodName,((ManagedProcess)super.managedProcess).getDuccId(),">>>>>>>>>>>>>>> Killing Process:"+((ManagedProcess) managedProcess).getDuccProcess().getPID()+" .Process State:"+((ManagedProcess) managedProcess).getDuccProcess().getProcessState());
 	            doExec(new ProcessBuilder(cmd), cmd, true);
