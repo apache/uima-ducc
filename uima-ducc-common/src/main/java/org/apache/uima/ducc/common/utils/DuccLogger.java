@@ -144,7 +144,7 @@ public class DuccLogger
         // UIMA-4186, use log4j API for configuration
         String ducc_home = System.getProperty("DUCC_HOME");
         if ( ducc_home == null ) { 
-            System.out.println("WARNING: Cannot find system proeprty DUCC_HOME to configure ducc logger.  Using defualt log4j configurator.");
+            System.out.println("WARNING: Cannot find system property DUCC_HOME to configure ducc logger.  Using default log4j configurator.");
         } else {
             DOMConfigurator.configureAndWatch(System.getProperty("DUCC_HOME") + "/resources/log4j.xml");
         }
