@@ -802,7 +802,7 @@ public class StateManager {
 					String nodeIP = process.getNodeIdentity().getIp();
 					String PID = process.getPID();
 					if(!jdStatusReport.isOperating(nodeIP, PID)) {
-						process.setResourceState(ResourceState.Deallocated);
+						OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 						process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 						logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
 						retVal = true;
@@ -825,7 +825,7 @@ public class StateManager {
 				IDuccProcess process = processMap.get(duccId);
 				if(process != null) {
 					if(!process.isDeallocated()) {
-						process.setResourceState(ResourceState.Deallocated);
+						OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 						process.setProcessDeallocationType(ProcessDeallocationType.Exception);
 						logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
 					}
@@ -847,7 +847,7 @@ public class StateManager {
 			IDuccProcess process = processMap.get(duccId);
 			if(process != null) {
 				if(!process.isDeallocated()) {
-					process.setResourceState(ResourceState.Deallocated);
+					OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 					process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 					logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
 				}
@@ -864,7 +864,7 @@ public class StateManager {
 			IDuccProcess process = processMap.get(duccId);
 			if(process != null) {
 				if(!process.isDeallocated()) {
-					process.setResourceState(ResourceState.Deallocated);
+					OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 					process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 					logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
 				}
@@ -1124,7 +1124,7 @@ public class StateManager {
 							String rState = process.getResourceState().toString();
 							String pState = process.getProcessState().toString();
 							logger.info(methodName, job.getDuccId(), duccId, "rState:"+rState+" "+"pState:"+pState);
-							process.setResourceState(ResourceState.Deallocated);
+							OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 							process.setProcessDeallocationType(ProcessDeallocationType.Purged);
 							process.advanceProcessState(ProcessState.Stopped);
 							changes++;
@@ -1169,7 +1169,7 @@ public class StateManager {
 					CGroupManager.assign(duccWorkJob.getDuccId(), process, process_max_size_in_bytes);
 					orchestratorCommonArea.getProcessAccounting().addProcess(duccId, duccWorkJob.getDuccId());
 					processMap.addProcess(process);
-					process.setResourceState(ResourceState.Allocated);
+					OrUtil.setResourceState(duccWorkJob, process, ResourceState.Allocated);
 					logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource added")
 												+" "+messages.fetchLabel("process")+duccId.getFriendly()
 												+" "+messages.fetchLabel("unique")+duccId.getUnique()
@@ -1181,7 +1181,7 @@ public class StateManager {
 					// allocation unnecessary if job is already completed
 					case Completing:
 					case Completed:
-						process.setResourceState(ResourceState.Deallocated);
+						OrUtil.setResourceState(duccWorkJob, process, ResourceState.Deallocated);
 						process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 						process.advanceProcessState(ProcessState.Stopped);
 						logger.warn(methodName, duccWorkJob.getDuccId(), 
@@ -1193,7 +1193,7 @@ public class StateManager {
 					default:
 						// allocation unnecessary if job has excess capacity
 						if(isExcessCapacity(duccWorkJob,driverStatusReportMap.get(duccId))) {
-							process.setResourceState(ResourceState.Deallocated);
+							OrUtil.setResourceState(duccWorkJob, process, ResourceState.Deallocated);
 							process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
 							process.advanceProcessState(ProcessState.Stopped);
 							logger.warn(methodName, duccWorkJob.getDuccId(), 
@@ -1244,7 +1244,7 @@ public class StateManager {
 					case Deallocated:
 						break;
 					default:
-						process.setResourceState(ResourceState.Deallocated);
+						OrUtil.setResourceState(duccWorkJob, process, ResourceState.Deallocated);
 						process.setProcessDeallocationType(ProcessDeallocationType.Forced);
 						logger.info(methodName, duccWorkJob.getDuccId(), messages.fetch("resource deallocated")
 							+" "+messages.fetchLabel("process")+duccId.getFriendly()

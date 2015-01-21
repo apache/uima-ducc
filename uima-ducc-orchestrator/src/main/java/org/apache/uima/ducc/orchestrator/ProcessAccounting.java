@@ -380,7 +380,7 @@ public class ProcessAccounting {
 		case Killed:
 			switch(process.getResourceState()) {
 			case Allocated:
-				process.setResourceState(ResourceState.Deallocated);
+				OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 				String reason = inventoryProcess.getReasonForStoppingProcess();
 				logger.info(methodName, job.getDuccId(), process.getDuccId(), messages.fetchLabel("process state")+inventoryProcess.getProcessState()+" => "+messages.fetchLabel("resource state")+process.getResourceState()+" : "+messages.fetchLabel("reason")+reason);
 				switch(inventoryProcess.getProcessState()) {
@@ -799,7 +799,7 @@ public class ProcessAccounting {
 				IDuccProcess process = iterator.next();
 				switch(process.getResourceState()) {
 				case Allocated:
-					process.setResourceState(ResourceState.Deallocated);
+					OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 					process.setProcessDeallocationType(processDeallocationType);
 					logger.info(methodName, job.getDuccId(), process.getDuccId(), type);
 					if(processState != null) {

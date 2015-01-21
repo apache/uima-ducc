@@ -41,6 +41,7 @@ import org.apache.uima.ducc.common.utils.id.DuccIdFactory;
 import org.apache.uima.ducc.common.utils.id.IDuccIdFactory;
 import org.apache.uima.ducc.orchestrator.CGroupManager;
 import org.apache.uima.ducc.orchestrator.JobDriverHostManager;
+import org.apache.uima.ducc.orchestrator.OrUtil;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
@@ -404,7 +405,7 @@ public class JobFactoryV2 implements IJobFactory {
 		duccId.setFriendly(0);
 		DuccProcess driverProcess = new DuccProcess(duccId,nodeIdentity,ProcessType.Pop);
 		CGroupManager.assign(job.getDuccId(), driverProcess, driver_max_size_in_bytes);
-		driverProcess.setResourceState(ResourceState.Allocated);
+		OrUtil.setResourceState(job, driverProcess, ResourceState.Allocated);
 		driverProcess.setNodeIdentity(nodeIdentity);
 		driver.getProcessMap().put(driverProcess.getDuccId(), driverProcess);
 		//

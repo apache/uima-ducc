@@ -27,6 +27,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.Constants;
+import org.apache.uima.ducc.orchestrator.OrUtil;
 import org.apache.uima.ducc.orchestrator.OrchestratorCheckpoint;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.orchestrator.StateManager;
@@ -171,7 +172,7 @@ public class HealthMonitor {
 				while(iterator.hasNext()) {
 					IDuccProcess process = iterator.next();
 					if(!process.isDeallocated()) {
-						process.setResourceState(ResourceState.Deallocated);
+						OrUtil.setResourceState(job, process, ResourceState.Deallocated);
 						process.setProcessDeallocationType(ProcessDeallocationType.JobCompleted);
 						logger.info(methodName, job.getDuccId(), process.getDuccId(), ProcessDeallocationType.JobCompleted);
 						ckpt = true;

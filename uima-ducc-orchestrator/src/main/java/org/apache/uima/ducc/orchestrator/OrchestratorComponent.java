@@ -709,7 +709,7 @@ implements Orchestrator {
 						case Starting:
 						case Initializing:
 						case Running:
-							idp.setResourceState(ResourceState.Deallocated);
+							OrUtil.setResourceState(duccWorkJob, idp, ResourceState.Deallocated);
 							idp.setProcessState(ProcessState.Abandoned);
 							idp.setProcessDeallocationType(ProcessDeallocationType.Canceled);
 							idp.setReasonForStoppingProcess(ReasonForStoppingProcess.UserInitiated.toString());
