@@ -147,6 +147,17 @@ class DuccUtil(DuccBase):
         
         if ( self.webserver_node == None ):
             self.webserver_node = self.localhost
+
+    def merge_properties(self):
+        # first task, always, merge the properties so subsequent code can depend on their validity.
+        base_props = DUCC_HOME + '/resources/default.ducc.properties'
+        site_props = DUCC_HOME + '/resources/site.ducc.properties'
+        run_props = DUCC_HOME + '/resources/ducc.properties'
+        merger = DUCC_HOME + '/admin/ducc_props_manager'
+        CMD = [merger, '--merge', base_props, '--with', site_props, '--to', run_props]
+        CMD = ' '.join(CMD)
+        print 'Merging', base_props, 'with', site_props, 'into', run_props
+        os.system(CMD)
         
     def find_netstat(self):
         # don't you wish people would get together on where stuff lives?

@@ -298,6 +298,9 @@ class StartSim(DuccUtil):
         if ( len(argv) == 0 ):
             self.usage(None)
 
+        # first task, always, merge the properties so subsequent code can depend on their validity.
+        self.merge_properties()
+    
         node_config = None
         components = {}
         instances = {}

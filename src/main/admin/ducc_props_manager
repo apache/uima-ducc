@@ -1,0 +1,404 @@
+#!/usr/bin/env python
+# -----------------------------------------------------------------------
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+# -----------------------------------------------------------------------
+
+import os
+import re
+import sys
+import time
+import getopt
+
+class PropertiesException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+
+    def __str__(self):
+        return repr(self.msg)
+
+class Property:
+    def __init__(self, k, v, c):
+        self.k = k         # key
+        self.v = v         # value
+        self.c = c         # comments
+        self.orig_v = v
+    
+    def reset(self):
+        self.v = self.orig_v
+
+    def __str__(self):
+        return str(self.k) + '=' + str(self.v)
+
+class Properties:
+    def __init__(self):
+        self.props = {}
+        self.keys = []
+        self.comments = []
+
+    #
+    # Expand all ${} values from env or from this properties file itself
+    # The search order is:
+    #    1 look in this properties file
+    #    2 look in the environment
+    #
+    def do_subst(self, str):
+        key = None
+        p = re.compile("\\$\\{[a-zA-Z0-9_\\.\\-]+\\}")
+        ndx = 0
+        
+        response = str
+        m = p.search(response, ndx)    
+        while ( m != None ):
+            key = m.group()[2:-1]
+            
+            val = None
+            if ( self.has_key(key) ):
+                val = self.get(key)
+            elif ( os.environ.has_key(key) ):
+                val = os.environ[key]                
+
+            if ( val != None ):    
+                response = string.replace(response, m.group() , val)
+            ndx = m.start()+1
+            m = p.search(response, ndx)
+        
+        return response
+
+    def mkitem(self, line):
+        #
+        # First deal with line comments so we can preserve them on write
+        #
+        if ( line.startswith('#') ):
+            self.comments.append(line)
+            return False
+
+        if ( line.startswith('//') ):
+            self.comments.append(line)
+            return False
+
+        if ( line == '' ):
+            return False
+
+        #
+        # Now strip off embedded comments, these are lost, but they're not valid
+        # for java props anyway.
+        #
+        ndx = line.find('#')   # remove comments - like the java DuccProperties
+        if ( ndx >= 0 ):
+            line = line[0:ndx]     # strip the comment
+        ndx = line.find('//')   # remove comments - like the java DuccProperties
+        if ( ndx >= 0 ):
+            line = line[0:ndx]     # strip the comment
+        line = line.strip()    # clear leading and trailing whitespace
+        
+        if ( line == '' ):
+            return 
+
+        mobj = re.search('[ =:]+', line)
+        if ( mobj ):            
+            key = line[:mobj.start()].strip()
+            val = line[mobj.end():].strip()
+            # print 'NEXT', mobj.start(), 'END', mobj.end(), 'KEY', key, 'VAL', val
+            # val = self.do_subst(val)   # we'll do lazy subst on get instead
+            self.props[key] = Property(key, val, self.comments)
+            if ( key in self.keys ):
+                self.keys.remove(key)
+            self.keys.append(key)
+            self.comments = []
+        else:
+            self.props[line] = Property(line, '', self.comments)
+            self.keys.append(line)
+            self.comments = []
+
+    #
+    # Load reads a properties file and adds it contents to the
+    # hash.  It may be called several times; each call updates
+    # the internal has, thus building it up.  The input file is
+    # in the form of a java-like properties file.
+    #
+    def load(self, propsfile):
+        if ( not os.path.exists(propsfile) ):
+            raise PropertiesException(propsfile +  ' does not exist and cannot be loaded.')
+
+        f = open(propsfile);
+        for line in f:
+            self.mkitem(line.strip())
+        f.close()
+
+    # read a jar manifest into a properties entity
+    def load_from_manifest(self, jarfile):
+        z = zipfile.ZipFile(jarfile)
+        items = z.read('META-INF/MANIFEST.MF').split('\n')
+        for item in items:
+            self.mkitem(item)
+
+    #
+    # Try to load a properties file.  Just be silent if it doesn't exist.
+    #
+    def load_if_exists(self, propsfile):
+        if ( os.path.exists(propsfile) ):
+            return self.load(propsfile)
+        
+    #
+    # Put something into the hash with an optional comment
+    #
+    def put(self, key, value, comment=[]):
+        self.props[key] = Property(key, value, comment)
+        self.keys.append(key)
+
+    #
+    # Put a Property object into the map
+    #
+    def put_property(self, p):
+        self.props[p.k] = p
+        self.keys.append(p.k)
+
+    #
+    # Get a value from the hash
+    #
+    def get(self, key):
+        if ( self.props.has_key(key) ):
+            return self.do_subst(self.props[key].v)   # we'll do lazy subst on get instead
+        return None
+
+    #
+    # Get a Property object for manipulation (k, v, comment)
+    #
+    def get_property(self, key):
+        if ( self.props.has_key(key) ):
+            return self.props[key]                    # note no expansion.  
+        return None
+
+    #
+    # Remove an item if it exists
+    #
+    def delete(self, key):
+        if ( self.props.has_key(key) ):
+            del self.props[key]
+            self.keys.remove(key)
+
+    #
+    # Write the has as a Java-like properties file
+    #
+    def write(self, propsfile):
+        f = open(propsfile, 'w')
+        for k in self.keys:
+            p = self.props[k]
+            v = p.v
+            c = p.c
+            for cc in c:
+                f.write(cc + '\n')
+            f.write(k + ' = ' + str(v) + '\n\n')
+
+        f.close()
+
+    #
+    # return a shallow copy of the dictionary
+    #
+    def copy_dictionary(self):
+        return self.props.copy()
+
+    #
+    # Return the entries (Property list) in the dictionary
+    #
+    def items(self):
+        return self.props.items()
+
+    #
+    # The keys, in the order as defined in the input file
+    #
+    def get_keys(self):
+        return self.keys
+
+    #
+    # check to see if the key exists in the dictionary
+    #
+    def has_key(self, key):
+        return self.props.has_key(key)
+
+    #
+    # Return the length of the dictionary
+    #
+    def __len__(self):
+        return len(self.props)
+
+
+class DuccPropManager():
+    def __init__(self):
+        # simple bootstratp to establish DUCC_HOME and to set the python path so it can
+        # find the common code in DUCC_HOME/admin
+        # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
+        me = os.path.abspath(__file__)    
+        ndx = me.rindex('/')
+        ndx = me.rindex('/', 0, ndx)
+        self.DUCC_HOME = me[:ndx]          # split from 0 to ndx
+
+    def merge(self, file1, file2, file3):
+        '''
+            Merge "file1" and "file2" to produce a merged "file3".
+        '''
+        file1_props = Properties()
+        file1_props.load(file1)
+
+        file2_props = Properties()
+        file2_props.load(file2)
+
+        file3_props = Properties()
+
+        # first pass, create merged props with stuff in base props file updated with delta
+        for k in file1_props.get_keys():
+            base = file1_props.get_property(k)
+            upd = file2_props.get_property(k)
+            if ( upd == None ):
+                file3_props.put_property(base)
+            else:
+                upd.c.append('# OVERRIDE by merger ' + time.strftime('%c') + ' old value: ' + base.v)
+                file3_props.put_property(upd)
+                file2_props.delete(k)
+
+        # everything left in delta is new stuff
+        for k in file2_props.get_keys():
+            upd = file2_props.get_property(k)
+            upd.c.append('# INSERT by merger ' + time.strftime('%c'))
+            file3_props.put_property(upd)
+
+        file3_props.write(file3)
+
+    def delta(self, left, right, delta):
+        '''
+            Compare "left" to "right" to produce a "delta".
+        '''
+
+        left_props = Properties()
+        left_props.load(left)
+
+        right_props = Properties()
+        right_props.load(right)
+
+        delta_props = Properties()
+
+        for k in left_props.get_keys():
+            r = left_props.get_property(k)
+            if ( r == None ):          
+                continue                                # left only, 'master' no need to delta it
+
+            l = left_props.get_property(k)
+            r = right_props.get_property(k)
+            if ( r != None and l.v != r.v ):
+                delta_props.put_property(r)            # no match, save difference (right) in delta
+
+            right_props.delete(k)                        # shrink left to see what's left over
+
+        for k in right_props.get_keys():
+            delta_props.put_property(right_props.get_property(k))
+            
+        delta_props.write(delta)
+
+    def usage(self, *msg):
+        if ( msg[0] != None ):
+            print ''
+            print ' '.join(msg)
+            print ''
+
+        print 'ducc_prop_manager has two functions:'
+        print '    1. Merge a local properties file with a default file to produce a merged ducc.properties.'
+        print '    2. Compare two properties files to create a local delta.'
+        print ''
+        print '    The merge and delta operations are inverse operations.'
+        print ''
+        print '    Comments and the structure of the default file are preserved whenever possible.'
+        print ''
+        print '    If the full path name to a file is not given, it is must reside within'
+        print'        $DUCC_HOME/resources'
+        print ''
+        print "Usage:"
+        print '   ducc_prop_manager --merge file1 --with file2 --to file3'
+        print '   ducc_prop_manager --delta file1 --with file2 --to file3'
+        print ''
+        print 'Options'
+        print '    -m, --merge file1'
+        print '    -d, --delta file1'
+        print '           This is the base properties file, usually the unmodified file provided with the'
+        print '           DUCC distribution.'
+        print ''
+        print '           If --merge is specified, the output file (file3) is the merger of file1 and file2'
+        print ''
+        print '           If --delta is specified, the output file (file3) is the delta of file1 and file2'
+        print ''
+        print '    -w, --with file2'
+        print '          This file is either merged or difference with file1 to produce the result in file3'
+        print ''
+        print '    -t, --to file3'
+        print '          This is the result of the merge or delta operation'
+        print ''
+        print 'Examples:'
+        print '    Update your ducc.properties from the default properties and your site.ducc.properties:'
+        print '        ducc_props_manager --merge default.ducc.properties --with site.ducc.properties --to ducc.properties'
+        print ''
+        print '    Create a new site.ducc.properties by differencing the default properties and ducc.properties'
+        print '        ducc_props_manager --delta default.ducc.properties --with ducc.properties --to site.ducc.properties'
+
+        sys.exit(1);
+
+    def main(self, argv):          
+        action = None
+        file1 = None
+        file2 = None
+        file3 = None
+        try:
+            opts, args = getopt.getopt(argv, 'm:w:t:h?', ['delta=', 'merge=', 'with=', 'to=', 'help'])
+        except:
+            self.usage('Invalid arguments', ' '.join(argv))
+                  
+        for ( o, a ) in opts:
+            if o in ( '-m', '--merge' ): 
+                action = 'merge'
+                file1 = a
+            elif o in ( '-d', '--delta' ):
+                action = 'delta'
+                file1 = a
+            elif o in ( '-w', '--with' ):
+                file2 = a
+            elif o in ( '-t', '--to' ):
+                file3 = a
+
+            elif o in ('-h', '-?', '--help'):
+                self.usage(None);
+
+        if ( action == None or file1 == None or file2 == None or file3 == None ):
+            self.usage("Insufficient arguemnts.  All arguments are required.")
+
+        if ( not ( file1.startswith('/') or file1.startswith('.') ) ):
+            file1 = '/'.join([self.DUCC_HOME, 'resources', file1])
+
+        if ( not ( file2.startswith('/') or file2.startswith('.') ) ):
+            file2 = '/'.join([self.DUCC_HOME, 'resources', file2])
+
+        if ( not ( file3.startswith('/') or file3.startswith('.') ) ):
+            file3 = '/'.join([self.DUCC_HOME, 'resources', file3])
+
+        if ( action == 'merge' ):
+            self.merge(file1, file2, file3)
+        elif ( action == 'delta'):
+            self.delta(file1, file2, file3)
+        else:
+            self.usage('Invalid action:', action, 'must be --delta or --merge')
+
+if __name__ == "__main__":
+    mgr = DuccPropManager()
+    mgr.main(sys.argv[1:])

@@ -24,7 +24,7 @@ driver_jvm_args                -Xmx500M
 
 process_descriptor_AE          org.apache.uima.ducc.test.randomsleep.FixedSleepAE
 process_memory_size            2
-classpath                      ${DUCC_HOME}/lib/uima-ducc/examples/*
+classpath                      ${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*
 process_jvm_args               -Xmx100M 
 process_thread_count           2
 process_per_item_time_max      5

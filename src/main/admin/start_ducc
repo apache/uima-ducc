@@ -226,6 +226,9 @@ class StartDucc(DuccUtil):
         if ( not self.verify_jvm() ):
             sys.exit(1);
 
+        # first task, MUST merge properties so subsequent things can can count on its validity
+        self.merge_properties()
+
         self.set_duccling_version()
 
         nodefiles = []
