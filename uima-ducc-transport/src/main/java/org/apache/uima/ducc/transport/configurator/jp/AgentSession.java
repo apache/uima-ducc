@@ -37,7 +37,7 @@ import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
  */
 public class AgentSession 
 implements IAgentSession, IJobProcessManagerCallbackListener {
-	DuccLogger logger = DuccLogger.getLogger(this.getClass(), "UIMA AS Service");
+	DuccLogger logger = DuccLogger.getLogger(this.getClass(), "Job Process");
 
 	//	Dispatcher is responsible for sending state update event to jms endpoint
 	private DuccEventDispatcher dispatcher;
