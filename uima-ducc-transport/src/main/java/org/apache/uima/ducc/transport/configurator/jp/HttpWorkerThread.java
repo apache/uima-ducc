@@ -34,7 +34,6 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
@@ -141,7 +140,6 @@ public class HttpWorkerThread implements Runnable {
 					command = Type.Ack.name();
 					httpClient.execute(transaction, postMethod); // Ready to process
                     logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sent ACK");
-					
                     
 					// if the JD did not provide a CAS, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
@@ -161,14 +159,13 @@ public class HttpWorkerThread implements Runnable {
 						// There is no CAS. It looks like the JD CR is done but there
 						// are still WIs being processed. Slow down the rate of requests	
 					} else {
+						boolean workItemFailed = false;
 						// process the CAS
 						try {
 							// using java reflection, call process to analyze the CAS
-							 
 							 List<Properties> metrics = (List<Properties>)processMethod.
 							   invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
 							
-							//metrics.add(new Properties());   // empty for now
 		                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
 							IPerformanceMetrics metricsWrapper =
 									new PerformanceMetrics();
@@ -188,7 +185,7 @@ public class HttpWorkerThread implements Runnable {
 							// Fetch the serialized stack trace and pass it on to
 							// to the JD. The actual serialized stack trace is wrapped in
 							// RuntimeException->AnalysisEngineException.message
-
+							workItemFailed = true;
 							IMetaCas mc = transaction.getMetaCas();
 							Method getLastSerializedErrorMethod = processorInstance.getClass().getDeclaredMethod("getLastSerializedError");
 							byte[] serializedException =
@@ -197,6 +194,7 @@ public class HttpWorkerThread implements Runnable {
 
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
 						} catch( Exception ee) {
+							workItemFailed = true;
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						    ObjectOutputStream oos = new ObjectOutputStream( baos );
 						    oos.writeObject( ee);
@@ -208,21 +206,30 @@ public class HttpWorkerThread implements Runnable {
 						transaction.setType(Type.End);
 						command = Type.End.name();
 						httpClient.execute(transaction, postMethod); // Work Item Processed - End
-	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END for WI:"+transaction.getMetaCas().getSystemKey());
-                        if ( transaction.getMetaCas() != null &&
-                        		transaction.getMetaCas().getUserSpaceException() != null ) {
-        					duccComponent.getLogger().warn("run", null, "Worker thread exiting due to exception in process()");
+                    	String wid = null;
+                    	try {
+                    		wid = transaction.getMetaCas().getSystemKey();
+                    	} catch( Exception e) {
+                    		
+                    	}
+	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END for WI:"+wid);
+	                    if ( workItemFailed ) {
+	                        if ( wid != null ) {
+		                    	logger.warn("run", null, "Worker thread exiting due to error while processing WI:"+wid);
+	                        } else {
+		                    	logger.warn("run", null, "Worker thread exiting due to error while processing a WI");
+	                        }
         					duccComponent.setState(ProcessState.Stopping);
                         	break;
                         }
 					}
 				} catch( SocketTimeoutException e) {
-					duccComponent.getLogger().warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
+					logger.warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
 					System.out.println("Time Out While Waiting For a Reply from JD For "+command+" Request");
 				}
 				catch (Exception e ) {
-					duccComponent.getLogger().warn("run", null, e);
-					duccComponent.getLogger().warn("run", null, "Caught Unexpected Exception - Exiting Thread "+Thread.currentThread().getId() );
+					logger.error("run", null, e);
+					logger.error("run", null, "Caught Unexpected Exception - Exiting Thread "+Thread.currentThread().getId() );
 					e.printStackTrace();
 					break; 
 				} finally {
@@ -233,8 +240,10 @@ public class HttpWorkerThread implements Runnable {
 
 		} catch (Throwable t) {
 			t.printStackTrace();
-			duccComponent.getLogger().warn("run", null, t);
+			logger.error("run", null, t);
 		} finally {
+			logger.warn("run",null,"EXITING WorkThread ID:"
+					+ Thread.currentThread().getId());
 			System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
 		    try {
