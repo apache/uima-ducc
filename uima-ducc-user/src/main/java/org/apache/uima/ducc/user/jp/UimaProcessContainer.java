@@ -41,6 +41,7 @@ import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThreadAffinity;
+import org.apache.uima.impl.UimaVersion;
 import org.apache.uima.resource.Resource;
 import org.apache.uima.resource.ResourceInitializationException;
 import org.apache.uima.resource.ResourceSpecifier;
@@ -173,6 +174,10 @@ implements IProcessContainer {
 	  public int initialize(String[] args ) throws Exception {
 		 analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
 		 scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
+		 String jobType = System.getProperty("ducc.deploy.JpType"); 
+		 if ( "uima".equals(jobType)) {
+			System.out.println("UIMA Version:"+UimaVersion.getFullVersionString());
+	     } 
          return scaleout;		  
 	  }
 	public int initialize(Properties props, String[] args) throws Exception {

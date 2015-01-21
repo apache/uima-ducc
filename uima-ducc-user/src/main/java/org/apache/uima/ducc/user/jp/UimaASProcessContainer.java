@@ -100,7 +100,10 @@ implements IProcessContainer {
 		return scaleout;
 	}
 	public int initialize(Properties props, String[] args) throws Exception {
-
+		String jobType = System.getProperty("ducc.deploy.JpType"); 
+		if ( "uima-as".equals(jobType)) {
+			System.out.println("UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
+        } 
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
 			if ( !initialized ) {
