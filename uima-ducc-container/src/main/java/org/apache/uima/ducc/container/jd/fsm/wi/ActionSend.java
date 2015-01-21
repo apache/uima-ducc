@@ -18,10 +18,12 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
+import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
+import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
@@ -49,6 +51,8 @@ public class ActionSend implements IAction {
 			//
 			TimeoutManager toMgr = TimeoutManager.getInstance();
 			toMgr.pendingAck(actionData);
+			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+			logger.info(location, ILogger.null_id, mb.toString());
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

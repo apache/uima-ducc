@@ -60,6 +60,7 @@ public class ActionGetRedux implements IAction {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					logger.debug(location, ILogger.null_id, mb.toString());
 					actionData.getWorkItem().setMetaCas(metaCas);
+					actionData.getMetaCasTransaction().setMetaCas(metaCas);
 				}
 				else {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
