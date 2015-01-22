@@ -35,6 +35,9 @@ from ducc_util import ThreadPool
 
 class StartDucc(DuccUtil):
 
+    def __init__(self):
+        DuccUtil.__init__(self, True)
+
     def start_broker(self):
         
         broker_host = self.ducc_properties.get('ducc.broker.hostname')
@@ -225,9 +228,6 @@ class StartDucc(DuccUtil):
 
         if ( not self.verify_jvm() ):
             sys.exit(1);
-
-        # first task, MUST merge properties so subsequent things can can count on its validity
-        self.merge_properties()
 
         self.set_duccling_version()
 

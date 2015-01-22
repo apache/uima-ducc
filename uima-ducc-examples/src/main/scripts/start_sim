@@ -47,6 +47,9 @@ from ducc_util import ThreadPool
 
 class StartSim(DuccUtil):
 
+    def __init__(self):
+        DuccUtil.__init__(self, True)
+
     def start_broker(self):
         
         if ( not self.automanage ):
@@ -297,9 +300,6 @@ class StartSim(DuccUtil):
 
         if ( len(argv) == 0 ):
             self.usage(None)
-
-        # first task, always, merge the properties so subsequent code can depend on their validity.
-        self.merge_properties()
     
         node_config = None
         components = {}

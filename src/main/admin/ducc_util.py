@@ -116,10 +116,10 @@ class ThreadPool:
 
 class DuccUtil(DuccBase):
 
+    def update_properties(self):
 
-    def read_properties(self):
-
-        DuccBase.read_properties(self)
+        if ( self.ducc_properties == None ):
+            DuccBase.read_properties(self)
 
         self.duccling       = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
 
@@ -694,9 +694,10 @@ class DuccUtil(DuccBase):
             return False
         return True
 
-    def __init__(self):
+    def __init__(self, merge=False):
         global use_threading
-        DuccBase.__init__(self)
+        DuccBase.__init__(self, merge)
+
         self.duccling = None
         self.broker_url = 'tcp://localhost:61616'
         self.broker_protocol = 'tcp'
@@ -713,7 +714,7 @@ class DuccUtil(DuccBase):
         self.pid_file  = self.DUCC_HOME + '/state/ducc.pids'
         self.set_classpath()
         self.os_pagesize = self.get_os_pagesize()
-        self.read_properties()
+        self.update_properties()
 
         manage_broker = self.ducc_properties.get('ducc.broker.automanage')
         self.automanage = False

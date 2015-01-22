@@ -198,8 +198,10 @@ class DuccProperties:
     
 class DuccBase:
 
-
     def read_properties(self):
+
+        if ( self.do_merge ):
+            self.merge_properties()
 
         self.ducc_properties = DuccProperties()
         self.ducc_properties.load(self.propsfile, self.DUCC_HOME)
@@ -277,7 +279,9 @@ class DuccBase:
             answer.append(arg)
         return answer
 
-    def __init__(self):
+    def __init__(self, merge=False):
+        self.do_merge = merge
+        self.ducc_properties = None
 
         # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
         me = os.path.abspath(__file__)    
@@ -290,6 +294,7 @@ class DuccBase:
         self.webserver_node = 'localhost'
         self.propsfile = self.DUCC_HOME + '/resources/ducc.properties'
         self.localhost = os.uname()[1]                
+
         self.read_properties()       
 
         os.environ['JAVA_HOME'] = self.java_home()
