@@ -94,7 +94,7 @@ implements IAgentSession, IJobProcessManagerCallbackListener {
 	 * 
 	 */
 	public void notify(ProcessStateUpdate state) {
-		if ( stopped ) {
+		if ( stopped || state.getState().equals(ProcessState.Stopping)) {
 			return;
 		}
 		try {
