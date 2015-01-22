@@ -18,7 +18,6 @@
 */
 package org.apache.uima.ducc.container.common.logger;
 
-import org.apache.log4j.Level;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.container.common.logger.id.Id;
