@@ -547,28 +547,31 @@ public class StateManager {
 				dwj.setUimaDeployableConfiguration(uimaDeploymentDescriptor);
 			}
 			//V2
-			String jpAe = jdStatusReport.getUimaAnalysisEngine();
-			if(jpAe != null) {
-				ICommandLine jcl = dwj.getCommandLine();
-				List<String> args = jcl.getArguments();
-				String arg = jpAe;
-				if(args == null) {
-					jcl.addArgument(arg);
-					logger.debug(location, jobid,  "add[null]:"+arg);
-				}
-				else if(args.isEmpty()) {
-					jcl.addArgument(jpAe);
-					logger.debug(location, jobid, "add[empty]:"+arg);
-				}
-				List<String> argList = jcl.getArguments();
-				if(args != null) {
-					int index = 0;
-					for(String argument : argList) {
-						logger.debug(location, jobid, "arg["+index+"]: "+argument);
-						index++;
+			boolean agentAddsDdToCommandLine = true;
+			if(!agentAddsDdToCommandLine) {
+				String jpAe = jdStatusReport.getUimaAnalysisEngine();
+				if(jpAe != null) {
+					ICommandLine jcl = dwj.getCommandLine();
+					List<String> args = jcl.getArguments();
+					String arg = jpAe;
+					if(args == null) {
+						jcl.addArgument(arg);
+						logger.debug(location, jobid,  "add[null]:"+arg);
 					}
+					else if(args.isEmpty()) {
+						jcl.addArgument(jpAe);
+						logger.debug(location, jobid, "add[empty]:"+arg);
+					}
+					List<String> argList = jcl.getArguments();
+					if(args != null) {
+						int index = 0;
+						for(String argument : argList) {
+							logger.debug(location, jobid, "arg["+index+"]: "+argument);
+							index++;
+						}
+					}
+					dwj.setDdSpecified();
 				}
-				dwj.setDdSpecified();
 			}
 		}
 	}
