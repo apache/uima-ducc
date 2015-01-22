@@ -1163,6 +1163,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
           String pid = deployedProcess.getDuccProcess().getPID();
           processFound = true;
           if (deployedProcess.isStopping()) {
+            logger.info(methodName, null, "....Process Already Stopping PID:" + process.getPID()+" Returning");
             break; // this process is already in stopping state
           }
           logger.info(methodName, null, "....Undeploying Process - DuccId:" + process.getDuccId()
