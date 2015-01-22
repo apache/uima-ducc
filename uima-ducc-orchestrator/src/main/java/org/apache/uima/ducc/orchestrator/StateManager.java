@@ -1427,6 +1427,19 @@ public class StateManager {
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
+	private int MAX_INIT_FAILURES = 1;
+	
+	private void checkInitializationState(IDuccWorkJob job) {
+		String location = "checkInitializationState";
+		if(!job.isInitialized()) {
+			int failures = job.getFailedUnexpectedProcessCount();
+			if(failures >= MAX_INIT_FAILURES) {
+				jobTerminate(job, JobCompletionType.DriverInitializationFailure, new Rationale("job driver initialization failures limit reached:"+MAX_INIT_FAILURES), ProcessDeallocationType.FailedInitialization);
+				logger.debug(location, job.getDuccId(), JobCompletionType.DriverInitializationFailure);
+			}
+		}
+	}
+
 	/**
 	 * Node Inventory reconciliation
 	 */
@@ -1502,6 +1515,7 @@ public class StateManager {
 								// <UIMA-3923>
 								advanceToCompleted(job);
 								// </UIMA-3923>
+								checkInitializationState(job);
 								break;
 							case Service:
 								DuccWorkJob service = (DuccWorkJob) duccWork;
