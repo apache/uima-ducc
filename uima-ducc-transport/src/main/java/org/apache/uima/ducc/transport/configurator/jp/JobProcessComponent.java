@@ -239,25 +239,28 @@ implements IJobProcessor{
 		    		tpe.shutdown();
 		    		tpe.awaitTermination(0, TimeUnit.MILLISECONDS);
 		    	}
-		    	workerThreadCount.await();
 		    	
-		    	// Determine if the process container requires thread affinity to AE instance.
-		    	// If it does, the worker thread has already called stop() which in
-		    	// turn called AE.destroy(). If the process container has no thread 
-		    	// affinity, call stop() here to make sure the cleanup code shuts down
-		    	// internal components.
-		    	Method useThreadAffinityMethod = processorInstance.getClass().getDeclaredMethod("useThreadAffinity");	
-				boolean useThreadAffinity =
-						(Boolean)useThreadAffinityMethod.invoke(processorInstance);
-				if ( !useThreadAffinity) {
-					Method deployMethod = processorInstance.getClass().getDeclaredMethod("stop");
-					deployMethod.invoke(processorInstance);
-				}
-		    	
-		    	
-		    	// Stop process container
-				Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
-				stopMethod.invoke(processorInstance);
+		    	if ( workerThreadCount != null ) {
+			    	workerThreadCount.await();
+			    	
+			    	// Determine if the process container requires thread affinity to AE instance.
+			    	// If it does, the worker thread has already called stop() which in
+			    	// turn called AE.destroy(). If the process container has no thread 
+			    	// affinity, call stop() here to make sure the cleanup code shuts down
+			    	// internal components.
+			    	Method useThreadAffinityMethod = processorInstance.getClass().getDeclaredMethod("useThreadAffinity");	
+					boolean useThreadAffinity =
+							(Boolean)useThreadAffinityMethod.invoke(processorInstance);
+					if ( !useThreadAffinity) {
+						Method deployMethod = processorInstance.getClass().getDeclaredMethod("stop");
+						deployMethod.invoke(processorInstance);
+					}
+			    	
+			    	
+			    	// Stop process container
+					Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
+					stopMethod.invoke(processorInstance);
+		    	}
 				stop();
 		    }
 		} catch( Exception e) {
@@ -287,8 +290,10 @@ implements IJobProcessor{
 
 		System.out.println("... JobProcessComponent - Stopping Service Adapter");
 	    try {
-        	// block until all worker threads exit run()
-        	workerThreadCount.await();
+	    	if ( workerThreadCount != null ) {
+	        	// block until all worker threads exit run()
+	        	workerThreadCount.await();
+	    	}
         	
 			// Stop executor. It was only needed to poll AE initialization status.
 			// Since deploy() completed
