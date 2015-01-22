@@ -48,6 +48,7 @@ public class DuccLogger
     private static DuccLoggingThread log_thread = null;
     private static LinkedBlockingQueue<DuccLoggingEvent> events = null;
     private static boolean threaded = false;
+    private static boolean watchdogStarted = false;
 
     private final static String DEFAULT_COMPONENT = "DUCC";
     private static List<Logger> nonDuccLoggers = new ArrayList<Logger>();
@@ -146,7 +147,10 @@ public class DuccLogger
         if ( ducc_home == null ) { 
             System.out.println("WARNING: Cannot find system property DUCC_HOME to configure ducc logger.  Using default log4j configurator.");
         } else {
-            DOMConfigurator.configureAndWatch(System.getProperty("DUCC_HOME") + "/resources/log4j.xml");
+            if ( ! watchdogStarted ) {
+                DOMConfigurator.configureAndWatch(System.getProperty("DUCC_HOME") + "/resources/log4j.xml");
+                watchdogStarted = true;
+            } 
         }
 
         //
