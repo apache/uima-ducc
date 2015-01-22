@@ -46,6 +46,10 @@ public class JobProcessManager implements IJobProcessManager {
 		this.callbackListener = callbackListener;
 	}
 	
+	public IJobProcessManagerCallbackListener setCallbackListener() {
+		return this.callbackListener;
+	}
+	
 	public synchronized IUimaProcessor deploy() throws ServiceFailedInitialization {
 //		String jobType = System.getProperty(FlagsHelper.Name.JpType.pname());
 //		if ( jobType.trim().equals("uima-as") ) {
