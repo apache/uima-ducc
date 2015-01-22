@@ -29,15 +29,12 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.Route;
-import org.apache.uima.aae.UimaAsVersion;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
-import org.apache.uima.impl.UimaVersion;
 
 public class JobProcessComponent extends AbstractDuccComponent 
 implements IJobProcessor{
@@ -77,19 +74,6 @@ implements IJobProcessor{
 			currentState = state;
 			agent.notify(currentState, super.getProcessJmxUrl());
 		} 
-/*		
-		if ( !currentState.equals(ProcessState.FailedInitialization)) {
-			if ( state.equals(ProcessState.FailedInitialization)) {
-				currentState = state;
-				System.out.println("Initialization Failed - Notifying Agent");
-				agent.notify(currentState, super.getProcessJmxUrl());
-			} else {
-				currentState = state;
-			}
-		} else if ( currentState.equals(ProcessState.Initializing) ){
-			currentState = state;
-		}
-		*/
 	}
     public void setThreadSleepTime(int sleepTime) {
     	threadSleepTime = sleepTime;
