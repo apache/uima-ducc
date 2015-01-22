@@ -176,14 +176,16 @@ public class MessageHandler implements IMessageHandler {
 
 	@Override
 	public void handleDownNode(INodeInfo nodeInfo) {
+		//TODO
+		/*
 		String location = "handleDownNode";
 		try {
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-			//TODO
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
 		}
+		*/
 	}
 	
 	@Override
