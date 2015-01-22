@@ -97,7 +97,6 @@ public class DuccHttpClient {
 	public void intialize(String url, int port, String application)
 			throws Exception {
 		target = application;
-		this.timeout = timeout;
 		httpproc = HttpProcessorBuilder.create().add(new RequestContent())
 				.add(new RequestTargetHost()).add(new RequestConnControl())
 				.add(new RequestUserAgent("Test/1.1"))
@@ -110,7 +109,7 @@ public class DuccHttpClient {
 		host = new HttpHost(url, port);
 		coreContext.setTargetHost(host);
 		connPool = new BasicConnPool();
-		connStrategy = new DefaultConnectionReuseStrategy();//DefaultConnectionReuseStrategy.INSTANCE;
+		connStrategy = new DefaultConnectionReuseStrategy();
 		pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
 		
@@ -245,6 +244,8 @@ public class DuccHttpClient {
 
 				request.setEntity(entity);
 
+				System.out.println(">>>> GET Request:"+body);
+				
 				httpexecutor.preProcess(request, httpproc, coreContext);
 				HttpResponse response = httpexecutor.execute(request, conn,	coreContext);
 				httpexecutor.postProcess(response, httpproc, coreContext);
