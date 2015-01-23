@@ -547,7 +547,7 @@ public class StateManager {
 				dwj.setUimaDeployableConfiguration(uimaDeploymentDescriptor);
 			}
 			//V2
-			boolean agentAddsDdToCommandLine = true;
+			boolean agentAddsDdToCommandLine = false;
 			if(!agentAddsDdToCommandLine) {
 				String jpAe = jdStatusReport.getUimaAnalysisEngine();
 				if(jpAe != null) {
