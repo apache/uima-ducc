@@ -238,8 +238,8 @@ implements IProcessContainer {
 
 					break;   // got a valid port for the broker
 				} catch (Exception e) {
-					if (e.getCause() instanceof BindException) {
-						port++;   // choose the next port and retry
+					if ( isBindException(e)) {
+						port++;
 					} else {
 						throw new RuntimeException(e);
 					}
@@ -254,6 +254,19 @@ implements IProcessContainer {
 			brokerLatch.countDown();
 		}
 		
+	}
+	private boolean isBindException(Throwable e) {
+		if ( e == null ) {
+			return false;
+		}
+		
+		if (e instanceof BindException) {
+			return true;
+		} else if ( e.getCause() != null ) {
+			return isBindException(e.getCause());				
+		} else {
+			return false;
+		}
 	}
 	  public static URLClassLoader create(String[] classPathElements) throws MalformedURLException {
 		    ArrayList<URL> urlList = new ArrayList<URL>(classPathElements.length);
