@@ -41,7 +41,7 @@ import org.apache.uima.ducc.transport.event.SubmitJobReplyDuccEvent;
  * Default socket timeout is 30 minutes.
  * 
  */
-public class DuccEventHttpDispatcher {
+public class DuccEventHttpDispatcher implements IDuccEventDispatcher {
     
     private ClassManager classManager = null;
     private String targetEndpoint;
