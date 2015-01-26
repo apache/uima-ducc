@@ -188,7 +188,10 @@ class DuccProcess(Thread):
         if ( self.runner.style == 'AE' ):
             ae = 'org.apache.uima.ducc.test.randomsleep.FixedSleepAE'
         elif ( self.runner.style == 'DD' ):
-            dd = 'org.apache.uima.ducc.test.randomsleep.DDSleepDescriptor'
+            if ( self.runner.descriptor_as_file ):
+                dd = self.DUCC_HOME + '/examples/simple/resources/randomsleep/DDSleepDescriptor.xml'
+            else:
+                dd = 'org.apache.uima.ducc.test.randomsleep.DDSleepDescriptor'
         else:
             ae = 'UimaAsFailAgg_' + services
 
@@ -508,6 +511,9 @@ class RunDucc(DuccUtil):
         print '       Specifies to run this with the AE as a delegate service.  The required parameter specifies'
         print '       a service startup script.'
         print ''
+        print '  --FILE'
+        print '       Use DD descriptor in filesystem, not as resource in jar file.'
+        print ''
         print '  --http'
         print '       Use HTTP instead of tcp for services'
         print '' 
@@ -588,9 +594,10 @@ class RunDucc(DuccUtil):
         self.submit_package = 'org.apache.uima.ducc'
         self.max_machines = 0
         self.use_http = False
+        self.descriptor_as_file = False
 
         try:
-            opts, args  = getopt.getopt(argv, 'b:d:i:r:m:n:p:wx:y:?h', ['AE', 'DD', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
+            opts, args  = getopt.getopt(argv, 'b:d:fi:r:m:n:p:wx:y:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                         'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
                                                                         'init_timeout=','watch',
                                                                         'jd_uima_log=', 'jp_uima_log=',
@@ -601,6 +608,7 @@ class RunDucc(DuccUtil):
             self.usage(None)
     
         for ( o, a ) in opts:
+            print o, a
             if o in ('-d', '--directory'):
                 self.test_dir = a        
             elif o in ('-b', '--batchfile'):
@@ -633,6 +641,8 @@ class RunDucc(DuccUtil):
                 self.style = 'SE'
                 self.service_startup = a
                 self.watch = True
+            elif o in ( '-f', '--file'):
+                self.descriptor_as_file = True
             elif o in ('--http'):
                 self.use_http = True
             elif o in ('--IB'):
@@ -658,6 +668,7 @@ class RunDucc(DuccUtil):
         print '    test_dir           :', self.test_dir
         print '    batchfile          :', self.batchfile
         print '    style              :', self.style
+        print '    descriptor as file :', self.descriptor_as_file
         print '    http               :', self.use_http
         print '    init-time          :', self.init_time / 1000
         print '    init-range         :', self.init_range / 1000
@@ -675,6 +686,7 @@ class RunDucc(DuccUtil):
         print '    DUCC_HOME          :', self.DUCC_HOME
 
         self.submit_package = 'org.apache.uima.ducc'
+
 
         cp = []
         cp.append(self.DUCC_HOME + '/lib/uima-ducc/examples/*')
