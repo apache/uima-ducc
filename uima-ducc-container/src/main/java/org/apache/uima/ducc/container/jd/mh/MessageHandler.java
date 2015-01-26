@@ -122,7 +122,7 @@ public class MessageHandler implements IMessageHandler {
 			IRunningWorkItemStatistics rwis = RunningWorkItemStatistics.getCurrent();
 			DgenManager dgenManager = jd.getDdManager();
 			oi.setJobId(jd.getJobId());
-			oi.setJpAe(dgenManager.getAe());
+			oi.setJpDeployable(dgenManager.getDeployable());
 			oi.setWorkItemCrTotal(cms.getCrTotal());
 			oi.setWorkItemCrFetches(cms.getCrGets());
 			oi.setWorkItemJpGets(gets.get());

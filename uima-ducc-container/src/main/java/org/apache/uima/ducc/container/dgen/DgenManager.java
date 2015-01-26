@@ -25,16 +25,16 @@ import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.dgen.classload.ProxyAeException;
-import org.apache.uima.ducc.container.dgen.classload.ProxyAeGenerate;
+import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGenerationException;
+import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
 
 public class DgenManager {
 
 	private static Logger logger = Logger.getLogger(DgenManager.class, IComponent.Id.JD.name());
 
-	private String dgen = null;
+	private String deployable = null;
 	
-	private ProxyAeGenerate proxy = null;
+	private ProxyDeployableGeneration proxy = null;
 	
 	public DgenManager() throws DgenException {
 		initialize();
@@ -75,22 +75,32 @@ public class DgenManager {
 			List<String> ccOverrides,
 			String cmDescriptor,
 			List<String> cmOverrides,
-			String dgen) throws DgenException {
+			String referenceByName) throws DgenException {
 		String location = "initialize";
 		try {
-			if(dgen == null) {
-				proxy = new ProxyAeGenerate();
+			if(referenceByName == null) {
+				proxy = new ProxyDeployableGeneration();
 				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
-				setAe(value);
-				logger.info(location, null, "generated dgen: "+value);
+				setDeployable(value);
+				logger.info(location, null, "from parts: "+value);
 			}
 			else {
-				setAe(dgen);
-				logger.info(location, null, "specified dgen: "+dgen);
+				String specification = referenceByName.trim();
+				if(specification.endsWith(".xml")) {
+					setDeployable(specification);
+					logger.info(location, null, "specified: "+specification);
+				}
+				else {
+					proxy = new ProxyDeployableGeneration();
+					String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, specification);
+					setDeployable(value);
+					logger.info(location, null, "reference by name: "+value);
+				}
+				
 			}
 			
 		}
-		catch(ProxyAeException e) {
+		catch(ProxyDeployableGenerationException e) {
 			logger.error(location, ILogger.null_id, e);
 			throw new DgenException(e);
 		}
@@ -115,11 +125,11 @@ public class DgenManager {
 		return retVal;
 	}
 	
-	public String getAe() {
-		return dgen;
+	public String getDeployable() {
+		return deployable;
 	}
 	
-	private void setAe(String value) {
-		dgen = value;
+	private void setDeployable(String value) {
+		deployable = value;
 	}
 }

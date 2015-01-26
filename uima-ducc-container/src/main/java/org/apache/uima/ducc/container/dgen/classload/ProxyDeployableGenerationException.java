@@ -18,15 +18,15 @@
 */
 package org.apache.uima.ducc.container.dgen.classload;
 
-public class ProxyAeException extends Exception {
+public class ProxyDeployableGenerationException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 	
-	public ProxyAeException(String text) {
+	public ProxyDeployableGenerationException(String text) {
 		super(text);
 	}
 	
-	public ProxyAeException(Exception e) {
+	public ProxyDeployableGenerationException(Exception e) {
 		super(e);
 	}
 }

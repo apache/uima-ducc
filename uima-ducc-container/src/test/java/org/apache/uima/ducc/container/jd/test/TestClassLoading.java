@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
-import org.apache.uima.ducc.container.dgen.classload.ProxyAeGenerate;
+import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
@@ -142,7 +142,7 @@ public class TestClassLoading extends ATest {
 			}
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
-			ProxyAeGenerate proxy = new ProxyAeGenerate();
+			ProxyDeployableGeneration proxy = new ProxyDeployableGeneration();
 			//
 			URL url = this.getClass().getResource("/");
 			File root = new File(url.getFile());

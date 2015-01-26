@@ -32,7 +32,7 @@ public class OperatingInfo implements IOperatingInfo {
 	
 	private String jobId = null;
 	
-	private String jpAe = null;
+	private String jpDeployable = null;
 	
 	private int crTotal = 0;
 	private int crFetches = 0;
@@ -322,13 +322,13 @@ public class OperatingInfo implements IOperatingInfo {
 	}
 	
 	@Override
-	public void setJpAe(String value) {
-		jpAe = value;
+	public void setJpDeployable(String value) {
+		jpDeployable = value;
 	}
 
 	@Override
-	public String getJpAe() {
-		return jpAe;
+	public String getJpDeployable() {
+		return jpDeployable;
 	}
 
 }

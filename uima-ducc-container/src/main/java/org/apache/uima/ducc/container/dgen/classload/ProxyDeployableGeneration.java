@@ -35,20 +35,20 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 
-public class ProxyAeGenerate {
+public class ProxyDeployableGeneration {
 
-	private static Logger logger = Logger.getLogger(ProxyAeGenerate.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(ProxyDeployableGeneration.class, IComponent.Id.JD.name());
 	
 	private URLClassLoader urlClassLoader = null;
 
 	private String[] requiredClasses = { 
-			"org.apache.uima.ducc.user.dgen.iface.AeException", 
-			"org.apache.uima.ducc.user.dgen.iface.AeGenerate",
-			"org.apache.uima.ducc.user.dgen.iface.IAeGenerate",
+			"org.apache.uima.ducc.user.dgen.iface.DeployableGenerationException", 
+			"org.apache.uima.ducc.user.dgen.iface.DeployableGeneration",
+			"org.apache.uima.ducc.user.dgen.iface.IDeployableGeneration",
 			"org.apache.uima.aae.UimaSerializer",
 			};
 	
-	public ProxyAeGenerate() throws ProxyAeException {
+	public ProxyDeployableGeneration() throws ProxyDeployableGenerationException {
 		initialize();
 	}
 	
@@ -90,7 +90,7 @@ public class ProxyAeGenerate {
 			List<String> aeOverrides, 
 			String ccDescriptor,
 			List<String> ccOverrides
-			) throws ProxyAeException
+			) throws ProxyDeployableGenerationException
 	{
 		String location = "generate";
 		String retVal = null;
@@ -109,7 +109,7 @@ public class ProxyAeGenerate {
 			show("aeOverrides", aeOverrides);
 			show("ccDescriptor", ccDescriptor);
 			show("ccOverrides", ccOverrides);
-			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dgen.iface.AeGenerate");
+			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dgen.iface.DeployableGeneration");
 			Constructor<?> constructor = clazz.getConstructor();
 			Object instance = constructor.newInstance();
 			Class<?>[] parameterTypes = { 
@@ -151,10 +151,73 @@ public class ProxyAeGenerate {
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
-			throw new ProxyAeException(e.toString());
+			throw new ProxyDeployableGenerationException(e.toString());
 		}
 		return retVal;
 	}
+	
+	
+	public String generate(
+			String directory, 
+			String id,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenEndpoint,
+			String dgenFlowController,
+			String referenceByName
+			) throws ProxyDeployableGenerationException
+	{
+		String location = "generate";
+		String retVal = null;
+		try {
+			show("directory", directory);
+			show("id", id);
+			show("dgenName", dgenName);
+			show("dgenDescription", dgenDescription);
+			show("dgenThreadCount", dgenThreadCount);
+			show("dgenBrokerURL", dgenBrokerURL);
+			show("dgenEndpoint", dgenEndpoint);
+			show("degnFlowController", dgenFlowController);
+			show("referenceByName", referenceByName);
+			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.dgen.iface.DeployableGeneration");
+			Constructor<?> constructor = clazz.getConstructor();
+			Object instance = constructor.newInstance();
+			Class<?>[] parameterTypes = { 
+					String.class,	// directory
+					String.class,	// id
+					String.class,	// dgenName
+					String.class,	// dgenDescription
+					Integer.class,	// dgenThreadCount
+					String.class,	// dgenBrokerURL
+					String.class,	// dgenEndpoint
+					String.class,	// dgenFlowController
+					String.class,	// referenceByName
+			};
+			Method method = clazz.getMethod("generate", parameterTypes);
+			Object[] args = { 
+					directory, 
+					id, 
+					dgenName, 
+					dgenDescription, 
+					dgenThreadCount, 
+					dgenBrokerURL, 
+					dgenEndpoint,
+					dgenFlowController,
+					referenceByName
+					};
+			String dgen = (String) method.invoke(instance, args);
+			show("generated deployment descriptor", dgen);
+			retVal = dgen;
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+			throw new ProxyDeployableGenerationException(e.toString());
+		}
+		return retVal;
+	}
+	
 	
 	private String getUimaAsDirectory() throws Exception {
 		String location = "getUimaAsDirectory";
@@ -180,7 +243,7 @@ public class ProxyAeGenerate {
 		}
 	}
 	
-	private String augmentUserClasspath() throws ProxyAeException {
+	private String augmentUserClasspath() throws ProxyDeployableGenerationException {
 		String location = "augmentUserClasspath";
 		try {
 			StringBuffer sb = new StringBuffer();
@@ -197,10 +260,10 @@ public class ProxyAeGenerate {
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
-			throw new ProxyAeException(e);
+			throw new ProxyDeployableGenerationException(e);
 		}
 	}
-	private void initialize() throws ProxyAeException {
+	private void initialize() throws ProxyDeployableGenerationException {
 		String userClasspath = augmentUserClasspath();
 		urlClassLoader = createClassLoader(userClasspath);
 		validate();
@@ -218,13 +281,13 @@ public class ProxyAeGenerate {
 		return retVal;
 	}
 	
-	private void validate() throws ProxyAeException {
+	private void validate() throws ProxyDeployableGenerationException {
 		for(String className : requiredClasses) {
 			loadClass(className);
 		}
 	}
 	
-	private void loadClass(String className) throws ProxyAeException {
+	private void loadClass(String className) throws ProxyDeployableGenerationException {
 		String location = "loadClass";
 		try {
 			MessageBuffer mb1 = new MessageBuffer();
@@ -240,10 +303,10 @@ public class ProxyAeGenerate {
 			logger.trace(location, ILogger.null_id, mb2.toString());
 		} 
 		catch (Exception e) {
-			DuccLogger duccLogger = DuccLogger.getLogger(ProxyAeGenerate.class, "JD");
+			DuccLogger duccLogger = DuccLogger.getLogger(ProxyDeployableGeneration.class, "JD");
 			duccLogger.error(location, null, e);
 			logger.error(location, ILogger.null_id, e);
-			throw new ProxyAeException(e);
+			throw new ProxyDeployableGenerationException(e);
 		}
 	}
 }

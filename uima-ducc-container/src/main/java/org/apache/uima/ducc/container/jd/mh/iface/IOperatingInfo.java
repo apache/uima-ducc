@@ -34,8 +34,8 @@ public interface IOperatingInfo extends Serializable {
 	public void setJobId(String value);
 	public String getJobId();
 
-	public void setJpAe(String value);
-	public String getJpAe();
+	public void setJpDeployable(String value);
+	public String getJpDeployable();
 	
 	public void setWorkItemCrTotal(int value);
 	public int getWorkItemCrTotal();
