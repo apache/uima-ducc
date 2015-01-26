@@ -79,7 +79,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	private ConcurrentHashMap<RemoteLocation, Long> mapProcessOperatingMillis = null;
 	
-	private String jpAe = null;
+	private String jpDeployable = null;
 	
 	private JobCompletionType jobCompletionType = JobCompletionType.EndOfJob;
 	
@@ -161,8 +161,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		}
 		// operating map
 		setActiveWorkItemInfo(operatingInfo.getActiveWorkItemInfo());
-		// JpAe
-		setJpAe(operatingInfo.getJpAe());
+		// JpDeployable
+		setJpDeployable(operatingInfo.getJpDeployable());
 		// per work statistics
 		DuccPerWorkItemStatistics perWorkItemStatistics = new DuccPerWorkItemStatistics(
 			operatingInfo.getWorkItemFinishedMillisMax(),
@@ -285,8 +285,8 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		listActiveWorkItemInfo = value;
 	}
 	
-	private void setJpAe(String value) {
-		jpAe = value;
+	private void setJpDeployable(String value) {
+		jpDeployable = value;
 	}
 	
 	private void setPerWorkItemStatistics(IDuccPerWorkItemStatistics value) {
@@ -422,7 +422,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 
 	@Override
 	public String getUimaAnalysisEngine() {
-		return jpAe;
+		return jpDeployable;
 	}
 	
 	@Override
