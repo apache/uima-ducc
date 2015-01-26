@@ -18,6 +18,7 @@
  */
 package org.apache.uima.ducc.user.common;
 
+import java.lang.management.ManagementFactory;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -96,4 +97,8 @@ public class Utils {
 		return retVal;
 	}
 
+	public static String getPID() {
+		String pid = ManagementFactory.getRuntimeMXBean().getName();
+		return pid.split("@")[0];
+	}
 }

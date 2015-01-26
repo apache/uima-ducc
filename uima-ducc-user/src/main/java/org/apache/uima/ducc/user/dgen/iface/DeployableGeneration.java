@@ -22,15 +22,16 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.uima.ducc.user.dgen.AeGenerator;
+import org.apache.uima.ducc.user.dgen.DeployableGenerator;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
+import org.apache.uima.ducc.user.dgen.DuccUimaReferenceByName;
 import org.apache.uima.ducc.user.dgen.IDuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dgen.IDuccUimaDeployableConfiguration;
 
-public class AeGenerate implements IAeGenerate {
+public class DeployableGeneration implements IDeployableGeneration {
 
-	public AeGenerate() {	
+	public DeployableGeneration() {	
 	}
 	
 	private void conditionalAddComponent(ArrayList<IDuccUimaAggregateComponent> dgenComponents, String descriptor, List<String> overrides) {
@@ -87,7 +88,7 @@ public class AeGenerate implements IAeGenerate {
 			List<String> aeOverrides, 
 			String ccDescriptor,
 			List<String> ccOverrides
-			) throws AeException
+			) throws DeployableGenerationException
 	{
 		String retVal = null;
 		try {
@@ -106,19 +107,54 @@ public class AeGenerate implements IAeGenerate {
 			show("ccDescriptor", ccDescriptor);
 			show("ccOverrides", ccOverrides);
 			String targetDirectory = fabricateTargetDirectoryName(directory, id);
-			AeGenerator aeGenerator = new AeGenerator(targetDirectory);
+			DeployableGenerator deployableGenerator = new DeployableGenerator(targetDirectory);
 			ArrayList<IDuccUimaAggregateComponent> dgenComponents = new ArrayList<IDuccUimaAggregateComponent>();
 			conditionalAddComponent(dgenComponents, cmDescriptor, cmOverrides);
 			conditionalAddComponent(dgenComponents, aeDescriptor, aeOverrides);
 			conditionalAddComponent(dgenComponents, ccDescriptor, ccOverrides);
 			IDuccUimaDeployableConfiguration configuration = new DuccUimaAggregate(dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenEndpoint, dgenFlowController, dgenComponents);
-			retVal = aeGenerator.generate(configuration, id);
+			retVal = deployableGenerator.generate(configuration, id);
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			throw new AeException(e.toString());
+			throw new DeployableGenerationException(e.toString());
 		}
 		return retVal;
 	}
-
+	
+	@Override
+	public String generate(
+			String directory, 
+			String id,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenEndpoint,
+			String dgenFlowController,
+			String dgenReferenceByName
+			) throws DeployableGenerationException
+	{
+		String retVal = null;
+		try {
+			show("directory", directory);
+			show("id", id);
+			show("dgenName", dgenName);
+			show("dgenDescription", dgenDescription);
+			show("dgenThreadCount", dgenThreadCount.toString());
+			show("dgenBrokerURL", dgenBrokerURL);
+			show("dgenEndpoint", dgenEndpoint);
+			show("dgenFlowController", dgenFlowController);
+			show("dgenReferenceByName", dgenReferenceByName);
+			String targetDirectory = fabricateTargetDirectoryName(directory, id);
+			DeployableGenerator deployableGenerator = new DeployableGenerator(targetDirectory);
+			IDuccUimaDeployableConfiguration configuration = new DuccUimaReferenceByName(dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenEndpoint, dgenFlowController, dgenReferenceByName);
+			retVal = deployableGenerator.generate(configuration, id);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			throw new DeployableGenerationException(e.toString());
+		}
+		return retVal;
+	}
 }

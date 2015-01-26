@@ -28,12 +28,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.uima.ducc.user.dgen.AeGenerator;
+import org.apache.uima.ducc.user.dgen.DeployableGenerator;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dgen.IDuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dgen.IDuccUimaDeployableConfiguration;
-import org.apache.uima.ducc.user.dgen.iface.AeGenerate;
+import org.apache.uima.ducc.user.dgen.iface.DeployableGeneration;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
@@ -388,7 +388,7 @@ public class TestSuite {
 			File working = new File(nameWorking);
 			delete(working);
 			working.mkdir();
-			AeGenerator aeGenerator = new AeGenerator(working.getAbsolutePath());
+			DeployableGenerator aeGenerator = new DeployableGenerator(working.getAbsolutePath());
 			IDuccUimaDeployableConfiguration configuration = getIDuccUimaDeployableConfiguration();
 			String jobId = "12345";
 			String ae = aeGenerator.generate(configuration, jobId);
@@ -414,7 +414,7 @@ public class TestSuite {
 			File working = new File(nameWorking);
 			delete(working);
 			working.mkdir();
-			AeGenerate aeGenerate = new AeGenerate();
+			DeployableGeneration dg = new DeployableGeneration();
 			
 			String directory = working.getAbsolutePath();
 			String id = "99999";
@@ -431,7 +431,7 @@ public class TestSuite {
 			String ccDescriptor = null;
 			List<String> ccOverrides = null;
 			
-			String ae = aeGenerate.generate(
+			String ae = dg.generate(
 					directory, 
 					id, aeName, 
 					aeDescription, 

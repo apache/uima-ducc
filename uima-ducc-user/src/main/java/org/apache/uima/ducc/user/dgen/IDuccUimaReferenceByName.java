@@ -16,26 +16,28 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.dgen.iface;
+package org.apache.uima.ducc.user.dgen;
 
-import java.util.List;
+public interface IDuccUimaReferenceByName extends IDuccUimaDeployableConfiguration {
 
-public interface IAeGenerate {
-
-	public String generate(
-			String directory,
-			String id,
-			String dgenName,
-			String dgenDescription,
-			Integer dgenThreadCount,
-			String dgenBrokerURL,
-			String dgenEndpoint,
-			String dgenFlowController,
-			String cm,
-			List<String> cmOverrides, 
-			String ae, 
-			List<String> aeOverrides, 
-			String cc,
-			List<String> ccOverrides
-			) throws AeException;
+	public String getReferenceByName();
+	public void setReferenceByName(String referenceByName);
+	
+	public String getName();
+	public void setName(String name);
+	
+	public String getDescription();
+	public void setDescription(String description);
+	
+	public int getThreadCount();
+	public void setThreadCount(int threadCount);
+	
+	public String getBrokerURL();
+	public void setBrokerURL(String brokerURL);
+	
+	public String getEndpoint();
+	public void setEndpoint(String endpoint);
+	
+	public String getFlowController();
+	public void setFlowController(String flowController);
 }

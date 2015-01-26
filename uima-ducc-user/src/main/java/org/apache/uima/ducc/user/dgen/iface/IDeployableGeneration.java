@@ -18,11 +18,36 @@
 */
 package org.apache.uima.ducc.user.dgen.iface;
 
-public class AeException extends Exception {
+import java.util.List;
 
-	private static final long serialVersionUID = 1L;
+public interface IDeployableGeneration {
 
-	public AeException(String message) {
-		super(message);
-	}
+	public String generate(
+			String directory,
+			String id,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenEndpoint,
+			String dgenFlowController,
+			String cm,
+			List<String> cmOverrides, 
+			String ae, 
+			List<String> aeOverrides, 
+			String cc,
+			List<String> ccOverrides
+			) throws DeployableGenerationException;
+	
+	public String generate(
+			String directory,
+			String id,
+			String dgenName,
+			String dgenDescription,
+			Integer dgenThreadCount,
+			String dgenBrokerURL,
+			String dgenEndpoint,
+			String dgenFlowController,
+			String dgenReferenceByName
+			) throws DeployableGenerationException;
 }
