@@ -244,6 +244,19 @@ public class HttpWorkerThread implements Runnable {
 		                    	logger.warn("run", null, "Worker thread exiting due to error while processing a WI");
 	                        }
         					duccComponent.setState(ProcessState.Stopping);
+        					/* *****************************************/
+        					/* *****************************************/
+        					/* *****************************************/
+                        	/*       EXITING  PROCESS ON FIRST ERROR   */
+        					/* *****************************************/
+        					logger.warn("run", null,"Terminating Job Process - Work Item Failed");
+
+        					System.exit(0);
+        					/* *****************************************/
+        					/* *****************************************/
+        					/* *****************************************/
+        					/* *****************************************/
+
                         	break;
                         }
 					}
