@@ -1,4 +1,4 @@
-  /*
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -34,6 +34,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 // import org.apache.commons.cli.CommandLine;
 // import org.apache.commons.cli.HelpFormatter;
 // import org.apache.commons.cli.MissingOptionException;
@@ -49,6 +50,7 @@ import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.transport.dispatcher.ClassManager;
 import org.apache.uima.ducc.transport.dispatcher.DuccEventHttpDispatcher;
+import org.apache.uima.ducc.transport.dispatcher.IDuccEventDispatcher;
 import org.apache.uima.ducc.transport.event.AbstractDuccOrchestratorEvent;
 import org.apache.uima.ducc.transport.event.IDuccContext.DuccContext;
 
@@ -62,8 +64,7 @@ public abstract class CliBase
     private String myClassName = "N/A";
     private boolean init_done = false;
     protected String ducc_home;
-    // IHttpDispatcher dispatcher;
-    DuccEventHttpDispatcher dispatcher;
+    protected IDuccEventDispatcher dispatcher;
 
     //protected Options cliOptions;
     //protected Parser parser;
@@ -414,7 +415,7 @@ public abstract class CliBase
         String targetUrl = DuccUiUtilities.dispatchUrl(servlet);
 
         // dispatcher = makeDispatcher(targetUrl);
-        dispatcher = new DuccEventHttpDispatcher(targetUrl);
+        dispatcher = DispatcherFactory.create(targetUrl);
         
         init_done = true;
     }
