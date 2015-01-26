@@ -70,10 +70,12 @@ implements IJobProcessor{
 		this.processorInstance = pc;
 	}
 	public void setState(ProcessState state) {
-		if ( !state.equals(currentState)) {
-			currentState = state;
-			agent.notify(currentState, super.getProcessJmxUrl());
-		} 
+		synchronized(currentState) {
+			if ( !state.name().equals(currentState.name())) {
+				currentState = state;
+				agent.notify(currentState, super.getProcessJmxUrl());
+			} 
+		}
 	}
     public void setThreadSleepTime(int sleepTime) {
     	threadSleepTime = sleepTime;
