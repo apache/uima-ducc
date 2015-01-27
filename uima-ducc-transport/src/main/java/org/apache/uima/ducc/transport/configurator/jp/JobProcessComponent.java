@@ -71,6 +71,9 @@ implements IJobProcessor{
 	}
 	public void setState(ProcessState state) {
 		synchronized(currentState) {
+			if ( currentState.name().equals(ProcessState.FailedInitialization.name()) ) {
+				return;
+			}
 			if ( !state.name().equals(currentState.name())) {
 				currentState = state;
 				agent.notify(currentState, super.getProcessJmxUrl());
