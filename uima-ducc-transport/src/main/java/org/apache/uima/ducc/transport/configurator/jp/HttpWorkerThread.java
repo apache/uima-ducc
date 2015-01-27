@@ -90,6 +90,17 @@ public class HttpWorkerThread implements Runnable {
 	   		logger.error("HttpWorkerThread.run()", null, t);
 	   		System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
+	   		logger.warn("HttpWorkerThread.run()", null, "The Job Process Terminating Due To Initialization Error");
+			/* *****************************************/
+			/* *****************************************/
+			/* *****************************************/
+        	/*       EXITING  PROCESS ON FIRST ERROR   */
+			/* *****************************************/
+	   		System.exit(1);
+			/* *****************************************/
+			/* *****************************************/
+			/* *****************************************/
+			/* *****************************************/
 	   		return;  // non-recovorable error
 	   	} finally {
 			// count down the latch. Once all threads deploy and initialize their analytics the processing
