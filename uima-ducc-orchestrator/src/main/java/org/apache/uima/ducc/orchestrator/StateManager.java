@@ -1437,8 +1437,8 @@ public class StateManager {
 		if(!job.isInitialized()) {
 			int failures = job.getFailedUnexpectedProcessCount();
 			if(failures >= MAX_INIT_FAILURES) {
-				jobTerminate(job, JobCompletionType.DriverInitializationFailure, new Rationale("job driver initialization failures limit reached:"+MAX_INIT_FAILURES), ProcessDeallocationType.FailedInitialization);
-				logger.debug(location, job.getDuccId(), JobCompletionType.DriverInitializationFailure);
+				jobTerminate(job, JobCompletionType.ProcessInitializationFailure, new Rationale("first job process failed prior to successful initialization"), ProcessDeallocationType.FailedInitialization);
+				logger.debug(location, job.getDuccId(), JobCompletionType.ProcessInitializationFailure);
 			}
 		}
 	}
