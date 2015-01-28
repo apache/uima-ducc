@@ -297,6 +297,9 @@ class DuccUtil(DuccBase):
         if ( self.system == 'Darwin' ):
             return ret                 # on mac, just use what you have
 
+        proclimit = 20000
+        filelimit = 8192
+
         (softnproc , hardnproc)  = resource.getrlimit(resource.RLIMIT_NPROC)
         (softnfiles, hardnfiles)  = resource.getrlimit(resource.RLIMIT_NOFILE)
         if ( softnproc < hardnproc ):
