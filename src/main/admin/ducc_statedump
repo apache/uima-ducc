@@ -23,7 +23,6 @@ import getopt
 import json
 
 from ducc_util import DuccUtil
-from ducc_base import DuccProperties
 
 class DuccStateListener(DuccUtil):
 

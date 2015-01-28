@@ -42,9 +42,9 @@ import Queue
 DUCC_HOME = os.path.abspath(__file__ + '/../../..')
 sys.path.append(DUCC_HOME + '/admin')
 
-from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc      import Ducc
+from ducc_util  import DuccUtil
+from properties import Properties
+from ducc       import Ducc
 
 class DuccProcess(Thread):
     def __init__(self, runner, jobfile):
@@ -309,7 +309,7 @@ class ServiceStarter(DuccUtil):
         else:
             plain_broker_url = self.broker_protocol + '://' + self.broker_host + ':' + self.broker_port
 
-        props = DuccProperties()
+        props = Properties()
         props.put('description', 'Test Service ' + svcid)
         props.put('process_DD', self.DUCC_HOME + '/examples/simple/resources/service/Service_FixedSleep_' + svcid + '.xml')
         props.put('process_memory_size', '15')
@@ -349,7 +349,7 @@ class ServiceStarter(DuccUtil):
     def start_services(self, svcfile):
         os.environ['USER'] = os.environ['LOGNAME']        # make sure I'm me - after submit may not be
 
-        svcprops = DuccProperties()
+        svcprops = Properties()
         svcprops.load(svcfile)
 
         all_services = {}

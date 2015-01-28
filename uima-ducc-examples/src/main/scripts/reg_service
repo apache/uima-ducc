@@ -26,8 +26,8 @@ import getopt
 DUCC_HOME = os.path.abspath(__file__ + '/../../..')
 sys.path.append(DUCC_HOME + '/admin')
 
-from ducc_util import DuccUtil
-from ducc_util import DuccProperties
+from ducc_util  import DuccUtil
+from properties import Properties
 
 class RegService(DuccUtil):
 
@@ -75,7 +75,7 @@ class RegService(DuccUtil):
         svcid = None
         outfile = None
         instances = 1
-        props = DuccProperties()
+        props = Properties()
         description = None
 
         if ( len(argv) == 0 ):
@@ -87,7 +87,7 @@ class RegService(DuccUtil):
                 svcid = a
             elif o in ('-f', '--file'):
                 outfile = a
-                props = DuccProperties()
+                props = Properties()
             elif o in ('-n', '--instances'):
                 instances = int(a)
             elif o in ('--description'):

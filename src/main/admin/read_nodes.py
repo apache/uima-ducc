@@ -23,7 +23,6 @@ import os
 import sys
 
 from ducc_util import DuccUtil
-from ducc_base import DuccProperties
 
 #
 # Read the ducc node list and spew to stdout - handles comments, imports, etc.

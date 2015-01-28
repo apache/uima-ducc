@@ -27,174 +27,25 @@ import re
 import zipfile
 import platform
 
-class DuccPropertiesException(Exception):
-    def __init__(self, msg):
-        self.msg = msg
+from properties import *
 
-    def __str__(self):
-        return repr(self.msg)
+def find_ducc_home():
+    # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
+    me = os.path.abspath(__file__)    
+    ndx = me.rindex('/')
+    ndx = me.rindex('/', 0, ndx)
+    DUCC_HOME = me[:ndx]          # split from 0 to ndx
+    return DUCC_HOME
 
-class DuccProperties:
-    def __init__(self):
-        self.props = {}
-        self.builtin = {}
+def find_localhost():
+    return os.uname()[1]                
 
-        #
-        # Create builtins corresponding to some of the java properties.
-        #
-        # We allow expansion on java system properties.  It's obviously not possible to
-        # do most of them but these guys may have a use e.g. to put ducc_ling into
-        # architecture-specific places.
-        #
-        # is there a better way?  these three platforms have totally different views of
-        # who they are.  
-        #
-        (system, node, release, version, machine, processor) = platform.uname()
-        if ( system == 'Darwin' ):
-            self.builtin['os.arch'] = 'x86_64'
-            self.builtin['os.name'] = 'Mac OS X'
-        elif ( system == 'Linux' ):
-            if ( machine == 'ppc64' ):
-                self.builtin['os.arch'] = 'ppc64'
-                self.builtin['os.name'] = 'Linux'
-            elif ( machine == 'x86_64' ):
-                self.builtin['os.arch'] = 'amd64'
-                self.builtin['os.name'] = 'Linux'
+def which(file):
+    for p in os.environ["PATH"].split(":"):
+        if os.path.exists(p + "/" + file):
+            return p + "/" + file            
+    return None
 
-
-    #
-    # Expand all ${} values from env or from this properties file itself
-    # The search order is:
-    #    1 look in this properties file
-    #    2 look in the environment
-    #
-    def do_subst(self, st):
-        key = None
-        p = re.compile("\\$\\{[a-zA-Z0-9_\\.\\-]+\\}")
-        ndx = 0
-        response = st.strip()
-        m = p.search(response, ndx)    
-        while ( m != None ):
-            key = m.group()[2:-1]
-            
-            val = None
-            if ( self.has_key(key) ):
-                val = self.get(key)
-            elif (self.builtin.has_key(key) ):
-                val = self.builtin[key]
-
-            if ( val != None ):    
-                response = string.replace(response, m.group() , val)
-            ndx = m.start()+1
-            m = p.search(response, ndx)
-        
-        return response
-
-    def mkitem(self, line):
-        ndx = line.find('#')   # remove comments - like the java DuccProperties
-        if ( ndx >= 0 ):
-            line = line[0:ndx]     # strip the comment
-        ndx = line.find('//')   # remove comments - like the java DuccProperties
-        if ( ndx >= 0 ):
-            line = line[0:ndx]     # strip the comment
-        line = line.strip()    # clear leading and trailing whitespace
-        if ( line == '' ):     # empty line?
-            return
-
-        mobj = re.search('[ =:]+', line)
-        if ( mobj ):
-            key = line[:mobj.start()].strip()
-            val = line[mobj.end():].strip()
-            #print 'NEXT', mobj.start(), 'END', mobj.end(), 'KEY', key, 'VAL', val
-            # val = self.do_subst(val)   # we'll do lazy subst on get instead
-            self.props[key] = val
-        else:
-            self.props[line] = None
-
-    #
-    # Load reads a properties file and adds it contents to the
-    # hash.  It may be called several times; each call updates
-    # the internal has, thus building it up.  The input file is
-    # in the form of a java-like properties file.
-    #
-    def load(self, propsfile, ducchome=None):
-        if ( not os.path.exists(propsfile) ):
-            raise DuccPropertiesException(propsfile +  ' does not exist and cannot be loaded.')
-
-        if (ducchome != None):
-            self.props['DUCC_HOME'] = ducchome
-        f = open(propsfile);
-        for line in f:
-            self.mkitem(line.strip())
-        f.close()
-
-    def load_from_manifest(self, jarfile):
-        z = zipfile.ZipFile(jarfile)
-        items = z.read('META-INF/MANIFEST.MF').split('\n')
-        for item in items:
-            self.mkitem(item)
-
-    #
-    # Try to load a properties file.  Just be silent if it doesn't exist.
-    #
-    def load_if_exists(self, propsfile):
-        if ( os.path.exists(propsfile) ):
-            return self.load(propsfile)
-        
-    #
-    # Put something into the hash.
-    #
-    def put(self, key, value):
-        self.props[key] = value
-
-    #
-    # Get something from the hash.
-    #
-    def get(self, key):
-        if ( self.props.has_key(key) ):
-            return self.do_subst(self.props[key])   # we'll do lazy subst on get instead
-        return None
-
-    #
-    # Remove an item if it exists
-    #
-    def delete(self, key):
-        if ( self.props.has_key(key) ):
-            del self.props[key]
-    #
-    # Write the has as a Java-like properties file
-    #
-    def write(self, propsfile):
-        f = open(propsfile, 'w')
-        items = self.props.items()
-        for (k, v) in items:
-            #print 'WRITING', k, '=', v
-            f.write(k + ' = ' + str(v) + '\n')
-        f.close()
-
-    #
-    # return a shallow copy of the dictionary
-    #
-    def copy_dictionary(self):
-        return self.props.copy()
-
-    #
-    # return the entries in the dictionary
-    #
-    def items(self):
-        return self.props.items()
-
-    #
-    # check to see if the key exists in the dictionary
-    #
-    def has_key(self, key):
-        return self.props.has_key(key)
-
-    #
-    # Return the length of the dictionary
-    #
-    def __len__(self):
-        return len(self.props)
     
 class DuccBase:
 
@@ -203,8 +54,10 @@ class DuccBase:
         if ( self.do_merge ):
             self.merge_properties()
 
-        self.ducc_properties = DuccProperties()
-        self.ducc_properties.load(self.propsfile, self.DUCC_HOME)
+        self.ducc_properties = Properties()
+        self.ducc_properties.put('ducc.home', self.DUCC_HOME)
+        self.ducc_properties.put('DUCC_HOME', self.DUCC_HOME)
+        self.ducc_properties.load(self.propsfile)
 
         self.webserver_node = self.ducc_properties.get('ducc.ws.node')
         self.jvm            = self.ducc_properties.get('ducc.jvm')
@@ -262,12 +115,6 @@ class DuccBase:
         CLASSPATH = LIB + '/ducc-submit.jar'
         os.environ['CLASSPATH'] = CLASSPATH
 
-    def which(self, file):
-        for p in os.environ["PATH"].split(":"):
-            if os.path.exists(p + "/" + file):
-                return p + "/" + file            
-        return None
-
     def mkargs(self, args):
         '''
             The cli needs to insure all args are fully quoted so the shell doesn't
@@ -280,20 +127,15 @@ class DuccBase:
         return answer
 
     def __init__(self, merge=False):
+        self.DUCC_HOME = find_ducc_home()
         self.do_merge = merge
         self.ducc_properties = None
-
-        # Infer DUCC_HOME from our location - no longer use a (possibly inaccurate) environment variable
-        me = os.path.abspath(__file__)    
-        ndx = me.rindex('/')
-        ndx = me.rindex('/', 0, ndx)
-        self.DUCC_HOME = me[:ndx]          # split from 0 to ndx
 
         self.system = platform.system()
         self.jvm = None
         self.webserver_node = 'localhost'
         self.propsfile = self.DUCC_HOME + '/resources/ducc.properties'
-        self.localhost = os.uname()[1]                
+        self.localhost = find_localhost()
 
         self.read_properties()       
 

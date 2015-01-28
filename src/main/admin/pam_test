@@ -22,7 +22,6 @@ import getpass
 import os
 
 from ducc_util import DuccUtil
-from ducc_base import DuccProperties
 
 class PamTest(DuccUtil):
 

@@ -48,9 +48,9 @@ import random
 DUCC_HOME = os.path.abspath(__file__ + '/../../..')
 sys.path.append(DUCC_HOME + '/admin')
 
-from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc      import Ducc
+from ducc_util  import DuccUtil
+from properties import Properties
+from ducc       import Ducc
 
 class Prepare(DuccUtil):
 
@@ -206,7 +206,7 @@ class Prepare(DuccUtil):
         ndx = 0
         allfiles = []
         for f in files:
-            props = DuccProperties()
+            props = Properties()
             props.load(self.srcdir + '/' + f)
             cls_assignment = class_assignments[ndx]
 
@@ -263,7 +263,7 @@ class Prepare(DuccUtil):
             self.usage(None)
 
         self.testdir = os.path.dirname(inprops)
-        props = DuccProperties()
+        props = Properties()
         props.load(inprops)
 
         self.srcdir       = self.testdir + '/' + props.get('src.dir')

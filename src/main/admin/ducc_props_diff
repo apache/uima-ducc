@@ -24,7 +24,7 @@ import sys
 import getopt
 
 from ducc_util import DuccUtil
-from ducc_base import DuccProperties
+from properties import Properties
 from ducc import Ducc
 
 class PropsDiff(DuccUtil):
@@ -46,9 +46,9 @@ class PropsDiff(DuccUtil):
         if ( (len(argv) != 1) or (argv[0] == '-h') or (argv[0] == '-?') ):
             self.usage(None)
         
-        diffs = DuccProperties()
+        diffs = Properties()
 
-        foreign = DuccProperties();
+        foreign = Properties();
         try:
             foreign.load(argv[0])
         except:

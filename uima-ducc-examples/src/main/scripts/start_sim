@@ -39,10 +39,10 @@ import Queue
 DUCC_HOME = os.path.abspath(__file__ + '/../../..')
 sys.path.append(DUCC_HOME + '/admin')
 
-from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc import Ducc
-from ducc_util import ThreadPool
+from ducc_util  import DuccUtil
+from properties import Properties
+from ducc       import Ducc
+from ducc_util  import ThreadPool
 
 
 class StartSim(DuccUtil):
@@ -185,7 +185,7 @@ class StartSim(DuccUtil):
             print 'Starting instances:', instances
 
         print "Starting from nodes in", nodelist
-        props = DuccProperties()
+        props = Properties()
         props.load(nodelist)
 
         # first parse the node config into a list of tuples describing the simulated nodes
@@ -352,7 +352,7 @@ class StartSim(DuccUtil):
             else:
                 self.invalid('bad args: ', ' '.join(argv))
 
-        self.pids = DuccProperties()
+        self.pids = Properties()
         self.ducc = Ducc()
 
         if ( not self.verify_jvm() ):

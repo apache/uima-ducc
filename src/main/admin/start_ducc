@@ -27,7 +27,7 @@ import threading
 import traceback
 
 from ducc_util import DuccUtil
-from ducc_base  import DuccProperties
+from properties import Properties
 from local_hooks import verify_slave_node
 from local_hooks import verify_master_node
 from ducc        import Ducc
@@ -235,7 +235,7 @@ class StartDucc(DuccUtil):
         components = []
         single_user = False
         or_parms = self.ducc_properties.get('ducc.orchestrator.start.type')
-        self.pids = DuccProperties()
+        self.pids = Properties()
         self.pids.load_if_exists(self.pid_file)
         
         try:

@@ -21,14 +21,22 @@
 
 import os
 import sys
+import getopt
+
 import shutil
 import subprocess
 
 from ducc_util import DuccUtil
-from ducc_base import DuccProperties
+from ducc_base import Properties
+from ducc_base import Property
+
+from ducc_base import find_ducc_home
+from ducc_base import find_localhost
+from ducc_base import which
+
 from ducc import Ducc
 
-class PostInstall(DuccUtil):
+class PostInstall():
 
     def usage(self, msg):
 
@@ -37,28 +45,21 @@ class PostInstall(DuccUtil):
 
               
         print "Usage:"
-        print "   stop_sim [options]"   
-        print "        If no options are given, all ducc processes from sim.pids are stopped using SIGINT"
+        print "   ducc_post_install [options]"
+        print "        If no options prompts are given for expected parameters."
         print ""
         print "Options:"
-        print "   -c --component compenent name"
-        print "        The name is one of", self.default_components, "or an ID from sim.pids or the nodelist"
-        print "        that was used to start DUCC"
+        print "   [-n, --head-node] <ducc head node>"
+        print "        This is the name of the host that will run the DUCC management processes."
         print ""
-        print "   -i --instance instancid"  
-        print "        Sends SIGINT to the indicated process, enabling orderly shutdown."
+        print "   [-k, --keystore] <webserver keystore password>"
+        print "        This is the password to be used to establish the webserver's keystore."
         print ""
-        print "   -k --kill"
-        print "        Sends SIGKILL to the indicated process"
+        print "   [-j, --jvm] <path to java executable>"
+        print "        This is the full path to java command to be used to start DUCC; e.g., /usr/bin/java"
         print ""
-        print "   -p --pause"
-        print "        Sends SIGSTOP to the indicated process"
-        print ""
-        print "   -r --resume"
-        print "        Sends SIGCONT to the indicated process"
-        print ""
-        print "   -v, --version"
-        print "        Print the current DUCC version"
+        print "   [-h, -? --help]"
+        print "        Prints this message."
         print ""
         sys.exit(1) 
             
@@ -76,6 +77,22 @@ class PostInstall(DuccUtil):
         print 'WARNING'
         print ''
 
+    def get_keystore_pw(self, prompt):
+
+        if ( self.keystore_pw == None ):
+            reply = ''
+            while ( reply == self.default_keystore_pw or reply == '' or reply == prompt):
+                reply = raw_input('Enter password for webserver keystore:')
+                if ( reply == self.default_keystore_pw):
+                    print 'May not use the preconfigured password of', reply
+                if ( reply == prompt ):
+                    print 'Please enter a different password', reply
+        else:    
+            reply = self.keystore_pw
+
+        return reply
+
+
     def create_keystore(self, keytool):
 
         '''
@@ -91,74 +108,67 @@ class PostInstall(DuccUtil):
         cmd = 'rm ' + keystore
         os.system(cmd);
 
-        pw  = self.ducc_private_properties.get('ducc.ws.port.ssl.pw')
-        if ( pw == 'quackquack' ):
-            print self.warn('The default ssl pw of ', pw, ' is configured. For security, change the property \n\tducc.ws.port.ssl.pw to a secure password in ducc.properties and rerun ducc_post_install.')
-
-
         #/usr/bin/keytool
-        cmd = keytool
-        cmd += ' '
-        cmd += '-genkey'
-        cmd += ' '
-        cmd += '-noprompt'
-        cmd += ' '
-        cmd += '-alias jetty'
-        cmd += ' '
-        cmd += '-dname "CN=org.apache.uima.ducc, OU=uima.ducc, O=Apache, L=Wilmington, S=Delaware, C=USA"'
-        cmd += ' '
-        cmd += '-keyalg RSA'
-        cmd += ' '
-        cmd += '-validity 10000'
-        cmd += ' '
-        cmd += '-keystore ' + keystore
-        cmd += ' '
-        cmd += '-storepass '+pw
-        cmd += ' '
-        cmd += '-keypass '+pw
-        os.system(cmd);
-        print 'keystore created.'
+        keystore_key = 'ducc.ws.port.ssl.pw'
+        self.default_keystore_prop = self.ducc_private_properties.get_property(keystore_key)
+        self.default_keystore_pw = self.default_keystore_prop.k
+
+        rc = 1
+        reply = ''
+        while ( rc != 0 ):
+            reply = self.get_keystore_pw(reply)
+
+            cmd = keytool
+            cmd += ' '
+            cmd += '-genkey'
+            cmd += ' '
+            cmd += '-noprompt'
+            cmd += ' '
+            cmd += '-alias jetty'
+            cmd += ' '
+            cmd += '-dname "CN=org.apache.uima.ducc, OU=uima.ducc, O=Apache, L=Wilmington, S=Delaware, C=USA"'
+            cmd += ' '
+            cmd += '-keyalg RSA'
+            cmd += ' '
+            cmd += '-validity 10000'
+            cmd += ' '
+            cmd += '-keystore ' + keystore
+            cmd += ' '
+            cmd += '-storepass '+ reply
+            cmd += ' '
+            cmd += '-keypass '+ reply
+            rc = os.system(cmd);
+
+        self.default_keystore_prop.v = reply
+        print 'keystore created as', reply
             
 
     # Setup and verify amq
     # make sure verify_ducc is sufficient - maybe move some checks to there?
 
     def update_property(self, key, val, comment):
-        self.ducc_properties.put(key, val)
-        propsfile = self.DUCC_HOME + "/resources/ducc.properties"
-        tmp_propsfile = self.DUCC_HOME + "/resources/ducc.properties.tmp"
-        f = open(propsfile)
-        tf = open(tmp_propsfile, "w")
-        for line in f:
-            l = line.strip()
-            if ( l.startswith(key) ):
-                tf.write('# ' + comment + '\n')
-                tf.write(key + ' = ' + val + '\n')
-            else:
-                tf.write(line);
-
-        f.close()
-        tf.close()
-        os.rename(propsfile, propsfile + ".orig")
-        os.rename(tmp_propsfile, propsfile)
-        self.read_properties()          # force re-eval with new property        
+        self.ducc_site_properties.put(key, val, [comment])
 
     def get_java_bindir(self):
 
-        java = self.java()
-        if ( java == '<full-path-to-java-command>' ):
-            java = self.which('java')
-            if ( java == None ):
-                self.fail("Cannot find Java. The path to java must be configured in ducc.properties as property", 'ducc.jvm')
-            else:
-                self.update_property('ducc.jvm', java, 'The full path to java')
-                print 'Initialized property "ducc.jvm" to', java
+        if ( self.path_to_java == None ):
 
-        if ( not java.startswith('/') ):
-            self.fail("THe java path in property ducc.jvm must be absolute.")
+            self.path_to_java = which('java')
+            if ( self.path_to_java == None ):
+                while ( reply == '' ):
+                    reply = raw_input('Enter full path to the Java binary directory: ')
+            else:
+                prompt = '[' + self.path_to_java + ']'
+                reply = raw_input('Enter full path to the Java binary directory: ' + prompt)
+
+            if ( reply != '' ):       
+                self.path_to_java = reply
+
+        self.update_property('ducc.jvm', self.path_to_java, '# The full path to java')
+        print 'Initialized property "ducc.jvm" to', self.path_to_java
 
         # We're going to do more checks here so we don't proceed with bogosities
-        proc = subprocess.Popen(java + ' -version', shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        proc = subprocess.Popen(self.path_to_java + ' -version', shell=True, bufsize=0, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         lines = []
         for  line in proc.stdout:
             lines.append(line.strip())
@@ -172,9 +182,9 @@ class PostInstall(DuccUtil):
         self.java_version = vertoks[-1]
 
         if ( rc != 0 ):
-            self.fail("Configured java at '", java, "' is incorrect.")
+            self.fail("Requested java at '" + self.path_to_java +"' cannot be run.")
 
-        return os.path.dirname(java)
+        return os.path.dirname(self.path_to_java)
 
     def get_java_version(self):
         return self.java_version
@@ -187,47 +197,92 @@ class PostInstall(DuccUtil):
 
     def check_nodes(self):
         nodes = self.DUCC_HOME + "/resources/ducc.nodes"
-        if ( not os.path.exists(nodes) ):
-            nf = open(nodes, 'w')
-            nf.write(self.localhost)
-            nf.close()
-            print "Initial", nodes, "created."
-        else:
-            print "Verified existence of default nodefile " + nodes
-            print ''
+        self.mkbackup(nodes)
+
+        nf = open(nodes, 'w')
+        nf.write(self.localhost)
+        nf.close()
+        print "Initial", nodes, "created."
             
         jdnodes = self.DUCC_HOME +  "/resources/jobdriver.nodes"
-        if ( not os.path.exists(jdnodes) ):
-            rn = open(jdnodes, "w")
-            rn.write(self.localhost)
-            rn.close()
-            print "Initial nodepool", jdnodes, "created.\n"
-        else:
-            print "Verified existence of default JobDriver nodepool " + jdnodes
-            print ''
+        self.mkbackup(jdnodes)
+
+        rn = open(jdnodes, "w")
+        rn.write(self.localhost)
+        rn.close()
+        print "Initial nodepool", jdnodes, "created.\n"
         
 
-    def check_activemq(self):
-        if ( self.automanage ):             # the default
-            print 'ActiveMQ is automanaged on node ', self.broker_url
-        else:
-            print 'ActiveMQ is managed by the installation and is not verified.'
+    def merge_properties(self):
+        # first task, always, merge the properties so subsequent code can depend on their validity.
+        base_props = self.DUCC_HOME + '/resources/default.ducc.properties'
+        site_props = self.DUCC_HOME + '/resources/site.ducc.properties'
+        run_props = self.DUCC_HOME + '/resources/ducc.properties'
+        merger = self.DUCC_HOME + '/admin/ducc_props_manager'
+        CMD = [merger, '--merge', base_props, '--with', site_props, '--to', run_props]
+        CMD = ' '.join(CMD)
+        print 'Merging', base_props, 'with', site_props, 'into', run_props
+        os.system(CMD)
             
     def setup_ducc_head(self):
-        ducc_head = self.ducc_properties.get('ducc.head')
-        if ( ducc_head == '<head-node>' ):
-            ducc_head = self.localhost
-            self.update_property('ducc.head', ducc_head, "ducc.head is the node where the main DUCC daemons run");
 
-        print "Ducc head is configured as", ducc_head, '\n'        
+        if ( self.ducc_head == None ):
+            self.ducc_head = self.localhost
+            reply = raw_input('Enter hostname of DUCC hoead[' + self.ducc_head + ']')
+            if ( reply != '' ):
+                self.ducc_head = reply
 
-    def main(self, args):                    
+        self.update_property('ducc.head', self.ducc_head, "# ducc.head is the node where the main DUCC daemons run");
+
+        print "Ducc head is configured as", self.ducc_head, '\n'        
+
+    def mkbackup(self, fn):
+        if ( os.path.exists(fn) ):
+            bak = fn + '.bak'
+            shutil.move(fn, bak)
+            print 'Existing', fn, 'moved to', bak
+    
+    def main(self, argv):                    
+
+        self.ducc_head = None
+        self.keystore_pw = None
+        self.path_to_java = None
+
+        try:
+            opts, args = getopt.getopt(argv, 'j:k:n:h?', ['jvm=', 'keystore=', 'head-node=', 'help'])
+        except:
+            self.usage("Invalid arguments " + ' '.join(argv))
+
+
+        for ( o, a ) in opts:
+            if o in ('-n', '--head-node'):
+                self.ducc_head = a
+            if o in ('-k', '--keystore'):
+                self.keystore_pw = a
+            if o in ('-j', '--jvm'):
+                self.path_to_java = a
+            elif o in ('-h', '-?', '--help'):
+                self.usage(None)
+        
+        self.DUCC_HOME = find_ducc_home()
+        self.localhost = find_localhost()
+
+        print 'Using DUCC HOME:', self.DUCC_HOME, '\n'
+        resources = self.DUCC_HOME + '/resources'
+        self.site_properties_name = resources + '/site.ducc.properties'
+        self.ducc_properties = resources + '/ducc.properties'
+
+        self.mkbackup(self.site_properties_name)
+        self.mkbackup(self.ducc_properties)
 
         print 'Python version:'
         print sys.version
 
-        self.ducc_private_properties = DuccProperties()
-        self.ducc_private_properties.load(self.DUCC_HOME + '/resources.private/ducc.private.properties')
+        keystore_properties_name = self.DUCC_HOME + '/resources.private/ducc.private.properties'
+        self.ducc_private_properties = Properties()
+        self.ducc_private_properties.load(keystore_properties_name)
+
+        self.ducc_site_properties = Properties()
 
         py_version = sys.version_info
         if ( (py_version[0] != 2) or (py_version[1] < 4) ):
@@ -235,7 +290,9 @@ class PostInstall(DuccUtil):
 
         self.setup_ducc_head()
         self.check_nodes()
-        self.check_activemq()
+
+        # As of DUCC 2.0, always set here on installation
+        print 'ActiveMQ is automanaged on node ', self.localhost
 
         statedir = self.DUCC_HOME + "/state"
         logdir = self.DUCC_HOME + "/logs"
@@ -271,9 +328,12 @@ class PostInstall(DuccUtil):
         os.chmod(self.DUCC_HOME + '/admin/ducc_ling', 0755)
         print 'Initial ducc_ling is installed.  See the installation guide for multi-user setup.'
 
-        amqhome = self.ducc_properties.get('ducc.broker.home')
-        os.chdir(amqhome + '/bin')
-        os.system("sed -i.bak 's/\r//' activemq")
+        self.ducc_private_properties.write(keystore_properties_name)
+        self.ducc_site_properties.write(self.site_properties_name)
+        self.merge_properties()
+        #amqhome = self.ducc_head
+        #os.chdir(amqhome + '/bin')
+        # os.system("sed -i.bak 's/\r//' activemq")
 
         os.chdir(here)
 

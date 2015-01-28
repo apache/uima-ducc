@@ -30,15 +30,16 @@ sys.path.append(DUCC_HOME + '/admin')
 
 import getopt
 
-from ducc_util import DuccUtil
-from ducc_util import DuccProperties
-from ducc import Ducc
-from ducc_util import ThreadPool
+from ducc_util  import DuccUtil
+from properties import Properties
+from ducc       import Ducc
+from ducc_util  import ThreadPool
 
 class StopSim(DuccUtil):
 
     def signal_process(self, args):
-        inst, data, signal = args
+        inst, data_prop, signal = args
+        data = data_prop.v
         (node, pid, pname) = data.split(' ')
 
         msgs = []
@@ -129,7 +130,7 @@ class StopSim(DuccUtil):
             else:
                 self.invalid('bad args: ', ' '.join(argv))
 
-        pids = DuccProperties()
+        pids = Properties()
         pids.load('sim.pids')
 
         self.threadpool = ThreadPool(50)

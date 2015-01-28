@@ -26,7 +26,7 @@ import getopt
 import signal
 
 from ducc_util import DuccUtil
-from ducc_base  import DuccProperties
+from properties  import Properties
 from local_hooks import verify_slave_node
 from local_hooks import verify_master_node
 
@@ -34,7 +34,6 @@ from local_hooks import verify_master_node
 from ducc_util import ThreadPool
 
 class CheckDucc(DuccUtil):
-
 
     def __init__(self):
         DuccUtil.__init__(self)
@@ -268,7 +267,7 @@ class CheckDucc(DuccUtil):
             print 'ActiveMQ broker is not running on', self.broker_protocol + "://" + self.broker_host + ':' + self.broker_port
 
         # init the PID file
-        self.pids = DuccProperties()
+        self.pids = Properties()
         self.pids.load_if_exists(self.pid_file)
 
         # read the nodelists
