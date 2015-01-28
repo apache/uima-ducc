@@ -47,7 +47,7 @@ DUCC_HOME = me[:ndx]          # split from 0 to ndx
     
 sys.path.append(DUCC_HOME + '/bin')
 from ducc_base import DuccBase
-from ducc_base import DuccProperties
+from properties import Properties
 
 global use_threading
 use_threading = True
@@ -121,7 +121,7 @@ class DuccUtil(DuccBase):
         if ( self.ducc_properties == None ):
             DuccBase.read_properties(self)
 
-        self.duccling       = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
+        self.duccling          = self.ducc_properties.get('ducc.agent.launcher.ducc_spawn_path')
 
         # self.broker_url     = self.ducc_properties.get('ducc.broker.url')
         self.broker_protocol   = self.ducc_properties.get('ducc.broker.protocol')
@@ -294,9 +294,11 @@ class DuccUtil(DuccBase):
 
     def verify_limits(self):
         ret = True
+        if ( self.system == 'Darwin' ):
+            return ret                 # on mac, just use what you have
+
         (softnproc , hardnproc)  = resource.getrlimit(resource.RLIMIT_NPROC)
         (softnfiles, hardnfiles)  = resource.getrlimit(resource.RLIMIT_NOFILE)
-        
         if ( softnproc < hardnproc ):
             try:
                 resource.setrlimit(resource.RLIMIT_NPROC, (hardnproc, hardnproc))
@@ -314,11 +316,11 @@ class DuccUtil(DuccBase):
         (softnproc , hardnproc)  = resource.getrlimit(resource.RLIMIT_NPROC)
         (softnfiles, hardnfiles)  = resource.getrlimit(resource.RLIMIT_NOFILE)
         
-        if ( softnproc < 20000 ):
-            print 'WARN: Soft limit RLIMIT_NPROC is too small (< 20000).  DUCC may be unable to create sufficient threads.'
+        if ( softnproc < proclimit ):
+            print 'WARN: Soft limit RLIMIT_NPROC is too small at', softnproc, '(<', proclimit, ' ).  DUCC may be unable to create sufficient threads.'
 
-        if ( softnproc < 8192 ):
-            print 'WARN: Soft limit RLIMIT_NOFILES is too small (< 8192).  DUCC may be unable to open sufficient files or sockets.'
+        if ( softnfiles < filelimit ):
+            print 'WARN: Soft limit RLIMIT_NOFILES is too small at', softnfiles, '(<', filelimit, ').  DUCC may be unable to open sufficient files or sockets.'
 
         return ret
 
@@ -573,9 +575,10 @@ class DuccUtil(DuccBase):
                 check_java = False
 
         if ( check_java ):
+            print 'JVM:', jvm
             lines = self.popen(jvm + ' -fullversion')
             for line in lines:
-                response.append('ENV: ' + line.strip())
+                response.append('ENV ' + line.strip())
                 
 
         response.append('ENV: Threading enabled: ' + str(use_threading))
@@ -583,7 +586,7 @@ class DuccUtil(DuccBase):
         # Get the total memory for the node
         #
         if ( self.system != 'Darwin' ):
-            meminfo = DuccProperties()
+            meminfo = Properties()
             meminfo.load('/proc/meminfo')
             mem = meminfo.get('MemTotal')
             if ( mem.endswith('kB') ):

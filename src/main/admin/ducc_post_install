@@ -262,7 +262,7 @@ class PostInstall():
             if o in ('-j', '--jvm'):
                 self.path_to_java = a
             elif o in ('-h', '-?', '--help'):
-                self.usage(None)
+                usage(None)
         
         self.DUCC_HOME = find_ducc_home()
         self.localhost = find_localhost()
