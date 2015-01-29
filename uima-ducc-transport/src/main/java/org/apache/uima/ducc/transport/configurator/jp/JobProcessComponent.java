@@ -171,7 +171,7 @@ implements IJobProcessor{
                 }
 				Properties props = new Properties();
 				// Using java reflection, initialize instance of IProcessContainer
-				Method initMethod = processorInstance.getClass().
+				Method initMethod = processorInstance.getClass().getSuperclass().
 						getDeclaredMethod("initialize", Properties.class, String[].class);
 				int scaleout = (Integer)initMethod.invoke(processorInstance, props, jpArgs);
 				
@@ -256,15 +256,18 @@ implements IJobProcessor{
 			    	Method useThreadAffinityMethod = processorInstance.getClass().getDeclaredMethod("useThreadAffinity");	
 					boolean useThreadAffinity =
 							(Boolean)useThreadAffinityMethod.invoke(processorInstance);
+					// if the container has thread affinity, the stop method must be
+					// called by the same thread that called initialize() and process().
+					// Such container's stop() is called in the Worker Thread.
 					if ( !useThreadAffinity) {
-						Method deployMethod = processorInstance.getClass().getDeclaredMethod("stop");
-						deployMethod.invoke(processorInstance);
+						Method stopMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("stop");
+						stopMethod.invoke(processorInstance);
 					}
 			    	
 			    	
 			    	// Stop process container
-					Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
-					stopMethod.invoke(processorInstance);
+					//Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
+					//stopMethod.invoke(processorInstance);
 		    	}
 				stop();
 		    }

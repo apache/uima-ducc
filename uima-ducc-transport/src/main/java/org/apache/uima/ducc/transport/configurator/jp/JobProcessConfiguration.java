@@ -94,19 +94,6 @@ public class JobProcessConfiguration {
 			Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT,
 					Throwable.class);
 			caused.printStackTrace();
-			// System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
-			// assertNotNull(caused);
-			// here you can do what you want, but Camel regard this exception as
-			// handled, and
-			// this processor as a failurehandler, so it wont do redeliveries.
-			// So this is the
-			// end of this route. But if we want to route it somewhere we can
-			// just get a
-			// producer template and send it.
-
-			// send it to our mock endpoint
-			// exchange.getContext().createProducerTemplate().send("mock:myerror",
-			// exchange);
 		}
 	}
 
@@ -123,10 +110,10 @@ public class JobProcessConfiguration {
 					.getProperty(FlagsHelper.Name.JpType.pname());
 			if (jobType.trim().equals("uima-as")) {
 				uimaAsJob = true;
-			} else if (!jobType.trim().equals("uima")) {
+			} else if (!jobType.trim().equals("uima") && !jobType.trim().equals("custom")) {
 				throw new RuntimeException("Invalid value for -D"
 						+ FlagsHelper.Name.JpType.pname()
-						+ ". Expected uima-as or uima, Instead it is "
+						+ ". Expected uima-as,uima or custom, Instead it is "
 						+ jobType);
 			}
 		}

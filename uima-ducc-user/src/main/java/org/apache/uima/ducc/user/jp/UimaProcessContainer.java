@@ -20,7 +20,6 @@
 package org.apache.uima.ducc.user.jp;
 
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,9 +36,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
-import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 import org.apache.uima.ducc.user.common.UimaUtils;
-import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThreadAffinity;
 import org.apache.uima.impl.UimaVersion;
 import org.apache.uima.resource.Resource;
@@ -50,12 +47,10 @@ import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 
 
-public class UimaProcessContainer extends AbstractProcessContainer
-implements IProcessContainer {
+public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
-	private DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
-   // private Object xstreamInstance=null;
-   // private Method toXMLMethod = null;
+//	private DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
+
     
 	Semaphore sharedInitSemaphore = new Semaphore(1);
 	// this map enforces thread affinity to specific thread. Needed to make
@@ -65,11 +60,6 @@ implements IProcessContainer {
 	AnalysisEngineMetaData analysisEngineMetadata;
    
 	private static CasPool casPool = null;
-//	  /**
-//	   * Set to true if we can find the required JMX classes and methods
-//	   */
-	  private static boolean jmxAvailable;
-//
 	  AtomicInteger counter = new AtomicInteger();
 	  private String analysisEngineDescriptor=null;
 	  private static CountDownLatch latch = new CountDownLatch(1);
@@ -78,26 +68,7 @@ implements IProcessContainer {
 	   */
 	  private static Object platformMBeanServer;
 
-	  /** Get class/method handles */
 	  static {
-	    try {
-	      Class<?> mbeanServerClass = Class.forName("javax.management.MBeanServer");
-	      Class<?> objectNameClass = Class.forName("javax.management.ObjectName");
-	      Constructor<?> objectNameConstructor = objectNameClass.getConstructor(new Class[] { String.class });
-	      Method isRegistered = mbeanServerClass.getMethod("isRegistered", new Class[] { objectNameClass });
-	      Method registerMBean = mbeanServerClass.getMethod("registerMBean", new Class[] { Object.class,
-	          objectNameClass });
-	      Method unregisterMBean = mbeanServerClass.getMethod("unregisterMBean",
-	              new Class[] { objectNameClass });
-	      jmxAvailable = true;
-	    } catch (ClassNotFoundException e) {
-	      // JMX not available
-	      jmxAvailable = false;
-	    } catch (NoSuchMethodException e) {
-	      // JMX not available
-	      jmxAvailable = false;
-	    }
-
 	    // try to get platform MBean Server (Java 1.5 only)
 	    try {
 	      Class<?> managementFactory = Class.forName("java.lang.management.ManagementFactory");
@@ -108,57 +79,10 @@ implements IProcessContainer {
 	      platformMBeanServer = null;
 	    }
 	  }
-/*
-	  private void loadXStream(String duccHome) throws Exception {
-			ClassLoader currentCL = Thread.currentThread().getContextClassLoader();
-				// setup a classpath for Ducc broker
-			String amqOptionalDir = 
-					duccHome+File.separator+"apache-uima"+File.separator+"apache-activemq"+File.separator+"lib"+File.separator+"optional"+File.separator;//+"*"
 
-			File amqOptionalDirFile = new File(amqOptionalDir);
-	        File[] files = amqOptionalDirFile.listFiles();   // Will be null if missing or not a dir
-	        URL[] urls = new URL[1];
-	        if (files != null) {
-	          for (File f : files) {
-	            if (f.getName().startsWith("xstream")) {
-	              urls[0] = f.toURI().toURL();
-	              break;
-	            }
-	          }
-	        }
-
-
-	        // isolate XStream in its own Class loader
-
-			URLClassLoader ucl = new URLClassLoader(urls,ClassLoader.getSystemClassLoader().getParent() );
-			Thread.currentThread().setContextClassLoader(ucl);
-				
-			Class<?> xstreamClass = ucl.loadClass("com.thoughtworks.xstream.XStream");
-
-			Class<?> domClaz = ucl.loadClass("com.thoughtworks.xstream.io.xml.DomDriver");
-			Class<?> sdClaz = ucl.loadClass("com.thoughtworks.xstream.io.HierarchicalStreamDriver");
-			
-			
-		    URL[] urls2 = ucl.getURLs();
-			for( URL u : urls2 ) {
-				System.out.println(">>>>>>>> -----------:"+u.getFile());
-			}
-			//Constructor<?>[] constr = xstreamClass.getConstructors();	
-			Constructor<?> cons = xstreamClass.getConstructor(sdClaz);	
-			xstreamInstance = cons.newInstance(domClaz.newInstance());
-			//xstreamInstance = xstreamClass.newInstance();	
-		    
-			
-			toXMLMethod = xstreamClass.getMethod("toXML", Object.class);
-		    System.out.println("Initialized XStream For Serialization");
-
-		    // Restore class loader
-		    Thread.currentThread().setContextClassLoader(currentCL);
-	  }
-*/		    
 	    // maintain thread affinity to specific instance of AE
 	  private volatile boolean threadAffinity=true;
-	    
+	    /*
 	  private String gen(int length) {
 		  StringBuffer sb = new StringBuffer();
 		  for(int i=length; i > 0; i -= 12) {
@@ -167,21 +91,19 @@ implements IProcessContainer {
 		  }
 		  return sb.toString();
 	  }
+	  */
 	  public boolean useThreadAffinity() {
 	   	return threadAffinity;
 	  }
 
-	  public int initialize(String[] args ) throws Exception {
-		 analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
-		 scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
-		 String jobType = System.getProperty("ducc.deploy.JpType"); 
-		 if ( "uima".equals(jobType)) {
-			System.out.println("UIMA Version:"+UimaVersion.getFullVersionString());
-	     } 
-         return scaleout;		  
-	  }
-	public int initialize(Properties props, String[] args) throws Exception {
-			return initialize(args);
+    private int configureAndGetScaleout(String[] args ) throws Exception {
+	    analysisEngineDescriptor = ArgsParser.getArg("-aed", args);
+		scaleout = Integer.valueOf(ArgsParser.getArg("-t", args));
+		String jobType = System.getProperty("ducc.deploy.JpType"); 
+		if ( "uima".equals(jobType)) {
+		  System.out.println("UIMA Version:"+UimaVersion.getFullVersionString());
+		} 
+        return scaleout;		  
 	}
 	public byte[] getLastSerializedError() throws Exception {
 
@@ -192,13 +114,13 @@ implements IProcessContainer {
 		return null;
 
 	}
-	  
-	public void deploy(String duccHome) throws Exception {
-		// save current context cl and inject System classloader as
-		// a context cl before calling user code. This is done in 
-		// user code needs to load resources 
-		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+
+	public int doInitialize(Properties props, String[] args) throws Exception {
+			return configureAndGetScaleout(args);
+	}
+	public void doDeploy() throws Exception {
+	
+		System.out.println("....... UimaProcessContainer.doDeploy()");
 		ResourceSpecifier rSpecifier = null;
 	    HashMap<String,Object> paramsMap = 
 				new HashMap<String,Object>();
@@ -237,38 +159,23 @@ implements IProcessContainer {
 
 		} finally {
 			sharedInitSemaphore.release();
-			// restore context CL 
-			Thread.currentThread().setContextClassLoader(savedCL);
 		}
 		
 	}
 
-	public void stop() throws Exception {
-		// save current context cl and inject System classloader as
-		// a context cl before calling user code. This is done in 
-		// user code needs to load resources 
-		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+	public void doStop() throws Exception {
 		try {
 			AnalysisEngine ae = instanceMap.checkout();
 			if ( ae != null ) {
 				ae.destroy();
 			}
 		} catch( Exception e) {
-			
+	        e.printStackTrace();		
 		} finally {
-			// restore context CL 
-			Thread.currentThread().setContextClassLoader(savedCL);
-
 		}
 	}
 
-	public List<Properties> process(Object xmi) throws Exception {
-		// save current context cl and inject System classloader as
-		// a context cl before calling user code. This is done in 
-		// user code needs to load resources 
-		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+	public List<Properties> doProcess(Object xmi) throws Exception {
 		AnalysisEngine ae = null;
 		latch.await();
 		CAS cas = casPool.getCas();
@@ -277,8 +184,11 @@ implements IProcessContainer {
 			lastError = null;
 			XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 			// deserialize the CAS
-			uimaSerializer.deserializeCasFromXmi((String) xmi, cas,
-					deserSharedData, true, -1);
+//			uimaSerializer.deserializeCasFromXmi((String) xmi, cas,
+//					deserSharedData, true, -1);
+			super.getUimaSerializer().
+			    deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
+
 			// the following checks out AE instance pinned to this thread
 			ae = instanceMap.checkout();
 			List<AnalysisEnginePerformanceMetrics> beforeAnalysis = getMetrics(ae);
@@ -321,8 +231,6 @@ implements IProcessContainer {
 			if (cas != null) {
 				casPool.releaseCas(cas);
 			}
-			// restore context CL 
-			Thread.currentThread().setContextClassLoader(savedCL);
 		}
 	}
 	   private List<AnalysisEnginePerformanceMetrics> getMetrics(AnalysisEngine ae)

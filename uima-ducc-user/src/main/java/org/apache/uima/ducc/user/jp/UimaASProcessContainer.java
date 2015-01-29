@@ -48,17 +48,14 @@ import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.EntityProcessStatus;
-import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 import org.apache.uima.util.Level;
 import org.apache.uima.util.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
-public class UimaASProcessContainer  extends AbstractProcessContainer 
-implements IProcessContainer {
+public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	private String endpointName;
-//	protected int scaleout;
 	private String saxonURL = null;
 	private String xslTransform = null;
 	private static BaseUIMAAsynchronousEngine_impl uimaASClient = null;
@@ -72,34 +69,24 @@ implements IProcessContainer {
 	private static final char FS = System.getProperty("file.separator").charAt(
 			0);
 	// use this map to pin each thread to its own instance of UimaSerializer
-	private static Map<Long, UimaSerializer> serializerMap = new HashMap<Long, UimaSerializer>();
+//	private static Map<Long, UimaSerializer> serializerMap = new HashMap<Long, UimaSerializer>();
     private String[] deploymentDescriptors = null;
 	private String[] ids = null;
-   
+    private String duccHome=null;
+    
     private volatile boolean threadAffinity=false;
 	    
 	public boolean useThreadAffinity() {
 	  return threadAffinity;
 	}	
-	public int initialize(String[] args) throws Exception {
-		// save current context cl and inject System classloader as
-		// a context cl before calling user code. This is done in 
-		// user code needs to load resources 
-		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-		try {
-			// Get DDs and also extract scaleout property from DD
-			deploymentDescriptors = getDescriptors(args);
-			ids = new String[deploymentDescriptors.length];
-			
-		} finally {
-			// restore context CL 
-			Thread.currentThread().setContextClassLoader(savedCL);
-			
-		}
+	private int generateDescriptorsAndGetScaleout(String[] args) throws Exception {
+		deploymentDescriptors = getDescriptors(args);
+		ids = new String[deploymentDescriptors.length];
 		return scaleout;
 	}
-	public int initialize(Properties props, String[] args) throws Exception {
+	public int doInitialize(Properties props, String[] args) throws Exception {
+		duccHome = System.getProperty("DUCC_HOME"); 
+
 		String jobType = System.getProperty("ducc.deploy.JpType"); 
 		if ( "uima-as".equals(jobType)) {
 			System.out.println("UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
@@ -107,7 +94,7 @@ implements IProcessContainer {
 		// generate Spring context file once
 		synchronized( UimaASProcessContainer.class) {
 			if ( !initialized ) {
-				initialize(args);
+				generateDescriptorsAndGetScaleout(args);
 				initialized = true;
 			}
 			return scaleout;
@@ -136,12 +123,7 @@ implements IProcessContainer {
 	 * @return
 	 * @throws Exception
 	 */
-	public void deploy(String duccHome) throws Exception {
-		// save current context cl and inject System classloader as
-		// a context cl before calling user code. This is done in 
-		// user code needs to load resources 
-		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+	public void doDeploy() throws Exception {
 		// deploy singleUIMA-AS Version instance of embedded broker
 		synchronized( UimaASProcessContainer.class) {
 			try {
@@ -176,12 +158,9 @@ implements IProcessContainer {
 				throw new RuntimeException(e);
 
 			} finally {
-				// restore context CL 
-				Thread.currentThread().setContextClassLoader(savedCL);
-
 			}
 			//	Pin thread to its own CAS serializer
-			serializerMap.put( Thread.currentThread().getId(), new UimaSerializer());
+//			serializerMap.put( Thread.currentThread().getId(), new UimaSerializer());
 		}
 	}
 	  public static void dump(ClassLoader cl, int numLevels) {
@@ -297,14 +276,7 @@ implements IProcessContainer {
 	 * 
 	 * @throws Exception
 	 */
-	public void stop() throws Exception {
-		// save current context cl and inject System classloader as
-		// a context cl before calling user code. This is done in 
-		// user code needs to load resources 
-		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-		// stops the broker
-		//brokerContainer.stop();
+	public void doStop() throws Exception {
 		try {
 			synchronized(UimaASProcessContainer.class) {
 				if ( brokerRunning ) {
@@ -331,8 +303,6 @@ implements IProcessContainer {
 			}
 			
 		} finally {
-			// restore context CL 
-			Thread.currentThread().setContextClassLoader(savedCL);
 		}
 	}
 	/**
@@ -342,21 +312,15 @@ implements IProcessContainer {
 	 * @param xmi - serialized CAS
 	 * @throws Exception
 	 */
-	public List<Properties> process(Object xmi) throws Exception {
-		// save current context cl and inject System classloader as
-		// a context cl before calling user code. This is done in 
-		// user code needs to load resources 
-		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
-		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+	public List<Properties> doProcess(Object xmi) throws Exception {
 		CAS cas = uimaASClient.getCAS();   // fetch a new CAS from the client's Cas Pool
 		try {
 			// reset last error
 			lastError = null;
 			XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 			// Use thread dedicated UimaSerializer to de-serialize the CAS
-			serializerMap.get(Thread.currentThread().getId()).
-				deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,
-					-1);
+			super.getUimaSerializer().
+				deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
 			/*
 			 * The following code commented for now. Re-enable when uima-as
 			 * performance metric collection is fixed. There is a bug in 
@@ -394,9 +358,6 @@ implements IProcessContainer {
 			if ( cas != null) {
 				cas.release();
 			}
-			// restore context CL 
-			Thread.currentThread().setContextClassLoader(savedCL);
-
 		}
 	}
     

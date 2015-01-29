@@ -73,9 +73,13 @@ public class HttpWorkerThread implements Runnable {
 	    // deploy method. The process container has been instantiated in the main thread and
 	    // loaded from ducc-user jar provided in system classpath
 	    try {
-			processMethod = processorInstance.getClass().getDeclaredMethod("process", Object.class);	
-			Method deployMethod = processorInstance.getClass().getDeclaredMethod("deploy", String.class);
-			deployMethod.invoke(processorInstance, (Object)Utils.findDuccHome());
+			processMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("process", Object.class);	
+			
+			synchronized(HttpWorkerThread.class) {
+				Method deployMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("deploy");
+				deployMethod.invoke(processorInstance);
+				System.out.println(".... Deployed Processing Container - Initialization Successful - Thread "+Thread.currentThread().getId());
+			}
 
 			// each thread needs its own PostMethod
 			postMethod = new PostMethod(httpClient.getJdUrl());
@@ -304,7 +308,7 @@ public class HttpWorkerThread implements Runnable {
 				boolean useThreadAffinity =
 						(Boolean)useThreadAffinityMethod.invoke(processorInstance);
 				if ( useThreadAffinity) {
-					Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
+					Method stopMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("stop");
 					stopMethod.invoke(processorInstance);
 				}
 		   	} catch( Throwable t) {
