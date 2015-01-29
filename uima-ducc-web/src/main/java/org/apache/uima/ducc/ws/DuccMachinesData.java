@@ -140,7 +140,7 @@ public class DuccMachinesData {
 				String memFree = "";
 				String swapInuse = "";
 				String swapFree = "";
-				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, null, "", "", -1, 0);
+				MachineInfo machineInfo = new MachineInfo(IDuccEnv.DUCC_NODES_FILE_PATH, "", nodeName, memTotal, memFree, swapInuse, swapFree, false, null, "", "", -1, 0);
 				unsortedMachines.put(machineInfo.getName(),machineInfo);
 			}
 			updateSortedMachines();
@@ -286,7 +286,8 @@ public class DuccMachinesData {
 			logger.warn(location, jobid, t);
 		}
 		List<ProcessInfo> alienPids = nodeMetrics.getRogueProcessInfoList();
-		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
+		boolean cGroups = nodeMetrics.getCgroups();
+		MachineInfo current = new MachineInfo("", ip.toString(), machineName, memTotal, memFree, ""+swapInuse, ""+swapFree, cGroups, alienPids, sharesTotal, sharesInuse, duccEvent.getMillis(), duccEvent.getEventSize());
 		String key = normalizeMachineName(machineName);
 		MachineInfo previous = unsortedMachines.get(key);
 		if(previous != null) {
@@ -586,11 +587,12 @@ public class DuccMachinesData {
 			String swapInuse = machineInfo.getSwapInuse();
 			String swapDelta = ""+machineInfo.getSwapDelta();
 			String swapFree = machineInfo.getSwapFree();
+			boolean cGroups = machineInfo.getCgroups();
 			List<String> aliens = machineInfo.getAliens();
 			String sharesTotal = machineInfo.getSharesTotal();
 			String sharesInuse = machineInfo.getSharesInuse();
 			String heartbeat = ""+machineInfo.getElapsed();
-			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swapInuse,swapDelta,swapFree,aliens,sharesTotal,sharesInuse,heartbeat);
+			MachineFacts facts = new MachineFacts(status,ip,name,reserve,memory,swapInuse,swapDelta,swapFree,cGroups,aliens,sharesTotal,sharesInuse,heartbeat);
 			factsList.add(facts);
 		}
 		return factsList;

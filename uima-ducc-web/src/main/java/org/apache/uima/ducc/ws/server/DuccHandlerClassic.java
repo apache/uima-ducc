@@ -1572,6 +1572,10 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 			row.append("<td align=\"right\">");
 			row.append(""+sumSwapFree);
 			row.append("</td>");
+			// C-Groups
+			row.append("<td align=\"right\">");
+			row.append("");
+			row.append("</td>");
 			// Alien PIDs
 			row.append("<td align=\"right\">");
 			row.append(""+sumAliens);
@@ -1677,6 +1681,25 @@ public class DuccHandlerClassic extends DuccAbstractHandler {
 				if(!status.equals("defined")) {
 					row.append(facts.swapFree);
 				}
+				row.append("</td>");
+				// C-Groups
+				boolean isCgroups = facts.cgroups;
+				sb = new StringBuffer();
+				if(status.equals("up")) {
+					if(isCgroups) {
+						sb.append("<span title=\""+"control groups active"+"\" class=\"health_black\""+">");
+						sb.append("on");
+						sb.append("</span>");
+					}
+					else {
+						sb.append("<span title=\""+"control groups inactive"+"\" class=\"health_red\""+">");
+						sb.append("off");
+						sb.append("</span>");
+					}
+				}
+				String cgroups = sb.toString();
+				row.append("<td align=\"right\">");
+				row.append(""+cgroups);
 				row.append("</td>");
 				// Alien PIDs
 				sb = new StringBuffer();

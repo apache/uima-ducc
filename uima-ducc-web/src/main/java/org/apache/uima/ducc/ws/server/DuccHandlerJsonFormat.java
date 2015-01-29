@@ -1321,6 +1321,8 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 */
 			// Swap: free
 			row.add(new JsonPrimitive(sumSwapFree));
+			// C-Groups
+			row.add(new JsonPrimitive(""));
 			// Alien PIDs
 			row.add(new JsonPrimitive(sumAliens));
 			// Shares: total
@@ -1411,6 +1413,22 @@ public class DuccHandlerJsonFormat extends DuccAbstractHandler {
 				else {
 					row.add(new JsonPrimitive(""));
 				}
+				// C-Groups
+				boolean isCgroups = facts.cgroups;
+				sb = new StringBuffer();
+				if(status.equals("up")) {
+					if(isCgroups) {
+						sb.append("<span title=\""+"control groups active"+"\" class=\"health_black\""+">");
+						sb.append("on");
+						sb.append("</span>");
+					}
+					else {
+						sb.append("<span title=\""+"control groups inactive"+"\" class=\"health_red\""+">");
+						sb.append("off");
+						sb.append("</span>");
+					}
+				}
+				row.add(new JsonPrimitive(sb.toString()));
 				// Alien PIDs
 				sb = new StringBuffer();
 				long aliens = facts.aliens.size();
