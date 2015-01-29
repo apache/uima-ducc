@@ -90,6 +90,10 @@ public class MachineFactsTest {
 		return free;
 	}
 	
+	private boolean createCgroups() {
+		return random.nextBoolean();
+	}
+	
 	private List<String> createAliens() {
 		List<String> aliens = new ArrayList<String>();
 		int count = random.nextInt(10);
@@ -147,11 +151,12 @@ public class MachineFactsTest {
 		String swap = createSwap();
 		String delta = createSwap();
 		String free = createFree();
+		boolean cgroups = createCgroups();
 		List<String> aliens = createAliens();
 		String sharesTotal = createSharesTotal(memory);
 		String sharesInuse = createSharesInuse(sharesTotal);
 		String heartbeat = createHeartbeat();
-		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, delta, free, aliens, sharesTotal, sharesInuse, heartbeat);
+		MachineFacts machineFacts = new MachineFacts(status,ip,name, reserve, memory, swap, delta, free, cgroups, aliens, sharesTotal, sharesInuse, heartbeat);
 		return machineFacts;
 	}
 	
