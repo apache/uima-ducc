@@ -72,4 +72,7 @@ public class NodeMetricsUpdateDuccEvent extends AbstractDuccEvent{
 	public int getProcessCount() {
 		return processCount;
 	}
+	public boolean getCgroups() {
+		return node.isCgroupEnabled();
+	}
 }
