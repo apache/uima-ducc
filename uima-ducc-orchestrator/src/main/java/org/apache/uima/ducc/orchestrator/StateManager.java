@@ -794,25 +794,43 @@ public class StateManager {
 	private boolean deallocateIdleProcesses(DuccWorkJob job, IDriverStatusReport jdStatusReport) {
 		String methodName = "deallocateIdleProcesses";
 		boolean retVal = false;
-		if(isDeallocatable(jdStatusReport)) {
-			IDuccProcessMap processMap = job.getProcessMap();
-			Iterator<DuccId> iterator = processMap.keySet().iterator();
-			boolean excessCapacity = isExcessCapacity(job, jdStatusReport);
-			while(iterator.hasNext() && excessCapacity) {
-				DuccId duccId = iterator.next();
-				IDuccProcess process = processMap.get(duccId);
-				if(!process.isDeallocated()) {
-					String nodeIP = process.getNodeIdentity().getIp();
-					String PID = process.getPID();
-					if(!jdStatusReport.isOperating(nodeIP, PID)) {
-						OrUtil.setResourceState(job, process, ResourceState.Deallocated);
-						process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
-						logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
-						retVal = true;
-						excessCapacity = isExcessCapacity(job, jdStatusReport);
+		DuccId jobid = job.getDuccId();
+		try {
+			if(isDeallocatable(jdStatusReport)) {
+				IDuccProcessMap processMap = job.getProcessMap();
+				Iterator<DuccId> iterator = processMap.keySet().iterator();
+				boolean excessCapacity = isExcessCapacity(job, jdStatusReport);
+				int count = 0;
+				while(iterator.hasNext() && excessCapacity) {
+					count++;
+					DuccId duccId = iterator.next();
+					IDuccProcess process = processMap.get(duccId);
+					if(!process.isDeallocated()) {
+						String nodeIP = process.getNodeIdentity().getIp();
+						String PID = process.getPID();
+						if(!jdStatusReport.isOperating(nodeIP, PID)) {
+							OrUtil.setResourceState(job, process, ResourceState.Deallocated);
+							process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
+							logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+							retVal = true;
+							excessCapacity = isExcessCapacity(job, jdStatusReport);
+						}
+						else {
+							logger.debug(methodName, job.getDuccId(), process.getDuccId(), "operating");
+						}
+					}
+					else {
+						logger.trace(methodName, job.getDuccId(), process.getDuccId(), "already deallocated");
 					}
 				}
+				logger.trace(methodName, jobid, "count="+count);
 			}
+			else {
+				logger.debug(methodName, jobid, "not deallocatable");
+			}
+		}
+		catch(Exception e) {
+			logger.error(methodName, job.getDuccId(), e);
 		}
 		return retVal;
 	}
