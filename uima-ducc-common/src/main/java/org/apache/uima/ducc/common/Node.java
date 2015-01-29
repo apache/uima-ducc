@@ -28,4 +28,5 @@ public interface Node extends Serializable {
 	public NodeIdentity getNodeIdentity();
 	public boolean duccLingExists();
 	public boolean runWithDuccLing();
+	public boolean isCgroupEnabled();
 }

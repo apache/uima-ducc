@@ -26,10 +26,20 @@ public class DuccNode implements Node {
 	private NodeMetrics nodeMetrics;
 	private boolean duccLingExists;
 	private boolean runWithDuccLing;
+	private boolean cgroupsEnabled=false;
 	
-	public DuccNode( NodeIdentity nodeIdentity, NodeMetrics nodeMetrics) {
+	public DuccNode( NodeIdentity nodeIdentity, NodeMetrics nodeMetrics, boolean cge) {
 		this.nodeIdentity = nodeIdentity;
 		this.nodeMetrics = nodeMetrics;
+		this.cgroupsEnabled = cge;
+	}
+	
+	public boolean isCgroupEnabled() {
+		return cgroupsEnabled;
+	}
+	
+	public void setCgroupEnabled( boolean cge) {
+		cgroupsEnabled = cge;
 	}
 	public boolean duccLingExists() {
 		return duccLingExists;

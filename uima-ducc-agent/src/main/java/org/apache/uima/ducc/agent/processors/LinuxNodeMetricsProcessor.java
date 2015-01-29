@@ -124,7 +124,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
             NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, loadFuture.get(),
               cpuFuture.get(), users);
       
-			Node node = new DuccNode(agent.getIdentity(), nodeMetrics);
+			Node node = new DuccNode(agent.getIdentity(), nodeMetrics, agent.useCgroups);
 			// Make the agent aware how much memory is available on the node. Do this once.
 			if ( agent.getNodeInfo() == null ) {
 				agent.setNodeInfo(node);
