@@ -17,10 +17,6 @@
  * under the License.
 */
 package org.apache.uima.ducc.transport.configuration.jp;
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.io.InvalidClassException;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.Future;
@@ -37,7 +33,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.entity.StringEntity;
-//import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.DefaultConnectionReuseStrategy;
 import org.apache.http.impl.pool.BasicConnPool;
 import org.apache.http.impl.pool.BasicPoolEntry;
@@ -75,7 +70,6 @@ public class DuccHttpClient {
 	
 	// New --------------------
     HttpClient httpClient = null;
-    //PostMethod postMethod;
 	String jdUrl;
 	
 	public void setTimeout( int timeout) {
@@ -90,12 +84,12 @@ public class DuccHttpClient {
 		return jdUrl;
 	}
 	public void initialize(String jdUrl) throws Exception {
-    //    postMethod = new PostMethod(jdUrl);
 		this.jdUrl = jdUrl;
 		pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
 		MultiThreadedHttpConnectionManager cMgr =
 		    new MultiThreadedHttpConnectionManager();
+		
 		httpClient = 
     		new HttpClient(cMgr);
 		 
@@ -103,7 +97,6 @@ public class DuccHttpClient {
 	public void intialize(String url, int port, String application)
 			throws Exception {
 		target = application;
-		this.timeout = timeout;
 		httpproc = HttpProcessorBuilder.create().add(new RequestContent())
 				.add(new RequestTargetHost()).add(new RequestConnControl())
 				.add(new RequestUserAgent("Test/1.1"))
@@ -116,7 +109,7 @@ public class DuccHttpClient {
 		host = new HttpHost(url, port);
 		coreContext.setTargetHost(host);
 		connPool = new BasicConnPool();
-		connStrategy = new DefaultConnectionReuseStrategy();//DefaultConnectionReuseStrategy.INSTANCE;
+		connStrategy = new DefaultConnectionReuseStrategy();
 		pid = getProcessIP("N/A");
 		nodeIdentity = new NodeIdentity();
 		
@@ -214,7 +207,6 @@ public class DuccHttpClient {
 		// According to HTTP spec, GET request should not include the body. We need
 		// to send in body to the JD so use POST
 		BasicHttpEntityEnclosingRequest request = new BasicHttpEntityEnclosingRequest("POST", target);
-//		BasicHttpRequest request = new BasicHttpRequest("GET", target);
 		addCommonHeaders(transaction);
 		addCommonHeaders(request);
 		return execute(request, transaction);
@@ -243,7 +235,7 @@ public class DuccHttpClient {
 	            coreContext.setAttribute(HttpCoreContext.HTTP_TARGET_HOST, host);
 	            
 	            conn.setSocketTimeout(10000); 
-				System.out.println(">> Request URI: "	+ request.getRequestLine().getUri());
+//				System.out.println(">> Request URI: "	+ request.getRequestLine().getUri());
 	           // request.
 
 				request.setHeader("content-type", "text/xml");
@@ -252,18 +244,20 @@ public class DuccHttpClient {
 
 				request.setEntity(entity);
 
+				System.out.println(">>>> GET Request:"+body);
+				
 				httpexecutor.preProcess(request, httpproc, coreContext);
 				HttpResponse response = httpexecutor.execute(request, conn,	coreContext);
 				httpexecutor.postProcess(response, httpproc, coreContext);
 
 				if ( response.getStatusLine().getStatusCode() != 200) {
-					System.out.println("Unable to Communicate with JD - Error:"+response.getStatusLine());
+	//				System.out.println("Unable to Communicate with JD - Error:"+response.getStatusLine());
 					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+response.getStatusLine());
 				}
-				System.out.println("<< Response: "
-						+ response.getStatusLine());
+		//		System.out.println("<< Response: "
+		//				+ response.getStatusLine());
 				String responseData = EntityUtils.toString(response.getEntity());
-				System.out.println(responseData);
+		//		System.out.println(responseData);
 				Object o = XStreamUtils.unmarshall(responseData);
 				if ( o instanceof IMetaCasTransaction) {
 					reply = (MetaCasTransaction)o;
@@ -276,7 +270,7 @@ public class DuccHttpClient {
 				t.printStackTrace();
 			}
 			finally {
-				System.out.println("==============");
+			//	System.out.println("==============");
 				connPool.release(poolEntry, true);
 			}
 			
@@ -306,39 +300,37 @@ public class DuccHttpClient {
 			try {
 				// Serialize request object to XML
 				String body = XStreamUtils.marshall(transaction);
+				//System.out.println("Sending Message of size:"+body.length()+" Message:"+body);
 	            RequestEntity e = new StringRequestEntity(body,"application/xml","UTF-8" );
+	            
 	            postMethod.setRequestEntity(e);
+	            
 	            addCommonHeaders(postMethod);
 	    
 	            postMethod.setRequestHeader("Content-Length", String.valueOf(body.length()));
 	            // wait for a reply
 	            httpClient.executeMethod(postMethod);
-                //InputStream responseData = postMethod.getResponseBodyAsStream();
                 
-                //ByteArrayInputStream input = new ByteArray
-                //BufferedInputStream input=new BufferedInputStream(responseData);
-                //ByteArrayOutputStream output=new ByteArrayOutputStream();
                 String content = new String(postMethod.getResponseBody());
                 
-                /*
-                byte b[]=new byte[1024];
-                StringBuffer sb = new StringBuffer();
-                int read=0;
-                while ((read=input.read(b)) > -1) {
-                  output.write(b,0,read);
-                  sb.append(new String(b));
-                }
-                responseData.close();
-                input.close();
-                */
 				if ( postMethod.getStatusLine().getStatusCode() != 200) {
 					logger.error("execute", null, "Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
+					logger.error("execute", null, "Content causing error:"+postMethod.getResponseBody());
+					System.out.println("Thread::"+Thread.currentThread().getId()+" ERRR::Content causing error:"+postMethod.getResponseBody());
 					throw new RuntimeException("JP Http Client Unable to Communicate with JD - Error:"+postMethod.getStatusLine());
 				}
-				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+postMethod.getStatusLine());
-				logger.info("execute", null, "Thread:"+Thread.currentThread().getId()+" Recv'd:"+content);
-				System.out.println(content);
-				Object o = XStreamUtils.unmarshall(content); //sb.toString());
+				logger.debug("execute", null, "Thread:"+Thread.currentThread().getId()+" JD Reply Status:"+postMethod.getStatusLine());
+				logger.debug("execute", null, "Thread:"+Thread.currentThread().getId()+" Recv'd:"+content);
+				//System.out.println("Thread::"+Thread.currentThread().getId()+" " +content);
+				Object o;
+				try {
+					o = XStreamUtils.unmarshall(content); //sb.toString());
+					
+				} catch( Exception ex) {
+					System.out.println("Got Error Thread::"+Thread.currentThread().getId()+" ERRR::Content causing error:"+postMethod.getResponseBody());
+					
+					throw ex;
+				}
 				if ( o instanceof IMetaCasTransaction) {
 					reply = (MetaCasTransaction)o;
 					break;

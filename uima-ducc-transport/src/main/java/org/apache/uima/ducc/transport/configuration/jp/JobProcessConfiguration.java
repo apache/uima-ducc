@@ -29,9 +29,7 @@ import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.ducc.common.utils.XStreamUtils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 import org.apache.uima.ducc.transport.DuccExchange;
 import org.apache.uima.ducc.transport.DuccTransportConfiguration;
 import org.apache.uima.ducc.transport.agent.ProcessStateUpdate;
@@ -43,8 +41,8 @@ import org.springframework.context.annotation.Import;
 
 @Configuration
 @Import({ DuccTransportConfiguration.class, CommonConfiguration.class })
-public class JobProcessConfiguration  {
-	public static final String AGENT_ENDPOINT="mina:tcp://localhost:";
+public class JobProcessConfiguration {
+	public static final String AGENT_ENDPOINT = "mina:tcp://localhost:";
 	@Autowired
 	DuccTransportConfiguration transport;
 	@Autowired
@@ -52,8 +50,8 @@ public class JobProcessConfiguration  {
 	JobProcessComponent duccComponent = null;
 	JobProcessManager jobProcessManager = null;
 	AgentSession agent = null;
-	//protected ProcessState currentState = ProcessState.Undefined;
-	//protected ProcessState previousState = ProcessState.Undefined;
+	// protected ProcessState currentState = ProcessState.Undefined;
+	// protected ProcessState previousState = ProcessState.Undefined;
 	RouteBuilder routeBuilder;
 	CamelContext camelContext;
 
@@ -69,7 +67,7 @@ public class JobProcessConfiguration  {
 			final String thisNodeIP, final JobProcessEventListener delegate) {
 		return new RouteBuilder() {
 			// Custom filter to select messages that are targeted for this
-			// process. Checks the Node IP in a message to determine if 
+			// process. Checks the Node IP in a message to determine if
 			// this process is the target.
 			Predicate filter = new DuccProcessFilter(thisNodeIP);
 
@@ -96,65 +94,59 @@ public class JobProcessConfiguration  {
 			Throwable caused = exchange.getProperty(Exchange.EXCEPTION_CAUGHT,
 					Throwable.class);
 			caused.printStackTrace();
-			// System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1");
-			// assertNotNull(caused);
-			// here you can do what you want, but Camel regard this exception as
-			// handled, and
-			// this processor as a failurehandler, so it wont do redeliveries.
-			// So this is the
-			// end of this route. But if we want to route it somewhere we can
-			// just get a
-			// producer template and send it.
-
-			// send it to our mock endpoint
-			// exchange.getContext().createProducerTemplate().send("mock:myerror",
-			// exchange);
 		}
 	}
-    private void checkPrereqs(DuccLogger logger) {
-    	boolean uimaAsJob=false;
-    	
-		if ( null == System.getProperty(FlagsHelper.Name.JpType.pname()) ) { //"Ducc.Job.Type") ) {
-			logger.error("start", null, "Missing Job Type. Add -D"+FlagsHelper.Name.JpType.pname()+"=uima-as or "+FlagsHelper.Name.JpType.pname()+"=uima. Check your command line");
-			throw new RuntimeException("Missing Job Type. Add -D"+FlagsHelper.Name.JpType.pname()+"=uima-as or "+FlagsHelper.Name.JpType.pname()+"=uima. Check your command line");
+
+	private void checkPrereqs() {
+		boolean uimaAsJob = false;
+
+		if (null == System.getProperty(FlagsHelper.Name.JpType.pname())) { // "Ducc.Job.Type")
+			throw new RuntimeException("Missing Job Type. Add -D"
+					+ FlagsHelper.Name.JpType.pname() + "=uima-as or "
+					+ FlagsHelper.Name.JpType.pname()
+					+ "=uima. Check your command line");
 		} else {
-			String jobType = System.getProperty(FlagsHelper.Name.JpType.pname());
-			if ( jobType.trim().equals("uima-as")) {
+			String jobType = System
+					.getProperty(FlagsHelper.Name.JpType.pname());
+			if (jobType.trim().equals("uima-as")) {
 				uimaAsJob = true;
-			} else if ( !jobType.trim().equals("uima")) {
-				throw new RuntimeException("Invalid value for -D"+FlagsHelper.Name.JpType.pname()+". Expected uima-as or uima, Instead it is "+jobType);
+			} else if (!jobType.trim().equals("uima") && !jobType.trim().equals("custom")) {
+				throw new RuntimeException("Invalid value for -D"
+						+ FlagsHelper.Name.JpType.pname()
+						+ ". Expected uima-as,uima or custom, Instead it is "
+						+ jobType);
 			}
 		}
-    	
-    	if (null == System.getProperty(FlagsHelper.Name.UserClasspath.pname())) {
-			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
-			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.UserClasspath.pname()+"=XXXX property");
+
+		if (null == System.getProperty(FlagsHelper.Name.JpDuccClasspath.pname())) {
+			throw new RuntimeException("Missing the -D"
+					+ FlagsHelper.Name.JpDuccClasspath.pname() + "=XXXX property");
 		}
-		if (uimaAsJob && null == common.saxonJarPath ){
-			logger.error("start", null, "Missing saxon jar path. Check your ducc.properties");
-			throw new RuntimeException("Missing saxon jar path. Check your ducc.properties");
+		if (uimaAsJob && null == common.saxonJarPath) {
+			throw new RuntimeException(
+					"Missing saxon jar path. Check your ducc.properties");
 		}
-		if (uimaAsJob && null == common.dd2SpringXslPath ){
-			logger.error("start", null, "Missing dd2sping xsl path. Check your ducc.properties");
-			throw new RuntimeException("Missing dd2spring xsl path. Check your ducc.properties");
+		if (uimaAsJob && null == common.dd2SpringXslPath) {
+			throw new RuntimeException(
+					"Missing dd2spring xsl path. Check your ducc.properties");
 		}
 		if (null == System.getProperty(FlagsHelper.Name.JdURL.pname())) {
-			logger.error("start", null, "Missing the -D"+FlagsHelper.Name.JdURL.pname()+" property");
-			throw new RuntimeException("Missing the -D"+FlagsHelper.Name.JdURL.pname()+" property");
+			throw new RuntimeException("Missing the -D"
+					+ FlagsHelper.Name.JdURL.pname() + " property");
 		}
-		
-		
-    }
+
+	}
+
 	public String getUserContainerClassForJob(String key) {
-		if ( key.equals("uima-as")) {
-			if ( common.uimaASProcessContainerClass == null ) {
+		if (key.equals("uima-as")) {
+			if (common.uimaASProcessContainerClass == null) {
 				// use default
 				return "org.apache.uima.ducc.user.jp.UimaASProcessContainer";
 			} else {
 				return common.uimaASProcessContainerClass;
 			}
 		} else {
-			if ( common.uimaProcessContainerClass == null ) {
+			if (common.uimaProcessContainerClass == null) {
 				// use default
 				return "org.apache.uima.ducc.user.jp.UimaProcessContainer";
 			} else {
@@ -162,9 +154,17 @@ public class JobProcessConfiguration  {
 			}
 		}
 	}
+
 	@Bean
 	public JobProcessComponent getProcessManagerInstance() throws Exception {
 		try {
+			checkPrereqs();
+		} catch(Exception e) {
+			e.printStackTrace();
+			throw e;
+		}
+		try {
+
 			// Assume IP address provided from environment. In production this
 			// will be the actual node IP. In testing, the IP can be virtual
 			// when running multiple agents on the same node. The agent is
@@ -173,13 +173,30 @@ public class JobProcessConfiguration  {
 					.getLocalHost().getHostAddress() : System.getenv("IP");
 			camelContext = common.camelContext();
 
-			duccComponent = 
-					new JobProcessComponent("UimaProcess", camelContext, this);
-			
-			// check if required configuration is provided. This method throws Exceptions if 
+			// currently supported jobType values:
+			// uima-as, DD jobs
+			// uima, pieces parts
+			String jobType = System
+					.getProperty(FlagsHelper.Name.JpType.pname());
+
+			// custom processor class can be provided in the command line.
+			// Its not required. If not present, this code will assign one
+			// based on jobType
+			if ( System.getProperty(FlagsHelper.Name.JpProcessorClass.pname() ) == null  ) { //"ducc.deploy.processor.class") == null ) {
+				String containerClass = getUserContainerClassForJob(jobType);
+				// Save the container class. This will be referenced from the
+				// DuccJobService.initialize()
+				System.setProperty(FlagsHelper.Name.JpProcessorClass.pname(),//"ducc.deploy.processor.class",
+						containerClass);
+			}
+
+			duccComponent = new JobProcessComponent("UimaProcess",
+					camelContext, this);
+
+			// check if required configuration is provided. This method throws
+			// Exceptions if
 			// there is something missing.
-			checkPrereqs(duccComponent.getLogger());
-			
+			// checkPrereqs(duccComponent.getLogger());
 
 			int serviceSocketPort = 0;
 			String agentSocketParams = "";
@@ -219,31 +236,35 @@ public class JobProcessConfiguration  {
 			// Create Agent proxy which will be used to notify Agent
 			// of state changes.
 			agent = new AgentSession(eventDispatcher,
-					System.getenv("ProcessDuccId"), common.managedServiceEndpoint);
-			
+					System.getenv("ProcessDuccId"),
+					common.managedServiceEndpoint);
+
 			System.out
 					.println("#######################################################");
 			System.out.println("## Agent Service State Update Endpoint:"
 					+ common.managedProcessStateUpdateEndpoint + " ##");
 			System.out
 					.println("#######################################################");
-			jobProcessManager = new JobProcessManager();
+			// jobProcessManager = new JobProcessManager();
 			duccComponent.setAgentSession(agent);
-			duccComponent.setJobProcessManager(jobProcessManager);
+			// duccComponent.setJobProcessManager(jobProcessManager);
 			duccComponent.setSaxonJarPath(common.saxonJarPath);
 			duccComponent.setDd2SpringXslPath(common.dd2SpringXslPath);
 			if ( common.processThreadSleepTime != null ) {
-				duccComponent.setThreadSleepTime(Integer.parseInt(common.processThreadSleepTime));
-				duccComponent.getLogger().info("getProcessManagerInstance", null, "Overriding Default Thread Sleep Time - New Value "+common.processThreadSleepTime+" ms");
+			  duccComponent.setThreadSleepTime(Integer.parseInt(common.processThreadSleepTime));
+			  duccComponent.getLogger().info("getProcessManagerInstance", null,
+			      "Overriding Default Thread Sleep Time - New Value "+common.processThreadSleepTime+" ms");
 			}
 			if ( common.processRequestTimeout != null ) {
-				duccComponent.setTimeout(Integer.valueOf(common.processRequestTimeout));
-				duccComponent.getLogger().info("getProcessManagerInstance", null, "Overriding Default Process Request Timeout - New Timeout "+common.processRequestTimeout+" ms");
+	          duccComponent.setTimeout(Integer.valueOf(common.processRequestTimeout));
+			  duccComponent.getLogger().info("getProcessManagerInstance", null,
+			     "Overriding Default Process Request Timeout - New Timeout "+common.processRequestTimeout+" ms");
 			}
-			
-			JobProcessEventListener eventListener = 
-					new JobProcessEventListener(duccComponent);
-			routeBuilder = this.routeBuilderForIncomingRequests(thisNodeIP, eventListener);
+
+			JobProcessEventListener eventListener = new JobProcessEventListener(
+					duccComponent);
+			routeBuilder = this.routeBuilderForIncomingRequests(thisNodeIP,
+					eventListener);
 
 			camelContext.addRoutes(routeBuilder);
 
@@ -273,7 +294,7 @@ public class JobProcessConfiguration  {
 				// check if this message is targeting this process. Check if the
 				// process PID
 				// and the node match target process.
-				if (Utils.getPID().equals(pid) && thisNodeIP.equals(targetIP)) { 
+				if (Utils.getPID().equals(pid) && thisNodeIP.equals(targetIP)) {
 					result = true;
 					System.out
 							.println(">>>>>>>>> Process Received a Message. Is Process target for message:"

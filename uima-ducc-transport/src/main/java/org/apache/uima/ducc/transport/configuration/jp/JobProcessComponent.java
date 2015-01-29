@@ -19,6 +19,8 @@
 
 package org.apache.uima.ducc.transport.configuration.jp;
 
+import java.lang.reflect.Method;
+import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -27,24 +29,20 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.camel.CamelContext;
-import org.apache.camel.Route;
-import org.apache.uima.aae.UimaAsVersion;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
+import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.container.jp.JobProcessManager;
-import org.apache.uima.ducc.container.jp.iface.IUimaProcessor;
-import org.apache.uima.ducc.transport.event.common.JobManagerStateReconciler;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
-public class JobProcessComponent extends AbstractDuccComponent{
+public class JobProcessComponent extends AbstractDuccComponent 
+implements IJobProcessor{
 
 	
 	private JobProcessConfiguration configuration=null;
 	private String jmxConnectString="";
 	private AgentSession agent = null;
-	private JobProcessManager jobProcessManager = null;
 	protected ProcessState currentState = ProcessState.Undefined;
 	protected ProcessState previousState = ProcessState.Undefined;
 	protected static DuccLogger logger;
@@ -53,22 +51,34 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	protected String dd;
 	private int timeout = 30000;  // default socket timeout for HTTPClient
 	private int threadSleepTime = 5000; // time to sleep between GET requests if JD sends null CAS
-//	private IUimaProcessor uimaProcessor = null; 
 	private CountDownLatch workerThreadCount = null;
 	private CountDownLatch threadReadyCount=null;
 	ScheduledThreadPoolExecutor executor = null;
 	ExecutorService tpe = null;
     private volatile boolean uimaASJob=false;
     
-	// define default class to use to invoke methods via reflection
-	private String containerClass = "org.apache.uima.ducc.user.jp.UimaProcessContainer";
-;
-	
+	private DuccHttpClient httpClient = null;
+    private Object processorInstance=null;
+//    private String[] args = null;
 	public JobProcessComponent(String componentName, CamelContext ctx,JobProcessConfiguration jpc) {
 		super(componentName,ctx);
 		this.configuration = jpc;
 		jmxConnectString = super.getProcessJmxUrl();
 		
+	}
+	public void setProcessor(Object pc, String[] args ) {
+		this.processorInstance = pc;
+	}
+	public void setState(ProcessState state) {
+		synchronized(currentState) {
+			if ( currentState.name().equals(ProcessState.FailedInitialization.name()) ) {
+				return;
+			}
+			if ( !state.name().equals(currentState.name())) {
+				currentState = state;
+				agent.notify(currentState, super.getProcessJmxUrl());
+			} 
+		}
 	}
     public void setThreadSleepTime(int sleepTime) {
     	threadSleepTime = sleepTime;
@@ -76,11 +86,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
     public int getThreadSleepTime() {
     	return threadSleepTime;
     }
-	public void setContainerClass(String clz) {
-		if ( clz != null ) {
-			containerClass = clz;
-		}
-	}
 	protected void setDD(String dd) {
 		this.dd = dd;
 	}
@@ -89,12 +94,10 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	}
 	public void setSaxonJarPath( String saxonJarPath) {
 		this.saxonJarPath = saxonJarPath;
-	}
+	}	
+	
 	protected void setAgentSession(AgentSession session ) {
 		agent = session;
-	}
-	protected void setJobProcessManager(JobProcessManager jobProcessManager) {
-		this.jobProcessManager = jobProcessManager;
 	}
 	public String getProcessJmxUrl() {
 		return jmxConnectString;
@@ -119,8 +122,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	 * the components and returns.
 	 */
 	public void start(DuccService service, String[] args) throws Exception {
-		getLogger().info("start", null,"Ducc UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
-		System.out.println("... Starting Component");
 		super.start(service, args);
 		
 		try {
@@ -128,9 +129,6 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				logger.warn("start", null, "Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
                 throw new RuntimeException("Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
 			}
-			// the JobProcessConfiguration checked if the below property exists
-			String jps = System.getProperty(FlagsHelper.Name.UserClasspath.pname());
-
 			String processJmxUrl = super.getProcessJmxUrl();
 			// tell the agent that this process is initializing
 			agent.notify(ProcessState.Initializing, processJmxUrl);
@@ -150,14 +148,16 @@ public class JobProcessComponent extends AbstractDuccComponent{
                 // the JobProcessConfiguration class already checked for 
 				// existence of -DDucc.Job.Type
 				String jobType = System.getProperty(FlagsHelper.Name.JpType.pname()); 
-				containerClass = configuration.getUserContainerClassForJob(jobType);
+
 				String[] jpArgs;
+                // check if this is DD job
 				if ( "uima-as".equals(jobType)) {
 					uimaASJob = true;
                 	// dd - deployment descriptor. Will use UIMA-AS
 					jpArgs = new String[] { "-dd",args[0],"-saxonURL",saxonJarPath,
     						"-xslt",dd2SpringXslPath};
                 } else if ( "uima".equals(jobType)) {
+                	// this is pieces-parts job
                 	String scaleout = System.getProperty(FlagsHelper.Name.JpThreadCount.pname());
                 	if ( scaleout == null ) {
                 		scaleout = "1";
@@ -169,23 +169,20 @@ public class JobProcessComponent extends AbstractDuccComponent{
                 } else {
                 	throw new RuntimeException("Unsupported JP deployment mode. Check a value provided for -D"+FlagsHelper.Name.JpType.pname()+". Supported modes: [uima-as|uima|user]");
                 }
+				Properties props = new Properties();
+				// Using java reflection, initialize instance of IProcessContainer
+				Method initMethod = processorInstance.getClass().getSuperclass().
+						getDeclaredMethod("initialize", Properties.class, String[].class);
+				int scaleout = (Integer)initMethod.invoke(processorInstance, props, jpArgs);
+				
 				getLogger().info("start", null,"Ducc JP JobType="+jobType);
-				final DuccHttpClient client = new DuccHttpClient();
+				httpClient = new DuccHttpClient();
 				String jdURL="";
 				try {
 					jdURL = System.getProperty(FlagsHelper.Name.JdURL.pname());
-					String url = jdURL.substring(jdURL.indexOf("http://")+7 );  // skip protocol
-					String host = url.substring(0, url.indexOf(":"));
-					String port = url.substring(url.indexOf(":") + 1);
-					String target = "";
-					if (port.indexOf("/") > -1) {
-						target = port.substring(port.indexOf("/"));
-						port = port.substring(0, port.indexOf("/"));
-					}
 					// initialize http client. It tests the connection and fails
 					// if unable to connect
-//					client.intialize(host, Integer.valueOf(port), target);
-					client.initialize(jdURL);
+					httpClient.initialize(jdURL);
 					logger.info("start", null,"The JP Connected To JD Using URL "+jdURL);
 				} catch( Exception ee ) {
 					if ( ee.getCause() != null && ee instanceof java.net.ConnectException ) {
@@ -193,16 +190,10 @@ public class JobProcessComponent extends AbstractDuccComponent{
 					}
 					throw ee;
 				}
-
-				// Deploy UIMA pipelines. This blocks until the pipelines initializes or
-		    	// there is an exception. The IUimaProcessor is a wrapper around
-		    	// processing container where the analysis is being done.
-		    	int scaleout =	jobProcessManager.initialize(jps, jpArgs, containerClass);
-		    	// initialize latch to count number of threads which initialized successfully
-		    	threadReadyCount = new CountDownLatch(scaleout);
-		    	
-//		    	uimaProcessor =	jobProcessManager.deploy(jps, uimaAsArgs, containerClass);
-
+                // Setup latch which will be used to determine if worker threads
+				// initialized properly. The threads will not fetch WIs from the JD
+				// until the latch is open (all threads complete initialization)
+				threadReadyCount = new CountDownLatch(scaleout);
 				// Setup Thread Factory 
 				UimaServiceThreadFactory tf = new UimaServiceThreadFactory(Thread
 						.currentThread().getThreadGroup());
@@ -210,24 +201,20 @@ public class JobProcessComponent extends AbstractDuccComponent{
 				// Setup Thread pool with thread count = scaleout
 				tpe = Executors.newFixedThreadPool(scaleout, tf); //uimaProcessor.getScaleout(), tf);
 
-				// initialize http client
-				client.setTimeout(timeout);
-//				client.setScaleout(scaleout);//uimaProcessor.getScaleout());
+				// initialize http client's timeout
+				httpClient.setTimeout(timeout);
 				
 				System.out.println("JMX Connect String:"+ processJmxUrl);
-                // Create thread pool and begin processing
 		    	getLogger().info("start", null, "Starting "+scaleout+" Process Threads - JMX Connect String:"+ processJmxUrl);
 				
 		    	// Create and start worker threads that pull Work Items from the JD
 		    	Future<?>[] threadHandles = new Future<?>[scaleout];
-//		    	Future<?>[] threadHandles = new Future<?>[uimaProcessor.getScaleout()];
-//				for (int j = 0; j < uimaProcessor.getScaleout(); j++) {
 				for (int j = 0; j < scaleout; j++) {
-					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, client, jobProcessManager, workerThreadCount, threadReadyCount));
+					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, httpClient, processorInstance, workerThreadCount, threadReadyCount));
 				}
 				// wait until all process threads initialize
 				threadReadyCount.await();
-                // if there was init error setState() method
+                // if initialization was successful, tell the agent that the JP is running 
 				if ( !currentState.equals(ProcessState.FailedInitialization )) {
 			    	// pipelines deployed and initialized. This process is Ready
 			    	currentState = ProcessState.Running;
@@ -235,21 +222,15 @@ public class JobProcessComponent extends AbstractDuccComponent{
 					// all is well, so notify agent that this process is in Running state
 					agent.notify(currentState, processJmxUrl);
 				}
-
-				getLogger().info("start", null, "All Http Worker Threads Started - Waiting For All Threads to Exit");
-
-				for( Future<?> f : threadHandles ) {
-					if ( f != null ) {
-						f.get();  // wait for worker threads to exit
-					}
+				for( Future<?> future : threadHandles ) {
+					future.get();   // wait for each worker thread to exit run()
 				}
-		    	getLogger().info("start", null, "All Http Worker Threads Terminated");
-		    	jobProcessManager.stop();
 		    } catch( Exception ee) {
 		    	ee.printStackTrace();
 		    	currentState = ProcessState.FailedInitialization;
 		    	getLogger().info("start", null, ">>> Failed to Deploy UIMA Service. Check UIMA Log for Details");
 				agent.notify(ProcessState.FailedInitialization);
+				
 		    } finally {
 				// Stop executor. It was only needed to poll AE initialization status.
 				// Since deploy() completed
@@ -263,24 +244,44 @@ public class JobProcessComponent extends AbstractDuccComponent{
 		    		tpe.shutdown();
 		    		tpe.awaitTermination(0, TimeUnit.MILLISECONDS);
 		    	}
+		    	
+		    	if ( workerThreadCount != null ) {
+			    	workerThreadCount.await();
+			    	
+			    	// Determine if the process container requires thread affinity to AE instance.
+			    	// If it does, the worker thread has already called stop() which in
+			    	// turn called AE.destroy(). If the process container has no thread 
+			    	// affinity, call stop() here to make sure the cleanup code shuts down
+			    	// internal components.
+			    	Method useThreadAffinityMethod = processorInstance.getClass().getDeclaredMethod("useThreadAffinity");	
+					boolean useThreadAffinity =
+							(Boolean)useThreadAffinityMethod.invoke(processorInstance);
+					// if the container has thread affinity, the stop method must be
+					// called by the same thread that called initialize() and process().
+					// Such container's stop() is called in the Worker Thread.
+					if ( !useThreadAffinity) {
+						Method stopMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("stop");
+						stopMethod.invoke(processorInstance);
+					}
+			    	
+			    	
+			    	// Stop process container
+					//Method stopMethod = processorInstance.getClass().getDeclaredMethod("stop");
+					//stopMethod.invoke(processorInstance);
+		    	}
+				stop();
 		    }
 		} catch( Exception e) {
 			currentState = ProcessState.FailedInitialization;
 			agent.notify(currentState);
-
-			
-		}
+			e.printStackTrace();
+			stop();
+		} 
 
 	}
-	public void setState(ProcessState state) {
-		if ( !currentState.equals(ProcessState.FailedInitialization)) {
-			if ( state.equals(ProcessState.FailedInitialization)) {
-				currentState = state;
-				agent.notify(currentState, super.getProcessJmxUrl());
-			}
-		} else if ( currentState.equals(ProcessState.Initializing) ){
-			currentState = state;
-		}
+	
+	public void setRunning() {
+		currentState = ProcessState.Running;
 	}
 	public boolean isRunning() {
 		return currentState.equals(ProcessState.Running);
@@ -290,22 +291,17 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	}
 	public void stop() {
 		currentState = ProcessState.Stopping;
+		agent.notify(currentState);
 		if ( super.isStopping() ) {
 			return;  // already stopping - nothing to do
 		}
 
-		System.out.println("... AbstractManagedService - Stopping Service Adapter");
+		System.out.println("... JobProcessComponent - Stopping Service Adapter");
 	    try {
-        	if (getContext() != null) {
-    			for (Route route : getContext().getRoutes()) {
-
-    				route.getConsumer().stop();
-    				System.out.println(">>> configFactory.stop() - stopped route:"
-    						+ route.getId());
-    			}
-    		}
-        	// block for worker threads to exit run()
-        	workerThreadCount.await();
+	    	if ( workerThreadCount != null ) {
+	        	// block until all worker threads exit run()
+	        	workerThreadCount.await();
+	    	}
         	
 			// Stop executor. It was only needed to poll AE initialization status.
 			// Since deploy() completed
@@ -320,16 +316,16 @@ public class JobProcessComponent extends AbstractDuccComponent{
 	    		tpe.awaitTermination(0, TimeUnit.MILLISECONDS);
 	    	}
 
-//        	if ( uimaProcessor != null ) {
-//            	uimaProcessor.stop();
-//        	}
         	if ( agent != null) {
             	agent.stop();
         	}
-			super.stop();
-			
 	    } catch( Exception e) {
 	    	e.printStackTrace();
+	    } finally {
+	    	try {
+		    	super.stop();
+	    	} catch( Exception ee) {}
 	    }
 	}
+
 }

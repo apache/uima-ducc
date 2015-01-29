@@ -22,282 +22,107 @@ package org.apache.uima.ducc.transport.configuration.jp;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpMethodParams;
-import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
-import org.apache.uima.ducc.common.utils.XStreamUtils;
-import org.apache.uima.ducc.container.jp.JobProcessManager;
-import org.apache.uima.ducc.container.jp.iface.IUimaProcessor;
+import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
-import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
-import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
+import org.apache.uima.ducc.container.net.iface.IPerformanceMetrics;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.PerformanceMetrics;
+import org.apache.uima.ducc.container.net.impl.TransactionId;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class HttpWorkerThread implements Runnable {
 	DuccLogger logger = new DuccLogger(HttpWorkerThread.class);
-	DuccHttpClient httpClient = null;
-	private IUimaProcessor uimaProcessor;
+	private DuccHttpClient httpClient = null;
 	private JobProcessComponent duccComponent;
-	static AtomicInteger counter = new AtomicInteger();
 	private Object monitor = new Object();
 	private CountDownLatch workerThreadCount = null;
 	private CountDownLatch threadReadyCount = null;
-	private JobProcessManager jobProcessManager = null;
-/*
-	interface SMEvent {
-		Event action();
-		State nextState();
-	}
-	
-	interface Event {
-		State action(SMContext ctx);
-	}
-	
-	enum Events implements Event {
-		
-		GetWI {
-
-			public State action(SMContext ctx) {
-				try {
-					ctx.setEvent(Events.GetReply);
-					return States.GetPending;
-				} catch( Exception e) {
-					return Events.SendFailed.action(ctx);
-				}
-				
-			}
-		},
-		GetReply {
-			public State action(SMContext ctx) {
-				
-				ctx.setEvent(Events.AckReply);
-				return States.CasReceived;
-			}
-		},
-		GetRequest {
-
-			@Override
-			public Event action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-		AckReply {
-
-			@Override
-			public State action(SMContext ctx) {
-				
-				return States.CasReceived;
-			}
-			
-		},
-		AckRequest {
-
-			@Override
-			public Event action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-		EndReply {
-
-			@Override
-			public Event action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-		EndRequest {
-
-			@Override
-			public Event action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-		PipelineEnded {
-
-			@Override
-			public Event action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-		ReportRequest {
-
-			@Override
-			public Event action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-		Timeout {
-
-			@Override
-			public Event action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-		SendFailed {
-
-			@Override
-			public State action(SMContext ctx) {
-				// TODO Auto-generated method stub
-				return this;
-			}
-			
-		},
-	}
-	class SMContextImpl implements SMContext {
-		State state;
-		Event event;
-		DuccHttpClient httpClient;
-		SMContextImpl(DuccHttpClient httpClient, State initialState) {
-			state = initialState;
-			this.httpClient = httpClient;
-		}
-		@Override
-		public State state() {
-			return state;
-		}
-
-		@Override
-		public void nextState(State state) {
-			this.state = state;
-		}
-		public void setEvent(Event event) {
-			this.event = event;
-		}
-		public DuccHttpClient getClient() {
-			return httpClient;
-		}
-	};
-	
-	interface SMContext {
-		State state();
-		Event event();
-		public DuccHttpClient getClient();
-		void setEvent(Event event);
-		void nextState(State state);
-	}
-	interface State {
-		boolean process(SMContext ctx);
-	}
-	
-	public enum States implements State {
-		Start {
-			public boolean process(SMContext ctx) {
-				ctx.nextState(ctx.event().action(ctx));
-				return true;
-			}
-			
-		},
-		GetPending {
-			public boolean process(SMContext ctx) {
-				ctx.nextState(States.CasReceived);
-				return true;
-			}
-			
-		},
-		CasReceived {
-			public boolean process(SMContext ctx) {
-				ctx.nextState(States.CasActive);
-				return true;
-			}
-
-		},
-		CasActive {
-			public boolean process(SMContext ctx) {
-				ctx.nextState(States.CasEnd);
-				return true;
-			}
-			
-		},
-		CasEnd {
-			public boolean process(SMContext ctx) {
-				ctx.nextState(States.Start, Events.ProcessNext);
-				return true;
-			}
-
-		}
-		
-	}
-	*/
+	private Object processorInstance = null;
+    private static AtomicInteger IdGenerator =
+    		new AtomicInteger();
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
-			JobProcessManager jobProcessManager , CountDownLatch workerThreadCount,
+			Object processorInstance, CountDownLatch workerThreadCount,
 			CountDownLatch threadReadyCount) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
-		this.jobProcessManager = jobProcessManager;
+		this.processorInstance = processorInstance;
 		this.workerThreadCount = workerThreadCount;
 		this.threadReadyCount = threadReadyCount;
 	}
-    private void initialize(boolean isUimaASJob ) throws Exception {
-    	// For UIMA-AS job, there should only be one instance of UimaProcessor.
-    	// This processor contains AMQ broker, UIMA-AS client and UIMA-AS service.
-    	// For UIMA job, each AE must be pinned to a thread that called intialize().
-    	synchronized(IUimaProcessor.class ) {
-//    		if ( isUimaASJob && uimaProcessor != null ) {
- //   			return; // for UIMA-AS job (DD) there is only one uimaProcessor
-  //  		}
-        	uimaProcessor = jobProcessManager.deploy();
-
-    	}
-    	
-    }
+	@SuppressWarnings("unchecked")
 	public void run() {
 		String command="";
 		PostMethod postMethod = null;
 	    logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
-	   	boolean error=false;
+	    Method processMethod = null;
+	    boolean error=false;
+	    // ***** DEPLOY ANALYTICS ***********
+	    // First, deploy analytics in a provided process container. Use java reflection to call
+	    // deploy method. The process container has been instantiated in the main thread and
+	    // loaded from ducc-user jar provided in system classpath
 	    try {
-			initialize(duccComponent.isUimaASJob());
+			processMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("process", Object.class);	
+			
+			synchronized(HttpWorkerThread.class) {
+				Method deployMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("deploy");
+				deployMethod.invoke(processorInstance);
+				System.out.println(".... Deployed Processing Container - Initialization Successful - Thread "+Thread.currentThread().getId());
+			}
+
 			// each thread needs its own PostMethod
 			postMethod = new PostMethod(httpClient.getJdUrl());
 			// Set request timeout
 			postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, duccComponent.getTimeout());
-			//States stateMachine = new States(States.Start);
-//				SMContext ctx = new SMContextImpl(httpClient, States.Start);
-				
 	   	} catch( Throwable t) {
 	   		error = true;
 	   		synchronized(JobProcessComponent.class) {
 				duccComponent.setState(ProcessState.FailedInitialization);
 			}
+            t.printStackTrace();
 	   		logger.error("HttpWorkerThread.run()", null, t);
+	   		System.out.println("EXITING WorkThread ID:"
+					+ Thread.currentThread().getId());
+	   		logger.warn("HttpWorkerThread.run()", null, "The Job Process Terminating Due To Initialization Error");
+			/* *****************************************/
+			/* *****************************************/
+			/* *****************************************/
+        	/*       EXITING  PROCESS ON FIRST ERROR   */
+			/* *****************************************/
+	   		System.exit(1);
+			/* *****************************************/
+			/* *****************************************/
+			/* *****************************************/
+			/* *****************************************/
 	   		return;  // non-recovorable error
-
 	   	} finally {
+			// count down the latch. Once all threads deploy and initialize their analytics the processing
+			// may being
 			threadReadyCount.countDown();  // this thread is ready
 			// **************************************************************************
-			// now block and wait until all threads finish deploying and initializing UIMA
+			// now block and wait until all threads finish deploying and initializing 
+			// analytics in provided process container. Processing begins when
+			// all worker threads initialize their analytics.
 			// **************************************************************************
 			try {
-				threadReadyCount.await();
+				threadReadyCount.await();   // wait for all analytics to initialize
 			} catch( Exception ie) {}
-			
+
 			if (!error) {
 				synchronized(JobProcessComponent.class) {
+					// change the state of this process and notify
+					// Ducc agent that the process is ready and running
 					duccComponent.setState(ProcessState.Running);
 				}
 			}
@@ -305,68 +130,74 @@ public class HttpWorkerThread implements Runnable {
 	   	}
 			
 			
-		// run forever (or until the process throws IllegalStateException
-	   	logger.info("HttpWorkerThread.run()", null, "Processing Work Items - Thread Id:"+Thread.currentThread().getId());
+	   	logger.info("HttpWorkerThread.run()", null, "Begin Processing Work Items - Thread Id:"+Thread.currentThread().getId());
 		try {
-
-			while (duccComponent.isRunning()) {  //service.running && ctx.state().process(ctx)) {
+			// Enter process loop. Stop this thread on the first process error.
+			while (duccComponent.isRunning()) {  
 
 				try {
+					int major = IdGenerator.addAndGet(1);
+					int minor = 0;
+
 					IMetaCasTransaction transaction = new MetaCasTransaction();
-					
+					TransactionId tid = new TransactionId(major, minor);
+					transaction.setTransactionId(tid);
 					// According to HTTP spec, GET may not contain Body in 
 					// HTTP request. HttpClient actually enforces this. So
 					// do a POST instead of a GET.
-					transaction.setType(Type.Get);  // Tell JD you want a CAS
+					transaction.setType(Type.Get);  // Tell JD you want a Work Item
 					command = Type.Get.name();
-//					transaction = httpClient.post(transaction);
-			    	logger.info("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
-					transaction = httpClient.execute(transaction, postMethod);
-                    if ( transaction.getMetaCas()!= null) {
+			    	logger.debug("HttpWorkerThread.run()", null, "Thread Id:"+Thread.currentThread().getId()+" Requesting next WI from JD");;
+					// send a request to JD and wait for a reply
+			    	transaction = httpClient.execute(transaction, postMethod);
+                    // The JD may not provide a Work Item to process.
+			    	if ( transaction.getMetaCas()!= null) {
     					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd WI:"+transaction.getMetaCas().getSystemKey());
                     } else {
-    					logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas");
+    					logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Recv'd JD Response, however there is no MetaCas. Sleeping for "+duccComponent.getThreadSleepTime());
                     }
 
 					// Confirm receipt of the CAS. 
 					transaction.setType(Type.Ack);
 					command = Type.Ack.name();
-///					httpClient.post(transaction); // Ready to process
-					httpClient.execute(transaction, postMethod); // Ready to process
-                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" Sent ACK");
+					tid = new TransactionId(major, minor++);
+					transaction.setTransactionId(tid);
+					httpClient.execute(transaction, postMethod); 
 					
-					// if the JD did not provide a CAS, most likely the CR is
+                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" Sent ACK");
+                    
+					// if the JD did not provide a Work Item, most likely the CR is
 					// done. In such case, reduce frequency of Get requests
-					// by sleeping in between Get's. Eventually the JD will 
-					// confirm that there is no more work and this thread
-					// can exit.
+					// by sleeping in between Get's. Eventually the OR will 
+					// deallocate this process and the thread will exit
 					if ( transaction.getMetaCas() == null || transaction.getMetaCas().getUserSpaceCas() == null) {
-						// if the JD state is Ended, exit this thread as all work has
-						// been processed and accounted for
-						if ( transaction.getJdState().equals(JdState.Ended) ) {
-							duccComponent.getLogger().warn("run", null, "Exiting Thread "+Thread.currentThread().getId()+" JD Finished Processing");
-							System.out.println("Exiting Thread DriverState=Ended");
-							break; // the JD completed. Exit the thread
-						}
-						// There is no CAS. It looks like the JD CR is done but there
-						// are still WIs being processed. Slow down the rate of requests	
+						// the JD says there are no more WIs. Sleep awhile
+						// do a GET in case JD changes its mind. The JP will
+						// eventually be stopped by the agent
 						synchronized (monitor) {
 							try {
+								// There is no CAS. It looks like the JD CR is done but there
+								// are still WIs being processed. Slow down the rate of requests	
 								monitor.wait(duccComponent.getThreadSleepTime());
 							} catch (InterruptedException e) {
-
 							}
 						}
 					} else {
-						//System.out.println("Thread:"+Thread.currentThread().getId()+" Recv'd New WI:"+transaction.getMetaCas().getSystemKey());
-
-						// process the CAS
+						boolean workItemFailed = false;
+						// process the Work item. Any exception here will cause the 
+						// thread to terminate and also the JP to stop. The stopping
+						// is orderly allowing each thread to finish processing of
+						// the current WI. Once the JP notifies the Agent of a problem
+						// the Agent will wait for 1 minute (default) before killing
+						// this process via kill -9
 						try {
-							@SuppressWarnings("unchecked")
-							List<Properties> metrics = 
-							   (List<Properties>) 
-									uimaProcessor.process(transaction.getMetaCas().getUserSpaceCas());
-		                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
+							//    ********** PROCESS() **************
+							// using java reflection, call process to analyze the CAS
+							 List<Properties> metrics = (List<Properties>)processMethod.
+							   invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
+							//    ***********************************
+							 
+		                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
 							IPerformanceMetrics metricsWrapper =
 									new PerformanceMetrics();
 							metricsWrapper.set(metrics);
@@ -378,49 +209,79 @@ public class HttpWorkerThread implements Runnable {
 							// In this case, the process method serialized stack trace into binary blob
 							// and wrapped it in AnalysisEngineProcessException. The serialized stack 
 							// trace is available via getMessage() call.
-							//logger.error("run", null, ee);
-							//System.out.println("Error>>>> Caused By Class::::"+ee.getCause().getClass().getName());
+
 							// This is process error. It may contain user defined
 							// exception in the stack trace. To protect against
 						    // ClassNotFound, the entire stack trace was serialized.
 							// Fetch the serialized stack trace and pass it on to
 							// to the JD. The actual serialized stack trace is wrapped in
 							// RuntimeException->AnalysisEngineException.message
-
+							workItemFailed = true;
 							IMetaCas mc = transaction.getMetaCas();
-							//Throwable t = ee.getTargetException();
-//							mc.setUserSpaceException(t.getMessage().getBytes());								
-							byte[] serializedException = uimaProcessor.getLastSerializedError();
+							
+							// Fetch serialized exception as a blob
+							Method getLastSerializedErrorMethod = processorInstance.getClass().getDeclaredMethod("getLastSerializedError");
+							byte[] serializedException =
+							    (byte[])getLastSerializedErrorMethod.invoke(processorInstance);
 							mc.setUserSpaceException(serializedException);								
-							
-							
-							//							transaction.getMetaCas().setUserSpaceException("Bob");
+
 							logger.info("run", null, "Work item processing failed - returning serialized exception to the JD");
-							//ee.printStackTrace();
 						} catch( Exception ee) {
+							workItemFailed = true;
+							// Serialize exception for the JD.
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
 						    ObjectOutputStream oos = new ObjectOutputStream( baos );
 						    oos.writeObject( ee);
 						    oos.close();
 							transaction.getMetaCas().setUserSpaceException(baos.toByteArray());
 							logger.error("run", null, ee);
-//							ee.printStackTrace();
 						}
+						// Dont return serialized CAS to reduce the msg size
 						transaction.getMetaCas().setUserSpaceCas(null);
 						transaction.setType(Type.End);
 						command = Type.End.name();
-//						httpClient.post(transaction); // Work Item Processed - End
-						httpClient.execute(transaction, postMethod); // Work Item Processed - End
-	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END for WI:"+transaction.getMetaCas().getSystemKey());
 
+						tid = new TransactionId(major, minor++);
+						transaction.setTransactionId(tid);
+
+						httpClient.execute(transaction, postMethod); // Work Item Processed - End
+                    	String wid = null;
+                    	try {
+                    		wid = transaction.getMetaCas().getSystemKey();
+                    	} catch( Exception e) {
+                    		
+                    	}
+	                    logger.info("run", null,"Thread:"+Thread.currentThread().getId()+" sent END for WI:"+wid);
+	                    if ( workItemFailed ) {
+	                        if ( wid != null ) {
+		                    	logger.warn("run", null, "Worker thread exiting due to error while processing WI:"+wid);
+	                        } else {
+		                    	logger.warn("run", null, "Worker thread exiting due to error while processing a WI");
+	                        }
+        					duccComponent.setState(ProcessState.Stopping);
+        					/* *****************************************/
+        					/* *****************************************/
+        					/* *****************************************/
+                        	/*       EXITING  PROCESS ON FIRST ERROR   */
+        					/* *****************************************/
+        					logger.warn("run", null,"Terminating Job Process - Work Item Failed");
+
+        					System.exit(0);
+        					/* *****************************************/
+        					/* *****************************************/
+        					/* *****************************************/
+        					/* *****************************************/
+
+                        	break;
+                        }
 					}
 				} catch( SocketTimeoutException e) {
-					duccComponent.getLogger().warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
+					logger.warn("run", null, "Timed Out While Awaiting Response from JD for "+command+" Request - Retrying ...");
 					System.out.println("Time Out While Waiting For a Reply from JD For "+command+" Request");
 				}
 				catch (Exception e ) {
-					duccComponent.getLogger().warn("run", null, e);
-					duccComponent.getLogger().warn("run", null, "Caught Unexpected Exception - Exiting Thread "+Thread.currentThread().getId() );
+					logger.error("run", null, e);
+					logger.error("run", null, "Caught Unexpected Exception - Exiting Thread "+Thread.currentThread().getId() );
 					e.printStackTrace();
 					break; 
 				} finally {
@@ -431,18 +292,31 @@ public class HttpWorkerThread implements Runnable {
 
 		} catch (Throwable t) {
 			t.printStackTrace();
-			duccComponent.getLogger().warn("run", null, t);
+			logger.error("run", null, t);
 		} finally {
-//			try {
-//				if ( uimaProcessor != null ) {
-//					uimaProcessor.stop();
-//				}
-//			} catch( Throwable t) {
-//				
-//			}
+			logger.warn("run",null,"EXITING WorkThread ID:"
+					+ Thread.currentThread().getId());
 			System.out.println("EXITING WorkThread ID:"
 					+ Thread.currentThread().getId());
-			workerThreadCount.countDown();
+		    try {
+		    	// Determine if the Worker thread has thread affinity to specific AE
+		    	// instance. This depends on the process container. If this process
+		    	// uses pieces part (not DD), than the thread should call stop on
+		    	// process container which will than destroy the AE. User code may
+		    	// store stuff in ThreadLocal and use it in the destroy method.
+		    	Method useThreadAffinityMethod = processorInstance.getClass().getDeclaredMethod("useThreadAffinity");	
+				boolean useThreadAffinity =
+						(Boolean)useThreadAffinityMethod.invoke(processorInstance);
+				if ( useThreadAffinity) {
+					Method stopMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("stop");
+					stopMethod.invoke(processorInstance);
+				}
+		   	} catch( Throwable t) {
+		   		t.printStackTrace();
+		   	} finally {
+				workerThreadCount.countDown();
+		   	}
+		
 		}
 
 	}
