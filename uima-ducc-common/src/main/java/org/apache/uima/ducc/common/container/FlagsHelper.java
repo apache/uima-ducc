@@ -59,7 +59,7 @@ public class FlagsHelper {
 		WorkItemTimeout,			// maximum milliseconds that any work item should take to process
 		;
 		
-		private static ArrayList<Name> requiredJd = new ArrayList<Name>(Arrays.asList(CollectionReaderCfg, JobId, UserClasspath));
+		private static ArrayList<Name> requiredJd = new ArrayList<Name>(Arrays.asList(CollectionReaderXml, JobId, UserClasspath));
 		private static ArrayList<Name> requiredJp = new ArrayList<Name>(Arrays.asList(JdURL, JobId, UserClasspath));
 		
 		private String defaultValue = null;
