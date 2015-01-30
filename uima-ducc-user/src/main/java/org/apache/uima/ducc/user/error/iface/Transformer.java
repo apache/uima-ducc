@@ -16,24 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.exception.iface;
+package org.apache.uima.ducc.user.error.iface;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
-public class Stringify implements IStringify {
+public class Transformer {
 
-	@Override
-	public String convert(Object byteArray) throws StringifyException {
-		try {
-			Throwable t = Transformer.deserialize(byteArray);
-			StringWriter sw = new StringWriter();
-			t.printStackTrace(new PrintWriter(sw));
-			return sw.toString();
-		}
-		catch(Exception e) {
-			throw new StringifyException(e);
-		}
+	public static Throwable deserialize(Object byteArray) throws IOException, ClassNotFoundException {
+		ByteArrayInputStream bis = new ByteArrayInputStream((byte[]) byteArray);
+		ObjectInputStream ois = new ObjectInputStream(bis);
+		Throwable t = (Throwable) ois.readObject();
+		return t;
 	}
-
+	
+	public static Object serialize(Throwable t) throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(t);
+        return bos.toByteArray();
+	}
 }

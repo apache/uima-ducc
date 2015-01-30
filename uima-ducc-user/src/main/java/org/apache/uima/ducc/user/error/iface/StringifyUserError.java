@@ -16,11 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.exception.iface;
+package org.apache.uima.ducc.user.error.iface;
 
-public interface IStringify {
+public class StringifyUserError extends Exception {
+
+	private static final long serialVersionUID = 1L;
 	
-	public String convert(
-		Object userException
-		) throws StringifyException;
+	public StringifyUserError(Exception e) {
+		super(e);
+	}
+	
+	public StringifyUserError(String message) {
+		super(message);
+	}
 }

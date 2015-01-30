@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.uima.ducc.user.common.QuotedOptions;
-import org.apache.uima.ducc.user.exception.iface.Transformer;
+import org.apache.uima.ducc.user.error.iface.Transformer;
 import org.apache.uima.ducc.user.jd.JdUser;
 
 public class JdUserErrorHandler implements IJdUserErrorHandler {

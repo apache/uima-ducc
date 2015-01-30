@@ -16,17 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.exception.iface;
+package org.apache.uima.ducc.user.error.iface;
 
-public class StringifyException extends Exception {
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-	private static final long serialVersionUID = 1L;
-	
-	public StringifyException(Exception e) {
-		super(e);
+public class Stringify implements IStringify {
+
+	@Override
+	public String convert(Object byteArray) throws StringifyUserError {
+		try {
+			Throwable t = Transformer.deserialize(byteArray);
+			StringWriter sw = new StringWriter();
+			t.printStackTrace(new PrintWriter(sw));
+			return sw.toString();
+		}
+		catch(Exception e) {
+			throw new StringifyUserError(e);
+		}
 	}
-	
-	public StringifyException(String message) {
-		super(message);
-	}
+
 }
