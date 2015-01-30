@@ -44,4 +44,5 @@ public interface IDuccEnv {
 	public static final String DUCC_STATE_SERVICES_DIR = DUCC_HOME_DIR+"state"+File.separator+"services"+File.separator;
 	
 	public static final String DUCC_LOGS_DIR = DUCC_HOME_DIR+"logs"+File.separator;
+	public static final String DUCC_LOGS_WEBSERVER_DIR = DUCC_HOME_DIR+"logs"+File.separator+"webserver"+File.separator;
 }
