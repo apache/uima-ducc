@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.apache.jasper.servlet.JspServlet;
+import org.apache.uima.ducc.common.IDuccEnv;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.internationalization.Messages;
 import org.apache.uima.ducc.common.utils.DuccLogger;
@@ -35,9 +36,11 @@ import org.apache.uima.ducc.ws.DuccPlugins;
 import org.eclipse.jetty.http.ssl.SslContextFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.NCSARequestLog;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.server.session.SessionHandler;
@@ -222,6 +225,29 @@ public class DuccWebServer {
 		}
 		//
 		HandlerList handlers = new HandlerList();
+		
+		String key = "ducc.ws.requestLog.RetainDays";
+		int dflt = 0;
+		int requestLogRetainDays = DuccPropertiesResolver.get(key, dflt);
+		logger.info(methodName, jobid, "requestLogRetainDays="+requestLogRetainDays);
+		if(requestLogRetainDays > 0) {
+			String requestLogTimeZone = "GMT";
+			String requestLogFmt = "yyyy_MM_dd";
+			String requestLogFile = IDuccEnv.DUCC_LOGS_WEBSERVER_DIR+requestLogFmt+".request.log";
+			NCSARequestLog requestLog = new NCSARequestLog();
+		    requestLog.setFilename(requestLogFile);
+		    requestLog.setFilenameDateFormat(requestLogFmt);
+		    requestLog.setRetainDays(requestLogRetainDays);
+		    requestLog.setAppend(true);
+		    requestLog.setExtended(true);
+		    requestLog.setLogCookies(false);
+		    requestLog.setLogTimeZone(requestLogTimeZone);
+		    RequestLogHandler requestLogHandler = new RequestLogHandler();
+		    requestLogHandler.setRequestLog(requestLog);
+		    handlers.addHandler(requestLogHandler);
+		    logger.info(methodName, jobid, "requestLogFile="+requestLogFile);
+		}
+		
 		DuccHandler duccHandler = new DuccHandler(this);
 		ArrayList<Handler> localHandlers = DuccPlugins.getInstance().gethandlers(this);
 		DuccHandlerClassic duccHandlerClassic = new DuccHandlerClassic(this);
@@ -244,6 +270,7 @@ public class DuccWebServer {
 		handlers.addHandler(resourceHandler);
 		handlers.addHandler(new DefaultHandler());
 		server.setHandler(handlers);
+		
 		logger.trace(methodName, null, messages.fetch("exit"));
 	}
 	
