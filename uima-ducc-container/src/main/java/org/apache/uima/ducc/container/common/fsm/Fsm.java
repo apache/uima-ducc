@@ -72,6 +72,25 @@ public class Fsm implements IFsmBuilder {
 		setStateInitial(state);
 		setStateCurrent(state);
 	}
+
+	@Override
+	public boolean isStateInitial() {
+		boolean retVal = false;
+		IState s0 = getStateInitial();
+		IState s1 = getStateCurrent();
+		if(s0 != null) {
+			if(s1 != null) {
+				String n0 = s0.getName();
+				String n1 = s1.getName();
+				if(n0 != null) {
+					if(n1 != null) {
+						retVal = n0.equals(n1);
+					}
+				}
+			} 
+		}
+		return retVal;
+	}
 	
 	private void setStateInitial(IState value) {
 		stateInitial = value;
@@ -177,4 +196,5 @@ public class Fsm implements IFsmBuilder {
 			throw new FsmException(e);
 		}
 	}
+
 }

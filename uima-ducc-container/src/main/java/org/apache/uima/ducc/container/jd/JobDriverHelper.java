@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -59,6 +60,7 @@ public class JobDriverHelper {
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				IWorkItem wi = entry.getValue();
+				IFsm fsm = wi.getFsm();
 				IWorkItemInfo wii = new WorkItemInfo();
 				wii.setNodeAddress(rwt.getNodeAddress());
 				wii.setNodeName(rwt.getNodeName());
@@ -67,13 +69,16 @@ public class JobDriverHelper {
 				wii.setTid(rwt.getTid());
 				wii.setSeqNo(wi.getSeqNo());
 				wii.setOperatingMillis(wi.getMillisOperating());
-				list.add(wii);
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.node.get()+wii.getNodeName());
 				mb.append(Standardize.Label.pid.get()+wii.getPid());
 				mb.append(Standardize.Label.tid.get()+wii.getTid());
+				mb.append(Standardize.Label.state.get()+fsm.getStateCurrent().getName());
 				mb.append(Standardize.Label.operatingMillis.get()+wii.getOperatingMillis());
 				logger.debug(location, ILogger.null_id, mb);
+				if(!fsm.isStateInitial()) {
+					list.add(wii);
+				}
 			}
 		}
 		catch(Exception e) {

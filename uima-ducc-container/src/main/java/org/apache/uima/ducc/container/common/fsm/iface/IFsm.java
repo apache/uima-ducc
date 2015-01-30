@@ -27,4 +27,5 @@ public interface IFsm {
 	public IState getStateCurrent();
 	public IState getStatePrevious();
 	public void reset();
+	public boolean isStateInitial();
 }
