@@ -54,13 +54,14 @@ public class JobDriver {
 		return instance;
 	}
 	
-	public static void createInstance() throws JobDriverException {
+	public static JobDriver createInstance() throws JobDriverException {
 		if(instance != null) {
 			throw new JobDriverException("already created");
 		}
 		else {
 			instance = new JobDriver();
 		}
+		return getInstance();
 	}
 	
 	public static void destroyInstance() {

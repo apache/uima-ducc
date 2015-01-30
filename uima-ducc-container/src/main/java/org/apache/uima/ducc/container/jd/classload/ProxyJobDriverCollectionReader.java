@@ -23,7 +23,6 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
@@ -189,23 +188,21 @@ public class ProxyJobDriverCollectionReader {
 	
 	private void loadClass(String className) throws JobDriverException {
 		String location = "loadClass";
+		MessageBuffer mb = new MessageBuffer();
+		mb.append(Standardize.Label.loading.get()+className);
 		try {
-			MessageBuffer mb1 = new MessageBuffer();
-			mb1.append(Standardize.Label.loading.get()+className);
-			logger.debug(location, ILogger.null_id, mb1.toString());
+			logger.debug(location, ILogger.null_id, mb.toString());
 			URL[] urls = urlClassLoader.getURLs();
 			for(URL url : urls) {
 				logger.trace(location, ILogger.null_id, url);
 			}
 			Class<?> loadedClass = urlClassLoader.loadClass(className);
-			MessageBuffer mb2 = new MessageBuffer();
-			mb2.append(Standardize.Label.loaded.get()+loadedClass.getName());
-			logger.trace(location, ILogger.null_id, mb2.toString());
+			mb= new MessageBuffer();
+			mb.append(Standardize.Label.loaded.get()+loadedClass.getName());
+			logger.trace(location, ILogger.null_id, mb.toString());
 		} 
 		catch (Exception e) {
-			DuccLogger duccLogger = DuccLogger.getLogger(ProxyJobDriverCollectionReader.class, "JD");
-			duccLogger.error(location, null, e);
-			logger.error(location, ILogger.null_id, e);
+			logger.error(location, ILogger.null_id, mb, e);
 			throw new JobDriverException(e);
 		}
 	}

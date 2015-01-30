@@ -33,29 +33,29 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 
-public class ProxyUxStringify {
+public class ProxyUserErrorStringify {
 
-	private static Logger logger = Logger.getLogger(ProxyUxStringify.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(ProxyUserErrorStringify.class, IComponent.Id.JD.name());
 	
 	private URLClassLoader urlClassLoader = null;
 
 	private String[] requiredClasses = { 
-			"org.apache.uima.ducc.user.exception.iface.IStringify", 
-			"org.apache.uima.ducc.user.exception.iface.Stringify",
-			"org.apache.uima.ducc.user.exception.iface.StringifyException",
+			"org.apache.uima.ducc.user.error.iface.IStringify", 
+			"org.apache.uima.ducc.user.error.iface.Stringify",
+			"org.apache.uima.ducc.user.error.iface.StringifyException",
 			};
 	
-	public ProxyUxStringify() throws ProxyUxException {
+	public ProxyUserErrorStringify() throws ProxyUserErrorException {
 		initialize();
 	}
 	
 	public String convert(
 			Object userException
-			) throws ProxyUxException {
+			) throws ProxyUserErrorException {
 		String location = "convert";
 		String retVal = null;
 		try {
-			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.exception.iface.Stringify");
+			Class<?> clazz = urlClassLoader.loadClass("org.apache.uima.ducc.user.error.iface.Stringify");
 			Constructor<?> constructor = clazz.getConstructor();
 			Object instance = constructor.newInstance();
 			Class<?>[] parameterTypes = { 
@@ -70,12 +70,12 @@ public class ProxyUxStringify {
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
-			throw new ProxyUxException(e.toString());
+			throw new ProxyUserErrorException(e.toString());
 		}
 		return retVal;
 	}
 	
-	private String augmentUserClasspath() throws ProxyUxException {
+	private String augmentUserClasspath() throws ProxyUserErrorException {
 		String location = "augmentUserClasspath";
 		try {
 			StringBuffer sb = new StringBuffer();
@@ -91,11 +91,11 @@ public class ProxyUxStringify {
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
-			throw new ProxyUxException(e);
+			throw new ProxyUserErrorException(e);
 		}
 	}
 	
-	private void initialize() throws ProxyUxException {
+	private void initialize() throws ProxyUserErrorException {
 		String userClasspath = augmentUserClasspath();
 		urlClassLoader = createClassLoader(userClasspath);
 		validate();
@@ -113,13 +113,13 @@ public class ProxyUxStringify {
 		return retVal;
 	}
 	
-	private void validate() throws ProxyUxException {
+	private void validate() throws ProxyUserErrorException {
 		for(String className : requiredClasses) {
 			loadClass(className);
 		}
 	}
 	
-	private void loadClass(String className) throws ProxyUxException {
+	private void loadClass(String className) throws ProxyUserErrorException {
 		String location = "loadClass";
 		try {
 			MessageBuffer mb1 = new MessageBuffer();
@@ -135,10 +135,10 @@ public class ProxyUxStringify {
 			logger.trace(location, ILogger.null_id, mb2.toString());
 		} 
 		catch (Exception e) {
-			DuccLogger duccLogger = DuccLogger.getLogger(ProxyUxStringify.class, "JD");
+			DuccLogger duccLogger = DuccLogger.getLogger(ProxyUserErrorStringify.class, "JD");
 			duccLogger.error(location, null, e);
 			logger.error(location, ILogger.null_id, e);
-			throw new ProxyUxException(e);
+			throw new ProxyUserErrorException(e);
 		}
 	}
 }

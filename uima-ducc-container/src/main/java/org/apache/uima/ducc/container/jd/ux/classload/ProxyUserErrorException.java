@@ -18,15 +18,15 @@
 */
 package org.apache.uima.ducc.container.jd.ux.classload;
 
-public class ProxyUxException extends Exception {
+public class ProxyUserErrorException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 	
-	public ProxyUxException(String text) {
+	public ProxyUserErrorException(String text) {
 		super(text);
 	}
 	
-	public ProxyUxException(Exception e) {
+	public ProxyUserErrorException(Exception e) {
 		super(e);
 	}
 }

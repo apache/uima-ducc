@@ -44,8 +44,8 @@ import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.timeout.TimeoutManager;
-import org.apache.uima.ducc.container.jd.ux.classload.ProxyUxException;
-import org.apache.uima.ducc.container.jd.ux.classload.ProxyUxStringify;
+import org.apache.uima.ducc.container.jd.ux.classload.ProxyUserErrorException;
+import org.apache.uima.ducc.container.jd.ux.classload.ProxyUserErrorStringify;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
 import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.IWorkItemStatistics;
@@ -60,7 +60,7 @@ public class ActionEnd extends Action implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionEnd.class, IComponent.Id.JD.name());
 	
-	private ProxyUxStringify proxy = null;
+	private ProxyUserErrorStringify proxy = null;
 	
 	public ActionEnd() {
 		initialize();
@@ -69,9 +69,9 @@ public class ActionEnd extends Action implements IAction {
 	private void initialize() {
 		String location = "initialize";
 		try {
-			proxy = new ProxyUxStringify();
+			proxy = new ProxyUserErrorStringify();
 		} 
-		catch (ProxyUxException e) {
+		catch (ProxyUserErrorException e) {
 			logger.error(location, ILogger.null_id, e);
 		}
 	}

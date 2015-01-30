@@ -40,7 +40,7 @@ import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.container.net.impl.MetaCasTransaction;
 import org.apache.uima.ducc.container.net.impl.TransactionId;
-import org.apache.uima.ducc.user.exception.iface.Transformer;
+import org.apache.uima.ducc.user.error.iface.Transformer;
 import org.junit.Test;
 
 public class TestMessageHandler extends ATest {
