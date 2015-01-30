@@ -300,7 +300,8 @@ public class DuccLogger
     protected String formatMsg(DuccId pid, Object ... args)
     {
     	String header = format(pid);
-        return formatMsg(header, args);
+        String msg = formatMsg(args);
+        return header + " " + msg;
     }
     
     private void appendStackTrace(StringBuffer s, Throwable t)
