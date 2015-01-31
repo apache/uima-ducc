@@ -55,6 +55,17 @@ public class DuccPropertiesResolver {
         return value != null ? value : dflt;
     }
     
+    public static int get(String key, int dflt) {
+    	int retVal = dflt;
+        String value = duccPropertiesResolver.getProperty(key);
+        try {
+        	retVal = Integer.parseInt(value);
+        }
+        catch(Exception e) {
+        }
+        return retVal;
+    }
+    
     private Properties initialProperties = new DuccProperties();
     
     private Properties defaultProperties = new DuccProperties();
