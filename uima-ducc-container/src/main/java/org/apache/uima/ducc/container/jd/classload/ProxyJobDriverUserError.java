@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.jd.classload;
 
+import org.apache.uima.ducc.container.common.MessageBuffer;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -36,7 +38,22 @@ public class ProxyJobDriverUserError {
 				if(userException != null) {
 					logger.error(location, ILogger.null_id, userException);
 				}
+				else {
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.instance.get()+null);
+					logger.debug(location, ILogger.null_id, mb);
+				}
 			}
+			else {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.classname.get()+e.getClass().getName());
+				logger.debug(location, ILogger.null_id, mb);
+			}
+		}
+		else {
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.exception.get()+null);
+			logger.debug(location, ILogger.null_id, mb);
 		}
 	}
 }

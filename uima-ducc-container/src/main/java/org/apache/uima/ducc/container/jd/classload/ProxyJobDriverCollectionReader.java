@@ -98,8 +98,8 @@ public class ProxyJobDriverCollectionReader {
 			retVal = (Integer)method_getTotal.invoke(instance_JdUserCollectionReader, nullObjectArray);
 		} 
 		catch (Exception e) {
-			logger.error(location, ILogger.null_id, e);
 			ProxyJobDriverUserError.loggifyUserException(e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 		return retVal;
@@ -123,8 +123,8 @@ public class ProxyJobDriverCollectionReader {
 			}
 		} 
 		catch (Exception e) {
-			logger.error(location, ILogger.null_id, e);
 			ProxyJobDriverUserError.loggifyUserException(e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 		return retVal;
@@ -170,8 +170,8 @@ public class ProxyJobDriverCollectionReader {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
 		} 
 		catch (Exception e) {
-			logger.error(location, ILogger.null_id, e);
 			ProxyJobDriverUserError.loggifyUserException(e);
+			logger.error(location, ILogger.null_id, e);
 			throw new JobDriverException(e);
 		}
 	}
@@ -206,8 +206,8 @@ public class ProxyJobDriverCollectionReader {
 			logger.trace(location, ILogger.null_id, mb.toString());
 		} 
 		catch (Exception e) {
-			logger.error(location, ILogger.null_id, mb, e);
 			ProxyJobDriverUserError.loggifyUserException(e);
+			logger.error(location, ILogger.null_id, mb, e);
 			throw new JobDriverException(e);
 		}
 	}
