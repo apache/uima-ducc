@@ -136,6 +136,7 @@ public class NodeViz
         for ( IDuccWork w : jobmap.values() ) {
             DuccType type = w.getDuccType();
             String service_endpoint = null;
+            String service_id = null;          // UIMA-4209
             // If it looks service-y and os of deployment type 'other' it's a Pop.
             if ( type == DuccType.Service ) {
                 IDuccWorkService dws = (IDuccWorkService) w;
@@ -143,6 +144,7 @@ public class NodeViz
                     type = DuccType.Pop;
                 } else {
                     service_endpoint = dws.getServiceEndpoint();
+                    service_id = dws.getServiceId();  // UIMA-4209
                 }
             }
             
@@ -155,7 +157,7 @@ public class NodeViz
             IDuccSchedulingInfo sti   = w.getSchedulingInfo();
 
             String            user    = si.getUser();
-            String            duccid  = Long.toString(w.getDuccId().getFriendly());
+            String            duccid  = service_id == null ? Long.toString(w.getDuccId().getFriendly()) : service_id;     // UIMA-4209
             int               jobmem  = Integer.parseInt(sti.getShareMemorySize());
             int               qshares = jobmem / quantum;
             if ( jobmem % quantum != 0 ) qshares++;

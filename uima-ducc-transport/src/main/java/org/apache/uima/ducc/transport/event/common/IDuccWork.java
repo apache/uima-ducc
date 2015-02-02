@@ -50,6 +50,9 @@ public interface IDuccWork extends Identifiable, Serializable {
     public String[] getServiceDependencies();
     public void setServiceDependencies(String[] serviceDependencies);
 
+    public String getServiceId();           // UIMA-4209
+    public void setServiceId(String id);    // UIMA-4209
+
 	public boolean isSchedulable();
 	public boolean isCompleted();
 	public boolean isOperational();
