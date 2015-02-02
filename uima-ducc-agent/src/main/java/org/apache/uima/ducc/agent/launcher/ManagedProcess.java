@@ -423,8 +423,14 @@ public class ManagedProcess implements Process {
 						getDuccProcess().setReasonForStoppingProcess(
 								errors.trim());
 					} else if ( !isAP ){
-						getDuccProcess().setReasonForStoppingProcess(
-								ReasonForStoppingProcess.Croaked.toString());
+						if ( exitcode == 0 || exitcode == 128) {
+							pstate = ProcessState.Stopped;
+							
+						} else {
+							getDuccProcess().setReasonForStoppingProcess(
+									ReasonForStoppingProcess.Croaked.toString());
+							
+						}
 					}
 				} else if ( getDuccProcess().getProcessState().equals(ProcessState.Stopping)) {
 					pstate = ProcessState.Stopped;
