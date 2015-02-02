@@ -85,6 +85,7 @@ public class ProxyJobDriverCollectionReader {
 			retVal = PrivateClassLoader.create(userClasspath);
 		}
 		catch(Exception e) {
+			ProxyJobDriverUserError.loggifyUserException(e);
 			logger.error(location, ILogger.null_id, e);
 		}
 		return retVal;
@@ -98,6 +99,7 @@ public class ProxyJobDriverCollectionReader {
 		} 
 		catch (Exception e) {
 			logger.error(location, ILogger.null_id, e);
+			ProxyJobDriverUserError.loggifyUserException(e);
 			throw new JobDriverException(e);
 		}
 		return retVal;
@@ -122,6 +124,7 @@ public class ProxyJobDriverCollectionReader {
 		} 
 		catch (Exception e) {
 			logger.error(location, ILogger.null_id, e);
+			ProxyJobDriverUserError.loggifyUserException(e);
 			throw new JobDriverException(e);
 		}
 		return retVal;
@@ -168,6 +171,7 @@ public class ProxyJobDriverCollectionReader {
 		} 
 		catch (Exception e) {
 			logger.error(location, ILogger.null_id, e);
+			ProxyJobDriverUserError.loggifyUserException(e);
 			throw new JobDriverException(e);
 		}
 	}
@@ -203,6 +207,7 @@ public class ProxyJobDriverCollectionReader {
 		} 
 		catch (Exception e) {
 			logger.error(location, ILogger.null_id, mb, e);
+			ProxyJobDriverUserError.loggifyUserException(e);
 			throw new JobDriverException(e);
 		}
 	}
