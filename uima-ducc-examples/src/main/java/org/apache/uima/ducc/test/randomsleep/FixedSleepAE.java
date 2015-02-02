@@ -119,32 +119,31 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
             }
         }
 
-
         long sleep;
         if ( !initComplete ) {                                    // longer init only the first tim
             initComplete = true;
         } 
 
-        String itime = System.getenv("AE_INIT_TIME");        // the minimum time to sleep
-        String irange = System.getenv("AE_INIT_RANGE");      // the range of a random amount added to the minimum time
-        String ierror = System.getenv("INIT_ERROR");         // probability of init error, int, 0:100
+        int i_error  = getIntFromEnv("AE_INIT_ERROR", false);      // probability of init error, int, 0:100
+        int i_exit   = getIntFromEnv("AE_INIT_EXIT" , false);
+        int i_itime  = getIntFromEnv("AE_INIT_TIME" , true );
+        int i_irange = getIntFromEnv("AE_INIT_RANGE", true );
 
-        if ( itime == null ) {
-            throw new IllegalArgumentException("Missing AE_INIT_TIME");
+        if ( i_error > 0 ) {
+            int toss = nextrand(100);
+            logger.log(Level.INFO, "Init errors: probability[" + i_error + "] toss[" + toss + "]");
+            if ( i_error > toss ) {
+                throwAnException("Random Error in Initialization");
+            }
         }
 
-        if ( irange == null ) {
-            throw new IllegalArgumentException("Missing AE_INIT_RANGE");
-        }
-
-        int i_itime;
-        int i_irange;
-        try {
-            i_itime = Integer.parseInt(itime);
-            i_irange = Integer.parseInt(irange);
-        } catch (NumberFormatException e) {
-            logger.log(Level.INFO, "Invalid AE_INIT_TIME[" + itime + "] or AE_INIT_RANGE[" + irange + "] - must be numbers.");
-            throw e;
+        if ( i_exit > 0 ) {
+            int toss = nextrand(100);
+            logger.log(Level.INFO, "Init hard exit: probability[" + i_exit + "] toss[" + toss + "]");
+            if ( i_exit > toss ) {
+                logger.log(Level.INFO, "Init hard exit: croaking hard now.");
+                Runtime.getRuntime().halt(19);
+            }
         }
 
         if ( i_itime < 0 ) {
@@ -153,15 +152,6 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
 
         if ( i_irange <= 0 ) {
             throw new IllegalArgumentException("Invalid AE_INIT_RANGE, must be > 0");
-        }
-
-        if ( ierror != null ) {
-            int probability = Integer.parseInt(ierror);
-            int toss = nextrand(100);
-            logger.log(Level.INFO, "Init errors: probability[" + probability + "] toss[" + toss + "]");
-            if ( probability > toss ) {
-                throwAnException("Random Error in Initialization");
-            }
         }
         
         sleep = i_itime + nextrand(i_irange);  // pick off some random number of milliseconds, min of 5 minutes init sleep
@@ -185,7 +175,40 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         logger.log(Level.INFO, "^^-------> AE process " + pid + " TID " + tid + " initialization " + ok);
         return;
     }
-        
+
+    int getIntFromEnv(String key, boolean fail)
+    {
+        String s = System.getenv(key);
+        if ( s == null ) {
+            if ( fail ) throw new IllegalArgumentException("Missing " + key);
+            else        return 0;
+        }
+
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            logger.log(Level.INFO, "Invalid " + key + "[" + s + "].  Must be integer.");
+            throw e;
+        }
+    }
+
+    double getDoubleFromEnv(String key, boolean fail)
+    {
+        String s = System.getenv(key);
+        if ( s == null ) {
+            if ( fail ) throw new IllegalArgumentException("Missing " + key);
+            else        return 0.0;
+        }
+
+        try {
+            return Double.parseDouble(s);
+        } catch (NumberFormatException e) {
+            logger.log(Level.INFO, "Invalid " + key + "[" + s + "].  Must be double.");
+            throw e;
+        }
+    }
+
+
     /**
      * Need to simulate a process that leaks.  We just allocate stuff until we die somehow.  
      * Careful, this can be pretty nasty if not contained by the infrastructure.  
@@ -228,7 +251,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
      * This thows all kinds of stuff.
      */
     @SuppressWarnings("null")
-        void throwAnException(String msgheader)
+    void throwAnException(String msgheader)
     {
         int MAX_EXCEPTIONS = 7;        // deliberately wrong, this is a foul-up simulator after all!
 
@@ -280,7 +303,7 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         return ( ((int) r.nextLong()) & Integer.MAX_VALUE) % max;
     }
 
-    void randomError(double error_rate, String msgheader)
+    void randomError(double error_rate, String msgheader, boolean do_exit)
     //throws Exception
     {
         //
@@ -298,9 +321,13 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         String msg = msgheader + " simulated error.";        
         
         int check = (int) Math.round(RANGE * (error_rate / 100.0));
-        dolog("**-------> AE Error Coin toss " + cointoss + " vs " + check + ": " + (cointoss < check));
+        dolog("**-------> AE Error Coin toss " + cointoss + " vs " + check + ": " + (cointoss < check), do_exit ? "Exiting." : "Throwing.");
         if ( cointoss < check ) {
-            throwAnException(msg);
+            if ( do_exit ) {
+                Runtime.getRuntime().halt(19);
+            } else {
+                throwAnException(msg);
+            }
         }
         //throw new AnalysisEngineProcessException(msg);
     }
@@ -352,7 +379,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
         long          elapsed    = Long.parseLong(tok.nextToken());
         int           qid        = Integer.parseInt(tok.nextToken());
         int           total      = Integer.parseInt(tok.nextToken());
-        double        error_rate = Double.parseDouble(tok.nextToken());
+        double        error_rate = getDoubleFromEnv("AE_RUNTIME_ERROR", false);
+        double        exit_rate  = getDoubleFromEnv("AE_RUNTIME_EXIT", false);
         String        logid      = tok.nextToken();
 
         RuntimeMXBean rmxb       = ManagementFactory.getRuntimeMXBean();
@@ -386,7 +414,9 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
                 bl.start();
             }
 
-            randomError(error_rate, msgheader);           
+            randomError(error_rate, msgheader, false);           
+            randomError(exit_rate, msgheader, true);
+
             Thread.sleep(elapsed);
             completion = "OK";
             dolog(msgheader + " returns after " + elapsed + " MS completion " + completion);

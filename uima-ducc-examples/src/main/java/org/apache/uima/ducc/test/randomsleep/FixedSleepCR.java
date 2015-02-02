@@ -48,8 +48,6 @@ import org.apache.uima.util.ProgressImpl;
  *   - compression - this is a number used to adjust each sleep time and hence the duration 
  *                   of the test.  The sleep time is divided by this number, so a larger
  *                   compression produces a shorter sleep and a faster run.
- *   - error_rate - this is passed to the JP for error injection.  It is a float, percentage and
- *                  indicates the expected rate of errors processing work items to be simulated.
  */
 
 public class FixedSleepCR extends CollectionReader_ImplBase {
@@ -57,7 +55,6 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
     private volatile Logger logger;
     private volatile ArrayList<Long> workitems;
     private volatile int index = 0;
-    private volatile String error_rate = "0";
     private volatile String logdir = "None";
     private volatile String jobid;
     PrintStream jdmark;
@@ -79,9 +76,6 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
 
         String comp = ((String) getConfigParameterValue("compression"));
         logger.log(Level.INFO, " ****** BB compression " + comp);
-
-        error_rate = ((String) getConfigParameterValue("error_rate"));
-        logger.log(Level.INFO, " ****** BB error_rate " + error_rate);
 
         Map<String, String> env = System.getenv();
         for ( String k : env.keySet() ) {
@@ -146,7 +140,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase {
     public synchronized void getNext(CAS cas) throws IOException, CollectionException 
     {
         logger.log(Level.INFO, " ****** getNext[" + index + "]: " + workitems.get(index) + " getNext invocation " + get_next_counter++);
-        String parm = "" + workitems.get(index) + " " + (index+1) + " " + workitems.size() + " " + error_rate + " " + logdir;
+        String parm = "" + workitems.get(index) + " " + (index+1) + " " + workitems.size() + " " + logdir;
 
         if ( jdmark != null ) {
             jdmark.println("" + System.currentTimeMillis() + " " + parm);

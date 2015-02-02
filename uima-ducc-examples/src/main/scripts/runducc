@@ -138,7 +138,7 @@ class DuccProcess(Thread):
         #        return                 
         #    print 'VERIFY ' + realid + ':', line
 
-        if ( self.runner.watch ):
+        if ( self.runner.observe ):
             self.runner.queue.get()            # remove marker so main() can eventually exit
             self.runner.queue.task_done()
 
@@ -200,7 +200,7 @@ class DuccProcess(Thread):
         else:
             plain_broker_url = self.runner.broker_protocol + '://' + self.runner.broker_host + ':' + self.runner.broker_port
 
-        cr_parms         = '"jobfile=' + self.jobfile + ' compression=' + self.runner.compression + ' error_rate=' + str(self.runner.error_rate) + '"'
+        cr_parms         = '"jobfile=' + self.jobfile + ' compression=' + self.runner.compression + '"'
         process_args.append(process_xmx)
         process_args.append('-DdefaultBrokerURL=' + plain_broker_url )
 
@@ -211,8 +211,6 @@ class DuccProcess(Thread):
         if ( self.runner.jp_uima_log != None ):
             driver_args.append(' -Djava.util.logging.config.file=' + self.runner.jp_uima_log)
 
-        description      = '"' + self.jobfile + '"'
-
         jvm_driver_args = self.mkargs(driver_args)
         jvm_process_args = self.mkargs(process_args)
 
@@ -222,7 +220,7 @@ class DuccProcess(Thread):
         CMD = os.environ['JAVA_HOME'] + '/bin/java'
         CMD = CMD + ' ' + self.runner.submit_package + '.cli.DuccJobSubmit'
 
-        CMD = CMD + ' --description '                         + description + '[' + self.runner.style + ']'
+        CMD = CMD + ' --description '                         + '"' + self.jobfile + '[' + self.runner.style + ']"'
         CMD = CMD + ' --driver_descriptor_CR '                + cr
         CMD = CMD + ' --driver_descriptor_CR_overrides '      + cr_parms
         CMD = CMD + ' --driver_jvm_args '                     + jvm_driver_args
@@ -252,9 +250,16 @@ class DuccProcess(Thread):
 
         CMD = CMD + ' --environment ' \
                   + '"' \
-                  + ' AE_INIT_TIME='  + str(self.runner.init_time) \
-                  + ' AE_INIT_RANGE=' + str(self.runner.init_range) \
-                  + ' INIT_ERROR='    + str(self.runner.init_error) \
+                  + ' AE_INIT_TIME='     + str(self.runner.init_time) \
+                  + ' AE_INIT_RANGE='    + str(self.runner.init_range) \
+                  + ' AE_INIT_EXIT='     + str(self.runner.ae_init_exit) \
+                  + ' AE_INIT_ERROR='    + str(self.runner.ae_init_error) \
+                  + ' AE_RUNTIME_EXIT='  + str(self.runner.ae_runtime_exit) \
+                  + ' AE_RUNTIME_ERROR=' + str(self.runner.ae_runtime_error) \
+                  + ' CR_INIT_EXIT='     + str(self.runner.cr_init_exit) \
+                  + ' CR_INIT_ERROR='    + str(self.runner.cr_init_error) \
+                  + ' CR_RUNTIME_EXIT='  + str(self.runner.cr_runtime_exit) \
+                  + ' CR_RUNTIME_ERROR=' + str(self.runner.cr_runtime_error) \
                   +  bloat_parms \
                   + ' LD_LIBRARY_PATH=/a/bogus/path' \
                   + '"'
@@ -265,7 +270,7 @@ class DuccProcess(Thread):
         elif (self.runner.max_machines != -1 ):
             CMD = CMD + ' --process_deployments_max '  + self.runner.max_machines
 
-        if ( self.runner.watch ):
+        if ( self.runner.observe ):
             CMD = CMD + ' --wait_for_completion'     
 
         self.user = user
@@ -454,7 +459,7 @@ class RunDucc(DuccUtil):
                 ducc_process = DuccProcess(self, jobfile)
                 ducc_process.submit()
 
-                if ( self.watch ) :
+                if ( self.observe ) :
                     self.queue.put(jobfile)         # any old marker will do
                     ducc_process.start()
                 else:
@@ -549,6 +554,10 @@ class RunDucc(DuccUtil):
         print '   -n, --nmachines_override process_deployments_max'
         print '       Override the preconfigured max machines. Use -1 to fully inhibit max machines'
         print ''
+        print '   -o, --observe'
+        print '       Specifies that we submit in keepalive mode and observe(watch) the jobs, creating a dir with outputs. Default:', self.observe
+        print '       If specified, we run verification against the results.'
+        print ''
         print '   -p, --process_timeout sec'
         print '       Process timeout, in seconds. Default:', self.process_timeout
         print ''
@@ -558,15 +567,17 @@ class RunDucc(DuccUtil):
         print '   --jp_uima_log log-properties'
         print '       If specified, use the indicated properties file for JP UIMA/UIMA-AS logging. Default:', self.jp_uima_log
         print ''
-        print '   -w, --watch'
-        print '       Specifies that we submit in keepalive mode and watch the jobs, creating a dir with outputs. Default:', self.watch
-        print '       If specified, we run verification against the results.'
-        print 
-        print '   -x'
-        print '       Error rate (expecting float, 0-100, which is translated into a percentage. Default:', self.error_rate
+        print '   -s'
+        print '       AE Probability that a JP will spontaneously exit during initialization.  Default:', self.ae_init_exit
         print ''
-        print '   -y'
-        print '       Error probability during initialation, int, 0:100', self.init_error
+        print '   -t'
+        print '       AE Probability that a JP will throw an exception during initialization.  Default:', self.ae_init_error
+        print ''
+        print '   -u'
+        print '       AE Probability that a JP will spontaneously exit in the process method.  Default:', self.ae_runtime_exit
+        print ''
+        print '   -v'
+        print '       AE Probability that a JP will throw an exception in the process method.  Default:', self.ae_runtime_error
         print ''
         print 'We run with DUCC_HOME set to', self.DUCC_HOME
         sys.exit(1)
@@ -575,9 +586,15 @@ class RunDucc(DuccUtil):
     
         self.test_dir   = None
         self.batchfile  = None
-        self.watch   = False
-        self.error_rate = 0.0
-        self.init_error = 0
+        self.observe   = False
+        self.ae_init_exit = 0            # -s  int 0-100
+        self.ae_init_error = 0           # -t  int 0-100
+        self.ae_runtime_exit = 0.0       # -u  float
+        self.ae_runtime_error = 0.0      # -v  float
+        self.cr_init_exit = 0            # -w  int 0-100
+        self.cr_init_error = 0           # -x  int 0-100
+        self.cr_runtime_exit = 0.0       # -y  float
+        self.cr_runtime_error = 0.0      # -z  float
         self.init_fail_cap = '99'
         self.memory_override = None
         self.init_time = 10000
@@ -597,11 +614,11 @@ class RunDucc(DuccUtil):
         self.descriptor_as_file = False
 
         try:
-            opts, args  = getopt.getopt(argv, 'b:d:fi:r:m:n:p:wx:y:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
+            opts, args  = getopt.getopt(argv, 'b:d:fi:r:m:nop:s:t:u:v:w:x:y:z:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                         'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
-                                                                        'init_timeout=','watch',
+                                                                        'init_timeout=', 'observe'
                                                                         'jd_uima_log=', 'jp_uima_log=',
-                                                                        'http'
+                                                                        'http',
                                                                       ])
         except:
             print "Unknown option"
@@ -625,8 +642,8 @@ class RunDucc(DuccUtil):
                 self.max_machines = int(a)
             elif o in ('-p', '--process_timeout'):
                 self.process_timeout = a
-            elif o in ('-w', '--watch' ):
-                self.watch = True        
+            elif o in ('-o', '--observe' ):
+                self.observe = True        
             elif o in ('--init_timeout' ):
                 self.init_timeout = int(a)
             elif o in ('--jd_uima_log' ):
@@ -640,7 +657,7 @@ class RunDucc(DuccUtil):
             elif o in ('--SE'):
                 self.style = 'SE'
                 self.service_startup = a
-                self.watch = True
+                self.observe = True
             elif o in ( '-f', '--file'):
                 self.descriptor_as_file = True
             elif o in ('--http'):
@@ -649,12 +666,22 @@ class RunDucc(DuccUtil):
                 self.init_bloat = a
             elif o in ('--PB'):
                 self.process_bloat = a
-            elif o in ('-w', '--watch' ):
-                self.watch = True        
+            elif ( o == '-s'):
+                self.ae_init_exit = int(a)
+            elif ( o == '-t'):
+                self.ae_init_error = int(a)
+            elif ( o == '-u'):
+                self.ae_runtime_exit = float(a)
+            elif ( o == '-v'):
+                self.ae_runtime_error = float(a)
+            elif ( o == '-w'):
+                self.cr_init_exit = int(a)
             elif ( o == '-x'):
-                self.error_rate = float(a)
+                self.cr_init_error = int(a)
             elif ( o == '-y'):
-                self.init_error = int(a)
+                self.cr_runtime_exit = float(a)
+            elif ( o == '-z'):
+                self.cr_runtime_error = float(a)
             elif ( o == '-?'):
                 self.usage(None)
             else:
@@ -675,9 +702,15 @@ class RunDucc(DuccUtil):
         print '    init-timeout       :', self.init_timeout
         print '    init-bloat         :', self.init_bloat
         print '    process-bloat      :', self.process_bloat
-        print '    watch              :', self.watch           
-        print '    error_rate         :', self.error_rate
-        print '    init_error         :', self.init_error
+        print '    observe            :', self.observe           
+        print '    ae_init_exit       :', self.ae_init_exit
+        print '    ae_init_error      :', self.ae_init_error
+        print '    ae_runtime_exit    :', self.ae_runtime_exit
+        print '    ae_runtime_error   :', self.ae_runtime_error
+        print '    cr_init_exit       :', self.cr_init_exit
+        print '    cr_init_error      :', self.cr_init_error
+        print '    cr_runtime_exit    :', self.cr_runtime_exit
+        print '    cr_runtime_error   :', self.cr_runtime_error
         print '    process_timeout    :', self.process_timeout
         print '    memory_override    :', self.memory_override
         print '    max_machines       :', self.max_machines
@@ -711,12 +744,12 @@ class RunDucc(DuccUtil):
             #return;
 
         os.environ['CLASSPATH'] = self.DUCC_HOME + "/lib/uima-ducc-cli.jar"
-        if ( self.watch ):
+        if ( self.observe ):
             self.queue = Queue.Queue()
 
         self.run_batch()
                 
-        if ( self.watch ):
+        if ( self.observe ):
             self.queue.join()
             print 'All threads returned'
             if ( self.style == 'SE' ):
