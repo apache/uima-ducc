@@ -75,7 +75,7 @@ public class JdUserCollectionReader {
 			_initialize(crXml, crCfg);
 		}
 		catch(Exception e) {
-			JdUserException jdUserException = new JdUserException(e.toString());
+			JdUserException jdUserException = new JdUserException(e);
 			throw jdUserException;
 		}
 	}
@@ -137,7 +137,7 @@ public class JdUserCollectionReader {
 			return _getJdUserMetaCas();
 		}
 		catch(Exception e) {
-			JdUserException jdUserException = new JdUserException(e.toString());
+			JdUserException jdUserException = new JdUserException(e);
 			throw jdUserException;
 		}
 	}

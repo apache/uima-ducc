@@ -18,11 +18,27 @@
 */
 package org.apache.uima.ducc.user.jd;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public class JdUserException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 
-	public JdUserException(String message) {
-		super(message);
+	private String userException = null;
+	
+	public JdUserException(Exception userException) {
+		super();
+		StringWriter sw = new StringWriter();
+		userException.printStackTrace(new PrintWriter(sw));
+		setUserException(sw.toString());
+	}
+	
+	public String getUserException() {
+		return userException;
+	}
+	
+	private void setUserException(String value) {
+		userException = value;
 	}
 }

@@ -100,12 +100,24 @@ public class TestSuite {
 		}
 	}
 	
+	@SuppressWarnings("null")
+	private Exception getException() {
+		Exception retVal = null;
+		try {
+			retVal.hashCode();
+		}
+		catch(Exception e) {
+			retVal = e;
+		}
+		return retVal;
+	}
 	@Test
 	public void test02() {
 		try {
-			String message = "XYZ";
-			JdUserException jdUserException = new JdUserException(message);
-			assertTrue(message.equals(jdUserException.getMessage()));
+			Exception e = getException();
+			JdUserException jdUserException = new JdUserException(e);
+			String userException = jdUserException.getUserException();
+			assertTrue(userException.startsWith("java.lang.NullPointerException"));
 		}
 		catch(Exception e) {
 			e.printStackTrace();
