@@ -35,6 +35,7 @@ import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerThread;
+import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.wi.IProcessStatistics;
@@ -118,6 +119,7 @@ public class ActionGet implements IAction {
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
+			JobDriver.getInstance().killJob(CompletionType.Exception);
 		}
 		logger.trace(location, ILogger.null_id, "exit");
 	}
