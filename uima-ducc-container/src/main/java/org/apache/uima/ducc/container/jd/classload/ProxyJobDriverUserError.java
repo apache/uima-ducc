@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.jd.classload;
 
+import java.lang.reflect.InvocationTargetException;
+
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
@@ -32,17 +34,22 @@ public class ProxyJobDriverUserError {
 	public static void loggifyUserException(Exception e) {
 		String location = "loggifyUserException";
 		if(e != null) {
-			if(e instanceof JdUserException) {
-				JdUserException jdUserException = (JdUserException) e;
-				String userException = jdUserException.getUserException();
-				if(userException != null) {
-					logger.error(location, ILogger.null_id, userException);
+			if(e instanceof InvocationTargetException) {
+				InvocationTargetException ite = (InvocationTargetException) e;
+				Throwable t = ite.getTargetException();
+				if(e instanceof JdUserException) {
+					JdUserException jdUserException = (JdUserException) t;
+					loggifyJdUserException(jdUserException);
 				}
 				else {
 					MessageBuffer mb = new MessageBuffer();
-					mb.append(Standardize.Label.instance.get()+null);
+					mb.append(Standardize.Label.classname.get()+e.getClass().getName());
 					logger.debug(location, ILogger.null_id, mb);
 				}
+			}
+			else if(e instanceof JdUserException) {
+				JdUserException jdUserException = (JdUserException) e;
+				loggifyJdUserException(jdUserException);
 			}
 			else {
 				MessageBuffer mb = new MessageBuffer();
@@ -53,6 +60,19 @@ public class ProxyJobDriverUserError {
 		else {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.exception.get()+null);
+			logger.debug(location, ILogger.null_id, mb);
+		}
+	}
+	
+	private static void loggifyJdUserException(JdUserException jdUserException) {
+		String location = "loggifyJdUserException";
+		String userException = jdUserException.getUserException();
+		if(userException != null) {
+			logger.error(location, ILogger.null_id, userException);
+		}
+		else {
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.instance.get()+null);
 			logger.debug(location, ILogger.null_id, mb);
 		}
 	}
