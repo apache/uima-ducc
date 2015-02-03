@@ -86,12 +86,12 @@ public class WiTracker {
 		String location = "report";
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.size.get()+map.size());
-		logger.debug(location, ILogger.null_id, mb.toString());
+		logger.trace(location, ILogger.null_id, mb.toString());
 		for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 			IRemoteWorkerThread rwt = entry.getKey();
 			IWorkItem wi = entry.getValue();
 			MessageBuffer mb1 = LoggerHelper.getMessageBuffer(rwt, wi);
-			logger.debug(location, ILogger.null_id, mb1.toString());
+			logger.trace(location, ILogger.null_id, mb1.toString());
 		}
 	}
 }

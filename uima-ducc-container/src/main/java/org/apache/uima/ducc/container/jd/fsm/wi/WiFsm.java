@@ -140,12 +140,21 @@ public class WiFsm extends Fsm {
 	
 	@Override
 	public void transition(IEvent event, Object actionData) throws FsmException {
+		String location = "transition";
 		try {
 			super.transition(event, actionData);
 		}
 		catch(Exception e) {
 			ErrorLogger.record(e);
-			JobDriver.getInstance().killJob(CompletionType.Exception);
+			JobDriver jd = JobDriver.getInstance();
+			if(jd != null) {
+				jd.killJob(CompletionType.Exception);
+			}
+			else {
+				MessageBuffer mb = new MessageBuffer();
+				mb.append(Standardize.Label.jdObject.name()+null);
+				logger.warn(location, ILogger.null_id, mb.toString());
+			}
 		}
 	}
 	

@@ -58,6 +58,7 @@ public class Standardize {
 		request,
 		result,
 		remainder,
+		jdObject,
 		jdState,
 		directory,
 		node,
