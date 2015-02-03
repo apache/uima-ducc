@@ -36,7 +36,9 @@ import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReade
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
 import org.apache.uima.ducc.container.jd.test.helper.Utilities;
+import org.apache.uima.ducc.container.jd.user.error.classload.ProxyUserErrorStringify;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
+import org.apache.uima.ducc.user.error.iface.Transformer;
 import org.junit.Test;
 
 public class TestClassLoading extends ATest {
@@ -188,6 +190,28 @@ public class TestClassLoading extends ATest {
 			debug(dgen);
 			//
 			delete(working);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+	
+	@Test
+	public void test_05() {
+		if(isDisabled(this.getClass().getName())) {
+			return;
+		}
+		try {
+			String userClasspath = Utilities.getInstance().getUserCP();
+			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			ProxyUserErrorStringify pues = new ProxyUserErrorStringify();
+			Exception e = new RuntimeException("error test #05");
+			Object serializedException = Transformer.serialize(e);
+			String stringifiedException = pues.convert(serializedException);
+			String prefix = "java.lang.RuntimeException: error test #05";
+			assertTrue(stringifiedException.startsWith(prefix));
+			//System.out.println(stringifiedException);
 		}
 		catch(Exception e) {
 			e.printStackTrace();

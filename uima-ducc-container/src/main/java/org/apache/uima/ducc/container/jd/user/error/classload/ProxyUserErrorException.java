@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.ux.classload;
+package org.apache.uima.ducc.container.jd.user.error.classload;
 
 public class ProxyUserErrorException extends Exception {
 

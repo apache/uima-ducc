@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.ux.classload;
+package org.apache.uima.ducc.container.jd.user.error.classload;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -42,7 +42,7 @@ public class ProxyUserErrorStringify {
 	private String[] requiredClasses = { 
 			"org.apache.uima.ducc.user.error.iface.IStringify", 
 			"org.apache.uima.ducc.user.error.iface.Stringify",
-			"org.apache.uima.ducc.user.error.iface.StringifyException",
+			"org.apache.uima.ducc.user.error.iface.StringifyUserError",
 			};
 	
 	public ProxyUserErrorStringify() throws ProxyUserErrorException {
