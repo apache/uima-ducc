@@ -327,7 +327,7 @@ public class AllInOneLauncher extends CliBase {
         // Don't need all the DUCC jars as user's classpath must have all the UIMA jars it needs.
         // For simplicity add only the jar that has the AllInOne class --- it will pull in other 
         // jars that have dependencies such as the flow controller.
-        String duccClasspath = ducc_home + "/lib/uima-ducc-cli.jar:" + ducc_home + "/lib/uima-ducc-common-2.0.0-SNAPSHOT.jar:" + ducc_home + "/lib/uima-ducc-transport-2.0.0-SNAPSHOT.jar";
+        String duccClasspath = ducc_home + "/lib/uima-ducc-cli.jar";
         if (classpath_user_first) {
             classpath = classpath + File.pathSeparatorChar + duccClasspath;
         } else {
