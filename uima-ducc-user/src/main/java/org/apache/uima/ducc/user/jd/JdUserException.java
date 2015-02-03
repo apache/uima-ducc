@@ -28,10 +28,19 @@ public class JdUserException extends Exception {
 	private String userException = null;
 	
 	public JdUserException(Exception userException) {
-		super();
-		StringWriter sw = new StringWriter();
-		userException.printStackTrace(new PrintWriter(sw));
-		setUserException(sw.toString());
+		try {
+			if(userException == null) {
+				setUserException("exception is null?");
+			}
+			else {
+				StringWriter sw = new StringWriter();
+				userException.printStackTrace(new PrintWriter(sw));
+				setUserException(sw.toString());
+			}
+		}
+		catch(Exception e) {
+			setUserException("exception obtaining stack trace?");
+		}
 	}
 	
 	public String getUserException() {
