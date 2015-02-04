@@ -55,10 +55,7 @@ public class JobDriver {
 	}
 	
 	public static JobDriver createInstance() throws JobDriverException {
-		if(instance != null) {
-			throw new JobDriverException("already created");
-		}
-		else {
+		if(instance == null) {
 			instance = new JobDriver();
 		}
 		return getInstance();
@@ -111,7 +108,7 @@ public class JobDriver {
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);
-			throw new JobDriverException(e);
+			throw new JobDriverException();
 		}
 	}
 	

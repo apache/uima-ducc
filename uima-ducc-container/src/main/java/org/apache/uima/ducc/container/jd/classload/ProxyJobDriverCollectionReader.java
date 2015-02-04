@@ -66,10 +66,16 @@ public class ProxyJobDriverCollectionReader {
 			};
 	
 	public ProxyJobDriverCollectionReader() throws JobDriverException {
-		initialize();
+		try {
+			initialize();
+		}
+		catch(Exception e) {
+			ProxyJobDriverUserError.loggifyUserException(e);
+			throw new JobDriverException();
+		}
 	}
 	
-	private void initialize() throws JobDriverException {
+	private void initialize() throws Exception {
 		FlagsExtendedHelper feh = FlagsExtendedHelper.getInstance();
 		String userClasspath = feh.getUserClasspath();
 		URLClassLoader classLoader = createClassLoader(userClasspath);
@@ -78,35 +84,25 @@ public class ProxyJobDriverCollectionReader {
 		construct(classLoader, crXml, crCfg);
 	}
 	
-	private URLClassLoader createClassLoader(String userClasspath) {
-		String location = "createClassLoader";
+	private URLClassLoader createClassLoader(String userClasspath) throws Exception {
 		URLClassLoader retVal = null;
-		try {
-			retVal = PrivateClassLoader.create(userClasspath);
-		}
-		catch(Exception e) {
-			ProxyJobDriverUserError.loggifyUserException(e);
-			logger.error(location, ILogger.null_id, e);
-		}
+		retVal = PrivateClassLoader.create(userClasspath);
 		return retVal;
 	}
 	
 	public int getTotal() throws JobDriverException {
-		String location = "getTotal";
 		int retVal = -1;
 		try {
 			retVal = (Integer)method_getTotal.invoke(instance_JdUserCollectionReader, nullObjectArray);
 		} 
-		catch (Exception e) {
+		catch(Exception e) {
 			ProxyJobDriverUserError.loggifyUserException(e);
-			logger.error(location, ILogger.null_id, e);
-			throw new JobDriverException(e);
+			throw new JobDriverException();
 		}
 		return retVal;
 	}
 	
 	public MetaCas getMetaCas() throws JobDriverException {
-		String location = "getMetaCas";
 		MetaCas retVal = null;
 		try {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
@@ -122,30 +118,29 @@ public class ProxyJobDriverCollectionReader {
 				retVal = new MetaCas(seqNo, docId, serializedCas);
 			}
 		} 
-		catch (Exception e) {
+		catch(Exception e) {
 			ProxyJobDriverUserError.loggifyUserException(e);
-			logger.error(location, ILogger.null_id, e);
-			throw new JobDriverException(e);
+			throw new JobDriverException();
 		}
 		return retVal;
 	}
 	
-	private void construct(URLClassLoader classLoader, String crXml, String cfCfg) throws JobDriverException {
+	private void construct(URLClassLoader classLoader, String crXml, String cfCfg) throws Exception {
 		setup(classLoader, crXml, cfCfg);
 		validate();
 		prepare();
 	}
 	
-	private void setup(URLClassLoader urlClassLoader, String crXml, String crCfg) throws JobDriverException {
+	private void setup(URLClassLoader urlClassLoader, String crXml, String crCfg) throws Exception {
 		String location = "setup";
 		if(urlClassLoader == null) {
-			JobDriverException e = new JobDriverException("missing URLClassLoader");
+			Exception e = new Exception("missing URLClassLoader");
 			logger.error(location, ILogger.null_id, e);
 			throw e;
 		}
 		setURLClassLoader(urlClassLoader);
 		if(crXml == null) {
-			JobDriverException e = new JobDriverException("missing CollectionReader xml");
+			Exception e = new Exception("missing CollectionReader xml");
 			logger.error(location, ILogger.null_id, e);
 			throw e;
 		}
@@ -153,27 +148,19 @@ public class ProxyJobDriverCollectionReader {
 		setCrCfg(crCfg);
 	}
 	
-	private void validate() throws JobDriverException {
+	private void validate() throws Exception {
 		for(String className : requiredClasses) {
 			loadClass(className);
 		}
 	}
 	
-	private void prepare() throws JobDriverException {
-		String location = "prepare";
-		try {
-			class_JdUserCollectionReader = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserCollectionReader");
-			Constructor<?> constructor_JdUserCollectionReader = class_JdUserCollectionReader.getConstructor(String.class,String.class);
-			instance_JdUserCollectionReader = constructor_JdUserCollectionReader.newInstance(new Object[] { crXml, crCfg });
-			method_getTotal = class_JdUserCollectionReader.getMethod(name_getTotal, nullClassArray);
-			class_JdUserMetaCas = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserMetaCas");
-			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
-		} 
-		catch (Exception e) {
-			ProxyJobDriverUserError.loggifyUserException(e);
-			logger.error(location, ILogger.null_id, e);
-			throw new JobDriverException(e);
-		}
+	private void prepare() throws Exception {
+		class_JdUserCollectionReader = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserCollectionReader");
+		Constructor<?> constructor_JdUserCollectionReader = class_JdUserCollectionReader.getConstructor(String.class,String.class);
+		instance_JdUserCollectionReader = constructor_JdUserCollectionReader.newInstance(new Object[] { crXml, crCfg });
+		method_getTotal = class_JdUserCollectionReader.getMethod(name_getTotal, nullClassArray);
+		class_JdUserMetaCas = urlClassLoader.loadClass("org.apache.uima.ducc.user.jd.JdUserMetaCas");
+		method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
 	}
 	
 	private void setURLClassLoader(URLClassLoader value) {
@@ -190,25 +177,18 @@ public class ProxyJobDriverCollectionReader {
 		crCfg = value;
 	}
 	
-	private void loadClass(String className) throws JobDriverException {
+	private void loadClass(String className) throws Exception {
 		String location = "loadClass";
 		MessageBuffer mb = new MessageBuffer();
 		mb.append(Standardize.Label.loading.get()+className);
-		try {
-			logger.debug(location, ILogger.null_id, mb.toString());
-			URL[] urls = urlClassLoader.getURLs();
-			for(URL url : urls) {
-				logger.trace(location, ILogger.null_id, url);
-			}
-			Class<?> loadedClass = urlClassLoader.loadClass(className);
-			mb= new MessageBuffer();
-			mb.append(Standardize.Label.loaded.get()+loadedClass.getName());
-			logger.trace(location, ILogger.null_id, mb.toString());
-		} 
-		catch (Exception e) {
-			ProxyJobDriverUserError.loggifyUserException(e);
-			logger.error(location, ILogger.null_id, mb, e);
-			throw new JobDriverException(e);
+		logger.debug(location, ILogger.null_id, mb.toString());
+		URL[] urls = urlClassLoader.getURLs();
+		for(URL url : urls) {
+			logger.trace(location, ILogger.null_id, url);
 		}
+		Class<?> loadedClass = urlClassLoader.loadClass(className);
+		mb= new MessageBuffer();
+		mb.append(Standardize.Label.loaded.get()+loadedClass.getName());
+		logger.trace(location, ILogger.null_id, mb.toString());
 	}
 }

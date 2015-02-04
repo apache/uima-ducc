@@ -32,6 +32,7 @@ import java.util.List;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
 import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
+import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
@@ -212,6 +213,30 @@ public class TestClassLoading extends ATest {
 			String prefix = "java.lang.RuntimeException: error test #05";
 			assertTrue(stringifiedException.startsWith(prefix));
 			//System.out.println(stringifiedException);
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+			fail("Exception");
+		}
+	}
+
+	@Test
+	public void test_06() {
+		if(isDisabled(this.getClass().getName())) {
+			return;
+		}
+		try {
+			String userClasspath = Utilities.getInstance().getUserCP();
+			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			URL urlXml = this.getClass().getResource("/CrInitException.xml");
+			File file = new File(urlXml.getFile());
+			String crXml = file.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.CollectionReaderXml.pname(), crXml);
+			new ProxyJobDriverCollectionReader();
+			fail("No Exception?");
+		}
+		catch(JobDriverException e) {
+			// as expected
 		}
 		catch(Exception e) {
 			e.printStackTrace();

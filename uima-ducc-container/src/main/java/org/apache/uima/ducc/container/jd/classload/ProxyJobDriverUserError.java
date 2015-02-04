@@ -25,7 +25,7 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.user.jd.JdUserException;
+import org.apache.uima.ducc.container.jd.JobDriverException;
 
 public class ProxyJobDriverUserError {
 
@@ -34,41 +34,53 @@ public class ProxyJobDriverUserError {
 	public static void loggifyUserException(Exception e) {
 		String location = "loggifyUserException";
 		if(e != null) {
-			if(e instanceof InvocationTargetException) {
-				InvocationTargetException ite = (InvocationTargetException) e;
-				Throwable t = ite.getTargetException();
-				if(e instanceof JdUserException) {
-					JdUserException jdUserException = (JdUserException) t;
-					loggifyJdUserException(jdUserException);
+			if(e instanceof JobDriverException) {
+				Throwable t = e.getCause();
+				if(t instanceof Exception) {
+					Exception cause = (Exception) t;
+					loggifyUserException(cause);
 				}
 				else {
 					MessageBuffer mb = new MessageBuffer();
 					mb.append(Standardize.Label.classname.get()+e.getClass().getName());
 					logger.debug(location, ILogger.null_id, mb);
+					logger.error(location, ILogger.null_id, e);
 				}
 			}
-			else if(e instanceof JdUserException) {
-				JdUserException jdUserException = (JdUserException) e;
-				loggifyJdUserException(jdUserException);
+			else if(e instanceof InvocationTargetException) {
+				InvocationTargetException ite = (InvocationTargetException) e;
+				Throwable t = ite.getTargetException();
+				if(t instanceof Exception) {
+					Exception jdUserException = (Exception) t;
+					String message = jdUserException.getMessage();
+					loggifyUserException(message);
+				}
+				else {
+					MessageBuffer mb = new MessageBuffer();
+					mb.append(Standardize.Label.classname.get()+e.getClass().getName());
+					logger.debug(location, ILogger.null_id, mb);
+					logger.error(location, ILogger.null_id, e);
+				}
 			}
 			else {
 				MessageBuffer mb = new MessageBuffer();
 				mb.append(Standardize.Label.classname.get()+e.getClass().getName());
 				logger.debug(location, ILogger.null_id, mb);
+				logger.error(location, ILogger.null_id, e);
 			}
 		}
 		else {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.exception.get()+null);
 			logger.debug(location, ILogger.null_id, mb);
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	
-	private static void loggifyJdUserException(JdUserException jdUserException) {
-		String location = "loggifyJdUserException";
-		String userException = jdUserException.getUserException();
-		if(userException != null) {
-			logger.error(location, ILogger.null_id, userException);
+	private static void loggifyUserException(String message) {
+		String location = "loggify";
+		if(message != null) {
+			logger.error(location, ILogger.null_id, message);
 		}
 		else {
 			MessageBuffer mb = new MessageBuffer();

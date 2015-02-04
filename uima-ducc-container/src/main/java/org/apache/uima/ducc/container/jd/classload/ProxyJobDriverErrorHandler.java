@@ -47,80 +47,74 @@ public class ProxyJobDriverErrorHandler {
 	private static String directiveInterfaceName = packageName+"IJdUserDirective";
 	
 	public ProxyJobDriverErrorHandler() throws JobDriverException {
-		initialize();
+		try {
+			initialize();
+		}
+		catch(Exception e) {
+			ProxyJobDriverUserError.loggifyUserException(e);
+			throw new JobDriverException();
+		}
 	}
 	
-	private void initialize() throws JobDriverException {
+	private void initialize() throws Exception {
 		String location = "initialize";
-		try {
-			FlagsHelper fh = FlagsHelper.getInstance();
-			String userClasspath = fh.getUserClasspath();
-			String[] classpath = fh.stringToArray(userClasspath);
-			if(classpath != null) {
-				for(String item : classpath) {
-					logger.trace(location, ILogger.null_id, item);
-				}
+		FlagsHelper fh = FlagsHelper.getInstance();
+		String userClasspath = fh.getUserClasspath();
+		String[] classpath = fh.stringToArray(userClasspath);
+		if(classpath != null) {
+			for(String item : classpath) {
+				logger.trace(location, ILogger.null_id, item);
 			}
-			String className = fh.getUserErrorHandlerClassname();
-			if(className == null) {
-				className = defaultClassName;
-			}
-			String initializationData = fh.getUserErrorHandlerCfg();
-			classLoader = createClassLoader(userClasspath);
-			Class<?> classAnchor = classLoader.loadClass(className);
-			objectInstance = classAnchor.newInstance();
-			//
-			String methodNameInitialize = "initialize";
-			Method methodInstanceInitialize = classAnchor.getMethod(methodNameInitialize, String.class);
-			methodInstanceInitialize.invoke(objectInstance, initializationData);
-			//
-			Method[] classMethods = classAnchor.getMethods();
-			for(Method method : classMethods) {
-				if(method.getName().equals("handle")) {
-					Type[] types = method.getParameterTypes();
-					if(types.length == 2) {
-						if(types[0].toString().contains("String")) {
-							if(types[1].toString().contains("Object")) {
-								methodInstanceHandle = method;
-								break;
-							}
+		}
+		String className = fh.getUserErrorHandlerClassname();
+		if(className == null) {
+			className = defaultClassName;
+		}
+		String initializationData = fh.getUserErrorHandlerCfg();
+		classLoader = createClassLoader(userClasspath);
+		Class<?> classAnchor = classLoader.loadClass(className);
+		objectInstance = classAnchor.newInstance();
+		//
+		String methodNameInitialize = "initialize";
+		Method methodInstanceInitialize = classAnchor.getMethod(methodNameInitialize, String.class);
+		methodInstanceInitialize.invoke(objectInstance, initializationData);
+		//
+		Method[] classMethods = classAnchor.getMethods();
+		for(Method method : classMethods) {
+			if(method.getName().equals("handle")) {
+				Type[] types = method.getParameterTypes();
+				if(types.length == 2) {
+					if(types[0].toString().contains("String")) {
+						if(types[1].toString().contains("Object")) {
+							methodInstanceHandle = method;
+							break;
 						}
 					}
 				}
 			}
-			//
-			Class<?> directiveAnchor = classLoader.loadClass(directiveInterfaceName);
-			Method[] directiveMethods = directiveAnchor.getMethods();
-			for(Method method : directiveMethods) {
-				Type[] types = method.getParameterTypes();
-				if(types.length == 0) {
-					if(method.getName().equals("isKillJob")) {
-					methodInstanceIsKillJob = method;
-					}
-					else if(method.getName().equals("isKillProcess")) {
-						methodInstanceIsKillProcess = method;
-					}
-					else if(method.getName().equals("isKillWorkItem")) {
-						methodInstanceIsKillWorkItem = method;
-					}
+		}
+		//
+		Class<?> directiveAnchor = classLoader.loadClass(directiveInterfaceName);
+		Method[] directiveMethods = directiveAnchor.getMethods();
+		for(Method method : directiveMethods) {
+			Type[] types = method.getParameterTypes();
+			if(types.length == 0) {
+				if(method.getName().equals("isKillJob")) {
+				methodInstanceIsKillJob = method;
+				}
+				else if(method.getName().equals("isKillProcess")) {
+					methodInstanceIsKillProcess = method;
+				}
+				else if(method.getName().equals("isKillWorkItem")) {
+					methodInstanceIsKillWorkItem = method;
 				}
 			}
-		} 
-		catch (Exception e) {
-			logger.error(location, ILogger.null_id, e);
-			throw new JobDriverException(e);
 		}
 	}
 	
-	private URLClassLoader createClassLoader(String userClasspath) {
-		String location = "createClassLoader";
+	private URLClassLoader createClassLoader(String userClasspath) throws Exception {
 		URLClassLoader retVal = null;
-		try {
-			retVal = PrivateClassLoader.create(userClasspath);
-		}
-		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
-		}
+		retVal = PrivateClassLoader.create(userClasspath);
 		return retVal;
 	}
 	
