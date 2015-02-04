@@ -1062,7 +1062,12 @@ public abstract class DuccAbstractHandler extends AbstractHandler {
 					default:
 						IRationale rationale = job.getCompletionRationale();
 						if(rationale != null) {
-							sb.append("<span title="+rationale.getTextQuoted()+">");
+							if(rationale.isUnspecified()) {
+								sb.append("<span>");
+							}
+							else {
+								sb.append("<span title="+rationale.getTextQuoted()+">");
+							}
 						}
 						else {
 							sb.append("<span>");
