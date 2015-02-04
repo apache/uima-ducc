@@ -149,13 +149,13 @@ implements ProcessManager {
 	        }
 	        
 	        
-	        
+/*	        
 	        if ( dcj.getUimaDeployableConfiguration() instanceof DuccUimaDeploymentDescriptor ) {
 	          //  Add deployment UIMA AS deployment descriptor path
 	          ((JavaCommandLine)dcj.getCommandLine()).
 	            addArgument(((DuccUimaDeploymentDescriptor)dcj.getUimaDeployableConfiguration()).getDeploymentDescriptorPath());
 	        }
-	        
+*/	        
 	        //  add fudge factor (5% default)  to adjust memory computed above 
 	        processAdjustedMemorySize += (processAdjustedMemorySize * ((double)fudgeFactor/100));
 	        pma.setMaxMemoryWithFudge(processAdjustedMemorySize);
