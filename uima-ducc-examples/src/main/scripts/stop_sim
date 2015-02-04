@@ -38,8 +38,10 @@ from ducc_util  import ThreadPool
 class StopSim(DuccUtil):
 
     def signal_process(self, args):
+
+        print 'args', args
         inst, data_prop, signal = args
-        data = data_prop.v
+        data = data_prop
         (node, pid, pname) = data.split(' ')
 
         msgs = []
