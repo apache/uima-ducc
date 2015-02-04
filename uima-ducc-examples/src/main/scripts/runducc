@@ -579,6 +579,18 @@ class RunDucc(DuccUtil):
         print '   -v'
         print '       AE Probability that a JP will throw an exception in the process method.  Default:', self.ae_runtime_error
         print ''
+        print '   -w'
+        print '       CR Probability that a JD will spontaneously exit during initialization.  Default:', self.cr_init_exit
+        print ''
+        print '   -x'
+        print '       CR Probability that a JD will throw an exception during initialization.  Default:', self.cr_init_error
+        print ''
+        print '   -y'
+        print '       CR Probability that a JD will spontaneously exit in the process method.  Default:', self.cr_runtime_exit
+        print ''
+        print '   -z'
+        print '       CR Probability that a JD will throw an exception in the process method.  Default:', self.cr_runtime_error
+        print ''
         print 'We run with DUCC_HOME set to', self.DUCC_HOME
         sys.exit(1)
     

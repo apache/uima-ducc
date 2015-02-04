@@ -364,7 +364,8 @@ public class FixedSleepAE extends CasAnnotator_ImplBase
     }
 
     @Override
-        public void process(CAS cas) throws AnalysisEngineProcessException {
+    public void process(CAS cas) throws AnalysisEngineProcessException 
+    {
         String data = cas.getSofaDataString();
 
         //
