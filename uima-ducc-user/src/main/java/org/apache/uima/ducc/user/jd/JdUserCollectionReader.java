@@ -34,6 +34,7 @@ import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
+import org.apache.uima.ducc.user.common.ExceptionHelper;
 import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.resource.ResourceConfigurationException;
@@ -66,16 +67,16 @@ public class JdUserCollectionReader {
 	
 	private AtomicInteger seqNo = new AtomicInteger(0);
 	
-	public JdUserCollectionReader(String crXml, String crCfg) throws JdUserException {
+	public JdUserCollectionReader(String crXml, String crCfg) throws Exception {
 		initialize(crXml, crCfg);
 	}
 
-	public void initialize(String crXml, String crCfg) throws JdUserException {
+	public void initialize(String crXml, String crCfg) throws Exception {
 		try {
 			_initialize(crXml, crCfg);
 		}
 		catch(Exception e) {
-			JdUserException jdUserException = new JdUserException(e);
+			Exception jdUserException = ExceptionHelper.wrapStringifiedException(e);
 			throw jdUserException;
 		}
 	}
@@ -132,12 +133,12 @@ public class JdUserCollectionReader {
 		return total;
 	}
 	
-	public JdUserMetaCas getJdUserMetaCas() throws JdUserException {
+	public JdUserMetaCas getJdUserMetaCas() throws Exception {
 		try {
 			return _getJdUserMetaCas();
 		}
 		catch(Exception e) {
-			JdUserException jdUserException = new JdUserException(e);
+			Exception jdUserException = ExceptionHelper.wrapStringifiedException(e);
 			throw jdUserException;
 		}
 	}

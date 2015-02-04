@@ -16,38 +16,43 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd;
+package org.apache.uima.ducc.user.common;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class JdUserException extends Exception {
+public class ExceptionHelper {
 
-	private static final long serialVersionUID = 1L;
-
-	private String userException = null;
+	public static Exception wrapStringifiedException(Exception e) {
+		Exception retVal = new Exception(toString(e));
+		return retVal;
+	}
 	
-	public JdUserException(Exception userException) {
+	private static String toString(Exception e) {
+		String retVal = null;
 		try {
-			if(userException == null) {
-				setUserException("exception is null?");
+			if(e == null) {
+				retVal = "exception is null?";
 			}
 			else {
 				StringWriter sw = new StringWriter();
-				userException.printStackTrace(new PrintWriter(sw));
-				setUserException(sw.toString());
+				e.printStackTrace(new PrintWriter(sw));
+				retVal = sw.toString();
 			}
 		}
-		catch(Exception e) {
-			setUserException("exception obtaining stack trace?");
+		catch(Exception x) {
+			retVal = "exception obtaining stack trace?";
+			toConsole(e);
 		}
+		return retVal;
 	}
 	
-	public String getUserException() {
-		return userException;
-	}
-	
-	private void setUserException(String value) {
-		userException = value;
+	private static void toConsole(Exception e) {
+		try {
+			e.printStackTrace();
+		}
+		catch(Exception x) {
+			// oh well
+		}
 	}
 }

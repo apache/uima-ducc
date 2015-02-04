@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.uima.ducc.user.common.ExceptionHelper;
 import org.apache.uima.ducc.user.dgen.DeployableGenerator;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregateComponent;
@@ -35,7 +36,6 @@ import org.apache.uima.ducc.user.dgen.IDuccUimaAggregateComponent;
 import org.apache.uima.ducc.user.dgen.IDuccUimaDeployableConfiguration;
 import org.apache.uima.ducc.user.dgen.iface.DeployableGeneration;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
-import org.apache.uima.ducc.user.jd.JdUserException;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
 import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
 import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler;
@@ -115,8 +115,8 @@ public class TestSuite {
 	public void test02() {
 		try {
 			Exception e = getException();
-			JdUserException jdUserException = new JdUserException(e);
-			String userException = jdUserException.getUserException();
+			Exception jdUserException = ExceptionHelper.wrapStringifiedException(e);
+			String userException = jdUserException.getMessage();
 			assertTrue(userException.startsWith("java.lang.NullPointerException"));
 		}
 		catch(Exception e) {
@@ -465,6 +465,30 @@ public class TestSuite {
 		catch(Exception e) {
 			e.printStackTrace();
 			fail("Exception");
+		}
+	}
+	
+	@Test
+	public void test11() {
+		try {
+			URL url = this.getClass().getResource("/CrInitException.xml");
+			File file = new File(url.getFile());
+			String crXml = file.getAbsolutePath();
+			debug(crXml);
+			String crCfg = null;
+			new JdUserCollectionReader(crXml, crCfg);
+			fail("No Exception?");
+		}
+		catch(Exception e) {
+			String message = e.getMessage();
+			System.out.println(message);
+			if(message.startsWith("java.lang.RuntimeException")) {
+				// as expected!
+			}
+			else {
+				e.printStackTrace();
+				fail("Exception");
+			}
 		}
 	}
 }
