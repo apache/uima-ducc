@@ -408,7 +408,7 @@ public class ManagedProcess implements Process {
 				// initiated process stop because the process was deallocated
 				if (!isstopping) {
 					// We dont know why AP may have exited so dont mark it as Failed
-					if ( !isAP ) {
+					if ( !isAP || (exitcode != 0) ) {
 						// unexpected process death. Killed by the OS or admin user
 						// with kill -9
 						pstate = ProcessState.Failed;
