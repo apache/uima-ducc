@@ -206,32 +206,41 @@ import org.springframework.context.annotation.Import;
 		@Bean 
 		public JobDriverComponent jobDriver() throws Exception {
 			String location = "jobDriver";
-			JobDriverComponent jdc = new JobDriverComponent("JobDriver", common.camelContext(), this);
-	        //	Instantiate delegate listener to receive incoming messages. 
-	        JobDriverEventListener delegateListener = this.jobDriverDelegateListener(jdc);
-			//	Inject a dispatcher into the listener in case it needs to send
-			//  a message to another component
-	        delegateListener.setDuccEventDispatcher(jobDriverTransport.duccEventDispatcher(common.orchestratorStateUpdateEndpoint, jdc.getContext()));
-			//	Inject Camel Router that will delegate messages to JobDriver delegate listener
-			jdc.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorAbbreviatedStateUpdateEndpoint, delegateListener));
 			try {
-				NodeIdentity nodeIdentity = new NodeIdentity();
-				jdc.setNode(nodeIdentity.getIp());
+				JobDriverComponent jdc = new JobDriverComponent("JobDriver", common.camelContext(), this);
+		        //	Instantiate delegate listener to receive incoming messages. 
+		        JobDriverEventListener delegateListener = this.jobDriverDelegateListener(jdc);
+				//	Inject a dispatcher into the listener in case it needs to send
+				//  a message to another component
+		        delegateListener.setDuccEventDispatcher(jobDriverTransport.duccEventDispatcher(common.orchestratorStateUpdateEndpoint, jdc.getContext()));
+				//	Inject Camel Router that will delegate messages to JobDriver delegate listener
+				jdc.getContext().addRoutes(this.routeBuilderForIncomingRequests(common.orchestratorAbbreviatedStateUpdateEndpoint, delegateListener));
+				try {
+					NodeIdentity nodeIdentity = new NodeIdentity();
+					jdc.setNode(nodeIdentity.getIp());
+				}
+				catch(Exception e) {
+					logger.error(location, jobid, e);
+				}
+				port = Utils.findFreePort();
+				jdc.setPort(port);
+				String jdUniqueId = "/jdApp";
+//				jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
+	            Server server = createServer(port, jdUniqueId, jdc);
+				server.start();
+				logger.info(location,jobid,"Jetty Running - Port:"+port);
+				logger.info(location, jobid, "port: "+port+" "+"endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
+
+				jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
+				return jdc;
 			}
 			catch(Exception e) {
 				logger.error(location, jobid, e);
+				int code = 55;
+				logger.warn(location, jobid, "halt code="+code);
+				Runtime.getRuntime().halt(code);
+				throw e;
 			}
-			port = Utils.findFreePort();
-			jdc.setPort(port);
-			String jdUniqueId = "/jdApp";
-//			jdc.getContext().addRoutes(this.routeBuilderForJpIncomingRequests(jdc, port, jdUniqueId));
-            Server server = createServer(port, jdUniqueId, jdc);
-			server.start();
-			logger.info(location,jobid,"Jetty Running - Port:"+port);
-			logger.info(location, jobid, "port: "+port+" "+"endpoint: "+common.jdStateUpdateEndpoint+" "+"rate: "+common.jdStatePublishRate);
-
-			jdc.getContext().addRoutes(this.routeBuilderForJdStatePost(jdc, common.jdStateUpdateEndpoint, Integer.parseInt(common.jdStatePublishRate)));
-			return jdc;
 		}
 		public class JDServlet extends HttpServlet
 		{
