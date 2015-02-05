@@ -695,10 +695,10 @@ public class StateManager {
 									int errors = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsError());
 									int lost = Integer.parseInt(duccWorkJob.getSchedulingInfo().getWorkItemsLost());
 									if(errors > 0) {
-										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Error, new Rationale("state manager detected errors="+errors));
+										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Error, new Rationale("state manager detected errors"));
 									}
 									else if(lost > 0) {
-										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Lost, new Rationale("state manager detected lost work items="+lost));
+										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.Lost, new Rationale("state manager detected lost work items"));
 									}
 									else {
 										setCompletionIfNotAlreadySet(duccWorkJob, JobCompletionType.EndOfJob, new Rationale("state manager detected normal completion"));
