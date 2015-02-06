@@ -38,8 +38,6 @@ from ducc_util  import ThreadPool
 class StopSim(DuccUtil):
 
     def signal_process(self, args):
-
-        print 'args', args
         inst, data_prop, signal = args
         data = data_prop
         (node, pid, pname) = data.split(' ')
@@ -139,8 +137,8 @@ class StopSim(DuccUtil):
 
         try:
             if ( (len(components) + len(instances)) == 0 ):
-                for (inst, data) in pids.items():
-                    self.threadpool.invoke(self.signal_process, inst, data, signal)
+                for (inst, data) in pids.items():                    
+                    self.threadpool.invoke(self.signal_process, inst, pids.get(inst), signal)
                     time.sleep(.1)
                     if ( signal in ('-KILL', '-INT') ):
                         pids.delete(inst)
