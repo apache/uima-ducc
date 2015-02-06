@@ -123,15 +123,6 @@
                <artifactId>uima-build-helper-maven-plugin</artifactId>
                <executions>
                <execution>
-                  <id>foo</id>
-                  <phase>validate</phase>
-                  <goals><goal>copy-from-apache-dist</goal></goals>
-                  <configuration>
-                     <version>${org.apache.uima.version}</version>
-                     <artifactId>uimaj</artifactId>
-                  </configuration>
-               </execution>
-               <execution>
                   <id>bar</id>
                   <phase>validate</phase>
                   <goals><goal>copy-from-apache-dist</goal></goals>
@@ -151,26 +142,6 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
-				    <execution>
-                      <!-- use the dependency:unpack goal to unpack the 
-                         base binary uimaj sdk distribution -->
-                      <id>unpack Uimaj Bin</id>
-                      <phase>validate</phase>
-                      <goals><goal>unpack</goal></goals>
-                      <configuration>
-                        <overWriteIfNewer>true</overWriteIfNewer>
-                        <artifactItems>
-                          <artifactItem>
-                            <groupId>org.apache.uima</groupId>
-                            <artifactId>uimaj</artifactId>
-                            <version>${org.apache.uima.version}</version>
-                            <type>zip</type>
-                            <classifier>bin</classifier>
-                            <outputDirectory>${project.build.directory}/uimaj</outputDirectory>
-                          </artifactItem>
-                        </artifactItems>
-                      </configuration>
-                    </execution>
           
                     <execution>
                       <!-- use the dependency:unpack goal to unpack the 
@@ -230,7 +201,7 @@
                            </goals> 
                            <configuration> 
                              <target> 
-                                <copy file="${basedir}/target/uimaj/apache-uima/lib/uima-core.jar" tofile="${basedir}/target/test-classes/uimaj-core.jar"/>
+                                <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/uima-core.jar" tofile="${basedir}/target/test-classes/uimaj-core.jar"/>
                                 <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/uimaj-as-core.jar" tofile="${basedir}/target/test-classes/uimaj-as-core.jar"/>
                                 <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/xmlbeans.jar" tofile="${basedir}/target/test-classes/xmlbeans.jar"/>
                                 <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/apache-activemq/lib/spring-core-${org.springframework.version}.jar" tofile="${basedir}/target/test-classes/spring-core.jar"/>
