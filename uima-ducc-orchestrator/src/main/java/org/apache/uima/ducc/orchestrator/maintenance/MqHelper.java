@@ -133,12 +133,30 @@ public class MqHelper {
 		return value;
 	}
 	
-	public void connect() throws IOException, MalformedObjectNameException, NullPointerException {
+	private void connect() throws IOException, MalformedObjectNameException, NullPointerException {
 		url = new JMXServiceURL(broker_url);
 		jmxc = JMXConnectorFactory.connect(url);
 		conn = jmxc.getMBeanServerConnection();
 		activeMQ = new ObjectName(objectName);
 		mbean = (BrokerViewMBean) MBeanServerInvocationHandler.newProxyInstance(conn, activeMQ, BrokerViewMBean.class, true);
+	}
+	
+	private void reconnect() {
+		String location = "reconnect";
+		try {
+			if(jmxc != null) {
+				jmxc.close();
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+		try {
+			connect();
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
 	}
 	
 	public String getBrokerUrl() {
@@ -157,16 +175,30 @@ public class MqHelper {
 		return retVal;
 	}
 	
+	private ObjectName[] getQueues() {
+		ObjectName[] queues = null;
+		try {
+			queues = mbean.getQueues();
+		}
+		catch(Throwable t) {
+			reconnect();
+			queues = mbean.getQueues();
+		}
+		return queues;
+	}
+	
 	public ArrayList<String> getQueueList() {
 		ArrayList<String> qNames = new ArrayList<String>();
-		ObjectName[] queues = mbean.getQueues();
-		for( ObjectName queue : queues ) {
-			Hashtable<String, String> propertyTable = queue.getKeyPropertyList();
-			if(propertyTable != null) {
-				String type = propertyTable.get("Type");
-				String destination = propertyTable.get("Destination");
-				if(isEqual(type, "Queue")) {
-					qNames.add(destination);
+		ObjectName[] queues = getQueues();
+		if(queues != null) {
+			for( ObjectName queue : queues ) {
+				Hashtable<String, String> propertyTable = queue.getKeyPropertyList();
+				if(propertyTable != null) {
+					String type = propertyTable.get("Type");
+					String destination = propertyTable.get("Destination");
+					if(isEqual(type, "Queue")) {
+						qNames.add(destination);
+					}
 				}
 			}
 		}
