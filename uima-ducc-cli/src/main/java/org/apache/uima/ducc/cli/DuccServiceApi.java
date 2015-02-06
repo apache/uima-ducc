@@ -198,7 +198,7 @@ public class DuccServiceApi
         int i = 0;
         for ( UiOption o : registration_options ) {
 
-            if ( o == UiOption.ProcessDD ) continue;                     // disallowed for modify
+            if ( o == UiOption.ProcessDD ) continue;           // disallowed for modify
             if ( o == UiOption.ServiceRequestEndpoint) continue;         // disallowed for modify
 
             if ( o == UiOption.Register ) o = UiOption.Modify;
@@ -382,7 +382,7 @@ public class DuccServiceApi
 
             String uimaDD = cli_props.getStringProperty(UiOption.ProcessDD.pname(), null);
             if (uimaDD == null) {
-                throw new IllegalArgumentException("Option --process_DD is required for UIMA-AS services");
+                throw new IllegalArgumentException("Option --" + UiOption.ProcessDD.pname() + " is required for UIMA-AS services");
             }
             discardOptions(custom_only_options, ServiceType.UimaAs.decode());
             if ( ! cli_props.containsKey(UiOption.ServicePingClass.pname()) ) {

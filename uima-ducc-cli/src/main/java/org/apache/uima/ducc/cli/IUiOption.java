@@ -34,7 +34,6 @@ package org.apache.uima.ducc.cli;
  *           public boolean optargs()     { return true; }
  *           public String  description() { return "If present, apply current service updates to the running instances.."; } 
  *           public String  example()     { return null; }
- *           public String  label()       { return name(); }
  *       },
  *       
  *       AllInOne   { 
@@ -42,12 +41,10 @@ package org.apache.uima.ducc.cli;
  *           public String argname()     { return "local|remote"; } 
  *           public String description() { return "Run driver and pipeline in single process."; } 
  *           public String example()     { return null; }
- *           public String label()       { return name(); }
  *       },
  *       public boolean multiargs() { return false; } // the option can have >1 arg
  *       public boolean required()  { return false; } // this option is required
  *       public String  deflt()     { return null; }  // default, or ""
- *       public String  label()     { return null; }  // Parameter name for label in web form
  *       public String  sname()     { return null; }  // short name of option
  *       public boolean optargs()   { return false; } // is the argument optional?
  *
@@ -88,7 +85,6 @@ public interface IUiOption
     public boolean optargs();           // the arguments are optional
     public boolean noargs();            // no arguments allowed
     public String  deflt();             // default, if any
-    public String  label();             // Parameter name for label in web form
     public String  sname();             // short name of option, if any
         
 }

@@ -62,6 +62,7 @@ public class DuccJobSubmit
         UiOption.DriverDescriptorCR,
         UiOption.DriverDescriptorCROverrides,
         UiOption.DriverExceptionHandler,
+        UiOption.DriverExceptionHandlerArguments,
 
         UiOption.ProcessJvmArgs,
         UiOption.ProcessMemorySize,
@@ -72,6 +73,8 @@ public class DuccJobSubmit
         UiOption.ProcessDescriptorAEOverrides,
         UiOption.ProcessDescriptorCC,
         UiOption.ProcessDescriptorCCOverrides,
+        UiOption.ProcessDescriptorFC,
+        UiOption.ProcessDescriptorFCOverrides,
         
         UiOption.ProcessDeploymentsMax,
         UiOption.ProcessInitializationFailuresCap,
