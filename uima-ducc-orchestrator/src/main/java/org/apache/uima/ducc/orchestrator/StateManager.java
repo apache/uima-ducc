@@ -1392,6 +1392,7 @@ public class StateManager {
 						break;
 					case WaitingForServices:
 						switch(serviceState) {
+                        case Pending:                   // UIMA-4223
 						case Waiting:
                         case Starting:
 						case Initializing:

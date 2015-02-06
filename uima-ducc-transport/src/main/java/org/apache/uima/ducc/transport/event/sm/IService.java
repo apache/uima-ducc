@@ -105,6 +105,9 @@ public interface IService
         // In code we want to be able to use the nicer mixed-case names.
         // Always use encode and decode and you can't get this wrong.
         //
+        Pending           { public String decode() { return "pending"        ; } },  // Work is waiting on at least one service to start but
+                                                                                     // the service is not disabled or some such.  UIMA-4223
+
 		Waiting           { public String decode() { return "waiting"        ; } },  // A job is waiting on at least one service to ping
         Starting          { public String decode() { return "starting"       ; } },  // Instance is started, but not yet to Initializing
 		Initializing      { public String decode() { return "initializing"   ; } },  // A job is waiting on at least one service to initialize
@@ -120,6 +123,7 @@ public interface IService
 
         public static ServiceState encode(String value)
         {
+            if ( value.equals("pending"       ) ) return Pending;                    // UIMA-4223
             if ( value.equals("waiting"       ) ) return Waiting;
             if ( value.equals("starting"      ) ) return Starting;
             if ( value.equals("stopped"       ) ) return Stopped;
@@ -135,6 +139,7 @@ public interface IService
         public int ordinality()
         {
             switch ( this ) {
+                case Pending:      return 9;                                        // UIMA-4223
                 case Available:    return 8;
                 case Waiting:      return 7;
                 case Initializing: return 6;

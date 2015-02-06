@@ -311,7 +311,7 @@ public class ServiceHandler
         // Running > Initializing > Waiting > NotAvailable
         //
         // This sets the state to the min(all dependent service states)
-        //
+        //        
         for ( ServiceSet sset : services.values() ) {
             if ( sset.getState().ordinality() < state.ordinality() ) state = sset.getState();
              dep.setIndividualState(sset.getKey(), sset.getState());
@@ -319,6 +319,12 @@ public class ServiceHandler
                  dep.addMessage(sset.getKey(), sset.getErrorString());
              }
              // logger.debug(methodName, id, "Set individual state", sset.getState());
+        }
+
+        if ( state.ordinality() < 5 ) {       // UIMA-4223, if we got this far, the services all exist but at least one of them
+                                              // is not usable.  We use this slightly artificial state to insure the OR keeps
+                                              // the work WaitingForServices.
+            state = ServiceState.Pending;
         }
         dep.setState(state);
     }
