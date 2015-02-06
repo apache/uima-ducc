@@ -153,6 +153,7 @@ public class MqHelper {
 		}
 		try {
 			connect();
+			logger.info(location, jobid, "");
 		}
 		catch(Exception e) {
 			logger.error(location, jobid, e);
