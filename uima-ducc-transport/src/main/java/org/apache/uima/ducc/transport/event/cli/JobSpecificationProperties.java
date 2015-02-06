@@ -48,16 +48,19 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_driver_descriptor_CR = "driver_descriptor_CR";
 	public static String key_driver_descriptor_CR_overrides = "driver_descriptor_CR_overrides";
 	public static String key_driver_exception_handler = "driver_exception_handler";
+	public static String key_driver_exception_handler_arguments = "driver_exception_handler_arguments";
 	
 	public static String key_process_jvm_args = "process_jvm_args";
 	public static String key_process_memory_size = "process_memory_size";
-	public static String key_process_DD = "process_DD";
+	public static String key_process_DD = "process_descriptor_DD";
 	public static String key_process_descriptor_CM = "process_descriptor_CM";
 	public static String key_process_descriptor_CM_overrides = "process_descriptor_CM_overrides";
 	public static String key_process_descriptor_AE = "process_descriptor_AE";
 	public static String key_process_descriptor_AE_overrides = "process_descriptor_AE_overrides";
 	public static String key_process_descriptor_CC = "process_descriptor_CC";
 	public static String key_process_descriptor_CC_overrides = "process_descriptor_CC_overrides";
+	public static String key_process_descriptor_FC = "process_descriptor_FC";
+	public static String key_process_descriptor_FC_overrides = "process_descriptor_FC_overrides";
 	
 	public static String key_process_deployments_max = "process_deployments_max";
 	public static String key_process_deployments_min = "process_deployments_min";
@@ -96,6 +99,7 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 		key_driver_descriptor_CR,
 		key_driver_descriptor_CR_overrides,
 		key_driver_exception_handler,
+		key_driver_exception_handler_arguments,
 		key_process_jvm_args,
 		key_process_memory_size,
 		key_process_DD,
@@ -105,6 +109,8 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 		key_process_descriptor_AE_overrides,
 		key_process_descriptor_CC,
 		key_process_descriptor_CC_overrides,
+		key_process_descriptor_FC,
+		key_process_descriptor_FC_overrides,
 		key_process_deployments_max,
 		key_process_deployments_min,
 		key_process_initialization_failures_cap,
