@@ -27,10 +27,11 @@ import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
+import org.apache.uima.ducc.container.common.classloader.ProxyException;
+import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.net.impl.MetaCas;
 
 public class ProxyJobDriverCollectionReader {
@@ -65,13 +66,13 @@ public class ProxyJobDriverCollectionReader {
 			"org.apache.uima.cas.CAS",
 			};
 	
-	public ProxyJobDriverCollectionReader() throws JobDriverException {
+	public ProxyJobDriverCollectionReader() throws ProxyException {
 		try {
 			initialize();
 		}
 		catch(Exception e) {
-			ProxyJobDriverUserError.loggifyUserException(e);
-			throw new JobDriverException();
+			ProxyLogger.loggifyUserException(e);
+			throw new ProxyException();
 		}
 	}
 	
@@ -90,19 +91,19 @@ public class ProxyJobDriverCollectionReader {
 		return retVal;
 	}
 	
-	public int getTotal() throws JobDriverException {
+	public int getTotal() throws ProxyException {
 		int retVal = -1;
 		try {
 			retVal = (Integer)method_getTotal.invoke(instance_JdUserCollectionReader, nullObjectArray);
 		} 
 		catch(Exception e) {
-			ProxyJobDriverUserError.loggifyUserException(e);
-			throw new JobDriverException();
+			ProxyLogger.loggifyUserException(e);
+			throw new ProxyException();
 		}
 		return retVal;
 	}
 	
-	public MetaCas getMetaCas() throws JobDriverException {
+	public MetaCas getMetaCas() throws ProxyException {
 		MetaCas retVal = null;
 		try {
 			method_getJdUserMetaCas = class_JdUserCollectionReader.getMethod(name_getJdUserMetaCas, nullClassArray);
@@ -119,8 +120,8 @@ public class ProxyJobDriverCollectionReader {
 			}
 		} 
 		catch(Exception e) {
-			ProxyJobDriverUserError.loggifyUserException(e);
-			throw new JobDriverException();
+			ProxyLogger.loggifyUserException(e);
+			throw new ProxyException();
 		}
 		return retVal;
 	}

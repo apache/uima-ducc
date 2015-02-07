@@ -26,7 +26,7 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
-import org.apache.uima.ducc.container.jd.JobDriverException;
+import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats.RetryReason;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
@@ -101,7 +101,7 @@ public class TestSuite extends ATest {
 				new ProxyJobDriverCollectionReader();
 				fail("Exception missing...?");
 			}
-			catch(JobDriverException e) {
+			catch(ProxyException e) {
 				asExpected(e);
 			}
 		}
@@ -131,7 +131,7 @@ public class TestSuite extends ATest {
 			new ProxyJobDriverCollectionReader();
 			fail("Exception missing...?");
 		}
-		catch(JobDriverException e) {
+		catch(ProxyException e) {
 			asExpected(e);
 		}
 		catch(Exception e) {
@@ -200,7 +200,7 @@ public class TestSuite extends ATest {
 		getMetaCas();
 	}
 
-	private void getMetaCases(ProxyJobDriverCollectionReader pjdcr, int total) throws JobDriverException {
+	private void getMetaCases(ProxyJobDriverCollectionReader pjdcr, int total) throws ProxyException {
 		for(int c=1; c <= total; c++) {
 			MetaCas mc = pjdcr.getMetaCas();
 			int seqNo = mc.getSeqNo();

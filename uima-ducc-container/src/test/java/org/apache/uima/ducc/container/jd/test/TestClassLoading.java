@@ -31,8 +31,8 @@ import java.util.List;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
+import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.dgen.classload.ProxyDeployableGeneration;
-import org.apache.uima.ducc.container.jd.JobDriverException;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverCollectionReader;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverDirective;
 import org.apache.uima.ducc.container.jd.classload.ProxyJobDriverErrorHandler;
@@ -235,7 +235,7 @@ public class TestClassLoading extends ATest {
 			new ProxyJobDriverCollectionReader();
 			fail("No Exception?");
 		}
-		catch(JobDriverException e) {
+		catch(ProxyException e) {
 			// as expected
 		}
 		catch(Exception e) {

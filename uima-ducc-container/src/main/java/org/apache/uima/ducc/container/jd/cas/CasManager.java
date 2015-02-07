@@ -22,6 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
+import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -50,21 +51,28 @@ public class CasManager {
 			pjdcr = new ProxyJobDriverCollectionReader();
 			casManagerStats.setCrTotal(pjdcr.getTotal());
 		}
-		catch(JobDriverException e) {
+		catch(ProxyException e) {
 			logger.error(location, ILogger.null_id, e);
-			throw e;
+			throw new JobDriverException();
 		}
 	}
 	
 	public IMetaCas getMetaCas() throws JobDriverException {
-		IMetaCas retVal = dequeueMetaCas();
-		if(retVal == null) {
-			retVal = pjdcr.getMetaCas();
-			if(retVal != null) {
-				casManagerStats.incCrGets();
+		String location = "getMetaCas";
+		try {
+			IMetaCas retVal = dequeueMetaCas();
+			if(retVal == null) {
+				retVal = pjdcr.getMetaCas();
+				if(retVal != null) {
+					casManagerStats.incCrGets();
+				}
 			}
+			return retVal;
 		}
-		return retVal;
+		catch(ProxyException e) {
+			logger.error(location, ILogger.null_id, e);
+			throw new JobDriverException();
+		}
 	}
 
 	private IMetaCas dequeueMetaCas() throws JobDriverException {

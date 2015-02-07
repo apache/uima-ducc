@@ -22,6 +22,7 @@ import java.util.List;
 
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
+import org.apache.uima.ducc.container.common.classloader.ProxyException;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -101,6 +102,10 @@ public class DgenManager {
 			
 		}
 		catch(ProxyDeployableGenerationException e) {
+			logger.error(location, ILogger.null_id, e);
+			throw new DgenException(e);
+		}
+		catch(ProxyException e) {
 			logger.error(location, ILogger.null_id, e);
 			throw new DgenException(e);
 		}

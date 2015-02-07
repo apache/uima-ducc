@@ -31,6 +31,8 @@ import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.classloader.PrivateClassLoader;
+import org.apache.uima.ducc.container.common.classloader.ProxyException;
+import org.apache.uima.ducc.container.common.classloader.ProxyLogger;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
@@ -42,7 +44,6 @@ public class ProxyDeployableGeneration {
 	private URLClassLoader urlClassLoader = null;
 
 	private String[] requiredClasses = { 
-			"org.apache.uima.ducc.user.dgen.iface.DeployableGenerationException", 
 			"org.apache.uima.ducc.user.dgen.iface.DeployableGeneration",
 			"org.apache.uima.ducc.user.dgen.iface.IDeployableGeneration",
 			"org.apache.uima.aae.UimaSerializer",
@@ -90,9 +91,8 @@ public class ProxyDeployableGeneration {
 			List<String> aeOverrides, 
 			String ccDescriptor,
 			List<String> ccOverrides
-			) throws ProxyDeployableGenerationException
+			) throws ProxyDeployableGenerationException, ProxyException
 	{
-		String location = "generate";
 		String retVal = null;
 		try {
 			show("directory", directory);
@@ -150,12 +150,11 @@ public class ProxyDeployableGeneration {
 			retVal = dgen;
 		}
 		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
-			throw new ProxyDeployableGenerationException(e.toString());
+			ProxyLogger.loggifyUserException(e);
+			throw new ProxyException();
 		}
 		return retVal;
 	}
-	
 	
 	public String generate(
 			String directory, 
@@ -167,9 +166,8 @@ public class ProxyDeployableGeneration {
 			String dgenEndpoint,
 			String dgenFlowController,
 			String referenceByName
-			) throws ProxyDeployableGenerationException
+			) throws ProxyException
 	{
-		String location = "generate";
 		String retVal = null;
 		try {
 			show("directory", directory);
@@ -212,12 +210,11 @@ public class ProxyDeployableGeneration {
 			retVal = dgen;
 		}
 		catch(Exception e) {
-			logger.error(location, ILogger.null_id, e);
-			throw new ProxyDeployableGenerationException(e.toString());
+			ProxyLogger.loggifyUserException(e);
+			throw new ProxyException();
 		}
 		return retVal;
 	}
-	
 	
 	private String getUimaAsDirectory() throws Exception {
 		String location = "getUimaAsDirectory";
@@ -263,6 +260,7 @@ public class ProxyDeployableGeneration {
 			throw new ProxyDeployableGenerationException(e);
 		}
 	}
+	
 	private void initialize() throws ProxyDeployableGenerationException {
 		String userClasspath = augmentUserClasspath();
 		urlClassLoader = createClassLoader(userClasspath);

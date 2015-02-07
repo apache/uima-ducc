@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.container.jd.classload;
+package org.apache.uima.ducc.container.common.classloader;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -25,16 +25,15 @@ import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
-import org.apache.uima.ducc.container.jd.JobDriverException;
 
-public class ProxyJobDriverUserError {
+public class ProxyLogger {
 
-	private static Logger logger = Logger.getLogger(ProxyJobDriverUserError.class, IComponent.Id.JD.name());
+	private static Logger logger = Logger.getLogger(ProxyLogger.class, IComponent.Id.JD.name());
 	
 	public static void loggifyUserException(Exception e) {
 		String location = "loggifyUserException";
 		if(e != null) {
-			if(e instanceof JobDriverException) {
+			if(e instanceof ProxyException) {
 				Throwable t = e.getCause();
 				if(t instanceof Exception) {
 					Exception cause = (Exception) t;
