@@ -88,7 +88,7 @@ public class DeployableGeneration implements IDeployableGeneration {
 			List<String> aeOverrides, 
 			String ccDescriptor,
 			List<String> ccOverrides
-			) throws DeployableGenerationException
+			) throws Exception
 	{
 		String retVal = null;
 		try {
@@ -117,7 +117,7 @@ public class DeployableGeneration implements IDeployableGeneration {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			throw new DeployableGenerationException(e.toString());
+			throw new Exception(e.toString());
 		}
 		return retVal;
 	}
@@ -133,7 +133,7 @@ public class DeployableGeneration implements IDeployableGeneration {
 			String dgenEndpoint,
 			String dgenFlowController,
 			String dgenReferenceByName
-			) throws DeployableGenerationException
+			) throws Exception
 	{
 		String retVal = null;
 		try {
@@ -153,7 +153,7 @@ public class DeployableGeneration implements IDeployableGeneration {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			throw new DeployableGenerationException(e.toString());
+			throw new Exception(e.toString());
 		}
 		return retVal;
 	}

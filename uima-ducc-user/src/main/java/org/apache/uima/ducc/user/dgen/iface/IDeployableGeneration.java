@@ -37,7 +37,7 @@ public interface IDeployableGeneration {
 			List<String> aeOverrides, 
 			String cc,
 			List<String> ccOverrides
-			) throws DeployableGenerationException;
+			) throws Exception;
 	
 	public String generate(
 			String directory,
@@ -49,5 +49,5 @@ public interface IDeployableGeneration {
 			String dgenEndpoint,
 			String dgenFlowController,
 			String dgenReferenceByName
-			) throws DeployableGenerationException;
+			) throws Exception;
 }
