@@ -38,17 +38,18 @@ public class FlagsExtendedHelper extends FlagsHelper {
 	public String getUserClasspath() {
 		String location = "getUserClasspath";
 		String retVal = super.getUserClasspath();
-		if(retVal != null) {
-			String[] list = retVal.split(":");
-			if(list != null) {
-				if(list.length > 0) {
-					logger.debug(location, ILogger.null_id, FlagsHelper.Name.UserClasspath.pname());
-					int index = 0;
-					for(String item : list) {
-						String text = "["+index+"]"+" "+item;
-						logger.debug(location, ILogger.null_id, text);
-						index++;
-					}
+		if(retVal == null) {
+			retVal = "";
+		}
+		String[] list = retVal.split(":");
+		if(list != null) {
+			if(list.length > 0) {
+				logger.debug(location, ILogger.null_id, FlagsHelper.Name.UserClasspath.pname());
+				int index = 0;
+				for(String item : list) {
+					String text = "["+index+"]"+" "+item;
+					logger.debug(location, ILogger.null_id, text);
+					index++;
 				}
 			}
 		}

@@ -79,27 +79,19 @@ public class DgenManager {
 			String referenceByName) throws DgenException {
 		String location = "initialize";
 		try {
+			proxy = new ProxyDeployableGeneration();
 			if(referenceByName == null) {
-				proxy = new ProxyDeployableGeneration();
 				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, cmDescriptor, cmOverrides, aeDescriptor, aeOverrides, ccDescriptor, ccOverrides);
 				setDeployable(value);
-				logger.info(location, null, "from parts: "+value);
+				logger.info(location, null, "dd from parts: "+value);
 			}
 			else {
 				String specification = referenceByName.trim();
-				if(specification.endsWith(".xml")) {
-					setDeployable(specification);
-					logger.info(location, null, "specified: "+specification);
-				}
-				else {
-					proxy = new ProxyDeployableGeneration();
-					String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, specification);
-					setDeployable(value);
-					logger.info(location, null, "reference by name: "+value);
-				}
-				
+				logger.info(location, null, "dd specified: "+specification);
+				String value = proxy.generate(jobDirectory, jobId, dgenName, dgenDescription, dgenThreadCount, dgenBrokerURL, dgenBrokerEndpoint, flowController, specification);
+				setDeployable(value);
+				logger.info(location, null, "dd generated: "+value);
 			}
-			
 		}
 		catch(ProxyDeployableGenerationException e) {
 			logger.error(location, ILogger.null_id, e);

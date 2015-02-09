@@ -118,20 +118,6 @@ public class TestClassLoading extends ATest {
 		}
 	}
 	
-	private void delete(File directory) {
-		try {
-			for(File file : directory.listFiles()) {
-				debug("delete: "+file.getName());
-				file.delete();
-			}
-			debug("delete: "+directory.getName());
-			directory.delete();
-		}
-		catch(Exception e) {
-			//e.printStackTrace();
-		}
-	}
-	
 	@Test
 	public void test_04() {
 		if(isDisabled(this.getClass().getName())) {

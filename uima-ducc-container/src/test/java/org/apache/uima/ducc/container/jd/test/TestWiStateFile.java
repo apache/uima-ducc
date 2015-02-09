@@ -1,4 +1,3 @@
-
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -23,7 +22,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.net.URL;
 
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateReader;
@@ -33,35 +31,13 @@ import org.junit.Test;
 
 public class TestWiStateFile extends ATest {
 	
-	private void delete(File directory) {
-		try {
-			for(File file : directory.listFiles()) {
-				debug("delete: "+file.getName());
-				file.delete();
-			}
-			debug("delete: "+directory.getName());
-			directory.delete();
-		}
-		catch(Exception e) {
-			//e.printStackTrace();
-		}
-	}
-	
 	@Test
 	public void test_01() {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
-			URL url = this.getClass().getResource("/");
-			File root = new File(url.getFile());
-			String name = root.getAbsolutePath();
-			debug(name);
-			assertTrue(root.isDirectory());
-			String nameWorking = name+File.separator+"working";
-			File working = new File(nameWorking);
-			delete(working);
-			working.mkdir();
+			File working = mkWorkingDir();
 			String component = "JD.test";
 			String directory = working.getAbsolutePath();
 			debug(directory);

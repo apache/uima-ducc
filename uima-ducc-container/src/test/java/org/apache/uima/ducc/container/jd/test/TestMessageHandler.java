@@ -111,6 +111,10 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_01");
 		try {
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
 			URL urlXml = null;
 			File file = null;
 			String path = null;
@@ -127,6 +131,7 @@ public class TestMessageHandler extends ATest {
 			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
@@ -167,6 +172,10 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_02a");
 		try {
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
 			URL urlXml = null;
 			File file = null;
 			String path = null;
@@ -183,6 +192,7 @@ public class TestMessageHandler extends ATest {
 			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
@@ -232,6 +242,10 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_2b");
 		try {
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
 			enforce = false;
 			URL urlXml = null;
 			File file = null;
@@ -249,6 +263,7 @@ public class TestMessageHandler extends ATest {
 			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
@@ -297,6 +312,10 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_03");
 		try {
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
 			URL urlXml = null;
 			File file = null;
 			String path = null;
@@ -313,6 +332,7 @@ public class TestMessageHandler extends ATest {
 			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
@@ -387,6 +407,16 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_04");
 		try {
+			System.setProperty(FlagsHelper.Name.JobId.pname(), "40");
+			//
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
+			String key = "ducc.process.log.dir";
+			String value = directory;
+			System.setProperty(key, value);
+			//
 			URL urlXml = null;
 			File file = null;
 			String path = null;
@@ -403,6 +433,7 @@ public class TestMessageHandler extends ATest {
 			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
@@ -482,6 +513,14 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_05a");
 		try {
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
+			String key = "ducc.process.log.dir";
+			String value = directory;
+			System.setProperty(key, value);
+			//
 			URL urlXml = null;
 			File file = null;
 			String path = null;
@@ -498,6 +537,7 @@ public class TestMessageHandler extends ATest {
 			//
 			String userClasspath = Utilities.getInstance().getUserCP();
 			System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userClasspath);
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
@@ -557,6 +597,14 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_05b");
 		try {
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
+			String key = "ducc.process.log.dir";
+			String value = directory;
+			System.setProperty(key, value);
+			//
 			URL urlXml = null;
 			File file = null;
 			String path = null;
@@ -577,6 +625,7 @@ public class TestMessageHandler extends ATest {
 			String ehcp = "KillJobLimit="+2;
 			System.setProperty(FlagsHelper.Name.UserErrorHandlerCfg.pname(), ehcp);
 			//
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);
@@ -647,6 +696,14 @@ public class TestMessageHandler extends ATest {
 		}
 		announce("test_06");
 		try {
+			File working = mkWorkingDir();
+			String directory = working.getAbsolutePath();
+			System.setProperty(FlagsHelper.Name.JobDirectory.pname(), directory);
+			//
+			String key = "ducc.process.log.dir";
+			String value = directory;
+			System.setProperty(key, value);
+			//
 			URL urlXml = null;
 			File file = null;
 			String path = null;
@@ -667,6 +724,7 @@ public class TestMessageHandler extends ATest {
 			String eh = "org.apache.uima.ducc.user.jd.test.helper.TestJdContainerErrorHandlerRandomRetry";
 			System.setProperty(FlagsHelper.Name.UserErrorHandlerClassname.pname(), eh);
 			//
+			JobDriver.destroyInstance();
 			JobDriver.createInstance();
 			int size = JobDriver.getInstance().getRemoteThreadMap().size();
 			debug("map size:"+size);

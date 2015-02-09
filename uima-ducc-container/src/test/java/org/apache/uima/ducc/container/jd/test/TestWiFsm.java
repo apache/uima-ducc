@@ -21,6 +21,9 @@ package org.apache.uima.ducc.container.jd.test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+
+import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.common.fsm.Action;
 import org.apache.uima.ducc.container.common.fsm.Event;
 import org.apache.uima.ducc.container.common.fsm.Fsm;
@@ -32,6 +35,7 @@ import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsmBuilder;
 import org.apache.uima.ducc.container.common.fsm.iface.IState;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
+import org.apache.uima.ducc.container.jd.test.helper.Utilities;
 import org.junit.Test;
 
 public class TestWiFsm extends ATest {
@@ -166,12 +170,27 @@ public class TestWiFsm extends ATest {
 		}
 	}
 	
+	private void initUserClasspath() {
+		String userClasspath = Utilities.getInstance().getUserCP();
+		String[] classpathParts = userClasspath.split(File.pathSeparator);
+		StringBuffer sb = new StringBuffer();
+		for(int i=0; i<classpathParts.length; i++) {
+			String jar = classpathParts[i];
+			debug(i+" use: "+jar);
+			sb.append(jar);
+			sb.append(File.pathSeparator);
+		}
+		String userPartialClasspath = sb.toString();
+		System.setProperty(FlagsHelper.Name.UserClasspath.pname(), userPartialClasspath);
+	}
+	
 	@Test
 	public void test_05() {
 		if(isDisabled(this.getClass().getName())) {
 			return;
 		}
 		try {
+			initUserClasspath();
 			WiFsm wiFsm = new WiFsm();
 			Object actionData = null;
 			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));
@@ -201,6 +220,7 @@ public class TestWiFsm extends ATest {
 			return;
 		}
 		try {
+			initUserClasspath();
 			WiFsm wiFsm = new WiFsm();
 			Object actionData = null;
 			assertTrue(wiFsm.getStateCurrent().getName().equals(WiFsm.Start.getName()));

@@ -18,11 +18,14 @@
 */
 package org.apache.uima.ducc.container.jd.test;
 
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.net.URL;
 import java.util.Map;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.container.FlagsHelper.Name;
-import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -36,11 +39,6 @@ public abstract class ATest {
 	private boolean warned = false;
 	private boolean debug = false;
 	
-	public void destroy() {
-		JobDriver.destroyInstance();
-		debug("destroy: "+JobDriver.class.getName());
-	}
-	
 	public void clear() {
 		for(Name name : FlagsHelper.Name.values()) {
 			try {
@@ -50,6 +48,28 @@ public abstract class ATest {
 			}
 			debug("clear: "+name.name());
 		}
+	}
+	
+	public String getResource(String name) {
+		String retVal = null;
+		URL urlXml = null;
+		File file = null;
+		String path = null;
+		//
+		urlXml = this.getClass().getResource(name);
+		file = new File(urlXml.getFile());
+		path = file.getAbsolutePath();
+		retVal = path;
+		return retVal;
+	}
+	
+	public void ducc_home() {
+		String folder = "/ducc_runtime";
+		String file = "/resources/log4j.xml";
+		String path = getResource(folder+file);
+		String value = path.replace(file, "");
+		String key = "DUCC_HOME";
+		System.setProperty(key, value);
 	}
 	
 	public void environment() {
@@ -84,7 +104,6 @@ public abstract class ATest {
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
-		MessageHandler.piggybackingDisable();
 	}
 
 	@AfterClass
@@ -93,13 +112,17 @@ public abstract class ATest {
 
 	@Before
 	public void setUp() throws Exception {
+		ducc_home();
 		environment();
 		clear();
-		destroy();
 	}
 
 	@After
 	public void tearDown() throws Exception {
+	}
+	
+	public void disabler() {
+		MessageHandler.piggybackingDisable();
 	}
 	
 	protected void out_println(String message) {
@@ -131,5 +154,32 @@ public abstract class ATest {
 			String message = "as expected: "+e.getMessage();
 			out_println(message);
 		}
+	}
+	
+	protected void delete(File directory) {
+		try {
+			for(File file : directory.listFiles()) {
+				debug("delete: "+file.getName());
+				file.delete();
+			}
+			debug("delete: "+directory.getName());
+			directory.delete();
+		}
+		catch(Exception e) {
+			//e.printStackTrace();
+		}
+	}
+	
+	protected File mkWorkingDir() {
+		URL url = this.getClass().getResource("/");
+		File root = new File(url.getFile());
+		String name = root.getAbsolutePath();
+		debug(name);
+		assertTrue(root.isDirectory());
+		String nameWorking = name+File.separator+"working";
+		File working = new File(nameWorking);
+		delete(working);
+		working.mkdir();
+		return working;
 	}
 }
