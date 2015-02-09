@@ -15,7 +15,8 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
-*/package org.apache.uima.ducc.common.container;
+*/
+package org.apache.uima.ducc.common.container;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -45,8 +46,8 @@ public class FlagsHelper {
 		JpCmDescriptor,
 		JpCmOverrides,
 		JpDd,
-		JpDdBrokerEndpoint("ducc.local.queue"),
-		JpDdBrokerURL("${DefaultBrokerURL}"),
+		JpDdBrokerEndpoint("${queue.name}"),
+		JpDdBrokerURL("${broker.name}"),
 		JpDdDescription,
 		JpDdName,
 		JpThreadCount,
