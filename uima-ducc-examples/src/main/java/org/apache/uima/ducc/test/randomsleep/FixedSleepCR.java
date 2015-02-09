@@ -25,6 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
@@ -64,7 +65,12 @@ public class FixedSleepCR extends CollectionReader_ImplBase
     private volatile String jobid;
     PrintStream jdmark;
 
-    
+    double error_rate;
+    double exit_rate;
+    int    bloat;
+
+    ArrayList< Map<Object, Object> > bloated_space = new ArrayList< Map<Object, Object> >();
+
     public void initialize() throws ResourceInitializationException 
     {       
         super.initialize();
@@ -97,7 +103,13 @@ public class FixedSleepCR extends CollectionReader_ImplBase
             System.out.println("File: " + f.toString());
         }
 
-        int i_error  = getIntFromEnv("CR_INIT_ERROR", false);      // probability of init error, int, 0:100
+        // set these up for use in getNext
+        error_rate = getDoubleFromEnv("CR_RUNTIME_ERROR", false);   // probability of an error in getNext
+        exit_rate  = getDoubleFromEnv("CR_RUNTIME_EXIT", false);    // probability of process exit in get Next 
+        bloat      = getIntFromEnv   ("CR_GETNEXT_BLOAT", false);   // if set, amount each getNext will bloat the CR, in MB
+        bloat      = bloat * 1024 * 1024;                           // to MB
+
+        int i_error  = getIntFromEnv("CR_INIT_ERROR", false);       // probability of init error, int, 0:100
         int i_exit   = getIntFromEnv("CR_INIT_EXIT" , false);
 
         if ( i_error > 0 ) {
@@ -290,12 +302,38 @@ public class FixedSleepCR extends CollectionReader_ImplBase
         //throw new AnalysisEngineProcessException(msg);
     }
 
+    /**
+     * Need to simulate a process that leaks.  We just allocate stuff until we die somehow.  
+     * Careful, this can be pretty nasty if not contained by the infrastructure.  
+     *
+     * Older code = use the Bloater class for better results.
+     */
+    void runBloater(int next_bloat, String msgheader)
+    {
+        if ( next_bloat <= 0 ) return;
+
+        Map<Object, Object> bloated_map = new HashMap<Object, Object>();
+        int ndx = 0;
+
+        int current_bloat = 0;
+
+        while ( current_bloat < next_bloat ) {
+            long[] waste = new long[4096];                   // a full 4096 * 8 bytes +/- a few
+            for ( int i = 0; i < waste.length; i++ ) {       // touch them or they may never be actually allocated
+                waste[i] = i;
+            }
+
+            bloated_map.put(new Integer(ndx++), waste);      // into our map
+            current_bloat += (waste.length * 8L);            // account for space until done
+        }
+        bloated_space.add(bloated_map);                      // don't lose the reference, to insure we do bloat
+        logger.log(Level.INFO, msgheader + " Blated by " + (current_bloat) + " more bytes");
+    }
+
     static int get_next_counter = 0;    
     
     public synchronized void getNext(CAS cas) throws IOException, CollectionException 
     {
-        double        error_rate = getDoubleFromEnv("CR_RUNTIME_ERROR", false);
-        double        exit_rate  = getDoubleFromEnv("CR_RUNTIME_EXIT", false);
 
         String msgheader = " ****** getNext[" + index + "]: ";
         logger.log(Level.INFO, msgheader + workitems.get(index) + " getNext invocation " + get_next_counter++);
@@ -307,6 +345,7 @@ public class FixedSleepCR extends CollectionReader_ImplBase
 
         randomError(error_rate, msgheader, false);           
         randomError(exit_rate, msgheader, false);
+        runBloater(bloat, msgheader);
 
         logger.log(Level.INFO, "getNext");
         cas.reset();
