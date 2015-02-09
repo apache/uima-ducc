@@ -444,8 +444,12 @@ public abstract class AbstractDuccComponent implements DuccComponent,
         //  System.exit(0);
     }
 
-  public void handleUncaughtException(Exception e) {
+  public void handleUncaughtException(Throwable e) {
     e.printStackTrace();
+    if ( e instanceof Error) {
+    	System.out.println("Unexpected Java Error - Terminating Process via Runtime halt");
+    	Runtime.getRuntime().halt(2);
+    }
   }
 
   /** 
