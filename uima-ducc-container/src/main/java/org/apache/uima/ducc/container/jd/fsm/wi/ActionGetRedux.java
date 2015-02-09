@@ -48,28 +48,35 @@ public class ActionGetRedux implements IAction {
 		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
-			IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
-			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-			IWorkItem wi = map.get(rwt);
-			IFsm fsm = wi.getFsm();
-			IEvent event = WiFsm.CAS_Unavailable;
-			if(wi != null) {
-				IMetaCas metaCas = wi.getMetaCas();
-				if(metaCas != null) {
-					event = WiFsm.CAS_Available;
-					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					logger.debug(location, ILogger.null_id, mb.toString());
-					actionData.getWorkItem().setMetaCas(metaCas);
-					actionData.getMetaCasTransaction().setMetaCas(metaCas);
+			if(actionData != null) {
+				IRemoteWorkerThread rwt = actionData.getRemoteWorkerThread();
+				ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+				IWorkItem wi = map.get(rwt);
+				IFsm fsm = wi.getFsm();
+				IEvent event = WiFsm.CAS_Unavailable;
+				if(wi != null) {
+					IMetaCas metaCas = wi.getMetaCas();
+					if(metaCas != null) {
+						event = WiFsm.CAS_Available;
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						logger.debug(location, ILogger.null_id, mb.toString());
+						actionData.getWorkItem().setMetaCas(metaCas);
+						actionData.getMetaCasTransaction().setMetaCas(metaCas);
+					}
+					else {
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append("No CAS found for processing");
+						logger.info(location, ILogger.null_id, mb.toString());
+					}
 				}
-				else {
-					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					mb.append("No CAS found for processing");
-					logger.info(location, ILogger.null_id, mb.toString());
-				}
+				//
+				fsm.transition(event, actionData);
 			}
-			//
-			fsm.transition(event, actionData);
+			else {
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+				mb.append("No action data found for processing");
+				logger.warn(location, ILogger.null_id, mb.toString());
+			}
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

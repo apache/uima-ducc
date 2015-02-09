@@ -58,34 +58,41 @@ public class ActionProcessPreempt extends Action implements IAction {
 		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
-			IWorkItem wi = actionData.getWorkItem();
-			IMetaCas metaCas = wi.getMetaCas();
-			JobDriver jd = JobDriver.getInstance();
-			CasManager cm = jd.getCasManager();
-			JobDriverHelper jdh = JobDriverHelper.getInstance();
-			IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
-			if(rwp != null) {
-				if(metaCas != null) {
-					preemptWorkItem(actionData, cm, metaCas);
-					IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-					MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
-					int seqNo = metaCasHelper.getSystemKey();
-					wisk.preempt(seqNo);
-					pStats.preempt(wi);
-					displayProcessStatistics(logger, actionData, wi, pStats);
-					wi.reset();
+			if(actionData != null) {
+				IWorkItem wi = actionData.getWorkItem();
+				IMetaCas metaCas = wi.getMetaCas();
+				JobDriver jd = JobDriver.getInstance();
+				CasManager cm = jd.getCasManager();
+				JobDriverHelper jdh = JobDriverHelper.getInstance();
+				IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
+				if(rwp != null) {
+					if(metaCas != null) {
+						preemptWorkItem(actionData, cm, metaCas);
+						IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+						MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+						IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
+						int seqNo = metaCasHelper.getSystemKey();
+						wisk.preempt(seqNo);
+						pStats.preempt(wi);
+						displayProcessStatistics(logger, actionData, wi, pStats);
+						wi.reset();
+					}
+					else {
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append("No CAS found for processing");
+						logger.info(location, ILogger.null_id, mb.toString());
+					}
 				}
 				else {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					mb.append("No CAS found for processing");
+					mb.append("No remote worker process entry found for processing");
 					logger.info(location, ILogger.null_id, mb.toString());
 				}
 			}
 			else {
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				mb.append("No remote worker process entry found for processing");
-				logger.info(location, ILogger.null_id, mb.toString());
+				mb.append("No action data found for processing");
+				logger.warn(location, ILogger.null_id, mb.toString());
 			}
 		}
 		catch(Exception e) {

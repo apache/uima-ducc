@@ -44,15 +44,23 @@ public class ActionSend implements IAction {
 		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
-			IWorkItem wi = actionData.getWorkItem();
-			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-			IMetaCas metaCas = trans.getMetaCas();
-			wi.setMetaCas(metaCas);
-			//
-			TimeoutManager toMgr = TimeoutManager.getInstance();
-			toMgr.pendingAck(actionData);
-			MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-			logger.info(location, ILogger.null_id, mb.toString());
+			if(actionData != null) {
+				IWorkItem wi = actionData.getWorkItem();
+				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+				IMetaCas metaCas = trans.getMetaCas();
+				wi.setMetaCas(metaCas);
+				//
+				TimeoutManager toMgr = TimeoutManager.getInstance();
+				toMgr.pendingAck(actionData);
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+				logger.info(location, ILogger.null_id, mb.toString());
+			}
+			else {
+				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+				mb.append("No action data found for processing");
+				logger.warn(location, ILogger.null_id, mb.toString());
+			}
+			
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

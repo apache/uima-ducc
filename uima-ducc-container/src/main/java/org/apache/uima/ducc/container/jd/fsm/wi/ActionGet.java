@@ -62,60 +62,67 @@ public class ActionGet implements IAction {
 		logger.trace(location, ILogger.null_id, "enter");
 		IActionData actionData = (IActionData) objectData;
 		try {
-			IWorkItem wi = actionData.getWorkItem();
-			IFsm fsm = wi.getFsm();
-			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
-			IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
-			//
-			JobDriver jd = JobDriver.getInstance();
-			JobDriverHelper jdh = JobDriverHelper.getInstance();
-			jd.advanceJdState(JdState.Active);
-			CasManager cm = jd.getCasManager();
-			IMetaCas metaCas = null;
-			if(cm.getCasManagerStats().isKillJob()) {
-				if(!warned.getAndSet(true)) {
+			if(actionData != null) {
+				IWorkItem wi = actionData.getWorkItem();
+				IFsm fsm = wi.getFsm();
+				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+				IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
+				IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
+				//
+				JobDriver jd = JobDriver.getInstance();
+				JobDriverHelper jdh = JobDriverHelper.getInstance();
+				jd.advanceJdState(JdState.Active);
+				CasManager cm = jd.getCasManager();
+				IMetaCas metaCas = null;
+				if(cm.getCasManagerStats().isKillJob()) {
+					if(!warned.getAndSet(true)) {
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append("this and future requests refused due to pending kill job");
+						logger.info(location, ILogger.null_id, mb.toString());
+					}
+				}
+				else {
+					metaCas = cm.getMetaCas();
+				}
+				wi.setMetaCas(metaCas);
+				trans.setMetaCas(metaCas);
+				IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+				MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+				IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
+				//
+				IEvent event = null;
+				//
+				if(metaCas != null) {
+					WiTracker.getInstance().assign(rwt, wi);
+					int seqNo = metaCasHelper.getSystemKey();
+					String wiId = metaCas.getUserKey();
+					String node = rwt.getNodeAddress();
+					String pid = ""+rwt.getPid();
+					String tid = ""+rwt.getTid();
+					wisk.start(seqNo, wiId, node, pid, tid);
+					wisk.queued(seqNo);
+					pStats.dispatch(wi);
+					//
+					wi.setTodGet();
+					event = WiFsm.CAS_Available;
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					mb.append("this and future requests refused due to pending kill job");
+					JobDriver.getInstance().getMessageHandler().incGets();
 					logger.info(location, ILogger.null_id, mb.toString());
 				}
-			}
-			else {
-				metaCas = cm.getMetaCas();
-			}
-			wi.setMetaCas(metaCas);
-			trans.setMetaCas(metaCas);
-			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-			IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
-			//
-			IEvent event = null;
-			//
-			if(metaCas != null) {
-				WiTracker.getInstance().assign(rwt, wi);
-				int seqNo = metaCasHelper.getSystemKey();
-				String wiId = metaCas.getUserKey();
-				String node = rwt.getNodeAddress();
-				String pid = ""+rwt.getPid();
-				String tid = ""+rwt.getTid();
-				wisk.start(seqNo, wiId, node, pid, tid);
-				wisk.queued(seqNo);
-				pStats.dispatch(wi);
+				else {
+					event = WiFsm.CAS_Unavailable;
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+					mb.append("No CAS found for processing");
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
 				//
-				wi.setTodGet();
-				event = WiFsm.CAS_Available;
-				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				JobDriver.getInstance().getMessageHandler().incGets();
-				logger.info(location, ILogger.null_id, mb.toString());
+				fsm.transition(event, actionData);
 			}
 			else {
-				event = WiFsm.CAS_Unavailable;
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				mb.append("No CAS found for processing");
-				logger.info(location, ILogger.null_id, mb.toString());
+				mb.append("No action data found for processing");
+				logger.warn(location, ILogger.null_id, mb.toString());
 			}
-			//
-			fsm.transition(event, actionData);
 		}
 		catch(Exception e) {
 			logger.error(location, ILogger.null_id, e);

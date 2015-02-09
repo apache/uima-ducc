@@ -82,50 +82,57 @@ public class ActionProcessFailure extends Action implements IAction {
 		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
-			IWorkItem wi = actionData.getWorkItem();
-			IMetaCas metaCas = wi.getMetaCas();
-			JobDriver jd = JobDriver.getInstance();
-			CasManager cm = jd.getCasManager();
-			JobDriverHelper jdh = JobDriverHelper.getInstance();
-			IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
-			if(rwp != null) {
-				IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
-				if(metaCas != null) {
-					String serializedCas = (String) metaCas.getUserSpaceCas();
-					ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
-					ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas);
-					if(pjdd != null) {
-						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-						mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());
-						mb.append(Standardize.Label.isKillProcess.get()+pjdd.isKillProcess());
-						mb.append(Standardize.Label.isKillWorkItem.get()+pjdd.isKillWorkItem());
-						logger.info(location, ILogger.null_id, mb.toString());
-						if(pjdd.isKillJob()) {
-							killJob(cm, wi, metaCas, rwp);
-						}
-						else if(pjdd.isKillWorkItem()) {
-							killWorkItem(cm, wi, metaCas, rwp);
+			if(actionData != null) {
+				IWorkItem wi = actionData.getWorkItem();
+				IMetaCas metaCas = wi.getMetaCas();
+				JobDriver jd = JobDriver.getInstance();
+				CasManager cm = jd.getCasManager();
+				JobDriverHelper jdh = JobDriverHelper.getInstance();
+				IRemoteWorkerProcess rwp = jdh.getRemoteWorkerProcess(wi);
+				if(rwp != null) {
+					IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
+					if(metaCas != null) {
+						String serializedCas = (String) metaCas.getUserSpaceCas();
+						ProxyJobDriverErrorHandler pjdeh = jd.getProxyJobDriverErrorHandler();
+						ProxyJobDriverDirective pjdd = pjdeh.handle(serializedCas);
+						if(pjdd != null) {
+							MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+							mb.append(Standardize.Label.isKillJob.get()+pjdd.isKillJob());
+							mb.append(Standardize.Label.isKillProcess.get()+pjdd.isKillProcess());
+							mb.append(Standardize.Label.isKillWorkItem.get()+pjdd.isKillWorkItem());
+							logger.info(location, ILogger.null_id, mb.toString());
+							if(pjdd.isKillJob()) {
+								killJob(cm, wi, metaCas, rwp);
+							}
+							else if(pjdd.isKillWorkItem()) {
+								killWorkItem(cm, wi, metaCas, rwp);
+							}
+							else {
+								retryWorkItem(actionData, cm, wi, metaCas, rwp);
+							}
 						}
 						else {
 							retryWorkItem(actionData, cm, wi, metaCas, rwp);
 						}
+						displayProcessStatistics(logger, actionData, wi, pStats);
+						wi.reset();
 					}
 					else {
-						retryWorkItem(actionData, cm, wi, metaCas, rwp);
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append("No CAS found for processing");
+						logger.info(location, ILogger.null_id, mb.toString());
 					}
-					displayProcessStatistics(logger, actionData, wi, pStats);
-					wi.reset();
 				}
 				else {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					mb.append("No CAS found for processing");
+					mb.append("No remote worker process entry found for processing");
 					logger.info(location, ILogger.null_id, mb.toString());
 				}
 			}
 			else {
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				mb.append("No remote worker process entry found for processing");
-				logger.info(location, ILogger.null_id, mb.toString());
+				mb.append("No action data found for processing");
+				logger.warn(location, ILogger.null_id, mb.toString());
 			}
 		}
 		catch(Exception e) {

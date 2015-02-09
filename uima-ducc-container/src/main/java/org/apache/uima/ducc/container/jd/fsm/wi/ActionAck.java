@@ -46,29 +46,36 @@ public class ActionAck implements IAction {
 		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
-			IWorkItem wi = actionData.getWorkItem();
-			IMetaCas metaCas = wi.getMetaCas();
-			JobDriver jd = JobDriver.getInstance();
-			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-			if(metaCas != null) {
-				//
-				TimeoutManager toMgr = TimeoutManager.getInstance();
-				toMgr.receivedAck(actionData);
-				toMgr.pendingEnd(actionData);
-				//
-				int seqNo = metaCasHelper.getSystemKey();
-				wisk.operating(seqNo);
-				//
-				wi.setTodAck();
-				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				JobDriver.getInstance().getMessageHandler().incAcks();
-				logger.info(location, ILogger.null_id, mb.toString());
+			if(actionData != null) {
+				IWorkItem wi = actionData.getWorkItem();
+				IMetaCas metaCas = wi.getMetaCas();
+				JobDriver jd = JobDriver.getInstance();
+				IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+				MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+				if(metaCas != null) {
+					//
+					TimeoutManager toMgr = TimeoutManager.getInstance();
+					toMgr.receivedAck(actionData);
+					toMgr.pendingEnd(actionData);
+					//
+					int seqNo = metaCasHelper.getSystemKey();
+					wisk.operating(seqNo);
+					//
+					wi.setTodAck();
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+					JobDriver.getInstance().getMessageHandler().incAcks();
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
+				else {
+					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+					mb.append("No CAS found for processing");
+					logger.info(location, ILogger.null_id, mb.toString());
+				}
 			}
 			else {
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				mb.append("No CAS found for processing");
-				logger.info(location, ILogger.null_id, mb.toString());
+				mb.append("No action data found for processing");
+				logger.warn(location, ILogger.null_id, mb.toString());
 			}
 		}
 		catch(Exception e) {

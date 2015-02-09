@@ -263,50 +263,57 @@ public class ActionEnd extends Action implements IAction {
 		logger.trace(location, ILogger.null_id, "");
 		IActionData actionData = (IActionData) objectData;
 		try {
-			IWorkItem wi = actionData.getWorkItem();
-			IMetaCasTransaction trans = actionData.getMetaCasTransaction();
-			IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
-			IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
-			IMetaCas metaCas = wi.getMetaCas();
-			JobDriver jd = JobDriver.getInstance();
-			JobDriverHelper jdh = JobDriverHelper.getInstance();
-			CasManager cm = jd.getCasManager();
-			//
-			IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
-			MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
-			IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
-			//
-			if(metaCas != null) {
-				WiTracker.getInstance().unassign(rwt);
+			if(actionData != null) {
+				IWorkItem wi = actionData.getWorkItem();
+				IMetaCasTransaction trans = actionData.getMetaCasTransaction();
+				IRemoteWorkerThread rwt = new RemoteWorkerThread(trans);
+				IRemoteWorkerProcess rwp = new RemoteWorkerProcess(trans);
+				IMetaCas metaCas = wi.getMetaCas();
+				JobDriver jd = JobDriver.getInstance();
+				JobDriverHelper jdh = JobDriverHelper.getInstance();
+				CasManager cm = jd.getCasManager();
 				//
-				TimeoutManager toMgr = TimeoutManager.getInstance();
-				toMgr.receivedAck(actionData);
-				toMgr.receivedEnd(actionData);
+				IWorkItemStateKeeper wisk = jd.getWorkItemStateKeeper();
+				MetaCasHelper metaCasHelper = new MetaCasHelper(metaCas);
+				IProcessStatistics pStats = jdh.getProcessStatistics(rwp);
 				//
-				int seqNo = metaCasHelper.getSystemKey();
-				Object exception = metaCas.getUserSpaceException();
-				if(exception != null) {
-					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					mb.append("exception");
-					logger.info(location, ILogger.null_id, mb.toString());
-					handleException(actionData);
-					displayProcessStatistics(logger, actionData, wi, pStats);
+				if(metaCas != null) {
+					WiTracker.getInstance().unassign(rwt);
+					//
+					TimeoutManager toMgr = TimeoutManager.getInstance();
+					toMgr.receivedAck(actionData);
+					toMgr.receivedEnd(actionData);
+					//
+					int seqNo = metaCasHelper.getSystemKey();
+					Object exception = metaCas.getUserSpaceException();
+					if(exception != null) {
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append("exception");
+						logger.info(location, ILogger.null_id, mb.toString());
+						handleException(actionData);
+						displayProcessStatistics(logger, actionData, wi, pStats);
+					}
+					else {
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append("ended");
+						logger.info(location, ILogger.null_id, mb.toString());
+						wisk.ended(seqNo);
+						successWorkItem(actionData, cm, wi);
+						pStats.done(wi);
+						displayProcessStatistics(logger, actionData, wi, pStats);
+					}
+					wi.reset();
 				}
 				else {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-					mb.append("ended");
+					mb.append("No CAS found for processing");
 					logger.info(location, ILogger.null_id, mb.toString());
-					wisk.ended(seqNo);
-					successWorkItem(actionData, cm, wi);
-					pStats.done(wi);
-					displayProcessStatistics(logger, actionData, wi, pStats);
 				}
-				wi.reset();
 			}
 			else {
 				MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-				mb.append("No CAS found for processing");
-				logger.info(location, ILogger.null_id, mb.toString());
+				mb.append("No action data found for processing");
+				logger.warn(location, ILogger.null_id, mb.toString());
 			}
 		}
 		catch(Exception e) {
