@@ -28,7 +28,6 @@ import org.apache.camel.CamelContext;
 import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.internationalization.Messages;
-import org.apache.uima.ducc.common.jd.JdConstants;
 import org.apache.uima.ducc.common.jd.files.perf.PerformanceSummaryWriter;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.common.jd;
+package org.apache.uima.ducc.jd;
 
 public class JdConstants {
 	public static String key_duccJobId = "ducc.job.id";
