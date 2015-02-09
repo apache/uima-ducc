@@ -45,7 +45,7 @@ public class CliFixups {
             if (key.equals("process_DD")) {
                 props.put("process_descriptor_DD", props.get(key));
                 props.remove(key);
-                System.out.println("CLI replaced deprecated property: " + key + " with: classpath");
+                System.out.println("CLI replaced deprecated property: " + key + " with: process_descriptor_DD");
             }
         }
     }
