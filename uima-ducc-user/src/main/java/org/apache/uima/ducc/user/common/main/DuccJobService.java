@@ -85,7 +85,7 @@ public class DuccJobService {
 		ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
 		// Fetch a classpath for the fenced Ducc container
 		String duccContainerClasspath = System
-				.getProperty("ducc.deploy.JpDuccClasspath");//"ducc.deploy.JpDuccClasspath");
+				.getProperty("ducc.deploy.DuccClasspath");//"ducc.deploy.JpDuccClasspath");
 		URLClassLoader ucl = create(duccContainerClasspath);
 		if ( System.getProperty("DEBUG") != null ) {
 			DEBUG = true;
