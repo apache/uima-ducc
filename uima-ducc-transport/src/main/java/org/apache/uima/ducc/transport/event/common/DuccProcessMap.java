@@ -195,6 +195,19 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 		return retVal;
 	}
 
+	public int getNoPidProcessCount() {
+		int retVal = 0;
+		synchronized(this) {
+			Iterator<IDuccProcess> iterator = this.values().iterator();
+			while(iterator.hasNext()) {
+				IDuccProcess process = iterator.next();
+				if(process.getPID() == null) {
+					retVal++;
+				}
+			}
+		}
+		return retVal;
+	}
 	
 	public int getAliveProcessCount() {
 		int retVal = 0;

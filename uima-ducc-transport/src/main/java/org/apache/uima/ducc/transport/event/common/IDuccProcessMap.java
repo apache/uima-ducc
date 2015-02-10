@@ -37,6 +37,7 @@ public interface IDuccProcessMap extends Map<DuccId,IDuccProcess>, Serializable 
 	public int getFailedUnexpectedProcessCount();
 	public int getAliveProcessCount();
 	public int getUsableProcessCount();
+	public int getNoPidProcessCount();
 	
 	public ArrayList<DuccId> getFailedInitialization();
 	public ArrayList<DuccId> getFailedNotInitialization();

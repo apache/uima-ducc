@@ -61,6 +61,8 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	private long wiMillisOperatingLeast = 0;
 	private long wiMillisCompletedMost = 0;
 	
+	private long completingTOD = 0;
+	
 	public DuccWorkJob() {
 		init(null);
 	}
@@ -420,6 +422,19 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 		debugPortProcess.set(port);
 	}
 	
+	public long getNoPidProcessCount() {
+		long retVal = 0;
+		IDuccProcessMap processMap = this.getProcessMap();
+		if(processMap != null) {
+			int count = processMap.getNoPidProcessCount();
+			retVal = count;
+		}
+		return retVal;
+	}
+	
+	public boolean hasNoPidProcess() {
+		return (getNoPidProcessCount() > 0);
+	}
 	
 	public long getAliveProcessCount() {
 		long retVal = 0;
@@ -591,6 +606,18 @@ public class DuccWorkJob extends ADuccWorkExecutable implements IDuccWorkJob {
 	@Override
 	public void setDdSpecified() {
 		jdDdSpecified = true;
+	}
+
+	@Override
+	public long getCompletingTOD() {
+		return completingTOD;
+	}
+
+	@Override
+	public void setCompletingTOD() {
+		if(completingTOD == 0) {
+			completingTOD = System.currentTimeMillis();
+		}
 	}
 
 }

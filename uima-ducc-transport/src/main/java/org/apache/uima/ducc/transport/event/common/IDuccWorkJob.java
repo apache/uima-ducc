@@ -37,6 +37,9 @@ public interface IDuccWorkJob extends Identifiable, IDuccWorkService, IDuccWorkE
 	public JobState getJobState();
 	public void setJobState(JobState jobState);
 	
+	public long getCompletingTOD();
+	public void setCompletingTOD();
+	
 	public void setCompletion(JobCompletionType completionType, IRationale completionRationale);
 	
 	public JobCompletionType getCompletionType();
