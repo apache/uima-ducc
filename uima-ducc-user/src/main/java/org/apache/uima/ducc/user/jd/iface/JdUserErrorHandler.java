@@ -29,7 +29,25 @@ import org.apache.uima.ducc.user.jd.JdUser;
 
 public class JdUserErrorHandler implements IJdUserErrorHandler {
 
-	public enum InitializationDataKey { KillJobLimit, KillProcessLimit, KillWorkItemLimit };
+	public enum InitializationDataKey { 
+		KillJobLimit("max_job_errors"), 
+		;
+		
+		private String altname = null;
+		
+		private InitializationDataKey() {
+			altname = name();
+		}
+		
+		private InitializationDataKey(String value) {
+			altname = value;
+		}
+		
+		public String altname() {
+			return altname;
+		}
+		
+	};
 	
 	private static int DefaultJobErrorLimit = JdUser.DefaultJobErrorLimit;
 	
@@ -69,9 +87,19 @@ public class JdUserErrorHandler implements IJdUserErrorHandler {
 	public void initialize(String initializationData) {
 		if(initializationData != null) {
 			Map<String, String> map = parse(initializationData);
-			String key = InitializationDataKey.KillJobLimit.name().toLowerCase();
-			String value = map.get(key);
-			initKillJob(value);
+			String key;
+			key = InitializationDataKey.KillJobLimit.name().toLowerCase();
+			if(map.containsKey(key)) {
+				String value = map.get(key);
+				initKillJob(value);
+			}
+			else {
+				String altkey = InitializationDataKey.KillJobLimit.altname();
+				if(map.containsKey(altkey)) {
+					String value = map.get(altkey);
+					initKillJob(value);
+				}
+			}
 		}
 	}
 
