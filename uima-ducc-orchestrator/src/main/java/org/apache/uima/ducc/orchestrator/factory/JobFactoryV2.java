@@ -336,6 +336,17 @@ public class JobFactoryV2 implements IJobFactory {
 		addDashD(jcl, FlagsHelper.Name.JpThreadCount, jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count));
 		addDashD(jcl, FlagsHelper.Name.JpDdBrokerURL,  FlagsHelper.Name.JpDdBrokerURL.getDefaultValue());
 		addDashD(jcl, FlagsHelper.Name.JpDdBrokerEndpoint, FlagsHelper.Name.JpDdBrokerEndpoint.getDefaultValue());
+		//
+		Name flagName;
+		String flagValue;
+		//
+		flagName = FlagsHelper.Name.UserErrorHandlerClassname;
+		flagValue = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_exception_handler);
+		addDashD(jcl, flagName, flagValue);
+		//
+		flagName = FlagsHelper.Name.UserErrorHandlerCfg;
+		flagValue = jobRequestProperties.getProperty(JobSpecificationProperties.key_driver_exception_handler_arguments);
+		addDashD(jcl, flagName, flagValue);
 		// Name the log config file explicitly - the default of searching the user-provided classpath is dangerous
 		jcl.addOption("-Dlog4j.configuration=file://" + Utils.findDuccHome() + "/resources/log4j.xml");
 		// Log directory
@@ -343,13 +354,31 @@ public class JobFactoryV2 implements IJobFactory {
 		return jcl;
 	}
 	
-	private void addDashD(JavaCommandLine jcl, Name name, String value) {
+	private void addDashD(JavaCommandLine jcl, String flagName, String flagValue) {
 		String location = "addDashD";
-		logger.debug(location, null, name.dname()+"="+value);
-		if(value != null) {
-			String opt = name.dname()+"="+value;
-			jcl.addOption(opt);
+		logger.debug(location, null, flagName+"="+flagValue);
+		if(jcl != null) {
+			if(flagName != null) {
+				String optName = flagName.trim();
+				if(optName.length() > 0) {
+					if(flagValue != null) {
+						String optValue = flagValue.trim();
+						if(optValue.length() > 0) {
+							String opt = optName+"="+optValue;
+							jcl.addOption(opt);
+						}
+					}
+				}
+			}
 		}
+	}
+	
+	private void addDashD(JavaCommandLine jcl, Name name, String flagValue) {
+		String flagName = null;
+		if(name != null) {
+			flagName = name.dname();
+		}
+		addDashD(jcl, flagName, flagValue);
 	}
 	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
