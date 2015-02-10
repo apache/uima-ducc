@@ -27,7 +27,6 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.uima.ducc.common.config.CommonConfiguration;
 import org.apache.uima.ducc.common.container.FlagsHelper;
-import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.ducc.container.jp.JobProcessManager;
 import org.apache.uima.ducc.transport.DuccExchange;
@@ -118,9 +117,9 @@ public class JobProcessConfiguration {
 			}
 		}
 
-		if (null == System.getProperty(FlagsHelper.Name.JpDuccClasspath.pname())) {
+		if (null == System.getProperty(FlagsHelper.Name.DuccClasspath.pname())) {
 			throw new RuntimeException("Missing the -D"
-					+ FlagsHelper.Name.JpDuccClasspath.pname() + "=XXXX property");
+					+ FlagsHelper.Name.DuccClasspath.pname() + "=XXXX property");
 		}
 		if (uimaAsJob && null == common.saxonJarPath) {
 			throw new RuntimeException(
