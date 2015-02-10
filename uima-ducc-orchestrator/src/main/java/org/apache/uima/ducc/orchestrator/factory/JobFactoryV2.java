@@ -356,7 +356,7 @@ public class JobFactoryV2 implements IJobFactory {
 	
 	private void addDashD(JavaCommandLine jcl, String flagName, String flagValue) {
 		String location = "addDashD";
-		logger.debug(location, null, flagName+"="+flagValue);
+		logger.info(location, null, flagName+"="+flagValue);
 		if(jcl != null) {
 			if(flagName != null) {
 				String optName = flagName.trim();
@@ -444,7 +444,7 @@ public class JobFactoryV2 implements IJobFactory {
 	}
 	
 	private void checkSchedulingLimits(DuccWorkJob job, DuccSchedulingInfo schedulingInfo) {
-	    String methodName = "checkSpec";
+	    String methodName = "checkSchedulingLimits";
         long limit = 0;
         String p_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_threads_limit);
         if (p_limit != null) {
@@ -633,7 +633,7 @@ public class JobFactoryV2 implements IJobFactory {
 	        }
 			// add ducc CP
 	        String duccCP = getDuccClasspath(1);
-			String opt = FlagsHelper.Name.JpDuccClasspath.dname()+"="+duccCP;
+			String opt = FlagsHelper.Name.DuccClasspath.dname()+"="+duccCP;
 			logger.debug(methodName, job.getDuccId(), "opt pipeline: "+opt);
 			pipelineCommandLine.addOption(opt);
 			// add JpType
@@ -643,7 +643,7 @@ public class JobFactoryV2 implements IJobFactory {
 			else {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpType, "uima");
 			}
-
+			
 			String process_thread_count = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_thread_count);
 			if(process_thread_count != null) {
 				addDashD(pipelineCommandLine, FlagsHelper.Name.JpThreadCount, process_thread_count);
