@@ -20,8 +20,10 @@
 package org.apache.uima.ducc.user.jp;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Method;
 import java.net.BindException;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -38,7 +40,6 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.aae.UimaASApplicationEvent.EventTrigger;
 import org.apache.uima.aae.UimaAsVersion;
-import org.apache.uima.aae.UimaSerializer;
 import org.apache.uima.aae.client.UimaASProcessStatus;
 import org.apache.uima.aae.client.UimaAsBaseCallbackListener;
 import org.apache.uima.aae.client.UimaAsynchronousEngine;
@@ -65,7 +66,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	private static volatile boolean brokerRunning = false;
 	protected Object initializeMonitor = new Object();
 	public volatile boolean initialized = false;
-	private static final Class<?> CLASS_NAME = UimaProcessContainer.class;
+	private static final Class<?> CLASS_NAME = UimaASProcessContainer.class;
 	private static final char FS = System.getProperty("file.separator").charAt(
 			0);
 	// use this map to pin each thread to its own instance of UimaSerializer
@@ -86,7 +87,15 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 	}
 	public int doInitialize(Properties props, String[] args) throws Exception {
 		duccHome = System.getProperty("DUCC_HOME"); 
-
+        String pid = getPID("Queue");
+		if ( System.getenv("NodeName") != null) {
+			endpointName = System.getenv("NodeName")+pid;
+		} else {
+			endpointName = InetAddress.getLocalHost().getCanonicalHostName()+pid;
+		}
+		// Needed to resolve ${queue.name} placeholder in DD generated 
+		// by DUCC
+		System.setProperty("queue.name", endpointName);
 		String jobType = System.getProperty("ducc.deploy.JpType"); 
 		if ( "uima-as".equals(jobType)) {
 			System.out.println("UIMA-AS Version:"+UimaAsVersion.getFullVersionString());
@@ -214,6 +223,10 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 					waitUntilStartedMethod.invoke(brokerInstance);
 					System.setProperty("DefaultBrokerURL", brokerURL + port);
 					System.setProperty("BrokerURI", brokerURL + port);
+					// Needed to resolve ${broker.name} placeholder in DD generated 
+					// by DUCC
+					System.setProperty("broker.name", brokerURL + port);
+					
 
 					break;   // got a valid port for the broker
 				} catch (Exception e) {
@@ -360,7 +373,23 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 			}
 		}
 	}
-    
+	private String getPID(final String fallback) {
+		// the following code returns '<pid>@<hostname>'
+		String name = ManagementFactory.getRuntimeMXBean().getName();
+		int pos = name.indexOf('@');
+
+		if (pos < 1) {
+			// pid not found
+			return fallback;
+		}
+
+		try {
+			return Long.toString(Long.parseLong(name.substring(0, pos)));
+		} catch (NumberFormatException e) {
+			// ignore
+		}
+		return fallback;
+	}
 	private void initializeUimaAsClient(String endpoint) throws Exception {
 		String brokerURL = System.getProperty("DefaultBrokerURL");
 		Map<String, Object> appCtx = new HashMap<String, Object>();
@@ -400,7 +429,7 @@ public class UimaASProcessContainer  extends DuccAbstractProcessContainer {
 		try {
 			// use UIMA-AS client to deploy the service using provided
 			// Deployment Descriptor
-		System.out.println("---------------- BROKER URL:::"+System.getProperty("DefaultBrokerURL"));
+		System.out.println("---------------- BROKER URL:::"+System.getProperty("broker.name"));
         ClassLoader duccCl = Thread.currentThread().getContextClassLoader();
 		ClassLoader cl = this.getClass().getClassLoader();
 		Thread.currentThread().setContextClassLoader(cl);
