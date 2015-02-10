@@ -35,6 +35,7 @@ public class FlagsHelper {
 		
 		CollectionReaderCfg,
 		CollectionReaderXml,
+		DuccClasspath,
 		JdURL,						// http://<node>:<port>/jdApp
 		JobDirectory,
 		JobId,
@@ -53,7 +54,6 @@ public class FlagsHelper {
 		JpThreadCount,
 		JpType,						// { uima, uima-as }
 		JpProcessorClass("processor.class"),
-		JpDuccClasspath,
 		UserClasspath,				// path1.class:path2.jar:path3/*:...
 		UserErrorHandlerClassname,
 		UserErrorHandlerCfg,
@@ -119,6 +119,11 @@ public class FlagsHelper {
 	
 	public String getCollectionReaderCfgDashD(String value) {
 		return Name.CollectionReaderCfg.arg(value);
+	}
+	
+	public String getDuccClasspath() {
+		Properties properties = System.getProperties();
+		return properties.getProperty(Name.DuccClasspath.pname());
 	}
 	
 	public String getCollectionReaderXml() {
@@ -278,14 +283,12 @@ public class FlagsHelper {
 		Properties properties = System.getProperties();
 		return properties.getProperty(Name.JpType.pname());
 	}
+	
 	public String getJpProcessorClass() {
 		Properties properties = System.getProperties();
 		return properties.getProperty(Name.JpProcessorClass.pname());
 	}
-	public String getJpDuccClasspath() {
-		Properties properties = System.getProperties();
-		return properties.getProperty(Name.JpDuccClasspath.pname());
-	}
+	
 	public String getJpTypeDashD(String value) {
 		return Name.JpType.arg(value);
 	}
