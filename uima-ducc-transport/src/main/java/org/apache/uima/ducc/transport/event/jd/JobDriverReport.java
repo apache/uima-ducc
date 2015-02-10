@@ -320,8 +320,13 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	
 	@Override
 	public String getLogReport() {
-		// TODO Auto-generated method stub
-		return null;
+		StringBuffer sb = new StringBuffer();
+		sb.append("state: "+getJdState()+" ");
+		sb.append("total: "+getWorkItemsTotal()+" ");
+		sb.append("done: "+getWorkItemsProcessingCompleted()+" ");
+		sb.append("error: "+getWorkItemsProcessingError()+" ");
+		sb.append("killJob: "+isKillJob()+" ");
+		return sb.toString();
 	}
 
 	@Override
