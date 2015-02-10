@@ -324,7 +324,6 @@ public class StateManager {
 				while(iterator.hasNext()) {
 					IDuccProcess process = iterator.next();
 					process.setProcessJmxUrl(jdJmxUrl);
-					
 				}
 			}
 		}
@@ -678,6 +677,8 @@ public class StateManager {
 						if(!duccWorkJob.isFinished()) {
 							stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
 						}
+						stopJps(duccWorkJob);
+						stopJd(duccWorkJob);
 						break;
 					case Completed:
 						if(!duccWorkJob.isCompleted()) {
@@ -685,9 +686,7 @@ public class StateManager {
 								stateJobAccounting.stateChange(duccWorkJob, JobState.Completing);
 							}
 							stopJps(duccWorkJob);
-							if(!duccWorkJob.hasAliveProcess()) {
-								stopJd(duccWorkJob);
-							}
+							stopJd(duccWorkJob);
 							duccWorkJob.getStandardInfo().setDateOfCompletion(TimeStamp.getCurrentMillis());
 							switch(jdStatusReport.getJobCompletionType()) {
 							case EndOfJob:
@@ -876,18 +875,41 @@ public class StateManager {
 		}
 	}
 	
+	private boolean delayStopJd(DuccWorkJob job) {
+		String methodName = "delayStopJd";
+		boolean retVal = true;
+		job.setCompletingTOD();
+		if(!job.hasAliveProcess()) {
+			long elapsed = System.currentTimeMillis() - job.getCompletingTOD();
+			if((System.currentTimeMillis() - job.getCompletingTOD()) > 1000*60*5) {
+				logger.debug(methodName, job.getDuccId(), ""+elapsed);
+				retVal = false;
+			}
+			else if(!job.hasNoPidProcess()) {
+				logger.debug(methodName, job.getDuccId(), "all JPs have PIDs");
+				retVal = false;
+			}
+		}
+		if(retVal) {
+			logger.debug(methodName, job.getDuccId(), "");
+		}
+		return retVal;
+	}
+	
 	private void stopJd(DuccWorkJob job) {
 		String methodName = "stopJd";
-		IDuccProcessMap processMap = job.getDriver().getProcessMap();
-		Iterator<DuccId> iterator = processMap.keySet().iterator();
-		while (iterator.hasNext()) {
-			DuccId duccId = iterator.next();
-			IDuccProcess process = processMap.get(duccId);
-			if(process != null) {
-				if(!process.isDeallocated()) {
-					OrUtil.setResourceState(job, process, ResourceState.Deallocated);
-					process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
-					logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+		if(!delayStopJd(job)) {
+			IDuccProcessMap processMap = job.getDriver().getProcessMap();
+			Iterator<DuccId> iterator = processMap.keySet().iterator();
+			while (iterator.hasNext()) {
+				DuccId duccId = iterator.next();
+				IDuccProcess process = processMap.get(duccId);
+				if(process != null) {
+					if(!process.isDeallocated()) {
+						OrUtil.setResourceState(job, process, ResourceState.Deallocated);
+						process.setProcessDeallocationType(ProcessDeallocationType.Voluntary);
+						logger.info(methodName, job.getDuccId(), process.getDuccId(), "deallocated");
+					}
 				}
 			}
 		}
