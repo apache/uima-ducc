@@ -94,14 +94,12 @@ public class SleepMultiplier extends CasMultiplier_ImplBase
         long          elapsed    = Long.parseLong(tok.nextToken());
         int           seqno        = Integer.parseInt(tok.nextToken());
         int           total      = Integer.parseInt(tok.nextToken());
-        double        error_rate = Double.parseDouble(tok.nextToken());
         String        logid      = tok.nextToken();
 
         System.out.println(CM_Identifier + "next returns: " +
                            "Work Item(" + seqno + ") " +
                            "Sleep Time(" + elapsed + ") " +
                            "of total(" + total + ") " +
-                           "error_rate(" + error_rate + ") " +
                            "logid(" + logid + ") " +
                            "pass to AE");
 
