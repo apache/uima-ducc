@@ -239,6 +239,20 @@ class NodePool
     }
 
     /**
+     * Return nodes varied off for me and my kids.
+     * UIMA-4234, More info in query occupancy
+     */
+    Map<Node, Machine> getUnresponsiveMachines()
+    {
+        @SuppressWarnings("unchecked")
+		Map<Node, Machine> ret = (Map<Node, Machine>) unresponsiveMachines.clone();
+        for (NodePool np : children.values()) {
+            ret.putAll(np.unresponsiveMachines);
+        }
+        return ret;
+    }
+
+    /**
      * Non-recursive machine count.
      */
     int countLocalMachines()

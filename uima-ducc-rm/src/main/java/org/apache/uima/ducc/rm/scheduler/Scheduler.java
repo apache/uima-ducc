@@ -32,6 +32,7 @@ import org.apache.uima.ducc.common.NodeIdentity;
 import org.apache.uima.ducc.common.Pair;
 import org.apache.uima.ducc.common.admin.event.RmAdminQLoadReply;
 import org.apache.uima.ducc.common.admin.event.RmAdminQOccupancyReply;
+import org.apache.uima.ducc.common.admin.event.RmQueriedMachine;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -1233,10 +1234,32 @@ public class Scheduler
         // Not a cheap query, by the way.
         //
         for ( NodePool np : nodepools ) {
+
             Collection<Machine> machs = np.getAllMachines().values();        
             for ( Machine m : machs ) {            
                 ret.addMachine(m.queryMachine());
             }
+
+            Map<Node, Machine> offline      = np.getOfflineMachines();          // UIMA-4234
+            Map<Node, Machine> unresponsive = np.getUnresponsiveMachines();     // UIMA-4234
+
+            for ( Node n : offline.keySet() ) {
+                Machine m = offline.get(n);
+                RmQueriedMachine qm = m.queryMachine();
+                qm.setOffline();
+                if ( unresponsive.containsKey(n) ) {
+                    unresponsive.remove(n);
+                    qm.setUnresponsive();
+                }
+                ret.addMachine(qm);
+            }
+
+            for ( Node n : unresponsive.keySet() ) {
+                Machine m = unresponsive.get(n);
+                RmQueriedMachine qm = m.queryMachine();
+                qm.setUnresponsive();
+                ret.addMachine(qm);
+            }            
         }
 
         return ret;

@@ -31,7 +31,10 @@ public class RmQueriedMachine
     String nodepoolId;
     long memory;
     int order;
-    boolean blacklisted;
+    boolean blacklisted;                                         // UIMA-4142
+    boolean online;                                              // UIMA-4234
+    boolean responsive;                                          // UIMA-4234
+
     List<RmQueriedShare> shares = null;
     
     // UIMA-4142, account for blacklist
@@ -42,7 +45,12 @@ public class RmQueriedMachine
         this.memory = memory;
         this.order = order;
         this.blacklisted = blacklisted;
+        this.online = true;
+        this.responsive = true;
     }
+
+    public void setOffline()      { this.online = false; }       // UIMA-4234
+    public void setUnresponsive() { this.responsive = false; }   // UIMA-4234
 
     public void addShare(RmQueriedShare rqs)
     {
@@ -50,22 +58,24 @@ public class RmQueriedMachine
         shares.add(rqs);
     }
 
-    public String getId()          { return name; }
-    public long getMemory()        { return memory; }
-    public int getShareOrder()     { return order; }
-    public boolean isBlacklisted() { return blacklisted; }        // UIMA-4142
+    public String getId()           { return name; }
+    public long getMemory()         { return memory; }
+    public int getShareOrder()      { return order; }
+    public boolean isBlacklisted()  { return blacklisted; }        // UIMA-4142
+    public boolean isOnline()       { return online; }             // UIMA-4142
+    public boolean isResponsive()   { return responsive; }         // UIMA-4142
     
-    static String fmt_s = "%20s %11s %15s %10s %5s %4s %s";
-    String        fmt_d = "%20s %11s %15s %10d %5d %4d" ;
+    static String fmt_s = "%20s %11s %6s %6s %15s %10s %5s %4s %s";
+    String        fmt_d = "%20s %11s %6s %6s %15s %10d %5d %4d" ;
 
     public static String header()
     {
-        return String.format(fmt_s, "Node", "Blacklisted", "Nodepool", "Memory", "Order", "Free", "Shares");
+        return String.format(fmt_s, "Node", "Blacklisted", "Online", "Status", "Nodepool", "Memory", "Order", "Free", "Shares");
     }
 
     public static String separator()
     {
-        return String.format(fmt_s, "--------------------", "-----------", "---------------", "----------", "-----", "----", "----------");
+        return String.format(fmt_s, "--------------------", "-----------", "------", "------", "---------------", "----------", "-----", "----", "----------");
     }
 
     public String toConsole() 
@@ -73,17 +83,17 @@ public class RmQueriedMachine
         StringBuffer sb = new StringBuffer();
 
         if ( shares == null ) {
-            sb.append(String.format(fmt_d, name, blacklisted, nodepoolId, memory, order, 0));
+            sb.append(String.format(fmt_d, name, blacklisted, online, (responsive ? "up" : "down"), nodepoolId, memory, order, 0));
             sb.append(" [none]");
         } else {
             int used = 0;
             for ( RmQueriedShare s : shares ) {                
                 used += s.getShareOrder();
             }
-            sb.append(String.format(fmt_d, name, blacklisted, nodepoolId, memory, order, order - used));
+            sb.append(String.format(fmt_d, name, blacklisted, online, (responsive ? "up" : "down"), nodepoolId, memory, order, order - used));
 
             String spacer = " ";
-            String altSpacer = "\n" + String.format(fmt_s, "", "", "", "", "", "", ""); // yes, blank, of exactly the right size
+            String altSpacer = "\n" + String.format(fmt_s, "", "", "", "", "", "", "", "", ""); // yes, blank, of exactly the right size
             for ( RmQueriedShare s : shares ) {                
                 sb.append(spacer);
                 sb.append(s.toConsole());
@@ -103,6 +113,10 @@ public class RmQueriedMachine
         sb.append(nodepoolId);
         sb.append(" ");
         sb.append(Boolean.toString(blacklisted));
+        sb.append(" ");
+        sb.append(Boolean.toString(online));
+        sb.append(" ");
+        sb.append(responsive ? "up" : "down");
         sb.append(" ");
         sb.append(Long.toString(memory));
         sb.append(" ");
