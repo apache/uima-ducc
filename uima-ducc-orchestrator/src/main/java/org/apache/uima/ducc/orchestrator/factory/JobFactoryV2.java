@@ -44,6 +44,7 @@ import org.apache.uima.ducc.orchestrator.JobDriverHostManager;
 import org.apache.uima.ducc.orchestrator.OrUtil;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
+import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
@@ -572,8 +573,18 @@ public class JobFactoryV2 implements IJobFactory {
 		catch(Exception e) {
 			logger.error(methodName, job.getDuccId(), e);
 		}
-		// jp
+		// jp or sp
 		ServiceDeploymentType serviceDeploymentType = job.getServiceDeploymentType();
+		switch(duccType) {
+		case Service:
+			ICommandLine jcl = job.getCommandLine();
+			String arg = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_DD);
+			jcl.addArgument(arg);
+			logger.debug(methodName, job.getDuccId(),  "service_DD: "+arg);
+			break;
+		default:
+			break;
+		}
 		if(isJpUima(duccType, serviceDeploymentType)) {
 			String process_DD = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_DD);
 			if(process_DD != null) {
