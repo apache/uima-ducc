@@ -38,6 +38,7 @@ import shutil
 import signal
 from threading import *
 import Queue
+import random
 
 DUCC_HOME = os.path.abspath(__file__ + '/../../..')
 sys.path.append(DUCC_HOME + '/admin')
@@ -141,6 +142,16 @@ class DuccProcess(Thread):
         if ( self.runner.observe ):
             self.runner.queue.get()            # remove marker so main() can eventually exit
             self.runner.queue.task_done()
+
+    def jdbloat(self):
+        if ( self.runner.cr_getnext_bloat == 0 ):
+            return '0'
+
+        toss = random.randint(0, 100)
+        if ( toss < self.runner.cr_getnext_bloat ):
+            return str(self.runner.cr_getnext_bloat)
+
+        return '0'
 
     def calculate_bloat(self, memory):
         # if we're testing our ability to contan bloat, we'll set xmx to double the
@@ -261,6 +272,7 @@ class DuccProcess(Thread):
                   + ' CR_RUNTIME_EXIT='  + str(self.runner.cr_runtime_exit) \
                   + ' CR_RUNTIME_ERROR=' + str(self.runner.cr_runtime_error) \
                   +  bloat_parms \
+                  + ' CR_GETNEXT_BLOAT=' + self.jdbloat() \
                   + ' LD_LIBRARY_PATH=/a/bogus/path' \
                   + '"'
 
@@ -567,6 +579,8 @@ class RunDucc(DuccUtil):
         print '   --jp_uima_log log-properties'
         print '       If specified, use the indicated properties file for JP UIMA/UIMA-AS logging. Default:', self.jp_uima_log
         print ''
+        print '   -q  CR Probality it will leak on each getNext.  Default', self.cr_getnext_bloat
+        print ''
         print '   -s'
         print '       AE Probability that a JP will spontaneously exit during initialization.  Default:', self.ae_init_exit
         print ''
@@ -607,6 +621,7 @@ class RunDucc(DuccUtil):
         self.cr_init_error = 0           # -x  int 0-100
         self.cr_runtime_exit = 0.0       # -y  float
         self.cr_runtime_error = 0.0      # -z  float
+        self.cr_getnext_bloat = 0         # -q jd leakage
         self.init_fail_cap = '99'
         self.memory_override = None
         self.init_time = 10000
@@ -626,7 +641,7 @@ class RunDucc(DuccUtil):
         self.descriptor_as_file = False
 
         try:
-            opts, args  = getopt.getopt(argv, 'b:d:fi:r:m:nop:s:t:u:v:w:x:y:z:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
+            opts, args  = getopt.getopt(argv, 'b:d:fi:m:nop:q:r:s:t:u:v:w:x:y:z:?h', ['AE', 'DD', 'file', 'SE=', 'IB=', 'PB=', 'directory=', 'batchfile=', 'init_time=',
                                                                         'init_fail_cap=', 'range=', 'memory_override=', 'nmachines=', 'process_timeout=', 
                                                                         'init_timeout=', 'observe'
                                                                         'jd_uima_log=', 'jp_uima_log=',
@@ -678,6 +693,8 @@ class RunDucc(DuccUtil):
                 self.init_bloat = a
             elif o in ('--PB'):
                 self.process_bloat = a
+            elif ( o == '-q'):
+                self.cr_getnext_bloat = int(a)
             elif ( o == '-s'):
                 self.ae_init_exit = int(a)
             elif ( o == '-t'):
@@ -723,6 +740,7 @@ class RunDucc(DuccUtil):
         print '    cr_init_error      :', self.cr_init_error
         print '    cr_runtime_exit    :', self.cr_runtime_exit
         print '    cr_runtime_error   :', self.cr_runtime_error
+        print '    cr_getnext_bloat   :', self.cr_getnext_bloat
         print '    process_timeout    :', self.process_timeout
         print '    memory_override    :', self.memory_override
         print '    max_machines       :', self.max_machines

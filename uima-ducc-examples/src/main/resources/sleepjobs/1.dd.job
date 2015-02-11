@@ -16,18 +16,23 @@
 # specific language governing permissions and limitations
 # under the License.
 # 
-description               Test DD Job 1
 
-classpath                 ${DUCC_HOME}/lib/uima-ducc/examples/*
-driver_descriptor_CR      org.apache.uima.ducc.test.randomsleep.FixedSleepCR
+description                    Test job 1 - DD
+
+driver_descriptor_CR           org.apache.uima.ducc.test.randomsleep.FixedSleepCR
 driver_descriptor_CR_overrides jobfile=${DUCC_HOME}/examples/simple/1.inputs compression=10 error_rate=0.0
-driver_jvm_args           -Xmx500M
+driver_jvm_args                -Xmx500M
 
-process_DD                org.apache.uima.ducc.test.ddjob.DDSleepDescriptor
-environment               AE_INIT_TIME=10000 AE_INIT_RANGE=1000 INIT_ERROR=0 LD_LIBRARY_PATH=/a/bogus/path DUCC_LD_LIBRARY_PATH=/a/bogus/path
-process_jvm_args          -Xmx100M
+process_descriptor_DD          org.apache.uima.ducc.test.randomsleep.DDSleepDescriptor
+process_memory_size            2
+classpath                      ${DUCC_HOME}/lib/uima-ducc/examples/*:${DUCC_HOME}/apache-uima/lib/*:${DUCC_HOME}/apache-uima/apache-activemq/lib/*:${DUCC_HOME}/apache-uima/apache-activemq/lib/optional/*
+process_jvm_args               -Xmx100M 
+process_thread_count           2
+process_per_item_time_max      5
+environment                    AE_INIT_TIME=5 AE_INIT_RANGE=5 INIT_ERROR=0 LD_LIBRARY_PATH=/yet/a/nother/dumb/path
+process_deployments_max        999
 
-scheduling_class          normal
+scheduling_class               normal
 
-process_memory_size       2
+
 
