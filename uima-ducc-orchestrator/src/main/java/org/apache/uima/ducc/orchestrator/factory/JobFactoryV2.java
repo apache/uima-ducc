@@ -44,7 +44,6 @@ import org.apache.uima.ducc.orchestrator.JobDriverHostManager;
 import org.apache.uima.ducc.orchestrator.OrUtil;
 import org.apache.uima.ducc.orchestrator.OrchestratorCommonArea;
 import org.apache.uima.ducc.transport.cmdline.ACommandLine;
-import org.apache.uima.ducc.transport.cmdline.ICommandLine;
 import org.apache.uima.ducc.transport.cmdline.JavaCommandLine;
 import org.apache.uima.ducc.transport.cmdline.NonJavaCommandLine;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
@@ -574,10 +573,11 @@ public class JobFactoryV2 implements IJobFactory {
 			logger.error(methodName, job.getDuccId(), e);
 		}
 		// jp or sp
+		JavaCommandLine pipelineCommandLine = new JavaCommandLine(javaCmd);
+		pipelineCommandLine.setClassName("main:provided-by-Process-Manager");
 		ServiceDeploymentType serviceDeploymentType = job.getServiceDeploymentType();
 		switch(duccType) {
 		case Service:
-			ICommandLine jcl = job.getCommandLine();
 			String name = JobSpecificationProperties.key_process_DD;
 			String arg = jobRequestProperties.getProperty(name);
 			if(arg == null) {
@@ -588,7 +588,7 @@ public class JobFactoryV2 implements IJobFactory {
 			else {
 				logger.debug(methodName, job.getDuccId(), name+": "+arg);
 			}
-			jcl.addArgument(arg);
+			pipelineCommandLine.addArgument(arg);
 			break;
 		default:
 			break;
@@ -631,9 +631,6 @@ public class JobFactoryV2 implements IJobFactory {
 				job.setUimaDeployableConfiguration(uimaAggregate);
 				dump(job, uimaAggregate);
 			}
-			// pipelines
-			JavaCommandLine pipelineCommandLine = new JavaCommandLine(javaCmd);
-			pipelineCommandLine.setClassName("main:provided-by-Process-Manager");
 			// user CP
 			String userCP = jobRequestProperties.getProperty(JobSpecificationProperties.key_classpath);
 			userCP = addUimaDucc(userCP);
