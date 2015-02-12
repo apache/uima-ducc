@@ -578,9 +578,17 @@ public class JobFactoryV2 implements IJobFactory {
 		switch(duccType) {
 		case Service:
 			ICommandLine jcl = job.getCommandLine();
-			String arg = jobRequestProperties.getProperty(JobSpecificationProperties.key_process_DD);
+			String name = JobSpecificationProperties.key_process_DD;
+			String arg = jobRequestProperties.getProperty(name);
+			if(arg == null) {
+				name = "process_DD";
+				arg = jobRequestProperties.getProperty(name);
+				logger.warn(methodName, job.getDuccId(), name+": "+arg);
+			}
+			else {
+				logger.debug(methodName, job.getDuccId(), name+": "+arg);
+			}
 			jcl.addArgument(arg);
-			logger.debug(methodName, job.getDuccId(),  "service_DD: "+arg);
 			break;
 		default:
 			break;
