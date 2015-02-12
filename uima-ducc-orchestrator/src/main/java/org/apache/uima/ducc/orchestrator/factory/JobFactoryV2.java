@@ -580,14 +580,7 @@ public class JobFactoryV2 implements IJobFactory {
 		case Service:
 			String name = JobSpecificationProperties.key_process_DD;
 			String arg = jobRequestProperties.getProperty(name);
-			if(arg == null) {
-				name = "process_DD";
-				arg = jobRequestProperties.getProperty(name);
-				logger.warn(methodName, job.getDuccId(), name+": "+arg);
-			}
-			else {
-				logger.debug(methodName, job.getDuccId(), name+": "+arg);
-			}
+			logger.debug(methodName, job.getDuccId(), name+": "+arg);
 			pipelineCommandLine.addArgument(arg);
 			break;
 		default:
