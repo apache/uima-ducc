@@ -172,7 +172,9 @@ implements ProcessManager {
 	          
 	          break;
 	        case Service:
-	          //logger.info(methodName,null,"!!!!!!!!!!!!! GOT SERVICE");
+	          ///logger.info(methodName,null,"!!!!!!!!!!!!! GOT SERVICE");
+	          dcj.getCommandLine().addOption("-Dducc.deploy.components=service");
+	          
 	          break;
 	        
 	        default:

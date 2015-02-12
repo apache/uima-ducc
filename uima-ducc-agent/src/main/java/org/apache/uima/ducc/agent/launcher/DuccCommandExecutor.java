@@ -491,17 +491,23 @@ public class DuccCommandExecutor extends CommandExecutor {
 	        case Job_Uima_AS_Process:
               processType = "-UIMA-";
               List<String> options = ((JavaCommandLine)cmdLine).getOptions();
-              boolean ducc20JpProcess = false;
+              boolean isDucc20JpProcess = false;
+              boolean isDucc20ServiceProcess = false;
               // determine if we are launching Ducc2.0 or Ducc1.+ JP
               for( String option : options ) {
             	  if ( option.indexOf(FlagsHelper.Name.JpType.pname()) > -1) {
-            		  ducc20JpProcess = true;
-            		  break;
+            		  isDucc20JpProcess = true;
+            	  }
+            	  if (option.indexOf("ducc.deploy.components=service") > -1) {
+            		  isDucc20ServiceProcess = true;
             	  }
               }
               // Add main class and component type to the command line
-              if ( ducc20JpProcess ) {
-                  ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=job-process");
+              if ( isDucc20JpProcess ) {
+            	  if ( !isDucc20ServiceProcess ) {
+                      ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=job-process");
+            	  }
+            	  
                   ((JavaCommandLine)cmdLine).setClassName("org.apache.uima.ducc.user.common.main.DuccJobService");
               } else {
                   ((JavaCommandLine)cmdLine).addOption("-Dducc.deploy.components=uima-as");
