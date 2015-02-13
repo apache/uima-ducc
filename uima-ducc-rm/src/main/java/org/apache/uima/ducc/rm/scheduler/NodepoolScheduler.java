@@ -20,6 +20,7 @@ package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -1485,7 +1486,7 @@ public class NodepoolScheduler
                     continue;
                 }
 
-                if ( j.isCompleted() ) {                    // UIMA-3614 - may have bene purged, don't give it more
+                if ( j.isCompleted() ) {                 // UIMA-3614 - may have bene purged, don't give it more
                     continue;
                 }
 
@@ -1656,16 +1657,29 @@ public class NodepoolScheduler
         return np.containsMachine(m);           // can we get to the candidate share from 'needy's np?
     }
 
+    // /**
+    //  * Discover whether the potential job is able or unable to supply shares to a needy job because of nodepool restrictions.
+    //  */
+    // boolean compatibleNodepools(IRmJob potential, IRmJob needy)
+    // {
+    //     ResourceClass prc = potential.getResourceClass();
+    //     ResourceClass nrc = needy.getResourceClass();
+
+    //     NodePool pp = prc.getNodepool();
+    //     NodePool np = nrc.getNodepool();
+
+    //     return np.containsSubpool(pp) || pp.containsSubpool(np);
+    // }
+
     /**
-     * Discover whether the potential job is able or unable to supply shares to a needy job because of nodepool restrictions.
+     * Discover whether the potential resource class is able or unable to supply shares to a jobs in a needy class because of nodepool restrictions.
      */
-    boolean compatibleNodepools(IRmJob potential, IRmJob needy)
+    boolean compatibleNodepools(ResourceClass potential, IRmJob needy)
     {
-        ResourceClass prc = potential.getResourceClass();
         ResourceClass nrc = needy.getResourceClass();
 
+        NodePool pp = potential.getNodepool();
         NodePool np = nrc.getNodepool();
-        NodePool pp = prc.getNodepool();
 
         return np.containsSubpool(pp) || pp.containsSubpool(np);
     }
@@ -1741,9 +1755,10 @@ public class NodepoolScheduler
      *         evicted a process smaller than is needed, because there was already some free space on
      *         the machine.
      */
-    int takeFromTheRich(IRmJob nj, int needed,
-                            TreeMap<User, User> users_by_wealth,
-                            HashMap<User, TreeMap<IRmJob, IRmJob>> jobs_by_user)
+    int takeFromTheRich(IRmJob nj, 
+                        int needed,
+                        TreeMap<User, User> users_by_wealth,
+                        HashMap<User, TreeMap<IRmJob, IRmJob>> jobs_by_user)
     {
     	String methodName = "takeFromTheRich";
         // 1. Collect all machines that have shares, which if evicted, would make enough space
@@ -1760,8 +1775,7 @@ public class NodepoolScheduler
         //    a) have given what is needed
         //    b) nothing left to give
 
-        // Map<Share, Share>     exemptShares = new HashMap<Share, Share>(); // not eligible for various reasons
-        Map<IRmJob, IRmJob>   candidateJobs = new HashMap<IRmJob, IRmJob>();
+        Map<IRmJob,  IRmJob>  candidateJobs    = new HashMap<IRmJob,  IRmJob>();
         Map<Machine, Machine> eligibleMachines = new TreeMap<Machine, Machine>(new EligibleMachineSorter());
 
         for ( TreeMap<IRmJob, IRmJob> jobs : jobs_by_user.values() ) {
@@ -1771,45 +1785,61 @@ public class NodepoolScheduler
         int given = 0;
         int orderNeeded = nj.getShareOrder();
         
-        ResourceClass cl = nj.getResourceClass();
-        String npname = cl.getNodepoolName();
-        NodePool np = globalNodepool.getSubpool(npname);
+        ResourceClass cl     = nj.getResourceClass();               // needy job's resource class
+        String        npname = cl.getNodepoolName();                // name of the class
+        NodePool      np     = globalNodepool.getSubpool(npname);   // job's nodepool
         Map<Node, Machine> machines = np.getAllMachines();          // everything here is a candidate, nothing else is
+                                                                    //   this is the machines in the pool, and all the
+                                                                    //   subpools
 
-        for ( Machine m : machines.values() ) {
-            if ( m.getShareOrder() < orderNeeded ) {
-                logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded); 
-                logger.info(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded); 
-                continue;
-            }
+        // Here we filter all the machines looking for machines that *might* be able to satisfy the defrag.  At the 
+        // end this set of machines is eligbleMachines.
+        machine_loop : 
+            for ( Machine m : machines.values() ) {
 
-            // if the job is a reservation the machine size has to match
-            if ( nj.isReservation() && ( m.getShareOrder() != orderNeeded )) {
-                logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": reservation requires exact match for order", orderNeeded);
-                logger.info(methodName, nj.getId(), "Bypass ", m.getId(), ": reservation requires exact match for order", orderNeeded);
-                continue;
-            }
+                if ( m.getShareOrder() < orderNeeded ) {                // nope, too small
+                    logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": too small for request of order", orderNeeded); 
+                    continue;
+                }
 
-            Map<Share, Share> as = m.getActiveShares();
-            int g = m.getVirtualShareOrder();
-            for ( Share s : as.values() ) {
-                IRmJob j = s.getJob();
-                if ( s.isForceable() && candidateJobs.containsKey(j) ) {
-                    g += j.getShareOrder();
+                // if the job is a reservation the machine size has to matchm and machine must be clearable
+                if ( nj.isReservation() ) {
+                    if ( m.getShareOrder() != orderNeeded ) {
+                        logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": reservation requires exact match for order", orderNeeded);
+                        continue;
+                    }
+                    // machine must be clearable as well
+                    Collection<Share> shares = m.getActiveShares().values();
+                    for ( Share s : shares ) {
+                        if ( ! candidateJobs.containsKey(s.getJob()) ) {
+                            logger.trace(methodName, nj.getId(), "Bypass ", m.getId(), ": for reservation, machine contains non-candidate job", s.getJob().getId());
+                            continue machine_loop;
+                        }
+                    }
+                
+                }
+
+                Map<Share, Share> as = m.getActiveShares();            // everything alloacated here
+                int g = m.getVirtualShareOrder();                      // g is space that we might be able to make after defrag:
+                //    free space + freeable-from-candidates
+                for ( Share s : as.values() ) {
+                    IRmJob j = s.getJob();
+                    if ( s.isForceable() && candidateJobs.containsKey(j) ) {  // evictable, and a candidate for reclamation by defrag
+                        g += j.getShareOrder();
+                    }
+                }
+
+                if ( g >= orderNeeded ) {                              // if it's usable by the job, it's a candidate
+                    logger.info(methodName, nj.getId(), "Candidate machine:", m.getId());
+                    eligibleMachines.put(m, m);
+                } else {
+                    logger.info(methodName, nj.getId(), "Not a candidate, insufficient free space + candidate shares:", m.getId());
                 }
             }
-            if ( g >= orderNeeded ) {
-                logger.trace(methodName, nj.getId(), "Candidate machine:", m.getId());
-                logger.info(methodName, nj.getId(), "Candidate machine:", m.getId());
-                eligibleMachines.put(m, m);
-            } else {
-                // (a) the share is not forceable (non-preemptbable, or already being removed), or
-                // (b) the share is not owned by a rich job
-                logger.trace(methodName, nj.getId(), "Not a candidate, insufficient rich jobs:", m.getId());
-                logger.info(methodName, nj.getId(), "Not a candidate, insufficient rich jobs:", m.getId());
-            }
-        }
+        
+        // Now eligibleMachines is the set of candidate machines for defrag
 
+        // All-or-nothing policy, can we satisfy the reservation with defrag?  If not, we're done.
         if ( nj.isReservation() && ( eligibleMachines.size() < needed ) ) {
             // if we can't clear enough for the reservation we have to wait.  Very unlikely, but not impossible.
             logger.info(methodName, nj.getId(), "Found insufficient machines (", eligibleMachines.size(), "for reservation. Not clearing.");
@@ -1824,7 +1854,7 @@ public class NodepoolScheduler
             }
         logger.info(methodName, nj.getId(), "Eligible machines:", buf.toString());
 
-        // first part done
+        // first part done, we know where to look.
 
         // Now just bop through the machines until either we can't find anything, or we find everything.
         int given_per_round = 0;
@@ -1846,15 +1876,14 @@ public class NodepoolScheduler
                 sh.addAll(m.getActiveShares().values());
                 Collections.sort(sh, new ShareByWealthSorter());
 
-                g = m.getVirtualShareOrder();
+                g = m.getVirtualShareOrder();         // ( free space at this point )
                 List<Share> potentialShares     = new ArrayList<Share>();
                 for ( Share s : sh ) {
                     IRmJob j = s.getJob();
                     User u = j.getUser();
                     
                     if ( s.isForceable() ) {
-                        TreeMap<IRmJob, IRmJob> potentialJobs = jobs_by_user.get(u);
-                        if ( (potentialJobs != null) && ( potentialJobs.containsKey(j) ) ) {
+                        if ( candidateJobs.containsKey(j) ) {
                             g += s.getShareOrder();
                             if ( s.getShareOrder() == orderNeeded ) {
                                 potentialShares.add(0, s);    // exact matches first
@@ -1897,7 +1926,7 @@ public class NodepoolScheduler
                     eligibleMachines.put(m, m);
                 }
 
-                // and also must track how many processes we ma made space for
+                // and also must track how many processes we made space for
                 given = given + (g / orderNeeded);    // at least one,or else we have a bug 
                 logger.debug(methodName, nj.getId(), "LOOPEND: given[", given, "] g[", g, "] orderNeeded[", orderNeeded, "]");
             }
@@ -1916,112 +1945,169 @@ public class NodepoolScheduler
         }
 
         //
-        // Put candidate donors into a map, ordered by "most able to be generous".
-        // Candidates must not be needy, must be initialized already, be in compatible nodepools, and have sufficient shares to give.
+        // Search for candidate donors and order by "most able to be generous".  Nodepools must be compatible.
         //
-
+        // If prioritiy of needy is same or better, the cCandidates must not be needy, must be initialized already, 
+        //     and have sufficient shares to give.
+        // 
+        // If priority of needy is better we keep track of the rich vs the poor jobs and possibly perform a second
+        //     pass that includes poor jobs, if we can't get enougg from the rich.
+        //
         for ( IRmJob nj : needy.keySet() ) {
-            TreeMap<IRmJob, IRmJob> candidates = new TreeMap<IRmJob, IRmJob>(new FragmentationSorter());
+            int priority_needy = nj.getSchedulingPriority();
+            TreeMap<IRmJob, IRmJob> rich_candidates = new TreeMap<IRmJob, IRmJob>(new FragmentationSorter());  // first class candidates, they're rich and available
+            TreeMap<IRmJob, IRmJob> poor_candidates = new TreeMap<IRmJob, IRmJob>(new FragmentationSorter());  // clearing for better priority job, we only use this if it's
+                                                                                                               // impossible to clear from the rich candidates
+
             for ( ResourceClass rc : resourceClasses.values() ) {
                 
                 if ( rc.getPolicy() == Policy.RESERVE )     continue;          // exempt from preemption
                 if ( rc.getPolicy() == Policy.FIXED_SHARE ) continue;          // exempt from preemption
+
+                if ( ! compatibleNodepools(rc, nj) ) {
+                    logger.debug(methodName, nj.getId(), "Skipping class", rc.getName(), "vs job class", nj.getResourceClass().getName(), "because of incompatible nodepools.");
+                    continue;
+                }
+
+                int priority_candidate = rc.getPriority();
+                boolean use_expanded_pool = false;      // better priority job is allowed to look at poor jobs if can't be satisfied from the rich
+
+                if ( priority_needy > priority_candidate ) {  // Greater means worse 
+                    logger.debug(methodName, nj.getId(), "Jobs in class", rc.getName(), "are not candidates because better priority: [", 
+                                 priority_candidate, "vs", priority_needy, "]");
+                    continue;
+                }
+
+                if ( priority_needy < priority_candidate ) {   // less means better
+                    logger.debug(methodName, nj.getId(), "Needy job has better priority than jobs in class", rc.getName(), "[", 
+                                 priority_candidate, "vs", priority_needy, "]. Using expanded pool.");
+                    use_expanded_pool = true;
+                }
 
                 HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                 for ( IRmJob j : jobs.values() ) {
                     int nshares = j.countNShares();
                     int qshares = nshares * j.getShareOrder();
 
-                    if ( nj.isReservation() && (nj.getSchedulingPriority() <= j.getSchedulingPriority()) ) {
-                        if ( nshares == 0 ) {
-                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it has no share.");
-                            continue;
-                        } 
-                        // We could end up evictin really needy stuff - hopefully not, but these guys are Top Men so there.
-                        logger.debug(methodName, nj.getId(), "Reservation priority override on candidate selection.");
-                    } else {
-                        if ( needy.containsKey(j) ) {                            // if needy it's not a candidate
-                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's needy.");
-                            continue;
+                    if ( nshares == 0 ) {
+                        logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it has no share.");
+                        continue;
+                    } 
+
+                    if ( needy.containsKey(j) ) {
+                        if ( use_expanded_pool ) {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a backup candidate because it's needy.");
+                            poor_candidates.put(j, j);
+                        } else {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a not a candidate because it's needy.");
                         }
-                        
-                        if ( ! j.isInitialized() ) {
-                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's not initialized yet.");
-                            continue;                                            // if not initialized its not a candidate
-                        }
-                        
-                        //
-                        // Need at least one potential candidate of worse or equal priority
-                        //
-                        
-                        if ( j.getSchedulingPriority() < nj.getSchedulingPriority() ) {
-                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it has better priority.");
-                            continue;
-                        }
-                        
-                        if ( ! compatibleNodepools(j, nj) ) {
-                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because of incompatible nodepools.");
-                            continue;
-                        }
-                        
-                        if ( nshares < fragmentationThreshold ) {
-                            // If you're already below the threshold then you're safe, unless we're clearing for a reservation.
-                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because not enough processes[", nshares, "] qshares[", qshares, "]");
-                            continue;
-                        }
+                        continue;
                     }
                     
+                    if ( ! j.isInitialized() ) {
+                        if ( use_expanded_pool ) {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a backup candidate because it's not initialized yet.");
+                            poor_candidates.put(j, j);
+                        } else {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because it's not initialized yet.");
+                        }
+                        continue;
+                    }
+                    
+                    if ( nshares < fragmentationThreshold ) {
+                        if ( use_expanded_pool ) {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a backup candidate because below frag threshold. nshares[", nshares, "] qshares[", qshares, "] threshold[", fragmentationThreshold, "]");
+                            poor_candidates.put(j, j);
+                        } else {
+                            logger.debug(methodName, nj.getId(), "Job", j.getId(), "is not a candidate because below frag threshold. nshares[", nshares, "] qshares[", qshares, "] threshold[", fragmentationThreshold, "]");
+                        }
+                        continue;
+                    }
+
                     logger.debug(methodName, nj.getId(), "Job", j.getId(), "is a candidate with processes[", nshares, "] qshares[", qshares, "]");
-                    candidates.put(j, j);
+                    rich_candidates.put(j, j);
                 }
             }
 
-            //
-            // Collect total wealth and order the wealthy by spondulix
-            //
-            HashMap<User, Integer> shares_by_user = new HashMap<User, Integer>();                                // use this to track user's wealth
-            HashMap<User, TreeMap<IRmJob, IRmJob>> jobs_by_user = new HashMap<User, TreeMap<IRmJob, IRmJob>>();  // use this to track where the wealth originates
-            for ( IRmJob j : candidates.values() ) {
-                User u = j.getUser();
-                
-                if ( shares_by_user.get(u) == null ) {
-                    shares_by_user.put(u, 0);
-                }
-                shares_by_user.put(u, shares_by_user.get(u) + (j.countNShares() * j.getShareOrder()));
-                
-                TreeMap<IRmJob, IRmJob> ujobs = jobs_by_user.get(u);
-                if ( ujobs == null ) {
-                    ujobs = new TreeMap<IRmJob, IRmJob>(new JobByShareSorter()); // orders by largest number of assigned shares
-                    jobs_by_user.put(u, ujobs);
-                }
-                ujobs.put(j, j);
-            }
+            HashMap<User, TreeMap<IRmJob, IRmJob>> jobs_by_user = new HashMap<User, TreeMap<IRmJob, IRmJob>>();  // use this to track where the wealth originatse
             TreeMap<User, User> users_by_wealth = new TreeMap<User, User>(new UserByWealthSorter()); // orders users by wealth
-                                                                                                     // and tracks their fat jobs
-            for ( User u : shares_by_user.keySet() ) {
-                u.setShareWealth(shares_by_user.get(u));       // qshares
-                users_by_wealth.put(u, u);
-            }
 
-            //
-            // Try stealing shares from 'users_by_wealth' until the needy
-            // job has met its fragmentation threshold, or until we decide its impossible to do so.
-            //
+            collectWealth(rich_candidates, users_by_wealth, jobs_by_user);
 
             int needed = needy.get(nj);      // this was adjusted to a reasonable level in the caller
             logger.debug(methodName, nj.getId(), "Needy job looking for", needed, "more processes of O[", nj.getShareOrder(), "]");
 
-            // while ( ( needed > 0 ) && takeFromTheRichX(nj, users_by_wealth, jobs_by_user) ) {
+            //
+            // Try stealing shares from the "rich" candidates first.
+            //
             needed -= takeFromTheRich(nj, needed, users_by_wealth, jobs_by_user);
             if ( needed <= 0 ) {
                 // This can go <0 if total space freed + unused space on a node adds up to >1 share.
                 // It's slimplest to just not sweat it and call it satisfied.
                 logger.info(methodName, nj.getId(), "Satisfied needs of job by taking from the rich.");
-            } else {
-                logger.info(methodName, nj.getId(), "Could not get enough from the rich. Asked for", needy.get(nj), "still needing", needed);
+                continue;
             }
+
+            //
+            // The needy job had sufficient priority that be built up a list of emergency-backup jobs to evict.
+            //
+            if ( poor_candidates.size() > 0) {
+                logger.info(methodName, nj.getId(), "Could not clear sufficient space from rich candidates.  Retrying with all candidates.");
+                jobs_by_user.clear();
+                users_by_wealth.clear();
+                rich_candidates.putAll(poor_candidates);
+                collectWealth(rich_candidates, users_by_wealth, jobs_by_user);
+
+                needed -= takeFromTheRich(nj, needed, users_by_wealth, jobs_by_user);
+                if ( needed <= 0 ) {
+                    // This can go <0 if total space freed + unused space on a node adds up to >1 share.
+                    // It's slimplest to just not sweat it and call it satisfied.
+                    logger.info(methodName, nj.getId(), "Satisfied needs of job by taking from all candidates.");
+                    continue;
+                }
+            }
+            logger.info(methodName, nj.getId(), "Could not get enough from the rich. Asked for", needy.get(nj), "still needing", needed);
         }
     }
+
+    
+    void collectWealth(TreeMap<IRmJob, IRmJob> candidates, TreeMap<User, User> users_by_wealth, HashMap<User, TreeMap<IRmJob, IRmJob>> jobs_by_user)
+    {
+        // Candidates are ordered by the FragmentationSorter
+        //   - most over pure fair share
+        //   - hten most currently allocated
+
+        // user_by_wealth is ordered by the UserByWealthSorter
+        //   - ordered by most wealth - actual qshares over all jobs
+
+        //
+        // Collect total wealth and order the wealthy by spondulix
+        //
+        HashMap<User, Integer> shares_by_user = new HashMap<User, Integer>();                                // use this to track user's wealth
+        
+        for ( IRmJob j : candidates.values() ) {
+            User u = j.getUser();
+            
+            if ( shares_by_user.get(u) == null ) {
+                shares_by_user.put(u, 0);
+            }
+            shares_by_user.put(u, shares_by_user.get(u) + (j.countNShares() * j.getShareOrder()));
+            
+            TreeMap<IRmJob, IRmJob> ujobs = jobs_by_user.get(u);
+            if ( ujobs == null ) {
+                ujobs = new TreeMap<IRmJob, IRmJob>(new JobByShareSorter()); // orders by largest number of assigned shares
+                jobs_by_user.put(u, ujobs);
+            }
+            ujobs.put(j, j);
+        }
+        
+        // and tracks their fat jobs
+        for ( User u : shares_by_user.keySet() ) {
+            u.setShareWealth(shares_by_user.get(u));       // qshares
+            users_by_wealth.put(u, u);
+        }
+    }
+
 
     void getNodepools(NodePool top, List<NodePool> nodepools)
     {        
@@ -2106,7 +2192,9 @@ public class NodepoolScheduler
                 int counted = 0;
                 switch ( rc.getPolicy() ) {
                     case FAIR_SHARE:
-                        counted = j.countNSharesGiven();       // fair share allocation
+                        counted = j.countNSharesGiven();       // fair share allocation, accounting for
+                                                               // ramp-up, various caps, etc.  could be more, could be less than
+                                                               // the "pure" fair share.
                         break;
                     default:
                         counted = j.countInstances();          // fixed, all, or nothing
@@ -2120,7 +2208,9 @@ public class NodepoolScheduler
                 if ( j.getSchedulingPolicy() == Policy.FAIR_SHARE ) {   // cap on frag threshold
                     if ( current >= fragmentationThreshold ) { 
                         needed = 0;
-                    } else if ( needed < 0 ) {
+                    } else if ( current >= j.getPureFairShare() ) {     // more than our pure share, we're not needy
+                        needed = 0;
+                    } else if ( needed < 0 ) {                          // more than out count, likely are evicting
                         needed = 0;
                     } else if ( needed > 0) {
                         needed = Math.min(needed, fragmentationThreshold);
@@ -2219,15 +2309,7 @@ public class NodepoolScheduler
                 int available = nmach[order];
                 int to_remove = 0;
 
-                //if ( j.getSchedulingPolicy() == Policy.FAIR_SHARE ) {
-                   // Preference is given during expinsion in next cycle because usually, if
-                   // we Took From The Rich, we took from older jobs, which would normally
-                   // have priority for available resources.
-                   //
-                   // We don't need to include the non-preemptable jobs here, they're handled
-                   // well enough in their normal what-of code.
-                   needyJobs.put(j, j);
-                //}
+                needyJobs.put(j, j);
                 
                 if ( available >= needed ) {
                     needed = 0;
@@ -2563,7 +2645,7 @@ public class NodepoolScheduler
 
             // pure fair-share
             int p1 = j1.getPureFairShare();    // qshares
-            int p2 = j2.getPureFairShare();
+            int p2 = j2.getPureFairShare(); 
 
             // actual current allocation
             int c1 = j1.countNShares() * j1.getShareOrder();  // to qshares
@@ -2625,6 +2707,16 @@ public class NodepoolScheduler
 
     //
     // Sort machines for defrag.
+
+    // 1 any machine with free space F, and a candidate job j of order O(j) such
+    //    that F + O(j) == O(nj)
+    //    Tiebraker on j is wealth W: W(j1) > W(j2)
+
+    // 2 choice, any machine with a candidate job of the same order as the needy job
+    //    Secondary sort, candidate job A is richer than candidate job B
+    //
+    // Tiebreak 1 ~ 2: W(j1) > W(j2) - choose host whose job is richest
+    //
     // a) machines with richest users first
     // b) largest machine second
     //

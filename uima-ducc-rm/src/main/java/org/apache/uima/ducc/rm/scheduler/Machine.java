@@ -48,9 +48,14 @@ public class Machine
     //    - virtual_share_order is reset to share_order at the start of every scheduling cycle.  It
     //      represents the *potential* shares in this machine.  As a rule, once we give out shares on
     //      this machine we'll try to not move them around but eviction happens, and this helps us
-    //      keep track of what we *could* give away on this machine.
+    //      keep track of what we *could* give away on this machine.  It represents the logical capacity
+    //      of the machine, that is, true capacity, less shares given to orchestrator, less shares that
+    //      we might be giving away this scheduling cycle.
+    //
     //    - shares_left tracks exactly the number of shares that are physically available to give away
-    //      without preemption.
+    //      without preemption. This is updated when a share is assigned, or when it is returned. It
+    //      represents the true capacity of the machine at this moment, less the shares that have been
+    //      given to the orchestrator.
     //
     // Throughout much of the scheudling cycle these guys will tend to track each other, and at the end
     // of a cycle they should probably bethe same, but they may diverge if shares are given out that we
