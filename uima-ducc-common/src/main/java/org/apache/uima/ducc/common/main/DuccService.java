@@ -160,7 +160,6 @@ public class DuccService extends AbstractDuccComponent {
 			context.getBeansOfType(AbstractDuccComponent.class);
 		//	Start all components except for JP component
 		for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
-			String key = duccComponent.getKey();
 			// The job-process is what used to be uima-as to identify the type of component
 			// The new job-process is the JP component. JP components are started differently
 			// from the rest of Ducc daemons.
