@@ -116,6 +116,8 @@ public class JobDriver extends Thread implements IJobDriver {
 	private int metaTimeout = 1;
 	private long lostTimeout = 5;
 	
+	private int startup_initialization_error_limit = 1;
+	
 	private WorkItemFactory workItemFactory;
 	
 	private AtomicInteger activeWorkItems = null;
@@ -194,6 +196,7 @@ public class JobDriver extends Thread implements IJobDriver {
 					duccOut.info(location, jobid, "default handler = "+JdProcessExceptionHandler.class.getName());
 				}
 			}
+			startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
 		}
 		catch(JobDriverTerminateException e) {
 			throw e;
@@ -733,8 +736,6 @@ public class JobDriver extends Thread implements IJobDriver {
 		duccOut.debug(location, jobid, "end");
 	}
 	
-	private int MAX_INIT_FAILURES = 1;
-	
 	private void checkProcessesState() throws JobDriverTerminateException {
 		String location = "checkProcessesState";
 		if(getJob().isProcessReady()) {
@@ -742,9 +743,9 @@ public class JobDriver extends Thread implements IJobDriver {
 		}
 		else {
 			int failures = getJob().getFailedUnexpectedProcessCount();
-			if(failures >= MAX_INIT_FAILURES) {
-				driverStatusReport.setExcessiveInitializationFailures(new Rationale("job driver initialization failures limit reached:"+MAX_INIT_FAILURES));
-				duccOut.error(location, jobid, "Initialization failures limit reached: "+MAX_INIT_FAILURES);
+			if(failures >= startup_initialization_error_limit) {
+				driverStatusReport.setExcessiveInitializationFailures(new Rationale("job driver initialization failures limit reached:"+startup_initialization_error_limit));
+				duccOut.error(location, jobid, "Initialization failures limit reached: "+startup_initialization_error_limit);
 				terminate();
 				throw new JobDriverTerminateException("excessive initialize failures");
 			}
