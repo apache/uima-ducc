@@ -215,6 +215,10 @@ class DuccProcess(Thread):
         process_args.append(process_xmx)
         process_args.append('-DdefaultBrokerURL=' + plain_broker_url )
 
+        if ( self.runner.system == 'Darwin' ):         # Keep JP / JD processes from stealing focus on Mac
+            process_args.append('-Djava.awt.headless=true')
+            driver_args.append('-Djava.awt.headless=true')
+
         driver_args.append('-Xmx500M')
         if ( self.runner.jd_uima_log != None ):
             driver_args.append(' -Djava.util.logging.config.file=' + self.runner.jd_uima_log)
