@@ -394,7 +394,7 @@ public class TestMessageHandler extends ATest {
 		int n = randomTest03.nextInt(100);
 		if(n < pctTest03) {
 			IProcessInfo processInfo = new ProcessInfo(ti.getNodeName(),null,""+ti.getPid(),ti.getPid());
-			messageHandler.handlePreemptProcess(processInfo);
+			messageHandler.handleProcessPreempt(processInfo);
 		}
 	}
 	

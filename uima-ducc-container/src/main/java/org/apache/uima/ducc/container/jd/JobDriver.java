@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.common.jd.files.workitem.WorkItemStateKeeper;
+import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.container.common.FlagsExtendedHelper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.Standardize;
@@ -83,6 +84,9 @@ public class JobDriver {
 	
 	private boolean killJob = false;
 	private CompletionType completionType = CompletionType.Normal;
+	private String completionText = null;
+	
+	private int startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
 	
 	private JobDriver() throws JobDriverException {
 		initialize();
@@ -216,8 +220,15 @@ public class JobDriver {
 	}
 	
 	public void killJob(CompletionType value) {
-		killJob = true;
-		completionType = value;
+		killJob(value, null);
+	}
+	
+	public void killJob(CompletionType value, String text) {
+		if(!killJob) {
+			killJob = true;
+			completionType = value;
+			completionText = text;
+		}
 	}
 	
 	public boolean isKillJob() {
@@ -226,5 +237,13 @@ public class JobDriver {
 	
 	public CompletionType getCompletionType() {
 		return completionType;
+	}
+	
+	public String getCompletionText() {
+		return completionText;
+	}
+	
+	public int getStartupInitializationErrorLimit() {
+		return startup_initialization_error_limit;
 	}
 }

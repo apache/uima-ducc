@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.container.jd.mh;
 
+import java.io.File;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -43,6 +44,7 @@ import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.jd.wi.IRunningWorkItemStatistics;
@@ -64,6 +66,8 @@ public class MessageHandler implements IMessageHandler {
 	private AtomicInteger acks = new AtomicInteger(0);
 	
 	private ConcurrentLinkedQueue<IRemoteWorkerThread> legacyList = new ConcurrentLinkedQueue<IRemoteWorkerThread>();
+	
+	private ConcurrentHashMap<String,String> failedInitializationMap = new ConcurrentHashMap<String,String>();
 	
 	private ConcurrentHashMap<IRemoteWorkerThread,IRemoteWorkerThread> wipMap = new ConcurrentHashMap<IRemoteWorkerThread,IRemoteWorkerThread>();
 	
@@ -136,6 +140,7 @@ public class MessageHandler implements IMessageHandler {
 			if(jd.isKillJob()) {
 				oi.setKillJob();
 				oi.setCompletionType(jd.getCompletionType());
+				oi.setCompletionText(jd.getCompletionText());
 			}
 			oi.setWorkItemDispatcheds(cms.getDispatched());
 			oi.setWorkItemRetrys(cms.getNumberOfRetrys());
@@ -175,7 +180,7 @@ public class MessageHandler implements IMessageHandler {
 	}
 
 	@Override
-	public void handleDownNode(INodeInfo nodeInfo) {
+	public void handleNodeDown(INodeInfo nodeInfo) {
 		//TODO
 		/*
 		String location = "handleDownNode";
@@ -189,8 +194,8 @@ public class MessageHandler implements IMessageHandler {
 	}
 	
 	@Override
-	public void handleDownProcess(IProcessInfo processInfo) {
-		String location = "handleDownProcess";
+	public void handleProcessDown(IProcessInfo processInfo) {
+		String location = "handleProcessDown";
 		try {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
@@ -234,8 +239,8 @@ public class MessageHandler implements IMessageHandler {
 	}
 	
 	@Override
-	public void handlePreemptProcess(IProcessInfo processInfo) {
-		String location = "handlePreemptProcess";
+	public void handleProcessPreempt(IProcessInfo processInfo) {
+		String location = "handleProcessPreempt";
 		try {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
@@ -308,6 +313,73 @@ public class MessageHandler implements IMessageHandler {
 	private void unblock(IRemoteWorkerThread rwt) {
 		if(rwt != null) {
 			wipMap.remove(rwt);
+		}
+	}
+	
+	@Override
+	public void handleProcessFailedInitialization(IProcessInfo processInfo) {
+		String location = "handleProcessFailedInitialization";
+		try {
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
+			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
+			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
+			logger.trace(location, ILogger.null_id, mb.toString());
+			
+			String nodeName = processInfo.getNodeName();
+			String nodeAddress = processInfo.getNodeAddress();
+			int pid = processInfo.getPid();
+			
+			StringBuffer sb = new StringBuffer();
+			sb.append(nodeName);
+			sb.append(File.pathSeparator);
+			sb.append(nodeAddress);
+			sb.append(pid);
+			
+			String jp = sb.toString();
+			
+			JobDriver jd = JobDriver.getInstance();
+			boolean isKillJob = jd.isKillJob();
+			
+			boolean added = failedInitializationMap.putIfAbsent(jp, jp) == null;
+			int failedCount = failedInitializationMap.size();
+			int failedLimit = jd.getStartupInitializationErrorLimit();
+
+			if(added) {
+				mb = new MessageBuffer();
+				mb.append(Standardize.Label.node.get()+nodeName);
+				mb.append(Standardize.Label.ip.get()+nodeAddress);
+				mb.append(Standardize.Label.pid.get()+pid);
+				mb.append(Standardize.Label.count.get()+failedCount);
+				mb.append(Standardize.Label.limit.get()+failedCount);
+				mb.append(Standardize.Label.isKillJob.get()+isKillJob);
+				logger.info(location, ILogger.null_id, mb.toString());
+				if(!isKillJob) {
+					if(failedCount >= failedLimit) {
+						String text = "startup initialization error limit exceeded";
+						jd.killJob(CompletionType.Exception, text);
+						mb = new MessageBuffer();
+						mb.append(Standardize.Label.node.get()+nodeName);
+						mb.append(Standardize.Label.ip.get()+nodeAddress);
+						mb.append(Standardize.Label.pid.get()+pid);
+						mb.append(Standardize.Label.isKillJob.get()+jd.isKillJob());
+						mb.append(Standardize.Label.type.get()+jd.getCompletionType().toString());
+						mb.append(Standardize.Label.reason.get()+jd.getCompletionText());
+						logger.info(location, ILogger.null_id, mb.toString());
+					}
+				}
+			}
+			else {
+				mb = new MessageBuffer();
+				mb.append(Standardize.Label.node.get()+nodeName);
+				mb.append(Standardize.Label.ip.get()+nodeAddress);
+				mb.append(Standardize.Label.pid.get()+pid);
+				mb.append(Standardize.Label.count.get()+failedCount);
+				logger.trace(location, ILogger.null_id, mb.toString());
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
 		}
 	}
 	

@@ -31,6 +31,9 @@ public interface IOperatingInfo extends Serializable {
 	public void setCompletionType(CompletionType value);
 	public CompletionType getCompletionType();
 	
+	public void setCompletionText(String value);
+	public String getCompletionText();
+	
 	public void setJobId(String value);
 	public String getJobId();
 

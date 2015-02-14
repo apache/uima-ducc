@@ -26,9 +26,13 @@ import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 public interface IMessageHandler {
 	
 	public IOperatingInfo handleGetOperatingInfo();
-	public void handleDownNode(INodeInfo nodeInfo);
-	public void handleDownProcess(IProcessInfo processInfo);
-	public void handlePreemptProcess(IProcessInfo processInfo);
+	
+	public void handleNodeDown(INodeInfo nodeInfo);
+	
+	public void handleProcessDown(IProcessInfo processInfo);
+	public void handleProcessPreempt(IProcessInfo processInfo);
+	public void handleProcessFailedInitialization(IProcessInfo processInfo);
+	
 	public void handleMetaCasTransation(IMetaCasTransaction trans);
 	
 	public void incGets();

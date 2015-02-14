@@ -29,6 +29,7 @@ public class OperatingInfo implements IOperatingInfo {
 	private static final long serialVersionUID = 1L;
 
 	private CompletionType completionType = CompletionType.Normal;
+	private String completionText = null;
 	
 	private String jobId = null;
 	
@@ -74,6 +75,16 @@ public class OperatingInfo implements IOperatingInfo {
 	@Override
 	public CompletionType getCompletionType() {
 		return completionType;
+	}
+	
+	@Override
+	public void setCompletionText(String value) {
+		completionText = value;
+	}
+
+	@Override
+	public String getCompletionText() {
+		return completionText;
 	}
 	
 	@Override
