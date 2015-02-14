@@ -381,6 +381,13 @@ public class JobFactoryV2 implements IJobFactory {
 		addDashD(jcl, flagName, flagValue);
 	}
 	
+	private String getDuccFileProperty(String key) {
+		String location = "getDuccFileProperty";
+		String value = DuccPropertiesResolver.getInstance().getFileProperty(key);
+		logger.trace(location, null, key+"="+value);
+		return value;
+	}
+	
 	private void createDriver(CommonConfiguration common, JobRequestProperties jobRequestProperties,  DuccWorkJob job) {
 		String methodName = "createDriver";
 		DuccPropertiesResolver duccPropertiesResolver = DuccPropertiesResolver.getInstance();
@@ -404,10 +411,10 @@ public class JobFactoryV2 implements IJobFactory {
 		// ProcessStatusMaxWaitMillis
 		long processStatusMaxWaitMillis = -1;
 		try {
-			String ducc_orchestrator_abbreviated_state_publish_rate = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_orchestrator_abbreviated_state_publish_rate);
-			String ducc_rm_state_publish_rate = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_rm_state_publish_rate);
-			String ducc_agent_node_metrics_publish_rate = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_agent_node_metrics_publish_rate);
-			String ducc_rm_node_stability = duccPropertiesResolver.getFileProperty(DuccPropertiesResolver.ducc_rm_node_stability);
+			String ducc_orchestrator_abbreviated_state_publish_rate = getDuccFileProperty(DuccPropertiesResolver.ducc_orchestrator_abbreviated_state_publish_rate);
+			String ducc_rm_state_publish_rate = getDuccFileProperty(DuccPropertiesResolver.ducc_rm_state_publish_rate);
+			String ducc_agent_node_metrics_publish_rate = getDuccFileProperty(DuccPropertiesResolver.ducc_agent_node_metrics_publish_rate);
+			String ducc_rm_node_stability = getDuccFileProperty(DuccPropertiesResolver.ducc_rm_node_stability);
 			long orMillisRate = Long.parseLong(ducc_orchestrator_abbreviated_state_publish_rate);
 			long rmMillisRate = Long.parseLong(ducc_rm_state_publish_rate);
 			long metricsMillisRate = Long.parseLong(ducc_agent_node_metrics_publish_rate);
