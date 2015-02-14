@@ -1624,15 +1624,15 @@ public class NodepoolScheduler
                     int current = j.countNShares();           // currently allocated, plus pending, less those removed by earlier preemption
                     int needed = (counted - current);
                     int order = j.getShareOrder();
-
-                    // if ( needed < 0 ) {
-                    //     int stophere = 1;
-                    //     stophere++;
-                    // }
          
+                    // Why abs and not max?  Because if needed > 0, that's shares we need to make space for.
+                    //                               if needed < 0, that's shares we need to dump because the
+                    //                                              counts say so.
+                    //                               if needed == 0 then clearly nothing
+                    needed = Math.abs(needed); 
+                    // needed = Math.max(0, needed);
+
                     logger.info(methodName, j.getId(), String.format("%12s %7d %7d %6d %5d", npn, counted, current, needed, order));
-                    needed = Math.abs(needed);
-                    //needed = Math.max(0, needed);
                     neededByOrder[order] += needed;
                     total_needed += needed;
                 }
