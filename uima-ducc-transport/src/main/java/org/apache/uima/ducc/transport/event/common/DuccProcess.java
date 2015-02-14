@@ -333,6 +333,21 @@ public class DuccProcess implements IDuccProcess {
 	}
 	
 	
+	public boolean isFailedInitialization() {
+		boolean retVal = false;
+		String reason = getReasonForStoppingProcess();
+		if(reason != null) {
+			if(reason.equals("FailedInitialization")) {
+				retVal = true;
+			}
+			else if(reason.equals("InitializationTimeout")) {
+				retVal = true;
+			}
+		}
+		return retVal;
+	}
+	
+	
 	public boolean isPreempted() {
 		boolean retVal = false;
 		switch(deallocationType) {

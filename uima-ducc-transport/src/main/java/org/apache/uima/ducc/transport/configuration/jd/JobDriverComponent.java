@@ -178,7 +178,21 @@ implements IJobDriverComponent {
 						String ip = ni.getIp();
 						String pidName = p.getDuccId().getFriendly()+"";
 						String pid = p.getPID();
-						logger.debug(location, jobid, "node: "+node+" "+"ip: "+ip+" "+"pid: "+pid+" "+"state:"+state.name());
+						StringBuffer sb = new StringBuffer();
+						sb.append("node: "+node);
+						sb.append(" ");
+						sb.append("ip: "+ip);
+						sb.append(" ");
+						sb.append("pid: "+pid);
+						sb.append(" ");
+						sb.append("state:"+state.name());
+						sb.append(" ");
+						String reason = p.getReasonForStoppingProcess();
+						if(reason != null) {
+							sb.append("reason:"+reason);
+							sb.append(" ");
+						}
+						logger.debug(location, jobid, sb.toString());
 						switch(state) {
 						case Starting:    
 						case Initializing:
@@ -189,11 +203,14 @@ implements IJobDriverComponent {
 								if(pid != null) {
 									int iPid = Integer.parseInt(pid.trim());
 									IProcessInfo processInfo = new ProcessInfo(node, ip, pidName, iPid);
-									if(p.isPreempted()) {
-										mh.handlePreemptProcess(processInfo);
+									if(p.isFailedInitialization()) {
+										mh.handleProcessFailedInitialization(processInfo);
+									}
+									else if(p.isPreempted()) {
+										mh.handleProcessPreempt(processInfo);
 									}
 									else {
-										mh.handleDownProcess(processInfo);
+										mh.handleProcessDown(processInfo);
 									}
 								}
 							}

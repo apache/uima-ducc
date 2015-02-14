@@ -72,6 +72,7 @@ public interface IDuccProcess extends Serializable {
 	public boolean isActive();
 	public boolean isReady();
 	public boolean isFailed();
+	public boolean isFailedInitialization();
 	public boolean isPreempted();
 	public boolean isComplete();
 

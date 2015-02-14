@@ -42,6 +42,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessWorkItems;
 import org.apache.uima.ducc.transport.event.common.IRationale;
+import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.IDriverState.DriverState;
 
 public class JobDriverReport implements Serializable, IDriverStatusReport {
@@ -82,6 +83,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	private String jpDeployable = null;
 	
 	private JobCompletionType jobCompletionType = JobCompletionType.EndOfJob;
+	private IRationale jobCompletionRationale = null;
 	
 	private IDuccPerWorkItemStatistics duccPerWorkItemStatistics = null;
 	
@@ -158,6 +160,11 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		if(operatingInfo.isKillJob()) {
 			setKillJob();
 			setCompletionType(operatingInfo.getCompletionType());
+			String completionText = operatingInfo.getCompletionText();
+			if(completionText != null) {
+				IRationale completionRationale = new Rationale(completionText);
+				setCompletionRationale(completionRationale);
+			}
 		}
 		// operating map
 		setActiveWorkItemInfo(operatingInfo.getActiveWorkItemInfo());
@@ -465,6 +472,10 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		}
 	}
 	
+	private void setCompletionRationale(IRationale value) {
+		jobCompletionRationale = value;
+	}
+	
 	@Override
 	public JobCompletionType getJobCompletionType() {
 		return jobCompletionType;
@@ -472,8 +483,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 
 	@Override
 	public IRationale getJobCompletionRationale() {
-		// TODO Auto-generated method stub
-		return null;
+		return jobCompletionRationale;
 	}
 
 	@Override
