@@ -38,6 +38,7 @@ import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.DuccSchedulerClasses;
 import org.apache.uima.ducc.common.utils.TimeStamp;
+import org.apache.uima.ducc.common.utils.VersionCommunicationsJdJp;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.orchestrator.user.UserLogging;
 import org.apache.uima.ducc.orchestrator.utilities.TrackSync;
@@ -611,6 +612,10 @@ public class StateManager {
 				IRationale rationale;
 				if(jdStatusReport.getWorkItemsTotal() == 0) {
 					jobTerminate(duccWorkJob, JobCompletionType.NoWorkItemsFound, new Rationale("job driver had no work items to process"), ProcessDeallocationType.JobCanceled);
+				}
+				else if(jdStatusReport.isKillJob()) {
+					rationale = jdStatusReport.getJobCompletionRationale();
+					jobTerminate(duccWorkJob, JobCompletionType.CanceledByDriver, rationale, ProcessDeallocationType.JobFailure);
 				}
 				else {
 					switch(jdStatusReport.getDriverState()) {
@@ -1559,7 +1564,9 @@ public class StateManager {
 								// <UIMA-3923>
 								advanceToCompleted(job);
 								// </UIMA-3923>
-								checkInitializationState(job);
+								if(VersionCommunicationsJdJp.get() == 1) {
+									checkInitializationState(job);
+								}
 								break;
 							case Service:
 								DuccWorkJob service = (DuccWorkJob) duccWork;
