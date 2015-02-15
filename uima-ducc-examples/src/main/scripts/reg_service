@@ -122,7 +122,7 @@ class RegService(DuccUtil):
         
         CMD = ' '.join((self.DUCC_HOME + '/bin/ducc_services', '--register', '--instances', str(instances)))
         for (k, v) in props.items():
-            CMD = CMD + ' --' + k + " '" + v + "'"
+            CMD = CMD + ' --' + k + " '" + v.v + "'"
         print CMD
         os.system(CMD)
 
