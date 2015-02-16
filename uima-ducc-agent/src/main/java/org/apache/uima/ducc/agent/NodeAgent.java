@@ -273,14 +273,26 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                 // and cgroups convenience package are installed and the
                 // daemon is up and running.
                 if (cgroupsManager.cgroupExists(cgroupsBaseDir)) {
-                  useCgroups = true;
-                  logger.info("nodeAgent", null, "------- Agent Running with CGroups Enabled");
+                 
                   try {
                     // remove stale CGroups
                     cgroupsManager.cleanupOnStartup();
                   } catch (Exception e) {
                     logger.error("nodeAgent", null, e);
 
+                  }
+                  try {
+                	  // Test cgroups by creating a dummy container
+                      if ( cgroupsManager.createContainer("test", "duck", false) ) {
+                          useCgroups = true;
+                          try {
+                        	  // remove dummy container
+                        	  cgroupsManager.destroyContainer("test");
+                          } catch( Exception eee ) {}
+                          logger.info("nodeAgent", null, "------- Agent Running with CGroups Enabled");
+                      }
+                  } catch( Exception ee) {
+                	  useCgroups = false;
                   }
 
                 } else {
