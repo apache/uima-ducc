@@ -33,7 +33,7 @@ public class NodeMetrics implements Serializable {
   private NodeIdentity nodeIdentity;
   TreeMap<String,NodeUsersInfo> nodeUsersMap;
   
-  public NodeMetrics(NodeIdentity nodeIdentity, NodeMemory nodeMemory, NodeLoadAverage nodeLoadAverage , NodeCpuInfo nodeCpu, TreeMap<String,NodeUsersInfo> userProcessMap ) {
+  public NodeMetrics(NodeIdentity nodeIdentity, NodeMemory nodeMemory, NodeLoadAverage nodeLoadAverage , NodeCpuInfo nodeCpu, TreeMap<String,NodeUsersInfo> userProcessMap) {
     this.nodeIdentity = nodeIdentity;
 	  setNodeMemory(nodeMemory);
     setNodeLoadAverage(nodeLoadAverage);
@@ -45,7 +45,7 @@ public class NodeMetrics implements Serializable {
     return nodeUsersMap;
   }
 
-  public NodeIdentity getNodeIdentity() {
+   public NodeIdentity getNodeIdentity() {
 	  return nodeIdentity;
   }
   public NodeCpuInfo getNodeCpu() {

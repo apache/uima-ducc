@@ -63,15 +63,17 @@ public class DefaultNodeMetricsProcessor extends BaseProcessor implements
 	            new DefaultNodeLoadAverageCollector();
 	    Future<NodeLoadAverage> loadFuture = pool.submit(loadAvgCollector);
 
-	    NodeCpuCollector cpuCollector = new NodeCpuCollector();
-	    Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
+//	    NodeCpuCollector cpuCollector = new NodeCpuCollector();
+//	    Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
 
+	    NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors);
+	    
 	    NodeUsersCollector nodeUsersCollector = new NodeUsersCollector(agent, logger);
 	    Future<TreeMap<String,NodeUsersInfo>> nuiFuture = pool.submit(nodeUsersCollector);
 
 	    NodeMetrics nodeMetrics = 
 	            new NodeMetrics(agent.getIdentity(), nmiFuture.get(), loadFuture.get(), 
-	                    cpuFuture.get(), nuiFuture.get());
+	                    cpuInfo, nuiFuture.get());
 
 	    //Node node = new DuccNode(new NodeIdentity(), nodeMetrics);
 	    // jrc 2011-07-30 I think this needs to be agent.getIdentity(), not create a new identity.

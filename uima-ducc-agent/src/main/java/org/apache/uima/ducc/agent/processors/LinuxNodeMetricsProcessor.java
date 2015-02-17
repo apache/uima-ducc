@@ -102,8 +102,10 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			NodeLoadAverageCollector loadAvgCollector = new NodeLoadAverageCollector(
 					loadAvgFile, 5, 0);
 			Future<NodeLoadAverage> loadFuture = pool.submit(loadAvgCollector);
-			NodeCpuCollector cpuCollector = new NodeCpuCollector();
-			Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
+//			NodeCpuCollector cpuCollector = new NodeCpuCollector();
+//			Future<NodeCpuInfo> cpuFuture = pool.submit(cpuCollector);
+		    NodeCpuInfo cpuInfo = new NodeCpuInfo(agent.numProcessors);
+		    
 			e.getIn().setHeader("node", agent.getIdentity().getName());
 			NodeMemory memInfo = nmiFuture.get();
 			TreeMap<String, NodeUsersInfo> users = null;
@@ -122,7 +124,7 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 			}
 	    
             NodeMetrics nodeMetrics = new NodeMetrics(agent.getIdentity(), memInfo, loadFuture.get(),
-              cpuFuture.get(), users);
+              cpuInfo, users);
       
 			Node node = new DuccNode(agent.getIdentity(), nodeMetrics, agent.useCgroups);
 			// Make the agent aware how much memory is available on the node. Do this once.
@@ -132,7 +134,10 @@ public class LinuxNodeMetricsProcessor extends BaseProcessor implements
 						
 			((DuccNode)node).duccLingExists(agent.duccLingExists());
 			((DuccNode)node).runWithDuccLing(agent.runWithDuccLing());
-			logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getName()+" Posting Memory:"
+			logger.info(methodName, null, "... Agent "+node.getNodeIdentity().getName()+
+					" CPU Count:" + cpuInfo.getAvailableProcessors() +
+					" CPU Load:" +cpuInfo.getCurrentLoad() +
+					" Posting Memory:"
 					+ node.getNodeMetrics().getNodeMemory().getMemTotal()+
 					" Memory Free:"+node.getNodeMetrics().getNodeMemory().getMemFree()+
 					" Swap Total:"+node.getNodeMetrics().getNodeMemory().getSwapTotal()+

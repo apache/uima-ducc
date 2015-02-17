@@ -151,6 +151,8 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
   public int cpuClockRate = 100;
   
+  public int numProcessors=0;
+  
   //  indicates whether or not this agent received at least one publication
   //  from the PM. This flag is used to determine if the agent should use
   //  rogue process detector. The detector will be used if this flag is true.
@@ -195,6 +197,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
     
     // fetch Page Size from the OS and cache it
     pageSize = getOSPageSize();
+    
+    numProcessors = getNodeProcessors();
+    
     logger.info("NodeAgent", null, "OS Page Size:" + pageSize);
 
     cpuClockRate = getOSClockRate();
@@ -324,7 +329,9 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
 
     }
   }
-
+  public int getNodeProcessors() {
+	    return runOSCommand(new String[] { "/usr/bin/getconf", "_NPROCESSORS_ONLN" });
+  }
   public int getOSPageSize() {
     return runOSCommand(new String[] { "/usr/bin/getconf", "PAGESIZE" });
   }
