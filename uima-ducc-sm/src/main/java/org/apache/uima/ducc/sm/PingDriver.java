@@ -356,7 +356,7 @@ class PingDriver
         int additions = response.getAdditions();
         int instances = sset.countImplementors();
         if ( additions + instances > max_instances ) {
-            additions = max_instances - instances;
+            additions = Math.max(0, max_instances - instances);
             logger.warn(methodName, sset.getId(), "Maximum services instances capped by installation limit of", max_instances, "at", additions);
         }
 
@@ -374,7 +374,7 @@ class PingDriver
             int refs = sset.countReferences();
             int impls = sset.countImplementors();
             if ( (impls <= ndeletions) && (refs > 0) ) {
-                ndeletions = impls - 1;
+                ndeletions = Math.max(0, impls - 1);
                 logger.warn(methodName, sset.getId(), "Service shrink value capped at", ndeletions, "because there are still", refs, "references.");
             }
         }
