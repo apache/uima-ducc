@@ -81,6 +81,17 @@ public class DuccJobService {
 	}
 
 	public void start(String[] args) throws Exception {
+		String log4jConfigurationFile = System.getProperty("log4j.configuration");
+		// if user provided log4j configuration file via -D, save it for later
+		// under a different property name. Remove "log4j.configuration" from System
+		// properties to prevent Ducc from using it to configure its logger. 
+		// The user's log4j configuration property will be restored before crossing
+		// class loader boundary from ducc to user.
+		if ( log4jConfigurationFile != null ) {
+			System.setProperty("ducc.user.log4j.saved.configuration",log4jConfigurationFile);
+			System.getProperties().remove("log4j.configuration");
+		}
+
         // cache current context classloader
 		ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
 		// Fetch a classpath for the fenced Ducc container
@@ -109,9 +120,10 @@ public class DuccJobService {
 				.getProperty("ducc.deploy.JpProcessorClass");
 
 		// Instantiate process container where the actual analysis will be done.
-		// Currently there are two containers:
+		// Currently there are three containers:
 		// 1 - UimaProcessContainer - used for pieces parts (UIMA only)
 		// 2 - UimaASProcessContainer - used for DD jobs
+		// 3 - UimaASServiceContainer - used for UIMA-AS based services
 		//
 		// NOTE: the container class is loaded by the main System classloader
 		//       and requires uima-ducc-user jar to be in the System classpath.
@@ -125,8 +137,8 @@ public class DuccJobService {
 		Method setProcessorMethod = classToLaunch.getMethod("setProcessor",
 				Object.class, String[].class);
 		setProcessorMethod.invoke(duccContainerInstance, pc, args);
-        // Call DuccService.start() to initialize worker threads and to
-		// start fetching Work Items from a JD for processing.
+        // Call DuccService.start() to initialize the process
+		// and begin processing
 		Method startMethod = classToLaunch.getMethod("start");// ,
 		startMethod.invoke(duccContainerInstance);
 
