@@ -34,8 +34,16 @@ public class BrokerCredentials {
 			try {
 			    if (!(new File(brokerCredentialsFile)).canRead()) {
 			        DuccLogger logger = DuccLogger.getLogger(BrokerCredentials.class.getName(), null);
-			        // Default of no name & password => anonymous access
-			        logger.info("BrokerCredentials.get", null, "Cannot access broker credentials file so will have restricted access");
+			        String component = System.getProperty("ducc.deploy.components");
+			        if ( component != null ) {
+			        	if ( !"uima-as".equals(component) &&
+			        		 !"jd".equals(component) &&
+			        		 !"service".equals(component) &&
+			        		 !"job-process".equals(component) ) {
+					        // Default of no name & password => anonymous access
+					        logger.info("BrokerCredentials.get", null, "Cannot access broker credentials file so will have restricted access");
+			        	}
+			        }
 			        return cr;
 			    }
 				properties.load(new FileInputStream(brokerCredentialsFile));
