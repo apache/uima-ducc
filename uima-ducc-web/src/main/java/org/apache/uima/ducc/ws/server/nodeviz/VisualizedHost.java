@@ -60,7 +60,7 @@ class VisualizedHost
         this.ip = n.getNodeIdentity().getIp();            
         
         // mem from OR pub is in KB.  must convert to GB
-        this.mem =  (int) n.getNodeMetrics().getNodeMemory().getMemTotal() / ( 1024 * 1024 );
+        this.mem =  (int) n.getNodeMetrics().getNodeMemory().getMemFree() / ( 1024 * 1024 );
 
         this.shares = (mem / quantum);
         this.shares_free = shares;
