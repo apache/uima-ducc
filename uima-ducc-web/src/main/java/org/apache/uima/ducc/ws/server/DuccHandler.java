@@ -343,28 +343,30 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private String buildLogFileName(IDuccWorkJob job, IDuccProcess process, ShareType type) {
 		String retVal = "";
-		switch(type) {
-		case UIMA:
-			retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-			break;
-		case MR:
-			retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-			break;
-		case SPU:
-			retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-			break;
-		case SPC:
-			retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
-			break;
-		case JD:
-			retVal = "jd.out.log";
-			// <UIMA-3802>
-			// {jobid}-JD-{node}-{PID}.log
-			String node = process.getNodeIdentity().getName();
-			String pid = process.getPID();
-			retVal = job.getDuccId()+"-"+"JD"+"-"+node+"-"+pid+".log";
-			// </UIMA-3802>
-			break;
+		if(process != null) {
+			switch(type) {
+			case UIMA:
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				break;
+			case MR:
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				break;
+			case SPU:
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.UIMA.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				break;
+			case SPC:
+				retVal = job.getDuccId().getFriendly()+"-"+LogType.POP.name()+"-"+process.getNodeIdentity().getName()+"-"+process.getPID()+".log";
+				break;
+			case JD:
+				retVal = "jd.out.log";
+				// <UIMA-3802>
+				// {jobid}-JD-{node}-{PID}.log
+				String node = process.getNodeIdentity().getName();
+				String pid = process.getPID();
+				retVal = job.getDuccId()+"-"+"JD"+"-"+node+"-"+pid+".log";
+				// </UIMA-3802>
+				break;
+			}
 		}
 		return retVal;
 	}
@@ -399,7 +401,7 @@ public class DuccHandler extends DuccAbstractHandler {
 	
 	private String getFileSize(String fileName) {
 		String location = "getFileSize";
-		String retVal = "?";
+		String retVal = "0";
 		try {
 			File file = new File(fileName);
 			double size = file.length();
@@ -412,185 +414,140 @@ public class DuccHandler extends DuccAbstractHandler {
 		return retVal;
 	}
 	
-	private String getFilePagerUrl(String user, String file_name) {
-		AlienTextFile atf = new AlienTextFile(user, file_name);
-		int pages = atf.getPageCount();
-		String parms = "?"+"fname="+file_name+"&"+"pages="+pages;
-		String url=duccFilePager+parms;
-		return url;
+	private String getId(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		sb.append(job.getDuccId().getFriendly());
+		sb.append(".");
+		if(process != null) {
+			sb.append(process.getDuccId().getFriendly());
+		}
+		else {
+			sb.append("pending");
+		}
+		return sb.toString();
 	}
 	
-	String pname_idJob = "idJob";
-	String pname_idPro = "idPro";
+	private String getLog(IDuccWorkJob job, IDuccProcess process, String href) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			String pid = process.getPID();
+			if(pid != null) {
+				sb.append(href);
+			}
+		}
+		return sb.toString();
+	}
 	
-	private void buildJobProcessListEntry(StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter) {
-		String location = "buildJobProcessListEntry";
-		String pid = process.getPID();
-		if(pid == null) {
-			return;
+	private String getPid(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			String pid = process.getPID();
+			if(pid != null) {
+				sb.append(pid);
+			}
 		}
-		StringBuffer rb = new StringBuffer();
-		int COLS = 26;
-		StringBuffer[] cbList = new StringBuffer[COLS];
-		for(int i=0; i < COLS; i++) {
-			cbList[i] = new StringBuffer();
+		return sb.toString();
+	}
+	
+	private String getStateScheduler(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			sb.append(process.getResourceState());
 		}
-		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
-		String logfile = buildLogFileName(job, process, sType);
-		
-		String user = job.getStandardInfo().getUser();
-		String file_name = logsjobdir+logfile;
-		
-		String url = getFilePagerUrl(user, file_name);
-		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
-		String tr = trGet(counter);
-		rb.append(tr);
-		int index = -1;
-		// Id
-		index++; // jp.00
-		cbList[index].append("<td align=\"right\">");
-		/*
-		long id = process.getDuccId().getFriendly();
-		System.out.println(id);
-		 */
-		switch(sType) {
-		case SPC:
-			cbList[index].append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
-			break;
-		case SPU:
-			cbList[index].append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
-			break;
-		case MR:
-			cbList[index].append(job.getDuccId().getFriendly()+"."+process.getDuccId().getFriendly());
-			break;
-		default:
-			cbList[index].append(process.getDuccId().getFriendly());
-			break;
-		}
-		cbList[index].append("</td>");
-		// Log
-		index++; // jp.01
-		cbList[index].append("<td>");
-		if(pid != null) {
-			cbList[index].append(href);
-		}
-		cbList[index].append("</td>");
-		// Log Size (in MB)
-		index++; // jp.02
-		cbList[index].append("<td align=\"right\">");
-		cbList[index].append(getFileSize(logsjobdir+logfile));
-		cbList[index].append("</td>");
-		// Hostname
-		index++; // jp.03
-		cbList[index].append("<td>");
-		cbList[index].append(process.getNodeIdentity().getName());
-		cbList[index].append("</td>");
-		// PID
-		index++; // jp.04
-		cbList[index].append("<td align=\"right\">");
-		cbList[index].append(pid);
-		cbList[index].append("</td>");
-		// State:scheduler
-		index++; // jp.05
-		cbList[index].append("<td>");
-		cbList[index].append(process.getResourceState());
-		cbList[index].append("</td>");
-		// Reason:scheduler
-		index++; // jp.06
-		IDuccProcess jp = process;
-		switch(jp.getProcessState()) {
-		case Starting:
-		case Initializing:
-		case Running:
-			cbList[index].append("<td>");
-			cbList[index].append("</td>");
-			break;
-		default:
-			switch(sType) {
+		return sb.toString();
+	}
+	
+	private String getReasonScheduler(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			switch(process.getProcessState()) {
+			case Starting:
+			case Initializing:
+			case Running:
+				break;
 			default:
 				ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
-				cbList[index].append("<td>");
 				switch(deallocationType) {
 				case Undefined:
 					break;
 				default:
-					cbList[index].append(process.getProcessDeallocationType());
+					sb.append(process.getProcessDeallocationType());
 					break;
 				}
-				cbList[index].append("</td>");
 				break;
 			}
-			break;
 		}
-		// State:agent
-		index++; // jp.07
-		cbList[index].append("<td>");
-		cbList[index].append(process.getProcessState());
-		cbList[index].append("</td>");
-		// Reason:agent
-		index++; // jp.08
-		cbList[index].append("<td>");
-		String agentReason = process.getReasonForStoppingProcess();
-		if(agentReason != null) {
-			if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.KilledByDucc.toString())) {
-				agentReason = "<div title=\""+ReasonForStoppingProcess.KilledByDucc.toString()+"\">Discontinued</div>";
+		return sb.toString();
+	}
+	
+	private String getStateAgent(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			sb.append(process.getProcessState());
+		}
+		return sb.toString();
+	}
+	
+	private String getReasonAgent(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			String agentReason = process.getReasonForStoppingProcess();
+			if(agentReason != null) {
+				if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.KilledByDucc.toString())) {
+					agentReason = "<div title=\""+ReasonForStoppingProcess.KilledByDucc.toString()+"\">Discontinued</div>";
+				}
+				else if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.Other.toString())) {
+					agentReason = "<div title=\""+ReasonForStoppingProcess.Other.toString()+"\">Discontinued</div>";
+				}
+				sb.append(agentReason);
 			}
-			else if(agentReason.equalsIgnoreCase(ReasonForStoppingProcess.Other.toString())) {
-				agentReason = "<div title=\""+ReasonForStoppingProcess.Other.toString()+"\">Discontinued</div>";
-			}
-			cbList[index].append(agentReason);
 		}
-		cbList[index].append("</td>");
-		// Exit
-		index++; // jp.09
-		cbList[index].append("<td>");
-		boolean suppressExitCode = false;
-		/*
-		ProcessDeallocationType deallocationType = process.getProcessDeallocationType();
-		switch(deallocationType) {
-		case Forced:
-		case Voluntary:
-		case Stopped:
-			suppressExitCode = true;
-			break;
-		}
-		*/
-		if(!suppressExitCode) {
-			switch(process.getProcessState()) {
-			case Stopped:
-			case Failed:
-			case FailedInitialization:
-			case InitializationTimeout:
-			case Killed:
-				int code = process.getProcessExitCode();
-				if(LinuxSignals.isSignal(code)) {
-					Signal signal = LinuxSignals.lookup(code);
-					if(signal != null) {
-						cbList[index].append(signal.name()+"("+signal.number()+")");
+		return sb.toString();
+	}
+	
+	private String getExit(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			boolean suppressExitCode = false;
+			if(!suppressExitCode) {
+				switch(process.getProcessState()) {
+				case Stopped:
+				case Failed:
+				case FailedInitialization:
+				case InitializationTimeout:
+				case Killed:
+					int code = process.getProcessExitCode();
+					if(LinuxSignals.isSignal(code)) {
+						Signal signal = LinuxSignals.lookup(code);
+						if(signal != null) {
+							sb.append(signal.name()+"("+signal.number()+")");
+						}
+						else {
+							sb.append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
+						}
 					}
 					else {
-						cbList[index].append("UnknownSignal"+"("+LinuxSignals.getValue(code)+")");
+						sb.append("ExitCode"+"="+code);
 					}
+					break;
+				default:
+					break;
 				}
-				else {
-					cbList[index].append("ExitCode"+"="+code);
-				}
-				break;
-			default:
-				break;
 			}
 		}
-		cbList[index].append("</td>");	
-		// Time:init
-		index++; // jp.10
-		switch(sType) {
+		return sb.toString();
+	}
+	
+	private String getTimeInit(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+		String location = "getTimeInit";
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			switch(sType) {
 			case MR:
 				break;
 			default:
 				StringBuffer loadme = new StringBuffer();
 				String initTime = "00";
-				String itd0 = "<td align=\"right\">";
-				String itd1 = "</td>";
 				String isp0 = "<span>";
 				String isp1 = "</span>";
 				try {
@@ -617,7 +574,7 @@ public class DuccHandler extends DuccAbstractHandler {
 						}
 					}
 					else {
-						List<IUimaPipelineAEComponent> upcList = jp.getUimaPipelineComponents();
+						List<IUimaPipelineAEComponent> upcList = process.getUimaPipelineComponents();
 						if(upcList != null) {
 							if(!upcList.isEmpty()) {
 								String id = ""+process.getDuccId().getFriendly();
@@ -654,223 +611,499 @@ public class DuccHandler extends DuccAbstractHandler {
 				catch(Throwable t) {
 					duccLogger.trace(location, jobid, "no worries", t);
 				}
-				cbList[index].append(itd0);
-				cbList[index].append(isp0);
-				cbList[index].append(loadme);
-				cbList[index].append(initTime);
-				cbList[index].append(isp1);
-				cbList[index].append(itd1);				
+				sb.append(isp0);
+				sb.append(loadme);
+				sb.append(initTime);
+				sb.append(isp1);		
 				break;
+			}
+		}
+		return sb.toString();
+	}
+	
+	private String getTimeRun(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+		String location = "getTimeRun";
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			String runTime = "00";
+			String rsp0 = "<span>";
+			String rsp1 = "</span>";
+			// <UIMA-3351>
+			boolean useTimeRun = true;
+			switch(sType) {
+			case SPC:
+				break;
+			case SPU:
+				break;
+			case MR:
+				break;
+			case JD:
+				break;	
+			case UIMA:
+				if(!process.isAssignedWork()) {
+					useTimeRun = false;
+				}
+				break;	
+			default:
+				break;
+			}
+			// </UIMA-3351>
+			if(useTimeRun) {
+				try {
+					TimeWindow t = (TimeWindow) process.getTimeWindowRun();
+					if(t != null) {
+						long now = System.currentTimeMillis();
+						String tS = t.getStart(""+now);
+						String tE = t.getEnd(""+now);
+						runTime = getDuration(jobid,tE,tS,Precision.Whole);
+						if(t.isEstimated()) {
+							rsp0 = "<span title=\"estimated\" class=\"health_green\">";
+						}
+						else {
+							rsp0 = "<span class=\"health_black\">";
+						}
+					}
+				}
+				catch(Exception e) {
+					duccLogger.trace(location, jobid, "no worries", e);
+				}
+				catch(Throwable t) {
+					duccLogger.trace(location, jobid, "no worries", t);
+				}
+			}
+			sb.append(rsp0);
+			sb.append(runTime);
+			sb.append(rsp1);
+		}
+		return sb.toString();
+	}
+	
+	private SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
+	
+	private String getTimeGC(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			switch(sType) {
+			case MR:
+				break;
+			default:
+				long timeGC = 0;
+				try {
+					timeGC = process.getGarbageCollectionStats().getCollectionTime();
+				}
+				catch(Exception e) {
+				}
+				dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				String displayGC = dateFormat.format(new Date(timeGC));
+				displayGC = chomp("00:", displayGC);
+				sb.append(displayGC);
+				break;
+			}
+		}
+		return sb.toString();
+	}
+	
+	private String getPgIn(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			switch(sType) {
+			case MR:
+				break;
+			default:
+				long faults = 0;
+				try {
+					faults = process.getMajorFaults();
+				}
+				catch(Exception e) {
+				}
+				sb.append(faults);
+				break;
+			}
+		}
+		return sb.toString();
+	}
+	
+	private DecimalFormat formatter = new DecimalFormat("##0.0");
+	
+	private String getSwap(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			switch(sType) {
+			case MR:
+				break;
+			default:
+				if(!process.isActive()) {
+					double swap = process.getSwapUsageMax();
+					swap = swap/Constants.GB;
+					String displaySwap = formatter.format(swap);
+					sb.append(displaySwap);
+				}
+				else {
+					double swap = process.getSwapUsage();
+					swap = swap/Constants.GB;
+					String displaySwap = formatter.format(swap);
+					double swapMax = process.getSwapUsageMax();
+					swapMax = swapMax/Constants.GB;
+					String displaySwapMax = formatter.format(swapMax);
+					sb.append("<span title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
+					sb.append(displaySwap);
+					sb.append("</span>");
+				}
+				break;
+			}
+		}
+		return sb.toString();
+	}
+	
+	private String getPctCPU(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			String runTime = ""+process.getCpuTime();
+			double pctCPU_overall = 0;
+			double pctCPU_current = 0;
+			String displayCPU = formatter.format(pctCPU_overall);
+			if(process.getDataVersion() < 1) {
+				boolean rt = false;
+				if(runTime != null) {
+					if(runTime.contains(":")) {
+						rt = true;
+					}
+					else {
+						try {
+							long value = Long.parseLong(runTime);
+							if(value > 0) {
+								rt = true;
+							}
+						}
+						catch(Exception e) {
+						}
+					}
+				}
+				try {
+					if(rt) {
+						long msecsCPU = process.getCpuTime()*1000;
+						long msecsRun = process.getTimeWindowRun().getElapsedMillis();
+						switch(process.getProcessState()) {
+						case Running:
+							long msecsInit = process.getTimeWindowInit().getElapsedMillis();
+							msecsRun = msecsRun - msecsInit;
+							break;
+						}
+						double secsCPU = (msecsCPU*1.0)/1000.0;
+						double secsRun = (msecsRun*1.0)/1000.0;
+						double timeCPU = secsCPU;
+						double timeRun = secsRun;
+						pctCPU_overall = 100*(timeCPU/timeRun);
+						if(!Double.isNaN(pctCPU_overall)) {
+							StringBuffer tb = new StringBuffer();
+							String fmtsecsCPU = formatter.format(secsCPU);
+							String fmtsecsRun = formatter.format(secsRun);
+							String title = "title="+"\""+"seconds"+" "+"CPU:"+fmtsecsCPU+" "+"run:"+fmtsecsRun+"\"";
+							tb.append("<span "+title+">");
+							String fmtPctCPU = formatter.format(pctCPU_overall);
+							tb.append(fmtPctCPU);
+							tb.append("</span>");
+							displayCPU = tb.toString();
+						}
+					}
+				}
+				catch(Exception e) {
+				}
+			}
+			else {
+				StringBuffer tb = new StringBuffer();
+				pctCPU_overall = process.getCpuTime();
+				pctCPU_current = process.getCurrentCPU();
+				switch(process.getProcessState()) {
+				case Running:
+					String title = "title="+"\"lifetime: "+formatter.format(pctCPU_overall)+"\"";
+					tb.append("<span "+title+" class=\"health_green\">");
+					tb.append(formatter.format(pctCPU_current));
+					tb.append("</span>");
+					break;
+				default:
+					tb.append("<span>");
+					tb.append(formatter.format(pctCPU_overall));
+					tb.append("</span>");
+					break;
+				}
+				displayCPU = tb.toString();
+			}
+			sb.append(displayCPU);
+		}
+		return sb.toString();
+	}
+	
+	private String getRSS(IDuccWorkJob job, IDuccProcess process) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			if(process.isComplete()) {
+				double rss = process.getResidentMemoryMax();
+				rss = rss/Constants.GB;
+				String displayRss = formatter.format(rss);
+				sb.append(displayRss);
+			}
+			else {
+				double rss = process.getResidentMemory();
+				rss = rss/Constants.GB;
+				String displayRss = formatter.format(rss);
+				double rssMax = process.getResidentMemoryMax();
+				rssMax = rssMax/Constants.GB;
+				String displayRssMax = formatter.format(rssMax);
+				sb.append("<span title=\"max="+displayRssMax+"\" align=\"right\" "+">");
+				sb.append(displayRss);
+				sb.append("</span>");
+			}
+		}
+		return sb.toString();
+	}
+	
+	private String getJConsole(IDuccWorkJob job, IDuccProcess process, ShareType sType) {
+		StringBuffer sb = new StringBuffer();
+		if(process != null) {
+			switch(process.getProcessState()) {
+			case Initializing:
+			case Running:
+				String jmxUrl = process.getProcessJmxUrl();
+				if(jmxUrl != null) {
+					String link = buildjConsoleLink(jmxUrl);
+					sb.append(link);
+				}
+				break;
+			default:
+				break;
+			}
+		}
+		return sb.toString();
+	}
+	
+	private String getFilePagerUrl(String user, String file_name) {
+		AlienTextFile atf = new AlienTextFile(user, file_name);
+		int pages = atf.getPageCount();
+		String parms = "?"+"fname="+file_name+"&"+"pages="+pages;
+		String url=duccFilePager+parms;
+		return url;
+	}
+	
+	String pname_idJob = "idJob";
+	String pname_idPro = "idPro";
+	
+	private void buildJobProcessListEntry(StringBuffer pb, DuccWorkJob job, IDuccProcess process, DetailsType dType, ShareType sType, int counter) {
+		StringBuffer rb = new StringBuffer();
+		int COLS = 26;
+		switch(sType) {
+		case SPC:
+		case SPU:
+			COLS++;
+			break;
+		default:
+			break;
+		}
+		StringBuffer[] cbList = new StringBuffer[COLS];
+		for(int i=0; i < COLS; i++) {
+			cbList[i] = new StringBuffer();
+		}
+		String logsjobdir = job.getUserLogsDir()+job.getDuccId().getFriendly()+File.separator;
+		String logfile = buildLogFileName(job, process, sType);
+		
+		String user = job.getStandardInfo().getUser();
+		String file_name = logsjobdir+logfile;
+		
+		String url = getFilePagerUrl(user, file_name);
+		String href = "<a href=\""+url+"\" onclick=\"var newWin = window.open(this.href,'child','height=800,width=1200,scrollbars');  newWin.focus(); return false;\">"+logfile+"</a>";
+		String tr = trGet(counter);
+		rb.append(tr);
+		int index = -1;
+		// Id
+		index++; // jp.00
+		cbList[index].append("<td align=\"right\">");
+		String id = "";
+		switch(sType) {
+		case SPC:
+			id = getId(job,process);
+			break;
+		case SPU:
+			id = getId(job,process);
+			break;
+		case MR:
+			id = getId(job,process);
+			break;
+		default:
+			id = ""+process.getDuccId().getFriendly();
+			break;
+		}
+		cbList[index].append(id);
+		logAppend(index,"id",id);
+		cbList[index].append("</td>");
+		// State
+		switch(sType) {
+		case SPC:
+		case SPU:
+			index++; // jp.00.1
+			cbList[index].append("<td>");
+			String state = job.getJobState().toString();
+			cbList[index].append(state);
+			logAppend(index,"state",state);
+			cbList[index].append("</td>");
+			break;
+		default:
+			break;
+		}
+		// Services
+		switch(sType) {
+		case SPC:
+		case SPU:
+			ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
+			index++; // jp.00.2
+			cbList[index].append("<td valign=\"bottom\" align=\"right\">");
+			String services = evaluateServices(job,servicesRegistry);
+			cbList[index].append(services);
+			logAppend(index,"services",services);
+			cbList[index].append("</td>");
+			break;
+		default:
+			break;
+		}
+		// Log
+		index++; // jp.01
+		cbList[index].append("<td>");
+		String log = getLog(job, process, href);
+		cbList[index].append(log);
+		logAppend(index,"log",log);
+		cbList[index].append("</td>");
+		// Log Size (in MB)
+		index++; // jp.02
+		cbList[index].append("<td align=\"right\">");
+		String fileSize = getFileSize(logsjobdir+logfile);
+		cbList[index].append(fileSize);
+		logAppend(index,"fileSize",fileSize);
+		cbList[index].append("</td>");
+		// Hostname
+		index++; // jp.03
+		cbList[index].append("<td>");
+		String hostname = "";
+		if(process != null) {
+			hostname = process.getNodeIdentity().getName();
+		}
+		cbList[index].append(hostname);
+		logAppend(index,"hostname",hostname);
+		cbList[index].append("</td>");
+		// PID
+		index++; // jp.04
+		cbList[index].append("<td align=\"right\">");
+		String pid = getPid(job,process);
+		cbList[index].append(pid);
+		logAppend(index,"pid",pid);
+		cbList[index].append("</td>");
+		// State:scheduler
+		index++; // jp.05
+		cbList[index].append("<td>");
+		String stateScheduler = getStateScheduler(job,process);
+		cbList[index].append(stateScheduler);
+		logAppend(index,"stateScheduler",stateScheduler);
+		cbList[index].append("</td>");
+		// Reason:scheduler
+		index++; // jp.06
+		cbList[index].append("<td>");
+		String reasonScheduler = getReasonScheduler(job,process);
+		cbList[index].append(reasonScheduler);
+		logAppend(index,"reasonScheduler",reasonScheduler);
+		cbList[index].append("</td>");
+		// State:agent
+		index++; // jp.07
+		cbList[index].append("<td>");
+		String stateAgent = getStateAgent(job,process);
+		cbList[index].append(stateAgent);
+		logAppend(index,"stateAgent",stateAgent);
+		cbList[index].append("</td>");
+		// Reason:agent
+		index++; // jp.08
+		cbList[index].append("<td>");
+		String reasonAgent = getReasonAgent(job,process);
+		cbList[index].append(reasonAgent);
+		logAppend(index,"reasonAgent",reasonAgent);
+		cbList[index].append("</td>");
+		// Exit
+		index++; // jp.09
+		cbList[index].append("<td>");
+		String exit = getExit(job,process);
+		cbList[index].append(exit);
+		logAppend(index,"exit",exit);
+		cbList[index].append("</td>");	
+		// Time:init
+		switch(sType) {
+		case MR:
+			break;
+		default:
+			index++; // jp.10
+			cbList[index].append("<td align=\"right\">");
+			String timeInit = getTimeInit(job,process,sType);
+			cbList[index].append(timeInit);
+			logAppend(index,"timeInit",timeInit);
+			cbList[index].append("</td>");	
+			break;
 		}
 		// Time:run
 		index++; // jp.11
-		String runTime = "00";
-		String rtd0 = "<td align=\"right\">";
-		String rtd1 = "</td>";
-		String rsp0 = "<span>";
-		String rsp1 = "</span>";
-		// <UIMA-3351>
-		boolean useTimeRun = true;
-		switch(sType) {
-		case SPC:
-			break;
-		case SPU:
-			break;
-		case MR:
-			break;
-		case JD:
-			break;	
-		case UIMA:
-			if(!process.isAssignedWork()) {
-				useTimeRun = false;
-			}
-			break;	
-		default:
-			break;
-		}
-		// </UIMA-3351>
-		if(useTimeRun) {
-			try {
-				TimeWindow t = (TimeWindow) process.getTimeWindowRun();
-				if(t != null) {
-					long now = System.currentTimeMillis();
-					String tS = t.getStart(""+now);
-					String tE = t.getEnd(""+now);
-					runTime = getDuration(jobid,tE,tS,Precision.Whole);
-					if(t.isEstimated()) {
-						rsp0 = "<span title=\"estimated\" class=\"health_green\">";
-					}
-					else {
-						rsp0 = "<span class=\"health_black\">";
-					}
-				}
-			}
-			catch(Exception e) {
-				duccLogger.trace(location, jobid, "no worries", e);
-			}
-			catch(Throwable t) {
-				duccLogger.trace(location, jobid, "no worries", t);
-			}
-		}
-		cbList[index].append(rtd0);
-		cbList[index].append(rsp0);
-		cbList[index].append(runTime);
-		cbList[index].append(rsp1);
-		cbList[index].append(rtd1);
-		// Time GC, PgIn, Swap...
-		DecimalFormat formatter = new DecimalFormat("##0.0");
+		cbList[index].append("<td align=\"right\">");
+		String timeRun = getTimeRun(job,process,sType);
+		cbList[index].append(timeRun);
+		logAppend(index,"timeRun",timeRun);
+		cbList[index].append("</td>");	
+		// Time:GC
 		switch(sType) {
 		case MR:
 			break;
 		default:
-			SynchronizedSimpleDateFormat dateFormat = new SynchronizedSimpleDateFormat("HH:mm:ss");
-			// Time:gc
 			index++; // jp.12
-			long timeGC = 0;
-			try {
-				timeGC = process.getGarbageCollectionStats().getCollectionTime();
-			}
-			catch(Exception e) {
-			}
-			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			String displayGC = dateFormat.format(new Date(timeGC));
-			displayGC = chomp("00:", displayGC);
 			cbList[index].append("<td align=\"right\">");
-			cbList[index].append(displayGC);
-			cbList[index].append("</td>");
-			// PgIn
+			String timeGC = getTimeGC(job,process,sType);
+			cbList[index].append(timeGC);
+			logAppend(index,"timeGC",timeGC);
+			cbList[index].append("</td>");	
+			break;
+		}
+		// PgIn
+		switch(sType) {
+		case MR:
+			break;
+		default:
 			index++; // jp.13
-			long faults = 0;
-			try {
-				faults = process.getMajorFaults();
-			}
-			catch(Exception e) {
-			}
 			cbList[index].append("<td align=\"right\">");
-			cbList[index].append(faults);
-			cbList[index].append("</td>");
-			// Swap
+			String pgin = getPgIn(job,process,sType);
+			cbList[index].append(pgin);
+			logAppend(index,"pgin",pgin);
+			cbList[index].append("</td>");	
+			break;
+		}
+		// Swap
+		switch(sType) {
+		case MR:
+			break;
+		default:
 			index++; // jp.14
-			if(!process.isActive()) {
-				double swap = process.getSwapUsageMax();
-				swap = swap/Constants.GB;
-				String displaySwap = formatter.format(swap);
-				cbList[index].append("<td align=\"right\" "+">");
-				cbList[index].append(displaySwap);
-				cbList[index].append("</td>");
-			}
-			else {
-				double swap = process.getSwapUsage();
-				swap = swap/Constants.GB;
-				String displaySwap = formatter.format(swap);
-				double swapMax = process.getSwapUsageMax();
-				swapMax = swapMax/Constants.GB;
-				String displaySwapMax = formatter.format(swapMax);
-				cbList[index].append("<td title=\"max="+displaySwapMax+"\" align=\"right\" "+">");
-				cbList[index].append(displaySwap);
-				cbList[index].append("</td>");
-			}
+			cbList[index].append("<td align=\"right\">");
+			String swap = getSwap(job,process,sType);
+			cbList[index].append(swap);
+			logAppend(index,"swap",swap);
+			cbList[index].append("</td>");
 			break;
 		}
 		// %cpu
 		index++; // jp.15
 		cbList[index].append("<td align=\"right\">");
-		double pctCPU_overall = 0;
-		double pctCPU_current = 0;
-		String displayCPU = formatter.format(pctCPU_overall);
-		if(process.getDataVersion() < 1) {
-			boolean rt = false;
-			if(runTime != null) {
-				if(runTime.contains(":")) {
-					rt = true;
-				}
-				else {
-					try {
-						long value = Long.parseLong(runTime);
-						if(value > 0) {
-							rt = true;
-						}
-					}
-					catch(Exception e) {
-					}
-				}
-			}
-			try {
-				if(rt) {
-					long msecsCPU = process.getCpuTime()*1000;
-					long msecsRun = process.getTimeWindowRun().getElapsedMillis();
-					switch(process.getProcessState()) {
-					case Running:
-						long msecsInit = process.getTimeWindowInit().getElapsedMillis();
-						msecsRun = msecsRun - msecsInit;
-						break;
-					}
-					double secsCPU = (msecsCPU*1.0)/1000.0;
-					double secsRun = (msecsRun*1.0)/1000.0;
-					double timeCPU = secsCPU;
-					double timeRun = secsRun;
-					pctCPU_overall = 100*(timeCPU/timeRun);
-					if(!Double.isNaN(pctCPU_overall)) {
-						StringBuffer tb = new StringBuffer();
-						String fmtsecsCPU = formatter.format(secsCPU);
-						String fmtsecsRun = formatter.format(secsRun);
-						String title = "title="+"\""+"seconds"+" "+"CPU:"+fmtsecsCPU+" "+"run:"+fmtsecsRun+"\"";
-						tb.append("<span "+title+">");
-						String fmtPctCPU = formatter.format(pctCPU_overall);
-						tb.append(fmtPctCPU);
-						tb.append("</span>");
-						displayCPU = tb.toString();
-					}
-				}
-			}
-			catch(Exception e) {
-			}
-		}
-		else {
-			StringBuffer tb = new StringBuffer();
-			pctCPU_overall = process.getCpuTime();
-			pctCPU_current = process.getCurrentCPU();
-			switch(process.getProcessState()) {
-			case Running:
-				String title = "title="+"\"lifetime: "+formatter.format(pctCPU_overall)+"\"";
-				tb.append("<span "+title+" class=\"health_green\">");
-				tb.append(formatter.format(pctCPU_current));
-				tb.append("</span>");
-				break;
-			default:
-				tb.append("<span>");
-				tb.append(formatter.format(pctCPU_overall));
-				tb.append("</span>");
-				break;
-			}
-			
-			
-			
-			displayCPU = tb.toString();
-		}
-		cbList[index].append(displayCPU);
-		cbList[index].append("</td>");
+		String pctCPU = getPctCPU(job,process);
+		cbList[index].append(pctCPU);
+		logAppend(index,"%cpu",pctCPU);
+		cbList[index].append("</td>");	
 		// rss
 		index++; // jp.16
-		if(process.isComplete()) {
-			double rss = process.getResidentMemoryMax();
-			rss = rss/Constants.GB;
-			String displayRss = formatter.format(rss);
-			cbList[index].append("<td align=\"right\" "+">");
-			cbList[index].append(displayRss);
-			cbList[index].append("</td>");
-		}
-		else {
-			double rss = process.getResidentMemory();
-			rss = rss/Constants.GB;
-			String displayRss = formatter.format(rss);
-			double rssMax = process.getResidentMemoryMax();
-			rssMax = rssMax/Constants.GB;
-			String displayRssMax = formatter.format(rssMax);
-			cbList[index].append("<td title=\"max="+displayRssMax+"\" align=\"right\" "+">");
-			cbList[index].append(displayRss);
-			cbList[index].append("</td>");
-		}
+		cbList[index].append("<td align=\"right\">");
+		String rss = getRSS(job,process);
+		cbList[index].append(rss);
+		logAppend(index,"rss",rss);
+		cbList[index].append("</td>");	
+		// other
 		switch(sType) {
 		case SPC:
 			break;
@@ -883,51 +1116,69 @@ public class DuccHandler extends DuccAbstractHandler {
 			index++; // jp.17
 			IDuccProcessWorkItems pwi = process.getProcessWorkItems();
 			cbList[index].append("<td align=\"right\">");
+			String timeAvg = "";
 			if(pwi != null) {
-				cbList[index].append(pwi.getSecsAvg());
+				timeAvg = ""+pwi.getSecsAvg();
 			}
+			cbList[index].append(timeAvg);
+			logAppend(index,"timeAvg",timeAvg);
 			cbList[index].append("</td>");
 			// Time:max
 			index++; // jp.18
 			cbList[index].append("<td align=\"right\">");
+			String timeMax = "";
 			if(pwi != null) {
-				cbList[index].append(pwi.getSecsMax());
+				timeMax = ""+pwi.getSecsMax();
 			}
+			cbList[index].append(timeMax);
+			logAppend(index,"timeMax",timeMax);
 			cbList[index].append("</td>");
 			// Time:min
 			index++; // jp.19
 			cbList[index].append("<td align=\"right\">");
+			String timeMin = "";
 			if(pwi != null) {
-				cbList[index].append(pwi.getSecsMin());
+				timeMin = ""+pwi.getSecsMin();
 			}
+			cbList[index].append(timeMin);
+			logAppend(index,"timeMin",timeMin);
 			cbList[index].append("</td>");
 			// Done
 			index++; // jp.20
 			cbList[index].append("<td align=\"right\">");
+			String done = "";
 			if(pwi != null) {
-				cbList[index].append(pwi.getCountDone());
+				done = ""+pwi.getCountDone();
 			}
+			cbList[index].append(done);
+			logAppend(index,"done",done);
 			cbList[index].append("</td>");
 			// Error
 			index++; // jp.21
 			cbList[index].append("<td align=\"right\">");
+			String error = "";
 			if(pwi != null) {
-				cbList[index].append(pwi.getCountError());
+				error = ""+pwi.getCountError();
 			}
+			cbList[index].append(error);
+			logAppend(index,"error",error);
 			cbList[index].append("</td>");
 			// Dispatch
-			index++; // jp.22
 			switch(dType) {
 			case Job:
+				index++; // jp.22
 				cbList[index].append("<td align=\"right\">");
+				String dispatch = "";
 				if(pwi != null) {
 					if(job.isCompleted()) {
-						cbList[index].append("0");
+						dispatch = "0";
 					}
 					else {
-						cbList[index].append(pwi.getCountDispatch());
+						dispatch = ""+pwi.getCountDispatch();
 					}
 				}
+				cbList[index].append(dispatch);
+				logAppend(index,"dispatch",dispatch);
 				cbList[index].append("</td>");
 				break;
 			default:
@@ -936,37 +1187,39 @@ public class DuccHandler extends DuccAbstractHandler {
 			// Retry
 			index++; // jp.23
 			cbList[index].append("<td align=\"right\">");
+			String retry = "";
 			if(pwi != null) {
-				cbList[index].append(pwi.getCountRetry());
+				retry = ""+pwi.getCountRetry();
 			}
+			cbList[index].append(retry);
+			logAppend(index,"retry",retry);
 			cbList[index].append("</td>");
 			// Preempt
 			index++; // jp.24
 			cbList[index].append("<td align=\"right\">");
+			String preempt = "";
 			if(pwi != null) {
-				cbList[index].append(pwi.getCountPreempt());
+				preempt = ""+pwi.getCountPreempt();
 			}
+			cbList[index].append(preempt);
+			logAppend(index,"exit",exit);
 			cbList[index].append("</td>");
 			break;
 		}
 		// Jconsole:Url
-		index++; // jp.24
 		switch(sType) {
 		case MR:
 			break;
 		default:
+			index++; // jp.24
 			cbList[index].append("<td>");
-			switch(process.getProcessState()) {
-			case Initializing:
-			case Running:
-				String jmxUrl = process.getProcessJmxUrl();
-				if(jmxUrl != null) {
-					cbList[index].append(buildjConsoleLink(jmxUrl));
-				}
-			}
-			cbList[index].append("</td>");
+			String jConsole = getJConsole(job,process,sType);
+			cbList[index].append(jConsole);
+			logAppend(index,"jConsole",jConsole);
+			cbList[index].append("</td>");	
 			break;
 		}
+		// ResponseBuffer
 		for(int i=0; i < COLS; i++) {
 			rb.append(cbList[i]);
 		}
@@ -1011,6 +1264,11 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			break;
 		}
+	}
+
+	private void logAppend(int index, String name, String value) {
+		String location = "";
+		duccLogger.debug(location, jobid, "index:"+index+" "+""+name+"="+"\'"+value+"\'");
 	}
 	
 	private void handleDuccServletJobIdData(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response) 
@@ -2291,14 +2549,19 @@ public class DuccHandler extends DuccAbstractHandler {
 			}
 			for(DuccWorkJob service : servicesList) {
 				IDuccProcessMap map = service.getProcessMap();
-				for(DuccId key : map.keySet()) {
-					IDuccProcess process = map.get(key);
-					buildServiceProcessListEntry(sb, service, process, DetailsType.Service, type, ++counter);
+				if(map.isEmpty()) {
+					buildServiceProcessListEntry(sb, service, null, DetailsType.Service, type, ++counter);
+				}
+				else {
+					for(DuccId key : map.keySet()) {
+						IDuccProcess process = map.get(key);
+						buildServiceProcessListEntry(sb, service, process, DetailsType.Service, type, ++counter);
+					}
 				}
 			}
 		}
 		catch(Throwable t) {
-			// no worries
+			duccLogger.trace(methodName, jobid, t);
 		}
 		
 		if(sb.length() == 0) {
