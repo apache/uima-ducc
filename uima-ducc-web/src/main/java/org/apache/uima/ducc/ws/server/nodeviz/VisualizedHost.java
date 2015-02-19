@@ -83,7 +83,7 @@ class VisualizedHost
             this.shares = 0;
             this.mem_reservable = 0;
         } else {
-            this.mem = Integer.parseInt(info.getMemTotal());
+            this.mem = Integer.parseInt(info.getMemFree());
             this.shares = (mem / quantum);
             this.mem_reservable = shares * quantum;
         }

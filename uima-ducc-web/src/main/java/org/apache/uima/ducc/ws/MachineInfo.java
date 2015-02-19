@@ -61,6 +61,7 @@ public class MachineInfo implements Comparable<MachineInfo> {
 		this.ip = ip;
 		this.name = name;
 		this.memTotal = memTotal;
+		this.memFree = memFree;
 		this.swapInuse = swapInuse;
 		this.swapFree = swapFree;
 		this.cGroups = cGroups;
