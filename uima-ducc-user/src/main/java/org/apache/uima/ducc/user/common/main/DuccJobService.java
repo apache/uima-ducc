@@ -105,7 +105,9 @@ public class DuccJobService {
 			dump(ucl, 4);
 		}
 
+ 		System.out.println("DuccJobService.start() >>>>>>>>> Crossing from User Container to Ducc Container");
 		Thread.currentThread().setContextClassLoader(ucl);
+
 		// Create DuccService instance
 		Class<?> classToLaunch = ucl.loadClass("org.apache.uima.ducc.common.main.DuccService");
 		Object duccContainerInstance = classToLaunch.newInstance();
