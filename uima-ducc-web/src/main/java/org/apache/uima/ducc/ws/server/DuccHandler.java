@@ -85,6 +85,7 @@ import org.apache.uima.ducc.transport.event.common.IDuccState.JobState;
 import org.apache.uima.ducc.transport.event.common.IDuccTypes.DuccType;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkJob;
 import org.apache.uima.ducc.transport.event.common.IDuccWorkReservation;
+import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.common.TimeWindow;
 import org.apache.uima.ducc.ws.DuccDaemonsData;
@@ -483,7 +484,14 @@ public class DuccHandler extends DuccAbstractHandler {
 	private String getStateAgent(IDuccWorkJob job, IDuccProcess process) {
 		StringBuffer sb = new StringBuffer();
 		if(process != null) {
-			sb.append(process.getProcessState());
+			ProcessState ps = process.getProcessState();
+			switch(ps) {
+			case Undefined:
+				break;
+			default:
+				sb.append(ps);
+				break;
+			}
 		}
 		return sb.toString();
 	}
