@@ -40,6 +40,14 @@ public class CasManagerStats {
 	
 	private ConcurrentHashMap<String,AtomicInteger> retryReasonsMap = new ConcurrentHashMap<String,AtomicInteger>();
 	
+	public boolean isExhausted() {
+		boolean retVal = false;
+		if(getCrTotal() == getEnded()) {
+			retVal = true;
+		}
+		return retVal;
+	}
+	
 	public int getUnfinishedWorkCount() {
 		return crTotal.get() - getEnded();
 	}

@@ -19,9 +19,9 @@
 package org.apache.uima.ducc.container.jd.mh;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,14 +37,15 @@ import org.apache.uima.ducc.container.common.logger.id.Transform;
 import org.apache.uima.ducc.container.dgen.DgenManager;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
+import org.apache.uima.ducc.container.jd.blacklist.JobProcessBlacklist;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.cas.CasManagerStats;
 import org.apache.uima.ducc.container.jd.fsm.wi.ActionData;
 import org.apache.uima.ducc.container.jd.fsm.wi.WiFsm;
 import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
-import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
+import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.jd.wi.IRunningWorkItemStatistics;
@@ -55,6 +56,7 @@ import org.apache.uima.ducc.container.jd.wi.WorkItem;
 import org.apache.uima.ducc.container.jd.wi.perf.IWorkItemPerformanceKeeper;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Hint;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 
@@ -64,8 +66,6 @@ public class MessageHandler implements IMessageHandler {
 	
 	private AtomicInteger gets = new AtomicInteger(0);
 	private AtomicInteger acks = new AtomicInteger(0);
-	
-	private ConcurrentLinkedQueue<IRemoteWorkerThread> legacyList = new ConcurrentLinkedQueue<IRemoteWorkerThread>();
 	
 	private ConcurrentHashMap<String,String> failedInitializationMap = new ConcurrentHashMap<String,String>();
 	
@@ -203,17 +203,19 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.trace(location, ILogger.null_id, mb.toString());
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+			JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
-					if(legacyList.contains(rwt)) {
+					RemoteWorkerProcess rwp = new RemoteWorkerProcess(rwt);
+					if(jobProcessBlacklist.includes(rwp)) {
 						MessageBuffer mb1 = new MessageBuffer();
 						mb1.append(Standardize.Label.remote.get()+rwt.toString());
 						mb1.append(Standardize.Label.status.get()+"already kaput");
 						logger.trace(location, ILogger.null_id, mb1.toString());
 					}
 					else {
-						legacyList.add(rwt);
+						jobProcessBlacklist.add(rwp);
 						MessageBuffer mb1 = new MessageBuffer();
 						mb1.append(Standardize.Label.remote.get()+rwt.toString());
 						mb1.append(Standardize.Label.status.get()+"transition to down");
@@ -248,17 +250,19 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.trace(location, ILogger.null_id, mb.toString());
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+			JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
-					if(legacyList.contains(rwt)) {
+					RemoteWorkerProcess rwp = new RemoteWorkerProcess(rwt);
+					if(jobProcessBlacklist.includes(rwp)) {
 						MessageBuffer mb1 = new MessageBuffer();
 						mb1.append(Standardize.Label.remote.get()+rwt.toString());
 						mb1.append(Standardize.Label.status.get()+"already kaput");
 						logger.trace(location, ILogger.null_id, mb1.toString());
 					}
 					else {
-						legacyList.add(rwt);
+						jobProcessBlacklist.add(rwp);
 						MessageBuffer mb1 = new MessageBuffer();
 						mb1.append(Standardize.Label.remote.get()+rwt.toString());
 						mb1.append(Standardize.Label.status.get()+"transition to down");
@@ -388,6 +392,7 @@ public class MessageHandler implements IMessageHandler {
 		String location = "handleMetaCasTransation";
 		RemoteWorkerThread rwt = null;
 		try {
+			trans.setResponseHints(new ArrayList<Hint>());
 			rwt = new RemoteWorkerThread(trans);
 			block(rwt);
 			MessageBuffer mb = new MessageBuffer();

@@ -18,6 +18,8 @@
 */
 package org.apache.uima.ducc.container.net.impl;
 
+import java.util.List;
+
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
 
@@ -29,6 +31,8 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	
 	private Type type = null;
 	private Direction direction = null;
+	
+	private List<Hint> hints = null;
 	
 	private String providerKey = null;
 	private String providerName = null;
@@ -146,6 +150,16 @@ public class MetaCasTransaction implements IMetaCasTransaction {
 	@Override
 	public void setDirection(Direction value) {
 		direction = value;
+	}
+
+	@Override
+	public List<Hint> getResponseHints() {
+		return hints;
+	}
+
+	@Override
+	public void setResponseHints(List<Hint> value) {
+		hints = value;
 	}
 
 	@Override

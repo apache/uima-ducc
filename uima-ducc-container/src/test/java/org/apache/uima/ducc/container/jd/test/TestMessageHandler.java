@@ -28,6 +28,7 @@ import java.util.Random;
 
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.container.jd.JobDriver;
+import org.apache.uima.ducc.container.jd.blacklist.JobProcessBlacklist;
 import org.apache.uima.ducc.container.jd.mh.MessageHandler;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
@@ -46,6 +47,11 @@ import org.junit.Test;
 public class TestMessageHandler extends ATest {
 
 	private boolean enforce = true;
+	
+	public void setUp() throws Exception {
+		super.setUp();
+		JobProcessBlacklist.getInstance().disable();
+	}
 	
 	private MetaCasTransaction create(String node, int pid, int tid, Type type) {
 		MetaCasTransaction mct = new MetaCasTransaction();

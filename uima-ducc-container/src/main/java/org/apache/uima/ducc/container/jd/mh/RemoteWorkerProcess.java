@@ -22,6 +22,7 @@ import org.apache.uima.ducc.container.common.logger.IComponent;
 import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.net.iface.IMetaCasRequester;
 
 public class RemoteWorkerProcess implements IRemoteWorkerProcess {
@@ -47,6 +48,13 @@ public class RemoteWorkerProcess implements IRemoteWorkerProcess {
 		setNodeAddress(nodeAddress);
 		setPidName(pidName);
 		setPid(pid);
+	}
+	
+	public RemoteWorkerProcess(IRemoteWorkerThread rwt) {
+		setNodeName(rwt.getNodeName());
+		setNodeAddress(rwt.getNodeAddress());
+		setPidName(rwt.getPidName());
+		setPid(rwt.getPid());
 	}
 	
 	@Override

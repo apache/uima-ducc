@@ -18,11 +18,12 @@
 */
 package org.apache.uima.ducc.container.jd.fsm.wi;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.uima.ducc.common.jd.files.workitem.IWorkItemStateKeeper;
 import org.apache.uima.ducc.container.common.MessageBuffer;
 import org.apache.uima.ducc.container.common.MetaCasHelper;
+import org.apache.uima.ducc.container.common.Standardize;
 import org.apache.uima.ducc.container.common.fsm.iface.IAction;
 import org.apache.uima.ducc.container.common.fsm.iface.IEvent;
 import org.apache.uima.ducc.container.common.fsm.iface.IFsm;
@@ -31,6 +32,7 @@ import org.apache.uima.ducc.container.common.logger.ILogger;
 import org.apache.uima.ducc.container.common.logger.Logger;
 import org.apache.uima.ducc.container.jd.JobDriver;
 import org.apache.uima.ducc.container.jd.JobDriverHelper;
+import org.apache.uima.ducc.container.jd.blacklist.JobProcessBlacklist;
 import org.apache.uima.ducc.container.jd.cas.CasManager;
 import org.apache.uima.ducc.container.jd.log.LoggerHelper;
 import org.apache.uima.ducc.container.jd.mh.RemoteWorkerProcess;
@@ -43,13 +45,17 @@ import org.apache.uima.ducc.container.jd.wi.IWorkItem;
 import org.apache.uima.ducc.container.jd.wi.WiTracker;
 import org.apache.uima.ducc.container.net.iface.IMetaCas;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Hint;
 import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.JdState;
+import org.apache.uima.ducc.container.net.impl.TransactionHelper;
 
 public class ActionGet implements IAction {
 
 	private static Logger logger = Logger.getLogger(ActionGet.class, IComponent.Id.JD.name());
-	
-	private AtomicBoolean warned = new AtomicBoolean(false);
+
+	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedJobDiscontinued = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
+	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedProcessDiscontinued = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
+	private ConcurrentHashMap<IRemoteWorkerProcess, Long> warnedExhausted = new ConcurrentHashMap<IRemoteWorkerProcess, Long>();
 	
 	@Override
 	public String getName() {
@@ -74,12 +80,28 @@ public class ActionGet implements IAction {
 				jd.advanceJdState(JdState.Active);
 				CasManager cm = jd.getCasManager();
 				IMetaCas metaCas = null;
+				JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 				if(cm.getCasManagerStats().isKillJob()) {
-					if(!warned.getAndSet(true)) {
+					if(!warnedJobDiscontinued.containsKey(rwp)) {
 						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
-						mb.append("this and future requests refused due to pending kill job");
-						logger.info(location, ILogger.null_id, mb.toString());
+						mb.append(Standardize.Label.node.get()+rwp.getNodeName());
+						mb.append(Standardize.Label.pid.get()+rwp.getPid());
+						mb.append(Standardize.Label.text.get()+"job discontinued");
+						logger.warn(location, ILogger.null_id, mb.toString());
+						warnedJobDiscontinued.put(rwp, new Long(System.currentTimeMillis()));
 					}
+					TransactionHelper.addResponseHint(trans, Hint.Killed);
+				}
+				else if(jobProcessBlacklist.includes(rwp)) {
+					if(!warnedProcessDiscontinued.containsKey(rwp)) {
+						MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
+						mb.append(Standardize.Label.node.get()+rwp.getNodeName());
+						mb.append(Standardize.Label.pid.get()+rwp.getPid());
+						mb.append(Standardize.Label.text.get()+"process discontinued");
+						logger.warn(location, ILogger.null_id, mb.toString());
+						warnedProcessDiscontinued.put(rwp, new Long(System.currentTimeMillis()));
+					}
+					TransactionHelper.addResponseHint(trans, Hint.Blacklisted);
 				}
 				else {
 					metaCas = cm.getMetaCas();
@@ -114,6 +136,17 @@ public class ActionGet implements IAction {
 					MessageBuffer mb = LoggerHelper.getMessageBuffer(actionData);
 					mb.append("No CAS found for processing");
 					logger.info(location, ILogger.null_id, mb.toString());
+					if(cm.getCasManagerStats().isExhausted()) {
+						if(!warnedExhausted.containsKey(rwp)) {
+							MessageBuffer mbx = LoggerHelper.getMessageBuffer(actionData);
+							mbx.append(Standardize.Label.node.get()+rwp.getNodeName());
+							mbx.append(Standardize.Label.pid.get()+rwp.getPid());
+							mbx.append(Standardize.Label.text.get()+"all CASes processed");
+							logger.info(location, ILogger.null_id, mbx.toString());
+							warnedExhausted.put(rwp, new Long(System.currentTimeMillis()));
+						}
+						TransactionHelper.addResponseHint(trans, Hint.Exhausted);
+					}
 				}
 				//
 				fsm.transition(event, actionData);

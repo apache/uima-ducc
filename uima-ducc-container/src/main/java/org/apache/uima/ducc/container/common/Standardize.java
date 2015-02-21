@@ -21,6 +21,7 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		text,
 		limit,
 		classname,
 		exception,

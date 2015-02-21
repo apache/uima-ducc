@@ -19,6 +19,7 @@
 package org.apache.uima.ducc.container.net.iface;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.apache.uima.ducc.container.net.impl.TransactionId;
 
@@ -28,6 +29,15 @@ public interface IMetaCasTransaction extends IMetaCasProvider, IMetaCasRequester
 	
 	public Type getType();
 	public void setType(Type value);
+
+	public enum Hint { 
+		Blacklisted,	// the requesting JP has been blacklisted (no workitems will ever be assigned)
+		Killed, 		// the JD  has been killed
+		Exhausted,		// the workitems have all been processed (successfully or otherwise)
+		};
+	
+	public List<Hint> getResponseHints();
+	public void setResponseHints(List<Hint> value);
 	
 	public enum Direction { Request, Response };
 	
