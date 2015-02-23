@@ -46,6 +46,7 @@ import org.apache.uima.ducc.container.jd.mh.iface.INodeInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo;
 import org.apache.uima.ducc.container.jd.mh.iface.IOperatingInfo.CompletionType;
 import org.apache.uima.ducc.container.jd.mh.iface.IProcessInfo;
+import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerProcess;
 import org.apache.uima.ducc.container.jd.mh.iface.remote.IRemoteWorkerThread;
 import org.apache.uima.ducc.container.jd.mh.impl.OperatingInfo;
 import org.apache.uima.ducc.container.jd.wi.IRunningWorkItemStatistics;
@@ -70,6 +71,8 @@ public class MessageHandler implements IMessageHandler {
 	private ConcurrentHashMap<String,String> failedInitializationMap = new ConcurrentHashMap<String,String>();
 	
 	private ConcurrentHashMap<IRemoteWorkerThread,IRemoteWorkerThread> wipMap = new ConcurrentHashMap<IRemoteWorkerThread,IRemoteWorkerThread>();
+	
+	private JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 	
 	public MessageHandler() {
 	}
@@ -193,6 +196,27 @@ public class MessageHandler implements IMessageHandler {
 		*/
 	}
 	
+	private void processBlacklist(IProcessInfo processInfo, IRemoteWorkerProcess rwp) {
+		String location = "processBlacklist";
+		if(jobProcessBlacklist.includes(rwp)) {
+			MessageBuffer mb1 = new MessageBuffer();
+			mb1.append(Standardize.Label.remote.get()+rwp.toString());
+			mb1.append(Standardize.Label.status.get()+"already kaput");
+			logger.trace(location, ILogger.null_id, mb1.toString());
+		}
+		else {
+			jobProcessBlacklist.add(rwp);
+			MessageBuffer mb1 = new MessageBuffer();
+			mb1.append(Standardize.Label.remote.get()+rwp.toString());
+			mb1.append(Standardize.Label.status.get()+"transition to down");
+			String reasonDeallocated = processInfo.getReasonDeallocated();
+			if(reasonDeallocated != null) {
+				mb1.append(Standardize.Label.deallocate.get()+reasonDeallocated);
+			}
+			logger.warn(location, ILogger.null_id, mb1.toString());
+		}
+	}
+	
 	@Override
 	public void handleProcessDown(IProcessInfo processInfo) {
 		String location = "handleProcessDown";
@@ -203,33 +227,17 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.trace(location, ILogger.null_id, mb.toString());
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-			JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
+			
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
 					RemoteWorkerProcess rwp = new RemoteWorkerProcess(rwt);
-					if(jobProcessBlacklist.includes(rwp)) {
-						MessageBuffer mb1 = new MessageBuffer();
-						mb1.append(Standardize.Label.remote.get()+rwt.toString());
-						mb1.append(Standardize.Label.status.get()+"already kaput");
-						logger.trace(location, ILogger.null_id, mb1.toString());
-					}
-					else {
-						jobProcessBlacklist.add(rwp);
-						MessageBuffer mb1 = new MessageBuffer();
-						mb1.append(Standardize.Label.remote.get()+rwt.toString());
-						mb1.append(Standardize.Label.status.get()+"transition to down");
-						String reasonDeallocated = processInfo.getReasonDeallocated();
-						if(reasonDeallocated != null) {
-							mb1.append(Standardize.Label.deallocate.get()+reasonDeallocated);
-						}
-						logger.warn(location, ILogger.null_id, mb1.toString());
-						IWorkItem wi = entry.getValue();
-						IFsm fsm = wi.getFsm();
-						IEvent event = WiFsm.Process_Failure;
-						Object actionData = new ActionData(wi, rwt, null);
-						fsm.transition(event, actionData);
-					}
+					processBlacklist(processInfo, rwp);
+					IWorkItem wi = entry.getValue();
+					IFsm fsm = wi.getFsm();
+					IEvent event = WiFsm.Process_Failure;
+					Object actionData = new ActionData(wi, rwt, null);
+					fsm.transition(event, actionData);
 				}
 				else {
 					MessageBuffer mb1 = new MessageBuffer();
@@ -254,30 +262,16 @@ public class MessageHandler implements IMessageHandler {
 			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
 			logger.trace(location, ILogger.null_id, mb.toString());
 			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
-			JobProcessBlacklist jobProcessBlacklist = JobProcessBlacklist.getInstance();
 			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
 				IRemoteWorkerThread rwt = entry.getKey();
 				if(rwt.comprises(processInfo)) {
 					RemoteWorkerProcess rwp = new RemoteWorkerProcess(rwt);
-					if(jobProcessBlacklist.includes(rwp)) {
-						MessageBuffer mb1 = new MessageBuffer();
-						mb1.append(Standardize.Label.remote.get()+rwt.toString());
-						mb1.append(Standardize.Label.status.get()+"already kaput");
-						logger.trace(location, ILogger.null_id, mb1.toString());
-					}
-					else {
-						jobProcessBlacklist.add(rwp);
-						MessageBuffer mb1 = new MessageBuffer();
-						mb1.append(Standardize.Label.remote.get()+rwt.toString());
-						mb1.append(Standardize.Label.status.get()+"transition to down");
-						logger.warn(location, ILogger.null_id, mb1.toString());
-						IWorkItem wi = entry.getValue();
-						IFsm fsm = wi.getFsm();
-						IEvent event = WiFsm.Process_Preempt;
-						Object actionData = new ActionData(wi, rwt, null);
-						fsm.transition(event, actionData);
-					}
-					
+					processBlacklist(processInfo, rwp);
+					IWorkItem wi = entry.getValue();
+					IFsm fsm = wi.getFsm();
+					IEvent event = WiFsm.Process_Preempt;
+					Object actionData = new ActionData(wi, rwt, null);
+					fsm.transition(event, actionData);
 				}
 				else {
 					MessageBuffer mb1 = new MessageBuffer();
