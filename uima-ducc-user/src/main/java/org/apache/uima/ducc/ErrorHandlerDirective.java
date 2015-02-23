@@ -16,18 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.iface;
+package org.apache.uima.ducc;
 
-public class JdUserDirective implements IJdUserDirective {
+public class ErrorHandlerDirective implements IErrorHandlerDirective {
 
 	private boolean killJob = false;
 	private boolean killProcess = false;
 	private boolean killWorkItem = true;
 	
-	public JdUserDirective() {
+	public ErrorHandlerDirective() {
 	}
 	
-	public JdUserDirective(boolean killJob, boolean killProcess, boolean killWorkItem) {
+	public ErrorHandlerDirective(boolean killJob, boolean killProcess, boolean killWorkItem) {
 		setKillJob(killJob);
 		setKillProcess(killProcess);
 		setKillWorkItem(killWorkItem);

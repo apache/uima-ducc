@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user;
+package org.apache.uima.ducc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +47,7 @@ import org.apache.uima.resource.metadata.OperationalProperties;
  *    and then optionally to CC delegate if so specified by flag in WorkItem feature structure.
  * If no CM delegate, then WI-Cas is sent to AE and CC if it exists.
  */
-public class DuccJobProcessFC extends JCasFlowController_ImplBase {
+public class FlowController extends JCasFlowController_ImplBase {
 
   private List<String> mSequence;
   private boolean mStartsWithCasMultiplier=false;

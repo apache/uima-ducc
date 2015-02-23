@@ -28,6 +28,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.uima.ducc.ErrorHandler;
+import org.apache.uima.ducc.ErrorHandler.InitializationDataKey;
+import org.apache.uima.ducc.IErrorHandler;
+import org.apache.uima.ducc.IErrorHandlerDirective;
 import org.apache.uima.ducc.user.common.ExceptionHelper;
 import org.apache.uima.ducc.user.dgen.DeployableGenerator;
 import org.apache.uima.ducc.user.dgen.DuccUimaAggregate;
@@ -37,11 +41,7 @@ import org.apache.uima.ducc.user.dgen.IDuccUimaDeployableConfiguration;
 import org.apache.uima.ducc.user.dgen.iface.DeployableGeneration;
 import org.apache.uima.ducc.user.jd.JdUserCollectionReader;
 import org.apache.uima.ducc.user.jd.JdUserMetaCas;
-import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
-import org.apache.uima.ducc.user.jd.iface.IJdUserErrorHandler;
-import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
-import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler.InitializationDataKey;
-import org.apache.uima.ducc.user.jd.test.helper.TestJdUserErrorHandler;
+import org.apache.uima.ducc.user.jd.test.helper.TestErrorHandler;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -205,9 +205,9 @@ public class TestSuite {
 	@Test
 	public void test06() {
 		try {
-			IJdUserErrorHandler eh = new JdUserErrorHandler();
+			IErrorHandler eh = new ErrorHandler();
 			String serializedCAS = null;
-			IJdUserDirective directive = eh.handle(serializedCAS, getUserException());
+			IErrorHandlerDirective directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == false);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
@@ -235,25 +235,25 @@ public class TestSuite {
 			String serializedCAS = jdUserMetaCas.getSerializedCas();
 			assertTrue(serializedCAS != null);
 			//
-			JdUserErrorHandler eh = null;
-			IJdUserDirective directive = null;
+			ErrorHandler eh = null;
+			IErrorHandlerDirective directive = null;
 			String plist = null;
 			int limit = 0;
 			//
-			eh = new JdUserErrorHandler();
+			eh = new ErrorHandler();
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == false);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
 			//
-			eh = new JdUserErrorHandler();
+			eh = new ErrorHandler();
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == false);
 			assertTrue(directive.isKillProcess() == false);
 			assertTrue(directive.isKillWorkItem() == true);
 			//
 			limit = 15;
-			eh = new JdUserErrorHandler();
+			eh = new ErrorHandler();
 			directive = eh.handle(serializedCAS, getUserException());
 			for(int i=1; i<limit; i++) {
 				directive = eh.handle(serializedCAS, getUserException());
@@ -268,7 +268,7 @@ public class TestSuite {
 			//
 			limit = 10;
 			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
-			eh = new JdUserErrorHandler(plist);
+			eh = new ErrorHandler(plist);
 			directive = eh.handle(serializedCAS, getUserException());
 			for(int i=1; i<limit; i++) {
 				directive = eh.handle(serializedCAS, getUserException());
@@ -283,7 +283,7 @@ public class TestSuite {
 			//
 			limit = 20;
 			plist = InitializationDataKey.KillJobLimit.name()+"="+limit;
-			eh = new JdUserErrorHandler(plist);
+			eh = new ErrorHandler(plist);
 			directive = eh.handle(serializedCAS, getUserException());
 			for(int i=1; i<limit; i++) {
 				directive = eh.handle(serializedCAS, getUserException());
@@ -307,10 +307,10 @@ public class TestSuite {
 		try {
 			//
 			String serializedCAS = null;
-			TestJdUserErrorHandler eh = null;
-			IJdUserDirective directive = null;
+			TestErrorHandler eh = null;
+			IErrorHandlerDirective directive = null;
 			//
-			eh = new TestJdUserErrorHandler();
+			eh = new TestErrorHandler();
 			directive = eh.handle(serializedCAS, getUserException());
 			assertTrue(directive.isKillJob() == true);
 			assertTrue(directive.isKillProcess() == true);

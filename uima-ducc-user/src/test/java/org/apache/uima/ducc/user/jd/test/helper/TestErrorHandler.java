@@ -16,9 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.iface;
+package org.apache.uima.ducc.user.jd.test.helper;
 
-public interface IJdUserErrorHandler {
-	public void initialize(String initializationData);
-	public IJdUserDirective handle(String serializedCAS, Object userException);
+import org.apache.uima.ducc.ErrorHandler;
+import org.apache.uima.ducc.ErrorHandlerDirective;
+import org.apache.uima.ducc.IErrorHandlerDirective;
+
+public class TestErrorHandler extends ErrorHandler {
+
+	@Override
+	public IErrorHandlerDirective handle(String serializedCAS, Object userException) {
+		ErrorHandlerDirective errorHandlerDirective = new ErrorHandlerDirective();
+		errorHandlerDirective.setKillJob();
+		errorHandlerDirective.setKillProcess();
+		errorHandlerDirective.resetKillWorkItem();
+		return errorHandlerDirective;
+	}
+
 }

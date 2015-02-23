@@ -16,9 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.iface;
+package org.apache.uima.ducc;
 
-public interface IJdUserDirective {
+public interface IErrorHandlerDirective {
 	public boolean isKillJob();
 	public boolean isKillProcess();
 	public boolean isKillWorkItem();

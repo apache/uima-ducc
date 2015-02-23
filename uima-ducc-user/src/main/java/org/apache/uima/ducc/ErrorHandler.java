@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
 */
-package org.apache.uima.ducc.user.jd.iface;
+package org.apache.uima.ducc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +27,7 @@ import org.apache.uima.ducc.user.common.QuotedOptions;
 import org.apache.uima.ducc.user.error.iface.Transformer;
 import org.apache.uima.ducc.user.jd.JdUser;
 
-public class JdUserErrorHandler implements IJdUserErrorHandler {
+public class ErrorHandler implements IErrorHandler {
 
 	public enum InitializationDataKey { 
 		KillJobLimit("max_job_errors"), 
@@ -55,10 +55,10 @@ public class JdUserErrorHandler implements IJdUserErrorHandler {
 	
 	private AtomicInteger jobErrorCount = new AtomicInteger(0);
 	
-	public JdUserErrorHandler() {
+	public ErrorHandler() {
 	}
 	
-	public JdUserErrorHandler(String initializationData) {
+	public ErrorHandler(String initializationData) {
 		initialize(initializationData);
 	}
 	
@@ -115,8 +115,8 @@ public class JdUserErrorHandler implements IJdUserErrorHandler {
 	}
 	
 	@Override
-	public IJdUserDirective handle(String serializedCAS, Object byteArray) {
-		JdUserDirective jdUserDirective = new JdUserDirective();
+	public IErrorHandlerDirective handle(String serializedCAS, Object byteArray) {
+		ErrorHandlerDirective jdUserDirective = new ErrorHandlerDirective();
 		try {
 			Throwable userThrowable = null;
 			if(serializedCAS != null) {
