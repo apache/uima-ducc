@@ -47,4 +47,10 @@ public interface IProcessInfo extends IRemotePid, Serializable{
 	
 	public void setMin(long value);
 	public long getMin();
+	
+	public void setReasonStopped(String value);
+	public String getReasonStopped();
+	
+	public void setReasonDeallocated(String value);
+	public String getReasonDeallocated();
 }

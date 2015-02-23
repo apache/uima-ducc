@@ -40,10 +40,21 @@ public class ProcessInfo implements IProcessInfo {
 	private long max = 0;
 	private long min = 0;
 	
+	private String reasonStopped = null;
+	private String reasonDeallocated = null;
+	
 	public ProcessInfo(String nodeName, String nodeAddress, String pidName, int pid) {
 		setNodeName(nodeName);
 		setPidName(pidName);
 		setPid(pid);
+	}
+	
+	public ProcessInfo(String nodeName, String nodeAddress, String pidName, int pid, String reasonStopped, String reasonDeallocated) {
+		setNodeName(nodeName);
+		setPidName(pidName);
+		setPid(pid);
+		setReasonStopped(reasonStopped);
+		setReasonDeallocated(reasonDeallocated);
 	}
 	
 	public ProcessInfo(String nodeName, String nodeAddress, String pidName, int pid, IProcessStatistics pStats) {
@@ -178,6 +189,26 @@ public class ProcessInfo implements IProcessInfo {
 	@Override
 	public long getMin() {
 		return min;
+	}
+
+	@Override
+	public void setReasonStopped(String value) {
+		reasonStopped = value;
+	}
+
+	@Override
+	public String getReasonStopped() {
+		return reasonStopped;
+	}
+
+	@Override
+	public void setReasonDeallocated(String value) {
+		reasonDeallocated = value;
+	}
+
+	@Override
+	public String getReasonDeallocated() {
+		return reasonDeallocated;
 	}
 
 }

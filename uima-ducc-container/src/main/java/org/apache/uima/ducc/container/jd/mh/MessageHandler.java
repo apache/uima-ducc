@@ -219,6 +219,10 @@ public class MessageHandler implements IMessageHandler {
 						MessageBuffer mb1 = new MessageBuffer();
 						mb1.append(Standardize.Label.remote.get()+rwt.toString());
 						mb1.append(Standardize.Label.status.get()+"transition to down");
+						String reasonDeallocated = processInfo.getReasonDeallocated();
+						if(reasonDeallocated != null) {
+							mb1.append(Standardize.Label.deallocate.get()+reasonDeallocated);
+						}
 						logger.warn(location, ILogger.null_id, mb1.toString());
 						IWorkItem wi = entry.getValue();
 						IFsm fsm = wi.getFsm();
