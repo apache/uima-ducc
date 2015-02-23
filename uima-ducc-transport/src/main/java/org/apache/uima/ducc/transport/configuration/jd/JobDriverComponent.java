@@ -46,6 +46,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
+import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDeallocationType;
 import org.apache.uima.ducc.transport.event.jd.IDriverStatusReport;
 import org.apache.uima.ducc.transport.event.jd.JobDriverReport;
 
@@ -187,9 +188,16 @@ implements IJobDriverComponent {
 						sb.append(" ");
 						sb.append("state:"+state.name());
 						sb.append(" ");
-						String reason = p.getReasonForStoppingProcess();
-						if(reason != null) {
-							sb.append("reason:"+reason);
+						String reasonStopped = p.getReasonForStoppingProcess();
+						if(reasonStopped != null) {
+							sb.append("reason[stopped]:"+reasonStopped);
+							sb.append(" ");
+						}
+						String reasonDeallocated = null;
+						ProcessDeallocationType processDeallocationType = p.getProcessDeallocationType();
+						if(processDeallocationType != null) {
+							reasonDeallocated = processDeallocationType.name();
+							sb.append("reason[deallocated]:"+reasonDeallocated);
 							sb.append(" ");
 						}
 						logger.debug(location, jobid, sb.toString());
@@ -202,7 +210,7 @@ implements IJobDriverComponent {
 							try {
 								if(pid != null) {
 									int iPid = Integer.parseInt(pid.trim());
-									IProcessInfo processInfo = new ProcessInfo(node, ip, pidName, iPid);
+									IProcessInfo processInfo = new ProcessInfo(node, ip, pidName, iPid, reasonStopped, reasonDeallocated);
 									if(p.isFailedInitialization()) {
 										mh.handleProcessFailedInitialization(processInfo);
 									}
