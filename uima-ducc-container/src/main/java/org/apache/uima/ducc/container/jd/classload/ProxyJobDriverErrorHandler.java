@@ -43,9 +43,9 @@ public class ProxyJobDriverErrorHandler {
 	private Method methodInstanceIsKillProcess = null;
 	private Method methodInstanceIsKillWorkItem = null;
 	
-	private static String packageName = "org.apache.uima.ducc.user.jd.iface.";
-	private static String defaultClassName = packageName+"JdUserErrorHandler";
-	private static String directiveInterfaceName = packageName+"IJdUserDirective";
+	private static String packageName = "org.apache.uima.ducc.";
+	private static String defaultClassName = packageName+"ErrorHandler";
+	private static String directiveInterfaceName = packageName+"IErrorHandlerDirective";
 	
 	public ProxyJobDriverErrorHandler() throws JobDriverException {
 		try {

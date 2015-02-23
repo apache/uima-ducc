@@ -18,19 +18,19 @@
 */
 package org.apache.uima.ducc.user.jd.test.helper;
 
-import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
-import org.apache.uima.ducc.user.jd.iface.JdUserDirective;
-import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
+import org.apache.uima.ducc.ErrorHandler;
+import org.apache.uima.ducc.ErrorHandlerDirective;
+import org.apache.uima.ducc.IErrorHandlerDirective;
 
-public class TestJdContainerErrorHandler extends JdUserErrorHandler {
+public class TestJdContainerErrorHandler extends ErrorHandler {
 
 	@Override
-	public IJdUserDirective handle(String serializedCAS, Object userException) {
-		JdUserDirective jdUserDirective = new JdUserDirective();
-		jdUserDirective.setKillJob();
-		jdUserDirective.setKillProcess();
-		jdUserDirective.resetKillWorkItem();
-		return jdUserDirective;
+	public IErrorHandlerDirective handle(String serializedCAS, Object userException) {
+		ErrorHandlerDirective errorHandlerDirective = new ErrorHandlerDirective();
+		errorHandlerDirective.setKillJob();
+		errorHandlerDirective.setKillProcess();
+		errorHandlerDirective.resetKillWorkItem();
+		return errorHandlerDirective;
 	}
 
 }

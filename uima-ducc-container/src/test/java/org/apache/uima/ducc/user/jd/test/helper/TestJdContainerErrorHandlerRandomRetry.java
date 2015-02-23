@@ -20,25 +20,25 @@ package org.apache.uima.ducc.user.jd.test.helper;
 
 import java.util.Random;
 
-import org.apache.uima.ducc.user.jd.iface.IJdUserDirective;
-import org.apache.uima.ducc.user.jd.iface.JdUserDirective;
-import org.apache.uima.ducc.user.jd.iface.JdUserErrorHandler;
+import org.apache.uima.ducc.ErrorHandler;
+import org.apache.uima.ducc.ErrorHandlerDirective;
+import org.apache.uima.ducc.IErrorHandlerDirective;
 
-public class TestJdContainerErrorHandlerRandomRetry extends JdUserErrorHandler {
+public class TestJdContainerErrorHandlerRandomRetry extends ErrorHandler {
 
 	private Random random = new Random();
 	
 	@Override
-	public IJdUserDirective handle(String serializedCAS, Object userException) {
-		JdUserDirective jdUserDirective = new JdUserDirective();
-		jdUserDirective.resetKillJob();
-		jdUserDirective.resetKillProcess();
-		jdUserDirective.resetKillWorkItem();
+	public IErrorHandlerDirective handle(String serializedCAS, Object userException) {
+		ErrorHandlerDirective errorHandlerDirective = new ErrorHandlerDirective();
+		errorHandlerDirective.resetKillJob();
+		errorHandlerDirective.resetKillProcess();
+		errorHandlerDirective.resetKillWorkItem();
 		if(random.nextBoolean()) {
-			jdUserDirective.setKillWorkItem();
+			errorHandlerDirective.setKillWorkItem();
 		}
-		System.out.println("killWorkItem="+jdUserDirective.isKillWorkItem());
-		return jdUserDirective;
+		System.out.println("killWorkItem="+errorHandlerDirective.isKillWorkItem());
+		return errorHandlerDirective;
 	}
 
 }
