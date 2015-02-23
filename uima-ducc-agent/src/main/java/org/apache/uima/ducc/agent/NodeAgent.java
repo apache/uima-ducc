@@ -564,7 +564,7 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
         // check if process is Running, Initializing, or Starting
         if (isAlive(agentManagedProcess)) {
           // Stop the process if it has been deallocated
-          if (process.isDeallocated() && isAlive(process)) {
+          if (process.isDeallocated() ) {
             agentManagedProcess.setResourceState(ResourceState.Deallocated);
             logger.info(
                     methodName,
