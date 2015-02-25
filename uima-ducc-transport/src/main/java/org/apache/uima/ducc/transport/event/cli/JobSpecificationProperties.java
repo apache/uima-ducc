@@ -59,8 +59,6 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 	public static String key_process_descriptor_AE_overrides = "process_descriptor_AE_overrides";
 	public static String key_process_descriptor_CC = "process_descriptor_CC";
 	public static String key_process_descriptor_CC_overrides = "process_descriptor_CC_overrides";
-	public static String key_process_descriptor_FC = "process_descriptor_FC";
-	public static String key_process_descriptor_FC_overrides = "process_descriptor_FC_overrides";
 	
 	public static String key_process_deployments_max = "process_deployments_max";
 	public static String key_process_deployments_min = "process_deployments_min";
@@ -109,8 +107,6 @@ public class JobSpecificationProperties extends SpecificationProperties implemen
 		key_process_descriptor_AE_overrides,
 		key_process_descriptor_CC,
 		key_process_descriptor_CC_overrides,
-		key_process_descriptor_FC,
-		key_process_descriptor_FC_overrides,
 		key_process_deployments_max,
 		key_process_deployments_min,
 		key_process_initialization_failures_cap,

@@ -436,20 +436,6 @@ public interface IUiOptions
             public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
         },            
 
-        ProcessDescriptorFC { 
-            public String pname()       { return JobSpecificationProperties.key_process_descriptor_FC; }
-            public String description() { return "Process Flow Controller for aggregate."; }
-            public String argname()     { return "descriptor xml"; }
-            public String example()     { return "/home/" + System.getProperty("user.name") + "/descriptors/MyFC.xml"; }
-        },            
-
-        ProcessDescriptorFCOverrides { 
-            public String pname()       { return JobSpecificationProperties.key_process_descriptor_FC_overrides; }
-            public String argname()     { return "list of overrides"; }
-            public String description() { return "Process Flow Controller configuration parameter name/value pair overrides. Parameters must already be defined in the FC descriptor."; }
-            public String example()     { return "name1=value1,name2=\"value2a value2b value2c\",name3=value3..."; }
-        },            
-        
         ProcessDD { 
             public String pname()       { return JobSpecificationProperties.key_process_DD; }
             public String description() { return "Process deployment descriptor (mutually exclusive with CM+AE+CC)."; }

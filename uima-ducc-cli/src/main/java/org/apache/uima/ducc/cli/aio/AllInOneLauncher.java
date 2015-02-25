@@ -788,9 +788,7 @@ public class AllInOneLauncher extends CliBase {
           UiOption.ProcessDescriptorAE,
           UiOption.ProcessDescriptorAEOverrides,
           UiOption.ProcessDescriptorCC,
-          UiOption.ProcessDescriptorCCOverrides,
-          UiOption.ProcessDescriptorFC,
-          UiOption.ProcessDescriptorFCOverrides };
+          UiOption.ProcessDescriptorCCOverrides };
     
     /*
      * Create a string hold the args for the java command.

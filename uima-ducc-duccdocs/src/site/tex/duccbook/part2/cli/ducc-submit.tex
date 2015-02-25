@@ -271,25 +271,6 @@ ducc.submit.environment.propagated
 --process_descriptor_DD /home/billy/resource/DD_foo.xml 
              \end{verbatim}
 
-           \item[$--$process\_descriptor\_FC {[descriptor]}  ]
-
-             This specifies the Flow Controller descriptor to be deployed in the Job Processes. This 
-             descriptor is a resource that is searched for in the filesystem or Java classpath as described 
-             in the ~\hyperref[par:cli.submit.notes]{notes below}.
-             For example: 
-             \begin{verbatim}
---process\_descriptor\_FC /home/billy/flow\_foo.xml 
-             \end{verbatim}
-
-           \begin{sloppypar}             
-           \item[$--$process\_descriptor\_FC\_overrides {[list]}  ]
-
-             This specifies FC overrides. It is a whitespace-delimited list of name/value pairs. Example: 
-             \begin{verbatim}
---process\_descriptor\_FC\_overrides name1=value1 name2=value2 
-             \end{verbatim}
-           \end{sloppypar}             
-           
            \item[$--$process\_failures\_limit {[integer]} ]
 
              This specifies the maximum number of individual Job Process (JP) failures allowed

@@ -75,4 +75,37 @@ public class PrivateClassLoader {
       }
     }
   }
+  
+	public static void main(String[] args) throws IOException {
+		if (args.length < 2) {
+			System.out.println("args:  classpath class-to-load");
+			return;
+		}
+		URLClassLoader pcl = create(args[0]);
+		Class<?> cl;
+		try {
+			cl = pcl.loadClass(args[1]);
+			System.out.println("loadClass OK");
+		} catch (ClassNotFoundException e) {
+			System.out.println("loadClass failed");
+		}
+
+		try {
+			cl = Class.forName(args[1], false, pcl);
+			System.out.println("forName OK");
+		} catch (ClassNotFoundException e) {
+			System.out.println("forName failed");
+		}
+
+		URL res = pcl.findResource(args[1]);
+		if (res != null) {
+			System.out.println("findResource: " + res);
+		} else {
+			System.out.println("findResource failed");
+		}
+
+		if (args.length > 2) {
+			dump(pcl, 1);
+		}
+	}
 }

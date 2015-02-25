@@ -73,8 +73,6 @@ public class DuccJobSubmit
         UiOption.ProcessDescriptorAEOverrides,
         UiOption.ProcessDescriptorCC,
         UiOption.ProcessDescriptorCCOverrides,
-        UiOption.ProcessDescriptorFC,
-        UiOption.ProcessDescriptorFCOverrides,
         
         UiOption.ProcessDeploymentsMax,
         UiOption.ProcessInitializationFailuresCap,
