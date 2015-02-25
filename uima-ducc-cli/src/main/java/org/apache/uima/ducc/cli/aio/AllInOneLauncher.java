@@ -733,7 +733,7 @@ public class AllInOneLauncher extends CliBase {
         // Put environment settings in the process's environment
         if(environment != null) {
             ArrayList<String> envList = QuotedOptions.tokenizeList(environment, true); // Strip quotes
-            Map<String,String> envMap = QuotedOptions.parseAssignments(envList, false); // Keep all entries
+            Map<String,String> envMap = QuotedOptions.parseAssignments(envList, +1); // Expand any FOO & FOO* entries
             Map<String,String> env = pb.environment();
             env.clear();
             env.putAll(envMap);

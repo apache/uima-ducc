@@ -90,16 +90,23 @@ public class QuotedOptions {
     }
 
     /*
-     * Create a map from an array of environment variable assignments produced by tokenizeList Quotes
-     * may have been stripped by tokenizeList The value is optional but the key is NOT, e.g. accept
-     * assignments of the form foo=abc & foo= & foo reject =foo & =
+     * Create a map from an array of variable assignments produced by tokenizeList. 
+     * Quotes may have been stripped by tokenizeList. 
+     * The value is optional but the key is NOT, 
+     * e.g. accept foo=abc & foo= & foo but reject =foo & =
+     * Environment entries that specify just a name can be expanded to get the value 
+     * from the current environment, e.g. foo can be replaced by foo=${foo}
+     * If the name ends in '*' then the expansion applies to entries with that prefix.
      * 
      * @param assignments - list of environment or JVM arg assignments
-     * @param jvmArgs - true if tokens are JVM args -- process only the -Dprop=value entries
+     * @param type : <0 if tokens are JVM args -- process only the -Dprop=value entries
+     *               =0 if tokens are simple assignments (environment variables or descriptor overrides)
+     *               >0 if tokens are environment settings that may need expansion
      *  
-     * @return - map of key/value pairs null if syntax is illegal
+     * @return - map of key/value pairs or null if syntax is illegal
      */
-    public static Map<String, String> parseAssignments(List<String> assignments, boolean jvmArgs) 
+    
+    public static Map<String, String> parseAssignments(List<String> assignments, int type) 
         throws IllegalArgumentException {
 
       HashMap<String, String> map = new HashMap<String, String>();
@@ -112,18 +119,52 @@ public class QuotedOptions {
         if (key.length() == 0) {
           throw new IllegalArgumentException("Missing key in assignment: " + assignment);
         }
-        if (jvmArgs) {
-          if (!key.startsWith("-D")) {
-            continue;
+        if (type > 0 && parts.length == 1) {  // Not an assignment, so expand it
+          if (!key.endsWith("*")) {
+            String val = quoteValue(key);
+            if (val != null) {    // Omit if not set
+              map.put(key, val);
+            }
+          } else {
+            key = key.substring(0, key.length() - 1);
+            Map<String, String> envmap = System.getenv();
+            for (String envvar : envmap.keySet()) {
+              if (envvar.startsWith(key)) {
+                map.put(envvar, quoteValue(envvar));
+              }
+            }
           }
-          key = key.substring(2);
+        } else {
+          if (type < 0) {   // Process only system property definitions
+            if (!key.startsWith("-D")) {
+              continue;
+            }
+            key = key.substring(2);
+          }
+          map.put(key, parts.length > 1 ? parts[1] : "");
         }
-        map.put(key, parts.length > 1 ? parts[1] : "");
       }
       return map;
     }
 
-    // ====================================================================================================
+    // If an augmented value contains a blank add single or double quotes
+    public static String quoteValue(String name) {
+      String value = System.getenv(name);
+      if (value != null && value.indexOf(' ') >= 0) {
+        if (value.indexOf('"') < 0) {
+            value = "\"" + value + "\"";
+        } else if (value.indexOf('\'') < 0) {
+            value = "'" + value + "'";
+        } else {
+            System.out.println("WARNING: omitting environment variable " + name + " as has unquotable value: " + value);
+            return null;
+        }
+      }
+      return value;
+    }
+
+      
+      // ====================================================================================================
     
     /*
      * Test the quote handling and optional stripping 

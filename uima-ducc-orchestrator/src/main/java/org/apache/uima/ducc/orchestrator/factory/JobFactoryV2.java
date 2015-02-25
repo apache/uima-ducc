@@ -100,7 +100,7 @@ public class JobFactoryV2 implements IJobFactory {
 			ArrayList<String> envVarList = QuotedOptions.tokenizeList(environmentVariables, true);
 			Map<String, String> envMap;
 			try {
-			    envMap = QuotedOptions.parseAssignments(envVarList, false);
+			    envMap = QuotedOptions.parseAssignments(envVarList, 0);
 			} catch (IllegalArgumentException e) {
                 logger.warn(methodName, job.getDuccId(),"Invalid environment syntax in: " + environmentVariables);
                 return 0;  // Should not happen as CLI should have checked and rejected the request

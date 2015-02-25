@@ -57,55 +57,37 @@ public class DuccUiUtilities {
 		return user;
 	}
 
-	private static String fixupEnvironment(String environment) {
-	    // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
-	    boolean modified = false;
-        String source = "LD_LIBRARY_PATH";
-        String target = "DUCC_"+source;
-        ArrayList<String> envList = QuotedOptions.tokenizeList(environment, false); // Don't strip quotes
-        Map<String,String> envMap = QuotedOptions.parseAssignments(envList, false); // Keep all entries
-        if (envMap.containsKey(source)) {
-            if (!envMap.containsKey(target)) {
-                envMap.put(target, envMap.get(source));
-                envMap.remove(source);
-                modified = true;
-            }
+  private static String fixupEnvironment(String environment) {
+    // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
+    String source = "LD_LIBRARY_PATH";
+    String target = "DUCC_" + source;
+    ArrayList<String> envList = QuotedOptions.tokenizeList(environment, false); // Don't strip quotes
+    Map<String, String> envMap = QuotedOptions.parseAssignments(envList, +1); // Expand any FOO or FOO* entries
+    if (envMap.containsKey(source)) {
+      if (!envMap.containsKey(target)) {
+        envMap.put(target, envMap.get(source));
+        envMap.remove(source);
+      }
+    }
+    // Augment user-specified environment with a few useful ones (only if not already set), e.g. USER HOME
+    String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_environment_propagated);
+    if (envNames != null) {
+      for (String name : envNames.split("\\s+")) {
+        if (!envMap.containsKey(name)) {
+          String value = QuotedOptions.quoteValue(name);  // Quote value if necessary
+          if (value != null) {
+            envMap.put(name, value);
+          }
         }
-        // Augment user-specified environment with a few useful ones (only if not already set), e.g. USER HOME
-        // If an augmented value contains a blank add single or double quotes 
-        String envNames = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_environment_propagated);
-        if (envNames != null) {
-            for (String name : envNames.split("\\s+")) {
-                if (!envMap.containsKey(name)) {
-                    String value = System.getenv(name);
-                    if (value != null) {
-                        if (value.indexOf(' ') >= 0) {
-                            if (value.indexOf('"') < 0) {
-                                value = "\"" + value + "\"";
-                            } else if (value.indexOf('\'') < 0) {
-                                value = "'" + value + "'";
-                            } else {
-                                System.out.println("WARNING: omitting environment variable " + name + " as has unquotable value: " + value);
-                                continue;
-                            }
-                        }
-                        envMap.put(name, value);
-                        modified = true;
-                    }
-                }
-            }
-        }
-        // If changes made rebuild the string ... note that quotes were preserved so can recreate easily
-        if (modified) {
-            StringBuilder sb = new StringBuilder();
-            for (String name : envMap.keySet()) {
-                sb.append(name).append("=").append(envMap.get(name)).append(" ");
-            }
-            return sb.toString();
-        } else {
-            return environment;
-        }
-	}
+      }
+    }
+    // Must rebuild the string ... note that quotes were preserved so can recreate easily
+    StringBuilder sb = new StringBuilder();
+    for (String name : envMap.keySet()) {
+      sb.append(name).append("=").append(envMap.get(name)).append(" ");
+    }
+    return sb.toString();
+  }
 	
 	public static void ducc_environment(CliBase base, Properties jobRequestProperties) {
 	    String key = UiOption.Environment.pname();
@@ -166,7 +148,7 @@ public class DuccUiUtilities {
             String broker = element.getAttribute("brokerURL");
             if (endpoint.contains("${") || broker.contains("${")) {
                 ArrayList<String> jvmargList = QuotedOptions.tokenizeList(jvmargs, true); // Strip quotes
-                Map<String, String> jvmargMap = QuotedOptions.parseAssignments(jvmargList, true); // only -D entries
+                Map<String, String> jvmargMap = QuotedOptions.parseAssignments(jvmargList, -1); // only -D entries
                 endpoint = resolvePlaceholders(endpoint, jvmargMap);
                 broker = resolvePlaceholders(broker, jvmargMap);
             }
