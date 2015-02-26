@@ -28,10 +28,11 @@ under the License.
     <th title="The system assigned work item sequence number" class="sorttable_numeric">SeqNo</th>
     <th title="The user assigned work item identity">Id</th>
     <th title="The work item status, normally operating or ended">Status</th>
-    <th title="The approx. number of seconds elapsed between work item (a) queued for processing and (b) dequeued for start of processing" class="sorttable_numeric">Queuing Time (sec)</th>
-    <th title="The approx. number of seconds elapsed between work item (a) dequeued for start of processing and (b) end of processing" class="sorttable_numeric">Processing Time (sec)</th>
-    <th title="The node for the work item, by address">Node (IP)</th>
-    <th title="The node for the work item, by name">Node (Name)</th>
+    <th title="The approx. number of seconds elapsed between work item (a) queued for processing and (b) dequeued for start of processing" class="sorttable_numeric">Queue<br>Time</th>
+    <th title="The approx. number of seconds elapsed between work item (a) dequeued for start of processing and (b) end of processing" class="sorttable_numeric">Process<br>Time</th>
+    <th title="The approx. number of seconds invested in current epoch" class="sorttable_numeric">Investment<br>Time</th>
+    <th title="The node for the work item, by address">Node<br>(IP)</th>
+    <th title="The node for the work item, by name">Node<br>(Name)</th>
     <th title="The PID for the work item" class="sorttable_numeric">PID</th>
     </tr>
     </thead>

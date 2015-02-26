@@ -1581,6 +1581,7 @@ public class DuccHandler extends DuccAbstractHandler {
 		DuccWorkJob job = getJob(jobNo);
 		if(job != null) {
 			try {
+				long now = System.currentTimeMillis();
 				String directory = job.getLogDirectory()+jobNo;
 				String userId = duccWebSessionManager.getUserId(request);
 				long wiVersion = job.getWiVersion();
@@ -1597,6 +1598,8 @@ public class DuccHandler extends DuccAbstractHandler {
 					DuccMachinesData machinesData = DuccMachinesData.getInstance();
 			    	DecimalFormat formatter = new DecimalFormat("##0.00");
 					double time;
+					String ptime;
+					String itime;
 					int counter = 0;
 			    	for (Entry<IWorkItemState, IWorkItemState> entry : sortedMap.entrySet()) {
 			    		StringBuffer row = new StringBuffer();
@@ -1616,6 +1619,9 @@ public class DuccHandler extends DuccAbstractHandler {
 							row.append("<td align=\"right\">");
 							row.append("limit");
 							// Processing Time (sec)
+							row.append("<td align=\"right\">");
+							row.append("reached");
+							// Investment Time (sec)
 							row.append("<td align=\"right\">");
 							row.append("reached");
 							// Node (IP)
@@ -1660,8 +1666,9 @@ public class DuccHandler extends DuccAbstractHandler {
 						row.append("<td align=\"right\">");
 						row.append(formatter.format(time));
 						// Processing Time (sec)
-						time = getAdjustedTime(wis.getMillisProcessing(), job);
+						time = getAdjustedTime(wis.getMillisProcessing(now), job);
 						time = time/1000;
+						ptime = formatter.format(time);
 						row.append("<td align=\"right\">");
 						switch(state) {
 						case start:
@@ -1673,7 +1680,21 @@ public class DuccHandler extends DuccAbstractHandler {
 							row.append("<span class=\"health_black\">");
 							break;
 						}
-						row.append(formatter.format(time));
+						row.append(ptime);
+						row.append("</span>");
+						// Investment Time (sec)
+						time = getAdjustedTime(wis.getMillisInvestment(now), job);
+						time = time/1000;
+						itime = formatter.format(time);
+						row.append("<td align=\"right\">");
+						String ispan = "<span class=\"health_black\">";
+						if(time > 0) {
+							if(!itime.equals(ptime)) {
+								ispan = "<span title=\"investment reset\" class=\"health_red\">";
+							}
+						}
+						row.append(ispan);
+						row.append(itime);
 						row.append("</span>");
 						// Node (IP)
 						row.append("<td>");
