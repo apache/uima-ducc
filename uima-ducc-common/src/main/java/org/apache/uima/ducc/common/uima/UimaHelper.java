@@ -18,8 +18,6 @@
 */
 package org.apache.uima.ducc.common.uima;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -38,7 +36,6 @@ import org.apache.uima.analysis_engine.metadata.impl.FlowControllerDeclaration_i
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.Utils;
 import org.apache.uima.resource.RelativePathResolver;
-import org.apache.uima.resource.ResourceConfigurationException;
 import org.apache.uima.resource.ResourceCreationSpecifier;
 import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.resource.impl.RelativePathResolver_impl;
@@ -48,120 +45,14 @@ import org.apache.uima.resource.metadata.ConfigurationParameterSettings;
 import org.apache.uima.resource.metadata.Import;
 import org.apache.uima.resource.metadata.impl.ConfigurationParameter_impl;
 import org.apache.uima.resource.metadata.impl.Import_impl;
-import org.apache.uima.resourceSpecifier.factory.DeploymentDescriptorFactory;
-import org.apache.uima.resourceSpecifier.factory.ServiceContext;
-import org.apache.uima.resourceSpecifier.factory.UimaASPrimitiveDeploymentDescriptor;
-import org.apache.uima.resourceSpecifier.factory.impl.ServiceContextImpl;
 import org.apache.uima.util.InvalidXMLException;
 import org.apache.uima.util.XMLInputSource;
 
-
-public class UimaUtils {
+public class UimaHelper {
 	public static final String FlowControllerKey="FixedFlowController";
 	public static final String FlowControllerResourceSpecifier="ducc.flow-controller.specifier";
 	public static RelativePathResolver resolver = new RelativePathResolver_impl();
-
-
-	/**
-	 * Creates and returns UIMA AS deployment descriptor from provided parts. It
-	 * first creates UIMA AE aggregate descriptor and then creates UIMA AS
-	 * primitive deployment descriptor for it.
-	 * 
-	 * @param name
-	 *            - name of the UIMA AS service
-	 * @param description
-	 *            - description of the UIMA AS service
-	 * @param brokerURL
-	 *            - broker the UIMA AS service will connect to
-	 * @param endpoint
-	 *            - queue name of the UIMA AS service
-	 * @param scaleup
-	 *            - how many pipelines (threads) UIMA AS will deploy in the jvm
-	 * 
-	 * @param aeDescriptors
-	 *            - vararg of AE descriptor paths
-	 * 
-	 * @return instance of UimaASPrimitiveDeploymentDescriptor
-	 * 
-	 * @throws Exception
-	 */
-	public static UimaASPrimitiveDeploymentDescriptor createUimaASDeploymentDescriptor(
-			String name, String description, String brokerURL, String endpoint,
-			int scaleup, String directory, String fname, String... aeDescriptors)
-			throws Exception {
-		List<List<String>> overrides = new ArrayList<List<String>>();
-		return createUimaASDeploymentDescriptor(name, description, brokerURL,
-				endpoint, scaleup, directory, fname, overrides, aeDescriptors);
-	}
-
-	/**
-	 * Creates and returns UIMA AS deployment descriptor from provided parts. It
-	 * first creates UIMA AE aggregate descriptor and then creates UIMA AS
-	 * primitive deployment descriptor for it.
-	 * 
-	 * @param name
-	 *            - name of the UIMA AS service
-	 * @param description
-	 *            - description of the UIMA AS service
-	 * @param brokerURL
-	 *            - broker the UIMA AS service will connect to
-	 * @param endpoint
-	 *            - queue name of the UIMA AS service
-	 * @param scaleup
-	 *            - how many pipelines (threads) UIMA AS will deploy in the jvm
-	 * @param overrides
-	 *            - a list containing overrides. Each component override is a
-	 *            separate list containing strings with format <name>=<value>
-	 * 
-	 * @param aeDescriptors
-	 *            - vararg of AE descriptor paths
-	 * 
-	 * @return instance of UimaASPrimitiveDeploymentDescriptor
-	 * 
-	 * @throws Exception
-	 */
-	public static UimaASPrimitiveDeploymentDescriptor createUimaASDeploymentDescriptor(
-			String name, String description, String brokerURL, String endpoint,
-			int scaleup, String directory, String fname, List<List<String>> overrides,
-			String... aeDescriptors) throws Exception {
-		// First create UIMA AE aggregate descriptor from provided aeDescriptor
-		// paths
-		AnalysisEngineDescription aed = createAggregateDescription((scaleup > 1),overrides,
-				aeDescriptors);
-		aed.getMetaData().setName(name);
-		// Create a temporary file where AE descriptor will be saved
-		//File tempAEDescriptorFile = null;
-		File file = null;
-		File dir = new File(directory);
-		if (!dir.exists()) {
-			dir.mkdir();
-		}
-		FileOutputStream fos = null;
-		try {
-			file = new File(dir, fname);//+"-uima-ae-descriptor-"+Utils.getPID()+".xml");
-			fos = new FileOutputStream(file);
-			aed.toXML(fos);
-			
-		} catch(Exception e) {
-			throw e;
-		} finally {
-			if ( fos != null ) {
-				fos.close();
-			}
-		}
-		// Set up a context object containing service deployment information
-		ServiceContext context = new ServiceContextImpl(name, description,
-				file.getAbsolutePath().replace('\\', '/'),
-				endpoint, brokerURL);
-		// how many pipelines to deploy in the jvm
-		context.setScaleup(scaleup);
-		context.setProcessErrorThresholdCount(1);
-		// Create UIMA AS deployment descriptor
-		UimaASPrimitiveDeploymentDescriptor dd = DeploymentDescriptorFactory
-				.createPrimitiveDeploymentDescriptor(context);
-		return dd;
-	}
-
+	
 	/**
 	 * Creates UIMA aggregate AE description from provided parts. Takes as input
 	 * vararg of AE descriptor paths for CM, AE, and CC. It creates an aggregate
@@ -180,76 +71,7 @@ public class UimaUtils {
 		List<List<String>> overrides = new ArrayList<List<String>>();
 		return createAggregateDescription(multipleDeploymentsAllowed, overrides, descriptorPaths);
 	}
-
-//	public static URL resolveRelativePath(URL aRelativeUrl) {
-//		// fallback on classloader
-//		String f = aRelativeUrl.getFile();
-//		URL absURL;
-//		if (aRelativeUrl.getClass().getClassLoader() != null) {
-//			absURL = aRelativeUrl.getClass().getClassLoader().getResource(f);
-//		} else // if no ClassLoader specified (could be the bootstrap
-//				// classloader), try the system
-//		// classloader
-//		{
-//			absURL = ClassLoader.getSystemClassLoader().getResource(f);
-//		}
-//		if (absURL != null) {
-//			return absURL;
-//		}
-//
-//		// no file could be found
-//		return null;
-//	}
-
-	public static URL getRelativePathWithProtocol(String aRelativePath)
-			throws MalformedURLException {
-		URL relativeUrl;
-		try {
-			relativeUrl = new URL(aRelativePath);
-		} catch (MalformedURLException e) {
-			relativeUrl = new URL("file", "", aRelativePath);
-		}
-		return relativeUrl;
-		//		return resolveRelativePath(relativeUrl);
-	}
-
-	public static ResourceSpecifier getResourceSpecifier(String resourceFile) throws Exception {
-		return UIMAFramework.getXMLParser().parseResourceSpecifier(getXMLInputSource(resourceFile));
-    }
-
-	public static XMLInputSource getXMLInputSource(String resourceFile)
-        throws InvalidXMLException
-    {
-        //
-        // If the resourceFile ends in .xml then we look in the filesystem, end of story.
-        //
-        // If not, then we turn it into a path by replacing . with / and appending .xml.
-        // We then have two places we need to look: 
-        // a) in the user's classpath directly as a file (not inside a jar), or
-        // b) in the jar files in the user's classpath
-        // 
-
-        try {
-            resourceFile = Utils.resolvePlaceholderIfExists(resourceFile,
-                                                            System.getProperties());
-            XMLInputSource in = null;
-            if (resourceFile.endsWith(".xml")) {
-                in = new XMLInputSource(resourceFile);
-            } else {
-                resourceFile = resourceFile.replace('.', '/') + ".xml";
-                URL relativeURL = resolver
-					.resolveRelativePath(getRelativePathWithProtocol(resourceFile));
-                in = new XMLInputSource(relativeURL);
-            }
-            return in;
-        } catch (NullPointerException npe) {
-            throw new InvalidXMLException(InvalidXMLException.IMPORT_BY_NAME_TARGET_NOT_FOUND, new String[] {resourceFile});
-        } catch (IOException e ) {
-            throw new InvalidXMLException(InvalidXMLException.IMPORT_FAILED_COULD_NOT_READ_FROM_URL, new String[] {resourceFile});
-        }
-
-	}
-
+	
 	/**
 	 * Creates UIMA aggregate AE description from provided parts. Takes as input
 	 * vararg of AE descriptor paths for CM, AE, and CC. It creates an aggregate
@@ -361,32 +183,74 @@ public class UimaUtils {
 
 		return desc;
 	}
-	
-	public static ConfigurationParameter findConfigurationParameter(ConfigurationParameterDeclarations configurationParameterDeclarations, String name) {
-		ConfigurationParameter retVal = null;
-		for (ConfigurationParameter parameter : configurationParameterDeclarations.getConfigurationParameters()) {
-			if (name.equals(parameter.getName())) {
-				retVal = parameter;
-				break;
-			}
-		}
-		return retVal;
-	}
-	
-	public static Object getOverrideValueObject(ConfigurationParameter configurationParameter, String value) throws ResourceConfigurationException {
-        Object retVal = value;
+
+	public static ResourceSpecifier getResourceSpecifier(String resourceFile) throws Exception {
+		return UIMAFramework.getXMLParser().parseResourceSpecifier(getXMLInputSource(resourceFile));
+    }
+
+	public static XMLInputSource getXMLInputSource(String resourceFile)
+        throws InvalidXMLException
+    {
+        //
+        // If the resourceFile ends in .xml then we look in the filesystem, end of story.
+        //
+        // If not, then we turn it into a path by replacing . with / and appending .xml.
+        // We then have two places we need to look: 
+        // a) in the user's classpath directly as a file (not inside a jar), or
+        // b) in the jar files in the user's classpath
+        // 
+
         try {
-            if (configurationParameter.getType().equals("Integer")) {
-                retVal = Integer.parseInt(value);
-            } else if (configurationParameter.getType().equals("Boolean")) {
-                retVal = Boolean.parseBoolean(value);
-            } else if (configurationParameter.getType().equals("Float")) {
-                retVal = Float.parseFloat(value);
+            resourceFile = Utils.resolvePlaceholderIfExists(resourceFile,
+                                                            System.getProperties());
+            XMLInputSource in = null;
+            if (resourceFile.endsWith(".xml")) {
+                in = new XMLInputSource(resourceFile);
+            } else {
+                resourceFile = resourceFile.replace('.', '/') + ".xml";
+                URL relativeURL = resolver
+					.resolveRelativePath(getRelativePathWithProtocol(resourceFile));
+                in = new XMLInputSource(relativeURL);
             }
-        } catch (Throwable t) {
-            throw new ResourceConfigurationException(t);
+            return in;
+        } catch (NullPointerException npe) {
+            throw new InvalidXMLException(InvalidXMLException.IMPORT_BY_NAME_TARGET_NOT_FOUND, new String[] {resourceFile});
+        } catch (IOException e ) {
+            throw new InvalidXMLException(InvalidXMLException.IMPORT_FAILED_COULD_NOT_READ_FROM_URL, new String[] {resourceFile});
         }
-        return retVal;
+
+	}
+
+//	public static URL resolveRelativePath(URL aRelativeUrl) {
+//		// fallback on classloader
+//		String f = aRelativeUrl.getFile();
+//		URL absURL;
+//		if (aRelativeUrl.getClass().getClassLoader() != null) {
+//			absURL = aRelativeUrl.getClass().getClassLoader().getResource(f);
+//		} else // if no ClassLoader specified (could be the bootstrap
+//				// classloader), try the system
+//		// classloader
+//		{
+//			absURL = ClassLoader.getSystemClassLoader().getResource(f);
+//		}
+//		if (absURL != null) {
+//			return absURL;
+//		}
+//
+//		// no file could be found
+//		return null;
+//	}
+
+	public static URL getRelativePathWithProtocol(String aRelativePath)
+			throws MalformedURLException {
+		URL relativeUrl;
+		try {
+			relativeUrl = new URL(aRelativePath);
+		} catch (MalformedURLException e) {
+			relativeUrl = new URL("file", "", aRelativePath);
+		}
+		return relativeUrl;
+		//		return resolveRelativePath(relativeUrl);
 	}
 
 	private static void addOverrides(List<List<String>> overrides,
@@ -410,7 +274,7 @@ public class UimaUtils {
 		}
 		
 	}
-
+	
 	/**
 	 * Modifies aggregate descriptor by adding component specific overrides.
 	 * 

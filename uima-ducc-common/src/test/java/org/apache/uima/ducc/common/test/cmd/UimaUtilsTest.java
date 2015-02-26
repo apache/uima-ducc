@@ -22,22 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.uima.analysis_engine.AnalysisEngineDescription;
-import org.apache.uima.ducc.common.uima.UimaUtils;
-import org.apache.uima.ducc.common.utils.Utils;
-import org.apache.uima.resourceSpecifier.factory.UimaASPrimitiveDeploymentDescriptor;
+import org.apache.uima.ducc.common.uima.UimaHelper;
 
 
 public class UimaUtilsTest {
 
 	public static void main(String[] args) {
 		try {
-			System.setProperty(UimaUtils.FlowControllerResourceSpecifier, "org.apache.uima.flow.FixedFlowController");
-			String fname = "0-uima-ae-descriptor-"+Utils.getPID()+".xml";
-			UimaASPrimitiveDeploymentDescriptor d = UimaUtils.createUimaASDeploymentDescriptor(
-					"test", "testDescr", "tcp://localhost:61616",
-					"testEndpoint", 4, "c:/tmp", fname, args);
-			System.out.println(d.toXML());
-
+			System.setProperty(UimaHelper.FlowControllerResourceSpecifier, "org.apache.uima.flow.FixedFlowController");
+			
 			List<String> cmOverrides = new ArrayList<String>();
 			List<String> aeOverrides = new ArrayList<String>();
 			List<String> ccOverrides = new ArrayList<String>();
@@ -50,7 +43,7 @@ public class UimaUtilsTest {
 			overrides.add(aeOverrides);
 			overrides.add(ccOverrides);
 
-			AnalysisEngineDescription aed = UimaUtils
+			AnalysisEngineDescription aed = UimaHelper
 					.createAggregateDescription(true, overrides, args);
 			aed.toXML(System.out);
 			/*
@@ -68,7 +61,7 @@ public class UimaUtilsTest {
 			 * UimaClassFactory.produceResourceSpecifier(tempAEDescriptorFile
 			 * .getAbsolutePath()); UIMAFramework.produceAnalysisEngine(rs);
 			 * 
-			 * UimaASPrimitiveDeploymentDescriptor dd = UimaUtils
+			 * UimaASPrimitiveDeploymentDescriptor dd = UimaHelper
 			 * .createUimaASDeploymentDescriptor("Test", "Test Description",
 			 * "tcp://localhost:61616", "TestQueue", 2,
 			 * Utils.resolvePlaceholderIfExists("${DUCC_HOME}/tmp",
