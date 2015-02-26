@@ -359,6 +359,17 @@ public class DuccProcess implements IDuccProcess {
 	}
 	
 	
+	public boolean isVolunteered() {
+		boolean retVal = false;
+		switch(deallocationType) {
+		case Voluntary:
+			retVal = true;	
+			break;
+		}
+		return retVal;
+	}
+	
+	
 	public boolean isComplete() {
 		boolean retVal = false;
 		switch(processState) {

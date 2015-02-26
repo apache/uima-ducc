@@ -79,6 +79,7 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 	private ArrayList<IWorkItemInfo> listActiveWorkItemInfo = null;
 	
 	private ConcurrentHashMap<RemoteLocation, Long> mapProcessOperatingMillis = null;
+	private ConcurrentHashMap<RemoteLocation, Long> mapProcessInvestmentMillis = null;
 	
 	private String jpDeployable = null;
 	
@@ -516,4 +517,18 @@ public class JobDriverReport implements Serializable, IDriverStatusReport {
 		return mapProcessOperatingMillis;
 	}
 
+	@Override
+	public ConcurrentHashMap<RemoteLocation, Long> getInvestmentMillisMap() {
+		mapProcessInvestmentMillis = new ConcurrentHashMap<RemoteLocation, Long>();
+		if(listActiveWorkItemInfo != null) {
+			for(IWorkItemInfo wii: listActiveWorkItemInfo) {
+				String nodeIP = wii.getNodeAddress();
+				String PID = ""+wii.getPid();
+				RemoteLocation rl = new RemoteLocation(nodeIP, PID);
+				mapProcessInvestmentMillis.put(rl, wii.getInvestmentMillis());
+			}
+		}
+		return mapProcessInvestmentMillis;
+	}
+	
 }

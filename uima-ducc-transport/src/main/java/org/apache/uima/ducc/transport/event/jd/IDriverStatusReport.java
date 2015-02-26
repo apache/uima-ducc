@@ -97,5 +97,5 @@ public interface IDriverStatusReport {
 	public IDuccProcessWorkItemsReport getDuccProcessWorkItemsMap();
 	
 	public ConcurrentHashMap<RemoteLocation, Long> getOperatingMillisMap();
-	
+	public ConcurrentHashMap<RemoteLocation, Long> getInvestmentMillisMap();
 }

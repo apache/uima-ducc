@@ -846,4 +846,9 @@ public class DriverStatusReportV1 implements Serializable, IDriverStatusReportV1
 		return null;
 	}
 
+	@Override
+	public ConcurrentHashMap<RemoteLocation, Long> getInvestmentMillisMap() {
+		return getOperatingMillisMap();
+	}
+
 }

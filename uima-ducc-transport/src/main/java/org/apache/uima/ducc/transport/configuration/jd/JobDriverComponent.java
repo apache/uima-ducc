@@ -217,6 +217,9 @@ implements IJobDriverComponent {
 									else if(p.isPreempted()) {
 										mh.handleProcessPreempt(processInfo);
 									}
+									else if(p.isVolunteered()) {
+										mh.handleProcessVolunteered(processInfo);
+									}
 									else {
 										mh.handleProcessDown(processInfo);
 									}
