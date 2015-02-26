@@ -22,6 +22,7 @@ public interface IWorkItemStateKeeper {
 	public void start(int seqNo, String wiId, String node, String pid, String tid);
 	public void queued(int seqNo);
 	public void operating(int seqNo);
+	public void investmentReset(int seqNo);
 	public void ended(int seqNo);
 	public void error(int seqNo);
 	public void retry(int seqNo);

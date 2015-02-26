@@ -55,6 +55,13 @@ public interface IWorkItemState extends Serializable, Comparable<IWorkItemState>
 	public void statePreempt();
 	public void stateLost();
 	
+	public void investmentReset();
+	
 	public long getMillisOverhead();
 	public long getMillisProcessing();
+	public long getMillisInvestment();
+	
+	public long getMillisOverhead(long now);
+	public long getMillisProcessing(long now);
+	public long getMillisInvestment(long now);
 }

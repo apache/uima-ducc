@@ -35,6 +35,7 @@ public class WorkItemState implements IWorkItemState {
 	private long millisAtQueued = -1;
 	private long millisAtOperating = -1;
 	private long millisAtFinish = -1;
+	private long millisAtInvestment = -1;
 	
 	@Deprecated
 	public enum Name {
@@ -141,8 +142,12 @@ public class WorkItemState implements IWorkItemState {
 		//jpIp = ip;
 		//jpId = id;
 		millisAtOperating = System.currentTimeMillis();
+		millisAtInvestment = millisAtOperating;
 	}
-
+	
+	public void investmentReset() {
+		millisAtInvestment = System.currentTimeMillis();
+	}
 	
 	public void stateEnded() {
 		state = State.ended;
@@ -170,8 +175,12 @@ public class WorkItemState implements IWorkItemState {
 	public void statePreempt() {
 		state = State.preempt;
 	}
-	
+
 	public long getMillisOverhead() {
+		return getMillisOverhead(System.currentTimeMillis());
+	}
+	
+	public long getMillisOverhead(long now) {
 		long retVal = 0;
 		if(millisAtStart > 0) {
 			if(millisAtQueued > 0) {
@@ -181,26 +190,46 @@ public class WorkItemState implements IWorkItemState {
 				retVal = millisAtOperating - millisAtStart;
 			}
 			else {
-				retVal = System.currentTimeMillis() - millisAtStart;
+				retVal = now - millisAtStart;
 			}
 		}
 		return retVal;
 	}
 
-	
 	public long getMillisProcessing() {
+		return getMillisProcessing(System.currentTimeMillis());
+	}
+	
+	public long getMillisProcessing(long now) {
 		long retVal = 0;
 		if(millisAtOperating > 0) {
 			if(millisAtFinish > 0) {
 				retVal = millisAtFinish - millisAtOperating;
 			}
 			else {
-				retVal = System.currentTimeMillis() - millisAtOperating;
+				retVal =  now - millisAtOperating;
 			}
 		}
 		return retVal;
 	}
-
+	
+	public long getMillisInvestment() {
+		return getMillisInvestment(System.currentTimeMillis());
+	}
+	
+	public long getMillisInvestment(long now) {
+		long retVal = 0;
+		if(millisAtFinish < 0) {
+			if(millisAtInvestment > 0) {
+				retVal = now - millisAtInvestment;
+			}
+			else {
+				retVal = getMillisProcessing();
+			}
+		}
+		return retVal;
+	}
+	
 	private static int stateOrder(State state) {
 		int retVal = 0;
 		if(state != null) {

@@ -168,6 +168,21 @@ public class WorkItemStateKeeper extends WorkItemStateAbstract implements IWorkI
 	}
 	
 	@Override
+	public void investmentReset(int seqNo) {
+		String location = "investmentReset";
+		try {
+			Long key = new Long(seqNo);
+			IWorkItemState wis = activeMap.get(key);
+			wis.investmentReset();
+			State state = wis.getState();
+			logger.debug(location, jobid, "seqNo:"+seqNo+" "+state.name());
+		}
+		catch(Exception e) {
+			logger.error(location, jobid, e);
+		}
+	}
+	
+	@Override
 	public void ended(int seqNo) {
 		Long key = new Long(seqNo);
 		IWorkItemState wis = activeMap.get(key);
