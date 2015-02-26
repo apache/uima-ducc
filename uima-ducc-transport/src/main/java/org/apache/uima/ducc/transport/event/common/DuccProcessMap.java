@@ -248,6 +248,9 @@ public class DuccProcessMap extends TreeMap<DuccId,IDuccProcess> implements IDuc
 			else if(reason.equals(ReasonForStoppingProcess.ExceededSwapThreshold.name())) {
 				retVal = true;
 			}
+			else if(reason.equals(ReasonForStoppingProcess.ExceededErrorThreshold.name())) {
+				retVal = true;
+			}
 		}
 		return retVal;
 	}
