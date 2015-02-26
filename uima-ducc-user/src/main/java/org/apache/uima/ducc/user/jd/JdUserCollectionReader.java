@@ -151,7 +151,7 @@ public class JdUserCollectionReader {
 				CAS cas = cm.getEmptyCas();
 				cr.getNext(cas);
 				String serializedCas = serialize(cas);
-				String documentText = cas.getDocumentText();
+				String documentText = CasHelper.getId(cas);
 				retVal = new JdUserMetaCas(seqNo.incrementAndGet(), serializedCas, documentText);
 				cm.recycle(cas);
 			}
