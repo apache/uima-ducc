@@ -25,7 +25,7 @@ import org.apache.uima.ducc.container.net.impl.TransactionId;
 
 public interface IMetaCasTransaction extends IMetaCasProvider, IMetaCasRequester, Serializable {
 
-	public enum Type { Get, Ack, End };
+	public enum Type { Get, Ack, End , InvestmentReset };
 	
 	public Type getType();
 	public void setType(Type value);

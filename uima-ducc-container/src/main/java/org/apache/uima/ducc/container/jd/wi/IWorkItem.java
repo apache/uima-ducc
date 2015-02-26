@@ -42,9 +42,15 @@ public interface IWorkItem {
 	public void resetTodAck();
 	public long getTodAck();
 	
+	
+	public void setTodInvestment();
+	public void resetTodInvestment();
+	public long getTodInvestment();
+	
 	public void setTodEnd();
 	public void resetTodEnd();
 	public long getTodEnd();
 	
 	public long getMillisOperating();
+	public long getMillisInvestment();
 }

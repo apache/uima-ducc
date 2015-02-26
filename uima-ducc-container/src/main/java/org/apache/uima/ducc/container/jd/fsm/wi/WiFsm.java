@@ -39,38 +39,43 @@ public class WiFsm extends Fsm {
 
 	private static Logger logger = Logger.getLogger(WiFsm.class, IComponent.Id.JD.name());
 	
-	public static IState Start 				= new State("Start");
-	public static IState Get_Pending 		= new State("Get_Pending");
-	public static IState CAS_Send 			= new State("CAS_Send");
-	public static IState CAS_Active 		= new State("CAS_Active");
+	public static IState Start 					= new State("Start");
+	public static IState Get_Pending 			= new State("Get_Pending");
+	public static IState CAS_Send 				= new State("CAS_Send");
+	public static IState CAS_Active 			= new State("CAS_Active");
 	
-	public static IEvent Get_Request 		= new Event("Get_Request");
-	public static IEvent CAS_Available		= new Event("CAS_Available");
-	public static IEvent CAS_Unavailable	= new Event("CAS_Unavailable");
-	public static IEvent Ack_Request 		= new Event("Ack_Request");
-	public static IEvent Send_Failure 		= new Event("Send_Failure");
-	public static IEvent Ack_Timer_Pop		= new Event("Ack_Timer_Pop");
-	public static IEvent End_Request 		= new Event("End_Request");
-	public static IEvent End_Timer_Pop		= new Event("End_Timer_Pop");
-	public static IEvent Host_Failure		= new Event("Host_Failure");
-	public static IEvent Process_Failure	= new Event("Process_Failure");
-	public static IEvent Process_Preempt	= new Event("Process_Premept");
+	public static IEvent Get_Request 			= new Event("Get_Request");
+	public static IEvent CAS_Available			= new Event("CAS_Available");
+	public static IEvent CAS_Unavailable		= new Event("CAS_Unavailable");
+	public static IEvent Ack_Request 			= new Event("Ack_Request");
+	public static IEvent Send_Failure 			= new Event("Send_Failure");
+	public static IEvent Ack_Timer_Pop			= new Event("Ack_Timer_Pop");
+	public static IEvent End_Request 			= new Event("End_Request");
+	public static IEvent End_Timer_Pop			= new Event("End_Timer_Pop");
+	public static IEvent Host_Failure			= new Event("Host_Failure");
+	public static IEvent Process_Failure		= new Event("Process_Failure");
+	public static IEvent Process_Preempt		= new Event("Process_Premept");
+	public static IEvent Process_Volunteered	= new Event("Process_Volunteered");
+	public static IEvent Investment_Reset		= new Event("Investment_Reset");
 	
-	public IAction ActionGet				= new ActionGet();
-	public IAction ActionGetRedux			= new ActionGetRedux();
-	public IAction ActionSend				= new ActionSend();
-	public IAction ActionAck				= new ActionAck();
-	public IAction ActionAckRedux			= new ActionAckRedux();
-	public IAction ActionEnd				= new ActionEnd();
+	public IAction ActionGet					= new ActionGet();
+	public IAction ActionGetRedux				= new ActionGetRedux();
+	public IAction ActionSend					= new ActionSend();
+	public IAction ActionAck					= new ActionAck();
+	public IAction ActionAckRedux				= new ActionAckRedux();
+	public IAction ActionEnd					= new ActionEnd();
 	
-	public IAction ActionProcessFailure		= new ActionProcessFailure();
-	public IAction ActionProcessPreempt		= new ActionProcessPreempt();
+	public IAction ActionProcessFailure			= new ActionProcessFailure();
+	public IAction ActionProcessPreempt			= new ActionProcessPreempt();
+	public IAction ActionProcessVolunteered		= new ActionProcessVolunteered();
 	
-	public IAction ActionAckTimeout			= new ActionAckTimeout();
-	public IAction ActionEndTimeout			= new ActionEndTimeout();
+	public IAction ActionInvestmentReset		= new ActionInvestmentReset();
 	
-	public IAction ActionIgnore 			= new ActionIgnore();
-	public IAction ActionError				= new ActionError();
+	public IAction ActionAckTimeout				= new ActionAckTimeout();
+	public IAction ActionEndTimeout				= new ActionEndTimeout();
+	
+	public IAction ActionIgnore 				= new ActionIgnore();
+	public IAction ActionError					= new ActionError();
 	
 	public WiFsm() throws FsmException {
 		super();
@@ -99,9 +104,11 @@ public class WiFsm extends Fsm {
 		add(Start, Ack_Request, ActionError, Start);
 		add(Start, End_Request, ActionError, Start);
 		add(Start, Process_Preempt, ActionIgnore, Start);
+		add(Start, Process_Volunteered, ActionIgnore, Start);
 		add(Start, Process_Failure, ActionIgnore, Start);
 		add(Start, Ack_Timer_Pop, ActionIgnore, Start);
 		add(Start, End_Timer_Pop, ActionIgnore, Start);
+		add(Start, Investment_Reset, ActionIgnore, Start);
 		
 		add(Get_Pending, Get_Request, ActionGetRedux, Get_Pending);
 		add(Get_Pending, CAS_Available, ActionSend, CAS_Send);
@@ -109,9 +116,11 @@ public class WiFsm extends Fsm {
 		add(Get_Pending, Ack_Request, ActionError, Get_Pending);
 		add(Get_Pending, End_Request, ActionError, Get_Pending);
 		add(Get_Pending, Process_Preempt, ActionProcessPreempt, Start);
+		add(Get_Pending, Process_Volunteered, ActionProcessVolunteered, Start);
 		add(Get_Pending, Process_Failure, ActionProcessFailure, Start);
 		add(Get_Pending, Ack_Timer_Pop, ActionIgnore, Get_Pending);
 		add(Get_Pending, End_Timer_Pop, ActionIgnore, Get_Pending);
+		add(Get_Pending, Investment_Reset, ActionIgnore, Get_Pending);
 		
 		add(CAS_Send, Get_Request, ActionGetRedux, Get_Pending);
 		add(CAS_Send, CAS_Available, ActionIgnore, CAS_Send);
@@ -119,9 +128,11 @@ public class WiFsm extends Fsm {
 		add(CAS_Send, Ack_Request, ActionAck, CAS_Active);
 		add(CAS_Send, End_Request, ActionError, CAS_Send);
 		add(CAS_Send, Process_Preempt, ActionProcessPreempt, Start);
+		add(CAS_Send, Process_Volunteered, ActionProcessVolunteered, Start);
 		add(CAS_Send, Process_Failure, ActionProcessFailure, Start);
 		add(CAS_Send, Ack_Timer_Pop, ActionAckTimeout, Start);
 		add(CAS_Send, End_Timer_Pop, ActionIgnore, CAS_Send);
+		add(CAS_Send, Investment_Reset, ActionIgnore, CAS_Send);
 		
 		add(CAS_Active, Get_Request, ActionGetRedux, Get_Pending);
 		add(CAS_Active, CAS_Available, ActionIgnore, CAS_Active);
@@ -129,9 +140,11 @@ public class WiFsm extends Fsm {
 		add(CAS_Active, Ack_Request, ActionAckRedux, CAS_Active);
 		add(CAS_Active, End_Request, ActionEnd, Start);
 		add(CAS_Active, Process_Preempt, ActionProcessPreempt, Start);
+		add(CAS_Active, Process_Volunteered, ActionProcessVolunteered, Start);
 		add(CAS_Active, Process_Failure, ActionProcessFailure, Start);
 		add(CAS_Active, Ack_Timer_Pop, ActionIgnore, CAS_Active);
 		add(CAS_Active, End_Timer_Pop, ActionEndTimeout, Start);
+		add(CAS_Active, Investment_Reset, ActionInvestmentReset, CAS_Active);
 		
 		MessageBuffer mb2 = new MessageBuffer();
 		mb2.append(Standardize.Label.exit.name());

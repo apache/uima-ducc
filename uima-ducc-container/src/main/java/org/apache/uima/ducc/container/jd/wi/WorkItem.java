@@ -33,6 +33,8 @@ public class WorkItem implements IWorkItem {
 	private Tod todAck = new Tod();
 	private Tod todEnd = new Tod();
 	
+	private Tod todInvestment = new Tod();
+	
 	public WorkItem(IMetaCas metaCas, IFsm fsm) {
 		setMetaCas(metaCas);
 		setFsm(fsm);
@@ -94,11 +96,13 @@ public class WorkItem implements IWorkItem {
 	@Override
 	public void setTodAck() {
 		todAck.set();
+		setTodInvestment();
 	}
 	
 	@Override
 	public void resetTodAck() {
 		todAck.reset();
+		resetTodInvestment();
 	}
 
 	@Override
@@ -106,6 +110,21 @@ public class WorkItem implements IWorkItem {
 		return todAck.get();
 	}
 
+	@Override
+	public void setTodInvestment() {
+		todInvestment.set();
+	}
+
+	@Override
+	public void resetTodInvestment() {
+		todInvestment.reset();
+	}
+
+	@Override
+	public long getTodInvestment() {
+		return todInvestment.get();
+	}
+	
 	@Override
 	public void setTodEnd() {
 		todEnd.set();
@@ -143,6 +162,18 @@ public class WorkItem implements IWorkItem {
 	}
 
 	@Override
+	public long getMillisInvestment() {
+		long retVal = 0;
+		IState state = fsm.getStateCurrent();
+		if(state.getName().equals(WiFsm.CAS_Active.getName())) {
+			long now = System.currentTimeMillis();
+			retVal = now - getTodInvestment();
+		}
+		Assertion.nonNegative(retVal);
+		return retVal;
+	}
+	
+	@Override
 	public int getSeqNo() {
 		int retVal = 0;
 		try {
@@ -153,4 +184,5 @@ public class WorkItem implements IWorkItem {
 		}
 		return retVal;
 	}
+
 }

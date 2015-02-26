@@ -31,4 +31,7 @@ public interface IWorkItemInfo extends IRemoteNode, IRemotePid, IRemoteTid, Seri
 	
 	public long getOperatingMillis();
 	public void setOperatingMillis(long value);
+	
+	public long getInvestmentMillis();
+	public void setInvestmentMillis(long value);
 }

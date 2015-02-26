@@ -67,6 +67,7 @@ public class MessageHandler implements IMessageHandler {
 	
 	private AtomicInteger gets = new AtomicInteger(0);
 	private AtomicInteger acks = new AtomicInteger(0);
+	private AtomicInteger investmentResets = new AtomicInteger(0);
 	
 	private ConcurrentHashMap<String,String> failedInitializationMap = new ConcurrentHashMap<String,String>();
 	
@@ -77,12 +78,19 @@ public class MessageHandler implements IMessageHandler {
 	public MessageHandler() {
 	}
 	
+	@Override
 	public void incGets() {
 		gets.incrementAndGet();
 	}
 	
+	@Override
 	public void incAcks() {
 		acks.incrementAndGet();
+	}
+
+	@Override
+	public void incInvestmentResets() {
+		investmentResets.incrementAndGet();
 	}
 	
 	//
@@ -134,6 +142,7 @@ public class MessageHandler implements IMessageHandler {
 			oi.setWorkItemCrFetches(cms.getCrGets());
 			oi.setWorkItemJpGets(gets.get());
 			oi.setWorkItemJpAcks(acks.get());
+			oi.setWorkItemJpInvestmentResets(investmentResets.get());
 			oi.setWorkItemEndSuccesses(cms.getEndSuccess());
 			oi.setWorkItemEndFailures(cms.getEndFailure());
 			oi.setWorkItemEndRetrys(cms.getEndRetry());
@@ -286,6 +295,40 @@ public class MessageHandler implements IMessageHandler {
 		}
 	}
 	
+	@Override
+	public void handleProcessVolunteered(IProcessInfo processInfo) {
+		String location = "handleProcessVolunteered";
+		try {
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.node.get()+processInfo.getNodeName());
+			mb.append(Standardize.Label.ip.get()+processInfo.getNodeAddress());
+			mb.append(Standardize.Label.pid.get()+processInfo.getPid());
+			logger.trace(location, ILogger.null_id, mb.toString());
+			ConcurrentHashMap<IRemoteWorkerThread, IWorkItem> map = JobDriver.getInstance().getRemoteThreadMap();
+			for(Entry<IRemoteWorkerThread, IWorkItem> entry : map.entrySet()) {
+				IRemoteWorkerThread rwt = entry.getKey();
+				if(rwt.comprises(processInfo)) {
+					RemoteWorkerProcess rwp = new RemoteWorkerProcess(rwt);
+					processBlacklist(processInfo, rwp);
+					IWorkItem wi = entry.getValue();
+					IFsm fsm = wi.getFsm();
+					IEvent event = WiFsm.Process_Volunteered;
+					Object actionData = new ActionData(wi, rwt, null);
+					fsm.transition(event, actionData);
+				}
+				else {
+					MessageBuffer mb1 = new MessageBuffer();
+					mb1.append(Standardize.Label.remote.get()+rwt.toString());
+					mb1.append(Standardize.Label.status.get()+"unaffected");
+					logger.trace(location, ILogger.null_id, mb1.toString());
+				}
+			}
+		}
+		catch(Exception e) {
+			logger.error(location, ILogger.null_id, e);
+		}
+	}
+	
 	private void block(IRemoteWorkerThread rwt) {
 		String location = "block";
 		if(rwt != null) {
@@ -408,6 +451,9 @@ public class MessageHandler implements IMessageHandler {
 			case End:
 				handleMetaCasTransationEnd(trans, rwt);
 				break;
+			case InvestmentReset:
+				handleMetaCasTransationInvestmentReset(trans, rwt);
+				break;
 			default:
 				break;
 			}
@@ -526,6 +572,28 @@ public class MessageHandler implements IMessageHandler {
 			MessageBuffer mb = new MessageBuffer();
 			mb.append(Standardize.Label.AckMsecs.get()+(wi.getTodAck()-wi.getTodGet()));
 			mb.append(Standardize.Label.EndMsecs.get()+(wi.getTodEnd()-wi.getTodAck()));
+			logger.debug(location, ILogger.null_id, mb.toString());
+		}
+	}
+	
+	private void handleMetaCasTransationInvestmentReset(IMetaCasTransaction trans, IRemoteWorkerThread rwt) {
+		String location = "handleMetaCasTransationInvestmentReset";
+		IWorkItem wi = find(rwt);
+		if(wi == null) {
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
+			mb.append("has no work assigned presently");
+			logger.debug(location, ILogger.null_id, mb.toString());
+		}
+		else {
+			update(wi, trans.getMetaCas());
+			IFsm fsm = wi.getFsm();
+			IEvent event = WiFsm.Investment_Reset;
+			Object actionData = new ActionData(wi, rwt, trans);
+			fsm.transition(event, actionData);
+			MessageBuffer mb = new MessageBuffer();
+			mb.append(Standardize.Label.remote.get()+rwt.toString());
+			mb.append("investment reset");
 			logger.debug(location, ILogger.null_id, mb.toString());
 		}
 	}

@@ -30,6 +30,7 @@ public class WorkItemInfo implements IWorkItemInfo {
 	int pid = 0;
 	int tid = 0;
 	long operatingMillis = 0;
+	long investmentMillis = 0;
 	int seqNo = 0;
 	
 	@Override
@@ -92,6 +93,16 @@ public class WorkItemInfo implements IWorkItemInfo {
 		operatingMillis = value;
 	}
 
+	@Override
+	public long getInvestmentMillis() {
+		return investmentMillis;
+	}
+
+	@Override
+	public void setInvestmentMillis(long value) {
+		investmentMillis = value;
+	}
+	
 	@Override
 	public int getSeqNo() {
 		return seqNo;

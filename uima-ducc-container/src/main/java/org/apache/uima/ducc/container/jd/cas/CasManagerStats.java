@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CasManagerStats {
 	
-	public enum RetryReason { ProcessPreempt, ProcessDown, NodeDown, UserErrorRetry, TimeoutRetry };
+	public enum RetryReason { ProcessPreempt, ProcessVolunteered, ProcessDown, NodeDown, UserErrorRetry, TimeoutRetry };
 	
 	private AtomicInteger crTotal = new AtomicInteger(0);
 	private AtomicInteger crGets = new AtomicInteger(0);

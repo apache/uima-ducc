@@ -39,6 +39,7 @@ public class OperatingInfo implements IOperatingInfo {
 	private int crFetches = 0;
 	private int jpGets = 0;
 	private int jpAcks = 0;
+	private int jpInvestmentResets = 0;
 	private int jpEndSuccesses = 0;
 	private int jpEndFailures = 0;
 	private int jpEndRetrys = 0;
@@ -142,6 +143,16 @@ public class OperatingInfo implements IOperatingInfo {
 		return jpAcks;
 	}
 
+	@Override
+	public void setWorkItemJpInvestmentResets(int value) {
+		jpInvestmentResets = value;
+	}
+
+	@Override
+	public int getWorkItemJpInvestmentResets() {
+		return jpInvestmentResets;
+	}
+	
 	@Override
 	public void setWorkItemEndSuccesses(int value) {
 		jpEndSuccesses = value;

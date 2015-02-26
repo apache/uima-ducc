@@ -54,6 +54,9 @@ public interface IOperatingInfo extends Serializable {
 	public void setWorkItemJpAcks(int value);
 	public int getWorkItemJpAcks();
 	
+	public void setWorkItemJpInvestmentResets(int value);
+	public int getWorkItemJpInvestmentResets();
+	
 	public void setWorkItemEndSuccesses(int value);
 	public int getWorkItemEndSuccesses();
 	

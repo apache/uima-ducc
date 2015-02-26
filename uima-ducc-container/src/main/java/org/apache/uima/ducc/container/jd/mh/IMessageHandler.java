@@ -31,10 +31,12 @@ public interface IMessageHandler {
 	
 	public void handleProcessDown(IProcessInfo processInfo);
 	public void handleProcessPreempt(IProcessInfo processInfo);
+	public void handleProcessVolunteered(IProcessInfo processInfo);
 	public void handleProcessFailedInitialization(IProcessInfo processInfo);
 	
 	public void handleMetaCasTransation(IMetaCasTransaction trans);
 	
 	public void incGets();
 	public void incAcks();
+	public void incInvestmentResets();
 }

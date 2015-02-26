@@ -98,6 +98,7 @@ public class Standardize {
 		killJob,
 		killProcess,
 		killWorkItem,
+		investmentMillis,
 		operatingMillis,
 		;
 		
