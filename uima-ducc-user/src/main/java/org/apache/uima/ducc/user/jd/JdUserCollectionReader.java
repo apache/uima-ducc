@@ -33,6 +33,7 @@ import org.apache.uima.cas.CAS;
 import org.apache.uima.cas.impl.XmiSerializationSharedData;
 import org.apache.uima.collection.CollectionException;
 import org.apache.uima.collection.CollectionReader;
+import org.apache.uima.ducc.CasHelper;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 import org.apache.uima.ducc.user.common.ExceptionHelper;
 import org.apache.uima.ducc.user.common.QuotedOptions;

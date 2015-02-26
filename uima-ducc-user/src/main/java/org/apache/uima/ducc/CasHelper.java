@@ -16,12 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.uima.ducc.user.jd;
+package org.apache.uima.ducc;
 
 import java.util.Iterator;
 
 import org.apache.uima.cas.CAS;
-import org.apache.uima.ducc.Workitem;
 import org.apache.uima.jcas.cas.TOP;
 
 public class CasHelper {
