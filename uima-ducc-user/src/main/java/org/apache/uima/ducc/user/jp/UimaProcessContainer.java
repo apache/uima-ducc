@@ -41,6 +41,7 @@ import org.apache.uima.ducc.user.jp.uima.UimaAnalysisEngineInstancePoolWithThrea
 import org.apache.uima.impl.UimaVersion;
 import org.apache.uima.resource.Resource;
 import org.apache.uima.resource.ResourceInitializationException;
+import org.apache.uima.resource.ResourceManager;
 import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.util.CasPool;
 import org.apache.uima.util.Level;
@@ -51,7 +52,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	public static final String IMPORT_BY_NAME_PREFIX = "*importByName:";
 //	private DuccUimaSerializer uimaSerializer = new DuccUimaSerializer();
 
-    
+    private static ResourceManager rm=null;
 	Semaphore sharedInitSemaphore = new Semaphore(1);
 	// this map enforces thread affinity to specific thread. Needed to make
 	// sure that a thread used to initialized the AE is used to call process().
@@ -124,7 +125,12 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 		ResourceSpecifier rSpecifier = null;
 	    HashMap<String,Object> paramsMap = 
 				new HashMap<String,Object>();
-	     paramsMap.put(Resource.PARAM_RESOURCE_MANAGER, UIMAFramework.newDefaultResourceManager());
+	    synchronized(UimaProcessContainer.class) {
+	    	if ( rm == null ) {
+	    		rm = UIMAFramework.newDefaultResourceManager();
+	    	}
+	    }
+	     paramsMap.put(Resource.PARAM_RESOURCE_MANAGER, rm);
 	     paramsMap.put(AnalysisEngine.PARAM_MBEAN_SERVER, platformMBeanServer);
 
 		try {
