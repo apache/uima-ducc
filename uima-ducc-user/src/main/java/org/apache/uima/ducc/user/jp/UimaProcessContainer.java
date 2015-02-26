@@ -148,8 +148,7 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			if (instanceMap.size() == scaleout) {
 				try {
 					analysisEngineMetadata = ae.getAnalysisEngineMetaData();
-					casPool = new CasPool(scaleout, analysisEngineMetadata,
-							UIMAFramework.newDefaultResourceManager());
+					casPool = new CasPool(scaleout, analysisEngineMetadata,rm);
 					latch.countDown();
 				} catch (Exception e) {
 					throw new ResourceInitializationException(e);
