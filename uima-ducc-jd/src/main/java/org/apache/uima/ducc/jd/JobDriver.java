@@ -62,6 +62,7 @@ import org.apache.uima.ducc.jd.client.ThreadLocation;
 import org.apache.uima.ducc.jd.client.WorkItem;
 import org.apache.uima.ducc.jd.client.WorkItemFactory;
 import org.apache.uima.ducc.jd.client.WorkItemListener;
+import org.apache.uima.ducc.jd.uima.DeploymentDescriptorGenerator;
 import org.apache.uima.ducc.transport.event.cli.JobRequestProperties;
 import org.apache.uima.ducc.transport.event.common.DuccPerWorkItemStatistics;
 import org.apache.uima.ducc.transport.event.common.DuccProcessMap;
@@ -79,7 +80,6 @@ import org.apache.uima.ducc.transport.event.common.IResourceState.ProcessDealloc
 import org.apache.uima.ducc.transport.event.common.Rationale;
 import org.apache.uima.ducc.transport.event.jd.v1.DriverStatusReportV1;
 import org.apache.uima.ducc.transport.event.jd.v1.DuccProcessWorkItemsReportV1;
-import org.apache.uima.ducc.transport.uima.dd.generator.DeploymentDescriptorGenerator;
 import org.apache.uima.util.Progress;
 
 
