@@ -22,14 +22,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.TcpStreamHandler;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
@@ -57,7 +55,7 @@ public class DuccUiUtilities {
 		return user;
 	}
 
-  private static String fixupEnvironment(String environment) {
+  public static String fixupEnvironment(String environment) {
     // Rename the user's LD_LIBRARY_PATH as Secure Linuxs will not pass that on
     String source = "LD_LIBRARY_PATH";
     String target = "DUCC_" + source;
@@ -88,16 +86,6 @@ public class DuccUiUtilities {
     }
     return sb.toString();
   }
-	
-	public static void ducc_environment(CliBase base, Properties jobRequestProperties) {
-	    String key = UiOption.Environment.pname();
-		String environment_string = jobRequestProperties.getProperty(key, "");
-		String fixedEnv = fixupEnvironment(environment_string);
-        // If the same string returned, no need to change the property as it was not modified
-        if (fixedEnv != environment_string) {
-            jobRequestProperties.setProperty(key, fixedEnv);
-        }
-	}
 	
 	/* 
 	 * Get URL for service handling request. Either "orchestrator" or "sm"

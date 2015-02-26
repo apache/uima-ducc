@@ -31,6 +31,8 @@ public class DuccProperties extends Properties {
 	public static final String AGENT_ENDPOINT = "ducc.agent.endpoint";
 
 	private static final long serialVersionUID = 1L;
+  
+	protected boolean resolvePlaceholders = true;    // Disabled by CLI for JobRequestProperties
 
 	public void load() throws Exception {
 		Properties tmp = Utils.loadPropertiesFromClasspathForResource("agent");
@@ -239,9 +241,7 @@ public class DuccProperties extends Properties {
     public String getProperty(String k)
     {
         String val = super.getProperty(k);
-        if ( val == null ) return null;
-
-        if ( val.contains("${") ) {
+        if ( val != null & resolvePlaceholders && val.contains("${") ) {
             val = Utils.resolvePlaceholders(val, this);
         }
         return val;

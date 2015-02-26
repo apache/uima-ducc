@@ -34,15 +34,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-// import org.apache.commons.cli.CommandLine;
-// import org.apache.commons.cli.HelpFormatter;
-// import org.apache.commons.cli.MissingOptionException;
-// import org.apache.commons.cli.Option;
-// import org.apache.commons.cli.Options;
-// import org.apache.commons.cli.ParseException;
-// import org.apache.commons.cli.Parser;
-// import org.apache.commons.cli.PosixParser;
 import org.apache.uima.ducc.common.IDucc;
 import org.apache.uima.ducc.common.crypto.Crypto;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -493,7 +484,9 @@ public abstract class CliBase
             // If this request accepts the --environment option may need to augment it by
             // renaming LD_LIBRARY_PATH & propagating some user values
             if (uiopt == UiOption.Environment) {
-                DuccUiUtilities.ducc_environment(this, cli_props);
+              String environment = cli_props.getProperty(uiopt.pname());
+              environment = DuccUiUtilities.fixupEnvironment(environment);
+              cli_props.setProperty(uiopt.pname(), environment);
             }
         }
     }
@@ -556,11 +549,14 @@ public abstract class CliBase
             String value = System.getProperty(key);
             if (value == null) {
                 value = System.getenv(key);
-                if (value == null) {
-                    throw new IllegalArgumentException("Missing value for placeholder '" + key + "' in: " + contents);
-                }
             }
-            matcher.appendReplacement(sb, value);        
+            if (value != null) {
+            	matcher.appendReplacement(sb, value);
+            } else {
+            	matcher.appendReplacement(sb, "");
+            	sb.append("${" + key + "}");
+            	message("WARN: undefined placeholder", key, "not replaced");
+            }
         }
         matcher.appendTail(sb);
         return sb.toString();
