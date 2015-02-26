@@ -34,7 +34,7 @@ import org.apache.uima.analysis_engine.AnalysisEngineManagement;
 import org.apache.uima.analysis_engine.AnalysisEngineProcessException;
 import org.apache.uima.cas.CAS;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
-import org.apache.uima.ducc.common.uima.UimaUtils;
+import org.apache.uima.ducc.common.uima.UimaHelper;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.resource.ResourceSpecifier;
 import org.apache.uima.util.XMLInputSource;
@@ -126,13 +126,13 @@ public class CasPipeline {
 			descriptors.add(ccDescriptor);
 		}
 		if(descriptors.size() == 3) {
-			aed = UimaUtils.createAggregateDescription(false, overrides, descriptors.get(0), descriptors.get(1), descriptors.get(2));
+			aed = UimaHelper.createAggregateDescription(false, overrides, descriptors.get(0), descriptors.get(1), descriptors.get(2));
 		}
 		else if(descriptors.size() == 2) {
-			aed = UimaUtils.createAggregateDescription(false, overrides, descriptors.get(0), descriptors.get(1));
+			aed = UimaHelper.createAggregateDescription(false, overrides, descriptors.get(0), descriptors.get(1));
 		}
 		else if(descriptors.size() == 1) {
-			aed = UimaUtils.createAggregateDescription(false, overrides, descriptors.get(0));
+			aed = UimaHelper.createAggregateDescription(false, overrides, descriptors.get(0));
 		}
 		System.out.println("Created descriptor:");
 		aed.toXML(System.out);

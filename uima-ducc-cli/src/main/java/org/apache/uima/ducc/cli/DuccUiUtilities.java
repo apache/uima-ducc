@@ -31,10 +31,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
 import org.apache.uima.ducc.common.TcpStreamHandler;
-import org.apache.uima.ducc.common.uima.UimaUtils;
 import org.apache.uima.ducc.common.utils.DuccPropertiesResolver;
 import org.apache.uima.ducc.common.utils.QuotedOptions;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
+import org.apache.uima.ducc.user.common.UimaUtils;
 import org.apache.uima.util.XMLInputSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
