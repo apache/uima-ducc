@@ -57,8 +57,6 @@ public abstract class CliBase
     protected String ducc_home;
     protected IDuccEventDispatcher dispatcher;
 
-    //protected Options cliOptions;
-    //protected Parser parser;
     protected CommandLine commandLine;
 
     protected long friendlyId = -1;
@@ -83,9 +81,6 @@ public abstract class CliBase
     CountDownLatch waiter = null;
 
     protected Properties userSpecifiedProperties;
-    
-    // Options added to the saved spec file that must be removed if used as a --specification option
-    //private List<UiOption> addedOptions = Arrays.asList(UiOption.SubmitPid, UiOption.User);
     
     /**
      * All extenders must implement execute - this method does whatever processing on the input
@@ -209,26 +204,6 @@ public abstract class CliBase
         }
     }
 
-//    /*
-//     * Also used by DuccMonitor
-//     */
-//    static public Options makeOptions(UiOption[] optlist)
-//    {
-//        Options opts = new Options();
-//        for ( UiOption opt : optlist ) {
-//            String arg = opt.argname();
-//            Option o = new Option(opt.sname(), opt.pname(), (arg != null), opt.makeDesc());
-//            o.setArgName(arg);
-//            o.setOptionalArg(arg != null && arg.endsWith("(optional)"));
-//            if (opt.multiargs()) {
-//              o.setArgs(Option.UNLIMITED_VALUES);   // (Untested as we have no multiarg options)
-//            }
-//            opts.addOption(o);
-//            // Note: avoid OptionBuilder as is not thread-safe
-//        }
-//        return opts;
-//    }
-
     protected String[] mkArgs(Properties props)
     {
         List<String> arglist = new ArrayList<String>();
@@ -313,18 +288,6 @@ public abstract class CliBase
 			usage(e.getMessage());
 		}
 
-        // cliOptions = makeOptions(uiOpts);
-        // If given only a properties file parse as if only have defaults
-//        if (args == null) {
-//        	// strings, uioptions, proerties
-//            commandLine.parse(null, uiOpts, props);
-//        } else {
-//            fixupQuotedArgs(args);
-//            commandLine = parser.parse(cliOptions, args);
-//        }
-//        if (commandLine.getOptions().length == 0 || commandLine.hasOption(UiOption.Help.pname())) {
-//            usage(null);
-//        }
         if ( commandLine.contains(UiOption.Help)) {
         	usage(null);
         }
@@ -352,9 +315,6 @@ public abstract class CliBase
             fis.close();
             CliFixups.cleanupProps(defaults, myClassName);     // By default does nothing
             
-            // No longer needed we believe
-            // sanitize(defaults, commandLine);  // Check for illegals as commons cli 1.2 throws a NPE !  
-
             // If invoked with overriding properties add to or replace the defaults 
             if (props != null) {
                 defaults.putAll(props);
@@ -363,13 +323,6 @@ public abstract class CliBase
             commandLine.parse();
         }
         commandLine.verify();  // Insure all the rules specified by the IUiOpts are enforced        
-        
-        // Check if any orphaned args left
-        // new CommandLine parser will throw IllegalArgumentException if this happens
-//        List<?> extraArgs = commandLine.getArgList();
-//        if (extraArgs.size() > 0) {
-//            throw new ParseException("Superfluous arguments provided (perhaps quotes omitted?): " + extraArgs);
-//        }
         
         // Copy options into cli_props
         setOptions(uiOpts);
@@ -426,21 +379,10 @@ public abstract class CliBase
                 if (val.contains("${")) {
                     val = resolvePlaceholders(val);
                 }
-                // no need to check for dups, the parser does this
-//                String oval = (String) cli_props.get(opt.getLongOpt());
-//                if (oval != null && !oval.equals(val)) {
-//                    throw new Exception("Duplicate option specified: " + opt.getLongOpt());
-//                }
             }
             val = val.trim();
-            // SM cannot handle an empty list of service dependencies
-            // new parser: ServiceDependency configured to require an argument.
-//            if (val.length() == 0 && opt.getLongOpt().equals(UiOption.ServiceDependency.pname())) {
-//                if (debug) System.out.println("CLI dropped empty option " + opt.getLongOpt());
-//            } else {
-                cli_props.put(opt.pname(), val);
-                if (debug) System.out.println("CLI set " + opt.pname() + " = '" + val + "'");
-            //}
+            cli_props.put(opt.pname(), val);
+            if (debug) System.out.println("CLI set " + opt.pname() + " = '" + val + "'");
         }
     }
     
@@ -490,50 +432,6 @@ public abstract class CliBase
             }
         }
     }
-    
-    /*
-     * Clean up the properties in a specification file 
-     * Remove any added by the CLI that the parse would call illegal
-     * Check for invalid options as Commons CLI 1.2 throws a NPE
-     * Correct booleans by treating empty as "true" and removing anything
-     * other than 'true' or 'yes' or '1' (CLI 1.2 mishandles others)
-     */
-    
-    /*
-     * Notes for removal of commons.cli:
-     * - Do not need to check for invalid options, the parser does that and throws
-     * - Do not need to deal with missing boolean for no-opt parms, the parsesr does that
-     * What's left? Removing stuff like 'user' and 'pid' if you're reusing a
-     * previously-submitted properties file.  We probably don't need this either.
-     *
-     * Consulting Burn, it appears we probably don't need sanitize.
-
-     * So for now I'll just remove it and see what happens,
-     */
-    // private void sanitize(Properties props, Options opts) {
-    //     CliFixups.cleanupProps(props, myClassName);     // By default does nothing
-    //     for (String key : props.stringPropertyNames()) {
-    //         if (addedOptions.contains(key)) {
-    //             props.remove(key);
-    //         } else {
-    //             Option opt = cliOptions.getOption(key);
-    //             if (opt == null) {
-    //                 throw new IllegalArgumentException("Invalid option '" + key + "' in specification file");
-    //             }
-    //             if (!opt.hasArg()) {
-    //                 String val = props.getProperty(key);
-    //                 if (val.length() == 0) {
-    //                     props.setProperty(key, "true");
-    //                 } else if (!val.equalsIgnoreCase("true") &&
-    //                            !val.equalsIgnoreCase("yes") &&
-    //                            !val.equals("1")) {
-    //                     message("WARN: Ignoring illegal value: ", key, "=", val);
-    //                     props.remove(key);
-    //                 }
-    //             }
-    //         }
-    //     }
-    // }
     
     /*
      * Resolve any ${..} placeholders against user's system properties and environment
@@ -674,15 +572,6 @@ public abstract class CliBase
         cli_props.setProperty(key, value);
         return true;
     }
-
-    /**
-     * Return internal API debug status.
-     * @return True if the API debugging flag is set; false otherwise.
-     */
-/*    public boolean isDebug()
-    {
-        return debug;
-    }*/
 
     protected IDuccCallback getCallback()
     {

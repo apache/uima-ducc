@@ -78,7 +78,7 @@ public class CommandLine
     }
 
     /**
-     * Returns whether the parsesd command line contained the specified option (by IUiOption).
+     * Returns whether the parsed command line contained the specified option (by IUiOption).
      *
      * @param opt This is the option to test for.
      *
@@ -91,7 +91,7 @@ public class CommandLine
     }
 
     /**
-     * Returns whether the parsesd command line contained the specified option (by string name).
+     * Returns whether the parsed command line contained the specified option (by string name).
      *
      * @param opt This is the option to test for.
      *
@@ -135,7 +135,7 @@ public class CommandLine
     public String get(IUiOption k)
         throws IllegalArgumentException        
     {
-        // what was the parsesd value of this opt
+        // what was the parsed value of this opt
         if ( legal_options.containsKey(k) ) {
             return option_to_value.get(k);
         }
@@ -449,7 +449,7 @@ public class CommandLine
             } else if ( args[i].startsWith("-") ) {
                 k = args[i].substring(1);
             } else {
-                throw new IllegalArgumentException("Unrecognized keywoard:  " + args[i]);
+                throw new IllegalArgumentException("Unrecognized keyword:  " + args[i]);
             }
             
             IUiOption opt = name_to_option.get(k);

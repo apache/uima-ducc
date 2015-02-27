@@ -151,6 +151,7 @@ public class DuccJobSubmit
         throws Exception
     {
         init (this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
+        check_descriptor_options();
         if(isAllInOne()) {
             allInOneLauncher = new AllInOneLauncher(args, consoleCb);
         }
@@ -169,6 +170,7 @@ public class DuccJobSubmit
         throws Exception
     {
         init (this.getClass().getName(), opts, props, jobRequestProperties, consoleCb);
+        check_descriptor_options();
         if(isAllInOne()) {
             String[] args = mkArgs(props);
             allInOneLauncher = new AllInOneLauncher(args, consoleCb);
@@ -199,6 +201,19 @@ public class DuccJobSubmit
               String text = pname+"="+scheduling_class+" -- was "+user_scheduling_class;
               base.message(text);
          }
+    }
+    
+    private void check_descriptor_options() {
+		boolean isDDjob = jobRequestProperties.containsKey(UiOption.ProcessDD.pname());
+		boolean isPPjob = jobRequestProperties.containsKey(UiOption.ProcessDescriptorCM.pname())
+				|| jobRequestProperties.containsKey(UiOption.ProcessDescriptorAE.pname())
+				|| jobRequestProperties.containsKey(UiOption.ProcessDescriptorCC.pname());
+		if (isDDjob && isPPjob) {
+			throw new IllegalArgumentException("--process_descriptor_DD is mutually exclusive with the AE, CC, & CM descriptor options");
+		}
+		if (!isDDjob && !isPPjob) {
+			throw new IllegalArgumentException("Missing --process_descriptor_xx option .. DD or at least one of AE, CC, CM required");
+		}
     }
     
     private void set_debug_parms(Properties props, String key, int port)
