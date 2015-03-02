@@ -267,10 +267,10 @@ public class NodeAgent extends AbstractDuccComponent implements Agent, ProcessLi
                   cgroupsBaseDir = "/cgroup/ducc";
                 }
                 // get the cgroup subsystems. If not defined, default to the
-                // memory subsystem
+                // memory and cpu subsystem
                 String cgroupsSubsystems = System.getProperty("ducc.agent.launcher.cgroups.subsystems");
                 if (cgroupsSubsystems == null) {
-                  cgroupsSubsystems = "memory";
+                  cgroupsSubsystems = "memory,cpu";
                 }
                 cgroupsManager = new CGroupsManager(cgUtilsPath, cgroupsBaseDir, cgroupsSubsystems, logger);
                 // check if cgroups base directory exists in the filesystem

@@ -80,6 +80,12 @@ public class DuccCommandExecutor extends CommandExecutor {
     private boolean createCGroupContainer(IDuccProcess duccProcess, String containerId, String owner ) throws Exception {
   	//	create cgroups container and assign limits
     	if ( agent.cgroupsManager.createContainer( containerId, owner, useDuccSpawn()) ) {
+    		logger.info("createCGroupContainer", null, "Calculating CPU shares \nProcess Max Memory="+duccProcess.getCGroup().getMaxMemoryLimit()+"\nNode Memory Total="+agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal());
+    		long cpuShares =
+    				duccProcess.getCGroup().getMaxMemoryLimit()/agent.getNodeInfo().getNodeMetrics().getNodeMemory().getMemTotal();
+    		logger.info("createCGroupContainer", null,"\nCalculated Shares="+cpuShares);
+    		agent.cgroupsManager.setContainerCpuShares(containerId, owner, useDuccSpawn(), cpuShares);
+    		
     		return agent.cgroupsManager.setContainerMaxMemoryLimit(containerId,
 					owner, useDuccSpawn(), duccProcess.getCGroup().getMaxMemoryLimit());
 		} 

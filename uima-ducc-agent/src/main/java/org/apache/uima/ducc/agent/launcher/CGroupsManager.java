@@ -421,7 +421,51 @@ public class CGroupsManager {
 			return false;
 		}
 	}
-
+	/**
+	 * Sets the cpu shares use for an existing cgroup container.
+	 * 
+	 * @param containerId
+	 *            - existing container id for which limit will be set
+	 * @param userId
+	 *            - container owner
+	 * @param useDuccSpawn
+	 *            - run 'cgset' command as a user
+	 * @param containerCpuShares
+	 *            - cpu shares
+	 * 
+	 * @return - true on success, false otherwise
+	 * 
+	 * @throws Exception
+	 */
+	
+	public boolean setContainerCpuShares(String containerId,
+			String userId, boolean useDuccSpawn, long containerCpuShares)
+			throws Exception {
+		try {
+			///usr/bin
+			String[] command = new String[] { cgroupUtilsDir+"/cgset", "-r",
+					"cpu.shares=" + containerCpuShares,
+					"ducc/" + containerId };
+			int retCode = launchCommand(command, useDuccSpawn, "ducc",
+					containerId);
+			if (retCode == 0) {
+				agentLogger.info("setContainerCpuShares", null, ">>>>"
+						+ "SUCCESS - Created CGroup with CPU Shares="+containerCpuShares+" on Container:"
+						+ containerId);
+				return true;
+			} else {
+				agentLogger.info("setContainerCpuShares", null, ">>>>"
+						+ "FAILURE - Unable To Create CGroup Container:"
+						+ containerId);
+				return false;
+			}
+		} catch (Exception e) {
+			agentLogger.error("setContainerCpuShares", null, ">>>>"
+					+ "FAILURE - Unable To Set CPU shares On CGroup Container:"
+					+ containerId, e);
+			return false;
+		}
+	}
 	/**
 	 * Removes cgroup container with a given id. Cgroups are implemented as a
 	 * virtual file system. All is needed here is just rmdir.
