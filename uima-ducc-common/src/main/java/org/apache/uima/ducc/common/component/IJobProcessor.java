@@ -20,5 +20,5 @@ package org.apache.uima.ducc.common.component;
 
 public interface IJobProcessor {
 	public void setProcessor(Object pc, String[] args);
-	
+	public void resetInvestment(String key) throws Exception;
 }
