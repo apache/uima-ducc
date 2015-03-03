@@ -31,7 +31,8 @@ public class CGroup implements Serializable {
 	private IDuccId secondaryId;
 	private long maxMemoryLimit;  // in bytes
 	private boolean reservation;
-	private int shares;
+	private int shares;  // memory shares
+	private int cpuShares; // cpu shares
 	
 	public CGroup(IDuccId primaryId, IDuccId secondaryId, long max_size_in_bytes) {
 		setPrimaryId(primaryId);
@@ -42,6 +43,14 @@ public class CGroup implements Serializable {
 	public int getShares() {
 		return shares;
 	}
+	public int getCpuShares() {
+		return cpuShares;
+	}
+
+	public void setCpuShares(int cpuShares) {
+		this.cpuShares = cpuShares;
+	}
+
 	public void setShares(int shares) {
 		this.shares = shares;
 	}
