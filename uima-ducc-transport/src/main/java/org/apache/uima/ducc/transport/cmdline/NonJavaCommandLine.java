@@ -18,8 +18,6 @@
 */
 package org.apache.uima.ducc.transport.cmdline;
 
-import java.util.List;
-
 @SuppressWarnings("serial")
 public class NonJavaCommandLine extends ACommandLine {
 	public NonJavaCommandLine(String executable) {
@@ -42,11 +40,5 @@ public class NonJavaCommandLine extends ACommandLine {
 			e.printStackTrace();
 		}
 	}
-	@Override
-	public void addOption(String opt) {
-	}
-	@Override
-	public List<String> getOptions() {
-		return null;
-	}
+	
 }

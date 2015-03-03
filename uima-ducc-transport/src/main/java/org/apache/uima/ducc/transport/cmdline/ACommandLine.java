@@ -143,5 +143,11 @@ public abstract class ACommandLine implements ICommandLine {
 		return true;
 	}
 
-
+	@Override
+	public void addOption(String opt) {
+	}
+	@Override
+	public List<String> getOptions() {
+		return null;
+	}
 }
