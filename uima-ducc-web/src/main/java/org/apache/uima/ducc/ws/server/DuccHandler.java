@@ -2197,8 +2197,9 @@ public class DuccHandler extends DuccAbstractHandler {
 			ServicesRegistryMapPayload payload = servicesRegistry.findService(name);
 			Properties properties;
 			properties = payload.meta;
-			
-			ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
+
+            // UIMA-4258, use common implementors parser
+			ArrayList<String> implementors = DuccDataHelper.parseServiceIdsAsList(properties);
 			
 			DuccWorkJob service = null;
 			DuccWorkMap duccWorkMap = DuccData.getInstance().get();
@@ -2564,7 +2565,8 @@ public class DuccHandler extends DuccAbstractHandler {
 			Properties properties;
 			properties = payload.meta;
 			
-			ArrayList<String> implementors = servicesRegistry.getArrayList(properties.getProperty(IServicesRegistry.implementors));
+            // UIMA-4258, use common implementors parser
+			ArrayList<String> implementors = DuccDataHelper.parseServiceIdsAsList(properties);
 			
 			DuccWorkMap duccWorkMap = DuccData.getInstance().get();
 			ArrayList<DuccWorkJob> servicesList = duccWorkMap.getServices(implementors);

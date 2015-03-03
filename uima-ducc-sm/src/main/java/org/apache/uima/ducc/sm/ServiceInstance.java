@@ -41,6 +41,10 @@ class ServiceInstance
 
     long   numeric_id;                             // unique numeric ducc-assigned id
     long   share_id;                               // RM's share ID for this instance
+    int    instance_id = 0;                        // unique and constant ID assigned by SM to this instance
+                                                   // which allows services to know "which" instance they are
+                                                   // UIMA-4258
+
     String host;                                   // Where the instance is scheduled
 
     ServiceSet sset;                               // handle to the service definitiopn
@@ -61,6 +65,18 @@ class ServiceInstance
         this.stopped = true;
         this.share_id = -1;
         this.host = "<unknown>";
+    }
+
+    // UIMA-4258
+    public int getInstanceId()
+    {
+        return instance_id;
+    }
+
+    // UIMA-4258
+    public void setInstanceId(int id)
+    {
+        this.instance_id = id;
     }
 
     public long getId() {
@@ -184,6 +200,7 @@ class ServiceInstance
         ProcessBuilder pb = new ProcessBuilder(args);
         Map<String, String> env = pb.environment();
         env.put("DUCC_HOME", System.getProperty("DUCC_HOME"));
+        env.put("DUCC_SERVICE_INSTANCE", Integer.toString(instance_id));  // UIMA-4258
 
         ArrayList<String> stdout_lines = new ArrayList<String>();
         ArrayList<String> stderr_lines = new ArrayList<String>();

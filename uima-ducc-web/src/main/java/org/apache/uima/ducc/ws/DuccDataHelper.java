@@ -71,72 +71,42 @@ public class DuccDataHelper {
 		}
 		return map;
 	}
-	
-	private String getServiceId(DuccId serviceId) {
-		String methodName = "getServiceId";
-		DuccId jobid = null;
-		duccLogger.trace(methodName, jobid, "enter");
-		String retVal = null;
-		ServicesRegistry servicesRegistry = ServicesRegistry.getInstance();
-		ServicesRegistryMap map = servicesRegistry.getMap();
-		for(Integer key : map.getDescendingKeySet()) {
-			ServicesRegistryMapPayload payload = map.get(key);
-			Properties meta = payload.meta;
-			String implementors = meta.getProperty(IServicesRegistry.implementors);
-			if(implementors != null) {
-				String[] implementorsArray = implementors.trim().split(" ");
-				for(String implementor : implementorsArray) {
-					if(implementor.trim().equals(""+serviceId.getFriendly()));
-					retVal = meta.getProperty(IServicesRegistry.numeric_id);
-					break;
-				}
-			}
-		}
-		duccLogger.trace(methodName, jobid, "exit");
-		return retVal;
-	}
-	
-	public TreeMap<String,ArrayList<String>> getServiceToServicesUsageMap() {
-		String methodName = "getServiceToServicesUsageMap";
-		DuccId jobid = null;
-		duccLogger.trace(methodName, jobid, "enter");
-		TreeMap<String,ArrayList<String>> map = new TreeMap<String,ArrayList<String>>();
-		DuccData duccData = DuccData.getInstance();
-		ConcurrentSkipListMap<JobInfo, JobInfo> jobs = duccData.getSortedServices();
-		for(JobInfo jobInfo : jobs.descendingKeySet()) {
-			DuccWorkJob service = jobInfo.getJob();
-			if(service.isOperational()) {
-				ServiceDeploymentType type = service.getServiceDeploymentType();
-				if(type != null) {
-					switch(type) {
-					case uima:
-					case custom:
-						DuccId duccId = service.getDuccId();
-						String serviceId = getServiceId(duccId);
-						if(serviceId != null) {
-							String[] dependencies = service.getServiceDependencies();
-							if(dependencies != null) {
-								for(String dependency : dependencies) {
-									if(!map.containsKey(dependency)) {
-										map.put(dependency, new ArrayList<String>());
-									}
-									ArrayList<String> serviceIds = map.get(dependency);
-									if(!serviceIds.contains(serviceId)) {
-										serviceIds.add(serviceId);
-									}
-								}
-							}
-						}
-						break;
-					default:
-						break;
-					}
-				}
-			}
-		}
-		duccLogger.trace(methodName, jobid, "exit");
-		return map;
-	}
+
+    // UIMA-4258 Common coe to parse meta.implementors	
+    public static String[] parseServiceIds(Properties meta)
+    {
+        String implementors = meta.getProperty(IServicesRegistry.implementors);
+        String[] ret = new String[0];
+        if(implementors != null) {
+            String[] tempArray = implementors.trim().split("\\s+");
+            ret = new String[tempArray.length];
+            int i = 0;
+            for (String s : tempArray) {
+                // Back compatibility for the shadow web servers, if no inst id then
+                // just return the 's'
+                if ( s.indexOf(".") > 0 ) {
+                    String[] id_inst = s.split("\\.");
+                    ret[i++] = id_inst[0].trim();
+                } else {
+                    ret[i++] = s;
+                }
+            }
+        }
+        return ret;
+    }
+
+    // UIMA-4258 return implementors in arraylist instead of strion[]
+    public static ArrayList<String> parseServiceIdsAsList(Properties meta)
+    {
+        String[] impls = parseServiceIds(meta);
+
+        ArrayList<String> ret = new ArrayList<String>();
+        for ( String s : impls ) {
+            ret.add(s);
+        }
+        return ret;
+    }
+
 	
 	public TreeMap<String,ArrayList<DuccId>> getServiceToReservationsUsageMap() {
 		TreeMap<String,ArrayList<DuccId>> map = new TreeMap<String,ArrayList<DuccId>>();

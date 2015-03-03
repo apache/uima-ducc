@@ -29,11 +29,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 
 import org.apache.uima.UIMAFramework;
 import org.apache.uima.ducc.cli.IUiOptions.UiOption;
@@ -74,7 +74,10 @@ public class ServiceSet
     // a unique-to SM key for implicit references.
 
     Map<Long, ServiceInstance> implementors = new HashMap<Long, ServiceInstance>();
-    List<ServiceInstance> pendingStarts = new LinkedList<ServiceInstance>();
+    TreeMap<Integer, Integer>  available_instance_ids = new TreeMap<Integer, Integer>();  // UIMA-4258
+    Map<Long, Integer>         pending_instances = new HashMap<Long, Integer>();          // For hot bounce, restore the instance ids UIMA-4258
+
+    // List<ServiceInstance> pendingStarts = new LinkedList<ServiceInstance>();           // UIMA-4258 not used anywhere
 
     // key is job/service id, value is same.  it's a map for fast existence check
     Map<DuccId, DuccId> references = new HashMap<DuccId, DuccId>();
@@ -242,6 +245,8 @@ public class ServiceSet
             meta_props.put("ping-only", "false");
             this.ping_only = false;
         }
+
+        savePendingInstanceIds();         // UIMA-4258
         // caller will save the meta props, **if** the rest of registration is ok.
 
         //UIMAFramework.getLogger(BaseUIMAAsynchronousEngineCommon_impl.class).setLevel(Level.OFF);
@@ -255,7 +260,22 @@ public class ServiceSet
         return id;
     }
 
-    protected void parseEndpoint(String ep)
+    // UIMA-4258
+    // Get potentially pending instances from meta and stash them away for a bit
+    // Used in hot-start to remap instance ids to ducc ids
+    void savePendingInstanceIds()
+    {
+        String ids = meta_props.getProperty(implementors_key);
+        if ( ids == null ) return;
+
+        String[] tmp = ids.split("\\s+");
+        for (String s : tmp) {
+            String[] id_inst = s.split("\\.");
+            pending_instances.put(Long.parseLong(id_inst[0]), Integer.parseInt(id_inst[1]));
+        }
+    }
+
+    void parseEndpoint(String ep)
     {
         if ( ep.startsWith(ServiceType.UimaAs.decode()) ) {
             int ndx = ep.indexOf(":");
@@ -446,6 +466,7 @@ public class ServiceSet
         si.setId(id.getFriendly());
         si.setStopped(false);
         si.setUser(this.user);
+        si.setInstanceId(pending_instances.get(id.getFriendly())); // UIMA-4258
 
         handler.addInstance(this, si);
         pendingImplementors.put(id.getFriendly(), si);
@@ -471,6 +492,7 @@ public class ServiceSet
         // must update history against stuff we used to have and don't any more
         //
         String old_impls = meta_props.getProperty(implementors_key);
+        logger.info("bootComplete", id, "IMPLS :", old_impls);
         if ( old_impls != null ) {
             Map<String, String> ip = new HashMap<String, String>();
             String[]   keys = old_impls.split("\\s+");
@@ -502,6 +524,24 @@ public class ServiceSet
                 meta_props.setProperty(history_key, sb.toString().trim());
             }
         }
+
+        // UIMA-4258 restore instance ID if this is a hot restart
+        if ( pending_instances.size() != 0 ) {
+            TreeMap<Integer, Integer> nst = new TreeMap<Integer, Integer>();
+            for (int i : pending_instances.values()) {
+                nst.put(i, i);
+            }
+            int ndx = 0;
+            while ( nst.size() > 0 ) {
+                if ( nst.containsKey(ndx) ) {
+                    nst.remove(ndx);
+                } else {
+                    available_instance_ids.put(ndx, ndx);
+                }
+                ndx++;
+            }
+        }
+        pending_instances = null;
 
         // on restart, if we think we were ref started when we crashed, but there are no
         // implementors, we can't actually be ref started, so clean that up.
@@ -804,12 +844,16 @@ public class ServiceSet
         if ( implementors.size() == 0 ) {
             meta_props.remove(implementors_key);
         } else {
-            StringBuffer sb = new StringBuffer();
+            StringBuffer sb_ducc_id = new StringBuffer();
             for ( Long l : implementors.keySet() ) {
-                sb.append(Long.toString(l));
-                sb.append(" ");
+                // UIMA-4258 Add instance id to ducc id when saving
+                ServiceInstance inst = implementors.get(l);
+                sb_ducc_id.append(Long.toString(l));
+                sb_ducc_id.append(".");
+                sb_ducc_id.append(Integer.toString(inst.getInstanceId()));
+                sb_ducc_id.append(" ");
             }
-            String s = sb.toString().trim();
+            String s = sb_ducc_id.toString().trim();
             meta_props.setProperty(implementors_key, s);
         }
 
@@ -1170,6 +1214,7 @@ public class ServiceSet
     	String methodName = "removeImplementor";
         logger.info(methodName, id, "Removing implementor", si.getId());
         implementors.remove(si.getId());
+        // Note, we don't save the instance id because this is only for ping-only services that have no instid
     }
 
     /**
@@ -1206,6 +1251,7 @@ public class ServiceSet
             
             logger.info(methodName, this.id, "Removing implementor", fid, "(", key, ") completion", jct);
             stoppedInstance = implementors.remove(fid);          // won't fail, was checked for on entry
+            conditionally_stash_instance_id(stoppedInstance.getInstanceId()); // UIMA-4258
             
             // TODO: put history into a better place
             String history = meta_props.getStringProperty(history_key, "");
@@ -1786,6 +1832,67 @@ public class ServiceSet
         log_text(logdir, buf.toString());
     }
 
+    /**
+     * See if there is an instance ID to reuse - if so, we need the lowest one.  
+     * If not, assign the next on in sequence.
+     *
+     * This maintains the property that all instances sequential from 0 to max are either 
+     * already assigned, or on the available_instance_ids tree.  Thus, if it's not on the tree,
+     * we can find the next one by taking the lenght of the implementors structure.
+     *
+     * The reason we need to remember this is because pingers are allowed to stop specific
+     * instances.  As well, specific instances may croak.  We always want to restart with the
+     * lowest available instance if we have to reuse ids.
+     */
+    synchronized int find_next_instance()
+    {
+        int ret = implementors.size();
+        if ( available_instance_ids.size() > 0 ) {
+            ret = available_instance_ids.firstKey();
+            available_instance_ids.remove(ret);
+        }
+        return ret;
+    }
+
+    /**
+     * Save the id for possible reuse.
+     *
+     * It's an error, albeit non-fatal, if the instance is already stashed.
+
+     * Note: this might be fatal for the instance, or the service, but it's not fatal for the SM
+     * so we simply note it in the log but not crash SM
+     * UIMA-4258
+     */
+    synchronized void stash_instance_id(int instid)
+    {
+    	String methodName = "stash_intance_id";
+        if ( available_instance_ids.containsKey(instid) ) {
+            try {
+                // put a scary marker in the log
+                throw new Exception("Duplicate instance id found: " + instid);
+            } catch (Exception e) {
+                logger.warn(methodName, id, e);
+            }
+            return;
+        }
+
+        available_instance_ids.put(instid, instid);
+    }
+
+    /**
+     * Save the id for possible reuse, if it hasn't already been saved.
+     * This is called when we see a state change that indicates a service has exited.  Usually we
+     * hope this is because it was stopped, in which case we already stashed the id.  But if it
+     * crashed it may not be stashed yet, so we do it here.
+     * UIMA-4258
+     */
+    synchronized void conditionally_stash_instance_id(int instid)
+    {
+        if ( available_instance_ids.containsKey(instid) ) {
+            return;
+        }
+        stash_instance_id(instid);        
+    }
 
     synchronized void start(int ninstances)
     {
@@ -1820,6 +1927,7 @@ public class ServiceSet
 
             for ( int i = 0; i < ninstances; i++ ) {
                 ServiceInstance si = new ServiceInstance(this);
+                si.setInstanceId(find_next_instance());
                 long instid = -1L;
                 logger.info(methodName, id, "Starting instance", i);
                 if ( (instid = si.start(props_filename, meta_props)) >= 0 ) {
@@ -1853,6 +1961,7 @@ public class ServiceSet
             logger.warn(methodName, id, "Can't find instance", iid, ", perhaps it's already gone.");
         } else {
             si.stop();
+            stash_instance_id(si.getInstanceId());         // UIMA-4258
             signal(si);
         }
     }
@@ -2013,6 +2122,7 @@ public class ServiceSet
 
         public void run() {
             si.stop();
+            stash_instance_id(si.getInstanceId());         // UIMA-4258
         }
     }
 

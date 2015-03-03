@@ -40,12 +40,12 @@ public class OrchestratorStateDuccEvent extends AbstractDuccEvent  {
 	
 	public void setWorkMap(DuccWorkMap value) {
 		this.workMap = value.deepCopy();
-		compress(this.workMap);
+		//compress(this.workMap);        // UIMA-4258, can't yet compress because of DUCC_SERVICE_INSTANCE
 	}
 	
 	public DuccWorkMap getWorkMap() {
 		DuccWorkMap value = this.workMap.deepCopy();
-		uncompress(value);
+		//uncompress(value);             // UIMA-4258, can't yet compress because of DUCC_SERVICE_INSTANCE
 		return value;
 	}
 	

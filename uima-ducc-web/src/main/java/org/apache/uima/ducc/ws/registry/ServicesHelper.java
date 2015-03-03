@@ -29,6 +29,7 @@ import org.apache.uima.ducc.transport.event.common.DuccWorkMap;
 import org.apache.uima.ducc.transport.event.common.IDuccProcess;
 import org.apache.uima.ducc.transport.event.common.IDuccProcessMap;
 import org.apache.uima.ducc.ws.DuccData;
+import org.apache.uima.ducc.ws.DuccDataHelper;
 
 public class ServicesHelper {
 	
@@ -58,8 +59,8 @@ public class ServicesHelper {
 		ArrayList<String> retVal = new ArrayList<String>();
 		if(propertiesMeta != null) {
 			if(propertiesMeta.containsKey(IServicesRegistry.implementors)) {
-				String value = propertiesMeta.getProperty(IServicesRegistry.implementors);
-				String[] implementors = servicesRegistry.getList(value);
+                // UIMA-4258, use common implementors parser
+                String[] implementors = DuccDataHelper.parseServiceIds(propertiesMeta);
 				for(String implementor : implementors) {
 					retVal.add(implementor);
 				}

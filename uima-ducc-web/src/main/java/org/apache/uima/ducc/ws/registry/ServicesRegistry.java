@@ -30,6 +30,7 @@ import org.apache.uima.ducc.common.persistence.services.StateServicesSet;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
+import org.apache.uima.ducc.ws.DuccDataHelper;
 import org.apache.uima.ducc.ws.registry.sort.ServicesSortCache;
 import org.springframework.util.StringUtils;
 
@@ -203,8 +204,9 @@ public class ServicesRegistry {
 				ServicesRegistryMapPayload payload = map.get(key);
 				Properties meta = payload.meta;
 				if(meta != null) {
-					String implementors = meta.getProperty(IServicesRegistry.implementors);
-					String[] list = getList(implementors);
+                    // UIMA-4258, use common implementors parser
+                    String[] list = DuccDataHelper.parseServiceIds(meta);
+
 					for( String member : list ) {
 						if(member.equals(id+"")) {
 							if(meta.containsKey(IServicesRegistry.endpoint)) {

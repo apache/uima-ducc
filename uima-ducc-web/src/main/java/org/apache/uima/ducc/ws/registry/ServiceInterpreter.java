@@ -25,7 +25,7 @@ import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccLoggerComponents;
 import org.apache.uima.ducc.common.utils.id.DuccId;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceState;
-import org.springframework.util.StringUtils;
+import org.apache.uima.ducc.ws.DuccDataHelper;
 
 public class ServiceInterpreter {
 	
@@ -70,18 +70,7 @@ public class ServiceInterpreter {
 		}
 		return retVal.trim();
 	}
-	
-	private static String[] getList(String string) {
-		String[] retVal = new String[0];
-		if(string != null) {
-			string = string.trim();
-			if(string.length() > 0) {
-				retVal = StringUtils.delimitedListToStringArray(string, " ");
-			}
-		}
-		return retVal;
-	}
-	
+		
 	private String placeholderPingerStatus = "";
 	
 	public String getPingerStatus() {
@@ -303,8 +292,8 @@ public class ServiceInterpreter {
 		String location = "getImplementors";
 		ArrayList<String> retVal = new ArrayList<String>();
 		try {
-			String value = getUninterpreted(meta, IServicesRegistry.implementors);
-			String[] implementors = getList(value);
+            // UIMA-4258, use common implementors parser
+            String[] implementors = DuccDataHelper.parseServiceIds(meta);
 			for(String implementor : implementors) {
 				retVal.add(implementor);
 			}
