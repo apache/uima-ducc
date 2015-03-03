@@ -1094,7 +1094,6 @@ public class ServiceHandler
             case ProcessMemorySize:           
             case ProcessExecutable:
             case ProcessExecutableArgs:
-            case ClasspathOrder:
             case ServiceDependency:
             case ProcessInitializationTimeMax:
             case WorkingDirectory:
@@ -1131,6 +1130,9 @@ public class ServiceHandler
                 }
                 restart_pinger = true;
                 break;
+			default:
+				// In case a deprecated option such as classpath_order slips through
+				break;
 
         }
     }

@@ -102,13 +102,6 @@ public interface IUiOptions
             public String argname()     { return "java classpath"; }
         },    
         
-        ClasspathOrder { 
-            public String pname()       { return JobSpecificationProperties.key_classpath_order; }
-            public String argname()     { return ClasspathOrderParms.UserBeforeDucc.pname() + " or " + ClasspathOrderParms.DuccBeforeUser.pname(); }
-            public String description() { return "Specify user-supplied classpath before DUCC-supplied classpath, or the reverse."; }
-            public String deflt()       { return ClasspathOrderParms.DuccBeforeUser.pname(); }
-        },            
-
         Debug { 
             public String pname()       { return "debug"; }
             public boolean noargs()     { return true; }
@@ -666,26 +659,5 @@ public interface IUiOptions
         
                  
     };
-
-    public enum ClasspathOrderParms
-    {               
-        UserBeforeDucc   { 
-            public String pname()      { return DuccUiConstants.classpath_order_user_before_ducc; } 
-            public String description() { return "Start process with user's classpath ahead of DUCC's"; }
-        },
-        DuccBeforeUser   { 
-            public String pname()      { return DuccUiConstants.classpath_order_ducc_before_user; } 
-            public String description() { return "Start process with DUCC's classpath ahead of user's"; }
-        },
-        Unknown {
-            public String pname()      { return "unknown"; }
-            public String description() { return "Illegal argument"; }
-        },
-        ;
-
-        public abstract String pname();
-        public abstract String description();
-
-   };
 
 }

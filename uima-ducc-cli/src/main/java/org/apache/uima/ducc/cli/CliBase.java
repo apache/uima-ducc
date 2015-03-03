@@ -27,7 +27,6 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
@@ -204,21 +203,6 @@ public abstract class CliBase
         }
     }
 
-    protected String[] mkArgs(Properties props)
-    {
-        List<String> arglist = new ArrayList<String>();
-        for ( Object o : props.keySet() ) {
-            String k = (String) o;
-            String v = props.getProperty(k, "");
-            arglist.add("--" + k);
-            // Assume an empty value indicates a boolean option
-            if (v.length() > 0) {
-              arglist.add(v);
-            }
-        }
-        return arglist.toArray(new String[arglist.size()]);
-    }
-
     DuccEventHttpDispatcher makeDispatcher(String targetUrl)
     {
         String[] classpath = {
@@ -255,8 +239,8 @@ public abstract class CliBase
    * 
    * @param myClassName  Name of the class invoking me, for help string
    * @param uiOpts       Array of IUioptions permitted for this command
-   * @param args         Arguments from the command line
-   * @param props        Properties passed in from the API
+   * @param args         Arguments from the command line (or null)
+   * @param props        Properties passed in from the API (or null)
    * @param cli_props    (Initially) empty properties file to be filled in 
    * @param consoleCb    Console callback object (optional)
    * @param servlet      The name of the http servlet that will serve this request
@@ -267,7 +251,12 @@ public abstract class CliBase
         throws Exception
     {
 
-        CliFixups.cleanupArgs(args, myClassName);   // Default implementation does nothing
+    	// Either args or props passed in, not both
+    	if (args != null) {
+    		CliFixups.cleanupArgs(args, myClassName);
+    	} else {
+    		CliFixups.cleanupProps(props, myClassName);
+    	}
         
         if ( init_done ) return;
         
@@ -313,7 +302,7 @@ public abstract class CliBase
             Properties defaults = new Properties();
             defaults.load(fis);
             fis.close();
-            CliFixups.cleanupProps(defaults, myClassName);     // By default does nothing
+            CliFixups.cleanupProps(defaults, myClassName);     // May correct or drop deprecated options
             
             // If invoked with overriding properties add to or replace the defaults 
             if (props != null) {
@@ -321,6 +310,9 @@ public abstract class CliBase
             }
             commandLine = new CommandLine(args, uiOpts, defaults);
             commandLine.parse();
+            
+            // Remove the file option to avoid re-parsing or confusion in the saved properties files
+            commandLine.allOptions().remove(UiOption.Specification);
         }
         commandLine.verify();  // Insure all the rules specified by the IUiOpts are enforced        
         
@@ -410,13 +402,7 @@ public abstract class CliBase
                 //
                 // here clean up stuff that was specified but we want to validate it
                 //
-                if (uiopt == UiOption.ClasspathOrder) {
-                    String val = cli_props.getStringProperty(uiopt.pname());
-                    if (!val.equals(ClasspathOrderParms.DuccBeforeUser.pname())
-                                    && !val.equals(ClasspathOrderParms.UserBeforeDucc.pname())) {
-                        throw new IllegalArgumentException("Invalid value for " + uiopt.pname() + ": " + val);
-                    }
-                } else if (uiopt == UiOption.ProcessMemorySize || uiopt == UiOption.ReservationMemorySize)  {
+                if (uiopt == UiOption.ProcessMemorySize || uiopt == UiOption.ReservationMemorySize)  {
                     String val = cli_props.getStringProperty(uiopt.pname());
                     if (!val.matches("^\\d+$")) {
                         throw new IllegalArgumentException("Invalid non-numeric value for " + uiopt.pname() + ": " + val);
@@ -451,9 +437,10 @@ public abstract class CliBase
             if (value != null) {
             	matcher.appendReplacement(sb, value);
             } else {
-            	matcher.appendReplacement(sb, "");
-            	sb.append("${" + key + "}");
-            	message("WARN: undefined placeholder", key, "not replaced");
+            	matcher.appendReplacement(sb, "");   // Can't include the value as it looks like a group specification
+            	value = "${" + key + "}";
+            	sb.append(value);
+            	message("WARN: undefined placeholder", value, "not replaced");
             }
         }
         matcher.appendTail(sb);

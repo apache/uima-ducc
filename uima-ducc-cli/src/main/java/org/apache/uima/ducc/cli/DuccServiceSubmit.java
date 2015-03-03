@@ -63,7 +63,6 @@ public class DuccServiceSubmit
         UiOption.ProcessDebug,
 
         UiOption.InstanceFailureLimit,
-        UiOption.ClasspathOrder,
         UiOption.Specification,
         UiOption.ServiceDependency,
         UiOption.ServiceRequestEndpoint,

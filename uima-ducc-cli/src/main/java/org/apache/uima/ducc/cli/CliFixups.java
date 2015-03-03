@@ -36,6 +36,10 @@ public class CliFixups {
             if (arg.equals("--process_DD")) {
                 args[i] = "--process_descriptor_DD";
                 System.out.println("CLI replaced deprecated option: " + arg + " with: " + args[i]);
+            } else if (arg.equals("--classpath_order")) {
+                System.out.println("CLI ignored deprecated option: " + arg);
+                args[i] = null;
+                if (++i < args.length && !args[i].startsWith("--")) args[i] = null; 
             }
         }
     }
@@ -45,7 +49,10 @@ public class CliFixups {
             if (key.equals("process_DD")) {
                 props.put("process_descriptor_DD", props.get(key));
                 props.remove(key);
-                System.out.println("CLI replaced deprecated property: " + key + " with: process_descriptor_DD");
+                System.out.println("CLI replaced deprecated option: " + key + " with: process_descriptor_DD");
+            } else if (key.equals("classpath_order")) {
+                props.remove(key);
+                System.out.println("CLI ignored deprecated option: " + key);
             }
         }
     }

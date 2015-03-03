@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.uima.ducc.cli.CliBase;
 import org.apache.uima.ducc.cli.DuccJobSubmit;
@@ -87,8 +88,6 @@ public class AllInOneLauncher extends CliBase {
     private boolean wait_for_completion = false;
     private boolean cancel_on_interrupt = false;
     
-    private boolean classpath_user_first = true;
-    
     private IMessageHandler mh = new MessageHandler();
     
     private JobRequestProperties jobRequestProperties = new JobRequestProperties(); 
@@ -97,15 +96,17 @@ public class AllInOneLauncher extends CliBase {
     
     private HashMap<String,String> optionsMap = new HashMap<String,String>();
 
-    public AllInOneLauncher(String[] args) throws Exception {
-        init (this.getClass().getName(), opts, args, jobRequestProperties, null);
+    /*
+     * Called with the already cleaned-up properties parsed by DuccSubmit to
+     * avoid duplicate fix-up messages produced by a full re-parse.
+     */
+    public AllInOneLauncher(Properties props, IDuccCallback consoleCb) throws Exception {
+    	if (consoleCb != null) {
+    		mh = new MessageHandler(consoleCb);
+    	}
+        init (this.getClass().getName(), opts, props, jobRequestProperties, consoleCb);
     }
     
-    public AllInOneLauncher(String[] args, IDuccCallback consoleCb) throws Exception {
-        mh = new MessageHandler(consoleCb);
-        init (this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
-    }
-
     private boolean isLocal() {
         return allInOneType.equalsIgnoreCase(local);
     }
@@ -316,23 +317,10 @@ public class AllInOneLauncher extends CliBase {
         String message = classpath;
         mh.frameworkDebug(cid, mid, message);
 
-        // Note: defaulted or validated in init method
-        pname = UiOption.ClasspathOrder.pname();
-        String value = jobRequestProperties.getProperty(pname);
-        used(pname);
-        classpath_user_first = value.equals(ClasspathOrderParms.UserBeforeDucc.pname());
-        message = value;
-        mh.frameworkDebug(cid, mid, message);
-
         // Don't need all the DUCC jars as user's classpath must have all the UIMA jars it needs.
         // For simplicity add only the jar that has the AllInOne class --- it will pull in other 
         // jars that have dependencies such as the flow controller.
-        String duccClasspath = ducc_home + "/lib/uima-ducc-cli.jar";
-        if (classpath_user_first) {
-            classpath = classpath + File.pathSeparatorChar + duccClasspath;
-        } else {
-            classpath = duccClasspath + File.pathSeparatorChar + classpath;
-        }
+        classpath = classpath + File.pathSeparatorChar + ducc_home + "/lib/uima-ducc-cli.jar";
         mh.frameworkTrace(cid, mid, exit);
     }
     
@@ -767,7 +755,7 @@ public class AllInOneLauncher extends CliBase {
     }
     
     private void addArg(ArrayList<String> cmdLine, String arg) {
-        String mid = "launch_remote";
+        String mid = "addArg";
         mh.frameworkTrace(cid, mid, "enter");
         cmdLine.add(arg);
         mh.frameworkDebug(cid, mid, arg);
@@ -828,46 +816,38 @@ public class AllInOneLauncher extends CliBase {
     private void launch_remote() throws Exception {
         String mid = "launch_remote";
         mh.frameworkTrace(cid, mid, "enter");
-        ArrayList<String> cmdLine = new ArrayList<String>();
-        addArg(cmdLine, "--"+UiOption.ProcessExecutable.pname());
-        addArg(cmdLine, jvm);
-        addArg(cmdLine, "--"+UiOption.ProcessExecutableArgs.pname());
-        addArg(cmdLine, getProcessExecutableArgs());
+        Properties props = new Properties();
+        props.put(UiOption.ProcessExecutable.pname(), jvm);
+        props.put(UiOption.ProcessExecutableArgs.pname(), getProcessExecutableArgs());
         if(scheduling_class != null) {
-            addArg(cmdLine, "--"+UiOption.SchedulingClass.pname());
-            addArg(cmdLine, scheduling_class);
+            props.put(UiOption.SchedulingClass.pname(), scheduling_class);
         }
+        // NOTE - revert to user-provided environment so it is not modified twice
+        environment = userSpecifiedProperties.getProperty(UiOption.Environment.pname());
         if(environment != null) {
-            addArg(cmdLine, "--"+UiOption.Environment.pname());
-            addArg(cmdLine, environment);
+            props.put(UiOption.Environment.pname(), environment);
         }
         if(process_memory_size != null) {
-            addArg(cmdLine, "--"+UiOption.ProcessMemorySize.pname());
-            addArg(cmdLine, process_memory_size);
+            props.put(UiOption.ProcessMemorySize.pname(), process_memory_size);
         }
         if(log_directory != null) {
-            addArg(cmdLine, "--"+UiOption.LogDirectory.pname());
-            addArg(cmdLine, log_directory);
+            props.put(UiOption.LogDirectory.pname(), log_directory);
         }
         if(working_directory != null) {
-            addArg(cmdLine, "--"+UiOption.WorkingDirectory.pname());
-            addArg(cmdLine, working_directory);
+            props.put(UiOption.WorkingDirectory.pname(), working_directory);
         }
         if(description != null) {
-            addArg(cmdLine, "--"+UiOption.Description.pname());
-            addArg(cmdLine, description);
+            props.put(UiOption.Description.pname(), description);
         }
         if(wait_for_completion) {
-            addArg(cmdLine, "--"+UiOption.WaitForCompletion.pname());
+            props.put(UiOption.WaitForCompletion.pname(), "true");
         }
         if(cancel_on_interrupt) {
-            addArg(cmdLine, "--"+UiOption.CancelOnInterrupt.pname());
+            props.put(UiOption.CancelOnInterrupt.pname(), "true");
         }
-        addArg(cmdLine, "--"+UiOption.AttachConsole.pname());    // Always return console output to match "local"
-
-        String[] argList = cmdLine.toArray(new String[cmdLine.size()]);
+        props.put(UiOption.AttachConsole.pname(), "true");
         
-        DuccManagedReservationSubmit mr = new DuccManagedReservationSubmit(argList, consoleCb);
+        DuccManagedReservationSubmit mr = new DuccManagedReservationSubmit(props, consoleCb);
         boolean rc = mr.execute();
         
         String dt = "Managed Reservation";
@@ -916,11 +896,4 @@ public class AllInOneLauncher extends CliBase {
       return returnCode;
     }
     
-    public static void main(String[] args) throws Exception {
-        AllInOneLauncher allInOneLauncher = new AllInOneLauncher(args);
-        allInOneLauncher.execute();
-        System.exit(allInOneLauncher.getReturnCode());
-    }
-    
-
 }

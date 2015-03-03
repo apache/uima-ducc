@@ -72,7 +72,6 @@ public class DuccServiceApi
         UiOption.ProcessInitializationTimeMax,
         UiOption.ProcessDebug,
 
-        UiOption.ClasspathOrder,
         // UiOption.Specification          // not used for registration
         UiOption.ServiceDependency,
         UiOption.ServiceRequestEndpoint,
@@ -171,7 +170,6 @@ public class DuccServiceApi
             UiOption.ProcessJvmArgs,
             UiOption.ProcessDebug,
             UiOption.Classpath,
-            UiOption.ClasspathOrder,
     }; 
     
     // These options are only valid for services with an explicit pinger

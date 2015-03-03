@@ -442,6 +442,9 @@ public class CommandLine
         String v;
         for ( i = 0; i < args.length; i++ ) {
         	
+        	if (args[i] == null) {		// May have been removed by CliFixups
+        		continue;
+        	}
             // constant: at the top of the loop we must be poised at the next '-' string
             //           must throw otherwise
             if ( args[i].startsWith("--") ) {

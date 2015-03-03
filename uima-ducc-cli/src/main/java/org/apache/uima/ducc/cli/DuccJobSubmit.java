@@ -87,7 +87,6 @@ public class DuccJobSubmit
         UiOption.WaitForCompletion,
         UiOption.CancelOnInterrupt,
         UiOption.ServiceDependency,
-        UiOption.ClasspathOrder,
     };
 
     private AllInOneLauncher allInOneLauncher = null;
@@ -152,8 +151,8 @@ public class DuccJobSubmit
     {
         init (this.getClass().getName(), opts, args, jobRequestProperties, consoleCb);
         check_descriptor_options();
-        if(isAllInOne()) {
-            allInOneLauncher = new AllInOneLauncher(args, consoleCb);
+        if (isAllInOne()) {
+            allInOneLauncher = new AllInOneLauncher(userSpecifiedProperties, consoleCb);  // Pass the already fixed-up user properties
         }
     }
 
@@ -161,7 +160,7 @@ public class DuccJobSubmit
      * This form of the constructor allows the API user to capture
      * messages, rather than directing them to stdout. 
      *
-     * @param props Properties file contianing string arguments as described in the 
+     * @param props Properties file containing string arguments as described in the 
      *      <a href="/doc/duccbook.html#DUCC_CLI_SUBMIT">DUCC CLI reference.</a>
      * @param consoleCb If provided, messages are directed to it instead of
      *        stdout.
@@ -171,9 +170,8 @@ public class DuccJobSubmit
     {
         init (this.getClass().getName(), opts, props, jobRequestProperties, consoleCb);
         check_descriptor_options();
-        if(isAllInOne()) {
-            String[] args = mkArgs(props);
-            allInOneLauncher = new AllInOneLauncher(args, consoleCb);
+        if (isAllInOne()) {
+            allInOneLauncher = new AllInOneLauncher(userSpecifiedProperties, consoleCb);  // Pass the already fixed-up user properties
         }
     }
     
@@ -371,7 +369,8 @@ public class DuccJobSubmit
             }
         }
         catch(Exception e) {
-            System.out.println("Cannot initialize: " + e);
+            System.out.println("Cannot initialize: ");
+            e.printStackTrace();
             System.exit(1);
         }
     }
