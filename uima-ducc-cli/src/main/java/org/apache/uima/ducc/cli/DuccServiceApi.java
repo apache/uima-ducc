@@ -35,6 +35,7 @@ import org.apache.uima.ducc.transport.event.ServiceRegisterEvent;
 import org.apache.uima.ducc.transport.event.ServiceStartEvent;
 import org.apache.uima.ducc.transport.event.ServiceStopEvent;
 import org.apache.uima.ducc.transport.event.ServiceUnregisterEvent;
+import org.apache.uima.ducc.transport.event.cli.SpecificationProperties;
 import org.apache.uima.ducc.transport.event.sm.IService.ServiceType;
 import org.apache.uima.ducc.transport.event.sm.IService.Trinary;
 import org.apache.uima.ducc.transport.event.sm.IServiceReply;
@@ -367,7 +368,7 @@ public class DuccServiceApi
     public IServiceReply register(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init (this.getClass().getName(), registration_options, args, null, dp, callback, "sm");
 
         // Note: dp & cli_props are identical ... use only the class variable here for consistency
@@ -477,7 +478,7 @@ public class DuccServiceApi
     public IServiceReply unregister(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), unregister_options, args, null, dp, callback, "sm");
         
 
@@ -506,7 +507,7 @@ public class DuccServiceApi
     public IServiceReply start(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), start_options, args, null, dp, callback, "sm");        
 
         Pair<Integer, String> id = getId(UiOption.Start);
@@ -540,7 +541,7 @@ public class DuccServiceApi
     public IServiceReply stop(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), stop_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Stop);
@@ -574,7 +575,7 @@ public class DuccServiceApi
     public IServiceReply modify(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
 
         inhibitDefaults();
         init (this.getClass().getName(), modify_options, args, null, dp, callback, "sm");
@@ -607,7 +608,7 @@ public class DuccServiceApi
     public IServiceReply modifyX(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
 
         init (this.getClass().getName(), modify_options, args, null, dp, callback, "sm");
 
@@ -615,7 +616,7 @@ public class DuccServiceApi
         String user = dp.getProperty(UiOption.User.pname());
         byte[] auth_block = (byte[]) dp.get(UiOption.Signature.pname());
 
-        DuccProperties mods = new DuccProperties();        
+        DuccProperties mods = new SpecificationProperties();        
         ServiceModifyEvent ev = new ServiceModifyEvent(user, id.first(), id.second(), mods, auth_block, CliVersion.getVersion());
         int instances = getInstances(-1);
         Trinary autostart = getAutostart();
@@ -663,7 +664,7 @@ public class DuccServiceApi
     public IServiceReply query(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), query_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = null;
@@ -689,7 +690,7 @@ public class DuccServiceApi
     public IServiceReply observeReferences(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), observe_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Observe);
@@ -710,7 +711,7 @@ public class DuccServiceApi
     public IServiceReply ignoreReferences(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), ignore_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Ignore);
@@ -731,7 +732,7 @@ public class DuccServiceApi
     public IServiceReply enable(String[] args)
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), enable_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Enable);
@@ -752,7 +753,7 @@ public class DuccServiceApi
     public IServiceReply disable(String[] args)    
         throws Exception
     {
-        DuccProperties dp = new DuccProperties();
+        DuccProperties dp = new SpecificationProperties();
         init(this.getClass().getName(), disable_options, args, null, dp, callback, "sm");
 
         Pair<Integer, String> id = getId(UiOption.Disable);

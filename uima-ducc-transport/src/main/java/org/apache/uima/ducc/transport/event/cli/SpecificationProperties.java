@@ -50,4 +50,13 @@ public class SpecificationProperties extends DuccProperties implements Serializa
 	public static String key_submitter_pid_at_host = "submitter_pid_at_host";
 	
 	public static String key_reason = "reason";
+	
+	/*
+	 * Disable place-holder expansion in DuccProperties.getProperty as CLI does it when processing the options,
+	 * and any unresolved ones must be left asis, e.g. DUCC_SERVICE_INSTANCE
+	 * All CLI apis should use this or a subclass of it.
+	 */
+	public SpecificationProperties() {
+		resolvePlaceholders = false;
+	}
 }

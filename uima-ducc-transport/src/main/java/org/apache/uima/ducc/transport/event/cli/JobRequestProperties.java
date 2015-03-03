@@ -84,14 +84,6 @@ public class JobRequestProperties extends JobSpecificationProperties implements 
 	        key_service_dependency
 	        );
 	
-	/*
-	 * Disable place-holder expansion in DuccProperties.getProperty as CLI does it when processing the options,
-	 * and any unresolved ones must be left asis, e.g. DUCC_SERVICE_INSTANCE
-	 */
-	public JobRequestProperties() {
-		resolvePlaceholders = false;
-	}
-
 	public void specification(DuccLogger logger) {
 		String methodName = "specification";
 		Enumeration<Object> keys = keys();
