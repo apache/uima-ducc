@@ -247,4 +247,9 @@ public class ServiceComponent extends AbstractDuccComponent implements
 		}
 	}
 
+	public void resetInvestment(String key) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

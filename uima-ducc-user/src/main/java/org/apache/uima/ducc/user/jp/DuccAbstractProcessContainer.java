@@ -25,8 +25,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.uima.UIMAFramework;
+import org.apache.uima.analysis_engine.metadata.AnalysisEngineMetaData;
+import org.apache.uima.cas.CAS;
+import org.apache.uima.cas.impl.XmiSerializationSharedData;
+import org.apache.uima.ducc.CasHelper;
 import org.apache.uima.ducc.user.common.DuccUimaSerializer;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
+import org.apache.uima.resource.metadata.FsIndexDescription;
+import org.apache.uima.resource.metadata.TypePriorities;
+import org.apache.uima.resource.metadata.TypeSystemDescription;
+import org.apache.uima.util.CasCreationUtils;
 
 public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 	// Container implementation must implement the following methods
@@ -34,6 +43,7 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
     protected abstract int doInitialize(Properties p, String[] arg) throws Exception;
     protected abstract void doStop() throws Exception;
     protected abstract List<Properties>  doProcess(Object subject) throws Exception;
+    protected 	AnalysisEngineMetaData analysisEngineMetadata;
 
 	protected Throwable lastError = null;
     protected int scaleout=1;
@@ -41,6 +51,35 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 	protected static Map<Long, DuccUimaSerializer> serializerMap =
 			new HashMap<Long, DuccUimaSerializer>();
 
+	/**
+	 * This method is called to fetch a WorkItem ID from a given CAS which
+	 * is required to support investment reset. 
+	 *
+	 */
+	public String getKey(String xmi) throws Exception {
+		if ( analysisEngineMetadata == null ) {
+			// WorkItem ID (key) is only supported for pieces 'n parts 
+			return null;
+		} 
+		Properties props = new Properties();
+        props.setProperty(UIMAFramework.CAS_INITIAL_HEAP_SIZE, "1000");
+
+		TypeSystemDescription tsd = analysisEngineMetadata.getTypeSystem();
+		TypePriorities tp = analysisEngineMetadata.getTypePriorities();
+		FsIndexDescription[] fsid = analysisEngineMetadata.getFsIndexes();
+		CAS cas;
+		synchronized( CasCreationUtils.class) {
+			cas = CasCreationUtils.createCas(tsd, tp, fsid, props);
+		}
+		// deserialize the CAS
+		XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
+		getUimaSerializer().
+		    deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
+		
+		String key = CasHelper.getId(cas);
+		cas.release();
+		return key;
+	}
     public int getScaleout( ){
 		return scaleout;
 	}

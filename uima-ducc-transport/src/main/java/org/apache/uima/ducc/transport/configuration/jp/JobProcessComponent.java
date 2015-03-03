@@ -20,7 +20,10 @@
 package org.apache.uima.ducc.transport.configuration.jp;
 
 import java.lang.reflect.Method;
+import java.net.SocketTimeoutException;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,11 +32,15 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.camel.CamelContext;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.uima.ducc.common.component.AbstractDuccComponent;
 import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.container.FlagsHelper;
 import org.apache.uima.ducc.common.main.DuccService;
 import org.apache.uima.ducc.common.utils.DuccLogger;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction;
+import org.apache.uima.ducc.container.net.iface.IMetaCasTransaction.Type;
 import org.apache.uima.ducc.transport.event.common.IProcessState.ProcessState;
 
 public class JobProcessComponent extends AbstractDuccComponent 
@@ -56,10 +63,12 @@ implements IJobProcessor{
 	ScheduledThreadPoolExecutor executor = null;
 	ExecutorService tpe = null;
     private volatile boolean uimaASJob=false;
+    Map<String, IMetaCasTransaction> transactionMap =
+    		new ConcurrentHashMap<String, IMetaCasTransaction>();
+    
     
 	private DuccHttpClient httpClient = null;
     private Object processorInstance=null;
-//    private String[] args = null;
 	public JobProcessComponent(String componentName, CamelContext ctx,JobProcessConfiguration jpc) {
 		super(componentName,ctx);
 		this.configuration = jpc;
@@ -115,6 +124,37 @@ implements IJobProcessor{
 	public int getTimeout() {
 		return this.timeout;
 	}
+	
+	public void resetInvestment(String key) throws Exception {
+		if ( httpClient != null && transactionMap.containsKey(key) ) {
+			// Fetch a transaction object associated with a WI id (key)
+			IMetaCasTransaction transaction = transactionMap.get(key);
+			PostMethod postMethod = new PostMethod(httpClient.getJdUrl());
+			// Dont return serialized CAS to reduce the msg size
+			transaction.getMetaCas().setUserSpaceCas(null);
+			transaction.setType(Type.InvestmentReset);
+			
+			// Set request timeout
+			postMethod.getParams().setParameter(HttpMethodParams.SO_TIMEOUT, getTimeout());
+ 			// Retries timeouts, otherwise throws RuntimeException. Don't rethrow
+			// the original Exception as it may contain classes that are not
+			// loaded into the user container from which this call originated.
+			while( isRunning() ) {
+    			try {
+    				logger.info("resetInvestment", null, "User Requested Investment Reset - sending request to JD - WI:"+transaction.getMetaCas().getSystemKey()+" user key:"+key);
+        			httpClient.execute(transaction, postMethod);
+        			break;
+    			} catch(SocketTimeoutException  e) {
+    				logger.info("resetInvestment", null, "Timeout while waiting for Investment Reset response from JD - retrying - WI:"+transaction.getMetaCas().getSystemKey());
+    			} catch(Exception e) {
+    				logger.info("resetInvestment", null, "Error while trying send Investment Reset request to JD. Returning to the caller (no retries) WI:"+transaction.getMetaCas().getSystemKey());
+    				logger.info("resetInvestment", null, e);
+    				throw new RuntimeException("Unable to deliver Investment Reset request to JD due to "+e.getCause().getMessage());
+    			}
+            	
+            }
+		}  
+	}
 	/**
 	 * This method is called by super during ducc framework boot
 	 * sequence. It creates all the internal components and worker threads
@@ -123,12 +163,17 @@ implements IJobProcessor{
 	 */
 	public void start(DuccService service, String[] args) throws Exception {
 		super.start(service, args);
-		
+        
 		try {
 			if ( args == null || args.length ==0 || args[0] == null || args[0].trim().length() == 0) {
 				logger.warn("start", null, "Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
                 throw new RuntimeException("Missing Deployment Descriptor - the JP Requires argument. Add DD for UIMA-AS job or AE descriptor for UIMA jobs");
 			}
+			// this class implements resetInvestment method
+			Method m = this.getClass().getDeclaredMethod("resetInvestment", String.class);
+			// register this class and its method to handle investment reset
+			service.registerInvestmentResetCallback(this, m);
+
 			String processJmxUrl = super.getProcessJmxUrl();
 			// tell the agent that this process is initializing
 			agent.notify(ProcessState.Initializing, processJmxUrl);
@@ -210,7 +255,7 @@ implements IJobProcessor{
 		    	// Create and start worker threads that pull Work Items from the JD
 		    	Future<?>[] threadHandles = new Future<?>[scaleout];
 				for (int j = 0; j < scaleout; j++) {
-					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, httpClient, processorInstance, workerThreadCount, threadReadyCount));
+					threadHandles[j] = tpe.submit(new HttpWorkerThread(this, httpClient, processorInstance, workerThreadCount, threadReadyCount, transactionMap));
 				}
 				// wait until all process threads initialize
 				threadReadyCount.await();

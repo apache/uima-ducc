@@ -58,7 +58,6 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 	// sure that a thread used to initialized the AE is used to call process().
 	// Some AEs depend on ThreadLocal storage.
 	UimaAnalysisEngineInstancePoolWithThreadAffinity instanceMap = new UimaAnalysisEngineInstancePoolWithThreadAffinity();
-	AnalysisEngineMetaData analysisEngineMetadata;
    
 	private static CasPool casPool = null;
 	  AtomicInteger counter = new AtomicInteger();
@@ -147,6 +146,9 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			instanceMap.checkin(ae);
 			if (instanceMap.size() == scaleout) {
 				try {
+					Properties props = new Properties();
+			        props.setProperty(UIMAFramework.CAS_INITIAL_HEAP_SIZE, "1000");
+
 					analysisEngineMetadata = ae.getAnalysisEngineMetaData();
 					casPool = new CasPool(scaleout, analysisEngineMetadata,rm);
 					latch.countDown();
@@ -189,8 +191,6 @@ public class UimaProcessContainer extends DuccAbstractProcessContainer {
 			lastError = null;
 			XmiSerializationSharedData deserSharedData = new XmiSerializationSharedData();
 			// deserialize the CAS
-//			uimaSerializer.deserializeCasFromXmi((String) xmi, cas,
-//					deserSharedData, true, -1);
 			super.getUimaSerializer().
 			    deserializeCasFromXmi((String)xmi, cas, deserSharedData, true,-1);
 

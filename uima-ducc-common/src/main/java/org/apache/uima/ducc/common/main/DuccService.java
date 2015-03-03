@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.common.main;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.apache.uima.ducc.common.component.IJobProcessor;
 import org.apache.uima.ducc.common.exception.DuccComponentInitializationException;
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.Utils;
+import org.apache.uima.ducc.user.common.investment.Investment;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -55,11 +57,14 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class DuccService extends AbstractDuccComponent {
 	public static final String DUCC_PROPERTY_FILE="ducc.deploy.configuration";
 	public static final String DUCC_DEPLOY_COMPONENTS="ducc.deploy.components";
-
+    //private Investment investment = null;
 	private Main main;
     private static DuccLogger globalLogger = null;
     private ApplicationContext context;
     Map<String,AbstractDuccComponent> duccComponents = null;
+    
+    private Object investmentInstance;
+    
     private String[] args = null;
 	public DuccService() {
 		super("");
@@ -190,6 +195,24 @@ public class DuccService extends AbstractDuccComponent {
 	  return null;
 	}
 	/**
+	 * This method returns an instance of IJobProcessor which would only exist
+	 * in a JP and UIMA-based AP.
+	 * 
+	 * @return - IJobProcessor instance
+	 */
+	public IJobProcessor getJobProcessorComponent() {
+	    //  Extract all Ducc components from Spring container
+	    Map<String,AbstractDuccComponent> duccComponents = 
+	      context.getBeansOfType(AbstractDuccComponent.class);
+	    // scan for component which implements IJobProcessor interface.
+	    for(Map.Entry<String, AbstractDuccComponent> duccComponent: duccComponents.entrySet()) {
+	      if ( duccComponent.getValue() instanceof IJobProcessor) {
+	        return (IJobProcessor)duccComponent.getValue();
+	      }
+	    }
+		return null;
+	}
+	/**
 	 * This method is only called when launching a JP.
 	 * @param instanceType
 	 * @return
@@ -310,5 +333,13 @@ public class DuccService extends AbstractDuccComponent {
             }
         }
 		return "";
+	}
+	public void registerInvestmentInstance(Object instance) {
+		this.investmentInstance = instance;
+	}
+	public void registerInvestmentResetCallback(Object o, Method m) throws Exception {
+		Method investmentInstanceMethod = 
+				investmentInstance.getClass().getDeclaredMethod("setJobComponent", Object.class, Method.class);
+		investmentInstanceMethod.invoke(investmentInstance, o,m);
 	}
 }

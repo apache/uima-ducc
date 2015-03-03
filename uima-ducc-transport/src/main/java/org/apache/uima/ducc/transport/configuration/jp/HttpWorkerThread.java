@@ -25,7 +25,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.SocketTimeoutException;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -52,14 +54,18 @@ public class HttpWorkerThread implements Runnable {
 	private Object processorInstance = null;
     private static AtomicInteger IdGenerator =
     		new AtomicInteger();
+    private Map<String, IMetaCasTransaction> transactionMap =
+    		new ConcurrentHashMap<String, IMetaCasTransaction>();
+
 	public HttpWorkerThread(JobProcessComponent component, DuccHttpClient httpClient,
 			Object processorInstance, CountDownLatch workerThreadCount,
-			CountDownLatch threadReadyCount) {
+			CountDownLatch threadReadyCount, Map<String, IMetaCasTransaction> transactionMap) {
 		this.duccComponent = component;
 		this.httpClient = httpClient;
 		this.processorInstance = processorInstance;
 		this.workerThreadCount = workerThreadCount;
 		this.threadReadyCount = threadReadyCount;
+		this.transactionMap = transactionMap;
 	}
 	@SuppressWarnings("unchecked")
 	public void run() {
@@ -67,6 +73,7 @@ public class HttpWorkerThread implements Runnable {
 		PostMethod postMethod = null;
 	    logger.info("HttpWorkerThread.run()", null, "Starting JP Process Thread Id:"+Thread.currentThread().getId());
 	    Method processMethod = null;
+	    Method getKeyMethod = null;
 	    boolean error=false;
 	    // ***** DEPLOY ANALYTICS ***********
 	    // First, deploy analytics in a provided process container. Use java reflection to call
@@ -74,6 +81,7 @@ public class HttpWorkerThread implements Runnable {
 	    // loaded from ducc-user jar provided in system classpath
 	    try {
 			processMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("process", Object.class);	
+			getKeyMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("getKey", String.class);	
 			
 			synchronized(HttpWorkerThread.class) {
 				Method deployMethod = processorInstance.getClass().getSuperclass().getDeclaredMethod("deploy");
@@ -191,17 +199,36 @@ public class HttpWorkerThread implements Runnable {
 						// the Agent will wait for 1 minute (default) before killing
 						// this process via kill -9
 						try {
+							// To support investment reset we need to store transaction
+							// object under a known key. This key is stored in the CAS.
+							// In order to get to it, we need to deserialize the CAS 
+							// in the user container. When an asynchronous investment
+							// reset call is made from the user code, it will contain
+							// that key to allow us to look up original transaction so that
+							// we can send reset request to the JD.
+							String key = (String)
+									getKeyMethod.invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
+							if ( key != null ) {
+								// add transaction under th
+								transactionMap.put(key, transaction);
+							}
+							
 							//    ********** PROCESS() **************
-							// using java reflection, call process to analyze the CAS
+							// using java reflection, call process to analyze the CAS. While 
+							// we are blocking, user code may issue investment reset asynchronously.
 							 List<Properties> metrics = (List<Properties>)processMethod.
 							   invoke(processorInstance, transaction.getMetaCas().getUserSpaceCas());
 							//    ***********************************
-							 
+							if ( key != null ) {
+                                // process ended we no longer expect investment reset from user
+								// so remove transaction from the map
+								transactionMap.remove(key);
+							}
+							
 		                    logger.debug("run", null,"Thread:"+Thread.currentThread().getId()+" process() completed");
 							IPerformanceMetrics metricsWrapper =
 									new PerformanceMetrics();
 							metricsWrapper.set(metrics);
-							
 							transaction.getMetaCas().setPerformanceMetrics(metricsWrapper);
 							
 						}  catch( InvocationTargetException ee) {

@@ -70,4 +70,12 @@ public interface IProcessContainer {
 	 * @return
 	 */
 	public boolean useThreadAffinity();
+	
+	/**
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
+	public String getKey(String cargo) throws Exception;
+	
 }

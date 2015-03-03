@@ -25,6 +25,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 
+import org.apache.uima.ducc.user.common.investment.Investment;
 import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
 
 /**
@@ -33,6 +34,8 @@ import org.apache.uima.ducc.user.jp.iface.IProcessContainer;
  */
 public class DuccJobService {
 	boolean DEBUG = false;
+	private Investment investment = null;
+	
 	public static URLClassLoader create(String classPath)
 			throws MalformedURLException {
 		return create(classPath.split(":"));
@@ -91,7 +94,8 @@ public class DuccJobService {
 			System.setProperty("ducc.user.log4j.saved.configuration",log4jConfigurationFile);
 			System.getProperties().remove("log4j.configuration");
 		}
-
+        investment = new Investment();
+        
         // cache current context classloader
 		ClassLoader sysCL = Thread.currentThread().getContextClassLoader();
 		// Fetch a classpath for the fenced Ducc container
@@ -114,7 +118,11 @@ public class DuccJobService {
 
 		// initialize Ducc fenced container. It calls component's Configuration class
 		Method bootMethod = classToLaunch.getMethod("boot", String[].class);
-		bootMethod.invoke(duccContainerInstance, (Object) args);
+		try {
+			bootMethod.invoke(duccContainerInstance, (Object) args);
+		} catch( Exception e) {
+			e.printStackTrace();
+		}
 
 		// below property is set by component's Configuration class. It can also
 		// be provided on the command line in case a custom processor is needed.
@@ -139,6 +147,11 @@ public class DuccJobService {
 		Method setProcessorMethod = classToLaunch.getMethod("setProcessor",
 				Object.class, String[].class);
 		setProcessorMethod.invoke(duccContainerInstance, pc, args);
+
+		Method registerInvestmentInstanceMethod = classToLaunch.getMethod("registerInvestmentInstance",
+				Object.class);
+		registerInvestmentInstanceMethod.invoke(duccContainerInstance, investment);
+		
         // Call DuccService.start() to initialize the process
 		// and begin processing
 		Method startMethod = classToLaunch.getMethod("start");// ,
