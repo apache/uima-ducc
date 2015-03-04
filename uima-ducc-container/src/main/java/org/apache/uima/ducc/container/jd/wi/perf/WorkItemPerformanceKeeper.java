@@ -99,6 +99,11 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 	}
 	
 	@Override
+	public void count() {
+		count.addAndGet(1);
+	}
+	
+	@Override
 	public void dataAdd(String name, String uniqueName, long time) {
 		String location = "dataAdd";
 		try {
@@ -113,7 +118,6 @@ public class WorkItemPerformanceKeeper implements IWorkItemPerformanceKeeper {
 			// stats
 			SynchronizedStats stats = data.synchronizedStats;
 			stats.addValue(time);
-			count.addAndGet(1);
 			total.addAndGet(time);
 			// sum
 			long lTimeSum = (long)stats.getSum();

@@ -144,6 +144,7 @@ public class ActionEnd extends Action implements IAction {
 							size = list.size();
 							JobDriver jd = JobDriver.getInstance();
 							IWorkItemPerformanceKeeper wipk = jd.getWorkItemPerformanceKeeper();
+							wipk.count();
 							for(Properties properties : list) {
 								String name = properties.getProperty(keyName);
 								String uniqueName = properties.getProperty(keyUniqueName);

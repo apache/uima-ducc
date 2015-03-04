@@ -24,6 +24,7 @@ import java.util.List;
 public interface IWorkItemPerformanceKeeper {
 
 	public List<IWorkItemPerformanceInfo> dataGet();
+	public void count();
 	public void dataAdd(String name, String uniqueName, long millis);
 	public void publish();
 }
