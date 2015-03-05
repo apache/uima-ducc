@@ -1559,6 +1559,39 @@ public class StateManager {
 									break;
 								case Job_Uima_AS_Process:
 									OrchestratorCommonArea.getInstance().getProcessAccounting().setStatus(inventoryProcess);
+									try {
+										if(!job.isInitialized()) {
+											IDuccProcessMap map = job.getProcessMap();
+											for(Entry<DuccId, IDuccProcess> entry : map.entrySet()) {
+												IDuccProcess process = entry.getValue();
+												StringBuffer sb = new StringBuffer();
+												sb.append("pid:"+process.getPID()+" ");
+												sb.append("state:"+process.getProcessState()+" ");
+												sb.append("reason:"+process.getReasonForStoppingProcess()+" ");
+												logger.info(methodName, job.getDuccId(), sb.toString());
+											}
+											long initFailureCount = job.getProcessInitFailureCount();
+											long startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
+											if(initFailureCount >= startup_initialization_error_limit) {
+												String reason = "process inititialization failure count["+initFailureCount+"] meets startup initialization error limit["+startup_initialization_error_limit+"]";
+												logger.warn(methodName, job.getDuccId(), reason);
+												JobCompletionType jobCompletionType = JobCompletionType.CanceledBySystem;
+												Rationale rationale = new Rationale(reason);
+												ProcessDeallocationType processDeallocationType = ProcessDeallocationType.JobCanceled;
+												stateManager.jobTerminate(job, jobCompletionType, rationale, processDeallocationType);
+											}
+											else {
+												String reason = "process failure count["+initFailureCount+"] does not exceed startup initialization error limit["+startup_initialization_error_limit+"]";
+												logger.debug(methodName, job.getDuccId(), reason);
+											}
+										}
+										else {
+											logger.trace(methodName, job.getDuccId(), "job is initialized");
+										}
+									}
+									catch(Exception e) {
+										logger.error(methodName, jobId, e);
+									}
 									break;
 								}
 								// <UIMA-3923>
