@@ -310,9 +310,6 @@ public abstract class CliBase
             }
             commandLine = new CommandLine(args, uiOpts, defaults);
             commandLine.parse();
-            
-            // Remove the file option to avoid re-parsing or confusion in the saved properties files
-            commandLine.allOptions().remove(UiOption.Specification);
         }
         commandLine.verify();  // Insure all the rules specified by the IUiOpts are enforced        
         

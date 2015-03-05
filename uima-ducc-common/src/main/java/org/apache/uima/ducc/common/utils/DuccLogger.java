@@ -53,7 +53,7 @@ public class DuccLogger
     private final static String DEFAULT_COMPONENT = "DUCC";
     private static List<Logger> nonDuccLoggers = new ArrayList<Logger>();
 
-    private boolean debug = false;
+    private boolean debug = System.getProperty("log4j.debug") != null;    // Use the log4j debugging flag
 
     static protected void initLogger()
     {
