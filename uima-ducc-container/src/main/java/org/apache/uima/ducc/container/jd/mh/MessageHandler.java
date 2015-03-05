@@ -95,7 +95,7 @@ public class MessageHandler implements IMessageHandler {
 	
 	//
 	
-	private static AtomicBoolean piggybacking = new AtomicBoolean(false);
+	private static AtomicBoolean piggybacking = new AtomicBoolean(true);
 	
 	public static void piggybackingDisable() {
 		piggybacking.set(false);
