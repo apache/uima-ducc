@@ -46,7 +46,6 @@ public class ProxyDeployableGeneration {
 	private String[] requiredClasses = { 
 			"org.apache.uima.ducc.user.dgen.iface.DeployableGeneration",
 			"org.apache.uima.ducc.user.dgen.iface.IDeployableGeneration",
-			"org.apache.uima.aae.UimaSerializer",
 			};
 	
 	public ProxyDeployableGeneration() throws ProxyDeployableGenerationException {
