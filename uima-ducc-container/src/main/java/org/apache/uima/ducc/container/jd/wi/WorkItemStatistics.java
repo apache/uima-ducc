@@ -27,6 +27,9 @@ public class WorkItemStatistics implements IWorkItemStatistics {
 	
 	private long mintime = 0;
 	
+	public WorkItemStatistics() {	
+	}
+	
 	@Override
 	public void ended(IWorkItem wi) {
 		long time = wi.getMillisOperating();
