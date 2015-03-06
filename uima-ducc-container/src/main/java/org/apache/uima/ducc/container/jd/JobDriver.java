@@ -85,9 +85,7 @@ public class JobDriver {
 	private boolean killJob = false;
 	private CompletionType completionType = CompletionType.Normal;
 	private String completionText = null;
-	
-	private int startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
-	
+
 	private JobDriver() throws JobDriverException {
 		initialize();
 	}
@@ -244,6 +242,7 @@ public class JobDriver {
 	}
 	
 	public int getStartupInitializationErrorLimit() {
+		int startup_initialization_error_limit = DuccPropertiesResolver.get(DuccPropertiesResolver.ducc_jd_startup_initialization_error_limit, 1);
 		return startup_initialization_error_limit;
 	}
 }
