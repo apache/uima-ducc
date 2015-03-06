@@ -20,15 +20,19 @@ package org.apache.uima.ducc.rm.scheduler;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 public class User
     implements IEntity
 {
     private String id;
-    private HashMap<IRmJob, IRmJob> jobs = new HashMap<IRmJob, IRmJob>();    // my jobs
-    private HashMap<ResourceClass, HashMap<IRmJob, IRmJob>> jobsByClass = new HashMap<ResourceClass, HashMap<IRmJob, IRmJob>>();
+    private Map<IRmJob, IRmJob> jobs = new HashMap<IRmJob, IRmJob>();    // my jobs
+    private Map<ResourceClass, Map<IRmJob, IRmJob>> jobsByClass = new HashMap<ResourceClass, Map<IRmJob, IRmJob>>();
 
-    private HashMap<Integer, HashMap<IRmJob, IRmJob>> jobsByOrder = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
+    private Map<Integer, Map<IRmJob, IRmJob>> jobsByOrder = new HashMap<Integer, Map<IRmJob, IRmJob>>();
+
+    private Map<ResourceClass, Integer> classLimits = new HashMap<ResourceClass, Integer>(); // UIMA-4275
+
     //private int user_shares;       // number of shares to apportion to jobs in this user in current epoch
     private int pure_fair_share;   // uncapped un-bonused counts
     private int share_wealth;      // defrag, how many relevent Q shares do i really have?
@@ -47,12 +51,18 @@ public class User
         return 0;
     }
 
+    // UIMA-4275
+    void overrideLimit(ResourceClass rc, int lim)
+    {
+        classLimits.put(rc, lim);
+    }
+
     void addJob(IRmJob j)
     {
         jobs.put(j, j);
         int order = j.getShareOrder();
         
-        HashMap<IRmJob, IRmJob> ojobs = jobsByOrder.get(order);
+        Map<IRmJob, IRmJob> ojobs = jobsByOrder.get(order);
         if ( ! jobsByOrder.containsKey(order) ) {
             ojobs = new HashMap<IRmJob, IRmJob>();
             jobsByOrder.put(order, ojobs);
@@ -77,7 +87,7 @@ public class User
             jobs.remove(j);
 
             int order = j.getShareOrder();
-            HashMap<IRmJob, IRmJob> ojobs = jobsByOrder.get(order);
+            Map<IRmJob, IRmJob> ojobs = jobsByOrder.get(order);
             ojobs.remove(j);
             
             ResourceClass cl = j.getResourceClass();
@@ -107,7 +117,7 @@ public class User
         int K = 0;
         
         // First sum the max shares all my jobs can actually use
-        HashMap<IRmJob, IRmJob> jobs = jobsByOrder.get(order);
+        Map<IRmJob, IRmJob> jobs = jobsByOrder.get(order);
         if ( jobs == null ) {
             return 0;
         }

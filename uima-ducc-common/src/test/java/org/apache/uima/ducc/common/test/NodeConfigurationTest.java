@@ -40,6 +40,10 @@ public class NodeConfigurationTest
         "test6",  "Toplevel NP, parent is not --default--"     , "0",      // pass
         "test7",  "Class references non-existent NP"           , "1",      // fail
         "test8",  "Two NPs with no node file specified"        , "1",      // fail
+        "test9",  "max_allotment.class Incorrectly specified"  , "1",      // fail
+        "test10", "Memory limit not an integer"                , "1",      // fail
+        "test11", "Parseing userlist in class definitions"     , "0",      // pass
+        "test12", "User max references invalid class"          , "1",      // fail
     };
 
     List<String> successes = new ArrayList<String>();
@@ -58,7 +62,8 @@ public class NodeConfigurationTest
         System.getProperties().setProperty("DUCC_HOME", resolve(test));
         String nodefile = "ducc.nodes";
         String config   = "ducc.classes";
-        NodeConfiguration nc = new NodeConfiguration(config, nodefile, null);
+        String users    = "ducc.users";
+        NodeConfiguration nc = new NodeConfiguration(config, nodefile, users, null);
 
         int rc = 0;
         try {

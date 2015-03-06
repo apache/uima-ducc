@@ -52,7 +52,7 @@ public class OrchestratorHelper {
 		String class_definitions = null;
 		try {
 			class_definitions =  System.getProperty(DUCC_HOME) + "/"+resources+"/"+SystemPropertyResolver.getStringProperty(DuccPropertiesResolver.ducc_rm_class_definitions, scheduler+"."+classes);
-			nc = new NodeConfiguration(class_definitions, logger);
+			nc = new NodeConfiguration(class_definitions, null, null, logger);  // UIMA-4275 use single common constructor
 			nc.readConfiguration();
 		}
 		catch(Throwable t) {

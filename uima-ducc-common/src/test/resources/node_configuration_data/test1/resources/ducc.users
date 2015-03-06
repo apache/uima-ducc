@@ -1,0 +1,10 @@
+User user1 {
+    max_allotment.normal     = 50
+    max_allotment.normal-npA = 17
+}
+
+User user2 {
+    max_allotment.normal = 200
+    max_allotment.fixed = 72
+
+}

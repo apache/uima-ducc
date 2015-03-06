@@ -47,19 +47,22 @@ public class NodeConfiguration
 {
     String config_file_name = null;
     String ducc_nodes = null;
+    String ducc_users = null;
     BufferedReader in;
     int lineno = 0;
     DuccProperties defaultFairShareClass  = new DuccProperties();
     DuccProperties defaultFixedShareClass = new DuccProperties();
     DuccProperties defaultReserveClass    = new DuccProperties();
     DuccProperties defaultNodepool        = new DuccProperties();
+    DuccProperties defaultUser            = new DuccProperties();                         // UIMA-4275
 
     Map<String, DuccProperties> nodepools = new HashMap<String, DuccProperties>();        // all nodepools, by name
     ArrayList<DuccProperties> independentNodepools = new ArrayList<DuccProperties>();     // the top-level node pools
 
     // UIMA-4142 Move all these declarations to the top and comment them
-    ArrayList<DuccProperties> classes = new ArrayList<DuccProperties>();                  // all classes, during parsing, a discard
-    Map<String, DuccProperties> clmap = new HashMap<String, DuccProperties>();            // all classes, by name
+    List<DuccProperties> classes = new ArrayList<DuccProperties>();                       // all classes, during parsing, a discard
+    Map<String, DuccProperties> clmap    = new HashMap<String, DuccProperties>();         // all classes, by name
+    Map<String, DuccProperties> usermap  = new HashMap<String, DuccProperties>();         // all users, by name UIMA-4275
     ArrayList<String> independentClasses = new ArrayList<String>();                       // all classes that don't derive from something
 
     Map<String, String> allNodes   = new HashMap<String, String>();                        // map node           -> nodepool name, map for dup checking
@@ -80,15 +83,11 @@ public class NodeConfiguration
     DuccProperties reserveDefault   = null;
     String ducc_home = null;
 
-    public NodeConfiguration(String config_file_name, DuccLogger logger)
-    {
-        this(config_file_name, null, logger);
-    }
-
-    public NodeConfiguration(String config_file_name, String ducc_nodes, DuccLogger logger)
+    public NodeConfiguration(String config_file_name, String ducc_nodes, String ducc_users, DuccLogger logger)
     {
         this.config_file_name = config_file_name;
         this.ducc_nodes = ducc_nodes;
+        this.ducc_users = ducc_users;
         this.logger = logger;
         
         ducc_home = System.getProperty("DUCC_HOME");
@@ -105,7 +104,9 @@ public class NodeConfiguration
         defaultFairShareClass.put("prediction-fudge", ""+SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 60000));
         defaultFairShareClass.put("max-processes", Integer.toString(Integer.MAX_VALUE));
         defaultFairShareClass.put("nodepool", "<required>");
+        defaultFairShareClass.put("users", "<optional>");
         defaultFairShareClass.put("debug", "fixed");
+        defaultFairShareClass.put("hostile", "false");
         defaultFairShareClass.put("abstract", "<optional>");
         defaultFairShareClass.put("children", "<optional>");
         defaultFairShareClass.put("parent", "<optional>");
@@ -124,6 +125,7 @@ public class NodeConfiguration
         defaultFixedShareClass.put("max-processes", Integer.toString(Integer.MAX_VALUE));
         defaultFixedShareClass.put("cap", Integer.toString(Integer.MAX_VALUE));
         defaultFixedShareClass.put("nodepool", "<required>");
+        defaultFixedShareClass.put("users", "<optional>");
 
         defaultReserveClass.put("type", "class");
         defaultReserveClass.put("name", "defaultReserveClass");
@@ -136,6 +138,7 @@ public class NodeConfiguration
         defaultReserveClass.put("max-machines", Integer.toString(Integer.MAX_VALUE));
         defaultReserveClass.put("cap", Integer.toString(Integer.MAX_VALUE));
         defaultReserveClass.put("nodepool", "<required>");
+        defaultReserveClass.put("users", "<optional>");
         defaultReserveClass.put("enforce", "true");
 
         defaultNodepool.put("type", "nodepool");
@@ -143,6 +146,9 @@ public class NodeConfiguration
         defaultNodepool.put("nodefile", "<optional>");
         defaultNodepool.put("parent", "<optional>");
         defaultNodepool.put("domain", "<optional>");
+
+        defaultUser.put("type", "user");
+        defaultUser.put("name", "<optional>");
      }
 
     /**
@@ -156,7 +162,7 @@ public class NodeConfiguration
         }
         File f = new File(file);
         if ( ! f.exists() ) {
-            throw new IllegalConfigurationException("File " + file + " does not exist or cannot be read");
+            return null;              // UIMA-4275 Defer crash to caller, making it optional.
         }
         return file;
     }
@@ -232,7 +238,7 @@ public class NodeConfiguration
             line = line.trim();
             if ( line.equals("") )      continue;
             if ( line.startsWith("#") ) continue;
-            return line;
+            return line + ";";          // convert linend into ; so we can do lists
         }
         return null;
     }
@@ -247,7 +253,7 @@ public class NodeConfiguration
         while ( (buf == null) || !buf.hasMoreTokens() ) {
             String line = readLine();
             if ( line == null ) return false;
-            buf = new StringTokenizer(line, "\n\t\r\f{} =;", true);
+            buf = new StringTokenizer(line, "\n\t\r\f{} =,;", true);
         }
         return true;
     }
@@ -255,43 +261,76 @@ public class NodeConfiguration
     /**
      * Provide a continual stream of tokens, throwing out whitespace and semocolons
      */
+    String pushback = null;
     String nextToken()
         throws IOException
     {
+        if ( pushback != null ) {
+            // System.out.println("Return " + pushback + " from pushback.");
+            String ret = pushback;
+            pushback = null;
+            return ret;
+        }
+
         while ( fillBuf() ) {
             String tok = null;
             while ( buf.hasMoreTokens() ) {
                 tok = buf.nextToken();
-                if ( tok.equals(" ") ) continue;
-                if ( tok.equals("\t") ) continue;
-                if ( tok.equals(";") ) continue;   // optional semicolon, ignored
+                // System.out.println("Token: " + tok);
+                if ( tok.equals(" ") ) continue;   // ignoring whitespace
+                if ( tok.equals("\t") ) continue;  // ignoring whitespace
+                if ( tok.equals(",") )  continue;  // ignoring commas as whitespace
+
                 return tok;
             }
         }                         
         return null;
     }
 
+    /**
+     * Consume the token stream up to the next delimeter.
+     */
+    String consume()
+    	    throws IOException
+    {
+        String tok = nextToken();
+        if ( tok.equals("=") ) tok = nextToken();          // optional '='
+        if ( tok.equals("}") ) return tok;                 // start of stream is }, probably invalid
+        if ( tok.equals("{") ) return tok;                 // start of stream is {, probably invalid
+
+        String ret = null;
+        while ( tok != null ) {
+            if ( tok.equals(";") ) return ret;            // logical eol
+
+            if ( tok.equals("}") || tok.equals("{") ) {   // start or begin of stanza, not at start of stream
+                pushback = tok;                           // we allow 1 token pushback
+                return ret;
+            }
+            if ( ret == null ) {
+                ret = tok;
+            } else {
+                ret = ret + " " + tok;
+            }
+            tok = nextToken();
+        }
+        return ret;
+    }
+
     void parseInternal(DuccProperties props)
         throws IOException,
         IllegalConfigurationException
     {
-//         System.out.println("Parsing nodepool " + name);
-//         if ( parent == null ) {
-//             System.out.println("     <base>");
-//         } else {
-//             System.out.println("     Inherits from " + parent);
-//         }
-
         String tok = null;
         while ( (tok = nextToken() ) != null ) {
+        		if ( tok.equals(";") ) continue;
             if ( tok.equals("}") ) return;
 
             String k = tok;
             if ( k.equals("{") ) {
                 throw new IllegalConfigurationException("Missing '}' near line " + lineno + " in " + config_file_name);
             }
-            String v = nextToken();
-            if ( v.equals("=") ) v = nextToken();     // (optionally allow k v  or k=v)
+
+            String v = consume();
 
             if ( v.equals("}") ) {
                 throw new IllegalConfigurationException("Missing value near line " + lineno + " in " + config_file_name);
@@ -300,10 +339,10 @@ public class NodeConfiguration
                 throw new IllegalConfigurationException("Missing '}' near line " + lineno + " in " + config_file_name);
             }
 
-            if ( props.getProperty(k) == null ) {
+            if ( ! props.containsKey(k) ) {
                 props.put(k, v);
             } else {
-                throw new IllegalConfigurationException("Duplicate property near line " + lineno + " in " + config_file_name + ": " + k);
+                throw new IllegalConfigurationException("Duplicate property not allowed near line " + lineno + " in " + config_file_name + ": " + k);
             }
         }
         return;
@@ -313,12 +352,6 @@ public class NodeConfiguration
         throws IOException,
         IllegalConfigurationException
     {
-//         System.out.println("Parsing nodepool " + name);
-//         if ( parent == null ) {
-//             System.out.println("     <base>");
-//         } else {
-//             System.out.println("     Inherits from " + parent);
-//         }
 
         if ( firstNodepool == null ) {
             firstNodepool = name;
@@ -369,6 +402,23 @@ public class NodeConfiguration
         if ( parent != null ) {
             ret.put("parent", parent);
         }
+        
+        parseInternal(ret);
+
+        return ret;
+    }
+
+    // UIMA-4275
+    DuccProperties parseUser(String name, String parent)
+        throws IOException,
+        IllegalConfigurationException
+    {
+        DuccProperties ret = new DuccProperties();
+        ret.put("type", "user");
+        ret.put("name", name);
+        if ( parent != null ) {
+            ret.put("parent", parent);
+        }
 
         parseInternal(ret);
 
@@ -381,6 +431,8 @@ public class NodeConfiguration
     {
         String tok;
         while ( (tok = nextToken()) != null ) {
+
+            if ( tok.equals(";") ) continue;  // logical EOL, ignore here
             String type = tok;                // stanza type
 
             String name = nextToken();        // stanza name
@@ -402,6 +454,7 @@ public class NodeConfiguration
             
             if ( type.equals("Nodepool") ) nodepools.put(name, parseNodepool(name, parent));
             if ( type.equals("Class") )    classes.add(parseClass(name, parent));
+            if ( type.equals("User") )     usermap.put(name, parseUser(name, parent));       // UIMA-4275
         }
         return null;
     }
@@ -434,7 +487,7 @@ public class NodeConfiguration
                     throw new IllegalConfigurationException("Missing required property " + k + " in " + type + " " + name);
                 }
 
-                if ( vm.equals("<optional>") ) {     // its optional but there is no meaningful default
+                if ( vm.contains("<optional>") ) {     // its optional but there is no meaningful default
                     continue;
                 }
 
@@ -654,7 +707,12 @@ public class NodeConfiguration
 
         BufferedReader br = null;
         try {
-            nodefile = resolve(nodefile);
+            String tnodefile = resolve(nodefile);
+            if ( tnodefile == null ) {
+                throw new IllegalConfigurationException("File " + nodefile + " does not exist.");
+            }
+            nodefile = tnodefile;
+
             br = new BufferedReader(new FileReader(nodefile));
             String node = "";
             while ( (node = br.readLine()) != null ) {
@@ -807,6 +865,40 @@ public class NodeConfiguration
     }
 
     /**
+     * Make sure any classes specified in the user registry exist and specify a number.
+     * Expected format: 
+     *     max_allotment.classname = number
+     *
+     * UIMA-4275
+     */
+    void verifyUserLimits()
+        throws IllegalConfigurationException
+    {
+        for (Object o : usermap.keySet() ) {
+            DuccProperties dp = usermap.get(o);
+            for ( Object l : dp.keySet() ) {
+
+                if ( defaultUser.containsKey(l) ) continue;
+
+                String k = (String) l;
+                String val = ((String) dp.get(k)).trim();
+                if ( k.indexOf(".") <= 0 ) {
+                    throw new IllegalConfigurationException("User " + o + ": allotment incorrectly specified, cannot determine class. " + k + " = " + val);
+                }
+                String[] tmp = k.split("\\.");
+                if ( ! clmap.containsKey(tmp[1]) ) {
+                    throw new IllegalConfigurationException("User " + o + ": allotment incorrectly specified, class not defined. " + k + " = " + val);
+                }
+                try { 
+                    Integer.parseInt(val);
+                } catch ( NumberFormatException e ) {
+                    throw new IllegalConfigurationException("User " + o + ": allotment incorrectly specified, value not a number. " + k + " = " + val);
+                }
+            }
+        }
+    }
+
+    /**
      * Read all the node pool files recursively down from the properties file (p) and
      * create a map node -> nodepoolname checking for duplicates.
      * @param p      Properties file representing a nodepool
@@ -878,6 +970,11 @@ public class NodeConfiguration
         return clmap;
     }
 
+    public Map<String, DuccProperties> getUsers()
+    {
+    		return usermap;
+    }
+    
     public void readConfiguration()
         throws FileNotFoundException, 
         IOException,
@@ -888,14 +985,28 @@ public class NodeConfiguration
         }
         defaultDomain = getDomainName();
 
-        config_file_name = resolve(config_file_name);
-        in = new BufferedReader(new FileReader(config_file_name));
+        try {
+            String tconfig_file_name = resolve(config_file_name);
+            if ( tconfig_file_name == null ) {
+                throw new IllegalConfigurationException("File " + config_file_name + " does not exist.");
+            }
+            config_file_name = tconfig_file_name;
+            in = new BufferedReader(new FileReader(config_file_name));
+            
+            parseStanzas();
+            doClassInheritance();
+            connectNodepools();
+            readNpNodes(defaultDomain);
+            checkForCycles();
+        } finally {
+            if ( in != null ) {
+                try { in.close();
+                } catch (IOException e) {
+                    // nothing ... who cares if we got this far, and what can we do anyway ?
+                }
+            }
+        }
 
-        parseStanzas();
-        doClassInheritance();
-        connectNodepools();
-        readNpNodes(defaultDomain);
-        checkForCycles();
         //for (DuccProperties p : independentNodepools) {      // walk the tree and read the node files
         //    readNpNodes(p, defaultDomain);
         //}
@@ -919,11 +1030,24 @@ public class NodeConfiguration
             throw new IllegalConfigurationException(msg);
         }
 
+
+        // UIMA-4275 if classes are ok do the user registry, if it exists
         try {
-            in.close();
-        } catch (IOException e) {
-            // nothing ... who cares if we got this far, and what can we do anyway ?
+            ducc_users = resolve(ducc_users);
+            if ( ducc_users != null ) {
+                in = new BufferedReader(new FileReader(ducc_users));
+                parseStanzas();
+                verifyUserLimits();    // insure the specified classes exist
+            }
+        } finally {
+            if ( in != null ) {
+                try { in.close();
+                } catch (IOException e) {
+                    // nothing ... who cares if we got this far, and what can we do anyway ?
+                }
+            }
         }
+
     }
 
     String formatNodes(Map<String, String> nodes, int indent)
@@ -1009,8 +1133,11 @@ public class NodeConfiguration
     void printClass(DuccProperties cl)
     {        
         String methodName = "printClass";
-        logInfo(methodName, "Class " +       cl.get("name"));
+        logInfo(methodName, "Class " +      cl.get("name"));
         printProperty("Policy",             cl.get("policy"));
+        if ( cl.get("policy").equals("FAIR_SHARE") ) {
+            printProperty("hostile",        cl.get("hostile"));
+        }
         printProperty("Nodepool",           cl.get("nodepool"));
         printProperty("Priority",           cl.get("priority"));
         printProperty("Weight",             cl.get("weight"));
@@ -1023,6 +1150,22 @@ public class NodeConfiguration
         printProperty("Max Processes",      cl.get("max-processes"));
         printProperty("Max Machines",       cl.get("max-machines"));
         printProperty("Enforce Memory Size",cl.get("enforce"));
+        printProperty("Authorized Users"   ,cl.get("users"));
+
+        logInfo(methodName, "");
+    }
+
+    void printUser(DuccProperties cl)
+    {        
+        String methodName = "printUser";
+        logInfo(methodName, "User "  +      cl.get("name"));
+
+        for (Object o : cl.keySet() ) {
+        		String k = (String) o;
+            if ( k.startsWith("max_allotment.") ) {
+                printProperty(k, cl.get(k));
+            }
+        }
 
         logInfo(methodName, "");
     }
@@ -1046,6 +1189,12 @@ public class NodeConfiguration
         for ( DuccProperties p : class_set ) {
             printClass(p);
         }
+
+        DuccProperties[] user_set = usermap.values().toArray(new DuccProperties[usermap.size()]);
+        Arrays.sort(user_set, new UserSorter());
+        for ( DuccProperties p : user_set ) {
+            printUser(p);
+        }
     }
 
     static void usage(String msg)
@@ -1055,10 +1204,11 @@ public class NodeConfiguration
             System.out.println("");
         }
         System.out.println("Usage:");
-        System.out.println("    NodeConfiguration [-c class-definitions] [-n nodefile] [-p] <configfile>");
+        System.out.println("    NodeConfiguration [-c class-definitions] [-n nodefile] [-u userfile] [-p] <configfile>");
         System.out.println("Where:");
         System.out.println("    -c <class-definitions> is the class definition file, usually ducc.classes.");
         System.out.println("    -n <nodefile> is nodefile used with tye system, defaults to ducc.nodes");
+        System.out.println("    -u <userfile> is the user registry.");
         System.out.println("    -p Prints the parsed configuration, for verification.");
         System.out.println("    -? show this help.");
         System.out.println("");
@@ -1073,6 +1223,7 @@ public class NodeConfiguration
 
         boolean doprint = false;
         String nodefile = null;
+        String userfile = null;
         String config = null;
 
         int i = 0;
@@ -1087,6 +1238,12 @@ public class NodeConfiguration
 
             if ( args[i].equals("-n") ) {
                 nodefile = args[i+1];
+                i++;
+                continue;
+            }
+
+            if ( args[i].equals("-u") ) {
+                userfile = args[i+1];
                 i++;
                 continue;
             }
@@ -1112,7 +1269,7 @@ public class NodeConfiguration
             usage("Nodefile not specified.");
         }
 
-        NodeConfiguration nc = new NodeConfiguration(config, nodefile, null);
+        NodeConfiguration nc = new NodeConfiguration(config, nodefile, userfile, null);
 
         int rc = 0;
         try {
@@ -1158,6 +1315,17 @@ public class NodeConfiguration
             // and if they're the same, just tiebreak on the name
             String n1 = pr1.getProperty("name");
             String n2 = pr2.getProperty("name");
+            return n1.compareTo(n2);
+        }
+    }
+
+    static public class UserSorter
+        implements Comparator<DuccProperties>
+    {
+        public int compare(DuccProperties u1, DuccProperties u2)
+        {
+            String n1 = u1.getProperty("name");
+            String n2 = u2.getProperty("name");
             return n1.compareTo(n2);
         }
     }

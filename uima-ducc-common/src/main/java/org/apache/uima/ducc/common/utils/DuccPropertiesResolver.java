@@ -125,6 +125,7 @@ public class DuccPropertiesResolver {
     public static final String ducc_jd_startup_initialization_error_limit = "ducc.jd.startup.initialization.error.limit";
     
     public static final String ducc_rm_class_definitions = "ducc.rm.class.definitions";
+    public static final String ducc_rm_user_registry = "ducc.rm.user.registry"; // UIMA-4275
     public static final String ducc_rm_share_quantum = "ducc.rm.share.quantum";
     public static final String ducc_jd_share_quantum = "ducc.jd.share.quantum";
     

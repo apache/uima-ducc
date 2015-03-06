@@ -496,10 +496,13 @@ public class Scheduler
         String class_definitions = SystemPropertyResolver
             .getStringProperty(DuccPropertiesResolver
                                .ducc_rm_class_definitions, "scheduler.classes");
+        String user_registry = SystemPropertyResolver
+            .getStringProperty(DuccPropertiesResolver
+                               .ducc_rm_user_registry, "ducc.users");
         class_definitions = System.getProperty("DUCC_HOME") + "/resources/" + class_definitions;
         String me = Scheduler.class.getName() + ".Config";
         DuccLogger initLogger = new DuccLogger(me, COMPONENT_NAME);
-        NodeConfiguration nc = new NodeConfiguration(class_definitions, initLogger);        // UIMA-4142 make the config global
+        NodeConfiguration nc = new NodeConfiguration(class_definitions, null, user_registry, initLogger);        // UIMA-4142 make the config global
         nc.readConfiguration();
         return nc;                                             // UIMA-4142
     }
@@ -598,8 +601,25 @@ public class Scheduler
                 }
             }
 
-
             schedulers[i].setClasses(classesForNp);
+        }
+
+        // Here create or update Users with constraints from the registry
+        Map<String, DuccProperties> usrs = configuration.getUsers();                // UIMA-4275
+        for ( Object o : usrs.keySet() ) {                     // iterate over users
+            String n = (String) o;
+            DuccProperties dp = usrs.get(n);
+            for ( Object l : dp.keySet() ) {                  // iterate over limits for the user
+                int lim = Integer.parseInt( ((String)dp.get(l)).trim()); // verified parsable int during parsing
+                String[] tmp = ((String)l).split("\\.");                // max_allotment.classname
+                User user = users.get(n);
+                if (user == null) {
+                    user = new User(n);
+                    users.put(n, user);
+                }
+                ResourceClass rc = resourceClassesByName.get(tmp[1]);
+                user.overrideLimit(rc, lim);   // constrain allotment for this class to value in l
+            }
         }
 
     }
@@ -1457,7 +1477,8 @@ public class Scheduler
                     s.setShareOrder(share_order);
                     if ( !compatibleNodepool(s, j) ) {            // UIMA-4142
                         sharesToShrink.add(s);
-                    }
+                        break;
+                    } 
                     break;
                 case FIXED_SHARE:
                     logger.info(methodName, j.getId(), "Set fixed bit for FIXED job");

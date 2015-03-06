@@ -83,7 +83,7 @@ public class DuccSchedulerClasses {
         File file = new File(fileName);
         if ( lastModified != file.lastModified() ) {         // reread if it looks like it changed
             lastModified = file.lastModified();
-            nodeConfiguration = new NodeConfiguration(fileName, logger);
+            nodeConfiguration = new NodeConfiguration(fileName, null, null, logger); // UIMA-4275 use single common constructor
             lastModified = file.lastModified();
             nodeConfiguration.readConfiguration();
         }

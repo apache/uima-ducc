@@ -590,20 +590,31 @@ public class JobManagerConverter
         int max_processes = 0;
        	int max_machines = 0;	
         ResourceClass rescl = scheduler.getResourceClass(className);
-        j.setResourceClass(rescl);
 
         if ( rescl == null ) {
             // oh darn, we can't continue past this point
             refuse(j, "Cannot find priority class " + className + " for job");
             
             // UIMA-4142
-            // However, is this is recovery and we get here, it's because somehow the class definition
+            // However, fs this is recovery and we get here, it's because somehow the class definition
             // got deleted.  In this case there might be resources assigned.  We must evict if possible.
             // All affected hosts must be blacklisted.  We need to remember all this so we can unblacklist them
             // if the resources ever become free.
             blacklist(job, memory);
             return false;
         }
+        if ( !rescl.authorized(user_name) ) { 
+            // UIMA-4275
+            // if not recovering, and the class is not authorized, stop it dead here
+            // if we are recovering, might no longer be authorized - the main scheduler will
+            // deal with this as appropriate for the scheduling policy.
+            refuse(j, "User not authorized to use class '" + className + "'");
+            if ( ! mustRecover ) {
+                return false;
+            }
+        }
+
+        j.setResourceClass(rescl);
 
 //         if ( logger.isDebug() ) {
 //             logger.debug(methodName, j.getId(),"sharesMax", si.getSharesMax());

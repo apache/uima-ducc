@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.uima.ducc.common.utils.DuccLogger;
 import org.apache.uima.ducc.common.utils.DuccProperties;
@@ -44,7 +45,7 @@ public class ResourceClass
 
     private int share_weight;       // for fair-share, the share weight to use
     private int min_shares;         // fixed-shre: min shares to hand out
-    private int max_processes = 0;      // fixed-share: max shares to hand out regardless of
+    private int max_processes = 0;  // fixed-share: max shares to hand out regardless of
                                     // what is requested or what fair-share turns out to be
 
     private int max_machines = 0;   // reservation: max machines that can be reserved by a single user - global across
@@ -57,6 +58,8 @@ public class ResourceClass
     private int true_cap;           // set during scheduling, based on actual current resource availability
     private int pure_fair_share;    // the unmodified fair share, not counting caps, and not adding in bonuses
 
+    private Map<String, String> authorizedUsers = new HashMap<String, String>();      // if non-empty, restricted set of users
+                                                                                      // who can use this class
     private HashMap<IRmJob, IRmJob> allJobs = new HashMap<IRmJob, IRmJob>();
     private HashMap<Integer, HashMap<IRmJob, IRmJob>> jobsByOrder = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
     private HashMap<User, HashMap<IRmJob, IRmJob>> jobsByUser = new HashMap<User, HashMap<IRmJob, IRmJob>>();
@@ -99,6 +102,14 @@ public class ResourceClass
         this.policy = Policy.valueOf(props.getStringProperty("policy"));
         this.priority = props.getIntProperty("priority");
         this.min_shares = 0;
+
+        String userset = props.getProperty("users");
+        if ( userset != null ) {
+            String[] usrs = userset.split("\\s+");
+            for ( String s : usrs ) {
+                authorizedUsers.put(s, s);
+            }
+        }
 
         if ( policy == Policy.RESERVE ) {
             this.max_machines = props.getIntProperty("max-machines");
@@ -152,71 +163,14 @@ public class ResourceClass
         }
 
         this.nodepoolName = props.getStringProperty("nodepool");
-
                                                                         
     }
 
-//     // TODO: sanity check 
-//     //   - emit warnings if shares are specified in reservations
-//     //                   if machines are sprcified for fair or fixed-share
-//     //                   etc.
-//     void init(DuccProperties props)
-//     {
-//     	//String methodName = "init";
-//     	String k = "scheduling.class." + id + ".";
-//         String s;
-//         s = props.getProperty(k + "policy");
-        
-//         if ( s == null ) {
-//         	throw new SchedulingException(null, "Configuration problem: no policy for class " + id + ".");
-//         }
-//         policy = Policy.valueOf(s);
-
-//         share_weight     = props.getIntProperty(k + "share_weight"   , DEFAULT_SHARE_WEIGHT);
-//         priority  = props.getIntProperty(k + "priority", DEFAULT_PRIORITY);
-//         min_shares = props.getIntProperty(k + "min_shares", 0);       // default no min
-
-//         switch ( policy ) {
-//             case FAIR_SHARE:
-//                 max_processes = props.getIntProperty(k + "max_processes", DEFAULT_MAX_PROCESSES);       // default no max
-//                 max_machines = 0;
-//                 break;
-
-//             case FIXED_SHARE:
-//                 max_processes = props.getIntProperty(k + "max_processes", DEFAULT_MAX_PROCESSES);       // default no max
-//                 max_machines = 0;
-//                 break;
-
-//             case RESERVE:
-//                 max_processes = 0;
-//                 max_machines = props.getIntProperty(k + "max_machines", DEFAULT_MAX_INSTANCES);       // default max 1
-//                 break;
-
-//         }
-//         if ( max_processes <= 0 ) max_processes = Integer.MAX_VALUE;
-//         if ( max_machines <= 0 )  max_machines  = Integer.MAX_VALUE;
-
-//         enforce_memory = props.getBooleanProperty(k + "enforce.memory", true);
-        
-//         initialization_cap = props.getIntProperty(k + "initialization.cap", initialization_cap);
-//         expand_by_doubling = props.getBooleanProperty(k + "expand.by.doubling", expand_by_doubling);
-//         use_prediction     = props.getBooleanProperty(k + "prediction", use_prediction);
-//         prediction_fudge   = props.getIntProperty(k + "prediction.fudge", prediction_fudge);
-
-//         s = props.getStringProperty(k + "cap", ""+Integer.MAX_VALUE);                // default no cap
-//         if ( s.endsWith("%") ) {
-//             int t = Integer.parseInt(s.substring(0, s.length()-1));
-//             percent_cap = (t * 1.0 ) / 100.0;
-//         } else {
-//             absolute_cap = Integer.parseInt(s);
-//             if (absolute_cap == 0) absolute_cap = Integer.MAX_VALUE;
-//         }
-
-//         nodepoolName = props.getStringProperty(k + "nodepool", null);                               // optional nodepool
-//         if (nodepoolName == null) {
-//             nodepoolName = NodePool.globalName;
-//         } 
-//     }
+    public boolean authorized(String user)
+    {
+        if ( authorizedUsers.size() == 0 ) return true;
+        return authorizedUsers.containsKey(user);
+    }
 
     public void setNodepool(NodePool np)
     {
@@ -310,9 +264,9 @@ public class ResourceClass
         return max_processes;
     }
 
-    public int getMinShares() {
-        return min_shares;
-    }
+//     public int getMinShares() {
+//         return min_shares;
+//     }
 
     public int getMaxMachines() {
         return max_machines;
@@ -353,66 +307,6 @@ public class ResourceClass
         }
         return 0;
     }
-
-//     /** @deprecated */
-//     public void setClassShares(int s)
-//     {
-//         this.class_shares = Math.min(s, class_shares);
-//     }
-
-    /**
-     * Add 's' ** quantum ** shares of the indicated order.
-     * Return the actual number of shares, which might have been capped.
-
-    public int setClassSharesByOrder(int order, int s)
-    {
-        int val = 0;
-        s /= order;                                              // convert to nShares
-        if ( nSharesByOrder.containsKey(order ) ) {
-            val = Math.min(s, nSharesByOrder.get(order));        // not first time, must use min
-        } else {
-            val = s;                                             // first time, just accept it
-        }
-        nSharesByOrder.put(order, val);
-        return val * order;
-    }
-     */
-
-    /**
-     * Add one ** virtual ** share of the given order.
-
-    public void addClassShare(int order)
-    {
-        nSharesByOrder.put(order, nSharesByOrder.get(order) + 1);
-    }
-     */
-    /**
-    public int canUseShares(NodePool np, int[] tmpSharesByOrder)
-    {
-        if ( !np.getId().equals(nodepoolName) ) return 0;             // can't use any from somebody else's nodepool
-
-        for ( int o = max_job_order; o > 0; o-- ) {
-
-            if ( !nSharesByOrder.containsKey(o) ) continue;
-
-            int given = nSharesByOrder.get(o);
-            int can_use = 0;
-
-            if ( tmpSharesByOrder[o] > 0 ) {                          // do we have any this size?
-                HashMap<IRmJob, IRmJob> jbo = jobsByOrder.get(o);     // yeah, see if any job wants it
-                if ( jbo != null ) {
-                    for (IRmJob j : jbo.values()) {                        
-                        can_use += j.getJobCap();
-                    }
-                }
-            }
-            if ( (can_use - given) > 0 ) {
-                return o;
-            }
-        }
-        return 0;
-    }
-    */
 
     /**
      * Can I use more 1 more share of this size?  This is more complex than for Users and Jobs because
@@ -460,10 +354,6 @@ public class ResourceClass
     void updateNodepool(NodePool np)
     {
         //String methodName = "updateNodepool";
-
-//         for ( int k : nSharesByOrder.keySet() ) {
-//             np.countOutNSharesByOrder(k, nSharesByOrder.get(k));
-//         }
 
         if ( given_by_order == null ) return;       // nothing given, nothing to adjust
 
@@ -536,10 +426,6 @@ public class ResourceClass
             }
         }
 
-//         if ( jbo.size() == 0 ) {
-//             jobsByOrder.remove(order);
-//         }
-
         User u = j.getUser();
         jbo = jobsByUser.get(u);
         jbo.remove(j);
@@ -553,43 +439,6 @@ public class ResourceClass
         return allJobs.size();
     }
 
-    /**
-    int countJobs(int order)
-    {
-        if ( jobsByOrder.containsKey(order) ) {
-            return jobsByOrder.get(order).size();
-        } else {
-            return 0;
-        }
-    }
-*/
-    /**
-    HashMap<IRmJob, IRmJob> getJobsOfOrder(int order)
-    {
-        return jobsByOrder.get(order);
-    }
-*/
-
-  /**
-    int sumAllWeights()
-    {
-        return allJobs.size() * share_weight;
-    }
-*/
-    /**
-     * The total weights of all jobs of order 'order' or less.
-     *
-    int sumAllWeights(int order)
-    {
-        int sum = 0;
-        for ( int o = order; o > 0; o-- ) {
-            if ( jobsByOrder.containsKey(o) ){ 
-                sum++;
-            }
-        }
-        return sum * share_weight;
-    }
-*/
     /**
      * Returns total N-shares wanted by order. Processes of size order.
      */
@@ -673,91 +522,6 @@ public class ResourceClass
     }
 
 
-
-    /**
-     * Get capped number of quantum shares this resource class can support.
-     *
-    int countCappedQShares(int[] tmpSharesByOrder)
-    {
-        int K = 0;
-        for ( IRmJob j : allJobs.values() ) {
-            int order = j.getShareOrder();
-            K += (Math.min(j.getJobCap(), tmpSharesByOrder[order] * order));            
-        }
-        return K;
-    }
-    */
-    /**
-     * Sum all the capped shares of the jobs.  Then cap on the physical cap and
-     * again on the (possible) nodepool cap.
-     *
-    int countCappedNShares(int physicalCap, int order)
-    {
-        int K = 0;
-        
-        // First sum the max shares all my jobs can actually use
-        HashMap<IRmJob, IRmJob> jobs = jobsByOrder.get(order);
-        for ( IRmJob j : jobs.values() ) {
-            K += j.getJobCap();
-        }
-
-        // cap by what is physically there
-        K = Math.min(K, physicalCap);
-        return K;
-    }
-*/
-
-    /**
-     * Sum all the capped shares of the jobs.  Then cap on the physical cap and
-     * again on the (possible) nodepool cap.
-
-     TODO: this seems all wrong.
-    int getSubpoolCap(int order)
-    {
-        if ( subpool_counted ) {                   // share are dirty, cap is valid
-            if( given_by_order[order] == 0 ) {
-                //if ( !nSharesByOrder.containsKey(order) ) {
-                return Integer.MAX_VALUE;
-            } 
-            return given_by_order[order];
-        } else {
-            return Integer.MAX_VALUE;              // shares are clean, no cap
-        }
-    }
-    */
-
-//    int countCappedShares()
-//    {
-//        int count = 0;
-//        for ( IRmJob j : allJobs.values() ) {
-//            count += j.getJobCap();
-//        }
-//        return count;
-//    }
-
-    /**
-    int countSharesByOrder(int order)
-    {
-        if ( nSharesByOrder.containsKey(order) ) {
-            return nSharesByOrder.get(order);
-        }
-        return 0;
-    }
-*/
-    /**
-    int[] getSharesByOrder(int asize)
-    {
-        int[] answer = new int[asize];
-        for ( int i = 0; i < asize; i++ ) {
-            if ( nSharesByOrder.containsKey(i) ) {
-                answer[i] = nSharesByOrder.get(i);
-            } else {
-                answer[i] = 0;
-            }
-        }
-        return answer;
-    }
-*/
     public boolean hasSharesGiven() 
     {
         return ( (given_by_order != null) && (given_by_order[0] > 0) );
@@ -771,19 +535,6 @@ public class ResourceClass
         }
         return sum;
     }
-
-    /**
-     * Get the highest order of any job in this class.
-     
-    protected int getMaxOrder()
-    {
-        int max = 0;
-        for ( IRmJob j : allJobs.values() ) {
-            max = Math.max(max, j.getShareOrder());
-        }
-        return max;
-    }
-    */
 
     HashMap<IRmJob, IRmJob> getAllJobs()
     {
@@ -817,40 +568,7 @@ public class ResourceClass
     {
         return (i == Integer.MAX_VALUE ? -1 : i);
     }
-
-    /**
-     * Stringify the share tables for the logs
-     */
     
-    /**
-    public String tablesToString()
-    {
-        ArrayList<Integer> keys = new ArrayList<Integer>();
-        keys.addAll(nSharesByOrder.keySet());
-        Collections.sort(keys);
-        int max = 0;
-        for ( int k : keys ) {
-            max = Math.max(max, k);
-        }
-        String[] values = new String[max+1];
-        values[0] = id;
-        for ( int i = 1; i < max+1; i++) {
-            if ( !nSharesByOrder.containsKey(i) ) {
-                values[i] = "0";
-            } else {
-                values[i] = Integer.toString(nSharesByOrder.get(i));
-            }
-        }
-        StringBuffer sb = new StringBuffer();
-        sb.append("%23s:");
-        for ( int i = 0; i < max; i++ ) {
-            sb.append("%s ");
-        }
-        
-        return String.format(sb.toString(), (Object[]) values);
-    }
-    */
-
     // note we assume Nodepool is the last token so we don't set a len for it!
     private static String formatString = "%12s %11s %4s %5s %5s %5s %6s %6s %7s %6s %6s %7s %5s %7s %s";
     public static String getDashes()
