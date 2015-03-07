@@ -105,13 +105,13 @@ public class Scheduler
 
     int defaultNThreads = 1;
     int defaultNTasks = 10;
-    int defaultMemory = 16;
+    int defaultMemory = 15;
 
     // these two are initialized in constructor
     String schedImplName;
     IScheduler[] schedulers;
 
-    long share_quantum    = 16;             // 16 GB in KB - smallest share size
+    long  share_quantum    = 15;             // 15 GB in KB - smallest share size
     long share_free_dram  = 0;              // 0  GB in KB  - minim memory after shares are allocated
     long dramOverride     = 0;              // if > 0, use this instead of amount reported by agents (modeling and testing)
 
@@ -145,8 +145,8 @@ public class Scheduler
     // 1.0.2 - vary-on, vary-off
     // 1.0.3 - fix bad check in recursion in NodepoolScheduler.doEvictions
     // 1.1.0 - Syncnronize with release
-    final static int rmversion_major = 1;
-    final static int rmversion_minor = 1;
+    final static int rmversion_major = 2;
+    final static int rmversion_minor = 0;
     final static int rmversion_ptf   = 0;  
     final static String rmversion_string = null;
 
@@ -175,7 +175,7 @@ public class Scheduler
         // some defaults, for jobs that don't specify them
         defaultNTasks     = SystemPropertyResolver.getIntProperty("ducc.rm.default.tasks", 10); 
         defaultNThreads   = SystemPropertyResolver.getIntProperty("ducc.rm.default.threads", 1);
-        defaultMemory     = SystemPropertyResolver.getIntProperty("ducc.rm.default.memory", 16);      // in GB
+        defaultMemory     = SystemPropertyResolver.getIntProperty("ducc.rm.default.memory", 15);      // in GB
         // expandByDoubling  = RmUtil.getBooleanProperty("ducc.rm.expand.by.doubling", true);
 
         nodeStability     = SystemPropertyResolver.getIntProperty("ducc.rm.node.stability", 3);        // number of node metrics updates to wait for before scheduling
@@ -537,7 +537,7 @@ public class Scheduler
         logger.info(methodName, null, ResourceClass.getHeader());
         logger.info(methodName, null, ResourceClass.getDashes());
         for ( DuccProperties props : cls.values() ) {
-            ResourceClass rc = new ResourceClass(props);
+            ResourceClass rc = new ResourceClass(props, share_quantum);            
             resourceClasses.put(rc, rc);
             resourceClassesByName.put(rc.getName(), rc);
             logger.info(methodName, null, rc.toString());
@@ -610,7 +610,10 @@ public class Scheduler
             String n = (String) o;
             DuccProperties dp = usrs.get(n);
             for ( Object l : dp.keySet() ) {                  // iterate over limits for the user
-                int lim = Integer.parseInt( ((String)dp.get(l)).trim()); // verified parsable int during parsing
+                if ( !((String)l).startsWith("max-allotment")) continue; // only this supported at this time
+                String val = ((String) dp.get(l)).trim();
+
+                int lim = Integer.parseInt( val ); // verified parsable int during parsing
                 String[] tmp = ((String)l).split("\\.");                // max_allotment.classname
                 User user = users.get(n);
                 if (user == null) {
@@ -1388,9 +1391,7 @@ public class Scheduler
 
         // -- clean up user list
         User user = users.get(j.getUserName());
-        if ( user.remove(job) == 0 ) {
-            users.remove(user.getName());
-        }
+        user.remove(job);         // UIMA4275 don't clean up users list because it may have registry things in it
 
         ResourceClass rc = job.getResourceClass();
         if ( rc != null ) {

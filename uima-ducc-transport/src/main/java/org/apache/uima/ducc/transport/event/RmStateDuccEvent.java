@@ -96,7 +96,7 @@ public class RmStateDuccEvent
             int counter = 0;
             
             if (j.isRefused() ) {
-                buf.append(String.format("%s %s\n\tRefused: %s", j.getDuccType(), j.getId().getFriendly(), j.getReason()));
+                buf.append(String.format("%s %s\n\tRefused: %s\n", j.getDuccType(), j.getId().getFriendly(), j.getReason()));
                 continue;
             }
 

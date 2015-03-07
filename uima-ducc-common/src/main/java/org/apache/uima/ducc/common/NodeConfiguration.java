@@ -103,10 +103,10 @@ public class NodeConfiguration
         defaultFairShareClass.put("use-prediction", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         defaultFairShareClass.put("prediction-fudge", ""+SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 60000));
         defaultFairShareClass.put("max-processes", Integer.toString(Integer.MAX_VALUE));
+        defaultFairShareClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
         defaultFairShareClass.put("nodepool", "<required>");
         defaultFairShareClass.put("users", "<optional>");
         defaultFairShareClass.put("debug", "fixed");
-        defaultFairShareClass.put("hostile", "false");
         defaultFairShareClass.put("abstract", "<optional>");
         defaultFairShareClass.put("children", "<optional>");
         defaultFairShareClass.put("parent", "<optional>");
@@ -123,6 +123,7 @@ public class NodeConfiguration
         defaultFixedShareClass.put("priority", "5");
         defaultFixedShareClass.put("default", "<optional>");
         defaultFixedShareClass.put("max-processes", Integer.toString(Integer.MAX_VALUE));
+        defaultFixedShareClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
         defaultFixedShareClass.put("cap", Integer.toString(Integer.MAX_VALUE));
         defaultFixedShareClass.put("nodepool", "<required>");
         defaultFixedShareClass.put("users", "<optional>");
@@ -136,6 +137,7 @@ public class NodeConfiguration
         defaultReserveClass.put("priority", "1");
         defaultReserveClass.put("default", "<optional>");
         defaultReserveClass.put("max-machines", Integer.toString(Integer.MAX_VALUE));
+        defaultReserveClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
         defaultReserveClass.put("cap", Integer.toString(Integer.MAX_VALUE));
         defaultReserveClass.put("nodepool", "<required>");
         defaultReserveClass.put("users", "<optional>");
@@ -1126,6 +1128,13 @@ public class NodeConfiguration
         logInfo(methodName, String.format("   %-20s: %s", k, v));
     }
 
+    void printDeprecatedProperty(String k, Object v, String msg)
+    {
+        String methodName = "printProperty";
+        if ( v == null ) return;  // ignore non-existant properties
+        logInfo(methodName, String.format("   %-20s: Deprecated property - %s", k, msg));
+    }
+
     /**
      * Print class values in controlled order and format, not to be confused
      * with what you'd get just iterating the map.
@@ -1133,24 +1142,22 @@ public class NodeConfiguration
     void printClass(DuccProperties cl)
     {        
         String methodName = "printClass";
-        logInfo(methodName, "Class " +      cl.get("name"));
-        printProperty("Policy",             cl.get("policy"));
-        if ( cl.get("policy").equals("FAIR_SHARE") ) {
-            printProperty("hostile",        cl.get("hostile"));
-        }
-        printProperty("Nodepool",           cl.get("nodepool"));
-        printProperty("Priority",           cl.get("priority"));
-        printProperty("Weight",             cl.get("weight"));
-        printProperty("Debug",              cl.get("debug"));
-        printProperty("Cap",                cl.get("cap"));
-        printProperty("Expand By Doubling", cl.get("expand-by-doubling"));
-        printProperty("Initialization Cap", cl.get("initialization-cap"));
-        printProperty("Use Prediction",     cl.get("use-prediction"));
-        printProperty("Prediction Fudge",   cl.get("prediction-fudge"));
-        printProperty("Max Processes",      cl.get("max-processes"));
-        printProperty("Max Machines",       cl.get("max-machines"));
-        printProperty("Enforce Memory Size",cl.get("enforce"));
-        printProperty("Authorized Users"   ,cl.get("users"));
+        logInfo(methodName, "Class " +           cl.get("name"));
+        printProperty("Policy",                  cl.get("policy"));
+        printProperty("Nodepool",                cl.get("nodepool"));
+        printProperty("Priority",                cl.get("priority"));
+        printProperty("Weight",                  cl.get("weight"));
+        printProperty("Debug",                   cl.get("debug"));
+        printDeprecatedProperty("Cap",           cl.get("cap"),           "IGNORED Use max-allotment = [mem in GB] instead.");
+        printProperty("Expand By Doubling",      cl.get("expand-by-doubling"));
+        printProperty("Initialization Cap",      cl.get("initialization-cap"));
+        printProperty("Use Prediction",          cl.get("use-prediction"));
+        printProperty("Prediction Fudge",        cl.get("prediction-fudge"));
+        printDeprecatedProperty("Max Processes", cl.get("max-processes"), "IGNORED Use max-allotment = [mem in GB] instead.");
+        printDeprecatedProperty("Max Machines" , cl.get("max-machines") , "IGNORED Use max-allotment = [mem in GB] instead.");
+        printProperty("Max Allotment",           cl.get("max-allotment"));
+        printProperty("Enforce Memory Size",     cl.get("enforce"));
+        printProperty("Authorized Users"   ,     cl.get("users"));
 
         logInfo(methodName, "");
     }
@@ -1162,7 +1169,7 @@ public class NodeConfiguration
 
         for (Object o : cl.keySet() ) {
         		String k = (String) o;
-            if ( k.startsWith("max_allotment.") ) {
+            if ( k.startsWith("max-allotment.") ) {
                 printProperty(k, cl.get(k));
             }
         }

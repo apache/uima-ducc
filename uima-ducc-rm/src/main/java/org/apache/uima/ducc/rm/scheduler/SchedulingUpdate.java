@@ -80,6 +80,11 @@ public class SchedulingUpdate
         refusals.put(j, j);
     }
 
+    void defer(IRmJob j, String reason)
+    {
+        j.defer(reason);
+    }
+
     HashMap<IRmJob, IRmJob> getRefusedJobs() 
     {
         return refusals;

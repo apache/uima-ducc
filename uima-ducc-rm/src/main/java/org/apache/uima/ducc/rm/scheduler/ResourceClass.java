@@ -42,16 +42,13 @@ public class ResourceClass
     private Policy policy;
     private int priority;           // orders evaluation of the class
 
-
     private int share_weight;       // for fair-share, the share weight to use
-    private int min_shares;         // fixed-shre: min shares to hand out
-    private int max_processes = 0;  // fixed-share: max shares to hand out regardless of
+
+    private int share_quantum;      // for limits, to convert shares to GB
+    private int max_allotment;      // All allocation policies, max in GB
+    private int max_processes;      // fixed-share: max shares to hand out regardless of
                                     // what is requested or what fair-share turns out to be
 
-    private int max_machines = 0;   // reservation: max machines that can be reserved by a single user - global across
-                                    // all this user's requests.
-
-    // for reservation, this caps machines. 
     // for shares, this caps shares
     private int absolute_cap;       // max shares or machines this class can hand out
     private double percent_cap;     // max shares or machines this class can hand out as a percentage of all shares
@@ -60,9 +57,9 @@ public class ResourceClass
 
     private Map<String, String> authorizedUsers = new HashMap<String, String>();      // if non-empty, restricted set of users
                                                                                       // who can use this class
-    private HashMap<IRmJob, IRmJob> allJobs = new HashMap<IRmJob, IRmJob>();
+    private HashMap<IRmJob, IRmJob>                   allJobs = new HashMap<IRmJob, IRmJob>();
     private HashMap<Integer, HashMap<IRmJob, IRmJob>> jobsByOrder = new HashMap<Integer, HashMap<IRmJob, IRmJob>>();
-    private HashMap<User, HashMap<IRmJob, IRmJob>> jobsByUser = new HashMap<User, HashMap<IRmJob, IRmJob>>();
+    private HashMap<User, HashMap<IRmJob, IRmJob>>    jobsByUser = new HashMap<User, HashMap<IRmJob, IRmJob>>();
     private int max_job_order = 0;  // largest order of any job still alive in this rc (not necessarily globally though)
 
     private NodePool nodepool = null;
@@ -93,7 +90,7 @@ public class ResourceClass
 
     private static Comparator<IEntity> apportionmentSorter = new ApportionmentSorterCl();
 
-    public ResourceClass(DuccProperties props)
+    public ResourceClass(DuccProperties props, long share_quantum)
     {
         //
         // We can assume everything useful is here because the parser insured it
@@ -101,7 +98,7 @@ public class ResourceClass
         this.id = props.getStringProperty("name");
         this.policy = Policy.valueOf(props.getStringProperty("policy"));
         this.priority = props.getIntProperty("priority");
-        this.min_shares = 0;
+        this.share_quantum = (int) (share_quantum / ( 1024 * 1024 ));        // KB back to GB
 
         String userset = props.getProperty("users");
         if ( userset != null ) {
@@ -111,17 +108,15 @@ public class ResourceClass
             }
         }
 
+        this.max_allotment = props.getIntProperty("max-allotment", Integer.MAX_VALUE);
+
         if ( policy == Policy.RESERVE ) {
-            this.max_machines = props.getIntProperty("max-machines");
             this.enforce_memory = props.getBooleanProperty("enforce", true);
         }
 
         if ( policy != Policy.RESERVE ) {
-            this.max_processes = props.getIntProperty("max-processes");
+            this.max_processes = props.getIntProperty("max-processes", Integer.MAX_VALUE);
         }
-
-        if ( max_processes <= 0 ) max_processes = Integer.MAX_VALUE;
-        if ( max_machines <= 0 )  max_machines  = Integer.MAX_VALUE;
 
         this.absolute_cap = Integer.MAX_VALUE;
         this.percent_cap  = 1.0;
@@ -264,12 +259,15 @@ public class ResourceClass
         return max_processes;
     }
 
-//     public int getMinShares() {
-//         return min_shares;
-//     }
-
-    public int getMaxMachines() {
-        return max_machines;
+    public int getAllotment(IRmJob j) 
+    {
+        User u = j.getUser();
+        int max = u.getClassLimit(this);
+        if ( max == Integer.MAX_VALUE ) {
+            return max_allotment;       // no user override
+        } else {
+            return max;
+        }
     }
     
     void setPolicy(Policy p)
@@ -292,6 +290,67 @@ public class ResourceClass
     public int getShareWeight()
     {
         return share_weight;
+    }
+
+    /**
+     * See if the total memory for job 'j' plus the occupancy of the 'jobs' exceeds 'max'
+     * Returns 'true' if occupancy is exceeded, else returns 'false'
+     * UIMA-4275
+     */
+    private boolean occupancyExceeded(int max, IRmJob j, Map<IRmJob, IRmJob> jobs)
+    {
+        int occupancy = 0;
+        for ( IRmJob job : jobs.values() ) {
+            if ( ! job.getUserName().equals(j.getUserName()) ) continue;           // limits are user based
+
+            // nshares_given is shares counted out for the job but maybe not assigned
+            // nshares       is shares given
+            // share_order   is used to convert nshares to qshares so
+            // so ( nshares_give + nshares ) * share_order is the current potential occupancy of the job
+            // Then multiply by the scheduling quantum to convert to GB
+            occupancy += ( job.countNSharesGiven()  * job.getShareOrder() * share_quantum ); // convert to GB
+        }
+        int requested = j.getMemory() * j.countInstances();
+        
+        if ( max - ( occupancy + requested ) < 0 ) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Does this job push the per-user allotment over the top?
+     *
+     * Note that we don't store current occupancy directly, we always calculate it from the
+     * jobs assigned to the class.  Less bookkeeping that way.
+     * UIMA-4275
+     */
+    public boolean allotmentExceeded(IRmJob j)
+    {
+        User u = j.getUser();
+        int max = u.getClassLimit(this);
+
+        switch ( policy ) {
+            case FIXED_SHARE:
+            case RESERVE:
+            {
+                if ( max != Integer.MAX_VALUE ) {
+                    // user is constrained, and the constraint overrides the class constraint
+                    return occupancyExceeded(max, j, jobsByUser.get(j.getUser()));
+                } else {
+                    // user is not constrained.  check class constraints
+                    if ( max_allotment == Integer.MAX_VALUE ) return false;   // no class constraints
+
+                    return occupancyExceeded(max_allotment, j, allJobs);
+                }
+            }
+
+            // for completion of the case - this is handled elsewhere
+            case FAIR_SHARE:
+            default:
+                return false;            
+        }
     }
 
     /**
@@ -570,15 +629,15 @@ public class ResourceClass
     }
     
     // note we assume Nodepool is the last token so we don't set a len for it!
-    private static String formatString = "%12s %11s %4s %5s %5s %5s %6s %6s %7s %6s %6s %7s %5s %7s %s";
+    private static String formatString = "%12s %11s %4s %5s %5s %6s %6s %7s %6s %6s %7s %5s %7s %s";
     public static String getDashes()
     {
-        return String.format(formatString, "------------", "-----------",  "----", "-----", "-----", "-----", "------", "------", "-------", "------", "------", "-------", "-----", "-------", "--------");
+        return String.format(formatString, "------------", "-----------",  "----", "-----", "-----", "------", "------", "-------", "------", "------", "-------", "-----", "-------", "--------");
     }
 
     public static String getHeader()
     {
-        return String.format(formatString, "Class Name", "Policy", "Prio", "Wgt", "MinSh", "MaxSh", "AbsCap", "PctCap", "InitCap", "Dbling", "Prdct", "PFudge", "Shr", "Enforce", "Nodepool");
+        return String.format(formatString, "Class Name", "Policy", "Prio", "Wgt", "MaxSh", "AbsCap", "PctCap", "InitCap", "Dbling", "Prdct", "PFudge", "Shr", "Enforce", "Nodepool");
     }
 
     @Override
@@ -588,12 +647,11 @@ public class ResourceClass
     }
 
     public String toString() {
-        return String.format("%12s %11s %4d %5d %5d %5d %6d %6d %7d %6s %6s %7d %5d %7s %s", 
+        return String.format(formatString,
                              id,
                              policy.toString(),
                              priority, 
                              share_weight, 
-                             makeReadable(min_shares), 
                              makeReadable(max_processes), 
                              makeReadable(absolute_cap), 
                              (int) (percent_cap *100), 

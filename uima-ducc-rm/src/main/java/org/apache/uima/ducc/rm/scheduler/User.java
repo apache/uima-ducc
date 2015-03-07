@@ -57,6 +57,12 @@ public class User
         classLimits.put(rc, lim);
     }
 
+    int getClassLimit(ResourceClass rc)
+    {
+        if ( classLimits.containsKey(rc) ) return classLimits.get(rc);
+        else                               return Integer.MAX_VALUE;
+    }
+
     void addJob(IRmJob j)
     {
         jobs.put(j, j);

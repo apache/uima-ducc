@@ -75,7 +75,6 @@ Class fixed-base {
       nodepool = --default--
       priority = 5
       abstract = true
-      max-processes = 10
 }
 
 Class fixed      fixed-base  { default = true}
@@ -88,7 +87,6 @@ Class reserve-base {
       nodepool = --default--
       priority = 1
       abstract = true
-      max-machines = 10
 }
  
 Class reserve     reserve-base { default = true }

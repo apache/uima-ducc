@@ -55,6 +55,7 @@ Class fair-base {
       priority = 10
       weight = 100
       abstract = true
+      cap = 50
 }
 
 # These classes are derived from fair-base, and override the 'weight' property.  As well
@@ -73,6 +74,7 @@ Class fixed-base {
       priority = 5
       abstract = true
       max-processes = 10
+      max-allotment = 10
 }
 
 Class fixed      fixed-base  { default = true}
@@ -85,6 +87,7 @@ Class reserve-base {
       priority = 1
       abstract = true
       max-machines = 10
+      max-allotment = 10
 }
  
 Class reserve     reserve-base { default = true }

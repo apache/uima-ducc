@@ -608,7 +608,7 @@ public class JobManagerConverter
             // if not recovering, and the class is not authorized, stop it dead here
             // if we are recovering, might no longer be authorized - the main scheduler will
             // deal with this as appropriate for the scheduling policy.
-            refuse(j, "User not authorized to use class '" + className + "'");
+            refuse(j, "User '" + user_name + "' not authorized to use class '" + className + "'");
             if ( ! mustRecover ) {
                 return false;
             }

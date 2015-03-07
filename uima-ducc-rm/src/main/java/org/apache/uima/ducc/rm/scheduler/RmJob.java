@@ -84,7 +84,7 @@ public class RmJob
     protected HashMap<Share, Share> pendingRemoves;      // job is scheduled to remove these but not confirmed
     protected HashMap<Share, Share> recoveredShares;     // recovery after bounce, need to reconnect these
 
-    protected int total_assigned = 0;                    // non-preemptable only, total shares every assigned
+    protected int total_assigned = 0;                    // non-preemptable only, total shares ever assigned
 
     // track shares by machine, and machines, to help when we have to give stuff away
     Map<Machine, Map<Share, Share>> sharesByMachine = new HashMap<Machine, Map<Share, Share>>();
@@ -106,6 +106,8 @@ public class RmJob
     protected Properties jobprops;                       // input that job is constructed from. currently is condensed from Blade logs (simulation only)
 
     protected String refusalReason = null;               // if refused, this is why, for the message
+    boolean   refused = false;
+    boolean   deferred = false;
 
     private static Comparator<IEntity> apportionmentSorter = new ApportionmentSorterCl();
 
@@ -870,14 +872,34 @@ public class RmJob
 
     public void refuse(String refusal)
     {
-        String methodName = "refusal";
+        String methodName = "refuse";
         logger.warn(methodName, id, refusal);
         this.refusalReason = refusal;
+        deferred = true;
+    }
+
+    public void defer(String reason)
+    {
+        String methodName = "defer";
+        logger.info(methodName, id, reason);
+        this.refusalReason = reason;
+        deferred = true;
+    }
+
+    public void undefer()
+    {
+        deferred = false;
+        refusalReason = null;
     }
 
     public boolean isRefused()
     {
-    	return (refusalReason != null);
+    	return refused;
+    }
+    
+    public boolean isDeferred()
+    {
+    	return deferred;
     }
     
     public String getRefusalReason()

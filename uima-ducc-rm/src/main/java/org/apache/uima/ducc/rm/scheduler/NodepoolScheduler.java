@@ -1059,7 +1059,8 @@ public class NodepoolScheduler
     // private static int stop_here_dx = 0;
     protected void traverseNodepoolsForExpansion(NodePool np, ArrayList<ResourceClass> rcs)
     {
-    	String methodName = "traverseNodepoolsForExpansion";
+    	    @SuppressWarnings("unused")
+		String methodName = "traverseNodepoolsForExpansion";
         // HashMap<String, NodePool> subpools = np.getChildren();
         List<NodePool> subpools = np.getChildrenAscending();
 
@@ -1352,10 +1353,11 @@ public class NodepoolScheduler
             Iterator<IRmJob> jlist = jobs.iterator();
             while ( jlist.hasNext() ) {
                 IRmJob j = jlist.next();
+                j.undefer();
 
                 if ( np == null ) {                      // oops - no nodes here yet, must refuse all jobs
                     
-                    schedulingUpdate.refuse(j, "Reservation refused because insufficient resources are available.");
+                    schedulingUpdate.defer(j, "Reservation deferred because insufficient resources are available.");
                     logger.warn(methodName, j.getId(), "Job scheduled to class "
                                                        + rc.getName()
                                                        + " but associated nodepool has no resources");
@@ -1382,7 +1384,7 @@ public class NodepoolScheduler
                 }
             }
 
-            if ( np == null ) {                         // no np. jobs have been refused, cannot continue.
+            if ( np == null ) {                         // no np. jobs have been deferred, cannot continue.
                 return;
             }
 
@@ -1403,7 +1405,7 @@ public class NodepoolScheduler
                 int classcap;
                 
                 if ( np.countLocalMachines() == 0 ) {
-                    schedulingUpdate.refuse(j, "Reservation refused because insufficient resources are available."); 
+                    schedulingUpdate.defer(j, "Reservation deferred because resources are exhausted."); 
                     logger.warn(methodName, j.getId(), "Job asks for " 
                                             + nrequested 
                                             + " reserved machines but reservable resources are exhausted for nodepool "
@@ -1411,26 +1413,10 @@ public class NodepoolScheduler
                     continue;
                 }
 
-                if ( rc.getMaxMachines() < nrequested ) {               // Does it blow the configured limit for this class?
-                    schedulingUpdate.refuse(j, "Reservation refused because class max of " + rc.getMaxMachines() + "is exceeded.");
+                if ( rc.allotmentExceeded(j) ) {               // Does it blow the configured limit for this class?
+                    schedulingUpdate.defer(j, "Reservation deferred because allotment of " + rc.getAllotment(j) + " is exceeded by user " + j.getUserName());
                     continue;
                 }
-
-                classcap = calcCaps(rc.getAbsoluteCap(), rc.getPercentCap(), np.countLocalMachines());
-                logger.info(methodName, j.getId(), "Absolute cap:", rc.getAbsoluteCap(), "PercentCap", rc.getPercentCap(), "np.countLocalMachines", np.countLocalMachines(), "cap", classcap);
-                //
-                // Assumption to continue is that this is a new reservation
-                //
-                if ( (machines_given_out + nrequested) > classcap ) {
-                    schedulingUpdate.refuse(j, "Reservation refused because class cap of " + classcap + " is exceeded.");
-                    logger.warn(methodName, j.getId(), "Job asks for " 
-                                            + nrequested 
-                                            + " reserved machines but total machines for class '" + rc.getName()
-                                            + "' exceeds class cap of "
-                                            + classcap);
-                                            
-                    continue;
-                }               
                 
                 logger.info(methodName, j.getId(), "Job is granted " + nrequested + " machines for reservation.");
                 //j.addQShares(nrequested * order);
@@ -1446,16 +1432,17 @@ public class NodepoolScheduler
                     given = np.countFreeableMachines(j, false);
                 }           
 
+                // The counts worked out but for some reason we can't find / evict enough space
                 if ( given == 0 ) {
-                    schedulingUpdate.refuse(j, "Reservation is refused because insufficient resources are available.");
+                    schedulingUpdate.defer(j, "Reservation is deferred because insufficient resources are available.");
                     if ( rc.enforceMemory() ) {
-                        logger.warn(methodName, j.getId(), "Reservation refused: asks for " 
+                        logger.warn(methodName, j.getId(), "Reservation deferred: asks for " 
                                                 + nrequested 
                                                 + " reserved machines with exactly "
                                                 + j.getShareOrder()  
                                                 + " shares but there are insufficient freeable machines.");
                     } else {
-                        logger.warn(methodName, j.getId(), "Reservation refused: ask for " 
+                        logger.warn(methodName, j.getId(), "Reservation deferred: ask for " 
                                                 + nrequested 
                                                 + " reserved machines with at least "
                                                 + j.getShareOrder()  
@@ -1479,6 +1466,10 @@ public class NodepoolScheduler
             for ( IRmJob j: jobs ) {
 
                 if ( j.isRefused() ) {                   // bypass jobs that we know can't be allocated
+                    continue;
+                }
+
+                if ( j.isDeferred() ) {                  // counts don't work, we can't do this yet
                     continue;
                 }
 
@@ -2186,6 +2177,10 @@ public class NodepoolScheduler
             for ( IRmJob j : allJobs.values() ) {
 
                 if ( j.isRefused() ) {
+                    continue;
+                }
+
+                if ( j.isDeferred() ) {
                     continue;
                 }
 

@@ -199,6 +199,12 @@ public interface IRmJob
     String getRefusalReason();
     boolean isRefused();
 
+    /**
+     * Can't schedule non-preemptable yet, but maybe later
+     */
+    void defer(String refsual);
+    void undefer();
+    boolean isDeferred();
 
     /**
      * Scheduler looks at job memory and decides what its share order is.
