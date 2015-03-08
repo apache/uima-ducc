@@ -118,24 +118,6 @@ public class NodepoolScheduler
         this.evictionPolicy = ep;
     }
 
-    /**
-     * Convert the absoute / percent cap into an absolute cap over some basis.
-     * This is a helper for computing the share or machine caps.
-     */
-    private int calcCaps(int absolute, double percent, int basis)
-    {
-        int perccap = Integer.MAX_VALUE;    // the cap, calculated from percent
-        if ( percent < 1.0 ) {
-            double b = basis;
-            b = b * percent;
-            perccap = (int) Math.round(b);
-        } else {
-        	perccap = basis;
-        }
-
-        return Math.min(absolute, perccap);
-    }
-
     private void reworknShares(int[] vshares, int[] nshares)
     {
         // now redo nshares
@@ -1189,31 +1171,24 @@ public class NodepoolScheduler
         for ( ResourceClass rc : rcs ) {
             ArrayList<IRmJob> jobs = rc.getAllJobsSorted(new JobByTimeSorter());
 
-            int shares_given_out = 0;                       // q-shares, to compare against machine capacity
             for ( IRmJob j : jobs ) {
-                shares_given_out += (j.countNShares() * j.getShareOrder());
-                j.clearShares();
+                j.clearShares();                               // reset shares assigned at start of each schedling cycle
             }
 
             NodePool np = rc.getNodepool();
 
-            int classcap = 0;
-            classcap = calcCaps(rc.getAbsoluteCap(), rc.getPercentCap(), np.countTotalShares());       // quantum shares
 
             for ( IRmJob j : jobs ) {
 
-                int n_instances = j.countInstances();               // n-shrares; virtual shares - API treats this as a reservation
-                                                                    // and we overload the n-machines field for the count.
-                if ( j.countNShares() > 0 ) {
+                int n_instances = j.countInstances();               // n-shrares; virtual shares 
+
+                if ( j.countNShares() > 0 ) {                       // all-or-nothing check
                     // already accounted for as well, since it is a non-preemptable share
                     logger.info(methodName, j.getId(), "[stable]", "requested", n_instances, "assigned", j.countNShares(), "processes, ", 
                                 (j.countNShares() * j.getShareOrder()), "QS");
                     int[] gbo = NodePool.makeArray();
 
                     gbo[j.getShareOrder()] = j.countNShares();    // must set the allocation so eviction works right
-
-                    // If node dies n_instances may be > countNShares() so we don't do it this way any more.  UIMA-3614
-                    // gbo[j.getShareOrder()] = n_instances;       // must set the allocation so eviction works right 
 
                     j.setGivenByOrder(gbo);
                     continue;
@@ -1227,38 +1202,29 @@ public class NodepoolScheduler
 
                 // Don't schedule non-preemptable shares over subpools
                 if ( np.countLocalShares() < n_instances ) {
-                    schedulingUpdate.refuse(j, "1 Job refused because insufficient resources are availble. Available for class " 
-                                            + rc.getName() + ": "
-                                            + np.countLocalShares()
-                                            + "requested:" + n_instances);
+                    schedulingUpdate.defer(j, "Job deferred because insufficient resources are availble for this class.");
 
-                    logger.warn(methodName, j.getId(), "1 Cannot accept Fixed Share job nodepool " + np.getId() 
-                                            + " has insufficient nodes left. Available[" 
+                    logger.warn(methodName, j.getId(), "1 Deferring sixed share job because nodepool " + np.getId() 
+                                            + " has insufficient space left. Available[" 
                                             + np.countLocalShares() 
                                             + "] requested[" + n_instances + "]");
                     continue;
                 }
              
                 //
-                // Now see if we have sufficient shares in the system for this allocation. Note that pool nodes are accounted for here as well.
+                // Now see if we have sufficient shares in the system for this allocation.
                 //
                 if ( np.countNSharesByOrder(order) < n_instances ) {     // countSharesByOrder is N shares, as is minshares
-                    schedulingUpdate.refuse(j, "2 Job refused because insufficient resources are availble.");
-                    logger.warn(methodName, j.getId(), "2 Cannot accept Fixed Share job, insufficient shares available. Available[" + np.countNSharesByOrder(order) + "] requested[" + n_instances + "]");
+                    schedulingUpdate.defer(j, "Job deferred  because insufficient resources are availble.");
+                    logger.warn(methodName, j.getId(), "2 Deferring fixed share job, insufficient shares available. Available[" + np.countNSharesByOrder(order) + "] requested[" + n_instances + "]");
                     continue;
                 }
 
                 //
                 // Make sure this allocation does not blow the class cap.
                 //
-                shares_given_out += (n_instances * order);
-                if ( shares_given_out > classcap ) {                         // to q-shares before comparing
-                    schedulingUpdate.refuse(j, "3 Job refused because class cap of " + classcap + " is exceeded.");
-                    continue;
-                }
-
-                if ( rc.getMaxProcesses() < n_instances ) {               // Does it blow the configured limit for this class?
-                    schedulingUpdate.refuse(j, "3 Job refused because class max of " + rc.getMaxProcesses() + " is exceeded.");
+                if ( rc.allotmentExceeded(j) ) {
+                    schedulingUpdate.defer(j, "Job deferred because allotment of " + rc.getAllotment(j) + "GB is exceeded by user " + j.getUserName());
                     continue;
                 }
 
@@ -1296,6 +1262,14 @@ public class NodepoolScheduler
                     continue;
                 }
 
+                if ( j.isRefused() ) {                      // bypass jobs that we know can't be allocated. unlikely after UIMA-4275.
+                    continue;
+                }
+
+                if ( j.isDeferred() ) {                    // UIMA-4275 - still waiting for an allocation
+                    continue;
+                }
+
                 int order = j.getShareOrder();
                 int count = j.countNSharesGiven();
                 int avail = np.countNSharesByOrder(order);
@@ -1316,7 +1290,7 @@ public class NodepoolScheduler
 
 
                 // 
-                // If not we're waiting on preemptions which will occur naturally, or by forcible eviction of squatters.
+                // If nothing assigned we're waiting on preemptions which will occur naturally, or by forcible eviction of squatters.
                 //
             }
         }
@@ -1344,7 +1318,6 @@ public class NodepoolScheduler
 
             // Get jobs into order by submission time - new ones ones may just be out of luck
             ArrayList<IRmJob> jobs = rc.getAllJobsSorted(new JobByTimeSorter());
-            int machines_given_out = 0;
 
             NodePool np = rc.getNodepool();
 
@@ -1373,7 +1346,6 @@ public class NodepoolScheduler
                     gbo[j.getShareOrder()] = j.countNShares();  // UIMA-3614 - may be < Instances if machine is purged
                     j.setGivenByOrder(gbo);
                     
-                    machines_given_out += nshares;
                     jlist.remove();
                     continue;
                 } 
@@ -1402,7 +1374,6 @@ public class NodepoolScheduler
 
                 int order      = j.getShareOrder();     // memory, coverted to order, so we can find stuff
                 int nrequested = j.countInstances();     // in machines                
-                int classcap;
                 
                 if ( np.countLocalMachines() == 0 ) {
                     schedulingUpdate.defer(j, "Reservation deferred because resources are exhausted."); 
@@ -1414,7 +1385,7 @@ public class NodepoolScheduler
                 }
 
                 if ( rc.allotmentExceeded(j) ) {               // Does it blow the configured limit for this class?
-                    schedulingUpdate.defer(j, "Reservation deferred because allotment of " + rc.getAllotment(j) + " is exceeded by user " + j.getUserName());
+                    schedulingUpdate.defer(j, "Reservation deferred because allotment of " + rc.getAllotment(j) + "GB is exceeded by user " + j.getUserName());
                     continue;
                 }
                 
@@ -1423,7 +1394,6 @@ public class NodepoolScheduler
                 int[] gbo = NodePool.makeArray();
                 gbo[order] = nrequested;
                 j.setGivenByOrder(gbo);
-                machines_given_out += nrequested;
 
                 int given = 0;
                 if ( rc.enforceMemory() ) { 
@@ -1544,7 +1514,7 @@ public class NodepoolScheduler
         for (ResourceClass rc : resourceClasses.values() ) {
             if ( rc.getPolicy() == Policy.FAIR_SHARE ) {
                 NodePool np = rc.getNodepool();
-                NodePool check = getNodepool(rc);
+                // NodePool check = getNodepool(rc);
                 HashMap<IRmJob, IRmJob> jobs = rc.getAllJobs();
                 for ( IRmJob j : jobs.values() ) {
                     HashMap<Share, Share> shares = j.getAssignedShares();
@@ -1871,7 +1841,7 @@ public class NodepoolScheduler
                 List<Share> potentialShares     = new ArrayList<Share>();
                 for ( Share s : sh ) {
                     IRmJob j = s.getJob();
-                    User u = j.getUser();
+                    // User u = j.getUser();
                     
                     if ( s.isForceable() ) {
                         if ( candidateJobs.containsKey(j) ) {

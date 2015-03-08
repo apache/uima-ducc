@@ -968,10 +968,11 @@ public class Scheduler
                     continue;
                 }
 
-                if ( share_order > max_order ) {
-                    upd.refuse(j, "Memory requested " + j.getMemory() + "GB exceeds the capacity of any machine in the cluster.");
-                    continue;
-                }
+                // UIMA-4275 never refuse impossible work, just let it hang out
+//                 if ( share_order > max_order ) {
+//                     upd.refuse(j, "Memory requested " + j.getMemory() + "GB exceeds the capacity of any machine in the cluster.");
+//                     continue;
+//                 }
 
                 /**
                  * We want to allow this - a normal job, submitted to a reservation class.
