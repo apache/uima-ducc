@@ -97,12 +97,13 @@ public class NodeConfiguration
         defaultFairShareClass.put("policy", "FAIR_SHARE");
         defaultFairShareClass.put("weight", "100");
         defaultFairShareClass.put("priority", "10");
-        defaultFairShareClass.put("cap", Integer.toString(Integer.MAX_VALUE));
+        defaultFairShareClass.put("fair-share-cap", Integer.toString(Integer.MAX_VALUE));
+        defaultFairShareClass.put("cap", "<optional>");
         defaultFairShareClass.put("expand-by-doubling", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.expand.by.doubling", true));
         defaultFairShareClass.put("initialization-cap", ""+SystemPropertyResolver.getIntProperty("ducc.rm.initialization.cap", 2));
         defaultFairShareClass.put("use-prediction", ""+SystemPropertyResolver.getBooleanProperty("ducc.rm.prediction", true));
         defaultFairShareClass.put("prediction-fudge", ""+SystemPropertyResolver.getIntProperty("ducc.rm.prediction.fudge", 60000));
-        defaultFairShareClass.put("max-processes", Integer.toString(Integer.MAX_VALUE));
+        defaultFairShareClass.put("max-processes", "<optional>");
         defaultFairShareClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
         defaultFairShareClass.put("nodepool", "<required>");
         defaultFairShareClass.put("users", "<optional>");
@@ -122,9 +123,9 @@ public class NodeConfiguration
         defaultFixedShareClass.put("policy", "FIXED_SHARE");
         defaultFixedShareClass.put("priority", "5");
         defaultFixedShareClass.put("default", "<optional>");
-        defaultFixedShareClass.put("max-processes", Integer.toString(Integer.MAX_VALUE));
+        defaultFixedShareClass.put("max-processes", "<optional>");
         defaultFixedShareClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
-        defaultFixedShareClass.put("cap", Integer.toString(Integer.MAX_VALUE));
+        defaultFixedShareClass.put("cap", "<optional>");
         defaultFixedShareClass.put("nodepool", "<required>");
         defaultFixedShareClass.put("users", "<optional>");
 
@@ -136,9 +137,9 @@ public class NodeConfiguration
         defaultReserveClass.put("policy", "RESERVE");
         defaultReserveClass.put("priority", "1");
         defaultReserveClass.put("default", "<optional>");
-        defaultReserveClass.put("max-machines", Integer.toString(Integer.MAX_VALUE));
+        defaultReserveClass.put("max-machines", "<optional>");
         defaultReserveClass.put("max-allotment", Integer.toString(Integer.MAX_VALUE));
-        defaultReserveClass.put("cap", Integer.toString(Integer.MAX_VALUE));
+        defaultReserveClass.put("cap", "<optional>");
         defaultReserveClass.put("nodepool", "<required>");
         defaultReserveClass.put("users", "<optional>");
         defaultReserveClass.put("enforce", "true");
@@ -1149,6 +1150,7 @@ public class NodeConfiguration
         printProperty("Priority",                cl.get("priority"));
         printProperty("Weight",                  cl.get("weight"));
         printProperty("Debug",                   cl.get("debug"));
+        printProperty("Fair-Share Cap",          cl.get("fair-share-cap"));
         printDeprecatedProperty("Cap",           cl.get("cap"),           "IGNORED Use max-allotment = [mem in GB] instead.");
         printProperty("Expand By Doubling",      cl.get("expand-by-doubling"));
         printProperty("Initialization Cap",      cl.get("initialization-cap"));

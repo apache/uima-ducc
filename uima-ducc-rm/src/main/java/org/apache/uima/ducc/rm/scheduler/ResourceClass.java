@@ -46,8 +46,6 @@ public class ResourceClass
 
     private int share_quantum;      // for limits, to convert shares to GB
     private int max_allotment;      // All allocation policies, max in GB
-    private int max_processes;      // fixed-share: max shares to hand out regardless of
-                                    // what is requested or what fair-share turns out to be
 
     // for shares, this caps shares
     private int absolute_cap;       // max shares or machines this class can hand out
@@ -108,29 +106,27 @@ public class ResourceClass
             }
         }
 
-        this.max_allotment = props.getIntProperty("max-allotment", Integer.MAX_VALUE);
+        if ( policy != Policy.FAIR_SHARE ) {
+            this.max_allotment = props.getIntProperty("max-allotment", Integer.MAX_VALUE);
+        }
 
         if ( policy == Policy.RESERVE ) {
             this.enforce_memory = props.getBooleanProperty("enforce", true);
         }
 
-        if ( policy != Policy.RESERVE ) {
-            this.max_processes = props.getIntProperty("max-processes", Integer.MAX_VALUE);
-        }
-
         this.absolute_cap = Integer.MAX_VALUE;
         this.percent_cap  = 1.0;
 
-        String cap  = props.getStringProperty("cap");
-        if ( cap.endsWith("%") ) {
-            int t = Integer.parseInt(cap.substring(0, cap.length()-1));
-            this.percent_cap = (t * 1.0 ) / 100.0;
-        } else {
-            absolute_cap = Integer.parseInt(cap);
-            if (absolute_cap == 0) absolute_cap = Integer.MAX_VALUE;
-        }
-
         if ( this.policy == Policy.FAIR_SHARE ) {
+            String cap  = props.getStringProperty("fair-share-cap");
+            if ( cap.endsWith("%") ) {
+                int t = Integer.parseInt(cap.substring(0, cap.length()-1));
+                this.percent_cap = (t * 1.0 ) / 100.0;
+            } else {
+                absolute_cap = Integer.parseInt(cap);
+                if (absolute_cap == 0) absolute_cap = Integer.MAX_VALUE;
+            }
+
             this.share_weight = props.getIntProperty("weight");
             if ( props.containsKey("expand-by-doubling") ) {
                 this.expand_by_doubling = props.getBooleanProperty("expand-by-doubling", true);
@@ -255,10 +251,6 @@ public class ResourceClass
         return absolute_cap;
     }
         
-    public int getMaxProcesses() {
-        return max_processes;
-    }
-
     public int getAllotment(IRmJob j) 
     {
         User u = j.getUser();
@@ -629,15 +621,15 @@ public class ResourceClass
     }
     
     // note we assume Nodepool is the last token so we don't set a len for it!
-    private static String formatString = "%12s %11s %4s %5s %5s %6s %6s %7s %6s %6s %7s %5s %7s %s";
+    private static String formatString = "%12s %11s %4s %5s %6s %6s %7s %6s %6s %7s %5s %7s %s";
     public static String getDashes()
     {
-        return String.format(formatString, "------------", "-----------",  "----", "-----", "-----", "------", "------", "-------", "------", "------", "-------", "-----", "-------", "--------");
+        return String.format(formatString, "------------", "-----------",  "----", "-----", "------", "------", "-------", "------", "------", "-------", "-----", "-------", "--------");
     }
 
     public static String getHeader()
     {
-        return String.format(formatString, "Class Name", "Policy", "Prio", "Wgt", "MaxSh", "AbsCap", "PctCap", "InitCap", "Dbling", "Prdct", "PFudge", "Shr", "Enforce", "Nodepool");
+        return String.format(formatString, "Class Name", "Policy", "Prio", "Wgt", "AbsCap", "PctCap", "InitCap", "Dbling", "Prdct", "PFudge", "Shr", "Enforce", "Nodepool");
     }
 
     @Override
@@ -652,7 +644,6 @@ public class ResourceClass
                              policy.toString(),
                              priority, 
                              share_weight, 
-                             makeReadable(max_processes), 
                              makeReadable(absolute_cap), 
                              (int) (percent_cap *100), 
                              initialization_cap,

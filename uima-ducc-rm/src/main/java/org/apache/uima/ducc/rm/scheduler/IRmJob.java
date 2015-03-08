@@ -206,6 +206,8 @@ public interface IRmJob
     void undefer();
     boolean isDeferred();
 
+    public String getReason();    // reason for some scheduling anomoly, if there is one
+
     /**
      * Scheduler looks at job memory and decides what its share order is.
      */

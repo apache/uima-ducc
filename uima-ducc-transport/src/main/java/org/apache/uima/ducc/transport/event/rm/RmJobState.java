@@ -99,6 +99,11 @@ public class RmJobState implements IRmJobState {
         return reason;
     }
 
+    public void setReason(String r)
+    {
+        this.reason = reason;
+    }
+
     public DuccType getDuccType()
     {
         return ducc_type;

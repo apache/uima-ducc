@@ -105,7 +105,7 @@ public class RmJob
 
     protected Properties jobprops;                       // input that job is constructed from. currently is condensed from Blade logs (simulation only)
 
-    protected String refusalReason = null;               // if refused, this is why, for the message
+    protected String reason = null;                      // if refused, deferred, etc, this is why, for the message
     boolean   refused = false;
     boolean   deferred = false;
 
@@ -874,7 +874,7 @@ public class RmJob
     {
         String methodName = "refuse";
         logger.warn(methodName, id, refusal);
-        this.refusalReason = refusal;
+        this.reason = refusal;
         deferred = true;
     }
 
@@ -882,14 +882,19 @@ public class RmJob
     {
         String methodName = "defer";
         logger.info(methodName, id, reason);
-        this.refusalReason = reason;
+        this.reason = reason;
         deferred = true;
+    }
+
+    public String getReason()
+    {
+        return this.reason;
     }
 
     public void undefer()
     {
         deferred = false;
-        refusalReason = null;
+        reason = null;
     }
 
     public boolean isRefused()
@@ -904,7 +909,7 @@ public class RmJob
     
     public String getRefusalReason()
     {
-    	return refusalReason;
+    	return reason;
     }
     
     public void setShareOrder(int s)

@@ -631,7 +631,7 @@ public class JobManagerConverter
               switch ( rescl.getPolicy() ) {
                   case FAIR_SHARE:
                       max_processes    = toInt(si.getSharesMax(), DEFAULT_PROCESSES);
-                      max_processes    = Math.min(rescl.getMaxProcesses(), max_processes);
+                      // max_processes    = Math.min(rescl.getMaxProcesses(), max_processes);
                       j.setMaxShares(max_processes);
                       j.setNInstances(-1);
                       break;
@@ -1140,6 +1140,7 @@ public class JobManagerConverter
                 
                 RmJobState rjs = new RmJobState(j.getId(), all_shares, shrunken_shares, expanded_shares);
                 rjs.setDuccType(j.getDuccType());
+                rjs.setReason(j.getReason());
                 rmJobState.put(j.getId(), rjs);
             }
 
