@@ -159,6 +159,7 @@ public class NodeConfiguration
     String resolve(String file)
         throws IllegalConfigurationException
     {
+    		if ( file == null ) return null;
         if ( !file.startsWith("/") ) {
             file = ducc_home + "/resources/" + file;
         }
