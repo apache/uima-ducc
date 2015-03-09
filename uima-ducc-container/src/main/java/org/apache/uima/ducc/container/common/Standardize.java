@@ -21,6 +21,12 @@ package org.apache.uima.ducc.container.common;
 public class Standardize {
 
 	public enum Label {
+		collectionReaderCfg,
+		collectionReaderXml,
+		userClasspath,
+		workItemTimeout,
+		jobdir,
+		jobid,
 		deallocate,
 		text,
 		limit,
