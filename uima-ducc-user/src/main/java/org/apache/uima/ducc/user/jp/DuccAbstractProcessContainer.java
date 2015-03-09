@@ -100,14 +100,14 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
 		// user code needs to load resources 
 		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
 		restoreLog4j();
- 		System.out.println("DuccAbstractProcessContainer.initialize() >>>>>>>>> Crossing from Ducc Container to User Container");
 		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+ 		System.out.println("DuccAbstractProcessContainer.initialize() >>>>>>>>> Crossed from Ducc Container to User Container");
 		try {
 
     		return doInitialize(p, arg);
         }finally {
 			Thread.currentThread().setContextClassLoader(savedCL);
- 	 		System.out.println("DuccAbstractProcessContainer.initialize() <<<<<<<< Returning from User Container to Ducc Container");
+ 	 		System.out.println("DuccAbstractProcessContainer.initialize() <<<<<<<< Returned from User Container to Ducc Container");
 			System.setProperty("log4j.configuration", "");
         }
     }
@@ -117,13 +117,13 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
  		// a context cl before calling user code. 
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
  		restoreLog4j();
- 		System.out.println("DuccAbstractProcessContainer.deploy() >>>>>>>>> Crossing from Ducc Container to User Container");
  		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+ 		System.out.println("DuccAbstractProcessContainer.deploy() >>>>>>>>> Crossed from Ducc Container to User Container");
          try {
      		doDeploy();
          } finally {
  			Thread.currentThread().setContextClassLoader(savedCL);
- 	 		System.out.println("DuccAbstractProcessContainer.deploy() <<<<<<<< Returning from User Container to Ducc Container");
+ 	 		System.out.println("DuccAbstractProcessContainer.deploy() <<<<<<<< Returned from User Container to Ducc Container");
  			//	Pin thread to its own CAS serializer instance
  			serializerMap.put( Thread.currentThread().getId(), new DuccUimaSerializer());
 			if ( System.getProperties().containsKey("log4j.configuration")) {
@@ -148,13 +148,13 @@ public abstract class DuccAbstractProcessContainer implements IProcessContainer{
  		// a context cl before calling user code. 
  		ClassLoader savedCL = Thread.currentThread().getContextClassLoader();
  		Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
- 		System.out.println("DuccAbstractProcessContainer.stop() >>>>>>>>> Crossing from Ducc Container to User Container");
+ 		System.out.println("DuccAbstractProcessContainer.stop() >>>>>>>>> Crossed from Ducc Container to User Container");
          
  		try {
      		doStop();
          }finally {
  			Thread.currentThread().setContextClassLoader(savedCL);
- 	 		System.out.println("DuccAbstractProcessContainer.stop() <<<<<<<< Returning from User Container to Ducc Container");
+ 	 		System.out.println("DuccAbstractProcessContainer.stop() <<<<<<<< Returned from User Container to Ducc Container");
 
          }
      }
