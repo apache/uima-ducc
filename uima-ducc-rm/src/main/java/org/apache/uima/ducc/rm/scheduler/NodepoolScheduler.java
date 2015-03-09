@@ -910,6 +910,7 @@ public class NodepoolScheduler
             if ( !rc.hasSharesGiven() ) {
                 for (IRmJob j : rc.getAllJobs().values()) {
                     j.clearShares();
+                    j.undefer();         // can get message set during defrag
                 }
             	continue;
             }
@@ -1173,6 +1174,7 @@ public class NodepoolScheduler
 
             for ( IRmJob j : jobs ) {
                 j.clearShares();                               // reset shares assigned at start of each schedling cycle
+                j.undefer();                                   // in case it works this time!
             }
 
             NodePool np = rc.getNodepool();
@@ -1286,7 +1288,9 @@ public class NodepoolScheduler
                         s.setFixed();
                     }
                     logger.info(methodName, j.getId(), "Assign:", nSharesToString(count, j.getShareOrder()));
-                } 
+                } else {
+                    j.setReason("Waiting on evictions.");
+                }
 
 
                 // 
@@ -2028,6 +2032,7 @@ public class NodepoolScheduler
                 }
             }
             logger.info(methodName, nj.getId(), "Could not get enough from the rich. Asked for", needy.get(nj), "still needing", needed);
+            nj.setReason("Waiting on defragmentation.");
         }
     }
 

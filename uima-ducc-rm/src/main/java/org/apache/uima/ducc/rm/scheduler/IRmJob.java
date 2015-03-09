@@ -195,14 +195,15 @@ public interface IRmJob
     /**
      * Can't schedudle this nohow.  Here's why.
      */
-    void refuse(String refusal);
+    void refuse(String reason);
     String getRefusalReason();
     boolean isRefused();
 
     /**
      * Can't schedule non-preemptable yet, but maybe later
      */
-    void defer(String refsual);
+    void defer(String reason);
+    void setReason(String reason);     // maybe want to tell OR/WS/CLI something but nothing really wrong
     void undefer();
     boolean isDeferred();
 
@@ -258,10 +259,8 @@ public interface IRmJob
     public String printShares();
 
     public int getMaxShares();
-    public int getMinShares();
 
     public void setMaxShares(int s);
-    public void setMinShares(int s);
 
     public void setPureFairShare(int s);
     public int  getPureFairShare();

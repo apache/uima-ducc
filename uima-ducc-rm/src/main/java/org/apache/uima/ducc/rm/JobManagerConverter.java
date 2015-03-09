@@ -509,7 +509,6 @@ public class JobManagerConverter
         j.setUserName(user_name);
         j.setJobName(name);
 
-        int min_shares    = toInt(si.getSharesMin(), 0);
         int threads       = toInt(si.getThreadsPerShare(), scheduler.getDefaultNThreads());
         int user_priority = toInt(si.getSchedulingPriority(), 100);
 
@@ -539,7 +538,6 @@ public class JobManagerConverter
             }
         }
 
-        j.setMinShares(min_shares);
         j.setThreads(threads);
         j.setUserPriority(user_priority);
         j.setNQuestions(total_work, remaining_work, 0.0);

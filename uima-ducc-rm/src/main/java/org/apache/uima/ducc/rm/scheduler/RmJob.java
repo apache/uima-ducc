@@ -51,7 +51,6 @@ public class RmJob
     protected int    user_priority;                   // user "priority", really apportionment 
 
     protected int n_machines;                         // RESERVE:     minimum machines to allocate
-    protected int min_shares;                         // FIXED_SHARE: minimum N shares to allocate
     protected int max_shares;                         // FAIR_SHARE:  maximum N shares to allocate
     protected boolean is_reservation = false;
 
@@ -891,6 +890,11 @@ public class RmJob
         return this.reason;
     }
 
+    public void setReason(String reason)
+    {
+        this.reason = reason;
+    }
+
     public void undefer()
     {
         deferred = false;
@@ -1094,19 +1098,9 @@ public class RmJob
         }
     }
 
-    public int getMinShares()
-    {
-        return min_shares;
-    }
-
     public void setMaxShares(int s)
     {
         this.max_shares = s;
-    }
-
-    public void setMinShares(int s)
-    {
-        this.min_shares = s;
     }
 
     public boolean isRunning()
@@ -1179,10 +1173,6 @@ public class RmJob
     public void setNInstances(int m)
     {
         this.n_machines = m;
-    }
-
-    public int getMaxMachines() {
-        return min_shares;
     }
 
     public int nThreads() {
