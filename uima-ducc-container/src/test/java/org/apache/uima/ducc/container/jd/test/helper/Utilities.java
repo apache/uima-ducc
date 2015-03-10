@@ -18,6 +18,7 @@
 */
 package org.apache.uima.ducc.container.jd.test.helper;
 
+import java.io.File;
 import java.net.URL;
 
 public class Utilities {
@@ -38,22 +39,17 @@ public class Utilities {
 	}
 	
 	private Utilities() {
-		userCP = 
-			resource("/") +
-			":" +
-			resource("/uima-ducc-user.jar") +
-			":" +
-			resource("/uimaj-as-core.jar") +
-			":" +
-			resource("/uimaj-core.jar") +
-			":" +
-			resource("/xstream-1.3.1.jar") +
-			":" +
-			resource("/spring-core.jar") +
-			":" +
-			resource("/xmlbeans.jar") +
-			""
-			;
+		// Create classpath from all jars in the test-classes directory, plus the directory.
+		// i.e. uima-ducc-user uimaj-core uimaj-as-core xmlbeans xstream spring-core
+		userCP = resource("/");
+		StringBuilder sb = new StringBuilder(userCP);
+		File dir = new File(userCP);
+		for (File file : dir.listFiles()) {
+			if (file.getName().endsWith(".jar")) {
+				sb.append(':').append(file.getPath());
+			}
+		}
+		userCP = sb.toString();
 	}
 	
 	public String getUserCP() {
@@ -71,6 +67,7 @@ public class Utilities {
 	public void listToConsole(String userCP) {
 		if(userCP != null) {
 			String[] segments = userCP.split(":");
+			System.out.println("userCP has " + segments.length + " segments:");
 			for(String segment : segments) {
 				System.out.println(segment);
 			}
