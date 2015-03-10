@@ -101,7 +101,7 @@ public class RmJobState implements IRmJobState {
 
     public void setReason(String r)
     {
-        this.reason = reason;
+        if ( r != null ) this.reason = r;
     }
 
     public DuccType getDuccType()

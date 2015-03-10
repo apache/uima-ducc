@@ -99,12 +99,15 @@ public class RmStateDuccEvent
                 buf.append(String.format("%s %s\n\tRefused: %s\n", j.getDuccType(), j.getId().getFriendly(), j.getReason()));
                 continue;
             }
+            
+            String reason = j.getReason();
+            if (reason.equals("<none>")) reason = "";
 
             Map<DuccId, IResource> existing = j.getResources();
             if ( existing == null ) {
-                buf.append(String.format("%s %s\n\tExisting[0]", j.getDuccType(), j.getId().getFriendly()));
+                buf.append(String.format("%s %s %s\n\tExisting[0]", j.getDuccType(), j.getId().getFriendly(), reason));
             } else {
-                buf.append(String.format("%s %s\n\tExisting[%d]: ", j.getDuccType(), j.getId().getFriendly(), existing.size()));
+                buf.append(String.format("%s %s %s\n\tExisting[%d]: ", j.getDuccType(), j.getId().getFriendly(), reason, existing.size()));
                 for ( IResource r : existing.values() ) {                    
                     buf.append(r.toString());
                     buf.append(" ");

@@ -1289,7 +1289,7 @@ public class NodepoolScheduler
                     }
                     logger.info(methodName, j.getId(), "Assign:", nSharesToString(count, j.getShareOrder()));
                 } else {
-                    j.setReason("Waiting on evictions.");
+                    j.setReason("Waiting for preemptions.");
                 }
 
 
@@ -1466,6 +1466,10 @@ public class NodepoolScheduler
                 // Either shares were assigned or not.  If not we wait for evictions, otherwise it is
                 // fully allocated. Nothing more to do here.
                 //
+                if ( j.countNShares() == 0 ) {
+                    j.setReason("Waiting for preemptions.");
+                }
+
             }
 
         }
@@ -1897,7 +1901,13 @@ public class NodepoolScheduler
             }
             logger.debug(methodName, nj.getId(), "Given_per_round", given_per_round, "given", given, "needed", needed);
         } while ( (given_per_round > 0) && ( given < needed ));
-        
+
+        // Sometimes we can directly reassign a share, in which case the job isn't waiting any more.
+        // We only care about setting a message if the poor thing is still totally starved of resources.
+        if ( nj.countNShares() == 0 ) {
+            nj.setReason("Waiting for defragmentation.");
+        }
+
         return given;
     }
 
@@ -2032,7 +2042,6 @@ public class NodepoolScheduler
                 }
             }
             logger.info(methodName, nj.getId(), "Could not get enough from the rich. Asked for", needy.get(nj), "still needing", needed);
-            nj.setReason("Waiting on defragmentation.");
         }
     }
 

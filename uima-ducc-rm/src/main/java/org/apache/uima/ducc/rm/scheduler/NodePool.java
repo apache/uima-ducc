@@ -168,7 +168,7 @@ class NodePool
                 ret -= gbo[order];
             }
         }
-        logger.info(methodName, null, "Shares available for", id, ":", ret);
+        logger.trace(methodName, null, "Shares available for", id, ":", ret);
         // now accumulate the kid's contribution
         for ( NodePool np : children.values() ) {
             ret += np.countAssignableShares(order);
@@ -686,7 +686,7 @@ class NodePool
             int v_order = m.getVirtualShareOrder();
             int r_order = m.getShareOrder();
 
-            logger.info(methodName, null, m.getId(), "order", order, "v_order", v_order, "r_order", r_order);
+            logger.trace(methodName, null, m.getId(), "order", order, "v_order", v_order, "r_order", r_order);
 
             if ( v_order == r_order ) {
                 nMachinesByOrder[r_order]--;
@@ -1347,7 +1347,7 @@ class NodePool
 
         int cnt = countFreeMachines(order, enforce);
         if ( cnt < needed ) {
-            logger.info(methodName, job.getId(), "Reservation waiting on evictions");
+            logger.info(methodName, job.getId(), "Reservation waiting on evictions.  Have", cnt, "free, needed", needed);
             setupPreemptions(needed-cnt, order, enforce);  // if returns 0, must refuse the job
             return;
         }
@@ -1663,6 +1663,7 @@ class NodePool
             } else {
                 sb.append("notfound ");
             }
+            if ( j.countNShares() == 0 ) j.setReason("Waiting for preemptions.");
         }
         logger.info(methodName, null, sb.toString());
         return expansions;

@@ -392,7 +392,7 @@ public class ResourceClass
         //  Then, if gbo < resourcesavailable we can return true, else return false
         //
         int resourcesAvailable = nodepool.countAssignableShares(order);      // recurses, covers all relevent rc's
-        logger.info(methodName, null, "Class", id, "nodepool", nodepool.getId(), "order", order, "wbo", wbo, "gbo", gbo, "resourcesAvailable", resourcesAvailable);
+        logger.trace(methodName, null, "Class", id, "nodepool", nodepool.getId(), "order", order, "wbo", wbo, "gbo", gbo, "resourcesAvailable", resourcesAvailable);
 
         if ( wbo <= 0 ) return false;
 
