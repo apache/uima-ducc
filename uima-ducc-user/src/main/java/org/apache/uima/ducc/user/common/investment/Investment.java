@@ -44,6 +44,8 @@ public class Investment {
 	 * @throws Exception
 	 */
 	public static void reset(String key) throws Exception {
-		method.invoke(instance, key);
+		if ( instance != null ) {
+			method.invoke(instance, key);
+		}
 	}
 }
