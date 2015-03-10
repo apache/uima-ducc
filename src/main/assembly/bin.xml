@@ -70,7 +70,6 @@ under the License.
         <include>org.apache.uima:uima-ducc-orchestrator</include>
         <include>org.apache.uima:uima-ducc-web</include>
         <include>org.apache.uima:uima-ducc-db</include>
-        <include>org.apache.uima:uima-ducc-user</include>
         <include>org.apache.uima:uima-ducc-container</include>
       </includes>      
       <outputFileNameMapping>${artifact.artifactId}-${project.version}.jar</outputFileNameMapping>
@@ -93,7 +92,7 @@ under the License.
       <directoryMode>755</directoryMode>        
     </dependencySet>
 
-    <!-- Put examples jar one level down to isolate from daemons -->
+    <!-- Put user jar one level down to isolate it -->
     <dependencySet>
       <useStrictFiltering>true</useStrictFiltering>
       <includes>
@@ -248,6 +247,14 @@ under the License.
 
   <!-- Add other files - scripts, documentation, examples -->
   <fileSets>
+
+    <!-- UIMA (just the core jars to replace the ones in the UIMA-AS extract in case versions differ) -->
+    <fileSet>
+      <directory>target/uimaj/apache-uima/lib</directory>
+      <outputDirectory>apache-uima/lib</outputDirectory>
+      <fileMode>755</fileMode>
+      <directoryMode>755</directoryMode>        
+    </fileSet>
 
     <!-- UIMA-AS (includes UIMA SDK & ActiveMQ) -->
     <fileSet>

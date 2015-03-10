@@ -118,23 +118,6 @@
 		   </plugins>
 		</pluginManagement>
 		<plugins>
-		<plugin>
-               <groupId>org.apache.uima</groupId>
-               <artifactId>uima-build-helper-maven-plugin</artifactId>
-               <executions>
-               <execution>
-                  <id>bar</id>
-                  <phase>validate</phase>
-                  <goals><goal>copy-from-apache-dist</goal></goals>
-                  <configuration>
-                     <version>${org.apache.uima.as.version}</version>
-                     <artifactId>uima-as</artifactId>
-                     <type>tar.gz</type>
-                  </configuration>
-               </execution>
-               
-               </executions> 
-            </plugin>
 
 
 			<plugin>
@@ -144,73 +127,51 @@
 				<executions>
           
                     <execution>
-                      <!-- use the dependency:unpack goal to unpack the 
-                         base binary uima-as distribution -->
-                      <id>unpack uima-as Bin</id>
-                      <phase>validate</phase>
-                      <goals><goal>unpack</goal></goals>
-                      <configuration>
-                        <overWriteIfNewer>true</overWriteIfNewer>
-                        <artifactItems>
-                          <artifactItem>
-                            <groupId>org.apache.uima</groupId>
-                            <artifactId>uima-as</artifactId>
-                            <version>${org.apache.uima.as.version}</version>
-                            <type>tar.gz</type>
-                            <classifier>bin</classifier>
-                            <outputDirectory>${project.build.directory}/uima-as</outputDirectory>
-                          </artifactItem>
-                        </artifactItems>
-                      </configuration>
-                    </execution>
-                    
-                    <execution>
-                      <!-- use the dependency:copy goal to copy 
-                        xstream for junit testing -->
-                      <id>copy xstream</id>
+                      <!-- use the dependency:copy goal to copy jars for junit testing -->
+                      <id>copy jars</id>
                       <phase>process-test-resources</phase>
                       <goals><goal>copy</goal></goals>
                       <configuration>
                         <overWriteIfNewer>true</overWriteIfNewer>
                         <artifactItems>
                           <artifactItem>
-                            <groupId>com.thoughtworks.xstream</groupId>
-                            <artifactId>xstream</artifactId>
-                            <version>${xstream.version}</version>
-                            <type>jar</type>
+							<groupId>org.apache.uima</groupId>
+							<artifactId>uima-ducc-user</artifactId>
                             <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
                           </artifactItem>
+                          <artifactItem>
+							<groupId>org.apache.uima</groupId>
+							<artifactId>uimaj-core</artifactId>
+                            <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                          </artifactItem>
+                          <artifactItem>
+							<groupId>org.apache.uima</groupId>
+							<artifactId>uimaj-as-core</artifactId>
+                            <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                          </artifactItem>
+                          <artifactItem>
+							<groupId>org.springframework</groupId>
+							<artifactId>spring-core</artifactId>
+							<version>${org.springframework.version}</version>
+                            <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                          </artifactItem>
+                          <artifactItem>
+							<groupId>org.apache.xmlbeans</groupId>
+							<artifactId>xmlbeans</artifactId>
+                            <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                          </artifactItem>
+                          <artifactItem>
+                            <groupId>com.thoughtworks.xstream</groupId>
+                            <artifactId>xstream</artifactId>
+                            <outputDirectory>${project.build.directory}/test-classes</outputDirectory>
+                          </artifactItem>
+
                         </artifactItems>
                       </configuration>
                     </execution>                    
                     
                     </executions>
                     </plugin>
-                    
-                    <plugin> 
-                    <groupId>org.apache.maven.plugins</groupId>
-                     <artifactId>maven-antrun-plugin</artifactId> 
-                     <!-- JUnit tests require uima,uima-as,uima-ducc-user, and xstream jars. These jars are loaded
-                          by a custom classloader to isolate uima related stuff from the rest of DUCC -->
-                     <executions> 
-                        <execution> 
-                           <id>copy-jars-for-junit-testing</id> 
-                           <phase>process-test-resources</phase> 
-                           <goals> 
-                             <goal>run</goal> 
-                           </goals> 
-                           <configuration> 
-                             <target> 
-                                <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/uima-core.jar" tofile="${basedir}/target/test-classes/uimaj-core.jar"/>
-                                <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/uimaj-as-core.jar" tofile="${basedir}/target/test-classes/uimaj-as-core.jar"/>
-                                <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/lib/xmlbeans.jar" tofile="${basedir}/target/test-classes/xmlbeans.jar"/>
-                                <copy file="${basedir}/target/uima-as/apache-uima-as-${org.apache.uima.as.version}/apache-activemq/lib/spring-core-${org.springframework.version}.jar" tofile="${basedir}/target/test-classes/spring-core.jar"/>
-                                <copy file="../uima-ducc-user/target/uima-ducc-user-${version}.jar" tofile="${basedir}/target/test-classes/uima-ducc-user.jar"/>
-                             </target> 
-                           </configuration> 
-                        </execution> 
-                    </executions> 
-                 </plugin> 
                     
 		</plugins>
 		
