@@ -54,7 +54,7 @@
   <properties>
     <!-- This is for the manifest-only public uima-ducc-cli.jar that goes directly in lib -->
     <DUCC_CP>
-uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar uima-ducc/uima-ducc-user-${ducc.version}.jar
+uima-ducc/uima-ducc-cli-${ducc.version}.jar uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${ducc.version}.jar uima-ducc/uima-ducc-user-${ducc.version}.jar
     </DUCC_CP>
   </properties>
 
@@ -139,6 +139,7 @@ uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${d
 				</manifestEntries>
 			  </archive>
               <excludes>
+                <exclude>org*/</exclude>
                 <exclude>META-INF/maven/*</exclude>
                 <exclude>**/pom.*</exclude>
                 <exclude>**/DEPENDENCIES</exclude>
@@ -158,8 +159,7 @@ uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${d
           </execution>
 
 		  <!-- Build the cli jar last so it is the one installed in the repository !! -->
-          <!-- Suppress the versioned jar, we only need the unversioned one. -->
-          <!-- execution>
+          <execution>
             <id>${project.artifactId}</id>
             <goals><goal>jar</goal></goals>
             <phase>package</phase>
@@ -168,7 +168,7 @@ uima-ducc/uima-ducc-common-${ducc.version}.jar uima-ducc/uima-ducc-transport-${d
               <archive>
               </archive>
             </configuration>
-          </execution --> 
+          </execution> 
 
         </executions>
         
